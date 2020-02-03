@@ -430,11 +430,13 @@ BrowserTabContent::getDefaultName() const
 {
     AString s = getTabNamePrefix();
     
-    const Model* displayedModel =
-    getModelForDisplay();
-    if (displayedModel != NULL) {
-        const AString name = displayedModel->getNameForBrowserTab();
-        s += name;
+    if ( ! m_closedFlag) {
+        const Model* displayedModel =
+        getModelForDisplay();
+        if (displayedModel != NULL) {
+            const AString name = displayedModel->getNameForBrowserTab();
+            s += name;
+        }
     }
     
     return s;

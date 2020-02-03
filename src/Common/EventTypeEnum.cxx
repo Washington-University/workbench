@@ -126,13 +126,21 @@ EventTypeEnum::initialize()
                                      "EVENT_BRAIN_STRUCTURE_GET_ALL",
                                      "Get all brain structures"));
     
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_CLOSE,
+                                     "EVENT_BROWSER_TAB_CLOSE",
+                                     "Close a browser tab, may reopen later"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_CLOSE_IN_TOOL_BAR,
+                                     "EVENT_BROWSER_TAB_CLOSE_IN_TOOL_BAR",
+                                     "Close (for possible reopening) a browser tab in the tool bar"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_DELETE,
                                      "EVENT_BROWSER_TAB_DELETE", 
                                      "Delete a browser tab"));
     
-    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_DELETE_IN_GUI,
-                                     "EVENT_BROWSER_TAB_DELETE_IN_GUI",
-                                     "Delete a browser tab from/in the GUI so toolbar updated"));
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_DELETE_IN_TOOL_BAR,
+                                     "EVENT_BROWSER_TAB_DELETE_IN_TOOL_BAR",
+                                     "Delete a browser tab in the tool bar"));
     
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_GET,
                                     "EVENT_BROWSER_TAB_GET", 

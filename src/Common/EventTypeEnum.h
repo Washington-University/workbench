@@ -68,10 +68,14 @@ public:
         EVENT_BRAIN_RESET,
         /** Get all brain structures */
         EVENT_BRAIN_STRUCTURE_GET_ALL,
+        /** Close a browser tab but may reopen later. */
+        EVENT_BROWSER_TAB_CLOSE,
+        /** Close (for possible later reopening) a browser tab from within the toolbar */
+        EVENT_BROWSER_TAB_CLOSE_IN_TOOL_BAR,
         /** Delete a browser tab. */
         EVENT_BROWSER_TAB_DELETE,
-        /** Delete a browser tab from code within the GUI so toolbar is updated. */
-        EVENT_BROWSER_TAB_DELETE_IN_GUI,
+        /** Delete a browser tab from within the toolbar */
+        EVENT_BROWSER_TAB_DELETE_IN_TOOL_BAR,
         /** Get a browser tab by tab number */
         EVENT_BROWSER_TAB_GET,
         /** Get indices of all valid browser tabs */

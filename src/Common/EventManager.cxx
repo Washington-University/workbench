@@ -398,8 +398,10 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_ANNOTATION_VALIDATE:
         case EventTypeEnum::EVENT_BRAIN_RESET:
         case EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET_ALL:
+        case EventTypeEnum::EVENT_BROWSER_TAB_CLOSE:
+        case EventTypeEnum::EVENT_BROWSER_TAB_CLOSE_IN_TOOL_BAR:
         case EventTypeEnum::EVENT_BROWSER_TAB_DELETE:
-        case EventTypeEnum::EVENT_BROWSER_TAB_DELETE_IN_GUI:
+        case EventTypeEnum::EVENT_BROWSER_TAB_DELETE_IN_TOOL_BAR:
         case EventTypeEnum::EVENT_BROWSER_TAB_GET:
         case EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL:
         case EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED:

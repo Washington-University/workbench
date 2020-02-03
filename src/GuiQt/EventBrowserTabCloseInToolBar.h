@@ -1,5 +1,5 @@
-#ifndef __EVENT_BROWSER_TAB_DELETE_IN_GUI_H__
-#define __EVENT_BROWSER_TAB_DELETE_IN_GUI_H__
+#ifndef __EVENT_BROWSER_TAB_CLOSE_FROM_TOOLBAR_H__
+#define __EVENT_BROWSER_TAB_CLOSE_FROM_TOOLBAR_H__
 
 /*LICENSE_START*/
 /*
@@ -30,22 +30,22 @@ namespace caret {
     class BrowserTabContent;
     
     /// Event for deleting a browser tab
-    class EventBrowserTabDeleteInGUI : public Event {
+    class EventBrowserTabCloseInToolBar : public Event {
         
     public:
-        EventBrowserTabDeleteInGUI(BrowserTabContent* browserTab,
-                                   const int32_t browserTabIndex);
+        EventBrowserTabCloseInToolBar(BrowserTabContent* browserTab,
+                                         const int32_t browserTabIndex);
         
-        virtual ~EventBrowserTabDeleteInGUI();
+        virtual ~EventBrowserTabCloseInToolBar();
         
         BrowserTabContent* getBrowserTab();
         
         int32_t getBrowserTabIndex() const;
         
     private:
-        EventBrowserTabDeleteInGUI(const EventBrowserTabDeleteInGUI&);
+        EventBrowserTabCloseInToolBar(const EventBrowserTabCloseInToolBar&);
         
-        EventBrowserTabDeleteInGUI& operator=(const EventBrowserTabDeleteInGUI&);
+        EventBrowserTabCloseInToolBar& operator=(const EventBrowserTabCloseInToolBar&);
         
         BrowserTabContent* m_browserTab;
         
@@ -54,4 +54,4 @@ namespace caret {
 
 } // namespace
 
-#endif // __EVENT_BROWSER_TAB_DELETE_IN_GUI_H__
+#endif // __EVENT_BROWSER_TAB_CLOSE_FROM_TOOLBAR_H__

@@ -261,7 +261,7 @@ namespace caret {
         void processTileTabOperationEvent(EventBrowserWindowTileTabOperation* tileTabsEvent);
         
     public slots:
-        void closeSelectedTab();
+        void closeSelectedTabFromFileMenu();
 
         void moveTabsToNewWindows();
         
@@ -293,14 +293,29 @@ namespace caret {
             AT_TAB_BAR_INDEX
         };
         
+        /**
+         * Remove tab mode
+         */
+        enum class RemoveTabMode {
+            /** Close tab but allow it to be reopened later */
+            CLOSE_TAB_CONTENT_FOR_REOPENING,
+            /** Delete the tab, CANNOT be reopened */
+            DELETE_TAB_CONTENT,
+            /** Ignore tab content, caller may delete it or transfer it (content attached to QTab may be NULL too) */
+            INGORE_TAB_CONTENT
+        };
+        
         bool allowAddingNewTab();
         
         void insertTabContentPrivate(const InsertTabMode insertTabMode,
                                      BrowserTabContent* browserTabContent,
                                      const int32_t tabBarIndex);
 
-        void removeTab(int index);
-        void tabClosed(int index);
+        void removeTab(int index,
+                       const RemoveTabMode removeTabMode);
+        
+        void tabClosed(int index,
+                       const RemoveTabMode removeTabMode);
         
         BrowserTabContent* insertNewTabAtTabBarIndex(int32_t tabBarIndex);
         void insertAndCloneTabContentAtTabBarIndex(const BrowserTabContent* tabContentToBeCloned,

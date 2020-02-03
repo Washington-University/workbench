@@ -42,6 +42,8 @@ namespace caret {
     class CiftiConnectivityMatrixDataFileManager;
     class CiftiFiberTrajectoryManager;
     class DataToolTipsManager;
+    class EventBrowserTabClose;
+    class EventBrowserTabDelete;
     class ImageCaptureSettings;
     class Model;
     class MovieRecorder;
@@ -123,9 +125,11 @@ namespace caret {
         
         BrowserTabContent* createNewBrowserTab();
         
-        bool closeBrowserTab(BrowserTabContent* tab,
-                             const int32_t windowIndex,
+        bool closeBrowserTab(EventBrowserTabClose* closeTabEvent,
                              AString& errorMessageOut);
+        
+        bool deleteBrowserTab(EventBrowserTabDelete* deleteTabEvent,
+                              AString& errorMessageOut);
         
         BrowserTabContent* reopenLastClosedTab(const int32_t windowIndex,
                                                AString& errorMessageOut);

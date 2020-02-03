@@ -19,16 +19,16 @@
 /*LICENSE_END*/
 
 #include "CaretAssert.h"
-#include "EventBrowserTabDeleteInGUI.h"
+#include "EventBrowserTabDeleteInToolBar.h"
 
 using namespace caret;
 
 /**
  * Constructor.
  */
-EventBrowserTabDeleteInGUI::EventBrowserTabDeleteInGUI(BrowserTabContent* browserTab,
+EventBrowserTabDeleteInToolBar::EventBrowserTabDeleteInToolBar(BrowserTabContent* browserTab,
                                              const int32_t browserTabIndex)
-: Event(EventTypeEnum::EVENT_BROWSER_TAB_DELETE_IN_GUI),
+: Event(EventTypeEnum::EVENT_BROWSER_TAB_DELETE_IN_TOOL_BAR),
 m_browserTab(browserTab),
 m_browserTabIndex(browserTabIndex)
 {
@@ -38,7 +38,7 @@ m_browserTabIndex(browserTabIndex)
 /**
  * Destructor.
  */
-EventBrowserTabDeleteInGUI::~EventBrowserTabDeleteInGUI()
+EventBrowserTabDeleteInToolBar::~EventBrowserTabDeleteInToolBar()
 {
     
 }
@@ -53,7 +53,7 @@ EventBrowserTabDeleteInGUI::~EventBrowserTabDeleteInGUI()
  *    Pointer to browser tab that is to be deleted.
  */
 BrowserTabContent* 
-EventBrowserTabDeleteInGUI::getBrowserTab()
+EventBrowserTabDeleteInToolBar::getBrowserTab()
 {
     return m_browserTab;
 }
@@ -62,7 +62,7 @@ EventBrowserTabDeleteInGUI::getBrowserTab()
  * @return Index of browser tab being deleted.
  */
 int32_t
-EventBrowserTabDeleteInGUI::getBrowserTabIndex() const
+EventBrowserTabDeleteInToolBar::getBrowserTabIndex() const
 {
     return m_browserTabIndex;
 }

@@ -19,27 +19,18 @@
 /*LICENSE_END*/
 
 #include "CaretAssert.h"
-#include "EventBrowserTabDelete.h"
+#include "EventBrowserTabCloseInToolBar.h"
 
 using namespace caret;
 
 /**
  * Constructor.
- *
- * @param browserTab
- *    The tab to delete
- * @param browserTabIndex
- *    Index of the tab to delete
- * @param windowIndex
- *    Index of window containing tab to close
  */
-EventBrowserTabDelete::EventBrowserTabDelete(BrowserTabContent* browserTab,
-                                             const int32_t browserTabIndex,
-                                             const int32_t windowIndex)
-: Event(EventTypeEnum::EVENT_BROWSER_TAB_DELETE),
+EventBrowserTabCloseInToolBar::EventBrowserTabCloseInToolBar(BrowserTabContent* browserTab,
+                                             const int32_t browserTabIndex)
+: Event(EventTypeEnum::EVENT_BROWSER_TAB_CLOSE_IN_TOOL_BAR),
 m_browserTab(browserTab),
-m_browserTabIndex(browserTabIndex),
-m_windowIndex(windowIndex)
+m_browserTabIndex(browserTabIndex)
 {
     CaretAssert(browserTab);
 }
@@ -47,7 +38,7 @@ m_windowIndex(windowIndex)
 /**
  * Destructor.
  */
-EventBrowserTabDelete::~EventBrowserTabDelete()
+EventBrowserTabCloseInToolBar::~EventBrowserTabCloseInToolBar()
 {
     
 }
@@ -62,7 +53,7 @@ EventBrowserTabDelete::~EventBrowserTabDelete()
  *    Pointer to browser tab that is to be deleted.
  */
 BrowserTabContent* 
-EventBrowserTabDelete::getBrowserTab()
+EventBrowserTabCloseInToolBar::getBrowserTab()
 {
     return m_browserTab;
 }
@@ -71,17 +62,8 @@ EventBrowserTabDelete::getBrowserTab()
  * @return Index of browser tab being deleted.
  */
 int32_t
-EventBrowserTabDelete::getBrowserTabIndex() const
+EventBrowserTabCloseInToolBar::getBrowserTabIndex() const
 {
     return m_browserTabIndex;
-}
-
-/**
- * @return Index of browser window that is deleting tab
- */
-int32_t
-EventBrowserTabDelete::getWindowIndex() const
-{
-    return m_windowIndex;
 }
 

@@ -84,13 +84,15 @@
 #include "CursorDisplayScoped.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesBorders.h"
-#include "EventBrowserTabNewClone.h"
+#include "EventBrowserTabClose.h"
+#include "EventBrowserTabCloseInToolBar.h"
 #include "EventBrowserTabDelete.h"
-#include "EventBrowserTabDeleteInGUI.h"
+#include "EventBrowserTabDeleteInToolBar.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabGetAllViewed.h"
 #include "EventBrowserTabNew.h"
+#include "EventBrowserTabNewClone.h"
 #include "EventBrowserTabNewInGUI.h"
 #include "EventBrowserTabReopenClosed.h"
 #include "EventBrowserWindowDrawingContent.h"
@@ -584,7 +586,8 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->isContructorFinished = true;
     m_tileTabsHighlightingTimerEnabledFlag = true;
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE_IN_GUI);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_CLOSE_IN_TOOL_BAR);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE_IN_TOOL_BAR);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_IN_GUI);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET);
@@ -613,7 +616,8 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     this->modeWidgetGroup->clear();
     
     for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
-        this->tabClosed(i);
+        this->tabClosed(i,
+                        RemoveTabMode::DELETE_TAB_CONTENT);
     }
 
     delete this->userInputViewModeProcessor;
@@ -1423,7 +1427,8 @@ BrainBrowserWindowToolBar::moveTabsToNewWindows()
                 else {
                     lastParent = eventNewWindow.getBrowserWindowCreated();
                     this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
-                    this->tabClosed(i);
+                    this->tabClosed(i,
+                                    RemoveTabMode::INGORE_TAB_CONTENT);
                 }
             }
         }
@@ -1454,7 +1459,8 @@ BrainBrowserWindowToolBar::removeAndReturnAllTabs(std::vector<BrowserTabContent*
             allTabContent.push_back(btc);
         }
         this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
-        this->tabClosed(i);
+        this->tabClosed(i,
+                        RemoveTabMode::INGORE_TAB_CONTENT);
     }
 }
 
@@ -1497,7 +1503,8 @@ BrainBrowserWindowToolBar::removeTabWithContent(BrowserTabContent* browserTabCon
         BrowserTabContent* btc = (BrowserTabContent*)p;
         if (btc == browserTabContent) {
             this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
-            this->tabClosed(i);
+            this->tabClosed(i,
+                            RemoveTabMode::INGORE_TAB_CONTENT);
             if (this->tabBar->count() <= 0) {
                 EventManager::get()->removeAllEventsFromListener(this);
             }
@@ -1607,7 +1614,7 @@ BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
  * called by the BrowswerWindow's File Menu.
  */
 void 
-BrainBrowserWindowToolBar::closeSelectedTab()
+BrainBrowserWindowToolBar::closeSelectedTabFromFileMenu()
 {
     tabCloseSelected(this->tabBar->currentIndex());
 }
@@ -1758,7 +1765,8 @@ BrainBrowserWindowToolBar::tabCloseSelected(int tabIndex)
 {
     if ((tabIndex >= 0)
         && (tabIndex < this->tabBar->count())) {
-        tabClosed(tabIndex);
+        tabClosed(tabIndex,
+                  RemoveTabMode::CLOSE_TAB_CONTENT_FOR_REOPENING);
     }
     this->updateGraphicsWindow();
 }
@@ -1768,12 +1776,16 @@ BrainBrowserWindowToolBar::tabCloseSelected(int tabIndex)
  *
  * @param tabIndex
  *    Index of tab that was closed.
+ * @param removeTabMode
+ *    Mode for removing tab
  */
 void
-BrainBrowserWindowToolBar::tabClosed(int tabIndex)
+BrainBrowserWindowToolBar::tabClosed(int tabIndex,
+                                     const RemoveTabMode removeTabMode)
 {
     CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), tabIndex);
-    this->removeTab(tabIndex);
+    this->removeTab(tabIndex,
+                    removeTabMode);
     
     if (this->isDestructionInProgress == false) {
         this->updateToolBar();
@@ -1809,9 +1821,13 @@ BrainBrowserWindowToolBar::tabMoved(int /*from*/, int /*to*/)
 /**
  * Remove the tab at the given index.
  * @param index
+ *    Index of the tab
+ * @param removeTabMode
+ *    Mode for removing tab
  */
 void 
-BrainBrowserWindowToolBar::removeTab(int tabIndex)
+BrainBrowserWindowToolBar::removeTab(int tabIndex,
+                                     const RemoveTabMode removeTabMode)
 {
     CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), tabIndex);
     
@@ -1819,10 +1835,34 @@ BrainBrowserWindowToolBar::removeTab(int tabIndex)
     if (p != NULL) {
         BrowserTabContent* btc = (BrowserTabContent*)p;
         
-        EventBrowserTabDelete deleteTabEvent(btc,
-                                             btc->getTabNumber(),
-                                             this->browserWindowIndex);
-        EventManager::get()->sendEvent(deleteTabEvent.getPointer());
+        switch (removeTabMode) {
+            case RemoveTabMode::CLOSE_TAB_CONTENT_FOR_REOPENING:
+            {
+                EventBrowserTabClose closeTabEvent(btc,
+                                                   btc->getTabNumber(),
+                                                   this->browserWindowIndex);
+                EventManager::get()->sendEvent(closeTabEvent.getPointer());
+                if (closeTabEvent.isError()) {
+                    WuQMessageBox::errorOk(this,
+                                           closeTabEvent.getErrorMessage());
+                }
+            }
+                break;
+            case RemoveTabMode::DELETE_TAB_CONTENT:
+            {
+                EventBrowserTabDelete deleteTabEvent(btc,
+                                                     btc->getTabNumber(),
+                                                     this->browserWindowIndex);
+                EventManager::get()->sendEvent(deleteTabEvent.getPointer());
+                if (deleteTabEvent.isError()) {
+                    WuQMessageBox::errorOk(this,
+                                           deleteTabEvent.getErrorMessage());
+                }
+            }
+                break;
+            case RemoveTabMode::INGORE_TAB_CONTENT:
+                break;
+        }
     }
     
     this->tabBar->blockSignals(true);
@@ -1862,7 +1902,8 @@ BrainBrowserWindowToolBar::updateToolBar()
     EventManager::get()->sendEvent(getAllModelsEvent.getPointer());
     if (getAllModelsEvent.getFirstModel() == NULL) {
         for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
-            this->removeTab(i);
+            this->removeTab(i,
+                            RemoveTabMode::DELETE_TAB_CONTENT);
         }
     }
     
@@ -3264,8 +3305,28 @@ BrainBrowserWindowToolBar::customViewActionTriggered()
 void 
 BrainBrowserWindowToolBar::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE_IN_GUI) {
-        EventBrowserTabDeleteInGUI* deleteTabInGuiEvent = dynamic_cast<EventBrowserTabDeleteInGUI*>(event);
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_CLOSE_IN_TOOL_BAR) {
+        EventBrowserTabCloseInToolBar* closeTabInGuiEvent = dynamic_cast<EventBrowserTabCloseInToolBar*>(event);
+        CaretAssert(closeTabInGuiEvent);
+        
+        BrowserTabContent* tabToClose = closeTabInGuiEvent->getBrowserTab();
+        CaretAssert(tabToClose);
+        
+        for (int32_t iTab = 0; iTab < this->tabBar->count(); iTab++) {
+            if (tabToClose == getTabContentFromTab(iTab)) {
+                if ((iTab >= 0)
+                    && (iTab < this->tabBar->count())) {
+                    tabClosed(iTab,
+                              RemoveTabMode::CLOSE_TAB_CONTENT_FOR_REOPENING);
+                }
+                this->updateGraphicsWindow();
+                closeTabInGuiEvent->setEventProcessed();
+                break;
+            }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE_IN_TOOL_BAR) {
+        EventBrowserTabDeleteInToolBar* deleteTabInGuiEvent = dynamic_cast<EventBrowserTabDeleteInToolBar*>(event);
         CaretAssert(deleteTabInGuiEvent);
 
         BrowserTabContent* tabToDelete = deleteTabInGuiEvent->getBrowserTab();
@@ -3273,7 +3334,12 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         
         for (int32_t iTab = 0; iTab < this->tabBar->count(); iTab++) {
             if (tabToDelete == getTabContentFromTab(iTab)) {
-                tabCloseSelected(iTab);
+                if ((iTab >= 0)
+                    && (iTab < this->tabBar->count())) {
+                    tabClosed(iTab,
+                              RemoveTabMode::DELETE_TAB_CONTENT);
+                }
+                this->updateGraphicsWindow();
                 deleteTabInGuiEvent->setEventProcessed();
                 break;
             }
@@ -3861,7 +3927,8 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
      */
     const int32_t numberOfOpenTabs = this->tabBar->count();
     for (int32_t iClose = (numberOfOpenTabs - 1); iClose >= 0; iClose--) {
-        this->tabClosed(iClose);
+        this->tabClosed(iClose,
+                        RemoveTabMode::DELETE_TAB_CONTENT);
     }
     
     /*

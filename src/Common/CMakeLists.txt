@@ -100,6 +100,7 @@ DisplayGroupEnum.h
 ElapsedTimer.h
 Event.h
 EventAlertUser.h
+EventBrowserTabClose.h
 EventBrowserTabDelete.h
 EventBrowserTabIndicesGetAll.h
 EventBrowserTabIndicesGetAllViewed.h
@@ -242,6 +243,7 @@ DisplayGroupEnum.cxx
 ElapsedTimer.cxx
 Event.cxx
 EventAlertUser.cxx
+EventBrowserTabClose.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabIndicesGetAll.cxx
 EventBrowserTabIndicesGetAllViewed.cxx

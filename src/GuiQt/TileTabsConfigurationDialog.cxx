@@ -54,7 +54,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventBrowserTabDeleteInGUI.h"
+#include "EventBrowserTabDeleteInToolBar.h"
 #include "EventBrowserTabNewInGUI.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -622,8 +622,8 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
                     int32_t deleteIndex = numBrowserTabs - 1;
                     for (int32_t i = 0; i < numTabsToDelete; i++) {
                         CaretAssertVectorIndex(allTabContent, deleteIndex);
-                        EventBrowserTabDeleteInGUI deleteTabEvent(allTabContent[deleteIndex],
-                                                                  allTabContent[deleteIndex]->getTabNumber());
+                        EventBrowserTabDeleteInToolBar deleteTabEvent(allTabContent[deleteIndex],
+                                                                      allTabContent[deleteIndex]->getTabNumber());
                         EventManager::get()->sendEvent(deleteTabEvent.getPointer());
                         updateGraphicsWindow();
                         deleteIndex--;

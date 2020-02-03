@@ -1442,7 +1442,7 @@ BrainBrowserWindow::createActions()
                                 Qt::CTRL + Qt::Key_W,
                                 this,
                                 m_toolbar,
-                                SLOT(closeSelectedTab()));
+                                SLOT(closeSelectedTabFromFileMenu()));
     
     m_closeWithoutConfirmationFlag = false;
     m_closeWindowActionConfirmTitle  = "Close Window...";

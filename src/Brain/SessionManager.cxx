@@ -40,6 +40,7 @@
 #include "DataToolTipsManager.h"
 #include "ElapsedTimer.h"
 #include "EventManager.h"
+#include "EventBrowserTabClose.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
@@ -94,6 +95,7 @@ SessionManager::SessionManager()
         m_browserWindowContent[i] = new BrowserWindowContent(i);
     }
     
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_CLOSE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL);
@@ -360,15 +362,38 @@ SessionManager::receiveEvent(Event* event)
             cloneTabEvent->setErrorMessage("Workbench is unable to create tabs, all tabs are in use.");
         }
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_CLOSE) {
+        EventBrowserTabClose* closeTabEvent =
+        dynamic_cast<EventBrowserTabClose*>(event);
+        CaretAssert(closeTabEvent);
+        
+        AString errorMessage;
+        if ( ! closeBrowserTab(closeTabEvent,
+                               errorMessage)) {
+            closeTabEvent->setErrorMessage(errorMessage);
+        }
+        closeTabEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_CLOSE) {
+        EventBrowserTabClose* tabEvent =
+        dynamic_cast<EventBrowserTabClose*>(event);
+        CaretAssert(tabEvent);
+        
+        AString errorMessage;
+        if ( ! closeBrowserTab(tabEvent,
+                                errorMessage)) {
+            tabEvent->setErrorMessage(errorMessage);
+        }
+        tabEvent->setEventProcessed();
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE) {
         EventBrowserTabDelete* tabEvent =
         dynamic_cast<EventBrowserTabDelete*>(event);
         CaretAssert(tabEvent);
         
         AString errorMessage;
-        if ( ! closeBrowserTab(tabEvent->getBrowserTab(),
-                            tabEvent->getWindowIndex(),
-                            errorMessage)) {
+        if ( ! deleteBrowserTab(tabEvent,
+                                errorMessage)) {
             tabEvent->setErrorMessage(errorMessage);
         }
         tabEvent->setEventProcessed();
@@ -560,6 +585,14 @@ SessionManager::updateBrowserTabContents()
 {
     std::vector<BrowserTabContent*> activeTabs = getActiveBrowserTabs();
     for (auto bt : activeTabs) {
+        bt->update(m_models);
+    }
+    
+    /*
+     * Update the closed tabs so that they do not
+     * reference and data that is no longer valid
+     */
+    for (auto bt : m_closedBrowserTabs) {
         bt->update(m_models);
     }
 }
@@ -1269,21 +1302,20 @@ SessionManager::createNewBrowserTab()
 }
 
 /**
- * Close the given tab in the given window
+ * Close the given tab in the given window that may be reopened later
  *
- * @param tab
- *    Tab to close
- * @param windowIndex
- *    Index of window containing the tab
+ * @param closeTabEvent
+ *    The delete tab event
  * @param errorMessageOut
  *    Contains error information
  * @return True if tab was closed, else false
  */
 bool
-SessionManager::closeBrowserTab(BrowserTabContent* tab,
-                                const int32_t windowIndex,
-                                AString& errorMessageOut)
+SessionManager::closeBrowserTab(EventBrowserTabClose* deleteTabEvent,
+                                 AString& errorMessageOut)
 {
+    BrowserTabContent* tab = deleteTabEvent->getBrowserTab();
+    const int32_t windowIndex = deleteTabEvent->getWindowIndex();
     CaretAssert(tab);
     CaretAssertStdArrayIndex(m_browserWindowContent, windowIndex);
     
@@ -1302,9 +1334,50 @@ SessionManager::closeBrowserTab(BrowserTabContent* tab,
                            + " is not at that index in array of tabs.");
         return false;
     }
-
+    
     tab->setClosedStatusFromSessionManager(true);
     m_closedBrowserTabs.push_front(tab);
+    m_browserTabs[tabIndex] = NULL;
+    
+    return true;
+}
+
+/**
+ * Delete the given tab in the given window
+ *
+ * @param deleteTabEvent
+ *    The delete tab event
+ * @param errorMessageOut
+ *    Contains error information
+ * @return True if tab was closed, else false
+ */
+bool
+SessionManager::deleteBrowserTab(EventBrowserTabDelete* deleteTabEvent,
+                                AString& errorMessageOut)
+{
+    BrowserTabContent* tab = deleteTabEvent->getBrowserTab();
+    const int32_t windowIndex = deleteTabEvent->getWindowIndex();
+    CaretAssert(tab);
+    CaretAssertStdArrayIndex(m_browserWindowContent, windowIndex);
+    
+    const int32_t tabIndex = tab->getTabNumber();
+    if ((tabIndex < 0)
+        || (tabIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
+        errorMessageOut = ("Tab for deleting has invalid tabIndex="
+                           + AString::number(tabIndex));
+        return false;
+    }
+    
+    CaretAssertStdArrayIndex(m_browserTabs, tabIndex);
+    if (tab != m_browserTabs[tabIndex]) {
+        errorMessageOut = ("Tab for deleting with tabIndex="
+                           + AString::number(tabIndex)
+                           + " is not at that index in array of tabs.");
+        CaretAssertMessage(0, errorMessageOut);
+        return false;
+    }
+
+    delete m_browserTabs[tabIndex];
     m_browserTabs[tabIndex] = NULL;
     
     return true;
@@ -1325,6 +1398,7 @@ SessionManager::reopenLastClosedTab(const int32_t /*windowIndex*/,
 {
     if ( ! m_closedBrowserTabs.empty()) {
         BrowserTabContent* btc = m_closedBrowserTabs.front();
+        CaretAssert(btc);
         const int32_t tabIndex = btc->getTabNumber();
         if (m_browserTabs[tabIndex] == NULL) {
             m_browserTabs[tabIndex] = btc;

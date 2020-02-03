@@ -30,7 +30,7 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "EventBrowserTabDeleteInGUI.h"
+#include "EventBrowserTabCloseInToolBar.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -104,7 +104,7 @@ UserInputModeTileTabsManualLayout::showContextMenu(const MouseEvent& mouseEvent,
 }
 
 /**
- * Delete all selected annotations except color bars which are turned off for display
+ * Delete all selected tabs
  */
 void
 UserInputModeTileTabsManualLayout::deleteSelectedAnnotations()
@@ -124,13 +124,12 @@ UserInputModeTileTabsManualLayout::deleteSelectedAnnotations()
             BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
             CaretAssert(window);
             
-            QString msg("Close the selected tab(s)?"
-                        "\nThis operation cannot be undone.");
+            QString msg("Close the selected tab(s)?");
             if (WuQMessageBox::warningOkCancel(window,
                                                msg)) {
                 for (auto t : tabs) {
-                    EventBrowserTabDeleteInGUI deleteEvent(t,
-                                                           t->getTabNumber());
+                    EventBrowserTabCloseInToolBar deleteEvent(t,
+                                                              t->getTabNumber());
                     EventManager::get()->sendEvent(deleteEvent.getPointer());
                 }
             }
