@@ -96,8 +96,8 @@ m_volumeSliceThickness(0.0)
 {
     CaretAssert(brainOpenGLFixedPipeline);
     
-    m_dummyAnnotationFile = new AnnotationFile();
-    m_dummyAnnotationFile->setFileName("DummyFileForDrawing"
+    m_dummyAnnotationFile = new AnnotationFile(AnnotationFile::ANNOTATION_FILE_DUMMY_FOR_DRAWING);
+    m_dummyAnnotationFile->setFileName("DummyFileForDrawing."
                                        + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::ANNOTATION));
 
     float unusedLineWidthMaximum(0);

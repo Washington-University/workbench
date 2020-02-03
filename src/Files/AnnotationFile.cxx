@@ -133,6 +133,8 @@ AnnotationFile::clear()
             }
         }
             break;
+        case ANNOTATION_FILE_DUMMY_FOR_DRAWING:
+            break;
     }
 }
 
@@ -354,6 +356,19 @@ AnnotationFile::copyHelperAnnotationFile(const AnnotationFile& obj)
 void
 AnnotationFile::receiveEvent(Event* event)
 {
+    switch (m_fileSubType) {
+        case ANNOTATION_FILE_SAVE_TO_FILE:
+            break;
+        case ANNOTATION_FILE_SAVE_TO_SCENE:
+            break;
+        case ANNOTATION_FILE_DUMMY_FOR_DRAWING:
+            /*
+             * No event processing for dummy file
+             */
+            return;
+            break;
+    }
+    
     if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE) {
         EventAnnotationAddToRemoveFromFile* annEvent = dynamic_cast<EventAnnotationAddToRemoveFromFile*>(event);
         CaretAssert(annEvent);
@@ -1815,6 +1830,8 @@ AnnotationFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
                 }
             }
             break;
+        case ANNOTATION_FILE_DUMMY_FOR_DRAWING:
+            break;
     }
     
     /*
@@ -1854,6 +1871,7 @@ AnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
         case ANNOTATION_FILE_SAVE_TO_FILE:
             break;
         case ANNOTATION_FILE_SAVE_TO_SCENE:
+        {
             QString fileContentInString = sceneClass->getStringValue("AnnotationFileContent");
             if ( ! fileContentInString.isEmpty()) {
                 try {
@@ -1867,6 +1885,9 @@ AnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                     sceneAttributes->addToErrorMessage(dfe.whatString());
                 }
             }
+        }
+            break;
+        case ANNOTATION_FILE_DUMMY_FOR_DRAWING:
             break;
     }
     

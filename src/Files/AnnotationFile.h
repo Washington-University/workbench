@@ -66,7 +66,14 @@ namespace caret {
              * "Brain" for the scene annotation file that is only saved
              * to scenes and never saved to a file.
              */
-            ANNOTATION_FILE_SAVE_TO_SCENE
+            ANNOTATION_FILE_SAVE_TO_SCENE,
+            
+            /**
+             * A dummy file is used when drawing annotations as
+             * some data types (color bars) are drawn as annotations
+             * but are not in an annotation file
+             */
+            ANNOTATION_FILE_DUMMY_FOR_DRAWING
         };
         
         AnnotationFile();
