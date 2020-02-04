@@ -5158,6 +5158,47 @@ BrowserTabContent::setClosedStatusFromSessionManager(const bool closedStatus)
 }
 
 /**
+ * Set the position in the toolbar of a tab from when the tab was closed
+ * @param tabBarPosition
+ *     Position (index) of the tab in the tab bar
+ */
+void
+BrowserTabContent::setClosedTabWindowTabBarPositionIndex(const int32_t tabBarPosition)
+{
+    m_closedTabBarPosition = tabBarPosition;
+}
+
+/**
+ * @return Position in the toolbar of a tab from when the tab was closed
+ */
+int32_t
+BrowserTabContent::getClosedTabWindowTabBarPositionIndex() const
+{
+    return m_closedTabBarPosition;
+}
+
+/**
+ * Set the position in the toolbar of a tab from when the tab was closed
+ * @param tabBarPosition
+ *     Position (index) of the tab in the tab bar
+ */
+void
+BrowserTabContent::setClosedTabWindowIndex(const int32_t windowIndex)
+{
+    m_closedWindowIndex = windowIndex;
+}
+
+/**
+ * @return Position in the toolbar of a tab from when the tab was closed
+ */
+int32_t
+BrowserTabContent::getClosedTabWindowIndex() const
+{
+    return m_closedWindowIndex;
+}
+
+
+/**
  *@return Browser tabs the are open and in use by the user.
  * Any tabs that are closed but available for reopening are excluded
  */

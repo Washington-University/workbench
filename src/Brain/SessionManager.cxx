@@ -1311,11 +1311,11 @@ SessionManager::createNewBrowserTab()
  * @return True if tab was closed, else false
  */
 bool
-SessionManager::closeBrowserTab(EventBrowserTabClose* deleteTabEvent,
+SessionManager::closeBrowserTab(EventBrowserTabClose* closeTabEvent,
                                  AString& errorMessageOut)
 {
-    BrowserTabContent* tab = deleteTabEvent->getBrowserTab();
-    const int32_t windowIndex = deleteTabEvent->getWindowIndex();
+    BrowserTabContent* tab = closeTabEvent->getBrowserTab();
+    const int32_t windowIndex = closeTabEvent->getWindowIndex();
     CaretAssert(tab);
     CaretAssertStdArrayIndex(m_browserWindowContent, windowIndex);
     
@@ -1336,6 +1336,8 @@ SessionManager::closeBrowserTab(EventBrowserTabClose* deleteTabEvent,
     }
     
     tab->setClosedStatusFromSessionManager(true);
+    tab->setClosedTabWindowTabBarPositionIndex(closeTabEvent->getWindowTabBarPositionIndex());
+    tab->setClosedTabWindowIndex(closeTabEvent->getWindowIndex());
     m_closedBrowserTabs.push_front(tab);
     m_browserTabs[tabIndex] = NULL;
     

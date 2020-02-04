@@ -34,9 +34,10 @@ namespace caret {
         
     public:
         EventBrowserTabClose(BrowserTabContent* browserTab,
-                              const int32_t browserTabIndex,
-                              const int32_t windowIndex);
-        
+                             const int32_t browserTabIndex,
+                             const int32_t windowIndex,
+                             const int32_t windowTabBarPositionIndex);
+
         virtual ~EventBrowserTabClose();
         
         BrowserTabContent* getBrowserTab();
@@ -44,6 +45,8 @@ namespace caret {
         int32_t getBrowserTabIndex() const;
         
         int32_t getWindowIndex() const;
+        
+        int32_t getWindowTabBarPositionIndex() const;
         
     private:
         EventBrowserTabClose(const EventBrowserTabClose&);
@@ -55,6 +58,8 @@ namespace caret {
         const int32_t m_browserTabIndex;
         
         const int32_t m_windowIndex;
+        
+        const int32_t m_windowTabBarPositionIndex;
     };
 
 } // namespace

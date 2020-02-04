@@ -466,6 +466,14 @@ namespace caret {
         
         void setClosedStatusFromSessionManager(const bool closedStatus);
         
+        void setClosedTabWindowTabBarPositionIndex(const int32_t tabBarPosition);
+        
+        int32_t getClosedTabWindowTabBarPositionIndex() const;
+        
+        void setClosedTabWindowIndex(const int32_t windowIndex);
+        
+        int32_t getClosedTabWindowIndex() const;
+        
     private:
         class ColorBarFileMap {
         public:
@@ -625,6 +633,12 @@ namespace caret {
         
         /** True if browser tab content has been closed but is available for reopening */
         bool m_closedFlag = false;
+        
+        /** Position in the tab bar befpre  a tab that was closed */
+        int32_t m_closedTabBarPosition = -1;
+        
+        /** Index of window before tab was closed */
+        int32_t m_closedWindowIndex = -1;
         
         /**
          * NEVER access this directly as it may contain tabs that are closed but available for reopening.

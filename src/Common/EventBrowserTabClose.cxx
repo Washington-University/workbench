@@ -32,14 +32,18 @@ using namespace caret;
  *    Index of the tab to close
  * @param windowIndex
  *    Index of window containing tab to close
+ * @param windowTabBarPositionIndex
+ *    Position of the tab in the windows tab bar
  */
 EventBrowserTabClose::EventBrowserTabClose(BrowserTabContent* browserTab,
-                                             const int32_t browserTabIndex,
-                                             const int32_t windowIndex)
+                                           const int32_t browserTabIndex,
+                                           const int32_t windowIndex,
+                                           const int32_t windowTabBarPositionIndex)
 : Event(EventTypeEnum::EVENT_BROWSER_TAB_CLOSE),
 m_browserTab(browserTab),
 m_browserTabIndex(browserTabIndex),
-m_windowIndex(windowIndex)
+m_windowIndex(windowIndex),
+m_windowTabBarPositionIndex(windowTabBarPositionIndex)
 {
     CaretAssert(browserTab);
 }
@@ -83,5 +87,14 @@ int32_t
 EventBrowserTabClose::getWindowIndex() const
 {
     return m_windowIndex;
+}
+
+/**
+ * @return Position of the tab in the window's tab bar
+ */
+int32_t
+EventBrowserTabClose::getWindowTabBarPositionIndex() const
+{
+    return m_windowTabBarPositionIndex;
 }
 

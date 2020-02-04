@@ -778,7 +778,20 @@ BrainBrowserWindowToolBar::reopenLastClosedTab()
                                reopenEvent.getErrorMessage());
     }
     else {
-        addNewTabWithContent(reopenEvent.getBrowserTabContent());
+        BrowserTabContent* tabContent = reopenEvent.getBrowserTabContent();
+        CaretAssert(tabContent);
+        const int32_t tabBarPosition = tabContent->getClosedTabWindowTabBarPositionIndex();
+        const int32_t windowIndex    = tabContent->getClosedTabWindowIndex();
+        if (windowIndex == this->browserWindowIndex) {
+            insertTabContentPrivate(InsertTabMode::AT_TAB_BAR_INDEX,
+                                    tabContent,
+                                    tabBarPosition);
+        }
+        else {
+            insertTabContentPrivate(InsertTabMode::APPEND,
+                                    tabContent,
+                                    -1);
+        }
     }
 
     this->updateToolBar();
@@ -1840,7 +1853,8 @@ BrainBrowserWindowToolBar::removeTab(int tabIndex,
             {
                 EventBrowserTabClose closeTabEvent(btc,
                                                    btc->getTabNumber(),
-                                                   this->browserWindowIndex);
+                                                   this->browserWindowIndex,
+                                                   tabIndex);
                 EventManager::get()->sendEvent(closeTabEvent.getPointer());
                 if (closeTabEvent.isError()) {
                     WuQMessageBox::errorOk(this,
