@@ -224,6 +224,9 @@ namespace caret {
                                            const WuQMacroExecutorOptions* executorOptions,
                                            bool& allowDelayFlagOut);
         
+    private slots:
+        void objectBeingDestroyed(QObject* object);
+        
     private:
         WuQMacroManager(const QString& name,
                         QObject* parent = NULL);

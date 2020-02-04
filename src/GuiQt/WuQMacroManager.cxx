@@ -255,6 +255,10 @@ WuQMacroManager::addMacroSupportToObjectWithToolTip(QObject* object,
         widgetWatcher->setParent(this);
         m_signalWatchers.insert(std::make_pair(name,
                                                widgetWatcher));
+        
+        QObject::connect(object, &QObject::destroyed,
+                         this, &WuQMacroManager::objectBeingDestroyed);
+        
         return true;
     }
     else {
@@ -306,6 +310,30 @@ WuQMacroManager::addMacroSupportToObject(QObject* object,
     }
     
     return resultFlag;
+}
+
+/**
+ * Called when a macro watch object is being destroyed
+ * @param object
+ * Qt object subclass that is being destroyed.
+ */
+void
+WuQMacroManager::objectBeingDestroyed(QObject* object)
+{
+    if (object != NULL) {
+        const QString name(object->objectName());
+        if (name.isEmpty()) {
+            CaretLogWarning("PROGRAM ERROR: Attempting to remove macro watcher for object with empty name.");
+        }
+        else {
+            const int32_t erasedCount(m_signalWatchers.erase(name));
+            if (erasedCount == 0) {
+                CaretLogWarning("Failed to remove macro watcher for object named \""
+                                + name
+                                + "\"");
+            }
+        }
+    }
 }
 
 /**
