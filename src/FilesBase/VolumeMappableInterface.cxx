@@ -43,13 +43,12 @@ VolumeMappableInterface::getVoxelSpacing(float& spacingOut1,
                                          float& spacingOut2,
                                          float& spacingOut3) const
 {
-    float originX, originY, originZ;
-    float x1, y1, z1;
-    indexToSpace(0, 0, 0, originX, originY, originZ);
-    indexToSpace(1, 1, 1, x1, y1, z1);
-    spacingOut1 = x1 - originX;
-    spacingOut2 = y1 - originY;
-    spacingOut3 = z1 - originZ;
+    //TSC: below code will always return positive, so the calling code doesn't need to use abs() anymore
+    Vector3D istep, jstep, kstep, origin;
+    getVolumeSpace().getSpacingVectors(istep, jstep, kstep, origin);
+    spacingOut1 = istep.length();
+    spacingOut2 = jstep.length();
+    spacingOut3 = kstep.length();
 }
 
 /**
