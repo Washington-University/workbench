@@ -39,9 +39,8 @@ using namespace caret;
 /**
  * Constructor.
  */
-EventBrowserTabReopenClosed::EventBrowserTabReopenClosed(const int32_t browserWindowIndex)
-: Event(EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED),
-m_browserWindowIndex(browserWindowIndex)
+EventBrowserTabReopenClosed::EventBrowserTabReopenClosed()
+: Event(EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED)
 {
     
 }
@@ -51,15 +50,6 @@ m_browserWindowIndex(browserWindowIndex)
  */
 EventBrowserTabReopenClosed::~EventBrowserTabReopenClosed()
 {
-}
-
-/**
- * @return Index of browser window that is requested reopening last closed tab
- */
-int32_t
-EventBrowserTabReopenClosed::getBrowserWindowIndex() const
-{
-    return m_browserWindowIndex;
 }
 
 /**

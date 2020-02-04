@@ -67,6 +67,7 @@
 #include "EventAnnotationGetDrawnInWindow.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
+#include "EventBrowserTabReopenClosed.h"
 #include "EventBrowserWindowNew.h"
 #include "EventShowDataFileReadWarningsDialog.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -3667,4 +3668,38 @@ GuiManager::processIdentification(const int32_t tabIndex,
     }
 }
 
+/**
+ * Reopen the last closed tab
+ * @param parentWindow
+ * Window from which Reopen Tab was selected
+ */
+void
+GuiManager::processReopenLastClosedTab(BrainBrowserWindow* parentWindow)
+{
+    CaretAssert(parentWindow);
+    
+    EventBrowserTabReopenClosed reopenEvent;
+    EventManager::get()->sendEvent(reopenEvent.getPointer());
+    if (reopenEvent.isError()) {
+        WuQMessageBox::errorOk(parentWindow,
+                               reopenEvent.getErrorMessage());
+    }
+    else {
+        BrowserTabContent* tabContent = reopenEvent.getBrowserTabContent();
+        CaretAssert(tabContent);
+        if (tabContent != NULL) {
+            const int32_t windowIndex    = tabContent->getClosedTabWindowIndex();            
+            BrainBrowserWindow* window = getBrowserWindowByWindowIndex(windowIndex);
+            if (window == NULL) {
+                /*
+                 * User may have closed window that contained the tab
+                 */
+                window = parentWindow;
+            }
+            
+            CaretAssert(window);
+            window->reopenLastClosedTab(reopenEvent);
+        }
+    }
+}
 

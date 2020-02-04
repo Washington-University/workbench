@@ -766,19 +766,18 @@ BrainBrowserWindowToolBar::addNewTabWithContent(BrowserTabContent* tabContent)
 }
 
 /**
- * Reopen the last closed tab
+ * Reopen the last closed tab in this window
+ * @param reopenTabEvent
+ * The reopen event
  */
 void
-BrainBrowserWindowToolBar::reopenLastClosedTab()
+BrainBrowserWindowToolBar::reopenLastClosedTab(EventBrowserTabReopenClosed& reopenTabEvent)
 {
-    EventBrowserTabReopenClosed reopenEvent(this->browserWindowIndex);
-    EventManager::get()->sendEvent(reopenEvent.getPointer());
-    if (reopenEvent.isError()) {
-        WuQMessageBox::errorOk(this,
-                               reopenEvent.getErrorMessage());
+    if (reopenTabEvent.isError()) {
+        return;
     }
     else {
-        BrowserTabContent* tabContent = reopenEvent.getBrowserTabContent();
+        BrowserTabContent* tabContent = reopenTabEvent.getBrowserTabContent();
         CaretAssert(tabContent);
         const int32_t tabBarPosition = tabContent->getClosedTabWindowTabBarPositionIndex();
         const int32_t windowIndex    = tabContent->getClosedTabWindowIndex();

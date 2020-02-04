@@ -131,8 +131,7 @@ namespace caret {
         bool deleteBrowserTab(EventBrowserTabDelete* deleteTabEvent,
                               AString& errorMessageOut);
         
-        BrowserTabContent* reopenLastClosedTab(const int32_t windowIndex,
-                                               AString& errorMessageOut);
+        BrowserTabContent* reopenLastClosedTab(AString& errorMessageOut);
         
         void deleteAllBrowserTabs();
         

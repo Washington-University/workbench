@@ -70,6 +70,7 @@ namespace caret {
     class BrainBrowserWindowToolBarVolumeMontage;
     class BrainBrowserWindow;
     class BrowserTabContent;
+    class EventBrowserTabReopenClosed;
     class EventBrowserWindowTileTabOperation;
     class Model;
     class ModelSurface;
@@ -107,7 +108,7 @@ namespace caret {
         
         BrowserTabContent* addNewTab();
         
-        void reopenLastClosedTab();
+        void reopenLastClosedTab(EventBrowserTabReopenClosed& reopenTabEvent);
         
         void addNewDuplicatedTab(BrowserTabContent* browserTabContentToBeCloned);
         

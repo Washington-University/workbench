@@ -181,6 +181,9 @@ namespace caret {
                                    SelectionManager* selectionManager,
                                    QWidget* parentWidget);
         
+        void processReopenLastClosedTab(BrainBrowserWindow* parentWindow);
+        
+
         /*
          * Mode used when testing for modified files
          */

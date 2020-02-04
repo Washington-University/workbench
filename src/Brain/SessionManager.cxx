@@ -449,8 +449,7 @@ SessionManager::receiveEvent(Event* event)
         CaretAssert(lastTabEvent);
         
         AString errorMessage;
-        BrowserTabContent* tab = reopenLastClosedTab(lastTabEvent->getBrowserWindowIndex(),
-                                                     errorMessage);
+        BrowserTabContent* tab = reopenLastClosedTab(errorMessage);
         if (tab != NULL) {
             lastTabEvent->setBrowserTabContent(tab,
                                                tab->getTabNumber());
@@ -1395,8 +1394,7 @@ SessionManager::deleteBrowserTab(EventBrowserTabDelete* deleteTabEvent,
  * @return Tab that was reopened or NULL if no tab was reopened
  */
 BrowserTabContent*
-SessionManager::reopenLastClosedTab(const int32_t /*windowIndex*/,
-                                    AString& errorMessageOut)
+SessionManager::reopenLastClosedTab(AString& errorMessageOut)
 {
     if ( ! m_closedBrowserTabs.empty()) {
         BrowserTabContent* btc = m_closedBrowserTabs.front();

@@ -36,15 +36,13 @@ namespace caret {
     class EventBrowserTabReopenClosed : public Event {
         
     public:
-        EventBrowserTabReopenClosed(const int32_t browserWindowIndex);
+        EventBrowserTabReopenClosed();
         
         virtual ~EventBrowserTabReopenClosed();
         
         EventBrowserTabReopenClosed(const EventBrowserTabReopenClosed&) = delete;
 
         EventBrowserTabReopenClosed& operator=(const EventBrowserTabReopenClosed&) = delete;
-        
-        int32_t getBrowserWindowIndex() const;
         
         BrowserTabContent* getBrowserTabContent() const;
         
@@ -56,8 +54,6 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        const int32_t m_browserWindowIndex;
-        
         BrowserTabContent* m_browserTabContent = NULL;
         
         int32_t m_tabIndex;

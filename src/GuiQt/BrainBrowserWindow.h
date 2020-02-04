@@ -47,6 +47,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserWindowContent;
     class BrowserTabContent;
+    class EventBrowserTabReopenClosed;
     class EventTileTabsGridConfigurationModification;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
@@ -156,6 +157,8 @@ namespace caret {
 
         void resizeDockWidgets(const QList<QDockWidget *> &docks, const QList<int> &sizes, Qt::Orientation orientation);
         
+        void reopenLastClosedTab(EventBrowserTabReopenClosed& reopenTabEvent);
+
         static void setEnableMacDuplicateMenuBar(bool status);
         
     protected:
@@ -168,7 +171,6 @@ namespace caret {
         void processNewWindow();
         void processNewTab();
         void processDuplicateTab();
-        void processReopenLastClosedTab();
         void processDataFileLocationOpen();
         void processDataFileOpen();
         void processOpenRecent();

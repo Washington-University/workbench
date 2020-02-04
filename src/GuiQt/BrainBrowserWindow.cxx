@@ -1388,9 +1388,9 @@ BrainBrowserWindow::createActions()
     WuQtUtilities::createAction("Reopen Last Closed Tab",
                                 "Reopen the last closed tab",
                                 Qt::CTRL + Qt::SHIFT + Qt::Key_T,
-                                this,
-                                this,
-                                SLOT(processReopenLastClosedTab()));
+                                this);
+    QObject::connect(m_reopenLastClosedTabAction, &QAction::triggered,
+                     this, [=] { guiManager->processReopenLastClosedTab(this); });
     m_reopenLastClosedTabAction->setObjectName(m_objectNamePrefix
                                                + ":Menu:ReopenLastClosedTabAction"); /* NOTE: No Macro support for this item */
     
@@ -3928,12 +3928,14 @@ BrainBrowserWindow::processDuplicateTab()
 }
 
 /**
- * Called to reopen the last closed tab.
+ * Reopen the last closed tab in this window
+ * @param reopenTabEvent
+ * The reopen event
  */
 void
-BrainBrowserWindow::processReopenLastClosedTab()
+BrainBrowserWindow::reopenLastClosedTab(EventBrowserTabReopenClosed& reopenTabEvent)
 {
-    m_toolbar->reopenLastClosedTab();
+   m_toolbar->reopenLastClosedTab(reopenTabEvent);
 }
 
 /**
