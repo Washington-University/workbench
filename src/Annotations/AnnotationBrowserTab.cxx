@@ -584,22 +584,30 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
     float tabMinX(0.0), tabMaxX(0.0), tabMinY(0.0), tabMaxY(0.0);
     tabToExpand->getBounds2D(tabMinX, tabMaxX, tabMinY, tabMaxY);
     
-//    grid.setRange(tabMinX, tabMaxX, tabMinY, tabMaxY);
     /*
-     * Shrink by 1 point around edges.  If the maximum of a tab
+     * Limit the tab to the valid range [0, 100].
+     * Optionally shrink around edges.  If the maximum of a tab
      * is the same as a minimum of this tab, it will detect
      * overlap and prevent expansion
      */
-    int32_t x1 = MathFunctions::limitRange(static_cast<int32_t>(tabMinX + 1), 0, 100);
-    int32_t x2 = MathFunctions::limitRange(static_cast<int32_t>(tabMaxX - 1), 0, 100);
-    int32_t y1 = MathFunctions::limitRange(static_cast<int32_t>(tabMinY + 1), 0, 100);
-    int32_t y2 = MathFunctions::limitRange(static_cast<int32_t>(tabMaxY - 1), 0, 100);
-    grid.setRange(x1, x2, y1, y2);
+    const int32_t shrinkFactor(0);
+    int32_t x1 = MathFunctions::limitRange(static_cast<int32_t>(tabMinX + shrinkFactor), 0, 100);
+    int32_t x2 = MathFunctions::limitRange(static_cast<int32_t>(tabMaxX - shrinkFactor), 0, 100);
+    int32_t y1 = MathFunctions::limitRange(static_cast<int32_t>(tabMinY + shrinkFactor), 0, 100);
+    int32_t y2 = MathFunctions::limitRange(static_cast<int32_t>(tabMaxY - shrinkFactor), 0, 100);
 
     bool leftDone(x1 <= 0);
     bool rightDone(x2 >= 100);
     bool bottomDone(y1 <= 0);
     bool topDone(y2 >= 100);
+    
+    /*
+     * When expanding an edge, we want to exclude the "corners" since they may overlap
+     * the edge of another tab.  For example, when expanding to the right, the bottom
+     * may be at Y=50 and the tab below ends at Y=50 and this will prevent expansion to
+     * the right.  So, by excluding these corners, it allows the tab to expand to the right.
+     */
+    const int32_t cornerOffset(1);
     
     bool done(leftDone && rightDone && bottomDone && topDone);
     while ( ! done) {
@@ -608,11 +616,13 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
         const int32_t yb(y1);
         const int32_t yt(y2);
         
+        const int32_t cornerOffset(1);
+        
         /*
          * Try to expand at bottom by one row
          */
         if ( ! bottomDone) {
-            if (grid.isRangeOff(xl, xr, yb - 1, yb - 1)) {
+            if (grid.isRangeOff(xl + cornerOffset, xr - cornerOffset, yb - 1, yb - 1)) {
                 y1--;
             }
             else {
@@ -624,7 +634,7 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
          * Try to expand at top by one row
          */
         if ( ! topDone) {
-            if (grid.isRangeOff(xl, xr, yt + 1, yt + 1)) {
+            if (grid.isRangeOff(xl + cornerOffset, xr - cornerOffset, yt + 1, yt + 1)) {
                 y2++;
             }
             else {
@@ -636,7 +646,7 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
          * Try to expand at left by one column
          */
         if ( ! leftDone) {
-            if (grid.isRangeOff(xl - 1, xl - 1, yb, yt)) {
+            if (grid.isRangeOff(xl - 1, xl - 1, yb + cornerOffset, yt - cornerOffset)) {
                 x1--;
             }
             else {
@@ -648,7 +658,7 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
          * Try to expand at right by one column
          */
         if ( ! rightDone) {
-            if (grid.isRangeOff(xr + 1, xr + 1, yb, yt)) {
+            if (grid.isRangeOff(xr + 1, xr + 1, yb + cornerOffset, yt - cornerOffset)) {
                 x2++;
             }
             else {
@@ -691,16 +701,16 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
         const int32_t xr(x2);
         const int32_t yb(y1);
         const int32_t yt(y2);
-        if (grid.isRangeOff(xl, xl, yb, yt)) {       // left
+        if (grid.isRangeOff(xl, xl, yb + cornerOffset, yt - cornerOffset)) {   /* left */
             x1 = std::max(x1 - 1, 0);
         }
-        if (grid.isRangeOff(xr, xr, yb, yt)) {   // right
+        if (grid.isRangeOff(xr, xr, yb + cornerOffset, yt - cornerOffset)) {   /* right */
             x2 = std::min(x2 + 1, 100);
         }
-        if (grid.isRangeOff(xl, xr, yb, yb)) {    // bottom
+        if (grid.isRangeOff(xl + cornerOffset, xr - cornerOffset, yb, yb)) {   /* bottom */
             y1 = std::max(y1 - 1, 0);
         }
-        if (grid.isRangeOff(xl, xr, yt, yt)) { // top
+        if (grid.isRangeOff(xl + cornerOffset, xr - cornerOffset, yt, yt)) {   /* top */
             y2 = std::min(y2 + 1, 100);
         }
     }
