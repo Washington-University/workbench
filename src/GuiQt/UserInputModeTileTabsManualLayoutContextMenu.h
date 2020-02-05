@@ -47,6 +47,8 @@ namespace caret {
         
         virtual ~UserInputModeTileTabsManualLayoutContextMenu();
         
+        static AString getShinkAndExpandTabMenuItemText();
+        
         // ADD_NEW_METHODS_HERE
 
     private slots:
@@ -68,9 +70,7 @@ namespace caret {
         
         void applyOrderSendBackward();
         
-        void processExpandTabMenuItem();
-        
-        void processShrinkTabMenuItem();
+        void processShrinkAndExpandTabMenuItem();
         
         void processInsertNewTabMenuItem();
         

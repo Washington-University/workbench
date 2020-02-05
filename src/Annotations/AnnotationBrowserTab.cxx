@@ -533,9 +533,79 @@ public:
  *      True if new bounds are valid
  */
 bool
+AnnotationBrowserTab::shrinkAndExpandToFillEmptySpace(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
+                                                      const AnnotationBrowserTab* tabToExpand,
+                                                      std::array<float, 4>& boundsOut)
+{
+    float origBounds[4];
+    tabToExpand->getBounds2D(origBounds[0], origBounds[1], origBounds[2], origBounds[3]);
+    
+    /*
+     * First, try to shrink the tab so that it does not
+     * overlap any other tabs
+     */
+    std::array<float, 4> shrinkBounds;
+    shrinkBounds.fill(0.0);
+    const bool shrinkResultFlag = shrinkTab(browserTabsInWindow,
+                                            tabToExpand,
+                                            shrinkBounds);
+
+    /*
+     * Second, try to expand the tab to fill any extra space
+     */
+    std::array<float, 4> expandBounds;
+    expandBounds.fill(0.0);
+    const bool expandResultFlag = expandTab(browserTabsInWindow,
+                                            tabToExpand,
+                                            shrinkBounds,
+                                            shrinkResultFlag,
+                                            expandBounds);
+
+    bool resultFlag(false);
+    if (expandResultFlag) {
+        boundsOut = expandBounds;
+        resultFlag = true;
+    }
+    else if (shrinkResultFlag) {
+        boundsOut = shrinkBounds;
+        resultFlag = true;
+    }
+    
+    /*
+     * Verify that bounds have changed
+     */
+    if (resultFlag) {
+        resultFlag = false;
+        for (int32_t i = 0; i < 4; i++) {
+            if (origBounds[i] != boundsOut[i]) {
+                resultFlag = true;
+                break;
+            }
+        }
+    }
+    
+    return resultFlag;
+}
+
+
+/**
+ * Expand the given tab using any available space around it
+ *
+ * @param browserTabsInWindow
+ *      Tabs in the window
+ * @param tabToExpand
+ *      Tab that is expanded to fill empty space
+ * @param boundsOut
+ *      Output with new bounds
+ * @return
+ *      True if new bounds are valid
+ */
+bool
 AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
                                 const AnnotationBrowserTab* tabToExpand,
-                                float boundsOut[4])
+                                const std::array<float, 4>& boundsIn,
+                                const bool boundsInValidFlag,
+                                std::array<float, 4>& boundsOut)
 {
     if (tabToExpand == NULL) {
         return false;
@@ -583,6 +653,16 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
      */
     float tabMinX(0.0), tabMaxX(0.0), tabMinY(0.0), tabMaxY(0.0);
     tabToExpand->getBounds2D(tabMinX, tabMaxX, tabMinY, tabMaxY);
+    
+    /*
+     * Override tab's bounds if input bounds are valid
+     */
+    if (boundsInValidFlag) {
+        tabMinX = boundsIn[0];
+        tabMaxX = boundsIn[1];
+        tabMinY = boundsIn[2];
+        tabMaxY = boundsIn[3];
+    }
     
     /*
      * Limit the tab to the valid range [0, 100].
@@ -747,7 +827,7 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
 bool
 AnnotationBrowserTab::shrinkTab(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
                                 const AnnotationBrowserTab* tabToShrink,
-                                float boundsOut[4])
+                                std::array<float, 4>& boundsOut)
 {
     int32_t bounds[4] { 0, 100, 0, 100 };
     
@@ -796,7 +876,7 @@ AnnotationBrowserTab::shrinkTabAux(const std::vector<const AnnotationBrowserTab*
                                    const AnnotationBrowserTab* tabToShrink,
                                    const int32_t startingBounds[4],
                                    const bool testAllOnFlag,
-                                   float boundsOut[4])
+                                   std::array<float, 4>& boundsOut)
 {
     if (tabToShrink == NULL) {
         return false;
@@ -984,12 +1064,12 @@ AnnotationBrowserTab::shrinkTabAux(const std::vector<const AnnotationBrowserTab*
     }
 
     /*
-     * If expansion available, report new bounds
+     * If shrinking was performed, report new bounds
      */
-    if ((x1 < tabMinX)
-        || (x2 > tabMaxX)
-        || (y1 < tabMinY)
-        || (y2 > tabMaxY)) {
+    if ((x1 > tabMinX)
+        || (x2 < tabMaxX)
+        || (y1 > tabMinY)
+        || (y2 < tabMaxY)) {
         boundsOut[0] = x1;
         boundsOut[1] = x2;
         boundsOut[2] = y1;

@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 
 #include "AnnotationTwoDimensionalShape.h"
 #include "CaretPointer.h"
@@ -76,14 +77,10 @@ namespace caret {
                          const float minY,
                          const float maxY);
         
-        static bool expandTab(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
-                              const AnnotationBrowserTab* tabToExpand,
-                              float boundOut[4]);
-        
-        static bool shrinkTab(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
-                              const AnnotationBrowserTab* tabToShrink,
-                              float boundOut[4]);
-        
+        static bool shrinkAndExpandToFillEmptySpace(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
+                                                    const AnnotationBrowserTab* tabToExpand,
+                                                    std::array<float, 4>& boundsOut);
+
         // ADD_NEW_METHODS_HERE
 
           
@@ -103,11 +100,21 @@ namespace caret {
         
         void initializeMembersAnnotationBrowserTab();
         
+        static bool expandTab(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
+                              const AnnotationBrowserTab* tabToExpand,
+                              const std::array<float, 4>& boundsIn,
+                              const bool boundsInValidFlag,
+                              std::array<float, 4>& boundsOut);
+        
+        static bool shrinkTab(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
+                              const AnnotationBrowserTab* tabToShrink,
+                              std::array<float, 4>& boundsOut);
+        
         static bool shrinkTabAux(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
                                  const AnnotationBrowserTab* tabToShrink,
                                  const int32_t startingBounds[4],
                                  const bool testAllOnFlag,
-                                 float boundOut[4]);
+                                 std::array<float, 4>& boundsOut);
         
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
 

@@ -45,6 +45,7 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "UserInputModeTileTabsManualLayoutContextMenu.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -246,8 +247,7 @@ AnnotationMenuArrange::addTileTabsSelections()
                 addSeparator();
             }
             
-            m_tileTabsExpandToFillAction = addAction("Expand Tab to Fill Empty Space");
-            m_tileTabsShrinkToFitAction  = addAction("Shrink Tab to Remove Overlap");
+            m_tileTabsShrinkAndExpandToFillAction = addAction(UserInputModeTileTabsManualLayoutContextMenu::getShinkAndExpandTabMenuItemText());
         }
             break;
     }
@@ -350,11 +350,8 @@ AnnotationMenuArrange::menuAboutToShow()
             }
             const bool oneSelectedFlag(numSelected == 1);
             
-            CaretAssert(m_tileTabsExpandToFillAction);
-            m_tileTabsExpandToFillAction->setEnabled(oneSelectedFlag);
-            
-            CaretAssert(m_tileTabsShrinkToFitAction);
-            m_tileTabsShrinkToFitAction->setEnabled(oneSelectedFlag);
+            CaretAssert(m_tileTabsShrinkAndExpandToFillAction);
+            m_tileTabsShrinkAndExpandToFillAction->setEnabled(oneSelectedFlag);
             
             CaretAssert(m_orderingSendToBackAction);
             m_orderingSendToBackAction->setEnabled(oneSelectedFlag);
@@ -433,15 +430,9 @@ AnnotationMenuArrange::processTileTabsMenu(QAction* actionSelected)
 {
     bool menuSelectedFlag(false);
     
-    if ((m_tileTabsExpandToFillAction != NULL)
-        && (actionSelected == m_tileTabsExpandToFillAction)) {
-        processExpandTabMenuItem();
-        menuSelectedFlag = true;
-    }
-    
-    if ((m_tileTabsShrinkToFitAction != NULL)
-        && (actionSelected == m_tileTabsShrinkToFitAction)) {
-        processShrinkTabMenuItem();
+    if ((m_tileTabsShrinkAndExpandToFillAction != NULL)
+        && (actionSelected == m_tileTabsShrinkAndExpandToFillAction)) {
+        processShrinkAndExpandTabMenuItem();
         menuSelectedFlag = true;
     }
     
@@ -603,7 +594,7 @@ AnnotationMenuArrange::processWindowTileTabOperation(const EventBrowserWindowTil
  * Expand tab selected from menu
  */
 void
-AnnotationMenuArrange::processExpandTabMenuItem()
+AnnotationMenuArrange::processShrinkAndExpandTabMenuItem()
 {
     BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
     CaretAssert(window);
@@ -612,34 +603,10 @@ AnnotationMenuArrange::processExpandTabMenuItem()
     
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    const bool result = annMan->expandSelectedBrowserTabAnnotation(allTabContent,
-                                                                   m_browserWindowIndex,
-                                                                   m_userInputMode,
-                                                                   errorMessage);
-    if ( ! result) {
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
-    }
-    
-}
-
-/**
- * Shrink tab selected from menu
- */
-void
-AnnotationMenuArrange::processShrinkTabMenuItem()
-{
-    BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
-    CaretAssert(window);
-    std::vector<BrowserTabContent*> allTabContent;
-    window->getAllTabContent(allTabContent);
-    
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    AString errorMessage;
-    const bool result = annMan->shrinkSelectedBrowserTabAnnotation(allTabContent,
-                                                                   m_browserWindowIndex,
-                                                                   m_userInputMode,
-                                                                   errorMessage);
+    const bool result = annMan->shrinkAndExpandSelectedBrowserTabAnnotation(allTabContent,
+                                                                            m_browserWindowIndex,
+                                                                            m_userInputMode,
+                                                                            errorMessage);
     if ( ! result) {
         WuQMessageBox::errorOk(this,
                                errorMessage);

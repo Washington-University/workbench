@@ -172,18 +172,10 @@ m_parentOpenGLWidget(parentOpenGLWidget)
     /*
      * Expand option
      */
-    QAction* expendToFillAction = addAction("Expand Tab to Fill Empty Space");
+    QAction* expendToFillAction = addAction(getShinkAndExpandTabMenuItemText());
     QObject::connect(expendToFillAction, &QAction::triggered,
-                     this, &UserInputModeTileTabsManualLayoutContextMenu::processExpandTabMenuItem);
+                     this, &UserInputModeTileTabsManualLayoutContextMenu::processShrinkAndExpandTabMenuItem);
     expendToFillAction->setEnabled(oneTabSelectedFlag);
-
-    /*
-     * Expand option
-     */
-    QAction* shrinkToFitAction = addAction("Shrink Tab to Remove Overlap");
-    QObject::connect(shrinkToFitAction, &QAction::triggered,
-                     this, &UserInputModeTileTabsManualLayoutContextMenu::processShrinkTabMenuItem);
-    shrinkToFitAction->setEnabled(oneTabSelectedFlag);
 }
 
 /**
@@ -191,6 +183,17 @@ m_parentOpenGLWidget(parentOpenGLWidget)
  */
 UserInputModeTileTabsManualLayoutContextMenu::~UserInputModeTileTabsManualLayoutContextMenu()
 {
+}
+
+/**
+ * @return Text for "shrink and expand tab" menu item (this function is available from
+ * this context menu and the Arrange Menu in the toolbar.  This function ensures the
+ * same text in both menus.
+ */
+AString
+UserInputModeTileTabsManualLayoutContextMenu::getShinkAndExpandTabMenuItemText()
+{
+    return "Move/Resize Tab to Fill Empty Space";
 }
 
 /**
@@ -266,7 +269,7 @@ UserInputModeTileTabsManualLayoutContextMenu::applyGrouping(const AnnotationGrou
  * Called when expand to fill space menu item is selected
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::processExpandTabMenuItem()
+UserInputModeTileTabsManualLayoutContextMenu::processShrinkAndExpandTabMenuItem()
 {
     const int32_t browserWindowIndex = m_mouseEvent.getBrowserWindowIndex();
     BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
@@ -276,7 +279,7 @@ UserInputModeTileTabsManualLayoutContextMenu::processExpandTabMenuItem()
     
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    const bool result = annMan->expandSelectedBrowserTabAnnotation(allTabContent,
+    const bool result = annMan->shrinkAndExpandSelectedBrowserTabAnnotation(allTabContent,
                                                                    browserWindowIndex,
                                                                    m_userInputTileTabsManualLayout->getUserInputMode(),
                                                                    errorMessage);
@@ -287,33 +290,6 @@ UserInputModeTileTabsManualLayoutContextMenu::processExpandTabMenuItem()
         WuQMessageBox::errorOk(this,
                                errorMessage);
     }    
-}
-
-/**
- * Called when shrink to fill space menu item is selected
- */
-void
-UserInputModeTileTabsManualLayoutContextMenu::processShrinkTabMenuItem()
-{
-    const int32_t browserWindowIndex = m_mouseEvent.getBrowserWindowIndex();
-    BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
-    CaretAssert(window);
-    std::vector<BrowserTabContent*> allTabContent;
-    window->getAllTabContent(allTabContent);
-    
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    AString errorMessage;
-    const bool result = annMan->shrinkSelectedBrowserTabAnnotation(allTabContent,
-                                                                   browserWindowIndex,
-                                                                   m_userInputTileTabsManualLayout->getUserInputMode(),
-                                                                   errorMessage);
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    
-    if ( ! result) {
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
-    }
 }
 
 /**

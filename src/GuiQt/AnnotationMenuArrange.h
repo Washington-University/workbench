@@ -105,9 +105,7 @@ namespace caret {
         
         bool processOrderingMenuItem(QAction* actionSelected);
         
-        void processExpandTabMenuItem();
-        
-        void processShrinkTabMenuItem();
+        void processShrinkAndExpandTabMenuItem();
         
         void processWindowTileTabOperation(const EventBrowserWindowTileTabOperation::Operation operation);
         
@@ -125,9 +123,7 @@ namespace caret {
         
         QAction* m_ungroupAction = NULL;
         
-        QAction* m_tileTabsExpandToFillAction = NULL;
-        
-        QAction* m_tileTabsShrinkToFitAction = NULL;
+        QAction* m_tileTabsShrinkAndExpandToFillAction = NULL;
         
         QAction* m_orderingBringToFrontAction = NULL;
         

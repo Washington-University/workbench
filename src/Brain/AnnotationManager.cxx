@@ -1232,7 +1232,7 @@ AnnotationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
 }
 
 /**
- * Expand selected browser tab to fill available space in the window. MANUAL MODE ONLY !
+ * Shrink and expand selected browser tab to fill available space in the window. MANUAL TILE LAYOUT MODE ONLY !
  *
  * @param tabsInWindow
  *     Tabs displayed in the window (may or may not include selected tab)
@@ -1246,10 +1246,10 @@ AnnotationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
  *     True no error, else false.
  */
 bool
-AnnotationManager::expandSelectedBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
-                                                      const int32_t windowIndex,
-                                                      const UserInputModeEnum::Enum userInputMode,
-                                                      AString& errorMessageOut)
+AnnotationManager::shrinkAndExpandSelectedBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
+                                                               const int32_t windowIndex,
+                                                               const UserInputModeEnum::Enum userInputMode,
+                                                               AString& errorMessageOut)
 {
     errorMessageOut.clear();
     
@@ -1272,10 +1272,10 @@ AnnotationManager::expandSelectedBrowserTabAnnotation(const std::vector<BrowserT
             }
         }
         
-        float newBounds[4] { 0, 0, 0, 0 };
-        if (AnnotationBrowserTab::expandTab(tabAnnotations,
-                                            selectedTabAnnotation,
-                                            newBounds)) {
+        std::array<float, 4> newBounds;
+        if (AnnotationBrowserTab::shrinkAndExpandToFillEmptySpace(tabAnnotations,
+                                                                  selectedTabAnnotation,
+                                                                  newBounds)) {
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setBoundsAll(newBounds[0],
                                       newBounds[1],
@@ -1289,7 +1289,7 @@ AnnotationManager::expandSelectedBrowserTabAnnotation(const std::vector<BrowserT
             }
         }
         else {
-            errorMessageOut = "Unable to expand tab";
+            errorMessageOut = "Unable to move/resize tab";
         }
     }
     else {
@@ -1298,72 +1298,3 @@ AnnotationManager::expandSelectedBrowserTabAnnotation(const std::vector<BrowserT
     
     return false;
 }
-
-/**
- * Shrink selected browser tab to fill available space in the window. MANUAL MODE ONLY !
- *
- * @param tabsInWindow
- *     Tabs displayed in the window (may or may not include selected tab)
- * @param windowIndex
- *     Index of window
- * @param userInputMode
- *     The current user input mode (browser tab always)
- * @param errorMessageOut
- *     Contains error information if expansion has error (inability to expand is NOT an error)
- * @return
- *     True no error, else false.
- */
-bool
-AnnotationManager::shrinkSelectedBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
-                                                      const int32_t windowIndex,
-                                                      const UserInputModeEnum::Enum userInputMode,
-                                                      AString& errorMessageOut)
-{
-    errorMessageOut.clear();
-    
-    AnnotationBrowserTab* selectedTabAnnotation(NULL);
-    std::vector<Annotation*> selectedAnnotations = getAnnotationsSelectedForEditing(windowIndex);
-    if (selectedAnnotations.size() == 1) {
-        CaretAssertVectorIndex(selectedAnnotations, 0);
-        selectedTabAnnotation = dynamic_cast<AnnotationBrowserTab*>(selectedAnnotations[0]);
-    }
-    
-    CaretAssert(selectedTabAnnotation);
-    
-    if (selectedTabAnnotation != NULL) {
-        std::vector<const AnnotationBrowserTab*> tabAnnotations;
-        for (auto btc : tabsInWindow) {
-            const AnnotationBrowserTab* ta = btc->getManualLayoutBrowserTabAnnotation();
-            CaretAssert(ta);
-            if (ta != selectedTabAnnotation) {
-                tabAnnotations.push_back(ta);
-            }
-        }
-        
-        float newBounds[4] { 0, 0, 0, 0 };
-        if (AnnotationBrowserTab::shrinkTab(tabAnnotations,
-                                            selectedTabAnnotation,
-                                            newBounds)) {
-            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-            undoCommand->setBoundsAll(newBounds[0],
-                                      newBounds[1],
-                                      newBounds[2],
-                                      newBounds[3],
-                                      selectedTabAnnotation);
-            if (applyCommand(userInputMode,
-                             undoCommand,
-                             errorMessageOut)) {
-                return true;
-            }
-        }
-        else {
-            errorMessageOut = "Unable to shrink tab";
-        }
-    }
-    else {
-        errorMessageOut = "Either no annotation is selected or selected annotation is not a browser tab";
-    }
-    
-    return false;
-}
-
