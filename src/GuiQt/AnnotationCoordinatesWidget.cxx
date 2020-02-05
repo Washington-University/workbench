@@ -107,7 +107,7 @@ m_browserWindowIndex(browserWindowIndex)
     }
     QLabel* xCoordLabel = new QLabel(" X" + colonString);
     QLabel* yCoordLabel = new QLabel(" Y" + colonString);
-    QLabel* zCoordLabel = new QLabel(" Z" + colonString);
+    m_zCoordLabel = new QLabel(" Z" + colonString);
     QLabel* surfaceVertexLabel = new QLabel("Vertex:");
 
     createCoordinateWidgets(0);
@@ -136,7 +136,7 @@ m_browserWindowIndex(browserWindowIndex)
     coordinateLayout->addWidget(yCoordLabel, 0, 2);
     coordinateLayout->addWidget(m_yCoordSpinBox[0], 0, 3);
     coordinateLayout->addWidget(m_yCoordSpinBox[1], 1, 3);
-    coordinateLayout->addWidget(zCoordLabel, 0, 4);
+    coordinateLayout->addWidget(m_zCoordLabel, 0, 4);
     coordinateLayout->addWidget(m_zCoordSpinBox[0], 0, 5);
     coordinateLayout->addWidget(m_zCoordSpinBox[1], 1, 5);
     coordinateLayout->setColumnStretch(coordinateLayout->columnCount(), 100);
@@ -358,13 +358,17 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
     double xStep = 0.1;
     double yStep = 0.1;
     double zStep = 0.1;
-    QString suffix;
+    QString xSuffix;
+    QString ySuffix;
+    QString zSuffix;
     float xyz[3] { 0.0, 0.0, 0.0 };
 
     int32_t digitsRightOfDecimalX = 2;
     int32_t digitsRightOfDecimalY = 2;
     int32_t digitsRightOfDecimalZ = 2;
 
+    QString zLabelText(" Z:");
+    
     StructureEnum::Enum structure = StructureEnum::INVALID;
     int32_t surfaceNumberOfNodes  = -1;
     int32_t surfaceNodeIndex      = -1;
@@ -377,8 +381,8 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
         
         const double percentageMinimum =   0.0;
         const double percentageMaximum = 100.0;
-        const double zDepthMinimum =       0.0;
-        const double zDepthMaximum =     100.0;
+        const double zDepthMinimum =   -1000.0;
+        const double zDepthMaximum =    1000.0;
         const double coordinateMinimum = -std::numeric_limits<float>::max();
         const double coordinateMaximum =  std::numeric_limits<float>::max();
         switch (m_annotation->getCoordinateSpace()) {
@@ -470,7 +474,9 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                 yMax = percentageMaximum;
                 zMin = zDepthMinimum;
                 zMax = zDepthMaximum;
-                suffix = "%";
+                xSuffix = "%";
+                ySuffix = "%";
+                zSuffix = "%";
                 break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 xMin = coordinateMinimum;
@@ -493,7 +499,11 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                 yMax = percentageMaximum;
                 zMin = zDepthMinimum;
                 zMax = zDepthMaximum;
-                suffix = "%";
+                xSuffix = "%";
+                ySuffix = "%";
+                digitsRightOfDecimalZ = 0;
+                zStep = 1.0;
+                zLabelText = " O:";
                 break;
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
                 /*
@@ -513,7 +523,11 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                 yMax = percentageMaximum;
                 zMin = zDepthMinimum;
                 zMax = zDepthMaximum;
-                suffix = "%";
+                xSuffix = "%";
+                ySuffix = "%";
+                digitsRightOfDecimalZ = 0;
+                zStep = 1.0;
+                zLabelText = " O:";
                 break;
         }
     }
@@ -522,7 +536,7 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
     m_xCoordSpinBox[coordinateIndex]->setRange(xMin,
                               xMax);
     m_xCoordSpinBox[coordinateIndex]->setSingleStep(xStep);
-    m_xCoordSpinBox[coordinateIndex]->setSuffix(suffix);
+    m_xCoordSpinBox[coordinateIndex]->setSuffix(xSuffix);
     m_xCoordSpinBox[coordinateIndex]->setValue(xyz[0]);
     m_xCoordSpinBox[coordinateIndex]->setDecimals(digitsRightOfDecimalX);
     m_xCoordSpinBox[coordinateIndex]->blockSignals(false);
@@ -532,7 +546,7 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
     m_yCoordSpinBox[coordinateIndex]->setRange(yMin,
                               yMax);
     m_yCoordSpinBox[coordinateIndex]->setSingleStep(yStep);
-    m_yCoordSpinBox[coordinateIndex]->setSuffix(suffix);
+    m_yCoordSpinBox[coordinateIndex]->setSuffix(ySuffix);
     m_yCoordSpinBox[coordinateIndex]->setValue(xyz[1]);
     m_yCoordSpinBox[coordinateIndex]->setDecimals(digitsRightOfDecimalY);
     m_yCoordSpinBox[coordinateIndex]->blockSignals(false);
@@ -542,12 +556,15 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
     m_zCoordSpinBox[coordinateIndex]->setRange(zMin,
                               zMax);
     m_zCoordSpinBox[coordinateIndex]->setSingleStep(zStep);
-    m_zCoordSpinBox[coordinateIndex]->setSuffix(suffix);
+    m_zCoordSpinBox[coordinateIndex]->setSuffix(zSuffix);
     m_zCoordSpinBox[coordinateIndex]->setValue(xyz[2]);
     m_zCoordSpinBox[coordinateIndex]->setDecimals(digitsRightOfDecimalZ);
     m_zCoordSpinBox[coordinateIndex]->blockSignals(false);
     m_zCoordSpinBox[coordinateIndex]->setEnabled(xyzFlag);
-
+    if (coordinateIndex == 0) {
+        m_zCoordLabel->setText(zLabelText);
+    }
+    
     if (m_annotation != NULL) {
         if (m_annotation->getType() == AnnotationTypeEnum::BROWSER_TAB) {
             m_zCoordSpinBox[coordinateIndex]->setEnabled(false);
@@ -810,26 +827,29 @@ AnnotationCoordinatesWidget::createCoordinateSpinBox(const int32_t coordinateInd
     }
     
     AString tabWindowText;
+    AString coordOrderText;
     switch (xyzIndex) {
         case 0:
+            coordOrderText = (axisCharacter + "-Coordinate");
             tabWindowText = ("      0.0% => Left side of tab/window\n"
                              "      100.0% => Right side of tab/window");
             break;
         case 1:
+            coordOrderText = (axisCharacter + "-Coordinate");
             tabWindowText = ("      0.0% => Bottom of tab/window\n"
                              "      100.0% => Top of tab/window");
             break;
         case 2:
-            tabWindowText = ("      0.0% => Closer to viewer\n"
-                             "      100.0% => Further from viewer");
+            coordOrderText = "Order";
+            tabWindowText = ("      0 => Closer to viewer\n"
+                             "      100 => Further from viewer");
             break;
     }
     
     CaretAssert(sb);
     WuQtUtilities::setWordWrappedToolTip(sb,
-                                         axisCharacter + "-coordinate of annotation\n"
-                                         "   STEREOTAXIC: Stereotaxic " + axisCharacter + "-Coordinate\n"
-                                         "   TAB and WINDOW " + axisCharacter + "-Range: [0.0%, 100.0%]\n"
+                                         "   STEREOTAXIC: " + axisCharacter + "-Coordinate\n"
+                                         "   TAB and WINDOW: " + coordOrderText + "\n"
                                          + tabWindowText);
     return sb;
 }

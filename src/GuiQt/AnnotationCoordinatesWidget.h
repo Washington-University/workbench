@@ -29,6 +29,7 @@
 #include "UserInputModeEnum.h"
 
 class QDoubleSpinBox;
+class QLabel;
 class QSpinBox;
 class QStackedLayout;
 
@@ -110,6 +111,8 @@ namespace caret {
         QDoubleSpinBox* m_xCoordSpinBox[2];
         
         QDoubleSpinBox* m_yCoordSpinBox[2];
+        
+        QLabel* m_zCoordLabel;
         
         QDoubleSpinBox* m_zCoordSpinBox[2];
 
