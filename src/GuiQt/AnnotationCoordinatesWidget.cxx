@@ -497,7 +497,7 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                 xMax = percentageMaximum;
                 yMin = percentageMinimum;
                 yMax = percentageMaximum;
-                zMin = zDepthMinimum;
+                zMin = 0.0;
                 zMax = zDepthMaximum;
                 xSuffix = "%";
                 ySuffix = "%";
@@ -521,7 +521,7 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                 xMax = percentageMaximum;
                 yMin = percentageMinimum;
                 yMax = percentageMaximum;
-                zMin = zDepthMinimum;
+                zMin = 0.0;
                 zMax = zDepthMaximum;
                 xSuffix = "%";
                 ySuffix = "%";
