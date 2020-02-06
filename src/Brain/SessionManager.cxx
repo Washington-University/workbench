@@ -1336,7 +1336,7 @@ SessionManager::closeBrowserTab(EventBrowserTabClose* closeTabEvent,
     
     tab->setClosedStatusFromSessionManager(true);
     tab->setClosedTabWindowTabBarPositionIndex(closeTabEvent->getWindowTabBarPositionIndex());
-    tab->setClosedTabWindowIndex(closeTabEvent->getWindowIndex());
+    tab->setClosedTabWindowIndex(windowIndex);
     m_closedBrowserTabs.push_front(tab);
     m_browserTabs[tabIndex] = NULL;
     
@@ -1357,9 +1357,7 @@ SessionManager::deleteBrowserTab(EventBrowserTabDelete* deleteTabEvent,
                                 AString& errorMessageOut)
 {
     BrowserTabContent* tab = deleteTabEvent->getBrowserTab();
-    const int32_t windowIndex = deleteTabEvent->getWindowIndex();
     CaretAssert(tab);
-    CaretAssertStdArrayIndex(m_browserWindowContent, windowIndex);
     
     const int32_t tabIndex = tab->getTabNumber();
     if ((tabIndex < 0)

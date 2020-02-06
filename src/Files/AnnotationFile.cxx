@@ -483,7 +483,6 @@ AnnotationFile::receiveEvent(Event* event)
         CaretAssert(deleteEvent);
         
         const int32_t tabIndex = deleteEvent->getBrowserTabIndex();
-        //removeAnnotationsInTab(tabIndex);
         preserveAnnotationsInClosedTab(tabIndex);
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE) {
@@ -1102,8 +1101,10 @@ AnnotationFile::removeAnnotationsInTabGroupAux(const int32_t tabIndex,
                                                std::vector<QSharedPointer<AnnotationGroup>>& removedGroupsOut)
 {
     removedGroupsOut.clear();
+
+
+    CaretUsedInDebugCompileOnly(const uint32_t numAnn = static_cast<int32_t>(annotationsGroups.size()));
     
-    const uint32_t numAnn = static_cast<int32_t>(annotationsGroups.size());
     std::vector<AnnotationGroupIterator> groupsToRemoveIterators;
     
     /*
