@@ -1108,7 +1108,7 @@ BrainOpenGLViewportContent::createViewportContentForManualTileTabs(std::vector<B
         std::sort(tabContents.begin(),
                   tabContents.end(),
                   [](BrowserTabContent* a, BrowserTabContent* b) { return (a->getManualLayoutBrowserTabAnnotation()->getStackingOrder()
-                                                                           < b->getManualLayoutBrowserTabAnnotation()->getStackingOrder()); } );
+                                                                           > b->getManualLayoutBrowserTabAnnotation()->getStackingOrder()); } );
     }
     
     for (const auto tab : tabContents) {

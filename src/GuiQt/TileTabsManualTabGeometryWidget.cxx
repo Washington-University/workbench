@@ -133,8 +133,8 @@ TileTabsManualTabGeometryWidget::~TileTabsManualTabGeometryWidget()
 QString
 TileTabsManualTabGeometryWidget::getStackOrderToolTipText()
 {
-    return WuQtUtilities::createWordWrappedToolTipText("Larger numbers are in front of other tabs.  This value only needs adjustment "
-                                                       "if this tab overlaps with another tab");
+    return WuQtUtilities::createWordWrappedToolTipText("Increase to move behind\n"
+                                                       "Decrease to move in front");
 }
 
 /**

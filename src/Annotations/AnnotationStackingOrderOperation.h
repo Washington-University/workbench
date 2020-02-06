@@ -93,9 +93,11 @@ namespace caret {
         class OrderInfo {
         public:
             OrderInfo(Annotation* annotation,
-                    const int32_t stackOrder)
+                      const int32_t stackOrder,
+                      const bool overlapsSelectedAnnotationFlag)
             : m_annotation(annotation),
-            m_stackOrder(stackOrder) { }
+            m_stackOrder(stackOrder),
+            m_overlapsFlag(overlapsSelectedAnnotationFlag) { }
 
             bool operator<(const OrderInfo& orderInfo) const {
                 return m_stackOrder < orderInfo.m_stackOrder;
@@ -103,12 +105,23 @@ namespace caret {
             
             Annotation* m_annotation = NULL;
             int32_t m_stackOrder = -1;
+            bool m_overlapsFlag = false;
         };
         
         bool filterAnnotations();
         
-        bool validateCompatibility(const std::vector<Annotation*>& annotations,
-                                   AString& errorMesssageOut);
+        bool orderAnnotations(std::vector<OrderInfo>& annotationOrderAndContent,
+                              AString& errorMessageOut);
+        
+        bool validateInput(AString& errorMessageOut);
+        
+        bool findAnnotationIndices(const std::vector<OrderInfo>& annotationOrderAndContent,
+                                   int32_t& indexOfSelectedAnnotation,
+                                   int32_t& indexOfAnnotationBehind,
+                                   int32_t& indexOfAnnotationInFront,
+                                   AString& errorMessageOut);
+
+        void printOrderedAnnotations(const std::vector<OrderInfo>& annotationOrderAndContent);
         
         const Mode m_mode;
         

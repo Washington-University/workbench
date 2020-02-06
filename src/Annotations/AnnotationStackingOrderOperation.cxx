@@ -90,11 +90,348 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
                                               AString& errorMessageOut)
 {
     errorMessageOut.clear();
-    if (m_annotations.size() <= 1) {
-        return true;
+    
+    if ( ! validateInput(errorMessageOut)) {
+        return false;
+    }
+    
+    std::vector<OrderInfo> annotationOrderAndContent;
+    if ( ! orderAnnotations(annotationOrderAndContent,
+                            errorMessageOut)) {
+        return false;
+    }
+    
+    /*
+     * Now that that annotations are sorted by stacking order,
+     * assign a "stack order" using only even numbers.  This allows
+     * the stack order of the selected annotation to change by
+     * plus or minus one.  In addition, find the annotation that
+     * is closest behind and closest in front of the selected
+     * annotation.
+     */
+    int32_t indexOfSelectedAnnotation(-1);
+    int32_t indexOfAnnotationBehind(-1);
+    int32_t indexOfAnnotationInFront(-1);
+
+    if ( ! findAnnotationIndices(annotationOrderAndContent,
+                                 indexOfSelectedAnnotation,
+                                 indexOfAnnotationBehind,
+                                 indexOfAnnotationInFront,
+                                 errorMessageOut)) {
+        return false;
+    }
+    CaretAssert(indexOfSelectedAnnotation >= 0);
+
+    const int32_t numberOfAnnotations = static_cast<int32_t>(annotationOrderAndContent.size());
+    
+    const bool debugFlag(false);
+    if (debugFlag) {
+        std::cout << "BEFORE: " << std::endl;
+        std::cout << "In front: " << indexOfAnnotationInFront << std::endl;
+        std::cout << "Selected: " << indexOfSelectedAnnotation << std::endl;
+        std::cout << "Behind:   " << indexOfAnnotationBehind << std::endl;
+        printOrderedAnnotations(annotationOrderAndContent);
+    }
+    
+    /*
+     * Now change the stack order of the annotation.
+     * Since earlier, the stacking orders were made (0, 2, 4, ...) we only need to
+     * add or subtract 1 to the stack order using the reference annotation that is in front or back
+     */
+    switch (orderType) {
+        case AnnotationStackingOrderTypeEnum::BRING_FORWARD:
+            if (indexOfAnnotationInFront >= 0) {
+                /*
+                 * Move forward one position
+                 */
+                CaretAssertVectorIndex(annotationOrderAndContent, indexOfAnnotationInFront);
+                CaretAssertVectorIndex(annotationOrderAndContent, indexOfSelectedAnnotation);
+                annotationOrderAndContent[indexOfSelectedAnnotation].m_stackOrder = annotationOrderAndContent[indexOfAnnotationInFront].m_stackOrder - 1;
+            }
+            break;
+        case AnnotationStackingOrderTypeEnum::BRING_TO_FRONT:
+        {
+            /*
+             * Move to in front of all annotations
+             */
+            const int32_t frontIndex = 0;
+            CaretAssertVectorIndex(annotationOrderAndContent, frontIndex);
+            CaretAssertVectorIndex(annotationOrderAndContent, indexOfSelectedAnnotation);
+            annotationOrderAndContent[indexOfSelectedAnnotation].m_stackOrder = annotationOrderAndContent[frontIndex].m_stackOrder - 1;
+        }
+            break;
+        case AnnotationStackingOrderTypeEnum::SEND_BACKWARD:
+            if (indexOfAnnotationBehind >= 0) {
+                /*
+                 * Move back one position
+                 */
+                CaretAssertVectorIndex(annotationOrderAndContent, indexOfAnnotationBehind);
+                CaretAssertVectorIndex(annotationOrderAndContent, indexOfSelectedAnnotation);
+                annotationOrderAndContent[indexOfSelectedAnnotation].m_stackOrder = annotationOrderAndContent[indexOfAnnotationBehind].m_stackOrder + 1;
+            }
+            break;
+        case AnnotationStackingOrderTypeEnum::SEND_TO_BACK:
+        {
+            /*
+             * Move to behind all annotations
+             */
+            const int32_t backIndex = static_cast<int32_t>(annotationOrderAndContent.size() - 1);
+            CaretAssertVectorIndex(annotationOrderAndContent, backIndex);
+            CaretAssertVectorIndex(annotationOrderAndContent, indexOfSelectedAnnotation);
+            annotationOrderAndContent[indexOfSelectedAnnotation].m_stackOrder = annotationOrderAndContent[backIndex].m_stackOrder + 1;
+        }
+            break;
+    }
+    
+    /*
+     * Now sort again since the sort order has changed
+     */
+    std::sort(annotationOrderAndContent.begin(),
+              annotationOrderAndContent.end());
+    
+    if (debugFlag) {
+        std::cout << "AFTER: " << std::endl;
+        printOrderedAnnotations(annotationOrderAndContent);
+    }
+    
+    /*
+     * Update annotations with new sort order or Z-coordinate
+     */
+    for (int32_t indx = 0; indx < numberOfAnnotations; indx++) {
+        CaretAssertVectorIndex(annotationOrderAndContent, indx);
+        Annotation* ann = annotationOrderAndContent[indx].m_annotation;
+        CaretAssert(ann);
+        
+        /*
+         * Order with even numbers.  Users may modify the order
+         * and it creates "space" to reduce annotations with same
+         * order value.
+         */
+        const int32_t orderValue = (indx * 2) + 2;
+        
+        switch (ann->getType()) {
+            case AnnotationTypeEnum::BROWSER_TAB:
+            case AnnotationTypeEnum::COLOR_BAR:
+            case AnnotationTypeEnum::SCALE_BAR:
+                switch (m_mode) {
+                    case Mode::MODE_APPLY_NEW_ORDER_TO_ANNOTAIONS:
+                        ann->setStackingOrder(orderValue);
+                        break;
+                    case Mode::MODE_REQUEST_NEW_ORDER_VALUES:
+                        m_newStackingOrderResults.push_back(NewStackingOrder(ann, orderValue));
+                        break;
+                }
+                break;
+            case AnnotationTypeEnum::BOX:
+            case AnnotationTypeEnum::IMAGE:
+            case AnnotationTypeEnum::LINE:
+            case AnnotationTypeEnum::OVAL:
+            case AnnotationTypeEnum::TEXT:
+            {
+                switch (m_mode) {
+                    case Mode::MODE_APPLY_NEW_ORDER_TO_ANNOTAIONS:
+                    {
+                        AnnotationOneDimensionalShape* oneDim = ann->castToOneDimensionalShape();
+                        AnnotationTwoDimensionalShape* twoDim = ann->castToTwoDimensionalShape();
+                        float xyz[3] { 0.0, 0.0, 0.0 };
+                        if (oneDim != NULL) {
+                            oneDim->getStartCoordinate()->getXYZ(xyz);
+                        }
+                        else if (twoDim != NULL) {
+                            twoDim->getCoordinate()->getXYZ(xyz);
+                        }
+                        else {
+                            CaretAssert(0);
+                        }
+
+                        xyz[2] = orderValue;
+                        
+                        if (oneDim != NULL) {
+                            oneDim->getStartCoordinate()->setXYZ(xyz);
+                            const float z = xyz[2];
+                            oneDim->getEndCoordinate()->getXYZ(xyz);
+                            xyz[2] = z;
+                            oneDim->getEndCoordinate()->setXYZ(xyz);
+                        }
+                        else if (twoDim != NULL) {
+                            twoDim->getCoordinate()->setXYZ(xyz);
+                        }
+                        else {
+                            CaretAssert(0);
+                        }
+                        break;
+                    }
+                    case Mode::MODE_REQUEST_NEW_ORDER_VALUES:
+                        m_newStackingOrderResults.push_back(NewStackingOrder(ann, orderValue));
+                        break;
+                }
+            }
+                break;
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * Find indices of the seleted, behind, and in front annotations
+ *
+ * @param indexOfSelectedAnnotation
+ *   Index of the selected annotation in the ordered annotations
+ * @param indexOfAnnotationBehind
+ *   Index of the annotation immediately behind the selected annotation in the ordered annotations
+ *   May be invalid (-1) if selected annotation is in back of all annotations
+ * @param indexOfAnnotationInFront
+ *   Index of the annotation immediately in front of the selected annotation in the ordered annotations
+ *   May be invalid (-1) if selected annotation is in front of all annotations
+ * @param errorMessageOut
+ *   Ouput with error message
+ * @return True if successful, else false
+ */
+bool
+AnnotationStackingOrderOperation::findAnnotationIndices(const std::vector<OrderInfo>& annotationOrderAndContent,
+                                                        int32_t& indexOfSelectedAnnotation,
+                                                        int32_t& indexOfAnnotationBehind,
+                                                        int32_t& indexOfAnnotationInFront,
+                                                        AString& errorMessageOut)
+{
+    indexOfSelectedAnnotation = -1;
+    indexOfAnnotationBehind   = -1;
+    indexOfAnnotationInFront  = -1;
+    
+    const int32_t numAnn = static_cast<int32_t>(annotationOrderAndContent.size());
+    for (int32_t i = 0; i < numAnn; i++) {
+        if (annotationOrderAndContent[i].m_annotation == m_selectedAnnotation) {
+            indexOfSelectedAnnotation = i;
+            break;
+        }
+    }
+    
+    if (indexOfSelectedAnnotation >= 0) {
+        if (indexOfSelectedAnnotation > 0) {
+            indexOfAnnotationInFront = indexOfSelectedAnnotation - 1;
+        }
+        if (indexOfSelectedAnnotation < (numAnn - 1)) {
+            indexOfAnnotationBehind = indexOfSelectedAnnotation + 1;
+        }
+    }
+    else {
+        errorMessageOut = "Unable to find index of selected annotation in ordered annotations";
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Sort the annotations front to back.
+ *
+ * @param annotationOrderAndContent
+ *   Output with annotations and their ordering
+ * @param errorMessageOut
+ *   Contains error information
+ * @return True if input is valid, else false.
+ */
+bool
+AnnotationStackingOrderOperation::orderAnnotations(std::vector<OrderInfo>& annotationOrderAndContent,
+                                                   AString& errorMessageOut)
+{
+    /*
+     * Sort annotations by current stacking order
+     */
+    int32_t maxStackingOrder(-1);
+    for (const auto ann : m_annotations) {
+        CaretAssert(ann);
+        
+        switch (ann->getType()) {
+            case AnnotationTypeEnum::BROWSER_TAB:
+            case AnnotationTypeEnum::COLOR_BAR:
+            case AnnotationTypeEnum::SCALE_BAR:
+                break;
+            case AnnotationTypeEnum::BOX:
+            case AnnotationTypeEnum::IMAGE:
+            case AnnotationTypeEnum::LINE:
+            case AnnotationTypeEnum::OVAL:
+            case AnnotationTypeEnum::TEXT:
+            {
+                const AnnotationOneDimensionalShape* oneDim = ann->castToOneDimensionalShape();
+                const AnnotationTwoDimensionalShape* twoDim = ann->castToTwoDimensionalShape();
+                float xyz[3] { 0.0, 0.0, 0.0 };
+                if (oneDim != NULL) {
+                    oneDim->getStartCoordinate()->getXYZ(xyz);
+                }
+                else if (twoDim != NULL) {
+                    twoDim->getCoordinate()->getXYZ(xyz);
+                }
+                else {
+                    CaretAssert(0);
+                }
+                /*
+                 * Coords are float but stack order is integer so scale the coord
+                 */
+                ann->setStackingOrder(static_cast<int32_t>(xyz[2] * m_coordToStackOrderScaleFactor));
+            }
+                break;
+        }
+        
+        if (ann->getStackingOrder() > maxStackingOrder) {
+            maxStackingOrder = ann->getStackingOrder();
+        }
+        bool overlapsSelectedAnnotationFlag(false);
+        if (ann != m_selectedAnnotation) {
+            if (m_selectedAnnotation->intersectionTest(ann, m_windowIndex)) {
+                overlapsSelectedAnnotationFlag = true;
+            }
+        }
+        annotationOrderAndContent.emplace_back(ann,
+                                               ann->getStackingOrder(),
+                                               overlapsSelectedAnnotationFlag);
+    }
+    
+    if (annotationOrderAndContent.size() <= 1) {
+        errorMessageOut = "There must be at least two annotations selected for ordering";
+        return false;
     }
 
+    
+    std::sort(annotationOrderAndContent.begin(),
+              annotationOrderAndContent.end());
+    
+    /*
+     * Update order indices so that all are a multiple of 2.
+     * Later, when an annotation is moved, its order can
+     * simply be incremented or decremented to move in front or behind
+     */
+    int32_t orderIndex(0);
+    for (auto& ao : annotationOrderAndContent) {
+        ao.m_stackOrder = orderIndex;
+        orderIndex += 2;
+    }
+    
+    return true;
+}
 
+void
+AnnotationStackingOrderOperation::printOrderedAnnotations(const std::vector<OrderInfo>& annotationOrderAndContent)
+{
+    for (auto& ao : annotationOrderAndContent) {
+        std::cout << ao.m_stackOrder << " " << ao.m_annotation->toString() << std::endl;
+    }
+}
+
+
+/**
+ * Validate the input.  If successful, the input annotations contain the selected
+ * annotation and annotations that overlap the selected annotation and are in
+ * the same space.  Other annotations have been filtered out.
+ *
+ * @param errorMessageOut
+ * Contains error information
+ * @return True if input is valid, else false.
+ */
+bool
+AnnotationStackingOrderOperation::validateInput(AString& errorMessageOut)
+{
     bool supportedSpaceFlag(false);
     CaretAssert(m_selectedAnnotation);
     switch (m_selectedAnnotation->getCoordinateSpace()) {
@@ -110,7 +447,6 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
             supportedSpaceFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            supportedSpaceFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             supportedSpaceFlag = true;
@@ -140,264 +476,17 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
     if ( ! found) {
         errorMessageOut = ("Annotation for reordering "
                            + m_selectedAnnotation->toString()
-                           + " not found in all annotations");
+                           + " not found in input annotations");
         return false;
     }
     
-    if ( ! validateCompatibility(m_annotations,
-                                 errorMessageOut)) {
-        return false;
-    }
-    
-    bool largerIsFurtherAwayFlag(false);
-    switch (m_selectedAnnotation->getType()) {
-        case AnnotationTypeEnum::BROWSER_TAB:
-        case AnnotationTypeEnum::COLOR_BAR:
-        case AnnotationTypeEnum::SCALE_BAR:
-            break;
-        case AnnotationTypeEnum::BOX:
-        case AnnotationTypeEnum::IMAGE:
-        case AnnotationTypeEnum::LINE:
-        case AnnotationTypeEnum::OVAL:
-        case AnnotationTypeEnum::TEXT:
-            largerIsFurtherAwayFlag = true;
-            break;
-    }
-    
-    /*
-     * Sort annotations by current stacking order
-     */
-    int32_t maxStackingOrder(-1);
-    std::vector<OrderInfo> annotationOrderAndContent;
-    for (const auto ann : m_annotations) {
-        CaretAssert(ann);
-        
-        switch (ann->getType()) {
-            case AnnotationTypeEnum::BROWSER_TAB:
-            case AnnotationTypeEnum::COLOR_BAR:
-            case AnnotationTypeEnum::SCALE_BAR:
-                break;
-            case AnnotationTypeEnum::BOX:
-            case AnnotationTypeEnum::IMAGE:
-            case AnnotationTypeEnum::LINE:
-            case AnnotationTypeEnum::OVAL:
-            case AnnotationTypeEnum::TEXT:
-            {
-                const AnnotationOneDimensionalShape* oneDim = ann->castToOneDimensionalShape();
-                const AnnotationTwoDimensionalShape* twoDim = ann->castToTwoDimensionalShape();
-                float xyz[3] { 0.0, 0.0, 0.0 };
-                if (oneDim != NULL) {
-                    oneDim->getStartCoordinate()->getXYZ(xyz);
-                }
-                else if (twoDim != NULL) {
-                    twoDim->getCoordinate()->getXYZ(xyz);
-                }
-                else {
-                    CaretAssert(0);
-                }
-                /*
-                 * Coords are float but stack order is int so scale the coord
-                 */
-                ann->setStackingOrder(static_cast<int32_t>(xyz[2] * m_coordToStackOrderScaleFactor));
-            }
-                break;
-        }
-        
-        if (ann->getStackingOrder() > maxStackingOrder) {
-            maxStackingOrder = ann->getStackingOrder();
-        }
-        annotationOrderAndContent.emplace_back(ann,
-                                               ann->getStackingOrder());
-    }
-    
-    if (largerIsFurtherAwayFlag) {
-        /*
-         * Reverse stacking order
-         */
-        if (maxStackingOrder >= 0) {
-            for (auto& aoc : annotationOrderAndContent) {
-                aoc.m_stackOrder = maxStackingOrder - aoc.m_stackOrder;
-            }
-        }
-    }
-    
-    std::sort(annotationOrderAndContent.begin(),
-              annotationOrderAndContent.end());
-    
-    /*
-     * Now that that annotations are sorted by stacking order,
-     * assign a "stack order" using only even numbers.  This allows
-     * the stack order of the selected annotation to change by
-     * plus or minus one.  In addition, find the annotation that
-     * is closest behind and closest in front of the selected
-     * annotation.
-     */
-    int32_t indexOfSelectedAnnotation(-1);
-    int32_t indexOfAnnotationBehind(-1);
-    int32_t indexOfAnnotationInFront(-1);
-    const int32_t numberOfAnnotations = static_cast<int32_t>(annotationOrderAndContent.size());
-    CaretAssert(numberOfAnnotations >= 2);
-    if (numberOfAnnotations < 2) {
-        errorMessageOut = "There must be at least two items for ordering";
-        return false;
-    }
-    
-    for (int32_t i = 0; i < numberOfAnnotations; i++) {
-        CaretAssertVectorIndex(annotationOrderAndContent, i);
-        annotationOrderAndContent[i].m_stackOrder = i * 2;
-        
-        if (m_selectedAnnotation == annotationOrderAndContent[i].m_annotation) {
-            indexOfSelectedAnnotation = i;
-        }
-        else if (indexOfSelectedAnnotation < 0) { /* have not yet found index of 'selectedAnnotation' */
-            /*
-             * Find annotation that is closest to 'selectedAnnotation' but behind and intersects it
-             */
-            if (m_selectedAnnotation->intersectionTest(annotationOrderAndContent[i].m_annotation,
-                                                       m_windowIndex)) {
-                indexOfAnnotationBehind = i;
-            }
-        }
-        else if (indexOfAnnotationInFront < 0) {
-            /*
-             * Find first (closest) annotation that is in front of and intersects 'selectedAnnotation'
-             */
-            if (m_selectedAnnotation->intersectionTest(annotationOrderAndContent[i].m_annotation,
-                                                       m_windowIndex)) {
-                indexOfAnnotationInFront = i;
-            }
-        }
-    }
-    
-    CaretAssert(indexOfSelectedAnnotation >= 0);
-    
-    /*
-     * Now change the stack order of the annotation.
-     * Since earlier, the stacking orders were made (0, 2, 4, ...) we only need to
-     * add or subtract 1 to the stack order using the reference annotation that is in front or back
-     */
-    switch (orderType) {
-        case AnnotationStackingOrderTypeEnum::BRING_FORWARD:
-            if (indexOfAnnotationInFront >= 0) {
-                /*
-                 * Move forward one position
-                 */
-                CaretAssertVectorIndex(annotationOrderAndContent, indexOfAnnotationInFront);
-                CaretAssertVectorIndex(annotationOrderAndContent, indexOfSelectedAnnotation);
-                annotationOrderAndContent[indexOfSelectedAnnotation].m_stackOrder = annotationOrderAndContent[indexOfAnnotationInFront].m_stackOrder + 1;
-            }
-            break;
-        case AnnotationStackingOrderTypeEnum::BRING_TO_FRONT:
-        {
-            /*
-             * Move to in front of all annotations
-             */
-            const int32_t frontIndex = static_cast<int32_t>(annotationOrderAndContent.size() - 1);
-            CaretAssertVectorIndex(annotationOrderAndContent, frontIndex);
-            CaretAssertVectorIndex(annotationOrderAndContent, indexOfSelectedAnnotation);
-            annotationOrderAndContent[indexOfSelectedAnnotation].m_stackOrder = annotationOrderAndContent[frontIndex].m_stackOrder + 1;
-        }
-            break;
-        case AnnotationStackingOrderTypeEnum::SEND_BACKWARD:
-            if (indexOfAnnotationBehind >= 0) {
-                /*
-                 * Move back one position
-                 */
-                CaretAssertVectorIndex(annotationOrderAndContent, indexOfAnnotationBehind);
-                CaretAssertVectorIndex(annotationOrderAndContent, indexOfSelectedAnnotation);
-                annotationOrderAndContent[indexOfSelectedAnnotation].m_stackOrder = annotationOrderAndContent[indexOfAnnotationBehind].m_stackOrder - 1;
-            }
-            break;
-        case AnnotationStackingOrderTypeEnum::SEND_TO_BACK:
-        {
-            /*
-             * Move to behind all annotations
-             */
-            const int32_t backIndex = 0;
-            CaretAssertVectorIndex(annotationOrderAndContent, backIndex);
-            CaretAssertVectorIndex(annotationOrderAndContent, indexOfSelectedAnnotation);
-            annotationOrderAndContent[indexOfSelectedAnnotation].m_stackOrder = annotationOrderAndContent[backIndex].m_stackOrder - 1;
-        }
-            break;
-    }
-    
-    /*
-     * Now order annotations sequentially to clean up stacking order
-     */
-    std::sort(annotationOrderAndContent.begin(),
-              annotationOrderAndContent.end());
-    for (int32_t i = 0; i < numberOfAnnotations; i++) {
-        CaretAssertVectorIndex(annotationOrderAndContent, i);
-        Annotation* ann = annotationOrderAndContent[i].m_annotation;
-        CaretAssert(ann);
-        
-        switch (ann->getType()) {
-            case AnnotationTypeEnum::BROWSER_TAB:
-            case AnnotationTypeEnum::COLOR_BAR:
-            case AnnotationTypeEnum::SCALE_BAR:
-                switch (m_mode) {
-                    case Mode::MODE_APPLY_NEW_ORDER_TO_ANNOTAIONS:
-                        ann->setStackingOrder(i + 1);
-                        break;
-                    case Mode::MODE_REQUEST_NEW_ORDER_VALUES:
-                        m_newStackingOrderResults.push_back(NewStackingOrder(ann, i + 1));
-                        break;
-                }
-                break;
-            case AnnotationTypeEnum::BOX:
-            case AnnotationTypeEnum::IMAGE:
-            case AnnotationTypeEnum::LINE:
-            case AnnotationTypeEnum::OVAL:
-            case AnnotationTypeEnum::TEXT:
-            {
-                const float newStackOrder(i + 1);
-                const float stackingZ = (numberOfAnnotations - newStackOrder);
-                switch (m_mode) {
-                    case Mode::MODE_APPLY_NEW_ORDER_TO_ANNOTAIONS:
-                    {
-                        AnnotationOneDimensionalShape* oneDim = ann->castToOneDimensionalShape();
-                        AnnotationTwoDimensionalShape* twoDim = ann->castToTwoDimensionalShape();
-                        float xyz[3] { 0.0, 0.0, 0.0 };
-                        if (oneDim != NULL) {
-                            oneDim->getStartCoordinate()->getXYZ(xyz);
-                        }
-                        else if (twoDim != NULL) {
-                            twoDim->getCoordinate()->getXYZ(xyz);
-                        }
-                        else {
-                            CaretAssert(0);
-                        }
-                        /*
-                         * Need to invert order since larger is further away
-                         */
-                        xyz[2] = stackingZ;
-                        
-                        if (oneDim != NULL) {
-                            oneDim->getStartCoordinate()->setXYZ(xyz);
-                            const float z = xyz[2];
-                            oneDim->getEndCoordinate()->getXYZ(xyz);
-                            xyz[2] = z;
-                            oneDim->getEndCoordinate()->setXYZ(xyz);
-                        }
-                        else if (twoDim != NULL) {
-                            twoDim->getCoordinate()->setXYZ(xyz);
-                        }
-                        else {
-                            CaretAssert(0);
-                        }
-                        break;
-                    }
-                    case Mode::MODE_REQUEST_NEW_ORDER_VALUES:
-                        m_newStackingOrderResults.push_back(NewStackingOrder(ann, stackingZ));
-                        break;
-                }
-            }
-                break;
-        }
-    }
+//    if (m_annotations.size() <= 1) {
+//        return true;
+//    }
     
     return true;
 }
+
 
 /**
  * Get a description of this object's content.
@@ -410,7 +499,7 @@ AnnotationStackingOrderOperation::toString() const
 }
 
 /**
- * Filter the annotations that are incompatible with the selected annotation
+ * Filter the annotations to find those in same space that overlap the selected annotation
  *
  * @return True there are annotations remaining after filtering
  */
@@ -451,144 +540,6 @@ AnnotationStackingOrderOperation::filterAnnotations()
     m_annotations = filteredAnnotations;
     
     return (m_annotations.size() > 1);
-}
-
-/**
- * Examine the annotations (types, coordinate spaces, etc) to verify that
- * the annotations can be reordered.
- *
- * @param annotations
- *     Annotation for reordering
- * @param errorMessageOut
- *     Contains error information
- * @return
- *     True if OK else false if there is an error
- */
-bool
-AnnotationStackingOrderOperation::validateCompatibility(const std::vector<Annotation*>& annotations,
-                                                        AString& errorMesssageOut)
-{
-    /*
-     * filterAnnotations() makes validation unnecessary
-     */
-    const bool doValidationFlag(false);
-    if ( ! doValidationFlag) {
-        return true;
-    }
-    
-    
-    if (annotations.empty()) {
-        errorMesssageOut = "No annotations for reordering";
-        return false;
-    }
-    
-    std::set<AnnotationTypeEnum::Enum> types;
-    std::set<AnnotationCoordinateSpaceEnum::Enum> spaces;
-    std::set<int32_t> spacerIndices;
-    std::set<int32_t> tabIndices;
-    std::set<int32_t> windowIndices;
-
-    for (const auto a : m_annotations) {
-        CaretAssert(a);
-        
-        types.insert(a->getType());
-        
-        const AnnotationCoordinateSpaceEnum::Enum space = a->getCoordinateSpace();
-        spaces.insert(space);
-        
-        switch (space) {
-            case AnnotationCoordinateSpaceEnum::CHART:
-                errorMesssageOut = "Chart space annotations cannot be ordered";
-                return false;
-                break;
-            case AnnotationCoordinateSpaceEnum::SPACER:
-                errorMesssageOut = "Spacer space annotations cannot be ordered";
-                return false;
-                break;
-            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                errorMesssageOut = "Stereotaxic Space Annotations cannot be ordered (XYZ coordinates determine order)";
-                return false;
-                break;
-            case AnnotationCoordinateSpaceEnum::SURFACE:
-                errorMesssageOut = "Stereotaxic Space Annotations cannot be ordered (surface coordinates determine order)";
-                return false;
-                break;
-            case AnnotationCoordinateSpaceEnum::TAB:
-                tabIndices.insert(a->getTabIndex());
-                break;
-            case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                errorMesssageOut = "Viewport space annotations cannot be ordered";
-                return false;
-                break;
-            case AnnotationCoordinateSpaceEnum::WINDOW:
-                windowIndices.insert(a->getWindowIndex());
-                break;
-        }
-    }
-    
-    /*
-     * If all are browser tabs, then OK
-     */
-    if (types.size() == 1) {
-        if (*types.begin() == AnnotationTypeEnum::BROWSER_TAB) {
-            return true;
-        }
-    }
-    
-    if (spaces.size() > 1) {
-        errorMesssageOut = "Annotations must be in one space but are in spaces: ";
-        for (auto s : spaces) {
-            errorMesssageOut.append(" " + AnnotationCoordinateSpaceEnum::toGuiName(s));
-        }
-        return false;
-    }
-    else if (spaces.empty()) {
-        errorMesssageOut = "Annotations are not in any space";
-        return false;
-    }
-    
-    const AnnotationCoordinateSpaceEnum::Enum annSpace = *spaces.begin();
-    switch (annSpace) {
-        case AnnotationCoordinateSpaceEnum::CHART:
-            CaretAssert(0);
-            break;
-        case AnnotationCoordinateSpaceEnum::SPACER:
-            CaretAssert(0);
-            break;
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            CaretAssert(0);
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            CaretAssert(0);
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            if (tabIndices.size() == 1) {
-                return true;
-            }
-            else {
-                errorMesssageOut = "All tab annotations must be in same tab";
-                return false;
-            }
-            break;
-        case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            CaretAssert(0);
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            if (windowIndices.size() == 1) {
-                return true;
-            }
-            else {
-                errorMesssageOut = "All window annotations must be in same window";
-                return false;
-            }
-            break;
-    }
-    
-    if (errorMesssageOut.isEmpty()) {
-        errorMesssageOut = "Annotation are incompatible for reordering (unknown reason)";
-    }
-    
-    return false;
 }
 
 /**

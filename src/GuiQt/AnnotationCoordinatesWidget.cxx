@@ -841,8 +841,8 @@ AnnotationCoordinatesWidget::createCoordinateSpinBox(const int32_t coordinateInd
             break;
         case 2:
             coordOrderText = "Order";
-            tabWindowText = ("      0 => Closer to viewer\n"
-                             "      100 => Further from viewer");
+            tabWindowText = ("      Increase to move behind\n"
+                             "      Decrease to move in front");
             break;
     }
     
