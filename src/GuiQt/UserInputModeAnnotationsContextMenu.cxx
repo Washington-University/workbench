@@ -140,8 +140,11 @@ m_newAnnotationCreatedByContextMenu(NULL)
     }
     const bool haveThreeDimCoordAnnotationsFlag = ( ! m_threeDimCoordAnnotations.empty());
 
+    bool oneAnnotationSelectedFlag(false);
     bool oneDeletableAnnotationSelectedFlag = false;
     if (selectedAnnotations.size() == 1) {
+        oneAnnotationSelectedFlag = true;
+        
         CaretAssertVectorIndex(selectedAnnotations, 0);
         m_annotationFile = selectedAnnotations[0].second;
         m_annotation     = selectedAnnotations[0].first;
@@ -223,6 +226,33 @@ m_newAnnotationCreatedByContextMenu(NULL)
     addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL),
               this, SLOT(selectAllAnnotations()));
     
+    /*
+     * Separator
+     */
+    addSeparator();
+
+    /*
+     * Order Operations
+     */
+    QAction* bringToFrontAction = addAction("Bring to Front");
+    QObject::connect(bringToFrontAction, &QAction::triggered,
+                     this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::BRING_TO_FRONT); });
+    QAction* bringForwardAction = addAction("Bring Forward");
+    QObject::connect(bringForwardAction, &QAction::triggered,
+                     this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::BRING_FORWARD); });
+    QAction* sendToBackAction = addAction("Send to Back");
+    QObject::connect(sendToBackAction, &QAction::triggered,
+                     this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::SEND_TO_BACK); });
+    QAction* sendBackwardAction = addAction("Send Backward");
+    QObject::connect(sendBackwardAction, &QAction::triggered,
+                     this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::SEND_BACKWARD); });
+    
+    bringToFrontAction->setEnabled(oneAnnotationSelectedFlag);
+    bringForwardAction->setEnabled(oneAnnotationSelectedFlag);
+    sendToBackAction->setEnabled(oneAnnotationSelectedFlag);
+    sendBackwardAction->setEnabled(oneAnnotationSelectedFlag);
+    
+
     /*
      * Separator
      */
@@ -487,7 +517,7 @@ UserInputModeAnnotationsContextMenu::turnOnDisplayInGroup(QAction* action)
     }
     
     if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssert(0);  // TAB NOT ALLOWED
+        CaretAssert(0);  /* TAB NOT ALLOWED */
         return;
     }
     
@@ -657,6 +687,40 @@ UserInputModeAnnotationsContextMenu::applyGrouping(const AnnotationGroupingModeE
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Called to process an annotation order operation
+ *
+ * @param orderType
+ *     The ordering type
+ */
+void
+UserInputModeAnnotationsContextMenu::processAnnotationOrderOperation(const AnnotationStackingOrderTypeEnum::Enum orderType)
+{
+    const int32_t browserWindowIndex = m_mouseEvent.getBrowserWindowIndex();
+    
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> selectedAnnotations = annMan->getAnnotationsSelectedForEditing(browserWindowIndex);
+    if (selectedAnnotations.size() == 1) {
+        CaretAssertVectorIndex(selectedAnnotations, 0);
+        Annotation* selectedAnn = selectedAnnotations[0];
+        std::vector<Annotation*> sameSpaceAnnotations = annMan->getAnnotationsDrawnInSameWindowAndSpace(selectedAnn,
+                                                                                                        browserWindowIndex);
+        if ( ! sameSpaceAnnotations.empty()) {
+            sameSpaceAnnotations.push_back(selectedAnn);
+            
+            AString errorMessage;
+            if ( ! annMan->applyStackingOrder(sameSpaceAnnotations,
+                                              selectedAnn,
+                                              orderType,
+                                              browserWindowIndex,
+                                              errorMessage)) {
+                WuQMessageBox::errorOk(this,
+                                       errorMessage);
+            }
+        }
+    }
 }
 
 

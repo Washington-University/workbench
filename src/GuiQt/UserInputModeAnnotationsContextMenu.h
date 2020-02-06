@@ -25,6 +25,7 @@
 #include <QMenu>
 
 #include "AnnotationGroupingModeEnum.h"
+#include "AnnotationStackingOrderTypeEnum.h"
 #include "MouseEvent.h"
 
 namespace caret {
@@ -86,7 +87,7 @@ namespace caret {
         void applyGroupingUngroup();
         
         void duplicateAnnotationSelected(QAction*);
-        
+                
     private:
         UserInputModeAnnotationsContextMenu(const UserInputModeAnnotationsContextMenu&);
 
@@ -97,6 +98,8 @@ namespace caret {
         QMenu* createTurnOnInDisplayGroupMenu();
         
         QMenu* createDuplicateTabSpaceAnnotationMenu();
+        
+        void processAnnotationOrderOperation(const AnnotationStackingOrderTypeEnum::Enum orderType);
         
         UserInputModeAnnotations* m_userInputModeAnnotations;
         
