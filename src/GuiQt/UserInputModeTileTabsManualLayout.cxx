@@ -31,6 +31,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventBrowserTabCloseInToolBar.h"
+#include "EventBrowserTabSelectInWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -149,4 +150,40 @@ UserInputModeTileTabsManualLayout::deleteSelectedAnnotations()
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Process a mouse left click for selection mode.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ * @param shiftKeyDownFlag
+ *     True if shift key is down.
+ * @param singleSelectionModeFlag
+ *     If true, deselect any other annotations so that only the annotation under mouse is selected
+ */
+void
+UserInputModeTileTabsManualLayout::processMouseSelectAnnotation(const MouseEvent& mouseEvent,
+                                                                const bool shiftKeyDownFlag,
+                                                                const bool singleSelectionModeFlag)
+{
+    /*
+     * Do normal selection processing
+     */
+    UserInputModeAnnotations::processMouseSelectAnnotation(mouseEvent,
+                                                           shiftKeyDownFlag,
+                                                           singleSelectionModeFlag);
+    
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+    if (selectedAnnotations.size() == 1) {
+        CaretAssertVectorIndex(selectedAnnotations, 0);
+        AnnotationBrowserTab* tabAnn = dynamic_cast<AnnotationBrowserTab*>(selectedAnnotations[0]);
+        if (tabAnn != NULL) {
+            const int32_t browserTabIndex = tabAnn->getTabIndex();
+            
+            EventBrowserTabSelectInWindow selectTabEvent(browserTabIndex);
+            EventManager::get()->sendEvent(selectTabEvent.getPointer());
+        }
+    }
 }

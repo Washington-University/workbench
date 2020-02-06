@@ -95,6 +95,7 @@
 #include "EventBrowserTabNewClone.h"
 #include "EventBrowserTabNewInGUI.h"
 #include "EventBrowserTabReopenClosed.h"
+#include "EventBrowserTabSelectInWindow.h"
 #include "EventBrowserWindowDrawingContent.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowNew.h"
@@ -590,6 +591,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE_IN_TOOL_BAR);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_IN_GUI);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_SELECT_IN_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION);
@@ -3545,6 +3547,18 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         }
         
         viewedTabsEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_SELECT_IN_WINDOW) {
+        EventBrowserTabSelectInWindow* selectTabEvent = dynamic_cast<EventBrowserTabSelectInWindow*>(event);
+        CaretAssert(selectTabEvent);
+        
+        const int32_t browserTabIndex = selectTabEvent->getBrowserTabIndex();
+        const int32_t tabIndex = getTabBarIndexWithBrowserTabIndex(browserTabIndex);
+        if (tabIndex >= 0) {
+            this->tabBar->setCurrentIndex(tabIndex);
+            selectedTabChanged(tabIndex);
+            selectTabEvent->setEventProcessed();
+        }
     }
     else {
         

@@ -107,6 +107,7 @@ EventBrowserTabIndicesGetAllViewed.h
 EventBrowserTabNew.h
 EventBrowserTabNewClone.h
 EventBrowserTabReopenClosed.h
+EventBrowserTabSelectInWindow.h
 EventCaretPreferencesGet.h
 EventGetViewportSize.h
 EventListenerInterface.h
@@ -250,6 +251,7 @@ EventBrowserTabIndicesGetAllViewed.cxx
 EventBrowserTabNew.cxx
 EventBrowserTabNewClone.cxx
 EventBrowserTabReopenClosed.cxx
+EventBrowserTabSelectInWindow.cxx
 EventCaretPreferencesGet.cxx
 EventGetViewportSize.cxx
 EventListenerInterface.cxx

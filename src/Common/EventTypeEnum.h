@@ -96,6 +96,8 @@ public:
         EVENT_BROWSER_TAB_REOPEN_AVAILBLE,
         /** Reopen a closed tab */
         EVENT_BROWSER_TAB_REOPEN_CLOSED,
+        /** Select  a  tab in a window */
+        EVENT_BROWSER_TAB_SELECT_IN_WINDOW,
         /** Event for browser window content */
         EVENT_BROWSER_WINDOW_CONTENT,
         /** Get the content of a browser window */

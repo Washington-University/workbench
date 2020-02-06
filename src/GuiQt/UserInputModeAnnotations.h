@@ -130,9 +130,9 @@ namespace caret {
         UserInputModeAnnotations(const UserInputModeEnum::Enum userInputMode,
                                  const int32_t windowIndex);
         
-        void processMouseSelectAnnotation(const MouseEvent& mouseEvent,
-                                          const bool shiftKeyDownFlag,
-                                          const bool singleSelectionModeFlag);
+        virtual void processMouseSelectAnnotation(const MouseEvent& mouseEvent,
+                                                  const bool shiftKeyDownFlag,
+                                                  const bool singleSelectionModeFlag);
         
         void processDeselectAllAnnotations();
         
