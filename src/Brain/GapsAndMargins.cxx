@@ -118,8 +118,10 @@ GapsAndMargins::receiveEvent(Event* event)
         EventBrowserTabNew* newTabEvent = dynamic_cast<EventBrowserTabNew*>(event);
         CaretAssert(newTabEvent);
         
+        /*
+         * New tab event may fail when tab limit is reached
+         */
         const BrowserTabContent* tab = newTabEvent->getBrowserTab();
-        CaretAssert(tab);
         if (tab != NULL) {
             const int32_t tabIndex = tab->getTabNumber();
             CaretAssertArrayIndex(m_tabMarginsLeft,   BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);

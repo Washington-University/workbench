@@ -1284,10 +1284,27 @@ SessionManager::createNewBrowserTab()
     }
     
     /*
-     * If no available tabs, remove the oldest tab in the closed tabs and use its index
+     * If no available tabs, remove the oldest tab in the closed tabs, delete the
+     * closed tab, and use its index for a new tab
      */
     if (newTab == NULL) {
-        
+        if ( ! m_closedBrowserTabs.empty()) {
+            BrowserTabContent* btc = m_closedBrowserTabs.back();
+            CaretAssert(btc);
+            const int32_t tabIndex = btc->getTabNumber();
+            if (m_browserTabs[tabIndex] == NULL) {
+                m_closedBrowserTabs.pop_back();
+                delete btc;
+                btc = NULL;
+                
+                newTab = new BrowserTabContent(tabIndex);
+            }
+            else {
+                CaretLogSevere("Program Error: Trying to delete closed tab with index="
+                               + AString::number(tabIndex)
+                               + " but there is a currently open tab at that index");
+            }
+        }
     }
    
     if (newTab != NULL) {
