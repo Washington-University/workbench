@@ -43,6 +43,7 @@
 #include "EventAnnotationGroupGetWithKey.h"
 #include "EventAnnotationGrouping.h"
 #include "EventAnnotationTextSubstitutionInvalidate.h"
+#include "EventBrowserTabClose.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNewClone.h"
 #include "EventBrowserTabReopenClosed.h"
@@ -229,6 +230,7 @@ AnnotationFile::initializeAnnotationFile()
     
     /* NEED THIS AFTER Tile Tabs have been modified */
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_TILE_TABS_MODIFICATION);
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_CLOSE);
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE);
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED);
@@ -478,12 +480,23 @@ AnnotationFile::receiveEvent(Event* event)
             }
         }
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_CLOSE) {
+        EventBrowserTabClose* closeEvent = dynamic_cast<EventBrowserTabClose*>(event);
+        CaretAssert(closeEvent);
+        
+        if (s_preserveRestoreDeletedTabFlag) {
+            const int32_t tabIndex = closeEvent->getBrowserTabIndex();
+            preserveAnnotationsInClosedTab(tabIndex);
+        }
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE) {
         EventBrowserTabDelete* deleteEvent = dynamic_cast<EventBrowserTabDelete*>(event);
         CaretAssert(deleteEvent);
         
-        const int32_t tabIndex = deleteEvent->getBrowserTabIndex();
-        preserveAnnotationsInClosedTab(tabIndex);
+        if (s_preserveRestoreDeletedTabFlag) {
+            const int32_t tabIndex = deleteEvent->getBrowserTabIndex();
+            removeAnnotationsInTab(tabIndex);
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE) {
         EventBrowserTabNewClone* cloneTabEvent = dynamic_cast<EventBrowserTabNewClone*>(event);
@@ -497,7 +510,9 @@ AnnotationFile::receiveEvent(Event* event)
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED) {
         EventBrowserTabReopenClosed* reopenTabEvent = dynamic_cast<EventBrowserTabReopenClosed*>(event);
         CaretAssert(reopenTabEvent);
-        restoreAnnotationsInReopendTab(reopenTabEvent->getTabIndex());
+        if (s_preserveRestoreDeletedTabFlag) {
+            restoreAnnotationsInReopendTab(reopenTabEvent->getTabIndex());
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE) {
         EventAnnotationTextSubstitutionInvalidate* textSubEvent = dynamic_cast<EventAnnotationTextSubstitutionInvalidate*>(event);
@@ -895,36 +910,6 @@ bool
 AnnotationFile::removeAnnotationWithUndoRedo(Annotation* annotation)
 {
     return removeAnnotationPrivate(annotation, true);
-    
-    
-//    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
-//         groupIter != m_annotationGroups.end();
-//         groupIter++) {
-//        QSharedPointer<AnnotationGroup> group = *groupIter;
-//        QSharedPointer<Annotation> removedAnnotationPointer;
-//        if (group->removeAnnotation(annotation,
-//                                    removedAnnotationPointer)) {
-//            
-//            removedAnnotationPointer->invalidateAnnotationGroupKey();
-//            
-//            m_removedAnnotations.insert(removedAnnotationPointer);
-//            
-//            /*
-//             * Remove group if it is empty.
-//             */
-//            if (group->isEmpty()) {
-//                m_annotationGroups.erase(groupIter);
-//            }
-//            
-//            setModified();
-//            return true;
-//        }
-//    }
-//    
-//    /*
-//     * Annotation not in this file
-//     */
-//    return false;
 }
 
 /**
@@ -1050,38 +1035,11 @@ AnnotationFile::removeAnnotationsInTab(const int32_t tabIndex)
      */
     removedGroups.clear();
     
-    return annotationsRemovedFlag;
+    if (annotationsRemovedFlag) {
+        setModified();
+    }
     
-//    std::vector<AnnotationGroupIterator> groupsToRemoveIterators;
-//
-//    /*
-//     * Find annotation group(s) in tab space
-//     * with the given tab index.
-//     */
-//    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
-//         groupIter != m_annotationGroups.end();
-//         groupIter++) {
-//        QSharedPointer<AnnotationGroup>& group = *groupIter;
-//        if (group->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
-//            if (group->getTabOrWindowIndex() == tabIndex) {
-//                groupsToRemoveIterators.push_back(groupIter);
-//            }
-//        }
-//    }
-//
-//    /*
-//     * Remove the groups (shared pointers will do all deleting)
-//     * NOTE: MUST delete iterators that are closest to the end first
-//     * as any iterators that point to elements at the erased iterator
-//     * or beyond are invalidated.
-//     */
-//    const int32_t numGroupsToRemove = static_cast<int32_t>(groupsToRemoveIterators.size());
-//    for (int32_t i = (numGroupsToRemove - 1); i >= 0; i--) {
-//        CaretAssertVectorIndex(groupsToRemoveIterators, i);
-//        m_annotationGroups.erase(groupsToRemoveIterators[i]);
-//    }
-//
-//    return ( ! groupsToRemoveIterators.empty());
+    return annotationsRemovedFlag;
 }
 
 /**
@@ -2246,9 +2204,6 @@ AnnotationFile::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup
                                 const int32_t tabIndex,
                                 const TriStateSelectionStatusEnum::Enum status)
 {
-//    m_displayGroupAndTabItemHelper->setSelected(displayGroup,
-//                                                tabIndex,
-//                                                status);
     /*
      * Note: An annotation file's selection status is based
      * of the the file's annotation groups so we do not need to set

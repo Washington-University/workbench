@@ -374,18 +374,6 @@ SessionManager::receiveEvent(Event* event)
         }
         closeTabEvent->setEventProcessed();
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_CLOSE) {
-        EventBrowserTabClose* tabEvent =
-        dynamic_cast<EventBrowserTabClose*>(event);
-        CaretAssert(tabEvent);
-        
-        AString errorMessage;
-        if ( ! closeBrowserTab(tabEvent,
-                                errorMessage)) {
-            tabEvent->setErrorMessage(errorMessage);
-        }
-        tabEvent->setEventProcessed();
-    }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE) {
         EventBrowserTabDelete* tabEvent =
         dynamic_cast<EventBrowserTabDelete*>(event);

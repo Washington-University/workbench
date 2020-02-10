@@ -259,13 +259,20 @@ namespace caret {
         
         typedef std::vector<QSharedPointer<AnnotationGroup> >::const_iterator AnnotationGroupConstIterator;
         
+        /**
+         * If true: When an browser tab is closed, any tab-space annotations are moved to 'm_removedAnnotations' and if the
+         * tab is reopend, the annotations are moved back to 'm_annotationGroups'.
+         * If false, When a browser tab is closed, no changes are made with annotations.
+         */
+        static bool s_preserveRestoreDeletedTabFlag;
+        
         // ADD_NEW_MEMBERS_HERE
 
         friend class AnnotationFileXmlReader;
     };
     
 #ifdef __ANNOTATION_FILE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    bool AnnotationFile::s_preserveRestoreDeletedTabFlag = true;
 #endif // __ANNOTATION_FILE_DECLARE__
 
 } // namespace
