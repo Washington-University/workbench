@@ -76,6 +76,9 @@
 <file>./HelpFiles/Glossary/Specification_File/Spec_File.png</file>
 <file>./HelpFiles/Glossary/Specification_File/Specification_File.html</file>
 <file>./HelpFiles/Glossary/Whiteordinate/Whiteordinate.html</file>
+<file>./HelpFiles/Identify_Brainordinate_Window/CiftiFileRow.png</file>
+<file>./HelpFiles/Identify_Brainordinate_Window/Identify_Brainordinate_Window.html</file>
+<file>./HelpFiles/Identify_Brainordinate_Window/Indentify_Brainordinate.png</file>
 <file>./HelpFiles/Information_Window/Information_Window.html</file>
 <file>./HelpFiles/Information_Window/Information_Window.png</file>
 <file>./HelpFiles/Information_Window/Properties/Information_Properties.png</file>
@@ -178,9 +181,6 @@
 <file>./HelpFiles/Scenes_Window/Create_New_Scene_File/Thumbs.db</file>
 <file>./HelpFiles/Scenes_Window/Scenes_Window.html</file>
 <file>./HelpFiles/Scenes_Window/Scenes_Window.png</file>
-<file>./HelpFiles/Select_Brainordinate_Window/CiftiFileRow.png</file>
-<file>./HelpFiles/Select_Brainordinate_Window/Indentify_Brainordinate.png</file>
-<file>./HelpFiles/Select_Brainordinate_Window/Select_Brainordinate_Window.html</file>
 <file>./HelpFiles/Splash_Screen/Splash_Screen.html</file>
 <file>./HelpFiles/Splash_Screen/Splash_screen.png</file>
 <file>./HelpFiles/Splash_Screen/Thumbs.db</file>
@@ -243,6 +243,8 @@
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Identify_Brainordinate_Icon.png</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Identify_icon.png</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Information_icon.png</file>
+<file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Macro_icon.png</file>
+<file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Movie_icon.png</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Overlay_TB_icon.png</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Scenes_icon.png</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Toolbar_icon.png</file>
