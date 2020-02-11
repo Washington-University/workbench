@@ -451,6 +451,7 @@ OverlaySetViewController.h
 OverlaySettingsEditorDialog.h
 OverlayViewController.h
 PaletteColorMappingEditorDialog.h
+PalettePixmapPainter.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
@@ -746,6 +747,7 @@ OverlaySetViewController.cxx
 OverlayViewController.cxx
 OverlaySettingsEditorDialog.cxx
 PaletteColorMappingEditorDialog.cxx
+PalettePixmapPainter.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
 PreferencesDialog.cxx

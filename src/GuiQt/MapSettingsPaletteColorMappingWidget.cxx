@@ -61,6 +61,7 @@
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
+#include "PalettePixmapPainter.h"
 #include "ThresholdingSetMapsDialog.h"
 #include "VolumeFile.h"
 #include "WuQWidgetObjectGroup.h"
@@ -1782,6 +1783,7 @@ MapSettingsPaletteColorMappingWidget::updatePaletteNameComboBox()
 
     PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
     
+    bool firstValidPixmapFlag(true);
     const int32_t numPalettes = paletteFile->getNumberOfPalettes();
     for (int32_t i = 0; i < numPalettes; i++) {
         Palette* palette = paletteFile->getPalette(i);
@@ -1792,8 +1794,30 @@ MapSettingsPaletteColorMappingWidget::updatePaletteNameComboBox()
          * Thus, the user-data may change to a unique-identifier that is different
          * than the palette name.
          */
-        this->paletteNameComboBox->addItem(name,
-                                           name);
+        const AString paletteUniqueID(name);
+        
+        const bool showColorMappingFlag(true);
+        if (showColorMappingFlag) {
+            PalettePixmapPainter palettePainter(palette);
+            QPixmap pixmap = palettePainter.getPixmap();
+            if (pixmap.isNull()) {
+                this->paletteNameComboBox->addItem(name,
+                                                   paletteUniqueID);
+            }
+            else {
+                if (firstValidPixmapFlag) {
+                    firstValidPixmapFlag = false;
+                    this->paletteNameComboBox->setIconSize(pixmap.size());
+                }
+                this->paletteNameComboBox->addItem(pixmap,
+                                                   " " + name,
+                                                   paletteUniqueID);
+            }
+        }
+        else {
+            this->paletteNameComboBox->addItem(name,
+                                               paletteUniqueID);
+        }
     }
 }
 
