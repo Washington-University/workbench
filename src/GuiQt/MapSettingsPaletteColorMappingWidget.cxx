@@ -158,6 +158,8 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     layout->addWidget(leftWidget, 0);
     layout->addWidget(rightWidget, 100);
     
+    updatePaletteNameComboBox();
+    
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
 }
@@ -1773,6 +1775,28 @@ MapSettingsPaletteColorMappingWidget::updatePaletteMappedToDataValueLabels()
     this->scaleNegativeMaximumValueLabel->setText(QString::number(negMaxLabelValue, 'f', 2));
 }
 
+void
+MapSettingsPaletteColorMappingWidget::updatePaletteNameComboBox()
+{
+    this->paletteNameComboBox->clear();
+
+    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+    
+    const int32_t numPalettes = paletteFile->getNumberOfPalettes();
+    for (int32_t i = 0; i < numPalettes; i++) {
+        Palette* palette = paletteFile->getPalette(i);
+        const AString name = palette->getName();
+        /*
+         * Second parameter is user data.  In the future, there may be user-editable
+         * palettes and it is possible there may be palettes with the same name.
+         * Thus, the user-data may change to a unique-identifier that is different
+         * than the palette name.
+         */
+        this->paletteNameComboBox->addItem(name,
+                                           name);
+    }
+}
+
 /**
  * This PRIVATE method updates the editor content and MUST always be used
  * when something within this class requires updating the displayed data.
@@ -1807,28 +1831,19 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
     + this->caretMappableDataFile->getMapName(this->mapFileIndex);
     this->setWindowTitle(title);
     
-    this->paletteNameComboBox->clear();
-
-    
-    this->paletteColorMapping = this->caretMappableDataFile->getMapPaletteColorMapping(this->mapFileIndex); 
+    this->paletteColorMapping = this->caretMappableDataFile->getMapPaletteColorMapping(this->mapFileIndex);
     
     if (this->paletteColorMapping != NULL) {
-        PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-        
-        int defaultIndex = 0;
-        const int32_t numPalettes = paletteFile->getNumberOfPalettes();
-        for (int32_t i = 0; i < numPalettes; i++) {
-            Palette* palette = paletteFile->getPalette(i);
-            const AString name = palette->getName();
-            if (name == this->paletteColorMapping->getSelectedPaletteName()) {
-                defaultIndex = i;
+        int32_t paletteComboBoxIndex(0);
+        const AString paletteName = this->paletteColorMapping->getSelectedPaletteName();
+        for (int32_t i = 0; i < this->paletteNameComboBox->count(); i++) {
+            if (this->paletteNameComboBox->itemData(i).toString() == paletteName) {
+                paletteComboBoxIndex = i;
+                break;
             }
-            this->paletteNameComboBox->addItem(name,
-                                               name);
         }
-        
-        if (defaultIndex < this->paletteNameComboBox->count()) {
-            this->paletteNameComboBox->setCurrentIndex(defaultIndex);
+        if (paletteComboBoxIndex < this->paletteNameComboBox->count()) {
+            this->paletteNameComboBox->setCurrentIndex(paletteComboBoxIndex);
         }
         
         bool isPercentageSpinBoxesEnabled = false;

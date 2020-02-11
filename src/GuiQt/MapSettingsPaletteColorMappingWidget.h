@@ -132,6 +132,8 @@ namespace caret {
         
         const Histogram* getHistogram(const FastStatistics* statisticsForAll) const;
         
+        void updatePaletteNameComboBox();
+        
         PaletteColorMapping* paletteColorMapping;
         
         QComboBox* paletteNameComboBox;
