@@ -174,10 +174,14 @@ void WarpfieldFile::writeITK(const AString& warpname) const
     if (m_warpfield == NULL) throw DataFileException("writeWorld called on uninitialized warpfield");
     vector<int64_t> dims;
     m_warpfield->getDimensions(dims);
-    dims.resize(4);//drop number of components
+    dims.resize(3);//keep only spatial dims
+    dims.push_back(1);//ITK doesn't use time dimension
+    dims.push_back(3);//it uses the fifth dimension
     VolumeFile outFile;
-    outFile.reinitialize(dims, m_warpfield->getSform());
-    outFile.setMapName(0, "x displacement");
+    NiftiHeader myHeader;
+    myHeader.setIntent(NIFTI_INTENT_VECTOR, "vector");//ITK sets intent to vector
+    outFile.reinitialize(dims, m_warpfield->getSform(), 1, SubvolumeAttributes::ANATOMY, &myHeader);
+    outFile.setMapName(0, "x displacement");//the rest should still work on fifth dimension, we internally flatten non-spatial dimensions
     outFile.setMapName(1, "y displacement");
     outFile.setMapName(2, "z displacement");
     for (int64_t k = 0; k < dims[2]; ++k)
