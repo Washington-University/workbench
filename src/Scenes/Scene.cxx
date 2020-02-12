@@ -239,11 +239,7 @@ Scene::Scene(const SceneTypeEnum::Enum sceneType)
     m_hasFilesWithRemotePaths = false;
     m_sceneInfo = new SceneInfo();
 
-    static int counter = 1;
-    const AString macroGroupName("SceneFile_"
-                                 + AString::number(counter));
-    m_macroGroup.reset(new WuQMacroGroup(macroGroupName));
-    m_macroGroup->clearModified();
+    initializeMacroGroup();
 }
 
 Scene::Scene(const Scene& rhs)
@@ -252,6 +248,12 @@ Scene::Scene(const Scene& rhs)
     m_sceneAttributes = new SceneAttributes(*(rhs.m_sceneAttributes));
     m_hasFilesWithRemotePaths = rhs.m_hasFilesWithRemotePaths;
     m_sceneInfo = new SceneInfo(*(rhs.m_sceneInfo));
+    
+    initializeMacroGroup();
+    if (rhs.m_macroGroup) {
+        m_macroGroup->appendMacroGroup(rhs.m_macroGroup.get());
+    }
+    
     for (std::vector<SceneClass*>::const_iterator iter = rhs.m_sceneClasses.begin(); iter != rhs.m_sceneClasses.end(); ++iter)
     {
         m_sceneClasses.push_back(new SceneClass(**iter));
@@ -272,6 +274,19 @@ Scene::~Scene()
     m_sceneClasses.clear();
     
     delete m_sceneInfo;
+}
+
+/**
+ * Initialize the macro group
+ */
+void
+Scene::initializeMacroGroup()
+{
+    static int counter = 1;
+    const AString macroGroupName("SceneFile_"
+                                 + AString::number(counter));
+    m_macroGroup.reset(new WuQMacroGroup(macroGroupName));
+    m_macroGroup->clearModified();
 }
 
 /**

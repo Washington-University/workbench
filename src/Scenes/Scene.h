@@ -103,6 +103,8 @@ namespace caret {
         
     private:
 
+        void initializeMacroGroup();
+        
         /** Attributes of the scene*/
         SceneAttributes* m_sceneAttributes;
 
