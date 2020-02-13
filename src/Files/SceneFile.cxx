@@ -576,6 +576,53 @@ void SceneFile::setBasePathType(const SceneFileBasePathTypeEnum::Enum basePathTy
 }
 
 /**
+ * Get the type of base directory and the name of the base directory
+ * @param basePathTypeOut
+ *    Output with type of base path
+ * @param basePathNameOut
+ *    Output with name of base path
+ * @param errorMessageOut
+ *    Output with error information
+ * @return
+ *    True if the outputs are valid, else false.
+ */
+bool
+SceneFile::getSelectedBasePathTypeAndName(SceneFileBasePathTypeEnum::Enum& basePathTypeOut,
+                                          AString& basePathNameOut,
+                                          AString& errorMessageOut) const
+{
+    basePathNameOut.clear();
+    bool validFlag(false);
+    
+    switch (getBasePathType()) {
+        case SceneFileBasePathTypeEnum::AUTOMATIC:
+        {
+            std::vector<AString> missingFileNames;
+            validFlag = findBaseDirectoryForDataFiles(basePathNameOut,
+                                                      missingFileNames,
+                                                      errorMessageOut);
+        }
+            break;
+        case SceneFileBasePathTypeEnum::CUSTOM:
+        {
+            basePathNameOut = getBalsaCustomBaseDirectory();
+            if ( ! basePathNameOut.isEmpty()) {
+                 validFlag = true;
+            }
+            else {
+                errorMessageOut = "Custom path is invalid (empty)";
+            }
+        }
+            break;
+    }
+    
+    basePathTypeOut = getBasePathType();
+
+    return validFlag;
+}
+
+
+/**
  * Set the name of the file.
  *
  * @param filename

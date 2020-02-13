@@ -36,6 +36,7 @@
 #include "SceneFile.h"
 #include "SceneInfo.h"
 #include "SceneInfoXmlStreamReader.h"
+#include "ScenePathName.h"
 #include "SceneTypeEnum.h"
 #include "SceneXmlStreamReader.h"
 
@@ -249,7 +250,13 @@ SceneFileXmlStreamReader::readSceneInfoDirectory(QXmlStreamReader& xmlReader,
                     sceneFile->setBalsaStudyTitle(xmlReader.readElementText());
                 }
                 else if (xmlReader.name() == ELEMENT_SCENE_FILE_BALSA_BASE_DIRECTORY) {
-                    sceneFile->setBalsaCustomBaseDirectory(xmlReader.readElementText());
+                    const AString s = xmlReader.readElementText();
+                    ScenePathName basePathName("customBaseDir",
+                                               s);
+                    basePathName.setValueToAbsolutePath(m_filename,
+                                                        s);
+                    sceneFile->setBalsaCustomBaseDirectory(basePathName.stringValue());
+//                    sceneFile->setBalsaCustomBaseDirectory(xmlReader.readElementText());
                 }
                 else if (xmlReader.name() == ELEMENT_SCENE_FILE_BALSA_EXTRACT_TO_DIRECTORY) {
                     sceneFile->setBalsaExtractToDirectoryName(xmlReader.readElementText());

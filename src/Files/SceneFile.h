@@ -119,6 +119,10 @@ namespace caret {
         
         std::vector<AString> getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCount = 25);
         
+        bool getSelectedBasePathTypeAndName(SceneFileBasePathTypeEnum::Enum& basePathTypeOut,
+                                                 AString& basePathNameOut,
+                                                 AString& errorMessageOut) const;
+        
         class FileAndSceneIndicesInfo {
         public:
             FileAndSceneIndicesInfo(const AString& dataFileName,

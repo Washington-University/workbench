@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "SceneFileBasePathTypeEnum.h"
 #include "WuQDialogNonModal.h"
 
 class QLineEdit;
@@ -54,7 +55,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        void displayFilesList();
+        void displayFilesList(const SceneFileBasePathTypeEnum::Enum basePathType,
+                              const AString& basePathName);
         
         void displayFilesHierarchy();
         
