@@ -57,12 +57,18 @@ MapSettingsColorBarPaletteOptionsWidget::MapSettingsColorBarPaletteOptionsWidget
 : QGroupBox("Color Bar and Palette Settings",
             parent)
 {
+    const QString applyToolTip("When checked, these color bar and palette settings "
+                               "are applied to all maps in the file.  If unchecked, "
+                               "a unique setting is allowed for each map in the file.\n"
+                               "\n"
+                               "If this checkbox is disabled (grayed out), the data "
+                               "file uses one color bar and palette setting for all "
+                               "maps.  One example is a Data-Series file so that particular "
+                               "data values in all maps are identically colored.");
     m_applyToAllMapsCheckBox = new QCheckBox("Apply to All Maps");
     QObject::connect(m_applyToAllMapsCheckBox, &QCheckBox::clicked,
                      this, &MapSettingsColorBarPaletteOptionsWidget::applyToAllMapsCheckBoxClicked);
-    m_applyToAllMapsCheckBox->setToolTip("When checked, these color bar and palette settings\n"
-                                         "are applied to all maps in the file.\n"
-                                         "When disabled, the file uses one palette for all maps.");
+    WuQtUtilities::setWordWrappedToolTip(m_applyToAllMapsCheckBox, applyToolTip);
     
     m_applyToAllFilesAction = new QAction(this);
     m_applyToAllFilesAction->setText("Apply to Files...");
