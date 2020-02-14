@@ -54,6 +54,8 @@ namespace caret {
         
         static const QString ELEMENT_SCENE_FILE_BALSA_BASE_DIRECTORY;
         
+        static const QString ELEMENT_SCENE_FILE_OBSOLETE_BASE_DIRECTORY;
+        
         static const QString ELEMENT_SCENE_FILE_BALSA_EXTRACT_TO_DIRECTORY;
         
         static const QString ELEMENT_SCENE_FILE_BALSA_BASE_PATH_TYPE;
@@ -79,6 +81,8 @@ namespace caret {
      const QString SceneFileXmlStreamBase::ELEMENT_SCENE_FILE_BALSA_STUDY_TITLE = "BalsaStudyTitle";
     
      const QString SceneFileXmlStreamBase::ELEMENT_SCENE_FILE_BALSA_BASE_DIRECTORY = "BalsaBaseDirectory";
+    
+    const QString SceneFileXmlStreamBase::ELEMENT_SCENE_FILE_OBSOLETE_BASE_DIRECTORY = "BaseDirectory";
     
      const QString SceneFileXmlStreamBase::ELEMENT_SCENE_FILE_BALSA_EXTRACT_TO_DIRECTORY = "BalsaExtractToDirectory";
     

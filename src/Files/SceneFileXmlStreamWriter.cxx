@@ -182,7 +182,9 @@ SceneFileXmlStreamWriter::writeSceneInfoDirectory(QXmlStreamWriter& xmlWriter,
         {
             /*
              * Write base path as a path RELATIVE to the scene file
-             * but only when base path type is CUSTOM
+             * but only when base path type is CUSTOM.  This must be done
+             * since users may have different directory hierarchies and an
+             * absolute path may not be valid on another users's computer.
              * Note: we do not use FileInformation::getCanonicalFilePath()
              * because it returns an empty string if the file DOES NOT exist
              * and this may occur since the file may be new and has not

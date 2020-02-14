@@ -227,6 +227,13 @@ void
 SceneFileXmlStreamReader::readSceneInfoDirectory(QXmlStreamReader& xmlReader,
                                                  SceneFile* sceneFile)
 {
+    
+    /*
+     * Default to CUSTOM base path since some older scenes do not
+     * have AUTOMATIC/CUSTOM element (ELEMENT_SCENE_FILE_BALSA_BASE_PATH_TYPE(
+     */
+    sceneFile->setBasePathType(SceneFileBasePathTypeEnum::CUSTOM);
+
     /*
      * Gets set when ending scene info directory element is read
      */
@@ -237,26 +244,25 @@ SceneFileXmlStreamReader::readSceneInfoDirectory(QXmlStreamReader& xmlReader,
         xmlReader.readNext();
         switch (xmlReader.tokenType()) {
             case QXmlStreamReader::StartElement:
-//            {
-//                std::cout << "Start Element " << xmlReader.name().toString()
-//                << " characters " << xmlReader.readElementText()
-//                << "   CDATA" << (xmlReader.isCDATA() ? " Yes" : " No") << std::endl;
-//
-//            }
                 if (xmlReader.name() == ELEMENT_SCENE_FILE_BALSA_STUDY_ID) {
                     sceneFile->setBalsaStudyID(xmlReader.readElementText());
                 }
                 else if (xmlReader.name() == ELEMENT_SCENE_FILE_BALSA_STUDY_TITLE) {
                     sceneFile->setBalsaStudyTitle(xmlReader.readElementText());
                 }
-                else if (xmlReader.name() == ELEMENT_SCENE_FILE_BALSA_BASE_DIRECTORY) {
-                    const AString s = xmlReader.readElementText();
+                else if ((xmlReader.name() == ELEMENT_SCENE_FILE_BALSA_BASE_DIRECTORY)
+                         || (xmlReader.name() == ELEMENT_SCENE_FILE_OBSOLETE_BASE_DIRECTORY)) {
+                    /*
+                     * Note: Base path is relative since the scene file may be used
+                     * on different computers that contain different directory hierarchies.
+                     */
+                    const AString sceneFileBasePath = xmlReader.readElementText();
+
                     ScenePathName basePathName("customBaseDir",
-                                               s);
+                                               sceneFileBasePath);
                     basePathName.setValueToAbsolutePath(m_filename,
-                                                        s);
+                                                        sceneFileBasePath);
                     sceneFile->setBalsaCustomBaseDirectory(basePathName.stringValue());
-//                    sceneFile->setBalsaCustomBaseDirectory(xmlReader.readElementText());
                 }
                 else if (xmlReader.name() == ELEMENT_SCENE_FILE_BALSA_EXTRACT_TO_DIRECTORY) {
                     sceneFile->setBalsaExtractToDirectoryName(xmlReader.readElementText());
