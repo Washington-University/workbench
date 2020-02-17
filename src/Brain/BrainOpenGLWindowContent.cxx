@@ -180,8 +180,11 @@ BrainOpenGLWindowContent::getTabViewportWithLockAspectXY(const int32_t x,
                 const BrowserTabContent* btcOut = viewportContentOut->getBrowserTabContent();
                 if ((btc != NULL)
                     && (btcOut != NULL)) {
+                    /*
+                     * Smaller stack order is in front (closer to viewer)
+                     */
                     if (btc->getManualLayoutBrowserTabAnnotation()->getStackingOrder()
-                        > btcOut->getManualLayoutBrowserTabAnnotation()->getStackingOrder()) {
+                        < btcOut->getManualLayoutBrowserTabAnnotation()->getStackingOrder()) {
                         viewportContentOut = vp.get();
                     }
                 }
@@ -227,8 +230,11 @@ BrainOpenGLWindowContent::getTabViewportManualLayoutWithoutAspectLocking(const i
                 const BrowserTabContent* btcOut = viewportContentOut->getBrowserTabContent();
                 if ((btc != NULL)
                     && (btcOut != NULL)) {
+                    /*
+                     * Smaller stack order is in front (closer to viewer)
+                     */
                     if (btc->getManualLayoutBrowserTabAnnotation()->getStackingOrder()
-                        > btcOut->getManualLayoutBrowserTabAnnotation()->getStackingOrder()) {
+                        < btcOut->getManualLayoutBrowserTabAnnotation()->getStackingOrder()) {
                         viewportContentOut = vp.get();
                     }
                 }
