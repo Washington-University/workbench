@@ -940,6 +940,161 @@ AnnotationManager::applyStackingOrder(const std::vector<Annotation*>& annotation
 }
 
 /**
+ * @return All annotations in the same space as the given annotation.  If the annotation
+ * is a browser tab annotation, ALL browser tab annotations are returned.
+ * @param annotation
+ * The annotation for space matching and NOT in the return annotations.
+ */
+std::vector<Annotation*>
+AnnotationManager::getAnnotationsInSameSpace(const Annotation* annotation)
+{
+    std::vector<Annotation*> sameSpaceAnns;
+    std::vector<Annotation*> allAnns = getAllAnnotations();
+    if (annotation->getType() == AnnotationTypeEnum::BROWSER_TAB) {
+        EventBrowserTabGetAll tabEvent;
+        EventManager::get()->sendEvent(tabEvent.getPointer());
+        std::vector<BrowserTabContent*> allTabs = tabEvent.getAllBrowserTabs();
+        for (auto tab : allTabs) {
+            AnnotationBrowserTab* abt = tab->getManualLayoutBrowserTabAnnotation();
+            if (abt != annotation) {
+                sameSpaceAnns.push_back(abt);
+            }
+        }
+    }
+    else {
+        switch (annotation->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+            case AnnotationCoordinateSpaceEnum::SPACER:
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssert("Supports only annotations in Tab or Window Space");
+                return sameSpaceAnns;
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+            {
+                const int32_t tabIndex = annotation->getTabIndex();
+                for (auto a : allAnns) {
+                    if (a == annotation) {
+                        continue;
+                    }
+                    if (a->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
+                        if (a->getTabIndex() == tabIndex) {
+                            sameSpaceAnns.push_back(a);
+                        }
+                    }
+                }
+            }
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+            {
+                const int32_t windowIndex = annotation->getWindowIndex();
+                for (auto a : allAnns) {
+                    if (a == annotation) {
+                        continue;
+                    }
+                    if (a->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::WINDOW) {
+                        if (a->getWindowIndex() == windowIndex) {
+                            sameSpaceAnns.push_back(a);
+                        }
+                    }
+                }
+            }
+                break;
+        }
+    }
+
+    return sameSpaceAnns;
+}
+
+/**
+ * Move the given window or tab annotation so that it is in front of all other annotations in the same tab or window.
+ * The stack ordering algorithm uses the undo system and we do want this operation to be undoable.
+ *
+ * @param annotation
+ *     The  annotation that is moved in front
+ * @param errorMessageOut
+ *     Output with error information
+ * @return True is successful, else false
+ */
+bool
+AnnotationManager::moveTabOrWindowAnnotationToFront(Annotation* annotation,
+                                                    AString& errorMessageOut)
+{
+    CaretAssert(annotation);
+    errorMessageOut.clear();
+    
+    std::vector<Annotation*> sameSpaceAnns = getAnnotationsInSameSpace(annotation);
+    if (sameSpaceAnns.empty()) {
+        return true;
+    }
+    
+    std::map<float, Annotation*> stackOrderAnnotationMap;
+    for (auto a : sameSpaceAnns) {
+        AnnotationBrowserTab* abt = dynamic_cast<AnnotationBrowserTab*>(a);
+        if (abt != NULL) {
+            stackOrderAnnotationMap.emplace(static_cast<float>(abt->getStackingOrder()),
+                                            a);
+        }
+        else {
+            float z(1.0);
+            AnnotationOneDimensionalShape* oneDim = a->castToOneDimensionalShape();
+            if (oneDim != NULL) {
+                float xyz[3];
+                oneDim->getStartCoordinate()->getXYZ(xyz);
+                z = xyz[2];
+            }
+            else {
+                AnnotationTwoDimensionalShape* twoDim = a->castToTwoDimensionalShape();
+                if (twoDim != NULL) {
+                    float xyz[3];
+                    twoDim->getCoordinate()->getXYZ(xyz);
+                    z = xyz[2];
+                }
+            }
+            stackOrderAnnotationMap.emplace(z,
+                                            a);
+        }
+    }
+    
+    stackOrderAnnotationMap.emplace(-1,
+                                    annotation);
+    int32_t orderIndex(1);
+    for (auto& soa : stackOrderAnnotationMap) {
+        Annotation* a(soa.second);
+        AnnotationBrowserTab* abt = dynamic_cast<AnnotationBrowserTab*>(a);
+        if (abt != NULL) {
+            abt->setStackingOrder(orderIndex);
+        }
+        else {
+            AnnotationOneDimensionalShape* oneDim = a->castToOneDimensionalShape();
+            if (oneDim != NULL) {
+                float xyz[3];
+                oneDim->getStartCoordinate()->getXYZ(xyz);
+                xyz[2] = orderIndex;
+                oneDim->getStartCoordinate()->setXYZ(xyz);
+                oneDim->getEndCoordinate()->getXYZ(xyz);
+                xyz[2] = orderIndex;
+                oneDim->getEndCoordinate()->setXYZ(xyz);
+            }
+            else {
+                AnnotationTwoDimensionalShape* twoDim = a->castToTwoDimensionalShape();
+                if (twoDim != NULL) {
+                    float xyz[3];
+                    twoDim->getCoordinate()->getXYZ(xyz);
+                    xyz[2] = orderIndex;
+                    twoDim->getCoordinate()->setXYZ(xyz);
+                }
+            }
+        }
+
+        orderIndex++;
+    }
+    
+    return true;
+}
+
+/**
  * Receive an event.
  *
  * @param event

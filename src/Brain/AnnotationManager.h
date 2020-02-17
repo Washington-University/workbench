@@ -159,11 +159,16 @@ namespace caret {
                                 const int32_t windowIndex,
                                 AString& errorMessageOut);
         
+        bool moveTabOrWindowAnnotationToFront(Annotation* annotation,
+                                              AString& errorMessageOut);
+        
         bool shrinkAndExpandSelectedBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
                                                          const int32_t windowIndex,
                                                          const UserInputModeEnum::Enum userInputMode,
                                                          AString& errorMessageOut);
 
+        std::vector<Annotation*> getAnnotationsInSameSpace(const Annotation* annotation);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

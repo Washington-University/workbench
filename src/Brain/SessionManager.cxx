@@ -26,6 +26,7 @@
 #undef __SESSION_MANAGER_DECLARE__
 
 #include "AnnotationBrowserTab.h"
+#include "AnnotationManager.h"
 #include "ApplicationInformation.h"
 #include "BackgroundAndForegroundColorsSceneHelper.h"
 #include "Brain.h"
@@ -354,7 +355,6 @@ SessionManager::receiveEvent(Event* event)
         if (newTab != NULL) {
             CaretAssertStdArrayIndex(m_browserTabs, cloneTabIndex);
             newTab->cloneBrowserTabContent(m_browserTabs[cloneTabIndex]);
-            newTab->getManualLayoutBrowserTabAnnotation()->setStackingOrder(getMaximumManualTabStackOrder() + 1);
             cloneTabEvent->setNewBrowserTab(newTab,
                                             newTab->getTabNumber());
         }
@@ -1300,6 +1300,24 @@ SessionManager::createNewBrowserTab()
         m_browserTabs[tabIndex] = newTab;
         newTab->update(m_models);
         newTab->getManualLayoutBrowserTabAnnotation()->setStackingOrder(getMaximumManualTabStackOrder() + 1);
+        
+        std::vector<BrowserTabContent*> tabs = getActiveBrowserTabs();
+        std::vector<AnnotationBrowserTab*> anns;
+        for (auto t : tabs) {
+            AnnotationBrowserTab* abt = t->getManualLayoutBrowserTabAnnotation();
+            CaretAssert(abt);
+            anns.push_back(abt);
+        }
+        
+        CaretAssert(m_brains[0]);
+        AnnotationManager* annMan = m_brains[0]->getAnnotationManager();
+        AString errorMessage;
+        const bool resultFlag = annMan->moveTabOrWindowAnnotationToFront(newTab->getManualLayoutBrowserTabAnnotation(),
+                                                                         errorMessage);
+        if ( ! resultFlag) {
+            CaretLogWarning("Moving to front after creation of new tab error: "
+                            + errorMessage);
+        }
     }
     
     return newTab;
