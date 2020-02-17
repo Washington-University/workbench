@@ -3680,14 +3680,16 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     initializeScaleBar();
 
+    m_sceneClassAssistant->restoreMembers(sceneAttributes,
+                                          sceneClass);
+    
     TileTabsBrowserTabGeometry manualLayoutTabGeometry(m_tabNumber);
     TileTabsBrowserTabGeometrySceneHelper geometryHelper(&manualLayoutTabGeometry);
     geometryHelper.restoreFromScene(sceneAttributes,
                                     sceneClass->getClass("m_manualLayoutTabGeometry"));
     m_manualLayoutBrowserTabAnnotation->setFromTileTabsGeometry(&manualLayoutTabGeometry);
-
-    m_sceneClassAssistant->restoreMembers(sceneAttributes,
-                                          sceneClass);
+    m_manualLayoutBrowserTabAnnotation->setBrowserTabContent(this,
+                                                             m_tabNumber);
     
     /*
      * With charting version two, yoking was split into chart and non-chart yoking
