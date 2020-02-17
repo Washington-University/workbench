@@ -50,6 +50,7 @@
 #include <QToolButton>
 
 #include "AnnotationBrowserTab.h"
+#include "AnnotationCoordinate.h"
 #include "AnnotationManager.h"
 #include "AnnotationStackingOrderOperation.h"
 #include "Brain.h"
@@ -3597,64 +3598,21 @@ BrainBrowserWindowToolBar::processTileTabOperationEvent(EventBrowserWindowTileTa
                     
                     const float windowWidth = windowViewport[2];
                     const float windowHeight = windowViewport[3];
-                    const float windowArea = windowWidth * windowHeight;
-                    
-                    float tabWidth(250);
-                    float tabHeight(250);
-                    const float numTabs = getNumberOfTabs();
-                    if (windowArea > 100.0) {
-                        if (numTabs > 1) {
-                            const float area = windowArea / numTabs;
-                            tabWidth =  std::sqrt(area);
-                            tabHeight = std::sqrt(area);
-                        }
+
+                    if ((windowWidth > 0)
+                        && (windowHeight > 0)) {
+                        const float mouseX(tileTabsEvent->getMouseX());
+                        const float mouseY(tileTabsEvent->getMouseY());
+                        
+                        AnnotationBrowserTab* tabAnnotation = btc->getManualLayoutBrowserTabAnnotation();
+                        CaretAssert(tabAnnotation);
+                        float xyz[3];
+                        tabAnnotation->getCoordinate()->getXYZ(xyz);
+                        xyz[0] = (mouseX / windowWidth) * 100.0;
+                        xyz[1] = (mouseY / windowHeight) * 100.0;
+                        tabAnnotation->getCoordinate()->setXYZ(xyz);
                     }
                     
-                    const float mouseX(tileTabsEvent->getMouseX());
-                    const float mouseY(tileTabsEvent->getMouseY());
-                    
-                    /*
-                     * Coordinates are in percentages
-                     */
-                    float tabMinX = (mouseX - (tabWidth  / 2.0));
-                    float tabMaxX = (mouseX + (tabWidth  / 2.0));
-                    float tabMinY = (mouseY - (tabHeight / 2.0));
-                    float tabMaxY = (mouseY + (tabHeight / 2.0));
-                    
-                    tabMinX = (tabMinX / windowWidth) * 100.0;
-                    tabMaxX = (tabMaxX / windowWidth) * 100.0;
-                    tabMinY = (tabMinY / windowHeight) * 100.0;
-                    tabMaxY = (tabMaxY / windowHeight) * 100.0;
-                    
-                    /*
-                     * Move tab if partially outside of window
-                     */
-                    float offsetX(0.0);
-                    if (tabMinX < 0.0) {
-                        offsetX = 1.0 - tabMinX;
-                    }
-                    else if (tabMaxX >= 100) {
-                        offsetX = -(tabMaxX - 99.0);
-                    }
-                    tabMinX += offsetX;
-                    tabMaxX += offsetX;
-                    
-                    float offsetY(0.0);
-                    if (tabMinY < 0.0) {
-                        offsetY = 1.0 - tabMinY;
-                    }
-                    else if (tabMaxY >= 100.0) {
-                        offsetY = -(tabMaxY - 99.0);
-                    }
-                    tabMinY += offsetY;
-                    tabMaxY += offsetY;
-                    
-                    AnnotationBrowserTab* tabAnnotation = btc->getManualLayoutBrowserTabAnnotation();
-                    CaretAssert(tabAnnotation);
-                    tabAnnotation->setBounds2D(tabMinX,
-                                               tabMaxX,
-                                               tabMinY,
-                                               tabMaxY);
                     updateGraphicsWindow();
                 }
             }

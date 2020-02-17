@@ -279,6 +279,11 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                       m_defaultManualTabGeometryBounds[1],
                                       m_defaultManualTabGeometryBounds[2],
                                       m_defaultManualTabGeometryBounds[3]);
+    const float annWidth = (m_defaultManualTabGeometryBounds[1] - m_defaultManualTabGeometryBounds[0]);
+    const float annHeight = (m_defaultManualTabGeometryBounds[3] - m_defaultManualTabGeometryBounds[2]);
+    if (annWidth > 0.0) {
+        m_aspectRatio = annHeight / annWidth;
+    }
 }
 
 /**
