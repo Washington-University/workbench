@@ -719,6 +719,7 @@ UserInputModeAnnotationsContextMenu::processAnnotationOrderOperation(const Annot
                 WuQMessageBox::errorOk(this,
                                        errorMessage);
             }
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
     }
 }

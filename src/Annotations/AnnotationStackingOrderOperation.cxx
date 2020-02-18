@@ -96,11 +96,16 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
     }
     
     std::vector<OrderInfo> annotationOrderAndContent;
-    if ( ! orderAnnotations(annotationOrderAndContent,
-                            errorMessageOut)) {
+    if ( ! preOrderAnnotations(annotationOrderAndContent,
+                               errorMessageOut)) {
         return false;
     }
     
+    const bool debugFlag(false);
+    if (debugFlag) {
+        std::cout << "PRE-ORDERED" << std::endl;
+        printOrderedAnnotations(annotationOrderAndContent);
+    }
     /*
      * Now that that annotations are sorted by stacking order,
      * assign a "stack order" using only even numbers.  This allows
@@ -124,9 +129,8 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
 
     const int32_t numberOfAnnotations = static_cast<int32_t>(annotationOrderAndContent.size());
     
-    const bool debugFlag(false);
     if (debugFlag) {
-        std::cout << "BEFORE: " << std::endl;
+        std::cout << "INDICES: " << std::endl;
         std::cout << "In front: " << indexOfAnnotationInFront << std::endl;
         std::cout << "Selected: " << indexOfSelectedAnnotation << std::endl;
         std::cout << "Behind:   " << indexOfAnnotationBehind << std::endl;
@@ -190,10 +194,13 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
               annotationOrderAndContent.end());
     
     if (debugFlag) {
-        std::cout << "AFTER: " << std::endl;
+        std::cout << "AFTER ORDERING: " << std::endl;
         printOrderedAnnotations(annotationOrderAndContent);
     }
     
+    if (debugFlag) {
+        std::cout << "FINAL: " << std::endl;
+    }
     /*
      * Update annotations with new sort order or Z-coordinate
      */
@@ -207,8 +214,11 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
          * and it creates "space" to reduce annotations with same
          * order value.
          */
-        const int32_t orderValue = (indx * 2) + 2;
+        const int32_t orderValue = (indx + 1);
         
+        if (debugFlag) {
+            std::cout << orderValue << " " << ann->toString() << std::endl;
+        }
         switch (ann->getType()) {
             case AnnotationTypeEnum::BROWSER_TAB:
             case AnnotationTypeEnum::COLOR_BAR:
@@ -233,28 +243,12 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
                     {
                         AnnotationOneDimensionalShape* oneDim = ann->castToOneDimensionalShape();
                         AnnotationTwoDimensionalShape* twoDim = ann->castToTwoDimensionalShape();
-                        float xyz[3] { 0.0, 0.0, 0.0 };
                         if (oneDim != NULL) {
-                            oneDim->getStartCoordinate()->getXYZ(xyz);
+                            setCoordinateZ(oneDim->getStartCoordinate(), orderValue);
+                            setCoordinateZ(oneDim->getEndCoordinate(), orderValue);
                         }
                         else if (twoDim != NULL) {
-                            twoDim->getCoordinate()->getXYZ(xyz);
-                        }
-                        else {
-                            CaretAssert(0);
-                        }
-
-                        xyz[2] = orderValue;
-                        
-                        if (oneDim != NULL) {
-                            oneDim->getStartCoordinate()->setXYZ(xyz);
-                            const float z = xyz[2];
-                            oneDim->getEndCoordinate()->getXYZ(xyz);
-                            xyz[2] = z;
-                            oneDim->getEndCoordinate()->setXYZ(xyz);
-                        }
-                        else if (twoDim != NULL) {
-                            twoDim->getCoordinate()->setXYZ(xyz);
+                            setCoordinateZ(twoDim->getCoordinate(), orderValue);
                         }
                         else {
                             CaretAssert(0);
@@ -271,6 +265,26 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
     }
     
     return true;
+}
+
+/**
+ * Set the Z-component of an annotation coordinate
+ *
+ * @param coordinate
+ *   The annotation coordinate
+ * @param z
+ *   New Z value
+ */
+void
+AnnotationStackingOrderOperation::setCoordinateZ(AnnotationCoordinate* coordinate,
+                                                 const float z)
+{
+    CaretAssert(coordinate);
+
+    float xyz[3] { 0.0, 0.0, 0.0 };
+    coordinate->getXYZ(xyz);
+    xyz[2] = z;
+    coordinate->setXYZ(xyz);
 }
 
 /**
@@ -308,12 +322,21 @@ AnnotationStackingOrderOperation::findAnnotationIndices(const std::vector<OrderI
     }
     
     if (indexOfSelectedAnnotation >= 0) {
-        if (indexOfSelectedAnnotation > 0) {
-            indexOfAnnotationInFront = indexOfSelectedAnnotation - 1;
-        }
-        if (indexOfSelectedAnnotation < (numAnn - 1)) {
-            indexOfAnnotationBehind = indexOfSelectedAnnotation + 1;
-        }
+            for (int32_t i = (indexOfSelectedAnnotation - 1); i >= 0; i--) {
+                CaretAssertVectorIndex(annotationOrderAndContent, i);
+                if (annotationOrderAndContent[i].m_overlapsFlag) {
+                    indexOfAnnotationInFront = i;
+                    break;
+                }
+            }
+
+            for (int32_t i = (indexOfSelectedAnnotation + 1); i < numAnn; i++) {
+                CaretAssertVectorIndex(annotationOrderAndContent, i);
+                if (annotationOrderAndContent[i].m_overlapsFlag) {
+                    indexOfAnnotationBehind = i;
+                    break;
+                }
+            }
     }
     else {
         errorMessageOut = "Unable to find index of selected annotation in ordered annotations";
@@ -324,7 +347,7 @@ AnnotationStackingOrderOperation::findAnnotationIndices(const std::vector<OrderI
 }
 
 /**
- * Sort the annotations front to back.
+ * Sort the annotations front to back prior to applying the ordering operation
  *
  * @param annotationOrderAndContent
  *   Output with annotations and their ordering
@@ -333,13 +356,12 @@ AnnotationStackingOrderOperation::findAnnotationIndices(const std::vector<OrderI
  * @return True if input is valid, else false.
  */
 bool
-AnnotationStackingOrderOperation::orderAnnotations(std::vector<OrderInfo>& annotationOrderAndContent,
+AnnotationStackingOrderOperation::preOrderAnnotations(std::vector<OrderInfo>& annotationOrderAndContent,
                                                    AString& errorMessageOut)
 {
     /*
      * Sort annotations by current stacking order
      */
-    int32_t maxStackingOrder(-1);
     for (const auto ann : m_annotations) {
         CaretAssert(ann);
         
@@ -374,9 +396,6 @@ AnnotationStackingOrderOperation::orderAnnotations(std::vector<OrderInfo>& annot
                 break;
         }
         
-        if (ann->getStackingOrder() > maxStackingOrder) {
-            maxStackingOrder = ann->getStackingOrder();
-        }
         bool overlapsSelectedAnnotationFlag(false);
         if (ann != m_selectedAnnotation) {
             if (m_selectedAnnotation->intersectionTest(ann, m_windowIndex)) {
@@ -411,19 +430,20 @@ AnnotationStackingOrderOperation::orderAnnotations(std::vector<OrderInfo>& annot
     return true;
 }
 
+/**
+ * Print the current ordering of the annotations
+ */
 void
 AnnotationStackingOrderOperation::printOrderedAnnotations(const std::vector<OrderInfo>& annotationOrderAndContent)
 {
     for (auto& ao : annotationOrderAndContent) {
-        std::cout << ao.m_stackOrder << " " << ao.m_annotation->toString() << std::endl;
+        std::cout << ao.m_stackOrder << " " << AString::fromBool(ao.m_overlapsFlag) << " " << ao.m_annotation->toString() << std::endl;
     }
 }
 
-
 /**
- * Validate the input.  If successful, the input annotations contain the selected
- * annotation and annotations that overlap the selected annotation and are in
- * the same space.  Other annotations have been filtered out.
+ * Validate the input to verify space of selected annotation is supported for
+ * reordering and to filter out annoations in other spaces
  *
  * @param errorMessageOut
  * Contains error information
@@ -460,7 +480,7 @@ AnnotationStackingOrderOperation::validateInput(AString& errorMessageOut)
         return false;
     }
     
-    if ( ! filterAnnotations()) {
+    if ( ! filterAnnotationsBySpace()) {
         errorMessageOut = "No annotations in same coordinate space overlap the selected annotation";
         return false;
     }
@@ -480,10 +500,6 @@ AnnotationStackingOrderOperation::validateInput(AString& errorMessageOut)
         return false;
     }
     
-//    if (m_annotations.size() <= 1) {
-//        return true;
-//    }
-    
     return true;
 }
 
@@ -499,12 +515,12 @@ AnnotationStackingOrderOperation::toString() const
 }
 
 /**
- * Filter the annotations to find those in same space that overlap the selected annotation
+ * Filter the annotations to find those in same space of the selected annotation
  *
  * @return True there are annotations remaining after filtering
  */
 bool
-AnnotationStackingOrderOperation::filterAnnotations()
+AnnotationStackingOrderOperation::filterAnnotationsBySpace()
 {
     CaretAssert(m_selectedAnnotation);
     
@@ -527,10 +543,7 @@ AnnotationStackingOrderOperation::filterAnnotations()
                     filteredAnnotations.push_back(ann);
                 }
                 else {
-                    if (m_selectedAnnotation->intersectionTest(ann,
-                                                               m_windowIndex)) {
-                        filteredAnnotations.push_back(ann);
-                    }
+                    filteredAnnotations.push_back(ann);
                 }
             }
         }

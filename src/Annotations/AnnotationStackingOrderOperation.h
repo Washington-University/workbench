@@ -33,7 +33,8 @@
 namespace caret {
 
     class Annotation;
-    
+    class AnnotationCoordinate;
+
     class AnnotationStackingOrderOperation : public CaretObject {
         
     public:
@@ -108,9 +109,9 @@ namespace caret {
             bool m_overlapsFlag = false;
         };
         
-        bool filterAnnotations();
+        bool filterAnnotationsBySpace();
         
-        bool orderAnnotations(std::vector<OrderInfo>& annotationOrderAndContent,
+        bool preOrderAnnotations(std::vector<OrderInfo>& annotationOrderAndContent,
                               AString& errorMessageOut);
         
         bool validateInput(AString& errorMessageOut);
@@ -122,6 +123,9 @@ namespace caret {
                                    AString& errorMessageOut);
 
         void printOrderedAnnotations(const std::vector<OrderInfo>& annotationOrderAndContent);
+        
+        void setCoordinateZ(AnnotationCoordinate* coordinate,
+                            const float z);
         
         const Mode m_mode;
         
