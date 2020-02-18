@@ -1663,7 +1663,7 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane)
             const float symbolDiameter = voxel.getSymbolSize();
             const float halfSymbolSize = symbolDiameter / 2.0;
             
-            const float dist = plane.signedDistanceToPlane(xyz);
+            const float dist = std::fabs(plane.signedDistanceToPlane(xyz));
             if (dist < halfSymbolSize) {
                 if (isSelect) {
                     m_fixedPipelineDrawing->colorIdentification->addItem(rgba,
