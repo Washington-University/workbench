@@ -433,6 +433,7 @@ namespace caret {
         
         QAction* m_dataFociProjectAction;
         QAction* m_dataBorderFilesSplitAction;
+        QAction* m_dataPaletteEditorDialogAction;
         
         QMenu* m_moveSelectedTabToWindowMenu;
         

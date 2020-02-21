@@ -45,6 +45,9 @@ namespace caret {
         
         PalettePixmapPainter(const Palette* palette);
         
+        PalettePixmapPainter(const Palette* palette,
+                             const QSize& pixmapSize);
+        
         virtual ~PalettePixmapPainter();
         
         PalettePixmapPainter(const PalettePixmapPainter&) = delete;

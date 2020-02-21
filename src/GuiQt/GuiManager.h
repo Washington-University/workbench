@@ -59,6 +59,7 @@ namespace caret {
     class OverlaySettingsEditorDialog;
     class Model;
     class PaletteColorMappingEditorDialog;
+    class PaletteEditorDialog;
     class PreferencesDialog;
     class Scene;
     class SceneDialog;
@@ -169,6 +170,8 @@ namespace caret {
         
         void updateAnimationStartTime(double value);
         
+        void processShowPaletteEditorDialog(BrainBrowserWindow* browserWindow);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -269,6 +272,8 @@ namespace caret {
         /** Editor for palette color mapping editing */
         PaletteColorMappingEditorDialog* m_paletteColorMappingEditor;
         
+        PaletteEditorDialog* m_paletteEditorDialog = NULL;
+       
         ChartTwoLineSeriesHistoryDialog* m_chartTwoLineSeriesHistoryDialog;
         
         TileTabsConfigurationDialog* m_tileTabsConfigurationDialog;

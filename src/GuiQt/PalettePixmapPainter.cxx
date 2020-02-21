@@ -48,6 +48,20 @@ using namespace caret;
  * Palette used to generate the pixmap
  */
 PalettePixmapPainter::PalettePixmapPainter(const Palette* palette)
+: PalettePixmapPainter(palette,
+                       QSize(100, 14))
+{
+}
+
+/**
+ * Constructor.
+ * @param palette
+ * Palette used to generate the pixmap
+ * @param pixmapSize
+ * Size for pixmap
+ */
+PalettePixmapPainter::PalettePixmapPainter(const Palette* palette,
+                                           const QSize& pixmapSize)
 : CaretObject()
 {
     CaretAssert(palette);
@@ -59,8 +73,8 @@ PalettePixmapPainter::PalettePixmapPainter(const Palette* palette)
         return;
     }
     
-    const qreal pixmapWidth(100);
-    const qreal pixmapHeight(14);
+    const qreal pixmapWidth(pixmapSize.width());
+    const qreal pixmapHeight(pixmapSize.height());
     
     switch (m_mode) {
         case INTERPOLATE_OFF:

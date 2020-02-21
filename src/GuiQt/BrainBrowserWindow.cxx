@@ -1504,7 +1504,11 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processSplitBorderFiles()));
-    
+
+    m_dataPaletteEditorDialogAction = new QAction("Palette Editor...");
+    QObject::connect(m_dataPaletteEditorDialogAction, &QAction::triggered,
+                     guiManager, [=]() { guiManager->processShowPaletteEditorDialog(this); } );
+
     m_viewFullScreenAction = WuQtUtilities::createAction("Full Screen",
                                                          "View using all of screen",
                                                          Qt::CTRL+Qt::Key_F,
@@ -1777,6 +1781,8 @@ BrainBrowserWindow::createMenuDevelop()
         }
     }
     
+    menu->addAction(m_dataPaletteEditorDialogAction);
+
     return menu;
 }
 

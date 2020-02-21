@@ -174,6 +174,8 @@ ELSE()
         OverlaySettingsEditorDialog.h
         OverlayViewController.h
         PaletteColorMappingEditorDialog.h
+	PaletteEditorControlPointGroupWidget.h
+	PaletteEditorDialog.h
         PlotMagnifier.h
         PlotPanner.h
         PreferencesDialog.h
@@ -246,6 +248,7 @@ ELSE()
         WuQMacroWidgetAction.h
         WuQMessageBox.h
         WuQwtPlot.h
+	WuQScrollArea.h
         WuQSpecialIncrementDoubleSpinBox.h
 	WuQSpinBox.h
         WuQSpinBoxGroup.h
@@ -451,6 +454,8 @@ OverlaySetViewController.h
 OverlaySettingsEditorDialog.h
 OverlayViewController.h
 PaletteColorMappingEditorDialog.h
+PaletteEditorControlPointGroupWidget.h
+PaletteEditorDialog.h
 PalettePixmapPainter.h
 PlotMagnifier.h
 PlotPanner.h
@@ -556,6 +561,7 @@ WuQMacroSignalWatcher.h
 WuQMacroWidgetAction.h
 WuQMessageBox.h
 WuQwtPlot.h
+WuQScrollArea.h
 WuQSpecialIncrementDoubleSpinBox.h
 WuQSpinBox.h
 WuQSpinBoxGroup.h
@@ -747,6 +753,8 @@ OverlaySetViewController.cxx
 OverlayViewController.cxx
 OverlaySettingsEditorDialog.cxx
 PaletteColorMappingEditorDialog.cxx
+PaletteEditorControlPointGroupWidget.cxx
+PaletteEditorDialog.cxx
 PalettePixmapPainter.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
@@ -848,6 +856,7 @@ WuQMacroSignalWatcher.cxx
 WuQMacroWidgetAction.cxx
 WuQMessageBox.cxx
 WuQwtPlot.cxx
+WuQScrollArea.cxx
 WuQSpecialIncrementDoubleSpinBox.cxx
 WuQSpinBox.cxx
 WuQSpinBoxGroup.cxx

@@ -106,6 +106,7 @@
 #include "MovieDialog.h"
 #include "MovieRecordingDialog.h"
 #include "PaletteColorMappingEditorDialog.h"
+#include "PaletteEditorDialog.h"
 #include "PreferencesDialog.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
@@ -199,6 +200,7 @@ GuiManager::initializeGuiManager()
     m_surfacePropertiesEditorDialog = NULL;
     m_volumePropertiesEditorDialog = NULL;
     m_tileTabsConfigurationDialog = NULL;
+    m_paletteEditorDialog = NULL;
     
     this->cursorManager = new CursorManager();
     
@@ -2630,6 +2632,24 @@ GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* /*browserWi
 //    }
 //    this->connectomeDatabaseWebView->show();
 }
+
+/**
+ * Show the palette editor dialog
+ * @param browserWindow
+ *    Parent for the dialog
+ */
+void
+GuiManager::processShowPaletteEditorDialog(BrainBrowserWindow* browserWindow)
+{
+    if (m_paletteEditorDialog == NULL) {
+        CaretAssert(browserWindow);
+        m_paletteEditorDialog = new PaletteEditorDialog(browserWindow);
+        addNonModalDialog(m_paletteEditorDialog);
+    }
+    m_paletteEditorDialog->updateDialog();
+    m_paletteEditorDialog->showDialog();
+}
+
 
 /**
  * sets animation start time for Time Course Dialogs
