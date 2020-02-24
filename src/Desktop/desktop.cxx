@@ -276,6 +276,7 @@ struct ProgramState
     int windowPosXY[2];
     int graphicsSizeXY[2];
     bool showSplash;
+    bool macMenuFlag = false;
     
     AString directoryName;
     
@@ -412,6 +413,13 @@ main(int argc, char* argv[])
         CaretLogConfig("Version " + applicationInformation.getVersion());
         CaretLogConfig(applicationInformation.getCompiledWithDebugStatus());
 
+
+        /*
+         * Mac Option to put menus on window and not use the native tool bar
+         */
+        if (myState.macMenuFlag) {
+            app.setAttribute(Qt::AA_DontUseNativeMenuBar);
+        }
         
         /*
          * Enabled the desired splash screen based upon user preferences
@@ -763,13 +771,10 @@ void printHelp(const AString& progName)
     
     cout
     << endl
-    << "    -mac-menu-duplicate" << endl
-    << "        MacOS Only - Adds menus to the top of the Browser Window " << endl
-    << "        that duplicate the menu bar at the top of the window.   " << endl
-    << "        The menus are similar to that on Linux and Windows. " << endl
-    << "        May be useful for creating tutorial images." << endl
-    << "        This functionality is EXPERIMENTAL and subject to  " << endl
-    << "        removal in future versions of wb_view." << endl
+    << "    -mac-menu-in-window" << endl
+    << "        MacOS Only - Menus are at the top of each main window  "
+    << "        similar to Linux and Window Applications.  "
+    << "        May be useful for creating tutorial images and videos." << endl
     << endl
     << "    -no-splash" << endl
     << "        disable all splash screens" << endl
@@ -847,8 +852,8 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                             hasFatalError = true;
                         }
                     }
-                } else if (thisParam == "-mac-menu-duplicate") {
-                    BrainBrowserWindow::setEnableMacDuplicateMenuBar(true);
+                } else if (thisParam == "-mac-menu-in-window") {
+                    myState.macMenuFlag = true;
                 } else if (thisParam == "-no-splash") {
                     myState.showSplash = false;
                 } else if (thisParam == "-scene-load") {
@@ -1010,4 +1015,5 @@ ProgramState::ProgramState()
     graphicsSizeXY[0] = -1;
     graphicsSizeXY[1] = -1;
     showSplash = true;
+    macMenuFlag = false;
 }

@@ -113,7 +113,6 @@
 #include "EventUpdateYokedWindows.h"
 #include "GuiManager.h"
 #include "LockAspectWarningDialog.h"
-#include "MacDuplicateMenuBar.h"
 #include "Model.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
@@ -633,29 +632,6 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     this->selectedUserInputProcessor = NULL; /* DO NOT DELETE since it does not own the object to which it points */
     
     this->isDestructionInProgress = false;
-}
-
-/**
- * Insert a duplicate of the application's menu at the top of the toolbar.
- * This is only enabled on MacOSX.
- *
- * @param mainWindow
- *     Main window whose menus are copied.
- */
-void
-BrainBrowserWindowToolBar::insertDuplicateMenuBar(QMainWindow* mainWindow)
-{
-#ifndef CARET_OS_MACOSX
-    return;
-#endif
-    MacDuplicateMenuBar* menuBar = new MacDuplicateMenuBar(mainWindow,
-                                                           this);
-    CaretAssert(menuBar);
-    
-    /*
-     * Insert at top of tool bar
-     */
-    m_toolBarMainLayout->insertWidget(0, menuBar);
 }
 
 /**

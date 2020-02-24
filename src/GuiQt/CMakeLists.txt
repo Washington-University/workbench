@@ -155,7 +155,6 @@ ELSE()
     	LockAspectWarningDialog.h
         MacApplication.h
         MacDockMenu.h
-	MacDuplicateMenuBar.h
         MapSettingsChartTwoLineHistoryWidget.h
         MapSettingsColorBarPaletteOptionsWidget.h
         MapSettingsColorBarWidget.h
@@ -434,7 +433,6 @@ LabelSelectionViewController.h
 LockAspectWarningDialog.h
 MacApplication.h
 MacDockMenu.h
-MacDuplicateMenuBar.h
 MapSettingsChartTwoLineHistoryWidget.h
 MapSettingsColorBarPaletteOptionsWidget.h
 MapSettingsColorBarWidget.h
@@ -733,7 +731,6 @@ LabelSelectionViewController.cxx
 LockAspectWarningDialog.cxx
 MacApplication.cxx
 MacDockMenu.cxx
-MacDuplicateMenuBar.cxx
 MapSettingsChartTwoLineHistoryWidget.cxx
 MapSettingsColorBarPaletteOptionsWidget.cxx
 MapSettingsColorBarWidget.cxx

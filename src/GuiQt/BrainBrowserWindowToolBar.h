@@ -120,8 +120,6 @@ namespace caret {
         
         int32_t getNumberOfTabs() const;
         
-        void insertDuplicateMenuBar(QMainWindow* mainWindow);
-        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         

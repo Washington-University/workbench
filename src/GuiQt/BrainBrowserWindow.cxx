@@ -251,12 +251,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     createMenus();
     
-    if (s_enableMacDuplicateMenuBarFlag) {
-        s_enableMacDuplicateMenuBarFlag = false;
-        
-        m_toolbar->insertDuplicateMenuBar(this);
-    }
-    
     m_toolbar->updateToolBar();
 
     processShowOverlayToolBox(m_overlayToolBoxAction->isChecked());
@@ -4875,17 +4869,3 @@ BrainBrowserWindow::showDataFileReadWarningsDialog()
                                          this);
     }
 }
-
-/**
- * Set the enabled status for enabling mac duplicate menu bar for
- * the next created toolbar.
- */
-void
-BrainBrowserWindow::setEnableMacDuplicateMenuBar(bool status)
-{
-    s_enableMacDuplicateMenuBarFlag = status;
-}
-
-
-
-
