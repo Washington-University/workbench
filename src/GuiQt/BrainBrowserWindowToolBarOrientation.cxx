@@ -205,7 +205,7 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
                                           "Select anterior/posterior orientation");
     
     this->orientationResetToolButtonAction = WuQtUtilities::createAction("R\nE\nS\nE\nT",
-                                                                         "Reset the view to dorsal and remove any panning or zooming",
+                                                                         "Reset the view to lateral and remove any panning or zooming",
                                                                          this,
                                                                          this,
                                                                          SLOT(orientationResetToolButtonTriggered(bool)));
