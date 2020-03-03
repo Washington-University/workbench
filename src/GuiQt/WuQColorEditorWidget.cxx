@@ -63,6 +63,9 @@ WuQColorEditorWidget::WuQColorEditorWidget(QWidget* parent)
     
     m_currentColor.setRgb(255, 0, 0);
     updateControls();
+
+    setSizePolicy(sizePolicy().horizontalPolicy(),
+                          QSizePolicy::Fixed);
 }
 
 /**
@@ -189,8 +192,6 @@ WuQColorEditorWidget::createControlsWidget()
     layout->setColumnStretch(COL_LABEL,    0);
     layout->setColumnStretch(COL_SLIDER, 100);
     layout->setColumnStretch(COL_SPIN_BOX, 0);
-
-    layout->setColumnMinimumWidth(COL_SLIDER, 255);
     
     int32_t row(0);
     layout->addWidget(m_colorSwatchWidget,
@@ -229,7 +230,7 @@ WuQColorEditorWidget::createControlsWidget()
                       row, COL_SPIN_BOX);
     row++;
     
-    layout->addWidget(new QLabel("Saturation:"),
+    layout->addWidget(new QLabel("Sat:"),
                       row, COL_LABEL);
     layout->addWidget(m_saturationSlider,
                       row, COL_SLIDER);
@@ -408,10 +409,10 @@ WuQColorEditorWidget::createHueSaturationColorLabel()
     QPen pen = painter.pen();
     
     updateHueSaturationToLabelTransforms();
-    for (int32_t x = 0; x < (xWidth - 1); x++) {
+    for (int32_t x = 0; x < xWidth; x++) {
         const float hue = m_hueToLabelLinearTransform->inverseTransformValue(x);
         
-        for (int32_t y = 0; y < (yHeight - 1); y++) {
+        for (int32_t y = 0; y < yHeight; y++) {
             const float sat = m_saturationToLabelLinearTransform->inverseTransformValue(y);
             pen.setColor(QColor::fromHsv(hue, sat, 255));
             painter.setPen(pen);
@@ -505,7 +506,6 @@ WuQColorEditorWidget::updateValueColorLabel()
     
     for (int32_t value = 0; value < 255; value++) {
         const float yValue = m_valueToLabelLinearTransform->transformValue(value);
-        //        m_valueToLabelXyTransform->map(x, value, &xValue, &yValue);
         pen.setColor(QColor::fromHsv(hue, saturation, value));
         painter.setPen(pen);
         painter.drawRect(0, yValue, halfWidth, 1);
@@ -529,50 +529,6 @@ WuQColorEditorWidget::updateValueColorLabel()
     painter.drawPolygon(triangle);
     
     m_valueColorLabel->setPixmap(pixmap);
-}
-
-/**
- * Create a transform for a linear mapping.
- *  xMin, xMax, yMin, yMax are used to compute the slope
- *  x0 and y0 are used to compute the intercept
- *
- * @param xMin
- *    The minimum X-value
- * @param xMax
- *    The maximum X-value
- * @param yMin
- *    The minimum Y-value
- * @param yMin
- *    The maximum Y-value
- * @param x0
- *    An X-value that maps to y0
- * @param y0
- *    A Y-value that maps to x0
- */
-QTransform*
-WuQColorEditorWidget::createTransform(const float xMin,
-                                      const float xMax,
-                                      const float yMin,
-                                      const float yMax,
-                                      const float x0,
-                                      const float y0)
-{
-    QTransform* transform = new QTransform();
-    
-    const float dy(yMax - yMin);
-    const float dx(xMax - xMin);
-    if (dx == 0) {
-        return transform;
-    }
-    
-    const float slope(dy / dx);
-    const float intercept = y0 - (slope * x0);
-    
-    transform->scale(1.0, -slope);
-    transform->translate(0.0, -intercept);
-    
-    return transform;
-
 }
 
 void

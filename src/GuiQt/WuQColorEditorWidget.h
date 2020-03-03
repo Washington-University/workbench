@@ -98,13 +98,6 @@ namespace caret {
         
         void updateHueSaturationLabel();
         
-        QTransform* createTransform(const float xMin,
-                                    const float xMax,
-                                    const float yMin,
-                                    const float yMax,
-                                    const float x0,
-                                    const float y0);
-
         QSpinBox* m_hueSpinBox;
         
         QSlider* m_hueSlider;

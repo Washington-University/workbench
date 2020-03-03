@@ -23,7 +23,6 @@
 #undef __PALETTE_EDITOR_DIALOG_DECLARE__
 
 #include <QButtonGroup>
-#include <QColorDialog>
 #include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -87,28 +86,19 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     colorEditorLayout->setContentsMargins(0, 0, 0, 0);
     colorEditorLayout->addWidget(m_colorEditorWidget);
      
-    QGroupBox* paletteGroupBox = new QGroupBox("Palettes");
-    QHBoxLayout* paletteLayout = new QHBoxLayout(paletteGroupBox);
-    paletteLayout->addWidget(paletteSelectionWidget);
-    
-    m_colorDialog = new QColorDialog();
-    m_colorDialog->setOption(QColorDialog::NoButtons);
-    m_colorDialog->setOption(QColorDialog::DontUseNativeDialog);
-    m_colorDialog->setWindowFlag(Qt::Widget);
+    QHBoxLayout* paletteSelectionAndButtonsLayout = new QHBoxLayout();
+    paletteSelectionAndButtonsLayout->addWidget(paletteSelectionWidget, 0, Qt::AlignTop);
+    paletteSelectionAndButtonsLayout->addWidget(paletteMovementButtonsWidget, 0, Qt::AlignVCenter);
     
     QWidget* dialogWidget = new QWidget();
     QGridLayout* dialogLayout = new QGridLayout(dialogWidget);
     dialogLayout->setColumnStretch(0,   0);
     dialogLayout->setColumnStretch(1,   0);
     dialogLayout->setColumnStretch(2,   0);
-    dialogLayout->setColumnStretch(3,   0);
-    dialogLayout->setColumnStretch(4, 100);
-    dialogLayout->addWidget(paletteBarWidget, 0, 0, 1, 2);
-    dialogLayout->addWidget(paletteGroupBox, 1, 0, Qt::AlignTop);
-    dialogLayout->addWidget(paletteMovementButtonsWidget, 1, 1, Qt::AlignTop);
-    dialogLayout->addWidget(controlPointsWidget, 0, 2, 2, 1);
-    dialogLayout->addWidget(colorEditorGroupBox, 0, 3, 2, 1);
-    dialogLayout->addWidget(m_colorDialog, 0, 4, 2, 1);
+    dialogLayout->addLayout(paletteSelectionAndButtonsLayout, 0, 0, 2, 1, Qt::AlignTop);
+    dialogLayout->addWidget(paletteBarWidget, 0, 1, 1, 2, Qt::AlignHCenter);
+    dialogLayout->addWidget(controlPointsWidget, 1, 1);
+    dialogLayout->addWidget(colorEditorGroupBox, 1, 2, Qt::AlignTop);
 
     setCentralWidget(dialogWidget,
                      ScrollAreaStatus::SCROLL_AREA_NEVER);
@@ -120,8 +110,7 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     /*
      * No resizing of dialog
      */
-    setSizePolicy(QSizePolicy::Fixed,
-                  QSizePolicy::Fixed);
+    setFixedSize(sizeHint());
     
     disableAutoDefaultForAllPushButtons();
 }
@@ -162,7 +151,6 @@ void
 PaletteEditorDialog::editColor(const uint8_t red, const uint8_t green, const uint8_t blue)
 {
     m_colorEditorWidget->setCurrentColor(red, green, blue);
-    m_colorDialog->setCurrentColor(QColor(red, green, blue));
 }
 
 QWidget*
@@ -278,12 +266,11 @@ PaletteEditorDialog::createPaletteWidget()
 {
     m_colorBarImageLabel = new QLabel();
     m_colorBarImageLabel->setFixedHeight(24);
-    m_colorBarImageLabel->setFixedWidth(250);
+    m_colorBarImageLabel->setFixedWidth(500);
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(new QLabel("Name: <name-of-palette>"), 0, Qt::AlignLeft);
     layout->addWidget(m_colorBarImageLabel);
     layout->addStretch();
     

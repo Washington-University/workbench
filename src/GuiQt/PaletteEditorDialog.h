@@ -29,7 +29,6 @@
 #include "WuQDialogNonModal.h"
 
 class QButtonGroup;
-class QColorDialog;
 class QComboBox;
 class QLabel;
 class QListWidget;
@@ -122,8 +121,6 @@ namespace caret {
         QPushButton* m_editPalettePushButton;
         
         QPushButton* m_replacePalettePushButton;
-        
-        QColorDialog* m_colorDialog;
         
         // ADD_NEW_MEMBERS_HERE
 
