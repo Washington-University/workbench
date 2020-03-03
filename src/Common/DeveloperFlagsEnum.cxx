@@ -135,11 +135,13 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 false));
 
+#ifdef HAVE_WEBKIT
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
                                                 "DEVELOPER_FLAG_BALSA",
                                                 "Visit BALSA...",
                                                 CheckableEnum::NO,
                                                 false));
+#endif
     
     std::vector<DeveloperFlagsEnum> notCheckableItems;
 

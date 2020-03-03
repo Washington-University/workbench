@@ -247,6 +247,7 @@ WuQImageLabel::mouseReleaseEvent(QMouseEvent* ev)
         if ((dx < tolerance)
             && (dy < tolerance)) {
             emit clicked();
+            emit clickedXY(ev->x(), ev->y());
         }
     }
 }

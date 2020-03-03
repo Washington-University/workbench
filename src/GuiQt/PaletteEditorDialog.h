@@ -32,10 +32,14 @@ class QButtonGroup;
 class QColorDialog;
 class QComboBox;
 class QLabel;
+class QListWidget;
+class QPushButton;
 class QTabWidget;
+class QToolButton;
 
 namespace caret {
 
+    class WuQColorEditorWidget;
     class WuQScrollArea;
     
     class PaletteEditorControlPointGroupWidget;
@@ -58,9 +62,16 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void editColor(const uint8_t rgb[3]);
+        void editColor(const uint8_t red, const uint8_t green, const uint8_t blue);
+        
+        void paletteTypeTabWidgetClicked(int index);
         
     private:
+        enum class IconType {
+            ARROW_LEFT_DOWN,
+            ARROW_UP_RIGHT
+        };
+        
         QWidget* createControlPointsWidget();
         
         QWidget* createPaletteSelectionWidget();
@@ -69,7 +80,16 @@ namespace caret {
         
         QWidget* createPaletteWidget();
         
+        QWidget* createFilePaletteWidget();
+    
+        QWidget* createTemplatePaletteWidget();
+        
+        QWidget* createUserPaletteWidget();
+        
         void updateControlPointWidgets();
+        
+        QPixmap createIcon(QWidget* widget,
+                           const IconType iconType);
         
         PaletteEditorControlPointGroupWidget* m_positiveControlPointsWidget;
         
@@ -79,15 +99,31 @@ namespace caret {
         
         QLabel* m_colorBarImageLabel;
         
-        QColorDialog* m_colorEditorDialog;
+        WuQColorEditorWidget* m_colorEditorWidget;
         
         QButtonGroup* m_colorEditButtonGroup;
 
         QTabWidget* m_paletteTypeTabWidget;
         
-        QComboBox* m_paletteSelectionComboBox;
+        QListWidget* m_filePaletteSelectionListWidget;
         
-        WuQScrollArea* m_scrollArea;
+        QListWidget* m_templatePaletteSelectionListWidget;
+        
+        QListWidget* m_userPaletteSelectionListWidget;
+        
+        QWidget* m_filePaletteSelectionWidget;
+        
+        QWidget* m_templatePaletteSelectionWidget;
+        
+        QWidget* m_userPaletteSelectionWidget;
+        
+        QPushButton* m_addPalettePushButton;
+        
+        QPushButton* m_editPalettePushButton;
+        
+        QPushButton* m_replacePalettePushButton;
+        
+        QColorDialog* m_colorDialog;
         
         // ADD_NEW_MEMBERS_HERE
 

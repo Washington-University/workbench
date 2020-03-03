@@ -45,7 +45,8 @@ namespace caret {
 
     public:
         PaletteEditorControlPointGroupWidget(QWidget* parent,
-                                             QButtonGroup* colorEditButtonGroup);
+                                             QButtonGroup* colorEditButtonGroup,
+                                             const bool showColumnTitles);
         
         virtual ~PaletteEditorControlPointGroupWidget();
         
@@ -60,7 +61,7 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     signals:
-        void editColorRequested(const uint8_t rgb[3]);
+        void editColorRequested(const uint8_t red, const uint8_t green, const uint8_t blue);
 
     private:
         QButtonGroup* m_colorEditButtonGroup;
@@ -69,6 +70,7 @@ namespace caret {
         
         std::vector<PaletteControlPointRow*> m_paletteControlPointRows;
         
+        const bool m_showColumnTitles;
         // ADD_NEW_MEMBERS_HERE
 
     };
@@ -80,7 +82,8 @@ namespace caret {
         PaletteControlPointRow(PaletteEditorControlPointGroupWidget* paletteEditorControlPointGroupWidget,
                                QButtonGroup* colorEditButtonGroup,
                                QGridLayout* gridLayout,
-                               const int32_t controlPointIndex);
+                               const int32_t controlPointIndex,
+                               const bool showColumnTitles);
 
         ~PaletteControlPointRow();
         
@@ -110,7 +113,7 @@ namespace caret {
         QAction* m_removeAction;
 
     signals:
-        void editColorRequested(const uint8_t rgb[3]);
+        void editColorRequested(const uint8_t red, const uint8_t green, const uint8_t blue);
         
     };
 

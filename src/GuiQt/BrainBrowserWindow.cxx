@@ -1850,6 +1850,7 @@ BrainBrowserWindow::developerMenuFlagTriggered(QAction* action)
             CaretAssert(balsaDialog);
             balsaDialog->show();
         }
+#endif
         
         /*
          * Update graphics and GUI
@@ -1857,12 +1858,6 @@ BrainBrowserWindow::developerMenuFlagTriggered(QAction* action)
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-#else
-        if (enumValue == DeveloperFlagsEnum::DEVELOPER_FLAG_BALSA) {
-            WuQMessageBox::informationOk(this,
-                                         "Software was built without Qt WebKit, BALSA test not available, see src/CMakeLists.txt");
-        }
-#endif
     }
     else {
         CaretLogSevere("Failed to find develper flag for reading menu: "

@@ -53,9 +53,11 @@ using namespace caret;
  *    Parent widget
  */
 PaletteEditorControlPointGroupWidget::PaletteEditorControlPointGroupWidget(QWidget* parent,
-                                                                           QButtonGroup* colorEditButtonGroup)
+                                                                           QButtonGroup* colorEditButtonGroup,
+                                                                           const bool showColumnTitles)
 : QWidget(parent),
-m_colorEditButtonGroup(colorEditButtonGroup)
+m_colorEditButtonGroup(colorEditButtonGroup),
+m_showColumnTitles(showColumnTitles)
 {
     m_controlPointGridLayout = new QGridLayout(this);
     m_controlPointGridLayout->setVerticalSpacing(m_controlPointGridLayout->verticalSpacing() / 2);
@@ -109,7 +111,8 @@ PaletteEditorControlPointGroupWidget::updateContent(void* controlPointGroup,
         PaletteControlPointRow* per = new PaletteControlPointRow(this,
                                                                  m_colorEditButtonGroup,
                                                                  m_controlPointGridLayout,
-                                                                 i);
+                                                                 i,
+                                                                 m_showColumnTitles);
         QObject::connect(per, &PaletteControlPointRow::editColorRequested,
                          this, &PaletteEditorControlPointGroupWidget::editColorRequested);
         
@@ -144,7 +147,8 @@ PaletteEditorControlPointGroupWidget::updateContent(void* controlPointGroup,
 PaletteControlPointRow::PaletteControlPointRow(PaletteEditorControlPointGroupWidget* paletteEditorControlPointGroupWidget,
                                                QButtonGroup* colorEditButtonGroup,
                                                QGridLayout* gridLayout,
-                                               const int32_t controlPointIndex)
+                                               const int32_t controlPointIndex,
+                                               const bool showColumnTitles)
 : QObject(paletteEditorControlPointGroupWidget),
 m_controlPointIndex(controlPointIndex)
 {
@@ -154,22 +158,31 @@ m_controlPointIndex(controlPointIndex)
     const int32_t columnColorSwatch(columnCount++);
     const int32_t columnEdit(columnCount++);
     
-    const bool showColumnTitlesFlag(false);
     if (m_controlPointIndex == 0) {
-        if (showColumnTitlesFlag) {
-            int32_t row(gridLayout->rowCount());
-            gridLayout->addWidget(new QLabel("Modify"),
-                                  row, columnConstruction, Qt::AlignHCenter);
-            gridLayout->addWidget(new QLabel("Control"),
-                                  row, columnControlPoint, Qt::AlignHCenter);
-            gridLayout->addWidget(new QLabel("Point"),
-                                  row + 1, columnControlPoint, Qt::AlignHCenter);
-            gridLayout->addWidget(new QLabel("Color"),
-                                  row, columnColorSwatch, Qt::AlignHCenter);
-            gridLayout->addWidget(new QLabel("Color"),
-                                  row, columnEdit, Qt::AlignHCenter);
-            gridLayout->addWidget(new QLabel("Edit"),
-                                  row + 1, columnEdit, Qt::AlignHCenter);
+        if (showColumnTitles) {
+            const bool showAllTitlesFlag(false);
+            if (showAllTitlesFlag) {
+                int32_t row(gridLayout->rowCount());
+                gridLayout->addWidget(new QLabel("Modify"),
+                                      row, columnConstruction, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Control"),
+                                      row, columnControlPoint, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Point"),
+                                      row + 1, columnControlPoint, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Color"),
+                                      row, columnColorSwatch, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Color"),
+                                      row, columnEdit, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Edit"),
+                                      row + 1, columnEdit, Qt::AlignHCenter);
+            }
+            else {
+                int32_t row(gridLayout->rowCount());
+                gridLayout->addWidget(new QLabel("Control Point"),
+                                      row, columnConstruction, 1, 2, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Color Edit"),
+                                      row, columnColorSwatch, 1, 2, Qt::AlignHCenter);
+            }
         }
         
         gridLayout->setColumnStretch(columnCount, 100);
@@ -212,10 +225,10 @@ m_controlPointIndex(controlPointIndex)
         static_cast<uint8_t>(blue)
     };
 
-    m_editColorRadioButton = new QRadioButton();
+    m_editColorRadioButton = new QRadioButton("");
     colorEditButtonGroup->addButton(m_editColorRadioButton);
     QObject::connect(m_editColorRadioButton, &QRadioButton::clicked,
-                     [=](bool) { emit editColorRequested(rgb); } );
+                     [=](bool) { emit editColorRequested(rgb[0], rgb[1], rgb[2]); } );
     
     m_colorSwatchWidget = new QWidget();
     m_colorSwatchWidget->setFixedWidth(40);
@@ -234,7 +247,7 @@ m_controlPointIndex(controlPointIndex)
     gridLayout->addWidget(m_colorSwatchWidget,
                           row, columnColorSwatch, Qt::AlignCenter);
     gridLayout->addWidget(m_editColorRadioButton,
-                          row, columnEdit, Qt::AlignCenter);
+                          row, columnEdit, Qt::AlignRight);
 }
 
 /**

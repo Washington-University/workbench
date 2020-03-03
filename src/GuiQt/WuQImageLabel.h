@@ -69,6 +69,12 @@ namespace caret {
         void clicked();
         
         /**
+         * Emitted if the mouse button is clicked over this widget
+         * with the X, Y coordinates
+         */
+        void clickedXY(int x, int y);
+        
+        /**
          * Emitted if mouse is double-clicked over
          * this widget (may also get clicked() signal.
          */

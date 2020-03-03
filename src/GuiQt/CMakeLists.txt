@@ -220,6 +220,7 @@ ELSE()
 	WbMacroHelper.h
 	WbMacroWidgetActionsManager.h
         WuQCollapsibleWidget.h
+	WuQColorEditorWidget.h
         WuQDataEntryDialog.h
         WuQDialog.h
         WuQDialogModal.h
@@ -528,6 +529,7 @@ WbMacroHelper.h
 WbMacroWidgetActionNames.h
 WbMacroWidgetActionsManager.h
 WuQCollapsibleWidget.h
+WuQColorEditorWidget.h
 WuQDataEntryDialog.h
 WuQDialog.h
 WuQDialogModal.h
@@ -825,6 +827,7 @@ WbMacroCustomOperationTypeEnum.cxx
 WbMacroHelper.cxx
 WbMacroWidgetActionsManager.cxx
 WuQCollapsibleWidget.cxx
+WuQColorEditorWidget.cxx
 WuQDataEntryDialog.cxx
 WuQDialog.cxx
 WuQDialogModal.cxx
