@@ -39,6 +39,10 @@ public:
         DATE_NEWEST,
         /** Oldest by date */
         DATE_OLDEST,
+        /** Newest by modified date */
+        MODIFIED_NEWEST,
+        /** Oldest by modified date */
+        MODIFIED_OLDEST,
         /** Ascending by name */
         NAME_ASCENDING,
         /** Dscending by name */

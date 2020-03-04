@@ -50,15 +50,19 @@ namespace caret {
         
         RecentFileItemTypeEnum::Enum getFileItemType() const;
         
-        AString getLastAccessDateTimeAsString() const;
+        AString getLastAccessByWorkbenchDateTimeAsString() const;
         
-        void setLastAccessDateTimeFromString(const AString& dateTimeString);
+        void setLastAccessByWorkbenchDateTimeFromString(const AString& dateTimeString);
         
-        QDateTime getLastAccessDateTime() const;
+        QDateTime getLastAccessByWorkbenchDateTime() const;
         
-        void setLastAccessDateTime(const QDateTime& dateTime);
+        void setLastAccessByWorkbenchDateTime(const QDateTime& dateTime);
 
-        void setLastAccessDateTimeToCurrentDateTime();
+        void setLastAccessByWorkbenchDateTimeToCurrentDateTime();
+        
+        QDateTime getLastModifiedDateTime() const;
+        
+        AString getLastModifiedDateTimeAsString() const;
         
         AString getPathAndFileName() const;
         
@@ -90,6 +94,8 @@ namespace caret {
         RecentFileItemTypeEnum::Enum m_fileItemType;
         
         QDateTime m_lastAccessDateTime;
+        
+        QDateTime m_lastModifiedDateTime;
         
         AString m_pathAndFileName;
         

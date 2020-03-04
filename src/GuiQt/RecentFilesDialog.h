@@ -87,11 +87,13 @@ namespace caret {
         
         void filesModeActionTriggered(QAction* action);
         
-        void showDirectoriesCheckBoxClicked(bool checked);
+        void listDirectoriesCheckBoxClicked(bool checked);
         
-        void showSceneFilesCheckBoxClicked(bool checked);
+        void listSceneFilesCheckBoxClicked(bool checked);
         
-        void showSpecFilesCheckBoxClicked(bool checked);
+        void listSpecFilesCheckBoxClicked(bool checked);
+        
+        void showFilePathsCheckBoxClicked(bool checked);
         
         void nameFilterTextEdited(const QString& text);
         
@@ -150,13 +152,15 @@ namespace caret {
         
         QActionGroup* m_fileTypeModeActionGroup;
         
-        QCheckBox* m_showDirectoriesCheckBox;
+        QCheckBox* m_listDirectoriesCheckBox;
         
-        QCheckBox* m_showSceneFilesCheckBox;
+        QCheckBox* m_listSceneFilesCheckBox;
         
-        QCheckBox* m_showSpecFilesCheckBox;
+        QCheckBox* m_listSpecFilesCheckBox;
         
         QLineEdit* m_nameFilterLineEdit;
+        
+        QCheckBox* m_showFilePathsCheckBox;
         
         ResultModeEnum m_resultMode = ResultModeEnum::CANCEL;
         

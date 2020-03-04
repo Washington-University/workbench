@@ -114,7 +114,15 @@ RecentFileItemSortingKeyEnum::initialize()
                                     "DATE_OLDEST",
                                     "Date Oldest"));
     
-    enumData.push_back(RecentFileItemSortingKeyEnum(NAME_ASCENDING, 
+    enumData.push_back(RecentFileItemSortingKeyEnum(MODIFIED_NEWEST,
+                                                    "MODIFIED_NEWEST",
+                                                    "Modified Newest"));
+    
+    enumData.push_back(RecentFileItemSortingKeyEnum(MODIFIED_OLDEST,
+                                                    "MODIFIED_OLDEST",
+                                                    "Modified Oldest"));
+    
+    enumData.push_back(RecentFileItemSortingKeyEnum(NAME_ASCENDING,
                                     "NAME_ASCENDING", 
                                     "Name Ascending"));
     

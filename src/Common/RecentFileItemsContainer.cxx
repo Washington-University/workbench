@@ -312,7 +312,7 @@ RecentFileItemsContainer::addItemPointer(std::shared_ptr<RecentFileItem>& recent
         /*
          * Item was not inserted, just need to update the date
          */
-        (*iter.first)->setLastAccessDateTime(recentFilePointer->getLastAccessDateTime());
+        (*iter.first)->setLastAccessByWorkbenchDateTime(recentFilePointer->getLastAccessByWorkbenchDateTime());
     }
 }
 
@@ -433,12 +433,22 @@ RecentFileItemsContainer::sort(const RecentFileItemSortingKeyEnum::Enum sortingK
         case RecentFileItemSortingKeyEnum::DATE_NEWEST:
             std::sort(items.begin(),
                       items.end(),                                      /* > is newer in Qt Documentation */
-                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getLastAccessDateTime() > b->getLastAccessDateTime(); });
+                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getLastAccessByWorkbenchDateTime() > b->getLastAccessByWorkbenchDateTime(); });
             break;
         case RecentFileItemSortingKeyEnum::DATE_OLDEST:
             std::sort(items.begin(),
                       items.end(),                                      /* < is earlier in Qt Documentation */
-                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getLastAccessDateTime() < b->getLastAccessDateTime(); });
+                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getLastAccessByWorkbenchDateTime() < b->getLastAccessByWorkbenchDateTime(); });
+            break;
+        case RecentFileItemSortingKeyEnum::MODIFIED_NEWEST:
+            std::sort(items.begin(),
+                      items.end(),                                      /* > is newer in Qt Documentation */
+                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getLastModifiedDateTime() > b->getLastModifiedDateTime(); });
+            break;
+        case RecentFileItemSortingKeyEnum::MODIFIED_OLDEST:
+            std::sort(items.begin(),
+                      items.end(),                                      /* < is earlier in Qt Documentation */
+                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getLastModifiedDateTime() < b->getLastModifiedDateTime(); });
             break;
         case RecentFileItemSortingKeyEnum::NAME_ASCENDING:
             std::sort(items.begin(),
@@ -604,7 +614,7 @@ RecentFileItemsContainer::readFromXMLVersionOneRecentFileItem(QXmlStreamReader& 
                                               pathAndFileName);
     item->setComment(comment);
     item->setFavorite(favoriteString.toBool());
-    item->setLastAccessDateTimeFromString(dateAndTimeString);
+    item->setLastAccessByWorkbenchDateTimeFromString(dateAndTimeString);
     
     addItem(item);
 }
@@ -636,7 +646,7 @@ RecentFileItemsContainer::writeToXML(AString& xml,
             writer.writeTextElement(XML_TAG_RECENT_FILE_ITEM_COMMENT,
                                     rfi->getComment());
             writer.writeTextElement(XML_TAG_RECENT_FILE_ITEM_DATE_AND_TIME,
-                                    rfi->getLastAccessDateTimeAsString());
+                                    rfi->getLastAccessByWorkbenchDateTimeAsString());
             writer.writeTextElement(XML_TAG_RECENT_FILE_ITEM_FAVORITE,
                                     AString::fromBool(rfi->isFavorite()));
             writer.writeTextElement(XML_TAG_RECENT_FILE_ITEM_FILE_ITEM_TYPE,

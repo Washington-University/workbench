@@ -190,7 +190,12 @@ RecentFilesTableWidget::updateTableDimensions(const int32_t numberOfItems)
                     break;
                 case COLUMN_DATE_TIME:
                     tableItem = new QTableWidgetItem();
-                    toolTipText = "Data last modified";
+                    toolTipText = "Date last accessed by wb_view";
+                    selectableFlag = true;
+                    break;
+                case COLUMN_MODIFIED:
+                    tableItem = new QTableWidgetItem();
+                    toolTipText = "Date last modified";
                     selectableFlag = true;
                     break;
                 case COLUMN_FAVORITE:
@@ -285,7 +290,10 @@ RecentFilesTableWidget::getColumnName(const int32_t columnIndex) const
             name = "Name";
             break;
         case COLUMN_DATE_TIME:
-            name = "Last Accessed";
+            name = "Last Accessed by wb_view";
+            break;
+        case COLUMN_MODIFIED:
+            name = "Last Modified";
             break;
         case COLUMN_FAVORITE:
             name = "Favorite";
@@ -375,6 +383,8 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
                         break;
                     case COLUMN_DATE_TIME:
                         break;
+                    case COLUMN_MODIFIED:
+                        break;
                     case COLUMN_FAVORITE:
                         break;
                     case COLUMN_SHARE:
@@ -421,8 +431,10 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
     
     bool enableFavoriteFlag(false);
     bool enableForgetFlag(false);
+    bool hidePathsFlag(false);
     switch (m_recentFileItemsContainer->getMode()) {
         case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+            hidePathsFlag = true;
             break;
         case RecentFileItemsContainerModeEnum::FAVORITES:
             enableFavoriteFlag = true;
@@ -468,13 +480,30 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                 QLabel* label = qobject_cast<QLabel*>(widget);
                 CaretAssert(label);
                 AString text("<html>&nbsp;<b><font size=\"+1\">%1</font></b>%2<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%3</html>");
-                label->setText(text.arg(recentItem->getFileName()).arg(notFoundText).arg(recentItem->getPathName()));
+                QString pathName(recentItem->getPathName());
+                switch (recentItem->getFileItemType()) {
+                    case RecentFileItemTypeEnum::DIRECTORY:
+                        break;
+                    case RecentFileItemTypeEnum::SCENE_FILE:
+                    case RecentFileItemTypeEnum::SPEC_FILE:
+                        if ( ! m_recentFileItemsFilter.isShowFilePaths()) {
+                            pathName = "";
+                        }
+                        else if (hidePathsFlag) {
+                            pathName = "";
+                        }
+                        break;
+                }
+                label->setText(text.arg(recentItem->getFileName()).arg(notFoundText).arg(pathName));
             }
                 break;
             case COLUMN_DATE_TIME:
             {
-                tableItem->setText(recentItem->getLastAccessDateTimeAsString());
+                tableItem->setText(recentItem->getLastAccessByWorkbenchDateTimeAsString());
             }
+                break;
+            case COLUMN_MODIFIED:
+                tableItem->setText(recentItem->getLastModifiedDateTimeAsString());
                 break;
             case COLUMN_FAVORITE:
             {
@@ -597,6 +626,8 @@ RecentFilesTableWidget::tableCellClicked(int row, int column)
                 break;
             case COLUMN_DATE_TIME:
                 break;
+            case COLUMN_MODIFIED:
+                break;
             case COLUMN_SHARE:
                 showShareMenuForRow(row);
                 break;
@@ -667,6 +698,9 @@ RecentFilesTableWidget::tableCellDoubleClicked(int row, int column)
         bool emitFlag(false);
         switch (tableColumn) {
             case COLUMN_DATE_TIME:
+                emitFlag = true;
+                break;
+            case COLUMN_MODIFIED:
                 emitFlag = true;
                 break;
             case COLUMN_FAVORITE:
@@ -746,6 +780,17 @@ RecentFilesTableWidget::sortIndicatorClicked(int logicalIndex,
                 }
                 updateFlag = true;
                 break;
+            case COLUMN_MODIFIED:
+                switch (sortOrder) {
+                    case Qt::AscendingOrder:
+                        m_sortingKey = RecentFileItemSortingKeyEnum::MODIFIED_OLDEST;
+                        break;
+                    case Qt::DescendingOrder:
+                        m_sortingKey = RecentFileItemSortingKeyEnum::MODIFIED_NEWEST;
+                        break;
+                }
+                updateFlag = true;
+                break;
             case COLUMN_COUNT:
             case COLUMN_FAVORITE:
             case COLUMN_FORGET:
@@ -790,6 +835,12 @@ RecentFilesTableWidget::updateHeaderSortingKey()
             break;
         case RecentFileItemSortingKeyEnum::DATE_OLDEST:
             horizHeader->setSortIndicator(COLUMN_DATE_TIME, Qt::AscendingOrder);
+            break;
+        case RecentFileItemSortingKeyEnum::MODIFIED_NEWEST:
+            horizHeader->setSortIndicator(COLUMN_MODIFIED, Qt::DescendingOrder);
+            break;
+        case RecentFileItemSortingKeyEnum::MODIFIED_OLDEST:
+            horizHeader->setSortIndicator(COLUMN_MODIFIED, Qt::AscendingOrder);
             break;
         case RecentFileItemSortingKeyEnum::NAME_ASCENDING:
             horizHeader->setSortIndicator(COLUMN_NAME, Qt::AscendingOrder);

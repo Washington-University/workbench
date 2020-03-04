@@ -94,9 +94,10 @@ RecentFileItemsFilter::copyHelperRecentFileItemsFilter(const RecentFileItemsFilt
 {
     m_favoritesOnly   = obj.m_favoritesOnly;
     m_nameMatching    = obj.m_nameMatching;
-    m_showDirectories = obj.m_showDirectories;
-    m_showSceneFiles  = obj.m_showSceneFiles;
-    m_showSpecFiles   = obj.m_showSpecFiles;
+    m_listDirectories = obj.m_listDirectories;
+    m_listSceneFiles  = obj.m_listSceneFiles;
+    m_listSpecFiles   = obj.m_listSpecFiles;
+    m_showFilePaths   = obj.m_showFilePaths;
 }
 
 /**
@@ -119,17 +120,17 @@ RecentFileItemsFilter::testItemPassesFilter(const RecentFileItem* recentFileItem
     
     switch (recentFileItem->getFileItemType()) {
         case RecentFileItemTypeEnum::DIRECTORY:
-            if ( ! m_showDirectories) {
+            if ( ! m_listDirectories) {
                 return false;
             }
             break;
         case RecentFileItemTypeEnum::SCENE_FILE:
-            if ( ! m_showSceneFiles) {
+            if ( ! m_listSceneFiles) {
                 return false;
             }
             break;
         case RecentFileItemTypeEnum::SPEC_FILE:
-            if ( ! m_showSpecFiles) {
+            if ( ! m_listSpecFiles) {
                 return false;
             }
             break;
@@ -253,66 +254,86 @@ RecentFileItemsFilter::setNameMatching(const AString& nameMatching)
 }
 
 /**
- * @return Show spec files
+ * @return List spec files
  */
 bool
-RecentFileItemsFilter::isShowSpecFiles() const
+RecentFileItemsFilter::isListSpecFiles() const
 {
-    return m_showSpecFiles;
+    return m_listSpecFiles;
 }
 
 /**
- * Set show spec files
+ * Set List spec files
  *
- * @param showSpecFiles
- *    New value for Show spec files
+ * @param listSpecFiles
+ *    New value for List spec files
  */
 void
-RecentFileItemsFilter::setShowSpecFiles(const bool showSpecFiles)
+RecentFileItemsFilter::setListSpecFiles(const bool listSpecFiles)
 {
-    m_showSpecFiles = showSpecFiles;
+    m_listSpecFiles = listSpecFiles;
 }
 
 /**
- * @return Show scene files
+ * @return List scene files
  */
 bool
-RecentFileItemsFilter::isShowSceneFiles() const
+RecentFileItemsFilter::isListSceneFiles() const
 {
-    return m_showSceneFiles;
+    return m_listSceneFiles;
 }
 
 /**
- * Set show scene files
+ * Set List scene files
  *
- * @param showSceneFiles
- *    New value for Show scene files
+ * @param listSceneFiles
+ *    New value for List scene files
  */
 void
-RecentFileItemsFilter::setShowSceneFiles(const bool showSceneFiles)
+RecentFileItemsFilter::setListSceneFiles(const bool listSceneFiles)
 {
-    m_showSceneFiles = showSceneFiles;
+    m_listSceneFiles = listSceneFiles;
 }
 
 /**
- * @return show directories
+ * @return list directories
  */
 bool
-RecentFileItemsFilter::isShowDirectories() const
+RecentFileItemsFilter::isListDirectories() const
 {
-    return m_showDirectories;
+    return m_listDirectories;
+}
+/**
+* Set list directories
+*
+* @param listDirectories
+*    New value for list directories
+*/
+void
+RecentFileItemsFilter::setListDirectories(const bool listDirectories)
+{
+    m_listDirectories = listDirectories;
 }
 
 /**
- * Set show directories
- *
- * @param showDirectories
- *    New value for show directories
- */
-void
-RecentFileItemsFilter::setShowDirectories(const bool showDirectories)
+* @return Show file paths
+*/
+bool
+RecentFileItemsFilter::isShowFilePaths() const
 {
-    m_showDirectories = showDirectories;
+    return m_showFilePaths;
+}
+
+/**
+* Set show file paths
+*
+* @param showFilePaths
+*    New value for show paths
+*/
+void
+RecentFileItemsFilter::setShowFilePaths(const bool showFilePaths)
+{
+    m_showFilePaths = showFilePaths;
 }
 
 /**

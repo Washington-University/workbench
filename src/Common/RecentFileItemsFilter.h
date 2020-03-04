@@ -51,17 +51,21 @@ namespace caret {
         
         void setNameMatching(const AString& nameMatching);
         
-        bool isShowSpecFiles() const;
+        bool isListSpecFiles() const;
         
-        void setShowSpecFiles(const bool showSpecFiles);
+        void setListSpecFiles(const bool listSpecFiles);
         
-        bool isShowSceneFiles() const;
+        bool isListSceneFiles() const;
         
-        void setShowSceneFiles(const bool showSceneFiles);
+        void setListSceneFiles(const bool listSceneFiles);
 
-        bool isShowDirectories() const;
+        bool isListDirectories() const;
         
-        void setShowDirectories(const bool showDirectories);
+        void setListDirectories(const bool listDirectories);
+        
+        bool isShowFilePaths() const;
+        
+        void setShowFilePaths(const bool showFilePaths);
         
         bool isFavoritesOnly() const;
         
@@ -79,14 +83,17 @@ namespace caret {
         /** name matching (glob)*/
         AString m_nameMatching;
         
-        /** Show spec files*/
-        bool m_showSpecFiles = false;
+        /** List spec files*/
+        bool m_listSpecFiles = false;
         
-        /** Show scene files*/
-        bool m_showSceneFiles = false;
+        /** List scene files*/
+        bool m_listSceneFiles = false;
 
-        /** show directories*/
-        bool m_showDirectories = false;
+        /** List directories*/
+        bool m_listDirectories = false;
+        
+        /** Show file paths */
+        bool m_showFilePaths = true;
         
         /** show only favorites*/
         bool m_favoritesOnly = false;

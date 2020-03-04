@@ -270,22 +270,22 @@ RecentFilesDialog::getSelectedSceneIndex() const
 QWidget*
 RecentFilesDialog::createFilesFilteringWidget()
 {
-    QLabel* showLabel = new QLabel("Show: ");
+    QLabel* listLabel = new QLabel("List: ");
     
-    m_showDirectoriesCheckBox = new QCheckBox("Directories");
-    m_showDirectoriesCheckBox->setChecked(true);
-    QObject::connect(m_showDirectoriesCheckBox, &QCheckBox::clicked,
-                     this, &RecentFilesDialog::showDirectoriesCheckBoxClicked);
+    m_listDirectoriesCheckBox = new QCheckBox("Directories");
+    m_listDirectoriesCheckBox->setChecked(true);
+    QObject::connect(m_listDirectoriesCheckBox, &QCheckBox::clicked,
+                     this, &RecentFilesDialog::listDirectoriesCheckBoxClicked);
 
-    m_showSceneFilesCheckBox = new QCheckBox("Scene");
-    m_showSceneFilesCheckBox->setChecked(true);
-    QObject::connect(m_showSceneFilesCheckBox, &QCheckBox::clicked,
-                     this, &RecentFilesDialog::showSceneFilesCheckBoxClicked);
+    m_listSceneFilesCheckBox = new QCheckBox("Scene");
+    m_listSceneFilesCheckBox->setChecked(true);
+    QObject::connect(m_listSceneFilesCheckBox, &QCheckBox::clicked,
+                     this, &RecentFilesDialog::listSceneFilesCheckBoxClicked);
     
-    m_showSpecFilesCheckBox = new QCheckBox("Spec");
-    m_showSpecFilesCheckBox->setChecked(true);
-    QObject::connect(m_showSpecFilesCheckBox, &QCheckBox::clicked,
-                     this, &RecentFilesDialog::showSpecFilesCheckBoxClicked);
+    m_listSpecFilesCheckBox = new QCheckBox("Spec");
+    m_listSpecFilesCheckBox->setChecked(true);
+    QObject::connect(m_listSpecFilesCheckBox, &QCheckBox::clicked,
+                     this, &RecentFilesDialog::listSpecFilesCheckBoxClicked);
     
     QLabel* nameFilterLabel = new QLabel("Name Filter: ");
     m_nameFilterLineEdit = new QLineEdit();
@@ -295,15 +295,22 @@ RecentFilesDialog::createFilesFilteringWidget()
                      this, &RecentFilesDialog::nameFilterTextEdited);
     m_nameFilterLineEdit->setToolTip(RecentFileItemsFilter::getMatchingLineEditToolTip());
     
+    m_showFilePathsCheckBox = new QCheckBox("Show Scene/Spec Paths");
+    m_showFilePathsCheckBox->setChecked(true);
+    QObject::connect(m_showFilePathsCheckBox, &QCheckBox::clicked,
+                     this, &RecentFilesDialog::showFilePathsCheckBoxClicked);
+    
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
-    layout->addWidget(showLabel);
-    layout->addWidget(m_showDirectoriesCheckBox);
-    layout->addWidget(m_showSceneFilesCheckBox);
-    layout->addWidget(m_showSpecFilesCheckBox);
+    layout->addWidget(listLabel);
+    layout->addWidget(m_listDirectoriesCheckBox);
+    layout->addWidget(m_listSceneFilesCheckBox);
+    layout->addWidget(m_listSpecFilesCheckBox);
     layout->addSpacing(25);
     layout->addWidget(nameFilterLabel);
     layout->addWidget(m_nameFilterLineEdit);
+    layout->addSpacing(25);
+    layout->addWidget(m_showFilePathsCheckBox);
     layout->addStretch();
     
     return widget;
@@ -463,28 +470,37 @@ RecentFilesDialog::nameFilterTextEdited(const QString& /*text*/)
 }
 
 /**
- * Called if Show Directories checkbox is clicked
+ * Called if List Directories checkbox is clicked
  */
 void
-RecentFilesDialog::showDirectoriesCheckBoxClicked(bool /*checked*/)
+RecentFilesDialog::listDirectoriesCheckBoxClicked(bool /*checked*/)
 {
     updateFilesTableContent();
 }
 
 /**
- * Called if Show Scene Files checkbox is clicked
+ * Called if List Scene Files checkbox is clicked
  */
 void
-RecentFilesDialog::showSceneFilesCheckBoxClicked(bool /*checked*/)
+RecentFilesDialog::listSceneFilesCheckBoxClicked(bool /*checked*/)
 {
     updateFilesTableContent();
 }
 
 /**
- * Called if Show Spec Files checkbox is clicked
+ * Called if List Spec Files checkbox is clicked
  */
 void
-RecentFilesDialog::showSpecFilesCheckBoxClicked(bool /*checked*/)
+RecentFilesDialog::listSpecFilesCheckBoxClicked(bool /*checked*/)
+{
+    updateFilesTableContent();
+}
+
+/**
+ * Called if Show File Paths checkbox is clicked
+ */
+void
+RecentFilesDialog::showFilePathsCheckBoxClicked(bool /*checked*/)
 {
     updateFilesTableContent();
 }
@@ -589,29 +605,31 @@ RecentFilesDialog::updateFilesTableContent()
     switch (getSelectedFilesMode()) {
         case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
             itemsContainer = m_currentDirectoryItemsContainer.get();
-            filter.setShowSceneFiles(m_showSceneFilesCheckBox->isChecked());
-            filter.setShowSpecFiles(m_showSpecFilesCheckBox->isChecked());
+            filter.setListSceneFiles(m_listSceneFilesCheckBox->isChecked());
+            filter.setListSpecFiles(m_listSpecFilesCheckBox->isChecked());
             break;
         case RecentFileItemsContainerModeEnum::FAVORITES:
             updateFavoritesContainer();
             itemsContainer = m_favoriteItemsContainer.get();
-            filter.setShowDirectories(m_showDirectoriesCheckBox->isChecked());
-            filter.setShowSceneFiles(m_showSceneFilesCheckBox->isChecked());
-            filter.setShowSpecFiles(m_showSpecFilesCheckBox->isChecked());
+            filter.setListDirectories(m_listDirectoriesCheckBox->isChecked());
+            filter.setListSceneFiles(m_listSceneFilesCheckBox->isChecked());
+            filter.setListSpecFiles(m_listSpecFilesCheckBox->isChecked());
             break;
         case RecentFileItemsContainerModeEnum::OTHER:
             CaretAssertMessage(0, "OTHER not used in dialog");
             break;
         case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
             itemsContainer = m_recentDirectoryItemsContainer.get();
-            filter.setShowDirectories(true);
+            filter.setListDirectories(true);
             break;
         case RecentFileItemsContainerModeEnum::RECENT_FILES:
             itemsContainer = m_recentFilesItemsContainer.get();
-            filter.setShowSceneFiles(m_showSceneFilesCheckBox->isChecked());
-            filter.setShowSpecFiles(m_showSpecFilesCheckBox->isChecked());
+            filter.setListSceneFiles(m_listSceneFilesCheckBox->isChecked());
+            filter.setListSpecFiles(m_listSpecFilesCheckBox->isChecked());
             break;
     }
+    
+    filter.setShowFilePaths(m_showFilePathsCheckBox->isChecked());
     
     m_recentFilesTableWidget->updateContent(itemsContainer,
                                             filter);

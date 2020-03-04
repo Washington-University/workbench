@@ -90,11 +90,12 @@ namespace caret {
         enum COLUMNS {
             COLUMN_NAME          = 0,
             COLUMN_DATE_TIME     = 1,
-            COLUMN_FAVORITE      = 2,
-            COLUMN_SHARE         = 3,
-            COLUMN_FORGET        = 4,
-            COLUMN_EMPTY_STRETCH = 5,
-            COLUMN_COUNT         = 6
+            COLUMN_MODIFIED      = 2,
+            COLUMN_FAVORITE      = 3,
+            COLUMN_SHARE         = 4,
+            COLUMN_FORGET        = 5,
+            COLUMN_EMPTY_STRETCH = 6,
+            COLUMN_COUNT         = 7
         };
 
         AString getColumnName(const int32_t) const;

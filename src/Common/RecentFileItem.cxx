@@ -67,6 +67,7 @@ m_pathAndFileName(pathAndFileName)
     m_notFoundFlag = ( ! fileInfo.exists());
     m_favoriteFlag = false;
     m_lastAccessDateTime = QDateTime(); /* invalid date/time */
+    m_lastModifiedDateTime = fileInfo.getLastModified();
 }
 
 /**
@@ -122,6 +123,7 @@ RecentFileItem::copyHelperRecentFileItem(const RecentFileItem& obj)
     m_forgetFlag         = obj.m_forgetFlag;
     m_favoriteFlag       = obj.m_favoriteFlag;
     m_notFoundFlag       = obj.m_notFoundFlag;
+    m_lastModifiedDateTime = obj.m_lastModifiedDateTime;
 }
 
 /**
@@ -168,31 +170,31 @@ RecentFileItem::getFileItemType() const
 }
 
 /**
- * @return Time last accessed
+ * @return Time last accessed by wb_view
  */
 QDateTime
-RecentFileItem::getLastAccessDateTime() const
+RecentFileItem::getLastAccessByWorkbenchDateTime() const
 {
     return m_lastAccessDateTime;
 }
 
 /**
- * @return Time last accessed
+ * @return Time last accessed by wb_view
  */
 AString
-RecentFileItem::getLastAccessDateTimeAsString() const
+RecentFileItem::getLastAccessByWorkbenchDateTimeAsString() const
 {
     AString s(m_lastAccessDateTime.toString(s_qtStringDateFormat));
     return s;
 }
 
 /**
- * Set last accessed time from a string
+ * Set last accessed by wb_view time from a string
  * @param dateTimeString
  * Date/Time that must be in a valid date/time format
  */
 void
-RecentFileItem::setLastAccessDateTimeFromString(const AString& dateTimeString)
+RecentFileItem::setLastAccessByWorkbenchDateTimeFromString(const AString& dateTimeString)
 {
     if (dateTimeString.isEmpty()) {
         m_lastAccessDateTime = QDateTime();
@@ -209,24 +211,43 @@ RecentFileItem::setLastAccessDateTimeFromString(const AString& dateTimeString)
 }
 
 /**
- * Set last accessed time
+ * Set last accessed time by wb_view
  * @param dateTime
  * Last time accessed
  */
 void
-RecentFileItem::setLastAccessDateTime(const QDateTime& dateTime)
+RecentFileItem::setLastAccessByWorkbenchDateTime(const QDateTime& dateTime)
 {
     m_lastAccessDateTime = dateTime;
     setModified();
 }
 
 /**
- * Set last accessed time to the current date/time
+ * Set last accessed by wb_view time to the current date/time
  */
 void
-RecentFileItem::setLastAccessDateTimeToCurrentDateTime()
+RecentFileItem::setLastAccessByWorkbenchDateTimeToCurrentDateTime()
 {
-    setLastAccessDateTime(QDateTime::currentDateTime());
+    setLastAccessByWorkbenchDateTime(QDateTime::currentDateTime());
+}
+
+/**
+ * @return Last time item was modiifed as reported by the operating system
+ */
+QDateTime
+RecentFileItem::getLastModifiedDateTime() const
+{
+    return m_lastModifiedDateTime;
+}
+
+/**
+ * @return Last time item was modiifed as a string as reported by the operating system
+ */
+AString
+RecentFileItem::getLastModifiedDateTimeAsString() const
+{
+    AString s(m_lastModifiedDateTime.toString(s_qtStringDateFormat));
+    return s;
 }
 
 /**

@@ -2251,7 +2251,7 @@ CaretPreferences::addToRecentSceneAndSpecFiles(const AString& filename)
     
     RecentFileItem* newItem = new RecentFileItem(itemType,
                                                  filename);
-    newItem->setLastAccessDateTimeToCurrentDateTime();
+    newItem->setLastAccessByWorkbenchDateTimeToCurrentDateTime();
     container->addItem(newItem);
     
     successFlag = writeRecentSceneAndSpecFiles(container.get(),
@@ -2384,7 +2384,7 @@ CaretPreferences::addToRecentDirectories(const AString& directoryOrFileName)
     
     RecentFileItem* newItem = new RecentFileItem(RecentFileItemTypeEnum::DIRECTORY,
                                                  directoryName);
-    newItem->setLastAccessDateTimeToCurrentDateTime();
+    newItem->setLastAccessByWorkbenchDateTimeToCurrentDateTime();
     container->addItem(newItem);
     
     successFlag = writeRecentDirectories(container.get(),
@@ -2413,7 +2413,7 @@ CaretPreferences::getRecentDirectoriesForOpenFileDialogHistory(const bool favori
     std::unique_ptr<RecentFileItemsContainer> dirsContainer(RecentFileItemsContainer::newInstanceRecentDirectories(this,
                                                                                                                    RecentFileItemsContainer::WriteIfModifiedType::WRITE_NO));
     RecentFileItemsFilter filter;
-    filter.setShowDirectories(true);
+    filter.setListDirectories(true);
     std::vector<RecentFileItem*> items = dirsContainer->getItems(filter);
     RecentFileItemsContainer::sort(RecentFileItemSortingKeyEnum::DATE_NEWEST,
                                    items);
