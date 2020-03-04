@@ -88,6 +88,8 @@ namespace caret {
         
         AString getLastDirectory() const;
         
+        QDateTime getLastModified() const;
+        
         void getFileComponents(AString& absolutePathOut,
                                AString& fileNameWithoutExtensionOut,
                                AString& extensionWithoutDotOut) const;

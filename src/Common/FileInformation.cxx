@@ -751,6 +751,15 @@ AString FileInformation::getLastDirectory() const
 }
 
 /**
+ * @return Date/Time last modified
+ */
+QDateTime
+FileInformation::getLastModified() const
+{
+    return m_fileInfo.lastModified();
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
