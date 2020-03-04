@@ -84,6 +84,16 @@ RecentFilesTableWidget::RecentFilesTableWidget()
     m_shareIcon           = loadIcon(":/RecentFilesDialog/share.png");
     
     setContextMenuPolicy(Qt::DefaultContextMenu);
+    
+    QPalette myPalette = QGuiApplication::palette();
+    m_labelHighlightTextColor = myPalette.color(QPalette::Active, QPalette::HighlightedText);
+#ifdef CARET_OS_MACOSX
+    /*
+     * MacOS does not use palette but instead uses "native theme engine"
+     * Search for "theme" on Qt help page for QPalette for more info.
+     */
+    m_labelHighlightTextColor = QColor(255, 255, 255);
+#endif // CARET_OS_MACOSX
 }
 
 /**
@@ -155,8 +165,6 @@ RecentFilesTableWidget::updateTableDimensions(const int32_t numberOfItems)
      * If needed, add additional rows
      */
     for (int32_t iRow = numExistingRows; iRow < numberOfItems; iRow++) {
-        m_recentItems.push_back(NULL);
-        
         for (int32_t iCol = 0; iCol < COLUMN_COUNT; iCol++) {
             QWidget* widget(NULL);
             QTableWidgetItem* tableItem(NULL);
@@ -347,14 +355,7 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
     
     CaretAssert(rowCount() == numberOfRecentItems);
         
-    int32_t selectedRowIndex(-1);
-    for (int32_t iRow = 0; iRow < numberOfRecentItems; iRow++) {
-        updateRow(iRow);
-        CaretAssertVectorIndex(m_recentItems, iRow);
-        if (m_recentItems[iRow] == previousSelectedItem) {
-            selectedRowIndex = iRow;
-        }
-    }
+    int32_t selectedRowIndex = updateAllRows(previousSelectedItem);
     
     /*
      * First time files inserted?
@@ -418,6 +419,31 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
 }
 
 /**
+ * Update all rows in the table and return the row index of the given recent item in the table
+ * @param recentItem
+ *   Pointer to recent for which row is returned (may be NULL)
+ * @return
+ *    Index of the recentItem or -1 if not found
+ */
+int32_t
+RecentFilesTableWidget::updateAllRows(RecentFileItem* recentItem)
+{
+    const int32_t numberOfRecentItems = static_cast<int32_t>(m_recentItems.size());
+    CaretAssert(rowCount() == numberOfRecentItems);
+    
+    int32_t recentItemIndex(-1);
+    for (int32_t iRow = 0; iRow < numberOfRecentItems; iRow++) {
+        updateRow(iRow);
+        CaretAssertVectorIndex(m_recentItems, iRow);
+        if (m_recentItems[iRow] == recentItem) {
+            recentItemIndex = iRow;
+        }
+    }
+
+    return recentItemIndex;
+}
+
+/**
  * Update the content of a row
  * @param rowIndex
  * Row index
@@ -460,6 +486,8 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
             break;
     }
     
+    const bool selectedFlag(rowIndex == currentRow());
+    
     for (int32_t iCol = 0; iCol < COLUMN_COUNT; iCol++) {
         const COLUMNS column = static_cast<COLUMNS>(iCol);
         
@@ -479,7 +507,7 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                 CaretAssert(widget);
                 QLabel* label = qobject_cast<QLabel*>(widget);
                 CaretAssert(label);
-                AString text("<html>&nbsp;<b><font size=\"+1\">%1</font></b>%2<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%3</html>");
+                AString text("<html>&nbsp;<b><font size=\"+1\"%1>%2</font></b>%3<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%4</html>");
                 QString pathName(recentItem->getPathName());
                 switch (recentItem->getFileItemType()) {
                     case RecentFileItemTypeEnum::DIRECTORY:
@@ -494,7 +522,20 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                         }
                         break;
                 }
-                label->setText(text.arg(recentItem->getFileName()).arg(notFoundText).arg(pathName));
+                
+                QString colorText;
+                if (selectedFlag) {
+                    /*
+                     * Note QColor::name() returns color in 3 two-digit hex numbers, #RRGGBB
+                     * Qt supports only a color name or the hex format
+                     */
+                    colorText = QString(" color=\"%1\"").arg(m_labelHighlightTextColor.name());
+                    
+                    if ( ! pathName.isEmpty()) {
+                        pathName = QString("<font color=\"%1\">%2</font>").arg(m_labelHighlightTextColor.name()).arg(pathName);
+                    }
+                }
+                label->setText(text.arg(colorText).arg(recentItem->getFileName()).arg(notFoundText).arg(pathName));
             }
                 break;
             case COLUMN_DATE_TIME:
@@ -616,11 +657,9 @@ RecentFilesTableWidget::tableCellClicked(int row, int column)
                 break;
             case COLUMN_FAVORITE:
                 recentItem->setFavorite( ! recentItem->isFavorite());
-                updateRow(row);
                 break;
             case COLUMN_FORGET:
                 recentItem->setForget( ! recentItem->isForget());
-                updateRow(row);
                 break;
             case COLUMN_NAME:
                 break;
@@ -650,7 +689,8 @@ RecentFilesTableWidget::tableCellClicked(int row, int column)
         QItemSelectionModel::SelectionFlags flags;
         flags.setFlag(QItemSelectionModel::Select, true);
         flags.setFlag(QItemSelectionModel::Rows, true);
-        setCurrentCell(row, COLUMN_NAME, flags);
+        setCurrentCell(rowToSelect, COLUMN_NAME, flags);
+        updateAllRows(NULL);
     }
     
     blocker.unblock();

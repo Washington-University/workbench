@@ -102,6 +102,8 @@ namespace caret {
         
         void updateTableDimensions(const int32_t numberOfItems);
         
+        int32_t updateAllRows(RecentFileItem* recentItem);
+        
         void updateRow(const int32_t rowIndex);
         
         std::unique_ptr<QIcon> loadIcon(const AString& iconFileName) const;
@@ -136,6 +138,8 @@ namespace caret {
         
         RecentFileItemSortingKeyEnum::Enum m_sortingKey = RecentFileItemSortingKeyEnum::DATE_NEWEST;
 
+        QColor m_labelHighlightTextColor;
+        
         static const int32_t s_pixmapSizeXY;
         
         // ADD_NEW_MEMBERS_HERE
