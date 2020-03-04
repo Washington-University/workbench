@@ -216,27 +216,22 @@ m_controlPointIndex(controlPointIndex)
     m_valueStackedWidget->addWidget(m_valueSpinBox);
     m_valueStackedWidget->addWidget(m_valueLabel);
     
-    float red((static_cast<float>(std::rand()) / RAND_MAX) * 255.0);
-    float green((static_cast<float>(std::rand()) / RAND_MAX) * 255.0);
-    float blue((static_cast<float>(std::rand()) / RAND_MAX) * 255.0);
-    uint8_t rgb[3] = {
-        static_cast<uint8_t>(red),
-        static_cast<uint8_t>(green),
-        static_cast<uint8_t>(blue)
-    };
+    const uint8_t red(static_cast<uint8_t>((static_cast<float>(std::rand()) / RAND_MAX) * 255.0));
+    const uint8_t green(static_cast<uint8_t>((static_cast<float>(std::rand()) / RAND_MAX) * 255.0));
+    const uint8_t blue(static_cast<uint8_t>((static_cast<float>(std::rand()) / RAND_MAX) * 255.0));
 
     m_editColorRadioButton = new QRadioButton("");
     colorEditButtonGroup->addButton(m_editColorRadioButton);
     QObject::connect(m_editColorRadioButton, &QRadioButton::clicked,
-                     [=](bool) { emit editColorRequested(rgb[0], rgb[1], rgb[2]); } );
+                     [=](bool) { emit editColorRequested(red, green, blue); } );
     
     m_colorSwatchWidget = new QWidget();
     m_colorSwatchWidget->setFixedWidth(40);
     m_colorSwatchWidget->setFixedHeight(std::max(10, m_valueSpinBox->sizeHint().height() - 2));
     m_colorSwatchWidget->setStyleSheet("background-color: rgb("
-                                       + AString::number(rgb[0])
-                                       + ", " + AString::number(rgb[1])
-                                       + ", " + AString::number(rgb[2])
+                                       + AString::number(red)
+                                       + ", " + AString::number(green)
+                                       + ", " + AString::number(blue)
                                        + ");");
     
     const int32_t row(gridLayout->rowCount());
