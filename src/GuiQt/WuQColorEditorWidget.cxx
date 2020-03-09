@@ -25,16 +25,22 @@
 
 #include <iostream>
 
+#include <QAction>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QPainter>
 #include <QSlider>
 #include <QSpinBox>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
+#include "CaretColorEnum.h"
 #include "MathFunctions.h"
 #include "WuQImageLabel.h"
+#include "WuQtUtilities.h"
+
 using namespace caret;
 
 
@@ -55,11 +61,14 @@ WuQColorEditorWidget::WuQColorEditorWidget(QWidget* parent)
     QWidget* valueWidget         = createValueColorLabel();
     
     QWidget* controlsWidget = createControlsWidget();
+    QWidget* caretColorWidget = createCaretColorNoNamesSelectionButtonsWidget();
+    
     
     QGridLayout* layout = new QGridLayout(this);
     layout->addWidget(hueSaturationWidget, 0, 0);
     layout->addWidget(valueWidget, 0, 1);
-    layout->addWidget(controlsWidget, 1, 0, 1, 2);
+    layout->addWidget(caretColorWidget, 0, 2, 1, 1);
+    layout->addWidget(controlsWidget, 1, 0, 1, 3);
     
     m_currentColor.setRgb(255, 0, 0);
     updateControls();
@@ -258,7 +267,7 @@ void
 WuQColorEditorWidget::hueChanged(int hue)
 {
     m_currentColor.setHsv(hue,
-                          m_currentColor.saturation(),
+                          m_currentColor.hsvSaturation(),
                           m_currentColor.value());
     
     updateControls();
@@ -272,7 +281,7 @@ WuQColorEditorWidget::hueChanged(int hue)
 void
 WuQColorEditorWidget::saturationChanged(int saturation)
 {
-    m_currentColor.setHsv(m_currentColor.hue(),
+    m_currentColor.setHsv(m_currentColor.hsvHue(),
                           saturation,
                           m_currentColor.value());
     
@@ -287,8 +296,8 @@ WuQColorEditorWidget::saturationChanged(int saturation)
 void
 WuQColorEditorWidget::valueChanged(int value)
 {
-    m_currentColor.setHsv(m_currentColor.hue(),
-                          m_currentColor.saturation(),
+    m_currentColor.setHsv(m_currentColor.hsvHue(),
+                          m_currentColor.hsvSaturation(),
                           value);
     
     updateControls();
@@ -341,11 +350,11 @@ WuQColorEditorWidget::updateControls()
 {
     updateSliderAndSpinBox(m_hueSlider,
                            m_hueSpinBox,
-                           m_currentColor.hue());
+                           m_currentColor.hsvHue());
 
     updateSliderAndSpinBox(m_saturationSlider,
                            m_saturationSpinBox,
-                           m_currentColor.saturation());
+                           m_currentColor.hsvSaturation());
 
     updateSliderAndSpinBox(m_valueSlider,
                            m_valueSpinBox,
@@ -434,8 +443,8 @@ WuQColorEditorWidget::createHueSaturationColorLabel()
 void
 WuQColorEditorWidget::updateHueSaturationLabel()
 {
-    const float hue(m_currentColor.hue());
-    const float saturation(m_currentColor.saturation());
+    const float hue(m_currentColor.hsvHue());
+    const float saturation(m_currentColor.hsvSaturation());
 
     updateHueSaturationToLabelTransforms();
     const float cursorX = m_hueToLabelLinearTransform->transformValue(hue);
@@ -538,8 +547,8 @@ WuQColorEditorWidget::valueLabelClicked(int /*x*/, int y)
     
     const float newValue = m_valueToLabelLinearTransform->inverseTransformValue(y);
 
-    m_currentColor.setHsv(m_currentColor.hue(),
-                          m_currentColor.saturation(),
+    m_currentColor.setHsv(m_currentColor.hsvHue(),
+                          m_currentColor.hsvSaturation(),
                           newValue);
     updateControls();
 }
@@ -602,6 +611,76 @@ WuQColorEditorWidget::updateHueSaturationToLabelTransforms()
     }
 }
 
+QWidget*
+WuQColorEditorWidget::createCaretColorNoNamesSelectionButtonsWidget()
+{
+    QWidget* widget = new QWidget;
+    QGridLayout* layout = new QGridLayout(widget);
+    layout->setHorizontalSpacing(0);
+    layout->setVerticalSpacing(0);
+    
+    std::vector<CaretColorEnum::Enum> colorEnums;
+    CaretColorEnum::getColorEnums(colorEnums);
+    
+    const int32_t maxRows(8);
+    int32_t row(0);
+    int32_t col(0);
+    std::vector<QWidget*> tbWidgets;
+    for (auto cc : colorEnums) {
+        QToolButton* tb = new QToolButton();
+        
+        QSize iconSize(18, 18);
+        float rgbaFloat[4];
+        CaretColorEnum::toRGBAFloat(cc, rgbaFloat);
+        QPixmap pm(WuQtUtilities::createCaretColorEnumPixmap(tb, iconSize.width(), iconSize.height(),
+                                                             CaretColorEnum::CUSTOM, rgbaFloat, false));
+        
+        QAction* a = new QAction(CaretColorEnum::toGuiName(cc));
+        a->setData(CaretColorEnum::toIntegerCode(cc));
+        a->setIcon(pm);
+        QObject::connect(a, &QAction::triggered,
+                         this, [=]() { caretColorActionClicked(a); } );
+        
+        tb->setDefaultAction(a);
+        tb->setToolButtonStyle(Qt::ToolButtonIconOnly);
+        tb->setIconSize(iconSize);
+        
+        
+        layout->addWidget(tb, row, col);
+
+        row++;
+        if (row >= maxRows) {
+            row = 0;
+            col++;
+        }
+        
+        tbWidgets.push_back(tb);
+    }
+    
+    WuQtUtilities::matchWidgetWidths(tbWidgets);
+    
+    widget->setFixedSize(widget->sizeHint());
+    
+    return widget;
+}
+
+void
+WuQColorEditorWidget::caretColorActionClicked(QAction* action)
+{
+    CaretAssert(action);
+    
+    const int intData = action->data().toInt();
+    bool validFlag(false);
+    const CaretColorEnum::Enum color = CaretColorEnum::fromIntegerCode(intData,
+                                                                       &validFlag);
+    if (validFlag) {
+        uint8_t rgba[4];
+        CaretColorEnum::toRGBAByte(color, rgba);
+        m_currentColor.setRgb(rgba[0], rgba[1], rgba[2]);
+
+        updateControls();
+    }
+}
 
 
 

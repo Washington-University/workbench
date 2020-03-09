@@ -209,6 +209,7 @@ m_controlPointIndex(controlPointIndex)
     m_valueSpinBox = new QDoubleSpinBox();
     m_valueSpinBox->setMinimum(-1.0);
     m_valueSpinBox->setMaximum(1.0);
+    m_valueSpinBox->setSingleStep(0.01);
     
     m_valueLabel = new QLabel();
     
@@ -221,6 +222,7 @@ m_controlPointIndex(controlPointIndex)
     const uint8_t blue(static_cast<uint8_t>((static_cast<float>(std::rand()) / RAND_MAX) * 255.0));
 
     m_editColorRadioButton = new QRadioButton("");
+    m_editColorRadioButton->setToolTip("Click to edit this control point's color");
     colorEditButtonGroup->addButton(m_editColorRadioButton);
     QObject::connect(m_editColorRadioButton, &QRadioButton::clicked,
                      [=](bool) { emit editColorRequested(red, green, blue); } );

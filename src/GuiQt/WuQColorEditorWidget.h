@@ -28,6 +28,7 @@
 #include <QColor>
 #include <QWidget>
 
+class QAction;
 class QLabel;
 class QSlider;
 class QSpinBox;
@@ -77,6 +78,8 @@ namespace caret {
         
         void valueLabelClicked(int x, int y);
         
+        void caretColorActionClicked(QAction* action);
+        
     private:
         void updateControls();
         
@@ -97,6 +100,8 @@ namespace caret {
         void updateValueColorLabel();
         
         void updateHueSaturationLabel();
+        
+        QWidget* createCaretColorNoNamesSelectionButtonsWidget();
         
         QSpinBox* m_hueSpinBox;
         

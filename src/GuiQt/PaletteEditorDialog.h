@@ -31,7 +31,6 @@
 class QButtonGroup;
 class QComboBox;
 class QLabel;
-class QListWidget;
 class QPushButton;
 class QTabWidget;
 class QToolButton;
@@ -63,7 +62,7 @@ namespace caret {
     private slots:
         void editColor(const uint8_t red, const uint8_t green, const uint8_t blue);
         
-        void paletteTypeTabWidgetClicked(int index);
+        void newPaletteButtonClicked();
         
     private:
         enum class IconType {
@@ -73,15 +72,7 @@ namespace caret {
         
         QWidget* createControlPointsWidget();
         
-        QWidget* createPaletteSelectionWidget();
-        
-        QWidget* createPaletteMovementButtonsWidget();
-        
         QWidget* createPaletteWidget();
-        
-        QWidget* createFilePaletteWidget();
-    
-        QWidget* createTemplatePaletteWidget();
         
         QWidget* createUserPaletteWidget();
         
@@ -102,25 +93,9 @@ namespace caret {
         
         QButtonGroup* m_colorEditButtonGroup;
 
-        QTabWidget* m_paletteTypeTabWidget;
+        QComboBox* m_paletteSourceComboBox;
         
-        QListWidget* m_filePaletteSelectionListWidget;
-        
-        QListWidget* m_templatePaletteSelectionListWidget;
-        
-        QListWidget* m_userPaletteSelectionListWidget;
-        
-        QWidget* m_filePaletteSelectionWidget;
-        
-        QWidget* m_templatePaletteSelectionWidget;
-        
-        QWidget* m_userPaletteSelectionWidget;
-        
-        QPushButton* m_addPalettePushButton;
-        
-        QPushButton* m_editPalettePushButton;
-        
-        QPushButton* m_replacePalettePushButton;
+        QComboBox* m_userPaletteSelectionComboBox;
         
         // ADD_NEW_MEMBERS_HERE
 
