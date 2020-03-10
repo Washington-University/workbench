@@ -209,7 +209,8 @@ m_controlPointIndex(controlPointIndex)
     m_valueSpinBox = new QDoubleSpinBox();
     m_valueSpinBox->setMinimum(-1.0);
     m_valueSpinBox->setMaximum(1.0);
-    m_valueSpinBox->setSingleStep(0.01);
+    m_valueSpinBox->setDecimals(3);
+    m_valueSpinBox->setSingleStep(0.001);
     
     m_valueLabel = new QLabel();
     

@@ -80,6 +80,8 @@ namespace caret {
         
         void caretColorActionClicked(QAction* action);
         
+        void revertToOriginalColorToolButtonClicked();
+        
     private:
         void updateControls();
         
@@ -127,7 +129,9 @@ namespace caret {
         
         QSlider* m_blueSlider;
         
-        QWidget* m_colorSwatchWidget;
+        QWidget* m_currentColorSwatchWidget;
+        
+        QWidget* m_originalColorSwatchWidget;
 
         WuQImageLabel* m_hueSaturationColorLabel;
         
@@ -136,6 +140,8 @@ namespace caret {
         WuQImageLabel* m_valueColorLabel;
         
         QColor m_currentColor;
+        
+        QColor m_originalColor;
         
         std::unique_ptr<LinearEquationTransform> m_valueToLabelLinearTransform;
         

@@ -71,6 +71,7 @@ WuQColorEditorWidget::WuQColorEditorWidget(QWidget* parent)
     layout->addWidget(controlsWidget, 1, 0, 1, 3);
     
     m_currentColor.setRgb(255, 0, 0);
+    m_originalColor = m_currentColor;
     updateControls();
 
     setSizePolicy(sizePolicy().horizontalPolicy(),
@@ -92,7 +93,8 @@ WuQColorEditorWidget::~WuQColorEditorWidget()
 void
 WuQColorEditorWidget::setCurrentColor(const QColor& color)
 {
-    m_currentColor = color;
+    m_currentColor  = color;
+    m_originalColor = m_currentColor;
     
     updateControls();
 }
@@ -120,9 +122,25 @@ WuQColorEditorWidget::setCurrentColor(const uint8_t red,
 QWidget*
 WuQColorEditorWidget::createControlsWidget()
 {
-    m_colorSwatchWidget = new QWidget();
-    m_colorSwatchWidget->setMinimumWidth(50);
+    m_currentColorSwatchWidget = new QWidget();
+    m_currentColorSwatchWidget->setMinimumWidth(50);
+    QGroupBox* currentColorGroupBox = new QGroupBox("Current");
+    QVBoxLayout* currentColorLayout = new QVBoxLayout(currentColorGroupBox);
+    currentColorLayout->addWidget(m_currentColorSwatchWidget, 100);
     
+    m_originalColorSwatchWidget = new QWidget();
+    m_originalColorSwatchWidget->setMinimumWidth(50);
+    
+    QToolButton* revertToolButton = new QToolButton();
+    revertToolButton->setText("Revert");
+    revertToolButton->setToolTip("Revert to Original Color");
+    QObject::connect(revertToolButton, &QToolButton::clicked,
+                     this, &WuQColorEditorWidget::revertToOriginalColorToolButtonClicked);
+    QGroupBox* originalColorGroupBox = new QGroupBox("Original");
+    QVBoxLayout* originalColorLayout = new QVBoxLayout(originalColorGroupBox);
+    originalColorLayout->addWidget(m_originalColorSwatchWidget, 100);
+    originalColorLayout->addWidget(revertToolButton, 0, Qt::AlignHCenter);
+
     m_hueSlider = new QSlider();
     m_hueSlider->setOrientation(Qt::Horizontal);
     m_hueSlider->setRange(0, 359);
@@ -203,9 +221,12 @@ WuQColorEditorWidget::createControlsWidget()
     layout->setColumnStretch(COL_SPIN_BOX, 0);
     
     int32_t row(0);
-    layout->addWidget(m_colorSwatchWidget,
+    layout->addWidget(currentColorGroupBox,
                       row, COL_SWATCH,
-                      6, 1);
+                      3, 1);
+    layout->addWidget(originalColorGroupBox,
+                      row + 3, COL_SWATCH,
+                      3, 1);
     
     layout->addWidget(new QLabel("Red:"),
                       row, COL_LABEL);
@@ -256,6 +277,13 @@ WuQColorEditorWidget::createControlsWidget()
     row++;
     
     return widget;
+}
+
+void
+WuQColorEditorWidget::revertToOriginalColorToolButtonClicked()
+{
+    m_currentColor = m_originalColor;
+    updateControls();
 }
 
 /**
@@ -372,12 +400,18 @@ WuQColorEditorWidget::updateControls()
                            m_blueSpinBox,
                            m_currentColor.blue());
     
-    m_colorSwatchWidget->setStyleSheet("background-color: rgb("
-                                       + QString::number(m_currentColor.red())
-                                       + ", " + QString::number(m_currentColor.green())
-                                       + ", " + QString::number(m_currentColor.blue())
-                                       + ");");
+    m_currentColorSwatchWidget->setStyleSheet("background-color: rgb("
+                                              + QString::number(m_currentColor.red())
+                                              + ", " + QString::number(m_currentColor.green())
+                                              + ", " + QString::number(m_currentColor.blue())
+                                              + ");");
     
+    m_originalColorSwatchWidget->setStyleSheet("background-color: rgb("
+                                               + QString::number(m_originalColor.red())
+                                               + ", " + QString::number(m_originalColor.green())
+                                               + ", " + QString::number(m_originalColor.blue())
+                                               + ");");
+
     updateValueColorLabel();
     
     updateHueSaturationLabel();
