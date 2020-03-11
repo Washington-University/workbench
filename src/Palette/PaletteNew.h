@@ -23,6 +23,8 @@
 
 #include <vector>
 
+#include "AString.h"
+
 namespace caret {
     
     class PaletteNew
@@ -60,6 +62,15 @@ namespace caret {
         PaletteNew(std::vector<ScalarColor> posRange, float zeroColor[3], std::vector<ScalarColor> negRange);
         
         void getPaletteColor(const float scalar, float rgbOut[3]) const;
+        
+        AString getName() const { return m_name; }
+        
+        void setName(const AString& name) { m_name = name; }
+        
+        std::vector<ScalarColor> getPosRange() const { return m_posRange.getRange(); }
+        std::vector<ScalarColor> getNegRange() const { return m_negRange.getRange(); }
+        void getZeroColor(float colorOut[3]) const { for (int i = 0; i < 3; ++i) colorOut[i] = m_zeroColor[i]; }
+        
     private:
         class PaletteRange
         {
@@ -71,10 +82,13 @@ namespace caret {
             PaletteRange(const std::vector<ScalarColor> controlPoints);
             
             void getPaletteColor(const float scalar, float rgbOut[3]) const;
+            
+            std::vector<ScalarColor> getRange() const { return m_controlPoints; }
         };
         
         PaletteRange m_posRange, m_negRange;
         float m_zeroColor[3];
+        AString m_name;
     };
     
 }//namespace
