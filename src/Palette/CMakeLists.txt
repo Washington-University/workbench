@@ -20,6 +20,7 @@ ENDIF ()
 #
 ADD_LIBRARY(Palette
 Palette.h
+PaletteNew.h
 PaletteColorBarValuesModeEnum.h
 PaletteColorMapping.h
 PaletteColorMappingSaxReader.h
@@ -34,6 +35,7 @@ PaletteThresholdOutlineDrawingModeEnum.h
 PaletteThresholdRangeModeEnum.h
 
 Palette.cxx
+PaletteNew.cxx
 PaletteColorBarValuesModeEnum.cxx
 PaletteColorMapping.cxx
 PaletteColorMappingSaxReader.cxx
