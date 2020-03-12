@@ -1798,7 +1798,8 @@ MapSettingsPaletteColorMappingWidget::updatePaletteNameComboBox()
         
         const bool showColorMappingFlag(true);
         if (showColorMappingFlag) {
-            PalettePixmapPainter palettePainter(palette);
+            PalettePixmapPainter palettePainter(palette,
+                                                PalettePixmapPainter::Mode::INTERPOLATE_ON);
             QPixmap pixmap = palettePainter.getPixmap();
             if (pixmap.isNull()) {
                 this->paletteNameComboBox->addItem(name,

@@ -46,10 +46,14 @@ using namespace caret;
  * Constructor.
  * @param palette
  * Palette used to generate the pixmap
+ * @param mode
+ * Interpolation mode (on/off)
  */
-PalettePixmapPainter::PalettePixmapPainter(const Palette* palette)
+PalettePixmapPainter::PalettePixmapPainter(const Palette* palette,
+                                           const Mode mode)
 : PalettePixmapPainter(palette,
-                       QSize(100, 14))
+                       QSize(100, 14),
+                       mode)
 {
 }
 
@@ -59,10 +63,14 @@ PalettePixmapPainter::PalettePixmapPainter(const Palette* palette)
  * Palette used to generate the pixmap
  * @param pixmapSize
  * Size for pixmap
+ * @param mode
+ * Interpolation mode (on/off)
  */
 PalettePixmapPainter::PalettePixmapPainter(const Palette* palette,
-                                           const QSize& pixmapSize)
-: CaretObject()
+                                           const QSize& pixmapSize,
+                                           const Mode mode)
+: CaretObject(),
+m_mode(mode)
 {
     CaretAssert(palette);
     if (palette == NULL) {
@@ -77,12 +85,12 @@ PalettePixmapPainter::PalettePixmapPainter(const Palette* palette,
     const qreal pixmapHeight(pixmapSize.height());
     
     switch (m_mode) {
-        case INTERPOLATE_OFF:
+        case Mode::INTERPOLATE_OFF:
             createPixmapInterpolateOff(palette,
                                        pixmapWidth,
                                        pixmapHeight);
             break;
-        case INTERPOLATE_ON:
+        case Mode::INTERPOLATE_ON:
             createPixmapInterpolateOn(palette,
                                       pixmapWidth,
                                       pixmapHeight);
@@ -106,6 +114,7 @@ PalettePixmapPainter::nonInterpScalarToPixMap(const float pixmapWidth,
     float valueOut(normalized * pixmapWidth);
     return valueOut;
 }
+
 /**
  * Create the pixmap for the interpolate OFF mode
  * @param palette
@@ -126,27 +135,23 @@ PalettePixmapPainter::createPixmapInterpolateOff(const Palette* palette,
     QPainter painter(&m_pixmap);
     painter.setPen(Qt::NoPen);
     
+    float rightX(pixmapWidth);
     const int32_t numPoints = palette->getNumberOfScalarsAndColors();
     for (int32_t i = 0; i < numPoints; i++) {
         const PaletteScalarAndColor* psac = palette->getScalarAndColor(i);
         CaretAssert(psac);
         
         float startX(0);
-        float endX(0);
-        float scalar(MathFunctions::limitRange(psac->getScalar(), -1.0f, 1.0f));
-        if (i == 0) {
-            endX = pixmapWidth;
-        }
-        else {
-            endX = nonInterpScalarToPixMap(pixmapWidth, scalar);
-        }
         if (i < (numPoints - 1)) {
             startX = nonInterpScalarToPixMap(pixmapWidth,
                                              palette->getScalarAndColor(i + 1)->getScalar());
         }
         
-        QRect rect(startX, 0,
-                   endX - startX, pixmapHeight);
+        /*
+         * Extend to prevent gaps dues to rounding
+         */
+        QRect rect(startX - 1, 0,  /* X, Y */
+                   rightX - startX + 1, pixmapHeight);  /* Width, Height */
         float rgba[4];
         psac->getColor(rgba);
         QColor color;
@@ -155,8 +160,11 @@ PalettePixmapPainter::createPixmapInterpolateOff(const Palette* palette,
         QBrush brush(color);
         painter.setBrush(brush);
         painter.drawRect(rect);
+        
+        rightX = startX;
     }
 }
+
 
 /**
  * Create the pixmap for the interpolate ON mode

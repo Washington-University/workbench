@@ -38,15 +38,17 @@ namespace caret {
     class PalettePixmapPainter : public CaretObject {
         
     public:
-        enum Mode {
+        enum class Mode {
             INTERPOLATE_OFF,
             INTERPOLATE_ON
         };
         
-        PalettePixmapPainter(const Palette* palette);
+        PalettePixmapPainter(const Palette* palette,
+                             const Mode mode);
         
         PalettePixmapPainter(const Palette* palette,
-                             const QSize& pixmapSize);
+                             const QSize& pixmapSize,
+                             const Mode mode);
         
         virtual ~PalettePixmapPainter();
         
@@ -72,7 +74,7 @@ namespace caret {
         float nonInterpScalarToPixMap(const float pixmapWidth,
                                       const float scalarIn);
         
-        Mode m_mode = Mode::INTERPOLATE_ON;
+        const Mode m_mode = Mode::INTERPOLATE_ON;
         
         QPixmap m_pixmap;
         
