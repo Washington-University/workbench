@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "PalettePixmapPainter.h"
 #include "WuQDialogModal.h"
 
 class QAbstractButton;
@@ -40,7 +41,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        PaletteCreateNewDialog(QWidget* parent = 0);
+        PaletteCreateNewDialog(const PalettePixmapPainter::Mode pixmapMode,
+                               QWidget* parent = 0);
         
         virtual ~PaletteCreateNewDialog();
         
@@ -62,6 +64,8 @@ namespace caret {
         void loadTemplatePalettes();
         
         void loadUserPalettes();
+        
+        const PalettePixmapPainter::Mode m_pixmapMode;
         
         QLineEdit* m_nameLineEdit;
         

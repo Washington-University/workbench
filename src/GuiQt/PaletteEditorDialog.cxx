@@ -61,7 +61,7 @@ using namespace caret;
 /**
  * Constructor.
  * @param parent
- *    The parent dialog
+ *    The parent widget
  */
 PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
 : WuQDialogNonModal("Palette Editor",
@@ -76,16 +76,13 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     m_colorEditButtonGroup->setExclusive(true);
     
     QWidget* paletteBarWidget = createPaletteWidget();
-    QWidget* paletteSelectionWidget = createUserPaletteWidget();
+    QWidget* paletteSelectionWidget = createPaletteSelectionWidget();
     QWidget* controlPointsWidget = createControlPointsWidget();
     
     m_colorEditorWidget = new WuQColorEditorWidget();
+    QObject::connect(m_colorEditorWidget, &WuQColorEditorWidget::colorChanged,
+                     this, &PaletteEditorDialog::colorEditorColorChanged);
     
-//    QGroupBox* colorEditorGroupBox = new QGroupBox("Edit Color of Selected Control Point");
-//    QVBoxLayout* colorEditorLayout = new QVBoxLayout(colorEditorGroupBox);
-//    colorEditorLayout->setContentsMargins(0, 0, 0, 0);
-//    colorEditorLayout->addWidget(m_colorEditorWidget);
-     
     QWidget* dialogWidget = new QWidget();
     QGridLayout* dialogLayout = new QGridLayout(dialogWidget);
     int32_t row(0);
@@ -96,7 +93,7 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     dialogLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
     row++;
     dialogLayout->addWidget(controlPointsWidget, row, 0);
-    dialogLayout->addWidget(m_colorEditorWidget /*colorEditorGroupBox*/, row, 1, Qt::AlignTop);
+    dialogLayout->addWidget(m_colorEditorWidget, row, 1, Qt::AlignTop);
     row++;
 
     setCentralWidget(dialogWidget,
@@ -120,6 +117,31 @@ PaletteEditorDialog::~PaletteEditorDialog()
 }
 
 /**
+ * Color editor changed
+ * @param red
+ * New red component
+ * @param green
+ * New green component
+ * @param blue
+ * New blue component
+ */
+void
+PaletteEditorDialog::colorEditorColorChanged(const uint8_t red,
+                                             const uint8_t green,
+                                             const uint8_t blue)
+{
+    m_positiveControlPointsWidget->updateControlPointColor(red,
+                                                           green,
+                                                           blue);
+    m_zeroControlPointsWidget->updateControlPointColor(red,
+                                                       green,
+                                                       blue);
+    m_negativeControlPointsWidget->updateControlPointColor(red,
+                                                           green,
+                                                           blue);
+}
+
+/**
  * Update the dialog.
  */
 void
@@ -130,7 +152,8 @@ PaletteEditorDialog::updateDialog()
     const Palette* palette = paletteEvent.getPalette();
     if (palette != NULL) {
         PalettePixmapPainter palettePainter(palette,
-                                            m_colorBarImageLabel->size());
+                                            m_colorBarImageLabel->size(),
+                                            m_pixmapMode);
         QPixmap pixmap = palettePainter.getPixmap();
         if ( ! pixmap.isNull()) {
             m_colorBarImageLabel->setPixmap(pixmap);
@@ -143,19 +166,30 @@ PaletteEditorDialog::updateDialog()
 
 /**
  * Slot for editing a color
+ * @param controlPointIndex
+ * Index of the control point
+ * @param red
+ * The red color component
+ * @param green
+ * The green color component
+ * @param blue
+ * The blue color component
  */
 void
-PaletteEditorDialog::editColor(const uint8_t red, const uint8_t green, const uint8_t blue)
+PaletteEditorDialog::editColor(const int32_t controlPointIndex, const uint8_t red, const uint8_t green, const uint8_t blue)
 {
     m_colorEditorWidget->setCurrentColor(red, green, blue);
 }
 
+/**
+ * Create the control point editing widgets
+ */
 QWidget*
 PaletteEditorDialog::createControlPointsWidget()
 {
-    m_positiveControlPointsWidget = new PaletteEditorControlPointGroupWidget(this,
-                                                                             m_colorEditButtonGroup,
-                                                                             true);
+    m_positiveControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_colorEditButtonGroup,
+                                                                             true,
+                                                                             this);
     QObject::connect(m_positiveControlPointsWidget, &PaletteEditorControlPointGroupWidget::editColorRequested,
                      this, &PaletteEditorDialog::editColor);
     QGroupBox* positiveWidget = new QGroupBox("Positive Mapping");
@@ -163,9 +197,9 @@ PaletteEditorDialog::createControlPointsWidget()
     WuQtUtilities::setLayoutSpacingAndMargins(positiveLayout, 0, 0);
     positiveLayout->addWidget(m_positiveControlPointsWidget);
 
-    m_zeroControlPointsWidget = new PaletteEditorControlPointGroupWidget(this,
-                                                                         m_colorEditButtonGroup,
-                                                                         false);
+    m_zeroControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_colorEditButtonGroup,
+                                                                         false,
+                                                                         this);
     QObject::connect(m_zeroControlPointsWidget, &PaletteEditorControlPointGroupWidget::editColorRequested,
                      this, &PaletteEditorDialog::editColor);
     
@@ -174,9 +208,9 @@ PaletteEditorDialog::createControlPointsWidget()
     WuQtUtilities::setLayoutSpacingAndMargins(zeroLayout, 0, 0);
     zeroLayout->addWidget(m_zeroControlPointsWidget);
     
-    m_negativeControlPointsWidget = new PaletteEditorControlPointGroupWidget(this,
-                                                                             m_colorEditButtonGroup,
-                                                                             false);
+    m_negativeControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_colorEditButtonGroup,
+                                                                             false,
+                                                                             this);
     QObject::connect(m_negativeControlPointsWidget, &PaletteEditorControlPointGroupWidget::editColorRequested,
                      this, &PaletteEditorDialog::editColor);
     QGroupBox* negativeWidget = new QGroupBox("Negative Mapping");
@@ -217,6 +251,9 @@ PaletteEditorDialog::updateControlPointWidgets()
     m_negativeControlPointsWidget->updateContent(NULL, -4);
 }
 
+/*
+ * @return Create the palette widget that shows the current palette being edited
+ */
 QWidget*
 PaletteEditorDialog::createPaletteWidget()
 {
@@ -233,8 +270,11 @@ PaletteEditorDialog::createPaletteWidget()
     return widget;
 }
 
+/**
+ * @return Create the widget for selection of palettes
+ */
 QWidget*
-PaletteEditorDialog::createUserPaletteWidget()
+PaletteEditorDialog::createPaletteSelectionWidget()
 {
     m_paletteSourceComboBox = new QComboBox();
     m_paletteSourceComboBox->addItem("User Palettes");
@@ -268,7 +308,8 @@ PaletteEditorDialog::createUserPaletteWidget()
         const AString paletteUniqueID(name);
         
         PalettePixmapPainter palettePainter(palette,
-                                            iconSize);
+                                            iconSize,
+                                            m_pixmapMode);
         QPixmap pixmap = palettePainter.getPixmap();
         if (pixmap.isNull()) {
             m_userPaletteSelectionComboBox->addItem(name);
@@ -329,13 +370,20 @@ PaletteEditorDialog::createUserPaletteWidget()
     return widget;
 }
 
+/**
+ * Called when button for creating a new palette is clicked
+ */
 void
 PaletteEditorDialog::newPaletteButtonClicked()
 {
-    PaletteCreateNewDialog dialog(this);
+    PaletteCreateNewDialog dialog(m_pixmapMode,
+                                  this);
     dialog.exec();
 }
 
+/**
+ * NOT USED
+ */
 QPixmap
 PaletteEditorDialog::createIcon(QWidget* widget,
                                 const IconType iconType)

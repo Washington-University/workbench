@@ -49,12 +49,16 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param pixmapMode
+ * palette pixmap Interpolation mode (on/off)
  * @param parent
  *    The parent widget
  */
-PaletteCreateNewDialog::PaletteCreateNewDialog(QWidget* parent)
+PaletteCreateNewDialog::PaletteCreateNewDialog(const PalettePixmapPainter::Mode pixmapMode,
+                                               QWidget* parent)
 : WuQDialogModal("Create New Palette",
-                 parent)
+                 parent),
+m_pixmapMode(pixmapMode)
 {
     QLabel* nameLabel = new QLabel("Name");
     m_nameLineEdit = new QLineEdit();
@@ -157,6 +161,11 @@ PaletteCreateNewDialog::okButtonClicked()
     WuQDialogModal::okButtonClicked();
 }
 
+/**
+ * Called when a palette type button is clicked
+ * @param button
+ * Button that was clicked
+ */
 void
 PaletteCreateNewDialog::typeButtonClicked(QAbstractButton* button)
 {
@@ -177,6 +186,9 @@ PaletteCreateNewDialog::typeButtonClicked(QAbstractButton* button)
     }
 }
 
+/**
+ * Called to load the combo box  containing the template (built-in) palettes
+ */
 void
 PaletteCreateNewDialog::loadTemplatePalettes()
 {
@@ -197,7 +209,8 @@ PaletteCreateNewDialog::loadTemplatePalettes()
         const AString paletteUniqueID(name);
         
         PalettePixmapPainter palettePainter(palette,
-                                            iconSize);
+                                            iconSize,
+                                            m_pixmapMode);
         QPixmap pixmap = palettePainter.getPixmap();
         if (pixmap.isNull()) {
             m_templatePalettesComboBox->addItem(name);
@@ -209,6 +222,9 @@ PaletteCreateNewDialog::loadTemplatePalettes()
     m_templatePalettesComboBox->setIconSize(iconSize);
 }
 
+/**
+ * Called to load the combo box  containing the user's palettes from the user's preferences
+ */
 void
 PaletteCreateNewDialog::loadUserPalettes()
 {
@@ -239,7 +255,8 @@ PaletteCreateNewDialog::loadUserPalettes()
         const AString paletteUniqueID(name);
         
         PalettePixmapPainter palettePainter(palette,
-                                            iconSize);
+                                            iconSize,
+                                            m_pixmapMode);
         QPixmap pixmap = palettePainter.getPixmap();
         if (pixmap.isNull()) {
             m_userPalettesComboBox->addItem(name);

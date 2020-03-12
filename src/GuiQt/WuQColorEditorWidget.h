@@ -61,6 +61,11 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+    signals:
+        void colorChanged(const uint8_t red,
+                          const uint8_t green,
+                          const uint8_t blue);
+        
     private slots:
         void hueChanged(int hue);
     
@@ -104,6 +109,8 @@ namespace caret {
         void updateHueSaturationLabel();
         
         QWidget* createCaretColorNoNamesSelectionButtonsWidget();
+        
+        void emitColorChangedSignal();
         
         QSpinBox* m_hueSpinBox;
         

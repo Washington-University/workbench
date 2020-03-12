@@ -279,11 +279,26 @@ WuQColorEditorWidget::createControlsWidget()
     return widget;
 }
 
+/**
+ * Called to revert to the original color
+ */
 void
 WuQColorEditorWidget::revertToOriginalColorToolButtonClicked()
 {
     m_currentColor = m_originalColor;
     updateControls();
+    emitColorChangedSignal();
+}
+
+/**
+ * Emit the color changed signal when the color changes
+ */
+void
+WuQColorEditorWidget::emitColorChangedSignal()
+{
+    emit colorChanged(m_currentColor.red(),
+                      m_currentColor.green(),
+                      m_currentColor.blue());
 }
 
 /**
@@ -299,6 +314,7 @@ WuQColorEditorWidget::hueChanged(int hue)
                           m_currentColor.value());
     
     updateControls();
+    emitColorChangedSignal();
 }
 
 /**
@@ -314,6 +330,7 @@ WuQColorEditorWidget::saturationChanged(int saturation)
                           m_currentColor.value());
     
     updateControls();
+    emitColorChangedSignal();
 }
 
 /**
@@ -329,6 +346,7 @@ WuQColorEditorWidget::valueChanged(int value)
                           value);
     
     updateControls();
+    emitColorChangedSignal();
 }
 
 /**
@@ -342,6 +360,7 @@ WuQColorEditorWidget::redChanged(int red)
     m_currentColor.setRed(red);
     
     updateControls();
+    emitColorChangedSignal();
 }
 
 /**
@@ -355,6 +374,7 @@ WuQColorEditorWidget::greenChanged(int green)
     m_currentColor.setGreen(green);
     
     updateControls();
+    emitColorChangedSignal();
 }
 
 /**
@@ -368,6 +388,7 @@ WuQColorEditorWidget::blueChanged(int blue)
     m_currentColor.setBlue(blue);
     
     updateControls();
+    emitColorChangedSignal();
 }
 
 /**
@@ -508,6 +529,7 @@ WuQColorEditorWidget::hueSaturationLabelClicked(int x, int y)
 
     m_currentColor.setHsv(hue, saturation, m_currentColor.value());
     updateControls();
+    emitColorChangedSignal();
 }
 
 
@@ -585,6 +607,7 @@ WuQColorEditorWidget::valueLabelClicked(int /*x*/, int y)
                           m_currentColor.hsvSaturation(),
                           newValue);
     updateControls();
+    emitColorChangedSignal();
 }
 
 void
@@ -713,6 +736,7 @@ WuQColorEditorWidget::caretColorActionClicked(QAction* action)
         m_currentColor.setRgb(rgba[0], rgba[1], rgba[2]);
 
         updateControls();
+        emitColorChangedSignal();
     }
 }
 

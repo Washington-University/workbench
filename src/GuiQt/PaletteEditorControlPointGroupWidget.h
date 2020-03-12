@@ -44,9 +44,15 @@ namespace caret {
         Q_OBJECT
 
     public:
-        PaletteEditorControlPointGroupWidget(QWidget* parent,
-                                             QButtonGroup* colorEditButtonGroup,
-                                             const bool showColumnTitles);
+        enum class ModificationOperation {
+            INSERT_CONTROL_POINT_ABOVE,
+            INSERT_CONTROL_POINT_BELOW,
+            REMOVE_CONTROL_POINT
+        };
+        
+        PaletteEditorControlPointGroupWidget(QButtonGroup* colorEditButtonGroup,
+                                             const bool showColumnTitles,
+                                             QWidget* parent);
         
         virtual ~PaletteEditorControlPointGroupWidget();
         
@@ -56,12 +62,26 @@ namespace caret {
         
         void updateContent(void* controlPointGroup,
                            const int32_t numberOfControlsPointsForLayoutTesting);
-        
+
+        void updateControlPointColor(const uint8_t red,
+                                     const uint8_t green,
+                                     const uint8_t blue);
 
         // ADD_NEW_METHODS_HERE
 
     signals:
-        void editColorRequested(const uint8_t red, const uint8_t green, const uint8_t blue);
+        void editColorRequested(const int32_t controlPointIndex,
+                                const uint8_t red, const uint8_t green, const uint8_t blue);
+
+    private slots:
+        void modificationRequest(const int32_t controlPointIndex,
+                                   const PaletteEditorControlPointGroupWidget::ModificationOperation modificationOperation);
+        
+        void controlPointValueChangeRequested(const int32_t controlPointIndex,
+                                      float value);
+        
+//        void editColorRequested(const int32_t controlPointIndex,
+//                                const uint8_t red, const uint8_t green, const uint8_t blue);
 
     private:
         QButtonGroup* m_colorEditButtonGroup;
@@ -90,6 +110,10 @@ namespace caret {
         void updateContent(void* controlPoint,
                            const int32_t numberOfControlPoints);
         
+        void updateColor(const uint8_t red,
+                         const uint8_t green,
+                         const uint8_t blue);
+        
         const int32_t m_controlPointIndex;
         
         QToolButton* m_constructionToolButton;
@@ -113,7 +137,14 @@ namespace caret {
         QAction* m_removeAction;
 
     signals:
-        void editColorRequested(const uint8_t red, const uint8_t green, const uint8_t blue);
+        void modificationRequested(const int32_t controlPointIndex,
+                                   const PaletteEditorControlPointGroupWidget::ModificationOperation modificationOperation);
+        
+        void controlPointValueChanged(const int32_t controlPointIndex,
+                                      float value);
+        
+        void editColorRequested(const int32_t controlPointIndex,
+                                const uint8_t red, const uint8_t green, const uint8_t blue);
         
     };
 

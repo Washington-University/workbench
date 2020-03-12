@@ -49,12 +49,16 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param colorEditButtonGroup
+ *    Button group for the color edit radio button so that they are mutually exclusive
+ * @param showColumnTitles
+ *    True if color titles show be show, else false
  * @param parent
  *    Parent widget
  */
-PaletteEditorControlPointGroupWidget::PaletteEditorControlPointGroupWidget(QWidget* parent,
-                                                                           QButtonGroup* colorEditButtonGroup,
-                                                                           const bool showColumnTitles)
+PaletteEditorControlPointGroupWidget::PaletteEditorControlPointGroupWidget(QButtonGroup* colorEditButtonGroup,
+                                                                           const bool showColumnTitles,
+                                                                           QWidget* parent)
 : QWidget(parent),
 m_colorEditButtonGroup(colorEditButtonGroup),
 m_showColumnTitles(showColumnTitles)
@@ -115,7 +119,12 @@ PaletteEditorControlPointGroupWidget::updateContent(void* controlPointGroup,
                                                                  m_showColumnTitles);
         QObject::connect(per, &PaletteControlPointRow::editColorRequested,
                          this, &PaletteEditorControlPointGroupWidget::editColorRequested);
+        QObject::connect(per, &PaletteControlPointRow::modificationRequested,
+                         this, &PaletteEditorControlPointGroupWidget::modificationRequest);
+        QObject::connect(per, &PaletteControlPointRow::controlPointValueChanged,
+                         this, &PaletteEditorControlPointGroupWidget::controlPointValueChangeRequested);
         
+        QSignalBlocker valueBlocker(per->m_valueSpinBox);
         per->m_valueSpinBox->setValue(value);
         value += step;
         m_paletteControlPointRows.push_back(per);
@@ -133,16 +142,77 @@ PaletteEditorControlPointGroupWidget::updateContent(void* controlPointGroup,
     }
 }
 
+void
+PaletteEditorControlPointGroupWidget::updateControlPointColor(const uint8_t red,
+                                                              const uint8_t green,
+                                                              const uint8_t blue)
+{
+    for (auto cpRow : m_paletteControlPointRows) {
+        if (cpRow->m_editColorRadioButton->isVisible()) {
+            if (cpRow->m_editColorRadioButton->isEnabled()) {
+                if (cpRow->m_editColorRadioButton->isChecked()) {
+                    cpRow->updateColor(red, green, blue);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Called when a control point modification is requested
+ * @param controlPointIndex
+ * Index of the control point
+ * @param modificationOperation
+ * The modification operation
+ */
+void
+PaletteEditorControlPointGroupWidget::modificationRequest(const int32_t controlPointIndex,
+                                    const PaletteEditorControlPointGroupWidget::ModificationOperation modificationOperation)
+{
+    switch (modificationOperation) {
+        case PaletteEditorControlPointGroupWidget::ModificationOperation::INSERT_CONTROL_POINT_ABOVE:
+            std::cout << "Insert above ";
+            break;
+        case PaletteEditorControlPointGroupWidget::ModificationOperation::INSERT_CONTROL_POINT_BELOW:
+            std::cout << "Insert below ";
+            break;
+        case PaletteEditorControlPointGroupWidget::ModificationOperation::REMOVE_CONTROL_POINT:
+            std::cout << "Remove ";
+            break;
+    }
+    
+    std::cout << controlPointIndex << std::endl;
+}
+
+/**
+ * Called when a control point scalar is changed
+ * @param controlPointIndex
+ * Index of the control point
+ * @param value
+ * New value for the control point at the given index
+ */
+void
+PaletteEditorControlPointGroupWidget::controlPointValueChangeRequested(const int32_t controlPointIndex,
+                                                               float value)
+{
+    std::cout << "New value " << value << " for " << controlPointIndex << std::endl;
+}
+
+
 /* ==================================================================================== */
 
 /**
  * Constructor
  * @param paletteEditorControlPointGroupWidget
  *    The parent palette control points group widget
+ * @param colorEditButtonGroup
+ *    Button group for the color edit radio button so that they are mutually exclusive
  * @param gridLayout
  *    Grid layout for widgets
  * @param controlPointIndex
  *    Index of the control point
+ * @param showColumnTitles
+ *    True if color titles show be show, else false
  */
 PaletteControlPointRow::PaletteControlPointRow(PaletteEditorControlPointGroupWidget* paletteEditorControlPointGroupWidget,
                                                QButtonGroup* colorEditButtonGroup,
@@ -190,9 +260,20 @@ m_controlPointIndex(controlPointIndex)
     
     QMenu* constructionMenu = new QMenu();
     m_insertAboveAction = constructionMenu->addAction("Insert Control Point Above");
+    QObject::connect(m_insertAboveAction, &QAction::triggered,
+                     this, [=](bool) { modificationRequested(m_controlPointIndex,
+                                                                  PaletteEditorControlPointGroupWidget::ModificationOperation::INSERT_CONTROL_POINT_ABOVE); });
+
     m_insertBelowAction = constructionMenu->addAction("Insert Control Point Below");
+    QObject::connect(m_insertBelowAction, &QAction::triggered,
+                     this, [=](bool) {modificationRequested(m_controlPointIndex,
+                                                                  PaletteEditorControlPointGroupWidget::ModificationOperation::INSERT_CONTROL_POINT_BELOW); });
+
     m_removeAction = constructionMenu->addAction("Remove This Control Point");
-    
+    QObject::connect(m_removeAction, &QAction::triggered,
+                     this, [=](bool) { modificationRequested(m_controlPointIndex,
+                                                                  PaletteEditorControlPointGroupWidget::ModificationOperation::REMOVE_CONTROL_POINT); });
+
     QIcon constructionIcon;
     const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
                                                                constructionIcon);
@@ -211,6 +292,8 @@ m_controlPointIndex(controlPointIndex)
     m_valueSpinBox->setMaximum(1.0);
     m_valueSpinBox->setDecimals(3);
     m_valueSpinBox->setSingleStep(0.001);
+    QObject::connect(m_valueSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     [=](double valueIn) { controlPointValueChanged(m_controlPointIndex, valueIn); });
     
     m_valueLabel = new QLabel();
     
@@ -221,21 +304,17 @@ m_controlPointIndex(controlPointIndex)
     const uint8_t red(static_cast<uint8_t>((static_cast<float>(std::rand()) / RAND_MAX) * 255.0));
     const uint8_t green(static_cast<uint8_t>((static_cast<float>(std::rand()) / RAND_MAX) * 255.0));
     const uint8_t blue(static_cast<uint8_t>((static_cast<float>(std::rand()) / RAND_MAX) * 255.0));
-
+    
     m_editColorRadioButton = new QRadioButton("");
     m_editColorRadioButton->setToolTip("Click to edit this control point's color");
     colorEditButtonGroup->addButton(m_editColorRadioButton);
     QObject::connect(m_editColorRadioButton, &QRadioButton::clicked,
-                     [=](bool) { emit editColorRequested(red, green, blue); } );
+                     [=](bool) { emit editColorRequested(m_controlPointIndex,
+                                                         red, green, blue); } );
     
     m_colorSwatchWidget = new QWidget();
     m_colorSwatchWidget->setFixedWidth(40);
     m_colorSwatchWidget->setFixedHeight(std::max(10, m_valueSpinBox->sizeHint().height() - 2));
-    m_colorSwatchWidget->setStyleSheet("background-color: rgb("
-                                       + AString::number(red)
-                                       + ", " + AString::number(green)
-                                       + ", " + AString::number(blue)
-                                       + ");");
     
     const int32_t row(gridLayout->rowCount());
     gridLayout->addWidget(m_constructionToolButton,
@@ -246,6 +325,8 @@ m_controlPointIndex(controlPointIndex)
                           row, columnColorSwatch, Qt::AlignCenter);
     gridLayout->addWidget(m_editColorRadioButton,
                           row, columnEdit, Qt::AlignRight);
+
+    updateColor(red, green, blue);
 }
 
 /**
@@ -267,9 +348,15 @@ void
 PaletteControlPointRow::updateContent(void* controlPoint,
                                       const int32_t numberOfControlPoints)
 {
+    QSignalBlocker valueSpinBoxBlocker(m_valueSpinBox);
+    
+    bool showWidgetsFlag(false);
     if (controlPoint != NULL) {
-        
+        showWidgetsFlag = true;
     }
+    
+    /* TEMPORARY */
+    showWidgetsFlag = true;
     
     const bool firstControlPointFlag(m_controlPointIndex == 0);
     const bool lastControlPointFlag(m_controlPointIndex == (numberOfControlPoints - 1));
@@ -278,6 +365,22 @@ PaletteControlPointRow::updateContent(void* controlPoint,
     m_insertBelowAction->setEnabled( ! lastControlPointFlag);
     m_removeAction->setEnabled( ( ! firstControlPointFlag)
                                && ( ! lastControlPointFlag) );
+    
+    m_constructionToolButton->setVisible(showWidgetsFlag);
+    m_valueSpinBox->setVisible(showWidgetsFlag);
+    m_colorSwatchWidget->setVisible(showWidgetsFlag);
+    m_editColorRadioButton->setVisible(showWidgetsFlag);
 }
 
+void
+PaletteControlPointRow::updateColor(const uint8_t red,
+                                    const uint8_t green,
+                                    const uint8_t blue)
+{
+    m_colorSwatchWidget->setStyleSheet("background-color: rgb("
+                                       + AString::number(red)
+                                       + ", " + AString::number(green)
+                                       + ", " + AString::number(blue)
+                                       + ");");
+}
 

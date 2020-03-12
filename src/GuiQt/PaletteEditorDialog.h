@@ -26,6 +26,7 @@
 
 #include <memory>
 
+#include "PalettePixmapPainter.h"
 #include "WuQDialogNonModal.h"
 
 class QButtonGroup;
@@ -60,9 +61,11 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void editColor(const uint8_t red, const uint8_t green, const uint8_t blue);
+        void editColor(const int32_t controlPointIndex, const uint8_t red, const uint8_t green, const uint8_t blue);
         
         void newPaletteButtonClicked();
+        
+        void colorEditorColorChanged(const uint8_t red, const uint8_t green, const uint8_t blue);
         
     private:
         enum class IconType {
@@ -74,7 +77,7 @@ namespace caret {
         
         QWidget* createPaletteWidget();
         
-        QWidget* createUserPaletteWidget();
+        QWidget* createPaletteSelectionWidget();
         
         void updateControlPointWidgets();
         
@@ -96,6 +99,8 @@ namespace caret {
         QComboBox* m_paletteSourceComboBox;
         
         QComboBox* m_userPaletteSelectionComboBox;
+        
+        PalettePixmapPainter::Mode m_pixmapMode = PalettePixmapPainter::Mode::INTERPOLATE_OFF;
         
         // ADD_NEW_MEMBERS_HERE
 
