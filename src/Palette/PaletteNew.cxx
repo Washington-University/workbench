@@ -57,9 +57,9 @@ namespace
 PaletteNew::PaletteNew(vector<ScalarColor> posRange, float zeroColor[3], vector<ScalarColor> negRange) : m_posRange(posRange), m_negRange(negRange)
 {
     CaretAssert(posRange[0].scalar == 0.0f);
-    CaretAssert(posRange.back()->scalar == 1.0f);
+    CaretAssert(posRange.back().scalar == 1.0f);
     CaretAssert(negRange[0].scalar == -1.0f);
-    CaretAssert(negRange.back()->scalar == 0.0f);
+    CaretAssert(negRange.back().scalar == 0.0f);
     m_gpcWarned = false;
     copyColor(m_zeroColor, zeroColor);
 }
@@ -110,7 +110,7 @@ PaletteNew::PaletteRange::PaletteRange(const vector<ScalarColor> controlPoints)
     }
     m_controlPoints = controlPoints;
     m_lowPoint = m_controlPoints[0].scalar;
-    m_highPoint = m_controlPoints.back()->scalar;
+    m_highPoint = m_controlPoints.back().scalar;
     float diff = m_highPoint - m_lowPoint;//in practice this should always be 1
     m_lookup[0] = 0;
     m_lookup[BUCKETS] = m_controlPoints.size() - 1;
@@ -130,7 +130,7 @@ void PaletteNew::PaletteRange::getPaletteColor(const float scalar, float rgbOut[
     }
     if (bucket >= BUCKETS)
     {
-        copyColor(rgbOut, m_controlPoints.back()->color);
+        copyColor(rgbOut, m_controlPoints.back().color);
         return;
     }
     int lowSide = searchLowSide(scalar, m_controlPoints, m_lookup[bucket], m_lookup[bucket + 1] + 1);//this is why m_lookup is [BUCKETS + 1]
