@@ -57,19 +57,33 @@ namespace caret {
                     color[i] = 0.0f;
                 }
             }
+            static ScalarColor fromRGB255(const float scalar, const int red, const int green, const int blue)
+            {
+                return ScalarColor(scalar, red / 255.0f, green / 255.0f, blue / 255.0f);
+            }
+            void toRGB255(int& redOut, int& greenOut, int& blueOut) const
+            {
+                redOut = int(color[0] * 255.99f);//dirty hack to avoid needing to test == 256
+                greenOut = int(color[1] * 255.99f);//keeps bin widths fair to float, and should round trip
+                blueOut = int(color[2] * 255.99f);
+            }
         };
         
         PaletteNew(std::vector<ScalarColor> posRange, float zeroColor[3], std::vector<ScalarColor> negRange);
         
+        ///DO NOT USE, will be removed
         void getPaletteColor(const float scalar, float rgbOut[3]) const;
         
+        void getPositiveColor(const float scalar, float rgbOut[3]) const;
+        void getNegativeColor(const float scalar, float rgbOut[3]) const;
+        void getZeroColor(float colorOut[3]) const { for (int i = 0; i < 3; ++i) colorOut[i] = m_zeroColor[i]; }
+            
         AString getName() const { return m_name; }
         
         void setName(const AString& name) { m_name = name; }
         
         std::vector<ScalarColor> getPosRange() const { return m_posRange.getRange(); }
         std::vector<ScalarColor> getNegRange() const { return m_negRange.getRange(); }
-        void getZeroColor(float colorOut[3]) const { for (int i = 0; i < 3; ++i) colorOut[i] = m_zeroColor[i]; }
         
     private:
         class PaletteRange
@@ -89,6 +103,7 @@ namespace caret {
         PaletteRange m_posRange, m_negRange;
         float m_zeroColor[3];
         AString m_name;
+        mutable bool m_gpcWarned;
     };
     
 }//namespace

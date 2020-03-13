@@ -22,6 +22,7 @@
 
 #include "CaretAssert.h"
 #include "CaretException.h"
+#include "CaretLogger.h"
 
 using namespace std;
 using namespace caret;
@@ -59,11 +60,18 @@ PaletteNew::PaletteNew(vector<ScalarColor> posRange, float zeroColor[3], vector<
     CaretAssert(posRange.rbegin()->scalar == 1.0f);
     CaretAssert(negRange[0].scalar == -1.0f);
     CaretAssert(negRange.rbegin()->scalar == 0.0f);
+    m_gpcWarned = false;
     copyColor(m_zeroColor, zeroColor);
 }
 
+///REMOVE THIS FUNCTION
 void PaletteNew::getPaletteColor(const float scalar, float rgbOut[3]) const
 {
+    if (!m_gpcWarned)
+    {
+        CaretLogWarning("getPaletteColor called, this function will be REMOVED");
+        m_gpcWarned = true;
+    }
     if (scalar == 0.0f)//keep the handling of the exact zero separate
     {
         copyColor(rgbOut, m_zeroColor);
@@ -75,6 +83,18 @@ void PaletteNew::getPaletteColor(const float scalar, float rgbOut[3]) const
     } else {
         m_posRange.getPaletteColor(scalar, rgbOut);
     }
+}
+
+void PaletteNew::getPositiveColor(const float scalar, float rgbOut[3]) const
+{
+    CaretAssert(scalar >= 0.0f);
+    m_posRange.getPaletteColor(scalar, rgbOut);
+}
+
+void PaletteNew::getNegativeColor(const float scalar, float rgbOut[3]) const
+{
+    CaretAssert(scalar <= 0.0f);
+    m_negRange.getPaletteColor(scalar, rgbOut);
 }
 
 PaletteNew::PaletteRange::PaletteRange(const vector<ScalarColor> controlPoints)
