@@ -30,6 +30,7 @@
 #include "CaretAssert.h"
 #include "MathFunctions.h"
 #include "Palette.h"
+#include "PaletteNew.h"
 #include "PaletteScalarAndColor.h"
 
 using namespace caret;
@@ -86,14 +87,51 @@ m_mode(mode)
     
     switch (m_mode) {
         case Mode::INTERPOLATE_OFF:
-            createPixmapInterpolateOff(palette,
+            createPalettePixmapInterpolateOff(palette,
                                        pixmapWidth,
                                        pixmapHeight);
             break;
         case Mode::INTERPOLATE_ON:
-            createPixmapInterpolateOn(palette,
+            createPalettePixmapInterpolateOn(palette,
                                       pixmapWidth,
                                       pixmapHeight);
+            break;
+    }
+}
+
+/**
+ * Constructor.
+ * @param palette
+ * Palette used to generate the pixmap
+ * @param pixmapSize
+ * Size for pixmap
+ * @param mode
+ * Interpolation mode (on/off)
+ */
+PalettePixmapPainter::PalettePixmapPainter(const PaletteNew* palette,
+                                           const QSize& pixmapSize,
+                                           const Mode mode)
+: CaretObject(),
+m_mode(mode)
+{
+    CaretAssert(palette);
+    if (palette == NULL) {
+        return;
+    }
+    
+    const qreal pixmapWidth(pixmapSize.width());
+    const qreal pixmapHeight(pixmapSize.height());
+    
+    switch (m_mode) {
+        case Mode::INTERPOLATE_OFF:
+            createPalettePixmapInterpolateOff(palette,
+                                             pixmapWidth,
+                                             pixmapHeight);
+            break;
+        case Mode::INTERPOLATE_ON:
+            createPalettePixmapInterpolateOn(palette,
+                                             pixmapWidth,
+                                             pixmapHeight);
             break;
     }
 }
@@ -106,7 +144,7 @@ PalettePixmapPainter::~PalettePixmapPainter()
 }
 
 float
-PalettePixmapPainter::nonInterpScalarToPixMap(const float pixmapWidth,
+PalettePixmapPainter::paletteNonInterpScalarToPixMap(const float pixmapWidth,
                         const float scalarIn)
 {
     float scalar(MathFunctions::limitRange(scalarIn, -1.0f, 1.0f));
@@ -125,7 +163,7 @@ PalettePixmapPainter::nonInterpScalarToPixMap(const float pixmapWidth,
  *    Height of pixmap
  */
 void
-PalettePixmapPainter::createPixmapInterpolateOff(const Palette* palette,
+PalettePixmapPainter::createPalettePixmapInterpolateOff(const Palette* palette,
                                                  const qreal pixmapWidth,
                                                  const qreal pixmapHeight)
 {
@@ -143,7 +181,7 @@ PalettePixmapPainter::createPixmapInterpolateOff(const Palette* palette,
         
         float startX(0);
         if (i < (numPoints - 1)) {
-            startX = nonInterpScalarToPixMap(pixmapWidth,
+            startX = paletteNonInterpScalarToPixMap(pixmapWidth,
                                              palette->getScalarAndColor(i + 1)->getScalar());
         }
         
@@ -176,7 +214,7 @@ PalettePixmapPainter::createPixmapInterpolateOff(const Palette* palette,
  *    Height of pixmap
  */
 void
-PalettePixmapPainter::createPixmapInterpolateOn(const Palette* palette,
+PalettePixmapPainter::createPalettePixmapInterpolateOn(const Palette* palette,
                                                 const qreal pixmapWidth,
                                                 const qreal pixmapHeight)
 {
@@ -208,6 +246,197 @@ PalettePixmapPainter::createPixmapInterpolateOn(const Palette* palette,
     painter.setPen(Qt::NoPen);
     painter.setBrush(linearGradient);
     painter.drawRect(m_pixmap.rect());
+}
+
+/**
+ * Create the pixmap for the interpolate ON mode
+ * @param palette
+ *     The palette
+ * @param pixmapWidth
+ *    Width of pixmap
+ * @param pixmapHeight
+ *    Height of pixmap
+ */
+void
+PalettePixmapPainter::createPalettePixmapInterpolateOn(const PaletteNew* palette,
+                                                       const qreal pixmapWidth,
+                                                       const qreal pixmapHeight)
+{
+    m_pixmap = QPixmap(static_cast<int>(pixmapWidth),
+                       static_cast<int>(pixmapHeight));
+    
+    const qreal halfHeight(pixmapHeight / 2.0);
+    QLinearGradient linearGradient(QPointF(0, halfHeight),
+                                   QPointF(pixmapWidth, halfHeight));
+    linearGradient.setCoordinateMode(QGradient::LogicalMode);
+    linearGradient.setSpread(QGradient::PadSpread);
+
+    std::vector<PaletteNew::ScalarColor> posScalarsAndColors = palette->getPosRange();
+    std::vector<PaletteNew::ScalarColor> scalarsAndColors = palette->getNegRange();
+    scalarsAndColors.insert(scalarsAndColors.end(),
+                            posScalarsAndColors.begin(),
+                            posScalarsAndColors.end());
+    
+    
+    const int32_t numPoints = static_cast<int32_t>(scalarsAndColors.size());
+    for (int32_t i = 0; i < numPoints; i++) {
+        CaretAssertVectorIndex(scalarsAndColors, i);
+        const PaletteNew::ScalarColor& sc = scalarsAndColors[i];
+        
+        const float scalar(MathFunctions::limitRange(sc.scalar, -1.0f, 1.0f));
+        const float gradientValue((scalar / 2.0f) + 0.5f);
+        QColor color;
+        color.setRgbF(sc.color[0], sc.color[1], sc.color[2]);
+        
+        linearGradient.setColorAt(gradientValue, color);
+    }
+    
+    QPainter painter(&m_pixmap);
+    QPen pen = painter.pen();
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(linearGradient);
+    painter.drawRect(m_pixmap.rect());
+    
+    painter.setBrush(Qt::NoBrush);
+    float zeroColor[3];
+    palette->getZeroColor(zeroColor);
+    QColor penColor(zeroColor[0], zeroColor[1], zeroColor[2]);
+    pen.setColor(penColor);
+    pen.setWidth(3);
+    
+    painter.drawLine(pixmapWidth / 2, 0, pixmapWidth / 2, pixmapHeight);
+}
+
+/**
+ * Create the pixmap for the interpolate ON mode
+ * @param palette
+ *     The palette
+ * @param pixmapWidth
+ *    Width of pixmap
+ * @param pixmapHeight
+ *    Height of pixmap
+ */
+void
+PalettePixmapPainter::createPalettePixmapInterpolateOff(const PaletteNew* palette,
+                                                        const qreal pixmapWidth,
+                                                        const qreal pixmapHeight)
+{
+    m_pixmap = QPixmap(static_cast<int>(pixmapWidth),
+                       static_cast<int>(pixmapHeight));
+    
+    QPainter painter(&m_pixmap);
+    QPen pen = painter.pen();
+    painter.setPen(Qt::NoPen);
+
+    painter.fillRect(m_pixmap.rect(), QColor(255, 255, 255));
+    
+    {
+        float rightX(pixmapWidth);
+        std::vector<PaletteNew::ScalarColor> scalarsAndColors = palette->getPosRange();
+        const int32_t numScalars = static_cast<int32_t>(scalarsAndColors.size());
+        for (int32_t i = (numScalars - 1); i >= 1; i--) {
+            CaretAssertVectorIndex(scalarsAndColors, i - 1);
+            float leftX = paletteNonInterpScalarToPixMap(pixmapWidth,
+                                                         scalarsAndColors[i - 1].scalar);
+            
+            /*
+             * Extend to prevent gaps dues to rounding
+             */
+            const float x(leftX);
+            const float y(0);
+            const float w(rightX - leftX + 1);
+            const float h(pixmapHeight);
+            QRectF rect(x, y, w, h);
+
+            QColor color;
+            CaretAssertVectorIndex(scalarsAndColors, i);
+            color.setRgbF(scalarsAndColors[i].color[0],
+                          scalarsAndColors[i].color[1],
+                          scalarsAndColors[i].color[2]);
+            
+            QBrush brush(color);
+            painter.setBrush(brush);
+            painter.drawRect(rect);
+            
+            rightX = leftX;
+        }
+    }
+
+    {
+        float leftX(0);
+        std::vector<PaletteNew::ScalarColor> scalarsAndColors = palette->getNegRange();
+        const int32_t numScalars = static_cast<int32_t>(scalarsAndColors.size());
+        for (int32_t i = 0; i < (numScalars - 1); i++) {
+            CaretAssertVectorIndex(scalarsAndColors, i + 1);
+            float rightX = paletteNonInterpScalarToPixMap(pixmapWidth,
+                                                         scalarsAndColors[i + 1].scalar);
+            
+            /*
+             * Extend to prevent gaps dues to rounding
+             */
+            QRect rect(leftX, 0,  /* X, Y */
+                       rightX - leftX + 1, pixmapHeight);  /* Width, Height */
+            
+            QColor color;
+            CaretAssertVectorIndex(scalarsAndColors, i);
+            color.setRgbF(scalarsAndColors[i].color[0],
+                          scalarsAndColors[i].color[1],
+                          scalarsAndColors[i].color[2]);
+            
+            QBrush brush(color);
+            painter.setBrush(brush);
+            painter.drawRect(rect);
+            
+            leftX = rightX;
+        }
+    }
+
+    
+    
+//    const int32_t numPoints = static_cast<int32_t>(scalarsAndColors.size());
+//    for (int32_t i = 0; i < numPoints; i++) {
+//        CaretAssertVectorIndex(scalarsAndColors, i);
+//        const PaletteNew::ScalarColor& sc = scalarsAndColors[i];
+//
+//        const float scalar(MathFunctions::limitRange(sc.scalar, -1.0f, 1.0f));
+//        const float gradientValue((scalar / 2.0f) + 0.5f);
+//        QColor color;
+//        color.setRgbF(sc.color[0], sc.color[1], sc.color[2]);
+//
+//        linearGradient.setColorAt(gradientValue, color);
+//    }
+
+//    const int32_t numPoints = palette->getNumberOfScalarsAndColors();
+//    for (int32_t i = 0; i < numPoints; i++) {
+//        const PaletteScalarAndColor* psac = palette->getScalarAndColor(i);
+//        CaretAssert(psac);
+//
+//        const float scalar(MathFunctions::limitRange(psac->getScalar(), -1.0f, 1.0f));
+//        const float gradientValue((scalar / 2.0f) + 0.5f);
+//        float rgba[4];
+//        psac->getColor(rgba);
+//        QColor color;
+//        color.setRgbF(rgba[0], rgba[1], rgba[2]);
+//
+//        linearGradient.setColorAt(gradientValue, color);
+//    }
+    
+//    QPainter painter(&m_pixmap);
+//    QPen pen = painter.pen();
+//    painter.setPen(Qt::NoPen);
+//    painter.setBrush(linearGradient);
+//    painter.drawRect(m_pixmap.rect());
+//    painter.setBrush(Qt::NoBrush);
+//
+    float zeroColor[3];
+    palette->getZeroColor(zeroColor);
+    QColor penColor(zeroColor[0], zeroColor[1], zeroColor[2]);
+    painter.setPen(Qt::SolidLine);
+    pen.setColor(penColor);
+    pen.setWidth(20);
+    painter.setPen(pen);
+
+    painter.drawLine(pixmapWidth / 2, 0, pixmapWidth / 2, pixmapHeight);
 }
 
 /**

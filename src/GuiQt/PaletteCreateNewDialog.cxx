@@ -36,6 +36,7 @@
 #include "GuiManager.h"
 #include "Palette.h"
 #include "PaletteFile.h"
+#include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
 #include "WuQMessageBox.h"
 
@@ -158,6 +159,25 @@ PaletteCreateNewDialog::okButtonClicked()
         return;
     }
     
+    if (m_copyTemplatePaletteRadioButton->isChecked()) {
+        WuQMessageBox::errorOk(this, "Copy template not implemented");
+    }
+    else if (m_copyUserPaletteRadioButton->isChecked()) {
+        WuQMessageBox::errorOk(this, "Copy user palette not implemented");
+    }
+    else if (m_copyFilePaletteRadioButton->isChecked()) {
+        WuQMessageBox::errorOk(this, "Copy file palette not implemented");
+    }
+    else if (m_newPaletteRadioButton->isChecked()) {
+        m_palette.reset(createPaletteNew(name,
+                                         m_newPalettePositiveSpinBox->value(),
+                                         m_newPaletteNegativeSpinBox->value()));
+    }
+    else {
+        WuQMessageBox::errorOk(this, "Choose a palette type");
+        return;
+    }
+
     WuQDialogModal::okButtonClicked();
 }
 
@@ -184,6 +204,19 @@ PaletteCreateNewDialog::typeButtonClicked(QAbstractButton* button)
     else if (button == m_newPaletteRadioButton) {
         
     }
+}
+
+/**
+ * @return The new palette
+ */
+PaletteNew*
+PaletteCreateNewDialog::getPalette()
+{
+    if (m_palette) {
+        return m_palette.release();
+    }
+    
+    return NULL;
 }
 
 /**
@@ -266,4 +299,67 @@ PaletteCreateNewDialog::loadUserPalettes()
         }
     }
     m_userPalettesComboBox->setIconSize(iconSize);
+}
+
+/**
+ * @return A new palette containing the given number of positive and negative control points.  The
+ *  positive region is shades or red, the negative region is shades for blue, and zero is green.
+ *
+ * @param name
+ *    Name for the palette
+ * @param numberOfPositiveControlPoints
+ *    Number of positive points
+ * @param numberOfNegativeControlPoints
+ *    Number of negative points
+ */
+PaletteNew*
+PaletteCreateNewDialog::createPaletteNew(const AString& name,
+                                         const int32_t numberOfPositiveControlPoints,
+                                         const int32_t numberOfNegativeControlPoints)
+{
+    const int32_t numPos(std::max(2, numberOfPositiveControlPoints));
+    const int32_t numNeg(std::max(2, numberOfNegativeControlPoints));
+    
+    const float posStep(1.0 / numPos);
+    
+    const float redStep(1.0 / (numPos + 3));
+    float redCompontent(redStep * 2.0);
+
+    std::vector<PaletteNew::ScalarColor> posRange;
+    float posScalar(0.0);
+    for (int32_t i = 0; i < numPos; i++) {
+        if (i == (numPos - 1)) {
+            posScalar = 1.0f;
+            redCompontent = 1.0f;
+        }
+        posRange.emplace_back(posScalar, redCompontent, 0.0f, 0.0f);
+        
+        posScalar     += posStep;
+        redCompontent += redStep;
+    }
+    
+    float negStep(1.0 / numNeg);
+    
+    float blueStep(1.0 / (numNeg + 3));
+    float blueComponent(1.0);
+
+    std::vector<PaletteNew::ScalarColor> negRange;
+    float negScalar(-1.0);
+    for (int32_t i = 0; i < numNeg; i++) {
+        if (i == (numNeg - 1)) {
+            negScalar = 0.0f;
+        }
+        negRange.emplace_back(negScalar, 0.0, 0.0f, blueComponent);
+        
+        blueComponent -= blueStep;
+        negScalar     += negStep;
+    }
+    
+    float zeroGreen[3] { 0.0, 1.0, 0.0 };
+    PaletteNew* paletteNew = new PaletteNew(posRange,
+                                            zeroGreen,
+                                            negRange);
+    paletteNew->setName(name);
+    
+    return paletteNew;
 }

@@ -35,6 +35,7 @@
 #include <QToolButton>
 
 #include "CaretAssert.h"
+#include "PaletteNew.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -49,6 +50,8 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param dataRangeMode
+ *    Range of data (positive, negative, zero)
  * @param colorEditButtonGroup
  *    Button group for the color edit radio button so that they are mutually exclusive
  * @param showColumnTitles
@@ -56,10 +59,14 @@ using namespace caret;
  * @param parent
  *    Parent widget
  */
-PaletteEditorControlPointGroupWidget::PaletteEditorControlPointGroupWidget(QButtonGroup* colorEditButtonGroup,
+PaletteEditorControlPointGroupWidget::PaletteEditorControlPointGroupWidget(std::vector<PaletteNew::ScalarColor>& scalarColors,
+                                                                           const DataRangeMode dataRangeMode,
+                                                                           QButtonGroup* colorEditButtonGroup,
                                                                            const bool showColumnTitles,
                                                                            QWidget* parent)
 : QWidget(parent),
+m_scalarColors(scalarColors),
+m_dataRangeMode(dataRangeMode),
 m_colorEditButtonGroup(colorEditButtonGroup),
 m_showColumnTitles(showColumnTitles)
 {
@@ -75,47 +82,48 @@ PaletteEditorControlPointGroupWidget::~PaletteEditorControlPointGroupWidget()
 }
 
 /**
- * Update the content with the given control point group
- * @param controlPointGroup
- * The control point group (may be NULL)
+ * Update the content with the given palette
+ * @param palette
+ * The palette (may be NULL)
  */
 void
-PaletteEditorControlPointGroupWidget::updateContent(void* controlPointGroup,
-                                                    const int32_t numberOfControlsPointsForLayoutTesting)
+PaletteEditorControlPointGroupWidget::updateContent()
 {
     int32_t numberOfExistingRows(static_cast<int32_t>(m_paletteControlPointRows.size()));
     
-    float firstValue(0.0);
-    float lastValue(0.0);
-    int32_t numberOfControlPoints(1);
-    if (numberOfControlsPointsForLayoutTesting > 0) {
-        numberOfControlPoints = numberOfControlsPointsForLayoutTesting;
-        firstValue = 1.0;
-        lastValue  = 0.0;
-    }
-    else if (numberOfControlsPointsForLayoutTesting < 0) {
-        numberOfControlPoints = -numberOfControlsPointsForLayoutTesting;
-        firstValue = 0.0;
-        lastValue  = -1.0;
-    }
-    float step(lastValue - firstValue);
-    if (numberOfControlPoints > 2) {
-        step /= (numberOfControlPoints - 1);
-    }
+    int32_t numberOfControlPoints(0);
+
+//    std::vector<PaletteNew::ScalarColor> scalarColors;
+//    if (palette != NULL) {
+//        switch (m_dataRangeMode) {
+//            case DataRangeMode::NEGATIVE:
+//                scalarColors = palette->getNegRange();
+//                break;
+//            case DataRangeMode::POSITIVE:
+//                scalarColors = palette->getPosRange();
+//                break;
+//            case DataRangeMode::ZERO:
+//            {
+//                float zeroColor[3];
+//                palette->getZeroColor(zeroColor);
+//                PaletteNew::ScalarColor sc(0.0, zeroColor);
+//                scalarColors.push_back(sc);
+//            }
+//                break;
+//        }
+//    }
     
-    if (controlPointGroup != NULL) {
-        
-    }
+    numberOfControlPoints = static_cast<int32_t>(m_scalarColors.size());
     
     /*
      * Create new rows
      */
-    float value(firstValue);
     for (int32_t i = numberOfExistingRows; i < numberOfControlPoints; i++) {
-        PaletteControlPointRow* per = new PaletteControlPointRow(this,
+        PaletteControlPointRow* per = new PaletteControlPointRow(m_dataRangeMode,
+                                                                 i,
+                                                                 this,
                                                                  m_colorEditButtonGroup,
                                                                  m_controlPointGridLayout,
-                                                                 i,
                                                                  m_showColumnTitles);
         QObject::connect(per, &PaletteControlPointRow::editColorRequested,
                          this, &PaletteEditorControlPointGroupWidget::editColorRequested);
@@ -124,24 +132,32 @@ PaletteEditorControlPointGroupWidget::updateContent(void* controlPointGroup,
         QObject::connect(per, &PaletteControlPointRow::controlPointValueChanged,
                          this, &PaletteEditorControlPointGroupWidget::controlPointValueChangeRequested);
         
-        QSignalBlocker valueBlocker(per->m_valueSpinBox);
-        per->m_valueSpinBox->setValue(value);
-        value += step;
         m_paletteControlPointRows.push_back(per);
     }
     
     const int32_t numberOfRows(m_paletteControlPointRows.size());
     for (int32_t iRow = 0; iRow < numberOfRows; iRow++) {
-        void* controlPoint(NULL);
+        PaletteNew::ScalarColor* sc(NULL);
         if (iRow < numberOfControlPoints) {
-            /* controlPoint = */
+            CaretAssertVectorIndex(m_scalarColors, iRow);
+            sc = &m_scalarColors[iRow];
         }
         CaretAssertVectorIndex(m_paletteControlPointRows, iRow);
-        m_paletteControlPointRows[iRow]->updateContent(controlPoint,
+        m_paletteControlPointRows[iRow]->updateContent(sc,
                                                        numberOfControlPoints);
     }
 }
 
+/**
+ * Update the control point color.  Typically called as user changes color in the color editor.
+ *
+ * @param red
+ * New red component.
+ * @param green
+ * New green component.
+ * @param blue
+ * New blue component.
+ */
 void
 PaletteEditorControlPointGroupWidget::updateControlPointColor(const uint8_t red,
                                                               const uint8_t green,
@@ -195,7 +211,9 @@ void
 PaletteEditorControlPointGroupWidget::controlPointValueChangeRequested(const int32_t controlPointIndex,
                                                                float value)
 {
-    std::cout << "New value " << value << " for " << controlPointIndex << std::endl;
+//    NEED TO GET PARENT DIALOG TO UPDATE THE COLOR
+//
+//    THIS CLASS NEEDS TO UPDATE MIN/MAX of SPIN BOXES
 }
 
 
@@ -214,12 +232,14 @@ PaletteEditorControlPointGroupWidget::controlPointValueChangeRequested(const int
  * @param showColumnTitles
  *    True if color titles show be show, else false
  */
-PaletteControlPointRow::PaletteControlPointRow(PaletteEditorControlPointGroupWidget* paletteEditorControlPointGroupWidget,
+PaletteControlPointRow::PaletteControlPointRow(const PaletteEditorControlPointGroupWidget::DataRangeMode dataRangeMode,
+                                               const int32_t controlPointIndex,
+                                               PaletteEditorControlPointGroupWidget* paletteEditorControlPointGroupWidget,
                                                QButtonGroup* colorEditButtonGroup,
                                                QGridLayout* gridLayout,
-                                               const int32_t controlPointIndex,
                                                const bool showColumnTitles)
 : QObject(paletteEditorControlPointGroupWidget),
+m_dataRangeMode(dataRangeMode),
 m_controlPointIndex(controlPointIndex)
 {
     int32_t columnCount(0);
@@ -293,7 +313,7 @@ m_controlPointIndex(controlPointIndex)
     m_valueSpinBox->setDecimals(3);
     m_valueSpinBox->setSingleStep(0.001);
     QObject::connect(m_valueSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-                     [=](double valueIn) { controlPointValueChanged(m_controlPointIndex, valueIn); });
+                     this, &PaletteControlPointRow::controlPointValueChangedByUser);
     
     m_valueLabel = new QLabel();
     
@@ -301,16 +321,16 @@ m_controlPointIndex(controlPointIndex)
     m_valueStackedWidget->addWidget(m_valueSpinBox);
     m_valueStackedWidget->addWidget(m_valueLabel);
     
-    const uint8_t red(static_cast<uint8_t>((static_cast<float>(std::rand()) / RAND_MAX) * 255.0));
-    const uint8_t green(static_cast<uint8_t>((static_cast<float>(std::rand()) / RAND_MAX) * 255.0));
-    const uint8_t blue(static_cast<uint8_t>((static_cast<float>(std::rand()) / RAND_MAX) * 255.0));
-    
     m_editColorRadioButton = new QRadioButton("");
     m_editColorRadioButton->setToolTip("Click to edit this control point's color");
     colorEditButtonGroup->addButton(m_editColorRadioButton);
     QObject::connect(m_editColorRadioButton, &QRadioButton::clicked,
-                     [=](bool) { emit editColorRequested(m_controlPointIndex,
-                                                         red, green, blue); } );
+        [=](bool) { if (m_scalarColor != NULL) {
+                        uint8_t r(m_scalarColor->color[0] * 255.0);
+                        uint8_t g(m_scalarColor->color[1] * 255.0);
+                        uint8_t b(m_scalarColor->color[2] * 255.0);
+                        emit editColorRequested(m_controlPointIndex,
+                                                r, g, b); } } );
     
     m_colorSwatchWidget = new QWidget();
     m_colorSwatchWidget->setFixedWidth(40);
@@ -325,8 +345,6 @@ m_controlPointIndex(controlPointIndex)
                           row, columnColorSwatch, Qt::AlignCenter);
     gridLayout->addWidget(m_editColorRadioButton,
                           row, columnEdit, Qt::AlignRight);
-
-    updateColor(red, green, blue);
 }
 
 /**
@@ -334,7 +352,21 @@ m_controlPointIndex(controlPointIndex)
  */
 PaletteControlPointRow::~PaletteControlPointRow()
 {
-    
+}
+
+/**
+ * Called when the control point value is changed
+ *
+ * @param value
+ *    New valuel
+ */
+void
+PaletteControlPointRow::controlPointValueChangedByUser(double value)
+{
+    if (m_scalarColor != NULL) { m_scalarColor->scalar = value;
+        emit controlPointValueChanged(m_controlPointIndex,
+                                      value);
+    }
 }
 
 /**
@@ -345,18 +377,17 @@ PaletteControlPointRow::~PaletteControlPointRow()
  *    Number of control points
  */
 void
-PaletteControlPointRow::updateContent(void* controlPoint,
+PaletteControlPointRow::updateContent(PaletteNew::ScalarColor* scalarColor,
                                       const int32_t numberOfControlPoints)
 {
     QSignalBlocker valueSpinBoxBlocker(m_valueSpinBox);
     
+    m_scalarColor = scalarColor;
+    
     bool showWidgetsFlag(false);
-    if (controlPoint != NULL) {
+    if (m_scalarColor != NULL) {
         showWidgetsFlag = true;
     }
-    
-    /* TEMPORARY */
-    showWidgetsFlag = true;
     
     const bool firstControlPointFlag(m_controlPointIndex == 0);
     const bool lastControlPointFlag(m_controlPointIndex == (numberOfControlPoints - 1));
@@ -370,6 +401,17 @@ PaletteControlPointRow::updateContent(void* controlPoint,
     m_valueSpinBox->setVisible(showWidgetsFlag);
     m_colorSwatchWidget->setVisible(showWidgetsFlag);
     m_editColorRadioButton->setVisible(showWidgetsFlag);
+    
+    if (scalarColor != NULL) {
+        QSignalBlocker valueBlocker(m_valueSpinBox);
+        m_valueSpinBox->setValue(scalarColor->scalar);
+        const uint8_t red(static_cast<uint8_t>(scalarColor->color[0] * 255.0));
+        const uint8_t green(static_cast<uint8_t>(scalarColor->color[1] * 255.0));
+        const uint8_t blue(static_cast<uint8_t>(scalarColor->color[2] * 255.0));
+        updateColor(red,
+                    green,
+                    blue);
+    }
 }
 
 void
@@ -377,6 +419,12 @@ PaletteControlPointRow::updateColor(const uint8_t red,
                                     const uint8_t green,
                                     const uint8_t blue)
 {
+    if (m_scalarColor != NULL) {
+        m_scalarColor->color[0] = red / 255.0;
+        m_scalarColor->color[1] = green / 255.0;
+        m_scalarColor->color[2] = blue / 255.0;
+    }
+    
     m_colorSwatchWidget->setStyleSheet("background-color: rgb("
                                        + AString::number(red)
                                        + ", " + AString::number(green)

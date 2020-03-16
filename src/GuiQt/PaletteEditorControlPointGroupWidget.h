@@ -22,10 +22,12 @@
 /*LICENSE_END*/
 
 
-
+#include <array>
 #include <memory>
 
 #include <QWidget>
+
+#include "PaletteNew.h"
 
 class QButtonGroup;
 class QDoubleSpinBox;
@@ -44,13 +46,21 @@ namespace caret {
         Q_OBJECT
 
     public:
+        enum class DataRangeMode {
+            NEGATIVE,
+            POSITIVE,
+            ZERO
+        };
+        
         enum class ModificationOperation {
             INSERT_CONTROL_POINT_ABOVE,
             INSERT_CONTROL_POINT_BELOW,
             REMOVE_CONTROL_POINT
         };
         
-        PaletteEditorControlPointGroupWidget(QButtonGroup* colorEditButtonGroup,
+        PaletteEditorControlPointGroupWidget(std::vector<PaletteNew::ScalarColor>& scalarColors,
+                                             const DataRangeMode dataRangeMode,
+                                             QButtonGroup* colorEditButtonGroup,
                                              const bool showColumnTitles,
                                              QWidget* parent);
         
@@ -60,8 +70,7 @@ namespace caret {
 
         PaletteEditorControlPointGroupWidget& operator=(const PaletteEditorControlPointGroupWidget&) = delete;
         
-        void updateContent(void* controlPointGroup,
-                           const int32_t numberOfControlsPointsForLayoutTesting);
+        void updateContent();
 
         void updateControlPointColor(const uint8_t red,
                                      const uint8_t green,
@@ -84,6 +93,10 @@ namespace caret {
 //                                const uint8_t red, const uint8_t green, const uint8_t blue);
 
     private:
+        std::vector<PaletteNew::ScalarColor>& m_scalarColors;
+        
+        const DataRangeMode m_dataRangeMode;
+        
         QButtonGroup* m_colorEditButtonGroup;
         
         QGridLayout* m_controlPointGridLayout;
@@ -91,6 +104,7 @@ namespace caret {
         std::vector<PaletteControlPointRow*> m_paletteControlPointRows;
         
         const bool m_showColumnTitles;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
@@ -99,20 +113,36 @@ namespace caret {
         Q_OBJECT
         
     public:
-        PaletteControlPointRow(PaletteEditorControlPointGroupWidget* paletteEditorControlPointGroupWidget,
+        PaletteControlPointRow(const PaletteEditorControlPointGroupWidget::DataRangeMode dataRangeMode,
+                               const int32_t controlPointIndex,
+                               PaletteEditorControlPointGroupWidget* paletteEditorControlPointGroupWidget,
                                QButtonGroup* colorEditButtonGroup,
                                QGridLayout* gridLayout,
-                               const int32_t controlPointIndex,
                                const bool showColumnTitles);
 
         ~PaletteControlPointRow();
         
-        void updateContent(void* controlPoint,
+        void updateContent(PaletteNew::ScalarColor* scalarColor,
                            const int32_t numberOfControlPoints);
         
         void updateColor(const uint8_t red,
                          const uint8_t green,
                          const uint8_t blue);
+        
+    signals:
+        void modificationRequested(const int32_t controlPointIndex,
+                                   const PaletteEditorControlPointGroupWidget::ModificationOperation modificationOperation);
+        
+        void controlPointValueChanged(const int32_t controlPointIndex,
+                                      float value);
+        
+        void editColorRequested(const int32_t controlPointIndex,
+                                const uint8_t red, const uint8_t green, const uint8_t blue);
+    private slots:
+        void controlPointValueChangedByUser(double value);
+
+    private:
+        const PaletteEditorControlPointGroupWidget::DataRangeMode m_dataRangeMode;
         
         const int32_t m_controlPointIndex;
         
@@ -135,17 +165,10 @@ namespace caret {
         QAction* m_insertBelowAction;
         
         QAction* m_removeAction;
-
-    signals:
-        void modificationRequested(const int32_t controlPointIndex,
-                                   const PaletteEditorControlPointGroupWidget::ModificationOperation modificationOperation);
         
-        void controlPointValueChanged(const int32_t controlPointIndex,
-                                      float value);
+        PaletteNew::ScalarColor* m_scalarColor = NULL;
         
-        void editColorRequested(const int32_t controlPointIndex,
-                                const uint8_t red, const uint8_t green, const uint8_t blue);
-        
+        friend class PaletteEditorControlPointGroupWidget;
     };
 
 #ifdef __PALETTE_EDITOR_CONTROL_POINT_GROUP_WIDGET_DECLARE__

@@ -34,6 +34,7 @@
 namespace caret {
 
     class Palette;
+    class PaletteNew;
     
     class PalettePixmapPainter : public CaretObject {
         
@@ -50,6 +51,10 @@ namespace caret {
                              const QSize& pixmapSize,
                              const Mode mode);
         
+        PalettePixmapPainter(const PaletteNew* palette,
+                             const QSize& pixmapSize,
+                             const Mode mode);
+        
         virtual ~PalettePixmapPainter();
         
         PalettePixmapPainter(const PalettePixmapPainter&) = delete;
@@ -63,16 +68,24 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void createPixmapInterpolateOff(const Palette* palette,
-                                        const qreal pixmapWidth,
-                                        const qreal pixmapHeight);
+        void createPalettePixmapInterpolateOff(const Palette* palette,
+                                               const qreal pixmapWidth,
+                                               const qreal pixmapHeight);
         
-        void createPixmapInterpolateOn(const Palette* palette,
-                                       const qreal pixmapWidth,
-                                       const qreal pixmapHeight);
+        void createPalettePixmapInterpolateOn(const Palette* palette,
+                                              const qreal pixmapWidth,
+                                              const qreal pixmapHeight);
         
-        float nonInterpScalarToPixMap(const float pixmapWidth,
-                                      const float scalarIn);
+        float paletteNonInterpScalarToPixMap(const float pixmapWidth,
+                                             const float scalarIn);
+
+        void createPalettePixmapInterpolateOff(const PaletteNew* palette,
+                                               const qreal pixmapWidth,
+                                               const qreal pixmapHeight);
+        
+        void createPalettePixmapInterpolateOn(const PaletteNew* palette,
+                                              const qreal pixmapWidth,
+                                              const qreal pixmapHeight);
         
         const Mode m_mode = Mode::INTERPOLATE_ON;
         

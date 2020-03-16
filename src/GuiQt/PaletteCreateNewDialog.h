@@ -36,6 +36,8 @@ class QSpinBox;
 
 namespace caret {
 
+    class PaletteNew;
+    
     class PaletteCreateNewDialog : public WuQDialogModal {
         
         Q_OBJECT
@@ -50,7 +52,11 @@ namespace caret {
 
         PaletteCreateNewDialog& operator=(const PaletteCreateNewDialog&) = delete;
         
+        PaletteNew* getPalette();
         
+        static PaletteNew* createPaletteNew(const AString& name,
+                                            const int32_t numberOfPositiveControlPoints,
+                                            const int32_t numberOfNegativeControlPoints);
 
         // ADD_NEW_METHODS_HERE
 
@@ -84,6 +90,9 @@ namespace caret {
         QComboBox* m_templatePalettesComboBox;
         
         QComboBox* m_userPalettesComboBox;
+        
+        std::unique_ptr<PaletteNew> m_palette;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

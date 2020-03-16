@@ -43,6 +43,7 @@
 #include "PaletteCreateNewDialog.h"
 #include "PaletteFile.h"
 #include "PaletteEditorControlPointGroupWidget.h"
+#include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
 #include "WuQColorEditorWidget.h"
 #include "WuQScrollArea.h"
@@ -75,6 +76,11 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     m_colorEditButtonGroup = new QButtonGroup(this);
     m_colorEditButtonGroup->setExclusive(true);
     
+    /*
+     * Create dummy user palettes
+     */
+    createUserPalettes();
+    
     QWidget* paletteBarWidget = createPaletteWidget();
     QWidget* paletteSelectionWidget = createPaletteSelectionWidget();
     QWidget* controlPointsWidget = createControlPointsWidget();
@@ -98,8 +104,6 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
 
     setCentralWidget(dialogWidget,
                      ScrollAreaStatus::SCROLL_AREA_NEVER);
-    
-    updateControlPointWidgets();
     
     /*
      * No resizing of dialog
@@ -139,6 +143,7 @@ PaletteEditorDialog::colorEditorColorChanged(const uint8_t red,
     m_negativeControlPointsWidget->updateControlPointColor(red,
                                                            green,
                                                            blue);
+    updatePaletteColorBarImage();
 }
 
 /**
@@ -147,11 +152,47 @@ PaletteEditorDialog::colorEditorColorChanged(const uint8_t red,
 void
 PaletteEditorDialog::updateDialog()
 {
-    EventPaletteGetByName paletteEvent("ROY-BIG-BL");
-    EventManager::get()->sendEvent(paletteEvent.getPointer());
-    const Palette* palette = paletteEvent.getPalette();
+    adjustSize();
+}
+
+/**
+ * Load a copy of the palette into the dialog
+ */
+void
+PaletteEditorDialog::loadPalette(const PaletteNew* palette)
+{
+    m_currentPaletteName.clear();
+    m_currentPalettePositive.clear();
+    m_currentPaletteNegative.clear();
+    m_currentPaletteZero.clear();
+    
     if (palette != NULL) {
-        PalettePixmapPainter palettePainter(palette,
+        m_currentPaletteName = palette->getName();
+        m_currentPalettePositive = palette->getPosRange();
+        m_currentPaletteNegative = palette->getNegRange();
+        m_currentPaletteZero.push_back(PaletteNew::ScalarColor(0.0, 0.0, 0.0, 0.0));
+    }
+    
+    updatePaletteColorBarImage();
+
+    m_positiveControlPointsWidget->updateContent();
+    m_negativeControlPointsWidget->updateContent();
+    m_zeroControlPointsWidget->updateContent();
+}
+
+/**
+ * Update the palette color bar image
+ */
+void
+PaletteEditorDialog::updatePaletteColorBarImage()
+{
+    if ( ( ! m_currentPalettePositive.empty())
+        && ( ! m_currentPaletteNegative.empty())
+        && ( ! m_currentPaletteZero.empty()) ) {
+        PaletteNew palette(m_currentPalettePositive,
+                           m_currentPaletteZero[0].color,
+                           m_currentPaletteNegative);
+        PalettePixmapPainter palettePainter(&palette,
                                             m_colorBarImageLabel->size(),
                                             m_pixmapMode);
         QPixmap pixmap = palettePainter.getPixmap();
@@ -159,9 +200,9 @@ PaletteEditorDialog::updateDialog()
             m_colorBarImageLabel->setPixmap(pixmap);
         }
     }
-    
-    updateControlPointWidgets();
-    adjustSize();
+    else {
+        m_colorBarImageLabel->setPixmap(QPixmap());
+    }
 }
 
 /**
@@ -179,6 +220,7 @@ void
 PaletteEditorDialog::editColor(const int32_t controlPointIndex, const uint8_t red, const uint8_t green, const uint8_t blue)
 {
     m_colorEditorWidget->setCurrentColor(red, green, blue);
+    updatePaletteColorBarImage();
 }
 
 /**
@@ -187,7 +229,9 @@ PaletteEditorDialog::editColor(const int32_t controlPointIndex, const uint8_t re
 QWidget*
 PaletteEditorDialog::createControlPointsWidget()
 {
-    m_positiveControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_colorEditButtonGroup,
+    m_positiveControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_currentPalettePositive,
+                                                                             PaletteEditorControlPointGroupWidget::DataRangeMode::POSITIVE,
+                                                                             m_colorEditButtonGroup,
                                                                              true,
                                                                              this);
     QObject::connect(m_positiveControlPointsWidget, &PaletteEditorControlPointGroupWidget::editColorRequested,
@@ -197,7 +241,9 @@ PaletteEditorDialog::createControlPointsWidget()
     WuQtUtilities::setLayoutSpacingAndMargins(positiveLayout, 0, 0);
     positiveLayout->addWidget(m_positiveControlPointsWidget);
 
-    m_zeroControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_colorEditButtonGroup,
+    m_zeroControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_currentPaletteZero,
+                                                                         PaletteEditorControlPointGroupWidget::DataRangeMode::ZERO,
+                                                                         m_colorEditButtonGroup,
                                                                          false,
                                                                          this);
     QObject::connect(m_zeroControlPointsWidget, &PaletteEditorControlPointGroupWidget::editColorRequested,
@@ -208,7 +254,9 @@ PaletteEditorDialog::createControlPointsWidget()
     WuQtUtilities::setLayoutSpacingAndMargins(zeroLayout, 0, 0);
     zeroLayout->addWidget(m_zeroControlPointsWidget);
     
-    m_negativeControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_colorEditButtonGroup,
+    m_negativeControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_currentPaletteNegative,
+                                                                             PaletteEditorControlPointGroupWidget::DataRangeMode::NEGATIVE,
+                                                                             m_colorEditButtonGroup,
                                                                              false,
                                                                              this);
     QObject::connect(m_negativeControlPointsWidget, &PaletteEditorControlPointGroupWidget::editColorRequested,
@@ -240,17 +288,6 @@ PaletteEditorDialog::createControlPointsWidget()
     return scrollArea;
 }
 
-/**
- * Update the control point widgets
- */
-void
-PaletteEditorDialog::updateControlPointWidgets()
-{
-    m_positiveControlPointsWidget->updateContent(NULL, 5);
-    m_zeroControlPointsWidget->updateContent(NULL, 0);
-    m_negativeControlPointsWidget->updateContent(NULL, -4);
-}
-
 /*
  * @return Create the palette widget that shows the current palette being edited
  */
@@ -280,37 +317,25 @@ PaletteEditorDialog::createPaletteSelectionWidget()
     m_paletteSourceComboBox->addItem("User Palettes");
     
     m_userPaletteSelectionComboBox = new QComboBox();
+    QObject::connect(m_userPaletteSelectionComboBox, QOverload<int>::of(&QComboBox::activated),
+                     this, &PaletteEditorDialog::userPaletteComboBoxActivated);
     
     QSize iconSize(80, 18);
-    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
     
-    const int32_t numPalettes = std::min(3, paletteFile->getNumberOfPalettes());
-    for (int32_t i = 0; i < numPalettes; i++) {
-        Palette* palette = paletteFile->getPalette(i);
-        AString name = palette->getName();
-        switch (i) {
-            case 0:
-                name = "Colors";
-                break;
-            case 1:
-                name = "Rainbow";
-                break;
-            case 2:
-                name = "Gray";
-                break;
-        }
+    for (auto& pal : m_userPalettes) {
         /*
          * Second parameter is user data.  In the future, there may be user-editable
          * palettes and it is possible there may be palettes with the same name.
          * Thus, the user-data may change to a unique-identifier that is different
          * than the palette name.
          */
-        const AString paletteUniqueID(name);
+        //const AString paletteUniqueID(name);
         
-        PalettePixmapPainter palettePainter(palette,
+        PalettePixmapPainter palettePainter(pal.get(),
                                             iconSize,
                                             m_pixmapMode);
         QPixmap pixmap = palettePainter.getPixmap();
+        const QString name = pal->getName();
         if (pixmap.isNull()) {
             m_userPaletteSelectionComboBox->addItem(name);
         }
@@ -371,6 +396,23 @@ PaletteEditorDialog::createPaletteSelectionWidget()
 }
 
 /**
+ * Called when a user palette is selected
+ * @param index
+ *     Index of the palette
+ */
+void
+PaletteEditorDialog::userPaletteComboBoxActivated(int index)
+{
+    if ((index >= 0)
+        && (index < m_userPaletteSelectionComboBox->count())) {
+        loadPalette(m_userPalettes[index].get());
+    }
+    
+    updateDialog();
+}
+    
+
+/**
  * Called when button for creating a new palette is clicked
  */
 void
@@ -378,7 +420,10 @@ PaletteEditorDialog::newPaletteButtonClicked()
 {
     PaletteCreateNewDialog dialog(m_pixmapMode,
                                   this);
-    dialog.exec();
+    if (dialog.exec() == PaletteCreateNewDialog::Accepted) {
+        loadPalette(dialog.getPalette());
+        updateDialog();
+    }
 }
 
 /**
@@ -446,4 +491,19 @@ PaletteEditorDialog::createIcon(QWidget* widget,
     }
     
     return pixmapOut;
+}
+
+/**
+ * Create example palettes for testing
+ */
+void
+PaletteEditorDialog::createUserPalettes()
+{
+    m_userPalettes.clear();
+    
+    std::unique_ptr<PaletteNew> pal55(PaletteCreateNewDialog::createPaletteNew("Pal55", 5, 5));
+    std::unique_ptr<PaletteNew> pal34(PaletteCreateNewDialog::createPaletteNew("Pal34", 3, 4));
+    
+    m_userPalettes.push_back(std::move(pal55));
+    m_userPalettes.push_back(std::move(pal34));
 }

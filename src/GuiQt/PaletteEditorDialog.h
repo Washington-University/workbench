@@ -26,6 +26,7 @@
 
 #include <memory>
 
+#include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
 #include "WuQDialogNonModal.h"
 
@@ -67,11 +68,15 @@ namespace caret {
         
         void colorEditorColorChanged(const uint8_t red, const uint8_t green, const uint8_t blue);
         
+        void userPaletteComboBoxActivated(int index);
+        
     private:
         enum class IconType {
             ARROW_LEFT_DOWN,
             ARROW_UP_RIGHT
         };
+        
+        void loadPalette(const PaletteNew* palette);
         
         QWidget* createControlPointsWidget();
         
@@ -79,10 +84,12 @@ namespace caret {
         
         QWidget* createPaletteSelectionWidget();
         
-        void updateControlPointWidgets();
-        
         QPixmap createIcon(QWidget* widget,
                            const IconType iconType);
+        
+        void createUserPalettes();
+        
+        void updatePaletteColorBarImage();
         
         PaletteEditorControlPointGroupWidget* m_positiveControlPointsWidget;
         
@@ -101,6 +108,13 @@ namespace caret {
         QComboBox* m_userPaletteSelectionComboBox;
         
         PalettePixmapPainter::Mode m_pixmapMode = PalettePixmapPainter::Mode::INTERPOLATE_OFF;
+        
+        std::vector<std::unique_ptr<PaletteNew>> m_userPalettes;
+        
+        AString m_currentPaletteName;
+        std::vector<PaletteNew::ScalarColor> m_currentPalettePositive;
+        std::vector<PaletteNew::ScalarColor> m_currentPaletteNegative;
+        std::vector<PaletteNew::ScalarColor> m_currentPaletteZero;
         
         // ADD_NEW_MEMBERS_HERE
 
