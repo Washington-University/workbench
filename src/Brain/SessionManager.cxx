@@ -418,7 +418,7 @@ SessionManager::receiveEvent(Event* event)
         
         std::vector<BrowserTabContent*> activeTabs = getActiveBrowserTabs();
         for (auto bt : activeTabs) {
-            tabEvent->addBrowserTabIndex(bt->getTabName());
+            tabEvent->addBrowserTabIndex(bt->getTabNumber());
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_AVAILBLE) {
