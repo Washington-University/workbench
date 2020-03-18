@@ -151,6 +151,36 @@ CaretAssertion::assertToDoFatal(const char* filename,
  * file, and the line number in the file.  If
  * a callstack (backtrace) is available, it will
  * also be printed.  Lastly, abort() is called.
+ *
+ *
+ * @param expression
+ *    Expression that failed assertion testing.
+ * @param message
+ *    Message that is printed.
+ * @param filename
+ *    Name of file in which assertion failed.
+ * @param lineNumber
+ *    Line number where assertion failed.
+ */
+void
+CaretAssertion::assertFailed(const char* expression,
+                             const AString& message,
+                             const char* filename,
+                             const int64_t lineNumber)
+{
+    assertFailed(expression,
+                 message.toLatin1().constData(),
+                 filename,
+                 lineNumber);
+}
+
+/**
+ * Called when an assertion has failed.
+ * The following events will occur:
+ * Prints the expression that failed, the name of
+ * file, and the line number in the file.  If
+ * a callstack (backtrace) is available, it will
+ * also be printed.  Lastly, abort() is called.
  * 
  *
  * @param expression

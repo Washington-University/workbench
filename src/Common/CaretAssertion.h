@@ -27,6 +27,8 @@
 
 namespace caret {
     
+    class AString;
+    
 /**
  * Contains static methods for assertion processing.
  * 
@@ -51,6 +53,11 @@ public:
     
     static void assertFailed(const char* expression,
                              const char* message,
+                             const char* filename,
+                             const int64_t lineNumber);
+    
+    static void assertFailed(const char* expression,
+                             const AString& message,
                              const char* filename,
                              const int64_t lineNumber);
     
