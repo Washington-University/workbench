@@ -229,7 +229,7 @@ void MovieDialog::on_recordButton_toggled(bool checked)
 //            if(!(crop[0]&&crop[1])) GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex)->getViewportSize(crop[0],crop[1]);
     
 
-            unlink(fileName);
+            unlink(fileName.toLatin1().data());
             CaretLogInfo("Rendering movie to:" + fileName);
             AString ffmpeg = SystemUtilities::getWorkbenchHome() + AString("/ffmpeg ");            
 
@@ -263,7 +263,7 @@ void MovieDialog::on_recordButton_toggled(bool checked)
         for(int i = 0;i<frame_number;i++)
         {
             AString tempFile = tempDir + "/movie" + AString::number(i) + AString(".png");
-            unlink(tempFile);
+            unlink(tempFile.toLatin1().data());
         }
         frame_number = 0;
     }

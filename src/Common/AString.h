@@ -54,36 +54,6 @@ namespace caret {
         //std::string compatibility
         operator std::string () {return this->toStdString(); }
         
-        //char * compatibility
-        operator const char* () {return this->toLatin1(); }
-        
-        //double compatiblity
-        operator double () {return this->toDouble(); }
-        
-        //float compatiblity
-        operator float () { return this->toFloat(); }
-        
-        //int compatiblity
-        operator int () { return this->toInt(); }
-        
-        //long compatiblity
-        operator long () { return this->toLong(); }
-        
-        //long long compatiblity
-        operator long long () { return this->toLongLong(); }
-        
-        //unsigned int compatiblity
-        operator unsigned int () { return this->toUInt(); }
-        
-        //unsigned long compatiblity
-        operator unsigned long () { return this->toULong(); }
-        
-        //unsigned long long compatiblity
-        operator unsigned long long () { return this->toULongLong(); }
-        
-        /// convert to a const char* (the operator() does not work in C++ library I/O functions)
-        //const char* c_str() const { return qPrintable(*this); }
-        
         char* toCharArray() const;
         
         AString convertURLsToHyperlinks() const;
