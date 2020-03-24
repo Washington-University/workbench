@@ -145,7 +145,7 @@ void AlgorithmCiftiAverageDenseROI::useParameters(OperationParameters* myParams,
         cerebAreaSurf = cerebAreaSurfOpt->getSurface(1);
     }
     vector<const CiftiFile*> ciftiList;
-    const vector<ParameterComponent*>& ciftiInstances = *(myParams->getRepeatableParameterInstances(10));
+    const vector<ParameterComponent*>& ciftiInstances = myParams->getRepeatableParameterInstances(10);
     for (int i = 0; i < (int)ciftiInstances.size(); ++i)
     {
         ciftiList.push_back(ciftiInstances[i]->getCifti(1));

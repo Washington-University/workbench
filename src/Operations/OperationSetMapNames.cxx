@@ -71,7 +71,7 @@ void OperationSetMapNames::useParameters(OperationParameters* myParams, Progress
     AString fileName = myParams->getString(1);
     OptionalParameter* fileOpt = myParams->getOptionalParameter(2);
     OptionalParameter* dataFileOpt = myParams->getOptionalParameter(4);
-    const vector<ParameterComponent*>& mapOpts = *(myParams->getRepeatableParameterInstances(3));
+    const vector<ParameterComponent*>& mapOpts = myParams->getRepeatableParameterInstances(3);
     CaretPointer<CaretDataFile> caretDataFile(CaretDataFileHelper::readAnyCaretDataFile(fileName));
     CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile.getPointer());
     if (mappableFile == NULL) throw OperationException("cannot set map names on this file type");

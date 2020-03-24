@@ -59,6 +59,7 @@ namespace caret {
         Vector3D operator*(const float& right) const;
         Vector3D operator/(const float& right) const;//NOTE: doesn't really make sense to have the other division, unlike multiplication
         inline operator float*() { return m_vec; }
+        inline operator const float*() const { return m_vec; }
     };
     
     Vector3D operator*(const float& left, const Vector3D& right);

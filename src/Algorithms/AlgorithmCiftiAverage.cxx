@@ -71,7 +71,7 @@ void AlgorithmCiftiAverage::useParameters(OperationParameters* myParams, Progres
     CiftiFile* ciftiOut = myParams->getOutputCifti(1);
     vector<const CiftiFile*> ciftiList;//this is just so that it can pass them to the algorithm
     vector<float> weights;
-    const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(3));
+    const vector<ParameterComponent*>& myInstances = myParams->getRepeatableParameterInstances(3);
     for (int i = 0; i < (int)myInstances.size(); ++i)
     {
         ciftiList.push_back(myInstances[i]->getCifti(1));

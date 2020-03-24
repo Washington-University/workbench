@@ -109,7 +109,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
     bool outputRequested = false;
-    const vector<ParameterComponent*>& labelInstances = *(myParams->getRepeatableParameterInstances(3));
+    const vector<ParameterComponent*>& labelInstances = myParams->getRepeatableParameterInstances(3);
     for (int i = 0; i < (int)labelInstances.size(); ++i)
     {
         outputRequested = true;
@@ -129,7 +129,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
         }
         AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, myStruct, labelOut, roiOut);
     }
-    const vector<ParameterComponent*>& metricInstances = *(myParams->getRepeatableParameterInstances(4));
+    const vector<ParameterComponent*>& metricInstances = myParams->getRepeatableParameterInstances(4);
     for (int i = 0; i < (int)metricInstances.size(); ++i)
     {
         outputRequested = true;
@@ -149,7 +149,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
         }
         AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, myStruct, metricOut, roiOut);
     }
-    const vector<ParameterComponent*>& volumeInstances = *(myParams->getRepeatableParameterInstances(5));
+    const vector<ParameterComponent*>& volumeInstances = myParams->getRepeatableParameterInstances(5);
     for (int i = 0; i < (int)volumeInstances.size(); ++i)
     {
         outputRequested = true;

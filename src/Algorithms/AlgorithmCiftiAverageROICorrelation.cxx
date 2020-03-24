@@ -146,7 +146,7 @@ void AlgorithmCiftiAverageROICorrelation::useParameters(OperationParameters* myP
         cerebAreaSurf = cerebAreaSurfOpt->getSurface(1);
     }
     vector<const CiftiFile*> ciftiList;
-    const vector<ParameterComponent*>& ciftiInputs = *(myParams->getRepeatableParameterInstances(10));
+    const vector<ParameterComponent*>& ciftiInputs = myParams->getRepeatableParameterInstances(10);
     if (ciftiInputs.size() == 0) throw AlgorithmException("at least one -cifti input is required");
     for (int i = 0; i < (int)ciftiInputs.size(); ++i)
     {

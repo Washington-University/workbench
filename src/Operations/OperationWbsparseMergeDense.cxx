@@ -66,7 +66,7 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
         throw OperationException("incorrect string for direction, use ROW or COLUMN");
     }
     AString outputName = myParams->getString(2);
-    const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(3));
+    const vector<ParameterComponent*>& myInstances = myParams->getRepeatableParameterInstances(3);
     vector<CaretPointer<CaretSparseFile> > wbsparseList;
     int numCifti = (int)myInstances.size();
     for (int i = 0; i < numCifti; ++i)

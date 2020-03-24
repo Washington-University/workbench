@@ -68,7 +68,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
 {
     LevelProgress myProgress(myProgObj);
     CiftiFile* ciftiOut = myParams->getOutputCifti(1);
-    const vector<ParameterComponent*>& myInputs = *(myParams->getRepeatableParameterInstances(2));
+    const vector<ParameterComponent*>& myInputs = myParams->getRepeatableParameterInstances(2);
     int numInputs = (int)myInputs.size();
     if (numInputs == 0) throw OperationException("no inputs specified");
     vector<CiftiFile> ciftiList(numInputs);
@@ -99,7 +99,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
         if (thisXML.getNumberOfDimensions() != 2) throw OperationException("only 2D cifti are supported");
         if (!thisXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(baseColMapping)) throw OperationException("file '" + ciftiIn->getFileName() + "' has non-matching mapping along columns");
         if (thisXML.getMappingType(CiftiXML::ALONG_ROW) != baseRowMapping.getType()) throw OperationException("file '" + ciftiIn->getFileName() + "' has different mapping type along rows");
-        const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
+        const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
         int numColumnOpts = (int)columnOpts.size();
         if (numColumnOpts > 0)
         {
@@ -155,7 +155,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
         const CiftiFile* ciftiIn = &(ciftiList[i]);
         vector<int64_t> thisDims = ciftiIn->getDimensions();
         const CiftiXML& thisXML = ciftiIn->getCiftiXML();
-        const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
+        const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
         int numColumnOpts = (int)columnOpts.size();
         if (numColumnOpts > 0)
         {
@@ -274,7 +274,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
             const CiftiFile* ciftiIn = &(ciftiList[i]);
             vector<int64_t> thisDims = ciftiIn->getDimensions();
             const CiftiXML& thisXML = ciftiIn->getCiftiXML();
-            const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
+            const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
             int numColumnOpts = (int)columnOpts.size();
             if (numColumnOpts > 0)
             {

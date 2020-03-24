@@ -101,6 +101,8 @@ namespace caret {
       const std::vector<std::vector<float> >& getMatrix() const;
       ///separate 3x4 or 4x4 into Vector3Ds, throw on wrong dimensions
       void getAffineVectors(Vector3D& xvec, Vector3D& yvec, Vector3D& zvec, Vector3D& offset) const;
+      ///convenience for use as affine
+      Vector3D transformPoint(const Vector3D& coordIn) const;
       ///get number of rows
       int64_t getNumberOfRows() const { return (int64_t)m_matrix.size(); }
       ///get number of columns

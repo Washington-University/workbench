@@ -546,6 +546,7 @@ bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myC
                 cout << "Now parsing repeatable option " << myComponent->m_repeatableOptions[i]->m_optionSwitch << endl;
             }
             myComponent->m_repeatableOptions[i]->m_instances.push_back(new ParameterComponent(myComponent->m_repeatableOptions[i]->m_template));
+            myComponent->m_repeatableOptions[i]->m_positions.push_back(parameters.getParameterIndex() - 1);//parameters is on the next argument already
             parseComponent(myComponent->m_repeatableOptions[i]->m_instances.back(), parameters, outAssociation, debug);
             if (debug)
             {

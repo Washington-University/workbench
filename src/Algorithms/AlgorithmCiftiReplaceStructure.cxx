@@ -101,7 +101,7 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
     bool discardUnusedLabels = myParams->getOptionalParameter(7)->m_present;
-    const vector<ParameterComponent*>& labelInst = *(myParams->getRepeatableParameterInstances(3));
+    const vector<ParameterComponent*>& labelInst = myParams->getRepeatableParameterInstances(3);
     for (int i = 0; i < (int)labelInst.size(); ++i)
     {
         AString structName = labelInst[i]->getString(1);
@@ -114,7 +114,7 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         LabelFile* labelIn = labelInst[i]->getLabel(2);
         AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, labelIn, discardUnusedLabels);
     }
-    const vector<ParameterComponent*>& metricInst = *(myParams->getRepeatableParameterInstances(4));
+    const vector<ParameterComponent*>& metricInst = myParams->getRepeatableParameterInstances(4);
     for (int i = 0; i < (int)metricInst.size(); ++i)
     {
         AString structName = metricInst[i]->getString(1);
@@ -127,7 +127,7 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         MetricFile* metricIn = metricInst[i]->getMetric(2);
         AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, metricIn);
     }
-    const vector<ParameterComponent*>& volumeInst = *(myParams->getRepeatableParameterInstances(5));
+    const vector<ParameterComponent*>& volumeInst = myParams->getRepeatableParameterInstances(5);
     for (int i = 0; i < (int)volumeInst.size(); ++i)
     {
         AString structName = volumeInst[i]->getString(1);

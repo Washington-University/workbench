@@ -68,7 +68,7 @@ void OperationBorderMerge::useParameters(OperationParameters* myParams, Progress
 {
     LevelProgress myProgress(myProgObj);
     BorderFile* outFile = myParams->getOutputBorder(1);
-    const vector<ParameterComponent*>& borderInst = *(myParams->getRepeatableParameterInstances(2));
+    const vector<ParameterComponent*>& borderInst = myParams->getRepeatableParameterInstances(2);
     int numInputs = (int)borderInst.size();
     if (numInputs < 1) throw OperationException("no inputs specified");
     for (int i = 0; i < numInputs; ++i)
@@ -91,7 +91,7 @@ void OperationBorderMerge::useParameters(OperationParameters* myParams, Progress
         outFile->getClassColorTable()->append(*(input->getClassColorTable()));//let the append logic deal with conflicts
         outFile->getNameColorTable()->append(*(input->getNameColorTable()));//we don't need the return values, as the numbers in the label tables are meaningless
         int numBorderParts = input->getNumberOfBorders();
-        const vector<ParameterComponent*>& selectOpts = *(borderInst[i]->getRepeatableParameterInstances(2));
+        const vector<ParameterComponent*>& selectOpts = borderInst[i]->getRepeatableParameterInstances(2);
         int numSelectOpts = (int)selectOpts.size();
         if (numSelectOpts > 0)
         {

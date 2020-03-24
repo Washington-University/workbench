@@ -70,7 +70,7 @@ void AlgorithmCiftiMergeDense::useParameters(OperationParameters* myParams, Prog
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
     CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
-    const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(3));
+    const vector<ParameterComponent*>& myInstances = myParams->getRepeatableParameterInstances(3);
     vector<const CiftiFile*> ciftiList;
     int numCifti = (int)myInstances.size();
     for (int i = 0; i < numCifti; ++i)

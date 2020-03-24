@@ -95,8 +95,8 @@ void OperationCiftiExportDenseMapping::useParameters(OperationParameters* myPara
     } else {
         throw OperationException("incorrect string for direction, use ROW or COLUMN");
     }
-    const vector<ParameterComponent*>& surfOpts = *(myParams->getRepeatableParameterInstances(3));
-    const vector<ParameterComponent*>& volOpts = *(myParams->getRepeatableParameterInstances(4));
+    const vector<ParameterComponent*>& surfOpts = myParams->getRepeatableParameterInstances(3);
+    const vector<ParameterComponent*>& volOpts = myParams->getRepeatableParameterInstances(4);
     OptionalParameter* volAllOpt = myParams->getOptionalParameter(5);
     const CiftiXML& myXML = myCifti->getCiftiXML();
     if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw OperationException("specified direction in cifti file does not have BRAIN_MODELS mapping");

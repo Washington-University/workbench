@@ -99,7 +99,7 @@ void OperationCiftiEstimateFWHM::useParameters(OperationParameters* myParams, Pr
         column = columnOpt->getInteger(1) - 1;//compensate for 1-based UI indices
         if (column < 0 || column >= myCifti->getNumberOfColumns()) throw OperationException("invalid column index");
     }
-    const vector<ParameterComponent*>& surfInstances = *(myParams->getRepeatableParameterInstances(4));
+    const vector<ParameterComponent*>& surfInstances = myParams->getRepeatableParameterInstances(4);
     int numInstances = (int)surfInstances.size();
     for (int i = 0; i < numInstances; ++i)
     {

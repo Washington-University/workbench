@@ -85,7 +85,7 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
     cout << "parsed '" + expression + "' as '" + myExpr.toString() + "'" << endl;
     vector<AString> myVarNames = myExpr.getVarNames();
     CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
-    const vector<ParameterComponent*>& myVarOpts = *(myParams->getRepeatableParameterInstances(3));
+    const vector<ParameterComponent*>& myVarOpts = myParams->getRepeatableParameterInstances(3);
     OptionalParameter* fixNanOpt = myParams->getOptionalParameter(4);
     bool nanfix = false;
     float nanfixval = 0;
@@ -115,7 +115,7 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
         int thisNumDims = tempXML.getNumberOfDimensions();
         vector<int64_t> thisSelectInfo(thisNumDims, -1);
         vector<bool> thisRepeat(thisNumDims, false);
-        const vector<ParameterComponent*>& thisSelectOpts = *(myVarOpts[i]->getRepeatableParameterInstances(3));
+        const vector<ParameterComponent*>& thisSelectOpts = myVarOpts[i]->getRepeatableParameterInstances(3);
         for (int j = 0; j < (int)thisSelectOpts.size(); ++j)
         {
             int dim = (int)thisSelectOpts[j]->getInteger(1) - 1;

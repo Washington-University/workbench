@@ -63,7 +63,7 @@ void OperationSceneFileMerge::useParameters(OperationParameters* myParams, Progr
 {
     LevelProgress myProgress(myProgObj);
     SceneFile outSceneFile;
-    const vector<ParameterComponent*>& myInputs = *(myParams->getRepeatableParameterInstances(2));
+    const vector<ParameterComponent*>& myInputs = myParams->getRepeatableParameterInstances(2);
     int numInputs = (int)myInputs.size();
     if (numInputs == 0) throw OperationException("no inputs specified");
     for (int i = 0; i < numInputs; ++i)
@@ -71,7 +71,7 @@ void OperationSceneFileMerge::useParameters(OperationParameters* myParams, Progr
         ParameterComponent* thisInput = myInputs[i];
         SceneFile inputScene;
         inputScene.readFile(thisInput->getString(1));
-        const vector<ParameterComponent*>& selectOpts = *(thisInput->getRepeatableParameterInstances(2));
+        const vector<ParameterComponent*>& selectOpts = thisInput->getRepeatableParameterInstances(2);
         int numSelect = (int)selectOpts.size();
         if (numSelect > 0)
         {

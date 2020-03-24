@@ -25,6 +25,8 @@
 #include "FileInformation.h"
 #include "NiftiIO.h"
 
+#include <QFile>
+
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -52,7 +54,7 @@ FloatMatrix AffineFile::read34(const AString& filename)
 {
     FileInformation affineInfo(filename);
     if (!affineInfo.exists()) throw DataFileException("affine file '" + filename + "' does not exist");
-    fstream affineFile(filename.toLocal8Bit().constData(), fstream::in);
+    ifstream affineFile(filename.toStdString());
     if (!affineFile.good()) throw DataFileException("error opening file '" + filename + "' for reading");
     FloatMatrix ret = FloatMatrix::identity(4);//to ensure the right size and the fourth 0 0 0 1 row
     for (int i = 0; i < 3; ++i)//DO NOT read the fourth row from the file into the matrix
@@ -68,7 +70,8 @@ FloatMatrix AffineFile::read34(const AString& filename)
 
 void AffineFile::write44(const FloatMatrix& out, const AString& filename)
 {
-    fstream affineFile(filename.toLocal8Bit().constData(), fstream::out);
+    QFile::remove(filename);
+    ofstream affineFile(filename.toStdString());
     if (!affineFile.good())
     {
         throw DataFileException("error opening file '" + filename + "' for writing");
@@ -87,14 +90,14 @@ void AffineFile::write44(const FloatMatrix& out, const AString& filename)
     }
 }
 
-void AffineFile::readWorld(const AString& filename, bool inverse)
+void AffineFile::readWorld(const AString& filename, const bool inverse)
 {
     FloatMatrix temp = read34(filename);
     if (inverse) temp = temp.inverse();//support reading reverse affines
     m_matrix = temp;
 }
 
-void AffineFile::writeWorld(const AString& filename, bool inverse) const
+void AffineFile::writeWorld(const AString& filename, const bool inverse) const
 {
     FloatMatrix temp = m_matrix;
     if (inverse) temp = temp.inverse();//and writing

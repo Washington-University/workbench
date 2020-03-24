@@ -211,8 +211,20 @@ namespace caret {
         OptionalParameter* getOptionalParameter(const int32_t key);
         
         ///return instances of a repeatable option
-        const std::vector<ParameterComponent*>* getRepeatableParameterInstances(const int32_t key);
+        const std::vector<ParameterComponent*>& getRepeatableParameterInstances(const int32_t key);
         
+        ///return positions of the instances, only needed for chaining different transform types in volume resample so far
+        const std::vector<int32_t>& getRepeatableParameterPositions(const int32_t key);
+        
+        struct OrderInfo
+        {
+            int32_t key;
+            size_t index;
+            OrderInfo(int32_t keyIn, size_t indexIn) { key = keyIn; index = indexIn; }
+        };
+        ///return a vector in the order of all repeatable options, with key and index into instances
+        std::vector<OrderInfo> getRepeatableOrder();
+
         ///functions to check for key/type uniqueness - used only in asserts
         bool checkUniqueInput(const int32_t& key, const OperationParametersEnum::Enum& type);
         bool checkUniqueOutput(const int32_t& key, const OperationParametersEnum::Enum& type);
@@ -257,6 +269,7 @@ namespace caret {
         ParameterComponent m_template;
         bool m_operationUsed;//check if the operation called get...() for this parameter
         std::vector<ParameterComponent*> m_instances;//to be filled by parser
+        std::vector<int32_t> m_positions;//to resolve ambiguities in ordering between different repeatable options
         RepeatableOption(const RepeatableOption& rhs) :
         m_key(rhs.m_key),
         m_optionSwitch(rhs.m_optionSwitch),
@@ -287,7 +300,6 @@ namespace caret {
         
         ///get the unformatted help text, without command or arguments descriptions, to be formatted by the argument parser
         AString& getHelpText();
-        
     };
 
     //templates for the common cases

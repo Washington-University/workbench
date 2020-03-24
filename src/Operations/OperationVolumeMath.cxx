@@ -80,7 +80,7 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     cout << "parsed '" + expression + "' as '" + myExpr.toString() + "'" << endl;
     vector<AString> myVarNames = myExpr.getVarNames();
     VolumeFile* myVolOut = myParams->getOutputVolume(2);
-    const vector<ParameterComponent*>& myVarOpts = *(myParams->getRepeatableParameterInstances(3));
+    const vector<ParameterComponent*>& myVarOpts = myParams->getRepeatableParameterInstances(3);
     OptionalParameter* fixNanOpt = myParams->getOptionalParameter(4);
     bool nanfix = false;
     float nanfixval = 0;

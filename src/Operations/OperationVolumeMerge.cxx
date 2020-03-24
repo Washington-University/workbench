@@ -67,7 +67,7 @@ void OperationVolumeMerge::useParameters(OperationParameters* myParams, Progress
 {
     LevelProgress myProgress(myProgObj);
     VolumeFile* volumeOut = myParams->getOutputVolume(1);
-    const vector<ParameterComponent*>& myInputs = *(myParams->getRepeatableParameterInstances(2));
+    const vector<ParameterComponent*>& myInputs = myParams->getRepeatableParameterInstances(2);
     int numInputs = (int)myInputs.size();
     if (numInputs < 1) throw OperationException("no inputs specified");
     int64_t subvolCount = 0;
@@ -87,7 +87,7 @@ void OperationVolumeMerge::useParameters(OperationParameters* myParams, Progress
         }
         vector<int64_t> thisDims = myVol->getDimensions();
         if (thisDims[4] != firstDims[4]) throw ("volume file '" + myVol->getFileName() + "' has a different number of components");
-        const vector<ParameterComponent*>& subvolOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
+        const vector<ParameterComponent*>& subvolOpts = myInputs[i]->getRepeatableParameterInstances(2);
         int numSubvolOpts = (int)subvolOpts.size();
         if (numSubvolOpts > 0)
         {
@@ -119,7 +119,7 @@ void OperationVolumeMerge::useParameters(OperationParameters* myParams, Progress
     for (int i = 0; i < numInputs; ++i)
     {
         const VolumeFile* myVol = myInputs[i]->getVolume(1);
-        const vector<ParameterComponent*>& subvolOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
+        const vector<ParameterComponent*>& subvolOpts = myInputs[i]->getRepeatableParameterInstances(2);
         int numSubvolOpts = (int)subvolOpts.size();
         if (numSubvolOpts > 0)
         {

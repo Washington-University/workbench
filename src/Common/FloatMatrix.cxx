@@ -291,6 +291,19 @@ void FloatMatrix::getAffineVectors(Vector3D& xvec, Vector3D& yvec, Vector3D& zve
     offset[0] = m_matrix[0][3]; offset[1] = m_matrix[1][3]; offset[2] = m_matrix[2][3];
 }
 
+Vector3D FloatMatrix::transformPoint(const Vector3D& coordIn) const
+{
+    Vector3D ret;
+    if (m_matrix.size() < 3 || m_matrix.size() > 4 || m_matrix[0].size() != 4)
+    {
+        throw CaretException("transformPoint called on incorrectly sized matrix");
+    }
+    ret[0] = coordIn[0] * m_matrix[0][0] + coordIn[1] * m_matrix[0][1] + coordIn[2] * m_matrix[0][2] + m_matrix[0][3];
+    ret[1] = coordIn[0] * m_matrix[1][0] + coordIn[1] * m_matrix[1][1] + coordIn[2] * m_matrix[1][2] + m_matrix[1][3];
+    ret[2] = coordIn[0] * m_matrix[2][0] + coordIn[1] * m_matrix[2][1] + coordIn[2] * m_matrix[2][2] + m_matrix[2][3];
+    return ret;
+}
+
 FloatMatrix FloatMatrix::operator-() const
 {
    int64_t rows, cols;

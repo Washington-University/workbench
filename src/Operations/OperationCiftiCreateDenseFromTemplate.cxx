@@ -185,7 +185,7 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
             volInfo[i].type = VOLUME_ALL;
         }
     }
-    const vector<ParameterComponent*>& ciftiInstances = *(myParams->getRepeatableParameterInstances(5));
+    const vector<ParameterComponent*>& ciftiInstances = myParams->getRepeatableParameterInstances(5);
     for (int instance = 0; instance < (int)ciftiInstances.size(); ++instance)
     {
         const CiftiFile* thisCifti = ciftiInstances[instance]->getCifti(1);
@@ -289,7 +289,7 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
             ciftiNameFile = thisCifti;//cifti trumps everything, if it has scalar or label or parcels
         }
     }
-    const vector<ParameterComponent*>& metricInstances = *(myParams->getRepeatableParameterInstances(6));
+    const vector<ParameterComponent*>& metricInstances = myParams->getRepeatableParameterInstances(6);
     for (int instance = 0; instance < (int)metricInstances.size(); ++instance)
     {
         if (labelMode == 1) throw OperationException("-metric option specified when other inputs are label-type files");
@@ -331,7 +331,7 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
         surfInfo[outIndex].index = instance;
         if (instance == 0) nameFile = thisMetric;//-metric trumps -volume-all for names, but use the first -metric
     }
-    const vector<ParameterComponent*>& labelInstances = *(myParams->getRepeatableParameterInstances(7));
+    const vector<ParameterComponent*>& labelInstances = myParams->getRepeatableParameterInstances(7);
     for (int instance = 0; instance < (int)labelInstances.size(); ++instance)
     {
         if (labelMode == 0) throw OperationException("-label option specified when other inputs are real-valued files");
@@ -373,7 +373,7 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
         surfInfo[outIndex].index = instance;
         if (instance == 0) nameFile = thisLabel;//-label trumps -volume-all for names, but use the first -label
     }
-    const vector<ParameterComponent*>& volumeInstances = *(myParams->getRepeatableParameterInstances(8));
+    const vector<ParameterComponent*>& volumeInstances = myParams->getRepeatableParameterInstances(8);
     for (int instance = 0; instance < (int)volumeInstances.size(); ++instance)
     {
         AString structString = volumeInstances[instance]->getString(1);

@@ -63,7 +63,7 @@ void AlgorithmCiftiMergeParcels::useParameters(OperationParameters* myParams, Pr
     AString directionName = myParams->getString(1);
     int myDir = CiftiXML::directionFromString(directionName);
     CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
-    const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(3));
+    const vector<ParameterComponent*>& myInstances = myParams->getRepeatableParameterInstances(3);
     vector<const CiftiFile*> ciftiList;
     int numCifti = (int)myInstances.size();
     for (int i = 0; i < numCifti; ++i)

@@ -22,6 +22,7 @@
 #define ASTRING_H
 
 #include <QString>
+#include <string>
 #include <vector>
 #include <stdint.h>
 
@@ -40,6 +41,7 @@ namespace caret {
         AString(const char *ch) : QString(ch){}
         AString(const QByteArray &a) : QString(a) {}
         AString(const Null &t) : QString(t) {}
+        AString(const std::string& std_string) : QString(std_string.c_str()) {}
         AString &operator=(const Null &t) { QString::operator=(t); return *this; }
         //AString(int size, Qt::Initialization) :  QString(size,Qt::Initialization) {}
         

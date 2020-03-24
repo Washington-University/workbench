@@ -85,7 +85,7 @@ void OperationLabelMerge::useParameters(OperationParameters* myParams, ProgressO
 {
     LevelProgress myProgress(myProgObj);
     LabelFile* myLabelOut = myParams->getOutputLabel(1);
-    const vector<ParameterComponent*>& myInputs = *(myParams->getRepeatableParameterInstances(2));
+    const vector<ParameterComponent*>& myInputs = myParams->getRepeatableParameterInstances(2);
     int numInputs = (int)myInputs.size();
     if (numInputs == 0) throw OperationException("no inputs specified");
     const LabelFile* firstLabel = myInputs[0]->getLabel(1);
@@ -100,7 +100,7 @@ void OperationLabelMerge::useParameters(OperationParameters* myParams, ProgressO
         fileRemap[i] = outTable.append(*(inputLabel->getLabelTable()));//NOTE: does (and must) include identity mappings - anything that doesn't match was invalid in the original file
         if (numNodes != inputLabel->getNumberOfNodes()) throw OperationException("file '" + inputLabel->getFileName() + "' has a different number of nodes than the first");
         if (myStruct != inputLabel->getStructure()) throw OperationException("file '" + inputLabel->getFileName() + "' has a different structure than the first");
-        const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
+        const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
         int numColumnOpts = (int)columnOpts.size();
         if (numColumnOpts > 0)
         {
@@ -132,7 +132,7 @@ void OperationLabelMerge::useParameters(OperationParameters* myParams, ProgressO
     for (int i = 0; i < numInputs; ++i)
     {
         const LabelFile* inputLabel = myInputs[i]->getLabel(1);
-        const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
+        const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
         int numColumnOpts = (int)columnOpts.size();
         if (numColumnOpts > 0)
         {

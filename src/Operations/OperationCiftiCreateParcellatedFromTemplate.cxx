@@ -76,7 +76,7 @@ void OperationCiftiCreateParcellatedFromTemplate::useParameters(OperationParamet
     {
         fillValue = (float)fillOpt->getDouble(1);
     }
-    const vector<ParameterComponent*>& inputInstances = *(myParams->getRepeatableParameterInstances(5));
+    const vector<ParameterComponent*>& inputInstances = myParams->getRepeatableParameterInstances(5);
     const CiftiXML& templateXML = templateCifti->getCiftiXML();
     if (templateXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::PARCELS)
     {

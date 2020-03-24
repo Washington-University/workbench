@@ -70,7 +70,7 @@ void AlgorithmSurfaceAverage::useParameters(OperationParameters* myParams, Progr
 {
     SurfaceFile* myAvgOut = myParams->getOutputSurface(1);
     vector<const SurfaceFile*> inputSurfs;
-    const vector<ParameterComponent*>& surfOpts = *(myParams->getRepeatableParameterInstances(2));
+    const vector<ParameterComponent*>& surfOpts = myParams->getRepeatableParameterInstances(2);
     int numSurfs = (int)surfOpts.size();
     vector<float> surfWeights, *surfWeightPtr = NULL;
     for (int i = 0; i < numSurfs; ++i)

@@ -121,7 +121,7 @@ OperationBorderFileExportToCaret5::useParameters(OperationParameters* myParams,
     AString outputCaret5FilePrefix = FileInformation(myParams->getString(2)).getAbsoluteFilePath();
 
     std::vector<SurfaceFile*> allSurfaces;
-    const std::vector<ParameterComponent*>& surfaceInputs = *(myParams->getRepeatableParameterInstances(3));
+    const std::vector<ParameterComponent*>& surfaceInputs = myParams->getRepeatableParameterInstances(3);
     const int32_t numSurfaceInputs = static_cast<int32_t>(surfaceInputs.size());
     for (int32_t iSurf = 0; iSurf < numSurfaceInputs; iSurf++) {
         SurfaceFile* sf = surfaceInputs[iSurf]->getSurface(1);

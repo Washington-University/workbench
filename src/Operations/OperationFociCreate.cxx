@@ -79,7 +79,7 @@ void OperationFociCreate::useParameters(OperationParameters* myParams, ProgressO
     
     FociFile* outputFociFile = myParams->getOutputFoci(1);
 
-    const vector<ParameterComponent*>& myInputs = *(myParams->getRepeatableParameterInstances(2));
+    const vector<ParameterComponent*>& myInputs = myParams->getRepeatableParameterInstances(2);
     int numInputs = (int)myInputs.size();
     if (numInputs == 0) {
         throw OperationException("no inputs specified");

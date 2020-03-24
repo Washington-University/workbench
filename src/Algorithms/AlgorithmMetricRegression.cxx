@@ -90,7 +90,7 @@ void AlgorithmMetricRegression::useParameters(OperationParameters* myParams, Pro
         }
     }
     vector<pair<const MetricFile*, int> > remove, keep;
-    const vector<ParameterComponent*>& removeInstances = *(myParams->getRepeatableParameterInstances(5));
+    const vector<ParameterComponent*>& removeInstances = myParams->getRepeatableParameterInstances(5);
     int numRemove = (int)removeInstances.size();
     if (numRemove == 0) throw AlgorithmException("you must specify at least one 'remove' metric");
     for (int i = 0; i < numRemove; ++i)
@@ -108,7 +108,7 @@ void AlgorithmMetricRegression::useParameters(OperationParameters* myParams, Pro
         }
         remove.push_back(pair<const MetricFile*, int>(toRemove, removeCol));
     }
-    const vector<ParameterComponent*>& keepInstances = *(myParams->getRepeatableParameterInstances(6));
+    const vector<ParameterComponent*>& keepInstances = myParams->getRepeatableParameterInstances(6);
     int numKeep = (int)keepInstances.size();
     for (int i = 0; i < numKeep; ++i)
     {

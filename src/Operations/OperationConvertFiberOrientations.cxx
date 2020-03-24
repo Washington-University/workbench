@@ -73,7 +73,7 @@ void OperationConvertFiberOrientations::useParameters(OperationParameters* myPar
         throw OperationException("<label-volume> must have a label table, see -volume-label-import");
     }
     CiftiFile* ciftiOut = myParams->getOutputCifti(2);
-    const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(3));
+    const vector<ParameterComponent*>& myInstances = myParams->getRepeatableParameterInstances(3);
     int numFibers = (int)myInstances.size();
     if (numFibers < 1) throw OperationException("must specify -fiber at least once");
     if (numFibers > 3) throw OperationException("only three fibers are supported at this time");

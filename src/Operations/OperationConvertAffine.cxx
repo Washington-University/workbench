@@ -105,7 +105,7 @@ void OperationConvertAffine::useParameters(OperationParameters* myParams, Progre
     {
         myAffine.writeWorld(toWorld->getString(1), toWorld->getOptionalParameter(2)->m_present);
     }
-    const vector<ParameterComponent*>& toFlirt = *(myParams->getRepeatableParameterInstances(4));//the return of this is a pointer so that it can return NULL if the key is wrong, after asserting
+    const vector<ParameterComponent*>& toFlirt = myParams->getRepeatableParameterInstances(4);//the return of this is a pointer so that it can return NULL if the key is wrong, after asserting
     int numFlirt = (int)toFlirt.size();//so, dereference immediately since it should be caught in debug via assert
     for (int i = 0; i < numFlirt; ++i)
     {

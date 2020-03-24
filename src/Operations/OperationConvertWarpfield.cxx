@@ -116,7 +116,7 @@ void OperationConvertWarpfield::useParameters(OperationParameters* myParams, Pro
     {
         myWarp.writeITK(toITK->getString(1));
     }
-    const vector<ParameterComponent*>& toFnirt = *(myParams->getRepeatableParameterInstances(4));//the return of this is a pointer so that it can return NULL if the key is wrong, after asserting
+    const vector<ParameterComponent*>& toFnirt = myParams->getRepeatableParameterInstances(4);//the return of this is a pointer so that it can return NULL if the key is wrong, after asserting
     int numFnirt = (int)toFnirt.size();//so, dereference immediately since it should be caught in debug via assert
     for (int i = 0; i < numFnirt; ++i)
     {

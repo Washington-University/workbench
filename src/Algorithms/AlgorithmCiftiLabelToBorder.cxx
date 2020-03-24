@@ -85,7 +85,7 @@ void AlgorithmCiftiLabelToBorder::useParameters(OperationParameters* myParams, P
             throw AlgorithmException("invalid column specified");
         }
     }
-    const vector<ParameterComponent*>& borderOpts = *(myParams->getRepeatableParameterInstances(4));
+    const vector<ParameterComponent*>& borderOpts = myParams->getRepeatableParameterInstances(4);
     if (borderOpts.empty()) CaretLogWarning("no output requested from -cifti-label-to-border, command will do nothing");
     for (int i = 0; i < (int)borderOpts.size(); ++i)
     {

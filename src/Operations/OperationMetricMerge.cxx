@@ -67,7 +67,7 @@ void OperationMetricMerge::useParameters(OperationParameters* myParams, Progress
 {
     LevelProgress myProgress(myProgObj);
     MetricFile* myMetricOut = myParams->getOutputMetric(1);
-    const vector<ParameterComponent*>& myInputs = *(myParams->getRepeatableParameterInstances(2));
+    const vector<ParameterComponent*>& myInputs = myParams->getRepeatableParameterInstances(2);
     int numInputs = (int)myInputs.size();
     if (numInputs == 0) throw OperationException("no inputs specified");
     const MetricFile* firstMetric = myInputs[0]->getMetric(1);
@@ -79,7 +79,7 @@ void OperationMetricMerge::useParameters(OperationParameters* myParams, Progress
         const MetricFile* inputMetric = myInputs[i]->getMetric(1);
         if (numNodes != inputMetric->getNumberOfNodes()) throw OperationException("file '" + inputMetric->getFileName() + "' has a different number of nodes than the first");
         if (myStruct != inputMetric->getStructure()) throw OperationException("file '" + inputMetric->getFileName() + "' has a different structure than the first");
-        const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
+        const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
         int numColumnOpts = (int)columnOpts.size();
         if (numColumnOpts > 0)
         {
@@ -109,7 +109,7 @@ void OperationMetricMerge::useParameters(OperationParameters* myParams, Progress
     for (int i = 0; i < numInputs; ++i)
     {
         const MetricFile* inputMetric = myInputs[i]->getMetric(1);
-        const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
+        const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
         int numColumnOpts = (int)columnOpts.size();
         if (numColumnOpts > 0)
         {
