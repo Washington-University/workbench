@@ -174,8 +174,9 @@ ELSE()
         OverlayViewController.h
         PaletteColorMappingEditorDialog.h
 	PaletteCreateNewDialog.h
-	PaletteEditorControlPointGroupWidget.h
 	PaletteEditorDialog.h
+	PaletteEditorRangeRow.h
+	PaletteEditorRangeWidget.h
         PlotMagnifier.h
         PlotPanner.h
         PreferencesDialog.h
@@ -455,8 +456,9 @@ OverlaySettingsEditorDialog.h
 OverlayViewController.h
 PaletteColorMappingEditorDialog.h
 PaletteCreateNewDialog.h
-PaletteEditorControlPointGroupWidget.h
 PaletteEditorDialog.h
+PaletteEditorRangeRow.h
+PaletteEditorRangeWidget.h
 PalettePixmapPainter.h
 PlotMagnifier.h
 PlotPanner.h
@@ -755,8 +757,9 @@ OverlayViewController.cxx
 OverlaySettingsEditorDialog.cxx
 PaletteColorMappingEditorDialog.cxx
 PaletteCreateNewDialog.cxx
-PaletteEditorControlPointGroupWidget.cxx
 PaletteEditorDialog.cxx
+PaletteEditorRangeRow.cxx
+PaletteEditorRangeWidget.cxx
 PalettePixmapPainter.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx

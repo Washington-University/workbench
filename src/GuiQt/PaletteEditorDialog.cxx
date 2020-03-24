@@ -42,7 +42,7 @@
 #include "Palette.h"
 #include "PaletteCreateNewDialog.h"
 #include "PaletteFile.h"
-#include "PaletteEditorControlPointGroupWidget.h"
+#include "PaletteEditorRangeWidget.h"
 #include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
 #include "WuQColorEditorWidget.h"
@@ -130,20 +130,16 @@ PaletteEditorDialog::~PaletteEditorDialog()
  * New blue component
  */
 void
-PaletteEditorDialog::colorEditorColorChanged(const uint8_t red,
-                                             const uint8_t green,
-                                             const uint8_t blue)
+PaletteEditorDialog::colorEditorColorChanged(const QColor& color)
 {
-    m_positiveControlPointsWidget->updateControlPointColor(red,
-                                                           green,
-                                                           blue);
-    m_zeroControlPointsWidget->updateControlPointColor(red,
-                                                       green,
-                                                       blue);
-    m_negativeControlPointsWidget->updateControlPointColor(red,
-                                                           green,
-                                                           blue);
-    updatePaletteColorBarImage();
+    CaretRgb rgb(color.red(),
+                 color.green(),
+                 color.blue());
+    
+    m_positiveRangeWidget->updateControlPointColor(rgb);
+    m_zeroRangeWidget->updateControlPointColor(rgb);
+    m_negativeRangeWidget->updateControlPointColor(rgb);
+//    updatePaletteColorBarImage();
 }
 
 /**
@@ -162,22 +158,51 @@ void
 PaletteEditorDialog::loadPalette(const PaletteNew* palette)
 {
     m_currentPaletteName.clear();
-    m_currentPalettePositive.clear();
-    m_currentPaletteNegative.clear();
-    m_currentPaletteZero.clear();
     
+    std::vector<PaletteNew::ScalarColor> positiveScalars;
+    std::vector<PaletteNew::ScalarColor> negativeScalars;
+    std::vector<PaletteNew::ScalarColor> zeroScalars;
+
     if (palette != NULL) {
         m_currentPaletteName = palette->getName();
-        m_currentPalettePositive = palette->getPosRange();
-        m_currentPaletteNegative = palette->getNegRange();
-        m_currentPaletteZero.push_back(PaletteNew::ScalarColor(0.0, 0.0, 0.0, 0.0));
+        positiveScalars = palette->getPosRange();
+        negativeScalars = palette->getNegRange();
+        
+        float zeroRgb[3];
+        palette->getZeroColor(zeroRgb);
+        zeroScalars.emplace_back(0.0,
+                                 zeroRgb);
     }
     
-    updatePaletteColorBarImage();
+    m_positiveRangeWidget->updateContent(positiveScalars);
+    m_negativeRangeWidget->updateContent(negativeScalars);
+    m_zeroRangeWidget->updateContent(zeroScalars);
 
-    m_positiveControlPointsWidget->updateContent();
-    m_negativeControlPointsWidget->updateContent();
-    m_zeroControlPointsWidget->updateContent();
+    updatePaletteColorBarImage();
+}
+
+/**
+ * @return Palette created from current settings in editor
+ */
+std::unique_ptr<PaletteNew>
+PaletteEditorDialog::getPaletteFromEditor() const
+{
+    std::vector<PaletteNew::ScalarColor> pos = m_positiveRangeWidget->getScalarColors();
+    std::vector<PaletteNew::ScalarColor> neg = m_negativeRangeWidget->getScalarColors();
+    std::vector<PaletteNew::ScalarColor> zero = m_zeroRangeWidget->getScalarColors();
+    
+    std::unique_ptr<PaletteNew> palettePtr;
+    
+    if ((pos.size() >= 2)
+        && (neg.size() >= 2)
+        && (zero.size() >= 1)) {
+        PaletteNew* pal = new PaletteNew(pos,
+                                         zero[0].color,
+                                         neg);
+        palettePtr.reset(pal);
+    }
+
+    return palettePtr;
 }
 
 /**
@@ -186,18 +211,17 @@ PaletteEditorDialog::loadPalette(const PaletteNew* palette)
 void
 PaletteEditorDialog::updatePaletteColorBarImage()
 {
-    if ( ( ! m_currentPalettePositive.empty())
-        && ( ! m_currentPaletteNegative.empty())
-        && ( ! m_currentPaletteZero.empty()) ) {
-        PaletteNew palette(m_currentPalettePositive,
-                           m_currentPaletteZero[0].color,
-                           m_currentPaletteNegative);
-        PalettePixmapPainter palettePainter(&palette,
+    std::unique_ptr<PaletteNew> palette = getPaletteFromEditor();
+    if (palette) {
+        PalettePixmapPainter palettePainter(palette.get(),
                                             m_colorBarImageLabel->size(),
                                             m_pixmapMode);
         QPixmap pixmap = palettePainter.getPixmap();
         if ( ! pixmap.isNull()) {
             m_colorBarImageLabel->setPixmap(pixmap);
+        }
+        else {
+            m_colorBarImageLabel->setPixmap(QPixmap());
         }
     }
     else {
@@ -207,64 +231,63 @@ PaletteEditorDialog::updatePaletteColorBarImage()
 
 /**
  * Slot for editing a color
- * @param controlPointIndex
- * Index of the control point
- * @param red
- * The red color component
- * @param green
- * The green color component
- * @param blue
- * The blue color component
+ * @param rgb
+ *    The color for editing
  */
 void
-PaletteEditorDialog::editColor(const int32_t controlPointIndex, const uint8_t red, const uint8_t green, const uint8_t blue)
+PaletteEditorDialog::editColor(const CaretRgb& rgb)
 {
-    m_colorEditorWidget->setCurrentColor(red, green, blue);
+    m_colorEditorWidget->setCurrentColor(QColor(rgb.red(),
+                                                rgb.green(),
+                                                rgb.blue()));
     updatePaletteColorBarImage();
 }
 
 /**
- * Create the control point editing widgets
+ * @return New instance of the control point editing widgets
  */
 QWidget*
 PaletteEditorDialog::createControlPointsWidget()
 {
-    m_positiveControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_currentPalettePositive,
-                                                                             PaletteEditorControlPointGroupWidget::DataRangeMode::POSITIVE,
-                                                                             m_colorEditButtonGroup,
-                                                                             true,
-                                                                             this);
-    QObject::connect(m_positiveControlPointsWidget, &PaletteEditorControlPointGroupWidget::editColorRequested,
+    m_positiveRangeWidget = new PaletteEditorRangeWidget(PaletteEditorRangeWidget::DataRangeMode::POSITIVE,
+                                                                 m_colorEditButtonGroup,
+                                                                 PaletteEditorRangeWidget::ColumnTitlesMode::SHOW_YES,
+                                                                 this);
+    QObject::connect(m_positiveRangeWidget, &PaletteEditorRangeWidget::signalEditColorRequested,
                      this, &PaletteEditorDialog::editColor);
+    QObject::connect(m_positiveRangeWidget, &PaletteEditorRangeWidget::signalDataChanged,
+                     this, &PaletteEditorDialog::rangeWidgetDataChanged);
     QGroupBox* positiveWidget = new QGroupBox("Positive Mapping");
     QVBoxLayout* positiveLayout = new QVBoxLayout(positiveWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(positiveLayout, 0, 0);
-    positiveLayout->addWidget(m_positiveControlPointsWidget);
+    positiveLayout->addWidget(m_positiveRangeWidget);
 
-    m_zeroControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_currentPaletteZero,
-                                                                         PaletteEditorControlPointGroupWidget::DataRangeMode::ZERO,
-                                                                         m_colorEditButtonGroup,
-                                                                         false,
-                                                                         this);
-    QObject::connect(m_zeroControlPointsWidget, &PaletteEditorControlPointGroupWidget::editColorRequested,
+    m_zeroRangeWidget = new PaletteEditorRangeWidget(PaletteEditorRangeWidget::DataRangeMode::ZERO,
+                                                             m_colorEditButtonGroup,
+                                                             PaletteEditorRangeWidget::ColumnTitlesMode::SHOW_NO,
+                                                             this);
+    QObject::connect(m_zeroRangeWidget, &PaletteEditorRangeWidget::signalEditColorRequested,
                      this, &PaletteEditorDialog::editColor);
-    
+    QObject::connect(m_zeroRangeWidget, &PaletteEditorRangeWidget::signalDataChanged,
+                     this, &PaletteEditorDialog::rangeWidgetDataChanged);
+
     QGroupBox* zeroWidget = new QGroupBox("Zero Mapping");
     QVBoxLayout* zeroLayout = new QVBoxLayout(zeroWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(zeroLayout, 0, 0);
-    zeroLayout->addWidget(m_zeroControlPointsWidget);
+    zeroLayout->addWidget(m_zeroRangeWidget);
     
-    m_negativeControlPointsWidget = new PaletteEditorControlPointGroupWidget(m_currentPaletteNegative,
-                                                                             PaletteEditorControlPointGroupWidget::DataRangeMode::NEGATIVE,
-                                                                             m_colorEditButtonGroup,
-                                                                             false,
-                                                                             this);
-    QObject::connect(m_negativeControlPointsWidget, &PaletteEditorControlPointGroupWidget::editColorRequested,
+    m_negativeRangeWidget = new PaletteEditorRangeWidget(PaletteEditorRangeWidget::DataRangeMode::NEGATIVE,
+                                                                 m_colorEditButtonGroup,
+                                                                 PaletteEditorRangeWidget::ColumnTitlesMode::SHOW_NO,
+                                                                 this);
+    QObject::connect(m_negativeRangeWidget, &PaletteEditorRangeWidget::signalEditColorRequested,
                      this, &PaletteEditorDialog::editColor);
+    QObject::connect(m_negativeRangeWidget, &PaletteEditorRangeWidget::signalDataChanged,
+                     this, &PaletteEditorDialog::rangeWidgetDataChanged);
     QGroupBox* negativeWidget = new QGroupBox("Negative Mapping");
     QVBoxLayout* negativeLayout = new QVBoxLayout(negativeWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(negativeLayout, 0, 0);
-    negativeLayout->addWidget(m_negativeControlPointsWidget);
+    negativeLayout->addWidget(m_negativeRangeWidget);
 
     QWidget* widget = new QWidget();
     widget->setSizePolicy(QSizePolicy::Fixed,
@@ -286,6 +309,15 @@ PaletteEditorDialog::createControlPointsWidget()
                               scrollArea->sizePolicy().verticalPolicy());
     
     return scrollArea;
+}
+
+/**
+ * Called when a range widgets data (scalar/color) is changed
+ */
+void
+PaletteEditorDialog::rangeWidgetDataChanged()
+{
+    updatePaletteColorBarImage();
 }
 
 /*

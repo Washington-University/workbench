@@ -26,6 +26,8 @@
 
 #include <memory>
 
+#include <QColor>
+
 #include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
 #include "WuQDialogNonModal.h"
@@ -39,10 +41,12 @@ class QToolButton;
 
 namespace caret {
 
+    class CaretRgb;
+    
     class WuQColorEditorWidget;
     class WuQScrollArea;
     
-    class PaletteEditorControlPointGroupWidget;
+    class PaletteEditorRangeWidget;
     
     class PaletteEditorDialog : public WuQDialogNonModal {
         
@@ -62,19 +66,23 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void editColor(const int32_t controlPointIndex, const uint8_t red, const uint8_t green, const uint8_t blue);
+        void editColor(const CaretRgb& rgb);
         
         void newPaletteButtonClicked();
         
-        void colorEditorColorChanged(const uint8_t red, const uint8_t green, const uint8_t blue);
+        void colorEditorColorChanged(const QColor& color);
         
         void userPaletteComboBoxActivated(int index);
+        
+        void rangeWidgetDataChanged();
         
     private:
         enum class IconType {
             ARROW_LEFT_DOWN,
             ARROW_UP_RIGHT
         };
+        
+        std::unique_ptr<PaletteNew> getPaletteFromEditor() const;
         
         void loadPalette(const PaletteNew* palette);
         
@@ -91,11 +99,11 @@ namespace caret {
         
         void updatePaletteColorBarImage();
         
-        PaletteEditorControlPointGroupWidget* m_positiveControlPointsWidget;
+        PaletteEditorRangeWidget* m_positiveRangeWidget;
         
-        PaletteEditorControlPointGroupWidget* m_zeroControlPointsWidget;
+        PaletteEditorRangeWidget* m_zeroRangeWidget;
         
-        PaletteEditorControlPointGroupWidget* m_negativeControlPointsWidget;
+        PaletteEditorRangeWidget* m_negativeRangeWidget;
         
         QLabel* m_colorBarImageLabel;
         
@@ -112,9 +120,6 @@ namespace caret {
         std::vector<std::unique_ptr<PaletteNew>> m_userPalettes;
         
         AString m_currentPaletteName;
-        std::vector<PaletteNew::ScalarColor> m_currentPalettePositive;
-        std::vector<PaletteNew::ScalarColor> m_currentPaletteNegative;
-        std::vector<PaletteNew::ScalarColor> m_currentPaletteZero;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -87,6 +87,13 @@ namespace caret {
                                               const qreal pixmapWidth,
                                               const qreal pixmapHeight);
         
+        void drawLineInColorBar(QPainter& painter,
+                                QPen& pen,
+                                const float rgbFloat[3],
+                                const qreal x,
+                                const qreal pixmapHeight,
+                                const int32_t lineWidth);
+
         const Mode m_mode = Mode::INTERPOLATE_ON;
         
         QPixmap m_pixmap;
