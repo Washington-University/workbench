@@ -79,6 +79,7 @@ CaretPointer.h
 CaretPointLocator.h
 CaretPreferenceDataValue.h
 CaretPreferences.h
+CaretRgb.h
 CaretTemporaryFile.h
 CaretUndoCommand.h
 CaretUndoStack.h
@@ -226,6 +227,7 @@ CaretObjectTracksModification.cxx
 CaretPointLocator.cxx
 CaretPreferenceDataValue.cxx
 CaretPreferences.cxx
+CaretRgb.cxx
 CaretTemporaryFile.cxx
 CaretUndoCommand.cxx
 CaretUndoStack.cxx
