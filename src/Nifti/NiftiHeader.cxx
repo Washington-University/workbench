@@ -297,6 +297,13 @@ vector<vector<float> > NiftiHeader::getSForm() const
     return ret.getMatrix();
 }
 
+VolumeSpace NiftiHeader::getVolumeSpace() const
+{
+    auto myDims = getDimensions();
+    myDims.resize(3, 1);//ensure 3 dimensions
+    return VolumeSpace(myDims.data(), getSForm());
+}
+
 double NiftiHeader::getTimeStep() const
 {
     int timeUnit = XYZT_TO_TIME(m_header.xyzt_units);

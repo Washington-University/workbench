@@ -147,3 +147,6 @@ ${CMAKE_SOURCE_DIR}/Common
 ${QUAZIP_INCLUDE_DIRS}
 )
 
+ENABLE_TESTING()
+
+ADD_TEST(command_help ${EXE_NAME} -all-commands-help)

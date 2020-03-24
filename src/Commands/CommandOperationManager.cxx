@@ -57,6 +57,7 @@
 #include "AlgorithmCiftiReorder.h"
 #include "AlgorithmCiftiReplaceStructure.h"
 #include "AlgorithmCiftiResample.h"
+#include "AlgorithmCiftiRestrictDenseMap.h"
 #include "AlgorithmCiftiROIsFromExtrema.h"
 #include "AlgorithmCiftiSeparate.h"
 #include "AlgorithmCiftiSmoothing.h"
@@ -133,6 +134,7 @@
 #include "AlgorithmVolumeParcelSmoothing.h"
 #include "AlgorithmVolumeReduce.h"
 #include "AlgorithmVolumeRemoveIslands.h"
+#include "AlgorithmVolumeResample.h"
 #include "AlgorithmVolumeROIsFromExtrema.h"
 #include "AlgorithmVolumeSmoothing.h"
 #include "AlgorithmVolumeTFCE.h"
@@ -164,7 +166,6 @@
 #include "OperationCiftiMerge.h"
 #include "OperationCiftiPalette.h"
 #include "OperationCiftiResampleDconnMemory.h"
-#include "AlgorithmCiftiRestrictDenseMap.h"
 #include "OperationCiftiROIAverage.h"
 #include "OperationCiftiSeparateAll.h"
 #include "OperationCiftiStats.h"
@@ -380,7 +381,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceSphereProjectUnproject()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceToSurface3dDistance()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceWedgeVolume()));
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAllLabelsToROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeDistortion()));
@@ -399,13 +399,13 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeReduce()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeRemoveIslands()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeROIsFromExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeTFCE()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeVectorOperation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldAffineRegression()));
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldResample()));
     
     this->commandOperations.push_back(new CommandParser(new AutoOperationAddToSpecFile()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBackendAverageDenseROI()));
@@ -509,6 +509,8 @@ CommandOperationManager::CommandOperationManager()
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationMetricVertexSum()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationSetMapName()));
+    this->deprecatedOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
+    this->deprecatedOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldResample()));
 }
 
 /**

@@ -37,7 +37,7 @@ AString AlgorithmVolumeWarpfieldResample::getCommandSwitch()
 
 AString AlgorithmVolumeWarpfieldResample::getShortDescription()
 {
-    return "RESAMPLE VOLUME USING WARPFIELD";
+    return "DEPRECATED: use -volume-resample";
 }
 
 OperationParameters* AlgorithmVolumeWarpfieldResample::getParameters()

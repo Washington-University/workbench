@@ -22,6 +22,7 @@ ENDIF ()
 #
 ADD_LIBRARY(Files
 AffineFile.h
+AffineSeriesFile.h
 AnnotationFile.h
 AnnotationFileXmlFormatBase.h
 AnnotationFileXmlReader.h
@@ -164,6 +165,7 @@ XmlStreamReaderHelper.h
 XmlStreamWriterHelper.h
 
 AffineFile.cxx
+AffineSeriesFile.cxx
 AnnotationFile.cxx
 AnnotationFileXmlFormatBase.cxx
 AnnotationFileXmlReader.cxx

@@ -22,7 +22,7 @@
 /*LICENSE_END*/
 
 #include "CaretBinaryFile.h"
-#include "VolumeBase.h" //for AbstractHeader, AbstravtVolumeExtension
+#include "VolumeBase.h" //for AbstractHeader, AbstractVolumeExtension
 
 #include "nifti1.h"
 #include "nifti2.h"
@@ -55,6 +55,7 @@ namespace caret
         
         std::vector<int64_t> getDimensions() const;
         std::vector<std::vector<float> > getSForm() const;
+        VolumeSpace getVolumeSpace() const;//convenience function
         double getTimeStep() const;//seconds
         int64_t getDataOffset() const { return m_header.vox_offset; }
         int16_t getDataType() const { return m_header.datatype; }
