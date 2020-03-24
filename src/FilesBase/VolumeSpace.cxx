@@ -55,7 +55,7 @@ VolumeSpace::VolumeSpace(const int64_t dims[3], const float sform[12])
 
 void VolumeSpace::setSpace(const int64_t dims[3], const vector<vector<float> >& sform)
 {
-    if (sform.size() < 2 || sform.size() > 4)
+    if (sform.size() < 3 || sform.size() > 4)
     {
         CaretAssert(false);
         throw CaretException("VolumeSpace initialized with wrong size sform");
