@@ -3,7 +3,7 @@
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2018  Washington University School of Medicine
+ *  Copyright (C) 2020  Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
