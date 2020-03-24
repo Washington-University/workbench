@@ -86,6 +86,16 @@ WuQColorEditorWidget::~WuQColorEditorWidget()
 }
 
 /**
+ * @return The color in the editor
+ */
+QColor
+WuQColorEditorWidget::getColor() const
+{
+    return m_currentColor;
+}
+
+
+/**
  * Set the current color for editing
  * @param color
  * New color for editing
@@ -97,23 +107,6 @@ WuQColorEditorWidget::setCurrentColor(const QColor& color)
     m_originalColor = m_currentColor;
     
     updateControls();
-}
-
-/**
- * Set the current color for editing
- * @param red
- *     New red component for editing
- * @param green
- *     New green component for editing
- * @param blue
- *     New blue component for editing
- */
-void
-WuQColorEditorWidget::setCurrentColor(const uint8_t red,
-                                const uint8_t green,
-                                const uint8_t blue)
-{
-    setCurrentColor(QColor(red, green, blue));
 }
 
 /**
@@ -296,9 +289,7 @@ WuQColorEditorWidget::revertToOriginalColorToolButtonClicked()
 void
 WuQColorEditorWidget::emitColorChangedSignal()
 {
-    emit colorChanged(m_currentColor.red(),
-                      m_currentColor.green(),
-                      m_currentColor.blue());
+    emit colorChanged(m_currentColor);
 }
 
 /**

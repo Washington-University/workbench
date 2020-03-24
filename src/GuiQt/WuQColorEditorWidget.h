@@ -52,19 +52,14 @@ namespace caret {
 
         WuQColorEditorWidget& operator=(const WuQColorEditorWidget&) = delete;
         
+        QColor getColor() const;
+        
     public slots:
         void setCurrentColor(const QColor& color);
-        
-        void setCurrentColor(const uint8_t red,
-                             const uint8_t green,
-                             const uint8_t blue);
-        
-        // ADD_NEW_METHODS_HERE
+                // ADD_NEW_METHODS_HERE
 
     signals:
-        void colorChanged(const uint8_t red,
-                          const uint8_t green,
-                          const uint8_t blue);
+        void colorChanged(const QColor& color);
         
     private slots:
         void hueChanged(int hue);
