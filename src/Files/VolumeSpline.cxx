@@ -154,27 +154,35 @@ VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
     }
 }
 
+namespace
+{
+    int64_t sampleParams(const float indexf, const int64_t dim, float& fpartOut, bool& lowEdgeOut, bool& highEdgeOut)
+    {
+        int64_t ret;
+        float ipartf = 0.0f;
+        fpartOut = modf(indexf, &ipartf);//even -0.99f should give -0 for ipart, and sample() will only allow -0.01f, so don't need to max(..., 0)
+        ret = min(int64_t(ipartf), dim - 2);//extrapolate for beyond the voxel center without attempting invalid access
+        lowEdgeOut = (ret < 1);//extrapolation is very limited, see the range test in sample()
+        highEdgeOut = (ret >= dim - 2);//to extrapolate by half a voxel, should decide what the second-outside voxel's value should be (repeat or reflect)
+        return ret;//otherwise, it will trend toward zero
+    }
+}
+
 float VolumeSpline::sample(const float& ifloat, const float& jfloat, const float& kfloat)
 {
-    if (m_dims[0] < 2 || ifloat < 0.0f || jfloat < 0.0f || kfloat < 0.0f || ifloat > m_dims[0] - 1 || jfloat > m_dims[1] - 1 || kfloat > m_dims[2] - 1) return 0.0f;//yeesh
+    if (m_dims[0] < 2 || m_dims[1] < 2 || m_dims[2] < 2 ||
+        ifloat < -0.01f || jfloat < -0.01f || kfloat < -0.01f ||
+        ifloat > m_dims[0] - 0.99f || jfloat > m_dims[1] - 0.99f || kfloat > m_dims[2] - 0.99f) return 0.0f;//allow slight rounding error beyond voxel center
     const int64_t zstep = m_dims[0] * m_dims[1];
-    float iparti, ipartj, ipartk;
-    float fparti = modf(ifloat, &iparti);
-    float fpartj = modf(jfloat, &ipartj);
-    float fpartk = modf(kfloat, &ipartk);
-    int64_t lowi = (int64_t)iparti;
-    int64_t lowj = (int64_t)ipartj;
-    int64_t lowk = (int64_t)ipartk;
-    bool lowedgei = (lowi < 1);
-    bool lowedgej = (lowj < 1);
-    bool lowedgek = (lowk < 1);
-    bool highedgei = (lowi >= m_dims[0] - 2);
-    bool highedgej = (lowj >= m_dims[1] - 2);
-    bool highedgek = (lowk >= m_dims[2] - 2);
+    float fparti, fpartj, fpartk;
+    bool lowedgei, highedgei, lowedgej, highedgej, lowedgek, highedgek;
+    int64_t lowi = sampleParams(ifloat, m_dims[0], fparti, lowedgei, highedgei);
+    int64_t lowj = sampleParams(jfloat, m_dims[1], fpartj, lowedgej, highedgej);
+    int64_t lowk = sampleParams(kfloat, m_dims[2], fpartk, lowedgek, highedgek);
     CubicSpline ispline = CubicSpline::bspline(fparti, lowedgei, highedgei);
     CubicSpline jspline = CubicSpline::bspline(fpartj, lowedgej, highedgej);
     CubicSpline kspline = CubicSpline::bspline(fpartk, lowedgek, highedgek);
-    float jtemp[4], ktemp[4];//the weights of the splines are zero for off-the edge values, but zero the data anyway
+    float jtemp[4], ktemp[4];//the weights of the splines are zero and never touched for off-the edge values, but zero the data anyway
     jtemp[0] = 0.0f;
     jtemp[3] = 0.0f;
     ktemp[0] = 0.0f;
@@ -233,7 +241,7 @@ float VolumeSpline::sample(const float& ifloat, const float& jfloat, const float
 void VolumeSpline::deconvolve(float* data, const float* backsubs, const int64_t& length)
 {
     if (length < 1) return;
-    const float A = 1.0f / 6.0f, B = 2.0f / 3.0f;//the coefficients of a bspline at center and +/-1
+    const float A = 1.0f / 6.0f, B = 2.0f / 3.0f;//the values of a bspline at center and +/-1
     //forward pass simulating gaussian elimination on matrix of bspline kernels and data
     data[0] /= B + A;//repeat final value for data outside the bounding box, to prevent bright edges
     for (int i = 1; i < length - 1; ++i)//the first and last rows are handled slightly differently

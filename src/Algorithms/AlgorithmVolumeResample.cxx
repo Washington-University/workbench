@@ -319,7 +319,7 @@ void XfmStack::push_back(CaretPointer<const XfmBase> nextXfm)
 Vector3D XfmStack::xfmPoint(const Vector3D& coordIn, const int64_t frame, bool* validCoord) const
 {
     Vector3D ret = coordIn;
-    bool thisValid = false;
+    bool thisValid = true;
     for (auto& xfm : m_xfmStack)
     {
         ret = xfm->xfmPoint(ret, frame, &thisValid);
