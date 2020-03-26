@@ -139,7 +139,6 @@ PaletteEditorDialog::colorEditorColorChanged(const QColor& color)
     m_positiveRangeWidget->updateControlPointColor(rgb);
     m_zeroRangeWidget->updateControlPointColor(rgb);
     m_negativeRangeWidget->updateControlPointColor(rgb);
-//    updatePaletteColorBarImage();
 }
 
 /**
@@ -271,7 +270,7 @@ PaletteEditorDialog::createControlPointsWidget()
     QObject::connect(m_zeroRangeWidget, &PaletteEditorRangeWidget::signalDataChanged,
                      this, &PaletteEditorDialog::rangeWidgetDataChanged);
 
-    QGroupBox* zeroWidget = new QGroupBox("Zero Mapping");
+    QGroupBox* zeroWidget = new QGroupBox();
     QVBoxLayout* zeroLayout = new QVBoxLayout(zeroWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(zeroLayout, 0, 0);
     zeroLayout->addWidget(m_zeroRangeWidget);
@@ -355,14 +354,6 @@ PaletteEditorDialog::createPaletteSelectionWidget()
     QSize iconSize(80, 18);
     
     for (auto& pal : m_userPalettes) {
-        /*
-         * Second parameter is user data.  In the future, there may be user-editable
-         * palettes and it is possible there may be palettes with the same name.
-         * Thus, the user-data may change to a unique-identifier that is different
-         * than the palette name.
-         */
-        //const AString paletteUniqueID(name);
-        
         PalettePixmapPainter palettePainter(pal.get(),
                                             iconSize,
                                             m_pixmapMode);

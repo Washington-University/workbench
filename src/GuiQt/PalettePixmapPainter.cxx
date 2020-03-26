@@ -350,7 +350,14 @@ PalettePixmapPainter::createPalettePixmapInterpolateOff(const PaletteNew* palett
                 CaretAssertVectorIndex(scalarsAndColors, i + 1);
                 const float x2 = paletteNonInterpScalarToPixMap(pixmapWidth,
                                                                 scalarsAndColors[i + 1].scalar);
+                /*
+                 * Width of "positive zero" is small or no more than halfway to next scalar
+                 */
                 rightX = ((leftX + x2) / 2.0);
+                const float diffX(rightX - leftX);
+                if (diffX > 10.0) {
+                    rightX = leftX + 10.0;
+                }
             }
             else {
                 CaretAssertVectorIndex(scalarsAndColors, i - 1);
@@ -389,7 +396,7 @@ PalettePixmapPainter::createPalettePixmapInterpolateOff(const PaletteNew* palett
             float rightX(0.0);
             if (i == (numScalars - 1)) {
                 /*
-                 * Special case for "zero"
+                 * Special case for "negative zero"
                  */
                 CaretAssertVectorIndex(scalarsAndColors, i - 1);
                 const float x2 = paletteNonInterpScalarToPixMap(pixmapWidth,
@@ -398,7 +405,14 @@ PalettePixmapPainter::createPalettePixmapInterpolateOff(const PaletteNew* palett
                 rightX = paletteNonInterpScalarToPixMap(pixmapWidth,
                                                         scalarsAndColors[i].scalar);
                 
+                /*
+                 * Keep width of "negative zero" small, no more than halfway to next scalar
+                 */
                 leftX = ((x2 + rightX) / 2.0);
+                const float diffX(rightX - leftX);
+                if (diffX > 10.0) {
+                    leftX = rightX - 10.0;
+                }
             }
             else {
                 CaretAssertVectorIndex(scalarsAndColors, i);
@@ -429,35 +443,6 @@ PalettePixmapPainter::createPalettePixmapInterpolateOff(const PaletteNew* palett
         }
     }
 
-//    {
-//        float leftX(0);
-//        std::vector<PaletteNew::ScalarColor> scalarsAndColors = palette->getNegRange();
-//        const int32_t numScalars = static_cast<int32_t>(scalarsAndColors.size());
-//        for (int32_t i = 0; i < (numScalars - 1); i++) {
-//            CaretAssertVectorIndex(scalarsAndColors, i + 1);
-//            float rightX = paletteNonInterpScalarToPixMap(pixmapWidth,
-//                                                         scalarsAndColors[i + 1].scalar);
-//
-//            /*
-//             * Extend to prevent gaps dues to rounding
-//             */
-//            QRect rect(leftX, 0,  /* X, Y */
-//                       rightX - leftX + 1, pixmapHeight);  /* Width, Height */
-//
-//            QColor color;
-//            CaretAssertVectorIndex(scalarsAndColors, i);
-//            color.setRgbF(scalarsAndColors[i].color[0],
-//                          scalarsAndColors[i].color[1],
-//                          scalarsAndColors[i].color[2]);
-//
-//            QBrush brush(color);
-//            painter.setBrush(brush);
-//            painter.drawRect(rect);
-//
-//            leftX = rightX;
-//        }
-//    }
-
     float zeroColor[3];
     palette->getZeroColor(zeroColor);
     const int32_t zeroLineWidth(std::min(pixmapWidth * 0.02,
@@ -468,17 +453,23 @@ PalettePixmapPainter::createPalettePixmapInterpolateOff(const PaletteNew* palett
                        (pixmapWidth / 2),
                        pixmapHeight,
                        zeroLineWidth);
-
-//    QColor penColor;
-//    penColor.setRgbF(zeroColor[0], zeroColor[1], zeroColor[2]);
-//    painter.setPen(Qt::SolidLine);
-//    pen.setColor(penColor);
-//    pen.setWidth(zeroLineWidth);
-//    painter.setPen(pen);
-//
-//    painter.drawLine(pixmapWidth / 2, 0, pixmapWidth / 2, pixmapHeight);
 }
 
+/**
+ * Draw a line in the color bar
+ * @param painter
+ *    The QPainter
+ * @param pen
+ *    The pen
+ * @param rgbFloat
+ *    RGB coloring
+ * @param x
+ *    x-coordinate of line
+ * @param pixmapHeight
+ *    Height of the colorbar
+ * @param lineWidth
+ *    Width of the line
+ */
 void
 PalettePixmapPainter::drawLineInColorBar(QPainter& painter,
                                          QPen& pen,

@@ -91,7 +91,7 @@ m_rangeMode(rangeMode)
 
     m_colorSwatchWidget = new QWidget();
     m_colorSwatchWidget->setFixedWidth(40);
-//    m_colorSwatchWidget->setFixedHeight(std::max(10, m_valueSpinBox->sizeHint().height() - 2));
+    m_colorSwatchWidget->setFixedHeight(m_colorEditRadioButton->sizeHint().height() + 4);
     
     const int row(parentGridLayout->rowCount());
     if (posNegFlag) {
@@ -109,10 +109,15 @@ m_rangeMode(rangeMode)
         m_gridLayoutGroup->addWidget(zeroLabel,
                                      row, COLUMN_CONSTRUCTION,
                                      1, 2);
+        parentGridLayout->setColumnStretch(COLUMN_CONSTRUCTION, 100);
+        parentGridLayout->setColumnStretch(COLUMN_SCALAR, 0);
+        parentGridLayout->setColumnStretch(COLUMN_COLOR_SWATCH, 0);
+        parentGridLayout->setColumnStretch(COLUMN_RADIO_BUTTON, 0);
+
     }
 
     m_gridLayoutGroup->addWidget(m_colorSwatchWidget,
-                                 row, COLUMN_COLOR_SWATCH);
+                                 row, COLUMN_COLOR_SWATCH, Qt::AlignCenter);
     m_gridLayoutGroup->addWidget(m_colorEditRadioButton,
                                  row, COLUMN_RADIO_BUTTON);
 }

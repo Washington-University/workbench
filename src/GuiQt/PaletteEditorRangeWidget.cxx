@@ -225,75 +225,87 @@ PaletteEditorRangeWidget::averageScalarColor(const PaletteNew::ScalarColor& sc1,
 
 /**
  * Called when a control point modification is requested
- * @param controlPointIndex
- * Index of the control point
+ * @param rowIndex
+ * Index of the row widget
  * @param constructionOperation
  * The modification operation
  */
 void
-PaletteEditorRangeWidget::performConstruction(const int32_t controlPointIndex,
+PaletteEditorRangeWidget::performConstruction(const int32_t rowIndex,
                                     const PaletteEditorRangeWidget::ConstructionOperation constructionOperation)
 {
     std::vector<PaletteNew::ScalarColor> scalarColors = getScalarColors();
     const auto numScalarColors = scalarColors.size();
     const int32_t lastControlPointIndex(m_numberOfValidControlPoints - 1);
     
-    int32_t insertAtIndex(-1);
+    int32_t insertAtRowIndex(-1);
     switch (constructionOperation) {
         case PaletteEditorRangeWidget::ConstructionOperation::INSERT_CONTROL_POINT_ABOVE:
-            if ((controlPointIndex > 0)
-                && (controlPointIndex <= lastControlPointIndex)) {
-                insertAtIndex = controlPointIndex - 1;
+            if ((rowIndex > 0)
+                && (rowIndex <= lastControlPointIndex)) {
+                insertAtRowIndex = rowIndex - 1;
             }
             else {
-                QString msg("Invalid index="
-                            + QString::number(controlPointIndex)
-                            + " for inserting ABOVE (lower index) control point in range containing "
+                QString msg("Invalid row index="
+                            + QString::number(rowIndex)
+                            + " for inserting ABOVE row (0 at top) in range containing "
                             + AString::number(m_numberOfValidControlPoints)
-                            + " control points.");
-//                CaretAssertMessage(0, msg);
+                            + " rows.");
+                CaretAssertMessage(0, msg);
                 CaretLogSevere(msg);
             }
             break;
         case PaletteEditorRangeWidget::ConstructionOperation::INSERT_CONTROL_POINT_BELOW:
-            if ((controlPointIndex >= 0)
-                && (controlPointIndex < lastControlPointIndex)) {
-                insertAtIndex = controlPointIndex;
+            if ((rowIndex >= 0)
+                && (rowIndex < lastControlPointIndex)) {
+                insertAtRowIndex = rowIndex;
             }
             else {
-                QString msg("Invalid index="
-                            + QString::number(controlPointIndex)
-                            + " for inserting BELOW (higher index) control point in range containing "
+                QString msg("Invalid row index="
+                            + QString::number(rowIndex)
+                            + " for inserting BELOW row (0 at top) in range containing "
                             + AString::number(m_numberOfValidControlPoints)
-                            + " control points.");
-//                CaretAssertMessage(0, msg);
+                            + " rows.");
+                CaretAssertMessage(0, msg);
                 CaretLogSevere(msg);
             }
             break;
         case PaletteEditorRangeWidget::ConstructionOperation::REMOVE_CONTROL_POINT:
-            if ((controlPointIndex > 0)
-                && (controlPointIndex < lastControlPointIndex)) {
-                std::cout << "Remove at index=" << controlPointIndex << std::endl;
-                scalarColors.erase(scalarColors.begin() + controlPointIndex);
+            /*
+             * Not allowed to remove first or last rows
+             */
+            if ((rowIndex > 0)
+                && (rowIndex < lastControlPointIndex)) {
+                /*
+                 * Row index 0 is at TOP in GUI
+                 * But ScalarColor[0] is at BOTTOM in the GUI
+                 */
+                const int32_t removeAtIndex = (scalarColors.size() - 1 - rowIndex);
+                scalarColors.erase(scalarColors.begin() + removeAtIndex);
             }
             else {
-                QString msg("Invalid index="
-                            + QString::number(controlPointIndex)
-                            + " for REMOVING control point in range containing "
+                QString msg("Invalid row index="
+                            + QString::number(rowIndex)
+                            + " for REMOVING row in range containing "
                             + AString::number(m_numberOfValidControlPoints)
-                            + " control points.");
-//                CaretAssertMessage(0, msg);
+                            + " rows.");
+                CaretAssertMessage(0, msg);
                 CaretLogSevere(msg);
             }
             break;
     }
     
-    if (insertAtIndex >= 0) {
-        std::cout << "Insert at index " << insertAtIndex << std::endl;
+    /*
+     * Row index 0 is at TOP in GUI
+     * But ScalarColor[0] is at BOTTOM in the GUI
+     */
+    if (insertAtRowIndex >= 0) {
+        const int32_t insertAtIndex(scalarColors.size() - 1 - insertAtRowIndex);
+        const int32_t nextIndex(insertAtIndex - 1);
         CaretAssertVectorIndex(scalarColors, insertAtIndex);
-        CaretAssertVectorIndex(scalarColors, insertAtIndex + 1);
+        CaretAssertVectorIndex(scalarColors, nextIndex);
         PaletteNew::ScalarColor avgSC = averageScalarColor(scalarColors[insertAtIndex],
-                                                             scalarColors[insertAtIndex + 1]);
+                                                           scalarColors[nextIndex]);
         scalarColors.insert(scalarColors.begin() + insertAtIndex,
                             avgSC);
     }
