@@ -29,7 +29,7 @@
 namespace caret {
 
 /**
- * \brief Enumerated type for a structure in a brain.
+ * \brief Enumerated type for math functions.
  *
  * Enumerated types for math functions.
  */

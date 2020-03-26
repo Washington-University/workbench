@@ -25,6 +25,9 @@
 #include "CaretLogger.h"
 
 #include "ColorFunctions.h"
+#include "MathFunctions.h"
+
+#include <algorithm>
 
 using namespace std;
 using namespace caret;
@@ -94,7 +97,7 @@ PaletteNew::PaletteRange::PaletteRange(const vector<ScalarColor> controlPoints)
     m_highPoint = m_controlPoints.back().scalar;
     float diff = m_highPoint - m_lowPoint;//in practice this should always be 1
     m_lookup[0] = 0;
-    m_lookup[BUCKETS] = m_controlPoints.size() - 1;
+    m_lookup[BUCKETS] = m_controlPoints.size() - 2;//do not allow search to ever say that it is past the last control point
     for (int i = 1; i < BUCKETS; ++i)
     {
         m_lookup[i] = searchLowSide(m_lowPoint + (diff * i) / (BUCKETS), m_controlPoints, 0, m_controlPoints.size() - 1);//save the low control point at each bucket wall (can derive high from next bucket)
@@ -103,6 +106,7 @@ PaletteNew::PaletteRange::PaletteRange(const vector<ScalarColor> controlPoints)
 
 void PaletteNew::PaletteRange::getPaletteColor(const float scalar, float rgbOut[3]) const
 {
+    CaretAssert(MathFunctions::isNumeric(scalar));
     int bucket = int((scalar - m_lowPoint) / (m_highPoint - m_lowPoint) * BUCKETS);//this implicitly tests for below or above the palette range
     if (bucket < 0)
     {
@@ -117,10 +121,8 @@ void PaletteNew::PaletteRange::getPaletteColor(const float scalar, float rgbOut[
     int lowSide = searchLowSide(scalar, m_controlPoints, m_lookup[bucket], m_lookup[bucket + 1] + 1);//this is why m_lookup is [BUCKETS + 1]
     float interpFactor = (scalar - m_controlPoints[lowSide].scalar) / (m_controlPoints[lowSide + 1].scalar - m_controlPoints[lowSide].scalar);
     for (int i = 0; i < 3; ++i)
-    {
-        rgbOut[i] = m_controlPoints[lowSide].color[i] * (1 - interpFactor) + m_controlPoints[lowSide + 1].color[i] * interpFactor;
-        if (!(rgbOut[i] >= 0.0f)) rgbOut[i] = 0.0f;//never output outside of [0, 1]
-        if (!(rgbOut[i] <= 1.0f)) rgbOut[i] = 1.0f;
+    {//never output outside of [0, 1]
+        rgbOut[i] = max(0.0f, min(1.0f, m_controlPoints[lowSide].color[i] * (1 - interpFactor) + m_controlPoints[lowSide + 1].color[i] * interpFactor));
     }
 }
 
