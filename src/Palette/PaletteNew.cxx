@@ -1,6 +1,6 @@
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2020  Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@
 #include "CaretAssert.h"
 #include "CaretException.h"
 #include "CaretLogger.h"
+
+#include "ColorFunctions.h"
 
 using namespace std;
 using namespace caret;
@@ -62,27 +64,6 @@ PaletteNew::PaletteNew(vector<ScalarColor> posRange, float zeroColor[3], vector<
     CaretAssert(negRange.back().scalar == 0.0f);
     m_gpcWarned = false;
     copyColor(m_zeroColor, zeroColor);
-}
-
-///REMOVE THIS FUNCTION
-void PaletteNew::getPaletteColor(const float scalar, float rgbOut[3]) const
-{
-    if (!m_gpcWarned)
-    {
-        CaretLogWarning("getPaletteColor called, this function will be REMOVED");
-        m_gpcWarned = true;
-    }
-    if (scalar == 0.0f)//keep the handling of the exact zero separate
-    {
-        copyColor(rgbOut, m_zeroColor);
-        return;
-    }
-    if (scalar < 0.0f)//keep positive and negative zero separate
-    {
-        m_negRange.getPaletteColor(scalar, rgbOut);
-    } else {
-        m_posRange.getPaletteColor(scalar, rgbOut);
-    }
 }
 
 void PaletteNew::getPositiveColor(const float scalar, float rgbOut[3]) const
@@ -141,4 +122,25 @@ void PaletteNew::PaletteRange::getPaletteColor(const float scalar, float rgbOut[
         if (!(rgbOut[i] >= 0.0f)) rgbOut[i] = 0.0f;//never output outside of [0, 1]
         if (!(rgbOut[i] <= 1.0f)) rgbOut[i] = 1.0f;
     }
+}
+
+vector<float> PaletteNew::PaletteRange::getPerceptualGradient(const int numBuckets) const
+{
+    CaretAssert(numBuckets >= 3);//one at min, one at max, all equally spaced
+    vector<float> ret(numBuckets);
+    ScalarColor lowColor, midColor, highColor;
+    midColor.scalar = m_lowPoint;
+    getPaletteColor(midColor.scalar, midColor.color);
+    lowColor = midColor;//use central difference, with unsymmetric endpoints
+    for (int i = 1; i < numBuckets - 1; ++i)
+    {
+        float interpFactor = float(i) / (numBuckets - 1);
+        highColor.scalar = (1 - interpFactor) * m_lowPoint + interpFactor * m_highPoint;
+        getPaletteColor(highColor.scalar, highColor.color);
+        ret[i - 1] = ColorFunctions::perceptualDistance(highColor.color, lowColor.color) / (highColor.scalar - lowColor.scalar);
+        lowColor = midColor;
+        midColor = highColor;
+    }
+    ret[numBuckets - 1] = ColorFunctions::perceptualDistance(highColor.color, midColor.color) / (highColor.scalar - midColor.scalar);
+    return ret;
 }

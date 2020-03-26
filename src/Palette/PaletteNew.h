@@ -3,7 +3,7 @@
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2020  Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -71,9 +71,6 @@ namespace caret {
         
         PaletteNew(std::vector<ScalarColor> posRange, float zeroColor[3], std::vector<ScalarColor> negRange);
         
-        ///DO NOT USE, will be removed
-        void getPaletteColor(const float scalar, float rgbOut[3]) const;
-        
         void getPositiveColor(const float scalar, float rgbOut[3]) const;
         void getNegativeColor(const float scalar, float rgbOut[3]) const;
         void getZeroColor(float colorOut[3]) const { for (int i = 0; i < 3; ++i) colorOut[i] = m_zeroColor[i]; }
@@ -84,7 +81,11 @@ namespace caret {
         
         std::vector<ScalarColor> getPosRange() const { return m_posRange.getRange(); }
         std::vector<ScalarColor> getNegRange() const { return m_negRange.getRange(); }
-        
+
+        //TODO: simulate color deficiency
+        std::vector<float> getPosPerceptualGradient(const int numBuckets) const { return m_posRange.getPerceptualGradient(numBuckets); }
+        std::vector<float> getNegPerceptualGradient(const int numBuckets) const { return m_negRange.getPerceptualGradient(numBuckets); }
+
     private:
         class PaletteRange
         {
@@ -98,6 +99,8 @@ namespace caret {
             void getPaletteColor(const float scalar, float rgbOut[3]) const;
             
             std::vector<ScalarColor> getRange() const { return m_controlPoints; }
+
+            std::vector<float> getPerceptualGradient(const int numBuckets) const;
         };
         
         PaletteRange m_posRange, m_negRange;

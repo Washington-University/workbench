@@ -83,6 +83,7 @@ CaretTemporaryFile.h
 CaretUndoCommand.h
 CaretUndoStack.h
 CaretUnitsTypeEnum.h
+ColorFunctions.h
 ConnectivityCorrelation.h
 CubicSpline.h
 DataCompressZLib.h
@@ -229,6 +230,7 @@ CaretTemporaryFile.cxx
 CaretUndoCommand.cxx
 CaretUndoStack.cxx
 CaretUnitsTypeEnum.cxx
+ColorFunctions.cxx
 ConnectivityCorrelation.cxx
 CubicSpline.cxx
 DataCompressZLib.cxx
