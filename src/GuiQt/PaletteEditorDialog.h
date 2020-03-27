@@ -121,6 +121,8 @@ namespace caret {
         
         QLabel* m_colorBarImageLabel;
         
+        QLabel* m_colorBarModifiedLabel;
+        
         WuQColorEditorWidget* m_colorEditorWidget;
         
         QButtonGroup* m_colorEditButtonGroup;

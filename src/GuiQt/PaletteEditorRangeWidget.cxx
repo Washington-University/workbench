@@ -313,6 +313,8 @@ PaletteEditorRangeWidget::performConstruction(const int32_t rowIndex,
     if (scalarColors.size() != numScalarColors) {
         updateContent(scalarColors);
     }
+    
+    signalDataChanged();
 }
 
 /**

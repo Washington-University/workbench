@@ -175,27 +175,19 @@ PaletteEditorDialog::loadPalette(const PaletteNew* palette)
     m_negativeRangeWidget->updateContent(negativeScalars);
     m_zeroRangeWidget->updateContent(zeroScalars);
 
-    updatePaletteColorBarImage();
-    
-    m_unmodifiedPalette.m_negativeMapping = negativeScalars;
-    m_unmodifiedPalette.m_positiveMapping = positiveScalars;
-    m_unmodifiedPalette.m_zeroMapping     = zeroScalars;
-}
+    /*
+     * Save the initial values so that they can be used to determine if the
+     * current palette has been modified.  We do not use the input scalar colors
+     * but do use the scalar colors after they have been loaded in the range
+     * widgets.  The range widgets have limited precision (3 decimals) due to
+     * the spin boxes whereas the input scalar colors have more precision.
+     */
+    m_unmodifiedPalette.m_negativeMapping = m_negativeRangeWidget->getScalarColors();
+    m_unmodifiedPalette.m_positiveMapping = m_positiveRangeWidget->getScalarColors();
+    m_unmodifiedPalette.m_zeroMapping     = m_zeroRangeWidget->getScalarColors();
 
-//bool
-//operator==(const PaletteNew::ScalarColor& lhs, const PaletteNew::ScalarColor& rhs)
-//{
-//    if (lhs.scalar != rhs.scalar) {
-//        return false;
-//    }
-//    for (int32_t i = 0; i < 3; i++) {
-//        if (lhs.color[i] != rhs.color[i]) {
-//            return false;
-//        }
-//    }
-//
-//    return true;
-//}
+    updatePaletteColorBarImage();
+}
 
 /**
  * @return True if the current palette has been modified since it was loaded, else false
@@ -203,15 +195,15 @@ PaletteEditorDialog::loadPalette(const PaletteNew* palette)
 bool
 PaletteEditorDialog::isPaletteModified() const
 {
-//    if (m_unmodifiedPalette.m_negativeMapping != m_negativeRangeWidget->getScalarColors()) {
-//        return true;
-//    }
-//    if (m_unmodifiedPalette.m_positiveMapping != m_positiveRangeWidget->getScalarColors()) {
-//        return true;
-//    }
-//    if (m_unmodifiedPalette.m_zeroMapping != m_zeroRangeWidget->getScalarColors()) {
-//        return true;
-//    }
+    if (m_unmodifiedPalette.m_negativeMapping != m_negativeRangeWidget->getScalarColors()) {
+        return true;
+    }
+    if (m_unmodifiedPalette.m_positiveMapping != m_positiveRangeWidget->getScalarColors()) {
+        return true;
+    }
+    if (m_unmodifiedPalette.m_zeroMapping != m_zeroRangeWidget->getScalarColors()) {
+        return true;
+    }
 
     return false;
 }
@@ -262,6 +254,13 @@ PaletteEditorDialog::updatePaletteColorBarImage()
     }
     else {
         m_colorBarImageLabel->setPixmap(QPixmap());
+    }
+    
+    if (isPaletteModified()) {
+        m_colorBarModifiedLabel->setText("<html><font color=\"red\"><bold>MODIFIED</bold></font></html>");
+    }
+    else {
+        m_colorBarModifiedLabel->setText("");
     }
 }
 
@@ -357,12 +356,6 @@ void
 PaletteEditorDialog::rangeWidgetDataChanged()
 {
     updatePaletteColorBarImage();
-    if (isPaletteModified()) {
-        std::cout << "Modified" << std::endl;
-    }
-    else {
-        std::cout << "NOT Modified" << std::endl;
-    }
 }
 
 /*
@@ -375,10 +368,15 @@ PaletteEditorDialog::createPaletteBarWidget()
     m_colorBarImageLabel->setFixedHeight(24);
     m_colorBarImageLabel->setFixedWidth(500);
     
+    m_colorBarModifiedLabel = new QLabel();
+    m_colorBarModifiedLabel->setAlignment(Qt::AlignRight);
+    m_colorBarModifiedLabel->setFixedWidth(120);
+
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(m_colorBarImageLabel);
+    layout->addWidget(m_colorBarModifiedLabel);
     layout->addStretch();
 
     return widget;
