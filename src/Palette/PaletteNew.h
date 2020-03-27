@@ -57,6 +57,17 @@ namespace caret {
                     color[i] = 0.0f;
                 }
             }
+            bool operator==(const ScalarColor& rhs) const {
+                if (scalar != rhs.scalar) {
+                    return false;
+                }
+                for (int i = 0; i < 3; i++) {
+                    if (color[i] != rhs.color[i]) {
+                        return false;
+                    }
+                }
+                return true;
+            }
             static ScalarColor fromRGB255(const float scalar, const int red, const int green, const int blue)
             {
                 return ScalarColor(scalar, red / 255.0f, green / 255.0f, blue / 255.0f);
