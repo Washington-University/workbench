@@ -139,10 +139,10 @@ vector<float> PaletteNew::PaletteRange::getPerceptualGradient(const int numBucke
         float interpFactor = float(i) / (numBuckets - 1);
         highColor.scalar = (1 - interpFactor) * m_lowPoint + interpFactor * m_highPoint;
         getPaletteColor(highColor.scalar, highColor.color);
-        ret[i - 1] = ColorFunctions::perceptualDistance(highColor.color, lowColor.color) / (highColor.scalar - lowColor.scalar);
+        ret[i - 1] = ColorFunctions::perceptualDistanceSRGB(highColor.color, lowColor.color) / (highColor.scalar - lowColor.scalar);
         lowColor = midColor;
         midColor = highColor;
     }
-    ret[numBuckets - 1] = ColorFunctions::perceptualDistance(highColor.color, midColor.color) / (highColor.scalar - midColor.scalar);
+    ret[numBuckets - 1] = ColorFunctions::perceptualDistanceSRGB(highColor.color, midColor.color) / (highColor.scalar - midColor.scalar);
     return ret;
 }

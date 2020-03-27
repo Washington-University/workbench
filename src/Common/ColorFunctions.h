@@ -32,8 +32,11 @@ namespace caret {
         static void CIEXYZtoCIELab(const float xyz[3], float LabOut[3]);
         //maybe add the inverses for completeness?
 
+        static void CIEXYZtoCIELuvPrime (const float xyz[3], float LuvOut[3]);
+        static void CIELuvPrimetoCIEXYZ (const float Luv[3], float xyzOut[3]);
+
         //TODO: color deficiency simulation
-        static float perceptualDistance(const float srgb1[3], const float srgb2[3]);
+        static float perceptualDistanceSRGB(const float srgb1[3], const float srgb2[3]);
     };
 
 }//namespace
