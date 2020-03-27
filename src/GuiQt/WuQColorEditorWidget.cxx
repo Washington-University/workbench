@@ -115,25 +115,30 @@ WuQColorEditorWidget::setCurrentColor(const QColor& color)
 QWidget*
 WuQColorEditorWidget::createControlsWidget()
 {
+    QLabel* currentLabel = new QLabel("Current\nColor");
+    currentLabel->setAlignment(Qt::AlignHCenter);
     m_currentColorSwatchWidget = new QWidget();
     m_currentColorSwatchWidget->setMinimumWidth(50);
-    QGroupBox* currentColorGroupBox = new QGroupBox("Current");
-    QVBoxLayout* currentColorLayout = new QVBoxLayout(currentColorGroupBox);
-    currentColorLayout->addWidget(m_currentColorSwatchWidget, 100);
+    m_currentColorSwatchWidget->setMinimumHeight(30);
     
+    QLabel* originalLabel = new QLabel("Original\nColor");
     m_originalColorSwatchWidget = new QWidget();
     m_originalColorSwatchWidget->setMinimumWidth(50);
+    m_originalColorSwatchWidget->setMinimumHeight(20);
     
     QToolButton* revertToolButton = new QToolButton();
     revertToolButton->setText("Revert");
     revertToolButton->setToolTip("Revert to Original Color");
     QObject::connect(revertToolButton, &QToolButton::clicked,
                      this, &WuQColorEditorWidget::revertToOriginalColorToolButtonClicked);
-    QGroupBox* originalColorGroupBox = new QGroupBox("Original");
-    QVBoxLayout* originalColorLayout = new QVBoxLayout(originalColorGroupBox);
-    originalColorLayout->addWidget(m_originalColorSwatchWidget, 100);
-    originalColorLayout->addWidget(revertToolButton, 0, Qt::AlignHCenter);
-
+    
+    QVBoxLayout* colorLayout = new QVBoxLayout();
+    colorLayout->addWidget(currentLabel);
+    colorLayout->addWidget(m_currentColorSwatchWidget, 100);
+    colorLayout->addWidget(originalLabel);
+    colorLayout->addWidget(m_originalColorSwatchWidget);
+    colorLayout->addWidget(revertToolButton);
+    
     m_hueSlider = new QSlider();
     m_hueSlider->setOrientation(Qt::Horizontal);
     m_hueSlider->setRange(0, 359);
@@ -201,73 +206,70 @@ WuQColorEditorWidget::createControlsWidget()
     QObject::connect(m_blueSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &WuQColorEditorWidget::blueChanged);
 
-    const int32_t COL_SWATCH(0);
-    const int32_t COL_LABEL(COL_SWATCH + 1);
+    const int32_t COL_LABEL(0);
     const int32_t COL_SLIDER(COL_LABEL + 1);
     const int32_t COL_SPIN_BOX(COL_SLIDER + 1);
     
-    QWidget* widget = new QWidget();
-    QGridLayout* layout = new QGridLayout(widget);
-    layout->setColumnStretch(COL_SWATCH,   0);
-    layout->setColumnStretch(COL_LABEL,    0);
-    layout->setColumnStretch(COL_SLIDER, 100);
-    layout->setColumnStretch(COL_SPIN_BOX, 0);
+    QGridLayout* adjustLayout = new QGridLayout();
+    adjustLayout->setColumnStretch(COL_LABEL,    0);
+    adjustLayout->setColumnStretch(COL_SLIDER, 100);
+    adjustLayout->setColumnStretch(COL_SPIN_BOX, 0);
     
     int32_t row(0);
-    layout->addWidget(currentColorGroupBox,
-                      row, COL_SWATCH,
-                      3, 1);
-    layout->addWidget(originalColorGroupBox,
-                      row + 3, COL_SWATCH,
-                      3, 1);
-    
-    layout->addWidget(new QLabel("Red:"),
+    adjustLayout->addWidget(new QLabel("Red:"),
                       row, COL_LABEL);
-    layout->addWidget(m_redSlider,
+    adjustLayout->addWidget(m_redSlider,
                       row, COL_SLIDER);
-    layout->addWidget(m_redSpinBox,
+    adjustLayout->addWidget(m_redSpinBox,
                       row, COL_SPIN_BOX);
     row++;
 
-    layout->addWidget(new QLabel("Green:"),
+    adjustLayout->addWidget(new QLabel("Green:"),
                       row, COL_LABEL);
-    layout->addWidget(m_greenSlider,
+    adjustLayout->addWidget(m_greenSlider,
                       row, COL_SLIDER);
-    layout->addWidget(m_greenSpinBox,
+    adjustLayout->addWidget(m_greenSpinBox,
                       row, COL_SPIN_BOX);
     row++;
 
-    layout->addWidget(new QLabel("Blue:"),
+    adjustLayout->addWidget(new QLabel("Blue:"),
                       row, COL_LABEL);
-    layout->addWidget(m_blueSlider,
+    adjustLayout->addWidget(m_blueSlider,
                       row, COL_SLIDER);
-    layout->addWidget(m_blueSpinBox,
+    adjustLayout->addWidget(m_blueSpinBox,
                       row, COL_SPIN_BOX);
     row++;
     
-    layout->addWidget(new QLabel("Hue:"),
+    adjustLayout->addWidget(new QLabel("Hue:"),
                       row, COL_LABEL);
-    layout->addWidget(m_hueSlider,
+    adjustLayout->addWidget(m_hueSlider,
                       row, COL_SLIDER);
-    layout->addWidget(m_hueSpinBox,
+    adjustLayout->addWidget(m_hueSpinBox,
                       row, COL_SPIN_BOX);
     row++;
     
-    layout->addWidget(new QLabel("Sat:"),
+    adjustLayout->addWidget(new QLabel("Sat:"),
                       row, COL_LABEL);
-    layout->addWidget(m_saturationSlider,
+    adjustLayout->addWidget(m_saturationSlider,
                       row, COL_SLIDER);
-    layout->addWidget(m_saturationSpinBox,
+    adjustLayout->addWidget(m_saturationSpinBox,
                       row, COL_SPIN_BOX);
     row++;
     
-    layout->addWidget(new QLabel("Value:"),
+    adjustLayout->addWidget(new QLabel("Value:"),
                       row, COL_LABEL);
-    layout->addWidget(m_valueSlider,
+    adjustLayout->addWidget(m_valueSlider,
                       row, COL_SLIDER);
-    layout->addWidget(m_valueSpinBox,
+    adjustLayout->addWidget(m_valueSpinBox,
                       row, COL_SPIN_BOX);
     row++;
+    
+    QWidget* widget = new QWidget();
+    QHBoxLayout* layout = new QHBoxLayout(widget);
+//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+    layout->addLayout(colorLayout, 0);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0);
+    layout->addLayout(adjustLayout, 100);
     
     return widget;
 }

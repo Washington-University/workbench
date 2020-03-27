@@ -35,6 +35,8 @@
 class QButtonGroup;
 class QComboBox;
 class QLabel;
+class QListWidget;
+class QListWidgetItem;
 class QPushButton;
 class QTabWidget;
 class QToolButton;
@@ -72,9 +74,15 @@ namespace caret {
         
         void colorEditorColorChanged(const QColor& color);
         
-        void userPaletteComboBoxActivated(int index);
+        void userPaletteListWidgetActivated(QListWidgetItem* item);
         
         void rangeWidgetDataChanged();
+        
+        void addPalettePushButtonClicked();
+        
+        void replacePalettePushButtonClicked();
+        
+        void loadPalettePushButtonClicked();
         
     private:
         enum class IconType {
@@ -88,7 +96,7 @@ namespace caret {
         
         QWidget* createControlPointsWidget();
         
-        QWidget* createPaletteWidget();
+        QWidget* createPaletteBarWidget();
         
         QWidget* createPaletteSelectionWidget();
         
@@ -98,6 +106,12 @@ namespace caret {
         void createUserPalettes();
         
         void updatePaletteColorBarImage();
+        
+        QWidget* createMovePaletteButtonsWidget();
+        
+        void updatePaletteMovementButtons();
+        
+        bool isPaletteModified() const;
         
         PaletteEditorRangeWidget* m_positiveRangeWidget;
         
@@ -113,13 +127,25 @@ namespace caret {
 
         QComboBox* m_paletteSourceComboBox;
         
-        QComboBox* m_userPaletteSelectionComboBox;
+        QListWidget* m_userPaletteSelectionListWidget;
         
         PalettePixmapPainter::Mode m_pixmapMode = PalettePixmapPainter::Mode::INTERPOLATE_OFF;
         
         std::vector<std::unique_ptr<PaletteNew>> m_userPalettes;
         
-        AString m_currentPaletteName;
+        QPushButton* m_addPalettePushButton;
+        
+        QPushButton* m_replacePalettePushButton;
+        
+        QPushButton* m_loadPalettePushButton;
+        
+        QPushButton* m_newPalettePushButton;
+        
+        struct UnmodifiedPalette {
+            std::vector<PaletteNew::ScalarColor> m_positiveMapping;
+            std::vector<PaletteNew::ScalarColor> m_negativeMapping;
+            std::vector<PaletteNew::ScalarColor> m_zeroMapping;
+        } m_unmodifiedPalette;
         
         // ADD_NEW_MEMBERS_HERE
 
