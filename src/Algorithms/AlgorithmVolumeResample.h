@@ -29,7 +29,7 @@
 
 namespace caret {
 
-    struct XfmStack;
+    class XfmStack;
 
     class AlgorithmVolumeResample : public AbstractAlgorithm
     {
