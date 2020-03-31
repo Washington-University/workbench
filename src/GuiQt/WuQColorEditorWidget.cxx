@@ -70,10 +70,11 @@ WuQColorEditorWidget::WuQColorEditorWidget(QWidget* parent)
     layout->addWidget(caretColorWidget, 0, 2, 1, 1);
     layout->addWidget(controlsWidget, 1, 0, 1, 3);
     
-    m_currentColor.setRgb(255, 0, 0);
-    m_originalColor = m_currentColor;
-    updateControls();
+//    m_currentColor.setRgb(255, 0, 0);
+//    m_originalColor = m_currentColor;
+//    updateControls();
 
+    setCurrentColor(QColor());
     setSizePolicy(sizePolicy().horizontalPolicy(),
                           QSizePolicy::Fixed);
 }
@@ -429,6 +430,8 @@ WuQColorEditorWidget::updateControls()
     updateValueColorLabel();
     
     updateHueSaturationLabel();
+    
+    setEnabled(m_currentColor.isValid());
 }
 
 /**

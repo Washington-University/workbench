@@ -80,6 +80,8 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+        void selectRadioButton();
+        
     signals:
         /**
          * Emitted when this control point has changed (scalar or color)

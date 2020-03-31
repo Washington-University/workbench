@@ -38,6 +38,7 @@
 #include "PaletteFile.h"
 #include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
+#include "PaletteSelectionWidget.h"
 #include "WuQMessageBox.h"
 
 using namespace caret;
@@ -61,29 +62,18 @@ PaletteCreateNewDialog::PaletteCreateNewDialog(const PalettePixmapPainter::Mode 
                  parent),
 m_pixmapMode(pixmapMode)
 {
-    QLabel* nameLabel = new QLabel("Name");
-    m_nameLineEdit = new QLineEdit();
+    m_copyPaletteRadioButton = new QRadioButton("Copy Palette");
+    m_newPaletteRadioButton  = new QRadioButton("New Palette");
     
-    m_copyTemplatePaletteRadioButton = new QRadioButton("Copy Template Palette");
-    m_copyUserPaletteRadioButton     = new QRadioButton("Copy User Palette");
-    m_copyFilePaletteRadioButton     = new QRadioButton("Copy File Palette");
-    m_newPaletteRadioButton          = new QRadioButton("New Palette");
+    m_paletteSelectionWidget = new PaletteSelectionWidget(m_pixmapMode);
+    QObject::connect(m_paletteSelectionWidget, &PaletteSelectionWidget::paletteSelected,
+                     this, &PaletteCreateNewDialog::paletteSelected);
+    
     QButtonGroup* buttonGroup = new QButtonGroup();
-    buttonGroup->addButton(m_copyTemplatePaletteRadioButton);
-    buttonGroup->addButton(m_copyUserPaletteRadioButton);
+    buttonGroup->addButton(m_copyPaletteRadioButton);
     buttonGroup->addButton(m_newPaletteRadioButton);
     QObject::connect(buttonGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked),
                      this, &PaletteCreateNewDialog::typeButtonClicked);
-    
-    m_templatePalettesComboBox = new QComboBox();
-    loadTemplatePalettes();
-    
-    m_userPalettesComboBox = new QComboBox();
-    loadUserPalettes();
-    
-    QComboBox* fileComboBox = new QComboBox();
-    fileComboBox->setEnabled(false);
-    m_copyFilePaletteRadioButton->setEnabled(false);
     
     QLabel* positiveLabel = new QLabel("Positive Control Points");
     m_newPalettePositiveSpinBox = new QSpinBox();
@@ -101,25 +91,11 @@ m_pixmapMode(pixmapMode)
     QGridLayout* gridLayout = new QGridLayout(widget);
     gridLayout->setColumnStretch(3, 100);
     int row(0);
-    gridLayout->addWidget(nameLabel,
-                          row, 0);
-    gridLayout->addWidget(m_nameLineEdit,
+    gridLayout->addWidget(m_copyPaletteRadioButton,
+                          row, 0, 1, 2);
+    row++;
+    gridLayout->addWidget(m_paletteSelectionWidget,
                           row, 1, 1, 2);
-    row++;
-    gridLayout->addWidget(m_copyTemplatePaletteRadioButton,
-                          row, 0, 1, 2);
-    gridLayout->addWidget(m_templatePalettesComboBox,
-                          row, 2, 1, 2);
-    row++;
-    gridLayout->addWidget(m_copyUserPaletteRadioButton,
-                          row, 0, 1, 2);
-    gridLayout->addWidget(m_userPalettesComboBox,
-                          row, 2, 1, 2);
-    row++;
-    gridLayout->addWidget(m_copyFilePaletteRadioButton,
-                          row, 0, 1, 2);
-    gridLayout->addWidget(fileComboBox,
-                          row, 2, 1, 2);
     row++;
     gridLayout->addWidget(m_newPaletteRadioButton,
                          row, 0, 1, 2);
@@ -148,33 +124,41 @@ PaletteCreateNewDialog::~PaletteCreateNewDialog()
 }
 
 /**
+ * Called when a  palette is selected
+ * @param palette
+ *     Palette selected by the user
+ */
+void
+PaletteCreateNewDialog::paletteSelected(const PaletteNew* palette)
+{
+}
+
+/**
  * Called when OK button clicked
  */
 void
 PaletteCreateNewDialog::okButtonClicked()
 {
-    const AString name = m_nameLineEdit->text().trimmed();
-    if (name.isEmpty()) {
-        WuQMessageBox::errorOk(this, "Palette name is invalid");
-        return;
-    }
-    
-    if (m_copyTemplatePaletteRadioButton->isChecked()) {
-        WuQMessageBox::errorOk(this, "Copy template not implemented");
-    }
-    else if (m_copyUserPaletteRadioButton->isChecked()) {
-        WuQMessageBox::errorOk(this, "Copy user palette not implemented");
-    }
-    else if (m_copyFilePaletteRadioButton->isChecked()) {
-        WuQMessageBox::errorOk(this, "Copy file palette not implemented");
+    if (m_copyPaletteRadioButton->isChecked()) {
+        m_palette.reset();
+        const PaletteNew* palette = m_paletteSelectionWidget->getSelectedPalette();
+        if (palette != NULL) {
+            m_palette.reset(new PaletteNew(*palette));
+        }
+        else {
+            WuQMessageBox::errorOk(this,
+                                   "No palette is selected for copying");
+            return;
+        }
     }
     else if (m_newPaletteRadioButton->isChecked()) {
-        m_palette.reset(createPaletteNew(name,
+        m_palette.reset(createPaletteNew("",
                                          m_newPalettePositiveSpinBox->value(),
                                          m_newPaletteNegativeSpinBox->value()));
     }
     else {
-        WuQMessageBox::errorOk(this, "Choose a palette type");
+        WuQMessageBox::errorOk(this,
+                               "Choose a palette mode");
         return;
     }
 
@@ -189,16 +173,12 @@ PaletteCreateNewDialog::okButtonClicked()
 void
 PaletteCreateNewDialog::typeButtonClicked(QAbstractButton* button)
 {
-    m_userPalettesComboBox->setEnabled(m_copyUserPaletteRadioButton->isChecked());
-    m_templatePalettesComboBox->setEnabled(m_copyTemplatePaletteRadioButton->isChecked());
+    m_paletteSelectionWidget->setEnabled(m_copyPaletteRadioButton->isChecked());
     
     m_newPaletteNegativeSpinBox->setEnabled(m_newPaletteRadioButton->isChecked());
     m_newPalettePositiveSpinBox->setEnabled(m_newPaletteRadioButton->isChecked());
 
-    if (button == m_copyTemplatePaletteRadioButton) {
-        
-    }
-    else if (button == m_copyUserPaletteRadioButton) {
+    if (button == m_copyPaletteRadioButton) {
         
     }
     else if (button == m_newPaletteRadioButton) {
@@ -217,88 +197,6 @@ PaletteCreateNewDialog::getPalette()
     }
     
     return NULL;
-}
-
-/**
- * Called to load the combo box  containing the template (built-in) palettes
- */
-void
-PaletteCreateNewDialog::loadTemplatePalettes()
-{
-    QSize iconSize(80, 18);
-    
-    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-    
-    const int32_t numPalettes = paletteFile->getNumberOfPalettes();
-    for (int32_t i = 0; i < numPalettes; i++) {
-        Palette* palette = paletteFile->getPalette(i);
-        const AString name = palette->getName();
-        /*
-         * Second parameter is user data.  In the future, there may be user-editable
-         * palettes and it is possible there may be palettes with the same name.
-         * Thus, the user-data may change to a unique-identifier that is different
-         * than the palette name.
-         */
-        const AString paletteUniqueID(name);
-        
-        PalettePixmapPainter palettePainter(palette,
-                                            iconSize,
-                                            m_pixmapMode);
-        QPixmap pixmap = palettePainter.getPixmap();
-        if (pixmap.isNull()) {
-            m_templatePalettesComboBox->addItem(name);
-        }
-        else {
-            m_templatePalettesComboBox->addItem(pixmap, name);
-        }
-    }
-    m_templatePalettesComboBox->setIconSize(iconSize);
-}
-
-/**
- * Called to load the combo box  containing the user's palettes from the user's preferences
- */
-void
-PaletteCreateNewDialog::loadUserPalettes()
-{
-    QSize iconSize(80, 18);
-    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-    
-    const int32_t numPalettes = std::min(3, paletteFile->getNumberOfPalettes());
-    for (int32_t i = 0; i < numPalettes; i++) {
-        Palette* palette = paletteFile->getPalette(i);
-        AString name = palette->getName();
-        switch (i) {
-            case 0:
-                name = "Colors";
-                break;
-            case 1:
-                name = "Rainbow";
-                break;
-            case 2:
-                name = "Gray";
-                break;
-        }
-        /*
-         * Second parameter is user data.  In the future, there may be user-editable
-         * palettes and it is possible there may be palettes with the same name.
-         * Thus, the user-data may change to a unique-identifier that is different
-         * than the palette name.
-         */
-        const AString paletteUniqueID(name);
-        
-        PalettePixmapPainter palettePainter(palette,
-                                            iconSize,
-                                            m_pixmapMode);
-        QPixmap pixmap = palettePainter.getPixmap();
-        if (pixmap.isNull()) {
-            m_userPalettesComboBox->addItem(name);
-        }
-        else {
-            m_userPalettesComboBox->addItem(pixmap, name);
-        }
-    }
-    m_userPalettesComboBox->setIconSize(iconSize);
 }
 
 /**

@@ -29,14 +29,13 @@
 #include "WuQDialogModal.h"
 
 class QAbstractButton;
-class QComboBox;
-class QLineEdit;
 class QRadioButton;
 class QSpinBox;
 
 namespace caret {
 
     class PaletteNew;
+    class PaletteSelectionWidget;
     
     class PaletteCreateNewDialog : public WuQDialogModal {
         
@@ -64,32 +63,22 @@ namespace caret {
         virtual void okButtonClicked();
         
     private slots:
+        void paletteSelected(const PaletteNew* palette);
+        
         void typeButtonClicked(QAbstractButton* button);
         
     private:
-        void loadTemplatePalettes();
-        
-        void loadUserPalettes();
-        
         const PalettePixmapPainter::Mode m_pixmapMode;
         
-        QLineEdit* m_nameLineEdit;
-        
-        QRadioButton* m_copyTemplatePaletteRadioButton;
-        
-        QRadioButton* m_copyUserPaletteRadioButton;
-        
-        QRadioButton* m_copyFilePaletteRadioButton;
+        PaletteSelectionWidget* m_paletteSelectionWidget;
+
+        QRadioButton* m_copyPaletteRadioButton;
         
         QRadioButton* m_newPaletteRadioButton;
         
         QSpinBox* m_newPalettePositiveSpinBox;
         
         QSpinBox* m_newPaletteNegativeSpinBox;
-        
-        QComboBox* m_templatePalettesComboBox;
-        
-        QComboBox* m_userPalettesComboBox;
         
         std::unique_ptr<PaletteNew> m_palette;
         

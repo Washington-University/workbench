@@ -183,6 +183,20 @@ PaletteEditorRangeWidget::updateContent(const std::vector<PaletteNew::ScalarColo
 }
 
 /**
+ * Select the first control point
+ */
+void
+PaletteEditorRangeWidget::selectFirstControlPoint()
+{
+    if (m_numberOfValidControlPoints > 0) {
+        CaretAssertVectorIndex(m_rowWidgets, 0);
+        m_rowWidgets[0]->selectRadioButton();
+        emit signalEditColorRequested(m_rowWidgets[0]->getRgb());
+    }
+}
+
+
+/**
  * Update the control point color.  Typically called as user changes color in the color editor.
  *
  * @param red

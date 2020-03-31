@@ -46,6 +46,7 @@
 #include "PaletteEditorRangeWidget.h"
 #include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
+#include "PaletteSelectionWidget.h"
 #include "WuQColorEditorWidget.h"
 #include "WuQScrollArea.h"
 #include "WuQtUtilities.h"
@@ -77,11 +78,6 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     m_colorEditButtonGroup = new QButtonGroup(this);
     m_colorEditButtonGroup->setExclusive(true);
     
-    /*
-     * Create dummy user palettes
-     */
-    createUserPalettes();
-    
     QWidget* paletteBarWidget = createPaletteBarWidget();
     QWidget* paletteSelectionWidget = createPaletteSelectionWidget();
     QWidget* controlPointsWidget = createControlPointsWidget();
@@ -112,6 +108,17 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     setFixedSize(sizeHint());
     
     disableAutoDefaultForAllPushButtons();
+    
+    const bool demoModeFlag(true);
+    if (demoModeFlag) {
+        paletteSelectionWidget->setEnabled(false);
+        movePaletteButtonsWidget->setEnabled(false);
+        
+        const PaletteNew* palette = m_paletteSelectionWidget->getSelectedPalette();
+        if (palette != NULL) {
+            loadPalette(palette);
+        }
+    }
 }
 
 /**
@@ -175,18 +182,29 @@ PaletteEditorDialog::loadPalette(const PaletteNew* palette)
     m_negativeRangeWidget->updateContent(negativeScalars);
     m_zeroRangeWidget->updateContent(zeroScalars);
 
+    clearModified();
+
+    m_positiveRangeWidget->selectFirstControlPoint();
+    
+    updatePaletteColorBarImage();
+}
+
+void
+PaletteEditorDialog::clearModified()
+{
     /*
      * Save the initial values so that they can be used to determine if the
      * current palette has been modified.  We do not use the input scalar colors
      * but do use the scalar colors after they have been loaded in the range
      * widgets.  The range widgets have limited precision (3 decimals) due to
      * the spin boxes whereas the input scalar colors have more precision.
+     * This difference in precesion would cause a differnce.
      */
     m_unmodifiedPalette.m_negativeMapping = m_negativeRangeWidget->getScalarColors();
     m_unmodifiedPalette.m_positiveMapping = m_positiveRangeWidget->getScalarColors();
     m_unmodifiedPalette.m_zeroMapping     = m_zeroRangeWidget->getScalarColors();
 
-    updatePaletteColorBarImage();
+    updateModifiedLabel();
 }
 
 /**
@@ -256,6 +274,12 @@ PaletteEditorDialog::updatePaletteColorBarImage()
         m_colorBarImageLabel->setPixmap(QPixmap());
     }
     
+    updateModifiedLabel();
+}
+
+void
+PaletteEditorDialog::updateModifiedLabel()
+{
     if (isPaletteModified()) {
         m_colorBarModifiedLabel->setText("<html><font color=\"red\"><bold>MODIFIED</bold></font></html>");
     }
@@ -388,32 +412,9 @@ PaletteEditorDialog::createPaletteBarWidget()
 QWidget*
 PaletteEditorDialog::createPaletteSelectionWidget()
 {
-    m_paletteSourceComboBox = new QComboBox();
-    m_paletteSourceComboBox->addItem("User Palettes");
-    
-    m_userPaletteSelectionListWidget = new QListWidget();
-    QObject::connect(m_userPaletteSelectionListWidget, &QListWidget::itemActivated,
-                     this, &PaletteEditorDialog::userPaletteListWidgetActivated);
-    
-    QSize iconSize(80, 18);
-    
-    for (auto& pal : m_userPalettes) {
-        PalettePixmapPainter palettePainter(pal.get(),
-                                            iconSize,
-                                            m_pixmapMode);
-        QPixmap pixmap = palettePainter.getPixmap();
-        const QString name = pal->getName();
-        if (pixmap.isNull()) {
-
-            m_userPaletteSelectionListWidget->addItem(name);
-        }
-        else {
-            
-            m_userPaletteSelectionListWidget->addItem(new QListWidgetItem(pixmap,
-                                                                          name));
-        }
-    }
-    m_userPaletteSelectionListWidget->setIconSize(iconSize);
+    m_paletteSelectionWidget = new PaletteSelectionWidget(m_pixmapMode);
+    QObject::connect(m_paletteSelectionWidget, &PaletteSelectionWidget::paletteSelected,
+                     this, &PaletteEditorDialog::paletteSelected);
     
     QPushButton* renamePushButton = new QPushButton("Rename...");
     renamePushButton->setToolTip("Rename the selected palette");
@@ -443,9 +444,8 @@ PaletteEditorDialog::createPaletteSelectionWidget()
 
     QGroupBox* widget = new QGroupBox("Palette Selection");
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
-    layout->addWidget(m_paletteSourceComboBox);
-    layout->addWidget(m_userPaletteSelectionListWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 8, 0);
+    layout->addWidget(m_paletteSelectionWidget, 0, Qt::AlignHCenter);
     layout->addWidget(renamePushButton, 0, Qt::AlignHCenter);
     layout->addWidget(deletePushButton, 0, Qt::AlignHCenter);
     if (importPushButton != NULL) {
@@ -460,16 +460,14 @@ PaletteEditorDialog::createPaletteSelectionWidget()
 }
 
 /**
- * Called when a user palette is selected
- * @param item
- *     Item selected by the user
+ * Called when a  palette is selected
+ * @param palette
+ *     Palette selected by the user
  */
 void
-PaletteEditorDialog::userPaletteListWidgetActivated(QListWidgetItem* /*item*/)
+PaletteEditorDialog::paletteSelected(const PaletteNew* /*palette*/)
 {
-    /* Nothing */
 }
-    
 
 /**
  * NOT USED
@@ -539,21 +537,6 @@ PaletteEditorDialog::createIcon(QWidget* widget,
 }
 
 /**
- * Create example palettes for testing
- */
-void
-PaletteEditorDialog::createUserPalettes()
-{
-    m_userPalettes.clear();
-    
-    std::unique_ptr<PaletteNew> pal55(PaletteCreateNewDialog::createPaletteNew("Pal55", 5, 5));
-    std::unique_ptr<PaletteNew> pal34(PaletteCreateNewDialog::createPaletteNew("Pal34", 3, 4));
-    
-    m_userPalettes.push_back(std::move(pal55));
-    m_userPalettes.push_back(std::move(pal34));
-}
-
-/**
  * @return Instance of the buttons used to move palettes
  * into and out of the editor
  */
@@ -607,7 +590,7 @@ PaletteEditorDialog::createMovePaletteButtonsWidget()
 void
 PaletteEditorDialog::addPalettePushButtonClicked()
 {
-    
+    clearModified();
 }
 
 /**
@@ -630,7 +613,7 @@ PaletteEditorDialog::newPaletteButtonClicked()
 void
 PaletteEditorDialog::replacePalettePushButtonClicked()
 {
-    
+    clearModified();
 }
 
 /**
@@ -639,11 +622,10 @@ PaletteEditorDialog::replacePalettePushButtonClicked()
 void
 PaletteEditorDialog::loadPalettePushButtonClicked()
 {
-    const int32_t index = m_userPaletteSelectionListWidget->currentRow();
-    if ((index >= 0)
-        && (index < m_userPaletteSelectionListWidget->count())) {
-        loadPalette(m_userPalettes[index].get());
+    if (isPaletteModified()) {
+   //     QString msg("Palette in editor is modified.  Discard")
     }
+    loadPalette(m_paletteSelectionWidget->getSelectedPalette());
     
     updateDialog();
 }

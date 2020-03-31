@@ -33,10 +33,7 @@
 #include "WuQDialogNonModal.h"
 
 class QButtonGroup;
-class QComboBox;
 class QLabel;
-class QListWidget;
-class QListWidgetItem;
 class QPushButton;
 class QTabWidget;
 class QToolButton;
@@ -49,6 +46,8 @@ namespace caret {
     class WuQScrollArea;
     
     class PaletteEditorRangeWidget;
+    class PaletteNew;
+    class PaletteSelectionWidget;
     
     class PaletteEditorDialog : public WuQDialogNonModal {
         
@@ -74,7 +73,7 @@ namespace caret {
         
         void colorEditorColorChanged(const QColor& color);
         
-        void userPaletteListWidgetActivated(QListWidgetItem* item);
+        void paletteSelected(const PaletteNew* palette);
         
         void rangeWidgetDataChanged();
         
@@ -103,15 +102,19 @@ namespace caret {
         QPixmap createIcon(QWidget* widget,
                            const IconType iconType);
         
-        void createUserPalettes();
-        
         void updatePaletteColorBarImage();
         
         QWidget* createMovePaletteButtonsWidget();
         
         void updatePaletteMovementButtons();
         
+        void clearModified();
+        
         bool isPaletteModified() const;
+        
+        void updateModifiedLabel();
+        
+        PaletteSelectionWidget* m_paletteSelectionWidget;
         
         PaletteEditorRangeWidget* m_positiveRangeWidget;
         
@@ -127,13 +130,7 @@ namespace caret {
         
         QButtonGroup* m_colorEditButtonGroup;
 
-        QComboBox* m_paletteSourceComboBox;
-        
-        QListWidget* m_userPaletteSelectionListWidget;
-        
         PalettePixmapPainter::Mode m_pixmapMode = PalettePixmapPainter::Mode::INTERPOLATE_OFF;
-        
-        std::vector<std::unique_ptr<PaletteNew>> m_userPalettes;
         
         QPushButton* m_addPalettePushButton;
         

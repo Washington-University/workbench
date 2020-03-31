@@ -391,6 +391,14 @@ PaletteEditorRangeRow::updateContent(const int32_t numberOfControlPoints)
         case PaletteEditorRangeWidget::DataRangeMode::ZERO:
             break;
     }
-    
+}
+
+/**
+ * Select the radio button
+ */
+void
+PaletteEditorRangeRow::selectRadioButton()
+{
+    m_colorEditRadioButton->setChecked(true);
 }
 

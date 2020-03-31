@@ -81,6 +81,8 @@ namespace caret {
         
         void updateControlPointColor(const CaretRgb& rgb);
 
+        void selectFirstControlPoint();
+        
         // ADD_NEW_METHODS_HERE
 
     signals:
