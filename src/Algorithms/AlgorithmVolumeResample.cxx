@@ -110,6 +110,7 @@ void AlgorithmVolumeResample::useParameters(OperationParameters* myParams, Progr
     }
     XfmStack myStack;
     auto xfmOrder = myParams->getRepeatableOrder();//helper for some ugly code to resolve relative order of repeatable options
+    vector<WarpfieldFile> warpStorage(warpInstances.size());//need to keep these in scope until after the algorithm completes
     for (auto iter = xfmOrder.rbegin(); iter != xfmOrder.rend(); ++iter)//because this is volume resampling, we need to transform target coords into source coords
     {//so, reverse the transform order and invert affines (warpfields are harder to invert, so they work differently for surfaces)
         switch (iter->key)
@@ -147,7 +148,7 @@ void AlgorithmVolumeResample::useParameters(OperationParameters* myParams, Progr
             case 7:
             {
                 OptionalParameter* fnirtOpt = warpInstances[iter->index]->getOptionalParameter(2);
-                WarpfieldFile myWarp;
+                WarpfieldFile& myWarp = warpStorage[iter->index];
                 if (fnirtOpt->m_present)
                 {
                     myWarp.readFnirt(warpInstances[iter->index]->getString(1), fnirtOpt->getString(1));
