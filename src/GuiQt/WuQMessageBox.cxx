@@ -161,6 +161,8 @@ WuQMessageBox::warningCloseCancel(QWidget* parent,
  *    Message that is displayed.
  * @param informativeText
  *    Displayed below 'text' if this is not empty.
+ * @param defaultButton
+ *    The default button
  * @return
  *    true if the Ok button was pressed else false
  *    if the cancel button was pressed.
@@ -168,7 +170,8 @@ WuQMessageBox::warningCloseCancel(QWidget* parent,
 bool
 WuQMessageBox::warningOkCancel(QWidget* parent,
                                const QString& text,
-                               const QString& informativeText)
+                               const QString& informativeText,
+                               const DefaultButtonOkCancel defaultButton)
 {
     QMessageBox msgBox(parent);
     msgBox.setIcon(QMessageBox::Warning);
@@ -179,7 +182,14 @@ WuQMessageBox::warningOkCancel(QWidget* parent,
     }
     msgBox.addButton(QMessageBox::Ok);
     msgBox.addButton(QMessageBox::Cancel);
-    msgBox.setDefaultButton(QMessageBox::Ok);
+    switch (defaultButton) {
+        case DefaultButtonOkCancel::OK:
+            msgBox.setDefaultButton(QMessageBox::Ok);
+            break;
+        case DefaultButtonOkCancel::CANCEL:
+            msgBox.setDefaultButton(QMessageBox::Cancel);
+            break;
+    }
     msgBox.setEscapeButton(QMessageBox::Cancel);
     
     QMessageBox::StandardButton buttonPressed =

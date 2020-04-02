@@ -48,6 +48,11 @@ namespace caret {
             NO
         };
         
+        enum class DefaultButtonOkCancel {
+            OK,
+            CANCEL
+        };
+        
         static void errorOk(QWidget* parent,
                                   const QString& text);
         
@@ -78,7 +83,8 @@ namespace caret {
         
         static bool warningOkCancel(QWidget* parent,
                                     const QString& text,
-                                    const QString& informativeText);
+                                    const QString& informativeText,
+                                    const DefaultButtonOkCancel defaultButton = DefaultButtonOkCancel::OK);
         
         static bool warningYesNoWithDoNotShowAgain(QWidget* parent,
                                                       const QString& uniqueIdentifier,
