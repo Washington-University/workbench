@@ -46,13 +46,9 @@ using namespace caret;
  * Constructor.
  * @param parent
  * The parent widget
- * @param pixmapMode
- * Pixmap mode for painting color bars from palettes
  */
-PaletteSelectionWidget::PaletteSelectionWidget(const PalettePixmapPainter::Mode pixmapMode,
-                                               QWidget* parent)
-: QWidget(parent),
-m_pixmapMode(pixmapMode)
+PaletteSelectionWidget::PaletteSelectionWidget(QWidget* parent)
+: QWidget(parent)
 {
     createUserPalettes();
     

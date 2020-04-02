@@ -29,8 +29,6 @@
 
 #include "CaretObject.h"
 
-
-
 namespace caret {
 
     class Palette;
@@ -41,7 +39,9 @@ namespace caret {
     public:
         enum class Mode {
             INTERPOLATE_OFF,
-            INTERPOLATE_ON
+            INTERPOLATE_ON,
+            INTERPOLATE_ON_LINES_AT_SCALARS,
+            SCALAR_LINES
         };
         
         PalettePixmapPainter(const Palette* palette,
@@ -68,6 +68,11 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        enum class DrawScalarLinesMode {
+            LINES_OFF,
+            LINES_ON
+        };
+        
         void createPalettePixmapInterpolateOff(const Palette* palette,
                                                const qreal pixmapWidth,
                                                const qreal pixmapHeight);
@@ -85,12 +90,24 @@ namespace caret {
         
         void createPalettePixmapInterpolateOn(const PaletteNew* palette,
                                               const qreal pixmapWidth,
-                                              const qreal pixmapHeight);
+                                              const qreal pixmapHeight,
+                                              const DrawScalarLinesMode drawLinesMode);
         
+        void createPalettePixmapScalarLines(const PaletteNew* palette,
+                                            const qreal pixmapWidth,
+                                            const qreal pixmapHeight);
+        
+        void drawScalarLines(const PaletteNew* palette,
+                             QPainter& painter,
+                             QPen& pen,
+                             QPixmap& pixmap,
+                             const qreal lineWidth);
+
         void drawLineInColorBar(QPainter& painter,
                                 QPen& pen,
                                 const float rgbFloat[3],
                                 const qreal x,
+                                const qreal y,
                                 const qreal pixmapHeight,
                                 const int32_t lineWidth);
 

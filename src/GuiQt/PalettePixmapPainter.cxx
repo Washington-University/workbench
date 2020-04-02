@@ -28,6 +28,7 @@
 #include <QPainter>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "Palette.h"
 #include "PaletteNew.h"
@@ -95,6 +96,14 @@ m_mode(mode)
             createPalettePixmapInterpolateOn(palette,
                                       pixmapWidth,
                                       pixmapHeight);
+        case Mode::INTERPOLATE_ON_LINES_AT_SCALARS:
+            CaretLogWarning("Scalar lines on interpolation not supported for old palette");
+            createPalettePixmapInterpolateOn(palette,
+                                             pixmapWidth,
+                                             pixmapHeight);
+            break;
+        case Mode::SCALAR_LINES:
+            CaretLogWarning("Scalar lines not supported for old palette");
             break;
     }
 }
@@ -131,7 +140,19 @@ m_mode(mode)
         case Mode::INTERPOLATE_ON:
             createPalettePixmapInterpolateOn(palette,
                                              pixmapWidth,
-                                             pixmapHeight);
+                                             pixmapHeight,
+                                             DrawScalarLinesMode::LINES_OFF);
+            break;
+        case Mode::INTERPOLATE_ON_LINES_AT_SCALARS:
+            createPalettePixmapInterpolateOn(palette,
+                                             pixmapWidth,
+                                             pixmapHeight,
+                                             DrawScalarLinesMode::LINES_ON);
+            break;
+        case Mode::SCALAR_LINES:
+            createPalettePixmapScalarLines(palette,
+                                           pixmapWidth,
+                                           pixmapHeight);
             break;
     }
 }
@@ -260,7 +281,8 @@ PalettePixmapPainter::createPalettePixmapInterpolateOn(const Palette* palette,
 void
 PalettePixmapPainter::createPalettePixmapInterpolateOn(const PaletteNew* palette,
                                                        const qreal pixmapWidth,
-                                                       const qreal pixmapHeight)
+                                                       const qreal pixmapHeight,
+                                                       const DrawScalarLinesMode drawLinesMode)
 {
     m_pixmap = QPixmap(static_cast<int>(pixmapWidth),
                        static_cast<int>(pixmapHeight));
@@ -297,17 +319,33 @@ PalettePixmapPainter::createPalettePixmapInterpolateOn(const PaletteNew* palette
     painter.setBrush(linearGradient);
     painter.drawRect(m_pixmap.rect());
     
-    const int32_t zeroPenWidth(std::min(pixmapWidth * 0.02,
-                                        2.0));
     painter.setBrush(Qt::NoBrush);
+    
+    const qreal lineWidth(std::min(pixmapWidth * 0.01,
+                                   2.0));
+    switch (drawLinesMode) {
+        case DrawScalarLinesMode::LINES_OFF:
+            break;
+        case DrawScalarLinesMode::LINES_ON:
+            drawScalarLines(palette,
+                            painter,
+                            pen,
+                            m_pixmap,
+                            lineWidth);
+            break;
+    }
+    
     float zeroColor[3];
     palette->getZeroColor(zeroColor);
-    QColor penColor;
-    penColor.setRgbF(zeroColor[0], zeroColor[1], zeroColor[2]);
-    pen.setColor(penColor);
-    pen.setWidth(zeroPenWidth);
-    
-    painter.drawLine(pixmapWidth / 2, 0, pixmapWidth / 2, pixmapHeight);
+    const int32_t zeroLineWidth(std::min(pixmapWidth * 0.02,
+                                         3.0));
+    drawLineInColorBar(painter,
+                       pen,
+                       zeroColor,
+                       (pixmapWidth / 2),
+                       0,
+                       pixmapHeight,
+                       zeroLineWidth);
 }
 
 /**
@@ -446,13 +484,179 @@ PalettePixmapPainter::createPalettePixmapInterpolateOff(const PaletteNew* palett
     float zeroColor[3];
     palette->getZeroColor(zeroColor);
     const int32_t zeroLineWidth(std::min(pixmapWidth * 0.02,
-                                2.0));
+                                3.0));
     drawLineInColorBar(painter,
                        pen,
                        zeroColor,
                        (pixmapWidth / 2),
+                       0,
                        pixmapHeight,
                        zeroLineWidth);
+}
+
+/**
+ * Create the pixmap that has black and white background with colored lines at scalars
+ * @param palette
+ *     The palette
+ * @param pixmapWidth
+ *    Width of pixmap
+ * @param pixmapHeight
+ *    Height of pixmap
+ */
+void
+PalettePixmapPainter::createPalettePixmapScalarLines(const PaletteNew* palette,
+                                                     const qreal pixmapWidth,
+                                                     const qreal pixmapHeight)
+{
+    m_pixmap = QPixmap(static_cast<int>(pixmapWidth),
+                       static_cast<int>(pixmapHeight));
+    
+    QPainter painter(&m_pixmap);
+    QPen pen = painter.pen();
+
+    /*
+     * Top half background is white, bottom half black
+     */
+    QRect whiteRect(m_pixmap.rect());
+    whiteRect.setHeight(whiteRect.height() / 2.0);
+    painter.fillRect(m_pixmap.rect(), QColor(0, 0, 0));
+    painter.fillRect(whiteRect, QColor(255, 255, 255));
+    
+    std::vector<PaletteNew::ScalarColor> posScalarsAndColors = palette->getPosRange();
+    std::vector<PaletteNew::ScalarColor> scalarsAndColors = palette->getNegRange();
+    scalarsAndColors.insert(scalarsAndColors.end(),
+                            posScalarsAndColors.begin(),
+                            posScalarsAndColors.end());
+    
+    const float halfPixmapWidth(pixmapWidth / 2.0);
+    
+    const int32_t numPoints = static_cast<int32_t>(scalarsAndColors.size());
+    for (int32_t i = 0; i < numPoints; i++) {
+        CaretAssertVectorIndex(scalarsAndColors, i);
+        const PaletteNew::ScalarColor& sc = scalarsAndColors[i];
+        
+        const float scalar(MathFunctions::limitRange(sc.scalar, -1.0f, 1.0f));
+        const float x((scalar + 1.0) * halfPixmapWidth);
+        QColor color(sc.color[0], sc.color[1], sc.color[2]);
+        drawLineInColorBar(painter, pen, sc.color, x, 0, pixmapHeight, 2.0);
+    }
+}
+
+/**
+ * Draw lines on pixmap at scalars
+ * @param palette
+ *     The palette
+ * @param painter
+ *     The QPainter
+ * @param pen
+ *     The QPen
+ * @param pixmap
+ *     The pixmap,
+ * @param lineWidth
+ *     Width of lines
+ */
+void
+PalettePixmapPainter::drawScalarLines(const PaletteNew* palette,
+                                      QPainter& painter,
+                                      QPen& pen,
+                                      QPixmap& pixmap,
+                                      const qreal lineWidth)
+{
+    std::vector<PaletteNew::ScalarColor> scalarsAndColors = palette->getNegRange();
+    int32_t negZeroIndex(scalarsAndColors.size() - 1);
+
+//    float zeroRgb[3];
+//    palette->getZeroColor(zeroRgb);
+//    PaletteNew::ScalarColor zeroScalarAndColor(0.0, zeroRgb);
+//    scalarsAndColors.push_back(PaletteNew::ScalarColor(0.0, zeroRgb));
+    
+    const int32_t posZeroIndex(scalarsAndColors.size());
+    std::vector<PaletteNew::ScalarColor> posScalarsAndColors = palette->getPosRange();
+    scalarsAndColors.insert(scalarsAndColors.end(),
+                            posScalarsAndColors.begin(),
+                            posScalarsAndColors.end());
+    
+    const float pixmapWidth(pixmap.width());
+    const float halfPixmapWidth(pixmapWidth / 2.0);
+    
+    const float halfLineWidth(lineWidth / 2.0);
+    
+    const float white[3] { 1.0, 1.0, 1.0 };
+    const float black[3] { 0.0, 0.0, 0.0 };
+    
+    const qreal pixmapHeight(m_pixmap.height());
+    const qreal halfPixmapHeight(m_pixmap.height() / 2.0);
+    
+    const int32_t numPoints = static_cast<int32_t>(scalarsAndColors.size());
+    for (int32_t i = 0; i < numPoints; i++) {
+        CaretAssertVectorIndex(scalarsAndColors, i);
+        const PaletteNew::ScalarColor& sc = scalarsAndColors[i];
+        
+        const float scalar(MathFunctions::limitRange(sc.scalar, -1.0f, 1.0f));
+        float x((scalar + 1.0) * halfPixmapWidth);
+        QColor color(sc.color[0], sc.color[1], sc.color[2]);
+        
+        /*
+         * No need to draw scalar locations and ends or at zero
+         * But if we do, the X needs to be adjusted
+         */
+        if (i == negZeroIndex) {
+            x -= lineWidth;
+            continue;
+        }
+        else if (i == posZeroIndex) {
+            x += lineWidth;
+            continue;
+        }
+        else if (i == 0) {
+            x += (lineWidth / 2.0);
+            continue;
+        }
+        else if (i == (numPoints - 1)) {
+            x -= (lineWidth / 2.0);
+            continue;
+        }
+
+        /*
+         * Want line centered at scalar
+         */
+        //x -= halfLineWidth;
+        const bool rightLeftFlag(false);
+        if (rightLeftFlag) {
+            drawLineInColorBar(painter,
+                               pen,
+                               white,
+                               x - halfLineWidth,
+                               0,
+                               pixmapHeight,
+                               lineWidth);
+            drawLineInColorBar(painter,
+                               pen,
+                               black,
+                               x + halfLineWidth,
+                               0,
+                               pixmapHeight,
+                               lineWidth);
+        }
+        else {
+            const float smallHeight(pixmapHeight / 8.0);
+            const float doubleSmallHeight(smallHeight * 2.0);
+            drawLineInColorBar(painter,
+                               pen,
+                               black,
+                               x,
+                               pixmapHeight - doubleSmallHeight,
+                               pixmapHeight,
+                               lineWidth);
+            drawLineInColorBar(painter,
+                               pen,
+                               white,
+                               x,
+                               pixmapHeight - smallHeight + 1,
+                               pixmapHeight,
+                               lineWidth);
+        }
+    }
 }
 
 /**
@@ -465,6 +669,8 @@ PalettePixmapPainter::createPalettePixmapInterpolateOff(const PaletteNew* palett
  *    RGB coloring
  * @param x
  *    x-coordinate of line
+ * @param y
+ *    y-coordinate of line
  * @param pixmapHeight
  *    Height of the colorbar
  * @param lineWidth
@@ -475,6 +681,7 @@ PalettePixmapPainter::drawLineInColorBar(QPainter& painter,
                                          QPen& pen,
                                          const float rgbFloat[3],
                                          const qreal x,
+                                         const qreal y,
                                          const qreal pixmapHeight,
                                          const int32_t lineWidth)
 {
@@ -485,7 +692,7 @@ PalettePixmapPainter::drawLineInColorBar(QPainter& painter,
     pen.setWidth(lineWidth);
     painter.setPen(pen);
     
-    painter.drawLine(x, 0, x, pixmapHeight);
+    painter.drawLine(x, y, x, pixmapHeight);
 }
 
 /**

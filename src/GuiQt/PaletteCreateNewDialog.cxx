@@ -65,7 +65,7 @@ m_pixmapMode(pixmapMode)
     m_copyPaletteRadioButton = new QRadioButton("Copy Palette");
     m_newPaletteRadioButton  = new QRadioButton("New Palette");
     
-    m_paletteSelectionWidget = new PaletteSelectionWidget(m_pixmapMode);
+    m_paletteSelectionWidget = new PaletteSelectionWidget();
     QObject::connect(m_paletteSelectionWidget, &PaletteSelectionWidget::paletteSelected,
                      this, &PaletteCreateNewDialog::paletteSelected);
     

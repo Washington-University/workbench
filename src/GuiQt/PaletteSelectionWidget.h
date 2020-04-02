@@ -42,8 +42,7 @@ namespace caret {
         Q_OBJECT
 
     public:
-        PaletteSelectionWidget(const PalettePixmapPainter::Mode pixmapMode,
-                               QWidget* parent= 0);
+        PaletteSelectionWidget(QWidget* parent= 0);
         
         virtual ~PaletteSelectionWidget();
         
@@ -69,8 +68,8 @@ namespace caret {
     private:
         void createUserPalettes();
         
-        const PalettePixmapPainter::Mode m_pixmapMode;
-        
+        PalettePixmapPainter::Mode m_pixmapMode = PalettePixmapPainter::Mode::INTERPOLATE_ON;
+
         QComboBox* m_paletteSourceComboBox;
         
         QListWidget* m_userPaletteSelectionListWidget;

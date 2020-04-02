@@ -114,6 +114,8 @@ namespace caret {
         
         void updateModifiedLabel();
         
+        bool modifiedPaletteWarningDialog();
+        
         PaletteSelectionWidget* m_paletteSelectionWidget;
         
         PaletteEditorRangeWidget* m_positiveRangeWidget;
@@ -130,7 +132,7 @@ namespace caret {
         
         QButtonGroup* m_colorEditButtonGroup;
 
-        PalettePixmapPainter::Mode m_pixmapMode = PalettePixmapPainter::Mode::INTERPOLATE_OFF;
+        PalettePixmapPainter::Mode m_pixmapMode = PalettePixmapPainter::Mode::INTERPOLATE_ON_LINES_AT_SCALARS;
         
         QPushButton* m_addPalettePushButton;
         

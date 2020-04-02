@@ -48,6 +48,7 @@
 #include "PalettePixmapPainter.h"
 #include "PaletteSelectionWidget.h"
 #include "WuQColorEditorWidget.h"
+#include "WuQMessageBox.h"
 #include "WuQScrollArea.h"
 #include "WuQtUtilities.h"
 
@@ -109,7 +110,7 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
     
     disableAutoDefaultForAllPushButtons();
     
-    const bool demoModeFlag(true);
+    const bool demoModeFlag(false);
     if (demoModeFlag) {
         paletteSelectionWidget->setEnabled(false);
         movePaletteButtonsWidget->setEnabled(false);
@@ -257,23 +258,18 @@ PaletteEditorDialog::getPaletteFromEditor() const
 void
 PaletteEditorDialog::updatePaletteColorBarImage()
 {
+    QPixmap colorBarPixmap;
+    
     std::unique_ptr<PaletteNew> palette = getPaletteFromEditor();
     if (palette) {
         PalettePixmapPainter palettePainter(palette.get(),
                                             m_colorBarImageLabel->size(),
                                             m_pixmapMode);
-        QPixmap pixmap = palettePainter.getPixmap();
-        if ( ! pixmap.isNull()) {
-            m_colorBarImageLabel->setPixmap(pixmap);
-        }
-        else {
-            m_colorBarImageLabel->setPixmap(QPixmap());
-        }
-    }
-    else {
-        m_colorBarImageLabel->setPixmap(QPixmap());
+        colorBarPixmap = palettePainter.getPixmap();
     }
     
+    m_colorBarImageLabel->setPixmap(colorBarPixmap);
+
     updateModifiedLabel();
 }
 
@@ -397,11 +393,10 @@ PaletteEditorDialog::createPaletteBarWidget()
     m_colorBarModifiedLabel->setFixedWidth(120);
 
     QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
+    QGridLayout* layout = new QGridLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(m_colorBarImageLabel);
-    layout->addWidget(m_colorBarModifiedLabel);
-    layout->addStretch();
+    layout->addWidget(m_colorBarImageLabel, 0, 0);
+    layout->addWidget(m_colorBarModifiedLabel, 0, 1);
 
     return widget;
 }
@@ -412,7 +407,7 @@ PaletteEditorDialog::createPaletteBarWidget()
 QWidget*
 PaletteEditorDialog::createPaletteSelectionWidget()
 {
-    m_paletteSelectionWidget = new PaletteSelectionWidget(m_pixmapMode);
+    m_paletteSelectionWidget = new PaletteSelectionWidget();
     QObject::connect(m_paletteSelectionWidget, &PaletteSelectionWidget::paletteSelected,
                      this, &PaletteEditorDialog::paletteSelected);
     
@@ -599,6 +594,10 @@ PaletteEditorDialog::addPalettePushButtonClicked()
 void
 PaletteEditorDialog::newPaletteButtonClicked()
 {
+    if ( ! modifiedPaletteWarningDialog()) {
+        return;
+    }
+    
     PaletteCreateNewDialog dialog(m_pixmapMode,
                                   this);
     if (dialog.exec() == PaletteCreateNewDialog::Accepted) {
@@ -617,14 +616,41 @@ PaletteEditorDialog::replacePalettePushButtonClicked()
 }
 
 /**
+ * If the palette in the editor has a modified status, warn the user and
+ * allow the user to continue or cancel.
+ * @return True if the palette is NOT modified
+ * True if the Palette is modified and the user chooses to discard the changes
+ * False if the Palette is modified and the user DOES NOT want to continue
+ */
+bool
+PaletteEditorDialog::modifiedPaletteWarningDialog()
+{
+    if (isPaletteModified()) {
+        const QString text("The Palette in the editor has been modified.");
+        const QString info("Click OK to discard the changes and continue adding/loading "
+                           "the new palette.\n\n"
+                           "Click Cancel to allow saving the palette in the editor.");
+            if ( ! WuQMessageBox::warningOkCancel(this,
+                                                  text,
+                                                  info,
+                                                  WuQMessageBox::DefaultButtonOkCancel::CANCEL)) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+/**
  * Called when Load palette push button is clicked
  */
 void
 PaletteEditorDialog::loadPalettePushButtonClicked()
 {
-    if (isPaletteModified()) {
-   //     QString msg("Palette in editor is modified.  Discard")
+    if ( ! modifiedPaletteWarningDialog()) {
+        return;
     }
+    
     loadPalette(m_paletteSelectionWidget->getSelectedPalette());
     
     updateDialog();
