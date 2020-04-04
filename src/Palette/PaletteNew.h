@@ -117,7 +117,6 @@ namespace caret {
         PaletteRange m_posRange, m_negRange;
         float m_zeroColor[3];
         AString m_name;
-        mutable bool m_gpcWarned;
     };
     
 }//namespace

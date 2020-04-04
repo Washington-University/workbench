@@ -65,7 +65,6 @@ PaletteNew::PaletteNew(vector<ScalarColor> posRange, float zeroColor[3], vector<
     CaretAssert(posRange.back().scalar == 1.0f);
     CaretAssert(negRange[0].scalar == -1.0f);
     CaretAssert(negRange.back().scalar == 0.0f);
-    m_gpcWarned = false;
     copyColor(m_zeroColor, zeroColor);
 }
 

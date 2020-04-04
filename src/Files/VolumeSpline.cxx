@@ -161,7 +161,12 @@ namespace
         int64_t ret;
         float ipartf = 0.0f;
         fpartOut = modf(indexf, &ipartf);//even -0.99f should give -0 for ipart, and sample() will only allow -0.01f, so don't need to max(..., 0)
-        ret = min(int64_t(ipartf), dim - 2);//extrapolate for beyond the voxel center without attempting invalid access
+        ret = int64_t(ipartf);//extrapolate for beyond the voxel center without attempting invalid access
+        if (ret > dim - 2)
+        {
+            fpartOut += ret - (dim - 2);
+            ret = dim - 2;
+        }
         lowEdgeOut = (ret < 1);//extrapolation is very limited, see the range test in sample()
         highEdgeOut = (ret >= dim - 2);//to extrapolate by half a voxel, should decide what the second-outside voxel's value should be (repeat or reflect)
         return ret;//otherwise, it will trend toward zero
