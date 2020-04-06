@@ -2185,7 +2185,7 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
         else {
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
             CaretAssert(prefs);
-            prefs->addToRecentFilesAndOrDirectories(caretDataFile->getFileName());
+            prefs->addToRecentFilesAndOrDirectories(specFileDataFile->getFileName());
         }
     }
     
