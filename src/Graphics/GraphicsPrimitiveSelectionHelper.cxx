@@ -125,13 +125,14 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
     
     if (numberOfVertices > 0) {
         const int32_t numberOfPrimitives = (numberOfVertices / m_numberOfVerticesPerPrimitive) - m_vertexOffsetForPrimitive;
-        const int32_t maxPrimitivesSupported = 255 * 255 * 255;
+        const int32_t maxPrimitivesSupported = 255 * 255 * 255; // PROBABLY 256**3 - 1
         if (numberOfPrimitives > maxPrimitivesSupported) {
             const AString msg("Number of primitives for selection="
                               + AString::number(numberOfPrimitives)
                               + " exceeds maximum allowed="
-                              + AString::number(maxPrimitivesSupported));
-            CaretAssertMessage(0, msg);
+                              + AString::number(maxPrimitivesSupported)
+                              + ".  Identification will not function for some data");
+            m_selectionEncodedRGBA.clear();
             CaretLogSevere(msg);
         }
         else {

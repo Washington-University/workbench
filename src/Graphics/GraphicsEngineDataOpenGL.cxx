@@ -1094,18 +1094,18 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
                     const GLenum colorDataType = GL_UNSIGNED_BYTE;
                     
                     const std::vector<uint8_t> selectionRGBA = primitiveSelectionHelper->getSelectionEncodedRGBA();
-                    CaretAssert((selectionRGBA.size() / 4) == numberOfVertices);
-                    
-                    const GLuint colorSizeBytes = selectionRGBA.size() * sizeof(GLubyte);
-                    const GLvoid* colorDataPointer = (const GLvoid*)&selectionRGBA[0];
-                    glBindBuffer(GL_ARRAY_BUFFER,
-                                 localColorBufferName);
-                    glBufferData(GL_ARRAY_BUFFER,
-                                 colorSizeBytes,
-                                 colorDataPointer,
-                                 GL_STREAM_DRAW);
-                    glEnableClientState(GL_COLOR_ARRAY);
-                    glColorPointer(componentsPerColor, colorDataType, 0, (GLvoid*)0);
+                    if ((selectionRGBA.size() / 4) == numberOfVertices) {
+                        const GLuint colorSizeBytes = selectionRGBA.size() * sizeof(GLubyte);
+                        const GLvoid* colorDataPointer = (const GLvoid*)&selectionRGBA[0];
+                        glBindBuffer(GL_ARRAY_BUFFER,
+                                     localColorBufferName);
+                        glBufferData(GL_ARRAY_BUFFER,
+                                     colorSizeBytes,
+                                     colorDataPointer,
+                                     GL_STREAM_DRAW);
+                        glEnableClientState(GL_COLOR_ARRAY);
+                        glColorPointer(componentsPerColor, colorDataType, 0, (GLvoid*)0);
+                    }
                 }
             }
                 break;
