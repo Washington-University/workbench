@@ -1409,9 +1409,36 @@ OverlaySet::receiveEvent(Event* event)
             
             selectMapEvent->setEventProcessed();
         }
-        
-        
-//        const MapYokingGroupEnum::Enum mapYokingGroup = selectMapEvent->get
     }
 }
+
+/**
+ * @return True if an enabled overlay contains a volume file that is an oblique only volume
+ */
+bool
+OverlaySet::hasObliqueOnlyVolumeSelected() const
+{
+    const int32_t numberOfOverlays = getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numberOfOverlays; i++) {
+        Overlay* overlay = const_cast<Overlay*>(getOverlay(i));
+        if (overlay->isEnabled()) {
+            CaretMappableDataFile* mapFile;
+            int32_t mapIndex;
+            overlay->getSelectionData(mapFile, mapIndex);
+            if (mapFile != NULL) {
+                if (mapFile->getDataFileType() == DataFileTypeEnum::VOLUME) {
+                    const VolumeFile* vf = dynamic_cast<const VolumeFile*>(mapFile);
+                    CaretAssert(vf);
+                    if ( ! vf->isPlumb()) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
+
 

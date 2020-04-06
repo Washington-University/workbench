@@ -4205,12 +4205,65 @@ BrowserTabContent::setSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum sl
 }
 
 /**
- * @return Type of slice projection (oblique/orthogonal)
+ * @return Selected type of slice projection (oblique/orthogonal)
  */
 VolumeSliceProjectionTypeEnum::Enum
 BrowserTabContent::getSliceProjectionType() const
 {
-    return m_volumeSliceSettings->getSliceProjectionType();
+    std::vector<VolumeSliceProjectionTypeEnum::Enum> sliceProjectionTypes;
+    getValidSliceProjectionTypes(sliceProjectionTypes);
+    
+    /*
+     * Selected projection type may not be valid and needs to be set to a valid projection type
+     */
+    VolumeSliceProjectionTypeEnum::Enum projType = m_volumeSliceSettings->getSliceProjectionType();
+    if (std::find(sliceProjectionTypes.begin(),
+                  sliceProjectionTypes.end(),
+                  projType) == sliceProjectionTypes.end()) {
+        if ( ! sliceProjectionTypes.empty()) {
+            CaretAssertVectorIndex(sliceProjectionTypes, 0);
+            projType = sliceProjectionTypes[0];
+            const_cast<VolumeSliceSettings*>(m_volumeSliceSettings)->setSliceProjectionType(projType);
+        }
+    }
+    
+    return projType;
+}
+
+/**
+ * Get valid slice projection types (ortho is NOT valid if any volume is oblique only)
+ * @param sliceProjectionTypesOut
+ *    Output containing valid slice projection types based upon selected files in overlays
+ */
+void
+BrowserTabContent::getValidSliceProjectionTypes(std::vector<VolumeSliceProjectionTypeEnum::Enum>& sliceProjectionTypesOut) const
+{
+    sliceProjectionTypesOut.clear();
+    sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
+    
+    bool orthoValidFlag(false);
+    switch (getSelectedModelType()) {
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            orthoValidFlag = true;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+        {
+            const OverlaySet* overlaySet = getOverlaySet();
+            CaretAssert(overlaySet);
+            if ( ! overlaySet->hasObliqueOnlyVolumeSelected()) {
+                orthoValidFlag = true;
+            }
+        }
+            break;
+    }
+    
+    if (orthoValidFlag) {
+        sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
+    }
 }
 
 /**

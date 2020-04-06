@@ -92,6 +92,8 @@ namespace caret {
                                      std::vector<LabelFile*>& labelFilesOut,
                                      std::vector<int32_t>& labelMapIndicesOut);
         
+        bool hasObliqueOnlyVolumeSelected() const;
+        
         void resetOverlayYokingToOff();
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,

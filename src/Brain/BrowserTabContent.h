@@ -317,6 +317,8 @@ namespace caret {
         
         void setSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType);
         
+        void getValidSliceProjectionTypes(std::vector<VolumeSliceProjectionTypeEnum::Enum>& sliceProjectionTypesOut) const;
+        
         VolumeSliceProjectionTypeEnum::Enum getSliceProjectionType() const;
         
         void setSliceProjectionType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType);

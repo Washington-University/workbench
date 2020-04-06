@@ -361,36 +361,12 @@ BrainBrowserWindowToolBarSliceSelection::updateContent(BrowserTabContent* browse
     
     if (vf != NULL) {
         /*
-         * Test selected file to see if it is an oblique volume file (not a CIFTI file)
-         */
-        bool obliqueVolumeFlag = false;
-        if ( ! vf->getVolumeSpace().isPlumb()) {
-            obliqueVolumeFlag = true;
-        }
-        
-        /*
          * Update slice projection type for allowed projection types
          */
         std::vector<VolumeSliceProjectionTypeEnum::Enum> validSliceProjections;
-        validSliceProjections.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
-        if ( ! obliqueVolumeFlag) {
-            validSliceProjections.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
-        }
+        browserTabContent->getValidSliceProjectionTypes(validSliceProjections);
         m_volumeSliceProjectionTypeEnumComboBox->setupWithItems<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>(validSliceProjections);
 
-        /*
-         * If volume is oblique, change its projection type to oblique
-         */
-        switch (browserTabContent->getSliceProjectionType()) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                if (obliqueVolumeFlag) {
-                    browserTabContent->setSliceProjectionType(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
-                }
-                break;
-        }
-        
         m_volumeIndicesAxialCheckBox->setChecked(browserTabContent->isSliceAxialEnabled());
         m_volumeIndicesCoronalCheckBox->setChecked(browserTabContent->isSliceCoronalEnabled());
         m_volumeIndicesParasagittalCheckBox->setChecked(browserTabContent->isSliceParasagittalEnabled());
