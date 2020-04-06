@@ -1094,7 +1094,7 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
                     const GLenum colorDataType = GL_UNSIGNED_BYTE;
                     
                     const std::vector<uint8_t> selectionRGBA = primitiveSelectionHelper->getSelectionEncodedRGBA();
-                    if ((selectionRGBA.size() / 4) == numberOfVertices) {
+                    if (static_cast<int32_t>(selectionRGBA.size() / 4) == numberOfVertices) {
                         const GLuint colorSizeBytes = selectionRGBA.size() * sizeof(GLubyte);
                         const GLvoid* colorDataPointer = (const GLvoid*)&selectionRGBA[0];
                         glBindBuffer(GL_ARRAY_BUFFER,
