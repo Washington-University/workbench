@@ -56,10 +56,10 @@ CommandParser::CommandParser(AutoOperationInterface* myAutoOper) :
     OperationParserInterface(myAutoOper)
 {
     m_doProvenance = true;
-    m_ciftiScale = false;
-    m_ciftiDType = NIFTI_TYPE_FLOAT32;
-    m_ciftiMax = -1.0;//these values won't get used, but don't leave them uninitialized
-    m_ciftiMin = -1.0;
+    m_volumeScale = m_ciftiScale = false;
+    m_volumeDType = m_ciftiDType = NIFTI_TYPE_FLOAT32;
+    m_volumeMax = m_ciftiMax = -1.0;//these values won't get used, but don't leave them uninitialized
+    m_volumeMin = m_ciftiMin = -1.0;
 }
 
 void CommandParser::disableProvenance()
@@ -81,6 +81,22 @@ void CommandParser::setCiftiOutputDTypeNoScale(const int16_t& dtype)
     m_ciftiMax = -1.0;//for sanity, don't keep any previous value around
     m_ciftiMin = -1.0;
     m_ciftiScale = false;
+}
+
+void CommandParser::setVolumeOutputDTypeAndScale(const int16_t& dtype, const double& minVal, const double& maxVal)
+{
+    m_volumeDType = dtype;
+    m_volumeMin = minVal;
+    m_volumeMax = maxVal;
+    m_volumeScale = true;
+}
+
+void CommandParser::setVolumeOutputDTypeNoScale(const int16_t& dtype)
+{
+    m_volumeDType = dtype;
+    m_volumeMax = -1.0;//for sanity, don't keep any previous value around
+    m_volumeMin = -1.0;
+    m_volumeScale = false;
 }
 
 void CommandParser::executeOperation(ProgramParameters& parameters)
@@ -1081,6 +1097,12 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
             case OperationParametersEnum::VOLUME:
             {
                 VolumeFile* myFile = ((VolumeParameter*)myParam)->m_parameter;
+                if (m_volumeScale)
+                {
+                    myFile->setWritingDataTypeAndScaling(m_volumeDType, m_volumeMin, m_volumeMax);
+                } else {
+                    myFile->setWritingDataTypeNoScaling(m_volumeDType);
+                }
                 myFile->writeFile(outAssociation[i].m_fileName);
                 break;
             }

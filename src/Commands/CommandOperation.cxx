@@ -82,6 +82,14 @@ void CommandOperation::setCiftiOutputDTypeNoScale(const int16_t&)
 {
 }
 
+void CommandOperation::setVolumeOutputDTypeAndScale(const int16_t&, const double&, const double&)
+{
+}
+
+void CommandOperation::setVolumeOutputDTypeNoScale(const int16_t&)
+{
+}
+
 AString CommandOperation::doCompletion(ProgramParameters&, const bool&)
 {
     return "";

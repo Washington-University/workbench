@@ -127,6 +127,12 @@ namespace caret {
         CaretPointer<VolumeFileEditorDelegate> m_volumeFileEditorDelegate;
         
         static const AString s_paletteColorMappingNameInMetaData;
+
+        int16_t m_writingDType;
+
+        bool m_writingDoScale;
+
+        double m_minScalingVal, m_maxScalingVal;
         
     protected:
         VolumeFile(const DataFileTypeEnum::Enum dataFileType);
@@ -199,6 +205,10 @@ namespace caret {
         virtual void readFile(const AString& filename);
 
         virtual void writeFile(const AString& filename);
+
+        ///data type and scaling options
+        void setWritingDataTypeNoScaling(const int16_t& type = NIFTI_TYPE_FLOAT32);
+        void setWritingDataTypeAndScaling(const int16_t& type, const double& minval, const double& maxval);
 
         bool isEmpty() const { return VolumeBase::isEmpty(); }
         

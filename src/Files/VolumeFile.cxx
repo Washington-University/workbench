@@ -90,6 +90,10 @@ VolumeFile::VolumeFile(const DataFileTypeEnum::Enum dataFileType)
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
+    m_writingDoScale = false;
+    m_writingDType = NIFTI_TYPE_FLOAT32;
+    m_minScalingVal = -1.0;//unused, but make them consistent
+    m_maxScalingVal = 1.0;
     validateMembers();
 }
 
@@ -101,6 +105,10 @@ VolumeFile::VolumeFile()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
+    m_writingDoScale = false;
+    m_writingDType = NIFTI_TYPE_FLOAT32;
+    m_minScalingVal = -1.0;//unused, but make them consistent
+    m_maxScalingVal = 1.0;
     validateMembers();
 }
 
@@ -113,6 +121,10 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
         m_chartingEnabledForTab[i] = false;
     }
     if (templateHeader != NULL) m_header.grabNew(templateHeader->clone());
+    m_writingDoScale = false;
+    m_writingDType = NIFTI_TYPE_FLOAT32;
+    m_minScalingVal = -1.0;//unused, but make them consistent
+    m_maxScalingVal = 1.0;
     validateMembers();
     setType(whatType);
 }
@@ -216,6 +228,11 @@ VolumeFile::clear()
     
     m_volumeFileEditorDelegate->clear();
     m_lazyInitializedDynamicConnectivityFile.reset();
+
+    m_writingDoScale = false;
+    m_writingDType = NIFTI_TYPE_FLOAT32;
+    m_minScalingVal = -1.0;//unused, but make them consistent
+    m_maxScalingVal = 1.0;
 }
 
 void VolumeFile::readFile(const AString& filename)
@@ -379,7 +396,30 @@ VolumeFile::writeFile(const AString& filename)
     outHeader.setDescription(("Connectome Workbench, version " + ApplicationInformation().getVersion()).toLatin1().constData());//30 chars, plus however many chars the version is (generally 5)
     outHeader.setSForm(getVolumeSpace().getSform());
     outHeader.setDimensions(getOriginalDimensions());
-    outHeader.setDataType(NIFTI_TYPE_FLOAT32);//could set this to an integer when type is label
+    if (getType() == SubvolumeAttributes::LABEL)
+    {
+        switch (m_writingDType)
+        {
+            case NIFTI_TYPE_INT16://ensure integer when type is label
+            case NIFTI_TYPE_INT32://int8 could be problematic for users, so disallow it?
+            case NIFTI_TYPE_INT64:
+            case NIFTI_TYPE_UINT16:
+            case NIFTI_TYPE_UINT32:
+            case NIFTI_TYPE_UINT64:
+                outHeader.setDataType(m_writingDType);
+                break;
+            default:
+                outHeader.setDataType(NIFTI_TYPE_INT32);
+                break;
+        }
+    } else {
+        if (m_writingDoScale)
+        {
+            outHeader.setDataTypeAndScaleRange(m_writingDType, m_minScalingVal, m_maxScalingVal);
+        } else {
+            outHeader.setDataType(m_writingDType);
+        }
+    }
     NiftiIO myIO;
     int outVersion = 1;
     if (!outHeader.canWriteVersion(1)) outVersion = 2;
@@ -400,6 +440,22 @@ VolumeFile::writeFile(const AString& filename)
     m_volumeFileEditorDelegate->clear();
     m_volumeFileEditorDelegate->updateIfVolumeFileChangedNumberOfMaps();
     clearModified();
+}
+
+void VolumeFile::setWritingDataTypeNoScaling(const int16_t& type)
+{
+    m_writingDType = type;//could do some validation here
+    m_writingDoScale = false;
+    m_minScalingVal = -1.0;
+    m_maxScalingVal = 1.0;
+}
+
+void VolumeFile::setWritingDataTypeAndScaling(const int16_t& type, const double& minval, const double& maxval)
+{
+    m_writingDType = type;//could do some validation here
+    m_writingDoScale = true;
+    m_minScalingVal = minval;
+    m_maxScalingVal = maxval;
 }
 
 bool VolumeFile::hasGoodSpatialInformation() const
