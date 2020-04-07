@@ -298,6 +298,19 @@ GraphicsPrimitive::setUsageTypeTextureCoordinates(const UsageType usageType)
 bool
 GraphicsPrimitive::isValid() const
 {
+    switch (m_releaseInstanceDataMode) {
+        case ReleaseInstanceDataMode::COMPLETED:
+            /*
+             * Instance data has been removed
+             */
+            return true;
+            break;
+        case ReleaseInstanceDataMode::DISABLED:
+            break;
+        case ReleaseInstanceDataMode::ENABLED:
+            break;
+    }
+    
     switch (m_vertexDataType) {
         case VertexDataType::FLOAT_XYZ:
             break;
@@ -900,6 +913,23 @@ GraphicsPrimitive::getVertexFloatXYZ(const int32_t vertexIndex,
 void
 GraphicsPrimitive::replaceFloatXYZ(const std::vector<float>& xyz)
 {
+    switch (m_releaseInstanceDataMode) {
+        case ReleaseInstanceDataMode::COMPLETED:
+            {
+                const QString msg("All XYZ Data in primitive cannot be replaced with different sized data.  "
+                                  "Instance data was removed to save memory.  "
+                                  "setReleaseInstanceDataMode() should not be called for this primitive.");
+                CaretAssertMessage(0, msg);
+                CaretLogSevere(msg);
+                return;
+            }
+            break;
+        case ReleaseInstanceDataMode::DISABLED:
+            break;
+        case ReleaseInstanceDataMode::ENABLED:
+            break;
+    }
+    
     if (xyz.size() == m_xyz.size()) {
         m_xyz = xyz;
         
@@ -928,6 +958,23 @@ void
 GraphicsPrimitive::replaceVertexFloatXYZ(const int32_t vertexIndex,
                                          const float xyz[3])
 {
+    switch (m_releaseInstanceDataMode) {
+        case ReleaseInstanceDataMode::COMPLETED:
+        {
+            const QString msg("A vertex's XYZ Data in primitive cannot be replaced.  "
+                              "Instance data was removed to save memory.  "
+                              "setReleaseInstanceDataMode() should not be called for this primitive.");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            return;
+        }
+            break;
+        case ReleaseInstanceDataMode::DISABLED:
+            break;
+        case ReleaseInstanceDataMode::ENABLED:
+            break;
+    }
+
     const int32_t offset = vertexIndex * 3;
     CaretAssertVectorIndex(m_xyz, offset + 2);
     m_xyz[offset]     = xyz[0];
@@ -982,6 +1029,23 @@ void
 GraphicsPrimitive::replaceVertexFloatRGBA(const int32_t vertexIndex,
                                           const float rgba[4])
 {
+    switch (m_releaseInstanceDataMode) {
+        case ReleaseInstanceDataMode::COMPLETED:
+        {
+            const QString msg("A vertex's RGBA Data in primitive cannot be replaced.  "
+                              "Instance data was removed to save memory.  "
+                              "setReleaseInstanceDataMode() should not be called for this primitive.");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            return;
+        }
+            break;
+        case ReleaseInstanceDataMode::DISABLED:
+            break;
+        case ReleaseInstanceDataMode::ENABLED:
+            break;
+    }
+
     const int32_t i4 = vertexIndex * 4;
     switch (m_colorDataType) {
         case ColorDataType::NONE:
@@ -1048,6 +1112,23 @@ void
 GraphicsPrimitive::replaceVertexByteRGBA(const int32_t vertexIndex,
                                          const uint8_t rgba[4])
 {
+    switch (m_releaseInstanceDataMode) {
+        case ReleaseInstanceDataMode::COMPLETED:
+        {
+            const QString msg("A vertex's RGBA Data in primitive cannot be replaced.  "
+                              "Instance data was removed to save memory.  "
+                              "setReleaseInstanceDataMode() should not be called for this primitive.");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            return;
+        }
+            break;
+        case ReleaseInstanceDataMode::DISABLED:
+            break;
+        case ReleaseInstanceDataMode::ENABLED:
+            break;
+    }
+
     const int32_t i4 = vertexIndex * 4;
     switch (m_colorDataType) {
         case ColorDataType::NONE:
@@ -1080,6 +1161,23 @@ GraphicsPrimitive::replaceVertexByteRGBA(const int32_t vertexIndex,
 void
 GraphicsPrimitive::replaceAllVertexSolidByteRGBA(const uint8_t rgba[4])
 {
+    switch (m_releaseInstanceDataMode) {
+        case ReleaseInstanceDataMode::COMPLETED:
+        {
+            const QString msg("All RGBA Data in primitive cannot be replaced.  "
+                              "Instance data was removed to save memory.  "
+                              "setReleaseInstanceDataMode() should not be called for this primitive.");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            return;
+        }
+            break;
+        case ReleaseInstanceDataMode::DISABLED:
+            break;
+        case ReleaseInstanceDataMode::ENABLED:
+            break;
+    }
+
     switch (m_colorDataType) {
         case ColorDataType::NONE:
             CaretAssert(0);
@@ -1116,6 +1214,23 @@ GraphicsPrimitive::replaceAllVertexSolidByteRGBA(const uint8_t rgba[4])
 void
 GraphicsPrimitive::replaceAllVertexSolidFloatRGBA(const float rgba[4])
 {
+    switch (m_releaseInstanceDataMode) {
+        case ReleaseInstanceDataMode::COMPLETED:
+        {
+            const QString msg("All RGBA Data in primitive cannot be replaced.  "
+                              "Instance data was removed to save memory.  "
+                              "setReleaseInstanceDataMode() should not be called for this primitive.");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            return;
+        }
+            break;
+        case ReleaseInstanceDataMode::DISABLED:
+            break;
+        case ReleaseInstanceDataMode::ENABLED:
+            break;
+    }
+
     switch (m_colorDataType) {
         case ColorDataType::NONE:
             CaretAssert(0);
@@ -1826,4 +1941,40 @@ GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType pri
                                                                      textureWrappingType);
     return primitive;
 }
+
+/**
+ * Called after buffers have been loaded and may release instance data.
+ * If NOT called after buffers have been loaded, bad things may happen.
+ */
+void
+GraphicsPrimitive::setOpenGLBuffersHaveBeenLoadedByGraphicsEngine()
+{
+    switch (m_releaseInstanceDataMode) {
+        case ReleaseInstanceDataMode::COMPLETED:
+            return;
+            break;
+        case ReleaseInstanceDataMode::DISABLED:
+            return;
+            break;
+        case ReleaseInstanceDataMode::ENABLED:
+        {
+            /*
+             * Note: calling ".clear()" on a vector will set the size
+             * of the vector to zero but does not free the memory.  Instead,
+             * use swap() which causes deallocation of the memory.
+             * See http://www.cplusplus.com/reference/vector/vector/clear/
+             */
+            std::vector<float>().swap(m_xyz);
+            std::vector<float>().swap(m_floatRGBA);
+            std::vector<float>().swap(m_floatNormalVectorXYZ);
+            std::vector<uint8_t>().swap(m_unsignedByteRGBA);
+            std::vector<float>().swap(m_floatTextureSTR);
+            std::vector<uint8_t>().swap(m_textureImageBytesRGBA);
+            
+            m_releaseInstanceDataMode = ReleaseInstanceDataMode::COMPLETED;
+        }
+            break;
+    }
+}
+
 

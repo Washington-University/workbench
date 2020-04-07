@@ -1610,6 +1610,11 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                 matrixPrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
                 
                 /*
+                 * Allow release of instance data after OpenGL buffers are loaded to save memory
+                 */
+                matrixPrimitive->setReleaseInstanceDataMode(GraphicsPrimitive::ReleaseInstanceDataMode::ENABLED);
+                
+                /*
                  * RGBA for grid outline
                  */
                 float cellOutlineRGBA[4] = { 1.0, 0.0, 0.0, 1.0 };

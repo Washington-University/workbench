@@ -265,6 +265,26 @@ namespace caret {
         };
         
         /**
+         * Modes for releasing instance data after OpenGL buffers have been loaded.
+         * For large primitives, this can save substantial memory.  Do not use if
+         * data will be updated.
+         */
+        enum class ReleaseInstanceDataMode {
+            /**
+             * Release of instance data has been completed
+             */
+            COMPLETED,
+            /**
+             * Release of instance data is disabled (DEFAULT)
+             */
+            DISABLED,
+            /**
+             * Release is enabled but not yet completed (OpenGL buffers not loaded yet)
+             */
+            ENABLED
+        };
+        
+        /**
          * Hint to graphics engine on how the primitive is used.
          * The hint must be set prior to loading of buffers.
          */
@@ -370,6 +390,18 @@ namespace caret {
          * @return Type of primitive.
          */
         inline PrimitiveType getPrimitiveType() const { return m_primitiveType; }
+        
+        /**
+         * @return Mode for release of instance data (xyz, normals, coloring, etc) after buffers are loaded
+         */
+        ReleaseInstanceDataMode getReleaseInstanceDataMode() const { return m_releaseInstanceDataMode; }
+        
+        /**
+         * Set the mode for release of instance data  (xyz, normals, coloring, etc) after buffers are loaded
+         */
+        void setReleaseInstanceDataMode(const ReleaseInstanceDataMode releaseDataMode) {
+            m_releaseInstanceDataMode = releaseDataMode;
+        }
         
         /**
          * @return Data type of texture.
@@ -489,6 +521,8 @@ namespace caret {
         
         const PrimitiveType m_primitiveType;
 
+        ReleaseInstanceDataMode m_releaseInstanceDataMode = ReleaseInstanceDataMode::DISABLED;
+        
         mutable bool m_boundingBoxValid = false;
         
         UsageType m_usageTypeCoordinates = UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES;
@@ -531,6 +565,8 @@ namespace caret {
                         const int32_t copyToIndex);
         
         void fillTriangleStripPrimitiveRestartVertices();
+        
+        void setOpenGLBuffersHaveBeenLoadedByGraphicsEngine();
         
         std::vector<float> m_xyz;
         

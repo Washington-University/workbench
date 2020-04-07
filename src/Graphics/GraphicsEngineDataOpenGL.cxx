@@ -480,9 +480,6 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     
-    if (primitive->getNumberOfVertices() <= 0) {
-        return;
-    }
     if ( ! primitive->isValid()) {
         CaretLogWarning("Attempting to draw invalid Graphics Primitive");
     }
@@ -1017,6 +1014,11 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     }
     
     openglData->loadTextureImageDataBuffer(primitive);
+    
+    /*
+     * Primitive may want to delete its instance data to save memory
+     */
+    primitive->setOpenGLBuffersHaveBeenLoadedByGraphicsEngine();
     
     const GLuint coordBufferID = openglData->m_coordinateBufferObject->getBufferObjectName();
     CaretAssert(coordBufferID);
