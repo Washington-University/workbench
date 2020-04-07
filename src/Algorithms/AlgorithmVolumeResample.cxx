@@ -202,7 +202,7 @@ AlgorithmVolumeResample::AlgorithmVolumeResample(ProgressObject* myProgObj, cons
             {
                 inVol->validateSpline(b, c);//because deconvolve is parallel, but won't execute parallel if we are already in a parallel section
             }
-#pragma omp CARET_PARFOR schedule(dynamic)
+#pragma omp CARET_PARFOR schedule(guided, 10)
             for (int64_t k = 0; k < outDims[2]; ++k)
             {
                 for (int64_t j = 0; j < outDims[1]; ++j)

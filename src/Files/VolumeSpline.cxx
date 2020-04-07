@@ -67,7 +67,7 @@ VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
                 ++index2;
             }
         }
-#pragma omp CARET_PARFOR schedule(dynamic)
+#pragma omp CARET_PARFOR schedule(guided, 10)
         for (int j = 0; j < m_dims[1]; ++j)
         {
             int64_t privIndex = j * m_dims[0];
@@ -100,7 +100,7 @@ VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
                 ++index;
             }
         }
-#pragma omp CARET_PARFOR schedule(dynamic)
+#pragma omp CARET_PARFOR schedule(guided, 10)
         for (int i = 0; i < m_dims[0]; ++i)
         {
             int64_t privindex = i * m_dims[1];
@@ -134,7 +134,7 @@ VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
                 ++index;
             }
         }
-#pragma omp CARET_PARFOR schedule(dynamic)
+#pragma omp CARET_PARFOR schedule(guided, 10)
         for (int i = 0; i < m_dims[0]; ++i)
         {
             int64_t privindex = i * m_dims[2];
