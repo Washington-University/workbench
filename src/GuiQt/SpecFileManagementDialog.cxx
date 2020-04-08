@@ -58,6 +58,7 @@
 #include "DataFileException.h"
 #include "DataFileContentInformation.h"
 #include "EventBrowserTabGetAllViewed.h"
+#include "EventBrowserWindowCreateTabs.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
 #include "EventGetDisplayedDataFiles.h"
@@ -2187,6 +2188,9 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
             CaretAssert(prefs);
             prefs->addToRecentFilesAndOrDirectories(specFileDataFile->getFileName());
         }
+        
+        EventBrowserWindowCreateTabs createTabsEvent(EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE);
+        EventManager::get()->sendEvent(createTabsEvent.getPointer());
     }
     
     updateGraphicWindowsAndUserInterface();
