@@ -481,7 +481,8 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
     CaretAssert(primitive);
     
     if ( ! primitive->isValid()) {
-        CaretLogWarning("Attempting to draw invalid Graphics Primitive");
+        CaretLogFine("Attempting to draw invalid Graphics Primitive");
+        return;
     }
     
     GraphicsPrimitive* primitiveToDraw = primitive;

@@ -3385,39 +3385,47 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     glDisable(GL_LIGHTING);
     
     if (pointsIdentificationPrimitive) {
-        pointsIdentificationPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::MILLIMETERS,
-                                                        pointDiameter);
-        pointsIdentificationPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
-                                                         pointDiameter);
-        GraphicsEngineDataOpenGL::draw(pointsIdentificationPrimitive.get());
+        if (pointsIdentificationPrimitive->isValid()) {
+            pointsIdentificationPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::MILLIMETERS,
+                                                            pointDiameter);
+            pointsIdentificationPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
+                                                             pointDiameter);
+            GraphicsEngineDataOpenGL::draw(pointsIdentificationPrimitive.get());
+        }
     }
     else if (pointsPrimitive) {
-        pointsPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::MILLIMETERS,
-                                          pointDiameter);
-        pointsPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
-                                           pointDiameter);
-        if (pointsPrimitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::SPHERES) {
-            glEnable(GL_LIGHTING);
-        }
-        GraphicsEngineDataOpenGL::draw(pointsPrimitive.get());
-        if (firstPointPrimitive->isValid()) {
-            GraphicsEngineDataOpenGL::draw(firstPointPrimitive.get());
-        }
-        if (lastPointPrimitive->isValid()) {
-            GraphicsEngineDataOpenGL::draw(lastPointPrimitive.get());
+        if (pointsPrimitive->isValid()) {
+            pointsPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::MILLIMETERS,
+                                              pointDiameter);
+            pointsPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
+                                               pointDiameter);
+            if (pointsPrimitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::SPHERES) {
+                glEnable(GL_LIGHTING);
+            }
+            GraphicsEngineDataOpenGL::draw(pointsPrimitive.get());
+            if (firstPointPrimitive->isValid()) {
+                GraphicsEngineDataOpenGL::draw(firstPointPrimitive.get());
+            }
+            if (lastPointPrimitive->isValid()) {
+                GraphicsEngineDataOpenGL::draw(lastPointPrimitive.get());
+            }
         }
     }
     if (linesIdentificationPrimitive) {
-        glDisable(GL_LIGHTING);
-        linesIdentificationPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
-                                                   lineWidth);
-        GraphicsEngineDataOpenGL::draw(linesIdentificationPrimitive.get());
+        if (linesIdentificationPrimitive->isValid()) {
+            glDisable(GL_LIGHTING);
+            linesIdentificationPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
+                                                       lineWidth);
+            GraphicsEngineDataOpenGL::draw(linesIdentificationPrimitive.get());
+        }
     }
     else if (linesPrimitive) {
-        glDisable(GL_LIGHTING);
-        linesPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
-                                     lineWidth);
-        GraphicsEngineDataOpenGL::draw(linesPrimitive.get());
+        if (linesPrimitive->isValid()) {
+            glDisable(GL_LIGHTING);
+            linesPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
+                                         lineWidth);
+            GraphicsEngineDataOpenGL::draw(linesPrimitive.get());
+        }
     }
     
     glPopAttrib();
@@ -3668,8 +3676,12 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
         disableLighting();
     }
     
-    GraphicsEngineDataOpenGL::draw(fociPrimitive.get());
-    
+    if (fociPrimitive) {
+        if (fociPrimitive->isValid()) {
+            GraphicsEngineDataOpenGL::draw(fociPrimitive.get());
+        }
+    }
+
     if (isSelect) {
         int32_t fociFileIndex = -1;
         int32_t focusIndex = -1;
