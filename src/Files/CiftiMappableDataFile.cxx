@@ -55,6 +55,7 @@
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "GraphicsPrimitiveV3fC4f.h"
+#include "GraphicsPrimitiveV3fT3f.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "Histogram.h"
 #include "MapFileDataSelector.h"
@@ -1473,7 +1474,8 @@ CiftiMappableDataFile::invalidateColoringInAllMaps()
      * Force recreation of matrix so that it receives updates to coloring
      * and in particular, matrix grid outline coloring
      */
-    m_matrixGraphicsPrimitive.reset();
+    m_matrixGraphicsTrianglesPrimitive.reset();
+    m_matrixGraphicsTexturePrimitive.reset();
     m_matrixGraphicsOutlinePrimitive.reset();
     invalidateHistogramChartColoring();
 }
@@ -1558,7 +1560,7 @@ CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba)
  * @param gridMode
  *     The grid mode (filled or outline)
  */
-GraphicsPrimitiveV3fC4f*
+GraphicsPrimitive*
 CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
                                                           const MatrixGridMode gridMode) const
 {
@@ -1567,20 +1569,29 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
     CaretPreferences* caretPreferences = preferencesEvent.getCaretPreferences();
     uint8_t gridByteRGBA[4] = { 0, 0, 0, 0 };
     
-    GraphicsPrimitiveV3fC4f* matrixPrimitive = NULL;
+    GraphicsPrimitive* matrixPrimitive(NULL);
+    GraphicsPrimitiveV3fC4f* matrixTrianglePrimitive(NULL);
+    GraphicsPrimitiveV3fT3f* matrixTexturePrimitive(NULL);
     switch (gridMode) {
-        case MatrixGridMode::FILLED:
-            matrixPrimitive = m_matrixGraphicsPrimitive.get();
+        case MatrixGridMode::FILLED_TRIANGLES:
+            matrixTrianglePrimitive = m_matrixGraphicsTrianglesPrimitive.get();
+            matrixPrimitive = matrixTrianglePrimitive;
+            break;
+        case MatrixGridMode::FILLED_TEXTURE:
+            matrixTexturePrimitive = m_matrixGraphicsTexturePrimitive.get();
+            matrixPrimitive = matrixTexturePrimitive;
             break;
         case MatrixGridMode::OUTLINE:
             caretPreferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridByteRGBA);
-            matrixPrimitive = m_matrixGraphicsOutlinePrimitive.get();
+            matrixTrianglePrimitive = m_matrixGraphicsOutlinePrimitive.get();
+            matrixPrimitive = matrixTrianglePrimitive;
+            
             
             if ((gridByteRGBA[0] != m_previousMatrixGridRGBA[0])
                 || (gridByteRGBA[1] != m_previousMatrixGridRGBA[1])
                 || (gridByteRGBA[2] != m_previousMatrixGridRGBA[2])
                 || (gridByteRGBA[3] != m_previousMatrixGridRGBA[3])) {
-                matrixPrimitive = NULL;
+                matrixTrianglePrimitive = NULL;
                 m_previousMatrixGridRGBA[0] = gridByteRGBA[0];
                 m_previousMatrixGridRGBA[1] = gridByteRGBA[1];
                 m_previousMatrixGridRGBA[2] = gridByteRGBA[2];
@@ -1594,25 +1605,26 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
         int32_t numberOfColumns = 0;
         std::vector<float> matrixRGBA;
         if (getMatrixForChartingRGBA(numberOfRows, numberOfColumns, matrixRGBA)) {
+            std::vector<uint8_t> matrixTextureRGBA;
             const int32_t numberOfCells = numberOfRows * numberOfColumns;
             if (numberOfCells > 0) {
                 switch (gridMode) {
-                    case MatrixGridMode::FILLED:
-                        matrixPrimitive = GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES);
-                        matrixPrimitive->reserveForNumberOfVertices(numberOfCells * 6);  // 2 triangles per cell, 3 vertices per triangle
+                    case MatrixGridMode::FILLED_TRIANGLES:
+                        matrixTrianglePrimitive = GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES);
+                        matrixTrianglePrimitive->reserveForNumberOfVertices(numberOfCells * 6);  // 2 triangles per cell, 3 vertices per triangle
+                        matrixPrimitive = matrixTrianglePrimitive;
+                        break;
+                    case MatrixGridMode::FILLED_TEXTURE:
+                        /* NOTE: Primitive created after texture RGBA is filled */
+                        matrixTextureRGBA.resize(matrixRGBA.size(), 0);
                         break;
                     case MatrixGridMode::OUTLINE:
                         /* Lines are used around each cell to simplify upper/lower triangular options */
-                        matrixPrimitive = GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES);
-                        matrixPrimitive->reserveForNumberOfVertices(numberOfCells * 8);  // 4 lines per cell, 2 vertices per line
+                        matrixTrianglePrimitive = GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES);
+                        matrixTrianglePrimitive->reserveForNumberOfVertices(numberOfCells * 8);  // 4 lines per cell, 2 vertices per line
+                        matrixPrimitive = matrixTrianglePrimitive;
                         break;
                 }
-                matrixPrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
-                
-                /*
-                 * Allow release of instance data after OpenGL buffers are loaded to save memory
-                 */
-                matrixPrimitive->setReleaseInstanceDataMode(GraphicsPrimitive::ReleaseInstanceDataMode::ENABLED);
                 
                 /*
                  * RGBA for grid outline
@@ -1639,11 +1651,19 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                  * OpenGL buffers are used, drawing is very fast.
                  */
                 int32_t rgbaOffset = 0;
-                const float cellHeight = 1.0;
-                const float cellWidth = 1.0;
-                float cellY = (numberOfRows - 1) * cellHeight;
+                const int32_t cellHeight = 1;
+                const int32_t cellWidth = 1;
+                int32_t cellY = (numberOfRows - 1) * cellHeight;
                 for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
-                    float cellX = 0;
+                    switch (gridMode) {
+                        case MatrixGridMode::FILLED_TRIANGLES:
+                            break;
+                        case MatrixGridMode::FILLED_TEXTURE:
+                            break;
+                        case MatrixGridMode::OUTLINE:
+                            break;
+                    }
+                    int32_t cellX = 0;
                     for (int32_t columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
                         CaretAssertVectorIndex(matrixRGBA, rgbaOffset+3);
                         const float* rgba = &matrixRGBA[rgbaOffset];
@@ -1710,32 +1730,43 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                         }
                         
                         switch (gridMode) {
-                            case MatrixGridMode::FILLED:
+                            case MatrixGridMode::FILLED_TRIANGLES:
                             {
                                 const float* cellRGBA = (drawCellFlag ? rgba : cellNotDrawRGBA);
-                                matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
-                                matrixPrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
-                                matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
                                 
-                                matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
-                                matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
-                                matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
+                            }
+                                break;
+                            case MatrixGridMode::FILLED_TEXTURE:
+                            {
+                                const float* cellRGBA = (drawCellFlag ? rgba : cellNotDrawRGBA);
+                                int32_t cellOffset = ((cellY * numberOfColumns * 4)
+                                                      + (cellX * 4));
+                                for (int32_t k = 0; k < 4; k++) {
+                                    CaretAssertVectorIndex(matrixTextureRGBA, cellOffset + 3);
+                                    matrixTextureRGBA[cellOffset + k] = static_cast<uint32_t>(cellRGBA[k] * 255.0);
+                                }
                             }
                                 break;
                             case MatrixGridMode::OUTLINE:
                             {
                                 const float* cellRGBA = (drawCellFlag ? cellOutlineRGBA : cellNotDrawRGBA);
-                                matrixPrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
-                                matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
                                 
-                                matrixPrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
-                                matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
 
-                                matrixPrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
-                                matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
                                 
-                                matrixPrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
-                                matrixPrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
                             }
                                 break;
                         }
@@ -1745,19 +1776,58 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                     
                     cellY -= cellHeight;
                 }
+                
+                switch (gridMode) {
+                    case MatrixGridMode::FILLED_TRIANGLES:
+                        break;
+                    case MatrixGridMode::FILLED_TEXTURE:
+                    {
+                        matrixTexturePrimitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                                                                       &matrixTextureRGBA[0],
+                                                                                       numberOfColumns,
+                                                                                       numberOfRows,
+                                                                                       GraphicsPrimitive::TextureWrappingType::CLAMP,
+                                                                                       GraphicsPrimitive::TextureFilteringType::NEAREST);
+                        matrixTexturePrimitive->addVertex(0, numberOfRows, 0, 1);  /* Top Left */
+                        matrixTexturePrimitive->addVertex(0, 0, 0, 0);  /* Bottom Left */
+                        matrixTexturePrimitive->addVertex(numberOfColumns, numberOfRows, 1, 1);  /* Top Right */
+                        matrixTexturePrimitive->addVertex(numberOfColumns, 0, 1, 0);  /* Bottom Right */
+                        matrixPrimitive = matrixTexturePrimitive;
+                    }
+                        break;
+                    case MatrixGridMode::OUTLINE:
+                        break;
+                }
             }
         }
+
+        CaretAssert(matrixPrimitive);
+        
+        matrixPrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
+        
+        /*
+         * Allow release of instance data after OpenGL buffers are loaded to save memory
+         */
+        matrixPrimitive->setReleaseInstanceDataMode(GraphicsPrimitive::ReleaseInstanceDataMode::ENABLED);
     }
     
     switch (gridMode) {
-        case MatrixGridMode::FILLED:
-            if (matrixPrimitive != m_matrixGraphicsPrimitive.get()) {
-                m_matrixGraphicsPrimitive.reset(matrixPrimitive);
+        case MatrixGridMode::FILLED_TRIANGLES:
+            CaretAssert(matrixTrianglePrimitive);
+            if (matrixTrianglePrimitive != m_matrixGraphicsTrianglesPrimitive.get()) {
+                m_matrixGraphicsTrianglesPrimitive.reset(matrixTrianglePrimitive);
+            }
+            break;
+        case MatrixGridMode::FILLED_TEXTURE:
+            CaretAssert(matrixTexturePrimitive);
+            if (matrixTexturePrimitive != m_matrixGraphicsTexturePrimitive.get()) {
+                m_matrixGraphicsTexturePrimitive.reset(matrixTexturePrimitive);
             }
             break;
         case MatrixGridMode::OUTLINE:
-            if (matrixPrimitive != m_matrixGraphicsOutlinePrimitive.get()) {
-                m_matrixGraphicsOutlinePrimitive.reset(matrixPrimitive);
+            CaretAssert(matrixTrianglePrimitive);
+            if (matrixTrianglePrimitive != m_matrixGraphicsOutlinePrimitive.get()) {
+                m_matrixGraphicsOutlinePrimitive.reset(matrixTrianglePrimitive);
             }
             break;
     }
@@ -2587,7 +2657,8 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex)
      */
     
     invalidateHistogramChartColoring();
-    m_matrixGraphicsPrimitive.reset();
+    m_matrixGraphicsTrianglesPrimitive.reset();
+    m_matrixGraphicsTexturePrimitive.reset();
     m_matrixGraphicsOutlinePrimitive.reset();
 }
 

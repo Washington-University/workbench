@@ -7470,7 +7470,8 @@ BrainOpenGLFixedPipeline::drawStippledBackgroundInAreasOutsideWindowAspectLockin
                                                                                              &textureRGBA[0],
                                                                                              textureDim,
                                                                                              textureDim,
-                                                                                             GraphicsPrimitive::TextureWrappingType::REPEAT));
+                                                                                             GraphicsPrimitive::TextureWrappingType::REPEAT,
+                                                                                             GraphicsPrimitive::TextureFilteringType::LINEAR));
     
     if (afterLeft > beforeLeft) {
         /* Left */

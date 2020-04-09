@@ -106,6 +106,16 @@ namespace caret {
         };
         
         /**
+         * Texture filtering type
+         */
+        enum class TextureFilteringType {
+            /* Nearest texel - no interpolation */
+            NEAREST,
+            /* Linear interpolate using nearest texels */
+            LINEAR
+        };
+        
+        /**
          * Type of primitives for drawing.  There are NO primitives equivalent to
          * OpenGL's GL_QUAD_STRIP and GL_POLYGON.  The reason is that these
          * primitive types are removed in 3.x (probably 3.2).
@@ -313,6 +323,7 @@ namespace caret {
                           const VertexColorType      vertexColorType,
                           const TextureDataType      textureDataType,
                           const TextureWrappingType  textureWrappingType,
+                          const TextureFilteringType textureFilteringType,
                           const PrimitiveType        primitiveType);
         
         GraphicsPrimitive(const GraphicsPrimitive& obj);
@@ -338,7 +349,8 @@ namespace caret {
                                                            const uint8_t* imageBytesRGBA,
                                                            const int32_t imageWidth,
                                                            const int32_t imageHeight,
-                                                           const TextureWrappingType textureWrappingType);
+                                                           const TextureWrappingType textureWrappingType,
+                                                           const TextureFilteringType textureFilteringType);
         
         virtual ~GraphicsPrimitive();
         
@@ -412,6 +424,11 @@ namespace caret {
          * @return Type of texture wrapping
          */
         inline TextureWrappingType getTextureWrappingType() const { return m_textureWrappingType; }
+        
+        /**
+         * @return Type of texture filtering
+         */
+        inline TextureFilteringType getTextureFilteringType() const { return m_textureFilteringType; }
         
         /**
          * @return The float coordinates.
@@ -518,6 +535,8 @@ namespace caret {
         const TextureDataType m_textureDataType;
         
         const TextureWrappingType m_textureWrappingType;
+        
+        const TextureFilteringType m_textureFilteringType;
         
         const PrimitiveType m_primitiveType;
 

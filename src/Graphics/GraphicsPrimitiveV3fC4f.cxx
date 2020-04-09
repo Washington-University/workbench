@@ -47,6 +47,7 @@ GraphicsPrimitiveV3fC4f::GraphicsPrimitiveV3fC4f(const PrimitiveType primitiveTy
                     VertexColorType::PER_VERTEX_RGBA,
                     TextureDataType::NONE,
                     TextureWrappingType::CLAMP,
+                    TextureFilteringType::LINEAR,
                     primitiveType)
 {
     

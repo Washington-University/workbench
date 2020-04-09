@@ -1244,8 +1244,16 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                                 const float /*zooming*/,
                                                                 std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut)
 {
-    GraphicsPrimitiveV3fC4f* matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
-                                                                                               CiftiMappableDataFile::MatrixGridMode::FILLED);
+    GraphicsPrimitive* matrixPrimitive(NULL);
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_MATRIX)) {
+        matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
+                                                                          CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE);
+    }
+    else {
+        matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
+                                                                          CiftiMappableDataFile::MatrixGridMode::FILLED_TRIANGLES);
+    }
+    
     if (matrixPrimitive == NULL) {
         return;
     }
@@ -1300,7 +1308,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         CaretAssert(matrixProperties);
         
         if (matrixProperties->isGridLinesDisplayed()) {
-            GraphicsPrimitiveV3fC4f* matrixGridPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
+            GraphicsPrimitive* matrixGridPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
                                                                                                            CiftiMappableDataFile::MatrixGridMode::OUTLINE);
             drawPrimitivePrivate(matrixGridPrimitive);
         }

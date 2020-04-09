@@ -34,6 +34,7 @@
 #include "ConnectivityDataLoaded.h"
 #include "EventCaretMappableDataFileMapsViewedInOverlays.h"
 #include "EventManager.h"
+#include "GraphicsPrimitiveV3fC4f.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -418,7 +419,7 @@ ChartableTwoFileMatrixChart::getMatrixDataRGBA(int32_t& numberOfRowsOut,
  * @param gridMode
  *     The grid mode (filled or outline)
  */
-GraphicsPrimitiveV3fC4f*
+GraphicsPrimitive*
 ChartableTwoFileMatrixChart::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
                                                                 const CiftiMappableDataFile::MatrixGridMode gridMode) const
 {

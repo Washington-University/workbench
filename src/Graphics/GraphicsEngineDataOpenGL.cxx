@@ -142,7 +142,7 @@ GraphicsEngineDataOpenGL::loadCoordinateBuffer(GraphicsPrimitive* primitive)
     switch (primitive->m_vertexDataType) {
         case GraphicsPrimitive::VertexDataType::FLOAT_XYZ:
             m_coordinateDataType = GL_FLOAT;
-            m_coordinatesPerVertex = 3; // X, Y, Z
+            m_coordinatesPerVertex = 3; /* X, Y, Z */
             
             coordinateCount = primitive->m_xyz.size();
             const GLuint xyzSizeBytes = coordinateCount * sizeof(float);
@@ -384,6 +384,14 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
             glBindTexture(GL_TEXTURE_2D, openGLTextureName);
             
             bool useMipMapFlag = true;
+            switch (primitive->getTextureFilteringType()) {
+                case GraphicsPrimitive::TextureFilteringType::LINEAR:
+                    break;
+                case GraphicsPrimitive::TextureFilteringType::NEAREST:
+                    useMipMapFlag = false;
+                    break;
+            }
+            
             if (useMipMapFlag) {
                 switch (primitive->getTextureWrappingType()) {
                     case GraphicsPrimitive::TextureWrappingType::CLAMP:
@@ -395,8 +403,18 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
                         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                         break;
                 }
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                
+                switch (primitive->getTextureFilteringType()) {
+                    case GraphicsPrimitive::TextureFilteringType::LINEAR:
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                        break;
+                    case GraphicsPrimitive::TextureFilteringType::NEAREST:
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                        useMipMapFlag = false;
+                        break;
+                }
                 
                 /*
                  * This code seems to work if OpenGL 3.0 or later and
@@ -435,7 +453,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
             }
             
             if ( ! useMipMapFlag) {
-                CaretAssert(0);   // image must be 2^N by 2^M
+                //CaretAssert(0);   // image must be 2^N by 2^M
                 switch (primitive->getTextureWrappingType()) {
                     case GraphicsPrimitive::TextureWrappingType::CLAMP:
                         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -446,8 +464,17 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
                         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                         break;
                 }
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                
+                switch (primitive->getTextureFilteringType()) {
+                    case GraphicsPrimitive::TextureFilteringType::LINEAR:
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                        break;
+                    case GraphicsPrimitive::TextureFilteringType::NEAREST:
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                        break;
+                }
                 
                 glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
                              0,                 // level of detail 0=base, n is nth mipmap reduction
@@ -936,7 +963,7 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
 
         glPixelStorei(GL_PACK_SKIP_ROWS, 0);
         glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
-        glPixelStorei(GL_PACK_ALIGNMENT, 1); // bytes
+        glPixelStorei(GL_PACK_ALIGNMENT, 1); /* bytes */
         glReadPixels(pixelX,
                      pixelY,
                      1,
@@ -948,7 +975,7 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
         /*
          * Get depth from depth buffer
          */
-        glPixelStorei(GL_PACK_ALIGNMENT, 4); // float
+        glPixelStorei(GL_PACK_ALIGNMENT, 4); /* float */
         glReadPixels(pixelX,
                      pixelY,
                      1,

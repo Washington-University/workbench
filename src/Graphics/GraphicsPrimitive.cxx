@@ -60,6 +60,8 @@ using namespace caret;
  *     Data type of texture coordinates.
  * @param textureWrappingType
  *     Type of texture wrapping
+ * @param textureFilteringType
+ *     Type of texture filtering
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
  */
@@ -69,6 +71,7 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType       vertexDataType,
                                      const VertexColorType      vertexColorType,
                                      const TextureDataType      textureDataType,
                                      const TextureWrappingType  textureWrappingType,
+                                     const TextureFilteringType textureFilteringType,
                                      const PrimitiveType        primitiveType)
 : CaretObject(),
  EventListenerInterface(),
@@ -78,6 +81,7 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType       vertexDataType,
  m_vertexColorType(vertexColorType),
  m_textureDataType(textureDataType),
  m_textureWrappingType(textureWrappingType),
+ m_textureFilteringType(textureFilteringType),
  m_primitiveType(primitiveType),
  m_boundingBoxValid(false)
 {
@@ -106,6 +110,7 @@ GraphicsPrimitive::GraphicsPrimitive(const GraphicsPrimitive& obj)
  m_vertexColorType(obj.m_vertexColorType),
  m_textureDataType(obj.m_textureDataType),
  m_textureWrappingType(obj.m_textureWrappingType),
+ m_textureFilteringType(obj.m_textureFilteringType),
  m_primitiveType(obj.m_primitiveType),
  m_boundingBoxValid(false)
 {
@@ -1925,20 +1930,24 @@ GraphicsPrimitive::newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType pr
  * @param imageHeight
  *     Height of the image.
  * @param textureWrappingType
- *     Type of texture wrapping (Defualt is CLAMP)
+ *     Type of texture wrapping
+ * @param textureFilteringType
+ *     Type of texture filtering
  */
 GraphicsPrimitiveV3fT3f*
 GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
                                       const uint8_t* imageBytesRGBA,
                                       const int32_t imageWidth,
                                       const int32_t imageHeight,
-                                      const TextureWrappingType textureWrappingType)
+                                      const TextureWrappingType textureWrappingType,
+                                      const TextureFilteringType textureFilteringType)
 {
     GraphicsPrimitiveV3fT3f* primitive = new GraphicsPrimitiveV3fT3f(primitiveType,
                                                                      imageBytesRGBA,
                                                                      imageWidth,
                                                                      imageHeight,
-                                                                     textureWrappingType);
+                                                                     textureWrappingType,
+                                                                     textureFilteringType);
     return primitive;
 }
 

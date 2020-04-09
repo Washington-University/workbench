@@ -42,7 +42,9 @@ namespace caret {
     class CiftiParcelsMap;
     class CiftiXML;
     class FastStatistics;
+    class GraphicsPrimitive;
     class GraphicsPrimitiveV3fC4f;
+    class GraphicsPrimitiveV3fT3f;
     class GroupAndNameHierarchyModel;
     class Histogram;
     class SparseVolumeIndexer;
@@ -501,7 +503,8 @@ namespace caret {
         
     public:
         enum class MatrixGridMode {
-            FILLED,
+            FILLED_TRIANGLES,
+            FILLED_TEXTURE,
             OUTLINE
         };
         
@@ -517,7 +520,7 @@ namespace caret {
                                       int32_t& numberOfColumnsOut,
                                       std::vector<float>& rgbaOut) const;
         
-        GraphicsPrimitiveV3fC4f* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
+        GraphicsPrimitive* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
                                                                     const MatrixGridMode gridMode) const;
         
         /** Identifier for the matrix primitives alternative color used for the grid coloring */
@@ -781,8 +784,11 @@ namespace caret {
         /** Histogram used when statistics computed on all data in file */
         CaretPointer<Histogram> m_fileHistogram;
         
-        /** Primitive for matrix cells */
-        mutable std::unique_ptr<GraphicsPrimitiveV3fC4f> m_matrixGraphicsPrimitive;
+        /** Primitive for matrix cells drawn with triangles*/
+        mutable std::unique_ptr<GraphicsPrimitiveV3fC4f> m_matrixGraphicsTrianglesPrimitive;
+        
+        /** Primitive for matrix cells drawn using a texture */
+        mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_matrixGraphicsTexturePrimitive;
         
         /** Primitive for grid outline around matrix cells */
         mutable std::unique_ptr<GraphicsPrimitiveV3fC4f> m_matrixGraphicsOutlinePrimitive;

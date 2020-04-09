@@ -235,7 +235,8 @@ AnnotationImage::getGraphicsPrimitive() const
                                                                                        &m_imageBytesRGBA[0],
                                                                                        m_imageWidth,
                                                                                        m_imageHeight,
-                                                                                       GraphicsPrimitive::TextureWrappingType::CLAMP);
+                                                                                       GraphicsPrimitive::TextureWrappingType::CLAMP,
+                                                                                       GraphicsPrimitive::TextureFilteringType::LINEAR);
             /*
              * A Triangle Strip (consisting of two triangles) is used
              * for drawing the image.  At this time, the XYZ coordinates
@@ -255,9 +256,6 @@ AnnotationImage::getGraphicsPrimitive() const
             primitive->addVertex(0, 0, 1, 0);  /* Bottom Right */
 
             m_graphicsPrimitive.reset(primitive);
-            
-            
-//            create triangles above and add method to set the vertex coordintes (bottom left, bottom right, etc)
         }
     }
     

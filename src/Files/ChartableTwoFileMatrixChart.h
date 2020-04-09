@@ -35,7 +35,7 @@ namespace caret {
     class CiftiParcelScalarFile;
     class CiftiParcelSeriesFile;
     class CiftiScalarDataSeriesFile;
-    class GraphicsPrimitiveV3fC4f;
+    class GraphicsPrimitive;
     
     class ChartableTwoFileMatrixChart : public ChartableTwoFileBaseChart {
         
@@ -59,7 +59,7 @@ namespace caret {
                                int32_t& numberOfColumnsOut,
                                std::vector<float>& rgbaOut) const;
         
-        GraphicsPrimitiveV3fC4f* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
+        GraphicsPrimitive* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
                                                                     const CiftiMappableDataFile::MatrixGridMode gridMode) const;
         
         int32_t getMatrixChartGraphicsPrimitiveGridColorIdentifier() const;

@@ -134,6 +134,11 @@ DeveloperFlagsEnum::initialize()
                                                 "Smooth Texture Volume Voxels",
                                                 CheckableEnum::YES,
                                                 false));
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TEXTURE_MATRIX,
+                                                "DEVELOPER_FLAG_TEXTURE_MATRIX",
+                                                "Matrix Texture Drawing",
+                                                CheckableEnum::YES,
+                                                false));
 
 #ifdef HAVE_WEBKIT
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
