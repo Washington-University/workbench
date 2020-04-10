@@ -984,7 +984,7 @@ IdentificationSimpleTextGenerator::generateChartTwoMatrixIdentificationText(Iden
                 const AString rowName = matrixChart->getRowName(rowIndex);
                 if ( ! rowName.isEmpty()) {
                     idText.addLine(true,
-                                   ("Row " + AString::number(rowIndex + 1)),
+                                   "",
                                    rowName);
                 }
             }
@@ -993,7 +993,7 @@ IdentificationSimpleTextGenerator::generateChartTwoMatrixIdentificationText(Iden
                 const AString colName = matrixChart->getColumnName(colIndex);
                 if ( ! colName.isEmpty()) {
                     idText.addLine(true,
-                                   ("Column " + AString::number(colIndex + 1)),
+                                   "",
                                    colName);
                 }
             }

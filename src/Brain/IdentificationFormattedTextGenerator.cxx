@@ -1313,19 +1313,11 @@ IdentificationFormattedTextGenerator::generateChartTwoMatrixIdentificationText(H
         QString colText;
         if ((rowIndex >= 0)
             && (matrixChart->hasRowSelection())) {
-            const AString rowName = matrixChart->getRowName(rowIndex);
-            rowText.append("Row "
-                           + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())
-                           + ": "
-                           + rowName);
+            rowText.append(matrixChart->getRowName(rowIndex));
         }
         if ((colIndex >= 0)
             && (matrixChart->hasColumnSelection())) {
-            const AString colName = matrixChart->getColumnName(colIndex);
-            colText.append("Column "
-                           + AString::number(colIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())
-                           + ": "
-                           + colName);
+            colText.append(matrixChart->getColumnName(colIndex));
         }
         
         if (( ! colText.isEmpty())
