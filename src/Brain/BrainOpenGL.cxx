@@ -745,6 +745,17 @@ BrainOpenGL::initializeOpenGL()
      * Call to validate the draw mode selection logic.
      */
     getBestDrawingMode();
+    
+    GraphicsUtilitiesOpenGL::setMajorMinorVersion(s_runtimeLibraryMajorVersionOfOpenGL.toInt(),
+                                                  s_runtimeLibraryMinorVersionOfOpenGL.toInt());
+
+    GLint textureMax, texture3DMax;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE,
+                  &textureMax);
+    glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE,
+                  &texture3DMax);
+    GraphicsUtilitiesOpenGL::setMaximumTextureDimension(textureMax,
+                                                        texture3DMax);
 }
 
 /**

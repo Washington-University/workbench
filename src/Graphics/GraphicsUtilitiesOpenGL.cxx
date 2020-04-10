@@ -291,4 +291,115 @@ GraphicsUtilitiesOpenGL::getOpenGLError(const AString& message)
     return errorInfo;
 }
 
+/**
+ * Set the OpenGL major and minor version
+ * @param majorVersion
+ *     Major version
+ * @param majorVersion
+ *     Major version
+ */
+void
+GraphicsUtilitiesOpenGL::setMajorMinorVersion(const int32_t majorVersion,
+                                              const int32_t minorVersion)
+{
+    s_majorVersion = majorVersion;
+    s_minorVersion = minorVersion;
+}
+
+/**
+ * @return True if the OpenGL major and minor version same or greater
+ * @param majorVersion
+ *     Major version
+ * @param majorVersion
+ *     Major version
+ */
+bool
+GraphicsUtilitiesOpenGL::isVersionOrGreater(const int32_t majorVersion,
+                                            const int32_t minorVersion)
+{
+    /*
+     * Version unknown, assume valid
+     */
+    if (s_majorVersion <= 0) {
+        return true;
+    }
+    
+    if (s_majorVersion > majorVersion) {
+        return true;
+    }
+    else if (s_majorVersion == majorVersion) {
+        if (s_minorVersion >= minorVersion) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * @return The OpenGL Major Version
+ */
+int32_t
+GraphicsUtilitiesOpenGL::getMajorVersion()
+{
+    return s_majorVersion;
+}
+
+/**
+ * @return The OpenGL Minor Version
+ */
+int32_t
+GraphicsUtilitiesOpenGL::getMinorVersion()
+{
+    return s_minorVersion;
+}
+
+/**
+ * @return The OpenGL version in form <major>.<minor>
+ */
+QString
+GraphicsUtilitiesOpenGL::getVersion()
+{
+    const QString txt(AString::number(s_majorVersion)
+                      + "."
+                      + AString::number(s_minorVersion));
+    return txt;
+}
+
+/**
+ * Set the OpenGL maximum texture dimensions
+ * @param widthHeightMaximumDimension
+ *     The maximum texture dimension for width or height (texture s or t)
+ * @param depthMaximumDimension
+ *     The maximum texture dimension for depth (texture r)
+ */
+void
+GraphicsUtilitiesOpenGL::setMaximumTextureDimension(const int32_t widthHeightMaximumDimension,
+                                                    const int32_t depthMaximumDimension)
+{
+    if (widthHeightMaximumDimension > 0) {
+        s_textureWidthHeightMaximumDimension = widthHeightMaximumDimension;
+    }
+    if (depthMaximumDimension) {
+        s_textureDepthMaximumDimension = depthMaximumDimension;
+    }
+}
+
+/**
+ * @return The maximum texture dimension for width or height (texture s or t)
+ */
+int32_t
+GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension()
+{
+    return s_textureWidthHeightMaximumDimension;
+}
+
+/**
+ * @return The maximum texture dimension for depth (texture r)
+ */
+int32_t
+GraphicsUtilitiesOpenGL::getTextureDepthMaximumDimension()
+{
+    return s_textureDepthMaximumDimension;
+}
 

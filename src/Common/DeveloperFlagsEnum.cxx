@@ -138,7 +138,7 @@ DeveloperFlagsEnum::initialize()
                                                 "DEVELOPER_FLAG_TEXTURE_MATRIX",
                                                 "Matrix Texture Drawing",
                                                 CheckableEnum::YES,
-                                                false));
+                                                true));
 
 #ifdef HAVE_WEBKIT
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,

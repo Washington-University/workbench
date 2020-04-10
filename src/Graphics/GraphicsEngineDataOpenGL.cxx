@@ -31,11 +31,13 @@
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "EventManager.h"
 #include "GraphicsOpenGLBufferObject.h"
+#include "GraphicsOpenGLError.h"
 #include "GraphicsOpenGLPolylineTriangles.h"
 #include "GraphicsOpenGLTextureName.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveSelectionHelper.h"
 #include "GraphicsShape.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "Matrix4x4.h"
 
 using namespace caret;
@@ -453,7 +455,6 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
             }
             
             if ( ! useMipMapFlag) {
-                //CaretAssert(0);   // image must be 2^N by 2^M
                 switch (primitive->getTextureWrappingType()) {
                     case GraphicsPrimitive::TextureWrappingType::CLAMP:
                         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -485,6 +486,16 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
                              GL_RGBA,           // format of the pixel data
                              GL_UNSIGNED_BYTE,  // data type of pixel data
                              imageBytesRGBA);   // pointer to image data
+                
+                const auto errorGL = GraphicsUtilitiesOpenGL::getOpenGLError();
+                if (errorGL) {
+                    CaretLogSevere("OpenGL error after glTexImage2D(), width="
+                                   + AString::number(imageWidth)
+                                   + ", height="
+                                   + AString::number(imageHeight)
+                                   + ": "
+                                   + errorGL->getVerboseDescription());
+                }
             }
 
             glBindTexture(GL_TEXTURE_2D, 0);

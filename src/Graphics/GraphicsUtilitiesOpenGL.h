@@ -49,6 +49,19 @@ namespace caret {
         
         static std::unique_ptr<GraphicsOpenGLError> getOpenGLError(const AString& message = "");
         
+        static bool isVersionOrGreater(const int32_t majorVersion,
+                                       const int32_t minorVersion);
+        
+        static int32_t getMajorVersion();
+        
+        static int32_t getMinorVersion();
+        
+        static QString getVersion();
+        
+        static int32_t getTextureWidthHeightMaximumDimension();
+        
+        static int32_t getTextureDepthMaximumDimension();
+        
     private:
         GraphicsUtilitiesOpenGL();
         
@@ -58,10 +71,32 @@ namespace caret {
 
         GraphicsUtilitiesOpenGL& operator=(const GraphicsUtilitiesOpenGL&);
 
+        static void setMajorMinorVersion(const int32_t majorVersion,
+                                         const int32_t minorVersion);
+        
+        static void setMaximumTextureDimension(const int32_t widthHeightMaximumDimension,
+                                               const int32_t depthMaximumDimension);
+        
+        static int32_t s_majorVersion;
+        
+        static int32_t s_minorVersion;
+        
+        static int32_t s_textureWidthHeightMaximumDimension;
+        
+        static int32_t s_textureDepthMaximumDimension;
+        
+        friend class BrainOpenGL;
     };
     
 #ifdef __GRAPHICS_UTILITIES_OPEN_G_L_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    int32_t GraphicsUtilitiesOpenGL::s_majorVersion = 0;
+    int32_t GraphicsUtilitiesOpenGL::s_minorVersion = 0;
+    
+    /*
+     * Default texture dimensions to typical values
+     */
+    int32_t GraphicsUtilitiesOpenGL::s_textureWidthHeightMaximumDimension = 16384;
+    int32_t GraphicsUtilitiesOpenGL::s_textureDepthMaximumDimension = 2048;
 #endif // __GRAPHICS_UTILITIES_OPEN_G_L_DECLARE__
 
 } // namespace

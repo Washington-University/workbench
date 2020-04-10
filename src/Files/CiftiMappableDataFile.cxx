@@ -56,6 +56,7 @@
 #include "GiftiMetaData.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "Histogram.h"
 #include "MapFileDataSelector.h"
@@ -1557,13 +1558,80 @@ CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba)
  *
  * @param matrixViewMode
  *     The matrix visualization mode (upper/lower).
- * @param gridMode
+ * @param gridModeIn
  *     The grid mode (filled or outline)
  */
 GraphicsPrimitive*
 CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
-                                                          const MatrixGridMode gridMode) const
+                                                          const MatrixGridMode gridModeIn) const
 {
+    MatrixGridMode gridMode = gridModeIn;
+    switch (gridMode) {
+        case MatrixGridMode::FILLED_TEXTURE:
+        {
+            /*
+             * Matrices are often non-power of 2.
+             * OpenGL 2.0 allows non-power of 2 textures
+             */
+            if (GraphicsUtilitiesOpenGL::isVersionOrGreater(2, 0)) {
+                int32_t numMatrixRows(0);
+                int32_t numMatrixColumns(0);
+                
+                /*
+                 * Verify texture dimensions are supported
+                 */
+                helpMapFileGetMatrixDimensions(numMatrixRows,
+                                               numMatrixColumns);
+                const int32_t maximumWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
+                if ((numMatrixRows > maximumWidthHeight)
+                    || (numMatrixColumns > maximumWidthHeight)) {
+                    /*
+                     * Dimensions too big, must use triangles
+                     */
+                    gridMode = MatrixGridMode::FILLED_TRIANGLES;
+                    
+                    static bool firstTimeFlag(true);
+                    if (firstTimeFlag) {
+                        firstTimeFlag = true;
+                        const QString msg("Matrix dimensions for file "
+                                          + getFileName()
+                                          + " are too big for OpenGL Texture.\n"
+                                          "Matrix dim("
+                                          + AString::number(numMatrixRows)
+                                          + ", "
+                                          + AString::number(numMatrixColumns)
+                                          + ") OpenGL Maximum dim="
+                                          + AString::number(maximumWidthHeight));
+                        CaretLogSevere(msg);
+                    }
+                }
+            }
+            else {
+                /*
+                 * Old OpenGL does not allow non-power of two texture images
+                 */
+                gridMode = MatrixGridMode::FILLED_TRIANGLES;
+                
+                static bool firstTimeFlag(true);
+                if (firstTimeFlag) {
+                    firstTimeFlag = true;
+                    const QString msg("OpenGL version is too old for texture drawing of Matrices.  "
+                                      "Version="
+                                      + GraphicsUtilitiesOpenGL::getVersion());
+                    CaretLogSevere(msg);
+                }
+            }
+        }
+            break;
+        case MatrixGridMode::FILLED_TRIANGLES:
+            break;
+        case MatrixGridMode::OUTLINE:
+            break;
+    }
+    
+    int32_t matrixNumRows(0), matrixNumCols(0);
+    helpMapFileGetMatrixDimensions(matrixNumRows, matrixNumCols);
+    
     EventCaretPreferencesGet preferencesEvent;
     EventManager::get()->sendEvent(preferencesEvent.getPointer());
     CaretPreferences* caretPreferences = preferencesEvent.getCaretPreferences();
@@ -1585,7 +1653,6 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
             caretPreferences->getBackgroundAndForegroundColors()->getColorChartMatrixGridLines(gridByteRGBA);
             matrixTrianglePrimitive = m_matrixGraphicsOutlinePrimitive.get();
             matrixPrimitive = matrixTrianglePrimitive;
-            
             
             if ((gridByteRGBA[0] != m_previousMatrixGridRGBA[0])
                 || (gridByteRGBA[1] != m_previousMatrixGridRGBA[1])
