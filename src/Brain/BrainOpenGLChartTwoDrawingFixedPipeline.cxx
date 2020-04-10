@@ -50,6 +50,8 @@
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "DeveloperFlagsEnum.h"
+#include "EventManager.h"
+#include "EventOpenGLObjectToWindowTransform.h"
 #include "FastStatistics.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3f.h"
@@ -1272,29 +1274,29 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     if (m_identificationModeFlag) {
-        int32_t primitiveIndex = -1;
-        float   primitiveDepth = 0.0;
-        GraphicsEngineDataOpenGL::drawWithSelection(matrixPrimitive,
-                                                    m_fixedPipelineDrawing->mouseX,
-                                                    m_fixedPipelineDrawing->mouseY,
-                                                    primitiveIndex,
-                                                    primitiveDepth);
-        if (primitiveIndex >= 0) {
-            /*
-             * Two triangles per cell so divided the primitive index by two
-             */
-            CaretAssert(matrixPrimitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES);
-            primitiveIndex /= 2;
+        EventOpenGLObjectToWindowTransform transformEvent(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
+        EventManager::get()->sendEvent(transformEvent.getPointer());
+        if (transformEvent.isValid()) {
+            const float windowPos[3] {
+                static_cast<float>(m_fixedPipelineDrawing->mouseX),
+                static_cast<float>(m_fixedPipelineDrawing->mouseY),
+                0.0f
+            };
+            float modelPos[3];
+            transformEvent.inverseTransformPoint(windowPos,
+                                                 modelPos);
             
-            int32_t numberOfRows = 0;
-            int32_t numberOfColumns = 0;
+            int32_t numberOfRows(0);
+            int32_t numberOfColumns(0);
             matrixChart->getMatrixDimensions(numberOfRows,
                                              numberOfColumns);
+            const int32_t rowIndex(numberOfRows - modelPos[1]);
+            const int32_t colIndex(modelPos[0]);
             
-            const int32_t rowIndex = primitiveIndex / numberOfColumns;
-            const int32_t colIndex = primitiveIndex % numberOfColumns;
-            
-            if (m_selectionItemMatrix->isOtherScreenDepthCloserToViewer(primitiveDepth)) {
+            if ((rowIndex >= 0)
+                && (rowIndex < numberOfRows)
+                && (colIndex >= 0)
+                && (colIndex < numberOfColumns)) {
                 m_selectionItemMatrix->setMatrixChart(const_cast<ChartableTwoFileMatrixChart*>(matrixChart),
                                                       rowIndex,
                                                       colIndex);
