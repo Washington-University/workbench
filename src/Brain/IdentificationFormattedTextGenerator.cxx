@@ -146,7 +146,7 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     labelHtmlTableBuilder->setTitlePlain("Labels");
     std::unique_ptr<HtmlTableBuilder> layersHtmlTableBuilder = createHtmlTableBuilder(3);
     layersHtmlTableBuilder->setTitlePlain("Layers");
-    std::unique_ptr<HtmlTableBuilder> scalarHtmlTableBuilder = createHtmlTableBuilder(2);
+    std::unique_ptr<HtmlTableBuilder> scalarHtmlTableBuilder = createHtmlTableBuilder(3);
     scalarHtmlTableBuilder->setTitlePlain("Scalars");
 
     const SelectionItemSurfaceNode* surfaceID = selectionManager->getSurfaceNodeIdentification();
@@ -619,7 +619,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                     }
                     else if (volumeFile->isMappedWithPalette()) {
                         scalarHtmlTableBuilder.addRow(text,
-                                                      //ijkText,
+                                                      "",
                                                       filename);
                     }
                 }
@@ -677,8 +677,27 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                                                              ciftiFile->getFileNameNoPath());
                             }
                             if ( ! scalarText.isEmpty()) {
+                                AString rowColumnIndex;
+                                int64_t rowIndex(-1), columnIndex(-1);
+                                if (ciftiFile->getRowColumnIndexFromVolumeXYZ(xyz,
+                                                                              rowIndex,
+                                                                              columnIndex)) {
+                                    if (rowIndex >= 0) {
+                                        rowColumnIndex = ("Row "
+                                                          + AString::number(rowIndex
+                                                                            + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+                                    }
+                                    if (columnIndex >= 0) {
+                                        if ( ! rowColumnIndex.isEmpty()) {
+                                            rowColumnIndex.append("<br>");
+                                        }
+                                        rowColumnIndex.append("Column "
+                                                              + AString::number(columnIndex
+                                                                                + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+                                    }
+                                }
                                 scalarHtmlTableBuilder.addRow(scalarText,
-                                                              //DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
+                                                              rowColumnIndex, //DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
                                                               ciftiFile->getFileNameNoPath());
                             }
                         }
@@ -891,6 +910,27 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                     }
                 }
                 
+                AString rowColumnIndex;
+                int64_t rowIndex(-1), columnIndex(-1);
+                if (cmdf->getRowColumnIndexFromSurfaceVertex(surface->getStructure(),
+                                                             surface->getNumberOfNodes(),
+                                                             nodeNumber,
+                                                             rowIndex,
+                                                             columnIndex)) {
+                    if (rowIndex >= 0) {
+                        rowColumnIndex = ("Row "
+                                          + AString::number(rowIndex
+                                                            + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+                    }
+                    if (columnIndex >= 0) {
+                        if ( ! rowColumnIndex.isEmpty()) {
+                            rowColumnIndex.append("<br>");
+                        }
+                        rowColumnIndex.append("Column "
+                                              + AString::number(columnIndex
+                                                                + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+                    }
+                }
                 if ( ! labelText.isEmpty()) {
                     labelHtmlTableBuilder.addRow(labelText,
                                                  //DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
@@ -898,7 +938,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 }
                 if ( ! scalarText.isEmpty()) {
                     scalarHtmlTableBuilder.addRow(scalarText,
-                                                  //DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
+                                                  rowColumnIndex,//DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
                                                   cmdf->getFileNameNoPath());
                 }
             }
@@ -937,7 +977,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 text.append(AString::number(metricFile->getValue(nodeNumber, mapIndex)));
             }
             scalarHtmlTableBuilder.addRow(text,
-                                          //"METRIC",
+                                          "",//"METRIC",
                                           metricFile->getFileNameNoPath());
         }
         if (metricDynConnFile != NULL) {
@@ -954,7 +994,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                         text += (" " + AString::number(metricDynConnFile->getValue(nodeNumber, mapIndex)));
                     }
                     scalarHtmlTableBuilder.addRow(text,
-                                                  //"METRIC DYNAMIC",
+                                                  "",//"METRIC DYNAMIC",
                                                   metricDynConnFile->getFileNameNoPath());
                 }
             }

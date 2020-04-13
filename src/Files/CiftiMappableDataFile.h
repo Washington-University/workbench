@@ -472,6 +472,16 @@ namespace caret {
         
         void invalidateColoringInAllMaps();
         
+        bool getRowColumnIndexFromVolumeXYZ(const float xyz[3],
+                                            int64_t& rowIndexOut,
+                                            int64_t& columnIndexOut) const;
+        
+        bool getRowColumnIndexFromSurfaceVertex(const StructureEnum::Enum structure,
+                                                const int64_t surfaceNumberOfVertices,
+                                                const int64_t vertexIndex,
+                                                int64_t& rowIndexOut,
+                                                int64_t& columnIndexOut) const;
+        
         void getBrainordinateFromRowIndex(const int64_t rowIndex,
                                           StructureEnum::Enum& surfaceStructureOut,
                                           int32_t& surfaceNodeIndexOut,

@@ -4173,6 +4173,157 @@ CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
 }
 
 /**
+ * Get the row and/or column for a surface vertex
+ * @param structure
+ *    The structure
+ * @param surfaceNumberOfVertices,
+ *    Number of vertices in the surface
+ * @param vertexIndex
+ *    Index of the vertex
+ * @param rowIndexOut
+ *    Index of the row
+ * @param columnIndexOut
+ *    Index of the column
+ * @return True if either or both of row and/or column index is valid.
+ */
+bool
+CiftiMappableDataFile::getRowColumnIndexFromSurfaceVertex(const StructureEnum::Enum structure,
+                                                          const int64_t surfaceNumberOfVertices,
+                                                          const int64_t vertexIndex,
+                                                          int64_t& rowIndexOut,
+                                                          int64_t& columnIndexOut) const
+{
+    rowIndexOut    = -1;
+    columnIndexOut = -1;
+    
+    if (m_ciftiFile == NULL) {
+        return false;
+    }
+    
+    const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+    
+    switch (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN))
+    {
+        case CiftiMappingType::BRAIN_MODELS:
+        {
+            const CiftiBrainModelsMap& bmm = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+            if (surfaceNumberOfVertices == bmm.getSurfaceNumberOfNodes(structure)) {
+                rowIndexOut = bmm.getIndexForNode(vertexIndex, structure);
+            }
+        }
+            break;
+        case CiftiMappingType::PARCELS:
+            break;
+        case CiftiMappingType::LABELS:
+            break;
+        case CiftiMappingType::SCALARS:
+            break;
+        case CiftiMappingType::SERIES:
+            break;
+    }
+
+    switch (ciftiXML.getMappingType(CiftiXML::ALONG_ROW))
+    {
+        case CiftiMappingType::BRAIN_MODELS:
+        {
+            const CiftiBrainModelsMap& bmm = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+            if (surfaceNumberOfVertices == bmm.getSurfaceNumberOfNodes(structure)) {
+                columnIndexOut = bmm.getIndexForNode(vertexIndex, structure);
+            }
+        }
+            break;
+        case CiftiMappingType::PARCELS:
+            break;
+        case CiftiMappingType::LABELS:
+            break;
+        case CiftiMappingType::SCALARS:
+            break;
+        case CiftiMappingType::SERIES:
+            break;
+    }
+    
+    return ((rowIndexOut >= 0)
+            || (columnIndexOut >= 0));
+}
+
+/**
+ * Get the row and/or column for a volume coordinate
+ * @param xyz
+ *    The coordinate
+ * @param rowIndexOut
+ *    Index of the row
+ * @param columnIndexOut
+ *    Index of the column
+ * @return True if either or both of row and/or column index is valid.
+ */
+bool
+CiftiMappableDataFile::getRowColumnIndexFromVolumeXYZ(const float xyz[3],
+                                                      int64_t& rowIndexOut,
+                                                      int64_t& columnIndexOut) const
+{
+    rowIndexOut    = -1;
+    columnIndexOut = -1;
+    
+    if (m_ciftiFile == NULL) {
+        return false;
+    }
+    
+    int64_t voxelI, voxelJ, voxelK;
+    enclosingVoxel(xyz[0],
+                   xyz[1],
+                   xyz[2],
+                   voxelI,
+                   voxelJ,
+                   voxelK);
+    if ( ! indexValid(voxelI,
+                   voxelJ,
+                   voxelK)) {
+        return false;
+    }
+    
+    const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+    
+    switch (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN))
+    {
+        case CiftiMappingType::BRAIN_MODELS:
+        {
+            const CiftiBrainModelsMap& bmm = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+            rowIndexOut = bmm.getIndexForVoxel(voxelI, voxelJ, voxelK);
+        }
+            break;
+        case CiftiMappingType::PARCELS:
+            break;
+        case CiftiMappingType::LABELS:
+            break;
+        case CiftiMappingType::SCALARS:
+            break;
+        case CiftiMappingType::SERIES:
+            break;
+    }
+    
+    switch (ciftiXML.getMappingType(CiftiXML::ALONG_ROW))
+    {
+        case CiftiMappingType::BRAIN_MODELS:
+        {
+            const CiftiBrainModelsMap& bmm = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+            columnIndexOut = bmm.getIndexForVoxel(voxelI, voxelJ, voxelK);
+        }
+            break;
+        case CiftiMappingType::PARCELS:
+            break;
+        case CiftiMappingType::LABELS:
+            break;
+        case CiftiMappingType::SCALARS:
+            break;
+        case CiftiMappingType::SERIES:
+            break;
+    }
+    
+    return ((rowIndexOut >= 0)
+            || (columnIndexOut >= 0));
+}
+
+/**
  * Get the brainordinate from the given row.
  *
  * @param rowIndex
