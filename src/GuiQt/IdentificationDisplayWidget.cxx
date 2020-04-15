@@ -86,8 +86,8 @@ m_location(location)
     
     m_tabWidget = new QTabWidget();
     m_tabWidget->addTab(m_infoWidget,      "Information");
-    m_tabWidget->addTab(m_filteringFilesWidget, "Filter Files");
-    m_tabWidget->addTab(m_filteringSettingsWidget, "Filter Settings");
+    m_tabWidget->addTab(m_filteringFilesWidget, "Files");
+    m_tabWidget->addTab(m_filteringSettingsWidget, "Filter");
     m_tabWidget->addTab(m_symbolsWidget,   "Symbols");
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
@@ -375,7 +375,7 @@ IdentificationDisplayWidget::createFilteringFilesWidget()
 QWidget*
 IdentificationDisplayWidget::createFilteringSettingsWidget()
 {
-    QWidget* tabFilterWidget = new QGroupBox("Overlay Identification");
+    QWidget* tabFilterWidget = new QGroupBox("Show Files Contained in");
     QVBoxLayout* tabFilterLayout = new QVBoxLayout(tabFilterWidget);
     m_tabFilterButtonGroup = new QButtonGroup(this);
     QObject::connect(m_tabFilterButtonGroup, QOverload<int>::of(&QButtonGroup::buttonClicked),
@@ -622,8 +622,6 @@ IdentificationDisplayWidget::createSymbolsWidget()
 void
 IdentificationDisplayWidget::symbolChanged()
 {
-    std::cout << "symbols changed" << std::endl;
-    
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* info = brain->getIdentificationManager();
     
