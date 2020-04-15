@@ -68,18 +68,21 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @parent
- *  The parent widget
+ * @param location
+ *    Location of widget
+ * @param
+ *     The parent widget
  */
-IdentificationDisplayWidget::IdentificationDisplayWidget(QWidget* parent)
-: QWidget(parent)
+IdentificationDisplayWidget::IdentificationDisplayWidget(const Location location,
+                                                         QWidget* parent)
+: QWidget(parent),
+m_location(location)
 {
     m_infoWidget = createInfoWidget();
     
     m_filteringFilesWidget = createFilteringFilesWidget();
     m_filteringSettingsWidget = createFilteringSettingsWidget();
-
-    m_symbolsWidget = createsymbolsWidget();
+    m_symbolsWidget = createSymbolsWidget();
     
     m_tabWidget = new QTabWidget();
     m_tabWidget->addTab(m_infoWidget,      "Information");
@@ -199,46 +202,107 @@ IdentificationDisplayWidget::createInfoWidget()
                      copyHistoryToolButton, &QToolButton::setEnabled);
     copyHistoryToolButton->setEnabled(false);
     
+    AString removeButtonText;
+    switch (m_location) {
+        case Location::Dialog:
+        case Location::HorizontalToolBox:
+            removeButtonText = "Remove\nSymbols";
+            break;
+        case Location::VerticalToolBox:
+            removeButtonText = "Remove Symbols";
+            break;
+    }
     QToolButton* removeSymbolsButton = new QToolButton();
-    removeSymbolsButton->setText("Remove Symbols");
+    removeSymbolsButton->setText(removeButtonText);
+
     removeSymbolsButton->setToolTip("Remove identification symbols on surfaces and volume slices");
     QObject::connect(removeSymbolsButton, &QToolButton::clicked,
                      this, &IdentificationDisplayWidget::infoRemoveSymbolsButtonClicked);
     
     const QString showToolTip(WuQtUtilities::createWordWrappedToolTipText("Selects number of identification operations displayed in the information text"));
-    QLabel* showLastHistoryCountLabel = new QLabel("Show");
-    showLastHistoryCountLabel->setToolTip(showToolTip);
     m_infoShowHistoryCountSpinBox = new QSpinBox();
-    m_infoShowHistoryCountSpinBox->setRange(0, 10);
+    m_infoShowHistoryCountSpinBox->setRange(0, 99);
     m_infoShowHistoryCountSpinBox->setSingleStep(1);
-    m_infoShowHistoryCountSpinBox->setSpecialValueText("All");
+    m_infoShowHistoryCountSpinBox->setSpecialValueText("Show All");
     m_infoShowHistoryCountSpinBox->setToolTip(showToolTip);
+    m_infoShowHistoryCountSpinBox->setPrefix("Show ");
     QObject::connect(m_infoShowHistoryCountSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &IdentificationDisplayWidget::infoShowHistoryCountSpinBoxValueChanged);
     
-    QGroupBox* historyGroupBox = new QGroupBox("History");
-    QGridLayout* historyLayout = new QGridLayout(historyGroupBox);
-    WuQtUtilities::setLayoutSpacingAndMargins(historyLayout, 5, 6);
-    int32_t row(0);
-    historyLayout->addWidget(clearHistoryToolButton, row, 0);
-    historyLayout->addWidget(copyHistoryToolButton, row, 1);
-    row++;
-    historyLayout->addWidget(showLastHistoryCountLabel, row, 0, Qt::AlignRight);
-    historyLayout->addWidget(m_infoShowHistoryCountSpinBox, row, 1, Qt::AlignLeft);
-    row++;
-    
-    QVBoxLayout* rightLayout = new QVBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(rightLayout, 0, 2);
-    rightLayout->addWidget(historyGroupBox);
-    rightLayout->addSpacing(15);
-    rightLayout->addWidget(removeSymbolsButton, 0, Qt::AlignHCenter);
-    rightLayout->addStretch();
+    QGroupBox* historyGroupBox = new QGroupBox();
+    historyGroupBox->setAlignment(Qt::AlignHCenter);
+    QLabel* historyLabel(NULL);
+    switch (m_location) {
+        case Location::Dialog:
+        {
+            historyGroupBox->setTitle("History");
+            QVBoxLayout* historyLayout = new QVBoxLayout(historyGroupBox);
+            WuQtUtilities::setLayoutSpacingAndMargins(historyLayout, 2, 4);
+            historyLayout->addWidget(clearHistoryToolButton, 0, Qt::AlignHCenter);
+            historyLayout->addWidget(copyHistoryToolButton, 0, Qt::AlignHCenter);
+            historyLayout->addWidget(m_infoShowHistoryCountSpinBox, 0, Qt::AlignHCenter);
+        }
+            break;
+        case Location::HorizontalToolBox:
+        {
+            historyGroupBox->setTitle("History");
+            QVBoxLayout* historyLayout = new QVBoxLayout(historyGroupBox);
+            WuQtUtilities::setLayoutSpacingAndMargins(historyLayout, 2, 4);
+            historyLayout->addWidget(clearHistoryToolButton, 0, Qt::AlignHCenter);
+            historyLayout->addWidget(copyHistoryToolButton, 0, Qt::AlignHCenter);
+            historyLayout->addWidget(m_infoShowHistoryCountSpinBox, 0, Qt::AlignHCenter);
+        }
+            break;
+        case Location::VerticalToolBox:
+        {
+            historyLabel = new QLabel("History ");
+            QHBoxLayout* historyLayout = new QHBoxLayout(historyGroupBox);
+            WuQtUtilities::setLayoutSpacingAndMargins(historyLayout, 5, 6);
+            historyLayout->addWidget(clearHistoryToolButton);
+            historyLayout->addWidget(copyHistoryToolButton);
+            historyLayout->addWidget(m_infoShowHistoryCountSpinBox);
+        }
+            break;
+    }
+
+    QBoxLayout* historySymbolLayout(NULL);
+    Qt::Alignment symbolAlignment = Qt::Alignment();
+    switch (m_location) {
+        case Location::Dialog:
+        case Location::HorizontalToolBox:
+            historySymbolLayout = new QVBoxLayout();
+            symbolAlignment = Qt::AlignHCenter;
+            break;
+        case Location::VerticalToolBox:
+            historySymbolLayout = new QHBoxLayout();
+            break;
+    }
+    CaretAssert(historySymbolLayout);
+    WuQtUtilities::setLayoutSpacingAndMargins(historySymbolLayout, 4, 0);
+    if (historyLabel != NULL) {
+        historySymbolLayout->addWidget(historyLabel);
+    }
+    historySymbolLayout->addWidget(historyGroupBox);
+    historySymbolLayout->addWidget(removeSymbolsButton, 0, symbolAlignment);
+    historySymbolLayout->addStretch();
     
     QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, layout->spacing(), 2);
+    QBoxLayout* layout(NULL);
+    switch (m_location) {
+        case Location::Dialog:
+        case Location::HorizontalToolBox:
+            layout = new QHBoxLayout(widget);
+            break;
+        case Location::VerticalToolBox:
+            layout = new QVBoxLayout(widget);
+            break;
+    }
+    CaretAssert(layout);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout,
+                                              0,
+                                              2);
     layout->addWidget(m_infoTextBrowser, 100);
-    layout->addLayout(rightLayout, 0);
+    layout->addLayout(historySymbolLayout, 0);
     
     return widget;
 }
@@ -327,7 +391,6 @@ IdentificationDisplayWidget::createFilteringSettingsWidget()
                                           IdentificationFilterTabSelectionEnum::toIntegerCode(tf));
         tabFilterLayout->addWidget(rb);
     }
-    tabFilterLayout->addStretch();
     
     m_filteringCiftiLoadingCheckBox = new QCheckBox("CIFTI Row/Column");
     
@@ -343,21 +406,35 @@ IdentificationDisplayWidget::createFilteringSettingsWidget()
     signalWatcher->addObject(m_filteringFociCheckBox);
 
     QWidget* showDataWidget = new QGroupBox("Data Identification");
-    QGridLayout* showLayout = new QGridLayout(showDataWidget);
-    showLayout->addWidget(m_filteringBorderCheckBox, 0, 0);
-    showLayout->addWidget(m_filteringFociCheckBox, 1, 0);
-    showLayout->addWidget(m_filteringCiftiLoadingCheckBox, 0, 1);
+    QVBoxLayout* showLayout = new QVBoxLayout(showDataWidget);
+    showLayout->addWidget(m_filteringBorderCheckBox);
+    showLayout->addWidget(m_filteringCiftiLoadingCheckBox);
+    showLayout->addWidget(m_filteringFociCheckBox);
     
+    Qt::Alignment alignment = Qt::Alignment();
     QWidget* widget = new QWidget();
-    QGridLayout* layout = new QGridLayout(widget);
-    layout->setHorizontalSpacing(0);
-    layout->setVerticalSpacing(2);
-    layout->setColumnStretch(2, 100);
-    layout->setRowStretch(1, 100);
-    layout->addWidget(tabFilterWidget, 0, 0, Qt::AlignTop);
-    layout->addWidget(showDataWidget, 0, 1);
+    QBoxLayout* layout(NULL);
+    switch (m_location) {
+        case Location::Dialog:
+            alignment = Qt::AlignTop;
+            layout = new QHBoxLayout(widget);
+            break;
+        case Location::HorizontalToolBox:
+        case Location::VerticalToolBox:
+            alignment = Qt::AlignLeft;
+            layout = new QVBoxLayout(widget);
+            break;
+    }
     
-    return widget;
+    CaretAssert(layout);
+    layout->setSpacing(2);
+    layout->addWidget(tabFilterWidget, 0, alignment);
+    layout->addWidget(showDataWidget, 0, alignment);
+    layout->addStretch();
+
+    QScrollArea* scrollArea = new QScrollArea();
+    scrollArea->setWidget(widget);
+    return scrollArea;
 }
 
 /**
@@ -438,7 +515,7 @@ IdentificationDisplayWidget::updateSymbolsWidget()
  * @return Instance of the symbols widget
  */
 QWidget*
-IdentificationDisplayWidget::createsymbolsWidget()
+IdentificationDisplayWidget::createSymbolsWidget()
 {
     m_symbolsShowSurfaceIdCheckBox = new QCheckBox("Show Surface ID Symbols");
 
@@ -481,44 +558,62 @@ IdentificationDisplayWidget::createsymbolsWidget()
     signalWatcher->addObject(m_symbolsIdDiameterSpinBox);
     signalWatcher->addObject(m_symbolsMostRecentIdDiameterSpinBox);
 
-    QVBoxLayout* rightLayout = new QVBoxLayout();
-    rightLayout->addWidget(m_symbolsShowSurfaceIdCheckBox);
-    rightLayout->addWidget(m_symbolsShowVolumeIdCheckBox);
-    rightLayout->addWidget(m_symbolsSurfaceContralateralVertexCheckBox);
-    rightLayout->addStretch();
+    QVBoxLayout* showLayout = new QVBoxLayout();
+    showLayout->addWidget(m_symbolsShowSurfaceIdCheckBox);
+    showLayout->addWidget(m_symbolsShowVolumeIdCheckBox);
+    showLayout->addWidget(m_symbolsSurfaceContralateralVertexCheckBox);
+    showLayout->addStretch();
 
-    QGridLayout* leftLayout = new QGridLayout();
+    QGridLayout* symbolLayout = new QGridLayout();
     int32_t row(0);
-    leftLayout->addWidget(idSymbolColorLabel,
+    symbolLayout->addWidget(idSymbolColorLabel,
                       row, 0);
-    leftLayout->addWidget(m_symbolsIdColorComboBox->getWidget(),
+    symbolLayout->addWidget(m_symbolsIdColorComboBox->getWidget(),
                       row, 1);
     row++;
-    leftLayout->addWidget(contralateralIdSymbolColorLabel,
+    symbolLayout->addWidget(contralateralIdSymbolColorLabel,
                       row, 0);
-    leftLayout->addWidget(m_symbolsContralateralIdColorComboBox->getWidget(),
+    symbolLayout->addWidget(m_symbolsContralateralIdColorComboBox->getWidget(),
                       row, 1);
     row++;
-    leftLayout->addWidget(symbolDiameterLabel,
+    symbolLayout->addWidget(symbolDiameterLabel,
                       row, 0);
-    leftLayout->addWidget(m_symbolsIdDiameterSpinBox,
+    symbolLayout->addWidget(m_symbolsIdDiameterSpinBox,
                       row, 1);
     row++;
-    leftLayout->addWidget(mostRecentSymbolDiameterLabel,
+    symbolLayout->addWidget(mostRecentSymbolDiameterLabel,
                       row, 0);
-    leftLayout->addWidget(m_symbolsMostRecentIdDiameterSpinBox,
+    symbolLayout->addWidget(m_symbolsMostRecentIdDiameterSpinBox,
                       row, 1);
     row++;
-    leftLayout->setRowStretch(row, 100);
+    symbolLayout->setRowStretch(row, 100);
 
+    Qt::Alignment alignment = Qt::Alignment();
     QWidget* widget = new QWidget();
-    QHBoxLayout* boxLayout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(boxLayout, 0, 0);
-    boxLayout->addLayout(leftLayout);
+    QBoxLayout* boxLayout(NULL);
+    switch (m_location) {
+        case Location::Dialog:
+            alignment = Qt::AlignTop;
+            boxLayout = new QHBoxLayout(widget);
+            break;
+        case Location::HorizontalToolBox:
+        case Location::VerticalToolBox:
+            alignment = Qt::AlignLeft;
+            boxLayout = new QVBoxLayout(widget);
+            break;
+    }
+    CaretAssert(boxLayout);
+    
+    WuQtUtilities::setLayoutSpacingAndMargins(boxLayout, 4, 4);
+    boxLayout->addLayout(symbolLayout);
     boxLayout->addSpacing(10);
-    boxLayout->addLayout(rightLayout);
+    boxLayout->addLayout(showLayout);
     boxLayout->addStretch();
-    return widget;
+    
+    QScrollArea* scrollArea = new QScrollArea();
+    scrollArea->setWidget(widget);
+    
+    return scrollArea;
 }
 
 /**

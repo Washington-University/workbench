@@ -359,7 +359,16 @@ BrainBrowserWindowOrientedToolBox::createSplitterAndIdentificationWidget(const Q
             break;
     }
     
-    m_identificationWidget = new IdentificationDisplayWidget();
+    switch (orientation) {
+        case Qt::Horizontal:
+            m_identificationWidget = new IdentificationDisplayWidget(IdentificationDisplayWidget::Location::HorizontalToolBox);
+            break;
+        case Qt::Vertical:
+            m_identificationWidget = new IdentificationDisplayWidget(IdentificationDisplayWidget::Location::VerticalToolBox);
+            break;
+    }
+    CaretAssert(m_identificationWidget);
+    
     m_identificationWidget->setMinimumSize(1, 1);
     
     m_splitterWidget = new QSplitter(orientation);
@@ -874,11 +883,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::VOLUME_DYNAMIC:
                     haveConnFiles = true;
-//                    haveVolumes = true;
-//                    const VolumeDynamicConnectivityFile* volDynConnFile = vf->getVolumeDynamicConnectivityFile();
-//                    if (volDynConnFile != NULL) {
-//                        haveConnFiles = true;
-//                    }
                     break;
             }
         }

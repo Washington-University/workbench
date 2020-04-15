@@ -50,7 +50,13 @@ namespace caret {
         Q_OBJECT
 
     public:
-        IdentificationDisplayWidget(QWidget* parent = 0);
+        enum class Location {
+            Dialog,
+            HorizontalToolBox,
+            VerticalToolBox
+        };
+        IdentificationDisplayWidget(const Location location,
+                                    QWidget* parent = 0);
         
         virtual ~IdentificationDisplayWidget();
         
@@ -107,7 +113,7 @@ namespace caret {
         
         QWidget* createFilteringFilesWidget();
         
-        QWidget* createsymbolsWidget();
+        QWidget* createSymbolsWidget();
         
         void updateInfoWidget(const bool scrollTextToEndFlag);
         
@@ -116,6 +122,8 @@ namespace caret {
         void updateSymbolsWidget();
         
         IdentificationHistoryManager* getHistoryManager();
+        
+        const Location m_location;
         
         QTabWidget* m_tabWidget;
         

@@ -52,7 +52,7 @@ IdentificationDisplayDialog::IdentificationDisplayDialog(QWidget* parent)
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-    m_identificationWidget = new IdentificationDisplayWidget();
+    m_identificationWidget = new IdentificationDisplayWidget(IdentificationDisplayWidget::Location::Dialog);
     
     setCentralWidget(m_identificationWidget,
                      SCROLL_AREA_NEVER);
