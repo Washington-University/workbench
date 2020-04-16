@@ -338,7 +338,7 @@ BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()
 QWidget*
 BrainBrowserWindowOrientedToolBox::createSplitterAndIdentificationWidget(const Qt::Orientation orientation)
 {
-    int32_t idWidgetStretchFactor(1);
+    float idWidgetPercentage(0.0f);
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     switch (prefs->getIdentificationDisplayMode()) {
         case IdentificationDisplayModeEnum::DEBUG_MODE:
@@ -350,10 +350,10 @@ BrainBrowserWindowOrientedToolBox::createSplitterAndIdentificationWidget(const Q
         case IdentificationDisplayModeEnum::OVERLAY_TOOLBOX:
             switch (orientation) {
                 case Qt::Horizontal:
-                    idWidgetStretchFactor = 25;
+                    idWidgetPercentage = 0.3f;
                     break;
                 case Qt::Vertical:
-                    idWidgetStretchFactor = 50;
+                    idWidgetPercentage = 0.4f;
                     break;
             }
             break;
@@ -369,22 +369,15 @@ BrainBrowserWindowOrientedToolBox::createSplitterAndIdentificationWidget(const Q
     }
     CaretAssert(m_identificationWidget);
     
-    m_identificationWidget->setMinimumSize(1, 1);
+    const int bigSize(1000);
+    const int idWidgetSize(bigSize * idWidgetPercentage);
+    const int tabWidgetSize(bigSize - idWidgetSize);
     
     m_splitterWidget = new QSplitter(orientation);
     m_splitterWidget->setChildrenCollapsible(true);
     m_splitterWidget->addWidget(m_tabWidget);
     m_splitterWidget->addWidget(m_identificationWidget);
-    switch (orientation) {
-        case Qt::Horizontal:
-            m_splitterWidget->setStretchFactor(0, 100 - idWidgetStretchFactor);
-            m_splitterWidget->setStretchFactor(1,  idWidgetStretchFactor);
-            break;
-        case Qt::Vertical:
-            m_splitterWidget->setStretchFactor(0, 100 - idWidgetStretchFactor);
-            m_splitterWidget->setStretchFactor(1,  idWidgetStretchFactor);
-            break;
-    }
+    m_splitterWidget->setSizes( { tabWidgetSize, idWidgetSize } );
     
     return m_splitterWidget;
 }
