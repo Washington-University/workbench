@@ -2568,6 +2568,37 @@ CiftiMappableDataFile::getCiftiParcelsMapForDirection(const int direction) const
 }
 
 /**
+ * Get the CIFTI Scalars Map for the given direction.
+ *
+ * @param direction
+ *     Direction of mapping.  MUST BE one of CiftiXML::ALONG_ROW or
+ *     CiftiXML::ALONG_COLUMN.
+ * @return
+ *     Pointer to the map's Cifti Scalars Map or NULL if the file is not
+ *     mapped using scalars or NULL if direction is invalid.
+ */
+const CiftiScalarsMap*
+CiftiMappableDataFile::getCiftiScalarsMapForDirection(const int direction) const
+{
+    if (m_ciftiFile != NULL) {
+        if ((direction != CiftiXML::ALONG_ROW)
+            && (direction != CiftiXML::ALONG_COLUMN)) {
+            CaretAssert(0);
+            return NULL;
+        }
+        
+        const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+        const CiftiMappingType* mapping = ciftiXML.getMap(direction);
+        if (mapping->getType() == CiftiMappingType::SCALARS) {
+            const CiftiScalarsMap* csm = dynamic_cast<const CiftiScalarsMap*>(mapping);
+            CaretAssert(csm);
+            return csm;
+        }
+    }
+    return NULL;
+}
+
+/**
  * @return Is the data in the file mapped to colors using
  * a label table.
  */

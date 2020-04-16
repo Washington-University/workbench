@@ -158,7 +158,8 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
         bool hasColumnParcelsFlag  = false;
         bool hasColumnMapNamesFlag = false;
         bool hasRowParcelsFlag     = false;
-        bool hasRowNumbersFlag       = false;
+        bool hasRowNumbersFlag     = false;
+        bool hasRowScalarsFlag     = false;
         switch (m_matrixDataFileType) {
             case MatrixDataFileType::INVALID:
                 CaretAssert(0);
@@ -194,6 +195,7 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 m_scalarDataSeriesFile = dynamic_cast<CiftiScalarDataSeriesFile*>(ciftiMapFile);
                 CaretAssert(m_scalarDataSeriesFile);
                 m_hasRowSelectionFlag = true;
+                hasRowScalarsFlag = true;
                 break;
         }
         
@@ -226,6 +228,31 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 for (int32_t i = 0; i < m_numberOfRows; i++) {
                     m_rowNames.push_back(AString::number(i));
                     m_rowNumberAndNames.push_back("Row " + AString::number(i + ROW_COLUMN_INDEX_BASE_OFFSET) + ": " + AString::number(i + 1));
+                }
+            }
+            else if (hasRowScalarsFlag) {
+                const CiftiScalarsMap* rowScalarsMap = ciftiMapFile->getCiftiScalarsMapForDirection(CiftiXML::ALONG_COLUMN);
+                if (rowScalarsMap != NULL) {
+                    const int32_t numRowScalars = rowScalarsMap->getLength();
+                    CaretAssert(numRowScalars == m_numberOfRows);
+                    for (int32_t i = 0; i < numRowScalars; i++) {
+                        AString rowName(rowScalarsMap->getIndexName(i));
+                        const AString rowNum(AString::number(i + ROW_COLUMN_INDEX_BASE_OFFSET));
+                        AString rowNameAndNumber;
+                        if (rowName.isEmpty()) {
+                            rowName = ("Row: "
+                                       + rowNum);
+                            rowNameAndNumber = rowName;
+                        }
+                        else {
+                            rowNameAndNumber = ("Row "
+                                                + AString::number(i + ROW_COLUMN_INDEX_BASE_OFFSET)
+                                                + ": " +
+                                                rowName);
+                        }
+                        m_rowNames.push_back(rowName);
+                        m_rowNumberAndNames.push_back(rowNameAndNumber);
+                    }
                 }
             }
         }

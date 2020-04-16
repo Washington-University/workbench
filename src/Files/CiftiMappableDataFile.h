@@ -40,6 +40,7 @@ namespace caret {
     class ChartDataCartesian;
     class CiftiFile;
     class CiftiParcelsMap;
+    class CiftiScalarsMap;
     class CiftiXML;
     class FastStatistics;
     class GraphicsPrimitive;
@@ -242,6 +243,8 @@ namespace caret {
         const CiftiParcelsMap* getCiftiParcelsMapForLoading() const;
         
         const CiftiParcelsMap* getCiftiParcelsMapForDirection(const int direction) const;
+        
+        const CiftiScalarsMap* getCiftiScalarsMapForDirection(const int direction) const;
         
         virtual bool isMappedWithLabelTable() const;
         
