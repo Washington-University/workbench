@@ -97,7 +97,7 @@ CaretPreferences::CaretPreferences()
                                                                              "identificationDisplayMode",
                                                                              CaretPreferenceDataValue::DataType::STRING,
                                                                              CaretPreferenceDataValue::SavedInScene::SAVE_NO,
-                                                                             IdentificationDisplayModeEnum::toName(IdentificationDisplayModeEnum::LEGACY_DIALOG)));
+                                                                             IdentificationDisplayModeEnum::toName(IdentificationDisplayModeEnum::OVERLAY_TOOLBOX)));
     m_preferenceDataValues.push_back(m_identificationDisplayModePreference.get());
     
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
