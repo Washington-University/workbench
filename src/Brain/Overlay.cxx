@@ -270,6 +270,8 @@ Overlay::copyData(const Overlay* overlay)
     m_selectedMapIndex = overlay->m_selectedMapIndex;
     m_mapYokingGroup = overlay->m_mapYokingGroup;
     
+    m_wholeBrainVoxelDrawingMode = overlay->m_wholeBrainVoxelDrawingMode;
+    
     *m_colorBar = *overlay->m_colorBar;
 }
 
