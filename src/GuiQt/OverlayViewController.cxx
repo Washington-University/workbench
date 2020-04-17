@@ -103,7 +103,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         minComboBoxWidth = 50;
         maxComboBoxWidth = 100000;
     }
-    const QComboBox::SizeAdjustPolicy comboSizePolicy = QComboBox::AdjustToContents;
+    const QComboBox::SizeAdjustPolicy comboSizePolicy = QComboBox::AdjustToContentsOnFirstShow; //QComboBox::AdjustToContents;
 
     WuQMacroManager* macroManager = WuQMacroManager::instance();
     CaretAssert(macroManager);
