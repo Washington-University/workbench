@@ -100,7 +100,7 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         gridLayout->addWidget(opacityLabel, row, 4, Qt::AlignHCenter);
         gridLayout->addWidget(fileLabel, row, 5, Qt::AlignHCenter);
         gridLayout->addWidget(yokeLabel, row, 6, Qt::AlignHCenter);
-        gridLayout->addWidget(mapLabel, row, 8, 1, 2, Qt::AlignHCenter);
+        gridLayout->addWidget(mapLabel, row, 7, 1, 2, Qt::AlignHCenter);
     }
     else {
         gridLayout->setColumnStretch(0, 0);
