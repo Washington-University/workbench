@@ -7573,7 +7573,7 @@ CiftiMappableDataFile::getDataForSelector(const MapFileDataSelector& mapFileData
                 }
             }
         }
-            break;
+            break; 
         case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
             try {
                 StructureEnum::Enum structure = StructureEnum::INVALID;

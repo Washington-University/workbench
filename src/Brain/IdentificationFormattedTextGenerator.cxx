@@ -1351,13 +1351,45 @@ IdentificationFormattedTextGenerator::generateChartTwoMatrixIdentificationText(H
         AString boldText("MATRIX ");
         QString rowText;
         QString colText;
-        if ((rowIndex >= 0)
-            && (matrixChart->hasRowSelection())) {
-            rowText.append(matrixChart->getRowName(rowIndex));
+        if (rowIndex >= 0) {
+            if (matrixChart->hasRowSelection()) {
+                rowText = matrixChart->getRowName(rowIndex);
+            }
+            if (rowText.isEmpty()) {
+                rowText = ("Row: "
+                           + AString::number(rowIndex
+                                             + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+            }
         }
-        if ((colIndex >= 0)
-            && (matrixChart->hasColumnSelection())) {
-            colText.append(matrixChart->getColumnName(colIndex));
+        if (colIndex >= 0) {
+            if (matrixChart->hasColumnSelection()) {
+                colText = matrixChart->getColumnName(colIndex);
+            }
+            if (colText.isEmpty()) {
+                colText = ("Col: "
+                           + AString::number(colIndex
+                                             + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+            }
+        }
+        
+        AString dataValueText;
+        if ((rowIndex >= 0)
+            && (colIndex >= 0)) {
+            const CiftiMappableDataFile* ciftiFile = matrixChart->getCiftiMappableDataFile();
+            if (ciftiFile != NULL) {
+                MapFileDataSelector mapSelector;
+                mapSelector.setRowIndex(const_cast<CaretMappableDataFile*>(chartMapFile),
+                                        "",
+                                        rowIndex);
+                std::vector<float> rowData;
+                ciftiFile->getDataForSelector(mapSelector, rowData);
+                if ( ! rowData.empty()) {
+                    if (colIndex < static_cast<int32_t>(rowData.size())) {
+                        CaretAssertVectorIndex(rowData, colIndex);
+                        dataValueText = AString::number(rowData[colIndex], 'f', 3);
+                    }
+                }
+            }
         }
         
         if (( ! colText.isEmpty())
@@ -1366,13 +1398,16 @@ IdentificationFormattedTextGenerator::generateChartTwoMatrixIdentificationText(H
                 if ( ! colText.isEmpty()) {
                     colText.append(" ");
                 }
+                if ( ! dataValueText.isEmpty()) {
+                    dataValueText.append(" ");
+                }
                 idText.addLine(true,
-                               (colText + rowText),
+                               (dataValueText + rowText + "; " + colText),
                                chartMapFile->getFileNameNoPath());
             }
             else {
-                htmlTableBuilder.addRow(rowText,
-                                        colText,
+                htmlTableBuilder.addRow(dataValueText,
+                                        (rowText + "; " + colText),
                                         chartMapFile->getFileNameNoPath());
             }
         }
