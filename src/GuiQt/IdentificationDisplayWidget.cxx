@@ -85,10 +85,10 @@ m_location(location)
     m_symbolsWidget = createSymbolsWidget();
     
     m_tabWidget = new QTabWidget();
-    m_tabWidget->addTab(m_infoWidget,      "Information");
-    m_tabWidget->addTab(m_filteringFilesWidget, "Files");
+    m_tabWidget->addTab(m_infoWidget,              "Info");
+    m_tabWidget->addTab(m_filteringFilesWidget,    "Files");
     m_tabWidget->addTab(m_filteringSettingsWidget, "Filter");
-    m_tabWidget->addTab(m_symbolsWidget,   "Symbols");
+    m_tabWidget->addTab(m_symbolsWidget,           "Symbols");
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
@@ -186,7 +186,7 @@ IdentificationDisplayWidget::createInfoWidget()
     m_infoTextBrowser = new QTextBrowser();
     m_infoTextBrowser->setLineWrapMode(QTextEdit::NoWrap);
     m_infoTextBrowser->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    
+
     QToolButton* clearHistoryToolButton = new QToolButton();
     clearHistoryToolButton->setText("Clear");
     clearHistoryToolButton->setToolTip("Remove all information text");
@@ -228,10 +228,13 @@ IdentificationDisplayWidget::createInfoWidget()
     m_infoShowHistoryCountSpinBox->setPrefix("Show ");
     QObject::connect(m_infoShowHistoryCountSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &IdentificationDisplayWidget::infoShowHistoryCountSpinBoxValueChanged);
+    m_infoShowHistoryCountSpinBox->setSizePolicy(QSizePolicy::Fixed,
+                                                 QSizePolicy::Fixed);
     
     QGroupBox* historyGroupBox = new QGroupBox();
     historyGroupBox->setAlignment(Qt::AlignHCenter);
     QLabel* historyLabel(NULL);
+    Qt::Alignment historyAlignment = Qt::Alignment();
     switch (m_location) {
         case Location::Dialog:
         {
@@ -255,12 +258,13 @@ IdentificationDisplayWidget::createInfoWidget()
             break;
         case Location::VerticalToolBox:
         {
-            historyLabel = new QLabel("History ");
+            historyGroupBox->setTitle("History");
             QHBoxLayout* historyLayout = new QHBoxLayout(historyGroupBox);
             WuQtUtilities::setLayoutSpacingAndMargins(historyLayout, 5, 6);
-            historyLayout->addWidget(clearHistoryToolButton);
-            historyLayout->addWidget(copyHistoryToolButton);
-            historyLayout->addWidget(m_infoShowHistoryCountSpinBox);
+            historyLayout->addWidget(clearHistoryToolButton, 0);
+            historyLayout->addWidget(copyHistoryToolButton, 0);
+            historyLayout->addWidget(m_infoShowHistoryCountSpinBox, 0);
+            historyAlignment = Qt::AlignLeft;
         }
             break;
     }
@@ -274,7 +278,7 @@ IdentificationDisplayWidget::createInfoWidget()
             symbolAlignment = Qt::AlignHCenter;
             break;
         case Location::VerticalToolBox:
-            historySymbolLayout = new QHBoxLayout();
+            historySymbolLayout = new QVBoxLayout();
             break;
     }
     CaretAssert(historySymbolLayout);
@@ -282,7 +286,7 @@ IdentificationDisplayWidget::createInfoWidget()
     if (historyLabel != NULL) {
         historySymbolLayout->addWidget(historyLabel);
     }
-    historySymbolLayout->addWidget(historyGroupBox);
+    historySymbolLayout->addWidget(historyGroupBox, 0, historyAlignment);
     historySymbolLayout->addWidget(removeSymbolsButton, 0, symbolAlignment);
     historySymbolLayout->addStretch();
     
@@ -375,7 +379,7 @@ IdentificationDisplayWidget::createFilteringFilesWidget()
 QWidget*
 IdentificationDisplayWidget::createFilteringSettingsWidget()
 {
-    QWidget* tabFilterWidget = new QGroupBox("Show Files Contained in");
+    QWidget* tabFilterWidget = new QGroupBox("Show Files from Enabled Overlays");
     QVBoxLayout* tabFilterLayout = new QVBoxLayout(tabFilterWidget);
     m_tabFilterButtonGroup = new QButtonGroup(this);
     QObject::connect(m_tabFilterButtonGroup, QOverload<int>::of(&QButtonGroup::buttonClicked),
@@ -521,26 +525,26 @@ IdentificationDisplayWidget::createSymbolsWidget()
 
     m_symbolsShowVolumeIdCheckBox = new QCheckBox("Show Volume ID Symbols");
     
-    m_symbolsSurfaceContralateralVertexCheckBox = new QCheckBox("Show Surface Contralateral Vertex");
+    m_symbolsSurfaceContralateralVertexCheckBox = new QCheckBox("Show Surface Contralateral");
     
-    QLabel* idSymbolColorLabel = new QLabel("ID Symbol Color:");
+    QLabel* idSymbolColorLabel = new QLabel("ID Color:");
     m_symbolsIdColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::DISABLED,
                                                                    CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
                                                                    this);
     
-    QLabel* contralateralIdSymbolColorLabel = new QLabel("Contralateral ID Symbol Color:");
+    QLabel* contralateralIdSymbolColorLabel = new QLabel("Contralateral:");
     m_symbolsContralateralIdColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::DISABLED,
                                                                                 CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
                                                                                 this);
     
-    QLabel* symbolDiameterLabel = new QLabel("ID Symbol Diameter:");
+    QLabel* symbolDiameterLabel = new QLabel("Diameter:");
     m_symbolsIdDiameterSpinBox = new QDoubleSpinBox();
     m_symbolsIdDiameterSpinBox->setRange(0.1, 1000.0);
     m_symbolsIdDiameterSpinBox->setSingleStep(0.1);
     m_symbolsIdDiameterSpinBox->setDecimals(1);
     m_symbolsIdDiameterSpinBox->setSuffix("mm");
     
-    QLabel* mostRecentSymbolDiameterLabel = new QLabel("Most Recent ID Symbol Diameter:");
+    QLabel* mostRecentSymbolDiameterLabel = new QLabel("Most Recent:");
     m_symbolsMostRecentIdDiameterSpinBox = new QDoubleSpinBox();
     m_symbolsMostRecentIdDiameterSpinBox->setRange(0.1, 1000.0);
     m_symbolsMostRecentIdDiameterSpinBox->setSingleStep(0.1);

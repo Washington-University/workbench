@@ -108,11 +108,11 @@ IdentificationFilterTabSelectionEnum::initialize()
 
     enumData.push_back(IdentificationFilterTabSelectionEnum(ALL_DISPLAYED_TABS, 
                                     "ALL_DISPLAYED_TABS", 
-                                    "Enabled Overlays in All Tabs"));
+                                    "All Tabs"));
     
     enumData.push_back(IdentificationFilterTabSelectionEnum(MOUSE_CLICKED_TAB, 
                                     "MOUSE_CLICKED_TAB", 
-                                    "Enabled Overlays in Tab Containing Mouse"));
+                                    "Tab Containing Mouse"));
     
 }
 

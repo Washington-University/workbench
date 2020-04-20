@@ -307,7 +307,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     }
     else {
         if (isOverlayToolBox) {
-            setMinimumWidth(300);
+            setMinimumWidth(100);
             setMaximumWidth(800);
         }
         else {
