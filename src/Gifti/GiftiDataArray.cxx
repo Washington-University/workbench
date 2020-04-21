@@ -680,12 +680,12 @@ GiftiDataArray::readFromText(const AString text,
                //
                // Decode the Base64 data using VTK's algorithm
                //
-               unsigned char* dataBuffer = new unsigned char[data.size()];
+               std::vector<unsigned char> dataBuffer(text.size() - text.size() / 4 + 10);//generous constant to make up for integer rounding
                //const char* textChars = text.toLatin1().constData();
                const uint64_t numDecoded =
                      Base64::decode((unsigned char*)text.toStdString().c_str(),
-                                                data.size(),
-                                                dataBuffer);
+                                                dataBuffer.size(),
+                                                dataBuffer.data());
                if (numDecoded == 0) {
                    std::ostringstream str;
                    str << "Decoding of GZip Base64 Binary data failed."
@@ -700,7 +700,7 @@ GiftiDataArray::readFromText(const AString text,
                // 
                 DataCompressZLib compressor;
                 const uint64_t uncompressedDataLength = 
-                                   compressor.uncompressData(dataBuffer,
+                                   compressor.uncompressData(dataBuffer.data(),
                                                           numDecoded,
                                                           (unsigned char*)&data[0],
                                                           data.size());
@@ -711,11 +711,6 @@ GiftiDataArray::readFromText(const AString text,
                    << AString::number(static_cast<uint64_t>(data.size())).toStdString() << " bytes.";
                   throw GiftiException(AString::fromStdString(str.str()));
                }
-               
-               //
-               // Free memory
-               //
-               delete[] dataBuffer;
                
                //
                // Is byte swapping needed ? 
@@ -1205,36 +1200,30 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
             // Compress the data with VTK's ZLIB algorithm
             //
              DataCompressZLib compressor;
-             unsigned long compressedDataBufferLength = 
+             uint64_t compressedDataBufferLength =
                               compressor.getMaximumCompressionSpace(data.size());
-            unsigned char* compressedDataBuffer = new unsigned char[compressedDataBufferLength];
-            unsigned long compressedDataLength =
+            std::vector<unsigned char> compressedDataBuffer(compressedDataBufferLength);
+            uint64_t compressedDataLength =
                           compressor.compressData(&data[0], 
                                                data.size(),
-                                               compressedDataBuffer,
+                                               compressedDataBuffer.data(),
                                                compressedDataBufferLength);
             
             //
             // Encode the data with VTK's Base64 algorithm
             //
-            char* buffer = new char[static_cast<int64_t>(compressedDataLength * 1.5)];
+            std::vector<unsigned char> buffer(compressedDataLength + compressedDataLength / 3 + 10);//generous constant for partial bytes, integer rounding, and possible "=" formatting
             const uint64_t compressedLength =
-               Base64::encode(compressedDataBuffer,
+               Base64::encode(compressedDataBuffer.data(),
                                           compressedDataLength,
-                                          (unsigned char*)buffer);
+                                          buffer.data());
             buffer[compressedLength] = '\0';
             
              //
              // Write the data  MUST BE NO space around data
              //
-             xmlWriter.writeElementNoSpace(GiftiXmlElements::TAG_DATA, buffer);
+             xmlWriter.writeElementNoSpace(GiftiXmlElements::TAG_DATA, (char*)buffer.data());
              
-            
-            //
-            // Free memory
-            //
-            delete[] buffer;
-            delete[] compressedDataBuffer;
          }
          break;
        case GiftiEncodingEnum::EXTERNAL_FILE_BINARY:
