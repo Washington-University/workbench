@@ -303,7 +303,12 @@ CiftiMappableDataFile::receiveEvent(Event* event)
         CaretAssert(colorInvalidateEvent);
         colorInvalidateEvent->setEventProcessed();
         
-        invalidateColoringInAllMaps();
+        if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
+            /* Do not update colors in this file */
+        }
+        else {
+            invalidateColoringInAllMaps();
+        }
     }
 }
 
