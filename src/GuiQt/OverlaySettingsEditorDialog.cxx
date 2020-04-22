@@ -40,7 +40,6 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventOverlayValidate.h"
-#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiLabelTableEditor.h"
 #include "MapSettingsChartTwoLineHistoryWidget.h"

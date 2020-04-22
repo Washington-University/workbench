@@ -33,7 +33,6 @@
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
-#include "EventSurfaceColoringInvalidate.h"
 #include "ModelSurfaceMontage.h"
 #include "SurfaceMontageConfigurationCerebellar.h"
 #include "SurfaceMontageConfigurationCerebral.h"

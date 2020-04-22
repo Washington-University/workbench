@@ -35,7 +35,6 @@
 #include "EventManager.h"
 #include "EventMovieManualModeRecording.h"
 #include "EventSceneActive.h"
-#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "MovieRecorder.h"

@@ -45,7 +45,6 @@
 #include "EventDataFileRead.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
-#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ProgressReportingDialog.h"

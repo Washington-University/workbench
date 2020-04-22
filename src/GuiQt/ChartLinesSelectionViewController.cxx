@@ -46,7 +46,6 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventPaletteColorMappingEditorDialogRequest.h"
-#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "MapYokingGroupComboBox.h"
