@@ -1546,26 +1546,8 @@ GuiManager::receiveEvent(Event* event)
         EventOperatingSystemRequestOpenDataFile* openFileEvent =
         dynamic_cast<EventOperatingSystemRequestOpenDataFile*>(event);
         CaretAssert(openFileEvent);
-        
-        BrainBrowserWindow* bbw = getActiveBrowserWindow();
-        if (bbw != NULL) {
-            std::vector<AString> filenamesVector;
-            std::vector<DataFileTypeEnum::Enum> dataFileTypeVectorNotUsed;
-            filenamesVector.push_back(openFileEvent->getDataFileName());
-            bbw->loadFiles(bbw,
-                           filenamesVector,
-                           dataFileTypeVectorNotUsed,
-                           BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG,
-                           "",
-                           "");
-        }
-        else {
-            /*
-             * Browser window has not yet been created.
-             * After it is created, the file will be opened.
-             */
-            m_nameOfDataFileToOpenAfterStartup = openFileEvent->getDataFileName();
-        }
+        processOpenDataFileEvent(openFileEvent);
+        openFileEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW) {
         EventPaletteColorMappingEditorDialogRequest* paletteEditEvent =
@@ -3723,3 +3705,97 @@ GuiManager::processReopenLastClosedTab(BrainBrowserWindow* parentWindow)
     }
 }
 
+/**
+ * Process the open data file event.  This event is a Mac event issued when a Workbench
+ * associated data file is opened from MacOS Finder.  If there is no window, that indicates
+ * no wb_view was running when file was opened so we save the name of the file and the
+ * when the browser window is created, it will load the file.
+ *
+ * @param openDataFileEvent
+ *   The open data file event
+ */
+void
+GuiManager::processOpenDataFileEvent(EventOperatingSystemRequestOpenDataFile* openDataFileEvent)
+{
+    CaretAssert(openDataFileEvent);
+    BrainBrowserWindow* bbw = getActiveBrowserWindow();
+    if (bbw != NULL) {
+        /*
+         * Launch dialog allowing user to open the file in
+         * 'this' wb_view or open file in a new wb_view instance.
+         */
+        QMessageBox msgBox(bbw);
+        msgBox.setWindowTitle("Open File");
+        msgBox.setIcon(QMessageBox::Question);
+        msgBox.setText("Would you like to open the file(s) in a "
+                       "new wb_view or in this wb_view ?");
+        QPushButton* newWbViewPB = msgBox.addButton("New wb_view", QMessageBox::AcceptRole);
+        QPushButton* thisWbViewPB = msgBox.addButton("This wb_view", QMessageBox::AcceptRole);
+        QPushButton* cancelPB = msgBox.addButton("Cancel", QMessageBox::RejectRole);
+        msgBox.exec();
+        
+        QAbstractButton* button = msgBox.clickedButton();
+        if (button == newWbViewPB) {
+            QString filename(openDataFileEvent->getDataFileName());
+            FileInformation fileInfo(filename);
+            const QStringList parameters(filename);
+            const QString workingDirectory(FileInformation(filename).getAbsolutePath());
+            
+            GuiManager::startNewWbViewInstance(parameters,
+                                               workingDirectory,
+                                               bbw);
+            return;
+        }
+        else if (button == thisWbViewPB) {
+            std::vector<AString> filenamesVector;
+            std::vector<DataFileTypeEnum::Enum> dataFileTypeVectorNotUsed;
+            filenamesVector.push_back(openDataFileEvent->getDataFileName());
+            bbw->loadFiles(bbw,
+                           filenamesVector,
+                           dataFileTypeVectorNotUsed,
+                           BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG,
+                           "",
+                           "");
+        }
+        else if (button == cancelPB) {
+            return;
+        }
+        else {
+            CaretAssertMessage(0, "PushButton clicked test failed");
+        }
+    }
+    else {
+        /*
+         * Browser window has not yet been created.
+         * After it is created, the file will be opened.
+         */
+        m_nameOfDataFileToOpenAfterStartup = openDataFileEvent->getDataFileName();
+    }
+
+}
+
+/**
+ * Start a new instance of wb_view that is separate from this instance of wb_view.
+ * See QProcess documentation for more info.
+ *
+ * @param parameters
+ *   Parameters passed to wb_view
+ * @param workingDirectory
+ *   The working directory for the new instance.  If empty, the working directory of 'this' wb_view is used
+ * @param parent
+ *   Parent widget for any error dialogs.
+ */
+bool
+GuiManager::startNewWbViewInstance(const QStringList& parameters,
+                                   const QString& workingDirectory,
+                                   QWidget* parent)
+{
+    if ( ! QProcess::startDetached(QApplication::applicationFilePath(),
+                                   parameters,
+                                   workingDirectory)) {
+        WuQMessageBox::errorOk(parent,
+                               "Failed to start new wb_view, reason unknown");
+    }
+    
+    return true;
+}

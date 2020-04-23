@@ -48,6 +48,7 @@ namespace caret {
     class ChartTwoLineSeriesHistoryDialog;
     class CursorManager;
     class CustomViewDialog;
+    class EventOperatingSystemRequestOpenDataFile;
     class GapsAndMarginsDialog;
     class HelpViewerDialog;
     class IdentifyBrainordinateDialog;
@@ -93,6 +94,10 @@ namespace caret {
         static void updateGraphicsOneWindow(const int32_t windowIndex);
         
         static void updateSurfaceColoring();
+        
+        static bool startNewWbViewInstance(const QStringList& parameters,
+                                           const QString& workingDirectory,
+                                           QWidget* parent);
         
         Brain* getBrain() const;
         
@@ -256,6 +261,8 @@ namespace caret {
         void addParentLessNonModalDialog(QWidget* dialog);
         
         QPixmap createDataToolTipsIcon(const QWidget* widget);
+        
+        void processOpenDataFileEvent(EventOperatingSystemRequestOpenDataFile* openDataFileEvent);
         
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;
