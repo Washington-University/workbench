@@ -74,7 +74,6 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventHelpViewerDisplay.h"
 #include "EventIdentificationHighlightLocation.h"
-#include "EventMacDockMenuUpdate.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventModelGetAll.h"
@@ -139,8 +138,6 @@
 #include "WuQMacroWidgetTypeEnum.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
-
-#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -348,7 +345,6 @@ GuiManager::initializeGuiManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAC_DOCK_MENU_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW);
@@ -372,6 +368,14 @@ GuiManager::~GuiManager()
     }
     
     FociPropertiesEditorDialog::deleteStaticMembers();
+    
+    /*
+     * Mac Dock Menu does not have parent so need to delete it
+     */
+    if (m_mackDockMenu != NULL) {
+        delete m_mackDockMenu;
+        m_mackDockMenu = NULL;
+    }
     
     for (std::set<QWidget*>::iterator iter = m_parentlessNonModalDialogs.begin();
          iter != m_parentlessNonModalDialogs.end();
@@ -527,8 +531,6 @@ GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindo
                 this->reparentNonModalDialogs(brainBrowserWindow);
             }
         }
-        
-        EventManager::get()->sendEvent(EventMacDockMenuUpdate().getPointer());
     }
     
     return isBrowserWindowAllowedToClose;
@@ -759,6 +761,15 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     
     EventManager::get()->blockEvent(EventTypeEnum::EVENT_ANNOTATION_BARS_GET, false);
 
+    /*
+     * Create Mac Dock Menu when first window is created.
+     * DO NOT give it a parent since a window used as parent
+     * could close but other windows remain open.
+     */
+    if (m_mackDockMenu == NULL) {
+        m_mackDockMenu = new MacDockMenu();
+    }
+    
     return bbw;
 }
 
@@ -1420,22 +1431,12 @@ GuiManager::receiveEvent(Event* event)
         const int h = std::min(bbw->height(), 
                                preferredMaxHeight);
         bbw->resize(w, h);
-        
-        EventManager::get()->sendEvent(EventMacDockMenuUpdate().getPointer());
     }
     else if ((event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS)
              || (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW)) {
         for (auto overlayEditor : m_overlaySettingsEditors) {
             overlayEditor->updateChartLinesInDialog();
         }
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_MAC_DOCK_MENU_UPDATE) {
-        EventMacDockMenuUpdate* macDockMenuEvent = dynamic_cast<EventMacDockMenuUpdate*>(event);
-        CaretAssert(event);
-        
-        MacDockMenu::createUpdateMacDockMenu();
-        
-        macDockMenuEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS) {
         EventUpdateInformationWindows* infoEvent =

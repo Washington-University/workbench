@@ -342,10 +342,6 @@ EventTypeEnum::initialize()
                                      "EVENT_IMAGE_CAPTURE",
                                      "Capture an Image of Browser Window Graphics Region"));
 
-    enumData.push_back(EventTypeEnum(EVENT_MAC_DOCK_MENU_UPDATE,
-                                     "EVENT_MAC_DOCK_MENU_UPDATE",
-                                     "Update the Mac Dock Menu"));
-    
     enumData.push_back(EventTypeEnum(EVENT_MAP_YOKING_SELECT_MAP,
                                      "EVENT_MAP_YOKING_SELECT_MAP", 
                                      "Map Yoking Select Map"));

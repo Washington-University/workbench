@@ -75,7 +75,6 @@
 #include "EventBrowserTabIndicesGetAllViewed.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventDataFileRead.h"
-#include "EventMacDockMenuUpdate.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
@@ -3705,8 +3704,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
     if (sceneFileWasLoaded) {
         GuiManager::get()->processShowSceneDialog(this);
     }
-    
-    EventManager::get()->sendEvent(EventMacDockMenuUpdate().getPointer());
     
     showDataFileReadWarningsDialog();
     

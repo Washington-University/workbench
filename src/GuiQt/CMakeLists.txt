@@ -398,7 +398,6 @@ EventGraphicsUpdateOneWindow.h
 EventHelpViewerDisplay.h
 EventIdentificationRequest.h
 EventImageCapture.h
-EventMacDockMenuUpdate.h
 EventMovieManualModeRecording.h
 EventOperatingSystemRequestOpenDataFile.h
 EventOverlaySettingsEditorDialogRequest.h
@@ -700,7 +699,6 @@ EventGraphicsUpdateOneWindow.cxx
 EventHelpViewerDisplay.cxx
 EventIdentificationRequest.cxx
 EventImageCapture.cxx
-EventMacDockMenuUpdate.cxx
 EventMovieManualModeRecording.cxx
 EventOperatingSystemRequestOpenDataFile.cxx
 EventOverlaySettingsEditorDialogRequest.cxx

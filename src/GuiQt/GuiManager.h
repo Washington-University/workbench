@@ -58,6 +58,7 @@ namespace caret {
     class InformationDisplayDialog;
     class MovieRecordingDialog;
     class OverlaySettingsEditorDialog;
+    class MacDockMenu;
     class Model;
     class PaletteColorMappingEditorDialog;
     class PaletteEditorDialog;
@@ -326,6 +327,8 @@ namespace caret {
         QAction* m_helpViewerDialogDisplayAction;
         
         HelpViewerDialog* m_helpViewerDialog;
+        
+        MacDockMenu* m_mackDockMenu = NULL;
         
         /** 
          * Tracks non-modal dialogs that are created only one time

@@ -178,8 +178,6 @@ public:
         EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
         /** Browser window image capture */
         EVENT_IMAGE_CAPTURE,
-        /** Update the Mac Dock Menu */
-        EVENT_MAC_DOCK_MENU_UPDATE,
         /** Validate when adding a mapped file to mapped yoking */
         EVENT_MAP_YOKING_SELECT_MAP,
         /** Select a map for mapped yoked files */

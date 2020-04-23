@@ -33,40 +33,31 @@ namespace caret {
         Q_OBJECT
 
     public:
-        static void createUpdateMacDockMenu();
-    
+        MacDockMenu();
+        
         virtual ~MacDockMenu();
         
-
         // ADD_NEW_METHODS_HERE
 
     private slots:
+        void browserWindowActionSelected(const int32_t browserWindowIndex);
         
-        void menuActionTriggered(QAction*);
+        void menuAboutToShow();
+        
+        void startNewWbViewMenuItemTriggered();
         
     private:
-        MacDockMenu(QWidget* parent = 0);
-        
         MacDockMenu(const MacDockMenu&);
 
         MacDockMenu& operator=(const MacDockMenu&);
         
-        void createNewBrowserWindow();
-        
-        QAction* m_newBrowserWindowAction;
-        
-        std::vector<QAction*> m_recentSpecFileActions;
-        
-        std::vector<QAction*> m_browserWindowActions;
-        
-        static MacDockMenu* s_previousMacDockMenu;
+        void addBrowserWindowActions();
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __MAC_DOCK_MENU_DECLARE__
-    MacDockMenu* MacDockMenu::s_previousMacDockMenu = NULL;
 #endif // __MAC_DOCK_MENU_DECLARE__
 
 } // namespace
