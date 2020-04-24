@@ -31,6 +31,7 @@
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "EventOperatingSystemRequestOpenDataFile.h"
+#include "GuiManager.h"
 
 using namespace caret;
 
@@ -85,6 +86,17 @@ MacApplication::event(QEvent *event)
             
             EventManager::get()->sendEvent(EventOperatingSystemRequestOpenDataFile(filename).getPointer());
             
+            eventWasProcessed = true;
+        }
+            break;
+        case QEvent::Close:
+        {
+            /*
+             * Must ignore event or it will continue to get sent to other objects
+             * including windows and may result in crash
+             */
+            event->ignore();
+            GuiManager::get()->exitProgram(GuiManager::get()->getActiveBrowserWindow());
             eventWasProcessed = true;
         }
             break;
