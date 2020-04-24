@@ -74,7 +74,9 @@ MacDockMenu::MacDockMenu()
     /**
      * Tell Qt that this is the Dock Menu (a QMenu method)
      */
+#ifdef CARET_OS_MACOSX
     setAsDockMenu();
+#endif // CARET_OS_MACOSX
 }
 
 /**
