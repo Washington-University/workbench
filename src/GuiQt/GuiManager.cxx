@@ -766,9 +766,11 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
      * DO NOT give it a parent since a window used as parent
      * could close but other windows remain open.
      */
+#ifdef CARET_OS_MACOSX
     if (m_mackDockMenu == NULL) {
         m_mackDockMenu = new MacDockMenu();
     }
+#endif // CARET_OS_MACOSX
     
     return bbw;
 }
