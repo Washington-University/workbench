@@ -1247,7 +1247,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                                 std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut)
 {
     GraphicsPrimitive* matrixPrimitive(NULL);
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_MATRIX)) {
+    const bool useTextureFlag(true);
+    if (useTextureFlag) {
         matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
                                                                           CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE);
     }
