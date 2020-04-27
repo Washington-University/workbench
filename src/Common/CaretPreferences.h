@@ -27,6 +27,7 @@
 #include "BackgroundAndForegroundColors.h"
 #include "BackgroundAndForegroundColorsModeEnum.h"
 #include "CaretObject.h"
+#include "FileOpenFromOpSysTypeEnum.h"
 #include "IdentificationDisplayModeEnum.h"
 #include "ImageCaptureMethodEnum.h"
 #include "LogLevelEnum.h"
@@ -97,6 +98,10 @@ namespace caret {
         ToolBarWidthModeEnum::Enum getToolBarWidthMode() const;
         
         void setToolBarWidthMode(const ToolBarWidthModeEnum::Enum widthMode);
+        
+        FileOpenFromOpSysTypeEnum::Enum getFileOpenFromOpSysType() const;
+        
+        void setFileOpenFromOpSysType(const FileOpenFromOpSysTypeEnum::Enum openType);
         
         IdentificationDisplayModeEnum::Enum getIdentificationDisplayMode() const;
         
@@ -330,7 +335,9 @@ namespace caret {
         
         std::unique_ptr<CaretPreferenceDataValue> m_identificationDisplayModePreference;
         
-        std::vector<CaretPreferenceDataValue*> m_preferenceDataValues;
+        std::unique_ptr<CaretPreferenceDataValue> m_fileOpenFromOperatingSystemTypePreference;
+        
+        std::vector<CaretPreferenceDataValue*> m_preferenceStoredInSceneDataValues;
         
         bool splashScreenEnabled;
         

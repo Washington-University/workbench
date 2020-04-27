@@ -453,6 +453,14 @@ PreferencesDialog::createMiscellaneousWidget()
     QObject::connect(m_windowToolBarWidthModeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &PreferencesDialog::miscWindowToolBarWidthModeComboBoxItemActivated);
 
+    const QString fileOpenTip("What to do when a file is opened outside of wb_view from the GUI.  "
+                              "On MacOS: Double-clicked in Finder");
+    m_fileOpenFromOpSysTypeComboBox = new EnumComboBoxTemplate(this);
+    m_fileOpenFromOpSysTypeComboBox->setup<FileOpenFromOpSysTypeEnum, FileOpenFromOpSysTypeEnum::Enum>();
+    m_fileOpenFromOpSysTypeComboBox->setToolTip(WuQtUtilities::createWordWrappedToolTipText(fileOpenTip));
+    QObject::connect(m_fileOpenFromOpSysTypeComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &PreferencesDialog::miscFileOpenFromOpSysTypeComboBoxItemActivated);
+    
     QGridLayout* gridLayout = new QGridLayout();
     addWidgetToLayout(gridLayout,
                       "Dynconn As Layer Default: ",
@@ -470,10 +478,13 @@ PreferencesDialog::createMiscellaneousWidget()
                       "Show Splash Screen at Startup: ",
                       m_miscSplashScreenShowAtStartupComboBox->getWidget());
     addWidgetToLayout(gridLayout,
-                      "Enable Trackpad Gestures",
+                      "Enable Trackpad Gestures: ",
                       m_guiGesturesEnabledComboBox->getWidget());
     addWidgetToLayout(gridLayout,
-                      "Window ToolBar Width Mode",
+                      "Open File from MacOS Finder",
+                      m_fileOpenFromOpSysTypeComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Window ToolBar Width Mode: ",
                       m_windowToolBarWidthModeComboBox->getWidget());
     
     QWidget* widget = new QWidget();
@@ -511,6 +522,8 @@ PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
     m_guiGesturesEnabledComboBox->setStatus(prefs->isGuiGesturesEnabled());
     
     m_windowToolBarWidthModeComboBox->setSelectedItem<ToolBarWidthModeEnum, ToolBarWidthModeEnum::Enum>(prefs->getToolBarWidthMode());
+    
+    m_fileOpenFromOpSysTypeComboBox->setSelectedItem<FileOpenFromOpSysTypeEnum, FileOpenFromOpSysTypeEnum::Enum>(prefs->getFileOpenFromOpSysType());
 }
 
 /**
@@ -1208,6 +1221,16 @@ PreferencesDialog::miscWindowToolBarWidthModeComboBoxItemActivated()
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
+/**
+ * Gets called when file open from O/S type is changed
+ */
+void
+PreferencesDialog::miscFileOpenFromOpSysTypeComboBoxItemActivated()
+{
+    const FileOpenFromOpSysTypeEnum::Enum openType = m_fileOpenFromOpSysTypeComboBox->getSelectedItem<FileOpenFromOpSysTypeEnum, FileOpenFromOpSysTypeEnum::Enum>();
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setFileOpenFromOpSysType(openType);
+}
 /**
  * Gets called when view files type is changed.
  */

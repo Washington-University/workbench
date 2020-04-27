@@ -71,7 +71,7 @@ CaretPreferences::CaretPreferences()
                                                                       CaretPreferenceDataValue::DataType::FLOAT,
                                                                       CaretPreferenceDataValue::SavedInScene::SAVE_YES,
                                                                       0.0));
-    m_preferenceDataValues.push_back(m_volumeCrossHairGapPreference.get());
+    m_preferenceStoredInSceneDataValues.push_back(m_volumeCrossHairGapPreference.get());
 
     const QString defAllSliceLayout = VolumeSliceViewAllPlanesLayoutEnum::toName(VolumeSliceViewAllPlanesLayoutEnum::ROW_LAYOUT);
     m_volumeAllSlicePlanesLayout.reset(new CaretPreferenceDataValue(this->qSettings,
@@ -79,7 +79,7 @@ CaretPreferences::CaretPreferences()
                                                                     CaretPreferenceDataValue::DataType::STRING,
                                                                     CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                     defAllSliceLayout));
-    m_preferenceDataValues.push_back(m_volumeAllSlicePlanesLayout.get());
+    m_preferenceStoredInSceneDataValues.push_back(m_volumeAllSlicePlanesLayout.get());
     
     m_guiGesturesEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
                                                             "guiGesturesEnabled",
@@ -93,12 +93,18 @@ CaretPreferences::CaretPreferences()
                                                                     CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                     ToolBarWidthModeEnum::toName(ToolBarWidthModeEnum::STANDARD)));
     
+    m_fileOpenFromOperatingSystemTypePreference.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                                   "openFileFromOperatingSystemType",
+                                                                                   CaretPreferenceDataValue::DataType::STRING,
+                                                                                   CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                                   FileOpenFromOpSysTypeEnum::toName(FileOpenFromOpSysTypeEnum::ASK_USER)));
+    
     m_identificationDisplayModePreference.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                              "identificationDisplayMode",
                                                                              CaretPreferenceDataValue::DataType::STRING,
                                                                              CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                              IdentificationDisplayModeEnum::toName(IdentificationDisplayModeEnum::OVERLAY_TOOLBOX)));
-    m_preferenceDataValues.push_back(m_identificationDisplayModePreference.get());
+    m_preferenceStoredInSceneDataValues.push_back(m_identificationDisplayModePreference.get());
     
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
 }
@@ -112,7 +118,7 @@ CaretPreferences::~CaretPreferences()
      * Note DO NOT delete items in this vector as they are pointers to items
      * in unique_ptr's
      */
-    m_preferenceDataValues.clear();
+    m_preferenceStoredInSceneDataValues.clear();
     
     this->removeAllCustomViews();
     
@@ -128,7 +134,7 @@ CaretPreferences::~CaretPreferences()
 void
 CaretPreferences::invalidateSceneDataValues()
 {
-    for (auto pdv : m_preferenceDataValues) {
+    for (auto pdv : m_preferenceStoredInSceneDataValues) {
         pdv->setSceneValueValid(false);
     }
 }
@@ -140,7 +146,7 @@ CaretPreferences::invalidateSceneDataValues()
 std::vector<CaretPreferenceDataValue*>
 CaretPreferences::getPreferenceSceneDataValues()
 {
-    return m_preferenceDataValues;
+    return m_preferenceStoredInSceneDataValues;
 }
 
 /**
@@ -1364,6 +1370,31 @@ CaretPreferences::setToolBarWidthMode(const ToolBarWidthModeEnum::Enum widthMode
 {
     const QString stringValue = ToolBarWidthModeEnum::toName(widthMode);
     m_toolBarWidthModePreference->setValue(stringValue);
+}
+
+/**
+ * @return File open from operating system type
+ */
+FileOpenFromOpSysTypeEnum::Enum
+CaretPreferences::getFileOpenFromOpSysType() const
+{
+    QString stringValue(m_fileOpenFromOperatingSystemTypePreference->getValue().toString());
+    bool validFlag(false);
+    const FileOpenFromOpSysTypeEnum::Enum enumValue = FileOpenFromOpSysTypeEnum::fromName(stringValue,
+                                                                                          &validFlag);
+    return enumValue;
+}
+
+/**
+ * Set the open file from operating system type
+ * @param openType
+ * The new open type
+ */
+void
+CaretPreferences::setFileOpenFromOpSysType(const FileOpenFromOpSysTypeEnum::Enum openType)
+{
+    const QString stringValue = FileOpenFromOpSysTypeEnum::toName(openType);
+    m_fileOpenFromOperatingSystemTypePreference->setValue(stringValue);
 }
 
 /**

@@ -3723,49 +3723,77 @@ GuiManager::processOpenDataFileEvent(EventOperatingSystemRequestOpenDataFile* op
     CaretAssert(openDataFileEvent);
     BrainBrowserWindow* bbw = getActiveBrowserWindow();
     if (bbw != NULL) {
-        /*
-         * Launch dialog allowing user to open the file in
-         * 'this' wb_view or open file in a new wb_view instance.
-         */
-        QMessageBox msgBox(bbw);
-        msgBox.setWindowTitle("Open File");
-        msgBox.setIcon(QMessageBox::Question);
-        msgBox.setText("Would you like to open the file(s) in a "
-                       "new wb_view or in this wb_view ?");
-        QPushButton* newWbViewPB = msgBox.addButton("New wb_view", QMessageBox::AcceptRole);
-        QPushButton* thisWbViewPB = msgBox.addButton("This wb_view", QMessageBox::AcceptRole);
-        QPushButton* cancelPB = msgBox.addButton("Cancel", QMessageBox::RejectRole);
-        msgBox.exec();
+        FileOpenFromOpSysTypeEnum::Enum openType = SessionManager::get()->getCaretPreferences()->getFileOpenFromOpSysType();
+        switch (openType) {
+            case FileOpenFromOpSysTypeEnum::ASK_USER:
+            {
+                /*
+                 * Launch dialog allowing user to open the file in
+                 * 'this' wb_view or open file in a new wb_view instance.
+                 */
+                QMessageBox msgBox(bbw);
+                msgBox.setWindowTitle("Open File");
+                msgBox.setIcon(QMessageBox::Question);
+                msgBox.setText("Would you like to open the file(s) in a "
+                               "new wb_view or in this wb_view ?");
+                QPushButton* newWbViewPB = msgBox.addButton("New wb_view", QMessageBox::AcceptRole);
+                QPushButton* thisWbViewPB = msgBox.addButton("This wb_view", QMessageBox::AcceptRole);
+                QPushButton* cancelPB = msgBox.addButton("Cancel", QMessageBox::RejectRole);
+                msgBox.exec();
+                
+                QAbstractButton* button = msgBox.clickedButton();
+                if (button == newWbViewPB) {
+                    openType = FileOpenFromOpSysTypeEnum::IN_NEW_WB_VIEW;
+                }
+                else if (button == thisWbViewPB) {
+                    openType = FileOpenFromOpSysTypeEnum::IN_CURRENT_WB_VIEW;
+                }
+                else if (button == cancelPB) {
+                    return;
+                }
+                else {
+                    CaretAssertMessage(0, "PushButton clicked test failed");
+                }
+            }
+                break;
+            case FileOpenFromOpSysTypeEnum::IN_CURRENT_WB_VIEW:
+                break;
+            case FileOpenFromOpSysTypeEnum::IN_NEW_WB_VIEW:
+                break;
+        }
         
-        QAbstractButton* button = msgBox.clickedButton();
-        if (button == newWbViewPB) {
-            QString filename(openDataFileEvent->getDataFileName());
-            FileInformation fileInfo(filename);
-            const QStringList parameters(filename);
-            const QString workingDirectory(FileInformation(filename).getAbsolutePath());
-            
-            GuiManager::startNewWbViewInstance(parameters,
-                                               workingDirectory,
-                                               bbw);
-            return;
+        switch (openType) {
+            case FileOpenFromOpSysTypeEnum::ASK_USER:
+                CaretAssert(0);
+                break;
+            case FileOpenFromOpSysTypeEnum::IN_CURRENT_WB_VIEW:
+            {
+                std::vector<AString> filenamesVector;
+                std::vector<DataFileTypeEnum::Enum> dataFileTypeVectorNotUsed;
+                filenamesVector.push_back(openDataFileEvent->getDataFileName());
+                bbw->loadFiles(bbw,
+                               filenamesVector,
+                               dataFileTypeVectorNotUsed,
+                               BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG,
+                               "",
+                               "");
+            }
+                break;
+            case FileOpenFromOpSysTypeEnum::IN_NEW_WB_VIEW:
+            {
+                QString filename(openDataFileEvent->getDataFileName());
+                FileInformation fileInfo(filename);
+                const QStringList parameters(filename);
+                const QString workingDirectory(FileInformation(filename).getAbsolutePath());
+                
+                GuiManager::startNewWbViewInstance(parameters,
+                                                   workingDirectory,
+                                                   bbw);
+                return;
+            }
+                break;
         }
-        else if (button == thisWbViewPB) {
-            std::vector<AString> filenamesVector;
-            std::vector<DataFileTypeEnum::Enum> dataFileTypeVectorNotUsed;
-            filenamesVector.push_back(openDataFileEvent->getDataFileName());
-            bbw->loadFiles(bbw,
-                           filenamesVector,
-                           dataFileTypeVectorNotUsed,
-                           BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG,
-                           "",
-                           "");
-        }
-        else if (button == cancelPB) {
-            return;
-        }
-        else {
-            CaretAssertMessage(0, "PushButton clicked test failed");
-        }
+
     }
     else {
         /*

@@ -121,6 +121,7 @@ EventTypeEnum.h
 FastStatistics.h
 FileAdapter.h
 FileInformation.h
+FileOpenFromOpSysTypeEnum.h
 FloatMatrix.h
 Histogram.h
 HtmlStringBuilder.h
@@ -267,6 +268,7 @@ EventTypeEnum.cxx
 FastStatistics.cxx
 FileAdapter.cxx
 FileInformation.cxx
+FileOpenFromOpSysTypeEnum.cxx
 FloatMatrix.cxx
 Histogram.cxx
 HtmlStringBuilder.cxx
