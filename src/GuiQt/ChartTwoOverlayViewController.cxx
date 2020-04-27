@@ -45,6 +45,8 @@ using namespace caret;
 #include "ChartableTwoFileHistogramChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
+#include "CursorDisplayScoped.h"
+#include "ElapsedTimer.h"
 #include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -360,7 +362,7 @@ ChartTwoOverlayViewController::fileComboBoxSelected(int indx)
     if (m_chartOverlay == NULL) {
         return;
     }
-    
+
     void* pointer = m_mapFileComboBox->itemData(indx).value<void*>();
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
     m_chartOverlay->setSelectionData(file, -1);
@@ -369,6 +371,11 @@ ChartTwoOverlayViewController::fileComboBoxSelected(int indx)
     m_mapRowOrColumnYokingGroupComboBox->validateYokingChange(m_chartOverlay);
     updateUserInterfaceAndGraphicsWindow();
     updateOverlaySettingsEditor();
+    
+    /*
+     * User interface update may cause loss of focus so restore it
+     */
+    m_mapFileComboBox->setFocus();
 }
 
 /**
@@ -1223,6 +1230,15 @@ ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent,
     macroManager->addMacroSupportToObject(copyMapNameAction,
                                           "Copy map name to clipboard from " + descriptivePrefix);
     
+    menu->addSeparator();
+    QAction* preColorAllFilesAction = menu->addAction("Pre-Color All Files");
+    QObject::connect(preColorAllFilesAction, &QAction::triggered,
+                     this, &ChartTwoOverlayViewController::menuConstructionPreColorAllFiles);
+    preColorAllFilesAction->setObjectName(menuActionNamePrefix
+                                          + "PreColorAllFiles");
+    macroManager->addMacroSupportToObject(preColorAllFilesAction,
+                                          "Pre-Color All Files In Overlay");
+
     return menu;
     
 }
@@ -1543,3 +1559,41 @@ ChartTwoOverlayViewController::createMatrixTriangularViewModePixmap(QWidget* wid
     return pixmap;
 }
 
+/**
+ * Pre-color all files.  Some files, such as large scalar matrix files, may take
+ * time the first time they are displayed that is spent coloring the matrix
+ * and creating an OpenGL texture used when drawing.
+ */
+void
+ChartTwoOverlayViewController::menuConstructionPreColorAllFiles()
+{
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
+    const int32_t numFiles = m_mapFileComboBox->count();
+    if (numFiles <= 0) {
+        return;
+    }
+    
+    const int32_t currentFileIndex = m_mapFileComboBox->currentIndex();
+    
+    for (int32_t i = 0; i < numFiles; i++) {
+        QSignalBlocker blocker(m_mapFileComboBox);
+        m_mapFileComboBox->setCurrentIndex(i);
+        fileComboBoxSelected(i);
+        
+        /*
+         * Need to to a graphics update with a repaint (a synchronous
+         * graphics update) so that file is actually drawn.
+         */
+        EventGraphicsUpdateOneWindow graphicsEvent(m_browserWindowIndex,
+                                                   true);
+        EventManager::get()->sendEvent(graphicsEvent.getPointer());
+    }
+    
+    QSignalBlocker blocker(m_mapFileComboBox);
+    m_mapFileComboBox->setCurrentIndex(currentFileIndex);
+    fileComboBoxSelected(currentFileIndex);
+    
+    m_mapFileComboBox->clearFocus();
+}

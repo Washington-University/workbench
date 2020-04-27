@@ -105,6 +105,8 @@ namespace caret {
         
         void menuConstructionAboutToShow();
 
+        void menuConstructionPreColorAllFiles();
+        
         void menuMatrixTriangularViewModeTriggered(QAction* action);
         
         void menuAxisLocationTriggered(QAction* action);
