@@ -278,16 +278,11 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSerie
             float xStep = 0.0f;
             getCaretMappableDataFile()->getMapIntervalStartAndStep(x, xStep);
             
-            /*
-             * Note: Start at index one since line segments are used
-             */
             const int32_t numData = static_cast<int32_t>(data.size());
-            for (int32_t i = 1; i < numData; i++) {
-                CaretAssertVectorIndex(data, i - 1);
-                cartesianData->addPoint(x, data[i - 1]);
+            for (int32_t i = 0; i < numData; i++) {
+                CaretAssertVectorIndex(data, i);
+                cartesianData->addPoint(x, data[i]);
                 x += xStep;
-//                CaretAssertVectorIndex(data, i);
-//                cartesianData->addPoint(x, data[i]);
             }
             
             m_lineChartHistory->addHistoryItem(cartesianData);
