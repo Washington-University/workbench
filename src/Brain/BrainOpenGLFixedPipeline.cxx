@@ -106,6 +106,7 @@
 #include "GiftiLabelTable.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
+#include "GraphicsPrimitiveV3fN3fC4ub.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "GraphicsShape.h"
@@ -4140,6 +4141,11 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
 void
 BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDrawInfo>& volumeDrawInfoIn)
 {
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOXEL_CUBES_TEST)) {
+        drawVolumeVoxelsAsCubesWholeBrainTwo(volumeDrawInfoIn);
+        return;
+    }
+    
     /*
      * Filter volumes for drawing and only draw those volumes that
      * are to be drawn as 3D Voxel Cubes.
@@ -4387,6 +4393,575 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
     glShadeModel(GL_SMOOTH);
     glDisable(GL_BLEND);
 }
+
+void nt(float a1, float a2, float a3,
+        float b1, float b2, float b3,
+        float c1, float c2, float c3,
+        const float normal[3],
+        const AString& name)
+{
+    const float a[3] = {a1,a2,a3};
+    const float b[3] = {b1,b2,b3};
+    const float c[3] = {c1,c2,c3};
+    float n[3];
+    MathFunctions::normalVector(a, b, c, n);
+    float t1 = normal[0] * n[0];
+    float t2 = normal[1] * n[1];
+    float t3 = normal[2] * n[2];
+    if (t1 < 0.0) {
+        std::cout << name << " X bad" << std::endl;
+    }
+    if (t2 < 0.0) {
+        std::cout << name << " Y bad" << std::endl;
+    }
+    if (t3 < 0.0) {
+        std::cout << name << " Z bad" << std::endl;
+    }
+    float n2[3] = { normal[0], normal[1], normal[2] };
+    if (MathFunctions::normalizeVector(n2) <= 0.0) {
+        std::cout << name << " Input normal invalid" << std::endl;
+    }
+    if (MathFunctions::normalizeVector(n) <= 0.0) {
+        std::cout << name << " Calculated normal invalid" << std::endl;
+    }
+}
+
+/**
+ * Draw volumes a voxel cubes for whole brain view.
+ *
+ * @param volumeDrawInfoIn
+ *    Describes volumes that are drawn.
+ */
+void
+BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<VolumeDrawInfo>& volumeDrawInfoIn)
+{
+    /*
+     * Filter volumes for drawing and only draw those volumes that
+     * are to be drawn as 3D Voxel Cubes.
+     */
+    std::vector<VolumeDrawInfo> volumeDrawInfo;
+    for (std::vector<VolumeDrawInfo>::iterator iter = volumeDrawInfoIn.begin();
+         iter != volumeDrawInfoIn.end();
+         iter++) {
+        bool useIt = false;
+        VolumeDrawInfo& vdi = *iter;
+        switch (vdi.wholeBrainVoxelDrawingMode) {
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES:
+                useIt = true;
+                break;
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
+                break;
+        }
+        if (useIt) {
+            volumeDrawInfo.push_back(vdi);
+        }
+    }
+    
+    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
+    if (numberOfVolumesToDraw <= 0) {
+        return;
+    }
+    
+    SelectionItemVoxel* voxelID =
+    m_brain->getSelectionManager()->getVoxelIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool isSelect = false;
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            if (voxelID->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
+            break;
+        case MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    /*
+     * When selecting turn on lighting and shading since
+     * colors are used for identification.
+     */
+    if (isSelect) {
+        this->disableLighting();
+        glShadeModel(GL_FLAT);
+    }
+    else {
+        this->enableLighting();
+        glEnable(GL_CULL_FACE);
+        glShadeModel(GL_SMOOTH);
+    }
+    
+    glEnable(GL_CULL_FACE);
+    
+    const bool doClipping = isFeatureClippingEnabled();
+    
+    const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
+    const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(this->windowTabIndex);
+    
+    /*
+     * For identification, five items per voxel
+     * 1) volume index
+     * 2) map index
+     * 3) index I
+     * 4) index J
+     * 5) index K
+     */
+    const int32_t idPerVoxelCount = 5;
+    std::vector<int32_t> identificationIndices;
+    if (isSelect) {
+        identificationIndices.reserve(10000 * idPerVoxelCount);
+    }
+    
+    const float minXNormal[3] = { -1.0,  0.0,  0.0 };
+    const float maxXNormal[3] = {  1.0,  0.0,  0.0 };
+    const float minYNormal[3] = {  0.0, -1.0,  0.0 };
+    const float maxYNormal[3] = {  0.0,  1.0,  0.0 };
+    const float minZNormal[3] = {  0.0,  0.0, -1.0 };
+    const float maxZNormal[3] = {  0.0,  0.0,  1.0 };
+
+    for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
+        VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
+        if (volInfo.opacity < 1.0) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        else {
+            glDisable(GL_BLEND);
+        }
+        const VolumeMappableInterface* volumeFile = volInfo.volumeFile;
+        int64_t dimI, dimJ, dimK, numMaps, numComponents;
+        volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+        
+        float originX, originY, originZ;
+        float x1, y1, z1;
+        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
+        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
+        const float dx = x1 - originX;
+        const float dy = y1 - originY;
+        const float dz = z1 - originZ;
+        const float halfAbsX(std::fabs(dx / 2.0));
+        const float halfAbsY(std::fabs(dy / 2.0));
+        const float halfAbsZ(std::fabs(dz / 2.0));
+        
+        /*
+         * Cube size for voxel drawing.  Some volumes may have a right to left
+         * orientation in which case dx may be negative.
+         *
+         * Scale the cube slightly larger to avoid cracks, particularly if
+         * a single slice is drawn.
+         */
+        const float cubeScale = 1.10;
+        const float cubeSizeDX = std::fabs(dx) * cubeScale;
+        const float cubeSizeDY = std::fabs(dy) * cubeScale;
+        const float cubeSizeDZ = std::fabs(dz) * cubeScale;
+        
+        const bool xRightFlag(dx > 0.0);
+        const bool yAnteriorFlag(dy > 0.0);
+        const bool zSuperiorFlag(dz > 0.0);
+        
+        std::vector<float> labelMapData;
+        const CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<const CiftiBrainordinateLabelFile*>(volumeFile);
+        if (ciftiLabelFile != NULL) {
+            ciftiLabelFile->getMapData(volInfo.mapIndex,
+                                       labelMapData);
+        }
+        
+        if ((dimI == 1)
+            || (dimJ == 1)
+            || (dimK == 1)) {
+            glDisable(GL_LIGHTING);
+        }
+        
+        uint8_t rgba[4];
+        
+        const int64_t numAxialSliceVoxels(dimI * dimJ);
+        const int64_t numVoxels(numAxialSliceVoxels * dimK);
+        const int64_t numAxialSizeRGBA(numAxialSliceVoxels * 4);
+        const int64_t numRGBA(numVoxels * 4);
+        std::vector<uint8_t> axialSliceRGBA(numAxialSizeRGBA);
+        std::vector<uint8_t> volumeRGBA(numRGBA, 0);
+
+        /*
+         * Get coloring for all voxels in volume
+         */
+        for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
+            /*
+             * Voxel coloring for axial slice
+             */
+            volumeFile->getVoxelColorsForSliceInMap(volInfo.mapIndex,
+                                                    VolumeSliceViewPlaneEnum::AXIAL,
+                                                    kVoxel,
+                                                    displayGroup,
+                                                    this->windowTabIndex,
+                                                    axialSliceRGBA.data());
+            /*
+             * Apply layer opacity
+             */
+            if (volInfo.opacity < 1.0) {
+                for (int64_t m = 0; m < numAxialSliceVoxels; m++) {
+                    CaretAssertVectorIndex(axialSliceRGBA, m * 4 + 3);
+                    axialSliceRGBA[m * 4 + 3] *= volInfo.opacity;
+                }
+            }
+            
+            /*
+             * Copy axial slice RGBA to Volume RGBA
+             */
+            const int64_t sliceOffset(numAxialSizeRGBA * kVoxel);
+            std::copy(axialSliceRGBA.begin(),
+                      axialSliceRGBA.end(),
+                      volumeRGBA.begin() + sliceOffset);
+        }
+
+        std::unique_ptr<GraphicsPrimitiveV3fN3fC4ub> primitive(GraphicsPrimitive::newPrimitiveV3fN3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES));
+
+        for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
+            for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
+                for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
+                    const int64_t offsetRGBA((numAxialSizeRGBA * kVoxel)
+                                              + (dimI * jVoxel * 4)
+                                              + (iVoxel * 4));
+                    CaretAssertVectorIndex(volumeRGBA, offsetRGBA + 3);
+                    const uint8_t* rgba(&volumeRGBA[offsetRGBA]);
+                    
+                    if (rgba[3] > 0) {
+                        float x = 0, y = 0.0, z = 0.0;
+                        volumeFile->indexToSpace(iVoxel, jVoxel, kVoxel, x, y, z);
+                        
+                        if (doClipping) {
+                            const float xyz[3] = { x, y, z };
+                            if ( ! isCoordinateInsideClippingPlanesForStructure(StructureEnum::ALL,
+                                                                                xyz)) {
+                                continue;
+                            }
+                        }
+                        
+                        bool drawMinXFlag(iVoxel == 0);
+                        bool drawMaxXFlag(iVoxel == (dimI - 1));
+                        bool drawMinYFlag(jVoxel == 0);
+                        bool drawMaxYFlag(jVoxel == (dimJ - 1));
+                        bool drawMinZFlag(kVoxel == 0);
+                        bool drawMaxZFlag(kVoxel == (dimK - 1));
+                        
+                        if (iVoxel > 0) {
+                            const int64_t offset(offsetRGBA - 4);
+                            CaretAssertVectorIndex(volumeRGBA, offset + 3);
+                            if (volumeRGBA[offset + 3] == 0) {
+                                /* Draw side since voxel on left side is off */
+                                if (xRightFlag) {
+                                    drawMinXFlag = true;
+                                }
+                                else {
+                                    drawMaxXFlag = true;
+                                }
+                            }
+                        }
+                        if (iVoxel < (dimI - 1)) {
+                            const int64_t offset(offsetRGBA + 4);
+                            CaretAssertVectorIndex(volumeRGBA, offset + 3);
+                            if (volumeRGBA[offset + 3] == 0) {
+                                /* Draw side since voxel on right side is off */
+                                if (xRightFlag) {
+                                    drawMaxXFlag = true;
+                                }
+                                else {
+                                    drawMinXFlag = true;
+                                }
+                            }
+                        }
+
+                        if (jVoxel > 0) {
+                            const int64_t offset(offsetRGBA - (dimI * 4));
+                            CaretAssertVectorIndex(volumeRGBA, offset + 3);
+                            if (volumeRGBA[offset + 3] == 0) {
+                                /* Draw side since voxel on bottom side is off */
+                                if (yAnteriorFlag) {
+                                    drawMinYFlag = true;
+                                }
+                                else {
+                                    drawMaxYFlag = true;
+                                }
+                            }
+                        }
+                        if (jVoxel < (dimJ - 1)) {
+                            const int64_t offset(offsetRGBA + (dimI * 4));
+                            CaretAssertVectorIndex(volumeRGBA, offset + 3);
+                            if (volumeRGBA[offset + 3] == 0) {
+                                /* Draw side since voxel on top side is off */
+                                if (yAnteriorFlag) {
+                                    drawMaxYFlag = true;
+                                }
+                                else {
+                                    drawMinYFlag = true;
+                                }
+                            }
+                        }
+
+                        if (kVoxel > 0) {
+                            const int64_t offset(offsetRGBA - numAxialSizeRGBA);
+                            CaretAssertVectorIndex(volumeRGBA, offset + 3);
+                            if (volumeRGBA[offset + 3] == 0) {
+                                /* Draw side since voxel below is off */
+                                if (zSuperiorFlag) {
+                                    drawMinZFlag = true;
+                                }
+                                else {
+                                    drawMaxZFlag = true;
+                                }
+                            }
+                        }
+                        if (kVoxel < (dimK - 1)) {
+                            const int64_t offset(offsetRGBA + numAxialSizeRGBA);
+                            CaretAssertVectorIndex(volumeRGBA, offset + 3);
+                            if (volumeRGBA[offset + 3] == 0) {
+                                /* Draw side since voxel above is off */
+                                if (zSuperiorFlag) {
+                                    drawMaxZFlag = true;
+                                }
+                                else {
+                                    drawMinZFlag = true;
+                                }
+                            }
+                        }
+                        
+                        if (drawMinXFlag
+                            || drawMaxZFlag
+                            || drawMinYFlag
+                            || drawMaxYFlag
+                            || drawMinZFlag
+                            || drawMaxZFlag) {
+                            drawMinXFlag = true;
+                            drawMaxXFlag = true;
+                            drawMinYFlag = true;
+                            drawMaxYFlag = true;
+                            drawMinZFlag = true;
+                            drawMaxZFlag = true;
+                        }
+                        const float minX(x - halfAbsX);
+                        const float maxX(x + halfAbsX);
+                        const float minY(y - halfAbsY);
+                        const float maxY(y + halfAbsY);
+                        const float minZ(z - halfAbsZ);
+                        const float maxZ(z + halfAbsZ);
+                        if (drawMinXFlag) {
+//                            uint8_t rgba[4] = { 255, 0, 0, 255 };
+                            primitive->addVertex(minX, minY, minZ, minXNormal, rgba);
+                            primitive->addVertex(minX, minY, maxZ, minXNormal, rgba);
+                            primitive->addVertex(minX, maxY, maxZ, minXNormal, rgba);
+                            nt(minX, minY, minZ, minX, minY, maxZ, minX, maxY, maxZ, minXNormal, "XMin1");
+                            primitive->addVertex(minX, minY, minZ, minXNormal, rgba);
+                            primitive->addVertex(minX, maxY, maxZ, minXNormal, rgba);
+                            primitive->addVertex(minX, maxY, minZ, minXNormal, rgba);
+                            nt(minX, minY, minZ, minX, maxY, maxZ, minX, maxY, minZ, minXNormal, "XMin2");
+                        }
+                        if (drawMaxXFlag) {
+//                            uint8_t rgba[4] = { 0, 255, 0, 255 };
+                            primitive->addVertex(maxX, minY, minZ, maxXNormal, rgba);
+                            primitive->addVertex(maxX, maxY, minZ, maxXNormal, rgba);
+                            primitive->addVertex(maxX, minY, maxZ, maxXNormal, rgba);
+                            nt(maxX, minY, minZ, maxX, maxY, minZ, maxX, minY, maxZ, maxXNormal, "XMax1");
+                            primitive->addVertex(maxX, minY, maxZ, maxXNormal, rgba);
+                            primitive->addVertex(maxX, maxY, minZ, maxXNormal, rgba);
+                            primitive->addVertex(maxX, maxY, maxZ, maxXNormal, rgba);
+                            nt(maxX, minY, maxZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxXNormal, "XMax2");
+                        }
+
+                        if (drawMinYFlag) {
+//                            uint8_t rgba[4] = { 0, 0, 255, 255 };
+                            primitive->addVertex(minX, minY, minZ, minYNormal, rgba);
+                            primitive->addVertex(maxX, minY, minZ, minYNormal, rgba);
+                            primitive->addVertex(maxX, minY, maxZ, minYNormal, rgba);
+                            nt(minX, minY, minZ, maxX, minY, minZ, maxX, minY, maxZ, minYNormal, "YMin1");
+                            primitive->addVertex(minX, minY, minZ, minYNormal, rgba);
+                            primitive->addVertex(maxX, minY, maxZ, minYNormal, rgba);
+                            primitive->addVertex(minX, minY, maxZ, minYNormal, rgba);
+                            nt(minX, minY, minZ, maxX, minY, maxZ, minX, minY, maxZ, minYNormal, "YMin2");
+                        }
+                        if (drawMaxYFlag) {
+//                            uint8_t rgba[4] = { 255, 255, 0, 255 };
+                            primitive->addVertex(maxX, maxY, minZ, maxYNormal, rgba);
+                            primitive->addVertex(minX, maxY, minZ, maxYNormal, rgba);
+                            primitive->addVertex(minX, maxY, maxZ, maxYNormal, rgba);
+                            nt(maxX, maxY, minZ, minX, maxY, minZ, minX, maxY, maxZ, maxYNormal, "YMax1");
+                            primitive->addVertex(maxX, maxY, minZ, maxYNormal, rgba);
+                            primitive->addVertex(minX, maxY, maxZ, maxYNormal, rgba);
+                            primitive->addVertex(maxX, maxY, maxZ, maxYNormal, rgba);
+                            nt(maxX, maxY, minZ, minX, maxY, maxZ, maxX, maxY, maxZ, maxYNormal, "YMax2");
+                        }
+                    
+                        if (drawMinZFlag) {
+//                            uint8_t rgba[4] = { 255, 0, 255, 255 };
+                            primitive->addVertex(minX, minY, minZ, minZNormal, rgba);
+                            primitive->addVertex(maxX, maxY, minZ, minZNormal, rgba);
+                            primitive->addVertex(maxX, minY, minZ, minZNormal, rgba);
+                            nt(minX, minY, minZ,maxX, maxY, minZ,maxX, minY, minZ, minZNormal, "ZMin1");
+                            primitive->addVertex(minX, maxY, minZ, minZNormal, rgba);
+                            primitive->addVertex(maxX, maxY, minZ, minZNormal, rgba);
+                            primitive->addVertex(minX, minY, minZ, minZNormal, rgba);
+                            nt(minX, maxY, minZ, maxX, maxY, minZ, minX, minY, minZ, minZNormal, "ZMin2");
+                        }
+                        if (drawMaxZFlag) {
+//                            uint8_t rgba[4] = { 0, 255, 255, 255 };
+                            primitive->addVertex(minX, minY, maxZ, maxZNormal, rgba);
+                            primitive->addVertex(maxX, minY, maxZ, maxZNormal, rgba);
+                            primitive->addVertex(maxX, maxY, maxZ, maxZNormal, rgba);
+                            nt(minX, minY, maxZ, maxX, minY, maxZ, maxX, maxY, maxZ, maxZNormal, "ZMax1");
+                            primitive->addVertex(minX, minY, maxZ, maxZNormal, rgba);
+                            primitive->addVertex(maxX, maxY, maxZ, maxZNormal, rgba);
+                            primitive->addVertex(minX, maxY, maxZ, maxZNormal, rgba);
+                            nt(minX, minY, maxZ, maxX, maxY, maxZ, minX, maxY, maxZ, maxZNormal, "ZMax2");
+                        }
+                    }
+                }
+            }
+        }
+
+        if (primitive->isValid()) {
+            GraphicsEngineDataOpenGL::draw(primitive.get());
+        }
+//        for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
+//            for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
+//                for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
+//                    if (ciftiLabelFile != NULL) {
+//                        ciftiLabelFile->getVoxelColorInMapForLabelData(labelMapData,
+//                                                                       iVoxel,
+//                                                                       jVoxel,
+//                                                                       kVoxel,
+//                                                                       volInfo.mapIndex,
+//                                                                       displayGroup,
+//                                                                       this->windowTabIndex,
+//                                                                       rgba);
+//                    }
+//                    else {
+//                        volumeFile->getVoxelColorInMap(iVoxel,
+//                                                       jVoxel,
+//                                                       kVoxel,
+//                                                       volInfo.mapIndex,
+//                                                       displayGroup,
+//                                                       this->windowTabIndex,
+//                                                       rgba);
+//                    }
+//                    if (rgba[3] > 0) {
+//                        if (volInfo.opacity < 1.0) {
+//                            rgba[3] *= volInfo.opacity;
+//                        }
+//                        if (rgba[3] > 0) {
+//                            float x = 0, y = 0.0, z = 0.0;
+//                            volumeFile->indexToSpace(iVoxel, jVoxel, kVoxel, x, y, z);
+//
+//                            bool drawIt = true;
+//                            if (doClipping) {
+//                                const float xyz[3] = { x, y, z };
+//                                if ( ! isCoordinateInsideClippingPlanesForStructure(StructureEnum::ALL,
+//                                                                                    xyz)) {
+//                                    drawIt = false;
+//                                }
+//                            }
+//
+//                            if (drawIt) {
+//                                const int64_t offsetRGBA(((dimI * dimJ * kVoxel)
+//                                                          + (dimI * jVoxel)
+//                                                          + iVoxel)
+//                                                         * 4);
+//                                CaretAssertVectorIndex(volumeRGBA, offsetRGBA + 3);
+//                                volumeRGBA[offsetRGBA]     = rgba[0];
+//                                volumeRGBA[offsetRGBA + 1] = rgba[1];
+//                                volumeRGBA[offsetRGBA + 2] = rgba[2];
+//                                volumeRGBA[offsetRGBA + 3] = rgba[3];
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+        
+//        for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
+//            for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
+//                for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
+//                               if (isSelect) {
+//                                    const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
+//                                    this->colorIdentification->addItem(rgba,
+//                                                                       SelectionItemDataTypeEnum::VOXEL,
+//                                                                       idIndex);
+//                                    identificationIndices.push_back(iVol);
+//                                    identificationIndices.push_back(volInfo.mapIndex);
+//                                    identificationIndices.push_back(iVoxel);
+//                                    identificationIndices.push_back(jVoxel);
+//                                    identificationIndices.push_back(kVoxel);
+//                                }
+//
+//                                glPushMatrix();
+//                                glTranslatef(x, y, z);
+//                                switch (volInfo.wholeBrainVoxelDrawingMode) {
+//                                    case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
+//                                        drawCuboid(rgba, cubeSizeDX, cubeSizeDY, cubeSizeDZ);
+//                                        break;
+//                                    case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES:
+//                                        drawRoundedCuboid(rgba, cubeSizeDX, cubeSizeDY, cubeSizeDZ);
+//                                        break;
+//                                    case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
+//                                        break;
+//                                }
+//                                glPopMatrix();
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+    }
+    
+    if (isSelect) {
+        int32_t identifiedItemIndex;
+        float depth = -1.0;
+        this->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
+                                         this->mouseX,
+                                         this->mouseY,
+                                         identifiedItemIndex,
+                                         depth);
+        if (identifiedItemIndex >= 0) {
+            const int32_t idIndex = identifiedItemIndex * idPerVoxelCount;
+            const int32_t volDrawInfoIndex = identificationIndices[idIndex];
+            CaretAssertVectorIndex(volumeDrawInfo, volDrawInfoIndex);
+            VolumeMappableInterface* vf = volumeDrawInfo[volDrawInfoIndex].volumeFile;
+            const int64_t voxelIndices[3] = {
+                identificationIndices[idIndex + 2],
+                identificationIndices[idIndex + 3],
+                identificationIndices[idIndex + 4]
+            };
+            
+            if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+                voxelID->setVoxelIdentification(m_brain,
+                                                vf,
+                                                voxelIndices,
+                                                depth);
+                
+                float voxelCoordinates[3];
+                vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
+                                 voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                
+                this->setSelectedItemScreenXYZ(voxelID,
+                                               voxelCoordinates);
+                CaretLogFine("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
+            }
+        }
+    }
+    
+    this->disableLighting();
+    glShadeModel(GL_SMOOTH);
+    glDisable(GL_BLEND);
+}
+
 
 void
 BrainOpenGLFixedPipeline::setFiberOrientationDisplayInfo(const DisplayPropertiesFiberOrientation* dpfo,

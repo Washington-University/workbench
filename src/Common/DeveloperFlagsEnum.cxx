@@ -135,6 +135,12 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 false));
 
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOXEL_CUBES_TEST,
+                                                "DEVELOPER_FLAG_VOXEL_CUBES_TEST",
+                                                "Voxel Cubes Drawing Test",
+                                                CheckableEnum::YES,
+                                                false));
+    
 #ifdef HAVE_WEBKIT
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
                                                 "DEVELOPER_FLAG_BALSA",
