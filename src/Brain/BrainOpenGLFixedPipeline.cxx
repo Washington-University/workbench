@@ -4279,6 +4279,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
             glDisable(GL_LIGHTING);
         }
         
+        int64_t count(0);
         uint8_t rgba[4];
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
@@ -4345,12 +4346,15 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                         break;
                                 }
                                 glPopMatrix();
+                                count++;
                             }
                         }
                     }
                 }
             }
         }
+        
+        std::cout << "Voxel count OLD: " << count << " of " << (dimI * dimJ * dimK) << std::endl;
     }
     
     if (isSelect) {
@@ -4542,17 +4546,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
         
-        float originX, originY, originZ;
-        float x1, y1, z1;
-        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
-        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
-        const float dx = x1 - originX;
-        const float dy = y1 - originY;
-        const float dz = z1 - originZ;
-        const float halfAbsX(std::fabs(dx / 2.0));
-        const float halfAbsY(std::fabs(dy / 2.0));
-        const float halfAbsZ(std::fabs(dz / 2.0));
-        
         /*
          * Cube size for voxel drawing.  Some volumes may have a right to left
          * orientation in which case dx may be negative.
@@ -4561,9 +4554,17 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
          * a single slice is drawn.
          */
         const float cubeScale = 1.10;
-        const float cubeSizeDX = std::fabs(dx) * cubeScale;
-        const float cubeSizeDY = std::fabs(dy) * cubeScale;
-        const float cubeSizeDZ = std::fabs(dz) * cubeScale;
+        
+        float originX, originY, originZ;
+        float x1, y1, z1;
+        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
+        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
+        const float dx = x1 - originX;
+        const float dy = y1 - originY;
+        const float dz = z1 - originZ;
+        const float halfAbsX(std::fabs((dx * cubeScale) / 2.0));
+        const float halfAbsY(std::fabs((dy * cubeScale) / 2.0));
+        const float halfAbsZ(std::fabs((dz * cubeScale) / 2.0));
         
         const bool xRightFlag(dx > 0.0);
         const bool yAnteriorFlag(dy > 0.0);
@@ -4581,8 +4582,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
             || (dimK == 1)) {
             glDisable(GL_LIGHTING);
         }
-        
-        uint8_t rgba[4];
         
         const int64_t numAxialSliceVoxels(dimI * dimJ);
         const int64_t numVoxels(numAxialSliceVoxels * dimK);
@@ -4625,6 +4624,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
 
         std::unique_ptr<GraphicsPrimitiveV3fN3fC4ub> primitive(GraphicsPrimitive::newPrimitiveV3fN3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES));
 
+        int64_t count(0);
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
                 for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
@@ -4740,12 +4740,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             || drawMaxYFlag
                             || drawMinZFlag
                             || drawMaxZFlag) {
-                            drawMinXFlag = true;
-                            drawMaxXFlag = true;
-                            drawMinYFlag = true;
-                            drawMaxYFlag = true;
-                            drawMinZFlag = true;
-                            drawMaxZFlag = true;
+                            count++;
                         }
                         const float minX(x - halfAbsX);
                         const float maxX(x + halfAbsX);
@@ -4758,22 +4753,22 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(minX, minY, minZ, minXNormal, rgba);
                             primitive->addVertex(minX, minY, maxZ, minXNormal, rgba);
                             primitive->addVertex(minX, maxY, maxZ, minXNormal, rgba);
-                            nt(minX, minY, minZ, minX, minY, maxZ, minX, maxY, maxZ, minXNormal, "XMin1");
+//                            nt(minX, minY, minZ, minX, minY, maxZ, minX, maxY, maxZ, minXNormal, "XMin1");
                             primitive->addVertex(minX, minY, minZ, minXNormal, rgba);
                             primitive->addVertex(minX, maxY, maxZ, minXNormal, rgba);
                             primitive->addVertex(minX, maxY, minZ, minXNormal, rgba);
-                            nt(minX, minY, minZ, minX, maxY, maxZ, minX, maxY, minZ, minXNormal, "XMin2");
+//                            nt(minX, minY, minZ, minX, maxY, maxZ, minX, maxY, minZ, minXNormal, "XMin2");
                         }
                         if (drawMaxXFlag) {
 //                            uint8_t rgba[4] = { 0, 255, 0, 255 };
                             primitive->addVertex(maxX, minY, minZ, maxXNormal, rgba);
                             primitive->addVertex(maxX, maxY, minZ, maxXNormal, rgba);
                             primitive->addVertex(maxX, minY, maxZ, maxXNormal, rgba);
-                            nt(maxX, minY, minZ, maxX, maxY, minZ, maxX, minY, maxZ, maxXNormal, "XMax1");
+//                            nt(maxX, minY, minZ, maxX, maxY, minZ, maxX, minY, maxZ, maxXNormal, "XMax1");
                             primitive->addVertex(maxX, minY, maxZ, maxXNormal, rgba);
                             primitive->addVertex(maxX, maxY, minZ, maxXNormal, rgba);
                             primitive->addVertex(maxX, maxY, maxZ, maxXNormal, rgba);
-                            nt(maxX, minY, maxZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxXNormal, "XMax2");
+//                            nt(maxX, minY, maxZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxXNormal, "XMax2");
                         }
 
                         if (drawMinYFlag) {
@@ -4781,22 +4776,22 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(minX, minY, minZ, minYNormal, rgba);
                             primitive->addVertex(maxX, minY, minZ, minYNormal, rgba);
                             primitive->addVertex(maxX, minY, maxZ, minYNormal, rgba);
-                            nt(minX, minY, minZ, maxX, minY, minZ, maxX, minY, maxZ, minYNormal, "YMin1");
+//                            nt(minX, minY, minZ, maxX, minY, minZ, maxX, minY, maxZ, minYNormal, "YMin1");
                             primitive->addVertex(minX, minY, minZ, minYNormal, rgba);
                             primitive->addVertex(maxX, minY, maxZ, minYNormal, rgba);
                             primitive->addVertex(minX, minY, maxZ, minYNormal, rgba);
-                            nt(minX, minY, minZ, maxX, minY, maxZ, minX, minY, maxZ, minYNormal, "YMin2");
+//                            nt(minX, minY, minZ, maxX, minY, maxZ, minX, minY, maxZ, minYNormal, "YMin2");
                         }
                         if (drawMaxYFlag) {
 //                            uint8_t rgba[4] = { 255, 255, 0, 255 };
                             primitive->addVertex(maxX, maxY, minZ, maxYNormal, rgba);
                             primitive->addVertex(minX, maxY, minZ, maxYNormal, rgba);
                             primitive->addVertex(minX, maxY, maxZ, maxYNormal, rgba);
-                            nt(maxX, maxY, minZ, minX, maxY, minZ, minX, maxY, maxZ, maxYNormal, "YMax1");
+//                            nt(maxX, maxY, minZ, minX, maxY, minZ, minX, maxY, maxZ, maxYNormal, "YMax1");
                             primitive->addVertex(maxX, maxY, minZ, maxYNormal, rgba);
                             primitive->addVertex(minX, maxY, maxZ, maxYNormal, rgba);
                             primitive->addVertex(maxX, maxY, maxZ, maxYNormal, rgba);
-                            nt(maxX, maxY, minZ, minX, maxY, maxZ, maxX, maxY, maxZ, maxYNormal, "YMax2");
+//                            nt(maxX, maxY, minZ, minX, maxY, maxZ, maxX, maxY, maxZ, maxYNormal, "YMax2");
                         }
                     
                         if (drawMinZFlag) {
@@ -4804,28 +4799,30 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(minX, minY, minZ, minZNormal, rgba);
                             primitive->addVertex(maxX, maxY, minZ, minZNormal, rgba);
                             primitive->addVertex(maxX, minY, minZ, minZNormal, rgba);
-                            nt(minX, minY, minZ,maxX, maxY, minZ,maxX, minY, minZ, minZNormal, "ZMin1");
+//                            nt(minX, minY, minZ,maxX, maxY, minZ,maxX, minY, minZ, minZNormal, "ZMin1");
                             primitive->addVertex(minX, maxY, minZ, minZNormal, rgba);
                             primitive->addVertex(maxX, maxY, minZ, minZNormal, rgba);
                             primitive->addVertex(minX, minY, minZ, minZNormal, rgba);
-                            nt(minX, maxY, minZ, maxX, maxY, minZ, minX, minY, minZ, minZNormal, "ZMin2");
+//                            nt(minX, maxY, minZ, maxX, maxY, minZ, minX, minY, minZ, minZNormal, "ZMin2");
                         }
                         if (drawMaxZFlag) {
 //                            uint8_t rgba[4] = { 0, 255, 255, 255 };
                             primitive->addVertex(minX, minY, maxZ, maxZNormal, rgba);
                             primitive->addVertex(maxX, minY, maxZ, maxZNormal, rgba);
                             primitive->addVertex(maxX, maxY, maxZ, maxZNormal, rgba);
-                            nt(minX, minY, maxZ, maxX, minY, maxZ, maxX, maxY, maxZ, maxZNormal, "ZMax1");
+//                            nt(minX, minY, maxZ, maxX, minY, maxZ, maxX, maxY, maxZ, maxZNormal, "ZMax1");
                             primitive->addVertex(minX, minY, maxZ, maxZNormal, rgba);
                             primitive->addVertex(maxX, maxY, maxZ, maxZNormal, rgba);
                             primitive->addVertex(minX, maxY, maxZ, maxZNormal, rgba);
-                            nt(minX, minY, maxZ, maxX, maxY, maxZ, minX, maxY, maxZ, maxZNormal, "ZMax2");
+//                            nt(minX, minY, maxZ, maxX, maxY, maxZ, minX, maxY, maxZ, maxZNormal, "ZMax2");
                         }
                     }
                 }
             }
         }
 
+        std::cout << "Draw voxels NEW: " << count << " of " << (dimI * dimJ * dimK) << std::endl;
+        
         if (primitive->isValid()) {
             GraphicsEngineDataOpenGL::draw(primitive.get());
         }
