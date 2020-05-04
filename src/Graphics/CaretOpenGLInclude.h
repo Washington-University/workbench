@@ -28,6 +28,16 @@
  */
 
 /*
+ * OpenGL is deprecated on MacOS 10.15, Catalina
+ * This definition suppress the deprecation warning that will
+ * appear on every OpenGL function call
+ */
+#ifdef CARET_OS_MACOSX
+#define GL_SILENCE_DEPRECATION 1
+#endif
+
+
+/*
  * When using GLEW, GL/glew.h MUST be included before Gl/gl.h.
  * Note: Windows.h includes Gl/gl.h.
  *
