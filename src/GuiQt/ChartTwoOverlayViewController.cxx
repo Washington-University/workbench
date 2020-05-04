@@ -1570,7 +1570,7 @@ ChartTwoOverlayViewController::createMatrixTriangularViewModePixmap(QWidget* wid
 void
 ChartTwoOverlayViewController::menuConstructionPreColorAllFiles()
 {
-    QWidget* parentWidget(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    QWidget* parentWidget(m_mapFileComboBox);
     
     if ( ! m_enabledCheckBox->isChecked()) {
         WuQMessageBox::errorOk(parentWidget,
@@ -1583,9 +1583,12 @@ ChartTwoOverlayViewController::menuConstructionPreColorAllFiles()
         return;
     }
     
+    QPoint dialogXY(parentWidget->x() + parentWidget->width(),
+                    parentWidget->y());
     ProgressReportingDialog progressDialog("Pre-Color Files",
                                            "Starting",
                                            parentWidget);
+    progressDialog.move(parentWidget->mapToGlobal(dialogXY));
     
     const int32_t currentFileIndex = m_mapFileComboBox->currentIndex();
     
