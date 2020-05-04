@@ -39,6 +39,7 @@ using namespace caret;
 
 #include "AnnotationColorBar.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "CaretMappableDataFile.h"
 #include "ChartTwoOverlay.h"
 #include "ChartableTwoFileDelegate.h"
@@ -53,12 +54,14 @@ using namespace caret;
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
+#include "EventProgressUpdate.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
 #include "FilePathNamePrefixCompactor.h"
 #include "GuiManager.h"
 #include "MapYokingGroupComboBox.h"
+#include "ProgressReportingDialog.h"
 #include "UsernamePasswordWidget.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
@@ -1567,17 +1570,37 @@ ChartTwoOverlayViewController::createMatrixTriangularViewModePixmap(QWidget* wid
 void
 ChartTwoOverlayViewController::menuConstructionPreColorAllFiles()
 {
-    CursorDisplayScoped cursor;
-    cursor.showWaitCursor();
+    QWidget* parentWidget(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    
+    if ( ! m_enabledCheckBox->isChecked()) {
+        WuQMessageBox::errorOk(parentWidget,
+                               "The layer must be On (checkbox on left)");
+        return;
+    }
     
     const int32_t numFiles = m_mapFileComboBox->count();
     if (numFiles <= 0) {
         return;
     }
     
+    ProgressReportingDialog progressDialog("Pre-Color Files",
+                                           "Starting",
+                                           parentWidget);
+    
     const int32_t currentFileIndex = m_mapFileComboBox->currentIndex();
     
     for (int32_t i = 0; i < numFiles; i++) {
+        EventProgressUpdate progEvent(1,
+                                      numFiles,
+                                      (i + 1),
+                                      ("Coloring: "
+                                       + m_mapFileComboBox->currentText()));
+        EventManager::get()->sendEvent(progEvent.getPointer());
+        
+        if (progressDialog.wasCanceled()) {
+            break;
+        }
+        
         QSignalBlocker blocker(m_mapFileComboBox);
         m_mapFileComboBox->setCurrentIndex(i);
         fileComboBoxSelected(i);
@@ -1589,6 +1612,7 @@ ChartTwoOverlayViewController::menuConstructionPreColorAllFiles()
         EventGraphicsUpdateOneWindow graphicsEvent(m_browserWindowIndex,
                                                    true);
         EventManager::get()->sendEvent(graphicsEvent.getPointer());
+        QApplication::processEvents();
     }
     
     QSignalBlocker blocker(m_mapFileComboBox);
