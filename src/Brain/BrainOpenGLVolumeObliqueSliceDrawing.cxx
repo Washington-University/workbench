@@ -3926,8 +3926,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
             glPushAttrib(GL_COLOR_BUFFER_BIT);
             if (drawWithBlendingFlag
                 && allowBlendingFlag) {
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//                glEnable(GL_BLEND);
+//                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             }
             GraphicsEngineDataOpenGL::draw(primitive.get());
             glPopAttrib();

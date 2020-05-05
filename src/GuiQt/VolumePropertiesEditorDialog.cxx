@@ -56,7 +56,7 @@ VolumePropertiesEditorDialog::VolumePropertiesEditorDialog(QWidget* parent)
 : WuQDialogNonModal("Volume Properties",
                     parent)
 {
-    QLabel* opacityLabel = new QLabel("Opacity: ");
+    QLabel* opacityLabel = new QLabel("'All' Display Slice Opacity: ");
     m_opacitySpinBox = WuQFactory::newDoubleSpinBox();
     m_opacitySpinBox->setRange(0.0, 1.0);
     m_opacitySpinBox->setSingleStep(0.1);

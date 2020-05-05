@@ -1166,8 +1166,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
     /*
      * Enable alpha blending so voxels that are not drawn from higher layers
      * allow voxels from lower layers to be seen.
-     *
-     * Only allow layer blending when overall volume opacity is off (>= 1.0)
      */
     const bool allowBlendingFlag(true);
     glPushAttrib(GL_COLOR_BUFFER_BIT);
@@ -1455,7 +1453,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
                                                sliceCoordinates,
                                                sliceNormalVector);
     glPopAttrib();
-    //glDisable(GL_BLEND);
     glShadeModel(GL_SMOOTH);
 }
 
@@ -1743,8 +1740,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
     /*
      * Enable alpha blending so voxels that are not drawn from higher layers
      * allow voxels from lower layers to be seen.
-     *
-     * Only allow layer blending when overall volume opacity is off (>= 1.0)
      */
     const bool allowBlendingFlag(true);
     glPushAttrib(GL_COLOR_BUFFER_BIT);
@@ -5226,15 +5221,13 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
     /*
      * Enable alpha blending so voxels that are not drawn from higher layers
      * allow voxels from lower layers to be seen.
-     *
-     * Only allow layer blending when overall volume opacity is off (>= 1.0)
      */
     const bool allowBlendingFlag(true);
     glPushAttrib(GL_COLOR_BUFFER_BIT);
-    if (allowBlendingFlag) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
+//    if (allowBlendingFlag) {
+//        glEnable(GL_BLEND);
+//        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//    }
     
     /*
      * Flat shading voxels not interpolated
@@ -5542,6 +5535,17 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
             << " rowstep XYZ: " << AString::fromNumbers(rowStepXYZ, 3, ",")
             << " colstep XYZ: " << AString::fromNumbers(columnStepXYZ, 3, ",") << std::endl;
         }
+        
+        glPushAttrib(GL_COLOR_BUFFER_BIT);
+        if (volInfo.opacity < 1.0) {
+            if (allowBlendingFlag) {
+                if ( ! m_identificationModeFlag) {
+                    glEnable(GL_BLEND);
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                }
+            }
+        }
+        
         drawOrthogonalSliceVoxels(sliceNormalVector,
                                   startCoordinateXYZ,
                                   rowStepXYZ,
@@ -5554,7 +5558,10 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
                                   iVol,
                                   volInfo.mapIndex,
                                   volumeDrawingOpacity);
+        
         glDisable(GL_POLYGON_OFFSET_FILL);
+        
+        glPopAttrib();
         
         if (m_identificationModeFlag) {
             processIdentification(false);
@@ -5565,7 +5572,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
                                                sliceCoordinates,
                                                sliceNormalVector);
     
-//    glDisable(GL_BLEND);
     glPopAttrib();
     glShadeModel(GL_SMOOTH);
 }

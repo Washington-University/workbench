@@ -4079,12 +4079,6 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
             break;
     }
     
-    /*
-     * Allow blending of volume slices and volume surface outline
-     */
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    applyVolumePropertiesOpacity();
-    
     if (useNewDrawingFlag) {
         if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_VOLUME)) {
             BrainOpenGLVolumeTextureSliceDrawing textureSliceDrawing;
@@ -4128,8 +4122,6 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
                                            viewport);
         }
     }
-    
-    glPopAttrib();
 }
 
 /**
