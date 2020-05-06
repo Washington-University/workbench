@@ -63,7 +63,6 @@
 #include "DataFileException.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesImages.h"
-#include "DisplayPropertiesVolume.h"
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
 #include "ElapsedTimer.h"

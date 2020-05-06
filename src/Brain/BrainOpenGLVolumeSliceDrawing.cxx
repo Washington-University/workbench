@@ -44,7 +44,6 @@
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesLabels.h"
-#include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
 #include "FociFile.h"
 #include "Focus.h"
@@ -721,8 +720,6 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
                                   viewport);
     }
     
-//    m_fixedPipelineDrawing->setupScaleBarDrawingInformation(m_browserTabContent);
-
     /*
      * Create the plane equation for the slice
      */
@@ -827,13 +824,6 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
                 CaretAssert(0);
                 break;
         }
-
-//        /*
-//         * Process selection
-//         */
-//        if (m_identificationModeFlag) {
-//            processIdentification();
-//        }
     }
     
     drawIdentificationSymbols(slicePlane);
@@ -1135,8 +1125,6 @@ getAxisInfo(const VolumeMappableInterface* volumeFile,
     }
     
     axisInfoOut.valid = true;
-    
-    //axisInfoOut.print();
 }
 
 /**
@@ -1801,9 +1789,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
             /* volume does not have slice within the culled region */
             continue;
         }
-        /*const int64_t numVoxelsI = std::abs(culledLastVoxelIJK[0] - culledFirstVoxelIJK[0]) + 1;
-        const int64_t numVoxelsJ = std::abs(culledLastVoxelIJK[1] - culledFirstVoxelIJK[1]) + 1;
-        const int64_t numVoxelsK = std::abs(culledLastVoxelIJK[2] - culledFirstVoxelIJK[2]) + 1;//*/
         
         int64_t numVoxelsX = -1, numVoxelsY = -1, numVoxelsZ = -1;
         int64_t sliceIndexForDrawing = -1;
@@ -2769,7 +2754,6 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineNotCached(const ModelTypeEnum::
                                                                                                     colorSourceBrowserTabIndex);
                 }
                 
-                //const float thicknessPercentage = GraphicsUtilitiesOpenGL::convertPixelsToPercentageOfViewportHeight(thicknessMillimeters);
                 SurfacePlaneIntersectionToContour contour(surface,
                                                           plane,
                                                           outlineColor,
@@ -5224,10 +5208,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
      */
     const bool allowBlendingFlag(true);
     glPushAttrib(GL_COLOR_BUFFER_BIT);
-//    if (allowBlendingFlag) {
-//        glEnable(GL_BLEND);
-//        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//    }
     
     /*
      * Flat shading voxels not interpolated

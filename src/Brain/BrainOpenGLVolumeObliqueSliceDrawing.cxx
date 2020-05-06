@@ -43,7 +43,6 @@
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesLabels.h"
-#include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
 #include "FociFile.h"
 #include "Focus.h"
@@ -3755,13 +3754,11 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
     
     uint8_t sliceAlpha = 255;
     bool drawWithBlendingFlag(false);
-//    if (m_bottomLayerFlag) {
-        if (m_opacity < 1.0) {
-            sliceAlpha = static_cast<uint8_t>(m_opacity * 255.0);
-            drawWithBlendingFlag = true;
-        }
-//    }
-    
+    if (m_opacity < 1.0) {
+        sliceAlpha = static_cast<uint8_t>(m_opacity * 255.0);
+        drawWithBlendingFlag = true;
+    }
+
     std::vector<int64_t> selectionIJK;
     for (int32_t iRow = 0; iRow < m_numberOfRows; iRow++) {
         float voxelXYZ[3] = {
@@ -3917,18 +3914,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
             }
         }
         else {
-            /*
-             * Only allow layer blending when overall volume opacity is off (>= 1.0)
-             */
-            //const DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
-            const bool allowBlendingFlag(true); //dpv->getOpacity() >= 1.0f);
-            
             glPushAttrib(GL_COLOR_BUFFER_BIT);
-            if (drawWithBlendingFlag
-                && allowBlendingFlag) {
-//                glEnable(GL_BLEND);
-//                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            }
             GraphicsEngineDataOpenGL::draw(primitive.get());
             glPopAttrib();
         }
