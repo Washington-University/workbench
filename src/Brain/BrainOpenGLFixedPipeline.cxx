@@ -4253,7 +4253,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
          * Scale the cube slightly larger to avoid cracks, particularly if
          * a single slice is drawn.
          */
-        const float cubeScale = 1.10;
+        const float cubeScale = 1.01;
         const float cubeSizeDX = std::fabs(dx) * cubeScale;
         const float cubeSizeDY = std::fabs(dy) * cubeScale;
         const float cubeSizeDZ = std::fabs(dz) * cubeScale;
@@ -4525,6 +4525,23 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
     const float minZNormal[3] = {  0.0,  0.0, -1.0 };
     const float maxZNormal[3] = {  0.0,  0.0,  1.0 };
 
+    float normalLPI[3] { -1.0, -1.0, -1.0 };
+    MathFunctions::normalizeVector(normalLPI);
+    float normalLAI[3] { -1.0,  1.0, -1.0 };
+    MathFunctions::normalizeVector(normalLAI);
+    float normalLPS[3] { -1.0, -1.0,  1.0 };
+    MathFunctions::normalizeVector(normalLPS);
+    float normalLAS[3] { -1.0,  1.0,  1.0 };
+    MathFunctions::normalizeVector(normalLAS);
+    float normalRPI[3] {  1.0, -1.0, -1.0 };
+    MathFunctions::normalizeVector(normalRPI);
+    float normalRAI[3] {  1.0,  1.0, -1.0 };
+    MathFunctions::normalizeVector(normalRAI);
+    float normalRPS[3] {  1.0, -1.0,  1.0 };
+    MathFunctions::normalizeVector(normalRPS);
+    float normalRAS[3] {  1.0,  1.0,  1.0 };
+    MathFunctions::normalizeVector(normalRAS);
+
     for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
         VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
         if (volInfo.opacity < 1.0) {
@@ -4534,6 +4551,19 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
         else {
             glDisable(GL_BLEND);
         }
+        
+        bool roundedCubesFlag(false);
+        switch (volInfo.wholeBrainVoxelDrawingMode) {
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
+                break;
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES:
+                roundedCubesFlag = true;
+                break;
+            case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
+                CaretAssert(0);
+                break;
+        }
+        
         const VolumeMappableInterface* volumeFile = volInfo.volumeFile;
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
@@ -4543,9 +4573,11 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
          * orientation in which case dx may be negative.
          *
          * Scale the cube slightly larger to avoid cracks, particularly if
-         * a single slice is drawn.
+         * a single slice is drawn. To match the old drawing, cubeScale's
+         * decimal portion should be double (old draws a cube and this
+         * method draws triangles)
          */
-        const float cubeScale = 1.10;
+        const float cubeScale = 1.02;
         
         float originX, originY, originZ;
         float x1, y1, z1;
@@ -4740,72 +4772,157 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                         const float maxY(y + halfAbsY);
                         const float minZ(z - halfAbsZ);
                         const float maxZ(z + halfAbsZ);
+//#define DRAW_SIDE_COLOR_TEST 1
                         if (drawMinXFlag) {
-//                            uint8_t rgba[4] = { 255, 0, 0, 255 };
-                            primitive->addVertex(minX, minY, minZ, minXNormal, rgba);
-                            primitive->addVertex(minX, minY, maxZ, minXNormal, rgba);
-                            primitive->addVertex(minX, maxY, maxZ, minXNormal, rgba);
-//                            nt(minX, minY, minZ, minX, minY, maxZ, minX, maxY, maxZ, minXNormal, "XMin1");
-                            primitive->addVertex(minX, minY, minZ, minXNormal, rgba);
-                            primitive->addVertex(minX, maxY, maxZ, minXNormal, rgba);
-                            primitive->addVertex(minX, maxY, minZ, minXNormal, rgba);
-//                            nt(minX, minY, minZ, minX, maxY, maxZ, minX, maxY, minZ, minXNormal, "XMin2");
+#ifdef DRAW_SIDE_COLOR_TEST
+                            uint8_t rgba[4] = { 255, 0, 0, 255 };
+#endif
+                            primitive->addVertex(minX, minY, minZ,
+                                                 (roundedCubesFlag ? normalLPI : minXNormal),
+                                                 rgba);
+                            primitive->addVertex(minX, minY, maxZ,
+                                                 (roundedCubesFlag ? normalLPS : minXNormal),
+                                                 rgba);
+                            primitive->addVertex(minX, maxY, minZ,
+                                                 (roundedCubesFlag ? normalLAI :minXNormal),
+                                                 rgba);
+                            //                            nt(minX, minY, minZ, minX, minY, maxZ, minX, maxY, maxZ, minXNormal, "XMin1");
+                            primitive->addVertex(minX, maxY, minZ,
+                                                 (roundedCubesFlag ? normalLAI : minXNormal),
+                                                 rgba);
+                            primitive->addVertex(minX, minY, maxZ,
+                                                 (roundedCubesFlag ? normalLPS : minXNormal),
+                                                 rgba);
+                            primitive->addVertex(minX, maxY, maxZ,
+                                                 (roundedCubesFlag ? normalLAS : minXNormal),
+                                                 rgba);
+                            //                            nt(minX, minY, minZ, minX, maxY, maxZ, minX, maxY, minZ, minXNormal, "XMin2");
                         }
                         if (drawMaxXFlag) {
-//                            uint8_t rgba[4] = { 0, 255, 0, 255 };
-                            primitive->addVertex(maxX, minY, minZ, maxXNormal, rgba);
-                            primitive->addVertex(maxX, maxY, minZ, maxXNormal, rgba);
-                            primitive->addVertex(maxX, minY, maxZ, maxXNormal, rgba);
-//                            nt(maxX, minY, minZ, maxX, maxY, minZ, maxX, minY, maxZ, maxXNormal, "XMax1");
-                            primitive->addVertex(maxX, minY, maxZ, maxXNormal, rgba);
-                            primitive->addVertex(maxX, maxY, minZ, maxXNormal, rgba);
-                            primitive->addVertex(maxX, maxY, maxZ, maxXNormal, rgba);
-//                            nt(maxX, minY, maxZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxXNormal, "XMax2");
+#ifdef DRAW_SIDE_COLOR_TEST
+                            uint8_t rgba[4] = { 0, 255, 0, 255 };
+#endif 
+                            primitive->addVertex(maxX, minY, minZ,
+                                                 (roundedCubesFlag ? normalRPI : maxXNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, maxY, minZ,
+                                                 (roundedCubesFlag ? normalRAI : maxXNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, maxY, maxZ,
+                                                 (roundedCubesFlag ? normalRAS : maxXNormal),
+                                                 rgba);
+                            //                            nt(maxX, minY, minZ, maxX, maxY, minZ, maxX, minY, maxZ, maxXNormal, "XMax1");
+                            primitive->addVertex(maxX, maxY, maxZ,
+                                                 (roundedCubesFlag ? normalRAS : maxXNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, minY, maxZ,
+                                                 (roundedCubesFlag ? normalRPS : maxXNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, minY, minZ,
+                                                 (roundedCubesFlag ? normalRPI : maxXNormal),
+                                                 rgba);
+                            //                            nt(maxX, minY, maxZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxXNormal, "XMax2");
                         }
 
                         if (drawMinYFlag) {
-//                            uint8_t rgba[4] = { 0, 0, 255, 255 };
-                            primitive->addVertex(minX, minY, minZ, minYNormal, rgba);
-                            primitive->addVertex(maxX, minY, minZ, minYNormal, rgba);
-                            primitive->addVertex(maxX, minY, maxZ, minYNormal, rgba);
+#ifdef DRAW_SIDE_COLOR_TEST
+                            uint8_t rgba[4] = { 0, 0, 255, 255 };
+#endif
+                            primitive->addVertex(minX, minY, minZ,
+                                                 (roundedCubesFlag ? normalLPI : minYNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, minY, minZ,
+                                                 (roundedCubesFlag ? normalRPI : minYNormal),
+                                                 rgba);
+                            primitive->addVertex(minX, minY, maxZ,
+                                                 (roundedCubesFlag ? normalLPS : minYNormal),
+                                                 rgba);
 //                            nt(minX, minY, minZ, maxX, minY, minZ, maxX, minY, maxZ, minYNormal, "YMin1");
-                            primitive->addVertex(minX, minY, minZ, minYNormal, rgba);
-                            primitive->addVertex(maxX, minY, maxZ, minYNormal, rgba);
-                            primitive->addVertex(minX, minY, maxZ, minYNormal, rgba);
+                            primitive->addVertex(minX, minY, maxZ,
+                                                 (roundedCubesFlag ? normalLPS : minYNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, minY, minZ,
+                                                 (roundedCubesFlag ? normalRPI : minYNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, minY, maxZ,
+                                                 (roundedCubesFlag ? normalRPS : minYNormal),
+                                                 rgba);
 //                            nt(minX, minY, minZ, maxX, minY, maxZ, minX, minY, maxZ, minYNormal, "YMin2");
                         }
                         if (drawMaxYFlag) {
-//                            uint8_t rgba[4] = { 255, 255, 0, 255 };
-                            primitive->addVertex(maxX, maxY, minZ, maxYNormal, rgba);
-                            primitive->addVertex(minX, maxY, minZ, maxYNormal, rgba);
-                            primitive->addVertex(minX, maxY, maxZ, maxYNormal, rgba);
+#ifdef DRAW_SIDE_COLOR_TEST
+                            uint8_t rgba[4] = { 255, 255, 0, 255 };
+#endif
+                            primitive->addVertex(maxX, maxY, minZ,
+                                                 (roundedCubesFlag ? normalRAI : maxYNormal),
+                                                 rgba);
+                            primitive->addVertex(minX, maxY, minZ,
+                                                 (roundedCubesFlag ? normalLAI : maxYNormal),
+                                                 rgba);
+                            primitive->addVertex(minX, maxY, maxZ,
+                                                 (roundedCubesFlag ? normalLAS : maxYNormal),
+                                                 rgba);
 //                            nt(maxX, maxY, minZ, minX, maxY, minZ, minX, maxY, maxZ, maxYNormal, "YMax1");
-                            primitive->addVertex(maxX, maxY, minZ, maxYNormal, rgba);
-                            primitive->addVertex(minX, maxY, maxZ, maxYNormal, rgba);
-                            primitive->addVertex(maxX, maxY, maxZ, maxYNormal, rgba);
+                            primitive->addVertex(maxX, maxY, minZ,
+                                                 (roundedCubesFlag ? normalRAI : maxYNormal),
+                                                 rgba);
+                            primitive->addVertex(minX, maxY, maxZ,
+                                                 (roundedCubesFlag ? normalLAS : maxYNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, maxY, maxZ,
+                                                 (roundedCubesFlag ? normalRAS : maxYNormal),
+                                                 rgba);
 //                            nt(maxX, maxY, minZ, minX, maxY, maxZ, maxX, maxY, maxZ, maxYNormal, "YMax2");
                         }
                     
                         if (drawMinZFlag) {
-//                            uint8_t rgba[4] = { 255, 0, 255, 255 };
-                            primitive->addVertex(minX, minY, minZ, minZNormal, rgba);
-                            primitive->addVertex(maxX, maxY, minZ, minZNormal, rgba);
-                            primitive->addVertex(maxX, minY, minZ, minZNormal, rgba);
-//                            nt(minX, minY, minZ,maxX, maxY, minZ,maxX, minY, minZ, minZNormal, "ZMin1");
-                            primitive->addVertex(minX, maxY, minZ, minZNormal, rgba);
-                            primitive->addVertex(maxX, maxY, minZ, minZNormal, rgba);
-                            primitive->addVertex(minX, minY, minZ, minZNormal, rgba);
-//                            nt(minX, maxY, minZ, maxX, maxY, minZ, minX, minY, minZ, minZNormal, "ZMin2");
+#ifdef DRAW_SIDE_COLOR_TEST
+                            uint8_t rgba[4] = { 255, 0, 255, 255 };
+#endif
+                            primitive->addVertex(minX, minY, minZ,
+                                                 (roundedCubesFlag ? normalLPI : minZNormal),
+                                                 rgba);
+                            primitive->addVertex(minX, maxY, minZ,
+                                                 (roundedCubesFlag ? normalLAI : minZNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, minY, minZ,
+                                                 (roundedCubesFlag ? normalRPI : minZNormal),
+                                                 rgba);
+                            //                            nt(minX, minY, minZ,maxX, maxY, minZ,maxX, minY, minZ, minZNormal, "ZMin1");
+                            primitive->addVertex(minX, maxY, minZ,
+                                                 (roundedCubesFlag ? normalLAI : minZNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, maxY, minZ,
+                                                 (roundedCubesFlag ? normalRAI : minZNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, minY, minZ,
+                                                 (roundedCubesFlag ? normalRPI : minZNormal),
+                                                 rgba);
+                            //                            nt(minX, maxY, minZ, maxX, maxY, minZ, minX, minY, minZ, minZNormal, "ZMin2");
                         }
                         if (drawMaxZFlag) {
-//                            uint8_t rgba[4] = { 0, 255, 255, 255 };
-                            primitive->addVertex(minX, minY, maxZ, maxZNormal, rgba);
-                            primitive->addVertex(maxX, minY, maxZ, maxZNormal, rgba);
-                            primitive->addVertex(maxX, maxY, maxZ, maxZNormal, rgba);
+#ifdef DRAW_SIDE_COLOR_TEST
+                            uint8_t rgba[4] = { 0, 255, 255, 255 };
+#endif
+                            primitive->addVertex(minX, minY, maxZ,
+                                                 (roundedCubesFlag ? normalLPS : maxZNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, minY, maxZ,
+                                                 (roundedCubesFlag ? normalRPS : maxZNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, maxY, maxZ,
+                                                 (roundedCubesFlag ? normalRAS : maxZNormal),
+                                                 rgba);
 //                            nt(minX, minY, maxZ, maxX, minY, maxZ, maxX, maxY, maxZ, maxZNormal, "ZMax1");
-                            primitive->addVertex(minX, minY, maxZ, maxZNormal, rgba);
-                            primitive->addVertex(maxX, maxY, maxZ, maxZNormal, rgba);
-                            primitive->addVertex(minX, maxY, maxZ, maxZNormal, rgba);
+                            primitive->addVertex(minX, minY, maxZ,
+                                                 (roundedCubesFlag ? normalLPS : maxZNormal),
+                                                 rgba);
+                            primitive->addVertex(maxX, maxY, maxZ,
+                                                 (roundedCubesFlag ? normalRAS : maxZNormal),
+                                                 rgba);
+                            primitive->addVertex(minX, maxY, maxZ,
+                                                 (roundedCubesFlag ? normalLAS : maxZNormal),
+                                                 rgba);
 //                            nt(minX, minY, maxZ, maxX, maxY, maxZ, minX, maxY, maxZ, maxZNormal, "ZMax2");
                         }
                     }
