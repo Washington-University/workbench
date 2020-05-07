@@ -278,7 +278,7 @@ namespace caret {
 
         void drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDrawInfo>& volumeDrawInfoIn);
         
-        void drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<VolumeDrawInfo>& volumeDrawInfoIn);
+        void drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vector<VolumeDrawInfo>& volumeDrawInfoIn);
         
         void drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,

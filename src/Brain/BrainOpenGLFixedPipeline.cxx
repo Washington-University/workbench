@@ -4134,7 +4134,7 @@ void
 BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDrawInfo>& volumeDrawInfoIn)
 {
     if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOXEL_CUBES_TEST)) {
-        drawVolumeVoxelsAsCubesWholeBrainTwo(volumeDrawInfoIn);
+        drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(volumeDrawInfoIn);
         return;
     }
     
@@ -4225,15 +4225,25 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         identificationIndices.reserve(10000 * idPerVoxelCount);
     }
     
+    const DisplayPropertiesVolume* dsv = m_brain->getDisplayPropertiesVolume();
+    CaretAssert(dsv);
+    const bool transparencyActiveFlag(dsv->getOpacity() < 1.0);
+    if (transparencyActiveFlag) {
+        applyVolumePropertiesOpacity();
+    }
+    
     for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
         VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
-        if (volInfo.opacity < 1.0) {
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        if ( ! transparencyActiveFlag) {
+            if (volInfo.opacity < 1.0) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            }
+            else {
+                glDisable(GL_BLEND);
+            }
         }
-        else {
-            glDisable(GL_BLEND);
-        }
+        
         const VolumeMappableInterface* volumeFile = volInfo.volumeFile;
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
@@ -4345,8 +4355,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                 }
             }
         }
-        
-        std::cout << "Voxel count OLD: " << count << " of " << (dimI * dimJ * dimK) << std::endl;
     }
     
     if (isSelect) {
@@ -4390,7 +4398,12 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
     glDisable(GL_BLEND);
 }
 
-void nt(float a1, float a2, float a3,
+//#define NORMAL_TEST 1
+#ifdef NORMAL_TEST
+/*
+ * Verify normal pointing correctly
+ */
+static void nt(float a1, float a2, float a3,
         float b1, float b2, float b3,
         float c1, float c2, float c3,
         const float normal[3],
@@ -4421,15 +4434,16 @@ void nt(float a1, float a2, float a3,
         std::cout << name << " Calculated normal invalid" << std::endl;
     }
 }
+#endif
 
 /**
- * Draw volumes a voxel cubes for whole brain view.
+ * Draw volumes a voxel cubes for whole brain view but only outside faces
  *
  * @param volumeDrawInfoIn
  *    Describes volumes that are drawn.
  */
 void
-BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<VolumeDrawInfo>& volumeDrawInfoIn)
+BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vector<VolumeDrawInfo>& volumeDrawInfoIn)
 {
     /*
      * Filter volumes for drawing and only draw those volumes that
@@ -4458,13 +4472,12 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
     if (numberOfVolumesToDraw <= 0) {
         return;
     }
-    
-    SelectionItemVoxel* voxelID =
-    m_brain->getSelectionManager()->getVoxelIdentification();
-    
+        
     /*
      * Check for a 'selection' type mode
      */
+    SelectionItemVoxel* voxelID =
+    m_brain->getSelectionManager()->getVoxelIdentification();
     bool isSelect = false;
     switch (this->mode) {
         case MODE_DRAWING:
@@ -4493,7 +4506,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
     }
     else {
         this->enableLighting();
-        glEnable(GL_CULL_FACE);
         glShadeModel(GL_SMOOTH);
     }
     
@@ -4518,6 +4530,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
         identificationIndices.reserve(10000 * idPerVoxelCount);
     }
     
+    /*
+     * Normals pointing along XYZ axes
+     */
     const float minXNormal[3] = { -1.0,  0.0,  0.0 };
     const float maxXNormal[3] = {  1.0,  0.0,  0.0 };
     const float minYNormal[3] = {  0.0, -1.0,  0.0 };
@@ -4525,6 +4540,12 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
     const float minZNormal[3] = {  0.0,  0.0, -1.0 };
     const float maxZNormal[3] = {  0.0,  0.0,  1.0 };
 
+    /*
+     * Normals starting in center of cube and pointing
+     * out through corners.  Last three letters are
+     * the orientations (L=Left, R=Right, P=Posterior,
+     * A=Anterior, I=Inferior, S=Superior).
+     */
     float normalLPI[3] { -1.0, -1.0, -1.0 };
     MathFunctions::normalizeVector(normalLPI);
     float normalLAI[3] { -1.0,  1.0, -1.0 };
@@ -4542,14 +4563,23 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
     float normalRAS[3] {  1.0,  1.0,  1.0 };
     MathFunctions::normalizeVector(normalRAS);
 
+    const DisplayPropertiesVolume* dsv = m_brain->getDisplayPropertiesVolume();
+    CaretAssert(dsv);
+    const bool transparencyActiveFlag(dsv->getOpacity() < 1.0);
+    if (transparencyActiveFlag) {
+        applyVolumePropertiesOpacity();
+    }
+    
     for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
         VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
-        if (volInfo.opacity < 1.0) {
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        }
-        else {
-            glDisable(GL_BLEND);
+        if ( ! transparencyActiveFlag) {
+            if (volInfo.opacity < 1.0) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            }
+            else {
+                glDisable(GL_BLEND);
+            }
         }
         
         bool roundedCubesFlag(false);
@@ -4646,9 +4676,16 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                       volumeRGBA.begin() + sliceOffset);
         }
 
+        /*
+         * Graphics Primitive for drawing voxels
+         */
         std::unique_ptr<GraphicsPrimitiveV3fN3fC4ub> primitive(GraphicsPrimitive::newPrimitiveV3fN3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES));
 
+        /*
+         * Loop through the voxels
+         */
         int64_t count(0);
+        uint8_t rgba[4];
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
                 for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
@@ -4656,9 +4693,13 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                                               + (dimI * jVoxel * 4)
                                               + (iVoxel * 4));
                     CaretAssertVectorIndex(volumeRGBA, offsetRGBA + 3);
-                    const uint8_t* rgba(&volumeRGBA[offsetRGBA]);
-                    
+                    rgba[3] = volumeRGBA[offsetRGBA+3];
+
                     if (rgba[3] > 0) {
+                        rgba[0] = volumeRGBA[offsetRGBA];
+                        rgba[1] = volumeRGBA[offsetRGBA+1];
+                        rgba[2] = volumeRGBA[offsetRGBA+2];
+                        
                         float x = 0, y = 0.0, z = 0.0;
                         volumeFile->indexToSpace(iVoxel, jVoxel, kVoxel, x, y, z);
                         
@@ -4772,6 +4813,19 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                         const float maxY(y + halfAbsY);
                         const float minZ(z - halfAbsZ);
                         const float maxZ(z + halfAbsZ);
+
+                        if (isSelect) {
+                            const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
+                            this->colorIdentification->addItem(rgba,
+                                                               SelectionItemDataTypeEnum::VOXEL,
+                                                               idIndex);
+                            identificationIndices.push_back(iVol);
+                            identificationIndices.push_back(volInfo.mapIndex);
+                            identificationIndices.push_back(iVoxel);
+                            identificationIndices.push_back(jVoxel);
+                            identificationIndices.push_back(kVoxel);
+                        }
+                        
 //#define DRAW_SIDE_COLOR_TEST 1
                         if (drawMinXFlag) {
 #ifdef DRAW_SIDE_COLOR_TEST
@@ -4786,7 +4840,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(minX, maxY, minZ,
                                                  (roundedCubesFlag ? normalLAI :minXNormal),
                                                  rgba);
-                            //                            nt(minX, minY, minZ, minX, minY, maxZ, minX, maxY, maxZ, minXNormal, "XMin1");
+#ifdef NORMAL_TEST
+                            nt(minX, minY, minZ, minX, minY, maxZ, minX, maxY, maxZ, minXNormal, "XMin1");
+#endif
                             primitive->addVertex(minX, maxY, minZ,
                                                  (roundedCubesFlag ? normalLAI : minXNormal),
                                                  rgba);
@@ -4796,7 +4852,10 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(minX, maxY, maxZ,
                                                  (roundedCubesFlag ? normalLAS : minXNormal),
                                                  rgba);
-                            //                            nt(minX, minY, minZ, minX, maxY, maxZ, minX, maxY, minZ, minXNormal, "XMin2");
+#ifdef NORMAL_TEST
+                            nt(minX, minY, minZ, minX, maxY, maxZ, minX, maxY, minZ, minXNormal, "XMin2");
+#endif
+                            
                         }
                         if (drawMaxXFlag) {
 #ifdef DRAW_SIDE_COLOR_TEST
@@ -4821,7 +4880,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(maxX, minY, minZ,
                                                  (roundedCubesFlag ? normalRPI : maxXNormal),
                                                  rgba);
-                            //                            nt(maxX, minY, maxZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxXNormal, "XMax2");
+#ifdef NORMAL_TEST
+                            nt(maxX, minY, maxZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxXNormal, "XMax2");
+#endif
                         }
 
                         if (drawMinYFlag) {
@@ -4837,7 +4898,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(minX, minY, maxZ,
                                                  (roundedCubesFlag ? normalLPS : minYNormal),
                                                  rgba);
-//                            nt(minX, minY, minZ, maxX, minY, minZ, maxX, minY, maxZ, minYNormal, "YMin1");
+#ifdef NORMAL_TEST
+                            nt(minX, minY, minZ, maxX, minY, minZ, maxX, minY, maxZ, minYNormal, "YMin1");
+#endif
                             primitive->addVertex(minX, minY, maxZ,
                                                  (roundedCubesFlag ? normalLPS : minYNormal),
                                                  rgba);
@@ -4847,7 +4910,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(maxX, minY, maxZ,
                                                  (roundedCubesFlag ? normalRPS : minYNormal),
                                                  rgba);
-//                            nt(minX, minY, minZ, maxX, minY, maxZ, minX, minY, maxZ, minYNormal, "YMin2");
+#ifdef NORMAL_TEST
+                            nt(minX, minY, minZ, maxX, minY, maxZ, minX, minY, maxZ, minYNormal, "YMin2");
+#endif
                         }
                         if (drawMaxYFlag) {
 #ifdef DRAW_SIDE_COLOR_TEST
@@ -4862,7 +4927,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(minX, maxY, maxZ,
                                                  (roundedCubesFlag ? normalLAS : maxYNormal),
                                                  rgba);
-//                            nt(maxX, maxY, minZ, minX, maxY, minZ, minX, maxY, maxZ, maxYNormal, "YMax1");
+#ifdef NORMAL_TEST
+                            nt(maxX, maxY, minZ, minX, maxY, minZ, minX, maxY, maxZ, maxYNormal, "YMax1");
+#endif
                             primitive->addVertex(maxX, maxY, minZ,
                                                  (roundedCubesFlag ? normalRAI : maxYNormal),
                                                  rgba);
@@ -4872,7 +4939,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(maxX, maxY, maxZ,
                                                  (roundedCubesFlag ? normalRAS : maxYNormal),
                                                  rgba);
-//                            nt(maxX, maxY, minZ, minX, maxY, maxZ, maxX, maxY, maxZ, maxYNormal, "YMax2");
+#ifdef NORMAL_TEST
+                            nt(maxX, maxY, minZ, minX, maxY, maxZ, maxX, maxY, maxZ, maxYNormal, "YMax2");
+#endif
                         }
                     
                         if (drawMinZFlag) {
@@ -4888,7 +4957,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(maxX, minY, minZ,
                                                  (roundedCubesFlag ? normalRPI : minZNormal),
                                                  rgba);
-                            //                            nt(minX, minY, minZ,maxX, maxY, minZ,maxX, minY, minZ, minZNormal, "ZMin1");
+#ifdef NORMAL_TEST
+                            nt(minX, minY, minZ,maxX, maxY, minZ,maxX, minY, minZ, minZNormal, "ZMin1");
+#endif
                             primitive->addVertex(minX, maxY, minZ,
                                                  (roundedCubesFlag ? normalLAI : minZNormal),
                                                  rgba);
@@ -4898,7 +4969,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(maxX, minY, minZ,
                                                  (roundedCubesFlag ? normalRPI : minZNormal),
                                                  rgba);
-                            //                            nt(minX, maxY, minZ, maxX, maxY, minZ, minX, minY, minZ, minZNormal, "ZMin2");
+#ifdef NORMAL_TEST
+                            nt(minX, maxY, minZ, maxX, maxY, minZ, minX, minY, minZ, minZNormal, "ZMin2");
+#endif
                         }
                         if (drawMaxZFlag) {
 #ifdef DRAW_SIDE_COLOR_TEST
@@ -4913,7 +4986,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(maxX, maxY, maxZ,
                                                  (roundedCubesFlag ? normalRAS : maxZNormal),
                                                  rgba);
-//                            nt(minX, minY, maxZ, maxX, minY, maxZ, maxX, maxY, maxZ, maxZNormal, "ZMax1");
+#ifdef NORMAL_TEST
+                            nt(minX, minY, maxZ, maxX, minY, maxZ, maxX, maxY, maxZ, maxZNormal, "ZMax1");
+#endif
                             primitive->addVertex(minX, minY, maxZ,
                                                  (roundedCubesFlag ? normalLPS : maxZNormal),
                                                  rgba);
@@ -4923,111 +4998,24 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainTwo(std::vector<Volum
                             primitive->addVertex(minX, maxY, maxZ,
                                                  (roundedCubesFlag ? normalLAS : maxZNormal),
                                                  rgba);
-//                            nt(minX, minY, maxZ, maxX, maxY, maxZ, minX, maxY, maxZ, maxZNormal, "ZMax2");
+#ifdef NORMAL_TEST
+                            nt(minX, minY, maxZ, maxX, maxY, maxZ, minX, maxY, maxZ, maxZNormal, "ZMax2");
+#endif
                         }
                     }
                 }
             }
         }
 
-        std::cout << "Draw voxels NEW: " << count << " of " << (dimI * dimJ * dimK) << std::endl;
-        
         if (primitive->isValid()) {
             GraphicsEngineDataOpenGL::draw(primitive.get());
         }
-//        for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
-//            for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
-//                for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
-//                    if (ciftiLabelFile != NULL) {
-//                        ciftiLabelFile->getVoxelColorInMapForLabelData(labelMapData,
-//                                                                       iVoxel,
-//                                                                       jVoxel,
-//                                                                       kVoxel,
-//                                                                       volInfo.mapIndex,
-//                                                                       displayGroup,
-//                                                                       this->windowTabIndex,
-//                                                                       rgba);
-//                    }
-//                    else {
-//                        volumeFile->getVoxelColorInMap(iVoxel,
-//                                                       jVoxel,
-//                                                       kVoxel,
-//                                                       volInfo.mapIndex,
-//                                                       displayGroup,
-//                                                       this->windowTabIndex,
-//                                                       rgba);
-//                    }
-//                    if (rgba[3] > 0) {
-//                        if (volInfo.opacity < 1.0) {
-//                            rgba[3] *= volInfo.opacity;
-//                        }
-//                        if (rgba[3] > 0) {
-//                            float x = 0, y = 0.0, z = 0.0;
-//                            volumeFile->indexToSpace(iVoxel, jVoxel, kVoxel, x, y, z);
-//
-//                            bool drawIt = true;
-//                            if (doClipping) {
-//                                const float xyz[3] = { x, y, z };
-//                                if ( ! isCoordinateInsideClippingPlanesForStructure(StructureEnum::ALL,
-//                                                                                    xyz)) {
-//                                    drawIt = false;
-//                                }
-//                            }
-//
-//                            if (drawIt) {
-//                                const int64_t offsetRGBA(((dimI * dimJ * kVoxel)
-//                                                          + (dimI * jVoxel)
-//                                                          + iVoxel)
-//                                                         * 4);
-//                                CaretAssertVectorIndex(volumeRGBA, offsetRGBA + 3);
-//                                volumeRGBA[offsetRGBA]     = rgba[0];
-//                                volumeRGBA[offsetRGBA + 1] = rgba[1];
-//                                volumeRGBA[offsetRGBA + 2] = rgba[2];
-//                                volumeRGBA[offsetRGBA + 3] = rgba[3];
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-        
-//        for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
-//            for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
-//                for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
-//                               if (isSelect) {
-//                                    const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
-//                                    this->colorIdentification->addItem(rgba,
-//                                                                       SelectionItemDataTypeEnum::VOXEL,
-//                                                                       idIndex);
-//                                    identificationIndices.push_back(iVol);
-//                                    identificationIndices.push_back(volInfo.mapIndex);
-//                                    identificationIndices.push_back(iVoxel);
-//                                    identificationIndices.push_back(jVoxel);
-//                                    identificationIndices.push_back(kVoxel);
-//                                }
-//
-//                                glPushMatrix();
-//                                glTranslatef(x, y, z);
-//                                switch (volInfo.wholeBrainVoxelDrawingMode) {
-//                                    case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
-//                                        drawCuboid(rgba, cubeSizeDX, cubeSizeDY, cubeSizeDZ);
-//                                        break;
-//                                    case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES:
-//                                        drawRoundedCuboid(rgba, cubeSizeDX, cubeSizeDY, cubeSizeDZ);
-//                                        break;
-//                                    case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
-//                                        break;
-//                                }
-//                                glPopMatrix();
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
     }
     
     if (isSelect) {
+        /*
+         * Process selection
+         */
         int32_t identifiedItemIndex;
         float depth = -1.0;
         this->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
