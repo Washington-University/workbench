@@ -93,7 +93,7 @@ AlgorithmLabelToBorder::AlgorithmLabelToBorder(ProgressObject* myProgObj, const 
     LevelProgress myProgress(myProgObj);
     if (mySurf->getNumberOfNodes() != myLabel->getNumberOfNodes()) throw AlgorithmException("label file does not match surface file number of vertices");
     if (placement < 0.0f || placement > 1.0f || placement != placement) throw AlgorithmException("placement must be between 0 and 1");
-    if (columnNum < -1 || columnNum > myLabel->getNumberOfColumns()) throw AlgorithmException("invalid column specified");
+    if (columnNum < -1 || columnNum >= myLabel->getNumberOfColumns()) throw AlgorithmException("invalid column specified");
     myBorderOut->setStructure(mySurf->getStructure());
     myBorderOut->setNumberOfNodes(mySurf->getNumberOfNodes());
     BorderTracingHelper myHelper(mySurf);

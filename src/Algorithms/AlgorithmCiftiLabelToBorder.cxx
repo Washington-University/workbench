@@ -79,7 +79,7 @@ void AlgorithmCiftiLabelToBorder::useParameters(OperationParameters* myParams, P
     if (columnOpt->m_present)
     {
         //row is first dimension, 0D cifti won't load, so don't need a test
-        column = myCifti->getCiftiXML().getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpt->getString(2));
+        column = myCifti->getCiftiXML().getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpt->getString(1));
         if (column < 0)
         {
             throw AlgorithmException("invalid column specified");
