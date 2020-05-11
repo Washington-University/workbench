@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 #include <vector>
 #include <stdint.h>
 
@@ -93,6 +94,7 @@ namespace caret {
     class ModelVolume;
     class ModelWholeBrain;
     class PaletteFile;
+    class PaletteGroup;
     class RgbaFile;
     class SceneClassAssistant;
     class Scene;
@@ -887,6 +889,11 @@ namespace caret {
         Scene* m_activeScene = NULL;
         
         bool m_surfaceMatchingToAnatomicalFlag = false;
+        
+        std::shared_ptr<PaletteGroup> m_palettesDefaultGroup;
+        
+        std::shared_ptr<PaletteGroup> m_palettesUserCustomGroup;
+        
     };
 
 } // namespace

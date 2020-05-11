@@ -406,6 +406,10 @@ EventTypeEnum::initialize()
                                      "EVENT_PALETTE_GET_BY_NAME",
                                      "Read the selected files in a spec file"));
     
+    enumData.push_back(EventTypeEnum(EVENT_PALETTE_GROUPS_GET,
+                                     "EVENT_PALETTE_GROUPS_GET",
+                                     "Get all palette groups"));
+    
     enumData.push_back(EventTypeEnum(EVENT_SCENE_ACTIVE,
                                      "EVENT_SCENE_ACTIVE",
                                      "Get/Set the active scene"));

@@ -35,6 +35,7 @@ class QListWidgetItem;
 
 namespace caret {
 
+    class PaletteGroup;
     class PaletteNew;
 
     class PaletteSelectionWidget : public QWidget {
@@ -50,6 +51,10 @@ namespace caret {
 
         PaletteSelectionWidget& operator=(const PaletteSelectionWidget&) = delete;
 
+        void updateContent();
+        
+        PaletteGroup* getSelectedPaletteGroup() const;
+        
         const PaletteNew* getSelectedPalette() const;
 
         // ADD_NEW_METHODS_HERE
@@ -60,22 +65,28 @@ namespace caret {
          * @param palette
          *    The palette selected or NULL if no palette selected
          */
-        void paletteSelected(const PaletteNew* palette);
+        void paletteSelectionChanged(const PaletteNew* palette);
         
     private slots:
-        void userPaletteListWidgetActivated(QListWidgetItem* item);
+        
+        void paletteGroupComboBoxActivated(int index);
+        
+        void paletteListWidgetActivated(QListWidgetItem* item);
         
     private:
         void createUserPalettes();
         
+        void updateGroupSelectionComboBox();
+        
+        void updatePaletteSelectionListWidget();
+        
         PalettePixmapPainter::Mode m_pixmapMode = PalettePixmapPainter::Mode::INTERPOLATE_ON;
 
-        QComboBox* m_paletteSourceComboBox;
+        QComboBox* m_paletteGroupComboBox;
         
-        QListWidget* m_userPaletteSelectionListWidget;
+        QListWidget* m_paletteSelectionListWidget;
         
-        std::vector<std::unique_ptr<PaletteNew>> m_userPalettes;
-        
+        std::vector<std::weak_ptr<PaletteGroup>> m_paletteGroups;        
 
         // ADD_NEW_MEMBERS_HERE
 

@@ -81,6 +81,7 @@
 #include "EventModelGetAll.h"
 #include "EventModelGetAllDisplayed.h"
 #include "EventPaletteGetByName.h"
+#include "EventPaletteGroupsGet.h"
 #include "EventProgressUpdate.h"
 #include "EventSceneActive.h"
 #include "EventSpecFileReadDataFiles.h"
@@ -105,6 +106,8 @@
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "PaletteFile.h"
+#include "PaletteGroupStandardPalettes.h"
+#include "PaletteGroupUserCustomPalettes.h"
 #include "RgbaFile.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
@@ -207,6 +210,8 @@ Brain::Brain(const CaretPreferences* caretPreferences)
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_PALETTE_GET_BY_NAME);
     EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_PALETTE_GROUPS_GET);
+    EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_SCENE_ACTIVE);
     
     m_isSpecFileBeingRead = false;
@@ -266,6 +271,10 @@ Brain::Brain(const CaretPreferences* caretPreferences)
     
     m_brainordinateHighlightRegionOfInterest = new BrainordinateRegionOfInterest();
     
+    m_palettesDefaultGroup = std::make_shared<PaletteGroupStandardPalettes>();
+
+    m_palettesUserCustomGroup = std::make_shared<PaletteGroupUserCustomPalettes>();
+
     updateChartModel();
 }
 
@@ -6231,6 +6240,15 @@ Brain::receiveEvent(Event* event)
                 paletteGetByName->setEventProcessed();
             }
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_GROUPS_GET) {
+        EventPaletteGroupsGet* palettesEvent = dynamic_cast<EventPaletteGroupsGet*>(event);
+        CaretAssert(palettesEvent);
+        
+        palettesEvent->addPaletteGroup(m_palettesDefaultGroup);
+        palettesEvent->addPaletteGroup(m_palettesUserCustomGroup);
+
+        palettesEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_SCENE_ACTIVE) {
         EventSceneActive* sceneEvent = dynamic_cast<EventSceneActive*>(event);

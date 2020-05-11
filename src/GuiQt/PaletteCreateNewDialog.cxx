@@ -66,7 +66,7 @@ m_pixmapMode(pixmapMode)
     m_newPaletteRadioButton  = new QRadioButton("New Palette");
     
     m_paletteSelectionWidget = new PaletteSelectionWidget();
-    QObject::connect(m_paletteSelectionWidget, &PaletteSelectionWidget::paletteSelected,
+    QObject::connect(m_paletteSelectionWidget, &PaletteSelectionWidget::paletteSelectionChanged,
                      this, &PaletteCreateNewDialog::paletteSelected);
     
     QButtonGroup* buttonGroup = new QButtonGroup();
@@ -126,7 +126,7 @@ PaletteCreateNewDialog::~PaletteCreateNewDialog()
 /**
  * Called when a  palette is selected
  * @param palette
- *     Palette selected by the user
+ *     Palette selected by the user (may be NULL)
  */
 void
 PaletteCreateNewDialog::paletteSelected(const PaletteNew* palette)

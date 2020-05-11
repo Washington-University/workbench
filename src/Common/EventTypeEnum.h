@@ -210,6 +210,8 @@ public:
         EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW,
         /** Get a palette by name from a palette file */
         EVENT_PALETTE_GET_BY_NAME,
+        /** Get palette groups */
+        EVENT_PALETTE_GROUPS_GET,
         /** Get the active scene */
         EVENT_SCENE_ACTIVE,
         /** Show a dialog containing warnings encountered when reading data files */

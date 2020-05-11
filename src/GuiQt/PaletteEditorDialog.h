@@ -34,6 +34,7 @@
 
 class QButtonGroup;
 class QLabel;
+class QLineEdit;
 class QPushButton;
 class QTabWidget;
 class QToolButton;
@@ -42,12 +43,14 @@ namespace caret {
 
     class CaretRgb;
     
-    class WuQColorEditorWidget;
-    class WuQScrollArea;
-    
     class PaletteEditorRangeWidget;
+    class PaletteGroup;
     class PaletteNew;
     class PaletteSelectionWidget;
+    
+    class WuQColorEditorWidget;
+    class WuQDataEntryDialog;
+    class WuQScrollArea;
     
     class PaletteEditorDialog : public WuQDialogNonModal {
         
@@ -83,6 +86,16 @@ namespace caret {
         
         void loadPalettePushButtonClicked();
         
+        void addPaletteDialogValidateData(WuQDataEntryDialog* addPaletteDialog);
+
+        void deletePushButtonClicked();
+        
+        void renamePushButtonClicked();
+        
+        void importPushButtonClicked();
+        
+        void exportPushButtonClicked();
+        
     private:
         enum class IconType {
             ARROW_LEFT_DOWN,
@@ -91,7 +104,7 @@ namespace caret {
         
         std::unique_ptr<PaletteNew> getPaletteFromEditor() const;
         
-        void loadPalette(const PaletteNew* palette);
+        void loadPaletteIntoEditor(const PaletteNew* palette);
         
         QWidget* createControlPointsWidget();
         
@@ -108,7 +121,7 @@ namespace caret {
         
         void updatePaletteMovementButtons();
         
-        void clearModified();
+        void clearEditorModified();
         
         bool isPaletteModified() const;
         
@@ -141,6 +154,16 @@ namespace caret {
         QPushButton* m_loadPalettePushButton;
         
         QPushButton* m_newPalettePushButton;
+        
+        QLineEdit* m_addPaletteDialogLineEdit = NULL;
+        
+        QPushButton* m_deletePushButton;
+        
+        QPushButton* m_renamePushButton;
+        
+        QPushButton* m_importPushButton;
+        
+        QPushButton* m_exportPushButton;
         
         struct UnmodifiedPalette {
             std::vector<PaletteNew::ScalarColor> m_positiveMapping;

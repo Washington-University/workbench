@@ -26,6 +26,7 @@
 #include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QInputDialog>
 #include <QLabel>
 #include <QListWidget>
 #include <QListWidgetItem>
@@ -38,16 +39,17 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
-#include "EventPaletteGetByName.h"
 #include "GuiManager.h"
 #include "Palette.h"
 #include "PaletteCreateNewDialog.h"
-#include "PaletteFile.h"
 #include "PaletteEditorRangeWidget.h"
+#include "PaletteFile.h"
+#include "PaletteGroup.h"
 #include "PaletteNew.h"
 #include "PalettePixmapPainter.h"
 #include "PaletteSelectionWidget.h"
 #include "WuQColorEditorWidget.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQScrollArea.h"
 #include "WuQtUtilities.h"
@@ -117,7 +119,7 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
         
         const PaletteNew* palette = m_paletteSelectionWidget->getSelectedPalette();
         if (palette != NULL) {
-            loadPalette(palette);
+            loadPaletteIntoEditor(palette);
         }
     }
 }
@@ -156,6 +158,10 @@ PaletteEditorDialog::colorEditorColorChanged(const QColor& color)
 void
 PaletteEditorDialog::updateDialog()
 {
+    m_paletteSelectionWidget->updateContent();
+    
+    updatePaletteMovementButtons();
+    
     adjustSize();
 }
 
@@ -163,7 +169,7 @@ PaletteEditorDialog::updateDialog()
  * Load a copy of the palette into the dialog
  */
 void
-PaletteEditorDialog::loadPalette(const PaletteNew* palette)
+PaletteEditorDialog::loadPaletteIntoEditor(const PaletteNew* palette)
 {
     std::vector<PaletteNew::ScalarColor> positiveScalars;
     std::vector<PaletteNew::ScalarColor> negativeScalars;
@@ -183,15 +189,18 @@ PaletteEditorDialog::loadPalette(const PaletteNew* palette)
     m_negativeRangeWidget->updateContent(negativeScalars);
     m_zeroRangeWidget->updateContent(zeroScalars);
 
-    clearModified();
+    clearEditorModified();
 
     m_positiveRangeWidget->selectFirstControlPoint();
     
     updatePaletteColorBarImage();
 }
 
+/**
+ * Clear modified status of palette in the editor
+ */
 void
-PaletteEditorDialog::clearModified()
+PaletteEditorDialog::clearEditorModified()
 {
     /*
      * Save the initial values so that they can be used to determine if the
@@ -242,7 +251,7 @@ PaletteEditorDialog::getPaletteFromEditor() const
     
     if ((pos.size() >= 2)
         && (neg.size() >= 2)
-        && (zero.size() >= 1)) {
+        && (zero.size() == 1)) {
         PaletteNew* pal = new PaletteNew(pos,
                                          zero[0].color,
                                          neg);
@@ -408,31 +417,39 @@ QWidget*
 PaletteEditorDialog::createPaletteSelectionWidget()
 {
     m_paletteSelectionWidget = new PaletteSelectionWidget();
-    QObject::connect(m_paletteSelectionWidget, &PaletteSelectionWidget::paletteSelected,
+    QObject::connect(m_paletteSelectionWidget, &PaletteSelectionWidget::paletteSelectionChanged,
                      this, &PaletteEditorDialog::paletteSelected);
     
-    QPushButton* renamePushButton = new QPushButton("Rename...");
-    renamePushButton->setToolTip("Rename the selected palette");
-    
-    QPushButton* deletePushButton = new QPushButton("Delete...");
-    deletePushButton->setToolTip("Delete the selected palette");
+    m_renamePushButton = new QPushButton("Rename...");
+    m_renamePushButton->setToolTip("Rename the selected palette");
+    QObject::connect(m_renamePushButton, &QPushButton::clicked,
+                     this, &PaletteEditorDialog::renamePushButtonClicked);
+
+    m_deletePushButton = new QPushButton("Delete...");
+    m_deletePushButton->setToolTip("Delete the selected palette");
+    QObject::connect(m_deletePushButton, &QPushButton::clicked,
+                     this, &PaletteEditorDialog::deletePushButtonClicked);
     
     std::vector<QWidget*> buttonsForSizeMatching;
-    buttonsForSizeMatching.push_back(renamePushButton);
-    buttonsForSizeMatching.push_back(deletePushButton);
+    buttonsForSizeMatching.push_back(m_renamePushButton);
+    buttonsForSizeMatching.push_back(m_deletePushButton);
     
     const bool showImportExportButtonsFlag(true);
-    QPushButton* importPushButton(NULL);
-    QPushButton* exportPushButton(NULL);
+    m_importPushButton = NULL;
+    m_exportPushButton = NULL;
     
     if (showImportExportButtonsFlag) {
-        importPushButton = new QPushButton("Import...");
-        importPushButton->setToolTip("Import a palette from a wb_view palette file");
-        buttonsForSizeMatching.push_back(importPushButton);
+        m_importPushButton = new QPushButton("Import...");
+        m_importPushButton->setToolTip("Import a palette from a wb_view palette file");
+        QObject::connect(m_importPushButton, &QPushButton::clicked,
+                         this, &PaletteEditorDialog::importPushButtonClicked);
+        buttonsForSizeMatching.push_back(m_importPushButton);
         
-        exportPushButton = new QPushButton("Export...");
-        exportPushButton->setToolTip("Export the selected palette to a wb_view palette file");
-        buttonsForSizeMatching.push_back(exportPushButton);
+        m_exportPushButton = new QPushButton("Export...");
+        m_exportPushButton->setToolTip("Export the selected palette to a wb_view palette file");
+        QObject::connect(m_exportPushButton, &QPushButton::clicked,
+                         this, &PaletteEditorDialog::exportPushButtonClicked);
+        buttonsForSizeMatching.push_back(m_exportPushButton);
     }
     
     WuQtUtilities::matchWidgetWidths(buttonsForSizeMatching);
@@ -441,13 +458,13 @@ PaletteEditorDialog::createPaletteSelectionWidget()
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 8, 0);
     layout->addWidget(m_paletteSelectionWidget, 0, Qt::AlignHCenter);
-    layout->addWidget(renamePushButton, 0, Qt::AlignHCenter);
-    layout->addWidget(deletePushButton, 0, Qt::AlignHCenter);
-    if (importPushButton != NULL) {
-        layout->addWidget(importPushButton, 0, Qt::AlignHCenter);
+    layout->addWidget(m_renamePushButton, 0, Qt::AlignHCenter);
+    layout->addWidget(m_deletePushButton, 0, Qt::AlignHCenter);
+    if (m_importPushButton != NULL) {
+        layout->addWidget(m_importPushButton, 0, Qt::AlignHCenter);
     }
-    if (exportPushButton != NULL) {
-        layout->addWidget(exportPushButton, 0, Qt::AlignHCenter);
+    if (m_exportPushButton != NULL) {
+        layout->addWidget(m_exportPushButton, 0, Qt::AlignHCenter);
     }
     layout->addStretch();
     
@@ -457,11 +474,12 @@ PaletteEditorDialog::createPaletteSelectionWidget()
 /**
  * Called when a  palette is selected
  * @param palette
- *     Palette selected by the user
+ *     Palette selected by the user (may be NULL)
  */
 void
 PaletteEditorDialog::paletteSelected(const PaletteNew* /*palette*/)
 {
+    updatePaletteMovementButtons();
 }
 
 /**
@@ -585,7 +603,66 @@ PaletteEditorDialog::createMovePaletteButtonsWidget()
 void
 PaletteEditorDialog::addPalettePushButtonClicked()
 {
-    clearModified();
+    std::unique_ptr<PaletteNew> palette = getPaletteFromEditor();
+    if ( ! palette) {
+        return;
+    }
+    
+    PaletteGroup* paletteGroup = m_paletteSelectionWidget->getSelectedPaletteGroup();
+    if (paletteGroup == NULL) {
+        return;
+    }
+    
+    WuQDataEntryDialog dialog("Add Palette",
+                              m_addPalettePushButton);
+    m_addPaletteDialogLineEdit = dialog.addLineEditWidget("Palette Name");
+    QObject::connect(&dialog, &WuQDataEntryDialog::validateData,
+                     this, &PaletteEditorDialog::addPaletteDialogValidateData);
+    if (dialog.exec() == QInputDialog::Accepted) {
+        palette->setName(m_addPaletteDialogLineEdit->text().trimmed());
+        AString errorMessage;
+        if ( ! paletteGroup->addPalette(*palette,
+                                        errorMessage)) {
+            WuQMessageBox::errorOk(m_addPalettePushButton,
+                                   errorMessage);
+        }
+    }
+    
+    clearEditorModified();
+    
+    m_paletteSelectionWidget->updateContent();
+    updatePaletteMovementButtons();
+}
+
+/**
+ * Called to validate data when adding a palette from editor to a group
+ * @param dataEntryDialog
+ *
+ */
+void
+PaletteEditorDialog::addPaletteDialogValidateData(WuQDataEntryDialog* addPaletteDialog)
+{
+    CaretAssert(addPaletteDialog);
+    bool validFlag(false);
+    QString errorMessage;
+    
+    const AString name = m_addPaletteDialogLineEdit->text().trimmed();
+    if (name.isEmpty()) {
+        errorMessage = "Palette name is missing";
+    }
+    else {
+        PaletteGroup* paletteGroup = m_paletteSelectionWidget->getSelectedPaletteGroup();
+        if (paletteGroup->getPaletteWithName(name) != NULL) {
+            errorMessage = ("Palette names must be unique.  Choose a "
+                            "different palette name.");
+        }
+        else {
+            validFlag = true;
+        }
+
+    }
+    addPaletteDialog->setDataValid(validFlag,
+                                   errorMessage);
 }
 
 /**
@@ -601,10 +678,12 @@ PaletteEditorDialog::newPaletteButtonClicked()
     PaletteCreateNewDialog dialog(m_pixmapMode,
                                   this);
     if (dialog.exec() == PaletteCreateNewDialog::Accepted) {
-        loadPalette(dialog.getPalette());
+        loadPaletteIntoEditor(dialog.getPalette());
         updateDialog();
     }
 }
+
+
 
 /**
  * Called when Replace palette push button is clicked
@@ -612,7 +691,42 @@ PaletteEditorDialog::newPaletteButtonClicked()
 void
 PaletteEditorDialog::replacePalettePushButtonClicked()
 {
-    clearModified();
+    std::unique_ptr<PaletteNew> palette = getPaletteFromEditor();
+    if ( ! palette) {
+        return;
+    }
+    
+    PaletteGroup* paletteGroup = m_paletteSelectionWidget->getSelectedPaletteGroup();
+    if (paletteGroup == NULL) {
+        return;
+    }
+    
+    const PaletteNew* oldPalette = m_paletteSelectionWidget->getSelectedPalette();
+    if (oldPalette == NULL) {
+        return;
+    }
+    
+    const QString name = oldPalette->getName();
+    
+    if ( ! WuQMessageBox::warningOkCancel(m_replacePalettePushButton,
+                                       ("Replace palette "
+                                        + name
+                                        + " ?"))) {
+        return;
+    }
+
+    palette->setName(name);
+    
+    AString errorMessage;
+    if ( ! paletteGroup->replacePalette(*palette,
+                                        errorMessage)) {
+        WuQMessageBox::errorOk(m_replacePalettePushButton,
+                               errorMessage);
+    }
+    clearEditorModified();
+    
+    m_paletteSelectionWidget->updateContent();
+    updatePaletteMovementButtons();
 }
 
 /**
@@ -651,9 +765,90 @@ PaletteEditorDialog::loadPalettePushButtonClicked()
         return;
     }
     
-    loadPalette(m_paletteSelectionWidget->getSelectedPalette());
+    loadPaletteIntoEditor(m_paletteSelectionWidget->getSelectedPalette());
     
     updateDialog();
+}
+
+/**
+ * Called when the delete push button is clicked
+ */
+void
+PaletteEditorDialog::deletePushButtonClicked()
+{
+    PaletteGroup* paletteGroup = m_paletteSelectionWidget->getSelectedPaletteGroup();
+    if (paletteGroup != NULL) {
+        if (paletteGroup->isEditable()) {
+            const PaletteNew* palette = m_paletteSelectionWidget->getSelectedPalette();
+            if (palette != NULL) {
+                if (WuQMessageBox::warningOkCancel(m_deletePushButton,
+                                                   ("Delete palette "
+                                                    + palette->getName()
+                                                    +" ?"))) {
+                    AString errorMessage;
+                    if ( ! paletteGroup->removePalette(palette->getName(),
+                                                       errorMessage)) {
+                        WuQMessageBox::errorOk(m_deletePushButton,
+                                               errorMessage);
+                    }
+                    else {
+                        updateDialog();
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Called when the rename push button is clicked
+ */
+void
+PaletteEditorDialog::renamePushButtonClicked()
+{
+    PaletteGroup* paletteGroup = m_paletteSelectionWidget->getSelectedPaletteGroup();
+    if (paletteGroup != NULL) {
+        if (paletteGroup->isEditable()) {
+            const PaletteNew* palette = m_paletteSelectionWidget->getSelectedPalette();
+            if (palette != NULL) {
+                bool validFlag(false);
+                const AString newName = QInputDialog::getText(m_renamePushButton, "Rename Palette", "New Name",
+                                                              QLineEdit::Normal,
+                                                              palette->getName(),
+                                                              &validFlag).trimmed();
+                if ( ! newName.isEmpty()) {
+                    AString errorMessage;
+                    if ( ! paletteGroup->renamePalette(palette->getName(),
+                                                       newName,
+                                                       errorMessage)) {
+                        WuQMessageBox::errorOk(m_renamePushButton,
+                                               errorMessage);
+                    }
+                    else {
+                        updateDialog();
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Called when the import push button is clicked
+ */
+void
+PaletteEditorDialog::importPushButtonClicked()
+{
+    
+}
+
+/**
+ * Called when the export push button is clicked
+ */
+void
+PaletteEditorDialog::exportPushButtonClicked()
+{
+    
 }
 
 /**
@@ -662,9 +857,34 @@ PaletteEditorDialog::loadPalettePushButtonClicked()
 void
 PaletteEditorDialog::updatePaletteMovementButtons()
 {
-//    m_addPalettePushButton->setEnabled();
-//    m_replacePalettePushButton->setEnabled();
-//    m_loadPalettePushButton->setEnabled();
-//    m_newPalettePushButton->setEnabled();
+    bool editableGroupFlag(false);
+    bool paletteSelectedFlag(false);
+    const PaletteGroup* paletteGroup = m_paletteSelectionWidget->getSelectedPaletteGroup();
+    if (paletteGroup != NULL) {
+        editableGroupFlag = paletteGroup->isEditable();
+        const PaletteNew* palette = m_paletteSelectionWidget->getSelectedPalette();
+        paletteSelectedFlag = (palette != NULL);
+    }
+    
+    const bool validEditorPaletteFlag = (getPaletteFromEditor().get() != NULL);
+    
+    m_addPalettePushButton->setEnabled(editableGroupFlag
+                                       && validEditorPaletteFlag);
+    m_replacePalettePushButton->setEnabled(editableGroupFlag
+                                           && paletteSelectedFlag
+                                           && validEditorPaletteFlag);
+    m_loadPalettePushButton->setEnabled(paletteSelectedFlag);
+    m_newPalettePushButton->setEnabled(true);
+    
+    m_renamePushButton->setEnabled(editableGroupFlag
+                                   && paletteSelectedFlag);
+    m_deletePushButton->setEnabled(editableGroupFlag
+                                   && paletteSelectedFlag);
+    if (m_importPushButton != NULL) {
+        m_importPushButton->setEnabled(editableGroupFlag);
+    }
+    if (m_exportPushButton != NULL) {
+        m_exportPushButton->setEnabled(paletteSelectedFlag);
+    }
 }
 
