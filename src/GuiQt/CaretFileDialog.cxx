@@ -104,6 +104,19 @@ FilterFilesProxyModel::setDataFileTypeForFiltering(const DataFileTypeEnum::Enum 
 }
 
 /**
+ * Must override sort() and then call the model's sort().  Without this, columns sort as strings
+ * and date/size sorting does not work properly.
+ *
+ * From: https://stackoverflow.com/questions/53789779/qfiledialog-with-proxy-model-sort-by-date-actually-uses-alphabetical-order-of-da
+ */
+void
+FilterFilesProxyModel::sort(int column, Qt::SortOrder order)
+{
+    sourceModel()->sort(column,
+                        order);
+}
+
+/**
  * \class caret::CaretFileDialog 
  * \brief Adds additional functionality over Qt's QFileDialog.
  */

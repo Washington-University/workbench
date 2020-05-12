@@ -145,8 +145,9 @@ namespace caret {
             void setDataFileTypeForFiltering(const DataFileTypeEnum::Enum dataFileType);
             
         protected:
-            bool filterAcceptsRow ( int sourceRow, const QModelIndex & sourceParent ) const;
+            bool filterAcceptsRow ( int sourceRow, const QModelIndex & sourceParent ) const override;
             
+            void sort(int column, Qt::SortOrder order) override;
         private:
             DataFileTypeEnum::Enum m_dataFileType;
             

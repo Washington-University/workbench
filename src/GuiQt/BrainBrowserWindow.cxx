@@ -3097,13 +3097,24 @@ BrainBrowserWindow::processDataFileOpen()
     fd.setAcceptMode(CaretFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::ExistingFiles);
-    fd.setViewMode(CaretFileDialog::List);
     fd.selectNameFilter(s_previousOpenFileNameFilter);
     if ( ! s_previousOpenFileDirectory.isEmpty()) {
         FileInformation fileInfo(s_previousOpenFileDirectory);
         if (fileInfo.exists()) {
             fd.setDirectory(s_previousOpenFileDirectory);
         }
+    }
+    
+    /*
+     * First time dialog is displayed, use list order.
+     * Subsequent usage will use "details" or "list" from
+     * whatever user last selected.  This functionality is
+     * handled by the default implementation of QFileDialog.
+     */
+    static bool firstTimeFlag(true);
+    if (firstTimeFlag) {
+        firstTimeFlag = false;
+        fd.setViewMode(CaretFileDialog::List);
     }
     
     if ( ! s_previousOpenFileGeometry.isEmpty()) {
