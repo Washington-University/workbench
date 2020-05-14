@@ -137,7 +137,7 @@ using namespace caret;
  * @param caretPreferences
  *    The caret preferencers used to initialize some components.
  */
-Brain::Brain(const CaretPreferences* caretPreferences)
+Brain::Brain(CaretPreferences* caretPreferences)
 {
     m_annotationManager = new AnnotationManager(this);
     
@@ -274,7 +274,7 @@ Brain::Brain(const CaretPreferences* caretPreferences)
     m_palettesStandardGroup = std::make_shared<PaletteGroupStandardPalettes>();
     m_palettesStandardGroup->loadPalettes();
 
-    m_palettesUserCustomGroup = std::make_shared<PaletteGroupUserCustomPalettes>();
+    m_palettesUserCustomGroup = std::make_shared<PaletteGroupUserCustomPalettes>(caretPreferences);
 
     updateChartModel();
 }

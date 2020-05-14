@@ -31,10 +31,12 @@
 
 namespace caret {
 
+    class CaretPreferences;
+    
     class PaletteGroupUserCustomPalettes : public PaletteGroup {
         
     public:
-        PaletteGroupUserCustomPalettes();
+        PaletteGroupUserCustomPalettes(CaretPreferences* caretPreferences);
         
         virtual ~PaletteGroupUserCustomPalettes();
         
@@ -65,6 +67,9 @@ namespace caret {
                                                  AString& errorMessageOut) override;
         
     private:
+        /* Note: DO NOT delete preferences */
+        CaretPreferences* m_caretPreferences = NULL;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

@@ -24,6 +24,8 @@
 #undef __PALETTE_GROUP_USER_CUSTOM_PALETTES_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretPreferences.h"
+
 using namespace caret;
 
 
@@ -36,11 +38,14 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param caretPreferences
+ *   Pointer to caret preferences
  */
-PaletteGroupUserCustomPalettes::PaletteGroupUserCustomPalettes()
+PaletteGroupUserCustomPalettes::PaletteGroupUserCustomPalettes(CaretPreferences* caretPreferences)
 : PaletteGroup(PaletteGroup::GroupType::USER_CUSTOM)
 {
-    
+    CaretAssert(caretPreferences);
+    m_caretPreferences = caretPreferences;
 }
 
 /**
@@ -110,7 +115,8 @@ bool
 PaletteGroupUserCustomPalettes::removePaletteImplementation(const AString& paletteName,
                                                             AString& errorMessageOut)
 {
-    return false;
+    return m_caretPreferences->paletteUserCustomRemove(paletteName,
+                                                       errorMessageOut);
 }
 
 /**
@@ -156,6 +162,6 @@ PaletteGroupUserCustomPalettes::getPaletteWithName(const AString& paletteName)
 bool
 PaletteGroupUserCustomPalettes::hasPaletteWithName(const AString& paletteName)
 {
-    return false;
+    return m_caretPreferences->paletteUserCustomExists(paletteName);
 }
 

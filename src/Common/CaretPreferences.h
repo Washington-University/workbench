@@ -245,6 +245,29 @@ namespace caret {
         
         std::vector<CaretPreferenceDataValue*> getPreferenceSceneDataValues();
 
+        bool paletteUserCustomExists(const AString& paletteName);
+        
+        void paletteUserCustomGetAll(std::vector<AString>& palettesXmlOut);
+        
+        bool paletteUserCustomGetByName(const AString& paletteName,
+                                        AString& paletteXmlOut);
+        
+        bool paletteUserCustomAdd(const AString& paletteName,
+                                  const AString& paletteXML,
+                                  AString& errorMessageOut);
+        
+        bool paletteUserCustomReplace(const AString& paletteName,
+                                      const AString& paletteXML,
+                                      AString& errorMessageOut);
+        
+        bool paletteUserCustomRemove(const AString& paletteName,
+                                     AString& errorMessageOut);
+        
+        bool paletteUserCustomRename(const AString& paletteName,
+                                     const AString& newPaletteName,
+                                     const AString& paletteXML,
+                                     AString& errorMessageOut);
+
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -291,6 +314,8 @@ namespace caret {
         void removeAllCustomViews();
         
         void writeCustomViews();
+        
+        AString getPaletteKey(const AString& paletteName) const;
         
         mutable QSettings* qSettings;
         
@@ -397,6 +422,7 @@ namespace caret {
         static const AString NAME_MACROS;
         static const AString NAME_MANAGE_FILES_VIEW_FILE_TYPE;
         static const AString NAME_OPENGL_DRAWING_METHOD;
+        static const AString NAME_PALETTE_GROUP_KEY;
         static const AString NAME_PREVIOUS_SCENE_FILES;
         static const AString NAME_PREVIOUS_SPEC_FILES;
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
@@ -446,6 +472,7 @@ namespace caret {
     const AString CaretPreferences::NAME_MACROS = "macros";
     const AString CaretPreferences::NAME_MANAGE_FILES_VIEW_FILE_TYPE     = "manageFilesViewFileType";
     const AString CaretPreferences::NAME_OPENGL_DRAWING_METHOD     = "openGLDrawingMethod";
+    const AString CaretPreferences::NAME_PALETTE_GROUP_KEY = "palette";
     const AString CaretPreferences::NAME_PREVIOUS_SCENE_FILES     = "previousSceneFiles";
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";

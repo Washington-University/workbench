@@ -111,7 +111,7 @@ namespace caret {
     class Brain : public CaretObject, public EventListenerInterface, public SceneableInterface {
 
     public:
-        Brain(const CaretPreferences* caretPreferences);
+        Brain(CaretPreferences* caretPreferences);
         
         ~Brain();
         

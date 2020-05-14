@@ -2464,4 +2464,275 @@ CaretPreferences::getRecentDirectoriesForOpenFileDialogHistory(const bool favori
                           notFavs.end());
 }
 
+/**
+ * Get the key in QSettings for a palette with the given name
+ * @param paletteName
+ *    Name of palette
+ * @return
+ *    Key in the form value-of-NAME_PALETTE_GROUP_KEY/value-of-paletteName
+ *          eg: palette/PSYCH
+ */
+AString
+CaretPreferences::getPaletteKey(const AString& paletteName) const
+{
+    const QString name(paletteName.trimmed());
+    if (name.isEmpty()) {
+        CaretLogSevere("Empty palette name for generation of preferences key");
+        return "";
+    }
+    
+    return (NAME_PALETTE_GROUP_KEY
+            + "/"
+            + name);
+}
+
+
+/**
+ * Test to verify a palette with the given name exists
+ * @param paletteName
+ *    Name of palette
+ * @return True if palette exists, else false.
+ */
+bool
+CaretPreferences::paletteUserCustomExists(const AString& paletteName)
+{
+    return this->qSettings->contains(getPaletteKey(paletteName));
+}
+
+
+/**
+ * Get the XML representation of all user custom palettes
+ * @param palettesXmlOut
+ *     XML text for all palettes
+ */
+void
+CaretPreferences::paletteUserCustomGetAll(std::vector<AString>& palettesXmlOut)
+{
+    palettesXmlOut.clear();
+    
+    /*
+     * Get keys in palette group.  These keys will be just
+     * the name of the palette since the child keys are requested
+     * while the palette group is active
+     */
+    this->qSettings->beginGroup(NAME_PALETTE_GROUP_KEY);
+    QStringList paletteKeyNames = this->qSettings->childKeys();
+    this->qSettings->endGroup();
+    
+    QStringListIterator iter(paletteKeyNames);
+    while (iter.hasNext()) {
+        AString paletteXML;
+        if (paletteUserCustomGetByName(iter.next(),
+                                       paletteXML)) {
+            palettesXmlOut.push_back(paletteXML);
+        }
+    }
+}
+
+/**
+ * Get a user custom palette XML representation by name of palette
+ * @param paletteName
+ *    Name of palette
+ * @param paletteXmlOut
+ *    XML representation of palette
+ * @return True if palette exists and output xml is valid, else false.
+ */
+bool
+CaretPreferences::paletteUserCustomGetByName(const AString& paletteName,
+                                             AString& paletteXmlOut)
+{
+    paletteXmlOut.clear();
+    
+    const QString keyName = getPaletteKey(paletteName);
+    if ( ! keyName.isEmpty()) {
+        QString paletteXML = this->qSettings->value(keyName, "").toString();
+        if (paletteXML.isEmpty()) {
+            CaretLogSevere("Palette XML is empty in Preferences for "
+                           + keyName);
+        }
+        else {
+            paletteXmlOut = paletteXML;
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Add a user custom palette XML representation by name of palette.
+ * Palette names must be unique and attempting to add a palette whose name
+ * matches the name of an existing palette will fail.
+ * @param paletteName
+ *    Name of palette
+ * @param paletteXml
+ *    XML representation of palette
+ * @param errorMessageOut
+ *    Output with error message if adding palette fails.
+ * @return True if palette was added, else false (palette with name exists)
+ */
+bool
+CaretPreferences::paletteUserCustomAdd(const AString& paletteName,
+                                       const AString& paletteXML,
+                                       AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if (paletteName.trimmed().isEmpty()) {
+        errorMessageOut = ("Attempting to add palette with empty name.");
+        return false;
+    }
+    
+    if (paletteUserCustomExists(paletteName)) {
+        errorMessageOut = ("Unable to add palette named \""
+                           + paletteName
+                           + "\".  Palette with that names exists and palette "
+                           "names must be unique.");
+        return false;
+    }
+    
+    if (paletteXML.trimmed().isEmpty()) {
+        errorMessageOut = ("Unable to add palette with name \""
+                           + paletteName
+                           + "\".  Palette XML is empty.");
+        return false;
+    }
+    
+    this->qSettings->setValue(getPaletteKey(paletteName),
+                              paletteXML);
+    return true;
+}
+
+/**
+ * Replace a user custom palette.
+ * A palette with the given name must exist or an error will occur.
+ * @param paletteName
+ *    Name of palette
+ * @param paletteXml
+ *    XML representation of palette
+ * @param errorMessageOut
+ *    Output with error message if replacing palette fails.
+ * @return True if palette was replaced, else false (palette with name does not exist)
+ */
+bool
+CaretPreferences::paletteUserCustomReplace(const AString& paletteName,
+                                           const AString& paletteXML,
+                                           AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if (paletteName.trimmed().isEmpty()) {
+        errorMessageOut = ("Attempting to replace palette with empty name.");
+        return false;
+    }
+    
+    if ( ! paletteUserCustomExists(paletteName)) {
+        errorMessageOut = ("Unable to replace palette named \""
+                           + paletteName
+                           + "\".  Palette with that names does not exist.");
+        return false;
+    }
+    
+    if (paletteXML.trimmed().isEmpty()) {
+        errorMessageOut = ("Unable to replace palette with name \""
+                           + paletteName
+                           + "\".  Palette XML is empty.");
+        return false;
+    }
+    
+    this->qSettings->setValue(getPaletteKey(paletteName),
+                              paletteXML);
+    return true;
+}
+
+/**
+ * Remove a user custom palette.
+ * A palette with the given name must exist or an error will occur.
+ * @param paletteName
+ *    Name of palette
+ * @param errorMessageOut
+ *    Output with error message if removing palette fails.
+ * @return True if palette was removed, else false (palette with name does not exist)
+ */
+bool
+CaretPreferences::paletteUserCustomRemove(const AString& paletteName,
+                                          AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if (paletteName.trimmed().isEmpty()) {
+        errorMessageOut = ("Attempting to remove palette with empty name.");
+        return false;
+    }
+    
+    if ( ! paletteUserCustomExists(paletteName)) {
+        errorMessageOut = ("Unable to remove palette named \""
+                           + paletteName
+                           + "\".  Palette with that names does not exist.");
+        return false;
+    }
+    
+    this->qSettings->remove(getPaletteKey(paletteName));
+    
+    return true;
+}
+
+/**
+ * Rename a user custom palette.
+ * A palette with the given name must exist or an error will occur.
+ * @param paletteName
+ *    Name of palette
+ * @param newPaletteName
+ *    New name of palette
+ * @param paletteXML
+ *    XML for palette with new name
+ * @param errorMessageOut
+ *    Output with error message if renaming palette fails.
+ * @return True if palette was renamed, else false (palette with name does not exist)
+ */
+bool
+CaretPreferences::paletteUserCustomRename(const AString& paletteName,
+                                          const AString& newPaletteName,
+                                          const AString& paletteXML,
+                                          AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    errorMessageOut.clear();
+    
+    if (paletteName.trimmed().isEmpty()) {
+        errorMessageOut = ("Attempting to replace palette but old name is empty");
+        return false;
+    }
+    if (newPaletteName.trimmed().isEmpty()) {
+        errorMessageOut = ("Attempting to replace palette but new name is empty.");
+        return false;
+    }
+
+    if (paletteXML.trimmed().isEmpty()) {
+        errorMessageOut = ("Unable to rename palette from \""
+                           + paletteName
+                           + "\" to \""
+                           + newPaletteName
+                           + ".  Palette XML is empty.");
+        return false;
+    }
+    
+    if ( ! paletteUserCustomExists(newPaletteName)) {
+        errorMessageOut = ("Unable to rename palette from \""
+                           + paletteName
+                           + "\" to \""
+                           + newPaletteName
+                           + ".  Palette with new name exists and palette names "
+                           "must be unique.");
+        return false;
+    }
+    
+    this->qSettings->remove(getPaletteKey(paletteXML));
+    
+    this->qSettings->setValue(getPaletteKey(newPaletteName),
+                              paletteXML);
+    
+    return true;
+}
 
