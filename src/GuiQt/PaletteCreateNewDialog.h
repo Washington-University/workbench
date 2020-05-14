@@ -51,7 +51,7 @@ namespace caret {
 
         PaletteCreateNewDialog& operator=(const PaletteCreateNewDialog&) = delete;
         
-        PaletteNew* getPalette();
+        std::unique_ptr<PaletteNew> getPalette();
         
         static PaletteNew* createPaletteNew(const AString& name,
                                             const int32_t numberOfPositiveControlPoints,
@@ -63,7 +63,7 @@ namespace caret {
         virtual void okButtonClicked();
         
     private slots:
-        void paletteSelected(const PaletteNew* palette);
+        void paletteSelected();
         
         void typeButtonClicked(QAbstractButton* button);
         

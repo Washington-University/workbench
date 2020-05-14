@@ -76,7 +76,7 @@ namespace caret {
         
         void colorEditorColorChanged(const QColor& color);
         
-        void paletteSelected(const PaletteNew* palette);
+        void paletteSelected();
         
         void rangeWidgetDataChanged();
         
@@ -104,7 +104,7 @@ namespace caret {
         
         std::unique_ptr<PaletteNew> getPaletteFromEditor() const;
         
-        void loadPaletteIntoEditor(const PaletteNew* palette);
+        void loadPaletteIntoEditor(const std::unique_ptr<PaletteNew>& palette);
         
         QWidget* createControlPointsWidget();
         

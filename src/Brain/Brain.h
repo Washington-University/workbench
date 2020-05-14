@@ -94,7 +94,8 @@ namespace caret {
     class ModelVolume;
     class ModelWholeBrain;
     class PaletteFile;
-    class PaletteGroup;
+    class PaletteGroupStandardPalettes;
+    class PaletteGroupUserCustomPalettes;
     class RgbaFile;
     class SceneClassAssistant;
     class Scene;
@@ -890,10 +891,9 @@ namespace caret {
         
         bool m_surfaceMatchingToAnatomicalFlag = false;
         
-        std::shared_ptr<PaletteGroup> m_palettesDefaultGroup;
+        std::shared_ptr<PaletteGroupStandardPalettes> m_palettesStandardGroup;
         
-        std::shared_ptr<PaletteGroup> m_palettesUserCustomGroup;
-        
+        std::shared_ptr<PaletteGroupUserCustomPalettes> m_palettesUserCustomGroup;
     };
 
 } // namespace

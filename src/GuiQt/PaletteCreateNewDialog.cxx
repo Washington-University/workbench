@@ -129,7 +129,7 @@ PaletteCreateNewDialog::~PaletteCreateNewDialog()
  *     Palette selected by the user (may be NULL)
  */
 void
-PaletteCreateNewDialog::paletteSelected(const PaletteNew* palette)
+PaletteCreateNewDialog::paletteSelected()
 {
 }
 
@@ -141,8 +141,8 @@ PaletteCreateNewDialog::okButtonClicked()
 {
     if (m_copyPaletteRadioButton->isChecked()) {
         m_palette.reset();
-        const PaletteNew* palette = m_paletteSelectionWidget->getSelectedPalette();
-        if (palette != NULL) {
+        std::unique_ptr<PaletteNew> palette = m_paletteSelectionWidget->getSelectedPalette();
+        if (palette) {
             m_palette.reset(new PaletteNew(*palette));
         }
         else {
@@ -187,16 +187,17 @@ PaletteCreateNewDialog::typeButtonClicked(QAbstractButton* button)
 }
 
 /**
- * @return The new palette
+ * @return The new palette or NULL if no palette
  */
-PaletteNew*
+std::unique_ptr<PaletteNew>
 PaletteCreateNewDialog::getPalette()
 {
+    std::unique_ptr<PaletteNew> paletteOut;
     if (m_palette) {
-        return m_palette.release();
+        paletteOut.reset(new PaletteNew(*m_palette));
     }
     
-    return NULL;
+    return paletteOut;
 }
 
 /**

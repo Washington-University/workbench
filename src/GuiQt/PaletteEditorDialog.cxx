@@ -117,10 +117,8 @@ PaletteEditorDialog::PaletteEditorDialog(QWidget* parent)
         paletteSelectionWidget->setEnabled(false);
         movePaletteButtonsWidget->setEnabled(false);
         
-        const PaletteNew* palette = m_paletteSelectionWidget->getSelectedPalette();
-        if (palette != NULL) {
-            loadPaletteIntoEditor(palette);
-        }
+        std::unique_ptr<PaletteNew> palette = m_paletteSelectionWidget->getSelectedPalette();
+        loadPaletteIntoEditor(palette);
     }
 }
 
@@ -167,15 +165,17 @@ PaletteEditorDialog::updateDialog()
 
 /**
  * Load a copy of the palette into the dialog
+ * @param palette
+ *     Palette to load in editor
  */
 void
-PaletteEditorDialog::loadPaletteIntoEditor(const PaletteNew* palette)
+PaletteEditorDialog::loadPaletteIntoEditor(const std::unique_ptr<PaletteNew>& palette)
 {
     std::vector<PaletteNew::ScalarColor> positiveScalars;
     std::vector<PaletteNew::ScalarColor> negativeScalars;
     std::vector<PaletteNew::ScalarColor> zeroScalars;
 
-    if (palette != NULL) {
+    if (palette) {
         positiveScalars = palette->getPosRange();
         negativeScalars = palette->getNegRange();
         
@@ -473,11 +473,9 @@ PaletteEditorDialog::createPaletteSelectionWidget()
 
 /**
  * Called when a  palette is selected
- * @param palette
- *     Palette selected by the user (may be NULL)
  */
 void
-PaletteEditorDialog::paletteSelected(const PaletteNew* /*palette*/)
+PaletteEditorDialog::paletteSelected()
 {
     updatePaletteMovementButtons();
 }
@@ -652,7 +650,7 @@ PaletteEditorDialog::addPaletteDialogValidateData(WuQDataEntryDialog* addPalette
     }
     else {
         PaletteGroup* paletteGroup = m_paletteSelectionWidget->getSelectedPaletteGroup();
-        if (paletteGroup->getPaletteWithName(name) != NULL) {
+        if (paletteGroup->hasPaletteWithName(name)) {
             errorMessage = ("Palette names must be unique.  Choose a "
                             "different palette name.");
         }
@@ -701,8 +699,8 @@ PaletteEditorDialog::replacePalettePushButtonClicked()
         return;
     }
     
-    const PaletteNew* oldPalette = m_paletteSelectionWidget->getSelectedPalette();
-    if (oldPalette == NULL) {
+    std::unique_ptr<PaletteNew> oldPalette = m_paletteSelectionWidget->getSelectedPalette();
+    if ( ! oldPalette) {
         return;
     }
     
@@ -779,8 +777,8 @@ PaletteEditorDialog::deletePushButtonClicked()
     PaletteGroup* paletteGroup = m_paletteSelectionWidget->getSelectedPaletteGroup();
     if (paletteGroup != NULL) {
         if (paletteGroup->isEditable()) {
-            const PaletteNew* palette = m_paletteSelectionWidget->getSelectedPalette();
-            if (palette != NULL) {
+            std::unique_ptr<PaletteNew> palette = m_paletteSelectionWidget->getSelectedPalette();
+            if (palette) {
                 if (WuQMessageBox::warningOkCancel(m_deletePushButton,
                                                    ("Delete palette "
                                                     + palette->getName()
@@ -809,8 +807,8 @@ PaletteEditorDialog::renamePushButtonClicked()
     PaletteGroup* paletteGroup = m_paletteSelectionWidget->getSelectedPaletteGroup();
     if (paletteGroup != NULL) {
         if (paletteGroup->isEditable()) {
-            const PaletteNew* palette = m_paletteSelectionWidget->getSelectedPalette();
-            if (palette != NULL) {
+            std::unique_ptr<PaletteNew> palette = m_paletteSelectionWidget->getSelectedPalette();
+            if (palette) {
                 bool validFlag(false);
                 const AString newName = QInputDialog::getText(m_renamePushButton, "Rename Palette", "New Name",
                                                               QLineEdit::Normal,
@@ -862,8 +860,8 @@ PaletteEditorDialog::updatePaletteMovementButtons()
     const PaletteGroup* paletteGroup = m_paletteSelectionWidget->getSelectedPaletteGroup();
     if (paletteGroup != NULL) {
         editableGroupFlag = paletteGroup->isEditable();
-        const PaletteNew* palette = m_paletteSelectionWidget->getSelectedPalette();
-        paletteSelectedFlag = (palette != NULL);
+        std::unique_ptr<PaletteNew> palette = m_paletteSelectionWidget->getSelectedPalette();
+        paletteSelectedFlag = (palette.get() != NULL);
     }
     
     const bool validEditorPaletteFlag = (getPaletteFromEditor().get() != NULL);

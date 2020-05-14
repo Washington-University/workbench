@@ -42,9 +42,28 @@ namespace caret {
 
         PaletteGroupUserCustomPalettes& operator=(const PaletteGroupUserCustomPalettes&) = delete;
         
+        virtual void getPalettes(std::vector<PaletteNew>& palettesOut) const override;
+        
+        virtual std::unique_ptr<PaletteNew> getPaletteWithName(const AString& paletteName) override;
+
+        virtual bool hasPaletteWithName(const AString& paletteName) override;
 
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        virtual bool addPaletteImplementation(const PaletteNew& palette,
+                                              AString& errorMessageOut) override;
+        
+        virtual bool replacePaletteImplementation(const PaletteNew& palette,
+                                                  AString& errorMessageOut) override;
+        
+        virtual bool removePaletteImplementation(const AString& paletteName,
+                                                 AString& errorMessageOut) override;
+        
+        virtual bool renamePaletteImplementation(const AString& paletteName,
+                                                 const AString& newPaletteName,
+                                                 AString& errorMessageOut) override;
+        
     private:
         // ADD_NEW_MEMBERS_HERE
 

@@ -55,7 +55,7 @@ namespace caret {
         
         PaletteGroup* getSelectedPaletteGroup() const;
         
-        const PaletteNew* getSelectedPalette() const;
+        std::unique_ptr<PaletteNew> getSelectedPalette() const;
 
         // ADD_NEW_METHODS_HERE
 
@@ -65,7 +65,7 @@ namespace caret {
          * @param palette
          *    The palette selected or NULL if no palette selected
          */
-        void paletteSelectionChanged(const PaletteNew* palette);
+        void paletteSelectionChanged();
         
     private slots:
         

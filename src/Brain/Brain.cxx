@@ -271,7 +271,8 @@ Brain::Brain(const CaretPreferences* caretPreferences)
     
     m_brainordinateHighlightRegionOfInterest = new BrainordinateRegionOfInterest();
     
-    m_palettesDefaultGroup = std::make_shared<PaletteGroupStandardPalettes>();
+    m_palettesStandardGroup = std::make_shared<PaletteGroupStandardPalettes>();
+    m_palettesStandardGroup->loadPalettes();
 
     m_palettesUserCustomGroup = std::make_shared<PaletteGroupUserCustomPalettes>();
 
@@ -6246,7 +6247,7 @@ Brain::receiveEvent(Event* event)
         EventPaletteGroupsGet* palettesEvent = dynamic_cast<EventPaletteGroupsGet*>(event);
         CaretAssert(palettesEvent);
         
-        palettesEvent->addPaletteGroup(m_palettesDefaultGroup);
+        palettesEvent->addPaletteGroup(m_palettesStandardGroup);
         palettesEvent->addPaletteGroup(m_palettesUserCustomGroup);
 
         palettesEvent->setEventProcessed();

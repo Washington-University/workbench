@@ -236,7 +236,7 @@ PaletteSelectionWidget::getSelectedPaletteGroup() const
 /**
  * @return Palette selected or NULL if no palette selected
  */
-const PaletteNew*
+std::unique_ptr<PaletteNew>
 PaletteSelectionWidget::getSelectedPalette() const
 {
     PaletteGroup* selectedGroup = getSelectedPaletteGroup();
@@ -250,7 +250,7 @@ PaletteSelectionWidget::getSelectedPalette() const
         selectedPaletteName = selectedItem->text();
     }
     
-    const PaletteNew* palette = selectedGroup->getPaletteWithName(selectedPaletteName);
+    std::unique_ptr<PaletteNew> palette = selectedGroup->getPaletteWithName(selectedPaletteName);
     
 //    const int32_t paletteIndex = m_paletteSelectionListWidget->currentRow();
 //    if ((paletteIndex >= 0)
@@ -263,11 +263,10 @@ PaletteSelectionWidget::getSelectedPalette() const
 }
 
 void
-PaletteSelectionWidget::paletteGroupComboBoxActivated(int index)
+PaletteSelectionWidget::paletteGroupComboBoxActivated(int /*index*/)
 {
     updatePaletteSelectionListWidget();
-    const PaletteNew* palette = getSelectedPalette();
-    emit paletteSelectionChanged(palette);
+    emit paletteSelectionChanged();
 }
 
 /**
@@ -278,8 +277,7 @@ PaletteSelectionWidget::paletteGroupComboBoxActivated(int index)
 void
 PaletteSelectionWidget::paletteListWidgetActivated(QListWidgetItem* /*item*/)
 {
-    const PaletteNew* palette = getSelectedPalette();
-    emit paletteSelectionChanged(palette);
+    emit paletteSelectionChanged();
 }
 
 /**
