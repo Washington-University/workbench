@@ -97,7 +97,6 @@ m_mode(mode)
                                       pixmapWidth,
                                       pixmapHeight);
         case Mode::INTERPOLATE_ON_LINES_AT_SCALARS:
-            CaretLogWarning("Scalar lines on interpolation not supported for old palette");
             createPalettePixmapInterpolateOn(palette,
                                              pixmapWidth,
                                              pixmapHeight);
