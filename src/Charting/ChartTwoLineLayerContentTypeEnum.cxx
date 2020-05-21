@@ -1,7 +1,7 @@
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2016 Washington University School of Medicine
+ *  Copyright (C) 2017 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __CHART_TWO_DATA_TYPE_ENUM_DECLARE__
-#include "ChartTwoDataTypeEnum.h"
-#undef __CHART_TWO_DATA_TYPE_ENUM_DECLARE__
+#define __CHART_TWO_LINE_LAYER_CONTENT_TYPE_ENUM_DECLARE__
+#include "ChartTwoLineLayerContentTypeEnum.h"
+#undef __CHART_TWO_LINE_LAYER_CONTENT_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartTwoDataTypeEnum 
- * \brief ChartDrawingType
+ * \class caret::ChartTwoLineLayerContentTypeEnum
+ * \brief Type of content for line series charting.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_chartDrawingTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_ChartTwoLineLayerContentTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void chartDrawingTypeEnumComboBoxItemActivated();
+ *             void ChartTwoLineLayerContentTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "ChartTwoDataTypeEnum.h"
+ *         #include "ChartTwoLineLayerContentTypeEnum.h"
  * 
  *     Instatiate:
- *         m_chartDrawingTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_chartDrawingTypeEnumComboBox->setup<ChartTwoDataTypeEnum,ChartTwoDataTypeEnum::Enum>();
+ *         m_ChartTwoLineLayerContentTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_ChartTwoLineLayerContentTypeEnumComboBox->setup<ChartTwoLineLayerContentTypeEnum,ChartTwoLineLayerContentTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_chartDrawingTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(chartDrawingTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_ChartTwoLineLayerContentTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(ChartTwoLineLayerContentTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_chartDrawingTypeEnumComboBox->setSelectedItem<ChartTwoDataTypeEnum,ChartTwoDataTypeEnum::Enum>(NEW_VALUE);
+ *         m_ChartTwoLineLayerContentTypeEnumComboBox->setSelectedItem<ChartTwoLineLayerContentTypeEnum,ChartTwoLineLayerContentTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const ChartTwoDataTypeEnum::Enum VARIABLE = m_chartDrawingTypeEnumComboBox->getSelectedItem<ChartTwoDataTypeEnum,ChartTwoDataTypeEnum::Enum>();
+ *         const ChartTwoLineLayerContentTypeEnum::Enum VARIABLE = m_ChartTwoLineLayerContentTypeEnumComboBox->getSelectedItem<ChartTwoLineLayerContentTypeEnum,ChartTwoLineLayerContentTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-ChartTwoDataTypeEnum::ChartTwoDataTypeEnum(const Enum enumValue,
+ChartTwoLineLayerContentTypeEnum::ChartTwoLineLayerContentTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ ChartTwoDataTypeEnum::ChartTwoDataTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-ChartTwoDataTypeEnum::~ChartTwoDataTypeEnum()
+ChartTwoLineLayerContentTypeEnum::~ChartTwoLineLayerContentTypeEnum()
 {
 }
 
@@ -99,36 +99,25 @@ ChartTwoDataTypeEnum::~ChartTwoDataTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-ChartTwoDataTypeEnum::initialize()
+ChartTwoLineLayerContentTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(ChartTwoDataTypeEnum(CHART_DATA_TYPE_INVALID,
-                                    "CHART_DATA_TYPE_INVALID",
-                                    "Invalid"));
+    enumData.push_back(ChartTwoLineLayerContentTypeEnum(LINE_LAYER_CONTENT_UNSUPPORTED,
+                                    "LINE_LAYER_CONTENT_UNSUPPORTED",
+                                    "Unsupported"));
     
-    enumData.push_back(ChartTwoDataTypeEnum(CHART_DATA_TYPE_HISTOGRAM,
-                                    "CHART_DATA_TYPE_HISTOGRAM",
-                                    "Histogram"));
+    enumData.push_back(ChartTwoLineLayerContentTypeEnum(LINE_LAYER_CONTENT_BRAINORDINATE_DATA,
+                                    "LINE_LAYER_CONTENT_BRAINORDINATE_DATA",
+                                    "Brainordinate Data"));
     
-    enumData.push_back(ChartTwoDataTypeEnum(CHART_DATA_TYPE_LINE_LAYER,
-                                            "CHART_DATA_TYPE_LINE_LAYER",
-                                            "Line Layer"));
+    enumData.push_back(ChartTwoLineLayerContentTypeEnum(LINE_LAYER_CONTENT_ROW_SCALAR_DATA,
+                                    "LINE_LAYER_CONTENT_ROW_SCALAR_DATA", 
+                                    "Row Scalar Data"));
     
-    enumData.push_back(ChartTwoDataTypeEnum(CHART_DATA_TYPE_LINE_SERIES,
-                                    "CHART_DATA_TYPE_LINE_SERIES",
-                                    "Line Series"));
-    
-    enumData.push_back(ChartTwoDataTypeEnum(CHART_DATA_TYPE_MATRIX,
-                                    "CHART_DATA_TYPE_MATRIX",
-                                    "Matrix"));
-    
-    /* If this fails (chart types change), update value for NUMBER_OF_CHART_DATA_TYPES */
-    CaretAssertMessage(enumData.size() == NUMBER_OF_CHART_DATA_TYPES,
-                       "Have chart types changed?");
 }
 
 /**
@@ -138,14 +127,14 @@ ChartTwoDataTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const ChartTwoDataTypeEnum*
-ChartTwoDataTypeEnum::findData(const Enum enumValue)
+const ChartTwoLineLayerContentTypeEnum*
+ChartTwoLineLayerContentTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const ChartTwoDataTypeEnum* d = &enumData[i];
+        const ChartTwoLineLayerContentTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -162,10 +151,10 @@ ChartTwoDataTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-ChartTwoDataTypeEnum::toName(Enum enumValue) {
+ChartTwoLineLayerContentTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ChartTwoDataTypeEnum* enumInstance = findData(enumValue);
+    const ChartTwoLineLayerContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -179,18 +168,18 @@ ChartTwoDataTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ChartTwoDataTypeEnum::Enum 
-ChartTwoDataTypeEnum::fromName(const AString& name, bool* isValidOut)
+ChartTwoLineLayerContentTypeEnum::Enum
+ChartTwoLineLayerContentTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ChartTwoDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoLineLayerContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartTwoDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoLineLayerContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartTwoDataTypeEnum& d = *iter;
+        const ChartTwoLineLayerContentTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -202,7 +191,7 @@ ChartTwoDataTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ChartTwoDataTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ChartTwoLineLayerContentTypeEnum"));
     }
     return enumValue;
 }
@@ -215,10 +204,10 @@ ChartTwoDataTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-ChartTwoDataTypeEnum::toGuiName(Enum enumValue) {
+ChartTwoLineLayerContentTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ChartTwoDataTypeEnum* enumInstance = findData(enumValue);
+    const ChartTwoLineLayerContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -232,18 +221,18 @@ ChartTwoDataTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ChartTwoDataTypeEnum::Enum 
-ChartTwoDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ChartTwoLineLayerContentTypeEnum::Enum
+ChartTwoLineLayerContentTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ChartTwoDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoLineLayerContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartTwoDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoLineLayerContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartTwoDataTypeEnum& d = *iter;
+        const ChartTwoLineLayerContentTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -255,7 +244,7 @@ ChartTwoDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartTwoDataTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartTwoLineLayerContentTypeEnum"));
     }
     return enumValue;
 }
@@ -267,10 +256,10 @@ ChartTwoDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-ChartTwoDataTypeEnum::toIntegerCode(Enum enumValue)
+ChartTwoLineLayerContentTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const ChartTwoDataTypeEnum* enumInstance = findData(enumValue);
+    const ChartTwoLineLayerContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -285,18 +274,18 @@ ChartTwoDataTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-ChartTwoDataTypeEnum::Enum
-ChartTwoDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ChartTwoLineLayerContentTypeEnum::Enum
+ChartTwoLineLayerContentTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ChartTwoDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoLineLayerContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<ChartTwoDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoLineLayerContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ChartTwoDataTypeEnum& enumInstance = *iter;
+        const ChartTwoLineLayerContentTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -308,7 +297,7 @@ ChartTwoDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOu
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ChartTwoDataTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ChartTwoLineLayerContentTypeEnum"));
     }
     return enumValue;
 }
@@ -321,13 +310,13 @@ ChartTwoDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOu
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-ChartTwoDataTypeEnum::getAllEnums(std::vector<ChartTwoDataTypeEnum::Enum>& allEnums)
+ChartTwoLineLayerContentTypeEnum::getAllEnums(std::vector<ChartTwoLineLayerContentTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<ChartTwoDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoLineLayerContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -343,16 +332,16 @@ ChartTwoDataTypeEnum::getAllEnums(std::vector<ChartTwoDataTypeEnum::Enum>& allEn
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ChartTwoDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ChartTwoLineLayerContentTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<ChartTwoDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoLineLayerContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(ChartTwoDataTypeEnum::toName(iter->enumValue));
+        allNames.push_back(ChartTwoLineLayerContentTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -369,16 +358,16 @@ ChartTwoDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isS
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ChartTwoDataTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ChartTwoLineLayerContentTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<ChartTwoDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoLineLayerContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(ChartTwoDataTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ChartTwoLineLayerContentTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

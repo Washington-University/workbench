@@ -39,6 +39,7 @@ namespace caret {
     class SelectionItemChartTimeSeries;
     class SelectionItemChartTwoHistogram;
     class SelectionItemChartTwoLabel;
+    class SelectionItemChartTwoLineLayer;
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
     class SelectionItemCiftiConnectivityMatrixRowColumn;
@@ -139,6 +140,10 @@ namespace caret {
         
         const SelectionItemChartTwoHistogram* getChartTwoHistogramIdentification() const;
         
+        SelectionItemChartTwoLineLayer* getChartTwoLineLayerIdentification();
+        
+        const SelectionItemChartTwoLineLayer* getChartTwoLineLayerIdentification() const;
+        
         SelectionItemChartTwoLineSeries* getChartTwoLineSeriesIdentification();
         
         const SelectionItemChartTwoLineSeries* getChartTwoLineSeriesIdentification() const;
@@ -206,6 +211,8 @@ namespace caret {
         std::unique_ptr<SelectionItemChartTwoHistogram>  m_chartTwoHistogramIdentification;
         
         std::unique_ptr<SelectionItemChartTwoLineSeries> m_chartTwoLineSeriesIdentification;
+        
+        std::unique_ptr<SelectionItemChartTwoLineLayer> m_chartTwoLineLayerIdentification;
         
         std::unique_ptr<SelectionItemChartTwoLabel> m_chartTwoLabelIdentification;
         

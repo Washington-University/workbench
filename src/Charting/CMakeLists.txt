@@ -44,6 +44,7 @@ ChartTwoCompoundDataType.h
 ChartTwoDataCartesian.h
 ChartTwoDataTypeEnum.h
 ChartTwoHistogramContentTypeEnum.h
+ChartTwoLineLayerContentTypeEnum.h
 ChartTwoLineSeriesContentTypeEnum.h
 ChartTwoMatrixContentTypeEnum.h
 ChartTwoMatrixDisplayProperties.h
@@ -86,6 +87,7 @@ ChartTwoCompoundDataType.cxx
 ChartTwoDataCartesian.cxx
 ChartTwoDataTypeEnum.cxx
 ChartTwoHistogramContentTypeEnum.cxx
+ChartTwoLineLayerContentTypeEnum.cxx
 ChartTwoLineSeriesContentTypeEnum.cxx
 ChartTwoMatrixContentTypeEnum.cxx
 ChartTwoMatrixDisplayProperties.cxx

@@ -51,6 +51,7 @@ ChartableMatrixSeriesInterface.h
 ChartableTwoFileDelegate.h
 ChartableTwoFileBaseChart.h
 ChartableTwoFileHistogramChart.h
+ChartableTwoFileLineLayerChart.h
 ChartableTwoFileLineSeriesChart.h
 ChartableTwoFileMatrixChart.h
 CiftiBrainordinateDataSeriesFile.h
@@ -189,6 +190,7 @@ ChartableMatrixInterface.cxx
 ChartableTwoFileDelegate.cxx
 ChartableTwoFileBaseChart.cxx
 ChartableTwoFileHistogramChart.cxx
+ChartableTwoFileLineLayerChart.cxx
 ChartableTwoFileLineSeriesChart.cxx
 ChartableTwoFileMatrixChart.cxx
 CiftiBrainordinateDataSeriesFile.cxx

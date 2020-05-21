@@ -30,6 +30,7 @@
 #include "CaretMappableDataFile.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
+#include "ChartableTwoFileLineLayerChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
 #include "ChartTwoLineSeriesHistory.h"
@@ -88,6 +89,8 @@ m_overlayIndex(overlayIndex)
     m_selectedHistogramMapIndex = -1;
     m_allHistogramMapsSelectedFlag = false;
 
+    m_selectedLineLayerMapIndex = -1;
+    
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_enabled", &m_enabled);
     m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
@@ -99,6 +102,7 @@ m_overlayIndex(overlayIndex)
                                                                               &m_cartesianVerticalAxisLocation);
     m_sceneAssistant->add("m_selectedHistogramMapIndex", &m_selectedHistogramMapIndex);
     m_sceneAssistant->add("m_allHistogramMapsSelectedFlag", &m_allHistogramMapsSelectedFlag);
+    m_sceneAssistant->add("m_selectedLineLayerMapIndex", &m_selectedLineLayerMapIndex);
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE);
@@ -363,6 +367,7 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
     m_selectedMapFile = overlay->m_selectedMapFile;
     m_selectedHistogramMapIndex = overlay->m_selectedHistogramMapIndex;
     m_allHistogramMapsSelectedFlag = overlay->m_allHistogramMapsSelectedFlag;
+    m_selectedLineLayerMapIndex = overlay->m_selectedLineLayerMapIndex;
 }
 
 /**
@@ -395,6 +400,8 @@ ChartTwoOverlay::isHistorySupported() const
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             supportedFlag = true;
@@ -455,6 +462,9 @@ ChartTwoOverlay::isMapYokingSupportedPrivate(const CaretMappableDataFile* mapFil
                 || mapFile->isVolumeMappable()) {
                 supportedFlag = true;
             }
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            supportedFlag = true;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
@@ -550,7 +560,6 @@ ChartTwoOverlay::getBounds(BoundingBox& boundingBoxOut) const
             const Histogram* histogram = histogramChart->getHistogramForChartDrawing(selectedIndex,
                                                                                      (isAllMapsSupported()
                                                                                       && isAllMapsSelected()));
-            //CaretAssert(histogram);
             if (histogram != NULL) {
                 float histogramMinX = 0.0, histogramMaxX = 0.0, histogramMaxY = 0.0;
                 histogram->getRangeAndMaxDisplayHeight(histogramMinX, histogramMaxX, histogramMaxY);
@@ -564,6 +573,14 @@ ChartTwoOverlay::getBounds(BoundingBox& boundingBoxOut) const
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+        {
+            const ChartableTwoFileLineLayerChart* layerChart = chartDelegate->getLineLayerCharting();
+            validFlag = layerChart->getBounds(selectedIndex,
+                                              boundingBoxOut);
+            
+        }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
         {
@@ -802,6 +819,9 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                         m_selectedHistogramMapIndex = 0;
                         break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                        m_selectedLineLayerMapIndex = 0;
+                        break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
@@ -838,6 +858,22 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
                 selectedIndexOut     = m_selectedHistogramMapIndex;
             }
                 break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                numMaps = m_selectedMapFile->getNumberOfMaps();
+                if (selectedFileMapNamesOut != NULL) {
+                    for (int32_t i = 0; i < numMaps; i++) {
+                        selectedFileMapNamesOut->push_back(m_selectedMapFile->getMapName(i));
+                    }
+                }
+                if (m_selectedLineLayerMapIndex >= numMaps) {
+                    m_selectedLineLayerMapIndex = numMaps - 1;
+                }
+                if (m_selectedLineLayerMapIndex < 0) {
+                    m_selectedLineLayerMapIndex = 0;
+                }
+                selectedIndexTypeOut = SelectedIndexType::MAP;
+                selectedIndexOut     = m_selectedLineLayerMapIndex;
+                break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             {
                 /*
@@ -862,50 +898,6 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
             {
                 ChartableTwoFileDelegate* chartDelegate = m_selectedMapFile->getChartingDelegate();
                 matrixChart = chartDelegate->getMatrixCharting();
-//                const ChartableTwoFileMatrixChart* matrixChart = chartDelegate->getMatrixCharting();
-//                CaretAssert(matrixChart);
-//                int32_t numRows = 0;
-//                int32_t numCols = 0;
-//                matrixChart->getMatrixDimensions(numRows, numCols);
-//                
-//                ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension;
-//                std::vector<int32_t> columnIndices;
-//                std::vector<int32_t> rowIndices;
-//                matrixChart->getSelectedRowColumnIndices(m_parentChartTwoOverlaySet->m_tabIndex,
-//                                                         rowColumnDimension,
-//                                                         rowIndices,
-//                                                         columnIndices);
-//                
-//                switch (rowColumnDimension) {
-//                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
-//                        numMaps = numCols;
-//                        if ( ! columnIndices.empty()) {
-//                            selectedIndexTypeOut = SelectedIndexType::COLUMN;
-//                            selectedIndexOut     = columnIndices[0];
-//                        }
-//                        if (matrixChart->hasColumnSelection()) {
-//                            if (selectedFileMapNamesOut != NULL) {
-//                                for (int32_t i = 0; i < numMaps; i++) {
-//                                    selectedFileMapNamesOut->push_back(matrixChart->getColumnName(i));
-//                                }
-//                            }
-//                        }
-//                        break;
-//                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
-//                        numMaps = numRows;
-//                        if ( ! rowIndices.empty()) {
-//                            selectedIndexTypeOut = SelectedIndexType::ROW;
-//                            selectedIndexOut     = rowIndices[0];
-//                        }
-//                        if (matrixChart->hasRowSelection()) {
-//                            if (selectedFileMapNamesOut != NULL) {
-//                                for (int32_t i = 0; i < numMaps; i++) {
-//                                    selectedFileMapNamesOut->push_back(matrixChart->getRowName(i));
-//                                }
-//                            }
-//                        }
-//                        break;
-//                }
             }
                 break;
         }
@@ -1004,6 +996,11 @@ ChartTwoOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                 if (selectedMapIndex >= 0) {
                     m_selectedHistogramMapIndex = selectedMapIndex;
+                }
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                if (selectedMapIndex >= 0) {
+                    m_selectedLineLayerMapIndex = selectedMapIndex;
                 }
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
@@ -1181,6 +1178,8 @@ ChartTwoOverlay::isAllMapsSupported() const
             }
         }
             break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
@@ -1248,6 +1247,8 @@ ChartTwoOverlay::isMatrixTriangularViewingModeSupported() const
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             break;
@@ -1319,6 +1320,9 @@ ChartTwoOverlay::isCartesianVerticalAxisLocationSupported() const
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
             return true;
             break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            return true;
+            break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             return true;
             break;
@@ -1353,7 +1357,6 @@ ChartTwoOverlay::saveToScene(const SceneAttributes* sceneAttributes,
     
     std::vector<CaretMappableDataFile*> mapFiles;
     CaretMappableDataFile* selectedMapFile = NULL;
-    //AString selectedMapUniqueID;
     SelectedIndexType selectedIndexType = SelectedIndexType::INVALID;
     int32_t selectedMapIndex;
     getSelectionData(mapFiles,
@@ -1575,6 +1578,9 @@ ChartTwoOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                         defaultMapIndex = 0;
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                        defaultMapIndex = 0;
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                         defaultMapIndex = 0;

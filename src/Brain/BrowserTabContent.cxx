@@ -162,7 +162,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     
     m_clippingPlaneGroup = new ClippingPlaneGroup();
     
-    m_manualLayoutBrowserTabAnnotation.reset(new AnnotationBrowserTab(AnnotationAttributesDefaultTypeEnum::NORMAL)); //;m_tabNumber));
+    m_manualLayoutBrowserTabAnnotation.reset(new AnnotationBrowserTab(AnnotationAttributesDefaultTypeEnum::NORMAL));
     m_manualLayoutBrowserTabAnnotation->setBrowserTabContent(this,
                                                              m_tabNumber);
     
@@ -1619,6 +1619,8 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
                                 break;
                             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                                 break;
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                                break;
                             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                                 break;
                             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
@@ -1844,6 +1846,8 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
                         }
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                            break;
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                             break;

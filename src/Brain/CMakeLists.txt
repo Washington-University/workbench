@@ -154,6 +154,7 @@ SelectionItemChartMatrix.h
 SelectionItemChartTimeSeries.h
 SelectionItemChartTwoHistogram.h
 SelectionItemChartTwoLabel.h
+SelectionItemChartTwoLineLayer.h
 SelectionItemChartTwoLineSeries.h
 SelectionItemChartTwoMatrix.h
 SelectionItemCiftiConnectivityMatrixRowColumn.h
@@ -322,6 +323,7 @@ SelectionItemChartMatrix.cxx
 SelectionItemChartTimeSeries.cxx
 SelectionItemChartTwoHistogram.cxx
 SelectionItemChartTwoLabel.cxx
+SelectionItemChartTwoLineLayer.cxx
 SelectionItemChartTwoLineSeries.cxx
 SelectionItemChartTwoMatrix.cxx
 SelectionItemCiftiConnectivityMatrixRowColumn.cxx

@@ -108,6 +108,26 @@ ChartTwoCompoundDataType::newInstanceForHistogram(const int32_t histogramNumberO
 }
 
 /**
+ * @return A new instance for a line-layer chart.
+ *
+ * @param lineChartUnitsAxisX
+ *    Line chart x-axis units.
+ * @param lineChartNumberOfElementsAxisX
+ *    Line chart x-axis number of elements.
+ */
+ChartTwoCompoundDataType
+ChartTwoCompoundDataType::newInstanceForLineLayer(const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
+                                                  const int32_t lineChartNumberOfElementsAxisX)
+{
+    return ChartTwoCompoundDataType(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER,
+                                    0,
+                                    lineChartUnitsAxisX,
+                                    lineChartNumberOfElementsAxisX,
+                                    0,
+                                    0);
+}
+
+/**
  * @return A new instance for a line-series chart.
  *
  * @param lineChartUnitsAxisX
@@ -246,6 +266,16 @@ ChartTwoCompoundDataType::operator==(const ChartTwoCompoundDataType& obj) const
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                 return true;
                 break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            {
+                if (m_lineChartUnitsAxisX == obj.m_lineChartUnitsAxisX) {
+                    return true;
+                }
+                if (m_lineChartNumberOfElementsAxisX == obj.m_lineChartNumberOfElementsAxisX) {
+                    return true;
+                }
+            }
+                break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             {
                 if (m_lineChartUnitsAxisX == obj.m_lineChartUnitsAxisX) {
@@ -337,9 +367,14 @@ ChartTwoCompoundDataType::toString() const
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-            //text.appendWithNewLine(indent
-            //                       + "buckets="
-            //                       + QString::number(m_histogramNumberOfBuckets));
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            text.appendWithNewLine(indent
+                                   + "x=units="
+                                   + CaretUnitsTypeEnum::toName(m_lineChartUnitsAxisX));
+            text.appendWithNewLine(indent
+                                   + "x-elements="
+                                   + AString::number(m_lineChartNumberOfElementsAxisX));
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             text.appendWithNewLine(indent

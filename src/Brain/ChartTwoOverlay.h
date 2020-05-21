@@ -206,6 +206,8 @@ namespace caret {
         /** histogram selected map index */
         mutable int32_t m_selectedHistogramMapIndex = -1;
         
+        mutable int32_t m_selectedLineLayerMapIndex = -1;
+        
         bool m_allHistogramMapsSelectedFlag = false;
         
         mutable ChartTwoMatrixTriangularViewingModeEnum::Enum m_matrixTriangularViewingMode;

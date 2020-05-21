@@ -42,6 +42,7 @@
 #include "ChartModelTimeSeries.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileMatrixChart.h"
+#include "ChartableTwoFileLineLayerChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartTwoLineSeriesHistory.h"
 #include "ChartTwoOverlay.h"
@@ -90,9 +91,10 @@ ModelChartTwo::ModelChartTwo(Brain* brain)
                                                                                                      "Histogram Chart Overlays"));
     m_matrixChartOverlaySetArray = std::unique_ptr<ChartTwoOverlaySetArray>(new ChartTwoOverlaySetArray(ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX,
                                                                                                      "Matrix Chart Overlays"));
+    m_lineLayerChartOverlaySetArray = std::unique_ptr<ChartTwoOverlaySetArray>(new ChartTwoOverlaySetArray(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER,
+                                                                                                     "Line Layer Chart Overlays"));
     m_lineSeriesChartOverlaySetArray = std::unique_ptr<ChartTwoOverlaySetArray>(new ChartTwoOverlaySetArray(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
-                                                                                                     "Line Series Chart Overlays"));
-    
+                                                                                                            "Line Series Chart Overlays"));
     initializeCharts();
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
@@ -236,7 +238,6 @@ ModelChartTwo::loadChartDataForCiftiMappableFileRow(CiftiMappableDataFile* cifti
 {
     CaretAssert(ciftiMapFile);
     
-    //std::vector<int32_t> tabIndices;
     EventBrowserTabIndicesGetAll tabIndicesEvent;
     EventManager::get()->sendEvent(tabIndicesEvent.getPointer());
     
@@ -381,62 +382,6 @@ ModelChartTwo::receiveEvent(Event* event)
         
         std::vector<ChartDataCartesian*> cartesianChartData;
         
-//        for (std::list<QWeakPointer<ChartDataCartesian> >::iterator dsIter = m_dataSeriesChartData.begin();
-//             dsIter != m_dataSeriesChartData.end();
-//             dsIter++) {
-//            QSharedPointer<ChartDataCartesian> spCart = dsIter->toStrongRef();
-//            if ( ! spCart.isNull()) {
-//                cartesianChartData.push_back(spCart.data());
-//            }
-//        }
-//        for (std::list<QWeakPointer<ChartDataCartesian> >::iterator tsIter = m_frequencySeriesChartData.begin();
-//             tsIter != m_frequencySeriesChartData.end();
-//             tsIter++) {
-//            QSharedPointer<ChartDataCartesian> spCart = tsIter->toStrongRef();
-//            if ( ! spCart.isNull()) {
-//                cartesianChartData.push_back(spCart.data());
-//            }
-//        }
-//        for (std::list<QWeakPointer<ChartDataCartesian> >::iterator tsIter = m_timeSeriesChartData.begin();
-//             tsIter != m_timeSeriesChartData.end();
-//             tsIter++) {
-//            QSharedPointer<ChartDataCartesian> spCart = tsIter->toStrongRef();
-//            if ( ! spCart.isNull()) {
-//                cartesianChartData.push_back(spCart.data());
-//            }
-//        }
-//        
-//        
-//        /*
-//         * Iterate over node indices for which colors are desired.
-//         */
-//        const std::vector<int32_t> nodeIndices = nodeChartID->getNodeIndices();
-//        for (std::vector<int32_t>::const_iterator nodeIter = nodeIndices.begin();
-//             nodeIter != nodeIndices.end();
-//             nodeIter++) {
-//            const int32_t nodeIndex = *nodeIter;
-//            
-//            /*
-//             * Iterate over the data in the cartesian chart
-//             */
-//            for (std::vector<ChartDataCartesian*>::iterator cdIter = cartesianChartData.begin();
-//                 cdIter != cartesianChartData.end();
-//                 cdIter++) {
-//                const ChartDataCartesian* cdc = *cdIter;
-//                const ChartDataSource* cds = cdc->getChartDataSource();
-//                if (cds->isSurfaceNodeSourceOfData(structureName, nodeIndex)) {
-//                    /*
-//                     * Found node index so add its color to the event
-//                     */
-//                    const CaretColorEnum::Enum color = cdc->getColor();
-//                    const float* rgb = CaretColorEnum::toRGB(color);
-//                    nodeChartID->addNode(nodeIndex,
-//                                         rgb);
-//                    break;
-//                }
-//            }
-//        }
-
         nodeChartID->setEventProcessed();
     }
 }
@@ -526,6 +471,7 @@ ModelChartTwo::saveModelSpecificInformationToScene(const SceneAttributes* sceneA
     const std::vector<int32_t> validTabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
     
     std::vector<int32_t> histogramChartTabIndices;
+    std::vector<int32_t> lineLayerChartTabIndices;
     std::vector<int32_t> lineSeriesChartTabIndices;
     std::vector<int32_t> matrixChartTabIndices;
     for (auto tabIndex : validTabIndices) {
@@ -534,6 +480,9 @@ ModelChartTwo::saveModelSpecificInformationToScene(const SceneAttributes* sceneA
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                 histogramChartTabIndices.push_back(tabIndex);
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                lineLayerChartTabIndices.push_back(tabIndex);
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                 lineSeriesChartTabIndices.push_back(tabIndex);
@@ -559,6 +508,15 @@ ModelChartTwo::saveModelSpecificInformationToScene(const SceneAttributes* sceneA
                                                                                               "m_lineSeriesChartOverlaySetArray");
         if (lineSeriesClass != NULL) {
             sceneClass->addClass(lineSeriesClass);
+        }
+    }
+    
+    if ( ! lineLayerChartTabIndices.empty()) {
+        SceneClass* lineLayerClass = m_lineLayerChartOverlaySetArray->saveTabIndicesToScene(lineLayerChartTabIndices,
+                                                                                              sceneAttributes,
+                                                                                              "m_lineLayerChartOverlaySetArray");
+        if (lineLayerClass != NULL) {
+            sceneClass->addClass(lineLayerClass);
         }
     }
     
@@ -597,8 +555,10 @@ ModelChartTwo::restoreModelSpecificInformationFromScene(const SceneAttributes* s
     
     m_histogramChartOverlaySetArray->restoreFromScene(sceneAttributes,
                                                       sceneClass->getClass("m_histogramChartOverlaySetArray"));
+    m_lineLayerChartOverlaySetArray->restoreFromScene(sceneAttributes,
+                                                      sceneClass->getClass("m_lineLayerChartOverlaySetArray"));
     m_lineSeriesChartOverlaySetArray->restoreFromScene(sceneAttributes,
-                                                      sceneClass->getClass("m_lineSeriesChartOverlaySetArray"));
+                                                       sceneClass->getClass("m_lineSeriesChartOverlaySetArray"));
     m_matrixChartOverlaySetArray->restoreFromScene(sceneAttributes,
                                                       sceneClass->getClass("m_matrixChartOverlaySetArray"));
 }
@@ -1002,8 +962,10 @@ ModelChartTwo::copyTabContent(const int32_t sourceTabIndex,
     
     m_histogramChartOverlaySetArray->copyChartOverlaySet(sourceTabIndex,
                                                          destinationTabIndex);
-    m_lineSeriesChartOverlaySetArray->copyChartOverlaySet(sourceTabIndex,
+    m_lineLayerChartOverlaySetArray->copyChartOverlaySet(sourceTabIndex,
                                                          destinationTabIndex);
+    m_lineSeriesChartOverlaySetArray->copyChartOverlaySet(sourceTabIndex,
+                                                          destinationTabIndex);
     m_matrixChartOverlaySetArray->copyChartOverlaySet(sourceTabIndex,
                                                          destinationTabIndex);
 }
@@ -1025,6 +987,8 @@ ModelChartTwo::copyChartTwoCartesianAxes(const int32_t sourceTabIndex,
 
     m_histogramChartOverlaySetArray->copyChartOverlaySetCartesianAxes(sourceTabIndex,
                                                                       destinationTabIndex);
+    m_lineLayerChartOverlaySetArray->copyChartOverlaySetCartesianAxes(sourceTabIndex,
+                                                                       destinationTabIndex);
     m_lineSeriesChartOverlaySetArray->copyChartOverlaySetCartesianAxes(sourceTabIndex,
                                                                        destinationTabIndex);
 }
@@ -1139,6 +1103,8 @@ ModelChartTwo::updateChartOverlaySets(const int32_t tabIndex)
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
             break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
@@ -1164,6 +1130,9 @@ ModelChartTwo::getChartTwoOverlaySet(const int tabIndex)
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
             chartOverlaySet = m_histogramChartOverlaySetArray->getChartTwoOverlaySet(tabIndex);
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            chartOverlaySet = m_lineLayerChartOverlaySetArray->getChartTwoOverlaySet(tabIndex);
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             chartOverlaySet = m_lineSeriesChartOverlaySetArray->getChartTwoOverlaySet(tabIndex);

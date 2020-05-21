@@ -33,8 +33,8 @@
 #include "ChartTwoTitle.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
+#include "ChartableTwoFileLineLayerChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
-#include "EventAnnotationChartLabelGet.h"
 #include "EventBrowserTabGet.h"
 #include "EventChartTwoAttributesChanged.h"
 #include "EventChartTwoAxisGetDataRange.h"
@@ -100,6 +100,22 @@ m_tabIndex(tabIndex)
             m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
         }
             break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+        {
+            m_chartAxisLeft->setEnabledByChart(true);
+            m_chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
+            
+            m_chartAxisRight->setEnabledByChart(false);
+            m_chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
+            
+            /*
+             * X-axis for line series shows full extent of data
+             */
+            m_chartAxisBottom->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
+            m_chartAxisBottom->setEnabledByChart(true);
+            m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
+        }
+            break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
         {
             m_chartAxisLeft->setEnabledByChart(true);
@@ -149,7 +165,6 @@ m_tabIndex(tabIndex)
         CaretAssertVectorIndex(m_overlays, i);
         m_overlays[i]->setWeakPointerToSelf(m_overlays[i]);
     }
-
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE);
@@ -762,6 +777,8 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
                                                                       yokingGroupMapIndex);
                                         }
                                         break;
+                                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                                        break;
                                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                                         break;
                                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
@@ -779,16 +796,6 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
             
             selectMapEvent->setEventProcessed();
         }
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET) {
-        /*
-         * The events intended for overlays are received here so that
-         * only DISPLAYED overlays are updated.
-         */
-        //EventAnnotationChartLabelGet* chartLabelEvent = dynamic_cast<EventAnnotationChartLabelGet*>(event);
-        //CaretAssert(chartLabelEvent);
-        
-        //chartLabelEvent->addAnnotationChartLabel(m_chartTitle.get());
     }
 }
 
@@ -879,6 +886,9 @@ ChartTwoOverlaySet::isAxesSupportedByChartDataType() const
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            axisSupportedFlag = true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
             axisSupportedFlag = true;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
@@ -975,6 +985,22 @@ ChartTwoOverlaySet::getAxisLabel(const ChartTwoCartesianAxis* axis) const
                         break;
                 }
                 break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                switch (axis->getAxisLocation()) {
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                        label = mapFile->getChartingDelegate()->getLineLayerCharting()->getBottomAxisTitle();
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                        label = mapFile->getChartingDelegate()->getLineLayerCharting()->getLeftRightAxisTitle();
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                        label = mapFile->getChartingDelegate()->getLineLayerCharting()->getLeftRightAxisTitle();
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                        CaretAssert(0);
+                        break;
+                }
+                break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                 switch (axis->getAxisLocation()) {
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
@@ -1028,6 +1054,22 @@ ChartTwoOverlaySet::setAxisLabel(const ChartTwoCartesianAxis* axis,
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
                         mapFile->getChartingDelegate()->getHistogramCharting()->setLeftRightAxisTitle(label);
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                        CaretAssert(0);
+                        break;
+                }
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                switch (axis->getAxisLocation()) {
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                        mapFile->getChartingDelegate()->getLineLayerCharting()->setBottomAxisTitle(label);
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                        mapFile->getChartingDelegate()->getLineLayerCharting()->setLeftRightAxisTitle(label);
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                        mapFile->getChartingDelegate()->getLineLayerCharting()->setLeftRightAxisTitle(label);
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                         CaretAssert(0);

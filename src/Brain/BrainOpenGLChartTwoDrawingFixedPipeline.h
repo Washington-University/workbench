@@ -42,11 +42,13 @@ namespace caret {
     class ChartTwoOverlaySet;
     class ChartTwoTitle;
     class ChartableTwoFileHistogramChart;
+    class ChartableTwoFileLineLayerChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
     class SelectionItemAnnotation;
     class SelectionItemChartTwoHistogram;
     class SelectionItemChartTwoLabel;
+    class SelectionItemChartTwoLineLayer;
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
     
@@ -86,7 +88,24 @@ namespace caret {
         };
         
         /**
-         * Contains line chart for drawing
+         * Contains line chart for drawing line layer
+         */
+        class LineLayerChartDrawingInfo {
+        public:
+            LineLayerChartDrawingInfo(const ChartableTwoFileLineLayerChart* lineLayerChart,
+                                      const ChartTwoDataCartesian* chartTwoCartesianData,
+                                      const ChartAxisLocationEnum::Enum verticalAxisLocation)
+            : m_lineLayerChart(lineLayerChart),
+            m_chartTwoCartesianData(chartTwoCartesianData),
+            m_verticalAxisLocation(verticalAxisLocation) { }
+            
+            const ChartableTwoFileLineLayerChart* m_lineLayerChart;
+            const ChartTwoDataCartesian* m_chartTwoCartesianData;
+            const ChartAxisLocationEnum::Enum m_verticalAxisLocation;
+        };
+        
+        /**
+         * Contains line chart for drawing line series
          */
         class LineSeriesChartDrawingInfo {
         public:
@@ -235,7 +254,7 @@ namespace caret {
                                     const float zooming,
                                     std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut);
         
-        void drawHistogramOrLineSeriesChart(const ChartTwoDataTypeEnum::Enum chartDataType);
+        void drawHistogramOrLineChart(const ChartTwoDataTypeEnum::Enum chartDataType);
         
         void drawChartGraphicsBoxAndSetViewport(const float vpX,
                                                 const float vpY,
@@ -302,8 +321,10 @@ namespace caret {
         
         SelectionItemChartTwoHistogram* m_selectionItemHistogram;
         
-        SelectionItemChartTwoLineSeries* m_selectionItemLineSeries;
+        SelectionItemChartTwoLineLayer* m_selectionItemLineLayer;
 
+        SelectionItemChartTwoLineSeries* m_selectionItemLineSeries;
+        
         SelectionItemChartTwoMatrix* m_selectionItemMatrix;
 
         SelectionItemChartTwoLabel* m_selectionItemChartLabel;

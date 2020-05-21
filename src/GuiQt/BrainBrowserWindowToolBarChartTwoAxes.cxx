@@ -45,7 +45,6 @@
 #include "ChartableTwoFileBaseChart.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
-#include "ChartableTwoFileLineSeriesChart.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventChartTwoAttributesChanged.h"
@@ -531,6 +530,9 @@ BrainBrowserWindowToolBarChartTwoAxes::getSelectionData(BrowserTabContent* brows
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                    chartOverlaySetOut = modelChartTwo->getChartTwoOverlaySet(tabIndex);
+                    break;
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
                     chartOverlaySetOut = modelChartTwo->getChartTwoOverlaySet(tabIndex);
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:

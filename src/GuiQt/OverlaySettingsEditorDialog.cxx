@@ -120,7 +120,7 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
                       "Layer");
     
     m_lineHistoryWidgetTabIndex = m_tabWidget->addTab(m_lineHistoryWidget,
-                                                      "Lines");
+                                                      "Line-Series");
     m_metadataWidgetTabIndex = m_tabWidget->addTab(new QWidget(),
                       "Metadata");
     m_tabWidget->setTabEnabled(m_tabWidget->count() - 1, false);
@@ -141,7 +141,6 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
     this->setLayoutSpacingAndMargins(layout);
     layout->addWidget(mapNameWidget);
     layout->addWidget(m_tabWidget);
-    //layout->addWidget(windowOptionsWidget);
 
     this->setCentralWidget(w,
                            WuQDialog::SCROLL_AREA_NEVER);
@@ -309,7 +308,7 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
     bool isParcelsValid = false;
     bool isFiberTrajectoryValid = false;
     bool isVolumeLayer = false;
-    bool isLinesValid = false;
+    bool isLineHistoryValid = false;
     
     QString mapFileName = "";
     QString mapName = "";
@@ -406,13 +405,17 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
         else if (m_chartOverlay != NULL) {
             mapFileName = m_caretMappableDataFile->getFileNameNoPath();
 
-            bool hasMapsFlag = false;
-            bool hasHistoryFlag = false;
+            bool hasMapsFlag      = false;
+            bool hasHistoryFlag   = false;
+            bool hasLineLayerFlag = false;
             switch (m_chartOverlay->getChartTwoDataType()) {
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                     hasMapsFlag = true;
+                    break;
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                    hasLineLayerFlag = true;
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                     hasHistoryFlag = true;
@@ -496,10 +499,18 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
                 }
             }
             else if (hasHistoryFlag) {
-                isLinesValid = true;
+                isLineHistoryValid = true;
                 m_lineHistoryWidget->updateContent(m_chartOverlay);
                 if (mapName.isEmpty()) {
                     mapName = "Line Chart History";
+                }
+            }
+            else if (hasLineLayerFlag) {
+                if (mapName.isEmpty()) {
+                    if ((m_selectedMapFileIndex >= 0)
+                        && (m_selectedMapFileIndex < m_caretMappableDataFile->getNumberOfMaps())) {
+                        mapName = m_caretMappableDataFile->getMapName(m_selectedMapFileIndex);
+                    }
                 }
             }
         }
@@ -527,7 +538,7 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
     m_tabWidget->setTabEnabled(m_trajectoryWidgetTabIndex,
                                isFiberTrajectoryValid);
     m_tabWidget->setTabEnabled(m_lineHistoryWidgetTabIndex,
-                               isLinesValid);
+                               isLineHistoryValid);
 
     /*
      * When the selected tab is invalid, we want to select the

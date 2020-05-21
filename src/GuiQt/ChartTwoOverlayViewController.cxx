@@ -43,9 +43,6 @@ using namespace caret;
 #include "CaretMappableDataFile.h"
 #include "ChartTwoOverlay.h"
 #include "ChartableTwoFileDelegate.h"
-#include "ChartableTwoFileHistogramChart.h"
-#include "ChartableTwoFileLineSeriesChart.h"
-#include "ChartableTwoFileMatrixChart.h"
 #include "CursorDisplayScoped.h"
 #include "ElapsedTimer.h"
 #include "EventDataFileReload.h"
@@ -99,12 +96,12 @@ m_chartOverlayIndex(chartOverlayIndex),
 m_chartOverlay(NULL)
 {
     int minComboBoxWidth = 200;
-    int maxComboBoxWidth = 100000; //400;
+    int maxComboBoxWidth = 100000;
     if (orientation == Qt::Horizontal) {
         minComboBoxWidth = 50;
         maxComboBoxWidth = 100000;
     }
-    const QComboBox::SizeAdjustPolicy comboSizePolicy = QComboBox::AdjustToContentsOnFirstShow; //QComboBox::AdjustToContents;
+    const QComboBox::SizeAdjustPolicy comboSizePolicy = QComboBox::AdjustToContentsOnFirstShow;
     
     WuQMacroManager* macroManager = WuQMacroManager::instance();
     CaretAssert(macroManager);
@@ -767,6 +764,8 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                 break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
@@ -837,6 +836,8 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
             enableSettingsActionFlag = false;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             break;

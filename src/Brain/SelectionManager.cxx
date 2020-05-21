@@ -41,6 +41,7 @@
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemChartTwoHistogram.h"
 #include "SelectionItemChartTwoLabel.h"
+#include "SelectionItemChartTwoLineLayer.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
@@ -79,6 +80,7 @@ SelectionManager::SelectionManager()
     m_chartMatrixIdentification     = new SelectionItemChartMatrix();
     m_chartTwoHistogramIdentification = std::unique_ptr<SelectionItemChartTwoHistogram>(new SelectionItemChartTwoHistogram());
     m_chartTwoLabelIdentification = std::unique_ptr<SelectionItemChartTwoLabel>(new SelectionItemChartTwoLabel());
+    m_chartTwoLineLayerIdentification = std::unique_ptr<SelectionItemChartTwoLineLayer>(new SelectionItemChartTwoLineLayer());
     m_chartTwoLineSeriesIdentification = std::unique_ptr<SelectionItemChartTwoLineSeries>(new SelectionItemChartTwoLineSeries());
     m_chartTwoMatrixIdentification = std::unique_ptr<SelectionItemChartTwoMatrix>(new SelectionItemChartTwoMatrix());
     
@@ -103,6 +105,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_chartTimeSeriesIdentification);
     m_allSelectionItems.push_back(m_chartTwoHistogramIdentification.get());
     m_allSelectionItems.push_back(m_chartTwoLabelIdentification.get());
+    m_allSelectionItems.push_back(m_chartTwoLineLayerIdentification.get());
     m_allSelectionItems.push_back(m_chartTwoLineSeriesIdentification.get());
     m_allSelectionItems.push_back(m_chartTwoMatrixIdentification.get());
     m_allSelectionItems.push_back(m_ciftiConnectivityMatrixRowColumnIdentfication);
@@ -771,6 +774,24 @@ const SelectionItemChartTwoHistogram*
 SelectionManager::getChartTwoHistogramIdentification() const
 {
     return m_chartTwoHistogramIdentification.get();
+}
+
+/**
+ * @return Identification for chart two line layer identification
+ */
+SelectionItemChartTwoLineLayer*
+SelectionManager::getChartTwoLineLayerIdentification()
+{
+    return m_chartTwoLineLayerIdentification.get();
+}
+
+/**
+ * @return Identification for chart two line layer identification
+ */
+const SelectionItemChartTwoLineLayer*
+SelectionManager::getChartTwoLineLayerIdentification() const
+{
+    return m_chartTwoLineLayerIdentification.get();
 }
 
 /**

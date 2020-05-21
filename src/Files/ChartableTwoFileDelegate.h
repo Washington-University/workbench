@@ -32,6 +32,7 @@ namespace caret {
 
     class CaretMappableDataFile;
     class ChartableTwoFileHistogramChart;
+    class ChartableTwoFileLineLayerChart;
     class ChartableTwoFileLineSeriesChart;
     class ChartableTwoFileMatrixChart;
     
@@ -58,6 +59,10 @@ namespace caret {
         ChartableTwoFileHistogramChart* getHistogramCharting();
         
         const ChartableTwoFileHistogramChart* getHistogramCharting() const;
+        
+        ChartableTwoFileLineLayerChart* getLineLayerCharting();
+        
+        const ChartableTwoFileLineLayerChart* getLineLayerCharting() const;
         
         ChartableTwoFileLineSeriesChart* getLineSeriesCharting();
         
@@ -100,6 +105,8 @@ namespace caret {
         CaretMappableDataFile* m_caretMappableDataFile = NULL;
         
         std::unique_ptr<ChartableTwoFileHistogramChart> m_histogramCharting;
+        
+        std::unique_ptr<ChartableTwoFileLineLayerChart> m_lineLayerCharting;
         
         std::unique_ptr<ChartableTwoFileLineSeriesChart> m_lineSeriesCharting;
         

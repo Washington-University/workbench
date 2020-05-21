@@ -45,11 +45,14 @@ namespace caret {
         
         static ChartTwoCompoundDataType newInstanceForHistogram(const int32_t histogramNumberOfBuckets);
         
+        static ChartTwoCompoundDataType newInstanceForLineLayer(const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
+                                                                 const int32_t lineChartNumberOfElementsAxisX);
+        
         static ChartTwoCompoundDataType newInstanceForLineSeries(const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
-                                                              const int32_t lineChartNumberOfElementsAxisX);
+                                                                 const int32_t lineChartNumberOfElementsAxisX);
         
         static ChartTwoCompoundDataType newInstanceForMatrix(const int32_t matrixNumberOfRows,
-                                                          const int32_t matrixNumberOfColumns);
+                                                             const int32_t matrixNumberOfColumns);
         
 
         virtual ~ChartTwoCompoundDataType();

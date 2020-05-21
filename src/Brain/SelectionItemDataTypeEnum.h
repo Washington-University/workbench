@@ -61,6 +61,8 @@ public:
         CHART_TWO_HISTOGRAM,
         /** Version Two Chart Label */
         CHART_TWO_LABEL,
+        /** Version Two Chart Line-Layer */
+        CHART_TWO_LINE_LAYER,
         /** Version Two Chart Line-Series */
         CHART_TWO_LINE_SERIES,
         /** Version Two Chart Matrix */

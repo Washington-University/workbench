@@ -36,6 +36,7 @@
 #include "ChartableMatrixInterface.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
+#include "ChartableTwoFileLineLayerChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
@@ -69,6 +70,7 @@
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemChartTwoHistogram.h"
+#include "SelectionItemChartTwoLineLayer.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemFocusSurface.h"
@@ -195,6 +197,13 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
                                                                   fileInfo.m_mapIndices,
                                                                   false);
                 
+                this->generateChartTwoLineLayerIdentificationText(*chartHtmlTableBuilder,
+                                                                   idText,
+                                                                   selectionManager->getChartTwoLineLayerIdentification(),
+                                                                   fileInfo.m_mapFile,
+                                                                   fileInfo.m_mapIndices,
+                                                                   false);
+                
                 this->generateChartTwoLineSeriesIdentificationText(*chartHtmlTableBuilder,
                                                                    idText,
                                                                    selectionManager->getChartTwoLineSeriesIdentification(),
@@ -256,19 +265,6 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     textOut.append(chartHtmlTableBuilder->getAsHtmlTable());
     textOut.append(imageHtmlTableBuilder->getAsHtmlTable());
     return textOut;
-    
-//    QString htmlString("<html>\n"
-//                       "<head>\n"
-//                       "<style type=\"text/css\">\n"
-//                       "table { border-width: 1px; border-style: ridge; }\n"
-//                       "table td { padding: 3px; }"
-//                       "table th { padding: 2px; }"
-//                       "</style>\n"
-//                       "</head>\n"
-//                       "</body>\n"
-//                       + htmlTableBuilder->getAsHtmlTable()
-//                       + "\n</body></html>");
-//    return htmlString;
 }
 
 /**
@@ -614,7 +610,6 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                     filename.append(volumeFile->getFileNameNoPath());
                     if (volumeFile->isMappedWithLabelTable()) {
                         labelHtmlTableBuilder.addRow(text,
-                                                     //ijkText,
                                                      filename);
                     }
                     else if (volumeFile->isMappedWithPalette()) {
@@ -673,7 +668,6 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                             
                             if ( ! labelText.isEmpty()) {
                                 labelHtmlTableBuilder.addRow(labelText,
-                                                             //DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
                                                              ciftiFile->getFileNameNoPath());
                             }
                             if ( ! scalarText.isEmpty()) {
@@ -933,7 +927,6 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 }
                 if ( ! labelText.isEmpty()) {
                     labelHtmlTableBuilder.addRow(labelText,
-                                                 //DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
                                                  cmdf->getFileNameNoPath());
                 }
                 if ( ! scalarText.isEmpty()) {
@@ -962,7 +955,6 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                             + ")");
             }
             labelHtmlTableBuilder.addRow(text,
-                                         //"LABEL",
                                          labelFile->getFileNameNoPath());
         }
         
@@ -1219,6 +1211,97 @@ IdentificationFormattedTextGenerator::generateChartTwoHistogramIdentificationTex
 }
 
 /**
+ * Generate identification text for a chart two line-layer.
+ *
+ * @param htmlTableBuilder
+ *     HTML table builder for identification text.
+ * @param idText
+ *     Identification string builder
+ * @param idChartTwoLineLayer
+ *     Information for selected chart two line-layer.
+ * @param mapFile
+ *     FIle for generating identification
+ * @param mapIndices
+ *     Indices of map
+ * @param toolTipFlag
+ *     If true, generate tooltip
+ */
+void
+IdentificationFormattedTextGenerator::generateChartTwoLineLayerIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                                                   IdentificationStringBuilder& idText,
+                                                                                   const SelectionItemChartTwoLineLayer* idChartTwoLineLayer,
+                                                                                   CaretMappableDataFile* mapFile,
+                                                                                   const std::set<int32_t>& /*mapIndices*/,
+                                                                                   const bool toolTipFlag) const
+{
+    if (idChartTwoLineLayer->isValid()) {
+        const ChartableTwoFileLineLayerChart* fileLineSeriesChart = idChartTwoLineLayer->getFileLineLayerChart();
+        CaretAssert(fileLineSeriesChart);
+        const CaretMappableDataFile* chartMapFile = fileLineSeriesChart->getCaretMappableDataFile();
+        CaretAssert(chartMapFile);
+        const ChartTwoDataCartesian* cartesianData = idChartTwoLineLayer->getChartTwoCartesianData();
+        CaretAssert(cartesianData);
+        const MapFileDataSelector* mapFileDataSelector = cartesianData->getMapFileDataSelector();
+        CaretAssert(mapFileDataSelector);
+        
+        if ( ! toolTipFlag) {
+            if (chartMapFile != mapFile) {
+                return;
+            }
+        }
+        int32_t primitiveIndex = idChartTwoLineLayer->getLineSegmentIndex();
+        
+        AString boldText("Line Layer Chart");
+        
+        cartesianData->getGraphicsPrimitive();
+        const GraphicsPrimitive* primitive = cartesianData->getGraphicsPrimitive();
+        CaretAssert(primitive);
+        
+        if (primitiveIndex >= 1) {
+            float xyz1[3];
+            primitive->getVertexFloatXYZ(primitiveIndex - 1,
+                                         xyz1);
+            float xyz2[3];
+            primitive->getVertexFloatXYZ(primitiveIndex,
+                                         xyz2);
+            if (toolTipFlag) {
+                idText.addLine(true,
+                               "XY Start",
+                               AString::fromNumbers(xyz1, 2, ", "));
+                idText.addLine(true,
+                               "XY End ",
+                               AString::fromNumbers(xyz2, 2, ", "));
+            }
+            else {
+                htmlTableBuilder.addRow(("XY Start:" + AString::fromNumbers(xyz1, 2, ", "))
+                                        + ("XY End:" + AString::fromNumbers(xyz2, 2, ", ")),
+                                        boldText,
+                                        chartMapFile->getFileNameNoPath());
+            }
+        }
+        else {
+            float xyz[3];
+            primitive->getVertexFloatXYZ(primitiveIndex,
+                                         xyz);
+            if (toolTipFlag) {
+                idText.addLine(true,
+                               "XY",
+                               AString::fromNumbers(xyz, 2, ", "));
+            }
+            else {
+                htmlTableBuilder.addRow(("XY:" + AString::fromNumbers(xyz, 2, ", ")),
+                                        boldText,
+                                        chartMapFile->getFileNameNoPath());
+            }
+        }
+        
+        generateMapFileSelectorText(htmlTableBuilder,
+                                    mapFileDataSelector);
+    }
+}
+
+
+/**
  * Generate identification text for a chart two line-series.
  *
  * @param htmlTableBuilder
@@ -1259,7 +1342,7 @@ IdentificationFormattedTextGenerator::generateChartTwoLineSeriesIdentificationTe
         }
         int32_t primitiveIndex = idChartTwoLineSeries->getLineSegmentIndex();
         
-        AString boldText("Line Chart");
+        AString boldText("Line Series Chart");
         
         cartesianData->getGraphicsPrimitive();
         const GraphicsPrimitive* primitive = cartesianData->getGraphicsPrimitive();
@@ -1789,60 +1872,6 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
                                     StructureEnum::toGuiName(spi->getStructure()),
                                     "");
         }
-        //
-        //            const int32_t numberOfProjections = focus->getNumberOfProjections();
-        //            for (int32_t i = 0; i < numberOfProjections; i++) {
-        //                if (i != projectionIndex) {
-        //                    const SurfaceProjectedItem* proj = focus->getProjection(i);
-        //                    AString projTypeName = "";
-        //                    if (proj->getBarycentricProjection()->isValid()) {
-        //                        projTypeName = "Triangle";
-        //
-        //                    }
-        //                    else if (proj->getVanEssenProjection()->isValid()) {
-        //                        projTypeName = "Edge";
-        //                    }
-        //                    if (projTypeName.isEmpty() == false) {
-        //                        const AString txt = (StructureEnum::toGuiName(proj->getStructure())
-        //                                             + " ("
-        //                                             + projTypeName
-        //                                             + ")");
-        //
-        //                        idText.addLine(true,
-        //                                       "Ambiguous Projection",
-        //                                       txt);
-        //                    }
-        //                }
-        //            }
-        //
-        //            idText.addLine(true,
-        //                           "Area",
-        //                           focus->getArea());
-        //
-        //            idText.addLine(true,
-        //                           "Class Name",
-        //                           focus->getClassName());
-        //
-        //            idText.addLine(true,
-        //                           "Comment",
-        //                           focus->getComment());
-        //
-        //            idText.addLine(true,
-        //                           "Extent",
-        //                           focus->getExtent(),
-        //                           true);
-        //
-        //            idText.addLine(true,
-        //                           "Geography",
-        //                           focus->getGeography());
-        //
-        //            idText.addLine(true,
-        //                           "Region of Interest",
-        //                           focus->getRegionOfInterest());
-        //
-        //            idText.addLine(true,
-        //                           "Statistic",
-        //                           focus->getStatistic());
     }
 }
 

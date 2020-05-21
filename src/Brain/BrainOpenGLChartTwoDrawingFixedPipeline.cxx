@@ -47,6 +47,7 @@
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
 #include "ChartableTwoFileMatrixChart.h"
+#include "ChartableTwoFileLineLayerChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "DeveloperFlagsEnum.h"
@@ -67,6 +68,7 @@
 #include "SelectionItemAnnotation.h"
 #include "SelectionItemChartTwoHistogram.h"
 #include "SelectionItemChartTwoLabel.h"
+#include "SelectionItemChartTwoLineLayer.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionManager.h"
@@ -160,6 +162,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     m_selectionItemAnnotation = m_brain->getSelectionManager()->getAnnotationIdentification();
     m_selectionItemHistogram  = m_brain->getSelectionManager()->getChartTwoHistogramIdentification();
     m_selectionItemLineSeries = m_brain->getSelectionManager()->getChartTwoLineSeriesIdentification();
+    m_selectionItemLineLayer  = m_brain->getSelectionManager()->getChartTwoLineLayerIdentification();
     m_selectionItemMatrix     = m_brain->getSelectionManager()->getChartTwoMatrixIdentification();
     m_selectionItemChartLabel = m_brain->getSelectionManager()->getChartTwoLabelIdentification();
     
@@ -218,6 +221,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     
     bool drawHistogramFlag  = true;
     bool drawLineSeriesFlag = true;
+    bool drawLineLayerFlag  = true;
     bool drawMatrixFlag     = true;
     
     /*
@@ -232,6 +236,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                 && (! m_selectionItemAnnotation->isEnabledForSelection())
                 && (! m_selectionItemChartLabel->isEnabledForSelection()) ) {
                 drawHistogramFlag = false;
+            }
+            if ( (! m_selectionItemLineLayer->isEnabledForSelection())
+                && (! m_selectionItemAnnotation->isEnabledForSelection())
+                && (! m_selectionItemChartLabel->isEnabledForSelection()) ) {
+                drawLineLayerFlag = false;
             }
             if ( (! m_selectionItemLineSeries->isEnabledForSelection())
                 && (! m_selectionItemAnnotation->isEnabledForSelection())
@@ -277,12 +286,17 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                         if (drawHistogramFlag) {
-                            drawHistogramOrLineSeriesChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
+                            drawHistogramOrLineChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
+                        }
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                        if (drawLineLayerFlag) {
+                            drawHistogramOrLineChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER);
                         }
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                         if (drawLineSeriesFlag) {
-                            drawHistogramOrLineSeriesChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES);
+                            drawHistogramOrLineChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES);
                         }
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
@@ -307,9 +321,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
  *     Type of chart to draw.
  */
 void
-BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const ChartTwoDataTypeEnum::Enum chartDataType)
+BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwoDataTypeEnum::Enum chartDataType)
 {
     bool drawHistogramFlag  = false;
+    bool drawLineLayerFlag  = false;
     bool drawLineSeriesFlag = false;
     switch (chartDataType) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
@@ -318,6 +333,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
             drawHistogramFlag = true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            drawLineLayerFlag = true;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             drawLineSeriesFlag = true;
@@ -350,12 +368,16 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
     else if (drawLineSeriesFlag) {
         CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES);
     }
+    else if (drawLineLayerFlag) {
+        CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER);
+    }
     else {
         CaretAssert(0);
     }
     
     std::vector<std::unique_ptr<HistogramChartDrawingInfo>> histogramDrawingInfo;
     std::deque<LineSeriesChartDrawingInfo> lineSeriesChartsToDraw;
+    std::deque<LineLayerChartDrawingInfo> lineLayerChartsToDraw;
     
     /*
      * Get the histogram drawing information and overall extent
@@ -471,6 +493,44 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                         }
                         
                         lineSeriesChartsToDraw.push_back(LineSeriesChartDrawingInfo(lineSeriesChart,
+                                                                                    data,
+                                                                                    chartOverlay->getCartesianVerticalAxisLocation()));
+                    }
+                }
+            }
+        }
+        
+        if (drawLineLayerFlag) {
+            ChartableTwoFileLineLayerChart* lineLayerChart = chartDelegate->getLineLayerCharting();
+            if (lineLayerChart->isValid()) {
+                const ChartTwoDataCartesian* data = lineLayerChart->getLineChartForMap(selectedIndex);
+                CaretAssert(data);
+                if (data->isSelected()) {
+                    BoundingBox boundingBox;
+                    if (data->getBounds(boundingBox)) {
+                        xMinBottom = std::min(xMinBottom, boundingBox.getMinX());
+                        xMaxBottom = std::max(xMaxBottom, boundingBox.getMaxX());
+                        xMinTop = std::min(xMinTop, boundingBox.getMinX());
+                        xMaxTop = std::max(xMaxTop, boundingBox.getMaxX());
+                        
+                        switch (chartOverlay->getCartesianVerticalAxisLocation()) {
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                                CaretAssertMessage(0, "TOP axis not allowed for vertical axis");
+                                break;
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                                yMinRight = std::min(yMinRight, boundingBox.getMinY());
+                                yMaxRight = std::max(yMaxRight, boundingBox.getMaxY());
+                                break;
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                                yMinLeft = std::min(yMinLeft, boundingBox.getMinY());
+                                yMaxLeft = std::max(yMaxLeft, boundingBox.getMaxY());
+                                break;
+                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                                CaretAssertMessage(0, "BOTTOM axis not allowed for vertical axis");
+                                break;
+                        }
+                        
+                        lineLayerChartsToDraw.push_back(LineLayerChartDrawingInfo(lineLayerChart,
                                                                                     data,
                                                                                     chartOverlay->getCartesianVerticalAxisLocation()));
                     }
@@ -910,6 +970,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                 }
             }
         }
+        
         if (drawLineSeriesFlag) {
             for (const auto lineChart : lineSeriesChartsToDraw) {
                 bool leftVerticalAxisFlag = true;
@@ -995,6 +1056,93 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                  */
                 updateViewportContentForCharting(chartGraphicsDrawingViewport);
             }
+        }
+    }
+
+    if (drawLineLayerFlag) {
+        for (const auto lineChart : lineLayerChartsToDraw) {
+            bool leftVerticalAxisFlag = true;
+            switch (lineChart.m_verticalAxisLocation) {
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                    leftVerticalAxisFlag = false;
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                    break;
+            }
+            
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            CaretAssert(xMinBottom < xMaxBottom);
+            if (leftVerticalAxisFlag) {
+                CaretAssert(yMinLeft < yMaxLeft);
+                glOrtho(xMinBottom, xMaxBottom,
+                        yMinLeft, yMaxLeft,
+                        -10.0, 10.0);
+            }
+            else {
+                CaretAssert(yMinRight < yMaxRight);
+                glOrtho(xMinBottom, xMaxBottom,
+                        yMinRight, yMaxRight,
+                        -10.0, 10.0);
+            }
+            
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            
+            bool applyTransformationsFlag = false;
+            if (applyTransformationsFlag) {
+                glTranslatef(m_translation[0],
+                             m_translation[1],
+                             0.0f);
+                
+                const float chartWidth  = chartGraphicsDrawingViewport[2];
+                const float chartHeight = chartGraphicsDrawingViewport[3];
+                const float halfWidth   = chartWidth  / 2.0f;
+                const float halfHeight  = chartHeight / 2.0f;
+                glTranslatef(halfWidth,
+                             halfHeight,
+                             0.0f);
+                glScalef(m_zooming,
+                         m_zooming,
+                         1.0f);
+                glTranslatef(-halfWidth,
+                             -halfHeight,
+                             0.0f);
+            }
+            
+            if (m_identificationModeFlag) {
+                int32_t primitiveIndex = -1;
+                float   primitiveDepth = 0.0f;
+                
+                GraphicsEngineDataOpenGL::drawWithSelection(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive(),
+                                                            m_fixedPipelineDrawing->mouseX,
+                                                            m_fixedPipelineDrawing->mouseY,
+                                                            primitiveIndex,
+                                                            primitiveDepth);
+                
+                if (primitiveIndex >= 0) {
+                    if (m_selectionItemLineLayer->isOtherScreenDepthCloserToViewer(primitiveDepth)) {
+                        m_selectionItemLineLayer->setLineLayerChart(const_cast<ChartableTwoFileLineLayerChart*>(lineChart.m_lineLayerChart),
+                                                                    const_cast<ChartTwoDataCartesian*>(lineChart.m_chartTwoCartesianData),
+                                                                    primitiveIndex);
+                    }
+                }
+            }
+            else {
+                GraphicsEngineDataOpenGL::draw(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
+            }
+            
+            /*
+             * Save the transformation matrices and the viewport
+             * If there is more than one line chart, this code will be executed
+             * several times but since the top overlay is drawn last, the contents
+             * of the top overlay will be used.
+             */
+            updateViewportContentForCharting(chartGraphicsDrawingViewport);
         }
     }
 }
@@ -1405,8 +1553,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                     }
                 }
                 
-//                const float highlightLineWidth = std::max(((zooming) * 0.20), 3.0);
-                
                 GraphicsPrimitiveV3fC4f* columnOutlineData = GraphicsPrimitiveV3fC4f::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN);
                 columnOutlineData->reserveForNumberOfVertices(4);
                 columnOutlineData->addVertex(minX, minY, highlightRGBA);
@@ -1496,9 +1642,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::convertPercentageOfViewportToOpenGLLine
     if (pixelsWidthOrHeight < s_minimumLineWidthOpenGL) {
         pixelsWidthOrHeight = s_minimumLineWidthOpenGL;
     }
-//    if (pixelsWidthOrHeight > s_maximumLineWidthOpenGL) {
-//        pixelsWidthOrHeight = s_maximumLineWidthOpenGL;
-//    }
     return pixelsWidthOrHeight;
 }
 
@@ -1918,7 +2061,6 @@ m_tabViewportHeight(tabViewport[3])
     if (m_axis->isShowTickmarks()) {
         const float tickLengthPercentage = 1.0f;
         m_tickLength = convertPercentageOfViewportToOpenGLLineWidth(tickLengthPercentage, m_tabViewportHeight);
-        //m_tickLength = m_lineDrawingWidth; // * 2.0f;
     }
     
     /*
@@ -2226,7 +2368,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
         maxWidthOut = std::max(maxWidthOut, static_cast<float>(textWidth));
         maxHeightOut = std::max(maxHeightOut, static_cast<float>(textHeight));
         
-        //text->setText(scaleValuesText[i]);
         m_numericsText.push_back(std::unique_ptr<AnnotationPercentSizeText>(text));
     }
 }

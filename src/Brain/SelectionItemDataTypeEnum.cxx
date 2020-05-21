@@ -103,6 +103,10 @@ SelectionItemDataTypeEnum::initialize()
                                                  "CHART_TWO_HISTOGRAM",
                                                  "Histogram Chart Two"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(CHART_TWO_LINE_LAYER,
+                                                 "CHART_TWO_LINE_LAYER",
+                                                 "Line-Layer Chart Two"));
+    
     enumData.push_back(SelectionItemDataTypeEnum(CHART_TWO_LINE_SERIES,
                                                  "CHART_TWO_LINE_SERIES",
                                                  "Line-Series Chart Two"));

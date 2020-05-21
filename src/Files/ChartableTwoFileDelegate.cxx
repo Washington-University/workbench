@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "ChartableTwoFileHistogramChart.h"
+#include "ChartableTwoFileLineLayerChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
@@ -82,6 +83,7 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
     
     ChartTwoHistogramContentTypeEnum::Enum histogramType   = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_UNSUPPORTED;
     ChartTwoLineSeriesContentTypeEnum::Enum lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED;
+    ChartTwoLineLayerContentTypeEnum::Enum lineLayerType   = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED;
     ChartTwoMatrixContentTypeEnum::Enum matrixType         = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_UNSUPPORTED;
     
     std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum> validMatrixRowColumnSelectionDimensions;
@@ -100,10 +102,12 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
@@ -121,17 +125,20 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE;
             validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN);
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE;
             validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN);
             break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_SCALAR_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_ROW_SCALAR_DATA;
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_SCALARS;
             validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW);
@@ -154,6 +161,7 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             break;
         case DataFileTypeEnum::METRIC:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
@@ -174,6 +182,7 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
         case DataFileTypeEnum::VOLUME:
             if ( ! m_caretMappableDataFile->isMappedWithLabelTable()) {
                 histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
+                lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
                 lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             }
             break;
@@ -190,6 +199,16 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
     if ( ! m_histogramCharting) {
         m_histogramCharting = std::unique_ptr<ChartableTwoFileHistogramChart>(new ChartableTwoFileHistogramChart(histogramType,
                                                                                                                  m_caretMappableDataFile));
+    }
+    
+    if (m_lineLayerCharting) {
+        if (lineLayerType != m_lineLayerCharting->getLineLayerContentType()) {
+            m_lineLayerCharting.reset();
+        }
+    }
+    if ( ! m_lineLayerCharting) {
+        m_lineLayerCharting = std::unique_ptr<ChartableTwoFileLineLayerChart>(new ChartableTwoFileLineLayerChart(lineLayerType,
+                                                                                                                    m_caretMappableDataFile));
     }
     
     if (m_lineSeriesCharting) {
@@ -245,6 +264,9 @@ ChartableTwoFileDelegate::clear()
     m_histogramCharting = std::unique_ptr<ChartableTwoFileHistogramChart>(new ChartableTwoFileHistogramChart(ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_UNSUPPORTED,
                                                                                                              m_caretMappableDataFile));
     
+    m_lineLayerCharting = std::unique_ptr<ChartableTwoFileLineLayerChart>(new ChartableTwoFileLineLayerChart(ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED,
+                                                                                                                m_caretMappableDataFile));
+    
     m_lineSeriesCharting = std::unique_ptr<ChartableTwoFileLineSeriesChart>(new ChartableTwoFileLineSeriesChart(ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED,
                                                                                                                 m_caretMappableDataFile));
     
@@ -261,6 +283,7 @@ void
 ChartableTwoFileDelegate::clearModified()
 {
     m_histogramCharting->clearModified();
+    m_lineLayerCharting->clearModified();
     m_lineSeriesCharting->clearModified();
     m_matrixCharting->clearModified();
 }
@@ -275,6 +298,9 @@ ChartableTwoFileDelegate::isModified() const
         return true;
     }
     if (m_matrixCharting->isModified()) {
+        return true;
+    }
+    if (m_lineLayerCharting->isModified()) {
         return true;
     }
     if (m_lineSeriesCharting->isModified()) {
@@ -320,6 +346,24 @@ const ChartableTwoFileHistogramChart*
 ChartableTwoFileDelegate::getHistogramCharting() const
 {
     return m_histogramCharting.get();
+}
+
+/**
+ * @return Line layer charting.
+ */
+ChartableTwoFileLineLayerChart*
+ChartableTwoFileDelegate::getLineLayerCharting()
+{
+    return m_lineLayerCharting.get();
+}
+
+/**
+ * @return Line layer charting.
+ */
+const ChartableTwoFileLineLayerChart*
+ChartableTwoFileDelegate::getLineLayerCharting() const
+{
+    return m_lineLayerCharting.get();
 }
 
 /**
@@ -430,6 +474,9 @@ ChartableTwoFileDelegate::getSupportedChartTwoDataTypes(std::vector<ChartTwoData
     if (m_histogramCharting != NULL) {
         chartDataTypesOut.push_back(m_histogramCharting->getChartTwoDataType());
     }
+    if (m_lineLayerCharting != NULL) {
+        chartDataTypesOut.push_back(m_lineLayerCharting->getChartTwoDataType());
+    }
     if (m_lineSeriesCharting!= NULL) {
         chartDataTypesOut.push_back(m_lineSeriesCharting->getChartTwoDataType());
     }
@@ -451,6 +498,9 @@ ChartableTwoFileDelegate::getSupportedChartTwoCompoundDataTypes(std::vector<Char
     
     if (m_histogramCharting->getHistogramContentType() != ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_UNSUPPORTED) {
         chartCompoundDataTypesOut.push_back(m_histogramCharting->getChartTwoCompoundDataType());
+    }
+    if (m_lineLayerCharting->getLineLayerContentType() != ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED) {
+        chartCompoundDataTypesOut.push_back(m_lineLayerCharting->getChartTwoCompoundDataType());
     }
     if (m_lineSeriesCharting->getLineSeriesContentType() != ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED) {
         chartCompoundDataTypesOut.push_back(m_lineSeriesCharting->getChartTwoCompoundDataType());
@@ -519,9 +569,13 @@ ChartableTwoFileDelegate::saveToScene(const SceneAttributes* sceneAttributes,
         sceneClass->addClass(m_histogramCharting->saveToScene(sceneAttributes,
                                                               "m_histogramCharting"));
     }
+    if (m_lineLayerCharting != NULL) {
+        sceneClass->addClass(m_lineLayerCharting->saveToScene(sceneAttributes,
+                                                              "m_lineLayerCharting"));
+    }
     if (m_lineSeriesCharting != NULL) {
         sceneClass->addClass(m_lineSeriesCharting->saveToScene(sceneAttributes,
-                                                              "m_lineSeriesCharting"));
+                                                               "m_lineSeriesCharting"));
     }
     if (m_matrixCharting != NULL) {
         sceneClass->addClass(m_matrixCharting->saveToScene(sceneAttributes,
@@ -560,11 +614,18 @@ ChartableTwoFileDelegate::restoreFromScene(const SceneAttributes* sceneAttribute
                                               histogramClass);
     }
     
+    const SceneClass* lineLayerClass = sceneClass->getClass("m_lineLayerCharting");
+    if (lineLayerClass != NULL) {
+        CaretAssert(m_lineLayerCharting);
+        m_lineLayerCharting->restoreFromScene(sceneAttributes,
+                                              lineLayerClass);
+    }
+    
     const SceneClass* lineSeriesClass = sceneClass->getClass("m_lineSeriesCharting");
     if (lineSeriesClass != NULL) {
         CaretAssert(m_lineSeriesCharting);
         m_lineSeriesCharting->restoreFromScene(sceneAttributes,
-                                           lineSeriesClass);
+                                               lineSeriesClass);
     }
     
     const SceneClass* matrixClass = sceneClass->getClass("m_matrixCharting");

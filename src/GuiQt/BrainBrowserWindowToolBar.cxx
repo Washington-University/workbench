@@ -2086,6 +2086,10 @@ BrainBrowserWindowToolBar::updateToolBar()
                             showChartTwoAxesWidget = true;
                             showChartTwoTitleWidget = true;
                             break;
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                            showChartTwoAxesWidget = true;
+                            showChartTwoTitleWidget = true;
+                            break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                             showChartTwoAxesWidget = true;
                             showChartTwoTitleWidget = true;

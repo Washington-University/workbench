@@ -413,6 +413,9 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                                 chartOverlaySet = modelChartTwo->getChartTwoOverlaySet(tabIndex);
                                 break;
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                                chartOverlaySet = modelChartTwo->getChartTwoOverlaySet(tabIndex);
+                                break;
                             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                                 chartOverlaySet = modelChartTwo->getChartTwoOverlaySet(tabIndex);
                                 break;

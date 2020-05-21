@@ -39,6 +39,7 @@ namespace caret {
     class SelectionItemChartFrequencySeries;
     class SelectionItemChartMatrix;
     class SelectionItemChartTwoHistogram;
+    class SelectionItemChartTwoLineLayer;
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
     class SelectionItemCiftiConnectivityMatrixRowColumn;
@@ -123,6 +124,9 @@ namespace caret {
 
         void generateChartTwoHistogramIdentificationText(IdentificationStringBuilder& idText,
                                                          const SelectionItemChartTwoHistogram* idChartTwoHistogram) const;
+        
+        void generateChartTwoLineLayerIdentificationText(IdentificationStringBuilder& idText,
+                                                         const SelectionItemChartTwoLineLayer* idChartTwoLineLayer) const;
         
         void generateChartTwoLineSeriesIdentificationText(IdentificationStringBuilder& idText,
                                                           const SelectionItemChartTwoLineSeries* idChartTwoLineSeries) const;

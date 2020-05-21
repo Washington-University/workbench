@@ -36,6 +36,7 @@
 #include "ChartableMatrixInterface.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
+#include "ChartableTwoFileLineLayerChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
@@ -62,6 +63,7 @@
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemChartTwoHistogram.h"
+#include "SelectionItemChartTwoLineLayer.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemFocusSurface.h"
@@ -163,8 +165,11 @@ IdentificationSimpleTextGenerator::createIdentificationText(const SelectionManag
     this->generateChartTwoHistogramIdentificationText(idText,
                                                       idManager->getChartTwoHistogramIdentification());
     
+    this->generateChartTwoLineLayerIdentificationText(idText,
+                                                      idManager->getChartTwoLineLayerIdentification());
+    
     this->generateChartTwoLineSeriesIdentificationText(idText,
-                                                      idManager->getChartTwoLineSeriesIdentification());
+                                                       idManager->getChartTwoLineSeriesIdentification());
     
     this->generateChartTwoMatrixIdentificationText(idText,
                                                       idManager->getChartTwoMatrixIdentification());
@@ -891,6 +896,66 @@ IdentificationSimpleTextGenerator::generateChartTwoHistogramIdentificationText(I
 }
 
 /**
+ * Generate identification text for a chart two line-layer.
+ *
+ * @param idText
+ *     String builder for identification text.
+ * @param idChartTwoLineLayer
+ *     Information for selected chart two line-layer.
+ */
+void
+IdentificationSimpleTextGenerator::generateChartTwoLineLayerIdentificationText(IdentificationStringBuilder& idText,
+                                                                                const SelectionItemChartTwoLineLayer* idChartTwoLineLayer) const
+{
+    if (idChartTwoLineLayer->isValid()) {
+        const ChartableTwoFileLineLayerChart* fileLineLayerChart = idChartTwoLineLayer->getFileLineLayerChart();
+        CaretAssert(fileLineLayerChart);
+        const CaretMappableDataFile* mapFile = fileLineLayerChart->getCaretMappableDataFile();
+        CaretAssert(mapFile);
+        const ChartTwoDataCartesian* cartesianData = idChartTwoLineLayer->getChartTwoCartesianData();
+        CaretAssert(cartesianData);
+        const MapFileDataSelector* mapFileDataSelector = cartesianData->getMapFileDataSelector();
+        CaretAssert(mapFileDataSelector);
+        
+        int32_t primitiveIndex = idChartTwoLineLayer->getLineSegmentIndex();
+        
+        AString boldText("Line Layer Chart");
+        idText.addLine(false,
+                       boldText,
+                       mapFile->getFileNameNoPath());
+        
+        cartesianData->getGraphicsPrimitive();
+        const GraphicsPrimitive* primitive = cartesianData->getGraphicsPrimitive();
+        CaretAssert(primitive);
+        
+        if (primitiveIndex >= 1) {
+            float xyz1[3];
+            primitive->getVertexFloatXYZ(primitiveIndex - 1,
+                                         xyz1);
+            float xyz2[3];
+            primitive->getVertexFloatXYZ(primitiveIndex,
+                                         xyz2);
+            idText.addLine(true,
+                           "XY Start",
+                           AString::fromNumbers(xyz1, 2, ", "));
+            idText.addLine(true,
+                           "XY End ",
+                           AString::fromNumbers(xyz2, 2, ", "));
+        }
+        else {
+            float xyz[3];
+            primitive->getVertexFloatXYZ(primitiveIndex,
+                                         xyz);
+            idText.addLine(true,
+                           "XY",
+                           AString::fromNumbers(xyz, 2, ", "));
+        }
+        
+        generateMapFileSelectorText(idText,
+                                    mapFileDataSelector);
+    }
+}
+/**
  * Generate identification text for a chart two line-series.
  *
  * @param idText
@@ -914,7 +979,7 @@ IdentificationSimpleTextGenerator::generateChartTwoLineSeriesIdentificationText(
         
         int32_t primitiveIndex = idChartTwoLineSeries->getLineSegmentIndex();
         
-        AString boldText("Line Chart");
+        AString boldText("Line Series Chart");
         idText.addLine(false,
                        boldText,
                        mapFile->getFileNameNoPath());
@@ -1685,17 +1750,6 @@ IdentificationSimpleTextGenerator::generateSurfaceToolTip(const Brain* brain,
             generateSurfaceBorderIdentifcationText(idText,
                                                    borderSelection,
                                                    true);
-            
-//            const BorderFile* borderFile = borderSelection->getBorderFile();
-//            const int32_t borderIndex    = borderSelection->getBorderIndex();
-//            if ((borderFile != NULL)
-//                && (borderIndex >= 0)) {
-//                const Border* border = borderFile->getBorder(borderIndex);
-//                if (border != NULL) {
-//                    text.appendWithNewLine("Border: "
-//                                           + border->getName());
-//                }
-//            }
         }
     }
     
@@ -1706,18 +1760,6 @@ IdentificationSimpleTextGenerator::generateSurfaceToolTip(const Brain* brain,
             generateSurfaceFociIdentifcationText(idText,
                                                  focusSelection,
                                                  true);
-            
-            
-//            const FociFile* fociFile = focusSelection->getFociFile();
-//            const int32_t focusIndex = focusSelection->getFocusIndex();
-//            if ((fociFile != NULL)
-//                && (focusIndex >= 0)) {
-//                const Focus* focus = fociFile->getFocus(focusIndex);
-//                if (focus != NULL) {
-//                    text.appendWithNewLine("Focus: "
-//                                           + focus->getName());
-//                }
-//            }
         }
     }
 }

@@ -123,6 +123,24 @@ ChartableTwoFileBaseChart::setDefaultAxisTitle(const ChartAxisLocationEnum::Enum
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                     title = "Data";
                     break;
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                    title = CaretUnitsTypeEnum::toGuiName(m_compoundChartDataType.getLineChartUnitsAxisX());
+                    switch (m_compoundChartDataType.getLineChartUnitsAxisX()) {
+                        case CaretUnitsTypeEnum::NONE:
+                            title = "Data";
+                            break;
+                        case CaretUnitsTypeEnum::HERTZ:
+                            break;
+                        case CaretUnitsTypeEnum::METERS:
+                            break;
+                        case CaretUnitsTypeEnum::PARTS_PER_MILLION:
+                            break;
+                        case CaretUnitsTypeEnum::RADIANS:
+                            break;
+                        case CaretUnitsTypeEnum::SECONDS:
+                            break;
+                    }
+                    break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                     title = CaretUnitsTypeEnum::toGuiName(m_compoundChartDataType.getLineChartUnitsAxisX());
                     switch (m_compoundChartDataType.getLineChartUnitsAxisX()) {
@@ -153,6 +171,9 @@ ChartableTwoFileBaseChart::setDefaultAxisTitle(const ChartAxisLocationEnum::Enum
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                     title = "Counts";
+                    break;
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                    title = "Value";
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                     title = "Value";

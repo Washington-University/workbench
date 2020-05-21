@@ -76,6 +76,8 @@ m_graphicsPrimitiveType(graphicsPrimitiveType)
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
             CaretAssert(0);
             break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
@@ -288,16 +290,6 @@ void
 ChartTwoDataCartesian::setSelected(const bool selectionStatus)
 {
     m_selectionStatus = selectionStatus;
-    
-    /*
-     * When selection status is true,
-     * notify parent.
-     */
-    //    if (m_selectionStatus[tabIndex]) {
-    //        if (m_parentChartModel != NULL) {
-    //            m_parentChartModel->childChartTwoDataSelectionChanged(this);
-    //        }
-    //    }
 }
 
 
@@ -465,9 +457,6 @@ ChartTwoDataCartesian::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-//    chartDataCartesian->addClass(m_mapFileDataSelector->saveToScene(sceneAttributes,
-//                                                            "m_mapFileDataSelector"));
-    
     const std::vector<float>& xyz = m_graphicsPrimitive->getFloatXYZ();
     const int32_t numXYZ = static_cast<int32_t>(xyz.size());
     if (numXYZ > 0) {
@@ -500,8 +489,6 @@ ChartTwoDataCartesian::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_graphicsPrimitive = createGraphicsPrimitive();
     
     m_sceneAssistant->restoreMembers(sceneAttributes, sceneClass);
-    
-//    m_mapFileDataSelector->restoreFromScene(sceneAttributes, chartDataCartesian->getClass("m_mapFileDataSelector"));
     
     const ScenePrimitiveArray* xyzArray = sceneClass->getPrimitiveArray("xyz");
     if (xyzArray != NULL) {

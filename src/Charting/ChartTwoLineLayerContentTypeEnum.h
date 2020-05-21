@@ -1,9 +1,9 @@
-#ifndef __CHART_TWO_DATA_TYPE_ENUM_H__
-#define __CHART_TWO_DATA_TYPE_ENUM_H__
+#ifndef __CHART_TWO_LINE_LAYER_CONTENT_TYPE_ENUM_H__
+#define __CHART_TWO_LINE_LAYER_CONTENT_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2016 Washington University School of Medicine
+ *  Copyright (C) 2017 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,27 +28,23 @@
 
 namespace caret {
 
-class ChartTwoDataTypeEnum {
+class ChartTwoLineLayerContentTypeEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Invalid */
-        CHART_DATA_TYPE_INVALID,
-        /** Histogram */
-        CHART_DATA_TYPE_HISTOGRAM,
-        /** Line Layer */
-        CHART_DATA_TYPE_LINE_LAYER,
-        /** Line Series */
-        CHART_DATA_TYPE_LINE_SERIES,
-        /** Matrix */
-        CHART_DATA_TYPE_MATRIX
+        /** Unsupported */
+        LINE_LAYER_CONTENT_UNSUPPORTED,
+        /** Brainordinate Data Content */
+        LINE_LAYER_CONTENT_BRAINORDINATE_DATA,
+        /** Row Scalars Content */
+        LINE_LAYER_CONTENT_ROW_SCALAR_DATA
     };
 
 
-    ~ChartTwoDataTypeEnum();
+    ~ChartTwoLineLayerContentTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -68,17 +64,15 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
-    static const int32_t NUMBER_OF_CHART_DATA_TYPES = 5;
-    
 private:
-    ChartTwoDataTypeEnum(const Enum enumValue, 
+    ChartTwoLineLayerContentTypeEnum(const Enum enumValue,
                  const AString& name,
                  const AString& guiName);
 
-    static const ChartTwoDataTypeEnum* findData(const Enum enumValue);
+    static const ChartTwoLineLayerContentTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<ChartTwoDataTypeEnum> enumData;
+    static std::vector<ChartTwoLineLayerContentTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -102,11 +96,11 @@ private:
     AString guiName;
 };
 
-#ifdef __CHART_TWO_DATA_TYPE_ENUM_DECLARE__
-std::vector<ChartTwoDataTypeEnum> ChartTwoDataTypeEnum::enumData;
-bool ChartTwoDataTypeEnum::initializedFlag = false;
-int32_t ChartTwoDataTypeEnum::integerCodeCounter = 0; 
-#endif // __CHART_TWO_DATA_TYPE_ENUM_DECLARE__
+#ifdef __CHART_TWO_LINE_LAYER_CONTENT_TYPE_ENUM_DECLARE__
+std::vector<ChartTwoLineLayerContentTypeEnum> ChartTwoLineLayerContentTypeEnum::enumData;
+bool ChartTwoLineLayerContentTypeEnum::initializedFlag = false;
+int32_t ChartTwoLineLayerContentTypeEnum::integerCodeCounter = 0;
+#endif // __CHART_TWO_LINE_LAYER_CONTENT_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__CHART_TWO_DATA_TYPE_ENUM_H__
+#endif  //__CHART_TWO_LINE_LAYER_CONTENT_TYPE_ENUM_H__
