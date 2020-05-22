@@ -295,11 +295,14 @@ ChartTwoOverlaySetViewController::updateViewController()
         if (chartOverlaySet != NULL) {
             chartOverlay = chartOverlaySet->getOverlay(i);
         }
-        m_chartOverlayViewControllers[i]->updateViewController(chartOverlay);
         
         bool displayOverlay = (chartOverlay != NULL);
         if (i >= numberOfDisplayedOverlays) {
             displayOverlay = false;
+        }
+        if (displayOverlay) {
+            CaretAssertVectorIndex(m_chartOverlayViewControllers, i);
+            m_chartOverlayViewControllers[i]->updateViewController(chartOverlay);
         }
         CaretAssertVectorIndex(m_chartOverlayGridLayoutGroups, i);
         m_chartOverlayGridLayoutGroups[i]->setVisible(displayOverlay);
