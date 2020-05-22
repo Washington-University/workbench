@@ -116,73 +116,6 @@ m_lineLayerContentType(lineLayerContentType)
             }
         }
             break;
-        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
-            if (brainordinateDataSupportedFlag) {
-                if (cmdf->getNumberOfMaps() > 1) {
-                    const NiftiTimeUnitsEnum::Enum mapUnits = cmdf->getMapIntervalUnits();
-                    xAxisUnits = CaretUnitsTypeEnum::NONE;
-                    switch (mapUnits) {
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
-                            xAxisUnits = CaretUnitsTypeEnum::HERTZ;
-                            break;
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
-                            xAxisUnits = CaretUnitsTypeEnum::SECONDS;
-                            break;
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
-                            xAxisUnits = CaretUnitsTypeEnum::PARTS_PER_MILLION;
-                            break;
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
-                            xAxisUnits = CaretUnitsTypeEnum::SECONDS;
-                            break;
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
-                            xAxisUnits = CaretUnitsTypeEnum::SECONDS;
-                            break;
-                        case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
-                            break;
-                    }
-                    xAxisNumberOfElements = cmdf->getNumberOfMaps();
-                }
-            }
-            break;
-        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_SCALAR_DATA:
-        {
-            const CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
-            CaretAssert(ciftiMapFile);
-            std::vector<int64_t> dims;
-            ciftiMapFile->getMapDimensions(dims);
-            CaretAssertVectorIndex(dims, 1);
-            const int32_t numCols = dims[0];
-            const int32_t numRows = dims[1];
-            
-            if ((numRows > 0)
-                && (numCols > 1)) {
-                const NiftiTimeUnitsEnum::Enum mapUnits = ciftiMapFile->getMapIntervalUnits();
-                xAxisUnits = CaretUnitsTypeEnum::NONE;
-                switch (mapUnits) {
-                    case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
-                        xAxisUnits = CaretUnitsTypeEnum::HERTZ;
-                        break;
-                    case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
-                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
-                        break;
-                    case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
-                        xAxisUnits = CaretUnitsTypeEnum::PARTS_PER_MILLION;
-                        break;
-                    case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
-                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
-                        break;
-                    case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
-                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
-                        break;
-                    case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
-                        break;
-                }
-                xAxisNumberOfElements = numCols;
-                
-                numberOfChartMaps = numRows;
-            }
-        }
-            break;
     }
 
     /*
@@ -352,10 +285,6 @@ ChartableTwoFileLineLayerChart::getChartMapNames(std::vector<AString>& mapNamesO
                     }
                 }
                     break;
-                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
-                    break;
-                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_SCALAR_DATA:
-                    break;
             }
         }
         else {
@@ -391,24 +320,6 @@ ChartableTwoFileLineLayerChart::getChartMapLine(const int32_t chartMapIndex)
                 case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED:
                     break;
                 case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA:
-                    mapFileSelector.setRowIndex(mapFile,
-                                                mapFileName,
-                                                chartMapIndex);
-                    loadDataFlag = true;
-                    break;
-                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
-                {
-                    CiftiMappableDataFile* ciftiFile = getCiftiMappableDataFile();
-                    if (ciftiFile != NULL) {
-                        
-                    }
-                    else {
-                        CaretLogWarning("Unsupported file for line layer charting: "
-                                        + mapFileName);
-                    }
-                }
-                    break;
-                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_SCALAR_DATA:
                     mapFileSelector.setRowIndex(mapFile,
                                                 mapFileName,
                                                 chartMapIndex);
@@ -457,60 +368,6 @@ ChartableTwoFileLineLayerChart::loadChartForMapFileSelector(const MapFileDataSel
                     break;
                 case MapFileDataSelector::DataSelectionType::ROW_DATA:
                     loadDataFlag = true;
-                    break;
-                case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
-                    break;
-                case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
-                    break;
-                case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
-                    break;
-            }
-            break;
-        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
-            switch (mapFileDataSelector.getDataSelectionType()) {
-                case MapFileDataSelector::DataSelectionType::INVALID:
-                    break;
-                case MapFileDataSelector::DataSelectionType::COLUMN_DATA:
-                    break;
-                case MapFileDataSelector::DataSelectionType::ROW_DATA:
-                    break;
-                case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
-                    loadDataFlag = true;
-                    break;
-                case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
-                    loadDataFlag = true;
-                    break;
-                case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
-                    loadDataFlag = true;
-                    break;
-            }
-            break;
-        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_SCALAR_DATA:
-            switch (mapFileDataSelector.getDataSelectionType()) {
-                case MapFileDataSelector::DataSelectionType::INVALID:
-                    break;
-                case MapFileDataSelector::DataSelectionType::COLUMN_DATA:
-                {
-                    CaretMappableDataFile* mapFile = NULL;
-                    AString mapFileName;
-                    int32_t columnIndex = -1;
-                    mapFileDataSelector.getColumnIndex(mapFile, mapFileName, columnIndex);
-                    if (mapFile == getCaretMappableDataFile()) {
-                        loadDataFlag = true;
-                    }
-                }
-                    break;
-                case MapFileDataSelector::DataSelectionType::ROW_DATA:
-                {
-                    CaretMappableDataFile* mapFile = NULL;
-                    AString mapFileName;
-                    int32_t rowIndex = -1;
-                    mapFileDataSelector.getRowIndex(mapFile, mapFileName, rowIndex);
-                    if (mapFile == getCaretMappableDataFile()) {
-                        loadDataFlag = true;
-                    }
-                    scalarRowIndex = rowIndex;
-                }
                     break;
                 case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
                     break;

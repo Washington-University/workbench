@@ -161,7 +161,7 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             break;
         case DataFileTypeEnum::METRIC:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
-            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
@@ -182,7 +182,7 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
         case DataFileTypeEnum::VOLUME:
             if ( ! m_caretMappableDataFile->isMappedWithLabelTable()) {
                 histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
-                lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
+                lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED;
                 lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             }
             break;
