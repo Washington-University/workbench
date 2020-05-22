@@ -7511,35 +7511,29 @@ CiftiMappableDataFile::getDataForSelector(const MapFileDataSelector& mapFileData
             break;
         case MapFileDataSelector::DataSelectionType::COLUMN_DATA:
         {
-            const bool loadColumnDataFlag = false;
-            if (loadColumnDataFlag) {
-                const DataFileTypeEnum::Enum dataFileType = getDataFileType();
-                if (dataFileType == DataFileTypeEnum::UNKNOWN) {
-                    CaretMappableDataFile* mapFile = NULL;
-                    AString mapFileName;
-                    int32_t columnIndex = -1;
-                    mapFileDataSelector.getColumnIndex(mapFile,
-                                                       mapFileName,
-                                                       columnIndex);
-                    bool loadDataFlag = false;
-                    if (mapFile != NULL) {
-                        if (mapFile == dynamic_cast<const CaretMappableDataFile*>(this)) {
-                            loadDataFlag = true;
-                        }
-                    }
-                    else if (mapFileName.endsWith(getFileNameNoPath())) {
-                        loadDataFlag = true;
-                    }
-                    if (loadDataFlag) {
-                        if ((columnIndex >= 0)
-                            && (columnIndex < m_ciftiFile->getNumberOfColumns())) {
-                            const int32_t numberOfElementsInColumn = m_ciftiFile->getNumberOfRows();
-                            if (numberOfElementsInColumn > 0) {
-                                dataOut.resize(numberOfElementsInColumn);
-                                m_ciftiFile->getColumn(&dataOut[0],
-                                                       columnIndex);
-                            }
-                        }
+            CaretMappableDataFile* mapFile = NULL;
+            AString mapFileName;
+            int32_t columnIndex = -1;
+            mapFileDataSelector.getColumnIndex(mapFile,
+                                               mapFileName,
+                                               columnIndex);
+            bool loadDataFlag = false;
+            if (mapFile != NULL) {
+                if (mapFile == dynamic_cast<const CaretMappableDataFile*>(this)) {
+                    loadDataFlag = true;
+                }
+            }
+            else if (mapFileName.endsWith(getFileNameNoPath())) {
+                loadDataFlag = true;
+            }
+            if (loadDataFlag) {
+                if ((columnIndex >= 0)
+                    && (columnIndex < m_ciftiFile->getNumberOfColumns())) {
+                    const int32_t numberOfElementsInColumn = m_ciftiFile->getNumberOfRows();
+                    if (numberOfElementsInColumn > 0) {
+                        dataOut.resize(numberOfElementsInColumn);
+                        m_ciftiFile->getColumn(&dataOut[0],
+                                               columnIndex);
                     }
                 }
             }
@@ -7547,33 +7541,30 @@ CiftiMappableDataFile::getDataForSelector(const MapFileDataSelector& mapFileData
             break;
         case MapFileDataSelector::DataSelectionType::ROW_DATA:
         {
-            const DataFileTypeEnum::Enum dataFileType = getDataFileType();
-            if (dataFileType == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
-                CaretMappableDataFile* mapFile = NULL;
-                AString mapFileName;
-                int32_t rowIndex = -1;
-                mapFileDataSelector.getRowIndex(mapFile,
-                                                mapFileName,
-                                                rowIndex);
-                
-                bool loadDataFlag = false;
-                if (mapFile != NULL) {
-                    if (mapFile == dynamic_cast<const CaretMappableDataFile*>(this)) {
-                        loadDataFlag = true;
-                    }
-                }
-                else if (mapFileName.endsWith(getFileNameNoPath())) {
+            CaretMappableDataFile* mapFile = NULL;
+            AString mapFileName;
+            int32_t rowIndex = -1;
+            mapFileDataSelector.getRowIndex(mapFile,
+                                            mapFileName,
+                                            rowIndex);
+            
+            bool loadDataFlag = false;
+            if (mapFile != NULL) {
+                if (mapFile == dynamic_cast<const CaretMappableDataFile*>(this)) {
                     loadDataFlag = true;
                 }
-                if (loadDataFlag) {
-                    if ((rowIndex >= 0)
-                        && (rowIndex < m_ciftiFile->getNumberOfRows())) {
-                        const int32_t numberOfElementsInRow = m_ciftiFile->getNumberOfColumns();
-                        if (numberOfElementsInRow > 0) {
-                            dataOut.resize(numberOfElementsInRow);
-                            m_ciftiFile->getRow(&dataOut[0],
-                                                rowIndex);
-                        }
+            }
+            else if (mapFileName.endsWith(getFileNameNoPath())) {
+                loadDataFlag = true;
+            }
+            if (loadDataFlag) {
+                if ((rowIndex >= 0)
+                    && (rowIndex < m_ciftiFile->getNumberOfRows())) {
+                    const int32_t numberOfElementsInRow = m_ciftiFile->getNumberOfColumns();
+                    if (numberOfElementsInRow > 0) {
+                        dataOut.resize(numberOfElementsInRow);
+                        m_ciftiFile->getRow(&dataOut[0],
+                                            rowIndex);
                     }
                 }
             }

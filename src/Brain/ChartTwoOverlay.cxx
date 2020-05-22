@@ -859,11 +859,13 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
             }
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
-                numMaps = m_selectedMapFile->getNumberOfMaps();
+            {
+                ChartableTwoFileLineLayerChart* lineLayerChart =
+                   m_selectedMapFile->getChartingDelegate()->getLineLayerCharting();
+                CaretAssert(lineLayerChart);
+                numMaps = lineLayerChart->getNumberOfChartMaps();
                 if (selectedFileMapNamesOut != NULL) {
-                    for (int32_t i = 0; i < numMaps; i++) {
-                        selectedFileMapNamesOut->push_back(m_selectedMapFile->getMapName(i));
-                    }
+                    lineLayerChart->getChartMapNames(*selectedFileMapNamesOut);
                 }
                 if (m_selectedLineLayerMapIndex >= numMaps) {
                     m_selectedLineLayerMapIndex = numMaps - 1;
@@ -873,6 +875,7 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
                 }
                 selectedIndexTypeOut = SelectedIndexType::MAP;
                 selectedIndexOut     = m_selectedLineLayerMapIndex;
+            }
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             {
@@ -1508,7 +1511,7 @@ ChartTwoOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                 }
                 
                 if (foundMapIndex < 0) {
-                    if (selectedMapIndex >= 0) {
+                    if (selectedMapIndex >= 0) { 
                         if (selectedMapIndex < mapFile->getNumberOfMaps()) {
                             foundMapIndexFile = mapFile;
                             foundMapIndex     = selectedMapIndex;

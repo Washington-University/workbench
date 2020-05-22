@@ -39,6 +39,8 @@ public:
         LINE_LAYER_CONTENT_UNSUPPORTED,
         /** Brainordinate Data Content */
         LINE_LAYER_CONTENT_BRAINORDINATE_DATA,
+        /** Brainordinate Data From Rows Content */
+        LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA,
         /** Row Scalars Content */
         LINE_LAYER_CONTENT_ROW_SCALAR_DATA
     };

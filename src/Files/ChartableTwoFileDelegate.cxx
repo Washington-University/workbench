@@ -102,12 +102,12 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
-            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
-            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
@@ -125,20 +125,20 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
-            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE;
             validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN);
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
-            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE;
             validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN);
             break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
-            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_SCALAR_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA; //LINE_LAYER_CONTENT_ROW_SCALAR_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_ROW_SCALAR_DATA;
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_SCALARS;
             validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW);

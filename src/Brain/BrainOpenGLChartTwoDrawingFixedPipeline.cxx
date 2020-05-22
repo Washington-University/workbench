@@ -503,7 +503,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         if (drawLineLayerFlag) {
             ChartableTwoFileLineLayerChart* lineLayerChart = chartDelegate->getLineLayerCharting();
             if (lineLayerChart->isValid()) {
-                const ChartTwoDataCartesian* data = lineLayerChart->getLineChartForMap(selectedIndex);
+                const ChartTwoDataCartesian* data = lineLayerChart->getChartMapLine(selectedIndex);
                 CaretAssert(data);
                 if (data->isSelected()) {
                     BoundingBox boundingBox;

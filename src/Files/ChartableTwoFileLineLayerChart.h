@@ -32,6 +32,7 @@
 namespace caret {
     class BoundingBox;
     class ChartTwoDataCartesian;
+    class CiftiBrainModelsMap;
     class MapFileDataSelector;
     class SceneClassAssistant;
 
@@ -55,7 +56,11 @@ namespace caret {
         
         virtual void receiveEvent(Event* event) override;
         
-        ChartTwoDataCartesian* getLineChartForMap(const int32_t mapIndex);
+        int32_t getNumberOfChartMaps() const;
+        
+        void getChartMapNames(std::vector<AString>& mapNamesOut);
+        
+        ChartTwoDataCartesian* getChartMapLine(const int32_t chartMapIndex);
         
         CaretColorEnum::Enum getDefaultColor() const;
         
@@ -93,16 +98,21 @@ namespace caret {
         
         ChartTwoDataCartesian* createChartData() const;
         
+        void getMapNamesFromCiftiBrainMap(const CiftiBrainModelsMap& brainModelsMap,
+                                          std::vector<AString>& mapNames);
+
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         std::vector<std::unique_ptr<ChartTwoDataCartesian>> m_mapLineCharts;
+        
+        std::vector<AString> m_mapLineChartNames;
         
         ChartTwoLineLayerContentTypeEnum::Enum m_lineLayerContentType;
         
         CaretColorEnum::Enum m_defaultColor = CaretColorEnum::BLUE;
         
         float m_defaultLineWidth = 1.0;
-        
+
         // ADD_NEW_MEMBERS_HERE
 
         static int32_t s_defaultColorIndexGenerator;

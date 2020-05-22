@@ -69,9 +69,52 @@ m_lineLayerContentType(lineLayerContentType)
     CaretMappableDataFile* cmdf = getCaretMappableDataFile();
     CaretAssert(cmdf);
     
-    const bool brainordinateDataSupportedFlag(false);
+    int64_t numberOfChartMaps(0);
+    
+    const bool brainordinateDataSupportedFlag(true);
     switch (lineLayerContentType) {
         case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED:
+            break;
+        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA:
+        {
+            const CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
+            if (ciftiMapFile != NULL) {
+                CaretAssert(ciftiMapFile);
+                std::vector<int64_t> dims;
+                ciftiMapFile->getMapDimensions(dims);
+                CaretAssertVectorIndex(dims, 1);
+                const int32_t numCols = dims[0];
+                const int32_t numRows = dims[1];
+                
+                if ((numRows > 0)
+                    && (numCols > 1)) {
+                    numberOfChartMaps = numRows;
+                    
+                    const NiftiTimeUnitsEnum::Enum mapUnits = ciftiMapFile->getMapIntervalUnits();
+                    xAxisUnits = CaretUnitsTypeEnum::NONE;
+                    switch (mapUnits) {
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+                            xAxisUnits = CaretUnitsTypeEnum::HERTZ;
+                            break;
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+                            xAxisUnits = CaretUnitsTypeEnum::SECONDS;
+                            break;
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+                            xAxisUnits = CaretUnitsTypeEnum::PARTS_PER_MILLION;
+                            break;
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+                            xAxisUnits = CaretUnitsTypeEnum::SECONDS;
+                            break;
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+                            xAxisUnits = CaretUnitsTypeEnum::SECONDS;
+                            break;
+                        case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+                            break;
+                    }
+                    xAxisNumberOfElements = numCols;
+                }
+            }
+        }
             break;
         case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
             if (brainordinateDataSupportedFlag) {
@@ -135,6 +178,8 @@ m_lineLayerContentType(lineLayerContentType)
                         break;
                 }
                 xAxisNumberOfElements = numCols;
+                
+                numberOfChartMaps = numRows;
             }
         }
             break;
@@ -151,7 +196,7 @@ m_lineLayerContentType(lineLayerContentType)
                                                                                                    xAxisNumberOfElements));
     CaretMappableDataFile* mapFile = getCaretMappableDataFile();
     CaretAssert(mapFile);
-    m_mapLineCharts.resize(mapFile->getNumberOfMaps());
+    m_mapLineCharts.resize(numberOfChartMaps);
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_defaultColor",
@@ -211,21 +256,124 @@ ChartableTwoFileLineLayerChart::getBounds(const int32_t mapIndex,
     boundingBoxOut.resetForUpdate();
     ChartableTwoFileLineLayerChart* nonConst = const_cast<ChartableTwoFileLineLayerChart*>(this);
     CaretAssert(nonConst);
-    const ChartTwoDataCartesian* cd = nonConst->getLineChartForMap(mapIndex);
-    CaretAssert(cd);
-    cd->getBounds(boundingBoxOut);
-    return true;
+    const ChartTwoDataCartesian* cd = nonConst->getChartMapLine(mapIndex);
+    if (cd != NULL) {
+        cd->getBounds(boundingBoxOut);
+        return true;
+    }
+    return false;
 }
 
+/**
+ * @return Number of chart maps (usually different that number of brainmapped maps).
+ */
+int32_t
+ChartableTwoFileLineLayerChart::getNumberOfChartMaps() const
+{
+    return m_mapLineCharts.size();
+}
+
+/**
+ * Get map names for a CIFTI Brain Models map
+ * @param brainModelsMap
+ *    The brain models map
+ * @param mapNames
+ *   Output with map names
+ */
+void
+ChartableTwoFileLineLayerChart::getMapNamesFromCiftiBrainMap(const CiftiBrainModelsMap& brainModelsMap,
+                             std::vector<AString>& mapNames)
+{
+    const int64_t numNames = brainModelsMap.getLength();
+    if (numNames == static_cast<int64_t>(mapNames.size())) {
+        std::vector<StructureEnum::Enum> surfaceStructures = brainModelsMap.getSurfaceStructureList();
+        for (auto s : surfaceStructures) {
+            const AString name(StructureEnum::toGuiName(s));
+            std::vector<CiftiBrainModelsMap::SurfaceMap> surfaceMap = brainModelsMap.getSurfaceMap(s);
+            for (auto sm : surfaceMap) {
+                CaretAssertVectorIndex(mapNames, sm.m_ciftiIndex);
+                mapNames[sm.m_ciftiIndex] = (name
+                                             + " Vertex "
+                                             + AString::number(sm.m_surfaceNode + 1));
+            }
+            
+        }
+        
+        std::vector<StructureEnum::Enum> volumeStructures = brainModelsMap.getVolumeStructureList();
+        for (auto vs : volumeStructures) {
+            const AString name(StructureEnum::toGuiName(vs));
+            std::vector<CiftiBrainModelsMap::VolumeMap> volumeMap = brainModelsMap.getVolumeStructureMap(vs);
+            for (auto vm : volumeMap) {
+                CaretAssertVectorIndex(mapNames, vm.m_ciftiIndex);
+                mapNames[vm.m_ciftiIndex] = (name
+                                             + " Voxel IJK "
+                                             + AString::fromNumbers(vm.m_ijk, 3, ","));
+            }
+        }
+    }
+}
+
+/**
+ * Get the name of the maps for the line charts
+ */
+void
+ChartableTwoFileLineLayerChart::getChartMapNames(std::vector<AString>& mapNamesOut)
+{
+    if (m_mapLineChartNames.size() != m_mapLineCharts.size()) {
+        const int32_t numMaps = static_cast<int32_t>(m_mapLineCharts.size());
+        if (numMaps > 0) {
+            m_mapLineChartNames.resize(numMaps);
+            switch (m_lineLayerContentType) {
+                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED:
+                    break;
+                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA:
+                {
+                    CiftiMappableDataFile* ciftiFile = getCiftiMappableDataFile();
+                    if (ciftiFile != NULL) {
+                        const CiftiXML& ciftiXML = ciftiFile->getCiftiXML();
+                        const int mapDirection(CiftiXML::ALONG_COLUMN);
+                        
+                        if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS) {
+                            getMapNamesFromCiftiBrainMap(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN),
+                                                         m_mapLineChartNames);
+                        }
+                        else {
+                            const CiftiMappingType* cmt = ciftiXML.getMap(mapDirection);
+                            if (cmt != NULL) {
+                                const int64_t len = cmt->getLength();
+                                CaretAssert(numMaps == len);
+                                if (numMaps == len) {
+                                    for (int64_t i = 0; i < len; i++) {
+                                        m_mapLineChartNames[i] = cmt->getIndexName(i);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                    break;
+                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
+                    break;
+                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_SCALAR_DATA:
+                    break;
+            }
+        }
+        else {
+            m_mapLineChartNames.clear();
+        }
+    }
+    
+    mapNamesOut = m_mapLineChartNames;
+}
 
 /**
  * Get the chart lines for a map
- * @param mapIndex
+ * @param chartMapIndex
  * Index of the map
  * @retrurn Line chart for map or NULL if not available.
  */
 ChartTwoDataCartesian*
-ChartableTwoFileLineLayerChart::getLineChartForMap(const int32_t mapIndex)
+ChartableTwoFileLineLayerChart::getChartMapLine(const int32_t chartMapIndex)
 {
     ChartTwoDataCartesian* chartDataOut(NULL);
     
@@ -233,21 +381,37 @@ ChartableTwoFileLineLayerChart::getLineChartForMap(const int32_t mapIndex)
     CaretAssert(mapFile);
     const AString mapFileName(mapFile->getFileName());
     
-    if ((mapIndex >= 0)
-        && (mapIndex < mapFile->getNumberOfMaps())) {
-        CaretAssertVectorIndex(m_mapLineCharts, mapIndex);
-        if ( ! m_mapLineCharts[mapIndex]) {
+    if ((chartMapIndex >= 0)
+        && (chartMapIndex < static_cast<int32_t>(m_mapLineCharts.size()))) {
+        CaretAssertVectorIndex(m_mapLineCharts, chartMapIndex);
+        if ( ! m_mapLineCharts[chartMapIndex]) {
             MapFileDataSelector mapFileSelector;
             bool loadDataFlag(true);
             switch (getLineLayerContentType()) {
                 case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED:
                     break;
+                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA:
+                    mapFileSelector.setRowIndex(mapFile,
+                                                mapFileName,
+                                                chartMapIndex);
+                    loadDataFlag = true;
+                    break;
                 case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
+                {
+                    CiftiMappableDataFile* ciftiFile = getCiftiMappableDataFile();
+                    if (ciftiFile != NULL) {
+                        
+                    }
+                    else {
+                        CaretLogWarning("Unsupported file for line layer charting: "
+                                        + mapFileName);
+                    }
+                }
                     break;
                 case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_SCALAR_DATA:
                     mapFileSelector.setRowIndex(mapFile,
                                                 mapFileName,
-                                                mapIndex);
+                                                chartMapIndex);
                     loadDataFlag = true;
                     break;
             }
@@ -255,14 +419,14 @@ ChartableTwoFileLineLayerChart::getLineChartForMap(const int32_t mapIndex)
             if (loadDataFlag) {
                 ChartTwoDataCartesian* cd = loadChartForMapFileSelector(mapFileSelector);
                 if (cd != NULL) {
-                    CaretAssertVectorIndex(m_mapLineCharts, mapIndex);
-                    m_mapLineCharts[mapIndex].reset(cd);
+                    CaretAssertVectorIndex(m_mapLineCharts, chartMapIndex);
+                    m_mapLineCharts[chartMapIndex].reset(cd);
                 }
             }
         }
         
-        CaretAssertVectorIndex(m_mapLineCharts, mapIndex);
-        chartDataOut = m_mapLineCharts[mapIndex].get();
+        CaretAssertVectorIndex(m_mapLineCharts, chartMapIndex);
+        chartDataOut = m_mapLineCharts[chartMapIndex].get();
     }
     
     return chartDataOut;
@@ -284,6 +448,23 @@ ChartableTwoFileLineLayerChart::loadChartForMapFileSelector(const MapFileDataSel
     switch (m_lineLayerContentType) {
         case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED:
             return NULL;
+            break;
+        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA:
+            switch (mapFileDataSelector.getDataSelectionType()) {
+                case MapFileDataSelector::DataSelectionType::INVALID:
+                    break;
+                case MapFileDataSelector::DataSelectionType::COLUMN_DATA:
+                    break;
+                case MapFileDataSelector::DataSelectionType::ROW_DATA:
+                    loadDataFlag = true;
+                    break;
+                case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
+                    break;
+                case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
+                    break;
+                case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
+                    break;
+            }
             break;
         case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
             switch (mapFileDataSelector.getDataSelectionType()) {
@@ -430,7 +611,7 @@ ChartableTwoFileLineLayerChart::saveSubClassDataToScene(const SceneAttributes* s
     
     const int32_t numItems = static_cast<int32_t>(m_mapLineCharts.size());
     for (int32_t i = 0; i < numItems; i++) {
-        ChartTwoDataCartesian* cd = getLineChartForMap(i);
+        ChartTwoDataCartesian* cd = getChartMapLine(i);
         if (cd != NULL) {
             if (objMap == NULL) {
                 objMap = new SceneObjectMapIntegerKey("m_mapLineCharts",
