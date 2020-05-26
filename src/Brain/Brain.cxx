@@ -171,7 +171,7 @@ Brain::Brain(const CaretPreferences* caretPreferences)
     m_displayPropertiesBorders = new DisplayPropertiesBorders();
     m_displayProperties.push_back(m_displayPropertiesBorders);
     
-    m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation();
+    m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation(this);
     m_displayProperties.push_back(m_displayPropertiesFiberOrientation);
     
     m_displayPropertiesFoci = new DisplayPropertiesFoci();
@@ -6157,6 +6157,7 @@ Brain::receiveEvent(Event* event)
         if (readSpecFileDataFilesEvent->getLoadIntoBrain() == this) {
             readSpecFileDataFilesEvent->setEventProcessed();
             loadFilesSelectedInSpecFile(readSpecFileDataFilesEvent);
+            m_displayPropertiesFiberOrientation->setMaximumUncertaintyFromFiles();
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES) {

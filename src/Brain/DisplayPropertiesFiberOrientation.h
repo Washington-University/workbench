@@ -31,18 +31,22 @@
 
 namespace caret {
 
+    class Brain;
+    
     class DisplayPropertyDataFloat;
     
     class DisplayPropertiesFiberOrientation : public DisplayProperties {
         
     public:
-        DisplayPropertiesFiberOrientation();
+        DisplayPropertiesFiberOrientation(const Brain* brain);
         
         virtual ~DisplayPropertiesFiberOrientation();
 
         virtual void reset();
         
         virtual void update();
+        
+        void setMaximumUncertaintyFromFiles();
         
         virtual void copyDisplayProperties(const int32_t sourceTabIndex,
                                            const int32_t targetTabIndex);
@@ -142,6 +146,8 @@ namespace caret {
 
         DisplayPropertiesFiberOrientation& operator=(const DisplayPropertiesFiberOrientation&);
         
+        const Brain* m_brain;
+        
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         bool m_displayStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
@@ -184,9 +190,9 @@ namespace caret {
         
         bool m_displaySphereOrientationsInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        std::unique_ptr<DisplayPropertyDataFloat> m_maximumUndertainty;
-        
-//        friend class BrainOpenGLFixedPipeline;
+        std::unique_ptr<DisplayPropertyDataFloat> m_maximumUncertainty;
+
+        static constexpr float s_defaultMaximumUncertainty = 10.0f;
     };
     
 #ifdef __DISPLAY_PROPERTIES_FIBER_ORIENTATION_DECLARE__

@@ -23,7 +23,9 @@
 #include "DisplayPropertiesFiberOrientation.h"
 #undef __DISPLAY_PROPERTIES_FIBER_ORIENTATION_DECLARE__
 
+#include "Brain.h"
 #include "CaretAssert.h"
+#include "CiftiFiberOrientationFile.h"
 #include "DisplayPropertyDataFloat.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -48,10 +50,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param brain
+ *    The brain.
  */
-DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation()
-: DisplayProperties()
+DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(const Brain* brain)
+: DisplayProperties(),
+m_brain(brain)
 {
+    CaretAssert(m_brain);
+    
     const float aboveLimit = 0.63;
     const float belowLimit = -0.63;
     const float minimumMagnitude = 0.05;
@@ -89,10 +96,10 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation()
         m_displaySphereOrientationsInDisplayGroup[i] = displaySphereOrientions;
     }
 
-    m_maximumUndertainty.reset(new DisplayPropertyDataFloat(10.0));
-    m_sceneAssistant->add("m_maximumUndertainty",
+    m_maximumUncertainty.reset(new DisplayPropertyDataFloat(s_defaultMaximumUncertainty));
+    m_sceneAssistant->add("m_maximumUncertainty",
                           "DisplayPropertyDataFloat",
-                          m_maximumUndertainty.get());
+                          m_maximumUncertainty.get());
     
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
@@ -176,6 +183,7 @@ DisplayPropertiesFiberOrientation::~DisplayPropertiesFiberOrientation()
 void 
 DisplayPropertiesFiberOrientation::reset()
 {
+    m_maximumUncertainty->setAllValues(s_defaultMaximumUncertainty);
 }
 
 /**
@@ -209,7 +217,7 @@ DisplayPropertiesFiberOrientation::copyDisplayProperties(const int32_t sourceTab
     m_lengthMultiplierInTab[targetTabIndex] = m_lengthMultiplierInTab[sourceTabIndex];
     m_fiberColoringTypeInTab[targetTabIndex] = m_fiberColoringTypeInTab[sourceTabIndex];
     m_fanMultiplierInTab[targetTabIndex] = m_fanMultiplierInTab[sourceTabIndex];
-    m_maximumUndertainty->copyValues(sourceTabIndex, targetTabIndex);
+    m_maximumUncertainty->copyValues(sourceTabIndex, targetTabIndex);
 }
 
 /**
@@ -582,7 +590,7 @@ float
 DisplayPropertiesFiberOrientation::getMaximumUncertainty(const DisplayGroupEnum::Enum displayGroup,
                                                          const int32_t tabIndex) const
 {
-    return m_maximumUndertainty->getValue(displayGroup,
+    return m_maximumUncertainty->getValue(displayGroup,
                                           tabIndex);
 }
 
@@ -600,7 +608,7 @@ DisplayPropertiesFiberOrientation::setMaximumUncertainty(const DisplayGroupEnum:
                                                          const int32_t tabIndex,
                                                          const float maximumUncertainty)
 {
-    m_maximumUndertainty->setValue(displayGroup,
+    m_maximumUncertainty->setValue(displayGroup,
                                    tabIndex,
                                    maximumUncertainty);
 }
@@ -814,7 +822,9 @@ DisplayPropertiesFiberOrientation::restoreFromScene(const SceneAttributes* scene
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
-    }    
+    }
+    
+    setMaximumUncertaintyFromFiles();
 }
 
 /**
@@ -866,5 +876,29 @@ DisplayPropertiesFiberOrientation::setFanMultiplier(const DisplayGroupEnum::Enum
     else {
         m_fanMultiplierInDisplayGroup[displayGroup] = fanMultiplier;
     }
+}
+
+/**
+ * Set the fiber's maximum uncertainty to maximum found in all fiber orientation files
+ */
+void
+DisplayPropertiesFiberOrientation::setMaximumUncertaintyFromFiles()
+{
+    float maxUncert(s_defaultMaximumUncertainty);
+    
+    std::vector<CiftiFiberOrientationFile*> fiberFiles;
+    m_brain->getConnectivityFiberOrientationFiles(fiberFiles);
+    
+    if ( ! fiberFiles.empty()) {
+        maxUncert = 0.0;
+        for (const auto& ff : fiberFiles) {
+            const float u = ff->getMaximumVariance();
+            if (u > maxUncert) {
+                maxUncert = u;
+            }
+        }
+    }
+    
+    m_maximumUncertainty->setAllValues(maxUncert);
 }
 

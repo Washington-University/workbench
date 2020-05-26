@@ -79,6 +79,8 @@ namespace caret {
         
         void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
+        float getMaximumVariance() const;
+        
         // ADD_NEW_METHODS_HERE
         
     private:
@@ -103,7 +105,7 @@ namespace caret {
         bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         float m_volumeSpacing[3];
-        
+
         // ADD_NEW_MEMBERS_HERE
     };
     

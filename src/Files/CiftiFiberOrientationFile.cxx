@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <limits>
+
 #define __CIFTI_FIBER_ORIENTATION_FILE_DECLARE__
 #include "CiftiFiberOrientationFile.h"
 #undef __CIFTI_FIBER_ORIENTATION_FILE_DECLARE__
@@ -542,3 +544,24 @@ CiftiFiberOrientationFile::supportsWriting() const
     return false;
 }
 
+/**
+ * @return The maxmum variance of all fibers in this file
+ */
+float
+CiftiFiberOrientationFile::getMaximumVariance() const
+{
+    /*
+     * Variance should never be negative
+     */
+    float maxValue(0.0);
+    
+    for (const auto& fo : m_fiberOrientations) {
+        for (const auto f : fo->m_fibers) {
+            if (f->m_varF > maxValue) {
+                maxValue = f->m_varF;
+            }
+        }
+    }
+    
+    return maxValue;
+}
