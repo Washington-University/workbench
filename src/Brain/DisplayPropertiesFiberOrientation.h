@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include "BrainConstants.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
@@ -29,6 +31,8 @@
 
 namespace caret {
 
+    class DisplayPropertyDataFloat;
+    
     class DisplayPropertiesFiberOrientation : public DisplayProperties {
         
     public:
@@ -85,6 +89,13 @@ namespace caret {
         void setMinimumMagnitude(const DisplayGroupEnum::Enum displayGroup,
                           const int32_t tabIndex,
                           const float minimumMagnitude);
+        
+        float getMaximumUncertainty(const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex) const;
+        
+        void setMaximumUncertainty(const DisplayGroupEnum::Enum displayGroup,
+                                   const int32_t tabIndex,
+                                   const float maximumUncertainty);
         
         float getLengthMultiplier(const DisplayGroupEnum::Enum displayGroup,
                                   const int32_t tabIndex) const;
@@ -172,6 +183,8 @@ namespace caret {
         bool m_displaySphereOrientationsInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         bool m_displaySphereOrientationsInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        std::unique_ptr<DisplayPropertyDataFloat> m_maximumUndertainty;
         
 //        friend class BrainOpenGLFixedPipeline;
     };

@@ -5073,6 +5073,7 @@ BrainOpenGLFixedPipeline::setFiberOrientationDisplayInfo(const DisplayProperties
     dispInfo.fanMultiplier = dpfo->getFanMultiplier(displayGroup, tabIndex);
     dispInfo.isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, tabIndex);
     dispInfo.minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, tabIndex);
+    dispInfo.maximumUncertainty = dpfo->getMaximumUncertainty(displayGroup, tabIndex);
     dispInfo.magnitudeMultiplier = dpfo->getLengthMultiplier(displayGroup, tabIndex);
     dispInfo.plane = plane;
     dispInfo.structure = structure;
@@ -5321,6 +5322,9 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
              */
             bool drawIt = true;
             if (fiber->m_meanF < fodi->minimumMagnitude) {
+                drawIt = false;
+            }
+            if (fiber->m_varF > fodi->maximumUncertainty) {
                 drawIt = false;
             }
             

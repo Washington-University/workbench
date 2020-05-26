@@ -172,6 +172,15 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     QObject::connect(m_minimumMagnitudeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
+    QLabel* maximumUncertaintyLabel = new QLabel("Maximum Uncertainty");
+    m_maximumUncertaintySpinBox = WuQFactory::newDoubleSpinBox();
+    m_maximumUncertaintySpinBox->setRange(0.0, std::numeric_limits<float>::max());
+    m_maximumUncertaintySpinBox->setDecimals(3);
+    m_maximumUncertaintySpinBox->setSingleStep(0.001);
+    m_maximumUncertaintySpinBox->setToolTip("Maximum uncertainty for displaying fibers");
+    QObject::connect(m_maximumUncertaintySpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(processAttributesChanges()));
+
     QLabel* lengthMultiplierLabel = new QLabel("Length Multiplier");
     m_lengthMultiplierSpinBox = WuQFactory::newDoubleSpinBox();
     m_lengthMultiplierSpinBox->setRange(0.0, std::numeric_limits<float>::max());
@@ -228,6 +237,9 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     row++;
     gridLayout->addWidget(minimumMagnitudeLabel, row, 0);
     gridLayout->addWidget(m_minimumMagnitudeSpinBox , row, 1);
+    row++;
+    gridLayout->addWidget(maximumUncertaintyLabel, row, 0);
+    gridLayout->addWidget(m_maximumUncertaintySpinBox, row, 1);
     row++;
     gridLayout->addWidget(lengthMultiplierLabel, row, 0);
     gridLayout->addWidget(m_lengthMultiplierSpinBox , row, 1);
@@ -290,6 +302,10 @@ FiberOrientationSelectionViewController::processAttributesChanges()
     dpfo->setMinimumMagnitude(displayGroup,
                         browserTabIndex,
                         m_minimumMagnitudeSpinBox->value());
+    
+    dpfo->setMaximumUncertainty(displayGroup,
+                                browserTabIndex,
+                                m_maximumUncertaintySpinBox->value());
     
     dpfo->setLengthMultiplier(displayGroup,
                         browserTabIndex,
@@ -428,6 +444,8 @@ FiberOrientationSelectionViewController::updateViewController()
                                                             browserTabIndex));
     m_minimumMagnitudeSpinBox->setValue(dpfo->getMinimumMagnitude(displayGroup,
                                                       browserTabIndex));
+    m_maximumUncertaintySpinBox->setValue(dpfo->getMaximumUncertainty(displayGroup,
+                                                                      browserTabIndex));
     m_drawWithMagnitudeCheckBox->setChecked(dpfo->isDrawWithMagnitude(displayGroup,
                                                                      browserTabIndex));
     m_coloringTypeComboBox->setSelectedItem<FiberOrientationColoringTypeEnum, FiberOrientationColoringTypeEnum::Enum>(dpfo->getColoringType(displayGroup,

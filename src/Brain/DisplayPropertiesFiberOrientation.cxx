@@ -24,6 +24,7 @@
 #undef __DISPLAY_PROPERTIES_FIBER_ORIENTATION_DECLARE__
 
 #include "CaretAssert.h"
+#include "DisplayPropertyDataFloat.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -88,6 +89,11 @@ DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation()
         m_displaySphereOrientationsInDisplayGroup[i] = displaySphereOrientions;
     }
 
+    m_maximumUndertainty.reset(new DisplayPropertyDataFloat(10.0));
+    m_sceneAssistant->add("m_maximumUndertainty",
+                          "DisplayPropertyDataFloat",
+                          m_maximumUndertainty.get());
+    
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
     m_sceneAssistant->addTabIndexedBooleanArray("m_displayStatusInTab",
@@ -203,6 +209,7 @@ DisplayPropertiesFiberOrientation::copyDisplayProperties(const int32_t sourceTab
     m_lengthMultiplierInTab[targetTabIndex] = m_lengthMultiplierInTab[sourceTabIndex];
     m_fiberColoringTypeInTab[targetTabIndex] = m_fiberColoringTypeInTab[sourceTabIndex];
     m_fanMultiplierInTab[targetTabIndex] = m_fanMultiplierInTab[sourceTabIndex];
+    m_maximumUndertainty->copyValues(sourceTabIndex, targetTabIndex);
 }
 
 /**
@@ -562,6 +569,40 @@ DisplayPropertiesFiberOrientation::setMinimumMagnitude(const DisplayGroupEnum::E
     else {
         m_minimumMagnitudeInDisplayGroup[displayGroup] = minimumMagnitude;
     }
+}
+
+/**
+ * @return The maximum uncertainty
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+float
+DisplayPropertiesFiberOrientation::getMaximumUncertainty(const DisplayGroupEnum::Enum displayGroup,
+                                                         const int32_t tabIndex) const
+{
+    return m_maximumUndertainty->getValue(displayGroup,
+                                          tabIndex);
+}
+
+/**
+ * Set the maximum uncertainty to the given value.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param maximumUncertainty
+ *     New value for maximum uncertainty.
+ */
+void
+DisplayPropertiesFiberOrientation::setMaximumUncertainty(const DisplayGroupEnum::Enum displayGroup,
+                                                         const int32_t tabIndex,
+                                                         const float maximumUncertainty)
+{
+    m_maximumUndertainty->setValue(displayGroup,
+                                   tabIndex,
+                                   maximumUncertainty);
 }
 
 /**

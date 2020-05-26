@@ -96,6 +96,8 @@ namespace caret {
         
         QDoubleSpinBox* m_minimumMagnitudeSpinBox;
         
+        QDoubleSpinBox* m_maximumUncertaintySpinBox;
+        
         QDoubleSpinBox* m_lengthMultiplierSpinBox;
         
         QDoubleSpinBox* m_fanMultiplierSpinBox;

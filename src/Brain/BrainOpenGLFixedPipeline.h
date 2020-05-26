@@ -170,6 +170,7 @@ namespace caret {
             float fanMultiplier;
             bool isDrawWithMagnitude;
             float minimumMagnitude;
+            float maximumUncertainty;
             float magnitudeMultiplier;
             Plane* plane;
             FiberOrientationSymbolTypeEnum::Enum symbolType;
