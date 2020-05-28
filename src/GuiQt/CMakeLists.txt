@@ -105,6 +105,7 @@ ELSE()
         BugReportDialog.h
         CaretColorEnumComboBox.h
         CaretColorEnumMenu.h
+	CaretColorToolButton.h
         CaretDataFileSelectionComboBox.h
         CaretFileDialog.h
         CaretFileDialogExtendable.h
@@ -353,6 +354,7 @@ BrainOpenGLWidget.h
 BugReportDialog.h
 CaretColorEnumComboBox.h
 CaretColorEnumMenu.h
+CaretColorToolButton.h
 CaretDataFileSelectionComboBox.h
 CaretFileDialog.h
 CaretFileDialogExtendable.h
@@ -655,6 +657,7 @@ BrainOpenGLWidget.cxx
 BugReportDialog.cxx
 CaretColorEnumComboBox.cxx
 CaretColorEnumMenu.cxx
+CaretColorToolButton.cxx
 CaretDataFileSelectionComboBox.cxx
 CaretFileDialog.cxx
 CaretFileDialogExtendable.cxx

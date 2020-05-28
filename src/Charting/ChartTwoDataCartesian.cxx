@@ -103,7 +103,6 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
     m_mapFileDataSelector = std::unique_ptr<MapFileDataSelector>(new MapFileDataSelector());
     
     m_selectionStatus   = true;
-    m_color             = CaretColorEnum::RED;
     m_lineWidth         = getDefaultLineWidth();
     m_timeStartInSecondsAxisX = 0.0;
     m_timeStepInSecondsAxisX  = 1.0;
@@ -114,6 +113,7 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
     CaretColorEnum::getColorEnumsNoBlackOrWhite(colorEnums);
     const int32_t numCaretColors = static_cast<int32_t>(colorEnums.size());
     
+    CaretColorEnum::Enum defaultColor = CaretColorEnum::RED;
     bool colorFound = false;
     while ( ! colorFound) {
         ChartTwoDataCartesian::caretColorIndex++;
@@ -128,11 +128,11 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
             /* do not use white */
         }
         else {
-            m_color = colorEnums[ChartTwoDataCartesian::caretColorIndex];
+            defaultColor = colorEnums[ChartTwoDataCartesian::caretColorIndex];
             colorFound = true;
         }
     }
-    setColor(m_color);
+    setColorEnum(defaultColor);
     
     m_sceneAssistant = new SceneClassAssistant();
     
@@ -142,8 +142,6 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
                                                                 &m_dataAxisUnitsX);
     m_sceneAssistant->add<CaretUnitsTypeEnum, CaretUnitsTypeEnum::Enum>("m_dataAxisUnitsY",
                                                                 &m_dataAxisUnitsY);
-    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_color",
-                                                                &m_color);
     m_sceneAssistant->add("m_lineWidth",
                           &m_lineWidth);
     m_sceneAssistant->add("m_timeStartInSecondsAxisX",
@@ -161,15 +159,14 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
 std::unique_ptr<GraphicsPrimitiveV3f>
 ChartTwoDataCartesian::createGraphicsPrimitive()
 {
-    float rgba[4];
-    CaretColorEnum::toRGBAFloat(m_color, rgba);
+    std::array<uint8_t, 4> rgba = m_caretColor.getRGBA();
     
     /*
      * Note: LINES (line segments) are used so that individual segments can be identified.
      * Cannot use line strip since it is identified as a single item.
      */
     return std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(m_graphicsPrimitiveType,
-                                                                                    rgba));
+                                                                                    rgba.data()));
 }
 
 /**
@@ -254,8 +251,8 @@ ChartTwoDataCartesian::copyHelperChartTwoDataCartesian(const ChartTwoDataCartesi
 
     m_graphicsPrimitive.reset(dynamic_cast<GraphicsPrimitiveV3f*>(obj.m_graphicsPrimitive->clone()));
     
-    m_color             = obj.m_color;
-    m_lineWidth         = obj.m_lineWidth;
+    m_caretColor              = obj.m_caretColor;
+    m_lineWidth               = obj.m_lineWidth;
     m_timeStartInSecondsAxisX = obj.m_timeStartInSecondsAxisX;
     m_timeStepInSecondsAxisX  = obj.m_timeStepInSecondsAxisX;
 }
@@ -303,7 +300,7 @@ ChartTwoDataCartesian::setSelected(const bool selectionStatus)
  */
 void
 ChartTwoDataCartesian::addPoint(const float x,
-                                  const float y)
+                                const float y)
 {
     m_graphicsPrimitive->addVertex(x, y);
 }
@@ -387,12 +384,21 @@ ChartTwoDataCartesian::getDataAxisUnitsY()
 }
 
 /**
- * @return Color for chart
+ * @return Color enum for chart
  */
 CaretColorEnum::Enum
+ChartTwoDataCartesian::getColorEnum() const
+{
+    return m_caretColor.getCaretColorEnum();
+}
+
+/**
+ * @return Color for chart
+ */
+CaretColor
 ChartTwoDataCartesian::getColor() const
 {
-    return m_color;
+    return m_caretColor;
 }
 
 /**
@@ -402,15 +408,27 @@ ChartTwoDataCartesian::getColor() const
  *    New color for chart.
  */
 void
-ChartTwoDataCartesian::setColor(const CaretColorEnum::Enum color)
+ChartTwoDataCartesian::setColor(const CaretColor& color)
 {
-    m_color = color;
+    m_caretColor = color;
     
     if (m_graphicsPrimitive != NULL) {
-        float rgba[4];
-        CaretColorEnum::toRGBAFloat(m_color, rgba);
-        m_graphicsPrimitive->replaceAllVertexSolidFloatRGBA(rgba);
+        m_graphicsPrimitive->replaceAllVertexSolidByteRGBA(m_caretColor.getRGBA().data());
     }
+}
+
+/**
+ * Set the color for the chart with a color enum
+ *
+ * @param colorEnum
+ *    New color for chart.
+ */
+void
+ChartTwoDataCartesian::setColorEnum(const CaretColorEnum::Enum colorEnum)
+{
+    CaretColor cc;
+    cc.setCaretColorEnum(colorEnum);
+    setColor(cc);
 }
 
 /**
@@ -456,6 +474,12 @@ ChartTwoDataCartesian::saveToScene(const SceneAttributes* sceneAttributes,
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
+
+    /*
+     * Note: For line layer charts, color is from the chart overlay not this color
+     */
+    sceneClass->addString("m_caretColor",
+                          m_caretColor.encodeInJson());
     
     const std::vector<float>& xyz = m_graphicsPrimitive->getFloatXYZ();
     const int32_t numXYZ = static_cast<int32_t>(xyz.size());
@@ -489,6 +513,26 @@ ChartTwoDataCartesian::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_graphicsPrimitive = createGraphicsPrimitive();
     
     m_sceneAssistant->restoreMembers(sceneAttributes, sceneClass);
+    
+    /*
+     * m_caretColor (instance of CaretColor) replaced
+     * m_color (instance CaretColorEnum)
+     * Note: For line layer charts, color is from the chart overlay not this color
+     */
+    const QString caretColorJSON = sceneClass->getStringValue("m_caretColor", "");
+    if ( ! caretColorJSON.isEmpty()) {
+        AString errorMessage;
+        if ( ! m_caretColor.decodeFromJson(caretColorJSON,
+                                           errorMessage)) {
+            sceneAttributes->addToErrorMessage(errorMessage);
+        }
+    }
+    else {
+        const CaretColorEnum::Enum color = sceneClass->getEnumeratedTypeValue<CaretColorEnum,CaretColorEnum::Enum>("m_color",
+                                                                                                                   CaretColorEnum::BLUE);
+        m_caretColor.setCaretColorEnum(color);
+    }
+    
     
     const ScenePrimitiveArray* xyzArray = sceneClass->getPrimitiveArray("xyz");
     if (xyzArray != NULL) {

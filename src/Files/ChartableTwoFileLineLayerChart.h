@@ -24,7 +24,6 @@
 #include <memory>
 
 #include "BrainConstants.h"
-#include "CaretColorEnum.h"
 #include "ChartableTwoFileBaseChart.h"
 #include "ChartTwoLineLayerContentTypeEnum.h"
 
@@ -62,10 +61,6 @@ namespace caret {
         
         ChartTwoDataCartesian* getChartMapLine(const int32_t chartMapIndex);
         
-        CaretColorEnum::Enum getDefaultColor() const;
-        
-        void setDefaultColor(const CaretColorEnum::Enum defaultColor);
-        
         float getDefaultLineWidth() const;
         
         void setDefaultLineWidth(const float defaultLineWidth);
@@ -90,10 +85,6 @@ namespace caret {
                                                   const SceneClass* sceneClass) override;
 
     private:
-        static CaretColorEnum::Enum generateDefaultColor();
-        
-        void validateDefaultColor();
-        
         ChartTwoDataCartesian* loadChartForMapFileSelector(const MapFileDataSelector& mapFileSelector);
         
         ChartTwoDataCartesian* createChartData() const;
@@ -109,17 +100,13 @@ namespace caret {
         
         ChartTwoLineLayerContentTypeEnum::Enum m_lineLayerContentType;
         
-        CaretColorEnum::Enum m_defaultColor = CaretColorEnum::BLUE;
-        
         float m_defaultLineWidth = 1.0;
 
         // ADD_NEW_MEMBERS_HERE
 
-        static int32_t s_defaultColorIndexGenerator;
     };
     
 #ifdef __CHARTABLE_TWO_FILE_LINE_LAYER_CHART_DECLARE__
-    int32_t ChartableTwoFileLineLayerChart::s_defaultColorIndexGenerator = 0;
 #endif // __CHARTABLE_TWO_FILE_LINE_LAYER_CHART_DECLARE__
 
 } // namespace

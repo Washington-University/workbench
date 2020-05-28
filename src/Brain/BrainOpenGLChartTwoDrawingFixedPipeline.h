@@ -24,7 +24,7 @@
 #include <memory>
 #include <set>
 #include "BrainOpenGLChartTwoDrawingInterface.h"
-#include "CaretColorEnum.h"
+#include "CaretColor.h"
 #include "ChartAxisLocationEnum.h"
 #include "ChartTwoDataTypeEnum.h"
 #include "ChartTwoMatrixTriangularViewingModeEnum.h"
@@ -93,15 +93,18 @@ namespace caret {
         class LineLayerChartDrawingInfo {
         public:
             LineLayerChartDrawingInfo(const ChartableTwoFileLineLayerChart* lineLayerChart,
-                                      const ChartTwoDataCartesian* chartTwoCartesianData,
-                                      const ChartAxisLocationEnum::Enum verticalAxisLocation)
+                                      ChartTwoDataCartesian* chartTwoCartesianData,
+                                      const ChartAxisLocationEnum::Enum verticalAxisLocation,
+                                      const CaretColor& lineChartColor)
             : m_lineLayerChart(lineLayerChart),
             m_chartTwoCartesianData(chartTwoCartesianData),
-            m_verticalAxisLocation(verticalAxisLocation) { }
+            m_verticalAxisLocation(verticalAxisLocation),
+            m_lineChartColor(lineChartColor) { }
             
             const ChartableTwoFileLineLayerChart* m_lineLayerChart;
-            const ChartTwoDataCartesian* m_chartTwoCartesianData;
+            ChartTwoDataCartesian* m_chartTwoCartesianData;
             const ChartAxisLocationEnum::Enum m_verticalAxisLocation;
+            const CaretColor m_lineChartColor;
         };
         
         /**

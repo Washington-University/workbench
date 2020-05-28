@@ -61,6 +61,7 @@ ByteSwapping.h
 CaretAssert.h
 CaretAssertion.h
 CaretBinaryFile.h
+CaretColor.h
 CaretColorEnum.h
 CaretCommandLine.h
 CaretCompact3DLookup.h
@@ -217,6 +218,7 @@ ByteOrderEnum.cxx
 ByteSwapping.cxx
 CaretAssertion.cxx
 CaretBinaryFile.cxx
+CaretColor.cxx
 CaretColorEnum.cxx
 CaretCommandLine.cxx
 CaretException.cxx

@@ -37,6 +37,8 @@ class QSpinBox;
 class QToolButton;
 
 namespace caret {
+    class CaretColor;
+    class CaretColorToolButton;
     class ChartTwoOverlay;
     class MapYokingGroupComboBox;
     class WuQGridLayoutGroup;
@@ -111,6 +113,8 @@ namespace caret {
         
         void menuAxisLocationTriggered(QAction* action);
         
+        void lineLayerColorSelected(const CaretColor& caretColor);
+        
     private:
         ChartTwoOverlayViewController(const ChartTwoOverlayViewController&);
 
@@ -175,6 +179,8 @@ namespace caret {
         QAction* m_axisLocationAction;
         
         QToolButton* m_axisLocationToolButton;
+        
+        CaretColorToolButton* m_lineLayerColorToolButton;
         
         std::vector<std::tuple<ChartTwoMatrixTriangularViewingModeEnum::Enum, QAction*,QPixmap>> m_matrixViewMenuData;
 

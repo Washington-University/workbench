@@ -403,7 +403,7 @@ MapSettingsChartTwoLineHistoryWidget::loadHistoryIntoTableWidget(ChartTwoLineSer
                                                            : Qt::Unchecked);
         
         CaretAssertVectorIndex(m_colorComboBoxes, iRow);
-        m_colorComboBoxes[iRow]->setSelectedColor(historyData->getColor());
+        m_colorComboBoxes[iRow]->setSelectedColor(historyData->getColorEnum());
         
         CaretAssertVectorIndex(m_lineWidthSpinBoxes, iRow);
         m_lineWidthSpinBoxes[iRow]->setValue(historyData->getLineWidth());
@@ -543,7 +543,7 @@ MapSettingsChartTwoLineHistoryWidget::colorItemSelected(int rowIndex)
     if (lineSeriesHistory != NULL) {
         ChartTwoDataCartesian* data = lineSeriesHistory->getHistoryItem(rowIndex);
         CaretAssert(data);
-        data->setColor(m_colorComboBoxes[rowIndex]->getSelectedColor());
+        data->setColorEnum(m_colorComboBoxes[rowIndex]->getSelectedColor());
         
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }

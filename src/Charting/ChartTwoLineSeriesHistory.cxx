@@ -386,7 +386,7 @@ ChartTwoLineSeriesHistory::addHistoryItem(ChartTwoDataCartesian* historyItem)
         }
     }
     
-    historyItem->setColor(m_defaultColor);
+    historyItem->setColorEnum(m_defaultColor);
     historyItem->setLineWidth(m_defaultLineWidth);
     addHistoryItemNoDefaults(historyItem);
     updateDisplayedHistoryItems();

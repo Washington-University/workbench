@@ -61,9 +61,6 @@ m_lineLayerContentType(lineLayerContentType)
     CaretUnitsTypeEnum::Enum xAxisUnits = CaretUnitsTypeEnum::NONE;
     int32_t xAxisNumberOfElements = 0;
     
-    m_defaultColor = ChartableTwoFileLineLayerChart::generateDefaultColor();
-    validateDefaultColor();
-    
     m_defaultLineWidth = ChartTwoDataCartesian::getDefaultLineWidth();
 
     CaretMappableDataFile* cmdf = getCaretMappableDataFile();
@@ -71,7 +68,6 @@ m_lineLayerContentType(lineLayerContentType)
     
     int64_t numberOfChartMaps(0);
     
-    const bool brainordinateDataSupportedFlag(true);
     switch (lineLayerContentType) {
         case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED:
             break;
@@ -132,8 +128,6 @@ m_lineLayerContentType(lineLayerContentType)
     m_mapLineCharts.resize(numberOfChartMaps);
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_defaultColor",
-                                                                &m_defaultColor);
     m_sceneAssistant->add("m_defaultLineWidth",
                           &m_defaultLineWidth);
 
@@ -528,91 +522,6 @@ ChartableTwoFileLineLayerChart::restoreSubClassDataFromScene(const SceneAttribut
                 }
             }
         }
-    }
-}
-
-/**
- * Generate the default color.
- */
-CaretColorEnum::Enum
-ChartableTwoFileLineLayerChart::generateDefaultColor()
-{
-    /*
-     * No black or white since they are used for backgrounds
-     */
-    std::vector<CaretColorEnum::Enum> colors;
-    CaretColorEnum::getColorEnumsNoBlackOrWhite(colors);
-    CaretAssert( ! colors.empty());
-    CaretColorEnum::Enum color = colors[0];
-    
-    const int32_t numColors = static_cast<int32_t>(colors.size());
-    CaretAssert(numColors > 0);
-    if (s_defaultColorIndexGenerator < 0) {
-        s_defaultColorIndexGenerator = 0;
-    }
-    else if (s_defaultColorIndexGenerator >= numColors) {
-        s_defaultColorIndexGenerator = 0;
-    }
-    
-    CaretAssertVectorIndex(colors, s_defaultColorIndexGenerator);
-    color = colors[s_defaultColorIndexGenerator];
-    
-    /* move to next color */
-    ++s_defaultColorIndexGenerator;
-    
-    return color;
-}
-
-/**
- * Validate the default color.
- */
-void
-ChartableTwoFileLineLayerChart::validateDefaultColor()
-{
-    std::vector<CaretColorEnum::Enum> allEnums;
-    CaretColorEnum::getColorAndOptionalEnums(allEnums, (CaretColorEnum::ColorOptions::OPTION_INCLUDE_CUSTOM_COLOR
-                                                        | CaretColorEnum::CaretColorEnum::OPTION_INCLUDE_NONE_COLOR));
-    if (std::find(allEnums.begin(),
-                  allEnums.end(),
-                  m_defaultColor) == allEnums.end()) {
-        const AString msg("Default color enum is invalid.  Integer value: " + AString::number((int)m_defaultColor));
-        CaretLogSevere(msg);
-        m_defaultColor = CaretColorEnum::RED;
-    }
-    
-    if (m_defaultColor == CaretColorEnum::CUSTOM) {
-        const AString msg("Default color CUSTOM is not allowed");
-        CaretLogSevere(msg);
-        m_defaultColor = CaretColorEnum::RED;
-    }
-    else if (m_defaultColor == CaretColorEnum::NONE) {
-        const AString msg("Default color NONE is not allowed");
-        CaretLogSevere(msg);
-        m_defaultColor = CaretColorEnum::RED;
-    }
-}
-
-/**
- * @return The default color.
- */
-CaretColorEnum::Enum
-ChartableTwoFileLineLayerChart::getDefaultColor() const
-{
-    return m_defaultColor;
-}
-
-/**
- * Set the default color.
- *
- * @param defaultColor New value for default color.
- */
-void
-ChartableTwoFileLineLayerChart::setDefaultColor(const CaretColorEnum::Enum defaultColor)
-{
-    if (defaultColor != m_defaultColor) {
-        m_defaultColor = defaultColor;
-        validateDefaultColor();
-        setModified();
     }
 }
 

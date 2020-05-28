@@ -23,6 +23,7 @@
 
 #include <memory>
 
+#include "CaretColor.h"
 #include "CaretObject.h"
 #include "ChartAxisLocationEnum.h"
 #include "ChartTwoCompoundDataType.h"
@@ -135,6 +136,10 @@ namespace caret {
         
         bool getBounds(BoundingBox& boundingBoxOut) const;
         
+        CaretColor getLineLayerColor() const;
+        
+        void setLineLayerColor(const CaretColor& color);
+        
         virtual void receiveEvent(Event* event);
 
         // ADD_NEW_METHODS_HERE
@@ -171,6 +176,8 @@ namespace caret {
         bool isMapYokingSupportedPrivate(const CaretMappableDataFile* mapFile) const;
         
         void validateCartesianVerticalAxisLocation() const;
+        
+        static CaretColorEnum::Enum generateDefaultColor();
         
         /** Parent chart overlay set (only used by first overlay in the set */
         ChartTwoOverlaySet* m_parentChartTwoOverlaySet;
@@ -215,16 +222,19 @@ namespace caret {
         /** Location of vertical cartesian axis*/
         mutable ChartAxisLocationEnum::Enum m_cartesianVerticalAxisLocation;
         
+        CaretColor m_lineLayerColor;
+        
         /** A weak pointer to 'self' so that can be stored to safely test instance is valid and can be accessed */
         std::weak_ptr<ChartTwoOverlay> m_weakPointerToSelf;
         
+        static int32_t s_defaultColorIndexGenerator;
         // ADD_NEW_MEMBERS_HERE
 
         friend class ChartTwoOverlaySet;
     };
     
 #ifdef __CHART_TWO_OVERLAY_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    int32_t ChartTwoOverlay::s_defaultColorIndexGenerator = 0;
 #endif // __CHART_TWO_OVERLAY_DECLARE__
 
 } // namespace

@@ -503,7 +503,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         if (drawLineLayerFlag) {
             ChartableTwoFileLineLayerChart* lineLayerChart = chartDelegate->getLineLayerCharting();
             if (lineLayerChart->isValid()) {
-                const ChartTwoDataCartesian* data = lineLayerChart->getChartMapLine(selectedIndex);
+                ChartTwoDataCartesian* data = lineLayerChart->getChartMapLine(selectedIndex);
                 CaretAssert(data);
                 if (data->isSelected()) {
                     BoundingBox boundingBox;
@@ -531,8 +531,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                         }
                         
                         lineLayerChartsToDraw.push_back(LineLayerChartDrawingInfo(lineLayerChart,
-                                                                                    data,
-                                                                                    chartOverlay->getCartesianVerticalAxisLocation()));
+                                                                                  data,
+                                                                                  chartOverlay->getCartesianVerticalAxisLocation(),
+                                                                                  chartOverlay->getLineLayerColor()));
                     }
                 }
             }
@@ -1133,6 +1134,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 }
             }
             else {
+                if (lineChart.m_lineChartColor != lineChart.m_chartTwoCartesianData->getColor()) {
+                    lineChart.m_chartTwoCartesianData->setColor(lineChart.m_lineChartColor);
+                }
                 GraphicsEngineDataOpenGL::draw(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
             }
             

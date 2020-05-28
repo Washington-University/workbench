@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-#include "CaretColorEnum.h"
+#include "CaretColor.h"
 #include "CaretObjectTracksModification.h"
 #include "CaretUnitsTypeEnum.h"
 #include "ChartTwoDataTypeEnum.h"
@@ -67,9 +67,13 @@ namespace caret {
         
         CaretUnitsTypeEnum::Enum getDataAxisUnitsY();
         
-        CaretColorEnum::Enum getColor() const;
+        CaretColor getColor() const;
         
-        void setColor(const CaretColorEnum::Enum color);
+        CaretColorEnum::Enum getColorEnum() const;
+        
+        void setColorEnum(const CaretColorEnum::Enum colorEnum);
+        
+        void setColor(const CaretColor& color);
         
         float getLineWidth() const;
         
@@ -127,7 +131,7 @@ namespace caret {
         
         bool m_selectionStatus;
         
-        CaretColorEnum::Enum m_color;
+        CaretColor m_caretColor;
         
         float m_lineWidth;
         

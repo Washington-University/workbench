@@ -40,6 +40,8 @@ using namespace caret;
 #include "AnnotationColorBar.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
+#include "CaretColorToolButton.h"
+#include "CaretColorEnumMenu.h"
 #include "CaretMappableDataFile.h"
 #include "ChartTwoOverlay.h"
 #include "ChartableTwoFileDelegate.h"
@@ -236,6 +238,14 @@ m_chartOverlay(NULL)
     m_axisLocationToolButton->setDefaultAction(m_axisLocationAction);
     m_axisLocationToolButton->setPopupMode(QToolButton::InstantPopup);
     
+    /*
+     * Line layer color tool button
+     */
+    m_lineLayerColorToolButton = new CaretColorToolButton(CaretColorToolButton::CustomColorModeEnum::EDITABLE,
+                                                          CaretColorToolButton::NoneColorModeEnum::DISABLED);
+    QObject::connect(m_lineLayerColorToolButton, &CaretColorToolButton::colorSelected,
+                     this, &ChartTwoOverlayViewController::lineLayerColorSelected);
+
     /*
      * Map file Selection Check Box
      */
@@ -902,6 +912,17 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
             }
         }
     }
+    
+    /*
+     * Update line layer color
+     */
+    m_lineLayerColorToolButton->setEnabled(false);
+    if (validOverlayAndFileFlag) {
+        m_lineLayerColorToolButton->setSelectedColor(m_chartOverlay->getLineLayerColor());
+        if (m_chartOverlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER) {
+            m_lineLayerColorToolButton->setEnabled(true);
+        }
+    }
 }
 
 /**
@@ -1129,6 +1150,20 @@ ChartTwoOverlayViewController::menuAxisLocationTriggered(QAction* action)
     if (valid) {
         m_chartOverlay->setCartesianVerticalAxisLocation(axisLocation);
         updateAxisLocationAction(axisLocation);
+        this->updateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when line layer color is changed.
+ * @param color
+ *     New color
+ */
+void
+ChartTwoOverlayViewController::lineLayerColorSelected(const CaretColor& caretColor)
+{
+    if (m_chartOverlay != NULL) {
+        m_chartOverlay->setLineLayerColor(caretColor);
         this->updateGraphicsWindow();
     }
 }

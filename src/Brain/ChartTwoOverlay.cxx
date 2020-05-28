@@ -90,6 +90,7 @@ m_overlayIndex(overlayIndex)
     m_allHistogramMapsSelectedFlag = false;
 
     m_selectedLineLayerMapIndex = -1;
+    m_lineLayerColor.setCaretColorEnum(generateDefaultColor());
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_enabled", &m_enabled);
@@ -103,7 +104,7 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add("m_selectedHistogramMapIndex", &m_selectedHistogramMapIndex);
     m_sceneAssistant->add("m_allHistogramMapsSelectedFlag", &m_allHistogramMapsSelectedFlag);
     m_sceneAssistant->add("m_selectedLineLayerMapIndex", &m_selectedLineLayerMapIndex);
-    
+                                                                
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE);
 }
@@ -1336,6 +1337,57 @@ ChartTwoOverlay::isCartesianVerticalAxisLocationSupported() const
     return false;
 }
 
+/**
+ * @return The line layer color
+ */
+CaretColor
+ChartTwoOverlay::getLineLayerColor() const
+{
+    return m_lineLayerColor;
+}
+
+/**
+ * Set the line layer color
+ * @param color
+ * New color for line layer
+ */
+void
+ChartTwoOverlay::setLineLayerColor(const CaretColor& color)
+{
+    m_lineLayerColor = color;
+}
+
+/**
+ * Generate the default color.
+ */
+CaretColorEnum::Enum
+ChartTwoOverlay::generateDefaultColor()
+{
+    /*
+     * No black or white since they are used for backgrounds
+     */
+    std::vector<CaretColorEnum::Enum> colors;
+    CaretColorEnum::getColorEnumsNoBlackOrWhite(colors);
+    CaretAssert( ! colors.empty());
+    CaretColorEnum::Enum color = colors[0];
+    
+    const int32_t numColors = static_cast<int32_t>(colors.size());
+    CaretAssert(numColors > 0);
+    if (s_defaultColorIndexGenerator < 0) {
+        s_defaultColorIndexGenerator = 0;
+    }
+    else if (s_defaultColorIndexGenerator >= numColors) {
+        s_defaultColorIndexGenerator = 0;
+    }
+    
+    CaretAssertVectorIndex(colors, s_defaultColorIndexGenerator);
+    color = colors[s_defaultColorIndexGenerator];
+    
+    /* move to next color */
+    ++s_defaultColorIndexGenerator;
+    
+    return color;
+}
 
 /**
  * Save information specific to this type of model to the scene.
@@ -1357,7 +1409,9 @@ ChartTwoOverlay::saveToScene(const SceneAttributes* sceneAttributes,
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
-    
+    sceneClass->addString("m_lineLayerColor",
+                          m_lineLayerColor.encodeInJson());
+
     std::vector<CaretMappableDataFile*> mapFiles;
     CaretMappableDataFile* selectedMapFile = NULL;
     SelectedIndexType selectedIndexType = SelectedIndexType::INVALID;
@@ -1422,6 +1476,25 @@ ChartTwoOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    /*
+     * m_caretColor (instance of CaretColor) replaced
+     * m_color (instance CaretColorEnum)
+     */
+    const QString caretColorJSON = sceneClass->getStringValue("m_lineLayerColor", "");
+    if ( ! caretColorJSON.isEmpty()) {
+        AString errorMessage;
+        if ( ! m_lineLayerColor.decodeFromJson(caretColorJSON,
+                                           errorMessage)) {
+            sceneAttributes->addToErrorMessage(errorMessage);
+        }
+    }
+    else {
+        const CaretColorEnum::Enum color = sceneClass->getEnumeratedTypeValue<CaretColorEnum,CaretColorEnum::Enum>("m_color",
+                                                                                                                   CaretColorEnum::BLUE);
+        m_lineLayerColor.setCaretColorEnum(color);
+    }
+
     const MapYokingGroupEnum::Enum mapYokingGroupFromScene = m_mapYokingGroup;
     
     /*
