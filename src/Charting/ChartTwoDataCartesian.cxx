@@ -479,7 +479,7 @@ ChartTwoDataCartesian::saveToScene(const SceneAttributes* sceneAttributes,
      * Note: For line layer charts, color is from the chart overlay not this color
      */
     sceneClass->addString("m_caretColor",
-                          m_caretColor.encodeInJson());
+                          m_caretColor.encodeInXML());
     
     const std::vector<float>& xyz = m_graphicsPrimitive->getFloatXYZ();
     const int32_t numXYZ = static_cast<int32_t>(xyz.size());
@@ -519,11 +519,11 @@ ChartTwoDataCartesian::restoreFromScene(const SceneAttributes* sceneAttributes,
      * m_color (instance CaretColorEnum)
      * Note: For line layer charts, color is from the chart overlay not this color
      */
-    const QString caretColorJSON = sceneClass->getStringValue("m_caretColor", "");
-    if ( ! caretColorJSON.isEmpty()) {
+    const QString caretColorText = sceneClass->getStringValue("m_caretColor", "");
+    if ( ! caretColorText.isEmpty()) {
         AString errorMessage;
-        if ( ! m_caretColor.decodeFromJson(caretColorJSON,
-                                           errorMessage)) {
+        if ( ! m_caretColor.decodeFromXML(caretColorText,
+                                          errorMessage)) {
             sceneAttributes->addToErrorMessage(errorMessage);
         }
     }

@@ -1410,7 +1410,7 @@ ChartTwoOverlay::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     sceneClass->addString("m_lineLayerColor",
-                          m_lineLayerColor.encodeInJson());
+                          m_lineLayerColor.encodeInXML());
 
     std::vector<CaretMappableDataFile*> mapFiles;
     CaretMappableDataFile* selectedMapFile = NULL;
@@ -1481,11 +1481,11 @@ ChartTwoOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
      * m_caretColor (instance of CaretColor) replaced
      * m_color (instance CaretColorEnum)
      */
-    const QString caretColorJSON = sceneClass->getStringValue("m_lineLayerColor", "");
-    if ( ! caretColorJSON.isEmpty()) {
+    const QString caretColorText = sceneClass->getStringValue("m_lineLayerColor", "");
+    if ( ! caretColorText.isEmpty()) {
         AString errorMessage;
-        if ( ! m_lineLayerColor.decodeFromJson(caretColorJSON,
-                                           errorMessage)) {
+          if ( ! m_lineLayerColor.decodeFromXML(caretColorText,
+                                                errorMessage)) {
             sceneAttributes->addToErrorMessage(errorMessage);
         }
     }

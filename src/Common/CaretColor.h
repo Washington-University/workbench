@@ -62,9 +62,9 @@ namespace caret {
         bool decodeFromJson(const AString& xml,
                             AString& errorMessageOut);
         
-        AString encodeInSceneXML() const;
+        AString encodeInXML() const;
         
-        bool decodeFromSceneXML(const AString& xml,
+        bool decodeFromXML(const AString& xml,
                                 AString& errorMessageOut);
 
         // ADD_NEW_METHODS_HERE
@@ -74,39 +74,41 @@ namespace caret {
     private:
         void copyHelperCaretColor(const CaretColor& obj);
 
-        CaretColorEnum::Enum m_color = CaretColorEnum::BLACK;
+        void setDefaultColor();
+        
+        CaretColorEnum::Enum m_color;
         
         std::array<uint8_t, 4> m_customRGBA;
         
-        static const QString VERSION_ONE;
+        static const QString VALUE_VERSION_ONE;
         
-        static const QString XML_TAG_CARET_COLOR;
+        static const QString TAG_CARET_COLOR;
         
-        static const QString XML_ATTRIBUTE_VERSION;
+        static const QString ATTRIBUTE_VERSION;
         
-        static const QString XML_ATTRIBUTE_COLOR_NAME;
+        static const QString ATTRIBUTE_COLOR_NAME;
         
-        static const QString XML_ATTRIBUTE_CUSTOM_COLOR_RED;
+        static const QString ATTRIBUTE_CUSTOM_COLOR_RED;
         
-        static const QString XML_ATTRIBUTE_CUSTOM_COLOR_GREEN;
+        static const QString ATTRIBUTE_CUSTOM_COLOR_GREEN;
         
-        static const QString XML_ATTRIBUTE_CUSTOM_COLOR_BLUE;
+        static const QString ATTRIBUTE_CUSTOM_COLOR_BLUE;
         
-        static const QString XML_ATTRIBUTE_CUSTOM_COLOR_ALPHA;
+        static const QString ATTRIBUTE_CUSTOM_COLOR_ALPHA;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __CARET_COLOR_DECLARE__
-    const QString CaretColor::VERSION_ONE                      = "1";
-    const QString CaretColor::XML_TAG_CARET_COLOR              = "CaretColor";
-    const QString CaretColor::XML_ATTRIBUTE_VERSION            = "Version";
-    const QString CaretColor::XML_ATTRIBUTE_COLOR_NAME         = "Name";
-    const QString CaretColor::XML_ATTRIBUTE_CUSTOM_COLOR_RED   = "R";
-    const QString CaretColor::XML_ATTRIBUTE_CUSTOM_COLOR_GREEN = "G";
-    const QString CaretColor::XML_ATTRIBUTE_CUSTOM_COLOR_BLUE  = "B";
-    const QString CaretColor::XML_ATTRIBUTE_CUSTOM_COLOR_ALPHA = "A";
+    const QString CaretColor::VALUE_VERSION_ONE            = "1";
+    const QString CaretColor::TAG_CARET_COLOR              = "CaretColor";
+    const QString CaretColor::ATTRIBUTE_VERSION            = "Version";
+    const QString CaretColor::ATTRIBUTE_COLOR_NAME         = "Name";
+    const QString CaretColor::ATTRIBUTE_CUSTOM_COLOR_RED   = "R";
+    const QString CaretColor::ATTRIBUTE_CUSTOM_COLOR_GREEN = "G";
+    const QString CaretColor::ATTRIBUTE_CUSTOM_COLOR_BLUE  = "B";
+    const QString CaretColor::ATTRIBUTE_CUSTOM_COLOR_ALPHA = "A";
 
 #endif // __CARET_COLOR_DECLARE__
 

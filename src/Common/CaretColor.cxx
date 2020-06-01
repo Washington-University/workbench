@@ -46,9 +46,7 @@ using namespace caret;
 CaretColor::CaretColor()
 : CaretObject()
 {
-    m_color = CaretColorEnum::BLACK;
-    m_customRGBA.fill(0);
-    m_customRGBA[3] = 255;
+    setDefaultColor();
 }
 
 /**
@@ -137,6 +135,20 @@ bool
 CaretColor::operator!=(const CaretColor& obj) const
 {
     return ( ! (*this == obj));
+}
+
+/**
+ * Set the to the default color
+ */
+void
+CaretColor::setDefaultColor()
+{
+    /*
+     * Do not use black or white for default color
+     * as they are commonly used for background color.
+     */
+    m_color = CaretColorEnum::RED;
+    CaretColorEnum::toRGBAByte(m_color, m_customRGBA.data());
 }
 
 /**
@@ -232,18 +244,18 @@ CaretColor::getFloatRGBA() const
  * @return String containing CaretColor in XML for use in scenes
  */
 AString
-CaretColor::encodeInSceneXML() const
+CaretColor::encodeInXML() const
 {
     AString xml;
     
     QXmlStreamWriter writer(&xml);
-    writer.writeStartElement(XML_TAG_CARET_COLOR);
-    writer.writeAttribute(XML_ATTRIBUTE_VERSION, VERSION_ONE);
-    writer.writeAttribute(XML_ATTRIBUTE_COLOR_NAME,         CaretColorEnum::toName(m_color));
-    writer.writeAttribute(XML_ATTRIBUTE_CUSTOM_COLOR_RED,   QString::number(m_customRGBA[0]));
-    writer.writeAttribute(XML_ATTRIBUTE_CUSTOM_COLOR_GREEN, QString::number(m_customRGBA[1]));
-    writer.writeAttribute(XML_ATTRIBUTE_CUSTOM_COLOR_BLUE,  QString::number(m_customRGBA[2]));
-    writer.writeAttribute(XML_ATTRIBUTE_CUSTOM_COLOR_ALPHA, QString::number(m_customRGBA[3]));
+    writer.writeStartElement(TAG_CARET_COLOR);
+    writer.writeAttribute(ATTRIBUTE_VERSION,            VALUE_VERSION_ONE);
+    writer.writeAttribute(ATTRIBUTE_COLOR_NAME,         CaretColorEnum::toName(m_color));
+    writer.writeAttribute(ATTRIBUTE_CUSTOM_COLOR_RED,   QString::number(m_customRGBA[0]));
+    writer.writeAttribute(ATTRIBUTE_CUSTOM_COLOR_GREEN, QString::number(m_customRGBA[1]));
+    writer.writeAttribute(ATTRIBUTE_CUSTOM_COLOR_BLUE,  QString::number(m_customRGBA[2]));
+    writer.writeAttribute(ATTRIBUTE_CUSTOM_COLOR_ALPHA, QString::number(m_customRGBA[3]));
     writer.writeEndElement();
     
     return xml;
@@ -259,46 +271,53 @@ CaretColor::encodeInSceneXML() const
  *    True if decoding is successful, else false
  */
 bool
-CaretColor::decodeFromSceneXML(const AString& xml,
-                               AString& errorMessageOut)
+CaretColor::decodeFromXML(const AString& xml,
+                          AString& errorMessageOut)
 {
     errorMessageOut.clear();
     const QString errorPrefix("CaretColor xml decoding ");
     
     QXmlStreamReader reader(xml);
     if (reader.readNextStartElement()) {
-        if (reader.text() == XML_TAG_CARET_COLOR) {
+        const QString tagName(reader.name().toString());
+        if (tagName == TAG_CARET_COLOR) {
             const QXmlStreamAttributes atts = reader.attributes();
-            const QStringRef versionText = atts.value(XML_ATTRIBUTE_VERSION, "");
-            if (versionText == VERSION_ONE) {
-                const QStringRef nameText = atts.value(XML_ATTRIBUTE_COLOR_NAME, "");
-                bool validFlag(false);
-                m_color = CaretColorEnum::fromName(nameText.toString(), &validFlag);
-                if (validFlag) {
-                    m_customRGBA[0] = atts.value(XML_ATTRIBUTE_CUSTOM_COLOR_RED,   0).toInt();
-                    m_customRGBA[1] = atts.value(XML_ATTRIBUTE_CUSTOM_COLOR_GREEN, 0).toInt();
-                    m_customRGBA[2] = atts.value(XML_ATTRIBUTE_CUSTOM_COLOR_BLUE,  0).toInt();
-                    m_customRGBA[3] = atts.value(XML_ATTRIBUTE_CUSTOM_COLOR_ALPHA, 0).toInt();
-                    return true;
+            if (atts.hasAttribute(ATTRIBUTE_VERSION)) {
+                const QString versionText = atts.value(ATTRIBUTE_VERSION).toString();
+                if (versionText == VALUE_VERSION_ONE) {
+                    const QStringRef nameText = atts.value(ATTRIBUTE_COLOR_NAME);
+                    bool validFlag(false);
+                    m_color = CaretColorEnum::fromName(nameText.toString(), &validFlag);
+                    if (validFlag) {
+                        m_customRGBA[0] = atts.value(ATTRIBUTE_CUSTOM_COLOR_RED).toInt();
+                        m_customRGBA[1] = atts.value(ATTRIBUTE_CUSTOM_COLOR_GREEN).toInt();
+                        m_customRGBA[2] = atts.value(ATTRIBUTE_CUSTOM_COLOR_BLUE).toInt();
+                        m_customRGBA[3] = atts.value(ATTRIBUTE_CUSTOM_COLOR_ALPHA).toInt();
+                        return true;
+                    }
+                    else {
+                        errorMessageOut = (errorPrefix
+                                           + "invalid color name=\""
+                                           + nameText
+                                           + "\"");
+                    }
                 }
                 else {
                     errorMessageOut = (errorPrefix
-                                       + "invalid color name=\""
-                                       + nameText
+                                       + "version unsupported=\""
+                                       + versionText
                                        + "\"");
                 }
             }
             else {
                 errorMessageOut = (errorPrefix
-                                   + "version invalid or missing=\""
-                                   + versionText
-                                   + "\"");
+                                   + "version is missing");
             }
         }
         else {
             errorMessageOut = (errorPrefix
                                + "invalid element name: "
-                               + reader.text());
+                               + tagName);
         }
     }
     else {
@@ -306,8 +325,7 @@ CaretColor::decodeFromSceneXML(const AString& xml,
                            + "start element not found");
     }
     
-    m_color = CaretColorEnum::BLACK;
-    m_customRGBA.fill(0);
+    setDefaultColor();
     
     return false;
 }
@@ -319,14 +337,12 @@ AString
 CaretColor::encodeInJson() const
 {
     QJsonObject jso;
-    jso.insert(XML_ATTRIBUTE_VERSION, VERSION_ONE);
-    jso.insert(XML_ATTRIBUTE_COLOR_NAME,         CaretColorEnum::toName(m_color));
-    jso.insert(XML_ATTRIBUTE_CUSTOM_COLOR_RED,   QString::number(m_customRGBA[0]));
-    jso.insert(XML_ATTRIBUTE_CUSTOM_COLOR_GREEN, QString::number(m_customRGBA[1]));
-    jso.insert(XML_ATTRIBUTE_CUSTOM_COLOR_BLUE,  QString::number(m_customRGBA[2]));
-    jso.insert(XML_ATTRIBUTE_CUSTOM_COLOR_ALPHA, QString::number(m_customRGBA[3]));
-    
-    AString text;
+    jso.insert(ATTRIBUTE_VERSION, VALUE_VERSION_ONE);
+    jso.insert(ATTRIBUTE_COLOR_NAME,         CaretColorEnum::toName(m_color));
+    jso.insert(ATTRIBUTE_CUSTOM_COLOR_RED,   QString::number(m_customRGBA[0]));
+    jso.insert(ATTRIBUTE_CUSTOM_COLOR_GREEN, QString::number(m_customRGBA[1]));
+    jso.insert(ATTRIBUTE_CUSTOM_COLOR_BLUE,  QString::number(m_customRGBA[2]));
+    jso.insert(ATTRIBUTE_CUSTOM_COLOR_ALPHA, QString::number(m_customRGBA[3]));
     
     return QJsonDocument(jso).toJson(QJsonDocument::Compact);
 }
@@ -355,28 +371,28 @@ CaretColor::decodeFromJson(const AString& text,
     }
     
     const QJsonObject jso = jdoc.object();
-    if (jso.contains(XML_ATTRIBUTE_VERSION)) {
-        const QString version = jso[XML_ATTRIBUTE_VERSION].toString();
-        if (version == VERSION_ONE) {
-            if (jso.contains(XML_ATTRIBUTE_COLOR_NAME)
-                && jso.contains(XML_ATTRIBUTE_CUSTOM_COLOR_RED)
-                && jso.contains(XML_ATTRIBUTE_CUSTOM_COLOR_GREEN)
-                && jso.contains(XML_ATTRIBUTE_CUSTOM_COLOR_BLUE)
-                && jso.contains(XML_ATTRIBUTE_CUSTOM_COLOR_ALPHA)) {
+    if (jso.contains(ATTRIBUTE_VERSION)) {
+        const QString version = jso[ATTRIBUTE_VERSION].toString();
+        if (version == VALUE_VERSION_ONE) {
+            if (jso.contains(ATTRIBUTE_COLOR_NAME)
+                && jso.contains(ATTRIBUTE_CUSTOM_COLOR_RED)
+                && jso.contains(ATTRIBUTE_CUSTOM_COLOR_GREEN)
+                && jso.contains(ATTRIBUTE_CUSTOM_COLOR_BLUE)
+                && jso.contains(ATTRIBUTE_CUSTOM_COLOR_ALPHA)) {
                 bool validFlag(false);
-                m_color = CaretColorEnum::fromName(jso[XML_ATTRIBUTE_COLOR_NAME].toString(),
+                m_color = CaretColorEnum::fromName(jso[ATTRIBUTE_COLOR_NAME].toString(),
                                                    &validFlag);
                 if (validFlag) {
-                    m_customRGBA[0] = jso.value(XML_ATTRIBUTE_CUSTOM_COLOR_RED).toString().toInt();
-                    m_customRGBA[1] = jso.value(XML_ATTRIBUTE_CUSTOM_COLOR_GREEN).toString().toInt();
-                    m_customRGBA[2] = jso.value(XML_ATTRIBUTE_CUSTOM_COLOR_BLUE).toString().toInt();
-                    m_customRGBA[3] = jso.value(XML_ATTRIBUTE_CUSTOM_COLOR_ALPHA).toString().toInt();
+                    m_customRGBA[0] = jso.value(ATTRIBUTE_CUSTOM_COLOR_RED).toString().toInt();
+                    m_customRGBA[1] = jso.value(ATTRIBUTE_CUSTOM_COLOR_GREEN).toString().toInt();
+                    m_customRGBA[2] = jso.value(ATTRIBUTE_CUSTOM_COLOR_BLUE).toString().toInt();
+                    m_customRGBA[3] = jso.value(ATTRIBUTE_CUSTOM_COLOR_ALPHA).toString().toInt();
                     
                     return true;
                 }
                 
                 errorMessageOut = ("Invalid color name: "
-                                   + jso[XML_ATTRIBUTE_COLOR_NAME].toString());
+                                   + jso[ATTRIBUTE_COLOR_NAME].toString());
             }
             else {
                 errorMessageOut = ("Missing color name or color component in: "
@@ -393,6 +409,8 @@ CaretColor::decodeFromJson(const AString& text,
                            + text);
     }
 
+    setDefaultColor();
+    
     return false;
 }
 
