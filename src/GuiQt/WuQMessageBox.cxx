@@ -915,3 +915,45 @@ WuQMessageBox::errorOk(QWidget* parent,
     msgBox.exec();
 }
 
+/**
+ * Display an error message box with the
+ * given text, detailed text, and an OK button.
+ *
+ * @param parent
+ *    Parent on which message box is displayed.
+ * @param text
+ *    Message that is displayed.
+ * @param detailedText
+ *    Detailed text in a scroll region
+ */
+void
+WuQMessageBox::errorDetailedTextOk(QWidget* parent,
+                                   const QString& text,
+                                   const QString& detailedText)
+{
+    QMessageBox msgBox(parent);
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setWindowTitle("");
+    msgBox.setText(text);
+    msgBox.setDetailedText(detailedText);
+    msgBox.addButton(QMessageBox::Ok);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+    msgBox.setEscapeButton(QMessageBox::Ok);
+    
+    /*
+     * Expaned the details region by clicking the "Show Details" button.
+     * From: https://stackoverflow.com/questions/36083551/qmessagebox-show-details/36084125#36084125
+     */
+    foreach (QAbstractButton *button, msgBox.buttons()) {
+        if (msgBox.buttonRole(button) == QMessageBox::ActionRole) {
+            if (button->text().startsWith("Show Detail")) {
+                button->click();
+            }
+            break;
+        }
+    }
+    
+    msgBox.exec();
+}
+
+

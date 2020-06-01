@@ -2661,6 +2661,7 @@ SceneDialog::displayScenePrivateWithErrorMessageDialog(QWidget* dialogParent,
                                                        Scene* scene,
                                                        const bool showWaitCursor)
 {
+    CaretAssert(scene);
     AString errorMessage;
     
     ElapsedTimer et;
@@ -2676,8 +2677,10 @@ SceneDialog::displayScenePrivateWithErrorMessageDialog(QWidget* dialogParent,
     CaretLogInfo(msg);
     
     if ( ! successFlag) {
-        WuQMessageBox::errorOk(dialogParent,
-                               errorMessage);
+        WuQMessageBox::errorDetailedTextOk(dialogParent,
+                                           ("Error reading scene: "
+                                            + scene->getName()),
+                                           errorMessage);
     }
     
     EventManager::get()->sendEvent(EventShowDataFileReadWarningsDialog().getPointer());
