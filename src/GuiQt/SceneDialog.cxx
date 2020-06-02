@@ -2413,6 +2413,13 @@ SceneDialog::deleteSceneButtonClicked()
 void 
 SceneDialog::showSceneButtonClicked()
 {
+    /*
+     * Any clicks on the button are blocked until this method
+     * returns to prevent 'double clicks" that call this
+     * method a second time before the first time completes.
+     */
+    QSignalBlocker blocker(m_showScenePushButton);
+    
     if ( ! checkForModifiedFiles(GuiManager::TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW,
                                  this)) {
         return;
