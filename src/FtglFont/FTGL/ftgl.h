@@ -28,6 +28,16 @@
 #ifndef __ftgl__
 #define __ftgl__
 
+/*
+ * JWH 02 July 2020
+ * OpenGL is deprecated on MacOS 10.15, Catalina
+ * This definition suppress the deprecation warning that will
+ * appear on every OpenGL function call
+ */
+#ifdef CARET_OS_MACOSX
+#define GL_SILENCE_DEPRECATION 1
+#endif
+
 /* We need the Freetype headers */
 #include <ft2build.h>
 #include FT_FREETYPE_H
