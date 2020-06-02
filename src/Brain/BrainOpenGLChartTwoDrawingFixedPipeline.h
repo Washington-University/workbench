@@ -95,16 +95,19 @@ namespace caret {
             LineLayerChartDrawingInfo(const ChartableTwoFileLineLayerChart* lineLayerChart,
                                       ChartTwoDataCartesian* chartTwoCartesianData,
                                       const ChartAxisLocationEnum::Enum verticalAxisLocation,
-                                      const CaretColor& lineChartColor)
+                                      const CaretColor& lineChartColor,
+                                      const float lineWidth)
             : m_lineLayerChart(lineLayerChart),
             m_chartTwoCartesianData(chartTwoCartesianData),
             m_verticalAxisLocation(verticalAxisLocation),
-            m_lineChartColor(lineChartColor) { }
+            m_lineChartColor(lineChartColor),
+            m_lineWidth(lineWidth) { }
             
             const ChartableTwoFileLineLayerChart* m_lineLayerChart;
             ChartTwoDataCartesian* m_chartTwoCartesianData;
             const ChartAxisLocationEnum::Enum m_verticalAxisLocation;
             const CaretColor m_lineChartColor;
+            const float m_lineWidth;
         };
         
         /**

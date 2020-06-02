@@ -23,13 +23,16 @@
 #include "CaretColorToolButton.h"
 #undef __CARET_COLOR_TOOLBUTTON_DECLARE__
 
-#include <QAction>
 #include <QComboBox>
 #include <QColorDialog>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QWidgetAction>
 
 #include "CaretAssert.h"
 #include "CaretColorEnumMenu.h"
 #include "CaretLogger.h"
+#include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
@@ -51,9 +54,10 @@ using namespace caret;
  *     Parent widget.
  */
 CaretColorToolButton::CaretColorToolButton(QWidget* parent)
-: CaretColorToolButton(CustomColorModeEnum::DISABLED,
-                           NoneColorModeEnum::DISABLED,
-                           parent)
+: CaretColorToolButton(CustomColorMode::DISABLED,
+                       NoneColorMode::DISABLED,
+                       LineThicknessMode::DISABLED,
+                       parent)
 {
     /* delegating constructor above */
 }
@@ -65,20 +69,72 @@ CaretColorToolButton::CaretColorToolButton(QWidget* parent)
  *     Mode for custom color
  * @param noneColorMode
  *     Mode for none color
+ * @param lineThicknessMode
+ *     Line thickness spin box on/off mode
  * @param parent
  *     Parent object.
  */
-CaretColorToolButton::CaretColorToolButton(const CustomColorModeEnum customColorMode,
-                                                   const NoneColorModeEnum noneColorMode,
-                                                   QWidget* parent)
+CaretColorToolButton::CaretColorToolButton(const CustomColorMode customColorMode,
+                                           const NoneColorMode noneColorMode,
+                                           const LineThicknessMode lineThicknessMode,
+                                           QWidget* parent)
 : QToolButton(parent),
 m_customColorMode(customColorMode),
 m_noneColorMode(noneColorMode)
 {
-    m_caretColorAction = new QAction("C",
-                                    this);
-    m_caretColorAction->setToolTip("Set the line layer color");
-    setDefaultAction(m_caretColorAction);
+    int64_t caretColorOptions = 0;
+    switch (m_customColorMode) {
+        case CustomColorMode::DISABLED:
+            break;
+        case CustomColorMode::EDITABLE:
+            caretColorOptions |= CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR;
+            break;
+        case CustomColorMode::FIXED:
+            caretColorOptions |= CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR;
+            break;
+    }
+    
+    switch (m_noneColorMode) {
+        case NoneColorMode::DISABLED:
+            break;
+        case NoneColorMode::ENABLED:
+            caretColorOptions |= CaretColorEnum::OPTION_INCLUDE_NONE_COLOR;
+            break;
+    }
+    m_caretColorEnumMenu = new CaretColorEnumMenu(caretColorOptions);
+    
+    m_lineWidthSpinBox      = NULL;
+    m_lineWidthWidgetAction = NULL;
+    switch (lineThicknessMode) {
+        case LineThicknessMode::DISABLED:
+            break;
+        case LineThicknessMode::ENABLED:
+        {
+            m_lineWidthSpinBox = new WuQDoubleSpinBox(this);
+            m_lineWidthSpinBox->setRangePercentage(0.0, 100.0);
+            m_lineWidthSpinBox->setSingleStepPercentage(0.1);
+            m_lineWidthSpinBox->setDecimals(1);
+            m_lineWidthSpinBox->getWidget()->setFixedWidth(60);
+            QObject::connect(m_lineWidthSpinBox, &WuQDoubleSpinBox::valueChanged,
+                             this, &CaretColorToolButton::lineWidthValueChanged);
+            
+            QWidget* lineWidthWidget = new QWidget();
+            QHBoxLayout* lineWidthLayout = new QHBoxLayout(lineWidthWidget);
+            lineWidthLayout->addWidget(new QLabel("Width:"));
+            lineWidthLayout->addWidget(m_lineWidthSpinBox->getWidget());
+            lineWidthLayout->setContentsMargins(0, 0, 0, 0);
+            lineWidthWidget->setFixedWidth(lineWidthWidget->sizeHint().width());
+            
+            m_lineWidthWidgetAction = new QWidgetAction(this);
+            m_lineWidthWidgetAction->setDefaultWidget(lineWidthWidget);
+            QAction* firstColorAction = m_caretColorEnumMenu->actions().at(0);
+            m_caretColorEnumMenu->insertAction(firstColorAction,
+                                               m_lineWidthWidgetAction);
+            m_caretColorEnumMenu->insertSeparator(firstColorAction);
+        }
+            break;
+    }
+    
     QObject::connect(this, &QToolButton::clicked,
                      this, &CaretColorToolButton::toolButtonClicked);
     
@@ -91,32 +147,12 @@ m_noneColorMode(noneColorMode)
 void
 CaretColorToolButton::toolButtonClicked()
 {
-    int64_t caretColorOptions = 0;
-    switch (m_customColorMode) {
-        case CustomColorModeEnum::DISABLED:
-            break;
-        case CustomColorModeEnum::EDITABLE:
-            caretColorOptions |= CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR;
-            break;
-        case CustomColorModeEnum::FIXED:
-            caretColorOptions |= CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR;
-            break;
-    }
-    
-    switch (m_noneColorMode) {
-        case NoneColorModeEnum::DISABLED:
-            break;
-        case NoneColorModeEnum::ENABLED:
-            caretColorOptions |= CaretColorEnum::OPTION_INCLUDE_NONE_COLOR;
-            break;
-    }
-    CaretColorEnumMenu caretColorMenu(caretColorOptions);
-    caretColorMenu.setSelectedColor(m_caretColor.getCaretColorEnum());
-    caretColorMenu.setCustomIconColor(m_caretColor.getCustomColorFloatRGBA().data());
-    QAction* action = caretColorMenu.exec(this->mapToGlobal(QPoint(0,0)));
+    QAction* action = m_caretColorEnumMenu->exec(this->mapToGlobal(QPoint(0,0)));
     if (action != NULL) {
-        CaretColorEnum::Enum colorEnum = caretColorMenu.getSelectedColor();
-        caretColorMenuSelected(colorEnum);
+        if (action != m_lineWidthWidgetAction) {
+            CaretColorEnum::Enum colorEnum = m_caretColorEnumMenu->getSelectedColor();
+            caretColorMenuSelected(colorEnum);
+        }
     }
 }
 
@@ -133,7 +169,7 @@ CaretColorToolButton::updateIconColor()
                                                          CaretColorEnum::CUSTOM,
                                                          rgbaF.data(), false));
     QIcon icon(pm);
-    m_caretColorAction->setIcon(icon);
+    this->setIcon(icon);
 }
 
 /**
@@ -162,6 +198,8 @@ void
 CaretColorToolButton::setSelectedColor(const CaretColor& color)
 {
     m_caretColor = color;
+    m_caretColorEnumMenu->setSelectedColor(m_caretColor.getCaretColorEnum());
+    m_caretColorEnumMenu->setCustomIconColor(m_caretColor.getCustomColorFloatRGBA().data());
     updateIconColor();
 }
 
@@ -175,9 +213,9 @@ CaretColorToolButton::caretColorMenuSelected(const CaretColorEnum::Enum colorEnu
 {
     if (colorEnum == CaretColorEnum::CUSTOM) {
         switch (m_customColorMode) {
-            case CustomColorModeEnum::DISABLED:
+            case CustomColorMode::DISABLED:
                 break;
-            case CustomColorModeEnum::EDITABLE:
+            case CustomColorMode::EDITABLE:
             {
                 std::array<uint8_t, 4> rgba = m_caretColor.getCustomColorRGBA();
                 const QColor initialColor(rgba[0],
@@ -201,7 +239,7 @@ CaretColorToolButton::caretColorMenuSelected(const CaretColorEnum::Enum colorEnu
                 }
             }
                 break;
-            case CustomColorModeEnum::FIXED:
+            case CustomColorMode::FIXED:
                 break;
         }
     }
@@ -209,5 +247,41 @@ CaretColorToolButton::caretColorMenuSelected(const CaretColorEnum::Enum colorEnu
     m_caretColor.setCaretColorEnum(colorEnum);
     updateIconColor();
     emit colorSelected(m_caretColor);
+}
+
+/**
+ * Called when line width is changed.
+ * @param value
+ *   New line width value
+ */
+void
+CaretColorToolButton::lineWidthValueChanged(double value)
+{
+    emit lineWidthChanged(value);
+}
+
+/**
+ * @return The line width
+ */
+float
+CaretColorToolButton::getLineWidth() const
+{
+    if (m_lineWidthSpinBox != NULL) {
+        return m_lineWidthSpinBox->value();
+    }
+    return 1.0f;
+}
+
+/**
+ * Set the line width
+ * @param lineWidth
+ * New value for line width
+ */
+void
+CaretColorToolButton::setLineWidth(const float lineWidth)
+{
+    if (m_lineWidthSpinBox != NULL) {
+        m_lineWidthSpinBox->setValue(lineWidth);
+    }
 }
 

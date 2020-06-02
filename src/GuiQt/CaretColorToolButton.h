@@ -28,9 +28,13 @@
 #include "CaretColor.h"
 #include "WuQWidget.h"
 
+class QWidgetAction;
+
 namespace caret {
 
     class CaretColor;
+    class CaretColorEnumMenu;
+    class WuQDoubleSpinBox;
     
     class CaretColorToolButton : public QToolButton {
         
@@ -40,7 +44,7 @@ namespace caret {
         /**
          * Custom color mode
          */
-        enum class CustomColorModeEnum {
+        enum class CustomColorMode {
             /**
              * No custom color
              */
@@ -58,7 +62,7 @@ namespace caret {
         /**
          * None color mode
          */
-        enum class NoneColorModeEnum {
+        enum class NoneColorMode {
             /**
              * No None color
              */
@@ -69,10 +73,25 @@ namespace caret {
             ENABLED
         };
         
+        /**
+         * Line thickness spin box mode
+         */
+        enum class LineThicknessMode {
+            /**
+             * No Line thickness
+             */
+            DISABLED,
+            /**
+             * Show line thickness spin box
+             */
+            ENABLED
+        };
+        
         CaretColorToolButton(QWidget* parent = 0);
         
-        CaretColorToolButton(const CustomColorModeEnum customColorMode,
-                                 const NoneColorModeEnum noneColorMode,
+        CaretColorToolButton(const CustomColorMode customColorMode,
+                             const NoneColorMode noneColorMode,
+                             const LineThicknessMode lineThicknessMode,
                                  QWidget* parent = 0);
 
         virtual ~CaretColorToolButton();
@@ -81,13 +100,21 @@ namespace caret {
         
         void setSelectedColor(const CaretColor& color);
         
+        float getLineWidth() const;
+        
+        void setLineWidth(const float lineWidth);
+        
     signals:
         void colorSelected(const CaretColor& caretColor);
+        
+        void lineWidthChanged(float value);
         
     private slots:
         void caretColorMenuSelected(const CaretColorEnum::Enum colorEnum);
         
         void toolButtonClicked();
+        
+        void lineWidthValueChanged(double value);
         
     private:
         CaretColorToolButton(const CaretColorToolButton&);
@@ -97,14 +124,17 @@ namespace caret {
     private:
         void updateIconColor();
         
-        const CustomColorModeEnum m_customColorMode;
+        const CustomColorMode m_customColorMode;
         
-        const NoneColorModeEnum m_noneColorMode;
+        const NoneColorMode m_noneColorMode;
         
-        QAction* m_caretColorAction;
+        CaretColorEnumMenu* m_caretColorEnumMenu = NULL;
         
         CaretColor m_caretColor;
         
+        WuQDoubleSpinBox* m_lineWidthSpinBox = NULL;
+        
+        QWidgetAction* m_lineWidthWidgetAction = NULL;
     };
     
 #ifdef __CARET_COLOR_TOOLBUTTON_DECLARE__

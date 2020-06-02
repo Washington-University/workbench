@@ -61,9 +61,9 @@ namespace caret {
         
         ChartTwoDataCartesian* getChartMapLine(const int32_t chartMapIndex);
         
-        float getDefaultLineWidth() const;
-        
-        void setDefaultLineWidth(const float defaultLineWidth);
+//        float getDefaultLineWidth() const;
+//
+//        void setDefaultLineWidth(const float defaultLineWidth);
         
         void clearChartLines();
         
@@ -100,7 +100,7 @@ namespace caret {
         
         ChartTwoLineLayerContentTypeEnum::Enum m_lineLayerContentType;
         
-        float m_defaultLineWidth = 1.0;
+//        float m_defaultLineWidth = 1.0;
 
         // ADD_NEW_MEMBERS_HERE
 

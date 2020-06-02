@@ -533,7 +533,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                         lineLayerChartsToDraw.push_back(LineLayerChartDrawingInfo(lineLayerChart,
                                                                                   data,
                                                                                   chartOverlay->getCartesianVerticalAxisLocation(),
-                                                                                  chartOverlay->getLineLayerColor()));
+                                                                                  chartOverlay->getLineLayerColor(),
+                                                                                  chartOverlay->getLineLayerLineWidth()));
                     }
                 }
             }
@@ -1137,6 +1138,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 if (lineChart.m_lineChartColor != lineChart.m_chartTwoCartesianData->getColor()) {
                     lineChart.m_chartTwoCartesianData->setColor(lineChart.m_lineChartColor);
                 }
+                lineChart.m_chartTwoCartesianData->setLineWidth(lineChart.m_lineWidth);
+
                 GraphicsEngineDataOpenGL::draw(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
             }
             

@@ -241,10 +241,14 @@ m_chartOverlay(NULL)
     /*
      * Line layer color tool button
      */
-    m_lineLayerColorToolButton = new CaretColorToolButton(CaretColorToolButton::CustomColorModeEnum::EDITABLE,
-                                                          CaretColorToolButton::NoneColorModeEnum::DISABLED);
+    m_lineLayerColorToolButton = new CaretColorToolButton(CaretColorToolButton::CustomColorMode::EDITABLE,
+                                                          CaretColorToolButton::NoneColorMode::DISABLED,
+                                                          CaretColorToolButton::LineThicknessMode::ENABLED);
     QObject::connect(m_lineLayerColorToolButton, &CaretColorToolButton::colorSelected,
                      this, &ChartTwoOverlayViewController::lineLayerColorSelected);
+    QObject::connect(m_lineLayerColorToolButton, &CaretColorToolButton::lineWidthChanged,
+                     this, &ChartTwoOverlayViewController::lineLayerLineWidthChanged);
+    m_lineLayerColorToolButton->setToolTip("Set width and color for line layer charts");
 
     /*
      * Map file Selection Check Box
@@ -914,11 +918,12 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     }
     
     /*
-     * Update line layer color
+     * Update line layer color and width tool button
      */
     m_lineLayerColorToolButton->setEnabled(false);
     if (validOverlayAndFileFlag) {
         m_lineLayerColorToolButton->setSelectedColor(m_chartOverlay->getLineLayerColor());
+        m_lineLayerColorToolButton->setLineWidth(m_chartOverlay->getLineLayerLineWidth());
         if (m_chartOverlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER) {
             m_lineLayerColorToolButton->setEnabled(true);
         }
@@ -1164,6 +1169,20 @@ ChartTwoOverlayViewController::lineLayerColorSelected(const CaretColor& caretCol
 {
     if (m_chartOverlay != NULL) {
         m_chartOverlay->setLineLayerColor(caretColor);
+        this->updateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when line layer line width is changed.
+ * @param lineWidth
+ *     New line width
+ */
+void
+ChartTwoOverlayViewController::lineLayerLineWidthChanged(const float lineWidth)
+{
+    if (m_chartOverlay != NULL) {
+        m_chartOverlay->setLineLayerLineWidth(lineWidth);
         this->updateGraphicsWindow();
     }
 }

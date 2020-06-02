@@ -33,6 +33,7 @@
 #include "ChartableTwoFileLineLayerChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
+#include "ChartTwoDataCartesian.h"
 #include "ChartTwoLineSeriesHistory.h"
 #include "ChartTwoOverlaySet.h"
 #include "EventCaretMappableDataFilesGet.h"
@@ -91,7 +92,8 @@ m_overlayIndex(overlayIndex)
 
     m_selectedLineLayerMapIndex = -1;
     m_lineLayerColor.setCaretColorEnum(generateDefaultColor());
-    
+    m_lineLayerLineWidth = ChartTwoDataCartesian::getDefaultLineWidth();
+
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_enabled", &m_enabled);
     m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
@@ -104,6 +106,7 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add("m_selectedHistogramMapIndex", &m_selectedHistogramMapIndex);
     m_sceneAssistant->add("m_allHistogramMapsSelectedFlag", &m_allHistogramMapsSelectedFlag);
     m_sceneAssistant->add("m_selectedLineLayerMapIndex", &m_selectedLineLayerMapIndex);
+    m_sceneAssistant->add("m_lineLayerLineWidth", &m_lineLayerLineWidth);
                                                                 
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE);
@@ -1355,6 +1358,26 @@ void
 ChartTwoOverlay::setLineLayerColor(const CaretColor& color)
 {
     m_lineLayerColor = color;
+}
+
+/**
+ * The line layer line width
+ */
+float
+ChartTwoOverlay::getLineLayerLineWidth() const
+{
+    return m_lineLayerLineWidth;
+}
+
+/**
+ * Set the line width for a line layer
+ * @param lineWidth
+ * New value for line width
+ */
+void
+ChartTwoOverlay::setLineLayerLineWidth(const float lineWidth)
+{
+    m_lineLayerLineWidth = lineWidth;
 }
 
 /**

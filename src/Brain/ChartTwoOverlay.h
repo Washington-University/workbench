@@ -140,6 +140,10 @@ namespace caret {
         
         void setLineLayerColor(const CaretColor& color);
         
+        float getLineLayerLineWidth() const;
+        
+        void setLineLayerLineWidth(const float lineWidth);
+        
         virtual void receiveEvent(Event* event);
 
         // ADD_NEW_METHODS_HERE
@@ -223,6 +227,8 @@ namespace caret {
         mutable ChartAxisLocationEnum::Enum m_cartesianVerticalAxisLocation;
         
         CaretColor m_lineLayerColor;
+        
+        float m_lineLayerLineWidth;
         
         /** A weak pointer to 'self' so that can be stored to safely test instance is valid and can be accessed */
         std::weak_ptr<ChartTwoOverlay> m_weakPointerToSelf;

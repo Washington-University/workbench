@@ -116,10 +116,13 @@ CaretColorEnumMenu::initializeCaretColorEnumMenu(const int64_t caretColorOptions
         if (colorEnum == CaretColorEnum::CUSTOM) {
             m_customColorAction = action;
         }
+        
+        QObject::connect(action, &QAction::triggered,
+                         [=] { colorActionSelected(action); });
     }
     
-    QObject::connect(this, SIGNAL(triggered(QAction*)),
-                     this, SLOT(colorActionSelected(QAction*)));
+//    QObject::connect(this, SIGNAL(triggered(QAction*)),
+//                     this, SLOT(colorActionSelected(QAction*)));
 }
 
 /**

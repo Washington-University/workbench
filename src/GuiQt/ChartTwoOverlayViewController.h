@@ -115,6 +115,8 @@ namespace caret {
         
         void lineLayerColorSelected(const CaretColor& caretColor);
         
+        void lineLayerLineWidthChanged(const float lineWidth);
+        
     private:
         ChartTwoOverlayViewController(const ChartTwoOverlayViewController&);
 

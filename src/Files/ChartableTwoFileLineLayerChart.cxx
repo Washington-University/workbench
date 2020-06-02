@@ -61,7 +61,7 @@ m_lineLayerContentType(lineLayerContentType)
     CaretUnitsTypeEnum::Enum xAxisUnits = CaretUnitsTypeEnum::NONE;
     int32_t xAxisNumberOfElements = 0;
     
-    m_defaultLineWidth = ChartTwoDataCartesian::getDefaultLineWidth();
+//    m_defaultLineWidth = ChartTwoDataCartesian::getDefaultLineWidth();
 
     CaretMappableDataFile* cmdf = getCaretMappableDataFile();
     CaretAssert(cmdf);
@@ -128,8 +128,8 @@ m_lineLayerContentType(lineLayerContentType)
     m_mapLineCharts.resize(numberOfChartMaps);
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->add("m_defaultLineWidth",
-                          &m_defaultLineWidth);
+//    m_sceneAssistant->add("m_defaultLineWidth",
+//                          &m_defaultLineWidth);
 
 }
 
@@ -348,7 +348,6 @@ ChartableTwoFileLineLayerChart::loadChartForMapFileSelector(const MapFileDataSel
 {
     ChartTwoDataCartesian* chartDataOut(NULL);
     
-    int32_t scalarRowIndex = -1;
     bool loadDataFlag = false;
     switch (m_lineLayerContentType) {
         case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED:
@@ -402,7 +401,7 @@ ChartTwoDataCartesian*
 ChartableTwoFileLineLayerChart::createChartData() const
 {
     const CaretUnitsTypeEnum::Enum xUnits = getChartTwoCompoundDataType().getLineChartUnitsAxisX();
-    return new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
+    return new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER,
                                      xUnits,
                                      CaretUnitsTypeEnum::NONE,
                                      GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN);
@@ -525,26 +524,26 @@ ChartableTwoFileLineLayerChart::restoreSubClassDataFromScene(const SceneAttribut
     }
 }
 
-/**
- * @return Default width of lines
- */
-float
-ChartableTwoFileLineLayerChart::getDefaultLineWidth() const
-{
-    return m_defaultLineWidth;
-}
-
-/**
- * Set Default width of lines
- *
- * @param defaultLineWidth
- *    New value for Default width of lines
- */
-void
-ChartableTwoFileLineLayerChart::setDefaultLineWidth(const float defaultLineWidth)
-{
-    if (defaultLineWidth != m_defaultLineWidth) {
-        m_defaultLineWidth = defaultLineWidth;
-        setModified();
-    }
-}
+///**
+// * @return Default width of lines
+// */
+//float
+//ChartableTwoFileLineLayerChart::getDefaultLineWidth() const
+//{
+//    return m_defaultLineWidth;
+//}
+//
+///**
+// * Set Default width of lines
+// *
+// * @param defaultLineWidth
+// *    New value for Default width of lines
+// */
+//void
+//ChartableTwoFileLineLayerChart::setDefaultLineWidth(const float defaultLineWidth)
+//{
+//    if (defaultLineWidth != m_defaultLineWidth) {
+//        m_defaultLineWidth = defaultLineWidth;
+//        setModified();
+//    }
+//}
