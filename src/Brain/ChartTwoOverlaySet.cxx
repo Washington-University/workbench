@@ -778,6 +778,10 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
                                         }
                                         break;
                                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                                        if (yokingGroupMapIndex < mapFile->getNumberOfMaps()) {
+                                            overlay->setSelectionData(mapFile,
+                                                                      yokingGroupMapIndex);
+                                        }
                                         break;
                                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                                         break;
