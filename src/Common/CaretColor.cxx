@@ -285,9 +285,9 @@ CaretColor::decodeFromXML(const AString& xml,
             if (atts.hasAttribute(ATTRIBUTE_VERSION)) {
                 const QString versionText = atts.value(ATTRIBUTE_VERSION).toString();
                 if (versionText == VALUE_VERSION_ONE) {
-                    const QStringRef nameText = atts.value(ATTRIBUTE_COLOR_NAME);
+                    const QString nameText = atts.value(ATTRIBUTE_COLOR_NAME).toString();
                     bool validFlag(false);
-                    m_color = CaretColorEnum::fromName(nameText.toString(), &validFlag);
+                    m_color = CaretColorEnum::fromName(nameText, &validFlag);
                     if (validFlag) {
                         m_customRGBA[0] = atts.value(ATTRIBUTE_CUSTOM_COLOR_RED).toInt();
                         m_customRGBA[1] = atts.value(ATTRIBUTE_CUSTOM_COLOR_GREEN).toInt();
