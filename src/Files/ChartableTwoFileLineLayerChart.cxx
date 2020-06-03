@@ -35,6 +35,7 @@
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SceneObjectMapIntegerKey.h"
+#include "ScenePrimitiveArray.h"
 
 using namespace caret;
     
@@ -61,10 +62,7 @@ m_lineLayerContentType(lineLayerContentType)
     CaretUnitsTypeEnum::Enum xAxisUnits = CaretUnitsTypeEnum::NONE;
     int32_t xAxisNumberOfElements = 0;
     
-//    m_defaultLineWidth = ChartTwoDataCartesian::getDefaultLineWidth();
-
-    CaretMappableDataFile* cmdf = getCaretMappableDataFile();
-    CaretAssert(cmdf);
+    CaretAssert(getCaretMappableDataFile());
     
     int64_t numberOfChartMaps(0);
     
@@ -123,14 +121,9 @@ m_lineLayerContentType(lineLayerContentType)
     
     updateChartTwoCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForLineLayer(xAxisUnits,
                                                                                                    xAxisNumberOfElements));
-    CaretMappableDataFile* mapFile = getCaretMappableDataFile();
-    CaretAssert(mapFile);
     m_mapLineCharts.resize(numberOfChartMaps);
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-//    m_sceneAssistant->add("m_defaultLineWidth",
-//                          &m_defaultLineWidth);
-
 }
 
 /**
@@ -457,28 +450,44 @@ ChartableTwoFileLineLayerChart::saveSubClassDataToScene(const SceneAttributes* s
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
+    /*
+     * If true, save only indices of map and not chart points.
+     * Indices is much more efficient.
+     */
+    const bool saveIndicesFlag(true);
+
     SceneObjectMapIntegerKey* objMap(NULL);
-    
+    std::vector<int32_t> mapIndices;
     const int32_t numItems = static_cast<int32_t>(m_mapLineCharts.size());
     for (int32_t i = 0; i < numItems; i++) {
         ChartTwoDataCartesian* cd = m_mapLineCharts[i].get();
         if (cd != NULL) {
-            if (objMap == NULL) {
-                objMap = new SceneObjectMapIntegerKey("m_mapLineCharts",
-                                                      SceneObjectDataTypeEnum::SCENE_CLASS);
+            if (saveIndicesFlag) {
+                mapIndices.push_back(i);
             }
-            const QString name("m_mapLineCharts["
-                               + AString::number(i)
-                               + "]");
-            CaretAssert(objMap);
-            objMap->addClass(i,
-                             cd->saveToScene(sceneAttributes,
-                                             name));
+            else {
+                if (objMap == NULL) {
+                    objMap = new SceneObjectMapIntegerKey("m_mapLineCharts",
+                                                          SceneObjectDataTypeEnum::SCENE_CLASS);
+                }
+                const QString name("m_mapLineCharts["
+                                   + AString::number(i)
+                                   + "]");
+                CaretAssert(objMap);
+                objMap->addClass(i,
+                                 cd->saveToScene(sceneAttributes,
+                                                 name));
+            }
         }
     }
     
     if (objMap != NULL) {
         sceneClass->addChild(objMap);
+    }
+    else if ( ! mapIndices.empty()) {
+        sceneClass->addIntegerArray("mapIndices",
+                                    &mapIndices[0],
+                                    mapIndices.size());
     }
 }
 
@@ -503,47 +512,33 @@ ChartableTwoFileLineLayerChart::restoreSubClassDataFromScene(const SceneAttribut
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
-    const SceneObjectMapIntegerKey* objMap = sceneClass->getMapIntegerKey("m_mapLineCharts");
-    if (objMap != NULL) {
-        if (objMap->getDataType() == SceneObjectDataTypeEnum::SCENE_CLASS) {
-            const std::vector<int32_t> indexKeys = objMap->getKeys();
-            for (const auto key : indexKeys) {
-                const SceneObject* so = objMap->getObject(key);
-                if (so != NULL) {
-                    const SceneClass* sc = dynamic_cast<const SceneClass*>(so);
-                    if (sc != NULL) {
-                        ChartTwoDataCartesian* cartData = createChartData();
-                        CaretAssert(cartData);
-                        cartData->restoreFromScene(sceneAttributes,
-                                                   sc);
-                        m_mapLineCharts[key].reset(cartData);
+    const ScenePrimitiveArray* mapIndicesArray = sceneClass->getPrimitiveArray("mapIndices");
+    if (mapIndicesArray != NULL) {
+        std::vector<int32_t> mapIndices;
+        mapIndicesArray->integerVectorValues(mapIndices);
+        for (auto mi : mapIndices) {
+            getChartMapLine(mi);
+        }
+    }
+    else {
+        const SceneObjectMapIntegerKey* objMap = sceneClass->getMapIntegerKey("m_mapLineCharts");
+        if (objMap != NULL) {
+            if (objMap->getDataType() == SceneObjectDataTypeEnum::SCENE_CLASS) {
+                const std::vector<int32_t> indexKeys = objMap->getKeys();
+                for (const auto key : indexKeys) {
+                    const SceneObject* so = objMap->getObject(key);
+                    if (so != NULL) {
+                        const SceneClass* sc = dynamic_cast<const SceneClass*>(so);
+                        if (sc != NULL) {
+                            ChartTwoDataCartesian* cartData = createChartData();
+                            CaretAssert(cartData);
+                            cartData->restoreFromScene(sceneAttributes,
+                                                       sc);
+                            m_mapLineCharts[key].reset(cartData);
+                        }
                     }
                 }
             }
         }
     }
 }
-
-///**
-// * @return Default width of lines
-// */
-//float
-//ChartableTwoFileLineLayerChart::getDefaultLineWidth() const
-//{
-//    return m_defaultLineWidth;
-//}
-//
-///**
-// * Set Default width of lines
-// *
-// * @param defaultLineWidth
-// *    New value for Default width of lines
-// */
-//void
-//ChartableTwoFileLineLayerChart::setDefaultLineWidth(const float defaultLineWidth)
-//{
-//    if (defaultLineWidth != m_defaultLineWidth) {
-//        m_defaultLineWidth = defaultLineWidth;
-//        setModified();
-//    }
-//}
