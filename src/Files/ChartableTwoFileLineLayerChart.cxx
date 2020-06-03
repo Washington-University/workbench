@@ -461,7 +461,7 @@ ChartableTwoFileLineLayerChart::saveSubClassDataToScene(const SceneAttributes* s
     
     const int32_t numItems = static_cast<int32_t>(m_mapLineCharts.size());
     for (int32_t i = 0; i < numItems; i++) {
-        ChartTwoDataCartesian* cd = getChartMapLine(i);
+        ChartTwoDataCartesian* cd = m_mapLineCharts[i].get();
         if (cd != NULL) {
             if (objMap == NULL) {
                 objMap = new SceneObjectMapIntegerKey("m_mapLineCharts",
