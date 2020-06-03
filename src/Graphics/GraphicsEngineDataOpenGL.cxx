@@ -940,6 +940,13 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
+    
+    /*
+     * Must clear color and depth buffers
+     */
+    glClear(GL_COLOR_BUFFER_BIT
+            | GL_DEPTH_BUFFER_BIT);
+    
     if ((pixelX    >= viewport[0])
         && (pixelX <  (viewport[0] + viewport[2]))
         && (pixelY >= viewport[1])

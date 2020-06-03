@@ -1063,6 +1063,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
 
     if (drawLineLayerFlag) {
         for (const auto lineChart : lineLayerChartsToDraw) {
+            
             bool leftVerticalAxisFlag = true;
             switch (lineChart.m_verticalAxisLocation) {
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
@@ -1120,6 +1121,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 int32_t primitiveIndex = -1;
                 float   primitiveDepth = 0.0f;
                 
+                /*
+                 * Increase width as thin lines are difficult to select
+                 */
+                lineChart.m_chartTwoCartesianData->setLineWidth(lineChart.m_lineWidth * 2.0);
                 GraphicsEngineDataOpenGL::drawWithSelection(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive(),
                                                             m_fixedPipelineDrawing->mouseX,
                                                             m_fixedPipelineDrawing->mouseY,
@@ -1131,6 +1136,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                         m_selectionItemLineLayer->setLineLayerChart(const_cast<ChartableTwoFileLineLayerChart*>(lineChart.m_lineLayerChart),
                                                                     const_cast<ChartTwoDataCartesian*>(lineChart.m_chartTwoCartesianData),
                                                                     primitiveIndex);
+                        m_selectionItemLineLayer->setScreenDepth(primitiveDepth);
                     }
                 }
             }

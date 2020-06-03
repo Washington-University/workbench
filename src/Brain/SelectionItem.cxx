@@ -289,7 +289,8 @@ SelectionItem::isOtherScreenDepthCloserToViewer(const double otherScreenDepth) c
      * Multiple annotations that are on top of each other may be drawn at the same
      * depth so using "<=" should select the one that appears to be "on top" to the user.
      */
-    if (m_itemDataType == SelectionItemDataTypeEnum::ANNOTATION) {
+    if ((m_itemDataType == SelectionItemDataTypeEnum::ANNOTATION)
+        || (m_itemDataType == SelectionItemDataTypeEnum::CHART_TWO_LINE_LAYER)) {
         if (otherScreenDepth <= m_screenDepth) {
             return true;
         }
