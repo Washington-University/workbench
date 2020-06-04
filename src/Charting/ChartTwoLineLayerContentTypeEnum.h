@@ -37,8 +37,10 @@ public:
     enum Enum {
         /** Unsupported */
         LINE_LAYER_CONTENT_UNSUPPORTED,
+        /** Load charts from brainordinates */
+        LINE_LAYER_CONTENT_BRAINORDINATE_DATA,
         /** Load charts from a files rows */
-        LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA,
+        LINE_LAYER_CONTENT_ROW_DATA,
     };
 
 

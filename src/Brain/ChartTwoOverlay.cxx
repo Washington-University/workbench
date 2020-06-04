@@ -1595,20 +1595,52 @@ ChartTwoOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                 CaretMappableDataFile* mapFile = *iter;
                 matchedMapFile = mapFile;
                 
-                if (foundMapNameIndex < 0) {
-                    if ( ! selectedMapName.isEmpty()) {
-                        const int mapNameIndex = mapFile->getMapIndexFromName(selectedMapName);
-                        if (mapNameIndex >= 0) {
-                            foundMapNameFile  = mapFile;
-                            foundMapNameIndex = mapNameIndex;
-                        }
-                    }
-                    
+                bool useMapsFlag(false);
+                bool useLineLayerFlag(false);
+                switch (m_chartDataType) {
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                        useMapsFlag = true;
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                        useLineLayerFlag = true;
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                        useMapsFlag = true;
+                        break;
+                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                        useMapsFlag = true;
+                        break;
                 }
                 
-                if (foundMapIndex < 0) {
-                    if (selectedMapIndex >= 0) { 
-                        if (selectedMapIndex < mapFile->getNumberOfMaps()) {
+                if (useMapsFlag) {
+                    if (foundMapNameIndex < 0) {
+                        if ( ! selectedMapName.isEmpty()) {
+                            const int mapNameIndex = mapFile->getMapIndexFromName(selectedMapName);
+                            if (mapNameIndex >= 0) {
+                                foundMapNameFile  = mapFile;
+                                foundMapNameIndex = mapNameIndex;
+                            }
+                        }
+                        
+                    }
+                    
+                    if (foundMapIndex < 0) {
+                        if (selectedMapIndex >= 0) {
+                            if (selectedMapIndex < mapFile->getNumberOfMaps()) {
+                                foundMapIndexFile = mapFile;
+                                foundMapIndex     = selectedMapIndex;
+                            }
+                        }
+                    }
+                }
+                else if (useLineLayerFlag) {
+                    /*
+                     * Line layers are not file maps
+                     */
+                    if (foundMapIndex < 0) {
+                        if (selectedMapIndex >= 0) {
                             foundMapIndexFile = mapFile;
                             foundMapIndex     = selectedMapIndex;
                         }

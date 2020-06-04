@@ -61,10 +61,6 @@ namespace caret {
         
         ChartTwoDataCartesian* getChartMapLine(const int32_t chartMapIndex);
         
-//        float getDefaultLineWidth() const;
-//
-//        void setDefaultLineWidth(const float defaultLineWidth);
-        
         void clearChartLines();
         
         bool getBounds(const int32_t mapIndex,
@@ -85,6 +81,11 @@ namespace caret {
                                                   const SceneClass* sceneClass) override;
 
     private:
+        enum class VolumeOpMode {
+            MAP_NAMES,
+            VOXEL_XYZ
+        };
+        
         ChartTwoDataCartesian* loadChartForMapFileSelector(const MapFileDataSelector& mapFileSelector);
         
         ChartTwoDataCartesian* createChartData() const;
@@ -92,16 +93,20 @@ namespace caret {
         void getMapNamesFromCiftiBrainMap(const CiftiBrainModelsMap& brainModelsMap,
                                           std::vector<AString>& mapNames);
 
+        void setVolumeMapNamesAndVoxelXYZ();
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         std::vector<std::unique_ptr<ChartTwoDataCartesian>> m_mapLineCharts;
         
         std::vector<AString> m_mapLineChartNames;
         
-        ChartTwoLineLayerContentTypeEnum::Enum m_lineLayerContentType;
+        std::vector<float> m_voxelXYZ;
         
-//        float m_defaultLineWidth = 1.0;
+        ChartTwoLineLayerContentTypeEnum::Enum m_lineLayerContentType;
 
+        bool m_volumeAttributesValid = false;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

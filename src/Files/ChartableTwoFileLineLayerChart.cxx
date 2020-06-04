@@ -32,10 +32,12 @@
 #include "CiftiScalarDataSeriesFile.h"
 #include "EventChartTwoLoadLineSeriesData.h"
 #include "EventManager.h"
+#include "MetricFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SceneObjectMapIntegerKey.h"
 #include "ScenePrimitiveArray.h"
+#include "VolumeFile.h"
 
 using namespace caret;
     
@@ -62,14 +64,58 @@ m_lineLayerContentType(lineLayerContentType)
     CaretUnitsTypeEnum::Enum xAxisUnits = CaretUnitsTypeEnum::NONE;
     int32_t xAxisNumberOfElements = 0;
     
-    CaretAssert(getCaretMappableDataFile());
+    const CaretMappableDataFile* cmdf = getCaretMappableDataFile();
+    CaretAssert(cmdf);
     
     int64_t numberOfChartMaps(0);
     
     switch (lineLayerContentType) {
         case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED:
             break;
-        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA:
+        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
+            if (cmdf->getNumberOfMaps() > 1) {
+                const NiftiTimeUnitsEnum::Enum mapUnits = cmdf->getMapIntervalUnits();
+                xAxisUnits = CaretUnitsTypeEnum::NONE;
+                switch (mapUnits) {
+                    case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+                        xAxisUnits = CaretUnitsTypeEnum::HERTZ;
+                        break;
+                    case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
+                        break;
+                    case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+                        xAxisUnits = CaretUnitsTypeEnum::PARTS_PER_MILLION;
+                        break;
+                    case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
+                        break;
+                    case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+                        xAxisUnits = CaretUnitsTypeEnum::SECONDS;
+                        break;
+                    case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+                        break;
+                }
+                xAxisNumberOfElements = cmdf->getNumberOfMaps();
+                
+                if (cmdf->getDataFileType() == DataFileTypeEnum::METRIC) {
+                    const MetricFile* mf = dynamic_cast<const MetricFile*>(cmdf);
+                    numberOfChartMaps = mf->getNumberOfNodes();
+                }
+                else if (cmdf->getDataFileType() == DataFileTypeEnum::VOLUME) {
+                    const VolumeFile* vf = dynamic_cast<const VolumeFile*>(cmdf);
+                    CaretAssert(vf);
+                    std::vector<int64_t> dims;
+                    vf->getDimensions(dims);
+                    if (dims.size() > 3) {
+                        numberOfChartMaps = dims[0] * dims[1] * dims[2];
+                    }
+                }
+                else {
+                    CaretAssertMessage(0, "Unsupported file type for brainordinate data");
+                }
+            }
+            break;
+        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_DATA:
         {
             const CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
             if (ciftiMapFile != NULL) {
@@ -246,7 +292,29 @@ ChartableTwoFileLineLayerChart::getChartMapNames(std::vector<AString>& mapNamesO
             switch (m_lineLayerContentType) {
                 case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED:
                     break;
-                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA:
+                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
+                {
+                    const CaretMappableDataFile* cmdf = getCaretMappableDataFile();
+                    CaretAssert(cmdf);
+                    if (cmdf->getDataFileType() == DataFileTypeEnum::METRIC) {
+                        const MetricFile* mf = dynamic_cast<const MetricFile*>(cmdf);
+                        const int32_t numVertices = mf->getNumberOfNodes();
+                        for (int32_t i = 0; i < numVertices; i++) {
+                            m_mapLineChartNames[i] = ("Vertex "
+                                                      + QString::number(i));
+                        }
+                    }
+                    else if (cmdf->getDataFileType() == DataFileTypeEnum::VOLUME) {
+                        if ( ! m_volumeAttributesValid) {
+                            setVolumeMapNamesAndVoxelXYZ();
+                        }
+                    }
+                    else {
+                        CaretAssertMessage(0, "Unsupported file type for brainordinate data");
+                    }
+                }
+                    break;
+                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_DATA:
                 {
                     CiftiMappableDataFile* ciftiFile = getCiftiMappableDataFile();
                     if (ciftiFile != NULL) {
@@ -283,6 +351,52 @@ ChartableTwoFileLineLayerChart::getChartMapNames(std::vector<AString>& mapNamesO
 }
 
 /**
+ * Set the volume map names and VoxelXYZ
+ */
+void
+ChartableTwoFileLineLayerChart::setVolumeMapNamesAndVoxelXYZ()
+{
+    const int64_t numMaps = static_cast<int64_t>(m_mapLineCharts.size());
+    m_mapLineChartNames.resize(numMaps);
+    
+    m_voxelXYZ.resize(numMaps * 3);
+    
+    const CaretMappableDataFile* cmdf = getCaretMappableDataFile();
+    CaretAssert(cmdf);
+    const VolumeFile* vf = dynamic_cast<const VolumeFile*>(cmdf);
+    CaretAssert(vf);
+    int64_t dimI(0), dimJ(0), dimK(0), dimComp(0), dimTime(0);
+    vf->getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
+    const int64_t sliceSize(dimI * dimJ);
+    for (int64_t k = 0; k < dimK; k++) {
+        for (int64_t j = 0; j < dimJ; j++) {
+            for (int64_t i = 0; i < dimI; i++) {
+                const int64_t indx = ((k * sliceSize)
+                                      + (j * dimI)
+                                      + i);
+                float xyz[3];
+                vf->indexToSpace(i, j, k, xyz);
+                CaretAssertVectorIndex(m_voxelXYZ, indx * 3 + 2);
+                m_voxelXYZ[indx * 3]     = xyz[0];
+                m_voxelXYZ[indx * 3 + 1] = xyz[1];
+                m_voxelXYZ[indx * 3 + 2] = xyz[2];
+                m_mapLineChartNames[indx] = ("Voxel IJK ("
+                                             + AString::number(i)
+                                             + ", "
+                                             + AString::number(j)
+                                             + ", "
+                                             + AString::number(k)
+                                             + ") XYZ ("
+                                             + AString::fromNumbers(xyz, 3, ", ")
+                                             + ")");
+            }
+        }
+    }
+    
+    m_volumeAttributesValid = true;
+}
+
+/**
  * Get the chart lines for a map
  * @param chartMapIndex
  * Index of the map
@@ -306,7 +420,30 @@ ChartableTwoFileLineLayerChart::getChartMapLine(const int32_t chartMapIndex)
             switch (getLineLayerContentType()) {
                 case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED:
                     break;
-                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA:
+                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
+                {
+                    if (mapFile->getDataFileType() == DataFileTypeEnum::METRIC) {
+                        const MetricFile* mf = dynamic_cast<const MetricFile*>(mapFile);
+                        mapFileSelector.setSurfaceVertex(mf->getStructure(),
+                                                         mf->getNumberOfNodes(),
+                                                         chartMapIndex);
+                        loadDataFlag = true;
+                    }
+                    else if (mapFile->getDataFileType() == DataFileTypeEnum::VOLUME) {
+                        if ( ! m_volumeAttributesValid) {
+                            setVolumeMapNamesAndVoxelXYZ();
+                        }
+                        const VolumeFile* vf = dynamic_cast<const VolumeFile*>(mapFile);
+                        CaretAssert(vf);
+                        CaretAssertVectorIndex(m_voxelXYZ, chartMapIndex * 3 + 2);
+                        mapFileSelector.setVolumeVoxelXYZ(&m_voxelXYZ[chartMapIndex * 3]);
+                    }
+                    else {
+                        CaretAssertMessage(0, "Unsupported file type for brainordinate data");
+                    }
+                }
+                    break;
+                case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_DATA:
                     mapFileSelector.setRowIndex(mapFile,
                                                 mapFileName,
                                                 chartMapIndex);
@@ -346,7 +483,25 @@ ChartableTwoFileLineLayerChart::loadChartForMapFileSelector(const MapFileDataSel
         case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_UNSUPPORTED:
             return NULL;
             break;
-        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA:
+        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA:
+            switch (mapFileDataSelector.getDataSelectionType()) {
+                case MapFileDataSelector::DataSelectionType::INVALID:
+                    break;
+                case MapFileDataSelector::DataSelectionType::COLUMN_DATA:
+                    break;
+                case MapFileDataSelector::DataSelectionType::ROW_DATA:
+                    break;
+                case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
+                    loadDataFlag = true;
+                    break;
+                case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
+                    break;
+                case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
+                    loadDataFlag = true;
+                    break;
+            }
+            break;
+        case ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_DATA:
             switch (mapFileDataSelector.getDataSelectionType()) {
                 case MapFileDataSelector::DataSelectionType::INVALID:
                     break;

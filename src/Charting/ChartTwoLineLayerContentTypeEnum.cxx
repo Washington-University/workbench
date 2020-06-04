@@ -110,9 +110,9 @@ ChartTwoLineLayerContentTypeEnum::initialize()
                                     "LINE_LAYER_CONTENT_UNSUPPORTED",
                                     "Unsupported"));
     
-    enumData.push_back(ChartTwoLineLayerContentTypeEnum(LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA,
-                                    "LINE_LAYER_CONTENT_ROW_BRAINORDINATE_DATA",
-                                    "Row Brainordinate Data"));
+    enumData.push_back(ChartTwoLineLayerContentTypeEnum(LINE_LAYER_CONTENT_ROW_DATA,
+                                    "LINE_LAYER_CONTENT_ROW_DATA",
+                                    "Row Data"));
 }
 
 /**
