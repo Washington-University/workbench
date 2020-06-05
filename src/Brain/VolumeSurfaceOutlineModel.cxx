@@ -131,7 +131,16 @@ VolumeSurfaceOutlineModel::receiveEvent(Event* event)
         CaretAssert(colorEvent);
         colorEvent->setEventProcessed();
         
-        clearOutlineCache();
+        switch (m_colorOrTabModel->getSelectedItem()->getItemType()) {
+            case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
+                /*
+                 * Color of surface may have changed
+                 */
+                clearOutlineCache();
+                break;
+            case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
+                break;
+        }
     }
 }
 
