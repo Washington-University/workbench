@@ -1141,9 +1141,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 }
             }
             else {
-                if (lineChart.m_lineChartColor != lineChart.m_chartTwoCartesianData->getColor()) {
+                /*
+                 * Temporary fix for line color changing when row changes (sometimes)
+                 */
+//                if (lineChart.m_lineChartColor != lineChart.m_chartTwoCartesianData->getColor()) {
                     lineChart.m_chartTwoCartesianData->setColor(lineChart.m_lineChartColor);
-                }
+//                }
                 lineChart.m_chartTwoCartesianData->setLineWidth(lineChart.m_lineWidth);
 
                 GraphicsEngineDataOpenGL::draw(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
