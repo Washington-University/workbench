@@ -187,14 +187,10 @@ m_browserWindowIndex(browserWindowIndex)
         static const int ROW_TWO_COLUMN_MAP_INDEX = 7;
         static const int ROW_TWO_COLUMN_MAP_NAME = 8;
         
-        gridLayout->setColumnStretch(0, 0);
-        gridLayout->setColumnStretch(1, 0);
-        gridLayout->setColumnStretch(2, 0);
-        gridLayout->setColumnStretch(3, 0);
-        gridLayout->setColumnStretch(4, 0);
-        gridLayout->setColumnStretch(5, 0);
-        gridLayout->setColumnStretch(6, 0);
-        gridLayout->setColumnStretch(7, 100);
+        for (int32_t i = 0; i < ROW_ONE_COLUMN_FILE_COMBO_BOX; i++) {
+            gridLayout->setColumnStretch(i, 0);
+        }
+        gridLayout->setColumnStretch(ROW_ONE_COLUMN_FILE_COMBO_BOX, 100);
 
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
             WuQGridLayoutGroup* glg = m_chartOverlayGridLayoutGroups[i];
