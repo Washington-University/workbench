@@ -542,6 +542,12 @@ ChartableTwoFileLineLayerChart::loadChartForMapFileSelector(const MapFileDataSel
         }
     }
     
+    /*
+     * Default to an invalid color.  Color for line layer charts
+     * comes from Chart Overlay and is set when drawing the chart
+     */
+    chartDataOut->setColorEnum(CaretColorEnum::NONE);
+    
     return chartDataOut;
 }
 
