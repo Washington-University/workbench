@@ -45,6 +45,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "MapYokingGroupComboBox.h"
+#include "WuQDoubleSpinBox.h"
 #include "WuQGridLayoutGroup.h"
 #include "WuQtUtilities.h"
 
@@ -103,28 +104,21 @@ m_browserWindowIndex(browserWindowIndex)
     }
     
     if (orientation == Qt::Horizontal) {
-        static const int COLUMN_ON = 0;
-        static const int COLUMN_LOAD = 1;
-        static const int COLUMN_SETTINGS_EDIT = 2;
-        static const int COLUMN_SETTINGS_COLOR_BAR = 3;
-        static const int COLUMN_SETTINGS_CONSTRUCTION = 4;
-        static const int COLUMN_MATRIX_VIEW = 5;
-        static const int COLUMN_AXIS = 6;
-        static const int COLUMN_LINE_COLOR = 7;
-        static const int COLUMN_FILE = 8;
-        static const int COLUMN_YOKE = 9;
-        static const int COLUMN_MAP_INDEX = 10;
-        static const int COLUMN_ALL_MAPS = 11;
-        static const int COLUMN_MAP_NAME = 12;
+        int32_t columnCounter(0);
+        static const int COLUMN_ON         = columnCounter++;
+        static const int COLUMN_LOAD       = columnCounter++;
+        static const int COLUMN_SETTINGS   = columnCounter++;
+        static const int COLUMN_LINE_WIDTH = columnCounter++;
+        static const int COLUMN_FILE       = columnCounter++;
+        static const int COLUMN_YOKE       = columnCounter++;
+        static const int COLUMN_MAP_INDEX  = columnCounter++;
+        static const int COLUMN_ALL_MAPS   = columnCounter++;
+        static const int COLUMN_MAP_NAME   = columnCounter++;
         
         gridLayout->setColumnStretch(COLUMN_ON, 0);
         gridLayout->setColumnStretch(COLUMN_LOAD, 0);
-        gridLayout->setColumnStretch(COLUMN_SETTINGS_EDIT, 0);
-        gridLayout->setColumnStretch(COLUMN_SETTINGS_COLOR_BAR, 0);
-        gridLayout->setColumnStretch(COLUMN_SETTINGS_CONSTRUCTION, 0);
-        gridLayout->setColumnStretch(COLUMN_MATRIX_VIEW, 0);
-        gridLayout->setColumnStretch(COLUMN_AXIS, 0);
-        gridLayout->setColumnStretch(COLUMN_LINE_COLOR, 0);
+        gridLayout->setColumnStretch(COLUMN_SETTINGS, 0);
+        gridLayout->setColumnStretch(COLUMN_LINE_WIDTH, 0);
         gridLayout->setColumnStretch(COLUMN_FILE, 100);
         gridLayout->setColumnStretch(COLUMN_YOKE, 0);
         gridLayout->setColumnStretch(COLUMN_ALL_MAPS, 0);
@@ -134,6 +128,7 @@ m_browserWindowIndex(browserWindowIndex)
         QLabel* onLabel       = new QLabel("On");
         QLabel* loadLabel     = new QLabel("Load");
         QLabel* settingsLabel = new QLabel("Settings");
+        QLabel* widthLabel    = new QLabel("Width");
         QLabel* fileLabel     = new QLabel("File");
         QLabel* yokeLabel     = new QLabel("Yoke");
         QLabel* allMapsLabel  = new QLabel("All");
@@ -143,7 +138,8 @@ m_browserWindowIndex(browserWindowIndex)
         int row = gridLayout->rowCount();
         gridLayout->addWidget(onLabel, row, COLUMN_ON, Qt::AlignHCenter);
         gridLayout->addWidget(loadLabel, row, COLUMN_LOAD, Qt::AlignHCenter);
-        gridLayout->addWidget(settingsLabel, row, COLUMN_SETTINGS_EDIT, 1, 6, Qt::AlignHCenter);
+        gridLayout->addWidget(settingsLabel, row, COLUMN_SETTINGS, Qt::AlignHCenter);
+        gridLayout->addWidget(widthLabel, row, COLUMN_LINE_WIDTH, Qt::AlignHCenter);
         gridLayout->addWidget(fileLabel, row, COLUMN_FILE, Qt::AlignHCenter);
         gridLayout->addWidget(yokeLabel, row, COLUMN_YOKE, Qt::AlignHCenter);
         gridLayout->addWidget(allMapsLabel, row, COLUMN_ALL_MAPS, Qt::AlignHCenter);
@@ -151,18 +147,26 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->addWidget(m_mapRowOrColumnNameLabel, row, COLUMN_MAP_NAME, Qt::AlignHCenter);
         
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-            row = gridLayout->rowCount();
             ChartTwoOverlayViewController* covc = m_chartOverlayViewControllers[i];
+
+            QWidget* settingsWidget = new QWidget();
+            QHBoxLayout* settingsLayout = new QHBoxLayout(settingsWidget);
+            settingsLayout->setContentsMargins(0, 0, 0, 0);
+            settingsLayout->setSpacing(3);
+            settingsLayout->addWidget(covc->m_settingsToolButton);
+            settingsLayout->addWidget(covc->m_colorBarToolButton);
+            settingsLayout->addWidget(covc->m_constructionToolButton);
+            settingsLayout->addWidget(covc->m_matrixTriangularViewModeToolButton);
+            settingsLayout->addWidget(covc->m_axisLocationToolButton);
+            settingsLayout->addWidget(covc->m_lineLayerColorToolButton);
+
+            row = gridLayout->rowCount();
             WuQGridLayoutGroup* glg = m_chartOverlayGridLayoutGroups[i];
             
             glg->addWidget(covc->m_enabledCheckBox, row, COLUMN_ON, Qt::AlignHCenter);
             glg->addWidget(covc->m_lineSeriesLoadingEnabledCheckBox, row, COLUMN_LOAD, Qt::AlignHCenter);
-            glg->addWidget(covc->m_settingsToolButton, row, COLUMN_SETTINGS_EDIT, Qt::AlignHCenter);
-            glg->addWidget(covc->m_colorBarToolButton, row, COLUMN_SETTINGS_COLOR_BAR, Qt::AlignHCenter);
-            glg->addWidget(covc->m_constructionToolButton, row, COLUMN_SETTINGS_CONSTRUCTION, Qt::AlignHCenter);
-            glg->addWidget(covc->m_matrixTriangularViewModeToolButton, row, COLUMN_MATRIX_VIEW, Qt::AlignHCenter);
-            glg->addWidget(covc->m_axisLocationToolButton, row, COLUMN_AXIS, Qt::AlignHCenter);
-            glg->addWidget(covc->m_lineLayerColorToolButton, row, COLUMN_LINE_COLOR, Qt::AlignHCenter);
+            glg->addWidget(settingsWidget, row, COLUMN_SETTINGS, Qt::AlignHCenter);
+            glg->addWidget(covc->m_lineLayerWidthSpinBox->getWidget(), row, COLUMN_LINE_WIDTH);
             glg->addWidget(covc->m_mapFileComboBox, row, COLUMN_FILE);
             glg->addWidget(covc->m_mapRowOrColumnYokingGroupComboBox->getWidget(), row, COLUMN_YOKE, Qt::AlignHCenter);
             glg->addWidget(covc->m_allMapsCheckBox, row, COLUMN_ALL_MAPS, Qt::AlignHCenter);
@@ -171,26 +175,16 @@ m_browserWindowIndex(browserWindowIndex)
         }
     }
     else {
-        static const int ROW_ONE_COLUMN_ON = 0;
-        static const int ROW_ONE_COLUMN_SETTINGS_EDIT = 1;
-        static const int ROW_ONE_COLUMN_SETTINGS_COLOR_BAR = 2;
-        static const int ROW_ONE_COLUMN_SETTINGS_CONSTRUCTION = 3;
-        static const int ROW_ONE_COLUMN_MATRIX_VIEW = 4;
-        static const int ROW_ONE_COLUMN_AXIS = 5;
-        static const int ROW_ONE_COLUMN_LINE_COLOR = 6;
-        static const int ROW_ONE_COLUMN_FILE_LABEL = 7;
-        static const int ROW_ONE_COLUMN_FILE_COMBO_BOX = 8;
+        int32_t columnCounter(0);
+        static const int COLUMN_ONE   = columnCounter++;
+        static const int COLUMN_TWO   = columnCounter++;
+        static const int COLUMN_THREE = columnCounter++;
+        static const int COLUMN_FOUR  = columnCounter++;
         
-        static const int ROW_TWO_COLUMN_LOAD = 0;
-        static const int ROW_TWO_COLUMN_YOKE = 2;
-        static const int ROW_TWO_COLUMN_ALL_MAPS = 4;
-        static const int ROW_TWO_COLUMN_MAP_INDEX = 7;
-        static const int ROW_TWO_COLUMN_MAP_NAME = 8;
-        
-        for (int32_t i = 0; i < ROW_ONE_COLUMN_FILE_COMBO_BOX; i++) {
+        for (int32_t i = 0; i < columnCounter; i++) {
             gridLayout->setColumnStretch(i, 0);
         }
-        gridLayout->setColumnStretch(ROW_ONE_COLUMN_FILE_COMBO_BOX, 100);
+        gridLayout->setColumnStretch(COLUMN_FOUR, 100);
 
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
             WuQGridLayoutGroup* glg = m_chartOverlayGridLayoutGroups[i];
@@ -208,23 +202,36 @@ m_browserWindowIndex(browserWindowIndex)
 
             ChartTwoOverlayViewController* covc = m_chartOverlayViewControllers[i];
 
+            QWidget* settingsWidget = new QWidget();
+            QHBoxLayout* settingsLayout = new QHBoxLayout(settingsWidget);
+            settingsLayout->setContentsMargins(0, 0, 0, 0);
+            settingsLayout->setSpacing(3);
+            settingsLayout->addWidget(covc->m_settingsToolButton);
+            settingsLayout->addWidget(covc->m_colorBarToolButton);
+            settingsLayout->addWidget(covc->m_constructionToolButton);
+            settingsLayout->addWidget(covc->m_matrixTriangularViewModeToolButton);
+            settingsLayout->addWidget(covc->m_axisLocationToolButton);
+            settingsLayout->addWidget(covc->m_lineLayerColorToolButton);
+            
             QLabel* fileLabel = new QLabel("File");
-            glg->addWidget(covc->m_enabledCheckBox, row, ROW_ONE_COLUMN_ON, Qt::AlignLeft);
-            glg->addWidget(covc->m_settingsToolButton, row, ROW_ONE_COLUMN_SETTINGS_EDIT, Qt::AlignHCenter);
-            glg->addWidget(covc->m_colorBarToolButton, row, ROW_ONE_COLUMN_SETTINGS_COLOR_BAR, Qt::AlignHCenter);
-            glg->addWidget(covc->m_constructionToolButton, row, ROW_ONE_COLUMN_SETTINGS_CONSTRUCTION, Qt::AlignHCenter);
-            glg->addWidget(covc->m_matrixTriangularViewModeToolButton, row, ROW_ONE_COLUMN_MATRIX_VIEW, Qt::AlignHCenter);
-            glg->addWidget(covc->m_axisLocationToolButton, row, ROW_ONE_COLUMN_AXIS, Qt::AlignHCenter);
-            glg->addWidget(covc->m_lineLayerColorToolButton, row, ROW_ONE_COLUMN_LINE_COLOR, Qt::AlignHCenter);
-            glg->addWidget(fileLabel, row, ROW_ONE_COLUMN_FILE_LABEL, Qt::AlignHCenter);
-            glg->addWidget(covc->m_mapFileComboBox, row, ROW_ONE_COLUMN_FILE_COMBO_BOX, 1, 2);
+            glg->addWidget(covc->m_enabledCheckBox, row, COLUMN_ONE, Qt::AlignLeft);
+            glg->addWidget(settingsWidget, row, COLUMN_TWO, Qt::AlignHCenter);
+            glg->addWidget(fileLabel, row, COLUMN_THREE, Qt::AlignHCenter);
+            glg->addWidget(covc->m_mapFileComboBox, row, COLUMN_FOUR, 1, 2);
             row++;
             
-            glg->addWidget(covc->m_lineSeriesLoadingEnabledCheckBox, row, ROW_TWO_COLUMN_LOAD, Qt::AlignLeft);
-            glg->addWidget(covc->m_mapRowOrColumnYokingGroupComboBox->getWidget(), row, ROW_TWO_COLUMN_YOKE, 1, 2, Qt::AlignHCenter);
-            glg->addWidget(covc->m_allMapsCheckBox, row, ROW_TWO_COLUMN_ALL_MAPS, 1, 2, Qt::AlignHCenter);
-            glg->addWidget(covc->m_mapRowOrColumnIndexSpinBox, row, ROW_TWO_COLUMN_MAP_INDEX, Qt::AlignHCenter);
-            glg->addWidget(covc->m_mapRowOrColumnNameComboBox, row, ROW_TWO_COLUMN_MAP_NAME);
+            QWidget* yokeAllMapsWidget = new QWidget();
+            QHBoxLayout* yokeAllMapsLayout = new QHBoxLayout(yokeAllMapsWidget);
+            yokeAllMapsLayout->setContentsMargins(0, 0, 0, 0);
+            yokeAllMapsLayout->setSpacing(3);
+            yokeAllMapsLayout->addWidget(covc->m_allMapsCheckBox);
+            yokeAllMapsLayout->addWidget(covc->m_mapRowOrColumnYokingGroupComboBox->getWidget());
+            yokeAllMapsLayout->addWidget(covc->m_lineLayerWidthSpinBox->getWidget());
+            
+            glg->addWidget(covc->m_lineSeriesLoadingEnabledCheckBox, row, COLUMN_ONE, Qt::AlignLeft);
+            glg->addWidget(yokeAllMapsWidget, row, COLUMN_TWO, Qt::AlignHCenter);
+            glg->addWidget(covc->m_mapRowOrColumnIndexSpinBox, row, COLUMN_THREE, Qt::AlignHCenter);
+            glg->addWidget(covc->m_mapRowOrColumnNameComboBox, row, COLUMN_FOUR);
         }
     }
     

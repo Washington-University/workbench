@@ -41,6 +41,7 @@ namespace caret {
     class CaretColorToolButton;
     class ChartTwoOverlay;
     class MapYokingGroupComboBox;
+    class WuQDoubleSpinBox;
     class WuQGridLayoutGroup;
 
     class ChartTwoOverlayViewController : public QObject {
@@ -202,6 +203,8 @@ namespace caret {
         
         QAction* m_constructionReloadFileAction;
         
+        WuQDoubleSpinBox* m_lineLayerWidthSpinBox = NULL;
+
         // ADD_NEW_MEMBERS_HERE
 
         friend class ChartTwoOverlaySetViewController;

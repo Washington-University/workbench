@@ -62,6 +62,7 @@ using namespace caret;
 #include "MapYokingGroupComboBox.h"
 #include "ProgressReportingDialog.h"
 #include "UsernamePasswordWidget.h"
+#include "WuQDoubleSpinBox.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
@@ -242,13 +243,23 @@ m_chartOverlay(NULL)
      * Line layer color tool button
      */
     m_lineLayerColorToolButton = new CaretColorToolButton(CaretColorToolButton::CustomColorMode::EDITABLE,
-                                                          CaretColorToolButton::NoneColorMode::DISABLED,
-                                                          CaretColorToolButton::LineThicknessMode::ENABLED);
+                                                          CaretColorToolButton::NoneColorMode::DISABLED);
     QObject::connect(m_lineLayerColorToolButton, &CaretColorToolButton::colorSelected,
                      this, &ChartTwoOverlayViewController::lineLayerColorSelected);
-    QObject::connect(m_lineLayerColorToolButton, &CaretColorToolButton::lineWidthChanged,
+    m_lineLayerColorToolButton->setToolTip("Set color for line layer charts");
+
+    /*
+     * Line layer width
+     */
+    m_lineLayerWidthSpinBox = new WuQDoubleSpinBox(this);
+    m_lineLayerWidthSpinBox->setToolTip("Set line width for line layer charts");
+    m_lineLayerWidthSpinBox->setRangePercentage(0.0, 100.0);
+    m_lineLayerWidthSpinBox->setSingleStepPercentage(0.1);
+    m_lineLayerWidthSpinBox->setDecimals(1);
+    m_lineLayerWidthSpinBox->getWidget()->setFixedWidth(60);
+    QObject::connect(m_lineLayerWidthSpinBox, &WuQDoubleSpinBox::valueChanged,
                      this, &ChartTwoOverlayViewController::lineLayerLineWidthChanged);
-    m_lineLayerColorToolButton->setToolTip("Set width and color for line layer charts");
+    
 
     /*
      * Map file Selection Check Box
@@ -921,11 +932,13 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
      * Update line layer color and width tool button
      */
     m_lineLayerColorToolButton->setEnabled(false);
+    m_lineLayerWidthSpinBox->getWidget()->setEnabled(false);
     if (validOverlayAndFileFlag) {
         m_lineLayerColorToolButton->setSelectedColor(m_chartOverlay->getLineLayerColor());
-        m_lineLayerColorToolButton->setLineWidth(m_chartOverlay->getLineLayerLineWidth());
+        m_lineLayerWidthSpinBox->setValue(m_chartOverlay->getLineLayerLineWidth());
         if (m_chartOverlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER) {
             m_lineLayerColorToolButton->setEnabled(true);
+            m_lineLayerWidthSpinBox->getWidget()->setEnabled(true);
         }
     }
 }

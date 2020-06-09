@@ -27,12 +27,10 @@
 #include <QColorDialog>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QWidgetAction>
 
 #include "CaretAssert.h"
 #include "CaretColorEnumMenu.h"
 #include "CaretLogger.h"
-#include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
@@ -56,7 +54,6 @@ using namespace caret;
 CaretColorToolButton::CaretColorToolButton(QWidget* parent)
 : CaretColorToolButton(CustomColorMode::DISABLED,
                        NoneColorMode::DISABLED,
-                       LineThicknessMode::DISABLED,
                        parent)
 {
     /* delegating constructor above */
@@ -69,14 +66,11 @@ CaretColorToolButton::CaretColorToolButton(QWidget* parent)
  *     Mode for custom color
  * @param noneColorMode
  *     Mode for none color
- * @param lineThicknessMode
- *     Line thickness spin box on/off mode
  * @param parent
  *     Parent object.
  */
 CaretColorToolButton::CaretColorToolButton(const CustomColorMode customColorMode,
                                            const NoneColorMode noneColorMode,
-                                           const LineThicknessMode lineThicknessMode,
                                            QWidget* parent)
 : QToolButton(parent),
 m_customColorMode(customColorMode),
@@ -102,39 +96,7 @@ m_noneColorMode(noneColorMode)
             break;
     }
     m_caretColorEnumMenu = new CaretColorEnumMenu(caretColorOptions);
-    
-    m_lineWidthSpinBox      = NULL;
-    m_lineWidthWidgetAction = NULL;
-    switch (lineThicknessMode) {
-        case LineThicknessMode::DISABLED:
-            break;
-        case LineThicknessMode::ENABLED:
-        {
-            m_lineWidthSpinBox = new WuQDoubleSpinBox(this);
-            m_lineWidthSpinBox->setRangePercentage(0.0, 100.0);
-            m_lineWidthSpinBox->setSingleStepPercentage(0.1);
-            m_lineWidthSpinBox->setDecimals(1);
-            m_lineWidthSpinBox->getWidget()->setFixedWidth(60);
-            QObject::connect(m_lineWidthSpinBox, &WuQDoubleSpinBox::valueChanged,
-                             this, &CaretColorToolButton::lineWidthValueChanged);
-            
-            QWidget* lineWidthWidget = new QWidget();
-            QHBoxLayout* lineWidthLayout = new QHBoxLayout(lineWidthWidget);
-            lineWidthLayout->addWidget(new QLabel("Width:"));
-            lineWidthLayout->addWidget(m_lineWidthSpinBox->getWidget());
-            lineWidthLayout->setContentsMargins(0, 0, 0, 0);
-            lineWidthWidget->setFixedWidth(lineWidthWidget->sizeHint().width());
-            
-            m_lineWidthWidgetAction = new QWidgetAction(this);
-            m_lineWidthWidgetAction->setDefaultWidget(lineWidthWidget);
-            QAction* firstColorAction = m_caretColorEnumMenu->actions().at(0);
-            m_caretColorEnumMenu->insertAction(firstColorAction,
-                                               m_lineWidthWidgetAction);
-            m_caretColorEnumMenu->insertSeparator(firstColorAction);
-        }
-            break;
-    }
-    
+        
     QObject::connect(this, &QToolButton::clicked,
                      this, &CaretColorToolButton::toolButtonClicked);
     
@@ -147,12 +109,11 @@ m_noneColorMode(noneColorMode)
 void
 CaretColorToolButton::toolButtonClicked()
 {
+    setSelectedColor(m_caretColor);
     QAction* action = m_caretColorEnumMenu->exec(this->mapToGlobal(QPoint(0,0)));
     if (action != NULL) {
-        if (action != m_lineWidthWidgetAction) {
-            CaretColorEnum::Enum colorEnum = m_caretColorEnumMenu->getSelectedColor();
-            caretColorMenuSelected(colorEnum);
-        }
+        CaretColorEnum::Enum colorEnum = m_caretColorEnumMenu->getSelectedColor();
+        caretColorMenuSelected(colorEnum);
     }
 }
 
@@ -247,41 +208,5 @@ CaretColorToolButton::caretColorMenuSelected(const CaretColorEnum::Enum colorEnu
     m_caretColor.setCaretColorEnum(colorEnum);
     updateIconColor();
     emit colorSelected(m_caretColor);
-}
-
-/**
- * Called when line width is changed.
- * @param value
- *   New line width value
- */
-void
-CaretColorToolButton::lineWidthValueChanged(double value)
-{
-    emit lineWidthChanged(value);
-}
-
-/**
- * @return The line width
- */
-float
-CaretColorToolButton::getLineWidth() const
-{
-    if (m_lineWidthSpinBox != NULL) {
-        return m_lineWidthSpinBox->value();
-    }
-    return 1.0f;
-}
-
-/**
- * Set the line width
- * @param lineWidth
- * New value for line width
- */
-void
-CaretColorToolButton::setLineWidth(const float lineWidth)
-{
-    if (m_lineWidthSpinBox != NULL) {
-        m_lineWidthSpinBox->setValue(lineWidth);
-    }
 }
 
