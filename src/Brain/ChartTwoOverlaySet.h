@@ -52,6 +52,8 @@ namespace caret {
         
         void copyCartesianAxes(const ChartTwoOverlaySet* overlaySet);
         
+        ChartTwoDataTypeEnum::Enum getChartTwoDataType() const;
+
         ChartTwoOverlay* getPrimaryOverlay();
         
         const ChartTwoOverlay* getPrimaryOverlay() const;

@@ -221,6 +221,15 @@ ChartTwoOverlaySet::copyCartesianAxes(const ChartTwoOverlaySet* overlaySet)
 }
 
 /**
+ * @return The chart data type for this chart overlay.
+ */
+ChartTwoDataTypeEnum::Enum
+ChartTwoOverlaySet::getChartTwoDataType() const
+{
+    return m_chartDataType;
+}
+
+/**
  * @return Returns the top-most overlay regardless of its enabled status.
  */
 ChartTwoOverlay*

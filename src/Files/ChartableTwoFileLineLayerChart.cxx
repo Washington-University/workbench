@@ -433,8 +433,7 @@ ChartableTwoFileLineLayerChart::getChartMapLine(const int32_t chartMapIndex)
                         if ( ! m_volumeAttributesValid) {
                             setVolumeMapNamesAndVoxelXYZ();
                         }
-                        const VolumeFile* vf = dynamic_cast<const VolumeFile*>(mapFile);
-                        CaretAssert(vf);
+                        CaretAssert(dynamic_cast<const VolumeFile*>(mapFile));
                         CaretAssertVectorIndex(m_voxelXYZ, chartMapIndex * 3 + 2);
                         mapFileSelector.setVolumeVoxelXYZ(&m_voxelXYZ[chartMapIndex * 3]);
                     }

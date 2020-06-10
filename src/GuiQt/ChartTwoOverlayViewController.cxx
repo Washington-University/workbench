@@ -117,7 +117,7 @@ m_chartOverlay(NULL)
     /*
      * Enabled Check Box
      */
-    const QString enabledCheckboxText = ((orientation == Qt::Horizontal) ? " " : "On");
+    const QString enabledCheckboxText = ((orientation == Qt::Horizontal) ? " " : "On ");
     m_enabledCheckBox = new QCheckBox(enabledCheckboxText);
     m_enabledCheckBox->setObjectName(objectNamePrefix
                                          + "OnOff");
@@ -130,7 +130,7 @@ m_chartOverlay(NULL)
     /*
      * Line Series Enabled Check Box
      */
-    const QString loadingCheckboxText = ((orientation == Qt::Horizontal) ? " " : "Load");
+    const QString loadingCheckboxText = ((orientation == Qt::Horizontal) ? " " : "Load ");
     m_lineSeriesLoadingEnabledCheckBox = new QCheckBox(loadingCheckboxText);
     QObject::connect(m_lineSeriesLoadingEnabledCheckBox, &QCheckBox::clicked,
                      this, &ChartTwoOverlayViewController::lineSeriesLoadingEnabledCheckBoxClicked);
@@ -941,6 +941,48 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
             m_lineLayerWidthSpinBox->getWidget()->setEnabled(true);
         }
     }
+    
+    bool showAllMapsCheckbBoxFlag(false);
+    bool showAxisButtonFlag(false);
+    bool showColorBarButtonFlag(false);
+    bool showLineLayerColorButtonFlag(false);
+    bool showLineLayerWidthButtonFlag(false);
+    bool showLineSeriesLoadingCheckBoxFlag(false);
+    bool showMatrixDiagonalButtonFlag(false);
+    bool showSettingsButtonFlag(false);
+    switch (m_chartOverlay->getChartTwoDataType()) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            showAllMapsCheckbBoxFlag = true;
+            showColorBarButtonFlag = true;
+            showSettingsButtonFlag = true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            showAxisButtonFlag = true;
+            showLineLayerColorButtonFlag = true;
+            showLineLayerWidthButtonFlag = true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            showAxisButtonFlag = true;
+            showLineSeriesLoadingCheckBoxFlag = true;
+            showSettingsButtonFlag = true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            showColorBarButtonFlag = true;
+            showMatrixDiagonalButtonFlag = true;
+            showSettingsButtonFlag = true;
+            break;
+    }
+    m_allMapsCheckBox->setVisible(showAllMapsCheckbBoxFlag);
+    m_axisLocationToolButton->setVisible(showAxisButtonFlag);
+    m_colorBarToolButton->setVisible(showColorBarButtonFlag);
+    m_lineLayerColorToolButton->setVisible(showLineLayerColorButtonFlag);
+    m_lineLayerWidthSpinBox->getWidget()->setVisible(showLineLayerWidthButtonFlag);
+    m_lineSeriesLoadingEnabledCheckBox->setVisible(showLineSeriesLoadingCheckBoxFlag);
+    m_matrixTriangularViewModeToolButton->setVisible(showMatrixDiagonalButtonFlag);
+    m_settingsToolButton->setVisible(showSettingsButtonFlag);
+
 }
 
 /**

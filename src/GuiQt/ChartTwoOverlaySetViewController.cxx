@@ -26,6 +26,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -126,23 +127,23 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->setColumnStretch(COLUMN_MAP_NAME, 100);
         
         QLabel* onLabel       = new QLabel("On");
-        QLabel* loadLabel     = new QLabel("Load");
+        m_loadLabel           = new QLabel("Load");
         QLabel* settingsLabel = new QLabel("Settings");
-        QLabel* widthLabel    = new QLabel("Width");
+        m_lineWidthLabel      = new QLabel("Width");
         QLabel* fileLabel     = new QLabel("File");
         QLabel* yokeLabel     = new QLabel("Yoke");
-        QLabel* allMapsLabel  = new QLabel("All");
+        m_allMapsLabel        = new QLabel("All");
         m_mapRowOrColumnIndexLabel = new QLabel("Index");
         m_mapRowOrColumnNameLabel  = new QLabel("Name");
         
         int row = gridLayout->rowCount();
         gridLayout->addWidget(onLabel, row, COLUMN_ON, Qt::AlignHCenter);
-        gridLayout->addWidget(loadLabel, row, COLUMN_LOAD, Qt::AlignHCenter);
+        gridLayout->addWidget(m_loadLabel, row, COLUMN_LOAD, Qt::AlignHCenter);
         gridLayout->addWidget(settingsLabel, row, COLUMN_SETTINGS, Qt::AlignHCenter);
-        gridLayout->addWidget(widthLabel, row, COLUMN_LINE_WIDTH, Qt::AlignHCenter);
+        gridLayout->addWidget(m_lineWidthLabel, row, COLUMN_LINE_WIDTH, Qt::AlignHCenter);
         gridLayout->addWidget(fileLabel, row, COLUMN_FILE, Qt::AlignHCenter);
         gridLayout->addWidget(yokeLabel, row, COLUMN_YOKE, Qt::AlignHCenter);
-        gridLayout->addWidget(allMapsLabel, row, COLUMN_ALL_MAPS, Qt::AlignHCenter);
+        gridLayout->addWidget(m_allMapsLabel, row, COLUMN_ALL_MAPS, Qt::AlignHCenter);
         gridLayout->addWidget(m_mapRowOrColumnIndexLabel, row, COLUMN_MAP_INDEX, Qt::AlignHCenter);
         gridLayout->addWidget(m_mapRowOrColumnNameLabel, row, COLUMN_MAP_NAME, Qt::AlignHCenter);
         
@@ -178,13 +179,21 @@ m_browserWindowIndex(browserWindowIndex)
         int32_t columnCounter(0);
         static const int COLUMN_ONE   = columnCounter++;
         static const int COLUMN_TWO   = columnCounter++;
-        static const int COLUMN_THREE = columnCounter++;
-        static const int COLUMN_FOUR  = columnCounter++;
-        
+
         for (int32_t i = 0; i < columnCounter; i++) {
             gridLayout->setColumnStretch(i, 0);
         }
-        gridLayout->setColumnStretch(COLUMN_FOUR, 100);
+        gridLayout->setColumnStretch(COLUMN_TWO, 100);
+        gridLayout->setVerticalSpacing(0);
+
+        const bool showTitlesFlag(false);
+        if (showTitlesFlag) {
+            const int titleRow(gridLayout->rowCount());
+            gridLayout->addWidget(new QLabel("Settings"),
+                                  titleRow, COLUMN_ONE, Qt::AlignHCenter);
+            gridLayout->addWidget(new QLabel("Yoke / File / Map"),
+                                  titleRow, COLUMN_TWO, Qt::AlignLeft);
+        }
 
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
             WuQGridLayoutGroup* glg = m_chartOverlayGridLayoutGroups[i];
@@ -202,36 +211,45 @@ m_browserWindowIndex(browserWindowIndex)
 
             ChartTwoOverlayViewController* covc = m_chartOverlayViewControllers[i];
 
-            QWidget* settingsWidget = new QWidget();
-            QHBoxLayout* settingsLayout = new QHBoxLayout(settingsWidget);
-            settingsLayout->setContentsMargins(0, 0, 0, 0);
-            settingsLayout->setSpacing(3);
-            settingsLayout->addWidget(covc->m_settingsToolButton);
-            settingsLayout->addWidget(covc->m_colorBarToolButton);
-            settingsLayout->addWidget(covc->m_constructionToolButton);
-            settingsLayout->addWidget(covc->m_matrixTriangularViewModeToolButton);
-            settingsLayout->addWidget(covc->m_axisLocationToolButton);
-            settingsLayout->addWidget(covc->m_lineLayerColorToolButton);
+            QWidget* topLeftWidget = new QWidget();
+            QHBoxLayout* topLeftLayout = new QHBoxLayout(topLeftWidget);
+            topLeftLayout->setContentsMargins(0, 0, 0, 0);
+            topLeftLayout->setSpacing(3);
+            topLeftLayout->addWidget(covc->m_enabledCheckBox);
+            topLeftLayout->addWidget(covc->m_lineSeriesLoadingEnabledCheckBox);
+            topLeftLayout->addWidget(covc->m_lineLayerWidthSpinBox->getWidget());
             
-            QLabel* fileLabel = new QLabel("File");
-            glg->addWidget(covc->m_enabledCheckBox, row, COLUMN_ONE, Qt::AlignLeft);
-            glg->addWidget(settingsWidget, row, COLUMN_TWO, Qt::AlignHCenter);
-            glg->addWidget(fileLabel, row, COLUMN_THREE, Qt::AlignHCenter);
-            glg->addWidget(covc->m_mapFileComboBox, row, COLUMN_FOUR, 1, 2);
+            QWidget* topRightWidget = new QWidget();
+            QHBoxLayout* topRightLayout = new QHBoxLayout(topRightWidget);
+            topRightLayout->setContentsMargins(0, 0, 0, 0);
+            topRightLayout->setSpacing(3);
+            topRightLayout->addWidget(covc->m_mapRowOrColumnYokingGroupComboBox->getWidget(), 0);
+            topRightLayout->addWidget(covc->m_mapFileComboBox, 100);
+            
+            QWidget* bottomLeftWidget = new QWidget();
+            QHBoxLayout* bottomLeftLayout = new QHBoxLayout(bottomLeftWidget);
+            bottomLeftLayout->setContentsMargins(0, 0, 0, 0);
+            bottomLeftLayout->setSpacing(3);
+            bottomLeftLayout->addWidget(covc->m_settingsToolButton);
+            bottomLeftLayout->addWidget(covc->m_colorBarToolButton);
+            bottomLeftLayout->addWidget(covc->m_constructionToolButton);
+            bottomLeftLayout->addWidget(covc->m_matrixTriangularViewModeToolButton);
+            bottomLeftLayout->addWidget(covc->m_axisLocationToolButton);
+            bottomLeftLayout->addWidget(covc->m_lineLayerColorToolButton);
+
+            QWidget* bottomRightWidget = new QWidget();
+            QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
+            bottomRightLayout->setContentsMargins(0, 0, 0, 0);
+            bottomRightLayout->setSpacing(3);
+            bottomRightLayout->addWidget(covc->m_allMapsCheckBox, 0);
+            bottomRightLayout->addWidget(covc->m_mapRowOrColumnIndexSpinBox, 0);
+            bottomRightLayout->addWidget(covc->m_mapRowOrColumnNameComboBox, 100);
+            
+            glg->addWidget(topLeftWidget, row, COLUMN_ONE, Qt::AlignLeft);
+            glg->addWidget(topRightWidget, row, COLUMN_TWO);
             row++;
-            
-            QWidget* yokeAllMapsWidget = new QWidget();
-            QHBoxLayout* yokeAllMapsLayout = new QHBoxLayout(yokeAllMapsWidget);
-            yokeAllMapsLayout->setContentsMargins(0, 0, 0, 0);
-            yokeAllMapsLayout->setSpacing(3);
-            yokeAllMapsLayout->addWidget(covc->m_allMapsCheckBox);
-            yokeAllMapsLayout->addWidget(covc->m_mapRowOrColumnYokingGroupComboBox->getWidget());
-            yokeAllMapsLayout->addWidget(covc->m_lineLayerWidthSpinBox->getWidget());
-            
-            glg->addWidget(covc->m_lineSeriesLoadingEnabledCheckBox, row, COLUMN_ONE, Qt::AlignLeft);
-            glg->addWidget(yokeAllMapsWidget, row, COLUMN_TWO, Qt::AlignHCenter);
-            glg->addWidget(covc->m_mapRowOrColumnIndexSpinBox, row, COLUMN_THREE, Qt::AlignHCenter);
-            glg->addWidget(covc->m_mapRowOrColumnNameComboBox, row, COLUMN_FOUR);
+            glg->addWidget(bottomLeftWidget, row, COLUMN_ONE, Qt::AlignLeft);
+            glg->addWidget(bottomRightWidget, row, COLUMN_TWO);
         }
     }
     
@@ -300,6 +318,34 @@ ChartTwoOverlaySetViewController::updateViewController()
     const int32_t numberOfDisplayedOverlays = chartOverlaySet->getNumberOfDisplayedOverlays();
     
     for (int32_t i = 0; i < numberOfOverlays; i++) {
+        bool showAllMapsLabelFlag(false);
+        bool showLoadLabelFlag(false);
+        bool showLineWidthLabelFlag(false);
+        switch (chartOverlaySet->getChartTwoDataType()) {
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                showAllMapsLabelFlag = true;
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                showLineWidthLabelFlag = true;
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                showLoadLabelFlag = true;
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                break;
+        }
+        if (m_allMapsLabel != NULL) {
+            m_allMapsLabel->setVisible(showAllMapsLabelFlag);
+        }
+        if (m_loadLabel != NULL) {
+            m_loadLabel->setVisible(showLoadLabelFlag);
+        }
+        if (m_lineWidthLabel != NULL) {
+            m_lineWidthLabel->setVisible(showLineWidthLabelFlag);
+        }
+
         ChartTwoOverlay* chartOverlay = NULL;
         if (chartOverlaySet != NULL) {
             chartOverlay = chartOverlaySet->getOverlay(i);
@@ -312,6 +358,7 @@ ChartTwoOverlaySetViewController::updateViewController()
         if (displayOverlay) {
             CaretAssertVectorIndex(m_chartOverlayViewControllers, i);
             m_chartOverlayViewControllers[i]->updateViewController(chartOverlay);
+            
         }
         CaretAssertVectorIndex(m_chartOverlayGridLayoutGroups, i);
         m_chartOverlayGridLayoutGroups[i]->setVisible(displayOverlay);
