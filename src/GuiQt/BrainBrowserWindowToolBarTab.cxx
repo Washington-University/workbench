@@ -97,7 +97,7 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     WuQMacroManager::instance()->addMacroSupportToObject(encapComboBox,
                                                          "Select yoking group");
     
-    m_yokeToLabel = new QLabel("Yoke:");
+    m_yokeToLabel = new QLabel("Yoke");
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
@@ -249,11 +249,11 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     }
     
     if (chartFlag) {
-        m_yokeToLabel->setText("Chart\nYoke:");
+        m_yokeToLabel->setText("Yoke");
         m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getChartModelYokingGroup());
     }
     else {
-        m_yokeToLabel->setText("Yoke:");
+        m_yokeToLabel->setText("Yoke");
         m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getBrainModelYokingGroup());
     }
     
