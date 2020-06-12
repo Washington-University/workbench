@@ -418,18 +418,18 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     WuQtUtilities::setLayoutSpacingAndMargins(topLayout, 3, 0);
     topLayout->addWidget(new QLabel("Edit Axis "));
     topLayout->addWidget(m_axisComboBox->getWidget());
-    topLayout->addSpacing(10);
+    topLayout->addSpacing(3);
     topLayout->addStretch();
     topLayout->addWidget(axisLabelFromOverlayLabel);
     topLayout->addWidget(m_axisLabelFromOverlayComboBox);
-    topLayout->addSpacing(10);
+    topLayout->addSpacing(3);
     topLayout->addWidget(m_axisLabelToolButton);
     
     /*
      * Grid layout containing layouts
      */
     QGridLayout* gridLayout = new QGridLayout();
-    gridLayout->setHorizontalSpacing(4);
+    gridLayout->setHorizontalSpacing(2);
     gridLayout->setVerticalSpacing(1);
     gridLayout->setContentsMargins(0, 0, 0, 0);
     gridLayout->addLayout(topLayout, 0, 0, 1, 7);
