@@ -496,7 +496,8 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
      */
     m_toolbarWidget = new QWidget();
     this->toolbarWidgetLayout = new QHBoxLayout(m_toolbarWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(this->toolbarWidgetLayout, 2, 1);
+    this->toolbarWidgetLayout->setContentsMargins(0, 0, 0, 0);
+    this->toolbarWidgetLayout->setSpacing(0);
     
     this->toolbarWidgetLayout->addWidget(this->modeWidget, 0, Qt::AlignLeft);
     
@@ -3130,22 +3131,22 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* browserTab
 }
 
 /**
- * Create a tool widget which is a group of widgets with 
+ * Create a tool widget which is a group of widgets with
  * a descriptive label added.
  *
  * @param name
- *    Name for the descriptive label.  For a multi-line label, 
+ *    Name for the descriptive label.  For a multi-line label,
  *    separate the lines with an HTML "<BR>" tag.
  * @param childWidget
  *    Child widget that is in the tool widget.
  * @param verticalBarPlacement
- *    Where to place a vertical bar.  Values other than right or 
+ *    Where to place a vertical bar.  Values other than right or
  *    left are ignored in which case no vertical bar is displayed.
  * @param contentPlacement
  *    Where to place widget which must be top or bottom.
  * @return The tool widget.
  */
-QWidget* 
+QWidget*
 BrainBrowserWindowToolBar::createToolWidget(const QString& name,
                                             QWidget* childWidget,
                                             const WidgetPlacement verticalBarPlacement,
@@ -3158,55 +3159,106 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
         nameLabel->setFixedHeight(nameLabel->sizeHint().height());
     }
     
-    QWidget* w = new QWidget();
-    QGridLayout* layout = new QGridLayout(w);
-    layout->setColumnStretch(0, 100);
-    layout->setColumnStretch(1, 100);    
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
+    int32_t columnWidget(-1);
+    int32_t columnVerticalBar(-1);
+    int32_t columnCount(-1);
+    switch(verticalBarPlacement) {
+        case WIDGET_PLACEMENT_LEFT:
+            columnVerticalBar = 0;
+            columnWidget      = 1;
+            columnCount       = 2;
+            break;
+        case WIDGET_PLACEMENT_RIGHT:
+            columnVerticalBar = 1;
+            columnWidget      = 0;
+            columnCount       = 2;
+            break;
+        default:
+            columnWidget = 0;
+            columnCount  = 1;
+            break;
+    }
+    CaretAssert(columnWidget >= 0);
+    CaretAssert(columnCount  >= 1);
+    
+    int32_t rowWidget(-1);
+    int32_t rowEmpty(-1);
+    int32_t rowLabel(-1);
+    int32_t rowCount(-1);
     switch (contentPlacement) {
         case WIDGET_PLACEMENT_BOTTOM:
-            layout->setRowStretch(0, 100);
-            layout->setRowStretch(1, 0);
-            layout->addWidget(childWidget, 1, 0, 1, 2);
+            rowEmpty  = 0;
+            rowWidget = 1;
+            if (nameLabel != NULL) {
+                rowLabel  = 2;
+                rowCount  = 3;
+            }
+            else {
+                rowCount = 2;
+            }
             break;
         case WIDGET_PLACEMENT_TOP:
-            layout->setRowStretch(1, 100);
-            layout->setRowStretch(0, 0);
-            layout->addWidget(childWidget, 0, 0, 1, 2);
+            rowEmpty  = 1;
+            rowWidget = 0;
+            if (nameLabel != NULL) {
+                rowLabel  = 2;
+                rowCount  = 3;
+            }
+            else {
+                rowCount  = 3;
+            }
             break;
         case WIDGET_PLACEMENT_NONE:
-            layout->setRowStretch(0, 0);
-            layout->addWidget(childWidget, 0, 0, 1, 2);
+            rowWidget = 0;
+            if (nameLabel != NULL) {
+                rowLabel  = 1;
+                rowCount  = 2;
+            }
+            else {
+                rowCount = 1;
+            }
             break;
         default:
             CaretAssert(0);
+            break;
     }
+    CaretAssert(rowWidget >= 0);
+    CaretAssert(rowCount  >= 1);
+    
+    QWidget* w = new QWidget();
+    QGridLayout* layout = new QGridLayout(w);
+    layout->setContentsMargins(0, 0, 0, 0);
+    if (columnVerticalBar >= 0) {
+        layout->setHorizontalSpacing(2);
+    }
+    else {
+        layout->setHorizontalSpacing(0);
+    }
+    layout->setVerticalSpacing(0);
+    
+    for (int32_t iRow = 0; iRow < rowCount; iRow++) {
+        layout->setRowStretch(iRow, 0);
+    }
+    if (rowEmpty >= 0) {
+        layout->setRowStretch(rowEmpty, 100);
+    }
+    if (columnVerticalBar >= 0) {
+        layout->addWidget(WuQtUtilities::createVerticalLineWidget(),
+                          0, columnVerticalBar, rowCount, 1);
+    }
+    
+    layout->addWidget(childWidget,
+                      rowWidget, columnWidget);
     if (nameLabel != NULL) {
-        layout->addWidget(nameLabel, 2, 0, 1, 2, Qt::AlignHCenter);
-        layout->setRowStretch(2, 0);
+        CaretAssert(rowLabel >= 0);
+        layout->addWidget(nameLabel,
+                          rowLabel, 0, 1, columnCount, Qt::AlignHCenter);
     }
     
-    const bool addVerticalBarOnLeftSide = (verticalBarPlacement == WIDGET_PLACEMENT_LEFT);
-    const bool addVerticalBarOnRightSide = (verticalBarPlacement == WIDGET_PLACEMENT_RIGHT);
-    
-    if (addVerticalBarOnLeftSide
-        || addVerticalBarOnRightSide) {
-        QWidget* w2 = new QWidget();
-        QHBoxLayout* horizLayout = new QHBoxLayout(w2);
-        WuQtUtilities::setLayoutSpacingAndMargins(horizLayout, 0, 0);
-        if (addVerticalBarOnLeftSide) {
-            horizLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0);
-            horizLayout->addSpacing(3);
-        }
-        const int widgetStretchFactor = 100;
-        horizLayout->addWidget(w, widgetStretchFactor);
-        if (addVerticalBarOnRightSide) {
-            horizLayout->addSpacing(3);
-            horizLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0);
-        }
-        w = w2;
-    }
- 
+    int left(1), right(1), bottom(0), top(0);
+    w->getContentsMargins(NULL, &top, NULL, &bottom);
+    w->setContentsMargins(left, top, right, bottom);
+
     return w;
 }
 
