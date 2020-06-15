@@ -251,7 +251,7 @@ ChartTwoOverlay::getChartTwoCompoundDataType() const
 
 /**
  * Set the compound chart type for charts displayed in this overlay.
- * MUST match simplae data type for this chart unless invalid.
+ * MUST match simple data type for this chart unless invalid.
  * Note that overlay index zero, allows any chart type.
  *
  * @param chartCompoundDataType
@@ -372,6 +372,9 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
     m_selectedHistogramMapIndex = overlay->m_selectedHistogramMapIndex;
     m_allHistogramMapsSelectedFlag = overlay->m_allHistogramMapsSelectedFlag;
     m_selectedLineLayerMapIndex = overlay->m_selectedLineLayerMapIndex;
+    
+    m_lineLayerColor = overlay->m_lineLayerColor;
+    m_lineLayerLineWidth = overlay->m_lineLayerLineWidth;
 }
 
 /**

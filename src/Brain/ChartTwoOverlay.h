@@ -196,7 +196,7 @@ namespace caret {
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        /** Current 'compound chart type' of charts allowed in this overlay */
+        /** Current 'compound chart type' of charts allowed in this overlay DO NOT COPY */
         mutable ChartTwoCompoundDataType m_chartCompoundDataType;
         
         /** Name of overlay (DO NOT COPY)*/
