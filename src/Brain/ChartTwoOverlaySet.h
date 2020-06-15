@@ -145,6 +145,8 @@ namespace caret {
         
         void firstOverlaySelectionChanged();
         
+        void assignUnusedColor(ChartTwoOverlay* chartOverlay);
+
         SceneClassAssistant* m_sceneAssistant;
 
         std::vector<std::shared_ptr<ChartTwoOverlay>> m_overlays;

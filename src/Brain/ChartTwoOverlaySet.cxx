@@ -428,6 +428,48 @@ ChartTwoOverlaySet::getNumberOfDisplayedOverlays() const
 }
 
 /**
+ * Assign to this overlay that is not used by any other overlays.
+ * Note: The maximum number of overlay is greater than the number
+ * of CaretColors so when many overlays are enabled, a unque
+ * color may not be available.
+ *
+ * @param chartOverlay
+ *    Overlay that is assigned a color not used by other overlays
+ */
+void
+ChartTwoOverlaySet::assignUnusedColor(ChartTwoOverlay* chartOverlay)
+{
+    CaretAssert(chartOverlay);
+    
+    /*
+     * Get colors used by other overlays
+     */
+    std::set<CaretColorEnum::Enum> usedColors;
+    for (int32_t i = 0; i < m_numberOfDisplayedOverlays; i++) {
+        const ChartTwoOverlay* cto = getOverlay(i);
+        CaretAssert(cto);
+        if (cto != chartOverlay) {
+            usedColors.insert(cto->getLineLayerColor().getCaretColorEnum());
+        }
+    }
+    
+    /*
+     * Assing a color not used by any other chart layers
+     */
+    std::vector<CaretColorEnum::Enum> allColors;
+    CaretColorEnum::getColorEnumsNoBlackOrWhite(allColors);
+    CaretAssert( ! allColors.empty());
+    for (const auto color : allColors) {
+        if (usedColors.find(color) == usedColors.end()) {
+            CaretColor caretColor;
+            caretColor.setCaretColorEnum(color);
+            chartOverlay->setLineLayerColor(caretColor);
+            break;
+        }
+    }
+}
+
+/**
  * Insert an overlay below this overlay
  * @param overlayIndex
  *     Index of overlay for which an overlay is added below
@@ -441,6 +483,10 @@ ChartTwoOverlaySet::insertOverlayAbove(const int32_t overlayIndex)
         for (int32_t i = (m_numberOfDisplayedOverlays - 2); i >= overlayIndex; i--) {
             moveDisplayedOverlayDown(i);
         }
+        
+        CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, overlayIndex+1);
+        m_overlays[overlayIndex]->copyData(m_overlays[overlayIndex+1].get());
+        assignUnusedColor(m_overlays[overlayIndex].get());
     }
 }
 
@@ -458,6 +504,10 @@ ChartTwoOverlaySet::insertOverlayBelow(const int32_t overlayIndex)
         for (int32_t i = (m_numberOfDisplayedOverlays - 2); i > overlayIndex; i--) {
             moveDisplayedOverlayDown(i);
         }
+        
+        CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, overlayIndex+1);
+        m_overlays[overlayIndex+1]->copyData(m_overlays[overlayIndex].get());
+        assignUnusedColor(m_overlays[overlayIndex+1].get());
     }
 }
 
