@@ -266,7 +266,7 @@ m_chartOverlay(NULL)
      */
     m_selectedPointCheckBox = new QCheckBox((orientation == Qt::Horizontal)
                                                    ? "" : "Show");
-    m_selectedPointCheckBox->setToolTip("Draw circle at selected point");
+    m_selectedPointCheckBox->setToolTip("Draw symbol at selected point");
     QObject::connect(m_selectedPointCheckBox, &QCheckBox::clicked,
                      this, &ChartTwoOverlayViewController::selectedPointCheckBoxClicked);
     m_selectedPointIndexSpinBox = new QSpinBox();
