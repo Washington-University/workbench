@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include <array>
 #include <map>
 #include <memory>
 
@@ -111,10 +111,20 @@ namespace caret {
                                      const uint8_t rgba[4],
                                      const float diameter);
         
+        static void drawCircleFilledPercentViewportHeight(const float xyz[3],
+                                                          const uint8_t rgba[4],
+                                                          const float diameterPercentageOfViewportHeight,
+                                                          std::array<float, 3>* windowXYZOut = NULL);
+
         static void drawSquare(const float xyz[3],
                                const uint8_t rgba[4],
                                const float diameter);
         
+        static void drawSquarePercentViewportHeight(const float xyz[3],
+                                                    const uint8_t rgba[4],
+                                                    const float diameterPercentageOfViewportHeight,
+                                                    std::array<float, 3>* windowXYZOut = NULL);
+
         static void drawSquares(const float xyz[],
                                 const int32_t numberOfSquares,
                                 const uint8_t rgba[4],
@@ -160,6 +170,11 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        enum class Shape {
+            CIRCLE_FILLED,
+            SQUARE
+        };
+        
         class RingKey {
         public:
             RingKey(const int32_t numberOfDivisions,
@@ -244,6 +259,12 @@ namespace caret {
                                                 const uint8_t rgba[4],
                                                 bool verticesInMiddleFlag);
         
+        static void drawShapePercentViewportHeight(const float xyz[3],
+                                                   const uint8_t rgba[4],
+                                                   const Shape shape,
+                                                   const float diameterPercentageOfViewportHeight,
+                                                   std::array<float, 3>* windowXYZOut);
+
         static std::unique_ptr<GraphicsPrimitiveV3f> s_byteSquarePrimitive;
         
         static std::map<int32_t, GraphicsPrimitive*> s_byteSpherePrimitives;

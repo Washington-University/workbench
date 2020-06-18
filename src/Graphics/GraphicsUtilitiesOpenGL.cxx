@@ -130,6 +130,28 @@ GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToMillimeters(const fl
 }
 
 /**
+ * Converts percentage of viewport height to pixels.
+ * The current transformations must be for drawing in millimeters.
+ *
+ * @param percentOfViewportHeight
+ *     The value in percentage of viewport height.
+ * @return
+ *     Millimeters
+ */
+float
+GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(const float percentOfViewportHeight)
+{
+    GLint vp[4];
+    glGetIntegerv(GL_VIEWPORT, vp);
+    
+    float pixels = 0;
+    if (vp[3] > 0) {
+        pixels = (percentOfViewportHeight / 100.0) * static_cast<float>(vp[3]);
+    }
+    return pixels;
+}
+
+/**
  * Converts millimeters to a percentage of the viewport height.
  * The current transformations must be for drawing in millimeters.
  *

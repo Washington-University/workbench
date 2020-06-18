@@ -118,6 +118,10 @@ namespace caret {
         
         void lineLayerLineWidthChanged(const float lineWidth);
         
+        void selectedPointCheckBoxClicked(bool selected);
+        
+        void selectedPointIndexSpinBoxValueChanged(int index);
+        
     private:
         ChartTwoOverlayViewController(const ChartTwoOverlayViewController&);
 
@@ -205,6 +209,10 @@ namespace caret {
         
         WuQDoubleSpinBox* m_lineLayerWidthSpinBox = NULL;
 
+        QCheckBox* m_selectedPointCheckBox = NULL;
+        
+        QSpinBox* m_selectedPointIndexSpinBox = NULL;
+        
         // ADD_NEW_MEMBERS_HERE
 
         friend class ChartTwoOverlaySetViewController;

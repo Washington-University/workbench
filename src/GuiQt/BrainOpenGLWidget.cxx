@@ -34,6 +34,7 @@
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
 #endif
 #include <QOpenGLContext>
+#include <QTimer>
 #include <QToolTip>
 #include <QWheelEvent>
 
@@ -61,10 +62,11 @@
 #include "EventManager.h"
 #include "EventBrowserWindowDrawingContent.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
+#include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsTimingOneWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
-#include "EventGetOrSetUserInputModeProcessor.h"
+#include "EventGraphicsWindowShowToolTip.h"
 #include "EventIdentificationRequest.h"
 #include "EventMovieManualModeRecording.h"
 #include "EventUserInterfaceUpdate.h"
@@ -167,6 +169,7 @@ windowIndex(windowIndex)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_TIMING_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IDENTIFICATION_REQUEST);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IMAGE_CAPTURE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MOVIE_RECORDING_MANUAL_MODE_CAPTURE);
@@ -1923,6 +1926,50 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             }
         }
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP) {
+        EventGraphicsWindowShowToolTip* tipEvent = dynamic_cast<EventGraphicsWindowShowToolTip*>(event);
+        CaretAssert(tipEvent);
+        
+        if (tipEvent->getWindowIndex() == this->windowIndex) {
+            std::array<float, 3> windowXYZ = tipEvent->getWindowXYZ();
+            
+            /*
+             * Origin is at top left for Qt, bottom left for OpenGL
+             */
+            switch (tipEvent->getWindowOrigin()) {
+                case EventGraphicsWindowShowToolTip::WindowOrigin::BOTTOM_LEFT:
+                    windowXYZ[1] = height() - windowXYZ[1];
+                    break;
+                case EventGraphicsWindowShowToolTip::WindowOrigin::TOP_LEFT:
+                    break;
+            }
+            
+            m_selectedChartPointToolTipInfo.m_position = mapToGlobal(QPoint(windowXYZ[0],
+                                                                            windowXYZ[1]));
+            m_selectedChartPointToolTipInfo.m_text = tipEvent->getText();
+            
+            /*
+             * We cannot call QToolTip::showText() from here.  If this event is sent
+             * when the user changes the value in the index spin box in Chart Layers,
+             * the event is sent when the mouse is pressed.  When the user releases the
+             * mouse button, the tooltip is removed by Qt and thus, from the user's persepctive,
+             * the tooltip will go away almost immediately.
+             *
+             * Instead, use a QTimer to wait a short amount of time and then display the
+             * tooltip containing the selected chart points XY coordinate.  We do a few
+             * single shot timers since we want the tooltip to display quickly but
+             * we don't know how long until the user releases the mouse.
+             *
+             * The first parameter to QTimer::singleShot() is the delay in millisecond
+             * until the method is called.
+             */
+            QTimer::singleShot(500, this, &BrainOpenGLWidget::showSelectedChartPointToolTip);
+            QTimer::singleShot(750, this, &BrainOpenGLWidget::showSelectedChartPointToolTip);
+            QTimer::singleShot(1000, this, &BrainOpenGLWidget::showSelectedChartPointToolTip);
+            
+            tipEvent->setEventProcessed();
+        }
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_IMAGE_CAPTURE) {
         EventImageCapture* imageCaptureEvent = dynamic_cast<EventImageCapture*>(event);
         CaretAssert(imageCaptureEvent);
@@ -2158,6 +2205,18 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             this->updateGL();
 #endif
         }
+    }
+}
+
+/**
+ * Show a tooltip containing the selected chart point's coordinate.
+ */
+void
+BrainOpenGLWidget::showSelectedChartPointToolTip()
+{
+    if ( ! m_selectedChartPointToolTipInfo.m_text.isEmpty()) {
+        QToolTip::showText(m_selectedChartPointToolTipInfo.m_position,
+                           m_selectedChartPointToolTipInfo.m_text);
     }
 }
 

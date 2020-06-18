@@ -27,11 +27,14 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "EventManager.h"
+#include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fN3f.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 
@@ -481,44 +484,7 @@ GraphicsShape::drawSphereByteColor(const float xyz[3],
     drawSpheresByteColor(xyz,
                          1,
                          rgba,
-                         diameter);
-    
-//    const int32_t numLatLonDivisions = 10;
-//    
-//    GraphicsPrimitive* spherePrimitive = NULL;
-//    for (const auto iter : s_byteSpherePrimitives) {
-//        const auto& key = iter.first;
-//        if ((key  == numLatLonDivisions)) {
-//            spherePrimitive = iter.second;
-//            CaretAssert(spherePrimitive);
-//            break;
-//        }
-//    }
-//    
-//    if (spherePrimitive == NULL) {
-//        const bool useStripsFlag = true;
-//        if (useStripsFlag) {
-//            spherePrimitive = createSpherePrimitiveTriangleStrips(numLatLonDivisions);
-//        }
-//        else {
-//            spherePrimitive = createSpherePrimitiveTriangles(numLatLonDivisions);
-//        }
-//        /* colors may change but not coordinates/normals */
-//        spherePrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
-//        spherePrimitive->setUsageTypeColors(GraphicsPrimitive::UsageType::MODIFIED_MANY_DRAWN_MANY_TIMES);
-//        s_byteSpherePrimitives.insert(std::make_pair(numLatLonDivisions,
-//                                                     spherePrimitive));
-//    }
-//
-//    CaretAssert(spherePrimitive);
-//    
-//    spherePrimitive->replaceAllVertexSolidByteRGBA(rgba);
-//    
-//    glPushMatrix();
-//    glTranslatef(xyz[0], xyz[1], xyz[2]);
-//    glScalef(diameter, diameter, diameter);
-//    GraphicsEngineDataOpenGL::draw(spherePrimitive);
-//    glPopMatrix();
+                         diameter);    
 }
 
 /**
@@ -629,6 +595,144 @@ GraphicsShape::drawCircleFilled(const float xyz[3],
     GraphicsEngineDataOpenGL::draw(circlePrimitive);
     glPopMatrix();
 }
+
+/**
+ * Draw a filled circle at the given XYZ coordinate using a diameter
+ * that is a percentage of the viewport's height.
+ *
+ * @param xyz
+ *     XYZ-coordinate of circle
+ * @param rgba
+ *    Color for drawing.
+ * @param diameterPercentageOfViewportHeight
+ *    Diameter of the circle.
+ * @param windowXYZOut
+ *    Optional parameter.  If not NULL, contains OpenGL window XYZ of the shape.
+ *    X-component is positive if value coordinate is valid, else negative indicates invalid.
+ */
+void
+GraphicsShape::drawCircleFilledPercentViewportHeight(const float xyz[3],
+                                                     const uint8_t rgba[4],
+                                                     const float diameterPercentageOfViewportHeight,
+                                                     std::array<float, 3>* windowXYZOut)
+{
+    drawShapePercentViewportHeight(xyz,
+                                   rgba,
+                                   Shape::CIRCLE_FILLED,
+                                   diameterPercentageOfViewportHeight,
+                                   windowXYZOut);
+}
+
+/**
+ * Draw a filled circle at the given XYZ coordinate using a diameter
+ * that is a percentage of the viewport's height.
+ *
+ * @param xyz
+ *     XYZ-coordinate of circle
+ * @param rgba
+ *    Color for drawing.
+ * @param diameterPercentageOfViewportHeight
+ *    Diameter of the circle.
+ * @param windowXYZOut
+ *    Optional parameter.  If not NULL, contains OpenGL window XYZ of the shape.
+ *    X-component is positive if value coordinate is valid, else negative indicates invalid.
+ */
+void
+GraphicsShape::drawSquarePercentViewportHeight(const float xyz[3],
+                                               const uint8_t rgba[4],
+                                               const float diameterPercentageOfViewportHeight,
+                                               std::array<float, 3>* windowXYZOut)
+{
+    drawShapePercentViewportHeight(xyz,
+                                   rgba,
+                                   Shape::SQUARE,
+                                   diameterPercentageOfViewportHeight,
+                                   windowXYZOut);
+}
+
+/**
+ * Draw a shape at the given XYZ coordinate using a diameter
+ * that is a percentage of the viewport's height.
+ *
+ * @param xyz
+ *     XYZ-coordinate of circle
+ * @param rgba
+ *    Color for drawing.
+ * @param shape
+ *    Shape that is drawn
+ * @param diameterPercentageOfViewportHeight
+ *    Diameter of the circle.
+ * @param windowXYZOut
+ *    Optional parameter.  If not NULL, contains OpenGL window XYZ of the shape.
+ *    X-component is positive if value coordinate is valid, else negative indicates invalid.
+ */
+void
+GraphicsShape::drawShapePercentViewportHeight(const float xyz[3],
+                                              const uint8_t rgba[4],
+                                              const Shape shape,
+                                              const float diameterPercentageOfViewportHeight,
+                                              std::array<float, 3>* windowXYZOut)
+{
+    /*
+     * Invalidate optional output window coordinate
+     */
+    if (windowXYZOut != NULL) {
+        windowXYZOut->at(0) = -1.0f;
+    }
+    
+    /*
+     * The scale of X and Y may be very different and drawing a shape
+     * in model space requires scaling the circle separately in X and Y.
+     * It is easier to draw the shape in window space.
+     */
+    EventOpenGLObjectToWindowTransform xform(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
+    EventManager::get()->sendEvent(xform.getPointer());
+    if (xform.isValid()) {
+        float windowXYZ[3];
+        xform.transformPoint(xyz,
+                             windowXYZ);
+        
+        std::array<int32_t, 4> vp = xform.getViewport();
+        
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(vp[0], vp[0] + vp[2],
+                vp[1], vp[1] + vp[3],
+                -10.0, 10.0);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        
+        const float pixels = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(diameterPercentageOfViewportHeight);
+
+        switch (shape) {
+            case Shape::CIRCLE_FILLED:
+                GraphicsShape::drawCircleFilled(windowXYZ,
+                                                rgba,
+                                                pixels);
+                break;
+            case Shape::SQUARE:
+                GraphicsShape::drawSquare(windowXYZ,
+                                          rgba,
+                                          pixels);
+                break;
+        }
+        
+        if (windowXYZOut != NULL) {
+            windowXYZOut->at(0) = windowXYZ[0];
+            windowXYZOut->at(1) = windowXYZ[1];
+            windowXYZOut->at(2) = windowXYZ[2];
+        }
+
+        
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+    }
+}
+
 
 /**
  * Draw a squares at the given XYZ coordinates
@@ -829,7 +933,6 @@ GraphicsShape::createCirclePrimitive(const int32_t numberOfDivisions,
     /*
      * Setup step size based upon number of points around circle
      */
-    //    const int32_t numberOfPoints = 8;
     const float step = (2.0 * M_PI) / numberOfDivisions;
     
     const uint8_t rgba[] { 255, 255, 255, 255 };

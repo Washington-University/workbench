@@ -447,6 +447,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_GRAPHICS_TIMING_ONE_WINDOW:
         case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS:
         case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW:
+        case EventTypeEnum::EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP:
         case EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY:
         case EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION:
         case EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL:

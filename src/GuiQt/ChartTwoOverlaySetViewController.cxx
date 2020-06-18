@@ -110,6 +110,7 @@ m_browserWindowIndex(browserWindowIndex)
         static const int COLUMN_LOAD       = columnCounter++;
         static const int COLUMN_SETTINGS   = columnCounter++;
         static const int COLUMN_LINE_WIDTH = columnCounter++;
+        static const int COLUMN_POINT      = columnCounter++;
         static const int COLUMN_FILE       = columnCounter++;
         static const int COLUMN_YOKE       = columnCounter++;
         static const int COLUMN_MAP_INDEX  = columnCounter++;
@@ -130,6 +131,7 @@ m_browserWindowIndex(browserWindowIndex)
         m_loadLabel           = new QLabel("Load");
         QLabel* settingsLabel = new QLabel("Settings");
         m_lineWidthLabel      = new QLabel("Width");
+        m_pointLabel          = new QLabel("Point");
         QLabel* fileLabel     = new QLabel("File");
         QLabel* yokeLabel     = new QLabel("Yoke");
         m_allMapsLabel        = new QLabel("All");
@@ -141,6 +143,7 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->addWidget(m_loadLabel, row, COLUMN_LOAD, Qt::AlignHCenter);
         gridLayout->addWidget(settingsLabel, row, COLUMN_SETTINGS, Qt::AlignHCenter);
         gridLayout->addWidget(m_lineWidthLabel, row, COLUMN_LINE_WIDTH, Qt::AlignHCenter);
+        gridLayout->addWidget(m_pointLabel, row, COLUMN_POINT, Qt::AlignHCenter);
         gridLayout->addWidget(fileLabel, row, COLUMN_FILE, Qt::AlignHCenter);
         gridLayout->addWidget(yokeLabel, row, COLUMN_YOKE, Qt::AlignHCenter);
         gridLayout->addWidget(m_allMapsLabel, row, COLUMN_ALL_MAPS, Qt::AlignHCenter);
@@ -161,6 +164,12 @@ m_browserWindowIndex(browserWindowIndex)
             settingsLayout->addWidget(covc->m_axisLocationToolButton);
             settingsLayout->addWidget(covc->m_lineLayerColorToolButton);
 
+            QWidget* pointWidget = new QWidget();
+            QHBoxLayout* pointLayout = new QHBoxLayout(pointWidget);
+            pointLayout->setContentsMargins(0, 0, 0, 0);
+            pointLayout->addWidget(covc->m_selectedPointCheckBox);
+            pointLayout->addWidget(covc->m_selectedPointIndexSpinBox);
+            
             row = gridLayout->rowCount();
             WuQGridLayoutGroup* glg = m_chartOverlayGridLayoutGroups[i];
             
@@ -168,6 +177,7 @@ m_browserWindowIndex(browserWindowIndex)
             glg->addWidget(covc->m_lineSeriesLoadingEnabledCheckBox, row, COLUMN_LOAD, Qt::AlignHCenter);
             glg->addWidget(settingsWidget, row, COLUMN_SETTINGS, Qt::AlignHCenter);
             glg->addWidget(covc->m_lineLayerWidthSpinBox->getWidget(), row, COLUMN_LINE_WIDTH);
+            glg->addWidget(pointWidget, row, COLUMN_POINT);
             glg->addWidget(covc->m_mapFileComboBox, row, COLUMN_FILE);
             glg->addWidget(covc->m_mapRowOrColumnYokingGroupComboBox->getWidget(), row, COLUMN_YOKE, Qt::AlignHCenter);
             glg->addWidget(covc->m_allMapsCheckBox, row, COLUMN_ALL_MAPS, Qt::AlignHCenter);
@@ -179,20 +189,25 @@ m_browserWindowIndex(browserWindowIndex)
         int32_t columnCounter(0);
         static const int COLUMN_ONE   = columnCounter++;
         static const int COLUMN_TWO   = columnCounter++;
+        static const int COLUMN_THREE   = columnCounter++;
 
         for (int32_t i = 0; i < columnCounter; i++) {
             gridLayout->setColumnStretch(i, 0);
         }
-        gridLayout->setColumnStretch(COLUMN_TWO, 100);
+        gridLayout->setColumnStretch(COLUMN_THREE, 100);
         gridLayout->setVerticalSpacing(0);
 
-        const bool showTitlesFlag(false);
+        const bool showTitlesFlag(true);
         if (showTitlesFlag) {
+            m_pointLabel = new QLabel("Point");
+            
             const int titleRow(gridLayout->rowCount());
             gridLayout->addWidget(new QLabel("Settings"),
                                   titleRow, COLUMN_ONE, Qt::AlignHCenter);
+            gridLayout->addWidget(m_pointLabel,
+                                  titleRow, COLUMN_TWO, Qt::AlignHCenter);
             gridLayout->addWidget(new QLabel("Yoke / File / Map"),
-                                  titleRow, COLUMN_TWO, Qt::AlignLeft);
+                                  titleRow, COLUMN_THREE, Qt::AlignLeft);
         }
 
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
@@ -246,10 +261,12 @@ m_browserWindowIndex(browserWindowIndex)
             bottomRightLayout->addWidget(covc->m_mapRowOrColumnNameComboBox, 100);
             
             glg->addWidget(topLeftWidget, row, COLUMN_ONE, Qt::AlignLeft);
-            glg->addWidget(topRightWidget, row, COLUMN_TWO);
+            glg->addWidget(covc->m_selectedPointCheckBox, row, COLUMN_TWO);
+            glg->addWidget(topRightWidget, row, COLUMN_THREE);
             row++;
             glg->addWidget(bottomLeftWidget, row, COLUMN_ONE, Qt::AlignLeft);
-            glg->addWidget(bottomRightWidget, row, COLUMN_TWO);
+            glg->addWidget(covc->m_selectedPointIndexSpinBox, row, COLUMN_TWO);
+            glg->addWidget(bottomRightWidget, row, COLUMN_THREE);
         }
     }
     
@@ -321,6 +338,7 @@ ChartTwoOverlaySetViewController::updateViewController()
         bool showAllMapsLabelFlag(false);
         bool showLoadLabelFlag(false);
         bool showLineWidthLabelFlag(false);
+        bool showPointLabelFlag(false);
         switch (chartOverlaySet->getChartTwoDataType()) {
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                 showAllMapsLabelFlag = true;
@@ -329,6 +347,7 @@ ChartTwoOverlaySetViewController::updateViewController()
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
                 showLineWidthLabelFlag = true;
+                showPointLabelFlag     = true;
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                 showLoadLabelFlag = true;
@@ -344,6 +363,9 @@ ChartTwoOverlaySetViewController::updateViewController()
         }
         if (m_lineWidthLabel != NULL) {
             m_lineWidthLabel->setVisible(showLineWidthLabelFlag);
+        }
+        if (m_pointLabel != NULL) {
+            m_pointLabel->setVisible(showPointLabelFlag);
         }
 
         ChartTwoOverlay* chartOverlay = NULL;

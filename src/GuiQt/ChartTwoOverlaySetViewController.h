@@ -85,6 +85,8 @@ namespace caret {
         
         QLabel* m_lineWidthLabel = NULL;
         
+        QLabel* m_pointLabel = NULL;
+        
         QScrollArea* m_scrollArea;
         
         QLabel* m_mapRowOrColumnIndexLabel = NULL;

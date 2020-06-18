@@ -322,6 +322,10 @@ EventTypeEnum::initialize()
                                      "EVENT_GRAPHICS_UPDATE_ONE_WINDOW", 
                                      "Update graphics in one window"));
     
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP,
+                                     "EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP",
+                                     "Show tooltip in graphics window"));
+
     enumData.push_back(EventTypeEnum(EVENT_HELP_VIEWER_DISPLAY,
                                      "EVENT_HELP_VIEWER_DISPLAY", 
                                      "Display the help viewer"));

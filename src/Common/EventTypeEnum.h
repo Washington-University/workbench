@@ -168,6 +168,8 @@ public:
         EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
         /** Update graphics in a window */
         EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
+        /** Show tooltip in graphics window */
+        EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP,
         /** Display the help viewer */
         EVENT_HELP_VIEWER_DISPLAY,
         /** Highlight location when an identification occurs */

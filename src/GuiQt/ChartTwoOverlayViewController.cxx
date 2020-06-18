@@ -50,6 +50,7 @@ using namespace caret;
 #include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsWindowShowToolTip.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
@@ -260,7 +261,20 @@ m_chartOverlay(NULL)
     QObject::connect(m_lineLayerWidthSpinBox, &WuQDoubleSpinBox::valueChanged,
                      this, &ChartTwoOverlayViewController::lineLayerLineWidthChanged);
     
-
+    /*
+     * Seledted point check box and spin box
+     */
+    m_selectedPointCheckBox = new QCheckBox((orientation == Qt::Horizontal)
+                                                   ? "" : "Show");
+    m_selectedPointCheckBox->setToolTip("Draw circle at selected point");
+    QObject::connect(m_selectedPointCheckBox, &QCheckBox::clicked,
+                     this, &ChartTwoOverlayViewController::selectedPointCheckBoxClicked);
+    m_selectedPointIndexSpinBox = new QSpinBox();
+    m_selectedPointIndexSpinBox->setToolTip("Set index of selected point");
+    m_selectedPointIndexSpinBox->setSingleStep(1);
+    QObject::connect(m_selectedPointIndexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     this, &ChartTwoOverlayViewController::selectedPointIndexSpinBoxValueChanged);
+    
     /*
      * Map file Selection Check Box
      */
@@ -942,11 +956,26 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
         }
     }
     
+    /*
+     * Update selected point checkbox and index
+     */
+    m_selectedPointCheckBox->setEnabled(false);
+    m_selectedPointIndexSpinBox->setEnabled(false);
+    if (validOverlayAndFileFlag) {
+        m_selectedPointCheckBox->setChecked(m_chartOverlay->isSelectedLineChartPointDisplayed());
+        m_selectedPointIndexSpinBox->setValue(m_chartOverlay->getSelectedLineChartPointIndex());
+        if (m_chartOverlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER) {
+            m_selectedPointCheckBox->setEnabled(true);
+            m_selectedPointIndexSpinBox->setEnabled(true);
+        }
+    }
+    
     bool showAllMapsCheckbBoxFlag(false);
     bool showAxisButtonFlag(false);
     bool showColorBarButtonFlag(false);
     bool showLineLayerColorButtonFlag(false);
     bool showLineLayerWidthButtonFlag(false);
+    bool showSelectedPointControlsFlag(false);
     bool showLineSeriesLoadingCheckBoxFlag(false);
     bool showMatrixDiagonalButtonFlag(false);
     bool showSettingsButtonFlag(false);
@@ -962,6 +991,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
             showAxisButtonFlag = true;
             showLineLayerColorButtonFlag = true;
             showLineLayerWidthButtonFlag = true;
+            showSelectedPointControlsFlag = true;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             showAxisButtonFlag = true;
@@ -981,8 +1011,9 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_lineLayerWidthSpinBox->getWidget()->setVisible(showLineLayerWidthButtonFlag);
     m_lineSeriesLoadingEnabledCheckBox->setVisible(showLineSeriesLoadingCheckBoxFlag);
     m_matrixTriangularViewModeToolButton->setVisible(showMatrixDiagonalButtonFlag);
+    m_selectedPointCheckBox->setVisible(showSelectedPointControlsFlag);
+    m_selectedPointIndexSpinBox->setVisible(showSelectedPointControlsFlag);
     m_settingsToolButton->setVisible(showSettingsButtonFlag);
-
 }
 
 /**
@@ -1239,6 +1270,72 @@ ChartTwoOverlayViewController::lineLayerLineWidthChanged(const float lineWidth)
     if (m_chartOverlay != NULL) {
         m_chartOverlay->setLineLayerLineWidth(lineWidth);
         this->updateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when selected point display check box changed
+ * @param selected
+ *    New selection status
+ */
+void
+ChartTwoOverlayViewController::selectedPointCheckBoxClicked(bool selected)
+{
+    if (m_chartOverlay != NULL) {
+        m_chartOverlay->setSelectedLineChartPointDisplayed(selected);
+        updateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when selected point index spin box value changed
+ * @param index
+ *    New point index
+ */
+void
+ChartTwoOverlayViewController::selectedPointIndexSpinBoxValueChanged(int index)
+{
+    if (m_chartOverlay != NULL) {
+        m_chartOverlay->setSelectedLineChartPointIndex(index);
+
+        if (m_chartOverlay->isEnabled()) {
+            /*
+             * Graphics updates are normally asynchronous (a graphics update is
+             * 'scheduled' by Qt and may take place after the graphics update
+             * event returns).   Since we are getting the window position of
+             * the selected point, and this window position is set in the
+             * graphics code, we do a 'repaint' which is synchronous
+             * (the event will not return until after the graphics have updated).
+             * If we did not do this, the window position may be 'stale' (from
+             * a previous graphics update)
+             */
+            const bool doRepaintFlag(true);
+            EventGraphicsUpdateOneWindow graphicsEvent(m_browserWindowIndex,
+                                                       doRepaintFlag);
+            EventManager::get()->sendEvent(graphicsEvent.getPointer());
+            
+            std::array<float, 3> pointXYZ;
+            if (m_chartOverlay->getSelectedLineChartPointXYZ(pointXYZ)) {
+                std::array<float, 3> windowXYZ;
+                m_chartOverlay->getSelectedLineChartPointWindowXYZ(windowXYZ);
+                
+                QString textXY("<html>Index: "
+                               + AString::number(index)
+                               + "<br>X: "
+                               + AString::number(pointXYZ[0])
+                               + "<br>Y: "
+                               + AString::number(pointXYZ[1])
+                               + "</html>");
+                /*
+                 * Note that windowXYZ is with origin at bottom left
+                 */
+                EventGraphicsWindowShowToolTip tipEvent(m_browserWindowIndex,
+                                                        EventGraphicsWindowShowToolTip::WindowOrigin::BOTTOM_LEFT,
+                                                        windowXYZ,
+                                                        textXY);
+                EventManager::get()->sendEvent(tipEvent.getPointer());
+            }
+        }
     }
 }
 

@@ -55,6 +55,9 @@ namespace caret {
         void addPoint(const float x,
                       const float y);
         
+        void getPointXYZ(const int32_t pointIndex,
+                         float xyzOut[3]) const;
+        
         bool getBounds(BoundingBox& boundingBoxOut) const;
         
         GraphicsPrimitiveV3f* getGraphicsPrimitive() const;
@@ -101,12 +104,6 @@ namespace caret {
         static float getDefaultLineWidth() { return 0.5f; }
         
     protected:
-//        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-//                                             SceneClass* sceneClass);
-//        
-//        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-//                                                  const SceneClass* sceneClass);
-        
         
     private:
         ChartTwoDataCartesian(const ChartTwoDataCartesian& obj);
@@ -138,6 +135,10 @@ namespace caret {
         float m_timeStartInSecondsAxisX;
         
         float m_timeStepInSecondsAxisX;
+        
+        mutable int32_t m_selectedPointIndex = 0;
+        
+        bool m_selectedPointDisplayed = false;
         
         static int32_t caretColorIndex;
         

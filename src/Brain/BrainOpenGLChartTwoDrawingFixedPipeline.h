@@ -39,6 +39,7 @@ namespace caret {
     class CaretPreferences;
     class ChartTwoCartesianAxis;
     class ChartTwoDataCartesian;
+    class ChartTwoOverlay;
     class ChartTwoOverlaySet;
     class ChartTwoTitle;
     class ChartableTwoFileHistogramChart;
@@ -94,17 +95,20 @@ namespace caret {
         public:
             LineLayerChartDrawingInfo(const ChartableTwoFileLineLayerChart* lineLayerChart,
                                       ChartTwoDataCartesian* chartTwoCartesianData,
+                                      const ChartTwoOverlay* chartTwoOverlay,
                                       const ChartAxisLocationEnum::Enum verticalAxisLocation,
                                       const CaretColor& lineChartColor,
                                       const float lineWidth)
             : m_lineLayerChart(lineLayerChart),
             m_chartTwoCartesianData(chartTwoCartesianData),
+            m_chartTwoOverlay(chartTwoOverlay),
             m_verticalAxisLocation(verticalAxisLocation),
             m_lineChartColor(lineChartColor),
             m_lineWidth(lineWidth) { }
             
             const ChartableTwoFileLineLayerChart* m_lineLayerChart;
             ChartTwoDataCartesian* m_chartTwoCartesianData;
+            const ChartTwoOverlay* m_chartTwoOverlay;
             const ChartAxisLocationEnum::Enum m_verticalAxisLocation;
             const CaretColor m_lineChartColor;
             const float m_lineWidth;

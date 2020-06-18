@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 #include <memory>
 
 #include "CaretColor.h"
@@ -144,6 +145,20 @@ namespace caret {
         
         void setLineLayerLineWidth(const float lineWidth);
         
+        int32_t getSelectedLineChartPointIndex() const;
+        
+        void setSelectedLineChartPointIndex(const int32_t pointIndex);
+        
+        bool isSelectedLineChartPointDisplayed() const;
+        
+        void setSelectedLineChartPointDisplayed(const bool displayed);
+        
+        bool getSelectedLineChartPointXYZ(std::array<float, 3>& xyzOut) const;
+        
+        void setSelectedLineChartPointWindowXYZ(const std::array<float, 3>& windowXYZ) const;
+        
+        void getSelectedLineChartPointWindowXYZ(std::array<float, 3>& windowXYZOut) const;
+        
         virtual void receiveEvent(Event* event);
 
         // ADD_NEW_METHODS_HERE
@@ -230,10 +245,21 @@ namespace caret {
         
         float m_lineLayerLineWidth;
         
+        int32_t m_selectedLineChartPointIndex = 0;
+        
+        bool m_selectedLineChartPointDisplayed = false;
+        
+        /*
+         * Window coordinate of where selected chart point was drawn
+         * NOT saved to scenes
+         */
+        mutable std::array<float, 3> m_selectedLineChartPointWindowXYZ;
+        
         /** A weak pointer to 'self' so that can be stored to safely test instance is valid and can be accessed */
         std::weak_ptr<ChartTwoOverlay> m_weakPointerToSelf;
         
         static int32_t s_defaultColorIndexGenerator;
+        
         // ADD_NEW_MEMBERS_HERE
 
         friend class ChartTwoOverlaySet;

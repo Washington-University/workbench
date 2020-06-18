@@ -59,6 +59,7 @@
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsShape.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "ModelChartTwo.h"
@@ -532,6 +533,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                         
                         lineLayerChartsToDraw.push_back(LineLayerChartDrawingInfo(lineLayerChart,
                                                                                   data,
+                                                                                  chartOverlay,
                                                                                   chartOverlay->getCartesianVerticalAxisLocation(),
                                                                                   chartOverlay->getLineLayerColor(),
                                                                                   chartOverlay->getLineLayerLineWidth()));
@@ -1141,15 +1143,32 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 }
             }
             else {
-                /*
-                 * Temporary fix for line color changing when row changes (sometimes)
-                 */
                 if (lineChart.m_lineChartColor != lineChart.m_chartTwoCartesianData->getColor()) {
                     lineChart.m_chartTwoCartesianData->setColor(lineChart.m_lineChartColor);
                 }
                 lineChart.m_chartTwoCartesianData->setLineWidth(lineChart.m_lineWidth);
 
                 GraphicsEngineDataOpenGL::draw(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
+                
+                if (lineChart.m_chartTwoOverlay->isSelectedLineChartPointDisplayed()) {
+                    std::array<float, 3> xyz;
+                    if (lineChart.m_chartTwoOverlay->getSelectedLineChartPointXYZ(xyz)) {
+                        const uint8_t foregroundRGBA[4] = {
+                            m_fixedPipelineDrawing->m_foregroundColorByte[0],
+                            m_fixedPipelineDrawing->m_foregroundColorByte[1],
+                            m_fixedPipelineDrawing->m_foregroundColorByte[2],
+                            255
+                        };
+
+                        std::array<float, 3> windowXYZ;
+                        const float pctViewportHeight(lineChart.m_lineWidth * 3.0);
+                        GraphicsShape::drawSquarePercentViewportHeight(xyz.data(),
+                                                                       foregroundRGBA,
+                                                                       pctViewportHeight,
+                                                                       &windowXYZ);
+                        lineChart.m_chartTwoOverlay->setSelectedLineChartPointWindowXYZ(windowXYZ);
+                    }
+                }
             }
             
             /*

@@ -141,6 +141,9 @@ namespace caret {
         
         virtual void leaveEvent(QEvent* e);
         
+    private slots:
+        void showSelectedChartPointToolTip();
+        
     private:
         
         std::vector<BrainOpenGLViewportContent*> getDrawingViewportContent(const int32_t windowViewportIn[4]) const;
@@ -203,6 +206,13 @@ namespace caret {
         bool m_openGLContextSharingValid = false;
         
         void* m_contextShareGroupPointer = NULL;
+        
+        struct SelectedChartPointToolTipInfo {
+            QPoint m_position;
+            QString  m_text;
+        };
+        
+        SelectedChartPointToolTipInfo m_selectedChartPointToolTipInfo;
         
         static bool s_defaultGLFormatInitialized;
         

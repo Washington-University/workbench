@@ -151,6 +151,10 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
     m_sceneAssistant->add("m_mapFileDataSelector",
                           "MapFileDataSelector",
                           m_mapFileDataSelector.get());
+    m_sceneAssistant->add("m_selectedPointIndex",
+                          &m_selectedPointIndex);
+    m_sceneAssistant->add("m_selectedPointDisplayed",
+                          &m_selectedPointDisplayed);
 }
 
 /**
@@ -255,6 +259,9 @@ ChartTwoDataCartesian::copyHelperChartTwoDataCartesian(const ChartTwoDataCartesi
     m_lineWidth               = obj.m_lineWidth;
     m_timeStartInSecondsAxisX = obj.m_timeStartInSecondsAxisX;
     m_timeStepInSecondsAxisX  = obj.m_timeStepInSecondsAxisX;
+    
+    m_selectedPointIndex      = obj.m_selectedPointIndex;
+    m_selectedPointDisplayed  = obj.m_selectedPointDisplayed;
 }
 
 /**
@@ -304,6 +311,30 @@ ChartTwoDataCartesian::addPoint(const float x,
 {
     m_graphicsPrimitive->addVertex(x, y);
 }
+
+/**
+ * Get the coordinates of the point at the given index
+ * @param pointIndex
+ *    Index of the point
+ * @param xyzOut
+ *    Output containing XYZ of point
+ */
+void
+ChartTwoDataCartesian::getPointXYZ(const int32_t pointIndex,
+                                   float xyzOut[3]) const
+{
+    if ((pointIndex >= 0)
+        && (pointIndex < m_graphicsPrimitive->getNumberOfVertices())) {
+        m_graphicsPrimitive->getVertexFloatXYZ(pointIndex,
+                                               xyzOut);
+    }
+    else {
+        xyzOut[0] = 0.0;
+        xyzOut[1] = 0.0;
+        xyzOut[2] = 0.0;
+    }
+}
+
 
 /**
  * Get a bounds box for the cartesian data.

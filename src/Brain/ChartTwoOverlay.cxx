@@ -93,6 +93,8 @@ m_overlayIndex(overlayIndex)
     m_selectedLineLayerMapIndex = -1;
     m_lineLayerColor.setCaretColorEnum(generateDefaultColor());
     m_lineLayerLineWidth = ChartTwoDataCartesian::getDefaultLineWidth();
+    m_selectedLineChartPointIndex = 0;
+    m_selectedLineChartPointDisplayed = false;
 
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_enabled", &m_enabled);
@@ -107,9 +109,13 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add("m_allHistogramMapsSelectedFlag", &m_allHistogramMapsSelectedFlag);
     m_sceneAssistant->add("m_selectedLineLayerMapIndex", &m_selectedLineLayerMapIndex);
     m_sceneAssistant->add("m_lineLayerLineWidth", &m_lineLayerLineWidth);
+    m_sceneAssistant->add("m_selectedLineChartPointIndex", &m_selectedLineChartPointIndex);
+    m_sceneAssistant->add("m_selectedLineChartPointDisplayed", &m_selectedLineChartPointDisplayed);
                                                                 
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE);
+    
+    m_selectedLineChartPointWindowXYZ.fill(-1.0);
 }
 
 /**
@@ -265,7 +271,6 @@ ChartTwoOverlay::setChartTwoCompoundDataType(const ChartTwoCompoundDataType& cha
                            " for first overlay");
         return;
     }
-//    do for overlay zero ??
         
     if (chartCompoundDataType.getChartTwoDataType() != ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID) {
         CaretAssert(m_chartDataType == chartCompoundDataType.getChartTwoDataType());
@@ -372,9 +377,11 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
     m_selectedHistogramMapIndex = overlay->m_selectedHistogramMapIndex;
     m_allHistogramMapsSelectedFlag = overlay->m_allHistogramMapsSelectedFlag;
     m_selectedLineLayerMapIndex = overlay->m_selectedLineLayerMapIndex;
-    
     m_lineLayerColor = overlay->m_lineLayerColor;
     m_lineLayerLineWidth = overlay->m_lineLayerLineWidth;
+    m_selectedLineChartPointIndex = overlay->m_selectedLineChartPointIndex;
+    m_selectedLineChartPointDisplayed = overlay->m_selectedLineChartPointDisplayed;
+    m_selectedLineChartPointWindowXYZ.fill(-1.0);
 }
 
 /**
@@ -837,6 +844,8 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
                 break;
             }
         }
+
+        m_selectedLineChartPointWindowXYZ.fill(-1.0);
     }
     
     if (m_selectedMapFile != NULL) {
@@ -1416,6 +1425,122 @@ ChartTwoOverlay::generateDefaultColor()
 }
 
 /**
+ * @return Index of selected point in line chart
+ */
+int32_t
+ChartTwoOverlay::getSelectedLineChartPointIndex() const
+{
+    return m_selectedLineChartPointIndex;
+}
+
+/**
+ * Set the index of the selected point in the line chart
+ * @param pointIndex
+ *   Index of selected point
+ */
+void
+ChartTwoOverlay::setSelectedLineChartPointIndex(const int32_t pointIndex)
+{
+    m_selectedLineChartPointIndex = pointIndex;
+}
+
+/**
+ * @return True if line chart selected point is displayed
+ */
+bool
+ChartTwoOverlay::isSelectedLineChartPointDisplayed() const
+{
+    return m_selectedLineChartPointDisplayed;
+}
+
+/**
+ * Set the selected line chart point is displayed
+ * @param display
+ *    New display status
+ */
+void
+ChartTwoOverlay::setSelectedLineChartPointDisplayed(const bool displayed)
+{
+    m_selectedLineChartPointDisplayed = displayed;
+    if ( ! m_selectedLineChartPointDisplayed) {
+        m_selectedLineChartPointWindowXYZ.fill(-1.0);
+    }
+}
+
+/**
+ * Get the XYZ-coordinate of the selected line chart point
+ * @param xyzOut
+ *    Output with selected point coordinate
+ * @return True if the selected point is displayed and the index is within
+ * the range of the lines points and thus the XYZ is valid for display
+ */
+bool
+ChartTwoOverlay::getSelectedLineChartPointXYZ(std::array<float, 3>& xyzOut) const
+{
+    if (m_selectedLineChartPointDisplayed) {
+        CaretMappableDataFile* mapFile = NULL;
+        SelectedIndexType selectedIndexType = SelectedIndexType::INVALID;
+        int32_t selectedIndex = -1;
+        getSelectionData(mapFile,
+                         selectedIndexType,
+                         selectedIndex);
+        
+        if (mapFile == NULL) {
+            return false;
+        }
+        
+        ChartableTwoFileDelegate* chartDelegate = mapFile->getChartingDelegate();
+        switch (m_chartDataType) {
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            {
+                ChartableTwoFileLineLayerChart* layerChart = chartDelegate->getLineLayerCharting();
+                CaretAssert(layerChart);
+                ChartTwoDataCartesian* cd = layerChart->getChartMapLine(selectedIndex);
+                CaretAssert(cd);
+                cd->getPointXYZ(m_selectedLineChartPointIndex,
+                                xyzOut.data());
+                return true;
+            }
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                break;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Set the window XYZ position of where the selected line chart point was drawn.
+ * @param windowXYZ
+ *    XYZ coordinate of where selected point was drawn.
+ *    Invalid when X component is negative
+ */
+void
+ChartTwoOverlay::setSelectedLineChartPointWindowXYZ(const std::array<float, 3>& windowXYZ) const
+{
+    m_selectedLineChartPointWindowXYZ = windowXYZ;
+}
+
+/**
+ * Get the window XYZ position of where the selected line chart point was drawn.
+ * @param windowXYZOut
+ *    XYZ coordinate of where selected point was drawn.
+ *    Invalid when X component is negative
+ */
+void
+ChartTwoOverlay::getSelectedLineChartPointWindowXYZ(std::array<float, 3>& windowXYZOut) const
+{
+    windowXYZOut = m_selectedLineChartPointWindowXYZ;
+}
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
@@ -1499,6 +1624,7 @@ ChartTwoOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (sceneClass == NULL) {
         return;
     }
+    m_selectedLineChartPointWindowXYZ.fill(-1.0);
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

@@ -397,6 +397,7 @@ EventGetOrSetUserInputModeProcessor.h
 EventGraphicsTimingOneWindow.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
+EventGraphicsWindowShowToolTip.h
 EventHelpViewerDisplay.h
 EventIdentificationRequest.h
 EventImageCapture.h
@@ -699,6 +700,7 @@ EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsTimingOneWindow.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
+EventGraphicsWindowShowToolTip.cxx
 EventHelpViewerDisplay.cxx
 EventIdentificationRequest.cxx
 EventImageCapture.cxx
