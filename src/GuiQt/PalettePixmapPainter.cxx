@@ -584,7 +584,6 @@ PalettePixmapPainter::drawScalarLines(const PaletteNew* palette,
     const float black[3] { 0.0, 0.0, 0.0 };
     
     const qreal pixmapHeight(m_pixmap.height());
-    const qreal halfPixmapHeight(m_pixmap.height() / 2.0);
     
     const int32_t numPoints = static_cast<int32_t>(scalarsAndColors.size());
     for (int32_t i = 0; i < numPoints; i++) {
