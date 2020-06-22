@@ -1426,42 +1426,40 @@ ChartTwoOverlay::generateDefaultColor()
 int32_t
 ChartTwoOverlay::getSelectedLineChartNumberOfPoints() const
 {
-    if (m_selectedLineChartPointDisplayed) {
-        CaretMappableDataFile* mapFile = NULL;
-        SelectedIndexType selectedIndexType = SelectedIndexType::INVALID;
-        int32_t selectedIndex = -1;
-        getSelectionData(mapFile,
-                         selectedIndexType,
-                         selectedIndex);
-        
-        if (mapFile == NULL) {
-            return false;
-        }
-        
-        ChartableTwoFileDelegate* chartDelegate = mapFile->getChartingDelegate();
-        switch (m_chartDataType) {
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-                break;
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                break;
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
-            {
-                ChartableTwoFileLineLayerChart* layerChart = chartDelegate->getLineLayerCharting();
-                CaretAssert(layerChart);
-                ChartTwoDataCartesian* cd = layerChart->getChartMapLine(selectedIndex);
-                CaretAssert(cd);
-                const GraphicsPrimitive* gp(cd->getGraphicsPrimitive());
-                CaretAssert(gp);
-                return gp->getNumberOfVertices();
-            }
-                break;
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-                break;
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                break;
-        }
+    CaretMappableDataFile* mapFile = NULL;
+    SelectedIndexType selectedIndexType = SelectedIndexType::INVALID;
+    int32_t selectedIndex = -1;
+    getSelectionData(mapFile,
+                     selectedIndexType,
+                     selectedIndex);
+    
+    if (mapFile == NULL) {
+        return false;
     }
     
+    ChartableTwoFileDelegate* chartDelegate = mapFile->getChartingDelegate();
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+        {
+            ChartableTwoFileLineLayerChart* layerChart = chartDelegate->getLineLayerCharting();
+            CaretAssert(layerChart);
+            ChartTwoDataCartesian* cd = layerChart->getChartMapLine(selectedIndex);
+            CaretAssert(cd);
+            const GraphicsPrimitive* gp(cd->getGraphicsPrimitive());
+            CaretAssert(gp);
+            return gp->getNumberOfVertices();
+        }
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+    }
+
     return 0;
 }
 
@@ -1474,6 +1472,10 @@ ChartTwoOverlay::getSelectedLineChartPointIndex() const
     if (m_selectedLineChartPointIndex >= getSelectedLineChartNumberOfPoints()) {
         m_selectedLineChartPointIndex = getSelectedLineChartNumberOfPoints() - 1;
     }
+    if (m_selectedLineChartPointIndex < 0) {
+        m_selectedLineChartPointIndex = 0;
+    }
+    
     return m_selectedLineChartPointIndex;
 }
 
