@@ -1257,39 +1257,36 @@ IdentificationFormattedTextGenerator::generateChartTwoLineLayerIdentificationTex
         const GraphicsPrimitive* primitive = cartesianData->getGraphicsPrimitive();
         CaretAssert(primitive);
         
-        if (primitiveIndex >= 1) {
+        if (primitiveIndex >= 0) {
             float xyz1[3];
-            primitive->getVertexFloatXYZ(primitiveIndex - 1,
-                                         xyz1);
-            float xyz2[3];
             primitive->getVertexFloatXYZ(primitiveIndex,
-                                         xyz2);
+                                         xyz1);
+            
+            const int32_t nextIndex(((primitiveIndex + 1) < primitive->getNumberOfVertices())
+                                    ? (primitiveIndex + 1)
+                                    : -1);
+            float xyz2[3];
+            if (nextIndex >= 0) {
+                primitive->getVertexFloatXYZ(nextIndex,
+                                             xyz2);
+            }
+            
             if (toolTipFlag) {
                 idText.addLine(true,
                                "XY Start",
                                AString::fromNumbers(xyz1, 2, ", "));
-                idText.addLine(true,
-                               "XY End ",
-                               AString::fromNumbers(xyz2, 2, ", "));
+                if (nextIndex >= 0) {
+                    idText.addLine(true,
+                                   "XY End ",
+                                   AString::fromNumbers(xyz2, 2, ", "));
+                }
             }
             else {
-                htmlTableBuilder.addRow(("XY Start:" + AString::fromNumbers(xyz1, 2, ", "))
-                                        + ("XY End:" + AString::fromNumbers(xyz2, 2, ", ")),
-                                        boldText,
-                                        chartMapFile->getFileNameNoPath());
-            }
-        }
-        else {
-            float xyz[3];
-            primitive->getVertexFloatXYZ(primitiveIndex,
-                                         xyz);
-            if (toolTipFlag) {
-                idText.addLine(true,
-                               "XY",
-                               AString::fromNumbers(xyz, 2, ", "));
-            }
-            else {
-                htmlTableBuilder.addRow(("XY:" + AString::fromNumbers(xyz, 2, ", ")),
+                AString text("XY Start:" + AString::fromNumbers(xyz1, 2, ", "));
+                if (nextIndex >= 0) {
+                    text.append(" XY End:" + AString::fromNumbers(xyz2, 2, ", "));
+                }
+                htmlTableBuilder.addRow(text,
                                         boldText,
                                         chartMapFile->getFileNameNoPath());
             }

@@ -50,7 +50,6 @@ using namespace caret;
 #include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
-#include "EventGraphicsWindowShowToolTip.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
@@ -542,7 +541,8 @@ ChartTwoOverlayViewController::enabledCheckBoxClicked(bool checked)
         return;
     }
     m_chartOverlay->setEnabled(checked);
-    
+    updateViewController(m_chartOverlay);
+
     const MapYokingGroupEnum::Enum mapYoking = m_chartOverlay->getMapYokingGroup();
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         CaretMappableDataFile* mapFile = NULL;
@@ -963,6 +963,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_selectedPointIndexSpinBox->setEnabled(false);
     if (validOverlayAndFileFlag) {
         m_selectedPointCheckBox->setChecked(m_chartOverlay->isSelectedLineChartPointDisplayed());
+        m_selectedPointIndexSpinBox->setRange(0, m_chartOverlay->getSelectedLineChartNumberOfPoints() - 1);
         m_selectedPointIndexSpinBox->setValue(m_chartOverlay->getSelectedLineChartPointIndex());
         if (m_chartOverlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER) {
             m_selectedPointCheckBox->setEnabled(true);
@@ -1283,6 +1284,7 @@ ChartTwoOverlayViewController::selectedPointCheckBoxClicked(bool selected)
 {
     if (m_chartOverlay != NULL) {
         m_chartOverlay->setSelectedLineChartPointDisplayed(selected);
+        updateViewController(m_chartOverlay);
         updateGraphicsWindow();
     }
 }
@@ -1313,28 +1315,6 @@ ChartTwoOverlayViewController::selectedPointIndexSpinBoxValueChanged(int index)
             EventGraphicsUpdateOneWindow graphicsEvent(m_browserWindowIndex,
                                                        doRepaintFlag);
             EventManager::get()->sendEvent(graphicsEvent.getPointer());
-            
-            std::array<float, 3> pointXYZ;
-            if (m_chartOverlay->getSelectedLineChartPointXYZ(pointXYZ)) {
-                std::array<float, 3> windowXYZ;
-                m_chartOverlay->getSelectedLineChartPointWindowXYZ(windowXYZ);
-                
-                QString textXY("<html>Index: "
-                               + AString::number(index)
-                               + "<br>X: "
-                               + AString::number(pointXYZ[0])
-                               + "<br>Y: "
-                               + AString::number(pointXYZ[1])
-                               + "</html>");
-                /*
-                 * Note that windowXYZ is with origin at bottom left
-                 */
-                EventGraphicsWindowShowToolTip tipEvent(m_browserWindowIndex,
-                                                        EventGraphicsWindowShowToolTip::WindowOrigin::BOTTOM_LEFT,
-                                                        windowXYZ,
-                                                        textXY);
-                EventManager::get()->sendEvent(tipEvent.getPointer());
-            }
         }
     }
 }

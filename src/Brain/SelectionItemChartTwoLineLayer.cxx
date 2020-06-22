@@ -40,9 +40,10 @@ using namespace caret;
 SelectionItemChartTwoLineLayer::SelectionItemChartTwoLineLayer()
 : SelectionItem(SelectionItemDataTypeEnum::CHART_TWO_LINE_LAYER)
 {
-    m_fileLineLayerChart = NULL;
+    m_fileLineLayerChart    = NULL;
     m_chartTwoCartesianData = NULL;
-    m_lineSegmentIndex    = -1;
+    m_chartOverlay          = NULL;
+    m_lineSegmentIndex      = -1;
 }
 
 /**
@@ -98,6 +99,12 @@ SelectionItemChartTwoLineLayer::getChartTwoCartesianData() const
     return m_chartTwoCartesianData;
 }
 
+ChartTwoOverlay*
+SelectionItemChartTwoLineLayer::getChartTwoOverlay()
+{
+    return m_chartOverlay;
+}
+
 /**
  * @return The line segment index.
  */
@@ -114,17 +121,21 @@ SelectionItemChartTwoLineLayer::getLineSegmentIndex() const
  *     The line layer chart.
  * @param chartTwoCartesianData
  *     The cartesian data.
+ * @param chartOverlay
+ *     The chart overlay
  * @param lineSegmentIndex
  *     Index of the line segment.
  */
 void
 SelectionItemChartTwoLineLayer::setLineLayerChart(ChartableTwoFileLineLayerChart* fileLineLayerChart,
-                                                    ChartTwoDataCartesian* chartTwoCartesianData,
-                                                    const int32_t lineSegmentIndex)
+                                                  ChartTwoDataCartesian* chartTwoCartesianData,
+                                                  ChartTwoOverlay* chartOverlay,
+                                                  const int32_t lineSegmentIndex)
 {
-    m_fileLineLayerChart = fileLineLayerChart;
+    m_fileLineLayerChart    = fileLineLayerChart;
     m_chartTwoCartesianData = chartTwoCartesianData;
-    m_lineSegmentIndex    = lineSegmentIndex;
+    m_chartOverlay          = chartOverlay;
+    m_lineSegmentIndex      = lineSegmentIndex;
 }
 
 /**
@@ -135,9 +146,10 @@ SelectionItemChartTwoLineLayer::setLineLayerChart(ChartableTwoFileLineLayerChart
 void 
 SelectionItemChartTwoLineLayer::copyHelperSelectionItemChartTwoLineLayer(const SelectionItemChartTwoLineLayer& obj)
 {
-    m_fileLineLayerChart = obj.m_fileLineLayerChart;
+    m_fileLineLayerChart    = obj.m_fileLineLayerChart;
     m_chartTwoCartesianData = obj.m_chartTwoCartesianData;
-    m_lineSegmentIndex    = obj.m_lineSegmentIndex;
+    m_chartOverlay          = obj.m_chartOverlay;
+    m_lineSegmentIndex      = obj.m_lineSegmentIndex;
 }
 
 /**
@@ -148,6 +160,7 @@ SelectionItemChartTwoLineLayer::isValid() const
 {
     return ((m_fileLineLayerChart != NULL)
             && (m_chartTwoCartesianData != NULL)
+            && (m_chartOverlay != NULL)
             && (m_lineSegmentIndex >= 0));
 }
 
@@ -157,8 +170,9 @@ SelectionItemChartTwoLineLayer::isValid() const
 void
 SelectionItemChartTwoLineLayer::reset()
 {
-    m_fileLineLayerChart = NULL;
+    m_fileLineLayerChart    = NULL;
     m_chartTwoCartesianData = NULL;
-    m_lineSegmentIndex    = -1;
+    m_chartOverlay          = NULL;
+    m_lineSegmentIndex      = -1;
 }
 

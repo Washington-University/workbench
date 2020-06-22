@@ -116,6 +116,7 @@
 #include "SceneWindowGeometry.h"
 #include "SelectionManager.h"
 #include "SelectionItemChartMatrix.h"
+#include "SelectionItemChartTwoLineLayer.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemSurfaceNode.h"
@@ -3535,6 +3536,14 @@ GuiManager::processIdentification(const int32_t tabIndex,
                     }
                 }
             }
+        }
+        
+        SelectionItemChartTwoLineLayer* layerChartID = selectionManager->getChartTwoLineLayerIdentification();
+        if (layerChartID->isValid()) {
+            const int32_t pointIndex = layerChartID->getLineSegmentIndex();
+            ChartTwoOverlay* chartOverlay = layerChartID->getChartTwoOverlay();
+            chartOverlay->setSelectedLineChartPointIndex(pointIndex);
+            updateGraphicsFlag = true;
         }
         
         /*

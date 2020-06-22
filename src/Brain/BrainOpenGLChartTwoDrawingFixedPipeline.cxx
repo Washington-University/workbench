@@ -1126,17 +1126,22 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 /*
                  * Increase width as thin lines are difficult to select
                  */
-                lineChart.m_chartTwoCartesianData->setLineWidth(lineChart.m_lineWidth * 2.0);
+                lineChart.m_chartTwoCartesianData->setLineWidth(lineChart.m_lineWidth * 3.0);
                 GraphicsEngineDataOpenGL::drawWithSelection(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive(),
                                                             m_fixedPipelineDrawing->mouseX,
                                                             m_fixedPipelineDrawing->mouseY,
                                                             primitiveIndex,
                                                             primitiveDepth);
+                /*
+                 * primitive returned is end point of a line so subtract one
+                 */
+                --primitiveIndex;
                 
                 if (primitiveIndex >= 0) {
                     if (m_selectionItemLineLayer->isOtherScreenDepthCloserToViewer(primitiveDepth)) {
                         m_selectionItemLineLayer->setLineLayerChart(const_cast<ChartableTwoFileLineLayerChart*>(lineChart.m_lineLayerChart),
                                                                     const_cast<ChartTwoDataCartesian*>(lineChart.m_chartTwoCartesianData),
+                                                                    const_cast<ChartTwoOverlay*>(lineChart.m_chartTwoOverlay),
                                                                     primitiveIndex);
                         m_selectionItemLineLayer->setScreenDepth(primitiveDepth);
                     }
@@ -1161,12 +1166,80 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                         };
 
                         std::array<float, 3> windowXYZ;
-                        const float pctViewportHeight(lineChart.m_lineWidth * 3.0);
-                        GraphicsShape::drawSquarePercentViewportHeight(xyz.data(),
-                                                                       foregroundRGBA,
-                                                                       pctViewportHeight,
-                                                                       &windowXYZ);
-                        lineChart.m_chartTwoOverlay->setSelectedLineChartPointWindowXYZ(windowXYZ);
+                        const float pctViewportHeight(lineChart.m_lineWidth * 6.0);
+                        GraphicsShape::drawCircleFilledPercentViewportHeight(xyz.data(),
+                                                                             foregroundRGBA,
+                                                                             pctViewportHeight,
+                                                                             &windowXYZ);
+
+                        {
+                            const QString info("Index: "
+                                               + QString::number(lineChart.m_chartTwoOverlay->getSelectedLineChartPointIndex())
+                                               + "\nX: "
+                                               + QString::number(xyz[0], 'f')
+                                               + "\nY: "
+                                               + QString::number(xyz[1], 'f'));
+                            AnnotationPercentSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL,
+                                                            AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
+                            text.setText(info);
+                            text.setFontPercentViewportSize(4.0);
+                            text.setBoldStyleEnabled(true);
+                            text.setTextColor(CaretColorEnum::BLACK);
+                            text.setBackgroundColor(CaretColorEnum::CUSTOM);
+                            const uint8_t backgroundColor[4] { 200, 200, 200, 255 };
+                            text.setCustomBackgroundColor(backgroundColor);
+                            text.setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+                            text.getCoordinate()->setXYZ(windowXYZ.data());
+                            text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+
+                            const float vpWidth(chartGraphicsDrawingViewport[2]);
+                            const float vpHeight(chartGraphicsDrawingViewport[3]);
+                            float vpX(windowXYZ[0] - chartGraphicsDrawingViewport[0]);
+                            float vpY(windowXYZ[1] - chartGraphicsDrawingViewport[1]);
+                            const float offsetXY(10.0);
+                            if (vpX > (vpWidth / 2.0)) {
+                                /*
+                                 * Place text to the left of the selected point.
+                                 * Need additional offset of text width since the text is
+                                 * aligned on the left.  Right alignment looks bad when
+                                 * the lines of text are different lengths and aligned on right.
+                                 */
+                                double textWidth = 0.0;
+                                double textHeight = 0.0;
+                                m_textRenderer->getTextWidthHeightInPixels(text,
+                                                                           BrainOpenGLTextRenderInterface::DrawingFlags(),
+                                                                           vpWidth, vpHeight,
+                                                                           textWidth, textHeight);
+                                vpX -= (offsetXY + textWidth);
+                            }
+                            else {
+                                /*
+                                 * Place text to the right of the selected point
+                                 */
+                                vpX += offsetXY;
+                            }
+                            if (vpY > (vpHeight / 2.0)) {
+                                /*
+                                 * Place text below selected point
+                                 */
+                                vpY -= offsetXY;
+                                text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                            }
+                            else {
+                                /*
+                                 * Place text above selected point
+                                 */
+                                vpY += offsetXY;
+                                text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                            }
+                            
+                            const float vpZ(0.0);
+                            m_textRenderer->drawTextAtViewportCoords(vpX,
+                                                                     vpY,
+                                                                     vpZ,
+                                                                     text,
+                                                                     BrainOpenGLTextRenderInterface::DrawingFlags());
+                        }
                     }
                 }
             }

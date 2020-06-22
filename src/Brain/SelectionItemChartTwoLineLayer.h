@@ -29,6 +29,7 @@
 namespace caret {
 
     class ChartTwoDataCartesian;
+    class ChartTwoOverlay;
     class ChartableTwoFileLineLayerChart;
     
     class SelectionItemChartTwoLineLayer : public SelectionItem {
@@ -50,22 +51,27 @@ namespace caret {
         
         const ChartTwoDataCartesian* getChartTwoCartesianData() const;
         
+        ChartTwoOverlay* getChartTwoOverlay();
+        
         int32_t getLineSegmentIndex() const;
         
         void setLineLayerChart(ChartableTwoFileLineLayerChart* fileLineLayerChart,
-                                ChartTwoDataCartesian* chartTwoCartesianData,
-                                const int32_t lineSegmentIndex);
+                               ChartTwoDataCartesian* chartTwoCartesianData,
+                               ChartTwoOverlay* chartOverlay,
+                               const int32_t lineSegmentIndex);
 
         // ADD_NEW_METHODS_HERE
 
     private:
         void copyHelperSelectionItemChartTwoLineLayer(const SelectionItemChartTwoLineLayer& obj);
 
-        ChartableTwoFileLineLayerChart* m_fileLineLayerChart;
+        ChartableTwoFileLineLayerChart* m_fileLineLayerChart = NULL;
         
-        ChartTwoDataCartesian* m_chartTwoCartesianData;
+        ChartTwoDataCartesian* m_chartTwoCartesianData = NULL;
         
-        int32_t m_lineSegmentIndex;
+        ChartTwoOverlay* m_chartOverlay = NULL;
+        
+        int32_t m_lineSegmentIndex= 0;
         
         // ADD_NEW_MEMBERS_HERE
 
