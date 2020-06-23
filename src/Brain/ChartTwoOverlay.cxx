@@ -1469,14 +1469,23 @@ ChartTwoOverlay::getSelectedLineChartNumberOfPoints() const
 int32_t
 ChartTwoOverlay::getSelectedLineChartPointIndex() const
 {
+    validateSelectedLineChartPointIndex();
+    
+    return m_selectedLineChartPointIndex;
+}
+
+/**
+ * Validate the selected line chart point index (in value range)
+ */
+void
+ChartTwoOverlay::validateSelectedLineChartPointIndex() const
+{
     if (m_selectedLineChartPointIndex >= getSelectedLineChartNumberOfPoints()) {
         m_selectedLineChartPointIndex = getSelectedLineChartNumberOfPoints() - 1;
     }
     if (m_selectedLineChartPointIndex < 0) {
         m_selectedLineChartPointIndex = 0;
     }
-    
-    return m_selectedLineChartPointIndex;
 }
 
 /**
@@ -1488,6 +1497,18 @@ void
 ChartTwoOverlay::setSelectedLineChartPointIndex(const int32_t pointIndex)
 {
     m_selectedLineChartPointIndex = pointIndex;
+}
+
+/**
+ * Increment the selected line chart point index by the given amout
+ * @param incrementValue
+ *    Amount to increment, may be negative to decrement
+ */
+void
+ChartTwoOverlay::incrementSelectedLineChartPointIndex(const int32_t incrementValue)
+{
+    m_selectedLineChartPointIndex += incrementValue;
+    validateSelectedLineChartPointIndex();
 }
 
 /**

@@ -44,6 +44,8 @@ namespace caret {
         
         virtual CursorEnum::Enum getCursor() const;
         
+        virtual bool keyPressEvent(const KeyEvent& /*keyEvent*/) override;
+        
         virtual void mouseLeftDoubleClick(const MouseEvent& mouseEvent);
         
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);

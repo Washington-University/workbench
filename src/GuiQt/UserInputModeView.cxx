@@ -31,6 +31,7 @@
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "ChartTwoCartesianAxis.h"
+#include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -39,8 +40,10 @@
 #include "EventManager.h"
 #include "GestureEvent.h"
 #include "GuiManager.h"
+#include "KeyEvent.h"
 #include "MouseEvent.h"
 #include "SelectionItemChartTwoLabel.h"
+#include "SelectionItemChartTwoLineLayer.h"
 #include "SelectionManager.h"
 #include "UserInputModeViewContextMenu.h"
 #include "WuQDataEntryDialog.h"
@@ -553,3 +556,55 @@ UserInputModeView::updateGraphics(const MouseEvent& mouseEvent)
     }
 }
 
+/**
+ * Process a key press event
+ *
+ * @param keyEvent
+ *     Key event information.
+ * @return
+ *     True if the input process recognized the key event
+ *     and the key event SHOULD NOT be propagated to parent
+ *     widgets
+ */
+bool
+UserInputModeView::keyPressEvent(const KeyEvent& keyEvent)
+{
+    bool keyWasProcessedFlag(false);
+    
+    const int32_t keyCode = keyEvent.getKeyCode();
+    switch (keyCode) {
+        case Qt::Key_Right:
+        case Qt::Key_Left:
+        {
+            std::array<int32_t, 2> mouseXY;
+            if (keyEvent.getMouseXY(mouseXY)) {
+                /*
+                 * Increment/decrement selected point in line layer chart
+                 */
+                SelectionManager* selectionManager = keyEvent.getOpenGLWidget()->performIdentification(mouseXY[0],
+                                                                                                       mouseXY[1],
+                                                                                                       false);
+                
+                SelectionItemChartTwoLineLayer* layerSelection = selectionManager->getChartTwoLineLayerIdentification();
+                CaretAssert(layerSelection);
+                if (layerSelection->isValid()) {
+                    ChartTwoOverlay* chartOverlay = layerSelection->getChartTwoOverlay();
+                    std::array<float, 3> xyz;
+                    /*
+                     * Returns true if a line layer chart is displayed in overlay
+                     */
+                    if (chartOverlay->getSelectedLineChartPointXYZ(xyz)) {
+                        chartOverlay->incrementSelectedLineChartPointIndex((keyCode == Qt::Key_Right)
+                                                                           ? 1
+                                                                           : -1);
+                        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(keyEvent.getBrowserWindowIndex()).getPointer());
+                        keyWasProcessedFlag = true;
+                    }
+                }
+            }
+        }
+            break;
+    }
+    
+    return keyWasProcessedFlag;
+}

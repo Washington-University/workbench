@@ -1126,7 +1126,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 /*
                  * Increase width as thin lines are difficult to select
                  */
-                lineChart.m_chartTwoCartesianData->setLineWidth(lineChart.m_lineWidth * 3.0);
+                const float minWidth(3.0);
+                const float lineWidthPercentage(std::max(lineChart.m_lineWidth, minWidth));
+                lineChart.m_chartTwoCartesianData->setLineWidth(lineWidthPercentage);
                 GraphicsEngineDataOpenGL::drawWithSelection(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive(),
                                                             m_fixedPipelineDrawing->mouseX,
                                                             m_fixedPipelineDrawing->mouseY,

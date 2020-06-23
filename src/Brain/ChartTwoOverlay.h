@@ -151,6 +151,8 @@ namespace caret {
         
         void setSelectedLineChartPointIndex(const int32_t pointIndex);
         
+        void incrementSelectedLineChartPointIndex(const int32_t incrementValue);
+
         bool isSelectedLineChartPointDisplayed() const;
         
         void setSelectedLineChartPointDisplayed(const bool displayed);
@@ -193,6 +195,8 @@ namespace caret {
         bool isMapYokingSupportedPrivate(const CaretMappableDataFile* mapFile) const;
         
         void validateCartesianVerticalAxisLocation() const;
+        
+        void validateSelectedLineChartPointIndex() const;
         
         static CaretColorEnum::Enum generateDefaultColor();
         

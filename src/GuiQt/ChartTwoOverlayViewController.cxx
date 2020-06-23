@@ -263,6 +263,13 @@ m_chartOverlay(NULL)
     /*
      * Seledted point check box and spin box
      */
+    const QString spinToolTipText("Set index of selected point.  Index may also be set "
+                                  "by clicking the mouse over the line in the chart "
+                                  "graphics.  Index can be "
+                                  "incremented/decremented by placing mouse over the "
+                                  "line in the chart graphics and pressing the right/left "
+                                  "arrow keys (it may be necessary to click in the "
+                                  "chart graphics for the arrow keys to function).");
     m_selectedPointCheckBox = new QCheckBox((orientation == Qt::Horizontal)
                                                    ? "" : "Show");
     m_selectedPointCheckBox->setToolTip("Draw symbol at selected point");
@@ -270,6 +277,8 @@ m_chartOverlay(NULL)
                      this, &ChartTwoOverlayViewController::selectedPointCheckBoxClicked);
     m_selectedPointIndexSpinBox = new QSpinBox();
     m_selectedPointIndexSpinBox->setToolTip("Set index of selected point");
+    WuQtUtilities::setWordWrappedToolTip(m_selectedPointIndexSpinBox,
+                                         spinToolTipText);
     m_selectedPointIndexSpinBox->setSingleStep(1);
     QObject::connect(m_selectedPointIndexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &ChartTwoOverlayViewController::selectedPointIndexSpinBoxValueChanged);
