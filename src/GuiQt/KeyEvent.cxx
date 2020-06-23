@@ -18,9 +18,12 @@
  */
 /*LICENSE_END*/
 
+#include <QCursor>
 #include <QKeyEvent>
 #include <QWheelEvent>
 
+#include "BrainOpenGLWidget.h"
+#include "CaretAssert.h"
 #include "KeyEvent.h"
 
 using namespace caret;
@@ -56,6 +59,20 @@ m_keyCode(keyCode),
 m_firstKeyPressFlag(firstKeyPressFlag),
 m_shiftKeyDownFlag(shiftKeyDownFlag)
 {
+    CaretAssert(m_openGLWidget);
+ 
+    const QPoint mousePos = m_openGLWidget->mapFromGlobal(QCursor::pos());
+    m_mouseX = mousePos.x();
+    m_mouseY = m_openGLWidget->height() - mousePos.y();
+    if ((m_mouseX >= 0)
+        && (m_mouseX < m_openGLWidget->width())
+        && (m_mouseY >= 0)
+        && (m_mouseY < m_openGLWidget->height())) {
+        m_mouseXYValid = true;
+    }
+    else {
+        m_mouseXYValid = false;
+    }
 }
 
 /**
@@ -135,6 +152,20 @@ bool
 KeyEvent::isShiftKeyDownFlag() const
 {
     return m_shiftKeyDownFlag;
+}
+
+/*
+ * Get the mouse X/Y cooordinate in the OpenGL widget (origin is bottom left)
+ * @param mouseXYOut
+ *   Output with mouse X/Y
+ * @return True if mouse X/Y is valid, else false
+ */
+bool
+KeyEvent::getMouseXY(std::array<int32_t, 2>& mouseXYOut) const
+{
+    mouseXYOut[0] = m_mouseX;
+    mouseXYOut[1] = m_mouseY;
+    return m_mouseXYValid;
 }
 
 

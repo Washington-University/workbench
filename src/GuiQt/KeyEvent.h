@@ -21,9 +21,10 @@
  */
 /*LICENSE_END*/
 
-#include "CaretObject.h"
-
+#include <array>
 #include <stdint.h>
+
+#include "CaretObject.h"
 
 class QKeyEvent;
 
@@ -65,6 +66,8 @@ namespace caret {
         
         bool isShiftKeyDownFlag() const;
         
+        bool getMouseXY(std::array<int32_t, 2>& mouseXYOut) const;
+        
     private:
         BrainOpenGLWidget* m_openGLWidget;
         
@@ -75,6 +78,12 @@ namespace caret {
         const bool m_firstKeyPressFlag;
         
         const bool m_shiftKeyDownFlag;
+        
+        int32_t m_mouseX = -1;
+        
+        int32_t m_mouseY = -1;
+        
+        bool m_mouseXYValid = false;
     };
     
 } // namespace
