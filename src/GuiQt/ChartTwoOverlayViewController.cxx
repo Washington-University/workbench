@@ -266,8 +266,9 @@ m_chartOverlay(NULL)
     const QString spinToolTipText("Set index of selected point.  Index may also be set "
                                   "by clicking the mouse over the line in the chart "
                                   "graphics.  Index can be "
-                                  "incremented/decremented by placing mouse over the "
-                                  "line in the chart graphics and pressing the right/left "
+                                  "incremented by placing mouse over the "
+                                  "line in the chart graphics and pressing the right or up "
+                                  "arrow keys and decremented using the left or down "
                                   "arrow keys (it may be necessary to click in the "
                                   "chart graphics for the arrow keys to function).");
     m_selectedPointCheckBox = new QCheckBox((orientation == Qt::Horizontal)
@@ -968,18 +969,19 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     /*
      * Update selected point checkbox and index
      */
-    m_selectedPointCheckBox->setEnabled(false);
-    m_selectedPointIndexSpinBox->setEnabled(false);
+    bool pointValidFlag(false);
     if (validOverlayAndFileFlag) {
         m_selectedPointCheckBox->setChecked(m_chartOverlay->isSelectedLineChartPointDisplayed());
         m_selectedPointIndexSpinBox->setRange(0, m_chartOverlay->getSelectedLineChartNumberOfPoints() - 1);
+        QSignalBlocker spinBlocker(m_selectedPointIndexSpinBox);
         m_selectedPointIndexSpinBox->setValue(m_chartOverlay->getSelectedLineChartPointIndex());
         if (m_chartOverlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER) {
-            m_selectedPointCheckBox->setEnabled(true);
-            m_selectedPointIndexSpinBox->setEnabled(true);
+            pointValidFlag = true;
         }
     }
-    
+    m_selectedPointCheckBox->setEnabled(pointValidFlag);
+    m_selectedPointIndexSpinBox->setEnabled(pointValidFlag);
+
     bool showAllMapsCheckbBoxFlag(false);
     bool showAxisButtonFlag(false);
     bool showColorBarButtonFlag(false);

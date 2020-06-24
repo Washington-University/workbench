@@ -571,39 +571,54 @@ UserInputModeView::keyPressEvent(const KeyEvent& keyEvent)
 {
     bool keyWasProcessedFlag(false);
     
+    bool decrementFlag(false);
+    bool incrementFlag(false);
     const int32_t keyCode = keyEvent.getKeyCode();
     switch (keyCode) {
         case Qt::Key_Right:
+            incrementFlag = true;
+            break;
         case Qt::Key_Left:
-        {
-            std::array<int32_t, 2> mouseXY;
-            if (keyEvent.getMouseXY(mouseXY)) {
+            decrementFlag = true;
+            break;
+        case Qt::Key_Up:
+            incrementFlag = true;
+            break;
+        case Qt::Key_Down:
+            decrementFlag = true;
+            break;
+    }
+    
+    if (decrementFlag
+        || incrementFlag) {
+        std::array<int32_t, 2> mouseXY;
+        if (keyEvent.getMouseXY(mouseXY)) {
+            /*
+             * Increment/decrement selected point in line layer chart.
+             * Identification will fail if chart is not visible.
+             */
+            SelectionManager* selectionManager = keyEvent.getOpenGLWidget()->performIdentification(mouseXY[0],
+                                                                                                   mouseXY[1],
+                                                                                                   false);
+            
+            SelectionItemChartTwoLineLayer* layerSelection = selectionManager->getChartTwoLineLayerIdentification();
+            CaretAssert(layerSelection);
+            if (layerSelection->isValid()) {
+                ChartTwoOverlay* chartOverlay = layerSelection->getChartTwoOverlay();
+                std::array<float, 3> xyz;
                 /*
-                 * Increment/decrement selected point in line layer chart
+                 * Returns true if a line layer chart is displayed in overlay
                  */
-                SelectionManager* selectionManager = keyEvent.getOpenGLWidget()->performIdentification(mouseXY[0],
-                                                                                                       mouseXY[1],
-                                                                                                       false);
-                
-                SelectionItemChartTwoLineLayer* layerSelection = selectionManager->getChartTwoLineLayerIdentification();
-                CaretAssert(layerSelection);
-                if (layerSelection->isValid()) {
-                    ChartTwoOverlay* chartOverlay = layerSelection->getChartTwoOverlay();
-                    std::array<float, 3> xyz;
-                    /*
-                     * Returns true if a line layer chart is displayed in overlay
-                     */
-                    if (chartOverlay->getSelectedLineChartPointXYZ(xyz)) {
-                        chartOverlay->incrementSelectedLineChartPointIndex((keyCode == Qt::Key_Right)
-                                                                           ? 1
-                                                                           : -1);
-                        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(keyEvent.getBrowserWindowIndex()).getPointer());
-                        keyWasProcessedFlag = true;
-                    }
+                if (chartOverlay->getSelectedLineChartPointXYZ(xyz)) {
+                    chartOverlay->incrementSelectedLineChartPointIndex(incrementFlag
+                                                                       ? 1
+                                                                       : -1);
+                    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(keyEvent.getBrowserWindowIndex()).getPointer());
+                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());
+                    keyWasProcessedFlag = true;
                 }
             }
         }
-            break;
     }
     
     return keyWasProcessedFlag;
