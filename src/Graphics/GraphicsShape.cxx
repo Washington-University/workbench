@@ -616,10 +616,43 @@ GraphicsShape::drawCircleFilledPercentViewportHeight(const float xyz[3],
                                                      const float diameterPercentageOfViewportHeight,
                                                      std::array<float, 3>* windowXYZOut)
 {
+    const float unusedSecondDiameter(0.0);
     drawShapePercentViewportHeight(xyz,
                                    rgba,
                                    Shape::CIRCLE_FILLED,
                                    diameterPercentageOfViewportHeight,
+                                   unusedSecondDiameter,
+                                   windowXYZOut);
+}
+
+/**
+ * Draw a ring at the given XYZ coordinate using sizes
+ * that are a percentage of the viewport's height.
+ *
+ * @param xyz
+ *     XYZ-coordinate of circle
+ * @param rgba
+ *    Color for drawing.
+ * @param innerRadiusPercentageOfViewportHeight
+ *    Inner radius of the ring.
+ * @param innerRadiusPercentageOfViewportHeight
+ *    Outer radius of the ring.
+ * @param windowXYZOut
+ *    Optional parameter.  If not NULL, contains OpenGL window XYZ of the shape.
+ *    X-component is positive if value coordinate is valid, else negative indicates invalid.
+ */
+void
+GraphicsShape::drawRingPercentViewportHeight(const float xyz[3],
+                                             const uint8_t rgba[4],
+                                             const float innerRadiusPercentageOfViewportHeight,
+                                             const float outerRadiusPercentageOfViewportHeight,
+                                             std::array<float, 3>* windowXYZOut)
+{
+    drawShapePercentViewportHeight(xyz,
+                                   rgba,
+                                   Shape::RING,
+                                   innerRadiusPercentageOfViewportHeight * 2.0, /* diameters*/
+                                   outerRadiusPercentageOfViewportHeight * 2.0,
                                    windowXYZOut);
 }
 
@@ -643,10 +676,12 @@ GraphicsShape::drawSquarePercentViewportHeight(const float xyz[3],
                                                const float diameterPercentageOfViewportHeight,
                                                std::array<float, 3>* windowXYZOut)
 {
+    const float unusedSecondDiameter(0.0);
     drawShapePercentViewportHeight(xyz,
                                    rgba,
                                    Shape::SQUARE,
                                    diameterPercentageOfViewportHeight,
+                                   unusedSecondDiameter,
                                    windowXYZOut);
 }
 
@@ -661,7 +696,9 @@ GraphicsShape::drawSquarePercentViewportHeight(const float xyz[3],
  * @param shape
  *    Shape that is drawn
  * @param diameterPercentageOfViewportHeight
- *    Diameter of the circle.
+ *    Diameter of the shape.
+ * @param diameterTwoPercentageOfViewportHeight
+ *    Diameter of the shape for (outer for ring, unused by others).
  * @param windowXYZOut
  *    Optional parameter.  If not NULL, contains OpenGL window XYZ of the shape.
  *    X-component is positive if value coordinate is valid, else negative indicates invalid.
@@ -671,6 +708,7 @@ GraphicsShape::drawShapePercentViewportHeight(const float xyz[3],
                                               const uint8_t rgba[4],
                                               const Shape shape,
                                               const float diameterPercentageOfViewportHeight,
+                                              const float diameterTwoPercentageOfViewportHeight,
                                               std::array<float, 3>* windowXYZOut)
 {
     /*
@@ -704,18 +742,25 @@ GraphicsShape::drawShapePercentViewportHeight(const float xyz[3],
         glPushMatrix();
         glLoadIdentity();
         
-        const float pixels = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(diameterPercentageOfViewportHeight);
+        const float pixelSize = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(diameterPercentageOfViewportHeight);
+        const float pixelSizeTwo = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(diameterPercentageOfViewportHeight);
 
         switch (shape) {
             case Shape::CIRCLE_FILLED:
                 GraphicsShape::drawCircleFilled(windowXYZ,
                                                 rgba,
-                                                pixels);
+                                                pixelSize);
                 break;
             case Shape::SQUARE:
                 GraphicsShape::drawSquare(windowXYZ,
                                           rgba,
-                                          pixels);
+                                          pixelSize);
+                break;
+            case Shape::RING:
+                GraphicsShape::drawRing(windowXYZ,
+                                        rgba,
+                                        diameterPercentageOfViewportHeight / 2,
+                                        pixelSizeTwo / 2);
                 break;
         }
         

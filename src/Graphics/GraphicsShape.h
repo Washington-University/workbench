@@ -135,6 +135,12 @@ namespace caret {
                              const double innerRadius,
                              const double outerRadius);
         
+        static void drawRingPercentViewportHeight(const float xyz[3],
+                                                  const uint8_t rgba[4],
+                                                  const float innerRadiusPercentageOfViewportHeight,
+                                                  const float outerRadiusPercentageOfViewportHeight,
+                                                  std::array<float, 3>* windowXYZOut = NULL);
+        
         static void deleteAllPrimitives();
         
         static void drawOutlineRectangleVerticesInMiddle(const double bottomLeft[3],
@@ -172,7 +178,8 @@ namespace caret {
     private:
         enum class Shape {
             CIRCLE_FILLED,
-            SQUARE
+            RING,
+            SQUARE,
         };
         
         class RingKey {
@@ -263,6 +270,7 @@ namespace caret {
                                                    const uint8_t rgba[4],
                                                    const Shape shape,
                                                    const float diameterPercentageOfViewportHeight,
+                                                   const float diameterTwoPercentageOfViewportHeight,
                                                    std::array<float, 3>* windowXYZOut);
 
         static std::unique_ptr<GraphicsPrimitiveV3f> s_byteSquarePrimitive;
