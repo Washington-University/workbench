@@ -54,6 +54,8 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param mode
+ *     The conversion mode
  * @param xyz
  *     The XYZ vertices.
  * @param floatRGBA
@@ -118,7 +120,35 @@ GraphicsOpenGLPolylineTriangles::~GraphicsOpenGLPolylineTriangles()
  */
 GraphicsPrimitive*
 GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const GraphicsPrimitive* primitive,
-                                                                     AString& errorMessageOut)
+                                                                           AString& errorMessageOut)
+{
+    return convertWorkbenchLinePrimitiveTypeToOpenGL(primitive,
+                                                     NULL,
+                                                     errorMessageOut);
+}
+
+/**
+ * Convert a Workbench Line Primitive to an OpenGL primitive.
+ * OpenGL has limits on the width of the lines that it draws.  This method will
+ * convert the lines into polygons so that any line width may be drawn.
+ *
+ * @param mode
+ *     Mode for conversion
+ * @param primitive
+ *     A graphics primitive with a primitive type that is one of the
+ *     WORKBENCH_LINE* types.
+ * @param triangleVertexIndicesToLineVertexIndicesOut
+ *     Allows conversion from a triangle vertex index to original line vertex index (ignored if NULL)
+ * @param errorMessageOut
+ *     Upon exit contains an error message if conversion failed.
+ * @return
+ *     A graphics primitive with an OPENGL_TRIANGLES type that draws the lines
+ *     using triangles.  NULL if error.
+ */
+GraphicsPrimitive*
+GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const GraphicsPrimitive* primitive,
+                                                                           std::vector<int32_t>* triangleVertexIndicesToLineVertexIndicesOut,
+                                                                           AString& errorMessageOut)
 {
     CaretAssert(primitive);
     errorMessageOut.clear();
@@ -250,7 +280,10 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
                                                    joinType);
     
     GraphicsPrimitive* primitiveOut = lineConversion.convertLinesToPolygons(errorMessageOut);
-    
+
+    if (triangleVertexIndicesToLineVertexIndicesOut != NULL) {
+        *triangleVertexIndicesToLineVertexIndicesOut = lineConversion.m_triangleVertexIndicesToLineVertexIndices;
+    }
     return primitiveOut;
 }
 
@@ -1379,36 +1412,100 @@ GraphicsOpenGLPolylineTriangles::convertLineSegmentsToTriangles()
     }
     
     const bool restartEnabledFlag = true;
-    
+
+    GraphicsPrimitive* outputPrimitive(NULL);
+    switch (m_colorType) {
+        case ColorType::BYTE_RGBA_PER_VERTEX:
+        case ColorType::BYTE_RGBA_SOLID:
+            outputPrimitive = m_primitiveByteColor.get();
+            break;
+        case ColorType::FLOAT_RGBA_PER_VERTEX:
+        case ColorType::FLOAT_RGBA_SOLID:
+            outputPrimitive = m_primitiveFloatColor.get();
+            break;
+    }
+    CaretAssert(outputPrimitive);
+        
     switch (m_lineType) {
         case LineType::LINES:
         {
             const int32_t numLineSegments = (numVertices / 2);
             for (int32_t i = 0; i < numLineSegments; i++) {
+                const int32_t numOutputVerticesBefore(outputPrimitive->getNumberOfVertices() / 3);
+                
                 const int32_t i2 = i * 2;
                 createTrianglesFromWindowVertices(i2, i2 + 1);
+                
+                updateOutputVertexIndicesToInputVertexIndices(outputPrimitive,
+                                                              numOutputVerticesBefore,
+                                                              i2);
             }
         }
             break;
         case LineType::LINE_LOOP:
+        {
             for (int32_t i = 0; i < numVerticesMinusOne; i++) {
+                const int32_t numOutputVerticesBefore(outputPrimitive->getNumberOfVertices() / 3);
+                
                 CaretAssertVectorIndex(restartVertexFlags, i + 1);
                 if (restartVertexFlags[i + 1]) {
                     if (restartEnabledFlag) continue;
                 }
+
                 createTrianglesFromWindowVertices(i, i + 1);
+
+                updateOutputVertexIndicesToInputVertexIndices(outputPrimitive,
+                                                              numOutputVerticesBefore,
+                                                              i);
             }
+            
+            const int32_t numOutputVerticesBefore(outputPrimitive->getNumberOfVertices() / 3);
+            
             createTrianglesFromWindowVertices(numVerticesMinusOne, 0);
+            
+            updateOutputVertexIndicesToInputVertexIndices(outputPrimitive,
+                                                          numOutputVerticesBefore,
+                                                          numVerticesMinusOne);
+        }
             break;
         case LineType::LINE_STRIP:
+            
             for (int32_t i = 0; i < numVerticesMinusOne; i++) {
+                const int32_t numOutputVerticesBefore(outputPrimitive->getNumberOfVertices() / 3);
+                
                 CaretAssertVectorIndex(restartVertexFlags, i + 1);
                 if (restartVertexFlags[i + 1]) {
                     if (restartEnabledFlag) continue;
                 }
+                
                 createTrianglesFromWindowVertices(i, i + 1);
+                
+                updateOutputVertexIndicesToInputVertexIndices(outputPrimitive,
+                                                              numOutputVerticesBefore,
+                                                              i);
             }
             break;
+    }
+}
+
+/**
+ * Update conversion from output primitive vertex indices to input vertex indices
+ *
+ * @param outputPrimitive
+ *    The output primitive
+ * @param numOutputVerticesBefore
+ *    Number of vertices prior to conversion of two points to a polyline
+ * @param inputVertexIndex
+ *    Index of the input vertex
+ */
+void
+GraphicsOpenGLPolylineTriangles::updateOutputVertexIndicesToInputVertexIndices(const GraphicsPrimitive* outputPrimitive,
+                                                                               const int32_t numOutputVerticesBefore,
+                                                                               const int32_t inputVertexIndex)
+{
+    const int32_t numOutputVerticesAfter(outputPrimitive->getNumberOfVertices() / 3);
+    for (int32_t i = numOutputVerticesBefore; i < numOutputVerticesAfter; i++) {
+        m_triangleVertexIndicesToLineVertexIndices.push_back(inputVertexIndex);
     }
 }
 

@@ -1134,10 +1134,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                                             m_fixedPipelineDrawing->mouseY,
                                                             primitiveIndex,
                                                             primitiveDepth);
-                /*
-                 * primitive returned is end point of a line so subtract one
-                 */
-                --primitiveIndex;
                 
                 if (primitiveIndex >= 0) {
                     if (m_selectionItemLineLayer->isOtherScreenDepthCloserToViewer(primitiveDepth)) {

@@ -43,6 +43,10 @@ namespace caret {
         static GraphicsPrimitive* convertWorkbenchLinePrimitiveTypeToOpenGL(const GraphicsPrimitive* primitive,
                                                                             AString& errorMessageOut);
         
+        static GraphicsPrimitive* convertWorkbenchLinePrimitiveTypeToOpenGL(const GraphicsPrimitive* primitive,
+                                                                            std::vector<int32_t>* triangleVertexIndicesToLineVertexIndicesOut,
+                                                                            AString& errorMessageOut);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -224,6 +228,10 @@ namespace caret {
                                  const int32_t primitiveVertexTwoIndex,
                                  uint8_t rgbaOut[4]) const;
         
+        void updateOutputVertexIndicesToInputVertexIndices(const GraphicsPrimitive* outputPrimitive,
+                                                           const int32_t numOutputVerticesBefore,
+                                                           const int32_t inputVertexIndex);
+        
         const std::vector<float>& m_inputXYZ;
         
         const std::vector<float>& m_inputFloatRGBA;
@@ -245,6 +253,13 @@ namespace caret {
         std::vector<float> m_vertexWindowXYZ;
         
         std::vector<int32_t> m_vertexWindowInputIndices;
+        
+        /*
+         * Maps a vertex in the output triangles to a vertex
+         * from the input line.  Typically used be identification
+         * operations.  
+         */
+        std::vector<int32_t> m_triangleVertexIndicesToLineVertexIndices;
         
         bool m_debugFlag = false;
         

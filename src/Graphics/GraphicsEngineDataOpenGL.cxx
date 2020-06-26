@@ -900,6 +900,8 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
 {
     CaretAssert(primitive);
     
+    bool modelSpaceLineFlag = false;
+    bool windowSpaceLineFlag = false;
     switch (primitive->m_primitiveType) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
             break;
@@ -920,14 +922,14 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
         case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_MITER_JOIN:
         case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINES:
+            modelSpaceLineFlag = true;
             break;
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
-            break;
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN:
-            break;
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
+            windowSpaceLineFlag = true;
             break;
         case GraphicsPrimitive::PrimitiveType::SPHERES:
             CaretAssertMessage(0, "Not yet implemented");
@@ -960,11 +962,50 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
         glShadeModel(GL_FLAT);
         glDisable(GL_LIGHTING);
         
-        GraphicsPrimitiveSelectionHelper selectionHelper(primitive);
-        selectionHelper.setupSelectionBeforeDrawing();
-        drawPrivate(PrivateDrawMode::DRAW_SELECTION,
-                    primitive,
-                    &selectionHelper);
+        std::vector<int32_t> triangleVertexIndicesToLineVertexIndices;
+        std::unique_ptr<GraphicsPrimitiveSelectionHelper> selectionHelper;
+        if (modelSpaceLineFlag
+            || windowSpaceLineFlag) {
+            AString errorMessage;
+            
+            std::unique_ptr<GraphicsPrimitive> primitiveToDraw(GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(primitive,
+                                                                                                                                          &triangleVertexIndicesToLineVertexIndices,
+                                                                                                                                          errorMessage));
+            if (primitiveToDraw == NULL) {
+                const AString msg("For developer: "
+                                  + errorMessage);
+#ifdef NDEBUG
+                CaretLogFine(msg);
+#else
+                CaretLogSevere(msg);
+#endif
+                return;
+            }
+            SpaceMode spaceMode = SpaceMode::WINDOW;
+            if (modelSpaceLineFlag) {
+                spaceMode = SpaceMode::MODEL;
+            }
+            else if (windowSpaceLineFlag) {
+                spaceMode = SpaceMode::WINDOW;
+            }
+            else {
+                CaretAssert(0);
+            }
+            
+            selectionHelper.reset(new GraphicsPrimitiveSelectionHelper(primitiveToDraw.get()));
+            selectionHelper->setupSelectionBeforeDrawing();
+            drawModelOrWindowSpace(spaceMode,
+                                   PrivateDrawMode::DRAW_SELECTION,
+                                   primitiveToDraw.get(),
+                                   selectionHelper.get());
+        }
+        else {
+            selectionHelper.reset(new GraphicsPrimitiveSelectionHelper(primitive));
+            selectionHelper->setupSelectionBeforeDrawing();
+            drawPrivate(PrivateDrawMode::DRAW_SELECTION,
+                        primitive,
+                        selectionHelper.get());
+        }
         
         /*
          * QOpenGLWidget Note: The QOpenGLWidget always renders in a
@@ -1005,7 +1046,20 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
         glPopAttrib();
         glPopClientAttrib();
         
-        selectedPrimitiveIndexOut = selectionHelper.getPrimitiveIndexFromEncodedRGBA(pixelRGBA);
+        CaretAssert(selectionHelper.get());
+        selectedPrimitiveIndexOut = selectionHelper->getPrimitiveIndexFromEncodedRGBA(pixelRGBA);
+        if ((selectedPrimitiveIndexOut >= 0)
+            && selectedPrimitiveIndexOut < static_cast<int32_t>(triangleVertexIndicesToLineVertexIndices.size())) {
+            CaretAssertVectorIndex(triangleVertexIndicesToLineVertexIndices, selectedPrimitiveIndexOut);
+            selectedPrimitiveIndexOut = triangleVertexIndicesToLineVertexIndices[selectedPrimitiveIndexOut];
+            
+            if (selectedPrimitiveIndexOut >= primitive->getNumberOfVertices()) {
+                selectedPrimitiveIndexOut = -1;
+            }
+        }
+        else {
+            selectedPrimitiveIndexOut = -1;
+        }
     }
 }
 
