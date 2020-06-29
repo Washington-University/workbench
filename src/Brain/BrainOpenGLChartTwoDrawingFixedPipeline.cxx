@@ -70,6 +70,7 @@
 #include "SelectionItemChartTwoHistogram.h"
 #include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemChartTwoLineLayer.h"
+#include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionManager.h"
@@ -164,6 +165,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     m_selectionItemHistogram  = m_brain->getSelectionManager()->getChartTwoHistogramIdentification();
     m_selectionItemLineSeries = m_brain->getSelectionManager()->getChartTwoLineSeriesIdentification();
     m_selectionItemLineLayer  = m_brain->getSelectionManager()->getChartTwoLineLayerIdentification();
+    m_selectionItemLineLayerVerticalNearest = m_brain->getSelectionManager()->getChartTwoLineLayerVerticalNearestIdentification();
     m_selectionItemMatrix     = m_brain->getSelectionManager()->getChartTwoMatrixIdentification();
     m_selectionItemChartLabel = m_brain->getSelectionManager()->getChartTwoLabelIdentification();
     
@@ -1120,6 +1122,40 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
             }
             
             if (m_identificationModeFlag) {
+                /*
+                 * First find line nearest to mouse in vertical distance
+                 */
+                if (lineChart.m_chartTwoOverlay->isSelectedLineChartPointDisplayed()) {
+                    EventOpenGLObjectToWindowTransform windowTransform(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
+                    EventManager::get()->sendEvent(windowTransform.getPointer());
+                    if (windowTransform.isValid()) {
+                        const float windowXYZ[3] {
+                            static_cast<float>(m_fixedPipelineDrawing->mouseX),
+                            static_cast<float>(m_fixedPipelineDrawing->mouseY),
+                            0.0f
+                        };
+                        float modelXYZ[3];
+                        windowTransform.inverseTransformPoint(windowXYZ,
+                                                              modelXYZ);
+                        
+                        float distance(0.0);
+                        int32_t pointIndex(-1);
+                        if (lineChart.m_chartTwoCartesianData->getVerticalDistanceToXY(modelXYZ[0],
+                                                                                       modelXYZ[1],
+                                                                                       distance,
+                                                                                       pointIndex)) {
+                            m_selectionItemLineLayerVerticalNearest->setLineLayerChart(const_cast<ChartableTwoFileLineLayerChart*>(lineChart.m_lineLayerChart),
+                                                                                       const_cast<ChartTwoDataCartesian*>(lineChart.m_chartTwoCartesianData),
+                                                                                       const_cast<ChartTwoOverlay*>(lineChart.m_chartTwoOverlay),
+                                                                                       distance,
+                                                                                       pointIndex);
+                        }
+                    }
+                }
+                
+                /*
+                 * Identify line segment under mouse
+                 */
                 int32_t primitiveIndex = -1;
                 float   primitiveDepth = 0.0f;
                 
@@ -1164,12 +1200,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                         };
 
                         std::array<float, 3> windowXYZ;
-                        const float pctViewportHeight(lineChart.m_lineWidth * 6.0);
+                        const float pctViewportHeight(lineChart.m_lineWidth + 3.0);
                         GraphicsShape::drawCircleFilledPercentViewportHeight(xyz.data(),
                                                                              foregroundRGBA,
                                                                              pctViewportHeight,
                                                                              &windowXYZ);
-
                         {
                             const QString info("Index: "
                                                + QString::number(lineChart.m_chartTwoOverlay->getSelectedLineChartPointIndex())

@@ -103,6 +103,11 @@ namespace caret {
          */
         static float getDefaultLineWidth() { return 0.5f; }
         
+        bool getVerticalDistanceToXY(const float x,
+                                     const float y,
+                                     float& distanceOut,
+                                     int32_t& pointIndexOut) const;
+        
     protected:
         
     private:

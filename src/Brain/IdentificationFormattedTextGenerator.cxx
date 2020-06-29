@@ -70,7 +70,7 @@
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemChartTwoHistogram.h"
-#include "SelectionItemChartTwoLineLayer.h"
+#include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemFocusSurface.h"
@@ -199,7 +199,7 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
                 
                 this->generateChartTwoLineLayerIdentificationText(*chartHtmlTableBuilder,
                                                                    idText,
-                                                                   selectionManager->getChartTwoLineLayerIdentification(),
+                                                                   selectionManager->getChartTwoLineLayerVerticalNearestIdentification(),
                                                                    fileInfo.m_mapFile,
                                                                    fileInfo.m_mapIndices,
                                                                    false);
@@ -1229,7 +1229,7 @@ IdentificationFormattedTextGenerator::generateChartTwoHistogramIdentificationTex
 void
 IdentificationFormattedTextGenerator::generateChartTwoLineLayerIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                                                    IdentificationStringBuilder& idText,
-                                                                                   const SelectionItemChartTwoLineLayer* idChartTwoLineLayer,
+                                                                                   const SelectionItemChartTwoLineLayerVerticalNearest* idChartTwoLineLayer,
                                                                                    CaretMappableDataFile* mapFile,
                                                                                    const std::set<int32_t>& /*mapIndices*/,
                                                                                    const bool toolTipFlag) const

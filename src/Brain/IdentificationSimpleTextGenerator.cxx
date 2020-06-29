@@ -63,7 +63,7 @@
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemChartTwoHistogram.h"
-#include "SelectionItemChartTwoLineLayer.h"
+#include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemFocusSurface.h"
@@ -166,7 +166,7 @@ IdentificationSimpleTextGenerator::createIdentificationText(const SelectionManag
                                                       idManager->getChartTwoHistogramIdentification());
     
     this->generateChartTwoLineLayerIdentificationText(idText,
-                                                      idManager->getChartTwoLineLayerIdentification());
+                                                      idManager->getChartTwoLineLayerVerticalNearestIdentification());
     
     this->generateChartTwoLineSeriesIdentificationText(idText,
                                                        idManager->getChartTwoLineSeriesIdentification());
@@ -905,7 +905,7 @@ IdentificationSimpleTextGenerator::generateChartTwoHistogramIdentificationText(I
  */
 void
 IdentificationSimpleTextGenerator::generateChartTwoLineLayerIdentificationText(IdentificationStringBuilder& idText,
-                                                                                const SelectionItemChartTwoLineLayer* idChartTwoLineLayer) const
+                                                                                const SelectionItemChartTwoLineLayerVerticalNearest* idChartTwoLineLayer) const
 {
     if (idChartTwoLineLayer->isValid()) {
         const ChartableTwoFileLineLayerChart* fileLineLayerChart = idChartTwoLineLayer->getFileLineLayerChart();

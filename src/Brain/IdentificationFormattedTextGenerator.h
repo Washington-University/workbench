@@ -46,7 +46,7 @@ namespace caret {
     class SelectionItemChartFrequencySeries;
     class SelectionItemChartMatrix;
     class SelectionItemChartTwoHistogram;
-    class SelectionItemChartTwoLineLayer;
+    class SelectionItemChartTwoLineLayerVerticalNearest;
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
     class SelectionItemCiftiConnectivityMatrixRowColumn;
@@ -166,7 +166,7 @@ namespace caret {
         
         void generateChartTwoLineLayerIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                           IdentificationStringBuilder& idText,
-                                                          const SelectionItemChartTwoLineLayer* idChartTwoLineLayer,
+                                                          const SelectionItemChartTwoLineLayerVerticalNearest* idChartTwoLineLayer,
                                                           CaretMappableDataFile* mapFile,
                                                           const std::set<int32_t>& mapIndices,
                                                           const bool toolTipFlag) const;

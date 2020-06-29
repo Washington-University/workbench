@@ -42,6 +42,7 @@
 #include "SelectionItemChartTwoHistogram.h"
 #include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemChartTwoLineLayer.h"
+#include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
@@ -81,6 +82,7 @@ SelectionManager::SelectionManager()
     m_chartTwoHistogramIdentification = std::unique_ptr<SelectionItemChartTwoHistogram>(new SelectionItemChartTwoHistogram());
     m_chartTwoLabelIdentification = std::unique_ptr<SelectionItemChartTwoLabel>(new SelectionItemChartTwoLabel());
     m_chartTwoLineLayerIdentification = std::unique_ptr<SelectionItemChartTwoLineLayer>(new SelectionItemChartTwoLineLayer());
+    m_chartTwoLineLayerVerticalNearestIdentification = std::unique_ptr<SelectionItemChartTwoLineLayerVerticalNearest>(new SelectionItemChartTwoLineLayerVerticalNearest());
     m_chartTwoLineSeriesIdentification = std::unique_ptr<SelectionItemChartTwoLineSeries>(new SelectionItemChartTwoLineSeries());
     m_chartTwoMatrixIdentification = std::unique_ptr<SelectionItemChartTwoMatrix>(new SelectionItemChartTwoMatrix());
     
@@ -106,6 +108,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_chartTwoHistogramIdentification.get());
     m_allSelectionItems.push_back(m_chartTwoLabelIdentification.get());
     m_allSelectionItems.push_back(m_chartTwoLineLayerIdentification.get());
+    m_allSelectionItems.push_back(m_chartTwoLineLayerVerticalNearestIdentification.get());
     m_allSelectionItems.push_back(m_chartTwoLineSeriesIdentification.get());
     m_allSelectionItems.push_back(m_chartTwoMatrixIdentification.get());
     m_allSelectionItems.push_back(m_ciftiConnectivityMatrixRowColumnIdentfication);
@@ -792,6 +795,24 @@ const SelectionItemChartTwoLineLayer*
 SelectionManager::getChartTwoLineLayerIdentification() const
 {
     return m_chartTwoLineLayerIdentification.get();
+}
+
+/**
+ * @return Identification for chart two line layer nearest vertical identification
+ */
+SelectionItemChartTwoLineLayerVerticalNearest*
+SelectionManager::getChartTwoLineLayerVerticalNearestIdentification()
+{
+    return m_chartTwoLineLayerVerticalNearestIdentification.get();
+}
+
+/**
+ * @return Identification for chart two line layer nearest vertical identification
+ */
+const SelectionItemChartTwoLineLayerVerticalNearest*
+SelectionManager::getChartTwoLineLayerVerticalNearestIdentification() const
+{
+    return m_chartTwoLineLayerVerticalNearestIdentification.get();
 }
 
 /**

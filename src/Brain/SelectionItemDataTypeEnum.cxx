@@ -107,6 +107,10 @@ SelectionItemDataTypeEnum::initialize()
                                                  "CHART_TWO_LINE_LAYER",
                                                  "Line-Layer Chart Two"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(CHART_TWO_LINE_LAYER_VERTICAL_NEAREST,
+                                                 "CHART_TWO_LINE_LAYER_VERTICAL_NEAREST",
+                                                 "Line-Layer Vertical Nearest Chart Two"));
+    
     enumData.push_back(SelectionItemDataTypeEnum(CHART_TWO_LINE_SERIES,
                                                  "CHART_TWO_LINE_SERIES",
                                                  "Line-Series Chart Two"));

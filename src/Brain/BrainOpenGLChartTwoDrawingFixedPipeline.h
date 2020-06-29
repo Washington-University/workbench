@@ -50,6 +50,7 @@ namespace caret {
     class SelectionItemChartTwoHistogram;
     class SelectionItemChartTwoLabel;
     class SelectionItemChartTwoLineLayer;
+    class SelectionItemChartTwoLineLayerVerticalNearest;
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
     
@@ -333,6 +334,8 @@ namespace caret {
         
         SelectionItemChartTwoLineLayer* m_selectionItemLineLayer;
 
+        SelectionItemChartTwoLineLayerVerticalNearest* m_selectionItemLineLayerVerticalNearest;
+        
         SelectionItemChartTwoLineSeries* m_selectionItemLineSeries;
         
         SelectionItemChartTwoMatrix* m_selectionItemMatrix;

@@ -43,7 +43,7 @@
 #include "KeyEvent.h"
 #include "MouseEvent.h"
 #include "SelectionItemChartTwoLabel.h"
-#include "SelectionItemChartTwoLineLayer.h"
+#include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionManager.h"
 #include "UserInputModeViewContextMenu.h"
 #include "WuQDataEntryDialog.h"
@@ -601,7 +601,7 @@ UserInputModeView::keyPressEvent(const KeyEvent& keyEvent)
                                                                                                    mouseXY[1],
                                                                                                    false);
             
-            SelectionItemChartTwoLineLayer* layerSelection = selectionManager->getChartTwoLineLayerIdentification();
+            SelectionItemChartTwoLineLayerVerticalNearest* layerSelection = selectionManager->getChartTwoLineLayerVerticalNearestIdentification();
             CaretAssert(layerSelection);
             if (layerSelection->isValid()) {
                 ChartTwoOverlay* chartOverlay = layerSelection->getChartTwoOverlay();
