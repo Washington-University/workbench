@@ -118,6 +118,8 @@ namespace caret {
         
         void lineLayerLineWidthChanged(const float lineWidth);
         
+        void lineLayerToolTipOffsetToolButtonClicked();
+        
         void selectedPointCheckBoxClicked(bool selected);
         
         void selectedPointIndexSpinBoxValueChanged(int index);
@@ -155,9 +157,13 @@ namespace caret {
         QPixmap createAxisLocationPixmap(QWidget* widget,
                                          const ChartAxisLocationEnum::Enum axisLocation);
         
+        QPixmap createCardinalDirectionPixmap(QWidget* widget);
+        
         void updateMatrixTriangularViewModeAction(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode);
         
         void updateAxisLocationAction(const ChartAxisLocationEnum::Enum axisLocation);
+        
+        void updateLineLayerToolTipOffsetToolButton();
         
         const int32_t m_browserWindowIndex;
         
@@ -188,6 +194,10 @@ namespace caret {
         QToolButton* m_axisLocationToolButton;
         
         CaretColorToolButton* m_lineLayerColorToolButton;
+        
+        QToolButton* m_lineLayerToolTipOffsetToolButton;
+        
+        bool m_useIconInLineLayerToolTipOffsetButtonFlag = false;
         
         std::vector<std::tuple<ChartTwoMatrixTriangularViewingModeEnum::Enum, QAction*,QPixmap>> m_matrixViewMenuData;
 

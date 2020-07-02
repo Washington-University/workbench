@@ -97,6 +97,8 @@ m_overlayIndex(overlayIndex)
     m_selectedLineChartPointIndex = 0;
     m_selectedLineChartPointDisplayed = false;
 
+    m_selectedLineChartTextOffset = CardinalDirectionEnum::AUTO;
+    
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_enabled", &m_enabled);
     m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
@@ -112,6 +114,8 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add("m_lineLayerLineWidth", &m_lineLayerLineWidth);
     m_sceneAssistant->add("m_selectedLineChartPointIndex", &m_selectedLineChartPointIndex);
     m_sceneAssistant->add("m_selectedLineChartPointDisplayed", &m_selectedLineChartPointDisplayed);
+    m_sceneAssistant->add<CardinalDirectionEnum, CardinalDirectionEnum::Enum>("m_selectedLineChartTextOffset",
+                                                                              &m_selectedLineChartTextOffset);
                                                                 
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE);
@@ -380,6 +384,7 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
     m_lineLayerLineWidth = overlay->m_lineLayerLineWidth;
     m_selectedLineChartPointIndex = overlay->m_selectedLineChartPointIndex;
     m_selectedLineChartPointDisplayed = overlay->m_selectedLineChartPointDisplayed;
+    m_selectedLineChartTextOffset = overlay->m_selectedLineChartTextOffset;
 }
 
 /**
@@ -1578,6 +1583,26 @@ ChartTwoOverlay::getSelectedLineChartPointXYZ(std::array<float, 3>& xyzOut) cons
     }
     
     return false;
+}
+
+/**
+ * @return The text offset for selected line chart point
+ */
+CardinalDirectionEnum::Enum
+ChartTwoOverlay::getSelectedLineChartTextOffset() const
+{
+    return m_selectedLineChartTextOffset;
+}
+
+/**
+ * Set text offset for selected line chart point
+ * @param offset
+ *    New offset
+ */
+void
+ChartTwoOverlay::setSelectedLineChartTextOffset(const CardinalDirectionEnum::Enum offset)
+{
+    m_selectedLineChartTextOffset = offset;
 }
 
 /**

@@ -24,6 +24,7 @@
 #include <array>
 #include <memory>
 
+#include "CardinalDirectionEnum.h"
 #include "CaretColor.h"
 #include "CaretObject.h"
 #include "ChartAxisLocationEnum.h"
@@ -159,6 +160,10 @@ namespace caret {
         
         bool getSelectedLineChartPointXYZ(std::array<float, 3>& xyzOut) const;
         
+        CardinalDirectionEnum::Enum getSelectedLineChartTextOffset() const;
+        
+        void setSelectedLineChartTextOffset(const CardinalDirectionEnum::Enum offset);
+        
         virtual void receiveEvent(Event* event);
 
         // ADD_NEW_METHODS_HERE
@@ -250,6 +255,8 @@ namespace caret {
         mutable int32_t m_selectedLineChartPointIndex = 0;
         
         bool m_selectedLineChartPointDisplayed = false;
+        
+        CardinalDirectionEnum::Enum m_selectedLineChartTextOffset = CardinalDirectionEnum::AUTO;
         
         /** A weak pointer to 'self' so that can be stored to safely test instance is valid and can be accessed */
         std::weak_ptr<ChartTwoOverlay> m_weakPointerToSelf;

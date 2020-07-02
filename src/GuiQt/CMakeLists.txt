@@ -103,6 +103,7 @@ ELSE()
         BrainBrowserWindowToolBarVolumeMontage.h
         BrainOpenGLWidget.h
         BugReportDialog.h
+	CardinalDirectionEnumMenu.h
         CaretColorEnumComboBox.h
         CaretColorEnumMenu.h
 	CaretColorToolButton.h
@@ -352,6 +353,7 @@ BrainBrowserWindowToolBarView.h
 BrainBrowserWindowToolBarVolumeMontage.h
 BrainOpenGLWidget.h
 BugReportDialog.h
+CardinalDirectionEnumMenu.h
 CaretColorEnumComboBox.h
 CaretColorEnumMenu.h
 CaretColorToolButton.h
@@ -656,6 +658,7 @@ BrainBrowserWindowToolBarView.cxx
 BrainBrowserWindowToolBarVolumeMontage.cxx
 BrainOpenGLWidget.cxx
 BugReportDialog.cxx
+CardinalDirectionEnumMenu.cxx
 CaretColorEnumComboBox.cxx
 CaretColorEnumMenu.cxx
 CaretColorToolButton.cxx

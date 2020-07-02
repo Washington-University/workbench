@@ -58,6 +58,7 @@ BoundingBox.h
 BrainConstants.h
 ByteOrderEnum.h
 ByteSwapping.h
+CardinalDirectionEnum.h
 CaretAssert.h
 CaretAssertion.h
 CaretBinaryFile.h
@@ -216,6 +217,7 @@ BoundingBox.cxx
 BrainConstants.cxx
 ByteOrderEnum.cxx
 ByteSwapping.cxx
+CardinalDirectionEnum.cxx
 CaretAssertion.cxx
 CaretBinaryFile.cxx
 CaretColor.cxx

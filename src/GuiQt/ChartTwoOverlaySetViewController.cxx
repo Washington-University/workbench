@@ -163,6 +163,7 @@ m_browserWindowIndex(browserWindowIndex)
             settingsLayout->addWidget(covc->m_matrixTriangularViewModeToolButton);
             settingsLayout->addWidget(covc->m_axisLocationToolButton);
             settingsLayout->addWidget(covc->m_lineLayerColorToolButton);
+            settingsLayout->addWidget(covc->m_lineLayerToolTipOffsetToolButton);
 
             QWidget* pointWidget = new QWidget();
             QHBoxLayout* pointLayout = new QHBoxLayout(pointWidget);
@@ -251,6 +252,7 @@ m_browserWindowIndex(browserWindowIndex)
             bottomLeftLayout->addWidget(covc->m_matrixTriangularViewModeToolButton);
             bottomLeftLayout->addWidget(covc->m_axisLocationToolButton);
             bottomLeftLayout->addWidget(covc->m_lineLayerColorToolButton);
+            bottomLeftLayout->addWidget(covc->m_lineLayerToolTipOffsetToolButton);
 
             QWidget* bottomRightWidget = new QWidget();
             QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);

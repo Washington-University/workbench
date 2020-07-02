@@ -40,6 +40,7 @@ using namespace caret;
 #include "AnnotationColorBar.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
+#include "CardinalDirectionEnumMenu.h"
 #include "CaretColorToolButton.h"
 #include "CaretColorEnumMenu.h"
 #include "CaretMappableDataFile.h"
@@ -248,6 +249,23 @@ m_chartOverlay(NULL)
                      this, &ChartTwoOverlayViewController::lineLayerColorSelected);
     m_lineLayerColorToolButton->setToolTip("Set color for line layer charts");
 
+    /*
+     * Line layer tooltip offset button
+     */
+    const QString offTT("Set offset of tooltip containing (index, x, y) from selected point "
+                        "with cardinal and ordinal directions");
+    m_lineLayerToolTipOffsetToolButton = new QToolButton();
+    if (m_useIconInLineLayerToolTipOffsetButtonFlag) {
+        m_lineLayerToolTipOffsetToolButton->setIcon(createCardinalDirectionPixmap(m_lineLayerToolTipOffsetToolButton));
+    }
+    WuQtUtilities::setWordWrappedToolTip(m_lineLayerToolTipOffsetToolButton,
+                                         offTT);
+    QObject::connect(m_lineLayerToolTipOffsetToolButton, &QToolButton::clicked,
+                     this, &ChartTwoOverlayViewController::lineLayerToolTipOffsetToolButtonClicked);
+    
+    std::vector<QWidget*> toolButtons { m_lineLayerColorToolButton, m_lineLayerToolTipOffsetToolButton } ;
+    WuQtUtilities::matchWidgetSizes(toolButtons);
+    
     /*
      * Line layer width
      */
@@ -953,18 +971,21 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     }
     
     /*
-     * Update line layer color and width tool button
+     * Update line layer color, offset, and width tool button
      */
     m_lineLayerColorToolButton->setEnabled(false);
     m_lineLayerWidthSpinBox->getWidget()->setEnabled(false);
+    m_lineLayerToolTipOffsetToolButton->setEnabled(false);
     if (validOverlayAndFileFlag) {
         m_lineLayerColorToolButton->setSelectedColor(m_chartOverlay->getLineLayerColor());
         m_lineLayerWidthSpinBox->setValue(m_chartOverlay->getLineLayerLineWidth());
         if (m_chartOverlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER) {
             m_lineLayerColorToolButton->setEnabled(true);
             m_lineLayerWidthSpinBox->getWidget()->setEnabled(true);
+            m_lineLayerToolTipOffsetToolButton->setEnabled(true);
         }
     }
+    updateLineLayerToolTipOffsetToolButton();
     
     /*
      * Update selected point checkbox and index
@@ -986,6 +1007,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     bool showAxisButtonFlag(false);
     bool showColorBarButtonFlag(false);
     bool showLineLayerColorButtonFlag(false);
+    bool showLineLayerOffsetButtonFlag(false);
     bool showLineLayerWidthButtonFlag(false);
     bool showSelectedPointControlsFlag(false);
     bool showLineSeriesLoadingCheckBoxFlag(false);
@@ -1002,6 +1024,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
             showAxisButtonFlag = true;
             showLineLayerColorButtonFlag = true;
+            showLineLayerOffsetButtonFlag = true;
             showLineLayerWidthButtonFlag = true;
             showSelectedPointControlsFlag = true;
             break;
@@ -1020,6 +1043,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_axisLocationToolButton->setVisible(showAxisButtonFlag);
     m_colorBarToolButton->setVisible(showColorBarButtonFlag);
     m_lineLayerColorToolButton->setVisible(showLineLayerColorButtonFlag);
+    m_lineLayerToolTipOffsetToolButton->setVisible(showLineLayerOffsetButtonFlag);
     m_lineLayerWidthSpinBox->getWidget()->setVisible(showLineLayerWidthButtonFlag);
     m_lineSeriesLoadingEnabledCheckBox->setVisible(showLineSeriesLoadingCheckBoxFlag);
     m_matrixTriangularViewModeToolButton->setVisible(showMatrixDiagonalButtonFlag);
@@ -1282,6 +1306,45 @@ ChartTwoOverlayViewController::lineLayerLineWidthChanged(const float lineWidth)
     if (m_chartOverlay != NULL) {
         m_chartOverlay->setLineLayerLineWidth(lineWidth);
         this->updateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when line cardinal direction tool button clicked
+ */
+void
+ChartTwoOverlayViewController::lineLayerToolTipOffsetToolButtonClicked()
+{
+    if (m_chartOverlay != NULL) {
+        QWidget* parentWidget(m_lineLayerToolTipOffsetToolButton->parentWidget());
+        QPoint menuXY(m_lineLayerToolTipOffsetToolButton->pos());
+
+        std::set<CardinalDirectionEnum::Options> options { CardinalDirectionEnum::Options::INCLUDE_AUTO };
+        CardinalDirectionEnumMenu menu(options);
+        menu.setSelectedCardinalDirection(m_chartOverlay->getSelectedLineChartTextOffset());
+        QAction* actionSelected = menu.exec(parentWidget->mapToGlobal(menuXY));
+        if (actionSelected != NULL) {
+            m_chartOverlay->setSelectedLineChartTextOffset(menu.getSelectedCardinalDirection());
+            updateLineLayerToolTipOffsetToolButton();
+            this->updateGraphicsWindow();
+        }
+    }
+}
+
+/**
+ * Update the line layer tooltip offset button text
+ */
+void
+ChartTwoOverlayViewController::updateLineLayerToolTipOffsetToolButton()
+{
+    if (m_chartOverlay != NULL) {
+        if (m_useIconInLineLayerToolTipOffsetButtonFlag) {
+            m_lineLayerToolTipOffsetToolButton->setText("");
+        }
+        else {
+            const AString txt = CardinalDirectionEnum::toGuiShortName(m_chartOverlay->getSelectedLineChartTextOffset());
+            m_lineLayerToolTipOffsetToolButton->setText(txt);
+        }
     }
 }
 
@@ -1757,6 +1820,64 @@ ChartTwoOverlayViewController::createMatrixTriangularViewModePixmap(QWidget* wid
 
     painter->drawPolygon(polygon);
     
+    return pixmap;
+}
+
+/**
+ * Create a cardinal direction pixmap.
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @return
+ *    Pixmap for cardinal direction.
+ */
+QPixmap
+ChartTwoOverlayViewController::createCardinalDirectionPixmap(QWidget* widget)
+{
+    CaretAssert(widget);
+    
+    /*
+     * Create a small, square pixmap that will contain
+     * the foreground color around the pixmap's perimeter.
+     */
+    const qreal iconSize = 32.0;
+    const qreal minValue = 1.0;
+    const qreal maxX((iconSize - minValue) / 2.0);
+    const qreal maxY(maxX);
+    const QPointF left(-maxX, 0.0);
+    const QPointF right(maxX, 0.0);
+    const QPointF top(0.0, maxY);
+    const QPointF bottom(0.0, -maxY);
+    
+    QPixmap pixmap(static_cast<int>(iconSize),
+                   static_cast<int>(iconSize));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginCenter(widget,
+                                                                                            pixmap);
+    
+    QPen pen = painter->pen();
+    pen.setWidthF(2.0);
+    painter->setPen(pen);
+    
+    /*
+     * Horizontal and vertical lines
+     */
+    painter->drawLine(left, right);
+    painter->drawLine(bottom, top);
+    
+    /*
+     * Arrow tips
+     */
+    const float tip(4.0);
+    painter->drawLine(left.x(), left.y(), left.x() + tip, left.y() + tip);
+    painter->drawLine(left.x(), left.y(), left.x() + tip, left.y() - tip);
+    painter->drawLine(right.x(), right.y(), right.x() - tip, right.y() + tip);
+    painter->drawLine(right.x(), right.y(), right.x() - tip, right.y() - tip);
+    painter->drawLine(bottom.x(), bottom.y(), bottom.x() - tip, bottom.y() + tip);
+    painter->drawLine(bottom.x(), bottom.y(), bottom.x() + tip, bottom.y() + tip);
+    painter->drawLine(top.x(), top.y(), top.x() - tip, top.y() - tip);
+    painter->drawLine(top.x(), top.y(), top.x() + tip, top.y() - tip);
+
     return pixmap;
 }
 

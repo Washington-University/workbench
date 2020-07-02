@@ -1223,47 +1223,93 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                             text.setCustomBackgroundColor(backgroundColor);
                             text.setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
                             text.getCoordinate()->setXYZ(windowXYZ.data());
-                            text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
 
                             const float vpWidth(chartGraphicsDrawingViewport[2]);
                             const float vpHeight(chartGraphicsDrawingViewport[3]);
                             float vpX(windowXYZ[0] - chartGraphicsDrawingViewport[0]);
                             float vpY(windowXYZ[1] - chartGraphicsDrawingViewport[1]);
                             const float offsetXY(10.0);
-                            if (vpX > (vpWidth / 2.0)) {
-                                /*
-                                 * Place text to the left of the selected point.
-                                 * Need additional offset of text width since the text is
-                                 * aligned on the left.  Right alignment looks bad when
-                                 * the lines of text are different lengths and aligned on right.
-                                 */
-                                double textWidth = 0.0;
-                                double textHeight = 0.0;
-                                m_textRenderer->getTextWidthHeightInPixels(text,
-                                                                           BrainOpenGLTextRenderInterface::DrawingFlags(),
-                                                                           vpWidth, vpHeight,
-                                                                           textWidth, textHeight);
-                                vpX -= (offsetXY + textWidth);
-                            }
-                            else {
-                                /*
-                                 * Place text to the right of the selected point
-                                 */
-                                vpX += offsetXY;
-                            }
-                            if (vpY > (vpHeight / 2.0)) {
-                                /*
-                                 * Place text below selected point
-                                 */
-                                vpY -= offsetXY;
-                                text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-                            }
-                            else {
-                                /*
-                                 * Place text above selected point
-                                 */
-                                vpY += offsetXY;
-                                text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                            
+                            double textWidth(0.0);
+                            double textHeight(0.0);
+                            m_textRenderer->getTextWidthHeightInPixels(text,BrainOpenGLTextRenderInterface::DrawingFlags(),
+                                                                       vpWidth, vpHeight,
+                                                                       textWidth, textHeight);
+                            const double halfTextWidth(textWidth / 2.0);
+                            const double halfTextHeight(textHeight / 2.0);
+                            
+                            text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+                            text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                            switch (lineChart.m_chartTwoOverlay->getSelectedLineChartTextOffset()) {
+                                case CardinalDirectionEnum::AUTO:
+                                    if (vpX > (vpWidth / 2.0)) {
+                                        /*
+                                         * Place text to the left of the selected point.
+                                         * Need additional offset of text width since the text is
+                                         * aligned on the left.  Right alignment looks bad when
+                                         * the lines of text are different lengths and aligned on right.
+                                         */
+                                        vpX -= (offsetXY + textWidth);
+                                    }
+                                    else {
+                                        /*
+                                         * Place text to the right of the selected point
+                                         */
+                                        vpX += offsetXY;
+                                    }
+                                    if (vpY > (vpHeight / 2.0)) {
+                                        /*
+                                         * Place text below selected point
+                                         */
+                                        vpY -= offsetXY;
+                                        text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                                    }
+                                    else {
+                                        /*
+                                         * Place text above selected point
+                                         */
+                                        vpY += offsetXY;
+                                        text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                                    }
+                                    break;
+                                case CardinalDirectionEnum::EAST:
+                                    vpX += offsetXY;
+                                    text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+                                    break;
+                                case CardinalDirectionEnum::NORTH:
+                                    vpX -= halfTextWidth;
+                                    vpY += offsetXY;
+                                    text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                                    break;
+                                case CardinalDirectionEnum::NORTHEAST:
+                                    vpX += offsetXY;
+                                    vpY += offsetXY;
+                                    text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                                    break;
+                                case CardinalDirectionEnum::NORTHWEST:
+                                    vpX -= (offsetXY + textWidth);
+                                    vpY += offsetXY;
+                                    text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                                    break;
+                                case CardinalDirectionEnum::SOUTH:
+                                    vpX -= (halfTextWidth);
+                                    vpY -= offsetXY;
+                                    text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                                    break;
+                                case CardinalDirectionEnum::SOUTHEAST:
+                                    vpX += offsetXY;
+                                    vpY -= offsetXY;
+                                    text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                                    break;
+                                case CardinalDirectionEnum::SOUTHWEST:
+                                    vpX -= (offsetXY + textWidth);
+                                    vpY -= offsetXY;
+                                    text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+                                    break;
+                                case CardinalDirectionEnum::WEST:
+                                    vpX -= (offsetXY + textWidth);
+                                    text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+                                    break;
                             }
                             
                             const float vpZ(0.0);

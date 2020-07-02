@@ -121,6 +121,8 @@ namespace caret {
         
         std::unique_ptr<GraphicsPrimitiveV3f> createGraphicsPrimitive();
         
+        int32_t getLineSegmentIndexContainingX(const float x) const;
+
         std::unique_ptr<MapFileDataSelector> m_mapFileDataSelector;
         
         std::unique_ptr<GraphicsPrimitiveV3f> m_graphicsPrimitive;

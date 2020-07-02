@@ -487,6 +487,66 @@ ChartTwoDataCartesian::setLineWidth(const float lineWidth)
 }
 
 /**
+ * @return Index of line segment containing X.  Index is of point at start of line segment.
+ * Negative if X is not within range of line.
+ * @param x
+ *    The X-coordinate
+ */
+int32_t
+ChartTwoDataCartesian::getLineSegmentIndexContainingX(const float x) const
+{
+    int32_t segmentIndex(-1);
+    
+    const float numLineSegments = m_graphicsPrimitive->getNumberOfVertices() - 1;
+    if (numLineSegments >= 1) {
+        int32_t left(0);
+        int32_t right(numLineSegments);
+        while (left <= right) {
+            const int32_t middle = left + (right - left) / 2;
+            
+            float p1[3], p2[3];
+            m_graphicsPrimitive->getVertexFloatXYZ(middle, p1);
+            m_graphicsPrimitive->getVertexFloatXYZ(middle + 1, p2);
+            
+            if ((x >= p1[0])
+                && (x <= p2[0])) {
+                segmentIndex = middle;
+                break;
+            }
+            else {
+                if (x > p2[0]) {
+                    left = middle + 1;
+                }
+                else {
+                    right = middle;
+                }
+            }
+        }
+
+        const bool verifyFlag(false);
+        if (verifyFlag) {
+            /*
+             * This is a slow linear search, used only in debug
+             * mode to verify binary search is correct
+             */
+            int32_t linearIndex(-1);
+            for (int32_t i = 0; i < numLineSegments; i++) {
+                float p1[3], p2[3];
+                m_graphicsPrimitive->getVertexFloatXYZ(i, p1);
+                m_graphicsPrimitive->getVertexFloatXYZ(i + 1, p2);
+                if ((x >= p1[0])
+                    && (x <= p2[0])) {
+                    linearIndex = i;
+                }
+            }
+            CaretAssert(segmentIndex == linearIndex);
+        }
+    }
+
+    return segmentIndex;
+}
+
+/**
  * @return The vertical distance from the line to the given X, Y coordinates.  A negative
  * value is returned if the X-coordinate is not within the line's range of X-coordinates.
  * @param x
@@ -502,60 +562,52 @@ ChartTwoDataCartesian::getVerticalDistanceToXY(const float x,
 {
     distanceOut   = std::numeric_limits<float>::max();
     pointIndexOut = -1;
+    const int32_t leftIndex = getLineSegmentIndexContainingX(x);
     
-    const float xyz[3] { x, y, 0.0f };
-    const float numLineSegments = m_graphicsPrimitive->getNumberOfVertices() - 1;
-    if (numLineSegments >= 1) {
-        /*
-         * This is a slow linear search, binary search will be faster
-         */
-        for (int32_t i = 0; i < numLineSegments; i++) {
-            float p1[3], p2[3];
-            m_graphicsPrimitive->getVertexFloatXYZ(i, p1);
-            m_graphicsPrimitive->getVertexFloatXYZ(i + 1, p2);
-            p1[2] = 0.0;
-            p2[2] = 0.0;
-            if ((x >= p1[0])
-                && (x <= p2[0])) {
-                const float dist1(MathFunctions::distance3D(xyz, p1));
-                const float dist2(MathFunctions::distance3D(xyz, p2));
-                
-                const float dx = p2[0] - p1[0];
-                if (dx != 0.0) {
-                    /*
-                     * Vertical distance from point to the line segment
-                     */
-                    const float dy = p2[1] - p1[1];
-                    const float m  = dy / dx;
-                    const float b  = p1[1] - (m * p1[0]);
-                    const float yOnSegment  = m * x + b;
-                    const float dist = std::fabs(yOnSegment - y);
-                    if (dist < distanceOut) {
-                        distanceOut   = dist;
-                        
-                        if (dist1 < dist2) {
-                            pointIndexOut = i;
-                        }
-                        else {
-                            pointIndexOut = i + 1;
-                        }
-                    }
-                }
-                else {
-                    /*
-                     * Vertical line so use nearest point in line
-                     */
-                    if (dist1 < dist2) {
-                        pointIndexOut = i;
-                    }
-                    else {
-                        pointIndexOut = i + 1;
-                    }
-                }
+    if (leftIndex >= 0) {
+        const int32_t rightIndex(leftIndex + 1);
+        const float xyz[3] { x, y, 0.0f };
+
+        float p1[3], p2[3];
+        m_graphicsPrimitive->getVertexFloatXYZ(leftIndex, p1);
+        m_graphicsPrimitive->getVertexFloatXYZ(rightIndex, p2);
+        p1[2] = 0.0;
+        p2[2] = 0.0;
+        const float dist1(MathFunctions::distance3D(xyz, p1));
+        const float dist2(MathFunctions::distance3D(xyz, p2));
+        
+        const float dx = p2[0] - p1[0];
+        if (dx != 0.0) {
+            /*
+             * Vertical distance from point to the line segment
+             */
+            const float dy = p2[1] - p1[1];
+            const float m  = dy / dx;
+            const float b  = p1[1] - (m * p1[0]);
+            const float yOnSegment  = m * x + b;
+            distanceOut = std::fabs(yOnSegment - y);
+            if (dist1 < dist2) {
+                pointIndexOut = leftIndex;
+            }
+            else {
+                pointIndexOut = rightIndex;
+            }
+        }
+        else {
+            /*
+             * Vertical line so use nearest point in line
+             */
+            if (dist1 < dist2) {
+                pointIndexOut = leftIndex;
+                distanceOut   = dist1;
+            }
+            else {
+                pointIndexOut = rightIndex;
+                distanceOut   = dist2;
             }
         }
     }
-
+    
     return (pointIndexOut >= 0);
 }
 
