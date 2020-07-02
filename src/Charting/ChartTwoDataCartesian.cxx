@@ -489,6 +489,10 @@ ChartTwoDataCartesian::setLineWidth(const float lineWidth)
 /**
  * @return Index of line segment containing X.  Index is of point at start of line segment.
  * Negative if X is not within range of line.
+ *
+ * WARNING: Points MUST be ordered in ascending order by the X-coordinate.  If not,
+ * behavior is undefined.
+ *
  * @param x
  *    The X-coordinate
  */
@@ -499,6 +503,18 @@ ChartTwoDataCartesian::getLineSegmentIndexContainingX(const float x) const
     
     const float numLineSegments = m_graphicsPrimitive->getNumberOfVertices() - 1;
     if (numLineSegments >= 1) {
+        /*
+         * Verify X is within range of the endpoints
+         */
+        float leftXYZ[3];
+        m_graphicsPrimitive->getVertexFloatXYZ(0, leftXYZ);
+        float rightXYZ[3];
+        m_graphicsPrimitive->getVertexFloatXYZ(numLineSegments, rightXYZ);
+        if ((x < leftXYZ[0])
+            || (x > rightXYZ[0])) {
+            return segmentIndex;
+        }
+
         int32_t left(0);
         int32_t right(numLineSegments);
         while (left <= right) {
