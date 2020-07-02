@@ -83,12 +83,14 @@ m_location(location)
     m_filteringFilesWidget = createFilteringFilesWidget();
     m_filteringSettingsWidget = createFilteringSettingsWidget();
     m_symbolsWidget = createSymbolsWidget();
+    m_chartLineLayerSymbolWidget = createChartLineLayerSymbolsWidget();
     
     m_tabWidget = new QTabWidget();
-    m_tabWidget->addTab(m_infoWidget,              "Info");
-    m_tabWidget->addTab(m_filteringFilesWidget,    "Files");
-    m_tabWidget->addTab(m_filteringSettingsWidget, "Filter");
-    m_tabWidget->addTab(m_symbolsWidget,           "Symbols");
+    m_tabWidget->addTab(m_infoWidget,                 "Info");
+    m_tabWidget->addTab(m_chartLineLayerSymbolWidget, "Chart");
+    m_tabWidget->addTab(m_filteringFilesWidget,       "Files");
+    m_tabWidget->addTab(m_filteringSettingsWidget,    "Filter");
+    m_tabWidget->addTab(m_symbolsWidget,              "Symbols");
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
@@ -146,6 +148,7 @@ IdentificationDisplayWidget::updateContent(const bool scrollTextToEndFlag)
     updateSymbolsWidget();
     updateFilteringWidget();
     updateInfoWidget(scrollTextToEndFlag);
+    updateChartLineLayerSymbolsWidget();
 }
 
 /**
@@ -694,5 +697,120 @@ IdentificationDisplayWidget::restoreFromScene(const SceneAttributes* sceneAttrib
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
     
+}
+
+/**
+ * @return Instance of the line layer chart symbols widget
+ */
+QWidget*
+IdentificationDisplayWidget::createChartLineLayerSymbolsWidget()
+{
+    QLabel* symbolDiameterLabel = new QLabel("Symbol Diameter:");
+    m_chartLineLayerSymbolSizeSpinBox = new QDoubleSpinBox();
+    m_chartLineLayerSymbolSizeSpinBox->setRange(0.1, 1000.0);
+    m_chartLineLayerSymbolSizeSpinBox->setSingleStep(0.1);
+    m_chartLineLayerSymbolSizeSpinBox->setDecimals(1);
+    m_chartLineLayerSymbolSizeSpinBox->setSuffix("%");
+    m_chartLineLayerSymbolSizeSpinBox->setToolTip("Size of point symbol as a percentage\n"
+                                                  "of viewport height");
+    
+    QLabel* mostRecentSymbolDiameterLabel = new QLabel("Selected Diameter:");
+    m_chartLineLayerSelectedSymbolSizeSpinBox = new QDoubleSpinBox();
+    m_chartLineLayerSelectedSymbolSizeSpinBox->setRange(0.1, 1000.0);
+    m_chartLineLayerSelectedSymbolSizeSpinBox->setSingleStep(0.1);
+    m_chartLineLayerSelectedSymbolSizeSpinBox->setDecimals(1);
+    m_chartLineLayerSelectedSymbolSizeSpinBox->setSuffix("%");
+    m_chartLineLayerSelectedSymbolSizeSpinBox->setToolTip("Size of selected layer point symbol\n"
+                                                          "as percentage of viewport height");
+
+    QLabel* toolTipTextSizeLabel = new QLabel("Text Height:");
+    m_chartLineLayerToolTipTextSizeSpinBox = new QDoubleSpinBox();
+    m_chartLineLayerToolTipTextSizeSpinBox->setRange(0.1, 1000.0);
+    m_chartLineLayerToolTipTextSizeSpinBox->setSingleStep(0.1);
+    m_chartLineLayerToolTipTextSizeSpinBox->setDecimals(1);
+    m_chartLineLayerToolTipTextSizeSpinBox->setSuffix("%");
+    m_chartLineLayerToolTipTextSizeSpinBox->setToolTip("Size of tooltip text as a\n"
+                                                       "percentage of viewport height");
+
+    WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);
+    QObject::connect(signalWatcher, &WuQValueChangedSignalWatcher::valueChanged,
+                     this, &IdentificationDisplayWidget::chartLineLayerSymbolChanged);
+    signalWatcher->addObject(m_chartLineLayerSymbolSizeSpinBox);
+    signalWatcher->addObject(m_chartLineLayerSelectedSymbolSizeSpinBox);
+    signalWatcher->addObject(m_chartLineLayerToolTipTextSizeSpinBox);
+    
+    QGridLayout* symbolLayout = new QGridLayout();
+    int32_t row(0);
+    symbolLayout->addWidget(symbolDiameterLabel,
+                            row, 0);
+    symbolLayout->addWidget(m_chartLineLayerSymbolSizeSpinBox,
+                            row, 1);
+    row++;
+    symbolLayout->addWidget(mostRecentSymbolDiameterLabel,
+                            row, 0);
+    symbolLayout->addWidget(m_chartLineLayerSelectedSymbolSizeSpinBox,
+                            row, 1);
+    row++;
+    symbolLayout->addWidget(toolTipTextSizeLabel,
+                            row, 0);
+    symbolLayout->addWidget(m_chartLineLayerToolTipTextSizeSpinBox,
+                            row, 1);
+    
+    Qt::Alignment alignment = Qt::Alignment();
+    QWidget* widget = new QWidget();
+    QBoxLayout* boxLayout(NULL);
+    switch (m_location) {
+        case Location::Dialog:
+            alignment = Qt::AlignTop;
+            boxLayout = new QHBoxLayout(widget);
+            break;
+        case Location::HorizontalToolBox:
+        case Location::VerticalToolBox:
+            alignment = Qt::AlignLeft;
+            boxLayout = new QVBoxLayout(widget);
+            break;
+    }
+    CaretAssert(boxLayout);
+    
+    WuQtUtilities::setLayoutSpacingAndMargins(boxLayout, 4, 4);
+    boxLayout->addLayout(symbolLayout);
+    boxLayout->addStretch();
+    
+    QScrollArea* scrollArea = new QScrollArea();
+    scrollArea->setWidget(widget);
+    
+    return scrollArea;
+}
+
+/**
+ * Called when a symbols item is changed
+ */
+void
+IdentificationDisplayWidget::chartLineLayerSymbolChanged()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* info = brain->getIdentificationManager();
+    
+    info->setChartLineLayerSymbolSize(m_chartLineLayerSymbolSizeSpinBox->value());
+    info->setChartLineLayerSelectedSymbolSize(m_chartLineLayerSelectedSymbolSizeSpinBox->value());
+    info->setChartLineLayerToolTipTextSize(m_chartLineLayerToolTipTextSizeSpinBox->value());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Update the chart line layer symbols widget
+ */
+void
+IdentificationDisplayWidget::updateChartLineLayerSymbolsWidget()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* info = brain->getIdentificationManager();
+    
+    QSignalBlocker symbolBlocker(m_chartLineLayerSymbolSizeSpinBox);
+    m_chartLineLayerSymbolSizeSpinBox->setValue(info->getChartLineLayerSymbolSize());
+    QSignalBlocker selectedSymbolBlocker(m_chartLineLayerSelectedSymbolSizeSpinBox);
+    m_chartLineLayerSelectedSymbolSizeSpinBox->setValue(info->getChartLineLayerSelectedSymbolSize());
+    QSignalBlocker toolTipBlocker(m_chartLineLayerToolTipTextSizeSpinBox);
+    m_chartLineLayerToolTipTextSizeSpinBox->setValue(info->getChartLineLayerToolTipTextSize());
 }
 

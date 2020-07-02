@@ -71,6 +71,10 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_identificationFilter.reset(new IdentificationFilter());
     m_identificationHistoryManager.reset(new IdentificationHistoryManager());
     
+    m_chartLineLayerSymbolSize         = 4.0;
+    m_chartLineLayerSelectedSymbolSize = 7.0;
+    m_chartLineLayerToolTipTextSize    = 4.0;
+    
     m_sceneAssistant->add("m_contralateralIdentificationEnabled",
                           &m_contralateralIdentificationEnabled);
     
@@ -96,6 +100,13 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_sceneAssistant->add("m_identificationHistoryManager",
                           "m_identificationHistoryManager",
                           m_identificationHistoryManager.get());
+    
+    m_sceneAssistant->add("m_chartLineLayerSymbolSize",
+                          &m_chartLineLayerSymbolSize);
+    m_sceneAssistant->add("m_chartLineLayerSelectedSymbolSize",
+                          &m_chartLineLayerSelectedSymbolSize);
+    m_sceneAssistant->add("m_chartLineLayerToolTipTextSize",
+                          &m_chartLineLayerToolTipTextSize);
     
     removeAllIdentifiedItems();
 }
@@ -562,6 +573,66 @@ void
 IdentificationManager::setShowVolumeIdentificationSymbols(const bool showVolumeIdentificationSymbols)
 {
     m_showVolumeIdentificationSymbols = showVolumeIdentificationSymbols;
+}
+
+/**
+ * @return Size for chart line layer symbols, except selected layer (percentage of viewport height)
+ */
+float
+IdentificationManager::getChartLineLayerSymbolSize() const
+{
+    return m_chartLineLayerSymbolSize;
+}
+
+/**
+ * Set size for chart line layer symbols, except selected layer (percentage of viewport height)
+ * @param symbolSize
+ *    New size for symbol
+ */
+void
+IdentificationManager::setChartLineLayerSymbolSize(const float symbolSize)
+{
+    m_chartLineLayerSymbolSize = symbolSize;
+}
+
+/**
+ * @return Size for chart selected line layer symbol (percentage of viewport height)
+ */
+float
+IdentificationManager::getChartLineLayerSelectedSymbolSize() const
+{
+    return m_chartLineLayerSelectedSymbolSize;
+}
+
+/**
+ * Set size for chart selected line layer symbol (percentage of viewport height)
+ * @param symbolSize
+ *    New size for symbol
+ */
+void
+IdentificationManager::setChartLineLayerSelectedSymbolSize(const float symbolSize)
+{
+    m_chartLineLayerSelectedSymbolSize = symbolSize;
+}
+
+/**
+ * @return Size for chart line layer tooltip text (percentage of viewport height)
+ */
+float
+IdentificationManager::getChartLineLayerToolTipTextSize() const
+{
+    return m_chartLineLayerToolTipTextSize;
+}
+
+/**
+ * Set size for chart line layer tooltip text (percentage of viewport height)
+ * @param textSize
+ *    New size for text
+ */
+void
+IdentificationManager::setChartLineLayerToolTipTextSize(const float textSize)
+{
+    m_chartLineLayerToolTipTextSize = textSize;
 }
 
 /**

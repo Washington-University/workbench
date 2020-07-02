@@ -60,6 +60,7 @@
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsShape.h"
 #include "GraphicsUtilitiesOpenGL.h"
+#include "IdentificationManager.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "ModelChartTwo.h"
@@ -1182,6 +1183,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 }
             }
             else {
+                IdentificationManager* idManager = m_brain->getIdentificationManager();
+                const float symbolSize = idManager->getChartLineLayerSymbolSize();
+                const float selectedSymbolSize = idManager->getChartLineLayerSelectedSymbolSize();
+                const float textSize = idManager->getChartLineLayerToolTipTextSize();
+                
                 if (lineChart.m_lineChartColor != lineChart.m_chartTwoCartesianData->getColor()) {
                     lineChart.m_chartTwoCartesianData->setColor(lineChart.m_lineChartColor);
                 }
@@ -1200,10 +1206,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                         };
 
                         std::array<float, 3> windowXYZ;
-                        const float pctViewportHeight(lineChart.m_lineWidth + 3.0);
                         GraphicsShape::drawCircleFilledPercentViewportHeight(xyz.data(),
                                                                              foregroundRGBA,
-                                                                             pctViewportHeight,
+                                                                             symbolSize,
                                                                              &windowXYZ);
                         {
                             const QString info("Index: "
@@ -1215,7 +1220,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                             AnnotationPercentSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                             AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
                             text.setText(info);
-                            text.setFontPercentViewportSize(4.0);
+                            text.setFontPercentViewportSize(textSize);
                             text.setBoldStyleEnabled(true);
                             text.setTextColor(CaretColorEnum::BLACK);
                             text.setBackgroundColor(CaretColorEnum::CUSTOM);
@@ -1236,7 +1241,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                                                        vpWidth, vpHeight,
                                                                        textWidth, textHeight);
                             const double halfTextWidth(textWidth / 2.0);
-                            const double halfTextHeight(textHeight / 2.0);
                             
                             text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
                             text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);

@@ -102,6 +102,18 @@ namespace caret {
         
         void setShowVolumeIdentificationSymbols(const bool showVolumeIdentificationSymbols);
         
+        float getChartLineLayerSymbolSize() const;
+        
+        void setChartLineLayerSymbolSize(const float symbolSize);
+        
+        float getChartLineLayerSelectedSymbolSize() const;
+        
+        void setChartLineLayerSelectedSymbolSize(const float symbolSize);
+        
+        float getChartLineLayerToolTipTextSize() const;
+        
+        void setChartLineLayerToolTipTextSize(const float textSize);
+
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -141,6 +153,12 @@ namespace caret {
         
         CaretColorEnum::Enum m_identificationContralateralSymbolColor;
 
+        float m_chartLineLayerSymbolSize = 2.0;
+        
+        float m_chartLineLayerSelectedSymbolSize = 4.0;
+        
+        float m_chartLineLayerToolTipTextSize = 2.0;
+        
         std::unique_ptr<IdentificationFilter> m_identificationFilter;
         
         std::unique_ptr<IdentificationHistoryManager> m_identificationHistoryManager;

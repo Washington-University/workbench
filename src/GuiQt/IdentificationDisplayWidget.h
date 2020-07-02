@@ -102,6 +102,7 @@ namespace caret {
         
         void tabFilterRadioButtonClicked(int buttonID);
         
+        void chartLineLayerSymbolChanged();
     private:
         void updateContent(const bool scrollTextToEndFlag);
         
@@ -115,11 +116,15 @@ namespace caret {
         
         QWidget* createSymbolsWidget();
         
+        QWidget* createChartLineLayerSymbolsWidget();
+        
         void updateInfoWidget(const bool scrollTextToEndFlag);
         
         void updateFilteringWidget();
         
         void updateSymbolsWidget();
+        
+        void updateChartLineLayerSymbolsWidget();
         
         IdentificationHistoryManager* getHistoryManager();
         
@@ -164,6 +169,14 @@ namespace caret {
         QDoubleSpinBox* m_symbolsMostRecentIdDiameterSpinBox;
         
         QCheckBox* m_symbolsSurfaceContralateralVertexCheckBox;
+        
+        QWidget* m_chartLineLayerSymbolWidget;
+        
+        QDoubleSpinBox* m_chartLineLayerSymbolSizeSpinBox;
+        
+        QDoubleSpinBox* m_chartLineLayerSelectedSymbolSizeSpinBox;
+        
+        QDoubleSpinBox* m_chartLineLayerToolTipTextSizeSpinBox;
         
         // ADD_NEW_MEMBERS_HERE
 
