@@ -743,7 +743,7 @@ GraphicsShape::drawShapePercentViewportHeight(const float xyz[3],
         glLoadIdentity();
         
         const float pixelSize = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(diameterPercentageOfViewportHeight);
-        const float pixelSizeTwo = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(diameterPercentageOfViewportHeight);
+        const float pixelSizeTwo = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(diameterTwoPercentageOfViewportHeight);
 
         switch (shape) {
             case Shape::CIRCLE_FILLED:
@@ -759,7 +759,7 @@ GraphicsShape::drawShapePercentViewportHeight(const float xyz[3],
             case Shape::RING:
                 GraphicsShape::drawRing(windowXYZ,
                                         rgba,
-                                        diameterPercentageOfViewportHeight / 2,
+                                        pixelSize / 2,
                                         pixelSizeTwo / 2);
                 break;
         }

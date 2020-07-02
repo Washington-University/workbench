@@ -23,6 +23,7 @@
 #include "ChartTwoDataCartesian.h"
 #undef __CHART_TWO_DATA_CARTESIAN_DECLARE__
 
+#include <cmath>
 #include <limits>
 
 #include <QTextStream>
