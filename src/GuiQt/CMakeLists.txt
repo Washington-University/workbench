@@ -130,6 +130,7 @@ ELSE()
         DataFileContentCopyMoveDialog.h
         DisplayGroupAndTabItemViewController.h
         DisplayGroupEnumComboBox.h
+	DynConnViewController.h
         EnumComboBoxTemplate.h
         FiberOrientationSelectionViewController.h
         FiberSamplesOpenGLWidget.h
@@ -384,6 +385,7 @@ DataFileContentCopyMoveDialog.h
 DisplayGroupAndTabItemTreeWidgetItem.h
 DisplayGroupAndTabItemViewController.h
 DisplayGroupEnumComboBox.h
+DynConnViewController.h
 EnumComboBoxTemplate.h
 EventAnnotationCreateNewType.h
 EventAnnotationGetDrawnInWindow.h
@@ -689,6 +691,7 @@ DataFileContentCopyMoveDialog.cxx
 DisplayGroupAndTabItemTreeWidgetItem.cxx
 DisplayGroupAndTabItemViewController.cxx
 DisplayGroupEnumComboBox.cxx
+DynConnViewController.cxx
 EventBrowserTabCloseInToolBar.cxx
 EventBrowserTabDeleteInToolBar.cxx
 EventBrowserTabNewInGUI.cxx
