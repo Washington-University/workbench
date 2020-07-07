@@ -1067,6 +1067,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
     }
 
     if (drawLineLayerFlag) {
+        
+        /*
+         * Need to draw tooltips last so they are not under other chart lines
+         */
+        std::vector<std::tuple<float, float, float, AnnotationPercentSizeText>> textToolTips;
+        
         for (const auto lineChart : lineLayerChartsToDraw) {
             
             bool leftVerticalAxisFlag = true;
@@ -1317,11 +1323,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                             }
                             
                             const float vpZ(0.0);
-                            m_textRenderer->drawTextAtViewportCoords(vpX,
-                                                                     vpY,
-                                                                     vpZ,
-                                                                     text,
-                                                                     BrainOpenGLTextRenderInterface::DrawingFlags());
+                            textToolTips.push_back(std::make_tuple(vpX, vpY, vpZ, text));
                         }
                     }
                 }
@@ -1334,6 +1336,18 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
              * of the top overlay will be used.
              */
             updateViewportContentForCharting(chartGraphicsDrawingViewport);
+        }
+        
+        /*
+         * Draw tooltips AFTER lines to that the tooltips are
+         * not behind any lines
+         */
+        for (auto tt : textToolTips) {
+            m_textRenderer->drawTextAtViewportCoords(std::get<0>(tt),
+                                                     std::get<1>(tt),
+                                                     std::get<2>(tt),
+                                                     std::get<3>(tt),
+                                                     BrainOpenGLTextRenderInterface::DrawingFlags());
         }
     }
 }
