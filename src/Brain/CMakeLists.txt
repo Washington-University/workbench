@@ -55,6 +55,7 @@ BrainStructureNodeAttributes.h
 BrowserTabContent.h
 BrowserWindowContent.h
 ChartTwoOverlay.h
+ChartTwoOverlayActiveModeEnum.h
 ChartTwoOverlaySet.h
 ChartTwoOverlaySetArray.h
 ChartingDataManager.h
@@ -227,6 +228,7 @@ BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
 BrowserWindowContent.cxx
 ChartTwoOverlay.cxx
+ChartTwoOverlayActiveModeEnum.cxx
 ChartTwoOverlaySet.cxx
 ChartTwoOverlaySetArray.cxx
 ChartingDataManager.cxx

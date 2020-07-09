@@ -547,7 +547,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
      * Highlighting of border points
      */
     s_singletonOpenGL->setDrawHighlightedEndPoints(false);
-    if (inputProcessor->getUserInputMode() == UserInputModeEnum::BORDERS) {
+    if (inputProcessor->getUserInputMode() == UserInputModeEnum::Enum::BORDERS) {
         UserInputModeBorders* borderInputProcessor = dynamic_cast<UserInputModeBorders*>(inputProcessor);
         CaretAssert(borderInputProcessor);
         s_singletonOpenGL->setDrawHighlightedEndPoints(borderInputProcessor->isHighlightBorderEndPoints());
@@ -705,7 +705,7 @@ BrainOpenGLWidget::paintGL()
     
     UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
     const UserInputModeEnum::Enum inputMode = inputProcessor->getUserInputMode();
-    if (inputMode == UserInputModeEnum::BORDERS) {
+    if (inputMode == UserInputModeEnum::Enum::BORDERS) {
         UserInputModeBorders* borderInputMode = dynamic_cast<UserInputModeBorders*>(inputProcessor);
         CaretAssert(borderInputMode);
         s_singletonOpenGL->setBorderBeingDrawn(borderInputMode->getBorderBeingDrawn());
@@ -1092,9 +1092,29 @@ BrainOpenGLWidget::keyPressEvent(QKeyEvent* e)
     Qt::KeyboardModifiers keyModifiers = e->modifiers();
     const bool shiftKeyDownFlag = ((keyModifiers & Qt::ShiftModifier) != 0);
     
-    KeyEvent keyEvent(this,
+    bool mouseValidFlag(false);
+    const QPoint mousePos = mapFromGlobal(QCursor::pos());
+    int32_t mouseX = mousePos.x();
+    int32_t mouseY = height() - mousePos.y();
+    if ((mouseX >= 0)
+        && (mouseX < width())
+        && (mouseY >= 0)
+        && (mouseY < height())) {
+        mouseValidFlag = true;
+    }
+    
+    const BrainOpenGLViewportContent* viewportContent(NULL);
+    if (mouseValidFlag) {
+        viewportContent = getViewportContentAtXY(mouseX,
+                                                 mouseY);
+    }
+    KeyEvent keyEvent(viewportContent,
+                      this,
                       this->windowIndex,
                       e->key(),
+                      mouseX,
+                      mouseY,
+                      mouseValidFlag,
                       m_newKeyPressStartedFlag,
                       shiftKeyDownFlag);
     
@@ -1536,17 +1556,17 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
     const UserInputModeEnum::Enum inputMode = getSelectedInputMode();
     bool manLayoutFlag(false);
     switch (inputMode) {
-        case UserInputModeEnum::ANNOTATIONS:
+        case UserInputModeEnum::Enum::ANNOTATIONS:
             break;
-        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
             manLayoutFlag = true;
             break;
-        case UserInputModeEnum::BORDERS:
-        case UserInputModeEnum::FOCI:
-        case UserInputModeEnum::IMAGE:
-        case UserInputModeEnum::INVALID:
-        case UserInputModeEnum::VIEW:
-        case UserInputModeEnum::VOLUME_EDIT:
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
             break;
     }
 

@@ -181,7 +181,7 @@ AnnotationDeleteWidget::deleteActionTriggered()
         undoCommand->setModeDeleteAnnotations(deleteAnnotations);
 
         AString errorMessage;
-        if ( ! annotationManager->applyCommand(UserInputModeEnum::ANNOTATIONS,
+        if ( ! annotationManager->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                                undoCommand,
                                                errorMessage)) {
             WuQMessageBox::errorOk(this,

@@ -48,6 +48,7 @@ using namespace caret;
 #include "ChartableTwoFileDelegate.h"
 #include "CursorDisplayScoped.h"
 #include "ElapsedTimer.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -289,11 +290,18 @@ m_chartOverlay(NULL)
                                   "arrow keys and decremented using the left or down "
                                   "arrow keys (it may be necessary to click in the "
                                   "chart graphics for the arrow keys to function).");
-    m_selectedPointCheckBox = new QCheckBox((orientation == Qt::Horizontal)
-                                                   ? "" : "Show");
-    m_selectedPointCheckBox->setToolTip("Draw symbol at selected point");
-    QObject::connect(m_selectedPointCheckBox, &QCheckBox::clicked,
-                     this, &ChartTwoOverlayViewController::selectedPointCheckBoxClicked);
+    const QString activeToolTip("OFF - No symbol displayed\n"
+                                "ON  - Ring drawn at selected point\n"
+                                "ACTIVE - Circle drawn at selected point\n"
+                                "         arrow right/left arrow keys\n"
+                                "         in chart drawing region\n"
+                                "         increment/decrement point index");
+    m_lineLayerActiveComboBox = new EnumComboBoxTemplate(this);
+    m_lineLayerActiveComboBox->setup<ChartTwoOverlayActiveModeEnum,ChartTwoOverlayActiveModeEnum::Enum>();
+    QObject::connect(m_lineLayerActiveComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(lineLayerActiveModeEnumComboBoxItemActivated()));
+    m_lineLayerActiveComboBox->setToolTip(activeToolTip);
+    
     m_selectedPointIndexSpinBox = new QSpinBox();
     m_selectedPointIndexSpinBox->setToolTip("Set index of selected point");
     WuQtUtilities::setWordWrappedToolTip(m_selectedPointIndexSpinBox,
@@ -992,7 +1000,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
      */
     bool pointValidFlag(false);
     if (validOverlayAndFileFlag) {
-        m_selectedPointCheckBox->setChecked(m_chartOverlay->isSelectedLineChartPointDisplayed());
+        m_lineLayerActiveComboBox->setSelectedItem<ChartTwoOverlayActiveModeEnum,ChartTwoOverlayActiveModeEnum::Enum>(m_chartOverlay->getLineChartActiveMode());
         m_selectedPointIndexSpinBox->setRange(0, m_chartOverlay->getSelectedLineChartNumberOfPoints() - 1);
         QSignalBlocker spinBlocker(m_selectedPointIndexSpinBox);
         m_selectedPointIndexSpinBox->setValue(m_chartOverlay->getSelectedLineChartPointIndex());
@@ -1000,7 +1008,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
             pointValidFlag = true;
         }
     }
-    m_selectedPointCheckBox->setEnabled(pointValidFlag);
+    m_lineLayerActiveComboBox->getWidget()->setEnabled(pointValidFlag);
     m_selectedPointIndexSpinBox->setEnabled(pointValidFlag);
 
     bool showAllMapsCheckbBoxFlag(false);
@@ -1047,7 +1055,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_lineLayerWidthSpinBox->getWidget()->setVisible(showLineLayerWidthButtonFlag);
     m_lineSeriesLoadingEnabledCheckBox->setVisible(showLineSeriesLoadingCheckBoxFlag);
     m_matrixTriangularViewModeToolButton->setVisible(showMatrixDiagonalButtonFlag);
-    m_selectedPointCheckBox->setVisible(showSelectedPointControlsFlag);
+    m_lineLayerActiveComboBox->getWidget()->setVisible(showSelectedPointControlsFlag);
     m_selectedPointIndexSpinBox->setVisible(showSelectedPointControlsFlag);
     m_settingsToolButton->setVisible(showSettingsButtonFlag);
 }
@@ -1354,10 +1362,11 @@ ChartTwoOverlayViewController::updateLineLayerToolTipOffsetToolButton()
  *    New selection status
  */
 void
-ChartTwoOverlayViewController::selectedPointCheckBoxClicked(bool selected)
+ChartTwoOverlayViewController::lineLayerActiveModeEnumComboBoxItemActivated()
 {
     if (m_chartOverlay != NULL) {
-        m_chartOverlay->setSelectedLineChartPointDisplayed(selected);
+        const ChartTwoOverlayActiveModeEnum::Enum mode = m_lineLayerActiveComboBox->getSelectedItem<ChartTwoOverlayActiveModeEnum,ChartTwoOverlayActiveModeEnum::Enum>();
+        m_chartOverlay->setLineChartActiveMode(mode);
         updateViewController(m_chartOverlay);
         updateGraphicsWindow();
     }

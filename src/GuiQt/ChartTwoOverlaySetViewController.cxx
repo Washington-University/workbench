@@ -41,6 +41,7 @@
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
 #include "ChartTwoOverlayViewController.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -168,7 +169,7 @@ m_browserWindowIndex(browserWindowIndex)
             QWidget* pointWidget = new QWidget();
             QHBoxLayout* pointLayout = new QHBoxLayout(pointWidget);
             pointLayout->setContentsMargins(0, 0, 0, 0);
-            pointLayout->addWidget(covc->m_selectedPointCheckBox);
+            pointLayout->addWidget(covc->m_lineLayerActiveComboBox->getWidget());
             pointLayout->addWidget(covc->m_selectedPointIndexSpinBox);
             
             row = gridLayout->rowCount();
@@ -263,7 +264,7 @@ m_browserWindowIndex(browserWindowIndex)
             bottomRightLayout->addWidget(covc->m_mapRowOrColumnNameComboBox, 100);
             
             glg->addWidget(topLeftWidget, row, COLUMN_ONE, Qt::AlignLeft);
-            glg->addWidget(covc->m_selectedPointCheckBox, row, COLUMN_TWO);
+            glg->addWidget(covc->m_lineLayerActiveComboBox->getWidget(), row, COLUMN_TWO);
             glg->addWidget(topRightWidget, row, COLUMN_THREE);
             row++;
             glg->addWidget(bottomLeftWidget, row, COLUMN_ONE, Qt::AlignLeft);

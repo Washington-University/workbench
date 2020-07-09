@@ -72,7 +72,6 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_identificationHistoryManager.reset(new IdentificationHistoryManager());
     
     m_chartLineLayerSymbolSize         = 4.0;
-    m_chartLineLayerSelectedSymbolSize = 7.0;
     m_chartLineLayerToolTipTextSize    = 4.0;
     
     m_sceneAssistant->add("m_contralateralIdentificationEnabled",
@@ -103,8 +102,6 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     
     m_sceneAssistant->add("m_chartLineLayerSymbolSize",
                           &m_chartLineLayerSymbolSize);
-    m_sceneAssistant->add("m_chartLineLayerSelectedSymbolSize",
-                          &m_chartLineLayerSelectedSymbolSize);
     m_sceneAssistant->add("m_chartLineLayerToolTipTextSize",
                           &m_chartLineLayerToolTipTextSize);
     
@@ -593,26 +590,6 @@ void
 IdentificationManager::setChartLineLayerSymbolSize(const float symbolSize)
 {
     m_chartLineLayerSymbolSize = symbolSize;
-}
-
-/**
- * @return Size for chart selected line layer symbol (percentage of viewport height)
- */
-float
-IdentificationManager::getChartLineLayerSelectedSymbolSize() const
-{
-    return m_chartLineLayerSelectedSymbolSize;
-}
-
-/**
- * Set size for chart selected line layer symbol (percentage of viewport height)
- * @param symbolSize
- *    New size for symbol
- */
-void
-IdentificationManager::setChartLineLayerSelectedSymbolSize(const float symbolSize)
-{
-    m_chartLineLayerSelectedSymbolSize = symbolSize;
 }
 
 /**

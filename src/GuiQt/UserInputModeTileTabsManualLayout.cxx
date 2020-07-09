@@ -54,7 +54,7 @@ using namespace caret;
  *     Index of window
  */
 UserInputModeTileTabsManualLayout::UserInputModeTileTabsManualLayout(const int32_t windowIndex)
-: UserInputModeAnnotations(UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING,
+: UserInputModeAnnotations(UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING,
                            windowIndex)
 {
     

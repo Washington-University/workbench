@@ -106,10 +106,6 @@ namespace caret {
         
         void setChartLineLayerSymbolSize(const float symbolSize);
         
-        float getChartLineLayerSelectedSymbolSize() const;
-        
-        void setChartLineLayerSelectedSymbolSize(const float symbolSize);
-        
         float getChartLineLayerToolTipTextSize() const;
         
         void setChartLineLayerToolTipTextSize(const float textSize);
@@ -154,8 +150,6 @@ namespace caret {
         CaretColorEnum::Enum m_identificationContralateralSymbolColor;
 
         float m_chartLineLayerSymbolSize = 2.0;
-        
-        float m_chartLineLayerSelectedSymbolSize = 4.0;
         
         float m_chartLineLayerToolTipTextSize = 2.0;
         

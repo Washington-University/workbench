@@ -53,7 +53,7 @@ namespace caret {
     private:
         const int32_t m_windowIndex;
         
-        UserInputModeEnum::Enum m_userInputMode = UserInputModeEnum::VIEW;
+        UserInputModeEnum::Enum m_userInputMode = UserInputModeEnum::Enum::VIEW;
         
         // ADD_NEW_MEMBERS_HERE
 

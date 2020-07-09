@@ -137,8 +137,8 @@ namespace caret {
         
         static void drawRingPercentViewportHeight(const float xyz[3],
                                                   const uint8_t rgba[4],
-                                                  const float innerRadiusPercentageOfViewportHeight,
-                                                  const float outerRadiusPercentageOfViewportHeight,
+                                                  const float innerDiameterPercentageOfViewportHeight,
+                                                  const float outerDiameterPercentageOfViewportHeight,
                                                   std::array<float, 3>* windowXYZOut = NULL);
         
         static void deleteAllPrimitives();

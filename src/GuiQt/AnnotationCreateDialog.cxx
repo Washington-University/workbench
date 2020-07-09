@@ -799,12 +799,12 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
                                          annotation);
     
     CaretAssert(annotation);
-    UserInputModeEnum::Enum inputMode = UserInputModeEnum::ANNOTATIONS;
+    UserInputModeEnum::Enum inputMode = UserInputModeEnum::Enum::ANNOTATIONS;
     switch (annotation->getType()) {
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
-            inputMode = UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING;
+            inputMode = UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING;
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;

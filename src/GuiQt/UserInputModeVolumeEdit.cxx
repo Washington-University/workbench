@@ -62,7 +62,8 @@ using namespace caret;
  * Index of window using this volume editor input handler.
  */
 UserInputModeVolumeEdit::UserInputModeVolumeEdit(const int32_t windowIndex)
-: UserInputModeView(UserInputModeEnum::VOLUME_EDIT),
+: UserInputModeView(windowIndex,
+                    UserInputModeEnum::Enum::VOLUME_EDIT),
 m_windowIndex(windowIndex)
 {
     m_inputModeVolumeEditWidget = new UserInputModeVolumeEditWidget(this,

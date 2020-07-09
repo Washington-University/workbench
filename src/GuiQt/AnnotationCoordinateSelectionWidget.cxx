@@ -778,7 +778,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
     }
     
     AString errorMessage;
-    if ( ! annotationManager->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annotationManager->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                            command,
                                            errorMessage)) {
         WuQMessageBox::errorOk(this,

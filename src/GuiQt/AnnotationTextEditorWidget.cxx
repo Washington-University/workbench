@@ -203,7 +203,7 @@ AnnotationTextEditorWidget::annotationTextChanged()
     undoCommand->setModeTextCharacters(s, selectedAnnotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                 undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -249,7 +249,7 @@ AnnotationTextEditorWidget::annotationTextConnectTypeEnumComboBoxItemActivated()
                                                    selectedAnnotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                 undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,

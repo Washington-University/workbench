@@ -71,7 +71,8 @@ using namespace caret;
  *    Index of the browser window using this border processing.
  */
 UserInputModeBorders::UserInputModeBorders(const int32_t windowIndex)
-: UserInputModeView(UserInputModeEnum::BORDERS)
+: UserInputModeView(windowIndex,
+                    UserInputModeEnum::Enum::BORDERS)
 {
     this->borderBeingDrawn = new Border();
     this->windowIndex = windowIndex;

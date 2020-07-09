@@ -551,7 +551,7 @@ AnnotationManager::getAnnotationEditingSelectionInformation(const int32_t window
     
     EventUserInputModeGet modeEvent(windowIndex);
     EventManager::get()->sendEvent(modeEvent.getPointer());
-    const bool tileModeFlag = (modeEvent.getUserInputMode() == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING);
+    const bool tileModeFlag = (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING);
 
     AnnotationEditingSelectionInformation* asi = m_selectionInformation[windowIndex];
     
@@ -645,7 +645,7 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditing(const int32_t window
 
     EventUserInputModeGet modeEvent(windowIndex);
     EventManager::get()->sendEvent(modeEvent.getPointer());
-    if (modeEvent.getUserInputMode() == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+    if (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
         /* In Tile Editing mode and browser tabs are not in files */
         return;
     }
@@ -689,7 +689,7 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditingIncludingLabels(const
     
     EventUserInputModeGet modeEvent(windowIndex);
     EventManager::get()->sendEvent(modeEvent.getPointer());
-    if (modeEvent.getUserInputMode() == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+    if (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
         /* In Tile Editing mode and browser tabs are not in files */
         return;
     }
@@ -932,7 +932,7 @@ AnnotationManager::applyStackingOrder(const std::vector<Annotation*>& annotation
                                              stackOrders,
                                              orderType);
 
-    const float resultFlag = applyCommandInWindow(UserInputModeEnum::ANNOTATIONS,
+    const float resultFlag = applyCommandInWindow(UserInputModeEnum::Enum::ANNOTATIONS,
                                                   command,
                                                   windowIndex,
                                                   errorMessageOut);
@@ -1311,18 +1311,18 @@ AnnotationManager::getCommandRedoUndoStack(const UserInputModeEnum::Enum userInp
 {
     CaretUndoStack* undoStackOut(NULL);
     switch (userInputMode) {
-        case UserInputModeEnum::ANNOTATIONS:
+        case UserInputModeEnum::Enum::ANNOTATIONS:
             undoStackOut = m_annotationsExceptBrowserTabsRedoUndoStack;
             break;
-        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
             undoStackOut = m_browserTabAnnotationsRedoUndoStack;
             break;
-        case UserInputModeEnum::BORDERS:
-        case UserInputModeEnum::FOCI:
-        case UserInputModeEnum::IMAGE:
-        case UserInputModeEnum::INVALID:
-        case UserInputModeEnum::VIEW:
-        case UserInputModeEnum::VOLUME_EDIT:
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
             CaretAssert(0);
             break;
     }

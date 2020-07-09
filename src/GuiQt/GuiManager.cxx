@@ -3540,10 +3540,9 @@ GuiManager::processIdentification(const int32_t tabIndex,
         
         SelectionItemChartTwoLineLayerVerticalNearest* layerChartID = selectionManager->getChartTwoLineLayerVerticalNearestIdentification();
         if (layerChartID->isValid()) {
-            const int32_t pointIndex = layerChartID->getLineSegmentIndex();
-            ChartTwoOverlay* chartOverlay = layerChartID->getChartTwoOverlay();
-            chartOverlay->setSelectedLineChartPointIndex(pointIndex);
-            updateGraphicsFlag = true;
+            /*
+             * Note: Selection is performed in UserInputModeView
+             */
         }
         
         /*

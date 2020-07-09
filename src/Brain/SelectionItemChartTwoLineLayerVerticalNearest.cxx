@@ -40,11 +40,12 @@ using namespace caret;
 SelectionItemChartTwoLineLayerVerticalNearest::SelectionItemChartTwoLineLayerVerticalNearest()
 : SelectionItem(SelectionItemDataTypeEnum::CHART_TWO_LINE_LAYER_VERTICAL_NEAREST)
 {
-    m_fileLineLayerChart    = NULL;
-    m_chartTwoCartesianData = NULL;
-    m_chartOverlay          = NULL;
-    m_distanceToLine        = std::numeric_limits<float>::max();
-    m_lineSegmentIndex      = -1;
+    m_fileLineLayerChart     = NULL;
+    m_chartTwoCartesianData  = NULL;
+    m_chartOverlay           = NULL;
+    m_distanceToLine         = std::numeric_limits<float>::max();
+    m_lineSegmentIndex       = -1;
+    m_outsideChartBoundsFlag = false;
 }
 
 /**
@@ -162,11 +163,12 @@ SelectionItemChartTwoLineLayerVerticalNearest::setLineLayerChart(ChartableTwoFil
 void 
 SelectionItemChartTwoLineLayerVerticalNearest::copyHelperSelectionItemChartTwoLineLayerVerticalNearest(const SelectionItemChartTwoLineLayerVerticalNearest& obj)
 {
-    m_fileLineLayerChart    = obj.m_fileLineLayerChart;
-    m_chartTwoCartesianData = obj.m_chartTwoCartesianData;
-    m_chartOverlay          = obj.m_chartOverlay;
-    m_distanceToLine        = obj.m_distanceToLine;
-    m_lineSegmentIndex      = obj.m_lineSegmentIndex;
+    m_fileLineLayerChart     = obj.m_fileLineLayerChart;
+    m_chartTwoCartesianData  = obj.m_chartTwoCartesianData;
+    m_chartOverlay           = obj.m_chartOverlay;
+    m_distanceToLine         = obj.m_distanceToLine;
+    m_lineSegmentIndex       = obj.m_lineSegmentIndex;
+    m_outsideChartBoundsFlag = obj.m_outsideChartBoundsFlag;
 }
 
 /**
@@ -187,10 +189,32 @@ SelectionItemChartTwoLineLayerVerticalNearest::isValid() const
 void
 SelectionItemChartTwoLineLayerVerticalNearest::reset()
 {
-    m_fileLineLayerChart    = NULL;
-    m_chartTwoCartesianData = NULL;
-    m_chartOverlay          = NULL;
-    m_distanceToLine        = std::numeric_limits<float>::max();
-    m_lineSegmentIndex      = -1;
+    m_fileLineLayerChart     = NULL;
+    m_chartTwoCartesianData  = NULL;
+    m_chartOverlay           = NULL;
+    m_distanceToLine         = std::numeric_limits<float>::max();
+    m_lineSegmentIndex       = -1;
+    m_outsideChartBoundsFlag = false;
+}
+
+/**
+ * @return True if mouse was in the chart viewport but outside the bounds of the chart coordinates.
+ * Note isValid() will return false since mouse was not in chart bounds.
+ */
+bool
+SelectionItemChartTwoLineLayerVerticalNearest::isOutsideChartBounds() const
+{
+    return m_outsideChartBoundsFlag;
+}
+
+/**
+ * Set mouse was in the chart viewport but outside the bounds of the chart coordinates.
+ * @param status
+ *     New status
+ */
+void
+SelectionItemChartTwoLineLayerVerticalNearest::setOutsideChartBound(const bool status)
+{
+    m_outsideChartBoundsFlag = status;
 }
 

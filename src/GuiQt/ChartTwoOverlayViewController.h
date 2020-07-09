@@ -40,6 +40,7 @@ namespace caret {
     class CaretColor;
     class CaretColorToolButton;
     class ChartTwoOverlay;
+    class EnumComboBoxTemplate;
     class MapYokingGroupComboBox;
     class WuQDoubleSpinBox;
     class WuQGridLayoutGroup;
@@ -120,7 +121,7 @@ namespace caret {
         
         void lineLayerToolTipOffsetToolButtonClicked();
         
-        void selectedPointCheckBoxClicked(bool selected);
+        void lineLayerActiveModeEnumComboBoxItemActivated();
         
         void selectedPointIndexSpinBoxValueChanged(int index);
         
@@ -219,7 +220,7 @@ namespace caret {
         
         WuQDoubleSpinBox* m_lineLayerWidthSpinBox = NULL;
 
-        QCheckBox* m_selectedPointCheckBox = NULL;
+        EnumComboBoxTemplate* m_lineLayerActiveComboBox = NULL;
         
         QSpinBox* m_selectedPointIndexSpinBox = NULL;
         

@@ -136,7 +136,7 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
                     break;
             }
             AString errorMessage;
-            if ( ! annotationManager->applyCommand(UserInputModeEnum::ANNOTATIONS,
+            if ( ! annotationManager->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                                    undoCommand,
                                         errorMessage)) {
                 WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
@@ -477,7 +477,7 @@ AnnotationPasteDialog::okButtonClicked()
         case AnnotationTypeEnum::TEXT:
             break;
     }
-    if ( ! annotationManager->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annotationManager->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                            undoCommand,
                                            errorMessage)) {
         WuQMessageBox::errorOk(this,

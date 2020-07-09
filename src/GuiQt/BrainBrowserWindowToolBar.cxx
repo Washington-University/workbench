@@ -462,7 +462,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->userInputImageModeProcessor = new UserInputModeImage(browserWindowIndex);
     this->userInputVolumeEditModeProcessor = new UserInputModeVolumeEdit(browserWindowIndex);
     this->userInputTileTabsManualLayoutProcessor = new UserInputModeTileTabsManualLayout(browserWindowIndex);
-    this->userInputViewModeProcessor = new UserInputModeView();
+    this->userInputViewModeProcessor = new UserInputModeView(browserWindowIndex);
     this->selectedUserInputProcessor = this->userInputViewModeProcessor;
     this->selectedUserInputProcessor->initialize();
 
@@ -1984,36 +1984,36 @@ BrainBrowserWindowToolBar::updateToolBar()
      */
     CaretAssert(this->selectedUserInputProcessor);
     switch (this->selectedUserInputProcessor->getUserInputMode()) {
-        case UserInputModeEnum::ANNOTATIONS:
+        case UserInputModeEnum::Enum::ANNOTATIONS:
             if (wideFlag) {
                 showViewModeWidgetsFlag = true;
             }
             showAnnotateModeWidget = true;
             break;
-        case UserInputModeEnum::BORDERS:
+        case UserInputModeEnum::Enum::BORDERS:
             showViewModeWidgetsFlag = true;
             showBorderModeWidget    = borderCompatibleViewFlag;
             break;
-        case UserInputModeEnum::FOCI:
+        case UserInputModeEnum::Enum::FOCI:
             showViewModeWidgetsFlag = true;
             showFociModeWidget      = fociCompatibleViewFlag;
             break;
-        case UserInputModeEnum::IMAGE:
+        case UserInputModeEnum::Enum::IMAGE:
             showViewModeWidgetsFlag = true;
             showImageModeWidget     = imageCompatibleViewFlag;
             break;
-        case UserInputModeEnum::INVALID:
+        case UserInputModeEnum::Enum::INVALID:
             break;
-        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
             if (wideFlag) {
                 showViewModeWidgetsFlag = true;
             }
             showTileModeWidget = true;
             break;
-        case UserInputModeEnum::VIEW:
+        case UserInputModeEnum::Enum::VIEW:
             showViewModeWidgetsFlag = true;
             break;
-        case UserInputModeEnum::VOLUME_EDIT:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
             showViewModeWidgetsFlag = true;
             showVolumeModeWidget    = volumeEditCompatibleViewFlag;
             break;
@@ -2523,10 +2523,10 @@ BrainBrowserWindowToolBar::modeInputModeRadioButtonClicked(QAbstractButton* butt
 
     const UserInputModeEnum::Enum currentMode = this->selectedUserInputProcessor->getUserInputMode();
     
-    UserInputModeEnum::Enum inputMode = UserInputModeEnum::INVALID;
+    UserInputModeEnum::Enum inputMode = UserInputModeEnum::Enum::INVALID;
     
     if (button == this->modeInputModeAnnotationsRadioButton) {
-        if (currentMode !=  UserInputModeEnum::ANNOTATIONS) {
+        if (currentMode !=  UserInputModeEnum::Enum::ANNOTATIONS) {
             CaretAssert(m_parentBrainBrowserWindow);
             if ( ! m_parentBrainBrowserWindow->changeInputModeToAnnotationsWarningDialog()) {
                 /*
@@ -2536,10 +2536,10 @@ BrainBrowserWindowToolBar::modeInputModeRadioButtonClicked(QAbstractButton* butt
                 return;
             }
         }
-        inputMode = UserInputModeEnum::ANNOTATIONS;
+        inputMode = UserInputModeEnum::Enum::ANNOTATIONS;
     }
     else if (button == this->modeInputModeBordersRadioButton) {
-        inputMode = UserInputModeEnum::BORDERS;
+        inputMode = UserInputModeEnum::Enum::BORDERS;
         
         /*
          * If borders are not displayed, display them
@@ -2555,14 +2555,14 @@ BrainBrowserWindowToolBar::modeInputModeRadioButtonClicked(QAbstractButton* butt
         }
     }
     else if (button == this->modeInputModeFociRadioButton) {
-        inputMode = UserInputModeEnum::FOCI;
+        inputMode = UserInputModeEnum::Enum::FOCI;
     }
     else if ((button == this->modeInputModeImageRadioButton)
              && (this->modeInputModeImageRadioButton != NULL)) {
-        inputMode = UserInputModeEnum::IMAGE;
+        inputMode = UserInputModeEnum::Enum::IMAGE;
     }
     else if (button == this->modeInputModeTileTabsManualLayoutRadioButton) {
-        inputMode = UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING;
+        inputMode = UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING;
         
         CaretAssert(m_parentBrainBrowserWindow);
         BrowserWindowContent* browserWindowContent = m_parentBrainBrowserWindow->getBrowerWindowContent();
@@ -2575,10 +2575,10 @@ BrainBrowserWindowToolBar::modeInputModeRadioButtonClicked(QAbstractButton* butt
         }
     }
     else if (button == this->modeInputVolumeEditRadioButton) {
-        inputMode = UserInputModeEnum::VOLUME_EDIT;
+        inputMode = UserInputModeEnum::Enum::VOLUME_EDIT;
     }
     else if (button == this->modeInputModeViewRadioButton) {
-        inputMode = UserInputModeEnum::VIEW;
+        inputMode = UserInputModeEnum::Enum::VIEW;
     }
     else {
         CaretAssertMessage(0, "Tools input mode action is invalid, new action added???");
@@ -2611,30 +2611,30 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
     this->modeWidgetGroup->blockAllSignals(true);
     
     switch (this->selectedUserInputProcessor->getUserInputMode()) {
-        case UserInputModeEnum::INVALID:
+        case UserInputModeEnum::Enum::INVALID:
             /* may get here when program is exiting and widgets are being destroyed */
             break;
-        case UserInputModeEnum::ANNOTATIONS:
+        case UserInputModeEnum::Enum::ANNOTATIONS:
             this->modeInputModeAnnotationsRadioButton->setChecked(true);
             break;
-        case UserInputModeEnum::BORDERS:
+        case UserInputModeEnum::Enum::BORDERS:
             this->modeInputModeBordersRadioButton->setChecked(true);
             break;
-        case UserInputModeEnum::FOCI:
+        case UserInputModeEnum::Enum::FOCI:
             this->modeInputModeFociRadioButton->setChecked(true);
             break;
-        case UserInputModeEnum::IMAGE:
+        case UserInputModeEnum::Enum::IMAGE:
             if (this->modeInputModeImageRadioButton != NULL) {
                 this->modeInputModeImageRadioButton->setChecked(true);
             }
             break;
-        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
             this->modeInputModeTileTabsManualLayoutRadioButton->setChecked(true);
             break;
-        case UserInputModeEnum::VOLUME_EDIT:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
             this->modeInputVolumeEditRadioButton->setChecked(true);
             break;
-        case UserInputModeEnum::VIEW:
+        case UserInputModeEnum::Enum::VIEW:
             this->modeInputModeViewRadioButton->setChecked(true);
             break;
     }
@@ -2648,15 +2648,15 @@ void
 BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
 {
     switch (this->selectedUserInputProcessor->getUserInputMode()) {
-        case UserInputModeEnum::ANNOTATIONS:
-        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
             break;
-        case UserInputModeEnum::BORDERS:
-        case UserInputModeEnum::FOCI:
-        case UserInputModeEnum::IMAGE:
-        case UserInputModeEnum::INVALID:
-        case UserInputModeEnum::VIEW:
-        case UserInputModeEnum::VOLUME_EDIT:
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
             /*
              * Delete all selected annotations and update graphics and UI.
              */
@@ -3451,28 +3451,28 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
             else if (inputModeEvent->isSetUserInputMode()) {
                 UserInputModeAbstract* newUserInputProcessor = NULL;
                 switch (inputModeEvent->getUserInputMode()) {
-                    case UserInputModeEnum::INVALID:
+                    case UserInputModeEnum::Enum::INVALID:
                         CaretAssertMessage(0, "INVALID is NOT allowed for user input mode");
                         break;
-                    case UserInputModeEnum::ANNOTATIONS:
+                    case UserInputModeEnum::Enum::ANNOTATIONS:
                         newUserInputProcessor = this->userInputAnnotationsModeProcessor;
                         break;
-                    case UserInputModeEnum::BORDERS:
+                    case UserInputModeEnum::Enum::BORDERS:
                         newUserInputProcessor = this->userInputBordersModeProcessor;
                         break;
-                    case UserInputModeEnum::FOCI:
+                    case UserInputModeEnum::Enum::FOCI:
                         newUserInputProcessor = this->userInputFociModeProcessor;
                         break;
-                    case UserInputModeEnum::IMAGE:
+                    case UserInputModeEnum::Enum::IMAGE:
                         newUserInputProcessor = this->userInputImageModeProcessor;
                         break;
-                    case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+                    case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
                         newUserInputProcessor = this->userInputTileTabsManualLayoutProcessor;
                         break;
-                    case UserInputModeEnum::VOLUME_EDIT:
+                    case UserInputModeEnum::Enum::VOLUME_EDIT:
                         newUserInputProcessor = this->userInputVolumeEditModeProcessor;
                         break;
-                    case UserInputModeEnum::VIEW:
+                    case UserInputModeEnum::Enum::VIEW:
                         newUserInputProcessor = this->userInputViewModeProcessor;
                         break;
                 }

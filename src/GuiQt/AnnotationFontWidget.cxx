@@ -606,7 +606,7 @@ AnnotationFontWidget::textColorSelected(const CaretColorEnum::Enum caretColor)
                                               convertToAnnotations(m_annotationsFontColor));
                 AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
                 AString errorMessage;
-                if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+                if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                             undoCommand,
                                             errorMessage)) {
                     WuQMessageBox::errorOk(this,
@@ -727,7 +727,7 @@ AnnotationFontWidget::fontBoldChanged()
                                  convertToAnnotations(m_annotationsFontStyle));
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                 command,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -756,7 +756,7 @@ AnnotationFontWidget::fontItalicChanged()
                                    convertToAnnotations(m_annotationsFontStyle));
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                 command,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -787,7 +787,7 @@ AnnotationFontWidget::fontNameChanged()
                                  convertToAnnotations(m_annotationsFontName));
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                 command,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -821,7 +821,7 @@ AnnotationFontWidget::fontSizeChanged()
                                         getSurfaceMontageRowCount());
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                 command,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -882,7 +882,7 @@ AnnotationFontWidget::fontUnderlineChanged()
                                       convertToAnnotations(m_annotationsFontStyle));
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                 command,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,

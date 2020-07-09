@@ -1090,19 +1090,29 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
             
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
-            CaretAssert(xMinBottom < xMaxBottom);
-            if (leftVerticalAxisFlag) {
-                CaretAssert(yMinLeft < yMaxLeft);
-                glOrtho(xMinBottom, xMaxBottom,
-                        yMinLeft, yMaxLeft,
-                        -10.0, 10.0);
-            }
-            else {
-                CaretAssert(yMinRight < yMaxRight);
-                glOrtho(xMinBottom, xMaxBottom,
-                        yMinRight, yMaxRight,
-                        -10.0, 10.0);
-            }
+            const float xMin(xMinBottom);
+            const float xMax(xMaxBottom);
+            const float yMin(leftVerticalAxisFlag ? yMinLeft : yMinRight);
+            const float yMax(leftVerticalAxisFlag ? yMaxLeft : yMaxRight);
+            CaretAssert(xMin <= xMax);
+            CaretAssert(yMin <= yMax);
+            glOrtho(xMin, xMax,
+                    yMin, yMax,
+                    -10.0, 10.0);
+
+//            CaretAssert(xMinBottom < xMaxBottom);
+//            if (leftVerticalAxisFlag) {
+//                CaretAssert(yMinLeft < yMaxLeft);
+//                glOrtho(xMinBottom, xMaxBottom,
+//                        yMinLeft, yMaxLeft,
+//                        -10.0, 10.0);
+//            }
+//            else {
+//                CaretAssert(yMinRight < yMaxRight);
+//                glOrtho(xMinBottom, xMaxBottom,
+//                        yMinRight, yMaxRight,
+//                        -10.0, 10.0);
+//            }
             
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
@@ -1132,30 +1142,71 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 /*
                  * First find line nearest to mouse in vertical distance
                  */
-                if (lineChart.m_chartTwoOverlay->isSelectedLineChartPointDisplayed()) {
+                bool showLinePointFlag(false);
+                switch (lineChart.m_chartTwoOverlay->getLineChartActiveMode()) {
+                    case ChartTwoOverlayActiveModeEnum::ACTIVE:
+                        showLinePointFlag = true;
+                        break;
+                    case ChartTwoOverlayActiveModeEnum::OFF:
+                        break;
+                    case ChartTwoOverlayActiveModeEnum::ON:
+                        showLinePointFlag = true;
+                        break;
+                }
+                if (showLinePointFlag) {
                     EventOpenGLObjectToWindowTransform windowTransform(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
                     EventManager::get()->sendEvent(windowTransform.getPointer());
                     if (windowTransform.isValid()) {
-                        const float windowXYZ[3] {
+                        const float mouseWindowXYZ[3] {
                             static_cast<float>(m_fixedPipelineDrawing->mouseX),
                             static_cast<float>(m_fixedPipelineDrawing->mouseY),
                             0.0f
                         };
-                        float modelXYZ[3];
-                        windowTransform.inverseTransformPoint(windowXYZ,
-                                                              modelXYZ);
+                        float mouseModelXYZ[3];
+                        windowTransform.inverseTransformPoint(mouseWindowXYZ,
+                                                              mouseModelXYZ);
                         
-                        float distance(0.0);
-                        int32_t pointIndex(-1);
-                        if (lineChart.m_chartTwoCartesianData->getVerticalDistanceToXY(modelXYZ[0],
-                                                                                       modelXYZ[1],
-                                                                                       distance,
-                                                                                       pointIndex)) {
-                            m_selectionItemLineLayerVerticalNearest->setLineLayerChart(const_cast<ChartableTwoFileLineLayerChart*>(lineChart.m_lineLayerChart),
-                                                                                       const_cast<ChartTwoDataCartesian*>(lineChart.m_chartTwoCartesianData),
-                                                                                       const_cast<ChartTwoOverlay*>(lineChart.m_chartTwoOverlay),
-                                                                                       distance,
-                                                                                       pointIndex);
+                        if ((mouseModelXYZ[0] >= xMin)
+                            && (mouseModelXYZ[0] <= xMax)
+                            && (mouseModelXYZ[1] >= yMin)
+                            && (mouseModelXYZ[1] <= yMax)) {
+                            float distance(0.0);
+                            int32_t pointIndex(-1);
+                            float chartXYZ[3];
+                            if (lineChart.m_chartTwoCartesianData->getVerticalDistanceToXY(mouseModelXYZ[0],
+                                                                                           mouseModelXYZ[1],
+                                                                                           distance,
+                                                                                           pointIndex,
+                                                                                           chartXYZ)) {
+                                bool debugFlag(false);
+                                if (debugFlag) {
+                                    std::cout << "Distance: " << distance << std::endl;
+                                    std::cout << "Chart XYZ: " << AString::fromNumbers(chartXYZ, 3, ",") << std::endl;
+                                    float chartWindowXYZ[3];
+                                    windowTransform.transformPoint(chartXYZ, chartWindowXYZ);
+                                    std::cout << "   Chart Window XYZ: " << AString::fromNumbers(chartWindowXYZ, 3, ",") << std::endl;
+                                    std::cout << "   Window XYZ: " << AString::fromNumbers(mouseWindowXYZ, 3, ",") << std::endl;
+                                    std::cout << "   Window Distance: " << MathFunctions::distance3D(chartWindowXYZ, mouseWindowXYZ) << std::endl;
+                                    float pointModelXYZ[3];
+                                    lineChart.m_chartTwoCartesianData->getPointXYZ(pointIndex, pointModelXYZ);
+                                    float pointWindowXYZ[3];
+                                    windowTransform.transformPoint(pointModelXYZ, pointWindowXYZ);
+                                    std::cout << "   Point Distance: " << MathFunctions::distance3D(pointWindowXYZ, mouseWindowXYZ) << std::endl;
+                                }
+
+
+                                m_selectionItemLineLayerVerticalNearest->setLineLayerChart(const_cast<ChartableTwoFileLineLayerChart*>(lineChart.m_lineLayerChart),
+                                                                                           const_cast<ChartTwoDataCartesian*>(lineChart.m_chartTwoCartesianData),
+                                                                                           const_cast<ChartTwoOverlay*>(lineChart.m_chartTwoOverlay),
+                                                                                           distance,
+                                                                                           pointIndex);
+                            }
+                        }
+                        else {
+                            /*
+                             * Outside chart coordinate bounds
+                             */
+                            m_selectionItemLineLayerVerticalNearest->setOutsideChartBound(true);
                         }
                     }
                 }
@@ -1191,7 +1242,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
             else {
                 IdentificationManager* idManager = m_brain->getIdentificationManager();
                 const float symbolSize = idManager->getChartLineLayerSymbolSize();
-                const float selectedSymbolSize = idManager->getChartLineLayerSelectedSymbolSize();
                 const float textSize = idManager->getChartLineLayerToolTipTextSize();
                 
                 if (lineChart.m_lineChartColor != lineChart.m_chartTwoCartesianData->getColor()) {
@@ -1201,7 +1251,20 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
 
                 GraphicsEngineDataOpenGL::draw(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
                 
-                if (lineChart.m_chartTwoOverlay->isSelectedLineChartPointDisplayed()) {
+                bool showCircleFlag(false);
+                bool showRingFlag(false);
+                switch (lineChart.m_chartTwoOverlay->getLineChartActiveMode()) {
+                    case ChartTwoOverlayActiveModeEnum::ACTIVE:
+                        showCircleFlag = true;
+                        break;
+                    case ChartTwoOverlayActiveModeEnum::OFF:
+                        break;
+                    case ChartTwoOverlayActiveModeEnum::ON:
+                        showRingFlag = true;
+                        break;
+                }
+                if (showCircleFlag
+                    | showRingFlag) {
                     std::array<float, 3> xyz;
                     if (lineChart.m_chartTwoOverlay->getSelectedLineChartPointXYZ(xyz)) {
                         const uint8_t foregroundRGBA[4] = {
@@ -1212,10 +1275,22 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                         };
 
                         std::array<float, 3> windowXYZ;
-                        GraphicsShape::drawCircleFilledPercentViewportHeight(xyz.data(),
-                                                                             foregroundRGBA,
-                                                                             symbolSize,
-                                                                             &windowXYZ);
+                        if (showCircleFlag) {
+                            GraphicsShape::drawCircleFilledPercentViewportHeight(xyz.data(),
+                                                                                 foregroundRGBA,
+                                                                                 symbolSize,
+                                                                                 &windowXYZ);
+                        }
+                        else if (showRingFlag) {
+                            GraphicsShape::drawRingPercentViewportHeight(xyz.data(),
+                                                                         foregroundRGBA,
+                                                                         symbolSize * 0.65, /* inner diameter */
+                                                                         symbolSize, /* diameter */
+                                                                         &windowXYZ);
+                        }
+                        else {
+                            CaretAssertMessage(0, "Does new shape need to be drawn?");
+                        }
                         {
                             const QString info("Index: "
                                                + QString::number(lineChart.m_chartTwoOverlay->getSelectedLineChartPointIndex())

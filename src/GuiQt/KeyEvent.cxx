@@ -36,43 +36,67 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param viewportContent
+ *    Viewport content at location of mouse
  * @param openGLWidget
  *    OpenGL Widget in which key activity took place.
  * @param browserWindowIndex
  *    Index of the browser winddow in which key activity took place.
  * @param keyCode
  *    The key that was pressed.  See Qt::Key for list of codes.
+ * @param mouseX
+ *    Mouse location X
+ * @param mouseY
+ *    Mouse location Y
+ * @param mouseValidFlag
+ *    Mouse location valid
  * @param firstKeyPressFlag
  *    True if this is the first key press when key is held down for a period of time
  * @param shiftKeyDownFlag
  *    True if the shift key is down
  */
-KeyEvent::KeyEvent(BrainOpenGLWidget* openGLWidget,
+KeyEvent::KeyEvent(const BrainOpenGLViewportContent* viewportContent,
+                   BrainOpenGLWidget* openGLWidget,
                    const int32_t browserWindowIndex,
                    const int32_t keyCode,
+                   const int32_t mouseX,
+                   const int32_t mouseY,
+                   const bool mouseValidFlag,
                    const bool firstKeyPressFlag,
                    const bool shiftKeyDownFlag)
 : CaretObject(),
 m_openGLWidget(openGLWidget),
 m_browserWindowIndex(browserWindowIndex),
 m_keyCode(keyCode),
+m_mouseX(mouseX),
+m_mouseY(mouseY),
+m_mouseXYValid(mouseValidFlag),
 m_firstKeyPressFlag(firstKeyPressFlag),
 m_shiftKeyDownFlag(shiftKeyDownFlag)
 {
     CaretAssert(m_openGLWidget);
  
-    const QPoint mousePos = m_openGLWidget->mapFromGlobal(QCursor::pos());
-    m_mouseX = mousePos.x();
-    m_mouseY = m_openGLWidget->height() - mousePos.y();
-    if ((m_mouseX >= 0)
-        && (m_mouseX < m_openGLWidget->width())
-        && (m_mouseY >= 0)
-        && (m_mouseY < m_openGLWidget->height())) {
-        m_mouseXYValid = true;
+    /*
+     * MUST copy viewport content as it may be deleted by caller
+     * prior to this instance being deleted
+     */
+    m_viewportContent = NULL;
+    if (viewportContent != NULL) {
+        m_viewportContent = new BrainOpenGLViewportContent(*viewportContent);
     }
-    else {
-        m_mouseXYValid = false;
-    }
+    
+//    const QPoint mousePos = m_openGLWidget->mapFromGlobal(QCursor::pos());
+//    m_mouseX = mousePos.x();
+//    m_mouseY = m_openGLWidget->height() - mousePos.y();
+//    if ((m_mouseX >= 0)
+//        && (m_mouseX < m_openGLWidget->width())
+//        && (m_mouseY >= 0)
+//        && (m_mouseY < m_openGLWidget->height())) {
+//        m_mouseXYValid = true;
+//    }
+//    else {
+//        m_mouseXYValid = false;
+//    }
 }
 
 /**
@@ -80,6 +104,9 @@ m_shiftKeyDownFlag(shiftKeyDownFlag)
  */
 KeyEvent::~KeyEvent()
 {
+    if (m_viewportContent != NULL) {
+        delete m_viewportContent;
+    }
 }
 
 /**
@@ -88,6 +115,15 @@ KeyEvent::~KeyEvent()
 void
 KeyEvent::initializeMembersKeyEvent()
 {
+}
+
+/**
+ * @return The viewport content in which the mouse was pressed.
+ */
+BrainOpenGLViewportContent*
+KeyEvent::getViewportContent() const
+{
+    return m_viewportContent;
 }
 
 /**

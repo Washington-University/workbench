@@ -95,7 +95,7 @@ m_overlayIndex(overlayIndex)
     m_lineLayerColor.setCaretColorEnum(generateDefaultColor());
     m_lineLayerLineWidth = ChartTwoDataCartesian::getDefaultLineWidth();
     m_selectedLineChartPointIndex = 0;
-    m_selectedLineChartPointDisplayed = false;
+    m_lineChartActiveMode = ChartTwoOverlayActiveModeEnum::OFF;
 
     m_selectedLineChartTextOffset = CardinalDirectionEnum::AUTO;
     
@@ -113,7 +113,8 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add("m_selectedLineLayerMapIndex", &m_selectedLineLayerMapIndex);
     m_sceneAssistant->add("m_lineLayerLineWidth", &m_lineLayerLineWidth);
     m_sceneAssistant->add("m_selectedLineChartPointIndex", &m_selectedLineChartPointIndex);
-    m_sceneAssistant->add("m_selectedLineChartPointDisplayed", &m_selectedLineChartPointDisplayed);
+    m_sceneAssistant->add<ChartTwoOverlayActiveModeEnum, ChartTwoOverlayActiveModeEnum::Enum>("m_lineChartActiveMode",
+                                                                                              &m_lineChartActiveMode);
     m_sceneAssistant->add<CardinalDirectionEnum, CardinalDirectionEnum::Enum>("m_selectedLineChartTextOffset",
                                                                               &m_selectedLineChartTextOffset);
                                                                 
@@ -383,7 +384,7 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
     m_lineLayerColor = overlay->m_lineLayerColor;
     m_lineLayerLineWidth = overlay->m_lineLayerLineWidth;
     m_selectedLineChartPointIndex = overlay->m_selectedLineChartPointIndex;
-    m_selectedLineChartPointDisplayed = overlay->m_selectedLineChartPointDisplayed;
+    m_lineChartActiveMode = overlay->m_lineChartActiveMode;
     m_selectedLineChartTextOffset = overlay->m_selectedLineChartTextOffset;
 }
 
@@ -1517,23 +1518,23 @@ ChartTwoOverlay::incrementSelectedLineChartPointIndex(const int32_t incrementVal
 }
 
 /**
- * @return True if line chart selected point is displayed
+ * @return Active mode for this overlay
  */
-bool
-ChartTwoOverlay::isSelectedLineChartPointDisplayed() const
+ChartTwoOverlayActiveModeEnum::Enum
+ChartTwoOverlay::getLineChartActiveMode() const
 {
-    return m_selectedLineChartPointDisplayed;
+    return m_lineChartActiveMode;;
 }
 
 /**
- * Set the selected line chart point is displayed
- * @param display
- *    New display status
+ * Set the active mode for this overlay
+ * @param lineChartActiveMode
+ *    New active mode for this overlay
  */
 void
-ChartTwoOverlay::setSelectedLineChartPointDisplayed(const bool displayed)
+ChartTwoOverlay::setLineChartActiveMode(const ChartTwoOverlayActiveModeEnum::Enum lineChartActiveMode)
 {
-    m_selectedLineChartPointDisplayed = displayed;
+    m_lineChartActiveMode = lineChartActiveMode;
 }
 
 /**
@@ -1546,7 +1547,19 @@ ChartTwoOverlay::setSelectedLineChartPointDisplayed(const bool displayed)
 bool
 ChartTwoOverlay::getSelectedLineChartPointXYZ(std::array<float, 3>& xyzOut) const
 {
-    if (m_selectedLineChartPointDisplayed) {
+    bool validFlag(false);
+    switch (m_lineChartActiveMode) {
+        case ChartTwoOverlayActiveModeEnum::ACTIVE:
+            validFlag = true;
+            break;
+        case ChartTwoOverlayActiveModeEnum::OFF:
+            break;
+        case ChartTwoOverlayActiveModeEnum::ON:
+            validFlag = true;
+            break;
+    }
+    
+    if (validFlag) {
         CaretMappableDataFile* mapFile = NULL;
         SelectedIndexType selectedIndexType = SelectedIndexType::INVALID;
         int32_t selectedIndex = -1;
@@ -1692,6 +1705,19 @@ ChartTwoOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
+    /*
+     * Was briefly used for point display before it became OFF/ON/ACTIVE
+     */
+    const SceneObject* pointDisplayObject = sceneClass->getObjectWithName("m_selectedLineChartPointDisplayed");
+    if (pointDisplayObject != NULL) {
+        if (sceneClass->getBooleanValue("m_selectedLineChartPointDisplayed")) {
+            m_lineChartActiveMode = ChartTwoOverlayActiveModeEnum::ON;
+        }
+        else {
+            m_lineChartActiveMode = ChartTwoOverlayActiveModeEnum::OFF;
+        }
+    }
+
     /*
      * m_caretColor (instance of CaretColor) replaced
      * m_color (instance CaretColorEnum)

@@ -109,6 +109,11 @@ namespace caret {
         
         void setAxisLineThickness(const float axisLineThickness);
         
+        void incrementOverlayActiveLineChartPoint(const int32_t incrementValue);
+        
+        void selectOverlayActiveLineChart(ChartTwoOverlay* chartTwoOverlay,
+                                          const int32_t lineSegmentPointIndex);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

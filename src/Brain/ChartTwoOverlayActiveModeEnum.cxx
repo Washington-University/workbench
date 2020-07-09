@@ -1,7 +1,7 @@
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2019 Washington University School of Medicine
+ *  Copyright (C) 2020 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __USER_INPUT_MODE_ENUM_DECLARE__
-#include "UserInputModeEnum.h"
-#undef __USER_INPUT_MODE_ENUM_DECLARE__
+#define __CHART_TWO_OVERLAY_ACTIVE_MODE_ENUM_DECLARE__
+#include "ChartTwoOverlayActiveModeEnum.h"
+#undef __CHART_TWO_OVERLAY_ACTIVE_MODE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::UserInputModeEnum 
- * \brief User Input Modes for Browser Window
+ * \class caret::ChartTwoOverlayActiveModeEnum 
+ * \brief Active mode for lines in chart two overlays
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_userInputModeEnumComboBox;
+ *         EnumComboBoxTemplate* m_chartTwoOverlayActiveModeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void userInputModeEnumComboBoxItemActivated();
+ *             void chartTwoOverlayActiveModeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "UserInputModeEnum.h"
+ *         #include "ChartTwoOverlayActiveModeEnum.h"
  * 
  *     Instatiate:
- *         m_userInputModeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_userInputModeEnumComboBox->setup<UserInputModeEnum,UserInputModeEnum::Enum>();
+ *         m_chartTwoOverlayActiveModeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_chartTwoOverlayActiveModeEnumComboBox->setup<ChartTwoOverlayActiveModeEnum,ChartTwoOverlayActiveModeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_userInputModeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(userInputModeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_chartTwoOverlayActiveModeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(chartTwoOverlayActiveModeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_userInputModeEnumComboBox->setSelectedItem<UserInputModeEnum,UserInputModeEnum::Enum>(NEW_VALUE);
+ *         m_chartTwoOverlayActiveModeEnumComboBox->setSelectedItem<ChartTwoOverlayActiveModeEnum,ChartTwoOverlayActiveModeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const UserInputModeEnum::Enum VARIABLE = m_userInputModeEnumComboBox->getSelectedItem<UserInputModeEnum,UserInputModeEnum::Enum>();
+ *         const ChartTwoOverlayActiveModeEnum::Enum VARIABLE = m_chartTwoOverlayActiveModeEnumComboBox->getSelectedItem<ChartTwoOverlayActiveModeEnum,ChartTwoOverlayActiveModeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-UserInputModeEnum::UserInputModeEnum(const Enum enumValue,
+ChartTwoOverlayActiveModeEnum::ChartTwoOverlayActiveModeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ UserInputModeEnum::UserInputModeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-UserInputModeEnum::~UserInputModeEnum()
+ChartTwoOverlayActiveModeEnum::~ChartTwoOverlayActiveModeEnum()
 {
 }
 
@@ -99,44 +99,24 @@ UserInputModeEnum::~UserInputModeEnum()
  * Initialize the enumerated metadata.
  */
 void
-UserInputModeEnum::initialize()
+ChartTwoOverlayActiveModeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(UserInputModeEnum(Enum::INVALID,
-                                    "INVALID", 
-                                    "Invalid"));
+    enumData.push_back(ChartTwoOverlayActiveModeEnum(OFF, 
+                                    "OFF", 
+                                    "Off"));
     
-    enumData.push_back(UserInputModeEnum(Enum::ANNOTATIONS,
-                                    "ANNOTATIONS", 
-                                    "Annotations"));
+    enumData.push_back(ChartTwoOverlayActiveModeEnum(ON, 
+                                    "ON", 
+                                    "On"));
     
-    enumData.push_back(UserInputModeEnum(Enum::BORDERS,
-                                    "BORDERS", 
-                                    "Borders"));
-    
-    enumData.push_back(UserInputModeEnum(Enum::FOCI,
-                                    "FOCI", 
-                                    "Foci"));
-    
-    enumData.push_back(UserInputModeEnum(Enum::IMAGE,
-                                    "IMAGE", 
-                                    "Image"));
-    
-    enumData.push_back(UserInputModeEnum(Enum::TILE_TABS_MANUAL_LAYOUT_EDITING,
-                                         "TILE_TABS_MANUAL_LAYOUT_EDITING",
-                                         "Tile Tabs Manual Layout Editing"));
-    
-    enumData.push_back(UserInputModeEnum(Enum::VIEW,
-                                    "VIEW", 
-                                    "View"));
-    
-    enumData.push_back(UserInputModeEnum(Enum::VOLUME_EDIT, 
-                                    "VOLUME_EDIT", 
-                                    "Volume Edit"));
+    enumData.push_back(ChartTwoOverlayActiveModeEnum(ACTIVE, 
+                                    "ACTIVE", 
+                                    "Active"));
     
 }
 
@@ -147,14 +127,14 @@ UserInputModeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const UserInputModeEnum*
-UserInputModeEnum::findData(const Enum enumValue)
+const ChartTwoOverlayActiveModeEnum*
+ChartTwoOverlayActiveModeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const UserInputModeEnum* d = &enumData[i];
+        const ChartTwoOverlayActiveModeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -171,10 +151,10 @@ UserInputModeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-UserInputModeEnum::toName(Enum enumValue) {
+ChartTwoOverlayActiveModeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const UserInputModeEnum* enumInstance = findData(enumValue);
+    const ChartTwoOverlayActiveModeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -188,18 +168,18 @@ UserInputModeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-UserInputModeEnum::Enum 
-UserInputModeEnum::fromName(const AString& name, bool* isValidOut)
+ChartTwoOverlayActiveModeEnum::Enum 
+ChartTwoOverlayActiveModeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = UserInputModeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoOverlayActiveModeEnum::enumData[0].enumValue;
     
-    for (std::vector<UserInputModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoOverlayActiveModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const UserInputModeEnum& d = *iter;
+        const ChartTwoOverlayActiveModeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -211,7 +191,7 @@ UserInputModeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type UserInputModeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ChartTwoOverlayActiveModeEnum"));
     }
     return enumValue;
 }
@@ -224,10 +204,10 @@ UserInputModeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-UserInputModeEnum::toGuiName(Enum enumValue) {
+ChartTwoOverlayActiveModeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const UserInputModeEnum* enumInstance = findData(enumValue);
+    const ChartTwoOverlayActiveModeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -241,18 +221,18 @@ UserInputModeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-UserInputModeEnum::Enum 
-UserInputModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ChartTwoOverlayActiveModeEnum::Enum 
+ChartTwoOverlayActiveModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = UserInputModeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoOverlayActiveModeEnum::enumData[0].enumValue;
     
-    for (std::vector<UserInputModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoOverlayActiveModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const UserInputModeEnum& d = *iter;
+        const ChartTwoOverlayActiveModeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -264,7 +244,7 @@ UserInputModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type UserInputModeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartTwoOverlayActiveModeEnum"));
     }
     return enumValue;
 }
@@ -276,10 +256,10 @@ UserInputModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-UserInputModeEnum::toIntegerCode(Enum enumValue)
+ChartTwoOverlayActiveModeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const UserInputModeEnum* enumInstance = findData(enumValue);
+    const ChartTwoOverlayActiveModeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -294,18 +274,18 @@ UserInputModeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-UserInputModeEnum::Enum
-UserInputModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ChartTwoOverlayActiveModeEnum::Enum
+ChartTwoOverlayActiveModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = UserInputModeEnum::enumData[0].enumValue;
+    Enum enumValue = ChartTwoOverlayActiveModeEnum::enumData[0].enumValue;
     
-    for (std::vector<UserInputModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoOverlayActiveModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const UserInputModeEnum& enumInstance = *iter;
+        const ChartTwoOverlayActiveModeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -317,7 +297,7 @@ UserInputModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type UserInputModeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ChartTwoOverlayActiveModeEnum"));
     }
     return enumValue;
 }
@@ -330,13 +310,13 @@ UserInputModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-UserInputModeEnum::getAllEnums(std::vector<UserInputModeEnum::Enum>& allEnums)
+ChartTwoOverlayActiveModeEnum::getAllEnums(std::vector<ChartTwoOverlayActiveModeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<UserInputModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoOverlayActiveModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -352,16 +332,16 @@ UserInputModeEnum::getAllEnums(std::vector<UserInputModeEnum::Enum>& allEnums)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-UserInputModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ChartTwoOverlayActiveModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<UserInputModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoOverlayActiveModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(UserInputModeEnum::toName(iter->enumValue));
+        allNames.push_back(ChartTwoOverlayActiveModeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -378,16 +358,16 @@ UserInputModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSort
  *     If true, the names are sorted in alphabetical order.
  */
 void
-UserInputModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ChartTwoOverlayActiveModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<UserInputModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ChartTwoOverlayActiveModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(UserInputModeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ChartTwoOverlayActiveModeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

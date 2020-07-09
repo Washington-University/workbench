@@ -106,7 +106,8 @@ namespace caret {
         bool getVerticalDistanceToXY(const float x,
                                      const float y,
                                      float& distanceOut,
-                                     int32_t& pointIndexOut) const;
+                                     int32_t& pointIndexOut,
+                                     float chartXYZOut[3]) const;
         
     protected:
         

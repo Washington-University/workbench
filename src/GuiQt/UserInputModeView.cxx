@@ -63,9 +63,12 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param windowIndex
+ *    Index of the window
  */
-UserInputModeView::UserInputModeView()
-: UserInputModeAbstract(UserInputModeEnum::VIEW)
+UserInputModeView::UserInputModeView(const int32_t windowIndex)
+: UserInputModeAbstract(UserInputModeEnum::Enum::VIEW),
+m_browserWindowIndex(windowIndex)
 {
     
 }
@@ -73,11 +76,15 @@ UserInputModeView::UserInputModeView()
 /**
  * Constructor for subclasses.
  *
+ * @param windowIndex
+ *    Index of the window
  * @param inputMode
  *    Subclass' input mode.
  */
-UserInputModeView::UserInputModeView(const UserInputModeEnum::Enum inputMode)
-: UserInputModeAbstract(inputMode)
+UserInputModeView::UserInputModeView(const int32_t windowIndex,
+                                     const UserInputModeEnum::Enum inputMode)
+: UserInputModeAbstract(inputMode),
+m_browserWindowIndex(windowIndex)
 {
     
 }
@@ -243,6 +250,24 @@ UserInputModeView::mouseLeftClick(const MouseEvent& mouseEvent)
                                    mouseEvent.getOpenGLWidget(),
                                    mouseEvent.getX(),
                                    mouseEvent.getY());
+    
+    SelectionManager* selectionManager = GuiManager::get()->getBrain()->getSelectionManager();
+    
+    SelectionItemChartTwoLineLayerVerticalNearest* layerSelection = selectionManager->getChartTwoLineLayerVerticalNearestIdentification();
+    CaretAssert(layerSelection);
+    
+    if (layerSelection->isValid()) {
+        processChartActiveLayerAction(ChartActiveLayerMode::SELECT,
+                                      layerSelection->getChartTwoOverlay(),
+                                      layerSelection->getLineSegmentIndex());
+    }
+    else if (layerSelection->isOutsideChartBounds()) {
+        ChartTwoOverlay* invalidChartOverlay(NULL);
+        int32_t invalidLineSegmentIndex(-1);
+        processChartActiveLayerAction(ChartActiveLayerMode::DESELECT_ALL,
+                                      invalidChartOverlay,
+                                      invalidLineSegmentIndex);
+    }
 }
 
 /**
@@ -604,18 +629,20 @@ UserInputModeView::keyPressEvent(const KeyEvent& keyEvent)
             SelectionItemChartTwoLineLayerVerticalNearest* layerSelection = selectionManager->getChartTwoLineLayerVerticalNearestIdentification();
             CaretAssert(layerSelection);
             if (layerSelection->isValid()) {
-                ChartTwoOverlay* chartOverlay = layerSelection->getChartTwoOverlay();
-                std::array<float, 3> xyz;
-                /*
-                 * Returns true if a line layer chart is displayed in overlay
-                 */
-                if (chartOverlay->getSelectedLineChartPointXYZ(xyz)) {
-                    chartOverlay->incrementSelectedLineChartPointIndex(incrementFlag
-                                                                       ? 1
-                                                                       : -1);
-                    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(keyEvent.getBrowserWindowIndex()).getPointer());
-                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());
-                    keyWasProcessedFlag = true;
+                ChartTwoOverlay* invalidChartOverlay(NULL);
+                int32_t invalidLineSegmentIndex(-1);
+                if (incrementFlag) {
+                    processChartActiveLayerAction(ChartActiveLayerMode::INCREMENT,
+                                                  invalidChartOverlay,
+                                                  invalidLineSegmentIndex);
+                }
+                else if (decrementFlag) {
+                    processChartActiveLayerAction(ChartActiveLayerMode::DECREMENT,
+                                                  invalidChartOverlay,
+                                                  invalidLineSegmentIndex);
+                }
+                else {
+                    CaretAssertMessage(0, "Invalid increment/decrement");
                 }
             }
         }
@@ -623,3 +650,93 @@ UserInputModeView::keyPressEvent(const KeyEvent& keyEvent)
     
     return keyWasProcessedFlag;
 }
+
+/**
+ * Process a chart active layer action
+ *
+ * @param chartActiveMode
+ *    The mode
+ * @param chartOverlay
+ *    The given chart overlay
+ * @param pointIndex
+ *    Index of point selected
+ */
+void
+UserInputModeView::processChartActiveLayerAction(const ChartActiveLayerMode chartActiveMode,
+                                                 ChartTwoOverlay* chartOverlay,
+                                                 const int32_t pointIndex)
+{
+    ChartTwoOverlaySet* chartOverlaySet = NULL;
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent != NULL) {
+        chartOverlaySet = browserTabContent->getChartTwoOverlaySet();
+    }
+
+    if (chartOverlaySet != NULL) {
+        switch (chartActiveMode) {
+            case ChartActiveLayerMode::DECREMENT:
+                chartOverlaySet->incrementOverlayActiveLineChartPoint(-1);
+                break;
+            case ChartActiveLayerMode::DESELECT_ALL:
+                chartOverlaySet->selectOverlayActiveLineChart(NULL,
+                                                              -1);
+                break;
+            case ChartActiveLayerMode::INCREMENT:
+                chartOverlaySet->incrementOverlayActiveLineChartPoint(1);
+                break;
+            case ChartActiveLayerMode::SELECT:
+                chartOverlaySet->selectOverlayActiveLineChart(chartOverlay,
+                                                              pointIndex);
+                break;
+        }
+    }
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());
+    
+//    switch (chartActiveMode) {
+//        case ChartActiveLayerMode::DECREMENT:
+//            std::cout << "Decrement" << std::endl << std::flush;
+//            break;
+//        case ChartActiveLayerMode::DESELECT_ALL:
+//            std::cout << "Deselect All" << std::endl << std::flush;
+//            break;
+//        case ChartActiveLayerMode::INCREMENT:
+//            std::cout << "Increment" << std::endl << std::flush;
+//            break;
+//        case ChartActiveLayerMode::SELECT:
+//        {
+////            std::cout << "Select" << std::endl << std::flush;
+////            CaretAssert(chartOverlay);
+////            ChartTwoOverlay* chartOverlay = layerSelection->getChartTwoOverlay();
+////            switch (chartOverlay->getLineChartActiveMode()) {
+////                case ChartTwoOverlayActiveModeEnum::ACTIVE:
+////                {
+////                    std::array<float, 3> xyz;
+////                    if (chartOverlay->getSelectedLineChartPointXYZ(xyz)) {
+////                        chartOverlay->incrementSelectedLineChartPointIndex(incrementFlag
+////                                                                           ? 1
+////                                                                           : -1);
+////                        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(keyEvent.getBrowserWindowIndex()).getPointer());
+////                        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());
+////                        keyWasProcessedFlag = true;
+////                    }
+////                }
+////                    break;
+////                case ChartTwoOverlayActiveModeEnum::OFF:
+////                    break;
+////                case ChartTwoOverlayActiveModeEnum::ON:
+////                    break;
+////            }
+//
+//
+////            const int32_t pointIndex = layerChartID->getLineSegmentIndex();
+////            ChartTwoOverlay* chartOverlay = layerChartID->getChartTwoOverlay();
+////            chartOverlay->setSelectedLineChartPointIndex(pointIndex);
+////            updateGraphicsFlag = true;
+//        }
+//            break;
+//    }
+}
+

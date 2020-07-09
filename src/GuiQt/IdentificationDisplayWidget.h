@@ -174,8 +174,6 @@ namespace caret {
         
         QDoubleSpinBox* m_chartLineLayerSymbolSizeSpinBox;
         
-        QDoubleSpinBox* m_chartLineLayerSelectedSymbolSizeSpinBox;
-        
         QDoubleSpinBox* m_chartLineLayerToolTipTextSizeSpinBox;
         
         // ADD_NEW_MEMBERS_HERE

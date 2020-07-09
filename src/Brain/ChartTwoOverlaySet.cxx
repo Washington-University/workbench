@@ -1202,6 +1202,69 @@ ChartTwoOverlaySet::setAxisLineThickness(const float axisLineThickness)
 }
 
 /**
+ * Increment (decrement if negative) any line chart layer points the are active
+ * @param incrementValue
+ * Amount to advance point index.
+ */
+void
+ChartTwoOverlaySet::incrementOverlayActiveLineChartPoint(const int32_t incrementValue)
+{
+    const int32_t numOverlays = static_cast<int32_t>(m_overlays.size());
+    for (int32_t i = 0; i < numOverlays; i++) {
+        if (m_overlays[i] != NULL) {
+            switch (m_overlays[i]->getLineChartActiveMode()) {
+                case ChartTwoOverlayActiveModeEnum::ACTIVE:
+                    m_overlays[i]->incrementSelectedLineChartPointIndex(incrementValue);
+                    break;
+                case ChartTwoOverlayActiveModeEnum::OFF:
+                    break;
+                case ChartTwoOverlayActiveModeEnum::ON:
+                    break;
+            }
+        }
+    }
+}
+
+/**
+ * Select or deselect the active line chart layers
+ * @param chartTwoOverlay
+ *    If non NULL, set the given layer as the active layer and change any other active layers to on.
+ *    If NULL, change any active layer to on (no layers are active)
+ * @param lineSegmentPointIndex
+ *    Index of selected line segment point
+ */
+void
+ChartTwoOverlaySet::selectOverlayActiveLineChart(ChartTwoOverlay* chartTwoOverlay,
+                                                 const int32_t lineSegmentPointIndex)
+{
+    const int32_t numOverlays = static_cast<int32_t>(m_overlays.size());
+    for (int32_t i = 0; i < numOverlays; i++) {
+        if (m_overlays[i] != NULL) {
+            /*
+             * Change any active overlays to on
+             */
+            switch (m_overlays[i]->getLineChartActiveMode()) {
+                case ChartTwoOverlayActiveModeEnum::ACTIVE:
+                    m_overlays[i]->setLineChartActiveMode(ChartTwoOverlayActiveModeEnum::ON);
+                    break;
+                case ChartTwoOverlayActiveModeEnum::OFF:
+                    break;
+                case ChartTwoOverlayActiveModeEnum::ON:
+                    break;
+            }
+
+            /*
+             * Make given chart overlay active
+             */
+            if (chartTwoOverlay == m_overlays[i].get()) {
+                chartTwoOverlay->setLineChartActiveMode(ChartTwoOverlayActiveModeEnum::ACTIVE);
+                chartTwoOverlay->setSelectedLineChartPointIndex(lineSegmentPointIndex);
+            }
+        }
+    }
+}
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes

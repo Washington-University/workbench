@@ -63,6 +63,10 @@ namespace caret {
                                const float distanceToLine,
                                const int32_t lineSegmentIndex);
 
+        bool isOutsideChartBounds() const;
+        
+        void setOutsideChartBound(const bool status);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -77,6 +81,8 @@ namespace caret {
         float m_distanceToLine = 0;
         
         int32_t m_lineSegmentIndex = 0;
+        
+        bool m_outsideChartBoundsFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

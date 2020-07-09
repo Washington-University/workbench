@@ -28,11 +28,12 @@
 namespace caret {
 
     class BrainOpenGLViewportContent;
+    class ChartTwoOverlay;
 
     class UserInputModeView : public UserInputModeAbstract {
         
     public:
-        UserInputModeView();
+        UserInputModeView(const int32_t windowIndex);
         
         virtual ~UserInputModeView();
         
@@ -69,9 +70,17 @@ namespace caret {
                                      BrainOpenGLWidget* openGLWidget);
         
     protected:
-        UserInputModeView(const UserInputModeEnum::Enum inputMode);
+        UserInputModeView(const int32_t windowIndex,
+                          const UserInputModeEnum::Enum inputMode);
         
     private:
+        enum class ChartActiveLayerMode {
+            DECREMENT,
+            DESELECT_ALL,
+            INCREMENT,
+            SELECT
+        };
+        
         UserInputModeView(const UserInputModeView&);
 
         UserInputModeView& operator=(const UserInputModeView&);
@@ -84,6 +93,12 @@ namespace caret {
                                             BrainOpenGLWidget* openGLWidget,
                                             const int32_t mouseClickX,
                                             const int32_t mouseClickY);
+        
+        void processChartActiveLayerAction(const ChartActiveLayerMode chartActiveMode,
+                                           ChartTwoOverlay* chartOverlay,
+                                           const int32_t pointIndex);
+        
+        const int32_t m_browserWindowIndex;
         
     public:
         virtual AString toString() const;

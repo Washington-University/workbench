@@ -30,6 +30,7 @@
 #include "ChartAxisLocationEnum.h"
 #include "ChartTwoCompoundDataType.h"
 #include "ChartTwoMatrixTriangularViewingModeEnum.h"
+#include "ChartTwoOverlayActiveModeEnum.h"
 #include "EventListenerInterface.h"
 #include "MapYokingGroupEnum.h"
 #include "SceneableInterface.h"
@@ -154,9 +155,9 @@ namespace caret {
         
         void incrementSelectedLineChartPointIndex(const int32_t incrementValue);
 
-        bool isSelectedLineChartPointDisplayed() const;
+        ChartTwoOverlayActiveModeEnum::Enum getLineChartActiveMode() const;
         
-        void setSelectedLineChartPointDisplayed(const bool displayed);
+        void setLineChartActiveMode(const ChartTwoOverlayActiveModeEnum::Enum lineChartActiveMode);
         
         bool getSelectedLineChartPointXYZ(std::array<float, 3>& xyzOut) const;
         
@@ -254,7 +255,7 @@ namespace caret {
         
         mutable int32_t m_selectedLineChartPointIndex = 0;
         
-        bool m_selectedLineChartPointDisplayed = false;
+        ChartTwoOverlayActiveModeEnum::Enum m_lineChartActiveMode = ChartTwoOverlayActiveModeEnum::OFF;
         
         CardinalDirectionEnum::Enum m_selectedLineChartTextOffset = CardinalDirectionEnum::AUTO;
         

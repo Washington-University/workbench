@@ -88,18 +88,18 @@ m_inputModeAnnotations(inputModeAnnotations)
     CaretAssert(inputModeAnnotations);
     
     switch (inputModeAnnotations->getUserInputMode()) {
-        case UserInputModeEnum::ANNOTATIONS:
+        case UserInputModeEnum::Enum::ANNOTATIONS:
             createAnnotationWidget();
             break;
-        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
             createTileTabsEditingWidget();
             break;
-        case UserInputModeEnum::BORDERS:
-        case UserInputModeEnum::FOCI:
-        case UserInputModeEnum::IMAGE:
-        case UserInputModeEnum::INVALID:
-        case UserInputModeEnum::VIEW:
-        case UserInputModeEnum::VOLUME_EDIT:
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
             CaretAssert(0);
             return;
             break;

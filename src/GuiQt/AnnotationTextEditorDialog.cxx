@@ -133,7 +133,7 @@ AnnotationTextEditorDialog::textWasEdited()
     undoCommand->setModeTextCharacters(text,
                                        annotationVector);
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                 undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,

@@ -575,7 +575,8 @@ bool
 ChartTwoDataCartesian::getVerticalDistanceToXY(const float x,
                                                const float y,
                                                float& distanceOut,
-                                               int32_t& pointIndexOut) const
+                                               int32_t& pointIndexOut,
+                                               float chartXYZOut[3]) const
 {
     distanceOut   = std::numeric_limits<float>::max();
     pointIndexOut = -1;
@@ -609,6 +610,10 @@ ChartTwoDataCartesian::getVerticalDistanceToXY(const float x,
             else {
                 pointIndexOut = rightIndex;
             }
+            
+            chartXYZOut[0] = x;
+            chartXYZOut[1] = yOnSegment;
+            chartXYZOut[2] = p1[2];
         }
         else {
             /*
@@ -617,10 +622,16 @@ ChartTwoDataCartesian::getVerticalDistanceToXY(const float x,
             if (dist1 < dist2) {
                 pointIndexOut = leftIndex;
                 distanceOut   = dist1;
+                chartXYZOut[0] = p1[0];
+                chartXYZOut[1] = p1[1];
+                chartXYZOut[2] = p1[2];
             }
             else {
                 pointIndexOut = rightIndex;
                 distanceOut   = dist2;
+                chartXYZOut[0] = p2[0];
+                chartXYZOut[1] = p2[1];
+                chartXYZOut[2] = p2[2];
             }
         }
     }

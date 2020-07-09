@@ -55,7 +55,7 @@ EventGetOrSetUserInputModeProcessor::EventGetOrSetUserInputModeProcessor(const i
 : Event(EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE)
 {
     this->userInputProcessor = NULL;
-    this->userInputMode = UserInputModeEnum::INVALID;
+    this->userInputMode = UserInputModeEnum::Enum::INVALID;
     this->windowIndex   = windowIndex;
     this->modeGetOrSet  = GET;
 }

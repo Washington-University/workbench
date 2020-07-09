@@ -633,10 +633,10 @@ GraphicsShape::drawCircleFilledPercentViewportHeight(const float xyz[3],
  *     XYZ-coordinate of circle
  * @param rgba
  *    Color for drawing.
- * @param innerRadiusPercentageOfViewportHeight
- *    Inner radius of the ring.
- * @param innerRadiusPercentageOfViewportHeight
- *    Outer radius of the ring.
+ * @param innerDiameterPercentageOfViewportHeight
+ *    Inner diameter of the ring.
+ * @param outerDiameterPercentageOfViewportHeight
+ *    Outer diameter of the ring.
  * @param windowXYZOut
  *    Optional parameter.  If not NULL, contains OpenGL window XYZ of the shape.
  *    X-component is positive if value coordinate is valid, else negative indicates invalid.
@@ -644,15 +644,15 @@ GraphicsShape::drawCircleFilledPercentViewportHeight(const float xyz[3],
 void
 GraphicsShape::drawRingPercentViewportHeight(const float xyz[3],
                                              const uint8_t rgba[4],
-                                             const float innerRadiusPercentageOfViewportHeight,
-                                             const float outerRadiusPercentageOfViewportHeight,
+                                             const float innerDiameterPercentageOfViewportHeight,
+                                             const float outerDiameterPercentageOfViewportHeight,
                                              std::array<float, 3>* windowXYZOut)
 {
     drawShapePercentViewportHeight(xyz,
                                    rgba,
                                    Shape::RING,
-                                   innerRadiusPercentageOfViewportHeight * 2.0, /* diameters*/
-                                   outerRadiusPercentageOfViewportHeight * 2.0,
+                                   innerDiameterPercentageOfViewportHeight,
+                                   outerDiameterPercentageOfViewportHeight,
                                    windowXYZOut);
 }
 

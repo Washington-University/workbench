@@ -91,7 +91,7 @@ using namespace caret;
  *     Index of window
  */
 UserInputModeAnnotations::UserInputModeAnnotations(const int32_t windowIndex)
-: UserInputModeAnnotations(UserInputModeEnum::ANNOTATIONS,
+: UserInputModeAnnotations(UserInputModeEnum::Enum::ANNOTATIONS,
                            windowIndex)
 {
 }
@@ -106,7 +106,8 @@ UserInputModeAnnotations::UserInputModeAnnotations(const int32_t windowIndex)
  */
 UserInputModeAnnotations::UserInputModeAnnotations(const UserInputModeEnum::Enum userInputMode,
                                                    const int32_t windowIndex)
-: UserInputModeView(userInputMode),
+: UserInputModeView(windowIndex,
+                    userInputMode),
 m_browserWindowIndex(windowIndex),
 m_annotationUnderMouse(NULL),
 m_annotationBeingDragged(NULL)
@@ -1727,26 +1728,26 @@ UserInputModeAnnotations::processDeselectAllAnnotations()
     std::vector<Annotation*> annotationsSelected;
     
     switch (getUserInputMode()) {
-        case UserInputModeEnum::ANNOTATIONS:
+        case UserInputModeEnum::Enum::ANNOTATIONS:
         {
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             annMan->deselectAllAnnotationsForEditing(m_browserWindowIndex);
         }
             break;
-        case UserInputModeEnum::BORDERS:
-        case UserInputModeEnum::FOCI:
-        case UserInputModeEnum::IMAGE:
-        case UserInputModeEnum::INVALID:
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
             break;
-        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
         {
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             annMan->deselectAllAnnotationsForEditing(m_browserWindowIndex);
         }
             break;
-        case UserInputModeEnum::VIEW:
+        case UserInputModeEnum::Enum::VIEW:
             break;
-        case UserInputModeEnum::VOLUME_EDIT:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
             break;
     }
         
@@ -1763,7 +1764,7 @@ UserInputModeAnnotations::processSelectAllAnnotations()
     std::vector<Annotation*> annotationsSelected;
     
     switch (getUserInputMode()) {
-        case UserInputModeEnum::ANNOTATIONS:
+        case UserInputModeEnum::Enum::ANNOTATIONS:
         {
             EventAnnotationGetDrawnInWindow getDrawnEvent(m_browserWindowIndex);
             EventManager::get()->sendEvent(getDrawnEvent.getPointer());
@@ -1776,12 +1777,12 @@ UserInputModeAnnotations::processSelectAllAnnotations()
                                              annotationsSelected);
         }
             break;
-        case UserInputModeEnum::BORDERS:
-        case UserInputModeEnum::FOCI:
-        case UserInputModeEnum::IMAGE:
-        case UserInputModeEnum::INVALID:
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
             break;
-        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
         {
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             annMan->deselectAllAnnotationsForEditing(m_browserWindowIndex);
@@ -1808,9 +1809,9 @@ UserInputModeAnnotations::processSelectAllAnnotations()
             EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
         }
             break;
-        case UserInputModeEnum::VIEW:
+        case UserInputModeEnum::Enum::VIEW:
             break;
-        case UserInputModeEnum::VOLUME_EDIT:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
             break;
     }
     

@@ -65,7 +65,7 @@ m_browserWindowIndex(browserWindowIndex)
     QLabel* editTabLabel = NULL;
     
     m_visibilityCheckBox = NULL;
-    if (m_userInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+    if (m_userInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
         editTabLabel = new QLabel("Edit Tab(s)");
         m_visibilityCheckBox = new QCheckBox("Draw\nContent");
         m_visibilityCheckBox->setTristate(false);

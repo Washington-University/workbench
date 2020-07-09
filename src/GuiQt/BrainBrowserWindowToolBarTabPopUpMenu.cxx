@@ -387,24 +387,24 @@ BrainBrowserWindowToolBarTabPopUpMenu::isEnabled(const MenuItem menuItem) const
             EventGetOrSetUserInputModeProcessor inputProcessorEvent(m_browserWindowIndex);
             EventManager::get()->sendEvent(inputProcessorEvent.getPointer());
             switch (inputProcessorEvent.getUserInputMode()) {
-                case UserInputModeEnum::ANNOTATIONS:
+                case UserInputModeEnum::Enum::ANNOTATIONS:
                     break;
-                case UserInputModeEnum::BORDERS:
+                case UserInputModeEnum::Enum::BORDERS:
                     break;
-                case UserInputModeEnum::FOCI:
+                case UserInputModeEnum::Enum::FOCI:
                     break;
-                case UserInputModeEnum::IMAGE:
+                case UserInputModeEnum::Enum::IMAGE:
                     break;
-                case UserInputModeEnum::INVALID:
+                case UserInputModeEnum::Enum::INVALID:
                     break;
-                case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+                case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
                     if (m_selectedBrowserTabAnnotation != NULL) {
                         enabledFlag = true;
                     }
                     break;
-                case UserInputModeEnum::VIEW:
+                case UserInputModeEnum::Enum::VIEW:
                     break;
-                case UserInputModeEnum::VOLUME_EDIT:
+                case UserInputModeEnum::Enum::VOLUME_EDIT:
                     break;
             }
         }

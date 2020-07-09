@@ -531,7 +531,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     std::vector<const BrainOpenGLViewportContent*> constViewports(viewports.begin(),
                                                                                   viewports.end());
                     brainOpenGL->drawModels(windowIndex,
-                                            UserInputModeEnum::VIEW,
+                                            UserInputModeEnum::Enum::VIEW,
                                             brain,
                                             mesaContext,
                                             constViewports);
@@ -586,7 +586,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
             viewportContents.push_back(content);
             
             brainOpenGL->drawModels(windowIndex,
-                                    UserInputModeEnum::VIEW,
+                                    UserInputModeEnum::Enum::VIEW,
                                     brain,
                                     mesaContext,
                                     viewportContents);

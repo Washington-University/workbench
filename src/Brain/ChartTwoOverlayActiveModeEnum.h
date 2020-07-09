@@ -1,9 +1,9 @@
-#ifndef __USER_INPUT_MODE_ENUM_H__
-#define __USER_INPUT_MODE_ENUM_H__
+#ifndef __CHART_TWO_OVERLAY_ACTIVE_MODE_ENUM_H__
+#define __CHART_TWO_OVERLAY_ACTIVE_MODE_ENUM_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2019 Washington University School of Medicine
+ *  Copyright (C) 2020 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,33 +28,23 @@
 
 namespace caret {
 
-class UserInputModeEnum {
+class ChartTwoOverlayActiveModeEnum {
 
 public:
     /**
      * Enumerated values.
      */
-    enum class Enum {
-        /** Invalid */
-        INVALID,
-        /** Annotations */
-        ANNOTATIONS,
-        /** Borders */
-        BORDERS,
-        /** Foci */
-        FOCI,
-        /** Image */
-        IMAGE,
-        /** Tile tabs manual layouot editing */
-        TILE_TABS_MANUAL_LAYOUT_EDITING,
-        /** View */
-        VIEW,
-        /** Volume Edit */
-        VOLUME_EDIT
+    enum Enum {
+        /** Off */
+        OFF,
+        /** On */
+        ON,
+        /** Active */
+        ACTIVE
     };
 
 
-    ~UserInputModeEnum();
+    ~ChartTwoOverlayActiveModeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -75,14 +65,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    UserInputModeEnum(const Enum enumValue, 
+    ChartTwoOverlayActiveModeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const UserInputModeEnum* findData(const Enum enumValue);
+    static const ChartTwoOverlayActiveModeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<UserInputModeEnum> enumData;
+    static std::vector<ChartTwoOverlayActiveModeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -106,11 +96,11 @@ private:
     AString guiName;
 };
 
-#ifdef __USER_INPUT_MODE_ENUM_DECLARE__
-std::vector<UserInputModeEnum> UserInputModeEnum::enumData;
-bool UserInputModeEnum::initializedFlag = false;
-int32_t UserInputModeEnum::integerCodeCounter = 0; 
-#endif // __USER_INPUT_MODE_ENUM_DECLARE__
+#ifdef __CHART_TWO_OVERLAY_ACTIVE_MODE_ENUM_DECLARE__
+std::vector<ChartTwoOverlayActiveModeEnum> ChartTwoOverlayActiveModeEnum::enumData;
+bool ChartTwoOverlayActiveModeEnum::initializedFlag = false;
+int32_t ChartTwoOverlayActiveModeEnum::integerCodeCounter = 0; 
+#endif // __CHART_TWO_OVERLAY_ACTIVE_MODE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__USER_INPUT_MODE_ENUM_H__
+#endif  //__CHART_TWO_OVERLAY_ACTIVE_MODE_ENUM_H__

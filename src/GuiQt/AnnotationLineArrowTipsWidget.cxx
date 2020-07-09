@@ -163,7 +163,7 @@ AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                 undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -187,7 +187,7 @@ AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
 
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
                                 undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,

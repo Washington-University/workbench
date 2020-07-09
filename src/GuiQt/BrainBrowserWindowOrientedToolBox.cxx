@@ -948,9 +948,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         EventManager::get()->sendEvent(inputModeEvent.getPointer());
         const UserInputModeEnum::Enum inputMode = inputModeEvent.getUserInputMode();
         switch (inputMode) {
-            case UserInputModeEnum::ANNOTATIONS:
+            case UserInputModeEnum::Enum::ANNOTATIONS:
                 break;
-            case UserInputModeEnum::BORDERS:
+            case UserInputModeEnum::Enum::BORDERS:
                 /*
                  * Enable borders tab if the input mode is 'borders' so that user
                  * can edit border point size while drawing a border before any
@@ -958,17 +958,17 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                  */
                 haveBorders = true;
                 break;
-            case UserInputModeEnum::FOCI:
+            case UserInputModeEnum::Enum::FOCI:
                 break;
-            case UserInputModeEnum::IMAGE:
+            case UserInputModeEnum::Enum::IMAGE:
                 break;
-            case UserInputModeEnum::INVALID:
+            case UserInputModeEnum::Enum::INVALID:
                 break;
-            case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+            case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
                 break;
-            case UserInputModeEnum::VIEW:
+            case UserInputModeEnum::Enum::VIEW:
                 break;
-            case UserInputModeEnum::VOLUME_EDIT:
+            case UserInputModeEnum::Enum::VOLUME_EDIT:
                 break;
         }
         
