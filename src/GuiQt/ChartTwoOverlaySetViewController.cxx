@@ -380,13 +380,17 @@ ChartTwoOverlaySetViewController::updateViewController()
         if (i >= numberOfDisplayedOverlays) {
             displayOverlay = false;
         }
-        if (displayOverlay) {
-            CaretAssertVectorIndex(m_chartOverlayViewControllers, i);
-            m_chartOverlayViewControllers[i]->updateViewController(chartOverlay);
-            
-        }
+
         CaretAssertVectorIndex(m_chartOverlayGridLayoutGroups, i);
         m_chartOverlayGridLayoutGroups[i]->setVisible(displayOverlay);
+        
+        if (displayOverlay) {
+            /*
+             * Need to do AFTER setting visibility
+             */
+            CaretAssertVectorIndex(m_chartOverlayViewControllers, i);
+            m_chartOverlayViewControllers[i]->updateViewController(chartOverlay);
+        }
     }
 }
 
@@ -418,6 +422,7 @@ ChartTwoOverlaySetViewController::processAddOverlayAbove(const int32_t overlayIn
     if (chartOverlaySet != NULL) {
         chartOverlaySet->insertOverlayAbove(overlayIndex);
         this->updateColoringAndGraphics();
+        this->updateViewController();
     }
 }
 
@@ -433,6 +438,7 @@ ChartTwoOverlaySetViewController::processAddOverlayBelow(const int32_t overlayIn
     if (chartOverlaySet != NULL) {
         chartOverlaySet->insertOverlayBelow(overlayIndex);
         this->updateColoringAndGraphics();
+        updateViewController();
     }
 }
 
