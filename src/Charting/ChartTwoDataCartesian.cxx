@@ -540,24 +540,23 @@ ChartTwoDataCartesian::getLineSegmentIndexContainingX(const float x) const
             }
         }
 
-        const bool verifyFlag(false);
-        if (verifyFlag) {
-            /*
-             * This is a slow linear search, used only in debug
-             * mode to verify binary search is correct
-             */
-            int32_t linearIndex(-1);
-            for (int32_t i = 0; i < numLineSegments; i++) {
-                float p1[3], p2[3];
-                m_graphicsPrimitive->getVertexFloatXYZ(i, p1);
-                m_graphicsPrimitive->getVertexFloatXYZ(i + 1, p2);
-                if ((x >= p1[0])
-                    && (x <= p2[0])) {
-                    linearIndex = i;
-                }
+#ifdef VERIFY_FLAG
+        /*
+         * This is a slow linear search, used only in debug
+         * mode to verify binary search is correct
+         */
+        int32_t linearIndex(-1);
+        for (int32_t i = 0; i < numLineSegments; i++) {
+            float p1[3], p2[3];
+            m_graphicsPrimitive->getVertexFloatXYZ(i, p1);
+            m_graphicsPrimitive->getVertexFloatXYZ(i + 1, p2);
+            if ((x >= p1[0])
+                && (x <= p2[0])) {
+                linearIndex = i;
             }
-            CaretAssert(segmentIndex == linearIndex);
         }
+        CaretAssert(segmentIndex == linearIndex);
+#endif // VERIFY_FLAG
     }
 
     return segmentIndex;

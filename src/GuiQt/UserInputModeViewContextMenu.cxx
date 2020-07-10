@@ -39,6 +39,7 @@
 #include "ChartableLineSeriesBrainordinateInterface.h"
 #include "ChartingDataManager.h"
 #include "ChartTwoCartesianAxis.h"
+#include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
@@ -64,6 +65,7 @@
 #include "OverlaySet.h"
 #include "MetricDynamicConnectivityFile.h"
 #include "Model.h"
+#include "ModelChartTwo.h"
 #include "ProgressReportingDialog.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartTwoLabel.h"
@@ -890,7 +892,8 @@ UserInputModeViewContextMenu::createLabelRegionOfInterestMenu()
 }
 
 /**
- * Add chart options to the menu
+ * Add chart options to the menu.
+ * @return The Chart menu
  */
 QMenu*
 UserInputModeViewContextMenu::createChartMenu()
@@ -906,10 +909,33 @@ UserInputModeViewContextMenu::createChartMenu()
                                                                 SLOT(editChartLabelSelected())));
     }
     
+    if (this->browserTabContent != NULL) {
+        const ModelChartTwo* chartTwoModel = this->browserTabContent->getDisplayedChartTwoModel();
+        if (chartTwoModel != NULL) {
+            const int32_t tabIndex = this->browserTabContent->getTabNumber();
+            switch (chartTwoModel->getSelectedChartTwoDataType(tabIndex)) {
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                    break;
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                    break;
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+                {
+                    QList<QAction*> layerActions = getChartTwoLineLayerMenuActions(chartTwoModel);
+                    chartActions.append(layerActions);
+                }
+                    break;
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                    break;
+                case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                    break;
+            }
+        }
+    }
+    
     QMenu* menu(NULL);
 
     if ( ! chartActions.isEmpty()) {
-        QMenu* menu = new QMenu("Chart");
+        menu = new QMenu("Chart");
         
         for (auto action : chartActions) {
             menu->addAction(action);
@@ -918,6 +944,27 @@ UserInputModeViewContextMenu::createChartMenu()
     
     return menu;
 }
+
+/**
+ * @param chartTwoModel
+ *     The valid chart two model.
+ * @return Menu actions for chart two line layer
+ */
+QList<QAction*>
+UserInputModeViewContextMenu::getChartTwoLineLayerMenuActions(const ModelChartTwo* chartTwoModel)
+{
+    CaretAssert(chartTwoModel);
+    
+    QList<QAction*> actions;
+    
+    const ChartTwoOverlaySet* overlaySet = this->browserTabContent->getChartTwoOverlaySet();
+    const int32_t numValidOverlays = overlaySet->getNumberOfDisplayedOverlays();
+    if (numValidOverlays > 0) {
+    }
+
+    return actions;
+}
+
 
 /**
  * Called to edit the chart label.

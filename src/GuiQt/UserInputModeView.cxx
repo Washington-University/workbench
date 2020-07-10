@@ -693,50 +693,6 @@ UserInputModeView::processChartActiveLayerAction(const ChartActiveLayerMode char
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());
-    
-//    switch (chartActiveMode) {
-//        case ChartActiveLayerMode::DECREMENT:
-//            std::cout << "Decrement" << std::endl << std::flush;
-//            break;
-//        case ChartActiveLayerMode::DESELECT_ALL:
-//            std::cout << "Deselect All" << std::endl << std::flush;
-//            break;
-//        case ChartActiveLayerMode::INCREMENT:
-//            std::cout << "Increment" << std::endl << std::flush;
-//            break;
-//        case ChartActiveLayerMode::SELECT:
-//        {
-////            std::cout << "Select" << std::endl << std::flush;
-////            CaretAssert(chartOverlay);
-////            ChartTwoOverlay* chartOverlay = layerSelection->getChartTwoOverlay();
-////            switch (chartOverlay->getLineChartActiveMode()) {
-////                case ChartTwoOverlayActiveModeEnum::ACTIVE:
-////                {
-////                    std::array<float, 3> xyz;
-////                    if (chartOverlay->getSelectedLineChartPointXYZ(xyz)) {
-////                        chartOverlay->incrementSelectedLineChartPointIndex(incrementFlag
-////                                                                           ? 1
-////                                                                           : -1);
-////                        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(keyEvent.getBrowserWindowIndex()).getPointer());
-////                        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());
-////                        keyWasProcessedFlag = true;
-////                    }
-////                }
-////                    break;
-////                case ChartTwoOverlayActiveModeEnum::OFF:
-////                    break;
-////                case ChartTwoOverlayActiveModeEnum::ON:
-////                    break;
-////            }
-//
-//
-////            const int32_t pointIndex = layerChartID->getLineSegmentIndex();
-////            ChartTwoOverlay* chartOverlay = layerChartID->getChartTwoOverlay();
-////            chartOverlay->setSelectedLineChartPointIndex(pointIndex);
-////            updateGraphicsFlag = true;
-//        }
-//            break;
-//    }
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());    
 }
 

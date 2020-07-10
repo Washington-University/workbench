@@ -42,6 +42,7 @@ namespace caret {
     class CiftiConnectivityMatrixDataFileManager;
     class CiftiFiberTrajectoryManager;
     class ChartingDataManager;
+    class ModelChartTwo;
     class MouseEvent;
     class SelectionManager;
     class LabelFile;
@@ -157,6 +158,8 @@ namespace caret {
         QMenu* createFociMenu();
         
         QMenu* createLabelRegionOfInterestMenu();
+        
+        QList<QAction*> getChartTwoLineLayerMenuActions(const ModelChartTwo* chartTwoModel);
         
         void addSubMenuToMenu(QMenu* menu,
                               const bool addSeparatorBeforeMenu);
