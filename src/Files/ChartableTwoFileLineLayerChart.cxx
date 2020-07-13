@@ -528,15 +528,16 @@ ChartableTwoFileLineLayerChart::loadChartForMapFileSelector(const MapFileDataSel
             chartDataOut = createChartData();
             chartDataOut->setMapFileDataSelector(mapFileDataSelector);
             
-            float x = 0.0f;
+            float xStart = 0.0f;
             float xStep = 0.0f;
-            getCaretMappableDataFile()->getMapIntervalStartAndStep(x, xStep);
+            getCaretMappableDataFile()->getMapIntervalStartAndStep(xStart,
+                                                                   xStep);
             
             const int32_t numData = static_cast<int32_t>(data.size());
             for (int32_t i = 0; i < numData; i++) {
+                const float x(xStart + (i * xStep));
                 CaretAssertVectorIndex(data, i);
                 chartDataOut->addPoint(x, data[i]);
-                x += xStep;
             }
         }
     }
