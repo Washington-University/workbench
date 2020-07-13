@@ -710,6 +710,12 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName)
         
         if (m_ciftiFile != NULL) {
             setFileName(ciftiMapFileName); // need by charting delegate
+
+            if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
+                /* needed when reloading file */
+                invalidateColoringInAllMaps();
+            }
+            
             initializeAfterReading(ciftiMapFileName);
         }
     }
