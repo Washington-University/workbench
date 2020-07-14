@@ -348,7 +348,8 @@ void QFileImpl::read(void* dataOut, const int64_t& count, int64_t* numRead)
 
 void QFileImpl::seek(const int64_t& position)
 {
-    if (m_file.pos() != position && !m_file.seek(position)) throw DataFileException("seek failed in file '" + m_fileName + "'");
+    if (m_file.pos() == position) return; //QFile::seek always does a flush in qt5, so try to avoid calling it
+    if (!m_file.seek(position)) throw DataFileException("seek failed in file '" + m_fileName + "'");
 }
 
 int64_t QFileImpl::pos()
