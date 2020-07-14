@@ -55,6 +55,7 @@
 #include "WuQFactory.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
+#include "WuQSpinBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -227,8 +228,10 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     macroManager->addMacroSupportToObject(m_userNumericFormatComboBox->getWidget(),
                                           "Select chart axis numeric format");
     
-    m_userDigitsRightOfDecimalSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0, 10, 1);
-    QObject::connect(m_userDigitsRightOfDecimalSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+    m_userDigitsRightOfDecimalSpinBox = new WuQSpinBox();
+    m_userDigitsRightOfDecimalSpinBox->setRange(0, 10);
+    m_userDigitsRightOfDecimalSpinBox->setSingleStep(1);
+    QObject::connect(m_userDigitsRightOfDecimalSpinBox, static_cast<void (WuQSpinBox::*)(int)>(&WuQSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt);
     m_userDigitsRightOfDecimalSpinBox->setToolTip("Set digits right of decimal for\ndecimal or scientific format");
     m_userDigitsRightOfDecimalSpinBox->setObjectName(objectNamePrefix
@@ -246,8 +249,10 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     macroManager->addMacroSupportToObject(m_numericSubdivisionsModeComboBox->getWidget(),
                                           "Set chart axis numeric subdivisions mode");
     
-    m_userSubdivisionsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0, 99, 1);
-    QObject::connect(m_userSubdivisionsSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+    m_userSubdivisionsSpinBox = new WuQSpinBox();
+    m_userSubdivisionsSpinBox->setRange(0, 99);
+    m_userSubdivisionsSpinBox->setSingleStep(1);
+    QObject::connect(m_userSubdivisionsSpinBox, static_cast<void (WuQSpinBox::*)(int)>(&WuQSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt); 
     m_userSubdivisionsSpinBox->setToolTip("Set subdivisions on the axis when Auto is not checked");
     m_userSubdivisionsSpinBox->setObjectName(objectNamePrefix

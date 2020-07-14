@@ -29,7 +29,6 @@ class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
-class QSpinBox;
 class QToolButton;
 
 namespace caret {
@@ -40,6 +39,7 @@ namespace caret {
     class ChartTwoOverlaySet;
     class EnumComboBoxTemplate;
     class WuQDoubleSpinBox;
+    class WuQSpinBox;
     class WuQWidgetObjectGroup;
     
     class BrainBrowserWindowToolBarChartTwoAxes : public BrainBrowserWindowToolBarComponent {
@@ -118,11 +118,11 @@ namespace caret {
         
         EnumComboBoxTemplate* m_userNumericFormatComboBox;
         
-        QSpinBox* m_userDigitsRightOfDecimalSpinBox;
+        WuQSpinBox* m_userDigitsRightOfDecimalSpinBox;
         
         EnumComboBoxTemplate* m_numericSubdivisionsModeComboBox;
         
-        QSpinBox* m_userSubdivisionsSpinBox;
+        WuQSpinBox* m_userSubdivisionsSpinBox;
         
         WuQDoubleSpinBox* m_labelSizeSpinBox;
         
