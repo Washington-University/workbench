@@ -53,6 +53,8 @@ namespace caret {
     protected:
         void keyPressEvent(QKeyEvent* event) override;
         
+        void timerEvent(QTimerEvent* event) override;
+        
     private:
         // ADD_NEW_MEMBERS_HERE
 

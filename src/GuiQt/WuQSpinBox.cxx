@@ -53,6 +53,11 @@ WuQSpinBox::~WuQSpinBox()
 {
 }
 
+/**
+ * Process key events (override parent class method)
+ * @param event
+ *    The key event
+ */
 void
 WuQSpinBox::keyPressEvent(QKeyEvent* event)
 {
@@ -62,5 +67,25 @@ WuQSpinBox::keyPressEvent(QKeyEvent* event)
     }
     
     QSpinBox::keyPressEvent(event);
+}
+
+/**
+ * Process timer events (override parent class method)
+ *
+ * @param event
+ *    The key event
+ */
+void
+WuQSpinBox::timerEvent(QTimerEvent* event)
+{
+    /*
+     * If a method called by valueChanged() takes "too long" to execute
+     * a second valueChanged() signal is emitted by QSpinBox.  May be
+     * related to an "auto repeat timer" as if user held down the button.
+     * This is QTBUG-14259: https://bugreports.qt.io/browse/QTBUG-14259
+     *
+     * So, ignore timer events
+     */
+    QWidget::timerEvent(event);
 }
 
