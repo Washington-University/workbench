@@ -678,7 +678,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         float topTitleHeight   = titleInfo.m_titleHeight;
         const float topAxisHeight    = topAxisInfo.m_axisHeight;
         if (titleInfo.m_titleDisplayedFlag) {
-            topAxisInfo.m_axisHeight = 0.0f;
+            //topAxisInfo.m_axisHeight = 0.0f;
         }
         else {
             topTitleHeight = 0.0f;

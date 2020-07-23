@@ -111,6 +111,12 @@ namespace caret {
         
         bool isCartesianVerticalAxisLocationSupported() const;
         
+        ChartAxisLocationEnum::Enum getCartesianHorizontalAxisLocation() const;
+        
+        void setCartesianHorizontalAxisLocation(const ChartAxisLocationEnum::Enum cartesianHorizontalAxisLocation);
+        
+        bool isCartesianHorizontalAxisLocationSupported() const;
+        
         CaretMappableDataFile* getSelectedMapFile() const;
         
         void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
@@ -202,6 +208,8 @@ namespace caret {
         
         void validateCartesianVerticalAxisLocation() const;
         
+        void validateCartesianHorizontalAxisLocation() const;
+        
         void validateSelectedLineChartPointIndex() const;
         
         static CaretColorEnum::Enum generateDefaultColor();
@@ -248,6 +256,9 @@ namespace caret {
         
         /** Location of vertical cartesian axis*/
         mutable ChartAxisLocationEnum::Enum m_cartesianVerticalAxisLocation;
+        
+        /** Location of horizontal cartesian axis*/
+        mutable ChartAxisLocationEnum::Enum m_cartesianHorizontalAxisLocation;
         
         CaretColor m_lineLayerColor;
         

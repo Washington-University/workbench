@@ -113,7 +113,9 @@ namespace caret {
         
         void menuMatrixTriangularViewModeTriggered(QAction* action);
         
-        void menuAxisLocationTriggered(QAction* action);
+        void menuHorizontalAxisLocationTriggered(QAction* action);
+        
+        void menuVerticalAxisLocationTriggered(QAction* action);
         
         void lineLayerColorSelected(const CaretColor& caretColor);
         
@@ -124,6 +126,8 @@ namespace caret {
         void lineLayerActiveModeEnumComboBoxItemActivated();
         
         void selectedPointIndexSpinBoxValueChanged(int index);
+        
+        void axisButtonClicked();
         
     private:
         ChartTwoOverlayViewController(const ChartTwoOverlayViewController&);
@@ -155,22 +159,24 @@ namespace caret {
         QPixmap createMatrixTriangularViewModePixmap(QWidget* widget,
                                                      const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode);
 
-        QPixmap createAxisLocationPixmap(QWidget* widget,
-                                         const ChartAxisLocationEnum::Enum axisLocation);
+        QPixmap createAxisButtonPixmap(QWidget* widget);
         
         QPixmap createCardinalDirectionPixmap(QWidget* widget);
         
         void updateMatrixTriangularViewModeAction(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode);
         
-        void updateAxisLocationAction(const ChartAxisLocationEnum::Enum axisLocation);
-        
         void updateLineLayerToolTipOffsetToolButton();
+        
+        QAction* createAxisMenuAction(const ChartAxisLocationEnum::Enum axis,
+                                      QMenu* parentMenu);
         
         const int32_t m_browserWindowIndex;
         
         const int32_t m_chartOverlayIndex;
         
         ChartTwoOverlay* m_chartOverlay;
+        
+        const AString m_parentObjectName;
         
         QCheckBox* m_enabledCheckBox;
         
@@ -190,8 +196,6 @@ namespace caret {
         
         QAction* m_matrixTriangularViewModeAction;
         
-        QAction* m_axisLocationAction;
-        
         QToolButton* m_axisLocationToolButton;
         
         CaretColorToolButton* m_lineLayerColorToolButton;
@@ -202,7 +206,7 @@ namespace caret {
         
         std::vector<std::tuple<ChartTwoMatrixTriangularViewingModeEnum::Enum, QAction*,QPixmap>> m_matrixViewMenuData;
 
-        std::vector<std::tuple<ChartAxisLocationEnum::Enum, QAction*,QPixmap>> m_axisLocationMenuData;
+        std::vector<std::tuple<ChartAxisLocationEnum::Enum, QAction*>> m_axisLocationMenuData;
         
         QComboBox* m_mapFileComboBox;
         

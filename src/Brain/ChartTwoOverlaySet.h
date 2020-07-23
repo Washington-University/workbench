@@ -164,6 +164,8 @@ namespace caret {
         
         std::unique_ptr<ChartTwoCartesianAxis> m_chartAxisBottom;
         
+        std::unique_ptr<ChartTwoCartesianAxis> m_chartAxisTop;
+        
         const AString m_name;
         
         const int32_t m_tabIndex;

@@ -98,7 +98,8 @@ ChartTwoOverlayViewController::ChartTwoOverlayViewController(const Qt::Orientati
 : QObject(parent),
 m_browserWindowIndex(browserWindowIndex),
 m_chartOverlayIndex(chartOverlayIndex),
-m_chartOverlay(NULL)
+m_chartOverlay(NULL),
+m_parentObjectName(parentObjectName)
 {
     int minComboBoxWidth = 200;
     int maxComboBoxWidth = 100000;
@@ -227,20 +228,14 @@ m_chartOverlay(NULL)
 
     /*
      * Axis location button
-     * Note: macro support is on each action in menu in createMatrixTriangularViewModeMenu
      */
     m_axisLocationToolButton = new QToolButton();
-    m_axisLocationAction = WuQtUtilities::createAction("A",
-                                                       "Select location of vertical axis for the selected file",
-                                                       m_axisLocationToolButton);
-    QMenu* axisLocationMenu = createAxisLocationMenu(m_axisLocationToolButton,
-                                                     (objectNamePrefix
-                                                      + "VerticalAxisLocationMenu:"),
-                                                     descriptivePrefix);
-    m_axisLocationAction->setMenu(axisLocationMenu);
-    m_axisLocationToolButton->setDefaultAction(m_axisLocationAction);
-    m_axisLocationToolButton->setPopupMode(QToolButton::InstantPopup);
-    
+    QPixmap axisButtonPixmap = createAxisButtonPixmap(m_axisLocationToolButton);
+    m_axisLocationToolButton->setToolTip("Select location of axes for the selected file");
+    m_axisLocationToolButton->setIcon(axisButtonPixmap);
+    QObject::connect(m_axisLocationToolButton, &QToolButton::clicked,
+                     this, &ChartTwoOverlayViewController::axisButtonClicked);
+
     /*
      * Line layer color tool button
      */
@@ -964,19 +959,41 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     /*
      * Update vertical axis location
      */
-    m_axisLocationAction->setEnabled(false);
+    m_axisLocationToolButton->setEnabled(false);
     if (validOverlayAndFileFlag) {
-        if (m_chartOverlay->isCartesianVerticalAxisLocationSupported()) {
-            m_axisLocationAction->setEnabled(true);
-            const ChartAxisLocationEnum::Enum axisLocation = m_chartOverlay->getCartesianVerticalAxisLocation();
-            for (auto& almd : m_axisLocationMenuData) {
-                if (std::get<0>(almd) == axisLocation) {
-                    updateAxisLocationAction(axisLocation);
-                    break;
-                }
-            }
+        if (m_chartOverlay->isCartesianHorizontalAxisLocationSupported()
+            || m_chartOverlay->isCartesianVerticalAxisLocationSupported()) {
+            m_axisLocationToolButton->setEnabled(true);
         }
     }
+//    m_axisLocationAction->setEnabled(false);
+//    if (validOverlayAndFileFlag) {
+//        if (m_chartOverlay->isCartesianVerticalAxisLocationSupported()) {
+//            m_axisLocationAction->setEnabled(true);
+//            const ChartAxisLocationEnum::Enum axisLocation = m_chartOverlay->getCartesianVerticalAxisLocation();
+//            for (auto& almd : m_axisLocationMenuData) {
+//                if (std::get<0>(almd) == axisLocation) {
+//                    std::get<1>(almd)->setChecked(true);
+////                    updateAxisLocationAction(axisLocation);
+//                    break;
+//                }
+//            }
+//        }
+//
+//        if (m_chartOverlay->isCartesianHorizontalAxisLocationSupported()) {
+//            if (m_chartOverlay->isCartesianHorizontalAxisLocationSupported()) {
+//                m_axisLocationAction->setEnabled(true);
+//                const ChartAxisLocationEnum::Enum axisLocation = m_chartOverlay->getCartesianHorizontalAxisLocation();
+//                for (auto& almd : m_axisLocationMenuData) {
+//                    if (std::get<0>(almd) == axisLocation) {
+//                        std::get<1>(almd)->setChecked(true);
+//                        //                    updateAxisLocationAction(axisLocation);
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//    }
     
     /*
      * Update line layer color, offset, and width tool button
@@ -1088,34 +1105,6 @@ ChartTwoOverlayViewController::updateMatrixTriangularViewModeAction(const ChartT
 }
 
 /**
- * Update the axis location button.
- *
- * @param axisLocation
- *     Axis location.
- */
-void
-ChartTwoOverlayViewController::updateAxisLocationAction(const ChartAxisLocationEnum::Enum axisLocation)
-{
-    CaretAssert(m_axisLocationAction);
-    m_axisLocationAction->blockSignals(true);
-    for (auto& almd : m_axisLocationMenuData) {
-        if (std::get<0>(almd) == axisLocation) {
-            QPixmap pixmap = std::get<2>(almd);
-            if ( ! pixmap.isNull()) {
-                m_axisLocationAction->setIcon(pixmap);
-                m_axisLocationAction->setText("");
-            }
-            else {
-                m_axisLocationAction->setText("A");
-            }
-            break;
-        }
-    }
-    m_axisLocationAction->blockSignals(false);
-}
-
-
-/**
  * Update graphics and GUI after selections made
  */
 void
@@ -1224,58 +1213,178 @@ ChartTwoOverlayViewController::menuMatrixTriangularViewModeTriggered(QAction* ac
     }
 }
 
-/**
- * Create the axis location menu.
- * @param parent
- *    Parent widget.
- * @param parentObjectName
- *    Name of parent object for macros
- */
-QMenu*
-ChartTwoOverlayViewController::createAxisLocationMenu(QWidget* widget,
-                                                      const QString& parentObjectName,
-                                                      const QString& descriptivePrefix)
+QAction*
+ChartTwoOverlayViewController::createAxisMenuAction(const ChartAxisLocationEnum::Enum axis,
+                                                    QMenu* parentMenu)
 {
-    std::vector<ChartAxisLocationEnum::Enum> axisLocations;
-    axisLocations.push_back(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
-    axisLocations.push_back(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT);
-    
-    QMenu* menu = new QMenu(widget);
-    QObject::connect(menu, &QMenu::triggered,
-                     this, &ChartTwoOverlayViewController::menuAxisLocationTriggered);
-    
-    QActionGroup* actionGroup = new QActionGroup(this);
-    actionGroup->setExclusive(true);
-    
-    for (auto axis: axisLocations) {
-        QAction* action = menu->addAction(ChartAxisLocationEnum::toGuiName(axis));
-        action->setCheckable(true);
-        action->setData((int)ChartAxisLocationEnum::toIntegerCode(axis));
-        QPixmap pixmap = createAxisLocationPixmap(menu, axis);
-        action->setIcon(pixmap);
-        actionGroup->addAction(action);
-        
-        QString objName = (parentObjectName
-                           + ChartAxisLocationEnum::toGuiName(axis));
-        objName = objName.replace(" ", "");
-        action->setObjectName(objName);
-        WuQMacroManager::instance()->addMacroSupportToObject(action,
-                                                             "Select chart axis location for " + descriptivePrefix);
-        
-        m_axisLocationMenuData.push_back(std::make_tuple(axis, action, pixmap));
+    QAction* action = parentMenu->addAction(ChartAxisLocationEnum::toGuiName(axis));
+    action->setCheckable(true);
+    QString objName = (m_parentObjectName
+                       + ChartAxisLocationEnum::toGuiName(axis));
+    objName = objName.replace(" ", "");
+    action->setObjectName(objName);
+    WuQMacroManager::instance()->addMacroSupportToObject(action,
+                                                         ("Select chart axis location for Chart Overlay"
+                                                          + QString::number(m_chartOverlayIndex + 1)));
+
+    return action;
+}
+void
+ChartTwoOverlayViewController::axisButtonClicked()
+{
+    if (m_chartOverlay == NULL) {
+        return;
     }
     
-    return menu;
+    QMenu menu(m_axisLocationToolButton);
+    QAction* leftAction = createAxisMenuAction(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT, &menu);
+    QAction* rightAction = createAxisMenuAction(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT, &menu);
+    menu.addSeparator();
+    QAction* topAction = createAxisMenuAction(ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP, &menu);
+    QAction* bottomAction = createAxisMenuAction(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM, &menu);
+    
+    switch (m_chartOverlay->getCartesianHorizontalAxisLocation()) {
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+            bottomAction->setChecked(true);
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            topAction->setChecked(true);
+            break;
+    }
+    
+    switch (m_chartOverlay->getCartesianVerticalAxisLocation()) {
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+            leftAction->setChecked(true);
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+            rightAction->setChecked(true);
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            break;
+    }
+    
+    QAction* selectedAction = menu.exec(m_axisLocationToolButton->mapToGlobal(QPoint(0,0)));
+    if (selectedAction != NULL) {
+        if (bottomAction == selectedAction) {
+            m_chartOverlay->setCartesianHorizontalAxisLocation(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
+        }
+        else if (topAction == selectedAction) {
+            m_chartOverlay->setCartesianHorizontalAxisLocation(ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP);
+        }
+        else if (leftAction == selectedAction) {
+            m_chartOverlay->setCartesianVerticalAxisLocation(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
+        }
+        else if (rightAction == selectedAction) {
+            m_chartOverlay->setCartesianVerticalAxisLocation(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT);
+        }
+        else {
+            CaretAssert(0);
+        }
+        
+        updateGraphicsWindow();
+    }
 }
 
+
+///**
+// * Create the axis location menu.
+// * @param parent
+// *    Parent widget.
+// * @param parentObjectName
+// *    Name of parent object for macros
+// */
+//QMenu*
+//ChartTwoOverlayViewController::createAxisLocationMenu(QWidget* widget,
+//                                                      const QString& parentObjectName,
+//                                                      const QString& descriptivePrefix)
+//{
+//    std::vector<ChartAxisLocationEnum::Enum> axisLocations;
+//    axisLocations.push_back(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
+//    axisLocations.push_back(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT);
+//    axisLocations.push_back(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
+//    axisLocations.push_back(ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP);
+//
+//
+//    QMenu* menu = new QMenu(widget);
+//
+//    QActionGroup* verticalActionGroup = new QActionGroup(this);
+//    verticalActionGroup->setExclusive(true);
+//    QObject::connect(verticalActionGroup, &QActionGroup::triggered,
+//                     this, &ChartTwoOverlayViewController::menuVerticalAxisLocationTriggered);
+//
+//    QActionGroup* horizontalActionGroup = new QActionGroup(this);
+//    horizontalActionGroup->setExclusive(true);
+//    QObject::connect(horizontalActionGroup, &QActionGroup::triggered,
+//                     this, &ChartTwoOverlayViewController::menuHorizontalAxisLocationTriggered);
+//
+//    for (auto axis: axisLocations) {
+//        QAction* action = menu->addAction(ChartAxisLocationEnum::toGuiName(axis));
+//        action->setCheckable(true);
+//        action->setData((int)ChartAxisLocationEnum::toIntegerCode(axis));
+//
+//        switch (axis) {
+//            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+//                horizontalActionGroup->addAction(action);
+//                break;
+//            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+//                verticalActionGroup->addAction(action);
+//                break;
+//            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+//                verticalActionGroup->addAction(action);
+//                break;
+//            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+//                horizontalActionGroup->addAction(action);
+//                break;
+//        }
+//
+//        QString objName = (parentObjectName
+//                           + ChartAxisLocationEnum::toGuiName(axis));
+//        objName = objName.replace(" ", "");
+//        action->setObjectName(objName);
+//        WuQMacroManager::instance()->addMacroSupportToObject(action,
+//                                                             "Select chart axis location for " + descriptivePrefix);
+//
+//        m_axisLocationMenuData.push_back(std::make_tuple(axis, action));
+//    }
+//
+//    return menu;
+//}
+
 /**
- * Called when an item is selected on axis location menu.
+ * Called when an item is selected on horizontal axis location menu.
  *
  * @action
  *     Action of menu item selected.
  */
 void
-ChartTwoOverlayViewController::menuAxisLocationTriggered(QAction* action)
+ChartTwoOverlayViewController::menuHorizontalAxisLocationTriggered(QAction* action)
+{
+    const QVariant itemData = action->data();
+    CaretAssert(itemData.isValid());
+    bool valid = false;
+    ChartAxisLocationEnum::Enum axisLocation = ChartAxisLocationEnum::fromIntegerCode(itemData.toInt(), &valid);
+    
+    if (valid) {
+        m_chartOverlay->setCartesianHorizontalAxisLocation(axisLocation);
+//        updateAxisLocationAction(axisLocation);
+        this->updateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when an item is selected on horizontal axis location menu.
+ *
+ * @action
+ *     Action of menu item selected.
+ */
+void
+ChartTwoOverlayViewController::menuVerticalAxisLocationTriggered(QAction* action)
 {
     const QVariant itemData = action->data();
     CaretAssert(itemData.isValid());
@@ -1284,7 +1393,7 @@ ChartTwoOverlayViewController::menuAxisLocationTriggered(QAction* action)
     
     if (valid) {
         m_chartOverlay->setCartesianVerticalAxisLocation(axisLocation);
-        updateAxisLocationAction(axisLocation);
+//        updateAxisLocationAction(axisLocation);
         this->updateGraphicsWindow();
     }
 }
@@ -1696,7 +1805,7 @@ ChartTwoOverlayViewController::menuReloadFileTriggered()
 }
 
 /**
- * Create a axis location mode pixmap.
+ * Create a axis button pixmap.
  *
  * @param widget
  *    To color the pixmap with backround and foreground,
@@ -1707,8 +1816,7 @@ ChartTwoOverlayViewController::menuReloadFileTriggered()
  *    Pixmap for matrix view mode.
  */
 QPixmap
-ChartTwoOverlayViewController::createAxisLocationPixmap(QWidget* widget,
-                                                        const ChartAxisLocationEnum::Enum axisLocation)
+ChartTwoOverlayViewController::createAxisButtonPixmap(QWidget* widget)
 {
     CaretAssert(widget);
     
@@ -1717,7 +1825,7 @@ ChartTwoOverlayViewController::createAxisLocationPixmap(QWidget* widget,
      * the foreground color around the pixmap's perimeter.
      */
     const qreal iconSize = 24.0;
-    const qreal minValue = 2.0;
+    const qreal minValue = 4.0;
     const qreal maxValue = iconSize - minValue;
     
     QPixmap pixmap(static_cast<int>(iconSize),
@@ -1729,26 +1837,15 @@ ChartTwoOverlayViewController::createAxisLocationPixmap(QWidget* widget,
     pen.setWidthF(2.0);
     painter->setPen(pen);
     
-    const int offsetFromEdge = 3;
-    switch (axisLocation) {
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-            painter->drawLine(QPointF(minValue, minValue + offsetFromEdge),
-                              QPointF(maxValue, minValue + offsetFromEdge));
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-            painter->drawLine(QPointF(minValue + offsetFromEdge, minValue),
-                              QPointF(minValue + offsetFromEdge, maxValue));
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-            painter->drawLine(QPointF(maxValue - offsetFromEdge, minValue),
-                              QPointF(maxValue - offsetFromEdge, maxValue));
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            painter->drawLine(QPointF(minValue, maxValue - offsetFromEdge),
-                              QPointF(maxValue, maxValue - offsetFromEdge));
-            break;
-    }
-    
+    painter->drawLine(QPointF(minValue, minValue),
+                      QPointF(maxValue, minValue));
+    painter->drawLine(QPointF(minValue, minValue),
+                      QPointF(minValue, maxValue));
+    painter->drawLine(QPointF(maxValue, minValue),
+                      QPointF(maxValue, maxValue));
+    painter->drawLine(QPointF(minValue, maxValue),
+                      QPointF(maxValue, maxValue));
+
     return pixmap;
 }
 

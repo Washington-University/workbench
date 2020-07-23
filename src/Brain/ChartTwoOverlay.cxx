@@ -85,8 +85,9 @@ m_overlayIndex(overlayIndex)
     m_colorBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
     
     m_matrixTriangularViewingMode = ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL;
+    m_cartesianHorizontalAxisLocation = ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM;
     m_cartesianVerticalAxisLocation = ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT;
-    
+
     m_selectedMapFile  = NULL;
     m_selectedHistogramMapIndex = -1;
     m_allHistogramMapsSelectedFlag = false;
@@ -106,6 +107,8 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add("m_colorBar", "AnnotationColorBar", m_colorBar.get());
     m_sceneAssistant->add<ChartTwoMatrixTriangularViewingModeEnum, ChartTwoMatrixTriangularViewingModeEnum::Enum>("m_matrixTriangularViewingMode",
                                                                         &m_matrixTriangularViewingMode);
+    m_sceneAssistant->add<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>("m_cartesianHorizontalAxisLocation",
+                                                                              &m_cartesianHorizontalAxisLocation);
     m_sceneAssistant->add<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>("m_cartesianVerticalAxisLocation",
                                                                               &m_cartesianVerticalAxisLocation);
     m_sceneAssistant->add("m_selectedHistogramMapIndex", &m_selectedHistogramMapIndex);
@@ -376,7 +379,8 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
     *m_colorBar = *overlay->m_colorBar;
     m_matrixTriangularViewingMode = overlay->m_matrixTriangularViewingMode;
     m_cartesianVerticalAxisLocation = overlay->m_cartesianVerticalAxisLocation;
-    
+    m_cartesianHorizontalAxisLocation = overlay->m_cartesianHorizontalAxisLocation;
+
     m_selectedMapFile = overlay->m_selectedMapFile;
     m_selectedHistogramMapIndex = overlay->m_selectedHistogramMapIndex;
     m_allHistogramMapsSelectedFlag = overlay->m_allHistogramMapsSelectedFlag;
@@ -1334,6 +1338,75 @@ ChartTwoOverlay::validateCartesianVerticalAxisLocation() const
  */
 bool
 ChartTwoOverlay::isCartesianVerticalAxisLocationSupported() const
+{
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            return true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            return true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            return true;
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+    }
+    
+    return false;
+}
+
+/**
+ * @return Location of horizontal cartesian axis
+ */
+ChartAxisLocationEnum::Enum
+ChartTwoOverlay::getCartesianHorizontalAxisLocation() const
+{
+    validateCartesianHorizontalAxisLocation();
+    return m_cartesianHorizontalAxisLocation;
+}
+
+/**
+ * Set Location of horizontal cartesian axis
+ *
+ * @param cartesianHorizontalAxisLocation
+ *    New value for Location of horizontal cartesian axis
+ */
+void
+ChartTwoOverlay::setCartesianHorizontalAxisLocation(const ChartAxisLocationEnum::Enum cartesianHorizontalAxisLocation)
+{
+    m_cartesianHorizontalAxisLocation = cartesianHorizontalAxisLocation;
+    validateCartesianHorizontalAxisLocation();
+}
+
+/**
+ * Validate cartesian horizontal axis to valid locations (bottom and top)
+ */
+void
+ChartTwoOverlay::validateCartesianHorizontalAxisLocation() const
+{
+    
+    switch (m_cartesianHorizontalAxisLocation) {
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+            m_cartesianHorizontalAxisLocation = ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM;
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+            m_cartesianHorizontalAxisLocation = ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM;
+            break;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            break;
+    }
+}
+
+/**
+ * @return Is the cartesian horizontal axis location supported?
+ */
+bool
+ChartTwoOverlay::isCartesianHorizontalAxisLocationSupported() const
 {
     switch (m_chartDataType) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:

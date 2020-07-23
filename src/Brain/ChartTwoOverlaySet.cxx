@@ -81,10 +81,12 @@ m_tabIndex(tabIndex)
     m_chartAxisLeft   = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(this, ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT));
     m_chartAxisRight  = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(this, ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT));
     m_chartAxisBottom = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(this, ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM));
-    
+    m_chartAxisTop    = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(this, ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP));
+
     m_chartAxisLeft->setEnabledByChart(false);
     m_chartAxisRight->setEnabledByChart(false);
     m_chartAxisBottom->setEnabledByChart(false);
+    m_chartAxisTop->setEnabledByChart(false);
     switch (m_chartDataType) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
@@ -98,6 +100,9 @@ m_tabIndex(tabIndex)
             
             m_chartAxisBottom->setEnabledByChart(true);
             m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
+            
+            m_chartAxisTop->setEnabledByChart(false);
+            m_chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
@@ -114,6 +119,9 @@ m_tabIndex(tabIndex)
             m_chartAxisBottom->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
             m_chartAxisBottom->setEnabledByChart(true);
             m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
+            
+            m_chartAxisTop->setEnabledByChart(false);
+            m_chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
@@ -130,6 +138,9 @@ m_tabIndex(tabIndex)
             m_chartAxisBottom->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
             m_chartAxisBottom->setEnabledByChart(true);
             m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
+            
+            m_chartAxisTop->setEnabledByChart(false);
+            m_chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
@@ -148,7 +159,10 @@ m_tabIndex(tabIndex)
     m_sceneAssistant->add("m_chartAxisBottom",
                           "ChartTwoCartesianAxis",
                           m_chartAxisBottom.get());
-    
+    m_sceneAssistant->add("m_chartAxisTop",
+                          "ChartTwoCartesianAxis",
+                          m_chartAxisTop.get());
+
     m_sceneAssistant->add("m_title",
                           "ChartTwoTitle",
                           m_title.get());
@@ -197,6 +211,8 @@ ChartTwoOverlaySet::copyOverlaySet(const ChartTwoOverlaySet* overlaySet)
     *m_chartAxisLeft   = *overlaySet->m_chartAxisLeft;
     *m_chartAxisRight  = *overlaySet->m_chartAxisRight;
     *m_chartAxisBottom = *overlaySet->m_chartAxisBottom;
+    *m_chartAxisTop    = *overlaySet->m_chartAxisTop;
+    
     *m_title           = *overlaySet->m_title;
     m_axisLineThickness = overlaySet->m_axisLineThickness;
     
@@ -217,6 +233,8 @@ ChartTwoOverlaySet::copyCartesianAxes(const ChartTwoOverlaySet* overlaySet)
     *m_chartAxisLeft   = *overlaySet->m_chartAxisLeft;
     *m_chartAxisRight  = *overlaySet->m_chartAxisRight;
     *m_chartAxisBottom = *overlaySet->m_chartAxisBottom;
+    *m_chartAxisTop    = *overlaySet->m_chartAxisTop;
+    
     m_axisLineThickness = overlaySet->m_axisLineThickness;
 }
 
@@ -682,7 +700,7 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
                                 *m_chartAxisRight = *cartesianAxis;
                                 break;
                             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                                CaretAssert(0);
+                                *m_chartAxisTop = *cartesianAxis;
                                 break;
                         }
                     }
@@ -903,8 +921,10 @@ ChartTwoOverlaySet::getDataRangeForAxis(const ChartAxisLocationEnum::Enum chartA
                 if (overlay->getBounds(boundingBox)) {
                     switch (chartAxisLocation) {
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                            minimumValueOut = std::min(minimumValueOut, boundingBox.getMinX());
-                            maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxX());
+                            if (overlay->getCartesianHorizontalAxisLocation() == ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM) {
+                                minimumValueOut = std::min(minimumValueOut, boundingBox.getMinX());
+                                maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxX());
+                            }
                             break;
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                             if (overlay->getCartesianVerticalAxisLocation() == ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT) {
@@ -919,8 +939,10 @@ ChartTwoOverlaySet::getDataRangeForAxis(const ChartAxisLocationEnum::Enum chartA
                             }
                             break;
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                            minimumValueOut = std::min(minimumValueOut, boundingBox.getMinX());
-                            maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxX());
+                            if (overlay->getCartesianHorizontalAxisLocation() == ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP) {
+                                minimumValueOut = std::min(minimumValueOut, boundingBox.getMinX());
+                                maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxX());
+                            }
                             break;
                     }
                 }
@@ -979,26 +1001,34 @@ ChartTwoOverlaySet::getDisplayedChartAxes(std::vector<ChartTwoCartesianAxis*>& a
     AString lineSeriesDataTypeName;
     
     
-    float xMin = 0.0f;
-    float xMax = 0.0f;
+    float xMinBottom = 0.0f;
+    float xMaxBottom = 0.0f;
+    float xMinTop = 0.0f;
+    float xMaxTop = 0.0f;
     float yMinLeft = 0.0f;
     float yMaxLeft = 0.0f;
     float yMinRight = 0.0f;
     float yMaxRight = 0.0f;
     
     bool showBottomFlag = getDataRangeForAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM,
-                                              xMin, xMax);
+                                              xMinBottom, xMaxBottom);
+    bool showTopFlag    = getDataRangeForAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP,
+                                              xMinTop, xMaxTop);
     bool showLeftFlag   = getDataRangeForAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT,
                                               yMinLeft, yMaxLeft);
     bool showRightFlag  = getDataRangeForAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT,
                                               yMinRight, yMaxRight);
     
     m_chartAxisBottom->setEnabledByChart(showBottomFlag);
+    m_chartAxisTop->setEnabledByChart(showTopFlag);
     m_chartAxisLeft->setEnabledByChart(showLeftFlag);
     m_chartAxisRight->setEnabledByChart(showRightFlag);
     
     if (m_chartAxisBottom->isEnabledByChart()) {
         axesOut.push_back(m_chartAxisBottom.get());
+    }
+    if (m_chartAxisTop->isEnabledByChart()) {
+        axesOut.push_back(m_chartAxisTop.get());
     }
     if (m_chartAxisLeft->isEnabledByChart()) {
         axesOut.push_back(m_chartAxisLeft.get());
@@ -1035,7 +1065,7 @@ ChartTwoOverlaySet::getAxisLabel(const ChartTwoCartesianAxis* axis) const
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                 switch (axis->getAxisLocation()) {
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                        label = mapFile->getChartingDelegate()->getHistogramCharting()->getBottomAxisTitle();
+                        label = mapFile->getChartingDelegate()->getHistogramCharting()->getBottomTopAxisTitle();
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                         label = mapFile->getChartingDelegate()->getHistogramCharting()->getLeftRightAxisTitle();
@@ -1044,14 +1074,14 @@ ChartTwoOverlaySet::getAxisLabel(const ChartTwoCartesianAxis* axis) const
                         label = mapFile->getChartingDelegate()->getHistogramCharting()->getLeftRightAxisTitle();
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                        CaretAssert(0);
+                        label = mapFile->getChartingDelegate()->getHistogramCharting()->getBottomTopAxisTitle();
                         break;
                 }
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
                 switch (axis->getAxisLocation()) {
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                        label = mapFile->getChartingDelegate()->getLineLayerCharting()->getBottomAxisTitle();
+                        label = mapFile->getChartingDelegate()->getLineLayerCharting()->getBottomTopAxisTitle();
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                         label = mapFile->getChartingDelegate()->getLineLayerCharting()->getLeftRightAxisTitle();
@@ -1060,14 +1090,14 @@ ChartTwoOverlaySet::getAxisLabel(const ChartTwoCartesianAxis* axis) const
                         label = mapFile->getChartingDelegate()->getLineLayerCharting()->getLeftRightAxisTitle();
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                        CaretAssert(0);
+                        label = mapFile->getChartingDelegate()->getLineLayerCharting()->getBottomTopAxisTitle();
                         break;
                 }
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                 switch (axis->getAxisLocation()) {
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                        label = mapFile->getChartingDelegate()->getLineSeriesCharting()->getBottomAxisTitle();
+                        label = mapFile->getChartingDelegate()->getLineSeriesCharting()->getBottomTopAxisTitle();
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                         label = mapFile->getChartingDelegate()->getLineSeriesCharting()->getLeftRightAxisTitle();
@@ -1076,7 +1106,7 @@ ChartTwoOverlaySet::getAxisLabel(const ChartTwoCartesianAxis* axis) const
                         label = mapFile->getChartingDelegate()->getLineSeriesCharting()->getLeftRightAxisTitle();
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                        CaretAssert(0);
+                        label = mapFile->getChartingDelegate()->getLineSeriesCharting()->getBottomTopAxisTitle();
                         break;
                 }
                 break;
@@ -1110,7 +1140,7 @@ ChartTwoOverlaySet::setAxisLabel(const ChartTwoCartesianAxis* axis,
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                 switch (axis->getAxisLocation()) {
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                        mapFile->getChartingDelegate()->getHistogramCharting()->setBottomAxisTitle(label);
+                        mapFile->getChartingDelegate()->getHistogramCharting()->setBottomTopAxisTitle(label);
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                         mapFile->getChartingDelegate()->getHistogramCharting()->setLeftRightAxisTitle(label);
@@ -1119,14 +1149,14 @@ ChartTwoOverlaySet::setAxisLabel(const ChartTwoCartesianAxis* axis,
                         mapFile->getChartingDelegate()->getHistogramCharting()->setLeftRightAxisTitle(label);
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                        CaretAssert(0);
+                        mapFile->getChartingDelegate()->getHistogramCharting()->setBottomTopAxisTitle(label);
                         break;
                 }
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
                 switch (axis->getAxisLocation()) {
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                        mapFile->getChartingDelegate()->getLineLayerCharting()->setBottomAxisTitle(label);
+                        mapFile->getChartingDelegate()->getLineLayerCharting()->setBottomTopAxisTitle(label);
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                         mapFile->getChartingDelegate()->getLineLayerCharting()->setLeftRightAxisTitle(label);
@@ -1135,14 +1165,14 @@ ChartTwoOverlaySet::setAxisLabel(const ChartTwoCartesianAxis* axis,
                         mapFile->getChartingDelegate()->getLineLayerCharting()->setLeftRightAxisTitle(label);
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                        CaretAssert(0);
+                        mapFile->getChartingDelegate()->getLineLayerCharting()->setBottomTopAxisTitle(label);
                         break;
                 }
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                 switch (axis->getAxisLocation()) {
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                        mapFile->getChartingDelegate()->getLineSeriesCharting()->setBottomAxisTitle(label);
+                        mapFile->getChartingDelegate()->getLineSeriesCharting()->setBottomTopAxisTitle(label);
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                         mapFile->getChartingDelegate()->getLineSeriesCharting()->setLeftRightAxisTitle(label);
@@ -1151,7 +1181,7 @@ ChartTwoOverlaySet::setAxisLabel(const ChartTwoCartesianAxis* axis,
                         mapFile->getChartingDelegate()->getLineSeriesCharting()->setLeftRightAxisTitle(label);
                         break;
                     case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                        CaretAssert(0);
+                        mapFile->getChartingDelegate()->getLineSeriesCharting()->setBottomTopAxisTitle(label);
                         break;
                 }
                 break;

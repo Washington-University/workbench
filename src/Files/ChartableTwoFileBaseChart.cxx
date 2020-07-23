@@ -76,8 +76,8 @@ m_parentCaretMappableDataFile(parentCaretMappableDataFile)
     setDefaultAxisTitles();
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_bottomAxisTitleText",
-                          &m_bottomAxisTitleText);
+    m_sceneAssistant->add("m_bottomAxisTitleText", // Use OLD name before top axis was added
+                          &m_bottomTopAxisTitleText);
     m_sceneAssistant->add("m_leftRightAxisTitleText",
                           &m_leftRightAxisTitleText);
     
@@ -99,7 +99,7 @@ ChartableTwoFileBaseChart::~ChartableTwoFileBaseChart()
 void
 ChartableTwoFileBaseChart::setDefaultAxisTitles()
 {
-    m_bottomAxisTitleText    = setDefaultAxisTitle(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
+    m_bottomTopAxisTitleText = setDefaultAxisTitle(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
     m_leftRightAxisTitleText = setDefaultAxisTitle(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
 }
 
@@ -288,25 +288,25 @@ ChartableTwoFileBaseChart::updateChartTwoCompoundDataTypeAfterFileChanges(const 
 }
 
 /**
- * @return Annotation for the bottom axis title (const method)
+ * @return Annotation for the bottom top axis title (const method)
  */
 AString
-ChartableTwoFileBaseChart::getBottomAxisTitle() const
+ChartableTwoFileBaseChart::getBottomTopAxisTitle() const
 {
-    return m_bottomAxisTitleText;
+    return m_bottomTopAxisTitleText;
 }
 
 /**
- * Set the bottom axis title.
+ * Set the bottom top axis title.
  *
  * @param title
  *     New bottom axis title.
  */
 void
-ChartableTwoFileBaseChart::setBottomAxisTitle(const AString& title)
+ChartableTwoFileBaseChart::setBottomTopAxisTitle(const AString& title)
 {
-    if (title != m_bottomAxisTitleText) {
-        m_bottomAxisTitleText = title;
+    if (title != m_bottomTopAxisTitleText) {
+        m_bottomTopAxisTitleText = title;
         setModified();
     }
 }
@@ -391,12 +391,12 @@ ChartableTwoFileBaseChart::restoreFromScene(const SceneAttributes* sceneAttribut
                                  sceneClass);
     
     if (sceneClass->getVersionNumber() <= 2) {
-        AnnotationPercentSizeText bottomTitle(AnnotationAttributesDefaultTypeEnum::NORMAL,
-                                         AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
-        bottomTitle.restoreFromScene(sceneAttributes,
-                                     sceneClass->getClass("m_bottomAxisTitle"));
-        if ( ! bottomTitle.getText().isEmpty()) {
-            m_bottomAxisTitleText = bottomTitle.getText();
+        AnnotationPercentSizeText bottomTopTitle(AnnotationAttributesDefaultTypeEnum::NORMAL,
+                                                 AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
+        bottomTopTitle.restoreFromScene(sceneAttributes,
+                                        sceneClass->getClass("m_bottomAxisTitle")); // Use name before top axis was added
+        if ( ! bottomTopTitle.getText().isEmpty()) {
+            m_bottomTopAxisTitleText = bottomTopTitle.getText();
         }
         
         AnnotationPercentSizeText leftRightTitle(AnnotationAttributesDefaultTypeEnum::NORMAL,
