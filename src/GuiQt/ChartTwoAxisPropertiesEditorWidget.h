@@ -1,5 +1,5 @@
-#ifndef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_AXES_H__
-#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_AXES_H__
+#ifndef __CHART_TWO_AXIS_PROPERTIES_EDITOR_WIDGET_H__
+#define __CHART_TWO_AXIS_PROPERTIES_EDITOR_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -21,8 +21,7 @@
  */
 /*LICENSE_END*/
 
-
-#include "BrainBrowserWindowToolBarComponent.h"
+#include <QWidget>
 #include "ChartAxisLocationEnum.h"
 
 class QCheckBox;
@@ -42,24 +41,22 @@ namespace caret {
     class WuQSpinBox;
     class WuQWidgetObjectGroup;
     
-    class BrainBrowserWindowToolBarChartTwoAxes : public BrainBrowserWindowToolBarComponent {
+    class ChartTwoAxisPropertiesEditorWidget : public QWidget {
         Q_OBJECT
         
     public:
-        BrainBrowserWindowToolBarChartTwoAxes(BrainBrowserWindowToolBar* parentToolBar,
-                                              const QString& parentObjectName);
+        ChartTwoAxisPropertiesEditorWidget(QWidget* parent,
+                                           const ChartAxisLocationEnum::Enum,
+                                           const QString& parentObjectName);
         
-        virtual ~BrainBrowserWindowToolBarChartTwoAxes();
+        virtual ~ChartTwoAxisPropertiesEditorWidget();
         
-        virtual void updateContent(BrowserTabContent* browserTabContent);
-        
-        virtual void receiveEvent(Event* event);
+        void updateControls(ChartTwoOverlaySet* chartOverlaySet,
+                            ChartTwoCartesianAxis* chartAxis);
         
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void axisChanged();
-        
         void valueChanged();
         
         void valueChangedBool(bool);
@@ -68,45 +65,26 @@ namespace caret {
         
         void valueChangedInt(int);
         
-        void axisMinimumValueChanged(double);
-        
-        void axisMaximumValueChanged(double);
-        
         void axisLabelToolButtonClicked(bool);
         
         void axisLineThicknessChanged(double);
         
     private:
-        BrainBrowserWindowToolBarChartTwoAxes(const BrainBrowserWindowToolBarChartTwoAxes&);
+        ChartTwoAxisPropertiesEditorWidget(const ChartTwoAxisPropertiesEditorWidget&);
 
-        BrainBrowserWindowToolBarChartTwoAxes& operator=(const BrainBrowserWindowToolBarChartTwoAxes&);
-        
-        ChartAxisLocationEnum::Enum getSelectedAxisLocation() const;
-        
-        void getSelectionData(BrowserTabContent* browserTabContent,
-                              ChartTwoOverlaySet* &chartOverlaySetOut,
-                              std::vector<ChartAxisLocationEnum::Enum>& validAxesLocationsOut,
-                              ChartTwoCartesianAxis* &selectedAxisOut) const;
-        
-        void updateControls(BrowserTabContent* browserTabContent);
+        ChartTwoAxisPropertiesEditorWidget& operator=(const ChartTwoAxisPropertiesEditorWidget&);
         
         void updateGraphics();
         
         // ADD_NEW_MEMBERS_HERE
         
-        QCheckBox* m_axisDisplayedByUserCheckBox;
+        ChartTwoOverlaySet* m_chartOverlaySet;
         
-        EnumComboBoxTemplate* m_axisComboBox;
+        ChartTwoCartesianAxis* m_chartAxis;
         
         QToolButton* m_axisLabelToolButton;
         
         QComboBox* m_axisLabelFromOverlayComboBox;
-        
-        EnumComboBoxTemplate* m_autoUserRangeComboBox;
-        
-        WuQDoubleSpinBox* m_userMinimumValueSpinBox;
-        
-        WuQDoubleSpinBox* m_userMaximumValueSpinBox;
         
         QCheckBox* m_showTickMarksCheckBox;
         
@@ -132,17 +110,13 @@ namespace caret {
         
         WuQDoubleSpinBox* m_paddingSizeSpinBox;
         
-        ChartTwoOverlaySet* m_chartOverlaySet;
-        
-        ChartTwoCartesianAxis* m_chartAxis;
-        
         WuQWidgetObjectGroup* m_widgetGroup;
         
     };
     
-#ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_AXES_DECLARE__
+#ifdef __CHART_TWO_AXIS_PROPERTIES_EDITOR_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_AXES_DECLARE__
+#endif // __CHART_TWO_AXIS_PROPERTIES_EDITOR_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_AXES_H__
+#endif  //__CHART_TWO_AXIS_PROPERTIES_EDITOR_WIDGET_H__

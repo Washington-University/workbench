@@ -38,6 +38,7 @@ namespace caret {
     class BrowserTabContent;
     class CaretPreferences;
     class ChartTwoCartesianAxis;
+    class ChartTwoCartesianOrientedAxes;
     class ChartTwoDataCartesian;
     class ChartTwoOverlay;
     class ChartTwoOverlaySet;
@@ -78,12 +79,10 @@ namespace caret {
         public:
             HistogramChartDrawingInfo(ChartableTwoFileHistogramChart* histogramChart,
                                       int32_t mapIndex,
-                                      ChartAxisLocationEnum::Enum verticalAxisLocation,
                                       const bool allMapsSelected);
             
             ChartableTwoFileHistogramChart* m_histogramChart;
             int32_t m_mapIndex;
-            ChartAxisLocationEnum::Enum m_verticalAxisLocation;
             const bool m_allMapsSelected;
             
             ~HistogramChartDrawingInfo();
@@ -97,20 +96,17 @@ namespace caret {
             LineLayerChartDrawingInfo(const ChartableTwoFileLineLayerChart* lineLayerChart,
                                       ChartTwoDataCartesian* chartTwoCartesianData,
                                       const ChartTwoOverlay* chartTwoOverlay,
-                                      const ChartAxisLocationEnum::Enum verticalAxisLocation,
                                       const CaretColor& lineChartColor,
                                       const float lineWidth)
             : m_lineLayerChart(lineLayerChart),
             m_chartTwoCartesianData(chartTwoCartesianData),
             m_chartTwoOverlay(chartTwoOverlay),
-            m_verticalAxisLocation(verticalAxisLocation),
             m_lineChartColor(lineChartColor),
             m_lineWidth(lineWidth) { }
             
             const ChartableTwoFileLineLayerChart* m_lineLayerChart;
             ChartTwoDataCartesian* m_chartTwoCartesianData;
             const ChartTwoOverlay* m_chartTwoOverlay;
-            const ChartAxisLocationEnum::Enum m_verticalAxisLocation;
             const CaretColor m_lineChartColor;
             const float m_lineWidth;
         };
@@ -121,15 +117,12 @@ namespace caret {
         class LineSeriesChartDrawingInfo {
         public:
             LineSeriesChartDrawingInfo(const ChartableTwoFileLineSeriesChart* lineSeriesChart,
-                                       const ChartTwoDataCartesian* chartTwoCartesianData,
-                                       const ChartAxisLocationEnum::Enum verticalAxisLocation)
+                                       const ChartTwoDataCartesian* chartTwoCartesianData)
             : m_lineSeriesChart(lineSeriesChart),
-            m_chartTwoCartesianData(chartTwoCartesianData),
-            m_verticalAxisLocation(verticalAxisLocation) { }
+            m_chartTwoCartesianData(chartTwoCartesianData) { }
             
             const ChartableTwoFileLineSeriesChart* m_lineSeriesChart;
             const ChartTwoDataCartesian* m_chartTwoCartesianData;
-            const ChartAxisLocationEnum::Enum m_verticalAxisLocation;
         };
         
         /**
@@ -173,6 +166,7 @@ namespace caret {
                             const float dataMinY,
                             const float dataMaxY,
                             const ChartAxisLocationEnum::Enum axisLocation,
+                            const ChartTwoCartesianOrientedAxes* orientedAxes,
                             const ChartTwoCartesianAxis* axis,
                             const AString& labelText,
                             const float lineWidthPercentage);
@@ -214,6 +208,7 @@ namespace caret {
             
         private:
             const ChartAxisLocationEnum::Enum m_axisLocation;
+            const ChartTwoCartesianOrientedAxes* m_orientedAxes;
             const ChartTwoCartesianAxis* m_axis;
             BrainOpenGLTextRenderInterface* m_textRenderer;
             const float m_tabViewportWidth = 0.0f;

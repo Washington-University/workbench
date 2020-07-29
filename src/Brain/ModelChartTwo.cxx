@@ -923,7 +923,6 @@ ModelChartTwo::restoreMatrixChartFromChartOneModel(ModelChart* modelChartOne,
                                                   selectedRowColumnIndex);
                 chartTwoOverlay->setMatrixTriangularViewingMode(ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL);
                 chartTwoOverlay->setAllMapsSelected(false);
-                chartTwoOverlay->setCartesianVerticalAxisLocation(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
                 chartTwoOverlay->setMapYokingGroup(chartOneYoking);
                 AnnotationColorBar* chartTwoColorBar = chartTwoOverlay->getColorBar();
                 if ((chartOneColorBar != NULL)

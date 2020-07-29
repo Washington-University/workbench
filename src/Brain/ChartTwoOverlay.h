@@ -105,9 +105,7 @@ namespace caret {
         
         bool isMatrixTriangularViewingModeSupported() const;
         
-        ChartAxisLocationEnum::Enum getCartesianVerticalAxisLocation() const;
-        
-        void setCartesianVerticalAxisLocation(const ChartAxisLocationEnum::Enum cartesianVerticalAxisLocation);
+        ChartAxisLocationEnum::Enum getSceneCartesianVerticalAxisLocation() const;
         
         bool isCartesianVerticalAxisLocationSupported() const;
         

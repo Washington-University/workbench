@@ -86,9 +86,8 @@ ELSE()
         BrainBrowserWindowToolBarChartAttributes.h
         BrainBrowserWindowToolBarChartAxes.h
         BrainBrowserWindowToolBarChartTwoAttributes.h
-        BrainBrowserWindowToolBarChartTwoAxes.h
         BrainBrowserWindowToolBarChartTwoOrientation.h
-        BrainBrowserWindowToolBarChartTwoTitle.h
+        BrainBrowserWindowToolBarChartTwoOrientedAxes.h
         BrainBrowserWindowToolBarChartTwoType.h
         BrainBrowserWindowToolBarChartType.h
         BrainBrowserWindowToolBarComponent.h
@@ -117,8 +116,10 @@ ELSE()
         ChartLinesSelectionViewController.h
         ChartMatrixParcelSelectionViewController.h
         ChartMatrixSeriesSelectionViewController.h
+        ChartTwoAxisPropertiesEditorWidget.h
         ChartTwoOverlaySetViewController.h
         ChartTwoOverlayViewController.h
+	ChartTwoTitleEditorWidget.h
         ChartSelectionViewController.h
         ChartToolBoxViewController.h
         CiftiConnectivityMatrixViewController.h
@@ -337,9 +338,8 @@ BrainBrowserWindowToolBarAllSurface.h
 BrainBrowserWindowToolBarChartAttributes.h
 BrainBrowserWindowToolBarChartAxes.h
 BrainBrowserWindowToolBarChartTwoAttributes.h
-BrainBrowserWindowToolBarChartTwoAxes.h
 BrainBrowserWindowToolBarChartTwoOrientation.h
-BrainBrowserWindowToolBarChartTwoTitle.h
+BrainBrowserWindowToolBarChartTwoOrientedAxes.h
 BrainBrowserWindowToolBarChartTwoType.h
 BrainBrowserWindowToolBarChartType.h
 BrainBrowserWindowToolBarComponent.h
@@ -368,8 +368,10 @@ ChartHistoryViewController.h
 ChartLinesSelectionViewController.h
 ChartMatrixParcelSelectionViewController.h
 ChartMatrixSeriesSelectionViewController.h
+ChartTwoAxisPropertiesEditorWidget.h
 ChartTwoOverlaySetViewController.h
 ChartTwoOverlayViewController.h
+ChartTwoTitleEditorWidget.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
 CiftiConnectivityMatrixViewController.h
@@ -643,9 +645,8 @@ BrainBrowserWindowToolBarAllSurface.cxx
 BrainBrowserWindowToolBarChartAttributes.cxx
 BrainBrowserWindowToolBarChartAxes.cxx
 BrainBrowserWindowToolBarChartTwoAttributes.cxx
-BrainBrowserWindowToolBarChartTwoAxes.cxx
 BrainBrowserWindowToolBarChartTwoOrientation.cxx
-BrainBrowserWindowToolBarChartTwoTitle.cxx
+BrainBrowserWindowToolBarChartTwoOrientedAxes.cxx
 BrainBrowserWindowToolBarChartTwoType.cxx
 BrainBrowserWindowToolBarChartType.cxx
 BrainBrowserWindowToolBarComponent.cxx
@@ -674,8 +675,10 @@ ChartHistoryViewController.cxx
 ChartLinesSelectionViewController.cxx
 ChartMatrixParcelSelectionViewController.cxx
 ChartMatrixSeriesSelectionViewController.cxx
+ChartTwoAxisPropertiesEditorWidget.cxx
 ChartTwoOverlaySetViewController.cxx
 ChartTwoOverlayViewController.cxx
+ChartTwoTitleEditorWidget.cxx
 ChartSelectionViewController.cxx
 ChartToolBoxViewController.cxx
 CiftiConnectivityMatrixViewController.cxx

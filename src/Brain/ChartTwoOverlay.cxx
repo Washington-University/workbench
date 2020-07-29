@@ -1289,26 +1289,13 @@ ChartTwoOverlay::isMatrixTriangularViewingModeSupported() const
 }
 
 /**
- * @return Location of vertical cartesian axis
+ * @return Location of vertical cartesian axis from OLD scenes
  */
 ChartAxisLocationEnum::Enum
-ChartTwoOverlay::getCartesianVerticalAxisLocation() const
+ChartTwoOverlay::getSceneCartesianVerticalAxisLocation() const
 {
     validateCartesianVerticalAxisLocation();
     return m_cartesianVerticalAxisLocation;
-}
-
-/**
- * Set Location of vertical cartesian axis
- *
- * @param cartesianVerticalAxisLocation
- *    New value for Location of vertical cartesian axis
- */
-void
-ChartTwoOverlay::setCartesianVerticalAxisLocation(const ChartAxisLocationEnum::Enum cartesianVerticalAxisLocation)
-{
-    m_cartesianVerticalAxisLocation = cartesianVerticalAxisLocation;
-    validateCartesianVerticalAxisLocation();
 }
 
 /**

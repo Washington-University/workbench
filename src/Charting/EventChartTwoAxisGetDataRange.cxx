@@ -38,12 +38,36 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param chartOverlaySet
+ *    Overlay set from which range is requested
+ * @param chartAxisLocation
+ *    Location of the axis
  */
 EventChartTwoAxisGetDataRange::EventChartTwoAxisGetDataRange(const ChartTwoOverlaySet* chartOverlaySet,
                                                              const ChartAxisLocationEnum::Enum chartAxisLocation)
 : Event(EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE),
+m_axisMode(AxisMode::AXIS_LOCATION),
 m_chartOverlaySet(chartOverlaySet),
-m_chartAxisLocation(chartAxisLocation)
+m_chartAxisLocation(chartAxisLocation),
+m_axisOrienationType(ChartTwoAxisOrientationTypeEnum::HORIZONTAL)
+{
+    
+}
+
+/**
+ * Constructor.
+ * @param chartOverlaySet
+ *    Overlay set from which range is requested
+ * @param chartAxisLocation
+ *    Location of the axis
+ */
+EventChartTwoAxisGetDataRange::EventChartTwoAxisGetDataRange(const ChartTwoOverlaySet* chartOverlaySet,
+                                                             const ChartTwoAxisOrientationTypeEnum::Enum axisOrienationType)
+: Event(EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE),
+m_axisMode(AxisMode::AXIS_ORIENTATION),
+m_chartOverlaySet(chartOverlaySet),
+m_chartAxisLocation(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT),
+m_axisOrienationType(axisOrienationType)
 {
     
 }
@@ -56,6 +80,15 @@ EventChartTwoAxisGetDataRange::~EventChartTwoAxisGetDataRange()
 }
 
 /**
+ * @return The axis mode
+ */
+EventChartTwoAxisGetDataRange::AxisMode
+EventChartTwoAxisGetDataRange::getAxisMode() const
+{
+    return m_axisMode;
+}
+
+/**
  * @return The chart overlay set that contains the axis.
  */
 const ChartTwoOverlaySet*
@@ -65,12 +98,21 @@ EventChartTwoAxisGetDataRange::getChartOverlaySet() const
 }
 
 /**
- * @return The location of the axis.
+ * @return The location of the axis
  */
 ChartAxisLocationEnum::Enum
 EventChartTwoAxisGetDataRange::getChartAxisLocation() const
 {
     return m_chartAxisLocation;
+}
+
+/**
+ * @return the axis orientation for axis orientation mode
+ */
+ChartTwoAxisOrientationTypeEnum::Enum
+EventChartTwoAxisGetDataRange::getChartAxisOrientation() const
+{
+    return m_axisOrienationType;
 }
 
 /**

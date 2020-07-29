@@ -48,6 +48,8 @@ namespace caret {
 
         ChartTwoCartesianAxis& operator=(const ChartTwoCartesianAxis& obj);
         
+        void reset();
+        
         ChartAxisLocationEnum::Enum getAxisLocation() const;
         
         bool isDisplayedByUser() const;
@@ -57,21 +59,27 @@ namespace caret {
         void getDataRange(float& rangeMinimumOut,
                           float& rangeMaximumOut) const;
         
-        float getUserScaleMinimumValue() const;
+//        float getUserScaleMinimumValue() const;
         
-        void setUserScaleMinimumValue(const float value);
+        float getSceneUserScaleMinimumValue() const;
         
-        float getUserScaleMaximumValue() const;
+//        void setUserScaleMinimumValue(const float value);
         
-        void setUserScaleMaximumValue(const float value);
+//        float getUserScaleMaximumValue() const;
+        
+        float getSceneUserScaleMaximumValue() const;
+        
+//        void setUserScaleMaximumValue(const float value);
 
         int32_t getUserDigitsRightOfDecimal() const;
         
         void setUserDigitsRightOfDecimal(const int32_t digitsRightOfDecimal);
         
-        ChartTwoAxisScaleRangeModeEnum::Enum getScaleRangeMode() const;
+//        ChartTwoAxisScaleRangeModeEnum::Enum getScaleRangeMode() const;
         
-        void setScaleRangeMode(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode);
+        ChartTwoAxisScaleRangeModeEnum::Enum getSceneScaleRangeMode() const;
+        
+//        void setScaleRangeMode(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode);
         
         CaretUnitsTypeEnum::Enum getUnits() const;
         
@@ -89,10 +97,6 @@ namespace caret {
         
         void setUserNumberOfSubdivisions(const int32_t numberOfSubdivisions);
         
-        bool isEnabledByChart() const;
-        
-        void setEnabledByChart(const bool enabled);
-
         bool isShowTickmarks() const;
 
         void setShowTickmarks(const bool showTickmarks);
@@ -121,13 +125,13 @@ namespace caret {
         
         void setPaddingSize(const float paddingSize);
         
-        bool getScaleValuesAndOffsets(const float minimumDataValue,
-                                      const float maximumDataValue,
-                                      const float axisLength,
-                                      float& minimumOut,
-                                      float& maximumOut,
-                                      std::vector<float>& scaleValuesOffsetInPixelsOut,
-                                      std::vector<AString>& scaleValuesOut) const;
+//        bool getScaleValuesAndOffsets(const float minimumDataValue,
+//                                      const float maximumDataValue,
+//                                      const float axisLength,
+//                                      float& minimumOut,
+//                                      float& maximumOut,
+//                                      std::vector<float>& scaleValuesOffsetInPixelsOut,
+//                                      std::vector<AString>& scaleValuesOut) const;
         
         int32_t getLabelOverlayIndex(const int32_t maximumNumberOfOverlays) const;
         
@@ -161,12 +165,12 @@ namespace caret {
     private:
         void copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAxis& obj);
 
-        bool getAutoRangeMinimumAndMaximum(const float minimumValue,
-                                           const float maximumValue,
-                                           float& minimumOut,
-                                           float& maximumOut,
-                                           float& stepValueOut,
-                                           int32_t& digitsRightOfDecimalOut) const;
+//        bool getAutoRangeMinimumAndMaximum(const float minimumValue,
+//                                           const float maximumValue,
+//                                           float& minimumOut,
+//                                           float& maximumOut,
+//                                           float& stepValueOut,
+//                                           int32_t& digitsRightOfDecimalOut) const;
 
         void limitUserScaleMinMaxToValidRange();
         
@@ -212,12 +216,10 @@ namespace caret {
         /** size of padding*/
         float m_paddingSize = 0.0f;
         
-        bool m_enabledByChart = false;
-
         bool m_showTickmarks = true;
         
         /** show axis label*/
-        bool m_showLabel;
+        bool m_showLabel = true;
         
         /** user display the axis*/
         bool m_displayedByUser = true;

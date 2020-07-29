@@ -162,7 +162,6 @@ m_browserWindowIndex(browserWindowIndex)
             settingsLayout->addWidget(covc->m_colorBarToolButton);
             settingsLayout->addWidget(covc->m_constructionToolButton);
             settingsLayout->addWidget(covc->m_matrixTriangularViewModeToolButton);
-            settingsLayout->addWidget(covc->m_axisLocationToolButton);
             settingsLayout->addWidget(covc->m_lineLayerColorToolButton);
             settingsLayout->addWidget(covc->m_lineLayerToolTipOffsetToolButton);
 
@@ -251,7 +250,6 @@ m_browserWindowIndex(browserWindowIndex)
             bottomLeftLayout->addWidget(covc->m_colorBarToolButton);
             bottomLeftLayout->addWidget(covc->m_constructionToolButton);
             bottomLeftLayout->addWidget(covc->m_matrixTriangularViewModeToolButton);
-            bottomLeftLayout->addWidget(covc->m_axisLocationToolButton);
             bottomLeftLayout->addWidget(covc->m_lineLayerColorToolButton);
             bottomLeftLayout->addWidget(covc->m_lineLayerToolTipOffsetToolButton);
 

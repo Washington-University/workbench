@@ -1,5 +1,5 @@
-#ifndef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_TITLE_H__
-#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_TITLE_H__
+#ifndef __CHART_TWO_TITLE_EDITOR_WIDGET_H__
+#define __CHART_TWO_TITLE_EDITOR_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -22,48 +22,46 @@
 /*LICENSE_END*/
 
 
-#include "BrainBrowserWindowToolBarComponent.h"
+#include <QWidget>
 
-class QCheckBox;
+class QLineEdit;
 
 namespace caret {
 
+    class BrowserTabContent;
     class ChartTwoOverlaySet;
     class WuQDoubleSpinBox;
     
-    class BrainBrowserWindowToolBarChartTwoTitle : public BrainBrowserWindowToolBarComponent {
+    class ChartTwoTitleEditorWidget : public QWidget {
         Q_OBJECT
         
     public:
-        BrainBrowserWindowToolBarChartTwoTitle(BrainBrowserWindowToolBar* parentToolBar,
-                                               const QString& parentObjectName);
+        ChartTwoTitleEditorWidget(QWidget* parent,
+                                  const QString& parentObjectName);
         
-        virtual ~BrainBrowserWindowToolBarChartTwoTitle();
-        
-        virtual void updateContent(BrowserTabContent* browserTabContent);
+        virtual ~ChartTwoTitleEditorWidget();
+     
+        virtual void updateControls(ChartTwoOverlaySet* chartTwoOverlaySet);
         
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void editTitleActionTriggered();
-        
-        void showTitleCheckBoxClicked(bool);
+        void textLineEditChanged(const QString& text);
         
         void sizeSpinBoxValueChanged(double);
         
     private:
-        BrainBrowserWindowToolBarChartTwoTitle(const BrainBrowserWindowToolBarChartTwoTitle&);
+        ChartTwoTitleEditorWidget(const ChartTwoTitleEditorWidget&);
 
-        BrainBrowserWindowToolBarChartTwoTitle& operator=(const BrainBrowserWindowToolBarChartTwoTitle&);
+        ChartTwoTitleEditorWidget& operator=(const ChartTwoTitleEditorWidget&);
         
-        void performUpdating();
+        void updateGraphics();
         
-        QCheckBox* m_showTitleCheckBox;
+        QLineEdit* m_textLineEdit;
         
         WuQDoubleSpinBox* m_titleSizeSpinBox;
         
         WuQDoubleSpinBox* m_paddingSizeSpinBox;
-        
 
         ChartTwoOverlaySet* m_chartOverlaySet;
         
@@ -71,9 +69,9 @@ namespace caret {
 
     };
     
-#ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_TITLE_DECLARE__
+#ifdef __CHART_TWO_TITLE_EDITOR_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_TITLE_DECLARE__
+#endif // __CHART_TWO_TITLE_EDITOR_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_TITLE_H__
+#endif  //__CHART_TWO_TITLE_EDITOR_WIDGET_H__

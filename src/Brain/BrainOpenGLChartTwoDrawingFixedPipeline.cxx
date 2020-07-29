@@ -38,6 +38,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "ChartTwoCartesianAxis.h"
+#include "ChartTwoCartesianOrientedAxes.h"
 #include "ChartTwoDataCartesian.h"
 #include "ChartTwoLineSeriesHistory.h"
 #include "ChartTwoMatrixDisplayProperties.h"
@@ -386,14 +387,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
     /*
      * Get the histogram drawing information and overall extent
      */
-    float xMinBottom = std::numeric_limits<float>::max();
-    float xMaxBottom = -std::numeric_limits<float>::max();
-    float xMinTop = std::numeric_limits<float>::max();
-    float xMaxTop = -std::numeric_limits<float>::max();
-    float yMinLeft  = std::numeric_limits<float>::max();
-    float yMaxLeft  = -std::numeric_limits<float>::max();
-    float yMinRight = std::numeric_limits<float>::max();
-    float yMaxRight = -std::numeric_limits<float>::max();
+    float xMinBottomTop = std::numeric_limits<float>::max();
+    float xMaxBottomTop = -std::numeric_limits<float>::max();
+    float yMinLeftRight  = std::numeric_limits<float>::max();
+    float yMaxLeftRight  = -std::numeric_limits<float>::max();
     
     /*
      * Find histograms or line-series charts for drawing
@@ -425,7 +422,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 AString errorMessage;
                 histogramDrawingInfo.push_back(std::unique_ptr<HistogramChartDrawingInfo>(new HistogramChartDrawingInfo(histogramChart,
                                                                                                                         selectedIndex,
-                                                                                                                        chartOverlay->getCartesianVerticalAxisLocation(),
                                                                                                                         (chartOverlay->isAllMapsSupported()
                                                                                                                          && chartOverlay->isAllMapsSelected()))));
                 const Histogram* histogram = histogramChart->getHistogramForChartDrawing(selectedIndex,
@@ -439,27 +435,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 float histogramMinX = 0.0, histogramMaxX = 0.0, histogramMaxY = 0.0;
                 histogram->getRangeAndMaxDisplayHeight(histogramMinX, histogramMaxX, histogramMaxY);
                 if (histogramMaxX > histogramMinX) {
-                    xMinBottom = std::min(xMinBottom, histogramMinX);
-                    xMaxBottom = std::max(xMaxBottom, histogramMaxX);
-                    xMinTop = std::min(xMinTop, histogramMinX);
-                    xMaxTop = std::max(xMaxTop, histogramMaxX);
-                    
-                    switch (chartOverlay->getCartesianVerticalAxisLocation()) {
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                            CaretAssertMessage(0, "TOP axis not allowed for vertical axis");
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                            yMinRight = std::min(yMinRight, 0.0f);
-                            yMaxRight = std::max(yMaxRight, histogramMaxY);
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                            yMinLeft = std::min(yMinLeft, 0.0f);
-                            yMaxLeft = std::max(yMaxLeft, histogramMaxY);
-                            break;
-                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                            CaretAssertMessage(0, "BOTTOM axis not allowed for vertical axis");
-                            break;
-                    }
+                    xMinBottomTop = std::min(xMinBottomTop, histogramMinX);
+                    xMaxBottomTop = std::max(xMaxBottomTop, histogramMaxX);
+                    yMinLeftRight = std::min(yMinLeftRight, 0.0f);
+                    yMaxLeftRight = std::max(yMaxLeftRight, histogramMaxY);
                 }
             }
         }
@@ -474,31 +453,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 if (data->isSelected()) {
                     BoundingBox boundingBox;
                     if (data->getBounds(boundingBox)) {
-                        xMinBottom = std::min(xMinBottom, boundingBox.getMinX());
-                        xMaxBottom = std::max(xMaxBottom, boundingBox.getMaxX());
-                        xMinTop = std::min(xMinTop, boundingBox.getMinX());
-                        xMaxTop = std::max(xMaxTop, boundingBox.getMaxX());
-                        
-                        switch (chartOverlay->getCartesianVerticalAxisLocation()) {
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                                CaretAssertMessage(0, "TOP axis not allowed for vertical axis");
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                                yMinRight = std::min(yMinRight, boundingBox.getMinY());
-                                yMaxRight = std::max(yMaxRight, boundingBox.getMaxY());
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                                yMinLeft = std::min(yMinLeft, boundingBox.getMinY());
-                                yMaxLeft = std::max(yMaxLeft, boundingBox.getMaxY());
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                                CaretAssertMessage(0, "BOTTOM axis not allowed for vertical axis");
-                                break;
-                        }
-                        
+                        xMinBottomTop = std::min(xMinBottomTop, boundingBox.getMinX());
+                        xMaxBottomTop = std::max(xMaxBottomTop, boundingBox.getMaxX());
+                        yMinLeftRight = std::min(yMinLeftRight, boundingBox.getMinY());
+                        yMaxLeftRight = std::max(yMaxLeftRight, boundingBox.getMaxY());
+
                         lineSeriesChartsToDraw.push_back(LineSeriesChartDrawingInfo(lineSeriesChart,
-                                                                                    data,
-                                                                                    chartOverlay->getCartesianVerticalAxisLocation()));
+                                                                                    data));
                     }
                 }
             }
@@ -512,32 +473,15 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 if (data->isSelected()) {
                     BoundingBox boundingBox;
                     if (data->getBounds(boundingBox)) {
-                        xMinBottom = std::min(xMinBottom, boundingBox.getMinX());
-                        xMaxBottom = std::max(xMaxBottom, boundingBox.getMaxX());
-                        xMinTop = std::min(xMinTop, boundingBox.getMinX());
-                        xMaxTop = std::max(xMaxTop, boundingBox.getMaxX());
+                        xMinBottomTop = std::min(xMinBottomTop, boundingBox.getMinX());
+                        xMaxBottomTop = std::max(xMaxBottomTop, boundingBox.getMaxX());
                         
-                        switch (chartOverlay->getCartesianVerticalAxisLocation()) {
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                                CaretAssertMessage(0, "TOP axis not allowed for vertical axis");
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                                yMinRight = std::min(yMinRight, boundingBox.getMinY());
-                                yMaxRight = std::max(yMaxRight, boundingBox.getMaxY());
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                                yMinLeft = std::min(yMinLeft, boundingBox.getMinY());
-                                yMaxLeft = std::max(yMaxLeft, boundingBox.getMaxY());
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                                CaretAssertMessage(0, "BOTTOM axis not allowed for vertical axis");
-                                break;
-                        }
+                        yMinLeftRight = std::min(yMinLeftRight, boundingBox.getMinY());
+                        yMaxLeftRight = std::max(yMaxLeftRight, boundingBox.getMaxY());
                         
                         lineLayerChartsToDraw.push_back(LineLayerChartDrawingInfo(lineLayerChart,
                                                                                   data,
                                                                                   chartOverlay,
-                                                                                  chartOverlay->getCartesianVerticalAxisLocation(),
                                                                                   chartOverlay->getLineLayerColor(),
                                                                                   chartOverlay->getLineLayerLineWidth()));
                     }
@@ -552,31 +496,19 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
      * For Y, maximum value must be greater than or equal to minimum value since
      * all data points may be zero.
      */
-    const bool xBottomValid = (xMinBottom < xMaxBottom);
-    const bool xTopValid    = (xMinTop < xMaxTop);
-    const bool xValid       = (xBottomValid || xTopValid);
-    const bool yLeftValid   = (yMinLeft <= yMaxLeft);
-    const bool yRightValid  = (yMinRight <= yMaxRight);
-    const bool yValid       = (yLeftValid || yRightValid);
-    if (xValid && yValid) {
+    const bool xBottomTopValid = (xMinBottomTop < xMaxBottomTop);
+    const bool yLeftRightValid = (yMinLeftRight <= yMaxLeftRight);
+    if (xBottomTopValid && yLeftRightValid) {
         /*
          * Make invalid ranges zero
          */
-        if ( ! yLeftValid) {
-            yMinLeft = 0.0;
-            yMaxLeft = 0.0;
+        if ( ! yLeftRightValid) {
+            yMinLeftRight = 0.0;
+            yMaxLeftRight = 0.0;
         }
-        if ( ! yRightValid) {
-            yMinRight = 0.0;
-            yMaxRight = 0.0;
-        }
-        if ( ! xTopValid) {
-            xMinTop = 0.0;
-            xMaxTop = 0.0;
-        }
-        if ( ! xBottomValid) {
-            xMinBottom = 0.0;
-            xMaxBottom = 0.0;
+        if ( ! xBottomTopValid) {
+            xMinBottomTop = 0.0;
+            xMaxBottomTop = 0.0;
         }
         
         ChartTwoCartesianAxis* leftAxis   = NULL;
@@ -636,41 +568,45 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
          */
         AxisDrawingInfo leftAxisInfo(m_textRenderer,
                                      m_viewport,
-                                     xMinBottom,
-                                     xMaxBottom,
-                                     yMinLeft,
-                                     yMaxLeft,
+                                     xMinBottomTop,
+                                     xMaxBottomTop,
+                                     yMinLeftRight,
+                                     yMaxLeftRight,
                                      ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT,
+                                     m_chartOverlaySet->getVerticalAxes(),
                                      leftAxis,
                                      m_chartOverlaySet->getAxisLabel(leftAxis),
                                      lineWidthPercentage);
         AxisDrawingInfo rightAxisInfo(m_textRenderer,
                                       m_viewport,
-                                      xMinTop,
-                                      xMaxTop,
-                                      yMinRight,
-                                      yMaxRight,
+                                      xMinBottomTop,
+                                      xMaxBottomTop,
+                                      yMinLeftRight,
+                                      yMaxLeftRight,
                                       ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT,
+                                      m_chartOverlaySet->getVerticalAxes(),
                                       rightAxis,
                                       m_chartOverlaySet->getAxisLabel(rightAxis),
                                       lineWidthPercentage);
         AxisDrawingInfo bottomAxisInfo(m_textRenderer,
                                        m_viewport,
-                                       xMinBottom,
-                                       xMaxBottom,
-                                       yMinLeft,
-                                       yMaxLeft,
+                                       xMinBottomTop,
+                                       xMaxBottomTop,
+                                       yMinLeftRight,
+                                       yMaxLeftRight,
                                        ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM,
+                                       m_chartOverlaySet->getHorizontalAxes(),
                                        bottomAxis,
                                        m_chartOverlaySet->getAxisLabel(bottomAxis),
                                        lineWidthPercentage);
         AxisDrawingInfo topAxisInfo(m_textRenderer,
                                     m_viewport,
-                                    xMinTop,
-                                    xMaxTop,
-                                    yMinLeft,
-                                    yMaxLeft,
+                                    xMinBottomTop,
+                                    xMaxBottomTop,
+                                    yMinLeftRight,
+                                    yMaxLeftRight,
                                     ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP,
+                                    m_chartOverlaySet->getHorizontalAxes(),
                                     topAxis,
                                     m_chartOverlaySet->getAxisLabel(topAxis),
                                     lineWidthPercentage);
@@ -678,7 +614,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         float topTitleHeight   = titleInfo.m_titleHeight;
         const float topAxisHeight    = topAxisInfo.m_axisHeight;
         if (titleInfo.m_titleDisplayedFlag) {
-            //topAxisInfo.m_axisHeight = 0.0f;
+            /* nothing */
         }
         else {
             topTitleHeight = 0.0f;
@@ -751,29 +687,29 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                   m_fixedPipelineDrawing->mouseX,
                                   m_fixedPipelineDrawing->mouseY,
                                   foregroundRGBA,
-                                  yMinLeft,
-                                  yMaxLeft);
+                                  yMinLeftRight,
+                                  yMaxLeftRight);
             rightAxisInfo.drawAxis(this,
                                    m_chartOverlaySet,
                                    m_fixedPipelineDrawing->mouseX,
                                    m_fixedPipelineDrawing->mouseY,
                                    foregroundRGBA,
-                                   yMinRight,
-                                   yMaxRight);
+                                   yMinLeftRight,
+                                   yMaxLeftRight);
             topAxisInfo.drawAxis(this,
                                  m_chartOverlaySet,
                                  m_fixedPipelineDrawing->mouseX,
                                  m_fixedPipelineDrawing->mouseY,
                                  foregroundRGBA,
-                                 xMinTop,
-                                 xMaxTop);
+                                 xMinBottomTop,
+                                 xMaxBottomTop);
             bottomAxisInfo.drawAxis(this,
                                     m_chartOverlaySet,
                                     m_fixedPipelineDrawing->mouseX,
                                     m_fixedPipelineDrawing->mouseY,
                                     foregroundRGBA,
-                                    xMinBottom,
-                                    xMaxBottom);
+                                    xMinBottomTop,
+                                    xMaxBottomTop);
             
             drawChartGraphicsBoxAndSetViewport(tabViewportX,
                                                tabViewportY,
@@ -795,10 +731,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                                tabViewportHeight,
                                                m_chartOverlaySet->getAxisLineThickness(),
                                                topTitleHeight,
-                                               0.0f, // bottomAxisHeight,
-                                               0.0f, //topAxisHeight,
-                                               0.0f, //leftAxisWidth,
-                                               0.0f, //rightAxisWidth,
+                                               0.0f, /* bottom axis height */
+                                               0.0f, /* top axis height */
+                                               0.0f, /* left axis width */
+                                               0.0f, /* right axis width */
                                                true, /* draw the box */
                                                chartGraphicsDrawingViewport);
         }
@@ -811,17 +747,11 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
          * slightly larger than the minimum value.
          */
         const float smallRange = 0.01;
-        if (xMinBottom >= xMaxBottom) {
-            xMaxBottom = xMinBottom + smallRange;
+        if (xMinBottomTop >= xMaxBottomTop) {
+            xMaxBottomTop = xMinBottomTop + smallRange;
         }
-        if (xMinTop >= xMaxTop) {
-            xMaxTop = xMinBottom + smallRange;
-        }
-        if (yMinLeft >= yMaxLeft) {
-            yMaxLeft = yMinLeft + smallRange;
-        }
-        if (yMinRight >= yMaxRight) {
-            yMaxRight = yMinRight + smallRange;
+        if (yMinLeftRight >= yMaxLeftRight) {
+            yMaxLeftRight = yMinLeftRight + smallRange;
         }
         
         glViewport(chartGraphicsDrawingViewport[0],
@@ -845,33 +775,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                     
                     if (drawBarsFlag
                         || drawEnvelopeFlag) {
-                        bool leftVerticalAxisFlag = true;
-                        switch (drawInfo->m_verticalAxisLocation) {
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                                leftVerticalAxisFlag = false;
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                                break;
-                        }
                         
                         glMatrixMode(GL_PROJECTION);
                         glLoadIdentity();
-                        CaretAssert(xMinBottom < xMaxBottom);
-                        if (leftVerticalAxisFlag) {
-                            glOrtho(xMinBottom, xMaxBottom,
-                                    yMinLeft, yMaxLeft,
-                                    -10.0, 10.0);
-                        }
-                        else {
-                            glOrtho(xMinBottom, xMaxBottom,
-                                    yMinRight, yMaxRight,
-                                    -10.0, 10.0);
-                        }
-                        
+                        CaretAssert(xMinBottomTop < xMaxBottomTop);
+                        glOrtho(xMinBottomTop, xMaxBottomTop,
+                                yMinLeftRight, yMaxLeftRight,
+                                -10.0, 10.0);
+
                         glMatrixMode(GL_MODELVIEW);
                         glLoadIdentity();
                         
@@ -980,35 +891,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         
         if (drawLineSeriesFlag) {
             for (const auto lineChart : lineSeriesChartsToDraw) {
-                bool leftVerticalAxisFlag = true;
-                switch (lineChart.m_verticalAxisLocation) {
-                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                        break;
-                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                        break;
-                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                        leftVerticalAxisFlag = false;
-                        break;
-                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                        break;
-                }
-                
                 glMatrixMode(GL_PROJECTION);
                 glLoadIdentity();
-                CaretAssert(xMinBottom < xMaxBottom);
-                if (leftVerticalAxisFlag) {
-                    CaretAssert(yMinLeft < yMaxLeft);
-                    glOrtho(xMinBottom, xMaxBottom,
-                            yMinLeft, yMaxLeft,
-                            -10.0, 10.0);
-                }
-                else {
-                    CaretAssert(yMinRight < yMaxRight);
-                    glOrtho(xMinBottom, xMaxBottom,
-                            yMinRight, yMaxRight,
-                            -10.0, 10.0);
-                }
-                
+                CaretAssert(xMinBottomTop < xMaxBottomTop);
+                CaretAssert(yMinLeftRight < yMaxLeftRight);
+                glOrtho(xMinBottomTop, xMaxBottomTop,
+                        yMinLeftRight, yMaxLeftRight,
+                        -10.0, 10.0);
+
                 glMatrixMode(GL_MODELVIEW);
                 glLoadIdentity();
                 
@@ -1074,46 +964,18 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         std::vector<std::tuple<float, float, float, AnnotationPercentSizeText>> textToolTips;
         
         for (const auto lineChart : lineLayerChartsToDraw) {
-            
-            bool leftVerticalAxisFlag = true;
-            switch (lineChart.m_verticalAxisLocation) {
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                    leftVerticalAxisFlag = false;
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                    break;
-            }
-            
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
-            const float xMin(xMinBottom);
-            const float xMax(xMaxBottom);
-            const float yMin(leftVerticalAxisFlag ? yMinLeft : yMinRight);
-            const float yMax(leftVerticalAxisFlag ? yMaxLeft : yMaxRight);
+            const float xMin(xMinBottomTop);
+            const float xMax(xMaxBottomTop);
+            const float yMin = yMinLeftRight;
+            const float yMax = yMaxLeftRight;
             CaretAssert(xMin <= xMax);
             CaretAssert(yMin <= yMax);
             glOrtho(xMin, xMax,
                     yMin, yMax,
                     -10.0, 10.0);
 
-//            CaretAssert(xMinBottom < xMaxBottom);
-//            if (leftVerticalAxisFlag) {
-//                CaretAssert(yMinLeft < yMaxLeft);
-//                glOrtho(xMinBottom, xMaxBottom,
-//                        yMinLeft, yMaxLeft,
-//                        -10.0, 10.0);
-//            }
-//            else {
-//                CaretAssert(yMinRight < yMaxRight);
-//                glOrtho(xMinBottom, xMaxBottom,
-//                        yMinRight, yMaxRight,
-//                        -10.0, 10.0);
-//            }
-            
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
             
@@ -2180,19 +2042,15 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawPrimitivePrivate(GraphicsPrimitive*
  *    The file's histogram charting
  * @param mapIndex
  *    Index of the map for which histogram is displayed.
- * @param verticalAxisLocation
- *    Location of vertical axis for the histogram
  * @param allMapsSelected
  *    True if ALL MAPS selected for histogram, else false.
  */
 BrainOpenGLChartTwoDrawingFixedPipeline::HistogramChartDrawingInfo::HistogramChartDrawingInfo(ChartableTwoFileHistogramChart* histogramChart,
                                                                                               int32_t mapIndex,
-                                                                                              ChartAxisLocationEnum::Enum verticalAxisLocation,
                                                                                               const bool allMapsSelected)
 :
 m_histogramChart(histogramChart),
 m_mapIndex(mapIndex),
-m_verticalAxisLocation(verticalAxisLocation),
 m_allMapsSelected(allMapsSelected)
 {
 }
@@ -2221,6 +2079,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::HistogramChartDrawingInfo::~HistogramCh
  *     Maximum Y-data value.
  * @param axisLocation
  *     Location of axis as 'axis' may be NULL.
+ * @param orientedAxes
+ *     The oriented axes parent of the 'axis'
  * @param axis
  *     Axis being setup.
  * @param labelText
@@ -2235,10 +2095,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::AxisDrawingInfo(BrainO
                                                                           const float dataMinY,
                                                                           const float dataMaxY,
                                                                           const ChartAxisLocationEnum::Enum axisLocation,
+                                                                          const ChartTwoCartesianOrientedAxes* orientedAxes,
                                                                           const ChartTwoCartesianAxis* axis,
                                                                           const AString& labelText,
                                                                           const float lineWidthPercentage)
 : m_axisLocation(axisLocation),
+m_orientedAxes(orientedAxes),
 m_axis(axis),
 m_textRenderer(textRenderer),
 m_tabViewportWidth(tabViewport[2]),
@@ -2265,8 +2127,7 @@ m_tabViewportHeight(tabViewport[3])
     m_axisDisplayedFlag = false;
     if (m_axis != NULL) {
         CaretAssert(m_axis->getAxisLocation() == axisLocation);
-        m_axisDisplayedFlag = (axis->isEnabledByChart()
-                               && axis->isDisplayedByUser());
+        m_axisDisplayedFlag = axis->isDisplayedByUser();
     }
     if ( ! m_axisDisplayedFlag) {
         /*
@@ -2292,16 +2153,18 @@ m_tabViewportHeight(tabViewport[3])
          * This is necessary so that the correct axis minimum and
          * maximum values (m_axisMinimumValue and m_axisMaximumValue).
          */
-        if (m_axis != NULL) {
+        if ((m_axis != NULL)
+            && (m_orientedAxes != NULL)) {
             std::vector<float> scaleValuePositions;
             std::vector<AString> scaleValuesText;
-            m_axis->getScaleValuesAndOffsets(dataMinimumValue,
-                                             dataMaximumValue,
-                                             1.0,
-                                             m_axisMinimumValue,
-                                             m_axisMaximumValue,
-                                             scaleValuePositions,
-                                             scaleValuesText);
+            m_orientedAxes->getScaleValuesAndOffsets(m_axis,
+                                                     dataMinimumValue,
+                                                     dataMaximumValue,
+                                                     1.0,
+                                                     m_axisMinimumValue,
+                                                     m_axisMaximumValue,
+                                                     scaleValuePositions,
+                                                     scaleValuesText);
         }
 
         return;
@@ -2484,14 +2347,15 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
     const float axisLength = 1.0;
     std::vector<float> scaleValuePositions;
     std::vector<AString> scaleValuesText;
-    m_axis->getScaleValuesAndOffsets(dataMinimumDataValue,
-                                     dataMaximumDataValue,
-                                     axisLength,
-                                     m_axisMinimumValue,
-                                     m_axisMaximumValue,
-                                     scaleValuePositions,
-                                     scaleValuesText);
-    
+    m_orientedAxes->getScaleValuesAndOffsets(m_axis,
+                                             dataMinimumDataValue,
+                                             dataMaximumDataValue,
+                                             axisLength,
+                                             m_axisMinimumValue,
+                                             m_axisMaximumValue,
+                                             scaleValuePositions,
+                                             scaleValuesText);
+
     /*
      * For each numeric value, create a text annotation and determine the 
      * width and height of the text.  Also, set either the X or Y-coordinate

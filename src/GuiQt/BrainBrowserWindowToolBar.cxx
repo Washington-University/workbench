@@ -60,9 +60,8 @@
 #include "BrainBrowserWindowToolBarChartAttributes.h"
 #include "BrainBrowserWindowToolBarChartAxes.h"
 #include "BrainBrowserWindowToolBarChartTwoAttributes.h"
-#include "BrainBrowserWindowToolBarChartTwoAxes.h"
 #include "BrainBrowserWindowToolBarChartTwoOrientation.h"
-#include "BrainBrowserWindowToolBarChartTwoTitle.h"
+#include "BrainBrowserWindowToolBarChartTwoOrientedAxes.h"
 #include "BrainBrowserWindowToolBarChartTwoType.h"
 #include "BrainBrowserWindowToolBarChartType.h"
 #include "BrainBrowserWindowToolBarOrientation.h"
@@ -443,8 +442,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->chartAttributesWidget = createChartAttributesWidget();
     this->chartTwoOrientationWidget = createChartTwoOrientationWidget();
     this->chartTwoAttributesWidget = createChartTwoAttributesWidget();
-    this->chartTwoAxesWidget = createChartTwoAxesWidget();
-    this->chartTwoTitleWidget = createChartTwoTitleWidget();
+    this->chartTwoOrientedAxesWidget = createChartTwoOrientedAxisWidget();
     this->chartTypeWidget = createChartTypeWidget();
     this->chartTypeTwoWidget = createChartTypeTwoWidget();
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
@@ -527,9 +525,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     
     this->toolbarWidgetLayout->addWidget(this->chartTwoAttributesWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->chartTwoAxesWidget, 0, Qt::AlignLeft);
-    
-    this->toolbarWidgetLayout->addWidget(this->chartTwoTitleWidget, 0, Qt::AlignLeft);
+    this->toolbarWidgetLayout->addWidget(this->chartTwoOrientedAxesWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->chartAttributesWidget, 0, Qt::AlignLeft);
     
@@ -2127,8 +2123,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->chartAttributesWidget->setVisible(false);
     this->chartTwoOrientationWidget->setVisible(false);
     this->chartTwoAttributesWidget->setVisible(false);
-    this->chartTwoAxesWidget->setVisible(false);
-    this->chartTwoTitleWidget->setVisible(false);
+    this->chartTwoOrientedAxesWidget->setVisible(false);
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
     this->volumeMontageWidget->setVisible(false);
@@ -2162,8 +2157,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->chartAttributesWidget->setVisible(showChartOneAttributesWidget);
     this->chartTwoOrientationWidget->setVisible(showChartTwoOrientationWidget);
     this->chartTwoAttributesWidget->setVisible(showChartTwoAttributesWidget);
-    this->chartTwoAxesWidget->setVisible(showChartTwoAxesWidget);
-    this->chartTwoTitleWidget->setVisible(showChartTwoTitleWidget);
+    this->chartTwoOrientedAxesWidget->setVisible(chartTwoOrientedAxesWidget);
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
@@ -2206,8 +2200,7 @@ BrainBrowserWindowToolBar::updateToolBarComponents(BrowserTabContent* browserTab
         this->updateChartAttributesWidget(browserTabContent);
         this->updateChartTwoOrientationWidget(browserTabContent);
         this->updateChartTwoAttributesWidget(browserTabContent);
-        this->updateChartTwoAxesWidget(browserTabContent);
-        this->updateChartTwoTitleWidget(browserTabContent);
+        this->updateChartTwoOrientedAxesWidget(browserTabContent);
         this->updateVolumeMontageWidget(browserTabContent);
         this->updateVolumePlaneWidget(browserTabContent);
         this->updateModeWidget(browserTabContent);
@@ -2744,42 +2737,6 @@ BrainBrowserWindowToolBar::updateChartTypeWidget(BrowserTabContent* browserTabCo
 }
 
 /**
- * Create the chart two title widget.
- *
- * @return
- *    Widget containing the chart title.
- */
-QWidget*
-BrainBrowserWindowToolBar::createChartTwoTitleWidget()
-{
-    m_chartTwoTitleToolBarComponent = new BrainBrowserWindowToolBarChartTwoTitle(this,
-                                                                                 m_objectNamePrefix);
-    QWidget* w = this->createToolWidget("Chart Title",
-                                        m_chartTwoTitleToolBarComponent,
-                                        WIDGET_PLACEMENT_LEFT,
-                                        WIDGET_PLACEMENT_TOP,
-                                        100);
-    w->setVisible(false);
-    return w;
-}
-/**
- * Update the chart title widget.
- *
- * @param browserTabContent
- *   The active tab content.
- */
-void
-BrainBrowserWindowToolBar::updateChartTwoTitleWidget(BrowserTabContent* browserTabContent)
-{
-    if (this->chartTwoTitleWidget->isHidden()) {
-        return;
-    }
-    
-    m_chartTwoTitleToolBarComponent->updateContent(browserTabContent);
-}
-
-
-/**
  * Create the chart type two widget.
  *
  * @return
@@ -2957,18 +2914,18 @@ BrainBrowserWindowToolBar::updateChartTwoAttributesWidget(BrowserTabContent* bro
 }
 
 /**
- * Create the chart two axes widget.
+ * Create the chart two oriented axes widget.
  *
  * @return
- *    Widget containing the chart two axes.
+ *    Widget containing the chart two oriented axes.
  */
 QWidget*
-BrainBrowserWindowToolBar::createChartTwoAxesWidget()
+BrainBrowserWindowToolBar::createChartTwoOrientedAxisWidget()
 {
-    this->m_chartTwoAxesToolBarComponent = new BrainBrowserWindowToolBarChartTwoAxes(this,
-                                                                                     m_objectNamePrefix);
+    this->m_chartTwoOrientedAxesToolBarComponent = new BrainBrowserWindowToolBarChartTwoOrientedAxes(this,
+                                                                                                     m_objectNamePrefix);
     QWidget* w = this->createToolWidget("Chart Axes",
-                                        this->m_chartTwoAxesToolBarComponent,
+                                        this->m_chartTwoOrientedAxesToolBarComponent,
                                         WIDGET_PLACEMENT_LEFT,
                                         WIDGET_PLACEMENT_TOP,
                                         100);
@@ -2977,18 +2934,18 @@ BrainBrowserWindowToolBar::createChartTwoAxesWidget()
 }
 
 /**
- * Update the chart axes widget.
+ * Update the chart oriented axes widget.
  *
  * @param browserTabContent
  *   The active model display (may be NULL).
  */
 void
-BrainBrowserWindowToolBar::updateChartTwoAxesWidget(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBar::updateChartTwoOrientedAxesWidget(BrowserTabContent* browserTabContent)
 {
-    if (this->chartTwoAxesWidget->isHidden()) {
+    if (this->chartTwoOrientedAxesWidget->isHidden()) {
         return;
     }
-    m_chartTwoAxesToolBarComponent->updateContent(browserTabContent);
+    m_chartTwoOrientedAxesToolBarComponent->updateContent(browserTabContent);
 }
 
 /**

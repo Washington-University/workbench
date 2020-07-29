@@ -28,6 +28,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "ChartTwoCartesianOrientedAxes.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoTitle.h"
@@ -78,69 +79,51 @@ m_tabIndex(tabIndex)
 {
     m_numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
     
-    m_chartAxisLeft   = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(this, ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT));
-    m_chartAxisRight  = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(this, ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT));
-    m_chartAxisBottom = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(this, ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM));
-    m_chartAxisTop    = std::unique_ptr<ChartTwoCartesianAxis>(new ChartTwoCartesianAxis(this, ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP));
+    m_horizontalAxes.reset(new ChartTwoCartesianOrientedAxes(this,
+                                                             ChartTwoAxisOrientationTypeEnum::HORIZONTAL));
+    m_verticalAxes.reset(new ChartTwoCartesianOrientedAxes(this,
+                                                             ChartTwoAxisOrientationTypeEnum::VERTICAL));
 
-    m_chartAxisLeft->setEnabledByChart(false);
-    m_chartAxisRight->setEnabledByChart(false);
-    m_chartAxisBottom->setEnabledByChart(false);
-    m_chartAxisTop->setEnabledByChart(false);
+    ChartTwoCartesianAxis* chartAxisLeft   = m_verticalAxes->getLeftOrBottomAxis();
+    ChartTwoCartesianAxis* chartAxisRight  = m_verticalAxes->getRightOrTopAxis();
+    ChartTwoCartesianAxis* chartAxisBottom = m_horizontalAxes->getLeftOrBottomAxis();
+    ChartTwoCartesianAxis* chartAxisTop    = m_horizontalAxes->getRightOrTopAxis();
+
     switch (m_chartDataType) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
         {
-            m_chartAxisLeft->setEnabledByChart(true);
-            m_chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
-            
-            m_chartAxisRight->setEnabledByChart(false);
-            m_chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
-            
-            m_chartAxisBottom->setEnabledByChart(true);
-            m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
-            
-            m_chartAxisTop->setEnabledByChart(false);
-            m_chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
+            chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
+            chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
+            chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
+            chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
         {
-            m_chartAxisLeft->setEnabledByChart(true);
-            m_chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
-            
-            m_chartAxisRight->setEnabledByChart(false);
-            m_chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
+            chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
+            chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
             
             /*
              * X-axis for line series shows full extent of data
              */
-            m_chartAxisBottom->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
-            m_chartAxisBottom->setEnabledByChart(true);
-            m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
-            
-            m_chartAxisTop->setEnabledByChart(false);
-            m_chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
+            m_horizontalAxes->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
+            chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
+            chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
         {
-            m_chartAxisLeft->setEnabledByChart(true);
-            m_chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
-            
-            m_chartAxisRight->setEnabledByChart(false);
-            m_chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
+            chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
+            chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
             
             /*
              * X-axis for line series shows full extent of data
              */
-            m_chartAxisBottom->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
-            m_chartAxisBottom->setEnabledByChart(true);
-            m_chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
-            
-            m_chartAxisTop->setEnabledByChart(false);
-            m_chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
+            m_horizontalAxes->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
+            chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
+            chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
@@ -150,19 +133,12 @@ m_tabIndex(tabIndex)
     m_title = std::unique_ptr<ChartTwoTitle>(new ChartTwoTitle());
     
     m_sceneAssistant  = new SceneClassAssistant();
-    m_sceneAssistant->add("m_chartAxisLeft",
-                          "ChartTwoCartesianAxis",
-                          m_chartAxisLeft.get());
-    m_sceneAssistant->add("m_chartAxisRight",
-                          "ChartTwoCartesianAxis",
-                          m_chartAxisRight.get());
-    m_sceneAssistant->add("m_chartAxisBottom",
-                          "ChartTwoCartesianAxis",
-                          m_chartAxisBottom.get());
-    m_sceneAssistant->add("m_chartAxisTop",
-                          "ChartTwoCartesianAxis",
-                          m_chartAxisTop.get());
-
+    m_sceneAssistant->add("m_horizontalAxes",
+                          "ChartTwoCartesianOrientedAxes",
+                          m_horizontalAxes.get());
+    m_sceneAssistant->add("m_verticalAxes",
+                          "ChartTwoCartesianOrientedAxes",
+                          m_verticalAxes.get());
     m_sceneAssistant->add("m_title",
                           "ChartTwoTitle",
                           m_title.get());
@@ -208,10 +184,8 @@ ChartTwoOverlaySet::copyOverlaySet(const ChartTwoOverlaySet* overlaySet)
         CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
         m_overlays[i]->copyData(overlaySet->getOverlay(i));
     }
-    *m_chartAxisLeft   = *overlaySet->m_chartAxisLeft;
-    *m_chartAxisRight  = *overlaySet->m_chartAxisRight;
-    *m_chartAxisBottom = *overlaySet->m_chartAxisBottom;
-    *m_chartAxisTop    = *overlaySet->m_chartAxisTop;
+    *m_horizontalAxes  = *overlaySet->m_horizontalAxes;
+    *m_verticalAxes    = *overlaySet->m_verticalAxes;
     
     *m_title           = *overlaySet->m_title;
     m_axisLineThickness = overlaySet->m_axisLineThickness;
@@ -230,10 +204,8 @@ ChartTwoOverlaySet::copyCartesianAxes(const ChartTwoOverlaySet* overlaySet)
 {
     CaretAssert(m_chartDataType == overlaySet->m_chartDataType);
     
-    *m_chartAxisLeft   = *overlaySet->m_chartAxisLeft;
-    *m_chartAxisRight  = *overlaySet->m_chartAxisRight;
-    *m_chartAxisBottom = *overlaySet->m_chartAxisBottom;
-    *m_chartAxisTop    = *overlaySet->m_chartAxisTop;
+    m_horizontalAxes->copyAxes(overlaySet->m_horizontalAxes.get());
+    m_verticalAxes->copyAxes(overlaySet->m_verticalAxes.get());
     
     m_axisLineThickness = overlaySet->m_axisLineThickness;
 }
@@ -665,6 +637,8 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
         EventChartTwoAttributesChanged* attributeEvent = dynamic_cast<EventChartTwoAttributesChanged*>(event);
         CaretAssert(attributeEvent);
         
+        CaretAssertToDoWarning(); // Yoking !!!
+        
         switch (attributeEvent->getMode()) {
             case EventChartTwoAttributesChanged::Mode::INVALID:
                 break;
@@ -689,20 +663,20 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
                     if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
                         && (yokingGroup == tabYoking)
                         && (m_chartDataType == chartTwoDataType)) {
-                        switch (cartesianAxis->getAxisLocation()) {
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                                *m_chartAxisBottom = *cartesianAxis;
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                                *m_chartAxisLeft = *cartesianAxis;
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                                *m_chartAxisRight = *cartesianAxis;
-                                break;
-                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                                *m_chartAxisTop = *cartesianAxis;
-                                break;
-                        }
+//                        switch (cartesianAxis->getAxisLocation()) {
+//                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+//                                *m_chartAxisBottom = *cartesianAxis;
+//                                break;
+//                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+//                                *m_chartAxisLeft = *cartesianAxis;
+//                                break;
+//                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+//                                *m_chartAxisRight = *cartesianAxis;
+//                                break;
+//                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+//                                *m_chartAxisTop = *cartesianAxis;
+//                                break;
+//                        }
                     }
                 }
             }
@@ -770,13 +744,26 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
         if (rangeEvent->getChartOverlaySet() == this) {
             float minimumValue = 0.0f;
             float maximumValue = 0.0f;
-            if (getDataRangeForAxis(rangeEvent->getChartAxisLocation(),
-                                    minimumValue,
-                                    maximumValue)) {
-                rangeEvent->setMinimumAndMaximumValues(minimumValue,
-                                                       maximumValue);
-                rangeEvent->setEventProcessed();
-            }
+        switch (rangeEvent->getAxisMode()) {
+            case EventChartTwoAxisGetDataRange::AXIS_LOCATION:
+                if (getDataRangeForAxis(rangeEvent->getChartAxisLocation(),
+                                        minimumValue,
+                                        maximumValue)) {
+                    rangeEvent->setMinimumAndMaximumValues(minimumValue,
+                                                           maximumValue);
+                    rangeEvent->setEventProcessed();
+                }
+                break;
+            case EventChartTwoAxisGetDataRange::AXIS_ORIENTATION:
+                if (getDataRangeForAxisOrientation(rangeEvent->getChartAxisOrientation(),
+                                                   minimumValue,
+                                                   maximumValue)) {
+                    rangeEvent->setMinimumAndMaximumValues(minimumValue,
+                                                           maximumValue);
+                    rangeEvent->setEventProcessed();
+                }
+                break;
+        }
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
@@ -919,30 +906,23 @@ ChartTwoOverlaySet::getDataRangeForAxis(const ChartAxisLocationEnum::Enum chartA
             if (mapFile != NULL) {
                 BoundingBox boundingBox;
                 if (overlay->getBounds(boundingBox)) {
+                    
                     switch (chartAxisLocation) {
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                            if (overlay->getCartesianHorizontalAxisLocation() == ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM) {
-                                minimumValueOut = std::min(minimumValueOut, boundingBox.getMinX());
-                                maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxX());
-                            }
+                            minimumValueOut = std::min(minimumValueOut, boundingBox.getMinX());
+                            maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxX());
                             break;
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                            if (overlay->getCartesianVerticalAxisLocation() == ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT) {
-                                minimumValueOut = std::min(minimumValueOut, boundingBox.getMinY());
-                                maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxY());
-                            }
+                            minimumValueOut = std::min(minimumValueOut, boundingBox.getMinY());
+                            maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxY());
                             break;
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                            if (overlay->getCartesianVerticalAxisLocation() == ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT) {
-                                minimumValueOut = std::min(minimumValueOut, boundingBox.getMinY());
-                                maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxY());
-                            }
+                            minimumValueOut = std::min(minimumValueOut, boundingBox.getMinY());
+                            maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxY());
                             break;
                         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                            if (overlay->getCartesianHorizontalAxisLocation() == ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP) {
-                                minimumValueOut = std::min(minimumValueOut, boundingBox.getMinX());
-                                maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxX());
-                            }
+                            minimumValueOut = std::min(minimumValueOut, boundingBox.getMinX());
+                            maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxX());
                             break;
                     }
                 }
@@ -959,6 +939,71 @@ ChartTwoOverlaySet::getDataRangeForAxis(const ChartAxisLocationEnum::Enum chartA
     
     return false;
 }
+
+/**
+ * Get the minimum and maximum values for the given chart axis orientation
+ * from the ENABLED overlays in this chart overlay set.
+ *
+ * @param axisOrientationType
+ *    Location of axis.
+ * @param minimumValueOut
+ *    Output with minimum value for axis.
+ * @param maximumValueOut
+ *    Output with maximum value for axis.
+ * @return
+ *    True if output values are valid, else false.
+ */
+bool
+ChartTwoOverlaySet::getDataRangeForAxisOrientation(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientationType,
+                                                   float& minimumValueOut,
+                                                   float& maximumValueOut) const
+{
+    minimumValueOut = 0.0f;
+    maximumValueOut = 0.0f;
+    if ( ! isAxesSupportedByChartDataType()) {
+        return false;
+    }
+    
+    minimumValueOut =  std::numeric_limits<float>::max();
+    maximumValueOut = -std::numeric_limits<float>::max();
+    
+    std::vector<ChartTwoOverlay*> enabledOverlays = getEnabledOverlays();
+    for (auto overlay : enabledOverlays) {
+        if (overlay->isEnabled()) {
+            CaretMappableDataFile* mapFile = NULL;
+            ChartTwoOverlay::SelectedIndexType selectedIndexType = ChartTwoOverlay::SelectedIndexType::INVALID;
+            int32_t selectedIndex = -1;
+            overlay->getSelectionData(mapFile,
+                                      selectedIndexType,
+                                      selectedIndex);
+            if (mapFile != NULL) {
+                BoundingBox boundingBox;
+                if (overlay->getBounds(boundingBox)) {
+                    switch (axisOrientationType) {
+                        case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
+                            minimumValueOut = std::min(minimumValueOut, boundingBox.getMinX());
+                            maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxX());
+                            break;
+                        case ChartTwoAxisOrientationTypeEnum::VERTICAL:
+                            minimumValueOut = std::min(minimumValueOut, boundingBox.getMinY());
+                            maximumValueOut = std::max(maximumValueOut, boundingBox.getMaxY());
+                            break;
+                    }
+                }
+            }
+        }
+    }
+    
+    if (minimumValueOut < maximumValueOut) {
+        return true;
+    }
+    
+    minimumValueOut = 0.0f;
+    maximumValueOut = 0.0f;
+    
+    return false;
+}
+
 
 /**
  * @return Are axes supported by the chart data type for this overlay set?
@@ -998,44 +1043,68 @@ ChartTwoOverlaySet::getDisplayedChartAxes(std::vector<ChartTwoCartesianAxis*>& a
 {
     axesOut.clear();
     
-    AString lineSeriesDataTypeName;
-    
-    
     float xMinBottom = 0.0f;
     float xMaxBottom = 0.0f;
-    float xMinTop = 0.0f;
-    float xMaxTop = 0.0f;
     float yMinLeft = 0.0f;
     float yMaxLeft = 0.0f;
-    float yMinRight = 0.0f;
-    float yMaxRight = 0.0f;
     
-    bool showBottomFlag = getDataRangeForAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM,
-                                              xMinBottom, xMaxBottom);
-    bool showTopFlag    = getDataRangeForAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP,
-                                              xMinTop, xMaxTop);
-    bool showLeftFlag   = getDataRangeForAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT,
-                                              yMinLeft, yMaxLeft);
-    bool showRightFlag  = getDataRangeForAxis(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT,
-                                              yMinRight, yMaxRight);
-    
-    m_chartAxisBottom->setEnabledByChart(showBottomFlag);
-    m_chartAxisTop->setEnabledByChart(showTopFlag);
-    m_chartAxisLeft->setEnabledByChart(showLeftFlag);
-    m_chartAxisRight->setEnabledByChart(showRightFlag);
-    
-    if (m_chartAxisBottom->isEnabledByChart()) {
-        axesOut.push_back(m_chartAxisBottom.get());
+    if (getDataRangeForAxisOrientation(ChartTwoAxisOrientationTypeEnum::HORIZONTAL,
+                                       xMinBottom,
+                                       xMaxBottom)) {
+        
+        if (m_horizontalAxes->getLeftOrBottomAxis()->isDisplayedByUser()) {
+            axesOut.push_back(m_horizontalAxes->getLeftOrBottomAxis());
+        }
+        if (m_horizontalAxes->getRightOrTopAxis()->isDisplayedByUser()) {
+            axesOut.push_back(m_horizontalAxes->getRightOrTopAxis());
+        }
     }
-    if (m_chartAxisTop->isEnabledByChart()) {
-        axesOut.push_back(m_chartAxisTop.get());
+    if (getDataRangeForAxisOrientation(ChartTwoAxisOrientationTypeEnum::VERTICAL,
+                                       yMinLeft,
+                                       yMaxLeft)) {
+        if (m_verticalAxes->getLeftOrBottomAxis()->isDisplayedByUser()) {
+            axesOut.push_back(m_verticalAxes->getLeftOrBottomAxis());
+        }
+        if (m_verticalAxes->getRightOrTopAxis()->isDisplayedByUser()) {
+            axesOut.push_back(m_verticalAxes->getRightOrTopAxis());
+        }
     }
-    if (m_chartAxisLeft->isEnabledByChart()) {
-        axesOut.push_back(m_chartAxisLeft.get());
-    }
-    if (m_chartAxisRight->isEnabledByChart()) {
-        axesOut.push_back(m_chartAxisRight.get());
-    }
+}
+
+/**
+ * @return Pointer to the horizontal axes
+ */
+ChartTwoCartesianOrientedAxes*
+ChartTwoOverlaySet::getHorizontalAxes()
+{
+    return m_horizontalAxes.get();
+}
+
+/**
+ * @return Pointer to the horizontal axes (const method)
+ */
+const ChartTwoCartesianOrientedAxes*
+ChartTwoOverlaySet::getHorizontalAxes() const
+{
+    return m_horizontalAxes.get();
+}
+
+/**
+ * @return Pointer to the vertical axes
+ */
+ChartTwoCartesianOrientedAxes*
+ChartTwoOverlaySet::getVerticalAxes()
+{
+    return m_verticalAxes.get();
+}
+
+/**
+ * @return Pointer to the vertical axes (const method)
+ */
+const ChartTwoCartesianOrientedAxes*
+ChartTwoOverlaySet::getVerticalAxes() const
+{
+    return m_verticalAxes.get();
 }
 
 /**
@@ -1311,7 +1380,7 @@ ChartTwoOverlaySet::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "ChartTwoOverlaySet",
-                                            1);
+                                            2);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -1331,6 +1400,75 @@ ChartTwoOverlaySet::saveToScene(const SceneAttributes* sceneAttributes,
     //                        sceneClass);
     
     return sceneClass;
+}
+
+/**
+ * Restore the range scale from an old scene
+ * @param axisOrientationType
+ *    The axis orientation
+ * @param leftOrBottomAxis
+ *    The left or bottom axis
+ * @param rightOrTopAxis
+ *    The right or top axis
+ */
+void
+ChartTwoOverlaySet::updateRangeScaleFromVersionOneScene(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientationType,
+                                                        ChartTwoCartesianAxis* leftOrBottomAxis,
+                                                        ChartTwoCartesianAxis* rightOrTopAxis)
+{
+    ChartTwoAxisScaleRangeModeEnum::Enum rangeMode = ChartTwoAxisScaleRangeModeEnum::AUTO;
+    float minRange(0.0);
+    float maxRange(0.0);
+    
+    /*
+     * Restore from left/bottom first
+     */
+    bool leftBottomValidFlag(false);
+    if (leftOrBottomAxis != NULL) {
+        /*
+         * Neither axis may be on, so default to left's range
+         */
+        rangeMode = leftOrBottomAxis->getSceneScaleRangeMode();
+        minRange  = leftOrBottomAxis->getSceneUserScaleMinimumValue();
+        maxRange  = leftOrBottomAxis->getSceneUserScaleMaximumValue();
+        if (leftOrBottomAxis->isDisplayedByUser()) {
+            /*
+             * Use the left axis for range
+             */
+            leftBottomValidFlag = true;
+        }
+    }
+    
+    /*
+     * If left NOT valid
+     */
+    if ( ! leftBottomValidFlag) {
+        /*
+         * Only use right axis if left is not used (NULL)
+         * or left axis is off and right is on
+         */
+        if (rightOrTopAxis != NULL) {
+            if (rightOrTopAxis->isDisplayedByUser()
+                || (leftOrBottomAxis == NULL)) {
+                rangeMode = rightOrTopAxis->getSceneScaleRangeMode();
+                minRange  = rightOrTopAxis->getSceneUserScaleMinimumValue();
+                maxRange  = rightOrTopAxis->getSceneUserScaleMaximumValue();
+            }
+        }
+    }
+    
+    switch (axisOrientationType) {
+        case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
+            m_horizontalAxes->setScaleRangeMode(rangeMode);
+            m_horizontalAxes->setUserScaleMinimumValue(minRange);
+            m_horizontalAxes->setUserScaleMaximumValue(maxRange);
+            break;
+        case ChartTwoAxisOrientationTypeEnum::VERTICAL:
+            m_verticalAxes->setScaleRangeMode(rangeMode);
+            m_verticalAxes->setUserScaleMinimumValue(minRange);
+            m_verticalAxes->setUserScaleMaximumValue(maxRange);
+            break;
+    }
 }
 
 /**
@@ -1357,20 +1495,78 @@ ChartTwoOverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
-    /*
-     * Title was originally saved as text and boolean
-     */
-    const SceneClass* oldChartTitleClass = sceneClass->getClass("m_chartTitle");
-    if (oldChartTitleClass != NULL) {
-        if (oldChartTitleClass->getClassName() == "AnnotationPercentSizeText") {
-            std::unique_ptr<AnnotationPercentSizeText> title = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
-                                                                                                                                        AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT));
-            title->setText("");
-            title->restoreFromScene(sceneAttributes, oldChartTitleClass);
-            
-            m_title->setText(title->getText());
-            m_title->setDisplayed(sceneClass->getBooleanValue("m_chartTitleDisplayedFlag",
-                                                              false));
+    m_verticalAxes->reset();
+    m_horizontalAxes->reset();
+    
+    CaretAssertToDoWarning();
+    
+    if (sceneClass->getVersionNumber() >= 2) {
+    }
+    else {
+//        /*
+//         * Restore the axes from the older separate axes
+//         */
+//        ChartTwoCartesianAxis* rightAxis(NULL);
+//        const SceneClass* v1RightAxis = sceneClass->getClass("m_chartAxisRight");
+//        if (v1RightAxis != NULL) {
+//            rightAxis = m_verticalAxes->getRightOrTopAxis();
+//            rightAxis->restoreFromScene(sceneAttributes,
+//                                        v1RightAxis);
+//        }
+//
+//        const SceneClass* v1LeftAxis = sceneClass->getClass("m_chartAxisLeft");
+//        ChartTwoCartesianAxis* leftAxis(NULL);
+//        if (v1LeftAxis != NULL) {
+//            leftAxis = m_verticalAxes->getLeftOrBottomAxis();
+//            leftAxis->restoreFromScene(sceneAttributes,
+//                                       v1LeftAxis);
+//        }
+//
+//        updateRangeScaleFromVersionOneScene(ChartTwoAxisOrientationTypeEnum::VERTICAL,
+//                                            leftAxis,
+//                                            rightAxis);
+//
+//        const SceneClass* v1TopAxis = sceneClass->getClass("m_chartAxisTop");
+//        ChartTwoCartesianAxis* topAxis(NULL);
+//        if (v1TopAxis != NULL) {
+//            topAxis = m_horizontalAxes->getRightOrTopAxis();
+//            topAxis->restoreFromScene(sceneAttributes,
+//                                      v1TopAxis);
+//        }
+//
+//        /*
+//         * There was no top axis option in version 1 scenes
+//         * so turn top axis off
+//         */
+//        m_horizontalAxes->getRightOrTopAxis()->setDisplayedByUser(false);
+//
+//        const SceneClass* v1BottomAxis = sceneClass->getClass("m_chartAxisBottom");
+//        ChartTwoCartesianAxis* bottomAxis(NULL);
+//        if (v1BottomAxis != NULL) {
+//            bottomAxis = m_horizontalAxes->getLeftOrBottomAxis();
+//            bottomAxis->restoreFromScene(sceneAttributes,
+//                                         v1BottomAxis);
+//        }
+//
+//        updateRangeScaleFromVersionOneScene(ChartTwoAxisOrientationTypeEnum::HORIZONTAL,
+//                                            bottomAxis,
+//                                            topAxis);
+        
+        /*
+         * Title was originally saved as text and boolean
+         */
+        const SceneClass* oldChartTitleClass = sceneClass->getClass("m_chartTitle");
+        if (oldChartTitleClass != NULL) {
+            if (oldChartTitleClass->getClassName() == "AnnotationPercentSizeText") {
+                std::unique_ptr<AnnotationPercentSizeText> title = std::unique_ptr<AnnotationPercentSizeText>(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
+                                                                                                                                            AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT));
+                title->setText("");
+                title->restoreFromScene(sceneAttributes, oldChartTitleClass);
+                
+                m_title->setText(title->getText());
+                m_title->setDisplayed(sceneClass->getBooleanValue("m_chartTitleDisplayedFlag",
+                                                                  false));
+            }
         }
     }
     
@@ -1383,6 +1579,96 @@ ChartTwoOverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
             m_overlays[i]->restoreFromScene(sceneAttributes,
                                             overlayClassArray->getClassAtIndex(i));
         }
+    }
+
+    /**
+     * For version 1 need use obsolete axis location (right or left) to set display
+     * status of left and right axes
+     */
+    if (sceneClass->getVersionNumber() == 1) {
+        bool leftAxisOnFlag(false);
+        bool rightAxisOnFlag(false);
+        for (int32_t i = 0; i < getNumberOfDisplayedOverlays(); i++) {
+            const ChartTwoOverlay* overlay = getOverlay(i);
+            if (overlay->isEnabled()) {
+                switch (overlay->getSceneCartesianVerticalAxisLocation()) {
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                        leftAxisOnFlag = true;
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                        rightAxisOnFlag = true;
+                        break;
+                    case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                        break;
+                }
+            }
+        }
+        
+        /*
+         * Restore the axes from the older separate axes
+         */
+        ChartTwoCartesianAxis* rightAxis(NULL);
+        const SceneClass* v1RightAxis = sceneClass->getClass("m_chartAxisRight");
+        if (v1RightAxis != NULL) {
+            rightAxis = m_verticalAxes->getRightOrTopAxis();
+            rightAxis->restoreFromScene(sceneAttributes,
+                                        v1RightAxis);
+        }
+        
+        const SceneClass* v1LeftAxis = sceneClass->getClass("m_chartAxisLeft");
+        ChartTwoCartesianAxis* leftAxis(NULL);
+        if (v1LeftAxis != NULL) {
+            leftAxis = m_verticalAxes->getLeftOrBottomAxis();
+            leftAxis->restoreFromScene(sceneAttributes,
+                                       v1LeftAxis);
+        }
+        
+        /*
+         * Must do after restoring axes
+         */
+        m_verticalAxes->getLeftOrBottomAxis()->setDisplayedByUser(leftAxisOnFlag);
+        m_verticalAxes->getRightOrTopAxis()->setDisplayedByUser(rightAxisOnFlag);
+        if (leftAxisOnFlag
+            && (leftAxis != NULL)) {
+            updateRangeScaleFromVersionOneScene(ChartTwoAxisOrientationTypeEnum::VERTICAL,
+                                                leftAxis,
+                                                NULL); /* right axis */
+        }
+        else if (rightAxisOnFlag
+                 && (rightAxis != NULL)) {
+            updateRangeScaleFromVersionOneScene(ChartTwoAxisOrientationTypeEnum::VERTICAL,
+                                                NULL,  /* left axis */
+                                                rightAxis);
+        }
+        
+        const SceneClass* v1TopAxis = sceneClass->getClass("m_chartAxisTop");
+        ChartTwoCartesianAxis* topAxis(NULL);
+        if (v1TopAxis != NULL) {
+            topAxis = m_horizontalAxes->getRightOrTopAxis();
+            topAxis->restoreFromScene(sceneAttributes,
+                                      v1TopAxis);
+        }
+        
+        /*
+         * There was no top axis option in version 1 scenes
+         * so turn top axis off
+         */
+        m_horizontalAxes->getRightOrTopAxis()->setDisplayedByUser(false);
+        
+        const SceneClass* v1BottomAxis = sceneClass->getClass("m_chartAxisBottom");
+        ChartTwoCartesianAxis* bottomAxis(NULL);
+        if (v1BottomAxis != NULL) {
+            bottomAxis = m_horizontalAxes->getLeftOrBottomAxis();
+            bottomAxis->restoreFromScene(sceneAttributes,
+                                         v1BottomAxis);
+        }
+        
+        updateRangeScaleFromVersionOneScene(ChartTwoAxisOrientationTypeEnum::HORIZONTAL,
+                                            bottomAxis,
+                                            topAxis);
+
     }
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,

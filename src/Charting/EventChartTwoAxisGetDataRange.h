@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "ChartAxisLocationEnum.h"
+#include "ChartTwoAxisOrientationTypeEnum.h"
 #include "Event.h"
 
 namespace caret {
@@ -35,14 +36,26 @@ namespace caret {
     class EventChartTwoAxisGetDataRange : public Event {
         
     public:
+        enum AxisMode {
+            AXIS_LOCATION,
+            AXIS_ORIENTATION
+        };
+        
         EventChartTwoAxisGetDataRange(const ChartTwoOverlaySet* chartOverlaySet,
                                       const ChartAxisLocationEnum::Enum chartAxisLocation);
         
+        EventChartTwoAxisGetDataRange(const ChartTwoOverlaySet* chartOverlaySet,
+                                      const ChartTwoAxisOrientationTypeEnum::Enum axisOrienationType);
+        
         virtual ~EventChartTwoAxisGetDataRange();
 
+        AxisMode getAxisMode() const;
+        
         const ChartTwoOverlaySet* getChartOverlaySet() const;
         
         ChartAxisLocationEnum::Enum getChartAxisLocation() const;
+        
+        ChartTwoAxisOrientationTypeEnum::Enum getChartAxisOrientation() const;
         
         bool getMinimumAndMaximumValues(float& minimumValue,
                                         float& maximumValue) const;
@@ -57,9 +70,13 @@ namespace caret {
 
         EventChartTwoAxisGetDataRange& operator=(const EventChartTwoAxisGetDataRange&);
         
+        const AxisMode m_axisMode;
+        
         const ChartTwoOverlaySet* m_chartOverlaySet;
         
         const ChartAxisLocationEnum::Enum m_chartAxisLocation;
+        
+        const ChartTwoAxisOrientationTypeEnum::Enum m_axisOrienationType;
         
         float m_minimumValue = 0.0f;
         

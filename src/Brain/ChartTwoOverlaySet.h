@@ -25,6 +25,7 @@
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "ChartAxisLocationEnum.h"
+#include "ChartTwoAxisOrientationTypeEnum.h"
 #include "ChartTwoDataTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
@@ -33,6 +34,7 @@
 namespace caret {
     class AnnotationPercentSizeText;
     class CaretMappableDataFile;
+    class ChartTwoCartesianOrientedAxes;
     class ChartTwoCartesianAxis;
     class ChartTwoOverlay;
     class ChartTwoTitle;
@@ -76,6 +78,14 @@ namespace caret {
         
         void getDisplayedChartAxes(std::vector<ChartTwoCartesianAxis*>& axesOut) const;
         
+        ChartTwoCartesianOrientedAxes* getHorizontalAxes();
+        
+        const ChartTwoCartesianOrientedAxes* getHorizontalAxes() const;
+        
+        ChartTwoCartesianOrientedAxes* getVerticalAxes();
+        
+        const ChartTwoCartesianOrientedAxes* getVerticalAxes() const;
+        
         AString getAxisLabel(const ChartTwoCartesianAxis* axis) const;
         
         void setAxisLabel(const ChartTwoCartesianAxis* axis,
@@ -87,6 +97,10 @@ namespace caret {
                                  float& minimumValueOut,
                                  float& maximumValueOut) const;
         
+        bool getDataRangeForAxisOrientation(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientationType,
+                                            float& minimumValueOut,
+                                            float& maximumValueOut) const;
+
         ChartTwoTitle* getChartTitle();
         
         const ChartTwoTitle* getChartTitle() const;
@@ -129,10 +143,6 @@ namespace caret {
                                       const SceneClass* sceneClass);
 
           
-          
-          
-          
-          
 // If there will be sub-classes of this class that need to save
 // and restore data from scenes, these pure virtual methods can
 // be uncommented to force their implementation by sub-classes.
@@ -152,19 +162,19 @@ namespace caret {
         
         void assignUnusedColor(ChartTwoOverlay* chartOverlay);
 
+        void updateRangeScaleFromVersionOneScene(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientationType,
+                                                 ChartTwoCartesianAxis* leftOrBottomAxis,
+                                                 ChartTwoCartesianAxis* rightOrTopAxis);
+        
         SceneClassAssistant* m_sceneAssistant;
 
         std::vector<std::shared_ptr<ChartTwoOverlay>> m_overlays;
         
         const ChartTwoDataTypeEnum::Enum m_chartDataType;
         
-        std::unique_ptr<ChartTwoCartesianAxis> m_chartAxisLeft;
+        std::unique_ptr<ChartTwoCartesianOrientedAxes> m_horizontalAxes;
         
-        std::unique_ptr<ChartTwoCartesianAxis> m_chartAxisRight;
-        
-        std::unique_ptr<ChartTwoCartesianAxis> m_chartAxisBottom;
-        
-        std::unique_ptr<ChartTwoCartesianAxis> m_chartAxisTop;
+        std::unique_ptr<ChartTwoCartesianOrientedAxes> m_verticalAxes;
         
         const AString m_name;
         
