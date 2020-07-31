@@ -87,7 +87,7 @@ EventBrowserTabReopenAvailable.h
 EventBrowserWindowContent.h
 EventBrowserWindowGetTabs.h
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h
-EventChartOverlayValidate.h
+EventChartTwoOverlayValidate.h
 EventDataFileAdd.h
 EventDataFileDelete.h
 EventDataFileRead.h
@@ -259,7 +259,7 @@ EventBrowserTabReopenAvailable.cxx
 EventBrowserWindowContent.cxx
 EventBrowserWindowGetTabs.cxx
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays.cxx
-EventChartOverlayValidate.cxx
+EventChartTwoOverlayValidate.cxx
 EventDataFileAdd.cxx
 EventDataFileDelete.cxx
 EventDataFileRead.cxx

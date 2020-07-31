@@ -126,14 +126,14 @@ public:
         EVENT_CARET_PREFERENCES_GET,
         /** Event for yoking the loading of matrix chart rows/columns */
         EVENT_CHART_MATRIX_YOKING_VALIDATION,
-        /** Validate that chart overlay is valid (it exists). */
-        EVENT_CHART_OVERLAY_VALIDATE,
         /** GUI notification of the change in chart two atttributes */
         EVENT_CHART_TWO_ATTRIBUTES_CHANGED,
         /** Get the range of data for a chart two axis */
         EVENT_CHART_TWO_AXIS_GET_DATA_RANGE,
         /** Load chart two line series data */
         EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA,
+        /** Validate that chart two overlay is valid (it exists). */
+        EVENT_CHART_TWO_OVERLAY_VALIDATE,
         /** Add a data file into the Brain*/
         EVENT_DATA_FILE_ADD,
         /** Delete a data file from the brain */

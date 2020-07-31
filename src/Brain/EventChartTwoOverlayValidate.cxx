@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __EVENT_CHART_OVERLAY_VALIDATE_DECLARE__
-#include "EventChartOverlayValidate.h"
-#undef __EVENT_CHART_OVERLAY_VALIDATE_DECLARE__
+#define __EVENT_CHART_TWO_OVERLAY_VALIDATE_DECLARE__
+#include "EventChartTwoOverlayValidate.h"
+#undef __EVENT_CHART_TWO_OVERLAY_VALIDATE_DECLARE__
 
 #include "EventTypeEnum.h"
 
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::EventChartOverlayValidate 
+ * \class caret::EventChartTwoOverlayValidate
  * \brief Test a chart overlay for validity (it exists).
  * \ingroup Brain
  */
@@ -41,8 +41,8 @@ using namespace caret;
  * @param chartOverlay
  *     Chart overlay for verification.
  */
-EventChartOverlayValidate::EventChartOverlayValidate(const ChartTwoOverlay* chartOverlay)
-: Event(EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE),
+EventChartTwoOverlayValidate::EventChartTwoOverlayValidate(const ChartTwoOverlay* chartOverlay)
+: Event(EventTypeEnum::EVENT_CHART_TWO_OVERLAY_VALIDATE),
   m_chartOverlay(chartOverlay)
 {
     m_valid = false;
@@ -51,7 +51,7 @@ EventChartOverlayValidate::EventChartOverlayValidate(const ChartTwoOverlay* char
 /**
  * Destructor.
  */
-EventChartOverlayValidate::~EventChartOverlayValidate()
+EventChartTwoOverlayValidate::~EventChartTwoOverlayValidate()
 {
     
 }
@@ -60,7 +60,7 @@ EventChartOverlayValidate::~EventChartOverlayValidate()
  * @return true if the chart overlay was found to be valid.
  */
 bool
-EventChartOverlayValidate::isValidChartOverlay() const
+EventChartTwoOverlayValidate::isValidChartOverlay() const
 {
     return m_valid;
 }
@@ -73,7 +73,7 @@ EventChartOverlayValidate::isValidChartOverlay() const
  *    Chart overlay tested for match.
  */
 void
-EventChartOverlayValidate::testValidChartOverlay(const ChartTwoOverlay* chartOverlay)
+EventChartTwoOverlayValidate::testValidChartOverlay(const ChartTwoOverlay* chartOverlay)
 {
     if (m_chartOverlay == chartOverlay) {
         m_valid = true;

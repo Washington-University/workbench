@@ -1,5 +1,5 @@
-#ifndef __EVENT_CHART_OVERLAY_VALIDATE_H__
-#define __EVENT_CHART_OVERLAY_VALIDATE_H__
+#ifndef __EVENT_CHART_TWO_OVERLAY_VALIDATE_H__
+#define __EVENT_CHART_TWO_OVERLAY_VALIDATE_H__
 
 /*LICENSE_START*/
 /*
@@ -28,21 +28,21 @@ namespace caret {
 
     class ChartTwoOverlay;
     
-    class EventChartOverlayValidate : public Event {
+    class EventChartTwoOverlayValidate : public Event {
         
     public:
-        EventChartOverlayValidate(const ChartTwoOverlay* chartOverlay);
+        EventChartTwoOverlayValidate(const ChartTwoOverlay* chartOverlay);
         
-        virtual ~EventChartOverlayValidate();
+        virtual ~EventChartTwoOverlayValidate();
         
         bool isValidChartOverlay() const;
         
         void testValidChartOverlay(const ChartTwoOverlay* chartOverlay);
         
     private:
-        EventChartOverlayValidate(const EventChartOverlayValidate&);
+        EventChartTwoOverlayValidate(const EventChartTwoOverlayValidate&);
 
-        EventChartOverlayValidate& operator=(const EventChartOverlayValidate&);
+        EventChartTwoOverlayValidate& operator=(const EventChartTwoOverlayValidate&);
         
     public:
 
@@ -58,9 +58,9 @@ namespace caret {
         
     };
     
-#ifdef __EVENT_CHART_OVERLAY_VALIDATE_DECLARE__
+#ifdef __EVENT_CHART_TWO_OVERLAY_VALIDATE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __EVENT_CHART_OVERLAY_VALIDATE_DECLARE__
+#endif // __EVENT_CHART_TWO_OVERLAY_VALIDATE_DECLARE__
 
 } // namespace
-#endif  //__EVENT_CHART_OVERLAY_VALIDATE_H__
+#endif  //__EVENT_CHART_TWO_OVERLAY_VALIDATE_H__

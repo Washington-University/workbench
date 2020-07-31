@@ -35,7 +35,7 @@
 #include "ChartTwoOverlay.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
-#include "EventChartOverlayValidate.h"
+#include "EventChartTwoOverlayValidate.h"
 #include "EventDataFileDelete.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -598,7 +598,7 @@ OverlaySettingsEditorDialog::updateDialog()
     }
     
     if (m_chartOverlay != NULL) {
-        EventChartOverlayValidate validateChartOverlayEvent(m_chartOverlay);
+        EventChartTwoOverlayValidate validateChartOverlayEvent(m_chartOverlay);
         EventManager::get()->sendEvent(validateChartOverlayEvent.getPointer());
         if ( ! validateChartOverlayEvent.isValidChartOverlay()) {
             m_chartOverlay = NULL;
@@ -621,7 +621,7 @@ void
 OverlaySettingsEditorDialog::updateChartLinesInDialog()
 {
     if (m_chartOverlay != NULL) {
-        EventChartOverlayValidate validateChartOverlayEvent(m_chartOverlay);
+        EventChartTwoOverlayValidate validateChartOverlayEvent(m_chartOverlay);
         EventManager::get()->sendEvent(validateChartOverlayEvent.getPointer());
         if ( ! validateChartOverlayEvent.isValidChartOverlay()) {
             m_chartOverlay = NULL;

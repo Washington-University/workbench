@@ -426,10 +426,10 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_CARET_PREFERENCES_GET:
         case EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS:
         case EventTypeEnum::EVENT_CHART_MATRIX_YOKING_VALIDATION:
-        case EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE:
         case EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED:
         case EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE:
         case EventTypeEnum::EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA:
+        case EventTypeEnum::EVENT_CHART_TWO_OVERLAY_VALIDATE:
         case EventTypeEnum::EVENT_DATA_FILE_ADD:
         case EventTypeEnum::EVENT_DATA_FILE_DELETE:
         case EventTypeEnum::EVENT_DATA_FILE_READ:

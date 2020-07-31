@@ -37,7 +37,7 @@
 #include "ChartTwoLineSeriesHistory.h"
 #include "ChartTwoOverlaySet.h"
 #include "EventCaretMappableDataFilesGet.h"
-#include "EventChartOverlayValidate.h"
+#include "EventChartTwoOverlayValidate.h"
 #include "EventManager.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "Histogram.h"
@@ -122,7 +122,7 @@ m_overlayIndex(overlayIndex)
                                                                               &m_selectedLineChartTextOffset);
                                                                 
     EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE);
+                                          EventTypeEnum::EVENT_CHART_TWO_OVERLAY_VALIDATE);
 }
 
 /**
@@ -168,8 +168,8 @@ ChartTwoOverlay::setWeakPointerToSelf(std::weak_ptr<ChartTwoOverlay> weakPointer
 void
 ChartTwoOverlay::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_CHART_OVERLAY_VALIDATE) {
-        EventChartOverlayValidate* eov = dynamic_cast<EventChartOverlayValidate*>(event);
+    if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_OVERLAY_VALIDATE) {
+        EventChartTwoOverlayValidate* eov = dynamic_cast<EventChartTwoOverlayValidate*>(event);
         CaretAssert(eov);
         eov->testValidChartOverlay(this);
         eov->setEventProcessed();
