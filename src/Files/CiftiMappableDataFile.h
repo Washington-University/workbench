@@ -24,6 +24,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPointer.h"
 #include "CaretObjectTracksModification.h"
+#include "CaretUnitsTypeEnum.h"
 #include "ChartTwoMatrixTriangularViewingModeEnum.h"
 #include "CiftiMappingType.h"
 #include "CiftiXMLElements.h"
@@ -453,6 +454,11 @@ namespace caret {
         virtual bool isModifiedExcludingPaletteColorMapping() const;
         
         virtual NiftiTimeUnitsEnum::Enum getMapIntervalUnits() const;
+        
+        void getDimensionUnits(const int32_t dimensionIndex,
+                               CaretUnitsTypeEnum::Enum& unitsOut,
+                               float& startValueOut,
+                               float& stepValueOut) const;
         
         virtual void getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
                                                 float& mapIntervalStepValueOut) const;

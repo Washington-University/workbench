@@ -125,6 +125,22 @@ namespace caret {
             const ChartTwoDataCartesian* m_chartTwoCartesianData;
         };
         
+        class MatrixChartDrawingInfo {
+        public:
+            MatrixChartDrawingInfo(const ChartableTwoFileMatrixChart* matrixChart,
+                                   const GraphicsPrimitive* matrixPrimitive,
+                                   const ChartTwoOverlay* chartTwoOverlay,
+                                   const ChartTwoMatrixTriangularViewingModeEnum::Enum triangularMode)
+            : m_matrixChart(matrixChart),
+            m_matrixPrimitive(matrixPrimitive),
+            m_chartTwoOverlay(chartTwoOverlay),
+            m_triangularMode(triangularMode) { }
+            
+            const ChartableTwoFileMatrixChart* m_matrixChart;
+            const GraphicsPrimitive* m_matrixPrimitive;
+            const ChartTwoOverlay* m_chartTwoOverlay;
+            const ChartTwoMatrixTriangularViewingModeEnum::Enum m_triangularMode;
+        };
         /**
          * Determines size of title and draws the title
          */

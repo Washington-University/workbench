@@ -159,6 +159,25 @@ m_lineLayerContentType(lineLayerContentType)
     }
 
     /*
+     * For Cifti Files, use units from dimensions
+     */
+    CaretUnitsTypeEnum::Enum yAxisUnits = CaretUnitsTypeEnum::NONE;
+    {
+        const CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
+        if (ciftiMapFile != NULL) {
+            float start(0.0), step(0.0);
+            ciftiMapFile->getDimensionUnits(CiftiXML::ALONG_ROW,
+                                            xAxisUnits,
+                                            start,
+                                            step);
+            ciftiMapFile->getDimensionUnits(CiftiXML::ALONG_COLUMN,
+                                            yAxisUnits,
+                                            start,
+                                            step);
+        }
+    }
+    
+    /*
      * Must have two or more elements
      */
     if (xAxisNumberOfElements <= 1) {
@@ -166,7 +185,8 @@ m_lineLayerContentType(lineLayerContentType)
     }
     
     updateChartTwoCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForLineLayer(xAxisUnits,
-                                                                                                   xAxisNumberOfElements));
+                                                                                                     yAxisUnits,
+                                                                                                     xAxisNumberOfElements));
     m_mapLineCharts.resize(numberOfChartMaps);
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());

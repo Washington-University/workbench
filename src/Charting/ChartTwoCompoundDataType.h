@@ -39,6 +39,7 @@ namespace caret {
         ChartTwoCompoundDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
                                  const int32_t histogramNumberOfBuckets,
                                  const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
+                                 const CaretUnitsTypeEnum::Enum lineChartUnitsAxisY,
                                  const int32_t lineChartNumberOfElementsAxisX,
                                  const int32_t matrixNumberOfRows,
                                  const int32_t matrixNumberOfColumns);
@@ -46,12 +47,16 @@ namespace caret {
         static ChartTwoCompoundDataType newInstanceForHistogram(const int32_t histogramNumberOfBuckets);
         
         static ChartTwoCompoundDataType newInstanceForLineLayer(const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
-                                                                 const int32_t lineChartNumberOfElementsAxisX);
+                                                                const CaretUnitsTypeEnum::Enum lineChartUnitsAxisY,
+                                                                const int32_t lineChartNumberOfElementsAxisX);
         
         static ChartTwoCompoundDataType newInstanceForLineSeries(const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
+                                                                 const CaretUnitsTypeEnum::Enum lineChartUnitsAxisY,
                                                                  const int32_t lineChartNumberOfElementsAxisX);
         
-        static ChartTwoCompoundDataType newInstanceForMatrix(const int32_t matrixNumberOfRows,
+        static ChartTwoCompoundDataType newInstanceForMatrix(const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
+                                                             const CaretUnitsTypeEnum::Enum lineChartUnitsAxisY,
+                                                             const int32_t matrixNumberOfRows,
                                                              const int32_t matrixNumberOfColumns);
         
 
@@ -68,6 +73,8 @@ namespace caret {
         int32_t getHistogramNumberOfBuckets() const;
         
         CaretUnitsTypeEnum::Enum getLineChartUnitsAxisX() const;
+        
+        CaretUnitsTypeEnum::Enum getLineChartUnitsAxisY() const;
         
         int32_t getLineChartNumberOfElementsAxisX() const;
         
@@ -112,6 +119,8 @@ namespace caret {
         int32_t m_histogramNumberOfBuckets;
         
         CaretUnitsTypeEnum::Enum m_lineChartUnitsAxisX;
+        
+        CaretUnitsTypeEnum::Enum m_lineChartUnitsAxisY;
         
         int32_t m_lineChartNumberOfElementsAxisX;
         

@@ -306,7 +306,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                         break;
                     case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                         if (drawMatrixFlag) {
-                            drawMatrixChart();
+                            drawHistogramOrLineChart(ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX);
+//                            drawMatrixChart();
                         }
                         break;
                 }
@@ -330,6 +331,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
 {
     bool drawHistogramFlag  = false;
     bool drawLineLayerFlag  = false;
+    bool drawMatrixFlag     = false;
     bool drawLineSeriesFlag = false;
     switch (chartDataType) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
@@ -346,8 +348,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
             drawLineSeriesFlag = true;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-            CaretAssert(0);
-            return;
+            drawMatrixFlag = true;
             break;
     }
     
@@ -376,6 +377,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
     else if (drawLineLayerFlag) {
         CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER);
     }
+    else if (drawMatrixFlag) {
+        CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX);
+    }
     else {
         CaretAssert(0);
     }
@@ -383,6 +387,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
     std::vector<std::unique_ptr<HistogramChartDrawingInfo>> histogramDrawingInfo;
     std::deque<LineSeriesChartDrawingInfo> lineSeriesChartsToDraw;
     std::deque<LineLayerChartDrawingInfo> lineLayerChartsToDraw;
+    std::deque<MatrixChartDrawingInfo> matrixChartsToDraw;
     
     /*
      * Get the histogram drawing information and overall extent
@@ -484,6 +489,30 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                                                                   chartOverlay,
                                                                                   chartOverlay->getLineLayerColor(),
                                                                                   chartOverlay->getLineLayerLineWidth()));
+                    }
+                }
+            }
+        }
+        
+        if (drawMatrixFlag) {
+            ChartableTwoFileMatrixChart* matrixChart = chartDelegate->getMatrixCharting();
+            if (matrixChart->isValid()) {
+                ChartTwoMatrixTriangularViewingModeEnum::Enum triangleMode = chartOverlay->getMatrixTriangularViewingMode();
+                GraphicsPrimitive* primitive = matrixChart->getMatrixChartingGraphicsPrimitive(triangleMode,
+                                                                                               CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE);
+                if (primitive->isValid()) {
+                    BoundingBox boundingBox;
+                    if (primitive->getVertexBounds(boundingBox)) {
+                        xMinBottomTop = std::min(xMinBottomTop, boundingBox.getMinX());
+                        xMaxBottomTop = std::max(xMaxBottomTop, boundingBox.getMaxX());
+                        
+                        yMinLeftRight = std::min(yMinLeftRight, boundingBox.getMinY());
+                        yMaxLeftRight = std::max(yMaxLeftRight, boundingBox.getMaxY());
+                        
+                        matrixChartsToDraw.push_back(MatrixChartDrawingInfo(matrixChart,
+                                                                            primitive,
+                                                                            chartOverlay,
+                                                                            triangleMode));
                     }
                 }
             }
@@ -1285,6 +1314,55 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                                      std::get<2>(tt),
                                                      std::get<3>(tt),
                                                      BrainOpenGLTextRenderInterface::DrawingFlags());
+        }
+    }
+    
+    if (drawMatrixFlag) {
+        std::vector<MatrixRowColumnHighight*> rowColumnHighlighting;
+        
+        for (const auto matrixChart : matrixChartsToDraw) {
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            const float xMin(xMinBottomTop);
+            const float xMax(xMaxBottomTop);
+            const float yMin = yMinLeftRight;
+            const float yMax = yMaxLeftRight;
+            CaretAssert(xMin <= xMax);
+            CaretAssert(yMin <= yMax);
+            glOrtho(xMin, xMax,
+                    yMin, yMax,
+                    -10.0, 10.0);
+            
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            
+            drawMatrixChartContent(matrixChart.m_matrixChart,
+                                   matrixChart.m_triangularMode,
+                                   1.0,
+                                   1.0,
+                                   1.0,
+                                   rowColumnHighlighting);
+        }
+        
+        /*
+         * Row/column highlighting must be drawn after matrices to that
+         * the highlights are over any and all displayed matrices
+         */
+        const int32_t numHighlights = static_cast<int32_t>(rowColumnHighlighting.size());
+        if (numHighlights > 0) {
+            for (int32_t ctr = 0; ctr < numHighlights; ctr++) {
+                MatrixRowColumnHighight* mrch = rowColumnHighlighting[ctr];
+                CaretAssert(mrch);
+                
+                glPushMatrix();
+                glLoadMatrixf(mrch->m_modelViewMatrix);
+                
+                drawPrimitivePrivate(mrch->m_graphicsPrimitive.get());
+                delete mrch;
+                
+                glPopMatrix();
+            }
+            rowColumnHighlighting.clear();
         }
     }
 }

@@ -76,7 +76,7 @@ m_parentCaretMappableDataFile(parentCaretMappableDataFile)
     setDefaultAxisTitles();
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_bottomAxisTitleText", // Use OLD name before top axis was added
+    m_sceneAssistant->add("m_bottomAxisTitleText", // Continue to use OLD name before top axis was added
                           &m_bottomTopAxisTitleText);
     m_sceneAssistant->add("m_leftRightAxisTitleText",
                           &m_leftRightAxisTitleText);
@@ -160,6 +160,22 @@ ChartableTwoFileBaseChart::setDefaultAxisTitle(const ChartAxisLocationEnum::Enum
                     }
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                    title = CaretUnitsTypeEnum::toGuiName(m_compoundChartDataType.getLineChartUnitsAxisX());
+                    switch (m_compoundChartDataType.getLineChartUnitsAxisX()) {
+                        case CaretUnitsTypeEnum::NONE:
+                            title = "Data";
+                            break;
+                        case CaretUnitsTypeEnum::HERTZ:
+                            break;
+                        case CaretUnitsTypeEnum::METERS:
+                            break;
+                        case CaretUnitsTypeEnum::PARTS_PER_MILLION:
+                            break;
+                        case CaretUnitsTypeEnum::RADIANS:
+                            break;
+                        case CaretUnitsTypeEnum::SECONDS:
+                            break;
+                    }
                     break;
             }
             break;
@@ -179,6 +195,7 @@ ChartableTwoFileBaseChart::setDefaultAxisTitle(const ChartAxisLocationEnum::Enum
                     title = "Value";
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                    title = "Value";
                     break;
             }
         }
@@ -394,7 +411,7 @@ ChartableTwoFileBaseChart::restoreFromScene(const SceneAttributes* sceneAttribut
         AnnotationPercentSizeText bottomTopTitle(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                  AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
         bottomTopTitle.restoreFromScene(sceneAttributes,
-                                        sceneClass->getClass("m_bottomAxisTitle")); // Use name before top axis was added
+                                        sceneClass->getClass("m_bottomAxisTitle")); // Use OLD name before top axis was added
         if ( ! bottomTopTitle.getText().isEmpty()) {
             m_bottomTopAxisTitleText = bottomTopTitle.getText();
         }

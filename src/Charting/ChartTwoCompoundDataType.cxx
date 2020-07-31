@@ -49,6 +49,8 @@ using namespace caret;
  *     Number of bins in the histogram.
  * @param lineChartUnitsAxisX
  *    Line chart x-axis units.
+ * @param lineChartUnitsAxisY
+ *    Line chart y-axis units.
  * @param lineChartNumberOfElementsAxisX
  *    Line chart x-axis number of elements.
  * @param matrixNumberOfRows
@@ -59,6 +61,7 @@ using namespace caret;
 ChartTwoCompoundDataType::ChartTwoCompoundDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
                                                    const int32_t histogramNumberOfBuckets,
                                                    const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
+                                                   const CaretUnitsTypeEnum::Enum lineChartUnitsAxisY,
                                                    const int32_t lineChartNumberOfElementsAxisX,
                                                    const int32_t matrixNumberOfRows,
                                                    const int32_t matrixNumberOfColumns)
@@ -69,6 +72,7 @@ ChartTwoCompoundDataType::ChartTwoCompoundDataType(const ChartTwoDataTypeEnum::E
     m_chartDataType                  = chartDataType;
     m_histogramNumberOfBuckets       = histogramNumberOfBuckets;
     m_lineChartUnitsAxisX            = lineChartUnitsAxisX;
+    m_lineChartUnitsAxisY            = lineChartUnitsAxisY;
     m_lineChartNumberOfElementsAxisX = lineChartNumberOfElementsAxisX;
     m_matrixNumberOfRows             = matrixNumberOfRows;
     m_matrixNumberOfColumns          = matrixNumberOfColumns;
@@ -102,6 +106,7 @@ ChartTwoCompoundDataType::newInstanceForHistogram(const int32_t histogramNumberO
     return ChartTwoCompoundDataType(ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM,
                                     histogramNumberOfBins,
                                     CaretUnitsTypeEnum::NONE,
+                                    CaretUnitsTypeEnum::NONE,
                                     0,
                                     0,
                                     0);
@@ -112,16 +117,20 @@ ChartTwoCompoundDataType::newInstanceForHistogram(const int32_t histogramNumberO
  *
  * @param lineChartUnitsAxisX
  *    Line chart x-axis units.
+ * @param lineChartUnitsAxisY
+ *    Units for the Y-axis
  * @param lineChartNumberOfElementsAxisX
  *    Line chart x-axis number of elements.
  */
 ChartTwoCompoundDataType
 ChartTwoCompoundDataType::newInstanceForLineLayer(const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
+                                                  const CaretUnitsTypeEnum::Enum lineChartUnitsAxisY,
                                                   const int32_t lineChartNumberOfElementsAxisX)
 {
     return ChartTwoCompoundDataType(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER,
                                     0,
                                     lineChartUnitsAxisX,
+                                    lineChartUnitsAxisY,
                                     lineChartNumberOfElementsAxisX,
                                     0,
                                     0);
@@ -132,16 +141,20 @@ ChartTwoCompoundDataType::newInstanceForLineLayer(const CaretUnitsTypeEnum::Enum
  *
  * @param lineChartUnitsAxisX
  *    Line chart x-axis units.
+ * @param lineChartUnitsAxisY
+ *    Units for the Y-axis
  * @param lineChartNumberOfElementsAxisX
  *    Line chart x-axis number of elements.
  */
 ChartTwoCompoundDataType
 ChartTwoCompoundDataType::newInstanceForLineSeries(const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
-                                                const int32_t lineChartNumberOfElementsAxisX)
+                                                   const CaretUnitsTypeEnum::Enum lineChartUnitsAxisY,
+                                                   const int32_t lineChartNumberOfElementsAxisX)
 {
     return ChartTwoCompoundDataType(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                     0,
                                     lineChartUnitsAxisX,
+                                    lineChartUnitsAxisY,
                                     lineChartNumberOfElementsAxisX,
                                     0,
                                     0);
@@ -150,18 +163,25 @@ ChartTwoCompoundDataType::newInstanceForLineSeries(const CaretUnitsTypeEnum::Enu
 /**
  * @return A new instance for a matrix chart.
  *
+ * @param lineChartUnitsAxisX
+ *    Units for the X-axis
+ * @param lineChartUnitsAxisY
+ *    Units for the Y-axis
  * @param matrixNumberOfRows
  *    Matrix number of rows.
  * @param matrixNumberOfColumns
  *    Matrix number of columns.
  */
 ChartTwoCompoundDataType
-ChartTwoCompoundDataType::newInstanceForMatrix(const int32_t matrixNumberOfRows,
-                                            const int32_t matrixNumberOfColumns)
+ChartTwoCompoundDataType::newInstanceForMatrix(const CaretUnitsTypeEnum::Enum lineChartUnitsAxisX,
+                                               const CaretUnitsTypeEnum::Enum lineChartUnitsAxisY,
+                                               const int32_t matrixNumberOfRows,
+                                               const int32_t matrixNumberOfColumns)
 {
     return ChartTwoCompoundDataType(ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX,
                                     0,
-                                    CaretUnitsTypeEnum::NONE,
+                                    lineChartUnitsAxisX,
+                                    lineChartUnitsAxisY,
                                     0,
                                     matrixNumberOfRows,
                                     matrixNumberOfColumns);
@@ -221,6 +241,7 @@ ChartTwoCompoundDataType::initializeChartTwoCompoundDataType()
 {
     m_chartDataType                  = ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID;
     m_lineChartUnitsAxisX            = CaretUnitsTypeEnum::NONE;
+    m_lineChartUnitsAxisY            = CaretUnitsTypeEnum::NONE;
     m_lineChartNumberOfElementsAxisX = 0;
     m_matrixNumberOfRows             = 0;
     m_matrixNumberOfColumns          = 0;
@@ -230,6 +251,8 @@ ChartTwoCompoundDataType::initializeChartTwoCompoundDataType()
                                                                             &m_chartDataType);
     m_sceneAssistant->add<CaretUnitsTypeEnum, CaretUnitsTypeEnum::Enum>("m_lineChartUnitsAxisX",
                                                                         &m_lineChartUnitsAxisX);
+    m_sceneAssistant->add<CaretUnitsTypeEnum, CaretUnitsTypeEnum::Enum>("m_lineChartUnitsAxisY",
+                                                                        &m_lineChartUnitsAxisY);
     m_sceneAssistant->add("m_lineChartNumberOfElementsAxisX",
                           &m_lineChartNumberOfElementsAxisX);
     m_sceneAssistant->add("m_matrixNumberOfRows",
@@ -243,7 +266,7 @@ ChartTwoCompoundDataType::initializeChartTwoCompoundDataType()
  * Equality operator.
  *
  * Charts must be same type.
- * Line charts must be same units OR same number of elements in X-axis.
+ * Line charts must be same units OR same number of elements in X-axis (Y-axis ignored)
  * Matrix charts must have same number of rows and columns.
  *
  * @param obj
@@ -326,6 +349,15 @@ ChartTwoCompoundDataType::getLineChartUnitsAxisX() const
 }
 
 /**
+ * @return Line chart Y-axis units.
+ */
+CaretUnitsTypeEnum::Enum
+ChartTwoCompoundDataType::getLineChartUnitsAxisY() const
+{
+    return m_lineChartUnitsAxisY;
+}
+
+/**
  * @return Line chart number of element in the X-axis.
  */
 int32_t
@@ -370,21 +402,33 @@ ChartTwoCompoundDataType::toString() const
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
             text.appendWithNewLine(indent
-                                   + "x=units="
+                                   + "x-units="
                                    + CaretUnitsTypeEnum::toName(m_lineChartUnitsAxisX));
+            text.appendWithNewLine(indent
+                                   + "y-units="
+                                   + CaretUnitsTypeEnum::toName(m_lineChartUnitsAxisY));
             text.appendWithNewLine(indent
                                    + "x-elements="
                                    + AString::number(m_lineChartNumberOfElementsAxisX));
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
             text.appendWithNewLine(indent
-                                   + "x=units="
+                                   + "x-units="
                                    + CaretUnitsTypeEnum::toName(m_lineChartUnitsAxisX));
+            text.appendWithNewLine(indent
+                                   + "y-units="
+                                   + CaretUnitsTypeEnum::toName(m_lineChartUnitsAxisY));
             text.appendWithNewLine(indent
                                    + "x-elements="
                                    + AString::number(m_lineChartNumberOfElementsAxisX));
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            text.appendWithNewLine(indent
+                                   + "x-units="
+                                   + CaretUnitsTypeEnum::toName(m_lineChartUnitsAxisX));
+            text.appendWithNewLine(indent
+                                   + "y-units="
+                                   + CaretUnitsTypeEnum::toName(m_lineChartUnitsAxisY));
             text.appendWithNewLine(indent
                                    + "rows="
                                    + AString::number(m_matrixNumberOfRows));

@@ -142,8 +142,28 @@ m_lineSeriesContentType(lineSeriesContentType)
         m_lineSeriesContentType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED;
     }
     
+    /*
+     * For Cifti Files, use units from dimensions
+     */
+    CaretUnitsTypeEnum::Enum yAxisUnits = CaretUnitsTypeEnum::NONE;
+    {
+        const CiftiMappableDataFile* ciftiMapFile = getCiftiMappableDataFile();
+        if (ciftiMapFile != NULL) {
+            float start(0.0), step(0.0);
+            ciftiMapFile->getDimensionUnits(CiftiXML::ALONG_ROW,
+                                            xAxisUnits,
+                                            start,
+                                            step);
+            ciftiMapFile->getDimensionUnits(CiftiXML::ALONG_COLUMN,
+                                            yAxisUnits,
+                                            start,
+                                            step);
+        }
+    }
+    
     updateChartTwoCompoundDataTypeAfterFileChanges(ChartTwoCompoundDataType::newInstanceForLineSeries(xAxisUnits,
-                                                                                                   xAxisNumberOfElements));
+                                                                                                      yAxisUnits,
+                                                                                                      xAxisNumberOfElements));
     
     if (m_lineSeriesContentType != ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED) {
         EventManager::get()->addEventListener(this,

@@ -599,6 +599,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::getSelectionData(ChartTwoOverlayS
                     chartOverlaySetOut = modelChartTwo->getChartTwoOverlaySet(tabIndex);
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                    chartOverlaySetOut = modelChartTwo->getChartTwoOverlaySet(tabIndex);
                     break;
             }
         }

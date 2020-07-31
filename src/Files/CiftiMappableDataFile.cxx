@@ -1720,6 +1720,12 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                  */
                 const float cellNotDrawRGBA[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
                 
+                CaretUnitsTypeEnum::Enum unusedUnits;
+                float xAxisStart(0.0), xAxisStep(0.0);
+                float yAxisStart(0.0), yAxisStep(0.0);
+                getDimensionUnits(CiftiXML::ALONG_ROW, unusedUnits, xAxisStart, xAxisStep);
+                getDimensionUnits(CiftiXML::ALONG_COLUMN, unusedUnits, yAxisStart, yAxisStep);
+
                 /*
                  * NOTE: All matrix cells receive coloring, event those that are
                  * not displayed due to the triangular view selection.
@@ -1729,9 +1735,9 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                  * OpenGL buffers are used, drawing is very fast.
                  */
                 int32_t rgbaOffset = 0;
-                const int32_t cellHeight = 1;
-                const int32_t cellWidth = 1;
-                int32_t cellY = (numberOfRows - 1) * cellHeight;
+                const int32_t indexStepY = 1;
+                const int32_t indexStepX = 1;
+                int32_t indexY = (numberOfRows - 1) * indexStepY;
                 for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
                     switch (gridMode) {
                         case MatrixGridMode::FILLED_TRIANGLES:
@@ -1741,7 +1747,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                         case MatrixGridMode::OUTLINE:
                             break;
                     }
-                    int32_t cellX = 0;
+                    int32_t indexX = 0;
                     for (int32_t columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
                         CaretAssertVectorIndex(matrixRGBA, rgbaOffset+3);
                         const float* rgba = &matrixRGBA[rgbaOffset];
@@ -1807,24 +1813,28 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                             }
                         }
                         
+                        const float cellLeft(xAxisStart + (xAxisStep * indexX));
+                        const float cellRight(cellLeft + xAxisStep);
+                        const float cellBottom(yAxisStart + (yAxisStep * indexY));
+                        const float cellTop(cellBottom + yAxisStep);
                         switch (gridMode) {
                             case MatrixGridMode::FILLED_TRIANGLES:
                             {
                                 const float* cellRGBA = (drawCellFlag ? rgba : cellNotDrawRGBA);
-                                matrixTrianglePrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
-                                matrixTrianglePrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
-                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellLeft, cellTop, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellLeft, cellBottom, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellRight, cellBottom, 0.0, cellRGBA);
                                 
-                                matrixTrianglePrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
-                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
-                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellLeft, cellTop, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellRight, cellBottom, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellRight, cellTop, 0.0, cellRGBA);
                             }
                                 break;
                             case MatrixGridMode::FILLED_TEXTURE:
                             {
                                 const float* cellRGBA = (drawCellFlag ? rgba : cellNotDrawRGBA);
-                                int32_t cellOffset = ((cellY * numberOfColumns * 4)
-                                                      + (cellX * 4));
+                                int32_t cellOffset = ((indexY * numberOfColumns * 4)
+                                                      + (indexX * 4));
                                 for (int32_t k = 0; k < 4; k++) {
                                     CaretAssertVectorIndex(matrixTextureRGBA, cellOffset + 3);
                                     matrixTextureRGBA[cellOffset + k] = static_cast<uint32_t>(cellRGBA[k] * 255.0);
@@ -1834,25 +1844,25 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                             case MatrixGridMode::OUTLINE:
                             {
                                 const float* cellRGBA = (drawCellFlag ? cellOutlineRGBA : cellNotDrawRGBA);
-                                matrixTrianglePrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
-                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellLeft, cellBottom, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellRight, cellBottom, 0.0, cellRGBA);
                                 
-                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY, 0.0, cellRGBA);
-                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
-
-                                matrixTrianglePrimitive->addVertex(cellX + cellWidth, cellY + cellHeight, 0.0, cellRGBA);
-                                matrixTrianglePrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellRight, cellBottom, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellRight, cellTop, 0.0, cellRGBA);
                                 
-                                matrixTrianglePrimitive->addVertex(cellX, cellY + cellHeight, 0.0, cellRGBA);
-                                matrixTrianglePrimitive->addVertex(cellX, cellY, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellRight, cellTop, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellLeft, cellTop, 0.0, cellRGBA);
+                                
+                                matrixTrianglePrimitive->addVertex(cellLeft, cellTop, 0.0, cellRGBA);
+                                matrixTrianglePrimitive->addVertex(cellLeft, cellBottom, 0.0, cellRGBA);
                             }
                                 break;
                         }
                         
-                        cellX += cellWidth;
+                        indexX += indexStepX;
                     }
                     
-                    cellY -= cellHeight;
+                    indexY -= indexStepY;
                 }
                 
                 switch (gridMode) {
@@ -1860,16 +1870,38 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                         break;
                     case MatrixGridMode::FILLED_TEXTURE:
                     {
+//                        /*
+//                         * Ranges to (-halfstep, num-rows - halfstep)
+//                         * For three rows: (-0.5, 2.5)
+//                         */
+//                        const float matrixLeft(xAxisStart);
+//                        const float matrixRight(matrixLeft + (xAxisStep * (numberOfColumns - 1)));
+//                        const float matrixBottom(yAxisStart - (yAxisStep * 0.5));
+//                        const float matrixTop(matrixBottom + (yAxisStep * (numberOfRows)));
+//                        /*
+//                         * 0 to N does not match grid outline
+//                         */
+//                        const float matrixLeft(xAxisStart);
+//                        const float matrixRight(matrixLeft + (xAxisStep * (numberOfColumns - 1)));
+//                        const float matrixBottom(yAxisStart);
+//                        const float matrixTop(matrixBottom + (yAxisStep * (numberOfRows - 1)));
+                        /*
+                         * 0 to N+1 matches grid outline
+                         */
+                        const float matrixLeft(xAxisStart);
+                        const float matrixRight(matrixLeft + (xAxisStep * (numberOfColumns)));
+                        const float matrixBottom(yAxisStart);
+                        const float matrixTop(matrixBottom + (yAxisStep * (numberOfRows)));
                         matrixTexturePrimitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &matrixTextureRGBA[0],
                                                                                        numberOfColumns,
                                                                                        numberOfRows,
                                                                                        GraphicsPrimitive::TextureWrappingType::CLAMP,
                                                                                        GraphicsPrimitive::TextureFilteringType::NEAREST);
-                        matrixTexturePrimitive->addVertex(0, numberOfRows, 0, 1);  /* Top Left */
-                        matrixTexturePrimitive->addVertex(0, 0, 0, 0);  /* Bottom Left */
-                        matrixTexturePrimitive->addVertex(numberOfColumns, numberOfRows, 1, 1);  /* Top Right */
-                        matrixTexturePrimitive->addVertex(numberOfColumns, 0, 1, 0);  /* Bottom Right */
+                        matrixTexturePrimitive->addVertex(matrixLeft, matrixTop, 0, 1);  /* Top Left */
+                        matrixTexturePrimitive->addVertex(matrixLeft, matrixBottom, 0, 0);  /* Bottom Left */
+                        matrixTexturePrimitive->addVertex(matrixRight, matrixTop, 1, 1);  /* Top Right */
+                        matrixTexturePrimitive->addVertex(matrixRight, matrixBottom, 1, 0);  /* Bottom Right */
                         matrixPrimitive = matrixTexturePrimitive;
                     }
                         break;
@@ -6474,6 +6506,82 @@ CiftiMappableDataFile::getMapIntervalUnits() const
 {
     return m_mappingTimeUnits;
 }
+
+/**
+ * Get the units type, start value, and step value for a dimension.  For dimensions that do not
+ * 'support' units the start value will be zero and the step value will be one.
+ *
+ * @param dimensionIndex
+ *    Index of dimension (use CiftiXML::ALONG_ROW, ALONG_COLUMN, ALONG_STACK)
+ * @param unitsOut
+ *    Output with units
+ * @param startValueOut
+ *    The starting value along the dimension
+ * @param stepValueOut
+ *    The step value along the dimension
+ */
+void
+CiftiMappableDataFile::getDimensionUnits(const int32_t dimensionIndex,
+                                         CaretUnitsTypeEnum::Enum& unitsOut,
+                                         float& startValueOut,
+                                         float& stepValueOut) const
+{
+    unitsOut    = CaretUnitsTypeEnum::NONE;
+    startValueOut = 0.0f;
+    stepValueOut  = 1.0f;
+    
+    switch (dimensionIndex) {
+        case CiftiXML::ALONG_ROW:
+            break;
+        case CiftiXML::ALONG_COLUMN:
+            break;
+        case CiftiXML::ALONG_STACK:
+            break;
+        default:
+            CaretAssertMessage(0, ("Invalid dimension index=" + QString::number(dimensionIndex)));
+            return;
+            break;
+    }
+    
+    if (m_ciftiFile != NULL) {
+        const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+        if ((dimensionIndex >= 0)
+            && (dimensionIndex < ciftiXML.getNumberOfDimensions())) {
+            switch (ciftiXML.getMappingType(dimensionIndex)) {
+                case CiftiMappingType::BRAIN_MODELS:
+                    break;
+                case CiftiMappingType::LABELS:
+                    break;
+                case CiftiMappingType::PARCELS:
+                    break;
+                case CiftiMappingType::SCALARS:
+                    break;
+                case CiftiMappingType::SERIES:
+                {
+                    const CiftiSeriesMap& seriesMap = ciftiXML.getSeriesMap(dimensionIndex);
+                    switch (seriesMap.getUnit()) {
+                        case CiftiSeriesMap::HERTZ:
+                            unitsOut = CaretUnitsTypeEnum::HERTZ;
+                            break;
+                        case CiftiSeriesMap::METER:
+                            unitsOut = CaretUnitsTypeEnum::METERS;
+                            break;
+                        case CiftiSeriesMap::RADIAN:
+                            unitsOut = CaretUnitsTypeEnum::RADIANS;
+                            break;
+                        case CiftiSeriesMap::SECOND:
+                            unitsOut = CaretUnitsTypeEnum::SECONDS;
+                            break;
+                    }
+                    startValueOut = seriesMap.getStart();
+                    stepValueOut  = seriesMap.getStep();
+                }
+                    break;
+            }
+        }
+    }
+}
+
 
 /**
  * Get the units value for the first map and the
