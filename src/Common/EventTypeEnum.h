@@ -126,8 +126,6 @@ public:
         EVENT_CARET_PREFERENCES_GET,
         /** Event for yoking the loading of matrix chart rows/columns */
         EVENT_CHART_MATRIX_YOKING_VALIDATION,
-        /** GUI notification of the change in chart two atttributes */
-        EVENT_CHART_TWO_ATTRIBUTES_CHANGED,
         /** Get the range of data for a chart two axis */
         EVENT_CHART_TWO_AXIS_GET_DATA_RANGE,
         /** Event for yoking of chart two cartesian oriented axes */

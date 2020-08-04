@@ -38,7 +38,6 @@
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
 #include "EventBrowserTabGet.h"
-#include "EventChartTwoAttributesChanged.h"
 #include "EventChartTwoAxisGetDataRange.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
@@ -172,7 +171,6 @@ m_tabIndex(tabIndex)
         m_overlays[i]->setWeakPointerToSelf(m_overlays[i]);
     }
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
@@ -649,112 +647,7 @@ ChartTwoOverlaySet::toString() const
 void
 ChartTwoOverlaySet::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_ATTRIBUTES_CHANGED) {
-        EventChartTwoAttributesChanged* attributeEvent = dynamic_cast<EventChartTwoAttributesChanged*>(event);
-        CaretAssert(attributeEvent);
-        
-        CaretAssertToDoWarning(); // Yoking !!!
-        
-        switch (attributeEvent->getMode()) {
-            case EventChartTwoAttributesChanged::Mode::INVALID:
-                break;
-            case EventChartTwoAttributesChanged::Mode::CARTESIAN_AXIS:
-            {
-                YokingGroupEnum::Enum yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
-                ChartTwoDataTypeEnum::Enum chartTwoDataType = ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID;
-                ChartTwoCartesianAxis* cartesianAxis = NULL;
-                attributeEvent->getCartesianAxisChanged(yokingGroup,
-                                                        chartTwoDataType,
-                                                        cartesianAxis);
-                
-                /*
-                 * Only tabs in the windows are valid
-                 */
-                EventBrowserTabGet tabEvent(m_tabIndex);
-                EventManager::get()->sendEvent(tabEvent.getPointer());
-                const BrowserTabContent* btc = tabEvent.getBrowserTab();
-                if (btc != NULL) {
-                    const YokingGroupEnum::Enum tabYoking = btc->getChartModelYokingGroup();
-                    
-                    if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
-                        && (yokingGroup == tabYoking)
-                        && (m_chartDataType == chartTwoDataType)) {
-                        CaretAssertToDoWarning();
-//                        switch (cartesianAxis->getAxisLocation()) {
-//                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-//                                *m_chartAxisBottom = *cartesianAxis;
-//                                break;
-//                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-//                                *m_chartAxisLeft = *cartesianAxis;
-//                                break;
-//                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-//                                *m_chartAxisRight = *cartesianAxis;
-//                                break;
-//                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-//                                *m_chartAxisTop = *cartesianAxis;
-//                                break;
-//                        }
-                    }
-                }
-            }
-                break;
-            case EventChartTwoAttributesChanged::Mode::LINE_THICKESS:
-            {
-                YokingGroupEnum::Enum yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
-                ChartTwoDataTypeEnum::Enum chartTwoDataType = ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID;
-                float lineThickness = 0.0f;
-                attributeEvent->getLineThicknessChanged(yokingGroup,
-                                                        chartTwoDataType,
-                                                        lineThickness);
-                
-                /*
-                 * Only tabs in the windows are valid
-                 */
-                EventBrowserTabGet tabEvent(m_tabIndex);
-                EventManager::get()->sendEvent(tabEvent.getPointer());
-                const BrowserTabContent* btc = tabEvent.getBrowserTab();
-                if (btc != NULL) {
-                    const YokingGroupEnum::Enum tabYoking = btc->getChartModelYokingGroup();
-                    
-                    if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
-                        && (yokingGroup == tabYoking)
-                        && (m_chartDataType == chartTwoDataType)) {
-                        m_axisLineThickness = lineThickness;
-                    }
-                }
-            }
-                break;
-            case EventChartTwoAttributesChanged::Mode::TITLE:
-            {
-                YokingGroupEnum::Enum yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
-                ChartTwoDataTypeEnum::Enum chartTwoDataType = ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID;
-                ChartTwoTitle* chartTitle = NULL;
-                attributeEvent->getTitleChanged(yokingGroup,
-                                                chartTwoDataType,
-                                                chartTitle);
-                
-                /*
-                 * Only tabs in the windows are valid
-                 */
-                EventBrowserTabGet tabEvent(m_tabIndex);
-                EventManager::get()->sendEvent(tabEvent.getPointer());
-                const BrowserTabContent* btc = tabEvent.getBrowserTab();
-                if (btc != NULL) {
-                    const YokingGroupEnum::Enum tabYoking = btc->getChartModelYokingGroup();
-                    
-                    if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
-                        && (yokingGroup == tabYoking)
-                        && (m_chartDataType == chartTwoDataType)) {
-                        *m_title = *chartTitle;
-                    }
-                }
-            }
-                break;
-        }
-        
-        attributeEvent->setEventProcessed();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE) {
+    if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE) {
         EventChartTwoAxisGetDataRange* rangeEvent = dynamic_cast<EventChartTwoAxisGetDataRange*>(event);
         CaretAssert(rangeEvent);
         

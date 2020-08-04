@@ -56,7 +56,6 @@ ChartTwoMatrixTriangularViewingModeEnum.h
 ChartTwoNumericSubdivisionsModeEnum.h
 ChartTwoLineSeriesHistory.h
 ChartTwoTitle.h
-EventChartTwoAttributesChanged.h
 EventChartTwoAxisGetDataRange.h
 EventChartTwoCartesianOrientedAxesYoking.h
 EventChartTwoLoadLineSeriesData.h
@@ -103,7 +102,6 @@ ChartTwoMatrixTriangularViewingModeEnum.cxx
 ChartTwoNumericSubdivisionsModeEnum.cxx
 ChartTwoLineSeriesHistory.cxx
 ChartTwoTitle.cxx
-EventChartTwoAttributesChanged.cxx
 EventChartTwoAxisGetDataRange.cxx
 EventChartTwoCartesianOrientedAxesYoking.cxx
 EventChartTwoLoadLineSeriesData.cxx
