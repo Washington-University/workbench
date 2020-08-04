@@ -88,6 +88,8 @@ namespace caret {
         
         virtual const ChartTwoOverlaySet* getChartTwoOverlaySet(const int tabIndex) const override;
         
+        std::vector<ChartTwoOverlaySet*> getAllChartTwoOverlaySets(const int32_t tabIndex) const;
+        
         virtual void receiveEvent(Event* event) override;
         
         void getValidChartTwoDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& validChartDataTypesOut) const;

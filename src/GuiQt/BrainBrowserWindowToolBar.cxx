@@ -2092,6 +2092,7 @@ BrainBrowserWindowToolBar::updateToolBar()
                             showChartTwoTitleWidget = true;
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                            showChartTwoAxesWidget = true;
                             showChartTwoOrientationWidget = true;
                             showChartTwoAttributesWidget  = true;
                             showChartTwoTitleWidget = true;
@@ -2157,7 +2158,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->chartAttributesWidget->setVisible(showChartOneAttributesWidget);
     this->chartTwoOrientationWidget->setVisible(showChartTwoOrientationWidget);
     this->chartTwoAttributesWidget->setVisible(showChartTwoAttributesWidget);
-    this->chartTwoOrientedAxesWidget->setVisible(chartTwoOrientedAxesWidget);
+    this->chartTwoOrientedAxesWidget->setVisible(showChartTwoAxesWidget);
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);

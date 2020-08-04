@@ -28,6 +28,7 @@
 #include "ChartScaleAutoRanging.h"
 #include "ChartTwoCartesianAxis.h"
 #include "EventChartTwoAxisGetDataRange.h"
+#include "EventChartTwoCartesianOrientedAxesYoking.h"
 #include "EventManager.h"
 #include "MathFunctions.h"
 #include "NumericTextFormatting.h"
@@ -76,18 +77,16 @@ m_orientationType(orientationType)
     
     m_sceneAssistant->add<ChartTwoAxisScaleRangeModeEnum,ChartTwoAxisScaleRangeModeEnum::Enum>("m_scaleRangeMode",
                                                                                                &m_scaleRangeMode);
+    m_sceneAssistant->add("m_userScaleMinimumValue",
+                          &m_userScaleMinimumValue);
+    m_sceneAssistant->add("m_userScaleMaximumValue",
+                          &m_userScaleMaximumValue);
     m_sceneAssistant->add("m_leftOrBottomAxis",
                           "ChartTwoCartesianAxis",
                           m_leftOrBottomAxis.get());
     m_sceneAssistant->add("m_rightOrTopAxis",
                           "ChartTwoCartesianAxis",
                           m_rightOrTopAxis.get());
-    m_sceneAssistant->add<ChartTwoAxisScaleRangeModeEnum,ChartTwoAxisScaleRangeModeEnum::Enum>("m_scaleRangeMode",
-                                                                                               &m_scaleRangeMode);
-    m_sceneAssistant->add("m_userScaleMinimumValue",
-                          &m_userScaleMinimumValue);
-    m_sceneAssistant->add("m_userScaleMaximumValue",
-                          &m_userScaleMaximumValue);
 }
 
 /**
@@ -223,15 +222,48 @@ ChartTwoCartesianOrientedAxes::getRightOrTopAxis() const
     return m_rightOrTopAxis.get();
 }
 
+void
+ChartTwoCartesianOrientedAxes::initializeScaleRangeMode(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode)
+{
+    m_scaleRangeMode = scaleRangeMode;
+}
+
 /**
- * Set Scale Range Mode
+ * Set Scale Range Mode when called from GUI
  *
  * @param scaleRangeMode
  *    New value for Scale Range Mode
  */
 void
-ChartTwoCartesianOrientedAxes::setScaleRangeMode(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode)
+ChartTwoCartesianOrientedAxes::setScaleRangeModeFromGUI(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode)
 {
+    /*
+     * If yoking is changing to yoking mode and was non-yoking mode
+     */
+    if (ChartTwoAxisScaleRangeModeEnum::isYokingRangeMode(scaleRangeMode)) {
+        if ( ! ChartTwoAxisScaleRangeModeEnum::isYokingRangeMode(m_scaleRangeMode)) {
+            /*
+             * See if any axes are yoked to the range (yoking) mode
+             */
+            std::vector<ChartTwoCartesianOrientedAxes*> yokedAxes = EventChartTwoCartesianOrientedAxesYoking::getYokedAxes(m_orientationType,
+                                                                                                                           scaleRangeMode);
+            
+            m_scaleRangeMode = scaleRangeMode;
+            
+            /*
+             * No other axes yoked, then set yoking min/max in the yoking manager
+             */
+            if (yokedAxes.empty()) {
+                /*
+                 * Since no axes yoked, initialize yoked range with "this" range
+                 */
+                EventChartTwoCartesianOrientedAxesYoking::setMinMaxValues(m_orientationType,
+                                                                          m_scaleRangeMode,
+                                                                          m_userScaleMinimumValue,
+                                                                          m_userScaleMaximumValue);
+            }
+        }
+    }
     m_scaleRangeMode = scaleRangeMode;
 }
 
@@ -263,6 +295,8 @@ ChartTwoCartesianOrientedAxes::getDataRange(float& minimumValueOut,
 float
 ChartTwoCartesianOrientedAxes::getUserScaleMinimumValue() const
 {
+    updateMinMaxValuesForYoking();
+    
     return m_userScaleMinimumValue;
 }
 
@@ -272,7 +306,29 @@ ChartTwoCartesianOrientedAxes::getUserScaleMinimumValue() const
 float
 ChartTwoCartesianOrientedAxes::getUserScaleMaximumValue() const
 {
+    updateMinMaxValuesForYoking();
+    
     return m_userScaleMaximumValue;
+}
+
+/**
+ * Update the minimum and maximum values if yoking is on
+ */
+void
+ChartTwoCartesianOrientedAxes::updateMinMaxValuesForYoking() const
+{
+    if (ChartTwoAxisScaleRangeModeEnum::isYokingRangeMode(m_scaleRangeMode)) {
+        /*
+         * When yoked, use min/max that is stored in the yoking manager
+         */
+        float minValue(0.0), maxValue(0.0);
+        EventChartTwoCartesianOrientedAxesYoking::getMinMaxValues(m_orientationType,
+                                                                  m_scaleRangeMode,
+                                                                  minValue,
+                                                                  maxValue);
+        m_userScaleMinimumValue = minValue;
+        m_userScaleMaximumValue = maxValue;
+    }
 }
 
 /**
@@ -281,9 +337,23 @@ ChartTwoCartesianOrientedAxes::getUserScaleMaximumValue() const
  *    New value for User scale's maximum value
  */
 void
-ChartTwoCartesianOrientedAxes::setUserScaleMaximumValue(const float userScaleMaximumValue)
+ChartTwoCartesianOrientedAxes::setUserScaleMaximumValueFromGUI(const float userScaleMaximumValue)
 {
+    if (ChartTwoAxisScaleRangeModeEnum::isYokingRangeMode(m_scaleRangeMode)) {
+        /*
+         * When yoked, min/max are stored in yoking manager
+         */
+        EventChartTwoCartesianOrientedAxesYoking::setMaximumValue(m_orientationType,
+                                                                  m_scaleRangeMode,
+                                                                  userScaleMaximumValue);
+        return;
+    }
+    
     m_userScaleMaximumValue = userScaleMaximumValue;
+    if (m_userScaleMaximumValue < m_userScaleMinimumValue) {
+        m_userScaleMinimumValue = m_userScaleMaximumValue;
+    }
+    updateRangeModeAfterMinimumOrMaximumChanged();
 }
 
 /**
@@ -292,10 +362,73 @@ ChartTwoCartesianOrientedAxes::setUserScaleMaximumValue(const float userScaleMax
  *    New value for User scale's minimum value
  */
 void
-ChartTwoCartesianOrientedAxes::setUserScaleMinimumValue(const float userScaleMinimumValue)
+ChartTwoCartesianOrientedAxes::setUserScaleMinimumValueFromGUI(const float userScaleMinimumValue)
 {
+    if (ChartTwoAxisScaleRangeModeEnum::isYokingRangeMode(m_scaleRangeMode)) {
+        /*
+         * When yoked, min/max are stored in yoking manager
+         */
+        EventChartTwoCartesianOrientedAxesYoking::setMinimumValue(m_orientationType,
+                                                                  m_scaleRangeMode,
+                                                                  userScaleMinimumValue);
+        return;
+    }
+    
     m_userScaleMinimumValue = userScaleMinimumValue;
+    if (m_userScaleMinimumValue > m_userScaleMaximumValue) {
+        m_userScaleMaximumValue = m_userScaleMinimumValue;
+    }
+    updateRangeModeAfterMinimumOrMaximumChanged();
 }
+
+/**
+ * Called to possibly change the range scale
+ */
+void
+ChartTwoCartesianOrientedAxes::updateRangeModeAfterMinimumOrMaximumChanged()
+{
+    switch (m_scaleRangeMode) {
+        case ChartTwoAxisScaleRangeModeEnum::AUTO:
+            m_scaleRangeMode = ChartTwoAxisScaleRangeModeEnum::USER;
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::DATA:
+            m_scaleRangeMode = ChartTwoAxisScaleRangeModeEnum::USER;
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::USER:
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_A:
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_B:
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_C:
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_D:
+            break;
+    }
+}
+
+/**
+ * Set the range mode and user scale from an old scene
+ * @param scaleRangeMode
+ *    Range mode
+ * @param minimumValue
+ *    Minimum user scale
+ * @param maximumValue
+ *    Maximum user scale
+ */
+void
+ChartTwoCartesianOrientedAxes::setRangeModeAndUserScaleFromVersionOneScene(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode,
+                                                                           const float userScaleMinimumValue,
+                                                                           const float userScaleMaximumValue)
+{
+    /*
+     * Note: version one did not have yoking
+     */
+    m_scaleRangeMode        = scaleRangeMode;
+    m_userScaleMinimumValue = userScaleMinimumValue;
+    m_userScaleMaximumValue = userScaleMaximumValue;
+}
+
 
 /**
  * Get a description of this object's content.
@@ -411,9 +544,6 @@ ChartTwoCartesianOrientedAxes::getAutoRangeMinimumAndMaximum(const float minimum
         stepValueOut = scaleStep;
         digitsRightOfDecimalOut   = digitsRightOfDecimal;
         
-        //m_rangeMinimumValue = minimumOut;
-        //m_rangeMaximumValue = maximumOut;
-        
         return true;
     }
     
@@ -476,24 +606,16 @@ ChartTwoCartesianOrientedAxes::getScaleValuesAndOffsets(const ChartTwoCartesianA
         case ChartTwoAxisScaleRangeModeEnum::DATA:
             break;
         case ChartTwoAxisScaleRangeModeEnum::USER:
-            switch (cartesianAxis->getAxisLocation()) {
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                    minimumValue = m_userScaleMinimumValue;
-                    maximumValue = m_userScaleMaximumValue;
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                    minimumValue = m_userScaleMinimumValue;
-                    maximumValue = m_userScaleMaximumValue;
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                    minimumValue = m_userScaleMinimumValue;
-                    maximumValue = m_userScaleMaximumValue;
-                    break;
-                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                    minimumValue = m_userScaleMinimumValue;
-                    maximumValue = m_userScaleMaximumValue;
-                    break;
-            }
+            minimumValue = m_userScaleMinimumValue;
+            maximumValue = m_userScaleMaximumValue;
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_A:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_B:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_C:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_D:
+            updateMinMaxValuesForYoking();
+            minimumValue = m_userScaleMinimumValue;
+            maximumValue = m_userScaleMaximumValue;
             break;
     }
     
@@ -527,6 +649,24 @@ ChartTwoCartesianOrientedAxes::getScaleValuesAndOffsets(const ChartTwoCartesianA
         }
             break;
         case ChartTwoAxisScaleRangeModeEnum::USER:
+        {
+            const double range = m_userScaleMaximumValue - m_userScaleMinimumValue;
+            if (range > 0.0) {
+                const int32_t numSteps = MathFunctions::round((labelsEnd - labelsStart) / labelsStep);
+                if (numSteps > 0) {
+                    labelsStart = m_userScaleMinimumValue;
+                    labelsEnd   = m_userScaleMaximumValue;
+                    labelsStep  = range / numSteps;
+                    m_userScaleMinimumValue = labelsStart;
+                    m_userScaleMaximumValue = labelsEnd;
+                }
+            }
+        }
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_A:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_B:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_C:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_D:
         {
             const double range = m_userScaleMaximumValue - m_userScaleMinimumValue;
             if (range > 0.0) {
@@ -657,9 +797,6 @@ ChartTwoCartesianOrientedAxes::getScaleValuesAndOffsets(const ChartTwoCartesianA
             const float labelPixelsPosition = axisLength * labelParametricValue;
             labelNumericValues.push_back(labelValueForText);
             scaleValuesOffsetInPixelsOut.push_back(labelPixelsPosition);
-        }
-        else {
-            //            std::cout << "Label value=" << labelValue << " parametric=" << labelParametricValue << " failed." << std::endl;
         }
         
         labelValue  += tickLabelsStep;

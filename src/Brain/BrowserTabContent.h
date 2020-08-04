@@ -25,6 +25,8 @@
 #include <set>
 
 #include "CaretObject.h"
+#include "ChartTwoAxisOrientationTypeEnum.h"
+#include "ChartTwoAxisScaleRangeModeEnum.h"
 #include "EventListenerInterface.h"
 #include "Model.h"
 #include "ModelTypeEnum.h"
@@ -48,6 +50,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class CaretDataFile;
     class CaretMappableDataFile;
+    class ChartTwoCartesianOrientedAxes;
     class ChartTwoMatrixDisplayProperties;
     class ChartTwoOverlaySet;
     class ClippingPlaneGroup;
@@ -103,6 +106,9 @@ namespace caret {
         ChartTwoOverlaySet* getChartTwoOverlaySet();
         
         const ChartTwoOverlaySet* getChartTwoOverlaySet() const;
+        
+        std::vector<ChartTwoCartesianOrientedAxes*> getYokedAxes(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientation,
+                                                                 const ChartTwoAxisScaleRangeModeEnum::Enum yokingRangeMode) const;
         
         int32_t getTabNumber() const;
         

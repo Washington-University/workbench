@@ -40,8 +40,15 @@ public:
         /** Scales to minimum and maximum of data */
         DATA,
         /** Scales to user-specified minimum and maximum */
-        /** */
-        USER
+        USER,
+        /** Yoke A */
+        YOKE_A,
+        /** Yoke B */
+        YOKE_B,
+        /** Yoke C */
+        YOKE_C,
+        /** Yoke D */
+        YOKE_D
     };
 
 
@@ -64,6 +71,8 @@ public:
     static void getAllNames(std::vector<AString>& allNames, const bool isSorted);
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
+
+    static bool isYokingRangeMode(const Enum enumValue);
 
 private:
     ChartTwoAxisScaleRangeModeEnum(const Enum enumValue, 

@@ -42,7 +42,6 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
-#include "EventChartTwoAttributesChanged.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "ModelChartTwo.h"
@@ -257,8 +256,16 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoA
     EnumComboBoxTemplate* rangeModeComboBox = new EnumComboBoxTemplate(this);
     rangeModeComboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
     rangeModeComboBox->setup<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>();
-    QObject::connect(rangeModeComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &BrainBrowserWindowToolBarChartTwoOrientedAxes::valueChanged);
+    switch (orientation) {
+        case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
+            QObject::connect(rangeModeComboBox, &EnumComboBoxTemplate::itemActivated,
+                             this, &BrainBrowserWindowToolBarChartTwoOrientedAxes::horizontalRangeModeChanged);
+            break;
+        case ChartTwoAxisOrientationTypeEnum::VERTICAL:
+            QObject::connect(rangeModeComboBox, &EnumComboBoxTemplate::itemActivated,
+                             this, &BrainBrowserWindowToolBarChartTwoOrientedAxes::verticalRangeModeChanged);
+            break;
+    }
     rangeModeComboBox->getWidget()->setToolTip(rangeTooltip);
     rangeModeComboBox->getWidget()->setObjectName(macroWidgetName
                                                   + "RangeMode");
@@ -316,6 +323,14 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoA
                            userMaximumValueSpinBox);
 }
 
+/**
+ * Create the axis editing widget
+ * @param axis
+ *   Axis for widget
+ * @param objectNamePrefix
+ *   Name for macros
+ * @return Tupe containing widgets.
+ */
 std::tuple<QCheckBox*, QToolButton*>
 BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxisEditing(const ChartAxisLocationEnum::Enum axis,
                                                                  const QString& objectNamePrefix)
@@ -683,39 +698,6 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::updateControls()
 void
 BrainBrowserWindowToolBarChartTwoOrientedAxes::valueChanged()
 {
-    ChartTwoOverlaySet* overlaySet(NULL);
-    ChartTwoCartesianOrientedAxes* horizontalAxis(NULL);
-    ChartTwoCartesianOrientedAxes* verticalAxis(NULL);
-    getSelectionData(overlaySet,
-                     horizontalAxis,
-                     verticalAxis);
-    
-    if (horizontalAxis != NULL) {
-        horizontalAxis->setScaleRangeMode(m_horizontalRangeModeComboBox->getSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>());
-        horizontalAxis->setUserScaleMinimumValue(m_horizontalUserMinimumValueSpinBox->value());
-        horizontalAxis->setUserScaleMaximumValue(m_horizontalUserMaximumValueSpinBox->value());
-    }
-
-    if (verticalAxis != NULL) {
-        verticalAxis->setScaleRangeMode(m_verticalRangeModeComboBox->getSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>());
-        verticalAxis->setUserScaleMinimumValue(m_verticalUserMinimumValueSpinBox->value());
-        verticalAxis->setUserScaleMaximumValue(m_verticalUserMaximumValueSpinBox->value());
-        
-
-        CaretAssertToDoWarning();  // yoking
-//        const YokingGroupEnum::Enum yokingGroup = tabContent->getChartModelYokingGroup();
-//        if (yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
-//            const ModelChartTwo* modelChartTwo = tabContent->getDisplayedChartTwoModel();
-//            CaretAssert(modelChartTwo);
-//            const int32_t tabIndex = tabContent->getTabNumber();
-//            EventChartTwoAttributesChanged attributesEvent;
-//            attributesEvent.setCartesianAxisChanged(yokingGroup,
-//                                                    modelChartTwo->getSelectedChartTwoDataType(tabIndex),
-//                                                    m_chartAxis);
-//            EventManager::get()->sendEvent(attributesEvent.getPointer());
-//        }
-    }
-
     updateGraphics();
     
     updateContent(getTabContentFromSelectedTab());
@@ -729,6 +711,45 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::updateGraphics()
 {
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
+/**
+ * Called when the horizontal range mode is changed
+ */
+void
+BrainBrowserWindowToolBarChartTwoOrientedAxes::horizontalRangeModeChanged()
+{
+    ChartTwoOverlaySet* overlaySet(NULL);
+    ChartTwoCartesianOrientedAxes* horizontalAxis(NULL);
+    ChartTwoCartesianOrientedAxes* verticalAxis(NULL);
+    getSelectionData(overlaySet,
+                     horizontalAxis,
+                     verticalAxis);
+    
+    if (horizontalAxis != NULL) {
+        horizontalAxis->setScaleRangeModeFromGUI(m_horizontalRangeModeComboBox->getSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>());
+        valueChanged();
+    }
+}
+
+/**
+ * Called when the vertical range mode is changed
+ */
+void
+BrainBrowserWindowToolBarChartTwoOrientedAxes::verticalRangeModeChanged()
+{
+    ChartTwoOverlaySet* overlaySet(NULL);
+    ChartTwoCartesianOrientedAxes* horizontalAxis(NULL);
+    ChartTwoCartesianOrientedAxes* verticalAxis(NULL);
+    getSelectionData(overlaySet,
+                     horizontalAxis,
+                     verticalAxis);
+    
+    if (verticalAxis != NULL) {
+        verticalAxis->setScaleRangeModeFromGUI(m_verticalRangeModeComboBox->getSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>());
+        valueChanged();
+    }
+}
+
 
 /**
  * Called when the minimum value is changed.
@@ -746,23 +767,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::horizontalAxisMinimumValueChanged
                      horizontalAxis,
                      verticalAxis);
     if (horizontalAxis != NULL) {
-        /*
-         * If the minimum or maximum value is modified by user,
-         * ensure Auto/User Range selection is USER
-         */
-        m_horizontalRangeModeComboBox->getWidget()->blockSignals(true);
-        m_horizontalRangeModeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(ChartTwoAxisScaleRangeModeEnum::USER);
-        m_horizontalRangeModeComboBox->getWidget()->blockSignals(false);
-
-        /*
-         * Ensure maximum value is always greater than or equal to minimum
-         */
-        if (minimumValue > m_horizontalUserMaximumValueSpinBox->value()) {
-            m_horizontalUserMaximumValueSpinBox->getWidget()->blockSignals(true);
-            m_horizontalUserMaximumValueSpinBox->setValue(minimumValue);
-            m_horizontalUserMaximumValueSpinBox->getWidget()->blockSignals(false);
-        }
-
+        horizontalAxis->setUserScaleMinimumValueFromGUI(minimumValue);
         valueChanged();
     }
 }
@@ -783,23 +788,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::horizontalAxisMaximumValueChanged
                      horizontalAxis,
                      verticalAxis);
     if (horizontalAxis != NULL) {
-        /*
-         * If the minimum or maximum value is modified by user,
-         * ensure Auto/User Range selection is USER
-         */
-        m_horizontalRangeModeComboBox->getWidget()->blockSignals(true);
-        m_horizontalRangeModeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(ChartTwoAxisScaleRangeModeEnum::USER);
-        m_horizontalRangeModeComboBox->getWidget()->blockSignals(false);
-
-        /*
-         * Ensure minimum value is always less than or equal to maximum
-         */
-        if (maximumValue < m_horizontalUserMinimumValueSpinBox->value()) {
-            m_horizontalUserMinimumValueSpinBox->getWidget()->blockSignals(true);
-            m_horizontalUserMinimumValueSpinBox->setValue(maximumValue);
-            m_horizontalUserMinimumValueSpinBox->getWidget()->blockSignals(false);
-        }
-
+        horizontalAxis->setUserScaleMaximumValueFromGUI(maximumValue);
         valueChanged();
     }
 }
@@ -820,23 +809,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::verticalAxisMinimumValueChanged(d
                      horizontalAxis,
                      verticalAxis);
     if (verticalAxis != NULL) {
-        /*
-         * If the minimum or maximum value is modified by user,
-         * ensure Auto/User Range selection is USER
-         */
-        m_verticalRangeModeComboBox->getWidget()->blockSignals(true);
-        m_verticalRangeModeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(ChartTwoAxisScaleRangeModeEnum::USER);
-        m_verticalRangeModeComboBox->getWidget()->blockSignals(false);
-        
-        /*
-         * Ensure maximum value is always greater than or equal to minimum
-         */
-        if (minimumValue > m_verticalUserMaximumValueSpinBox->value()) {
-            m_verticalUserMaximumValueSpinBox->getWidget()->blockSignals(true);
-            m_verticalUserMaximumValueSpinBox->setValue(minimumValue);
-            m_verticalUserMaximumValueSpinBox->getWidget()->blockSignals(false);
-        }
-        
+        verticalAxis->setUserScaleMinimumValueFromGUI(minimumValue);
         valueChanged();
     }
 }
@@ -857,23 +830,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::verticalAxisMaximumValueChanged(d
                      horizontalAxis,
                      verticalAxis);
     if (verticalAxis != NULL) {
-        /*
-         * If the minimum or maximum value is modified by user,
-         * ensure Auto/User Range selection is USER
-         */
-        m_verticalRangeModeComboBox->getWidget()->blockSignals(true);
-        m_verticalRangeModeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(ChartTwoAxisScaleRangeModeEnum::USER);
-        m_verticalRangeModeComboBox->getWidget()->blockSignals(false);
-        
-        /*
-         * Ensure minimum value is always less than or equal to maximum
-         */
-        if (maximumValue < m_verticalUserMinimumValueSpinBox->value()) {
-            m_verticalUserMinimumValueSpinBox->getWidget()->blockSignals(true);
-            m_verticalUserMinimumValueSpinBox->setValue(maximumValue);
-            m_verticalUserMinimumValueSpinBox->getWidget()->blockSignals(false);
-        }
-        
+        verticalAxis->setUserScaleMaximumValueFromGUI(maximumValue);
         valueChanged();
     }
 }

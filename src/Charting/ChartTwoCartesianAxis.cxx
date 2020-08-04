@@ -65,9 +65,7 @@ m_axisLocation(axisLocation)
      */
     CaretAssert(m_parentChartOverlaySet);
     
-    m_showTickmarks = true;
-    m_showLabel     = true;
-    
+    reset();
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_displayedByUser",
                           &m_displayedByUser);
@@ -173,7 +171,6 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     m_showTickmarks             = obj.m_showTickmarks;
     m_showLabel                 = obj.m_showLabel;    
     m_displayedByUser           = obj.m_displayedByUser;
-    limitUserScaleMinMaxToValidRange();
 }
 
 /*
@@ -254,25 +251,6 @@ ChartTwoCartesianAxis::getDataRange(float& rangeMinimumOut,
 }
 
 /**
- * Limit the user scale min/max values to be within the valid range.
- */
-void
-ChartTwoCartesianAxis::limitUserScaleMinMaxToValidRange()
-{
-//    float minimumValue = 0.0f;
-//    float maximumValue = 0.0f;
-//    getDataRange(minimumValue,
-//                 maximumValue);
-//    
-//    m_userScaleMinimumValue = MathFunctions::limitRange(m_userScaleMinimumValue,
-//                                                        minimumValue,
-//                                                        maximumValue);
-//    m_userScaleMaximumValue = MathFunctions::limitRange(m_userScaleMaximumValue,
-//                                                        minimumValue,
-//                                                        maximumValue);
-}
-
-/**
  * @return User's digits right of decimal point.
  */
 int32_t
@@ -335,15 +313,6 @@ ChartTwoCartesianAxis::setNumericSubdivsionsMode(const ChartTwoNumericSubdivisio
     m_numericSubdivsionsMode = numericSubdivsionsMode;
 }
 
-///**
-// * @return User scale's minimum value
-// */
-//float
-//ChartTwoCartesianAxis::getUserScaleMinimumValue() const
-//{
-//    return m_userScaleMinimumValue;
-//}
-
 /**
  * @return User scale's minimum value form scene
  */
@@ -352,15 +321,6 @@ ChartTwoCartesianAxis::getSceneUserScaleMinimumValue() const
 {
     return m_userScaleMinimumValue;
 }
-
-///**
-// * @return User scale's maximum value
-// */
-//float
-//ChartTwoCartesianAxis::getUserScaleMaximumValue() const
-//{
-//    return m_userScaleMaximumValue;
-//}
 
 /**
  * @return User scale's maximum value from scene
@@ -411,15 +371,6 @@ ChartTwoCartesianAxis::setShowLabel(const bool showLabel)
     m_showLabel = showLabel;
 }
 
-///**
-// * @return Scale Range Mode
-// */
-//ChartTwoAxisScaleRangeModeEnum::Enum
-//ChartTwoCartesianAxis::getScaleRangeMode() const
-//{
-//    return m_scaleRangeMode;
-//}
-
 /**
  * @return Scale Range Mode from Scene
  */
@@ -428,18 +379,6 @@ ChartTwoCartesianAxis::getSceneScaleRangeMode() const
 {
     return m_scaleRangeMode;
 }
-
-///**
-// * Set Scale Range Mode
-// *
-// * @param scaleRangeMode
-// *    New value for Scale Range Mode
-// */
-//void
-//ChartTwoCartesianAxis::setScaleRangeMode(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode)
-//{
-//    m_scaleRangeMode = scaleRangeMode;
-//}
 
 /**
  * @return Axis units
@@ -676,352 +615,16 @@ ChartTwoCartesianAxis::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
-    // may not be in older scenes
+    /* may not be in older scenes */
     m_displayedByUser       = true;
     m_numericsTextDisplayed = true;
     m_numericsTextRotated   = false;
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
-    if (getAxisLocation() == ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT) {
-        if (m_displayedByUser == false) {
-            std::cout << "Left AXIS OFF" << std::endl;
-        }
-    }
     
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
-    
 }
-
-///**
-// * Given the bounds of the data, determine the auto range minimum and maximum values.
-// *
-// * @param minimumValue
-// *     Minimum data value
-// * @param maximumValue
-// *     Maximum data value
-// * @param minimumOut
-// *     Output minimum value for autoranging.
-// * @param maximumOut
-// *     Output maximum value for autoranging.
-// * @param stepValueOut
-// *     Output step value for scale.
-// * @param digitsRightOfDecimalOut
-// *     Output with digits right of decimal.
-// * @return
-// *     True if output values are valid, else false.
-// */
-//bool
-//ChartTwoCartesianAxis::getAutoRangeMinimumAndMaximum(const float minimumValue,
-//                                                     const float maximumValue,
-//                                                     float& minimumOut,
-//                                                     float& maximumOut,
-//                                                     float& stepValueOut,
-//                                                     int32_t& digitsRightOfDecimalOut) const
-//{
-//    float minValue = minimumValue;
-//    float maxValue = maximumValue;
-//    
-//    if (maxValue > minValue) {
-//        double scaleStep = 0.0;
-//        double scaleMin  = 0.0;
-//        double scaleMax  = 0.0;
-//        int32_t digitsRightOfDecimal = 0;
-//        
-//        ChartScaleAutoRanging::createAutoScale(minValue,
-//                                               maxValue,
-//                                               scaleMin,
-//                                               scaleMax,
-//                                               scaleStep,
-//                                               digitsRightOfDecimal);
-//        minimumOut   = scaleMin;
-//        maximumOut   = scaleMax;
-//        stepValueOut = scaleStep;
-//        digitsRightOfDecimalOut   = digitsRightOfDecimal;
-//        
-//        //m_rangeMinimumValue = minimumOut;
-//        //m_rangeMaximumValue = maximumOut;
-//        
-//        return true;
-//    }
-//    
-//    return false;
-//}
-//
-///**
-// * Get the axis scale text values and their positions for drawing the scale.
-// *
-// * @param minimumDataValue
-// *     Minimum data value
-// * @param maximumDataValue
-// *     Maximum data value
-// * @param axisLength
-// *     Length of axis (no specific unit type is assumed)
-// * @param minimumOut
-// *     Output minimum value for autoranging.
-// * @param maximumOut
-// *     Output maximum value for autoranging.
-// * @param scaleValuesOffsetInPixelsOut
-// *     Output containing offset in pixels for the scale values.
-// * @param scaleValuesOut
-// *     Output containing text for scale values.
-// * @return
-// *     True if output data is valid, else false.
-// */
-//bool
-//ChartTwoCartesianAxis::getScaleValuesAndOffsets(const float minimumDataValue,
-//                                                const float maximumDataValue,
-//                                                const float axisLength,
-//                                                float& minimumOut,
-//                                                float& maximumOut,
-//                                                std::vector<float>& scaleValuesOffsetInPixelsOut,
-//                                                std::vector<AString>& scaleValuesOut) const
-//{
-//    float minimumValue = minimumDataValue;
-//    float maximumValue = maximumDataValue;
-//    
-//    minimumOut = 0.0;
-//    maximumOut = 0.0;
-//    scaleValuesOffsetInPixelsOut.clear();
-//    scaleValuesOut.clear();
-//    
-//    if (axisLength <= 0.0) {
-//        CaretAssert(0);
-//        return false;
-//    }
-//    
-//    float labelsStart = 0.0;
-//    float labelsEnd   = 0.0;
-//    float labelsStep  = 1.0;
-//    int32_t labelsDigitsRightOfDecimal = 0;
-//    
-//    switch (m_scaleRangeMode) {
-//        case ChartTwoAxisScaleRangeModeEnum::AUTO:
-//            break;
-//        case ChartTwoAxisScaleRangeModeEnum::DATA:
-//            break;
-//        case ChartTwoAxisScaleRangeModeEnum::USER:
-//            switch (m_axisLocation) {
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-//                    minimumValue = m_userScaleMinimumValue;
-//                    maximumValue = m_userScaleMaximumValue;
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-//                    minimumValue = m_userScaleMinimumValue;
-//                    maximumValue = m_userScaleMaximumValue;
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-//                    minimumValue = m_userScaleMinimumValue;
-//                    maximumValue = m_userScaleMaximumValue;
-//                    break;
-//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-//                    minimumValue = m_userScaleMinimumValue;
-//                    maximumValue = m_userScaleMaximumValue;
-//                    break;
-//            }
-//            break;
-//    }
-//
-//    if ( ! getAutoRangeMinimumAndMaximum(minimumValue,
-//                                         maximumValue,
-//                                         labelsStart,
-//                                         labelsEnd,
-//                                         labelsStep,
-//                                         labelsDigitsRightOfDecimal)) {
-//        return false;
-//    }
-//    
-//    switch (m_scaleRangeMode) {
-//        case ChartTwoAxisScaleRangeModeEnum::AUTO:
-//            m_userScaleMinimumValue = labelsStart;
-//            m_userScaleMaximumValue = labelsEnd;
-//            break;
-//        case ChartTwoAxisScaleRangeModeEnum::DATA:
-//        {
-//            const double range = maximumDataValue - minimumDataValue;
-//            if (range > 0.0) {
-//                const int32_t numSteps = MathFunctions::round((labelsEnd - labelsStart) / labelsStep);
-//                if (numSteps > 0) {
-//                    labelsStart = minimumDataValue;
-//                    labelsEnd   = maximumDataValue;
-//                    labelsStep  = range / numSteps;
-//                    m_userScaleMinimumValue = labelsStart;
-//                    m_userScaleMaximumValue = labelsEnd;
-//                }
-//            }
-//        }
-//            break;
-//        case ChartTwoAxisScaleRangeModeEnum::USER:
-////            labelsStart = m_userScaleMinimumValue;
-////            labelsEnd   = m_userScaleMaximumValue;
-//        {
-//            const double range = m_userScaleMaximumValue - m_userScaleMinimumValue;
-//            if (range > 0.0) {
-//                const int32_t numSteps = MathFunctions::round((labelsEnd - labelsStart) / labelsStep);
-//                if (numSteps > 0) {
-//                    labelsStart = m_userScaleMinimumValue;
-//                    labelsEnd   = m_userScaleMaximumValue;
-//                    labelsStep  = range / numSteps;
-//                    m_userScaleMinimumValue = labelsStart;
-//                    m_userScaleMaximumValue = labelsEnd;
-//                }
-//            }
-//        }
-//            break;
-//    }
-//    
-//    switch (m_numericSubdivsionsMode) {
-//        case ChartTwoNumericSubdivisionsModeEnum::AUTO:
-//            break;
-//        case ChartTwoNumericSubdivisionsModeEnum::USER:
-//        {
-//            const float labelsRange = labelsEnd - labelsStart;
-//            if (labelsRange <= 0.0) {
-//                return false;
-//            }
-//            const float dividend = (1.0 + m_userNumberOfSubdivisions);
-//            labelsStep = labelsRange / dividend;
-//        }
-//            break;
-//    }
-//    
-//    minimumOut = labelsStart;
-//    maximumOut = labelsEnd;
-//    
-//    /*
-//     * If the "labels end" or "labels start" value is not valid (infinity or not-a-number) there
-//     * are invalid values in the data and will cause the labels processing later
-//     * in this method to fail.  So, alert the user that there is a problem in
-//     * the data.
-//     *
-//     * A set is used to track those models for which the user has
-//     * already been alerted.  Otherwise, the alert message will be
-//     * displayed every time this method is called (which is many) and
-//     * the user will receive endless pop-ups.
-//     */
-//    if ( (! MathFunctions::isNumeric(labelsStart))
-//        || (! MathFunctions::isNumeric(labelsEnd))) {
-//        const AString msg("Invalid numbers (infinity or not-a-number) found when trying to create chart.  "
-//                          "Run \"wb_command -file-information\" on files being charted to find the file "
-//                          "that contains invalid data so that the file can be fixed.");
-//        CaretLogWarning(msg);
-//        return false;
-//    }
-//    
-//    float labelsRange = (labelsEnd - labelsStart);
-//    if (labelsRange <= 0.0) {
-//        return false;
-//    }
-//    
-//    const float tickLabelsStep = labelsStep;
-//    if (tickLabelsStep <= 0.0) {
-//        return false;
-//    }
-//    
-//    const float onePercentRange = labelsRange * 0.01f;
-//    
-//    std::vector<float> labelNumericValues;
-//    
-//    float labelValue  = labelsStart;
-//    while (labelValue <= labelsEnd) {
-//        float labelParametricValue = (labelValue - labelsStart) / labelsRange;
-//        
-//        float labelValueForText = labelValue;
-//        
-//        if (labelsRange >= 10.0) {
-//            /*
-//             * Is this the first label?
-//             */
-//            if (labelValue <= labelsStart) {
-//                /*
-//                 * Handles case when the minimum DATA value is just a little
-//                 * bit greater than the minimum value for axis labels such
-//                 * as in Data-Series data when the minimum data value is "1"
-//                 * and the minimum axis label value is "0".  Without this
-//                 * code no value is displayed at the left edge of the axis.
-//                 */
-//                if (labelParametricValue < 0.0) {
-//                    const float nextParametricValue = ((labelValue + tickLabelsStep) - labelsStart) / labelsRange;
-//                    if (nextParametricValue > 0.05) {
-//                        labelParametricValue = 0.0;
-//                        labelValueForText = labelsStart;
-//                    }
-//                }
-//            }
-//            
-//            if (labelParametricValue < 0.0) {
-//                if (labelParametricValue >= -0.01) {
-//                    labelParametricValue = 0.0;
-//                }
-//            }
-//            
-//            /*
-//             * Is this the last label?
-//             */
-//            if (labelValue >= labelsEnd) {
-//                /*
-//                 * Like above, ensures a value is displayed at the right
-//                 * edge of the axis.
-//                 */
-//                if (labelParametricValue > 1.0) {
-//                    const float prevParametricValue = ((labelValue - tickLabelsStep) - labelsStart) / labelsRange;
-//                    if (prevParametricValue < 0.95) {
-//                        labelParametricValue = 1.0;
-//                        labelValueForText = labelsEnd;
-//                    }
-//                }
-//            }
-//            
-//            if (labelParametricValue > 1.0) {
-//                if (labelParametricValue < 1.01) {
-//                    labelParametricValue = 1.0;
-//                }
-//            }
-//        }
-//        
-//        if ((labelParametricValue >= 0.0)
-//            && (labelParametricValue <= 1.0)) {
-//            const float labelPixelsPosition = axisLength * labelParametricValue;
-//            labelNumericValues.push_back(labelValueForText);
-//            scaleValuesOffsetInPixelsOut.push_back(labelPixelsPosition);
-//        }
-//        else {
-//            //            std::cout << "Label value=" << labelValue << " parametric=" << labelParametricValue << " failed." << std::endl;
-//        }
-//        
-//        labelValue  += tickLabelsStep;
-//        
-//        /*
-//         * It is possible that 'labelValue' may be slightly greater than 'labelsEnd'
-//         * for the last label which results in the last label not displayed.
-//         * So, if the 'labelValue' is slightly greater than 'labelsEnd', 
-//         * limit 'labelValue' so that the label at the end of the data range
-//         * is displayed.
-//         *
-//         * Example: labelValue = 73.9500046
-//         *          labelsEnd  = 73.9499969
-//         */
-//        if (labelValue > labelsEnd) {
-//            const float diff = labelValue - labelsEnd;
-//            if (diff < onePercentRange) {
-//                labelValue = labelsEnd;
-//            }
-//        }
-//    }
-//    
-//    const int32_t numValues = static_cast<int32_t>(labelNumericValues.size());
-//    if (numValues > 0) {
-//        scaleValuesOut.resize(numValues);
-//        NumericTextFormatting::formatValueRange(m_userNumericFormat,
-//                                                m_userDigitsRightOfDecimal,
-//                                                &labelNumericValues[0],
-//                                                &scaleValuesOut[0],
-//                                                labelNumericValues.size());
-//    }
-//    
-//    CaretAssert(scaleValuesOffsetInPixelsOut.size() == scaleValuesOut.size());
-//    return ( ! scaleValuesOut.empty());
-//}
 

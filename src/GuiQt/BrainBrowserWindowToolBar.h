@@ -163,7 +163,7 @@ namespace caret {
         void updateToolBox();
         void updateAllTabNames();
         void updateTabName(const int32_t tabIndex);
-        void emitViewModelChangedSignal(); // for use by friend classes
+        void emitViewModelChangedSignal(); /* for use by friend classes */
         
         QWidget* createViewWidget();
         QWidget* createOrientationWidget();

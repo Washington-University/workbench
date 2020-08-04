@@ -43,6 +43,7 @@
 #include "CaretPreferences.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartModelDataSeries.h"
+#include "ChartTwoCartesianOrientedAxes.h"
 #include "ChartTwoMatrixDisplayProperties.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
@@ -1055,6 +1056,42 @@ BrowserTabContent::getChartTwoOverlaySet() const
     CaretAssert(m_chartTwoModel);
     return m_chartTwoModel->getChartTwoOverlaySet(m_tabNumber);
 }
+
+/**
+ * Get all axes for chart two models (histogram, lines matrix) that are yoked with the given axes and range mode
+ * @param axisOrientation
+ *    The axes orientation
+ * @param yokingRangeMode
+ *    The yoking range mode
+ * @return Vector containing all chart axes for the given orientation yoked to the given yoking range mode
+ */
+std::vector<ChartTwoCartesianOrientedAxes*>
+BrowserTabContent::getYokedAxes(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientation,
+                                const ChartTwoAxisScaleRangeModeEnum::Enum yokingRangeMode) const
+{
+    std::vector<ChartTwoCartesianOrientedAxes*> axesOut;
+    
+    if (m_chartTwoModel != NULL) {
+        std::vector<ChartTwoOverlaySet*> overlaySets(m_chartTwoModel->getAllChartTwoOverlaySets(m_tabNumber));
+        for (auto os : overlaySets) {
+            switch (axisOrientation) {
+                case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
+                    if (os->getHorizontalAxes()->getScaleRangeMode() == yokingRangeMode) {
+                        axesOut.push_back(os->getHorizontalAxes());
+                    }
+                    break;
+                case ChartTwoAxisOrientationTypeEnum::VERTICAL:
+                    if (os->getVerticalAxes()->getScaleRangeMode() == yokingRangeMode) {
+                        axesOut.push_back(os->getVerticalAxes());
+                    }
+                    break;
+            }
+        }
+    }
+
+    return axesOut;
+}
+
 
 /**
  * @return Chart two matrix display properties.

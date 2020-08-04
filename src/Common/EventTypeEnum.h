@@ -130,6 +130,8 @@ public:
         EVENT_CHART_TWO_ATTRIBUTES_CHANGED,
         /** Get the range of data for a chart two axis */
         EVENT_CHART_TWO_AXIS_GET_DATA_RANGE,
+        /** Event for yoking of chart two cartesian oriented axes */
+        EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING,
         /** Load chart two line series data */
         EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA,
         /** Validate that chart two overlay is valid (it exists). */

@@ -50,6 +50,7 @@ namespace caret {
     class CaretDataFile;
     class CaretMappableDataFile;
     class CaretPreferences;
+    class ChartTwoCartesianOrientedAxesYokingManager;
     class ChartingDataManager;
     class ChartableLineSeriesBrainordinateInterface;
     class ChartableMatrixInterface;
@@ -808,6 +809,8 @@ namespace caret {
         ChartingDataManager* m_chartingDataManager;
         
         AnnotationManager* m_annotationManager;
+        
+        std::unique_ptr<ChartTwoCartesianOrientedAxesYokingManager> m_chartTwoCartesianAxesYokingManager;
         
         /** contains all display properties */
         std::vector<DisplayProperties*> m_displayProperties;

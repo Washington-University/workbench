@@ -110,6 +110,7 @@ ChartTwoAxisScaleRangeModeEnum::initialize()
     }
     initializedFlag = true;
 
+    const AString invalidOldName("");
     enumData.push_back(ChartTwoAxisScaleRangeModeEnum(AUTO,
                                                       "AUTO",
                                                       "Auto",
@@ -124,6 +125,26 @@ ChartTwoAxisScaleRangeModeEnum::initialize()
                                                       "USER",
                                                       "User",
                                                       "AXIS_DATA_RANGE_USER"));
+    
+    enumData.push_back(ChartTwoAxisScaleRangeModeEnum(YOKE_A,
+                                                      "YOKE_A",
+                                                      "Yoke A",
+                                                      invalidOldName));
+    
+    enumData.push_back(ChartTwoAxisScaleRangeModeEnum(YOKE_B,
+                                                      "YOKE_B",
+                                                      "Yoke B",
+                                                      invalidOldName));
+    
+    enumData.push_back(ChartTwoAxisScaleRangeModeEnum(YOKE_C,
+                                                      "YOKE_C",
+                                                      "Yoke C",
+                                                      invalidOldName));
+    
+    enumData.push_back(ChartTwoAxisScaleRangeModeEnum(YOKE_D,
+                                                      "YOKE_D",
+                                                      "Yoke D",
+                                                      invalidOldName));
     
 }
 
@@ -383,3 +404,27 @@ ChartTwoAxisScaleRangeModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames
     }
 }
 
+/**
+ * @return True if the given mode is a yoking range mode
+ * @param enumValue
+ *   The enumerated type value
+ */
+bool
+ChartTwoAxisScaleRangeModeEnum::isYokingRangeMode(const Enum enumValue)
+{
+    bool yokeFlag(false);
+    switch (enumValue) {
+        case ChartTwoAxisScaleRangeModeEnum::AUTO:
+        case ChartTwoAxisScaleRangeModeEnum::DATA:
+        case ChartTwoAxisScaleRangeModeEnum::USER:
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_A:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_B:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_C:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_D:
+            yokeFlag = true;
+            break;
+    }
+    
+    return yokeFlag;
+}

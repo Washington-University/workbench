@@ -262,6 +262,10 @@ EventTypeEnum::initialize()
                                      "EVENT_CHART_TWO_AXIS_GET_DATA_RANGE",
                                      "Get the range of data for a chart two axis"));
     
+    enumData.push_back(EventTypeEnum(EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING,
+                                     "EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING",
+                                     "Get/set/query chart two cartesian axes yoking"));
+
     enumData.push_back(EventTypeEnum(EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA,
                                      "EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA",
                                      "Load line series data for chart two implementation"));

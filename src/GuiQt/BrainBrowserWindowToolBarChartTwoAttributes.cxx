@@ -38,7 +38,6 @@
 #include "EnumComboBoxTemplate.h"
 #include "CaretMappableDataFile.h"
 #include "ChartTwoMatrixDisplayProperties.h"
-#include "EventChartTwoAttributesChanged.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"

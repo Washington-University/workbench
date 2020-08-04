@@ -66,6 +66,10 @@ namespace caret {
         
         void valueChangedInt(int);
         
+        void horizontalRangeModeChanged();
+        
+        void verticalRangeModeChanged();
+        
         void horizontalAxisMinimumValueChanged(double);
         
         void horizontalAxisMaximumValueChanged(double);

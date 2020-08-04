@@ -52,6 +52,7 @@
 #include "EventBrowserTabReopenClosed.h"
 #include "EventBrowserWindowContent.h"
 #include "EventCaretPreferencesGet.h"
+#include "EventChartTwoCartesianOrientedAxesYoking.h"
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
@@ -107,6 +108,7 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_PREFERENCES_GET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_ADD);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_GET_ALL);
@@ -479,6 +481,37 @@ SessionManager::receiveEvent(Event* event)
         
         preferencesEvent->setCaretPreferences(m_caretPreferences);
         preferencesEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING) {
+        EventChartTwoCartesianOrientedAxesYoking* axesEvent = dynamic_cast<EventChartTwoCartesianOrientedAxesYoking*>(event);
+        CaretAssert(axesEvent);
+        
+        switch (axesEvent->getMode()) {
+            case EventChartTwoCartesianOrientedAxesYoking::Mode::GET_MINIMUM_AND_MAXIMUM_VALUES:
+                break;
+            case EventChartTwoCartesianOrientedAxesYoking::Mode::GET_YOKED_AXES:
+            {
+                const ChartTwoAxisScaleRangeModeEnum::Enum rangeMode = axesEvent->getYokingRangeMode();
+                if (ChartTwoAxisScaleRangeModeEnum::isYokingRangeMode(rangeMode)) {
+                    std::vector<BrowserTabContent*> activeTabs = getActiveBrowserTabs();
+                    for (auto bt : activeTabs) {
+                        std::vector<ChartTwoCartesianOrientedAxes*> tabAxes = bt->getYokedAxes(axesEvent->getAxisOrientation(),
+                                                                                               axesEvent->getYokingRangeMode());
+                        for (auto axes : tabAxes) {
+                            axesEvent->addYokedAxes(axes);
+                        }
+                    }
+                    
+                    axesEvent->setEventProcessed();
+                }
+            }
+                break;
+            case EventChartTwoCartesianOrientedAxesYoking::Mode::SET_MINIMUM_VALUE:
+            case EventChartTwoCartesianOrientedAxesYoking::Mode::SET_MAXIMUM_VALUE:
+            case EventChartTwoCartesianOrientedAxesYoking::Mode::SET_MINIMUM_AND_MAXIMUM_VALUES:
+                /* Nothing */
+                break;
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_ADD) {
         EventModelAdd* addModelsEvent =

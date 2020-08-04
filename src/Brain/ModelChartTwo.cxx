@@ -1162,4 +1162,23 @@ ModelChartTwo::getChartTwoOverlaySet(const int tabIndex) const
     return chartOverlaySet;
 }
 
+/**
+ * @return All chart two overlay sets in this model for the given tab index
+ * @param tabIndex
+ *    Index of the tab
+ * @return vector containing the overlay sets
+ *
+ */
+std::vector<ChartTwoOverlaySet*>
+ModelChartTwo::getAllChartTwoOverlaySets(const int32_t tabIndex) const
+{
+    std::vector<ChartTwoOverlaySet*> overlaySets;
+    
+    overlaySets.push_back(m_histogramChartOverlaySetArray->getChartTwoOverlaySet(tabIndex));
+    overlaySets.push_back(m_lineLayerChartOverlaySetArray->getChartTwoOverlaySet(tabIndex));
+    overlaySets.push_back(m_lineSeriesChartOverlaySetArray->getChartTwoOverlaySet(tabIndex));
+    overlaySets.push_back(m_matrixChartOverlaySetArray->getChartTwoOverlaySet(tabIndex));
+
+    return overlaySets;
+}
 

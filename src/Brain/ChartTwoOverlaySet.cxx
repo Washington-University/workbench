@@ -114,7 +114,7 @@ m_tabIndex(tabIndex)
             /*
              * X-axis for line series shows full extent of data
              */
-            m_horizontalAxes->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
+            m_horizontalAxes->initializeScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
             chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
             chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
         }
@@ -127,7 +127,7 @@ m_tabIndex(tabIndex)
             /*
              * X-axis for line series shows full extent of data
              */
-            m_horizontalAxes->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
+            m_horizontalAxes->initializeScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
             chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
             chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
         }
@@ -139,8 +139,8 @@ m_tabIndex(tabIndex)
             /*
              * X- and Y-axis for line series shows full extent of data
              */
-            m_horizontalAxes->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
-            m_verticalAxes->setScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
+            m_horizontalAxes->initializeScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
+            m_verticalAxes->initializeScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
             chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
             chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
             break;
@@ -679,6 +679,7 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
                     if ((yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF)
                         && (yokingGroup == tabYoking)
                         && (m_chartDataType == chartTwoDataType)) {
+                        CaretAssertToDoWarning();
 //                        switch (cartesianAxis->getAxisLocation()) {
 //                            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
 //                                *m_chartAxisBottom = *cartesianAxis;
@@ -1502,16 +1503,59 @@ ChartTwoOverlaySet::updateRangeScaleFromVersionOneScene(const ChartTwoAxisOrient
         }
     }
     
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            /*
+             * Use 'data' for range for matrices in version one scenes
+             */
+            rangeMode = ChartTwoAxisScaleRangeModeEnum::DATA;
+            break;
+    }
+    
     switch (axisOrientationType) {
         case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
-            m_horizontalAxes->setScaleRangeMode(rangeMode);
-            m_horizontalAxes->setUserScaleMinimumValue(minRange);
-            m_horizontalAxes->setUserScaleMaximumValue(maxRange);
+            m_horizontalAxes->setRangeModeAndUserScaleFromVersionOneScene(rangeMode,
+                                                                          minRange,
+                                                                          maxRange);
             break;
         case ChartTwoAxisOrientationTypeEnum::VERTICAL:
-            m_verticalAxes->setScaleRangeMode(rangeMode);
-            m_verticalAxes->setUserScaleMinimumValue(minRange);
-            m_verticalAxes->setUserScaleMaximumValue(maxRange);
+            m_verticalAxes->setRangeModeAndUserScaleFromVersionOneScene(rangeMode,
+                                                                          minRange,
+                                                                          maxRange);
+            break;
+    }
+    
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            /*
+             * Version one matrices did not have axes
+             */
+            switch (axisOrientationType) {
+                case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
+                    m_horizontalAxes->getLeftOrBottomAxis()->setDisplayedByUser(false);
+                    m_horizontalAxes->getRightOrTopAxis()->setDisplayedByUser(false);
+                    break;
+                case ChartTwoAxisOrientationTypeEnum::VERTICAL:
+                    m_verticalAxes->getLeftOrBottomAxis()->setDisplayedByUser(false);
+                    m_verticalAxes->getRightOrTopAxis()->setDisplayedByUser(false);
+                    break;
+            }
             break;
     }
 }
@@ -1536,12 +1580,12 @@ ChartTwoOverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     m_title->reset();
-    
-    m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);    
-    
     m_verticalAxes->reset();
     m_horizontalAxes->reset();
+    
+
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);    
     
     CaretAssertToDoWarning();
     

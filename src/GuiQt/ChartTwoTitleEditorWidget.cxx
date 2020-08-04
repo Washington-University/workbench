@@ -37,7 +37,6 @@
 #include "CaretAssert.h"
 #include "ChartTwoOverlaySet.h"
 #include "ChartTwoTitle.h"
-#include "EventChartTwoAttributesChanged.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "ModelChartTwo.h"

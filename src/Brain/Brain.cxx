@@ -38,6 +38,7 @@
 #include "CaretDataFileHelper.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "ChartTwoCartesianOrientedAxesYokingManager.h"
 #include "ChartingDataManager.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileMatrixChart.h"
@@ -140,9 +141,9 @@ using namespace caret;
 Brain::Brain(CaretPreferences* caretPreferences)
 {
     m_annotationManager = new AnnotationManager(this);
-    
     m_chartingDataManager = new ChartingDataManager(this);
     m_fiberOrientationSamplesLoader = new FiberOrientationSamplesLoader();
+    m_chartTwoCartesianAxesYokingManager.reset(new ChartTwoCartesianOrientedAxesYokingManager());
     
     m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(convertFilePathNameToAbsolutePathName(m_paletteFile->getFileName()));
@@ -264,6 +265,9 @@ Brain::Brain(CaretPreferences* caretPreferences)
                           m_gapsAndMargins);
     m_sceneAssistant->add("m_surfaceMatchingToAnatomicalFlag",
                           &m_surfaceMatchingToAnatomicalFlag);
+    m_sceneAssistant->add("m_chartTwoCartesianAxesYokingManager",
+                          "ChartTwoCartesianOrientedAxesYokingManager",
+                          m_chartTwoCartesianAxesYokingManager.get());
     
     m_selectionManager = new SelectionManager();
 
@@ -467,9 +471,6 @@ Brain::getDuplicateFileNameCounterForFileType(const DataFileTypeEnum::Enum dataF
 
     m_duplicateFileNameCounter[dataFileType] = counterValue;
     
-//    m_duplicateFileNameCounter.insert(std::make_pair(dataFileType,
-//                                                     counterValue));
-    
     return counterValue;
 }
 
@@ -549,7 +550,6 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_annotationSubstitutionFiles.clear();
     
     m_sceneAnnotationFile->clear();
-    //m_sceneAnnotationFile->setFileName("Scene Annotations");
     m_sceneAnnotationFile->clearModified();
     
     for (std::vector<BorderFile*>::iterator bfi = m_borderFiles.begin();
@@ -6515,21 +6515,6 @@ Brain::getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType
     
     getAllDataFilesWithDataFileTypes(dataFileTypes,
                                      caretDataFilesOut);
-
-//    caretDataFilesOut.clear();
-//    
-//    std::vector<CaretDataFile*> allDataFiles;
-//    getAllDataFiles(allDataFiles,
-//                    true);
-//    
-//    for (std::vector<CaretDataFile*>::iterator iter = allDataFiles.begin();
-//         iter != allDataFiles.end();
-//         iter++) {
-//        CaretDataFile* cdf = *iter;
-//        if (cdf->getDataFileType() == dataFileType) {
-//            caretDataFilesOut.push_back(cdf);
-//        }
-//    }
 }
 
 
@@ -6585,10 +6570,6 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityMatrixDenseFiles.begin(),
                            m_connectivityMatrixDenseFiles.end());
     
-//    allDataFilesOut.insert(allDataFilesOut.end(),
-//                           m_connectivityDataSeriesFiles.begin(),
-//                           m_connectivityDataSeriesFiles.end());
-    
     /*
      * By placing the dynamic connectivity file immediately after
      * its parent data-series file, they will appear in this
@@ -6608,12 +6589,6 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
         }
     }
 
-//    std::vector<CiftiConnectivityMatrixDenseDynamicFile*> denseDynFiles;
-//    getConnectivityMatrixDenseDynamicFiles(denseDynFiles);
-//    allDataFilesOut.insert(allDataFilesOut.end(),
-//                           denseDynFiles.begin(),
-//                           denseDynFiles.end());
-    
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityDenseLabelFiles.begin(),
                            m_connectivityDenseLabelFiles.end());
@@ -6736,48 +6711,6 @@ Brain::getAllModifiedFiles(const std::vector<DataFileTypeEnum::Enum>& excludeThe
         }
     }
 }
-
-
-///**
-// * Are any data files modified (including spec file)?
-// * @param excludeTheseDataTypes
-// *    Do not check the modification status of any data files whose
-// *    data type is contained in this parameter.
-// */
-//bool
-//Brain::areFilesModified(const std::vector<DataFileTypeEnum::Enum>& excludeTheseDataTypes)
-//{
-//    if (std::find(excludeTheseDataTypes.begin(),
-//                  excludeTheseDataTypes.end(),
-//                  DataFileTypeEnum::SPECIFICATION) == excludeTheseDataTypes.end()) {
-//        if (m_specFile->isModified()) {
-//            return true;
-//        }
-//    }
-//    
-//    std::vector<CaretDataFile*> dataFiles;
-//    getAllDataFiles(dataFiles);
-//    
-//    for (std::vector<CaretDataFile*>::iterator iter = dataFiles.begin();
-//         iter != dataFiles.end();
-//         iter++) {
-//        CaretDataFile* cdf = *iter;
-//        
-//        /**
-//         * Ignore files whose data type is excluded.
-//         */
-//        if (std::find(excludeTheseDataTypes.begin(),
-//                      excludeTheseDataTypes.end(),
-//                      cdf->getDataFileType()) == excludeTheseDataTypes.end()) {
-//            if (cdf->isModified()) {
-//                return true;
-//            }
-//        }
-//    }
-//    
-//    return false;
-//}
-
 
 /**
  * Write a data file.
@@ -7666,8 +7599,6 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                         bestMatchingSceneClass = const_cast<SceneClass*>(fileSceneClass);
                         bestMatchingCount      = matchCount;
                     }
-//                    caretDataFile->restoreFromScene(sceneAttributes,
-//                                                    fileSceneClass);
                 }
             }
             

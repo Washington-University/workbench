@@ -52,18 +52,24 @@ namespace caret {
 
         ChartTwoAxisScaleRangeModeEnum::Enum getScaleRangeMode() const;
         
-        void setScaleRangeMode(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode);
+        void initializeScaleRangeMode(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode);
+        
+        void setScaleRangeModeFromGUI(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode);
         
         void getDataRange(float& minimumValueOut,
                           float& maximumValueOut) const;
         
         float getUserScaleMinimumValue() const;
         
-        void setUserScaleMinimumValue(const float value);
+        void setUserScaleMinimumValueFromGUI(const float value);
         
         float getUserScaleMaximumValue() const;
         
-        void setUserScaleMaximumValue(const float value);
+        void setUserScaleMaximumValueFromGUI(const float value);
+        
+        void setRangeModeAndUserScaleFromVersionOneScene(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode,
+                                                         const float userScaleMinimumValue,
+                                                         const float userScaleMaximumValue);
         
         void copyAxes(const ChartTwoCartesianOrientedAxes* axes);
         
@@ -120,6 +126,10 @@ namespace caret {
                                            float& maximumOut,
                                            float& stepValueOut,
                                            int32_t& digitsRightOfDecimalOut) const;
+        
+        void updateRangeModeAfterMinimumOrMaximumChanged();
+        
+        void updateMinMaxValuesForYoking() const;
         
         const ChartTwoOverlaySet* m_parentChartOverlaySet;
         

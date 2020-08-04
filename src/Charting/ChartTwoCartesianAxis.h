@@ -25,9 +25,9 @@
 
 #include "CaretObject.h"
 #include "ChartAxisLocationEnum.h"
-#include "CaretUnitsTypeEnum.h"
 #include "ChartTwoAxisScaleRangeModeEnum.h"
 #include "ChartTwoNumericSubdivisionsModeEnum.h"
+#include "CaretUnitsTypeEnum.h"
 #include "NumericFormatModeEnum.h"
 #include "SceneableInterface.h"
 
@@ -59,27 +59,15 @@ namespace caret {
         void getDataRange(float& rangeMinimumOut,
                           float& rangeMaximumOut) const;
         
-//        float getUserScaleMinimumValue() const;
-        
         float getSceneUserScaleMinimumValue() const;
-        
-//        void setUserScaleMinimumValue(const float value);
-        
-//        float getUserScaleMaximumValue() const;
         
         float getSceneUserScaleMaximumValue() const;
         
-//        void setUserScaleMaximumValue(const float value);
-
         int32_t getUserDigitsRightOfDecimal() const;
         
         void setUserDigitsRightOfDecimal(const int32_t digitsRightOfDecimal);
         
-//        ChartTwoAxisScaleRangeModeEnum::Enum getScaleRangeMode() const;
-        
         ChartTwoAxisScaleRangeModeEnum::Enum getSceneScaleRangeMode() const;
-        
-//        void setScaleRangeMode(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode);
         
         CaretUnitsTypeEnum::Enum getUnits() const;
         
@@ -125,14 +113,6 @@ namespace caret {
         
         void setPaddingSize(const float paddingSize);
         
-//        bool getScaleValuesAndOffsets(const float minimumDataValue,
-//                                      const float maximumDataValue,
-//                                      const float axisLength,
-//                                      float& minimumOut,
-//                                      float& maximumOut,
-//                                      std::vector<float>& scaleValuesOffsetInPixelsOut,
-//                                      std::vector<AString>& scaleValuesOut) const;
-        
         int32_t getLabelOverlayIndex(const int32_t maximumNumberOfOverlays) const;
         
         void setLabelOverlayIndex(const int32_t labelOverlayIndex);
@@ -147,11 +127,6 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
 
-          
-          
-          
-          
-          
 // If there will be sub-classes of this class that need to save
 // and restore data from scenes, these pure virtual methods can
 // be uncommented to force their implementation by sub-classes.
@@ -165,15 +140,6 @@ namespace caret {
     private:
         void copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAxis& obj);
 
-//        bool getAutoRangeMinimumAndMaximum(const float minimumValue,
-//                                           const float maximumValue,
-//                                           float& minimumOut,
-//                                           float& maximumOut,
-//                                           float& stepValueOut,
-//                                           int32_t& digitsRightOfDecimalOut) const;
-
-        void limitUserScaleMinMaxToValidRange();
-        
         const ChartTwoOverlaySet* m_parentChartOverlaySet;
         
         const ChartAxisLocationEnum::Enum m_axisLocation;
