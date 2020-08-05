@@ -164,10 +164,11 @@ namespace caret {
                                                               const bool showWaitCursor);
 
         static bool displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
-                                                 Scene* scene,
-                                                 const bool showWaitCursor,
-                                                 AString& errorMessageOut);
-        
+                                                        Scene* scene,
+                                                        const bool showWaitCursor,
+                                                        AString& errorMessageOut,
+                                                        AString& warningMessageOut);
+
         bool displayNewSceneWarning();
         
         void enableSceneMoveUpAndDownButtons();

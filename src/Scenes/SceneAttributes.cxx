@@ -23,6 +23,8 @@
 #include "SceneAttributes.h"
 #undef __SCENE_ATTRIBUTES_DECLARE__
 
+#include "CaretAssert.h"
+
 using namespace caret;
 
 
@@ -368,6 +370,39 @@ void
 SceneAttributes::setUseSceneForegroundAndBackgroundColors(const bool status)
 {
     m_useSceneForgroundAndBackgroundColorsFlag = status;
+}
+
+/**
+ * Set a scene restore warning code.  This may occur when there is an incompatibiity with older scenes that can be detected.
+ * @param warningCode
+ *    The warning code.
+ */
+void
+SceneAttributes::setSceneRestoreWarningCode(const SceneRestoreWarningCodesEnum::Enum warningCode) const
+{
+    m_sceneWarningCodes.insert(warningCode);
+}
+
+/**
+ * @return A message descrbing any warning encountered while loading a scene.  Empty if no warnings.
+ */
+AString
+SceneAttributes::getSceneLoadWarningMessage() const
+{
+    AString loadMessage;
+    
+    for (auto swc : m_sceneWarningCodes) {
+        loadMessage.appendWithNewLine("");
+        loadMessage.appendWithNewLine(SceneRestoreWarningCodesEnum::toDescriptiveMessage(swc));
+    }
+    if ( ! loadMessage.isEmpty()) {
+        loadMessage.appendWithNewLine("");
+        loadMessage.appendWithNewLine("Compare the Scene Preview Image to contents of main window to find differences.");
+        loadMessage.appendWithNewLine("");
+        loadMessage.appendWithNewLine("Warnings are produced for any active tabs including those not visible (tile tabs off).");
+    }
+    
+    return loadMessage;
 }
 
 

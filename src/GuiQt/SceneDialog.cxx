@@ -1317,6 +1317,7 @@ SceneDialog::replaceAllScenesPushButtonClicked()
     const int IMAGE_DISPLAY_WIDTH = 400;
     std::vector<AString> sceneNames;
     std::vector<AString> sceneErrors;
+    std::vector<AString> sceneWarnings;
     std::vector<QImage> oldImages;
     std::vector<QImage> newImages;
     
@@ -1364,10 +1365,12 @@ SceneDialog::replaceAllScenesPushButtonClicked()
              * Display the scene
              */
             AString errorMessage;
+            AString warningMessage;
             SceneDialog::displayScenePrivateWithErrorMessage(sceneFile,
                                                               origScene,
                                                               false,
-                                                              errorMessage);
+                                                              errorMessage,
+                                                             warningMessage);
             sceneNames.push_back(origScene->getName());
             
             /*
@@ -1451,6 +1454,7 @@ SceneDialog::replaceAllScenesPushButtonClicked()
                 newImages.push_back(QImage());
             }
             sceneErrors.push_back(errorMessage);
+            sceneWarnings.push_back(warningMessage);
         }
     }
     
@@ -1460,6 +1464,7 @@ SceneDialog::replaceAllScenesPushButtonClicked()
     CaretAssert(sceneNames.size() == sceneErrors.size());
     CaretAssert(sceneNames.size() == oldImages.size());
     CaretAssert(sceneNames.size() == newImages.size());
+    CaretAssert(sceneNames.size() == sceneWarnings.size());
     
     showNormalCursor();
     
@@ -1500,7 +1505,14 @@ SceneDialog::replaceAllScenesPushButtonClicked()
             gridLayout->addWidget(errorLabel,
                                   row, 1, Qt::AlignLeft);
         }
+        row++;
         
+        if ( ! sceneWarnings[i].isEmpty()) {
+            QLabel* warningLabel = new QLabel("Scene Warnings: " + sceneWarnings[i]);
+            warningLabel->setWordWrap(true);
+            gridLayout->addWidget(warningLabel,
+                                  row, 1, Qt::AlignLeft);
+        }
         row++;
         
         const QSizePolicy::Policy imageSizePolicy = QSizePolicy::Preferred;
@@ -1629,6 +1641,7 @@ SceneDialog::testScenesPushButtonClicked()
     
     std::vector<AString> sceneNames;
     std::vector<AString> sceneErrors;
+    std::vector<AString> sceneWarnings;
     std::vector<QImage> sceneImages;
     std::vector<QImage> newImages;
     
@@ -1657,10 +1670,12 @@ SceneDialog::testScenesPushButtonClicked()
             }
             
             AString errorMessage;
+            AString warningMessage;
             SceneDialog::displayScenePrivateWithErrorMessage(sceneFile,
                                                              origScene,
                                                              false,
-                                                             errorMessage);
+                                                             errorMessage,
+                                                             warningMessage);
             /*
              * Set the active scene
              */
@@ -1705,6 +1720,7 @@ SceneDialog::testScenesPushButtonClicked()
             }
             
             sceneErrors.push_back(errorMessage);
+            sceneWarnings.push_back(warningMessage);
         }
     }
     
@@ -1714,6 +1730,7 @@ SceneDialog::testScenesPushButtonClicked()
     CaretAssert(sceneNames.size() == sceneImages.size());
     CaretAssert(sceneNames.size() == sceneErrors.size());
     CaretAssert(sceneNames.size() == newImages.size());
+    CaretAssert(sceneNames.size() == sceneWarnings.size());
     
     showNormalCursor();
     
@@ -1751,6 +1768,14 @@ SceneDialog::testScenesPushButtonClicked()
             row = gridLayout->rowCount();
         }
         
+        if ( ! sceneWarnings[i].isEmpty()) {
+            QLabel* warningLabel = new QLabel("Scene Warnings: " + sceneWarnings[i]);
+            warningLabel->setWordWrap(true);
+            gridLayout->addWidget(warningLabel,
+                                  row, 0, 1, 2, Qt::AlignLeft);
+            
+            row = gridLayout->rowCount();
+        }
         const QSizePolicy::Policy imageSizePolicy = QSizePolicy::Preferred;
         
         QLabel* sceneImageLabel = new QLabel("Image Invalid");
@@ -2670,14 +2695,16 @@ SceneDialog::displayScenePrivateWithErrorMessageDialog(QWidget* dialogParent,
 {
     CaretAssert(scene);
     AString errorMessage;
+    AString warningMessage;
     
     ElapsedTimer et;
     et.start();
     
     const bool successFlag = displayScenePrivateWithErrorMessage(sceneFile,
-                                                 scene,
-                                                 showWaitCursor,
-                                                 errorMessage);
+                                                                 scene,
+                                                                 showWaitCursor,
+                                                                 errorMessage,
+                                                                 warningMessage);
     AString msg = (AString::number(et.getElapsedTimeSeconds())
                    + " seconds to read Scene "
                    + scene->getName());
@@ -2688,6 +2715,17 @@ SceneDialog::displayScenePrivateWithErrorMessageDialog(QWidget* dialogParent,
                                            ("Error reading scene: "
                                             + scene->getName()),
                                            errorMessage);
+    }
+    
+    if ( ! warningMessage.isEmpty()) {
+        warningMessage.replace("\n", "<br>");
+        warningMessage.insert(0, "<html><body>");
+        warningMessage.append("</body></html>");
+        WuQTextEditorDialog::runNonModal("Scene Warnings",
+                                         warningMessage,
+                                         WuQTextEditorDialog::TextMode::HTML,
+                                         WuQTextEditorDialog::WrapMode::YES,
+                                         dialogParent);
     }
     
     EventManager::get()->sendEvent(EventShowDataFileReadWarningsDialog().getPointer());
@@ -2705,6 +2743,8 @@ SceneDialog::displayScenePrivateWithErrorMessageDialog(QWidget* dialogParent,
  *     Show a wait cursor while loading scene
  * @param errorMessageOut
  *     Contains error information if scene fails to load.
+ * @param warningMessageOut
+ *     Contains non-fatal warnings encountered while loading scene
  * @return
  *     true if scene was displayed without error, else false.
  */
@@ -2712,12 +2752,14 @@ bool
 SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
                                                  Scene* scene,
                                                  const bool showWaitCursor,
-                                                 AString& errorMessageOut)
+                                                 AString& errorMessageOut,
+                                                 AString& warningMessageOut)
 {
     CaretAssert(sceneFile);
     CaretAssert(scene);
     
     errorMessageOut.clear();
+    warningMessageOut.clear();
     
     const AString sceneFileName = sceneFile->getFileName();
     
@@ -2776,6 +2818,8 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
     }
     
     SceneClass::setDebugLoggingEnabled(false);
+    
+    warningMessageOut = sceneAttributes->getSceneLoadWarningMessage();
     
     cursor.restoreCursor();
     

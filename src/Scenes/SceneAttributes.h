@@ -21,8 +21,10 @@
  */
 /*LICENSE_END*/
 
+#include <set>
 
 #include "CaretObject.h"
+#include "SceneRestoreWarningCodesEnum.h"
 #include "SceneTypeEnum.h"
 
 namespace caret {
@@ -94,6 +96,10 @@ namespace caret {
         
         void setUseSceneForegroundAndBackgroundColors(const bool status);
         
+        void setSceneRestoreWarningCode(const SceneRestoreWarningCodesEnum::Enum warningCode) const;
+        
+        AString getSceneLoadWarningMessage() const;
+        
     private:
         SceneAttributes& operator=(const SceneAttributes&);
         
@@ -126,6 +132,8 @@ namespace caret {
         bool m_useSceneForgroundAndBackgroundColorsFlag;
         
         mutable AString m_errorMessage;
+        
+        mutable std::set<SceneRestoreWarningCodesEnum::Enum> m_sceneWarningCodes;
         
         // ADD_NEW_MEMBERS_HERE
 

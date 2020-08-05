@@ -64,6 +64,7 @@ ScenePathName.h
 ScenePathNameArray.h
 ScenePrimitive.h
 ScenePrimitiveArray.h
+SceneRestoreWarningCodesEnum.h
 SceneSaxReader.h
 SceneString.h
 SceneStringArray.h
@@ -109,6 +110,7 @@ ScenePathName.cxx
 ScenePathNameArray.cxx
 ScenePrimitive.cxx
 ScenePrimitiveArray.cxx
+SceneRestoreWarningCodesEnum.cxx
 SceneSaxReader.cxx
 SceneString.cxx
 SceneStringArray.cxx
