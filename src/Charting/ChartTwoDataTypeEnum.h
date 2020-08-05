@@ -58,6 +58,8 @@ public:
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     
+    static AString toToolTipText(const Enum enumValue);
+    
     static int32_t toIntegerCode(Enum enumValue);
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
@@ -72,8 +74,9 @@ public:
     
 private:
     ChartTwoDataTypeEnum(const Enum enumValue, 
-                 const AString& name,
-                 const AString& guiName);
+                         const AString& name,
+                         const AString& guiName,
+                         const AString& toolTipText);
 
     static const ChartTwoDataTypeEnum* findData(const Enum enumValue);
 
@@ -100,6 +103,8 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    AString toolTipText;
 };
 
 #ifdef __CHART_TWO_DATA_TYPE_ENUM_DECLARE__

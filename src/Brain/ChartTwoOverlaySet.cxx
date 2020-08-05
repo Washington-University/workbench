@@ -1480,8 +1480,6 @@ ChartTwoOverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
-    CaretAssertToDoWarning();
-    
     if (sceneClass->getVersionNumber() >= 2) {
     }
     else {

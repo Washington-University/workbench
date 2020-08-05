@@ -399,7 +399,7 @@ SceneAttributes::getSceneLoadWarningMessage() const
         loadMessage.appendWithNewLine("");
         loadMessage.appendWithNewLine("Compare the Scene Preview Image to contents of main window to find differences.");
         loadMessage.appendWithNewLine("");
-        loadMessage.appendWithNewLine("Warnings are produced for any active tabs including those not visible (tile tabs off).");
+        loadMessage.appendWithNewLine("Note: Warnings are produced for all tabs including those not visible (tile tabs off).");
     }
     
     return loadMessage;

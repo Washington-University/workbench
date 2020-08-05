@@ -73,8 +73,7 @@ m_parentToolBar(parentToolBar)
         QRadioButton* rb = new QRadioButton(ChartTwoDataTypeEnum::toGuiName(ct));
         m_chartTypeButtonGroup->addButton(rb,
                                           m_chartTypeRadioButtons.size());
-        rb->setToolTip("Set chart to "
-                       + rb->text());
+        rb->setToolTip(ChartTwoDataTypeEnum::toToolTipText(ct));
         
         QString chartTypeName = rb->text();
         chartTypeName = chartTypeName.replace(" ", "");

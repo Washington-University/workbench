@@ -77,15 +77,19 @@ using namespace caret;
  *
  * @param guiName
  *    User-friendly name for use in user-interface.
+ * @param toolTipText
+ *    Text for tooltip
  */
 ChartTwoDataTypeEnum::ChartTwoDataTypeEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+                                           const AString& name,
+                                           const AString& guiName,
+                                           const AString& toolTipText)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
+    this->toolTipText = toolTipText;
 }
 
 /**
@@ -107,25 +111,30 @@ ChartTwoDataTypeEnum::initialize()
     initializedFlag = true;
 
     enumData.push_back(ChartTwoDataTypeEnum(CHART_DATA_TYPE_INVALID,
-                                    "CHART_DATA_TYPE_INVALID",
-                                    "Invalid"));
+                                            "CHART_DATA_TYPE_INVALID",
+                                            "Invalid",
+                                            "invalid"));
     
     enumData.push_back(ChartTwoDataTypeEnum(CHART_DATA_TYPE_HISTOGRAM,
-                                    "CHART_DATA_TYPE_HISTOGRAM",
-                                    "Histogram"));
+                                            "CHART_DATA_TYPE_HISTOGRAM",
+                                            "Histogram",
+                                            "Histogram containing a file's map or row data"));
     
     enumData.push_back(ChartTwoDataTypeEnum(CHART_DATA_TYPE_LINE_LAYER,
                                             "CHART_DATA_TYPE_LINE_LAYER",
-                                            "Line Layer"));
+                                            "Lines",
+                                            "Line chart containing a file's brainordinate, map, or row data"));
     
     enumData.push_back(ChartTwoDataTypeEnum(CHART_DATA_TYPE_LINE_SERIES,
-                                    "CHART_DATA_TYPE_LINE_SERIES",
-                                    "Line Series"));
+                                            "CHART_DATA_TYPE_LINE_SERIES",
+                                            "Dyn Lines",
+                                            "Line chart containing a brainordinate's series (time) data resulting from an identification operation"));
     
     enumData.push_back(ChartTwoDataTypeEnum(CHART_DATA_TYPE_MATRIX,
-                                    "CHART_DATA_TYPE_MATRIX",
-                                    "Matrix"));
-    
+                                            "CHART_DATA_TYPE_MATRIX",
+                                            "Matrix",
+                                            "Matrix containing a file's rows and columns"));
+
     /* If this fails (chart types change), update value for NUMBER_OF_CHART_DATA_TYPES */
     CaretAssertMessage(enumData.size() == NUMBER_OF_CHART_DATA_TYPES,
                        "Have chart types changed?");
@@ -258,6 +267,21 @@ ChartTwoDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ChartTwoDataTypeEnum"));
     }
     return enumValue;
+}
+
+/**
+ * Get aToolTip text representation of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     String representing tool tip text
+ */
+AString
+ChartTwoDataTypeEnum::toToolTipText(Enum enumValue) {
+    if (initializedFlag == false) initialize();
+    
+    const ChartTwoDataTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->toolTipText;
 }
 
 /**
