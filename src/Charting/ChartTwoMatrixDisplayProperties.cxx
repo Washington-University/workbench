@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "EventManager.h"
+#include "MathFunctions.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -66,10 +67,6 @@ ChartTwoMatrixDisplayProperties::initializeInstance()
 {
     resetPropertiesToDefault();
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_cellPercentageZoomWidth",
-                          &m_cellPercentageZoomWidth);
-    m_sceneAssistant->add("m_cellPercentageZoomHeight",
-                          &m_cellPercentageZoomHeight);
     m_sceneAssistant->add("m_displayGridLinesFlag",
                           &m_displayGridLinesFlag);
     m_sceneAssistant->add("m_highlightSelectedRowColumnFlag",
@@ -119,8 +116,6 @@ ChartTwoMatrixDisplayProperties::operator=(const ChartTwoMatrixDisplayProperties
 void 
 ChartTwoMatrixDisplayProperties::copyHelperChartTwoMatrixDisplayProperties(const ChartTwoMatrixDisplayProperties& obj)
 {
-    m_cellPercentageZoomWidth        = obj.m_cellPercentageZoomWidth;
-    m_cellPercentageZoomHeight       = obj.m_cellPercentageZoomHeight;
     m_displayGridLinesFlag           = obj.m_displayGridLinesFlag;
     m_highlightSelectedRowColumnFlag = obj.m_highlightSelectedRowColumnFlag;
 }
@@ -152,8 +147,6 @@ ChartTwoMatrixDisplayProperties::receiveEvent(Event* /*event*/)
 void
 ChartTwoMatrixDisplayProperties::resetPropertiesToDefault()
 {
-    m_cellPercentageZoomWidth        = 100.0;
-    m_cellPercentageZoomHeight       = 100.0;
     m_highlightSelectedRowColumnFlag = true;
     m_displayGridLinesFlag           = false;
 }
@@ -201,47 +194,6 @@ ChartTwoMatrixDisplayProperties::setSelectedRowColumnHighlighted(const bool high
 }
 
 /**
- * @return The cell percentage zoom width.
- */
-float
-ChartTwoMatrixDisplayProperties::getCellPercentageZoomWidth() const
-{
-    return m_cellPercentageZoomWidth;
-}
-
-/**
- * Set the cell percentage zoom width.
- *
- * @param cellPercentageZoomWidth
- *     New value for cell percentage zoom width.
- */
-void
-ChartTwoMatrixDisplayProperties::setCellPercentageZoomWidth(const float cellPercentageZoomWidth)
-{
-    m_cellPercentageZoomWidth = cellPercentageZoomWidth;
-}
-
-/**
- * @return The cell percentage zoom height.
- */
-float
-ChartTwoMatrixDisplayProperties::getCellPercentageZoomHeight() const
-{
-    return m_cellPercentageZoomHeight;
-}
-
-/**
- * Set the cell percentage zoom height.
- *
- * @param cellPercentageZoomHeight
- *     New value for cell percentage zoom height.
- */
-void ChartTwoMatrixDisplayProperties::setCellPercentageZoomHeight(const float cellPercentageZoomHeight)
-{
-    m_cellPercentageZoomHeight = cellPercentageZoomHeight;
-}
-
-/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
@@ -258,7 +210,7 @@ ChartTwoMatrixDisplayProperties::saveToScene(const SceneAttributes* sceneAttribu
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "ChartTwoMatrixDisplayProperties",
-                                            1);
+                                            2); /* Version 2 removes cell zoom width/height */
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -291,6 +243,17 @@ ChartTwoMatrixDisplayProperties::restoreFromScene(const SceneAttributes* sceneAt
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
+    if (sceneClass->getVersionNumber() < 2) {
+        const float zoomHeight = sceneClass->getFloatValue("m_cellPercentageZoomHeight", 100.0);
+        const float zoomWidth  = sceneClass->getFloatValue("m_cellPercentageZoomWidth", 100.0);
+        if (MathFunctions::compareValuesEqual(&zoomHeight, 1, 100.0, 0.01)
+            && MathFunctions::compareValuesEqual(&zoomWidth, 1, 100.0, 0.01)) {
+            /* OK */
+        }
+        else {
+            sceneAttributes->setSceneRestoreWarningCode(SceneRestoreWarningCodesEnum::CHART_TWO_MATRIX_CELL_WIDTH_HEIGHT);
+        }
+    }
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);

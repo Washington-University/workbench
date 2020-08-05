@@ -3675,7 +3675,8 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrowserTabContent",
-                                            6); // WB-491 Flat Fixes
+                                            7); // matrices no longer support translation/zooming
+                                            //6); // WB-491 Flat Fixes
                                             //5); // WB-576
                                             //4);  // WB-491, 1/28/2015
                                             //3); // version 3 as of 4/22/2014
@@ -3982,8 +3983,36 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
+    testForRestoreSceneWarnings(sceneAttributes,
+                                sceneClass->getVersionNumber());
 }
 
+/**
+ * Test for scene warnings
+ */
+void
+BrowserTabContent::testForRestoreSceneWarnings(const SceneAttributes* sceneAttributes,
+                                               const int32_t sceneVersion)
+{
+    if (sceneVersion <= 6) {
+        ModelChartTwo* chartModel = getDisplayedChartTwoModel();
+        if (chartModel != NULL) {
+            if (chartModel->getSelectedChartTwoDataType(m_tabNumber) == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
+                float translation[3];
+                getTranslation(translation);
+                const float zoom = getScaling();
+                if (MathFunctions::compareValuesEqual(translation, 2, 0.0, 0.001)
+                    && MathFunctions::compareValuesEqual(&zoom, 1, 1.0, 0.001)) {
+                    /* OK */
+                }
+                else {
+                    sceneAttributes->setSceneRestoreWarningCode(SceneRestoreWarningCodesEnum::CHART_TWO_MATRIX_TRANSFORM);
+                }
+            }
+        }
+    }
+}
+ 
 /**
  * Get the clipping planes enabled attributes
  *

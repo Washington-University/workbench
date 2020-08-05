@@ -513,6 +513,9 @@ namespace caret {
         
         void initializeScaleBar();
         
+        void testForRestoreSceneWarnings(const SceneAttributes* sceneAttributes,
+                                         const int32_t sceneVersion);
+        
         static std::vector<BrowserTabContent*> getOpenBrowserTabs();
         
         /** Number of this tab */

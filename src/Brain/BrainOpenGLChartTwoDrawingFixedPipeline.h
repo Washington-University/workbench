@@ -267,8 +267,6 @@ namespace caret {
         
         void saveStateOfOpenGL();
         
-        void drawMatrixChart();
-        
         void drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
                                     const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
                                     const float cellWidth,

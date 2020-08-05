@@ -52,14 +52,6 @@ namespace caret {
         
         void setSelectedRowColumnHighlighted(const bool highlightStatus);
 
-        float getCellPercentageZoomWidth() const;
-        
-        void setCellPercentageZoomWidth(const float cellPercentageZoomWidth);
-        
-        float getCellPercentageZoomHeight() const;
-        
-        void setCellPercentageZoomHeight(const float cellPercentageZoomHeight);
-        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -94,10 +86,6 @@ namespace caret {
         
         SceneClassAssistant* m_sceneAssistant;
 
-        float m_cellPercentageZoomHeight;
-        
-        float m_cellPercentageZoomWidth;
-        
         bool m_highlightSelectedRowColumnFlag;
         
         bool m_displayGridLinesFlag;

@@ -121,16 +121,9 @@ namespace caret {
     private:
         BrainBrowserWindowToolBarChartTwoAttributes* m_brainBrowserWindowToolBarChartAttributes;
         
-        QDoubleSpinBox* m_cellWidthPercentageSpinBox;
-        
-        QDoubleSpinBox* m_cellHeightPercentageSpinBox;
-
         QCheckBox* m_highlightSelectionCheckBox;
         
-        QCheckBox* m_displayGridLinesCheckBox;
-        
-        WuQWidgetObjectGroup* m_manualWidgetsGroup;
-        
+        QCheckBox* m_displayGridLinesCheckBox;        
     };
 #ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_ATTRIBUTES_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

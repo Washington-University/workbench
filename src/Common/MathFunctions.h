@@ -357,6 +357,11 @@ public:
                     const int32_t numElemets,
                     const float tolerance);
 
+    static bool compareValuesEqual(const float* data,
+                                   const int32_t numberOfElements,
+                                   const float value,
+                                   const float tolerance);
+
     static int32_t clamp(
                     const int32_t value,
                     const int32_t minimum,

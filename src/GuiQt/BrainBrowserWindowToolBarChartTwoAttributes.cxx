@@ -257,42 +257,7 @@ MatrixChartTwoAttributesWidget::MatrixChartTwoAttributesWidget(BrainBrowserWindo
 EventListenerInterface()
 {
     m_brainBrowserWindowToolBarChartAttributes = brainBrowserWindowToolBarChartAttributes;
-    
-    QLabel* cellWidthLabel = new QLabel("Cell Width");
-    const float minPercent = 1.0;
-    const float maxPercent = 100000.0;
-    m_cellWidthPercentageSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minPercent,
-                                                                                        maxPercent,
-                                                                                        1.0,
-                                                                                        1,
-                                                                                        this,
-                                                                                        SLOT(valueChanged()));
-    m_cellWidthPercentageSpinBox->setToolTip("Percentage of tab width filled with matrix");
-    m_cellWidthPercentageSpinBox->setKeyboardTracking(false);
-    m_cellWidthPercentageSpinBox->setSuffix("%");
-    m_cellWidthPercentageSpinBox->setObjectName(parentObjectName
-                                                     + ":CellWidth");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_cellWidthPercentageSpinBox,
-                                                         "Set matrix chart cell width");
-    
-    QLabel* cellHeightLabel = new QLabel("Cell Height");
-    m_cellHeightPercentageSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minPercent,
-                                                                                         maxPercent,
-                                                                                         1.0,
-                                                                                         1,
-                                                                                         this,
-                                                                                         SLOT(valueChanged()));
-    m_cellHeightPercentageSpinBox->setToolTip("Percentage of tab height filled with matrix");
-    m_cellHeightPercentageSpinBox->setKeyboardTracking(false);
-    m_cellHeightPercentageSpinBox->setSuffix("%");
-    m_cellHeightPercentageSpinBox->setObjectName(parentObjectName
-                                                     + ":CellHeight");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_cellHeightPercentageSpinBox,
-                                                         "Set matrix chart cell height");
-    
-    WuQtUtilities::matchWidgetWidths(m_cellHeightPercentageSpinBox,
-                                     m_cellWidthPercentageSpinBox);
-    
+        
     m_highlightSelectionCheckBox = new QCheckBox("Highlight Selection");
     m_highlightSelectionCheckBox->setToolTip("Highlight selected row/column in the matrix");
     QObject::connect(m_highlightSelectionCheckBox, SIGNAL(clicked(bool)),
@@ -311,23 +276,12 @@ EventListenerInterface()
     WuQMacroManager::instance()->addMacroSupportToObject(m_displayGridLinesCheckBox,
                                                          "Enable matrix chart grid outline");
     
-    m_manualWidgetsGroup = new WuQWidgetObjectGroup(this);
-    m_manualWidgetsGroup->add(m_cellWidthPercentageSpinBox);
-    m_manualWidgetsGroup->add(m_cellHeightPercentageSpinBox);
-    m_manualWidgetsGroup->add(m_displayGridLinesCheckBox);
-    
     const int32_t COLUMN_LABEL  = 0;
     const int32_t COLUMN_WIDGET = 1;
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     int32_t rowIndex = gridLayout->rowCount();
-    gridLayout->addWidget(cellWidthLabel, rowIndex, COLUMN_LABEL);
-    gridLayout->addWidget(m_cellWidthPercentageSpinBox, rowIndex, COLUMN_WIDGET);
-    rowIndex++;
-    gridLayout->addWidget(cellHeightLabel, rowIndex, COLUMN_LABEL);
-    gridLayout->addWidget(m_cellHeightPercentageSpinBox, rowIndex, COLUMN_WIDGET);
-    rowIndex++;
     gridLayout->addWidget(m_highlightSelectionCheckBox, rowIndex, COLUMN_LABEL, 1, 2, Qt::AlignLeft);
     rowIndex++;
     gridLayout->addWidget(m_displayGridLinesCheckBox, rowIndex, COLUMN_LABEL, 1, 2, Qt::AlignLeft);
@@ -364,14 +318,6 @@ MatrixChartTwoAttributesWidget::updateContent()
 {
     ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
     if (matrixDisplayProperties != NULL) {
-        m_cellWidthPercentageSpinBox->blockSignals(true);
-        m_cellWidthPercentageSpinBox->setValue(matrixDisplayProperties->getCellPercentageZoomWidth());
-        m_cellWidthPercentageSpinBox->blockSignals(false);
-        
-        m_cellHeightPercentageSpinBox->blockSignals(true);
-        m_cellHeightPercentageSpinBox->setValue(matrixDisplayProperties->getCellPercentageZoomHeight());
-        m_cellHeightPercentageSpinBox->blockSignals(false);
-        
         m_highlightSelectionCheckBox->blockSignals(true);
         m_highlightSelectionCheckBox->setChecked(matrixDisplayProperties->isSelectedRowColumnHighlighted());
         m_highlightSelectionCheckBox->blockSignals(false);
@@ -390,8 +336,6 @@ MatrixChartTwoAttributesWidget::valueChanged()
 {
     ChartTwoMatrixDisplayProperties* matrixDisplayProperties = m_brainBrowserWindowToolBarChartAttributes->getChartableTwoMatrixDisplayProperties();
     if (matrixDisplayProperties != NULL) {
-        matrixDisplayProperties->setCellPercentageZoomWidth(m_cellWidthPercentageSpinBox->value());
-        matrixDisplayProperties->setCellPercentageZoomHeight(m_cellHeightPercentageSpinBox->value());
         matrixDisplayProperties->setSelectedRowColumnHighlighted(m_highlightSelectionCheckBox->isChecked());
         matrixDisplayProperties->setGridLinesDisplayed(m_displayGridLinesCheckBox->isChecked());
 

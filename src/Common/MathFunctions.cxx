@@ -2705,3 +2705,33 @@ MathFunctions::expandBoxPercentage3D(float bottomLeft[3],
     expandLinePercentage3D(bottomRight, topRight, extraSpacePercentage);
 }
 
+/*
+ * Test if a given array of data are almost equal to a values.
+ * @param data
+ *   The array of data
+ * @param numberOfElements
+ *   Number of elements in array
+ * @param value
+ *   Value for testing equal to
+ * @param tolerance
+ *   Tolerance from value
+ * @return True if all values in 'data' are in range [value - tolerance, value + tolerance]
+ */
+bool
+MathFunctions::compareValuesEqual(const float* data,
+                                  const int32_t numberOfElements,
+                                  const float value,
+                                  const float tolerance) {
+    const float minValue(value - tolerance);
+    const float maxValue(value + tolerance);
+    
+    for (int32_t i = 0; i < numberOfElements; i++) {
+        if ((data[i] < minValue)
+            || (data[i] > maxValue)) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
