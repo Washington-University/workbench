@@ -105,6 +105,10 @@ namespace caret {
         
         bool isMatrixTriangularViewingModeSupported() const;
         
+        float getMatrixOpacity() const;
+        
+        void setMatrixOpacity(const float opacity);
+        
         ChartAxisLocationEnum::Enum getSceneCartesianVerticalAxisLocation() const;
         
         bool isCartesianVerticalAxisLocationSupported() const;
@@ -251,6 +255,8 @@ namespace caret {
         bool m_allHistogramMapsSelectedFlag = false;
         
         mutable ChartTwoMatrixTriangularViewingModeEnum::Enum m_matrixTriangularViewingMode;
+        
+        float m_matrixOpacity = 1.0;
         
         /** Location of vertical cartesian axis*/
         mutable ChartAxisLocationEnum::Enum m_cartesianVerticalAxisLocation;

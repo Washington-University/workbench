@@ -83,6 +83,8 @@ namespace caret {
         
         QLabel* m_loadLabel = NULL;
         
+        QLabel* m_opacityLabel = NULL;
+        
         QLabel* m_lineWidthLabel = NULL;
         
         QLabel* m_pointLabel = NULL;

@@ -224,7 +224,18 @@ m_parentObjectName(parentObjectName)
     m_matrixTriangularViewModeAction->setMenu(matrixTriangularViewModeMenu);
     m_matrixTriangularViewModeToolButton->setDefaultAction(m_matrixTriangularViewModeAction);
     m_matrixTriangularViewModeToolButton->setPopupMode(QToolButton::InstantPopup);
-    
+
+    /*
+     * Matrix opacity spin box
+     */
+    m_matrixOpacitySpinBox = new WuQDoubleSpinBox(this);
+    m_matrixOpacitySpinBox->setToolTip("Set opacity for matrix");
+    m_matrixOpacitySpinBox->setRange(0.0, 1.0);
+    m_matrixOpacitySpinBox->setDecimals(1);
+    m_matrixOpacitySpinBox->setSingleStep(0.1);
+//    m_matrixOpacitySpinBox->getWidget()->setFixedWidth(60);
+    QObject::connect(m_matrixOpacitySpinBox, &WuQDoubleSpinBox::valueChanged,
+                     this, &ChartTwoOverlayViewController::matrixOpacityValueChanged);
 
     /*
      * Line layer color tool button
@@ -947,6 +958,13 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     }
         
     /*
+     * Update matrix opacity
+     */
+    if (validOverlayAndFileFlag) {
+        m_matrixOpacitySpinBox->setValue(m_chartOverlay->getMatrixOpacity());
+    }
+    
+    /*
      * Update line layer color, offset, and width tool button
      */
     m_lineLayerColorToolButton->setEnabled(false);
@@ -987,6 +1005,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     bool showSelectedPointControlsFlag(false);
     bool showLineSeriesLoadingCheckBoxFlag(false);
     bool showMatrixDiagonalButtonFlag(false);
+    bool showMatrixOpacityFlag(false);
     bool showSettingsButtonFlag(false);
     switch (m_chartOverlay->getChartTwoDataType()) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
@@ -1009,6 +1028,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
             showColorBarButtonFlag = true;
             showMatrixDiagonalButtonFlag = true;
+            showMatrixOpacityFlag = true;
             showSettingsButtonFlag = true;
             break;
     }
@@ -1019,6 +1039,8 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_lineLayerWidthSpinBox->getWidget()->setVisible(showLineLayerWidthButtonFlag);
     m_lineSeriesLoadingEnabledCheckBox->setVisible(showLineSeriesLoadingCheckBoxFlag);
     m_matrixTriangularViewModeToolButton->setVisible(showMatrixDiagonalButtonFlag);
+    m_matrixOpacitySpinBox->getWidget()->setVisible(showMatrixOpacityFlag);
+    m_matrixOpacitySpinBox->getWidget()->setEnabled(false); /* Matrix opacity not supported at this time */
     m_lineLayerActiveComboBox->getWidget()->setVisible(showSelectedPointControlsFlag);
     m_selectedPointIndexSpinBox->setVisible(showSelectedPointControlsFlag);
     m_settingsToolButton->setVisible(showSettingsButtonFlag);
@@ -1156,6 +1178,20 @@ ChartTwoOverlayViewController::menuMatrixTriangularViewModeTriggered(QAction* ac
         if (mapFile != NULL) {
             mapFile->updateScalarColoringForAllMaps();
         }
+        this->updateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when matrix opacity changed
+ * @param value
+ *    New opacity value
+ */
+void
+ChartTwoOverlayViewController::matrixOpacityValueChanged(double value)
+{
+    if (m_chartOverlay != NULL) {
+        m_chartOverlay->setMatrixOpacity(value);
         this->updateGraphicsWindow();
     }
 }

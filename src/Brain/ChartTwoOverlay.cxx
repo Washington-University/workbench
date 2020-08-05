@@ -87,6 +87,7 @@ m_overlayIndex(overlayIndex)
     m_matrixTriangularViewingMode = ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL;
     m_cartesianHorizontalAxisLocation = ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM;
     m_cartesianVerticalAxisLocation = ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT;
+    m_matrixOpacity = 1.0;
 
     m_selectedMapFile  = NULL;
     m_selectedHistogramMapIndex = -1;
@@ -107,6 +108,8 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add("m_colorBar", "AnnotationColorBar", m_colorBar.get());
     m_sceneAssistant->add<ChartTwoMatrixTriangularViewingModeEnum, ChartTwoMatrixTriangularViewingModeEnum::Enum>("m_matrixTriangularViewingMode",
                                                                         &m_matrixTriangularViewingMode);
+    m_sceneAssistant->add("m_matrixOpacity",
+                          &m_matrixOpacity);
     m_sceneAssistant->add<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>("m_cartesianHorizontalAxisLocation",
                                                                               &m_cartesianHorizontalAxisLocation);
     m_sceneAssistant->add<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>("m_cartesianVerticalAxisLocation",
@@ -378,6 +381,7 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
     
     *m_colorBar = *overlay->m_colorBar;
     m_matrixTriangularViewingMode = overlay->m_matrixTriangularViewingMode;
+    m_matrixOpacity = overlay->m_matrixOpacity;
     m_cartesianVerticalAxisLocation = overlay->m_cartesianVerticalAxisLocation;
     m_cartesianHorizontalAxisLocation = overlay->m_cartesianHorizontalAxisLocation;
 
@@ -1290,6 +1294,26 @@ ChartTwoOverlay::isMatrixTriangularViewingModeSupported() const
     }
     
     return false;
+}
+
+/**
+ * @return The matrix opacity
+ */
+float
+ChartTwoOverlay::getMatrixOpacity() const
+{
+    return m_matrixOpacity;
+}
+
+/**
+ * Set the matrix opacity
+ * @param opacity
+ *    New opacity value
+ */
+void
+ChartTwoOverlay::setMatrixOpacity(const float opacity)
+{
+    m_matrixOpacity = opacity;
 }
 
 /**

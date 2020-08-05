@@ -112,6 +112,8 @@ namespace caret {
         
         void menuMatrixTriangularViewModeTriggered(QAction* action);
         
+        void matrixOpacityValueChanged(double value);
+        
         void lineLayerColorSelected(const CaretColor& caretColor);
         
         void lineLayerLineWidthChanged(const float lineWidth);
@@ -205,6 +207,8 @@ namespace caret {
         WuQDoubleSpinBox* m_lineLayerWidthSpinBox = NULL;
 
         EnumComboBoxTemplate* m_lineLayerActiveComboBox = NULL;
+        
+        WuQDoubleSpinBox* m_matrixOpacitySpinBox = NULL;
         
         QSpinBox* m_selectedPointIndexSpinBox = NULL;
         

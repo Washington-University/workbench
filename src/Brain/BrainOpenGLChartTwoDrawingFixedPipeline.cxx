@@ -511,7 +511,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                         matrixChartsToDraw.push_back(MatrixChartDrawingInfo(matrixChart,
                                                                             primitive,
                                                                             chartOverlay,
-                                                                            triangleMode));
+                                                                            triangleMode,
+                                                                            chartOverlay->getMatrixOpacity()));
                     }
                 }
             }
@@ -1319,6 +1320,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
     if (drawMatrixFlag) {
         std::vector<MatrixRowColumnHighight*> rowColumnHighlighting;
         
+        bool firstFlag(true);
         for (const auto matrixChart : matrixChartsToDraw) {
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
@@ -1335,12 +1337,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
             
+            const float opacity(firstFlag ? 1.0 : matrixChart.m_opacity);
             drawMatrixChartContent(matrixChart.m_matrixChart,
                                    matrixChart.m_triangularMode,
-                                   1.0,
-                                   1.0,
-                                   1.0,
+                                   opacity,
                                    rowColumnHighlighting);
+            firstFlag = false;
         }
         
         /*
@@ -1373,19 +1375,15 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
  *     Matrix chart that is drawn.
  * @param chartViewingType
  *     Type of chart viewing.
- * @param cellWidth
- *     Width of cell.
- * @param cellHeight
- *     Height of cell.
- * @param zooming
- *     Current zooming.
+ * @param opacity
+ *     Opacity for matrix drawing.
+ * @param rowColumnHighlightingOut
+ *     Current Output with row/column highlighting.
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
                                                                 const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
-                                                                const float cellWidth,
-                                                                const float cellHeight,
-                                                                const float /*zooming*/,
+                                                                const float opacity,
                                                                 std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut)
 {
     GraphicsPrimitive* matrixPrimitive(NULL);
@@ -1408,7 +1406,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
     }
     
     glPushMatrix();
-    glScalef(cellWidth, cellHeight, 1.0);
     /*
      * Enable alpha blending so voxels that are not drawn from higher layers
      * allow voxels from lower layers to be seen.

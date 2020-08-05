@@ -130,16 +130,19 @@ namespace caret {
             MatrixChartDrawingInfo(const ChartableTwoFileMatrixChart* matrixChart,
                                    const GraphicsPrimitive* matrixPrimitive,
                                    const ChartTwoOverlay* chartTwoOverlay,
-                                   const ChartTwoMatrixTriangularViewingModeEnum::Enum triangularMode)
+                                   const ChartTwoMatrixTriangularViewingModeEnum::Enum triangularMode,
+                                   const float opacity)
             : m_matrixChart(matrixChart),
             m_matrixPrimitive(matrixPrimitive),
             m_chartTwoOverlay(chartTwoOverlay),
-            m_triangularMode(triangularMode) { }
+            m_triangularMode(triangularMode),
+            m_opacity(opacity) { }
             
             const ChartableTwoFileMatrixChart* m_matrixChart;
             const GraphicsPrimitive* m_matrixPrimitive;
             const ChartTwoOverlay* m_chartTwoOverlay;
             const ChartTwoMatrixTriangularViewingModeEnum::Enum m_triangularMode;
+            const float m_opacity;
         };
         /**
          * Determines size of title and draws the title
@@ -269,9 +272,7 @@ namespace caret {
         
         void drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
                                     const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
-                                    const float cellWidth,
-                                    const float cellHeight,
-                                    const float zooming,
+                                    const float opacity,
                                     std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut);
         
         void drawHistogramOrLineChart(const ChartTwoDataTypeEnum::Enum chartDataType);

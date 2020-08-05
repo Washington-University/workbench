@@ -111,6 +111,7 @@ m_browserWindowIndex(browserWindowIndex)
         static const int COLUMN_LOAD       = columnCounter++;
         static const int COLUMN_SETTINGS   = columnCounter++;
         static const int COLUMN_LINE_WIDTH = columnCounter++;
+        static const int COLUMN_OPACITY    = columnCounter++;
         static const int COLUMN_POINT      = columnCounter++;
         static const int COLUMN_FILE       = columnCounter++;
         static const int COLUMN_YOKE       = columnCounter++;
@@ -121,6 +122,7 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->setColumnStretch(COLUMN_ON, 0);
         gridLayout->setColumnStretch(COLUMN_LOAD, 0);
         gridLayout->setColumnStretch(COLUMN_SETTINGS, 0);
+        gridLayout->setColumnStretch(COLUMN_OPACITY, 0);
         gridLayout->setColumnStretch(COLUMN_LINE_WIDTH, 0);
         gridLayout->setColumnStretch(COLUMN_FILE, 100);
         gridLayout->setColumnStretch(COLUMN_YOKE, 0);
@@ -131,6 +133,7 @@ m_browserWindowIndex(browserWindowIndex)
         QLabel* onLabel       = new QLabel("On");
         m_loadLabel           = new QLabel("Load");
         QLabel* settingsLabel = new QLabel("Settings");
+        m_opacityLabel        = new QLabel("Opacity");
         m_lineWidthLabel      = new QLabel("Width");
         m_pointLabel          = new QLabel("Point");
         QLabel* fileLabel     = new QLabel("File");
@@ -144,6 +147,7 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->addWidget(m_loadLabel, row, COLUMN_LOAD, Qt::AlignHCenter);
         gridLayout->addWidget(settingsLabel, row, COLUMN_SETTINGS, Qt::AlignHCenter);
         gridLayout->addWidget(m_lineWidthLabel, row, COLUMN_LINE_WIDTH, Qt::AlignHCenter);
+        gridLayout->addWidget(m_opacityLabel, row, COLUMN_OPACITY, Qt::AlignHCenter);
         gridLayout->addWidget(m_pointLabel, row, COLUMN_POINT, Qt::AlignHCenter);
         gridLayout->addWidget(fileLabel, row, COLUMN_FILE, Qt::AlignHCenter);
         gridLayout->addWidget(yokeLabel, row, COLUMN_YOKE, Qt::AlignHCenter);
@@ -178,6 +182,7 @@ m_browserWindowIndex(browserWindowIndex)
             glg->addWidget(covc->m_lineSeriesLoadingEnabledCheckBox, row, COLUMN_LOAD, Qt::AlignHCenter);
             glg->addWidget(settingsWidget, row, COLUMN_SETTINGS, Qt::AlignHCenter);
             glg->addWidget(covc->m_lineLayerWidthSpinBox->getWidget(), row, COLUMN_LINE_WIDTH);
+            glg->addWidget(covc->m_matrixOpacitySpinBox->getWidget(), row, COLUMN_OPACITY);
             glg->addWidget(pointWidget, row, COLUMN_POINT);
             glg->addWidget(covc->m_mapFileComboBox, row, COLUMN_FILE);
             glg->addWidget(covc->m_mapRowOrColumnYokingGroupComboBox->getWidget(), row, COLUMN_YOKE, Qt::AlignHCenter);
@@ -234,6 +239,7 @@ m_browserWindowIndex(browserWindowIndex)
             topLeftLayout->addWidget(covc->m_enabledCheckBox);
             topLeftLayout->addWidget(covc->m_lineSeriesLoadingEnabledCheckBox);
             topLeftLayout->addWidget(covc->m_lineLayerWidthSpinBox->getWidget());
+            topLeftLayout->addWidget(covc->m_matrixOpacitySpinBox->getWidget());
             
             QWidget* topRightWidget = new QWidget();
             QHBoxLayout* topRightLayout = new QHBoxLayout(topRightWidget);
@@ -339,6 +345,7 @@ ChartTwoOverlaySetViewController::updateViewController()
         bool showAllMapsLabelFlag(false);
         bool showLoadLabelFlag(false);
         bool showLineWidthLabelFlag(false);
+        bool showOpacityLabelFlag(false);
         bool showPointLabelFlag(false);
         switch (chartOverlaySet->getChartTwoDataType()) {
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
@@ -354,6 +361,7 @@ ChartTwoOverlaySetViewController::updateViewController()
                 showLoadLabelFlag = true;
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                showOpacityLabelFlag = true;
                 break;
         }
         if (m_allMapsLabel != NULL) {
@@ -364,6 +372,9 @@ ChartTwoOverlaySetViewController::updateViewController()
         }
         if (m_lineWidthLabel != NULL) {
             m_lineWidthLabel->setVisible(showLineWidthLabelFlag);
+        }
+        if (m_opacityLabel != NULL) {
+            m_opacityLabel->setVisible(showOpacityLabelFlag);
         }
         if (m_pointLabel != NULL) {
             m_pointLabel->setVisible(showPointLabelFlag);
