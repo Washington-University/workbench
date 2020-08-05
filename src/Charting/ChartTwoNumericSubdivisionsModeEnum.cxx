@@ -106,13 +106,17 @@ ChartTwoNumericSubdivisionsModeEnum::initialize()
     }
     initializedFlag = true;
 
+    /*
+     * Note space at right side of 'gui name'.  When placed in combo box
+     * the right-most digit is missing when combo box's pop-up menu is displayed.
+     */
     enumData.push_back(ChartTwoNumericSubdivisionsModeEnum(AUTO, 
                                     "AUTO", 
-                                    "Auto"));
+                                    "Auto "));
     
     enumData.push_back(ChartTwoNumericSubdivisionsModeEnum(USER, 
                                     "USER", 
-                                    "User"));
+                                    "User "));
     
 }
 
