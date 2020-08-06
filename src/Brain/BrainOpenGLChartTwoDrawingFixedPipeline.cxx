@@ -391,10 +391,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
     /*
      * Get the histogram drawing information and overall extent
      */
-    float xMinBottomTop = std::numeric_limits<float>::max();
-    float xMaxBottomTop = -std::numeric_limits<float>::max();
-    float yMinLeftRight  = std::numeric_limits<float>::max();
-    float yMaxLeftRight  = -std::numeric_limits<float>::max();
+    float xMinBottomTop = m_chartOverlaySet->getHorizontalAxes()->getUserScaleMinimumValue();
+    float xMaxBottomTop = m_chartOverlaySet->getHorizontalAxes()->getUserScaleMaximumValue();
+    float yMinLeftRight = m_chartOverlaySet->getVerticalAxes()->getUserScaleMinimumValue();
+    float yMaxLeftRight = m_chartOverlaySet->getVerticalAxes()->getUserScaleMaximumValue();
     
     /*
      * Find histograms or line-series charts for drawing
@@ -435,15 +435,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                     histogramDrawingInfo.pop_back();
                     continue;
                 }
-                
-                float histogramMinX = 0.0, histogramMaxX = 0.0, histogramMaxY = 0.0;
-                histogram->getRangeAndMaxDisplayHeight(histogramMinX, histogramMaxX, histogramMaxY);
-                if (histogramMaxX > histogramMinX) {
-                    xMinBottomTop = std::min(xMinBottomTop, histogramMinX);
-                    xMaxBottomTop = std::max(xMaxBottomTop, histogramMaxX);
-                    yMinLeftRight = std::min(yMinLeftRight, 0.0f);
-                    yMaxLeftRight = std::max(yMaxLeftRight, histogramMaxY);
-                }
             }
         }
         
@@ -457,11 +448,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 if (data->isSelected()) {
                     BoundingBox boundingBox;
                     if (data->getBounds(boundingBox)) {
-                        xMinBottomTop = std::min(xMinBottomTop, boundingBox.getMinX());
-                        xMaxBottomTop = std::max(xMaxBottomTop, boundingBox.getMaxX());
-                        yMinLeftRight = std::min(yMinLeftRight, boundingBox.getMinY());
-                        yMaxLeftRight = std::max(yMaxLeftRight, boundingBox.getMaxY());
-
                         lineSeriesChartsToDraw.push_back(LineSeriesChartDrawingInfo(lineSeriesChart,
                                                                                     data));
                     }
@@ -477,12 +463,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 if (data->isSelected()) {
                     BoundingBox boundingBox;
                     if (data->getBounds(boundingBox)) {
-                        xMinBottomTop = std::min(xMinBottomTop, boundingBox.getMinX());
-                        xMaxBottomTop = std::max(xMaxBottomTop, boundingBox.getMaxX());
-                        
-                        yMinLeftRight = std::min(yMinLeftRight, boundingBox.getMinY());
-                        yMaxLeftRight = std::max(yMaxLeftRight, boundingBox.getMaxY());
-                        
                         lineLayerChartsToDraw.push_back(LineLayerChartDrawingInfo(lineLayerChart,
                                                                                   data,
                                                                                   chartOverlay,
@@ -502,12 +482,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 if (primitive->isValid()) {
                     BoundingBox boundingBox;
                     if (primitive->getVertexBounds(boundingBox)) {
-                        xMinBottomTop = std::min(xMinBottomTop, boundingBox.getMinX());
-                        xMaxBottomTop = std::max(xMaxBottomTop, boundingBox.getMaxX());
-                        
-                        yMinLeftRight = std::min(yMinLeftRight, boundingBox.getMinY());
-                        yMaxLeftRight = std::max(yMaxLeftRight, boundingBox.getMaxY());
-                        
                         matrixChartsToDraw.push_back(MatrixChartDrawingInfo(matrixChart,
                                                                             primitive,
                                                                             chartOverlay,
@@ -715,30 +689,22 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                   m_chartOverlaySet,
                                   m_fixedPipelineDrawing->mouseX,
                                   m_fixedPipelineDrawing->mouseY,
-                                  foregroundRGBA,
-                                  yMinLeftRight,
-                                  yMaxLeftRight);
+                                  foregroundRGBA);
             rightAxisInfo.drawAxis(this,
                                    m_chartOverlaySet,
                                    m_fixedPipelineDrawing->mouseX,
                                    m_fixedPipelineDrawing->mouseY,
-                                   foregroundRGBA,
-                                   yMinLeftRight,
-                                   yMaxLeftRight);
+                                   foregroundRGBA);
             topAxisInfo.drawAxis(this,
                                  m_chartOverlaySet,
                                  m_fixedPipelineDrawing->mouseX,
                                  m_fixedPipelineDrawing->mouseY,
-                                 foregroundRGBA,
-                                 xMinBottomTop,
-                                 xMaxBottomTop);
+                                 foregroundRGBA);
             bottomAxisInfo.drawAxis(this,
                                     m_chartOverlaySet,
                                     m_fixedPipelineDrawing->mouseX,
                                     m_fixedPipelineDrawing->mouseY,
-                                    foregroundRGBA,
-                                    xMinBottomTop,
-                                    xMaxBottomTop);
+                                    foregroundRGBA);
             
             drawChartGraphicsBoxAndSetViewport(tabViewportX,
                                                tabViewportY,
@@ -2567,23 +2533,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::setLabelAndNumericsCoo
  *     Y-coordinate of the mouse.
  * @param foregroundFloatRGBA
  *     Color of the foreground.
- * @param axisMinimumValueOut
- *     Output containing the minimum value for the axis
- * @param axisMaximumValueOut
- *     Output containing the maximum value for the axis
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLChartTwoDrawingFixedPipeline* chartDrawing,
                                                                    ChartTwoOverlaySet* chartTwoOverlaySet,
                                                                    const int32_t mouseX,
                                                                    const int32_t mouseY,
-                                                                   const float foregroundFloatRGBA[4],
-                                                                   float& axisMinimumValueOut,
-                                                                   float& axisMaximumValueOut)
+                                                                   const float foregroundFloatRGBA[4])
 {
-    axisMinimumValueOut = m_axisMinimumValue;
-    axisMaximumValueOut = m_axisMaximumValue;
-    
     if (m_axis == NULL) {
         return;
     }

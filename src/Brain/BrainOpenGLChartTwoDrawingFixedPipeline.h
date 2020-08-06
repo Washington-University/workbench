@@ -203,9 +203,7 @@ namespace caret {
                           ChartTwoOverlaySet* chartTwoOverlaySet,
                           const int32_t mouseX,
                           const int32_t mouseY,
-                          const float foregroundFloatRGBA[4],
-                          float& axisMinimumValueOut,
-                          float& axisMaximumValueOut);
+                          const float foregroundFloatRGBA[4]);
             
             std::unique_ptr<AnnotationPercentSizeText> m_labelText;
             

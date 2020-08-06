@@ -269,6 +269,8 @@ ChartTwoCartesianOrientedAxes::setScaleRangeModeFromGUI(const ChartTwoAxisScaleR
         }
     }
     m_scaleRangeMode = scaleRangeMode;
+    
+    updateMinMaxValuesForYoking();
 }
 
 /*
@@ -321,18 +323,58 @@ ChartTwoCartesianOrientedAxes::getUserScaleMaximumValue() const
 void
 ChartTwoCartesianOrientedAxes::updateMinMaxValuesForYoking() const
 {
-    if (ChartTwoAxisScaleRangeModeEnum::isYokingRangeMode(m_scaleRangeMode)) {
-        /*
-         * When yoked, use min/max that is stored in the yoking manager
-         */
-        float minValue(0.0), maxValue(0.0);
-        EventChartTwoCartesianOrientedAxesYoking::getMinMaxValues(m_orientationType,
-                                                                  m_scaleRangeMode,
-                                                                  minValue,
-                                                                  maxValue);
-        m_userScaleMinimumValue = minValue;
-        m_userScaleMaximumValue = maxValue;
+    switch (m_scaleRangeMode) {
+        case ChartTwoAxisScaleRangeModeEnum::AUTO:
+        {
+            float minValue(0.0), maxValue(0.0);
+            getDataRange(minValue,
+                         maxValue);
+            float dummyStepValue(0.0);
+            int32_t dummyDigitsRightOfDecimal(0);
+            getAutoRangeMinimumAndMaximum(minValue, maxValue,
+                                          m_userScaleMinimumValue, m_userScaleMaximumValue,
+                                          dummyStepValue, dummyDigitsRightOfDecimal);
+        }
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::DATA:
+        {
+            getDataRange(m_userScaleMinimumValue,
+                         m_userScaleMaximumValue);
+        }
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::USER:
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_A:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_B:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_C:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_D:
+        {
+            /*
+             * When yoked, use min/max that is stored in the yoking manager
+             */
+            float minValue(0.0), maxValue(0.0);
+            EventChartTwoCartesianOrientedAxesYoking::getMinMaxValues(m_orientationType,
+                                                                      m_scaleRangeMode,
+                                                                      minValue,
+                                                                      maxValue);
+            m_userScaleMinimumValue = minValue;
+            m_userScaleMaximumValue = maxValue;
+        }
+            break;
     }
+    
+//    if (ChartTwoAxisScaleRangeModeEnum::isYokingRangeMode(m_scaleRangeMode)) {
+//        /*
+//         * When yoked, use min/max that is stored in the yoking manager
+//         */
+//        float minValue(0.0), maxValue(0.0);
+//        EventChartTwoCartesianOrientedAxesYoking::getMinMaxValues(m_orientationType,
+//                                                                  m_scaleRangeMode,
+//                                                                  minValue,
+//                                                                  maxValue);
+//        m_userScaleMinimumValue = minValue;
+//        m_userScaleMaximumValue = maxValue;
+//    }
 }
 
 /**
