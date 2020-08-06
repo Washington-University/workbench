@@ -47,6 +47,7 @@
 #include "ModelChartTwo.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
+#include "WuQTrueFalseComboBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -78,22 +79,22 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::BrainBrowserWindowToolBarChartTwo
     /*
      * Horizontal range
      */
-    std::tuple<EnumComboBoxTemplate*, WuQDoubleSpinBox*, WuQDoubleSpinBox*> horizontalWidgets =
-    createAxesWidgets(ChartTwoAxisOrientationTypeEnum::HORIZONTAL,
-                      objectNamePrefix);
-    m_horizontalRangeModeComboBox = std::get<0>(horizontalWidgets);
-    m_horizontalUserMinimumValueSpinBox = std::get<1>(horizontalWidgets);
-    m_horizontalUserMaximumValueSpinBox = std::get<2>(horizontalWidgets);
+    auto horizontalWidgets = createAxesWidgets(ChartTwoAxisOrientationTypeEnum::HORIZONTAL,
+                                               objectNamePrefix);
+    m_horizontalRangeModeComboBox        = std::get<0>(horizontalWidgets);
+    m_horizontalUserMinimumValueSpinBox  = std::get<1>(horizontalWidgets);
+    m_horizontalUserMaximumValueSpinBox  = std::get<2>(horizontalWidgets);
+    m_horizontalTransformEnabledComboBox = std::get<3>(horizontalWidgets);
 
     /*
      * Vertical range
      */
-    std::tuple<EnumComboBoxTemplate*, WuQDoubleSpinBox*, WuQDoubleSpinBox*> verticalWidgets =
-    createAxesWidgets(ChartTwoAxisOrientationTypeEnum::VERTICAL,
-                      objectNamePrefix);
-    m_verticalRangeModeComboBox = std::get<0>(verticalWidgets);
-    m_verticalUserMinimumValueSpinBox = std::get<1>(verticalWidgets);
-    m_verticalUserMaximumValueSpinBox = std::get<2>(verticalWidgets);
+    auto verticalWidgets = createAxesWidgets(ChartTwoAxisOrientationTypeEnum::VERTICAL,
+                                             objectNamePrefix);
+    m_verticalRangeModeComboBox        = std::get<0>(verticalWidgets);
+    m_verticalUserMinimumValueSpinBox  = std::get<1>(verticalWidgets);
+    m_verticalUserMaximumValueSpinBox  = std::get<2>(verticalWidgets);
+    m_verticalTransformEnabledComboBox = std::get<3>(verticalWidgets);
     
     /*
      * Left Axis display and edit
@@ -190,6 +191,9 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::BrainBrowserWindowToolBarChartTwo
     rangeLayout->addWidget(m_bottomAxisCheckBox, row, COLUMN_CHECKBOX);
     rangeLayout->addWidget(m_bottomAxisEditToolButton, row, COLUMN_EDIT);
     row++;
+    rangeLayout->addWidget(new QLabel("Xform"), row, COLUMN_LABEL);
+    rangeLayout->addWidget(m_horizontalTransformEnabledComboBox->getWidget(), row, COLUMN_HORIZ);
+    rangeLayout->addWidget(m_verticalTransformEnabledComboBox->getWidget(), row, COLUMN_VERT);
     rangeLayout->addWidget(m_titleCheckBox, row, COLUMN_CHECKBOX);
     rangeLayout->addWidget(m_titleEditToolButton, row, COLUMN_EDIT);
 
@@ -235,7 +239,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::receiveEvent(Event* event)
  * @param objectNamePrefix
  *    Object name for macros
  */
-std::tuple<EnumComboBoxTemplate*, WuQDoubleSpinBox*, WuQDoubleSpinBox*>
+std::tuple<EnumComboBoxTemplate*, WuQDoubleSpinBox*, WuQDoubleSpinBox*, WuQTrueFalseComboBox*>
 BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoAxisOrientationTypeEnum::Enum orientation,
                                                                  const QString& objectNamePrefix)
 {
@@ -310,6 +314,21 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoA
     macroManager->addMacroSupportToObject(userMaximumValueSpinBox->getWidget(),
                                           "Set chart axis maximum");
     
+    WuQTrueFalseComboBox* transformEnabledComboBox = new WuQTrueFalseComboBox("On",
+                                                                              "Off",
+                                                                              this);
+    transformEnabledComboBox->setToolTip("Enable panning and zooming for this orientation");
+    switch (orientation) {
+        case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
+            QObject::connect(transformEnabledComboBox, &WuQTrueFalseComboBox::statusChanged,
+                     this, &BrainBrowserWindowToolBarChartTwoOrientedAxes::horizontalTransformEnabledChecked);
+            break;
+        case ChartTwoAxisOrientationTypeEnum::VERTICAL:
+            QObject::connect(transformEnabledComboBox, &WuQTrueFalseComboBox::statusChanged,
+                             this, &BrainBrowserWindowToolBarChartTwoOrientedAxes::verticalTransformEnabledChecked);
+            break;
+    }
+    
     /*
      * Group widgets for blocking signals
      */
@@ -317,10 +336,12 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoA
     m_widgetGroup->add(rangeModeComboBox->getWidget());
     m_widgetGroup->add(userMinimumValueSpinBox);
     m_widgetGroup->add(userMaximumValueSpinBox);
+    m_widgetGroup->add(transformEnabledComboBox);
     
     return std::make_tuple(rangeModeComboBox,
                            userMinimumValueSpinBox,
-                           userMaximumValueSpinBox);
+                           userMaximumValueSpinBox,
+                           transformEnabledComboBox);
 }
 
 /**
@@ -661,7 +682,8 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::updateControls()
         m_horizontalUserMaximumValueSpinBox->setRangeExceedable(horizMin,
                                                                 horizMax);
         m_horizontalUserMaximumValueSpinBox->setValue(horizontalAxis->getUserScaleMaximumValue());
-
+        m_horizontalTransformEnabledComboBox->setStatus(horizontalAxis->isTransformationEnabled());
+        
         /*
          * Update vertical
          */
@@ -678,7 +700,11 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::updateControls()
         m_verticalUserMaximumValueSpinBox->setRangeExceedable(vertMin,
                                                               vertMax);
         m_verticalUserMaximumValueSpinBox->setValue(verticalAxis->getUserScaleMaximumValue());
+        m_verticalTransformEnabledComboBox->setStatus(verticalAxis->isTransformationEnabled());
 
+        /*
+         * Chart title
+         */
         ChartTwoTitle* chartTitle = overlaySet->getChartTitle();
         m_titleCheckBox->setChecked(chartTitle->isDisplayed());
         
@@ -794,6 +820,25 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::horizontalAxisMaximumValueChanged
 }
 
 /**
+ * Called when horizontal transform enabled checkbox is changed
+ * @param checked
+ *    New checked status
+ */
+void
+BrainBrowserWindowToolBarChartTwoOrientedAxes::horizontalTransformEnabledChecked(bool checked)
+{
+    ChartTwoOverlaySet* overlaySet(NULL);
+    ChartTwoCartesianOrientedAxes* horizontalAxis(NULL);
+    ChartTwoCartesianOrientedAxes* verticalAxis(NULL);
+    getSelectionData(overlaySet,
+                     horizontalAxis,
+                     verticalAxis);
+    if (horizontalAxis != NULL) {
+        horizontalAxis->setTransformationEnabled(checked);
+    }
+}
+
+/**
  * Called when the minimum value is changed.
  *
  * @param minimumValue
@@ -832,6 +877,25 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::verticalAxisMaximumValueChanged(d
     if (verticalAxis != NULL) {
         verticalAxis->setUserScaleMaximumValueFromGUI(maximumValue);
         valueChanged();
+    }
+}
+
+/**
+ * Called when horizontal transform enabled checkbox is changed
+ * @param checked
+ *    New checked status
+ */
+void
+BrainBrowserWindowToolBarChartTwoOrientedAxes::verticalTransformEnabledChecked(bool checked)
+{
+    ChartTwoOverlaySet* overlaySet(NULL);
+    ChartTwoCartesianOrientedAxes* horizontalAxis(NULL);
+    ChartTwoCartesianOrientedAxes* verticalAxis(NULL);
+    getSelectionData(overlaySet,
+                     horizontalAxis,
+                     verticalAxis);
+    if (verticalAxis != NULL) {
+        verticalAxis->setTransformationEnabled(checked);
     }
 }
 

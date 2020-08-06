@@ -90,6 +90,17 @@ namespace caret {
                                       std::vector<float>& scaleValuesOffsetInPixelsOut,
                                       std::vector<AString>& scaleValuesOut) const;
         
+        bool isTransformationEnabled() const;
+        
+        void setTransformationEnabled(const bool enabled);
+        
+        void applyMouseTranslation(const float mouseDX,
+                                   const float mouseDY);
+        
+        void applyMouseScaling(const float mouseDY);
+        
+        float getPercentageOfDataRange(const float percentage) const;
+        
         void reset();
         
         // ADD_NEW_METHODS_HERE
@@ -146,6 +157,8 @@ namespace caret {
         std::unique_ptr<ChartTwoCartesianAxis> m_leftOrBottomAxis;
         
         std::unique_ptr<ChartTwoCartesianAxis> m_rightOrTopAxis;
+        
+        bool m_transformationEnabled = false;
         
         // ADD_NEW_MEMBERS_HERE
 

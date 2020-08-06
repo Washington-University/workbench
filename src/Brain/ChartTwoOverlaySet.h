@@ -86,6 +86,11 @@ namespace caret {
         
         const ChartTwoCartesianOrientedAxes* getVerticalAxes() const;
         
+        void applyMouseTranslation(const float mouseDX,
+                                   const float mouseDY);
+        
+        void applyMouseScaling(const float mouseDY);
+        
         AString getAxisLabel(const ChartTwoCartesianAxis* axis) const;
         
         void setAxisLabel(const ChartTwoCartesianAxis* axis,

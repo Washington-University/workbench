@@ -277,7 +277,6 @@ EventListenerInterface()
                                                          "Enable matrix chart grid outline");
     
     const int32_t COLUMN_LABEL  = 0;
-    const int32_t COLUMN_WIDGET = 1;
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);

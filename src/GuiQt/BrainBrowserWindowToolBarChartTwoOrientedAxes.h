@@ -40,6 +40,7 @@ namespace caret {
     class ChartTwoTitleEditorWidget;
     class EnumComboBoxTemplate;
     class WuQDoubleSpinBox;
+    class WuQTrueFalseComboBox;
     class WuQWidgetObjectGroup;
     
     class BrainBrowserWindowToolBarChartTwoOrientedAxes : public BrainBrowserWindowToolBarComponent {
@@ -74,9 +75,13 @@ namespace caret {
         
         void horizontalAxisMaximumValueChanged(double);
         
+        void horizontalTransformEnabledChecked(bool);
+        
         void verticalAxisMinimumValueChanged(double);
         
         void verticalAxisMaximumValueChanged(double);
+        
+        void verticalTransformEnabledChecked(bool);
         
         void axisCheckBoxOnOffClicked(const ChartAxisLocationEnum::Enum axis,
                                       const bool checkedStatus);
@@ -104,7 +109,7 @@ namespace caret {
         
         void updateGraphics();
         
-        std::tuple<EnumComboBoxTemplate*, WuQDoubleSpinBox*, WuQDoubleSpinBox*> createAxesWidgets(const ChartTwoAxisOrientationTypeEnum::Enum orientation,
+        std::tuple<EnumComboBoxTemplate*, WuQDoubleSpinBox*, WuQDoubleSpinBox*, WuQTrueFalseComboBox*> createAxesWidgets(const ChartTwoAxisOrientationTypeEnum::Enum orientation,
                                                                                                   const QString& objectNamePrefix);
         
         std::tuple<QCheckBox*, QToolButton*> createAxisEditing(const ChartAxisLocationEnum::Enum axis,
@@ -120,11 +125,15 @@ namespace caret {
         
         WuQDoubleSpinBox* m_horizontalUserMaximumValueSpinBox;
                 
+        WuQTrueFalseComboBox* m_horizontalTransformEnabledComboBox;
+        
         EnumComboBoxTemplate* m_verticalRangeModeComboBox;
         
         WuQDoubleSpinBox* m_verticalUserMinimumValueSpinBox;
         
         WuQDoubleSpinBox* m_verticalUserMaximumValueSpinBox;
+        
+        WuQTrueFalseComboBox* m_verticalTransformEnabledComboBox;
         
         QCheckBox* m_leftAxisCheckBox;
         

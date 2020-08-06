@@ -1019,6 +1019,35 @@ ChartTwoOverlaySet::getVerticalAxes() const
 }
 
 /**
+ * Apply mouse translation to the current chart's axes
+ * @param mouseDX
+ *   The change in mouse X
+ * @param mouseDY
+ *   The change in mouse Y
+ */
+void
+ChartTwoOverlaySet::applyMouseTranslation(const float mouseDX,
+                                          const float mouseDY)
+{
+    m_horizontalAxes->applyMouseTranslation(mouseDX,
+                                            mouseDY);
+    m_verticalAxes->applyMouseTranslation(mouseDX,
+                                          mouseDY);
+}
+
+/**
+ * Apply mouse scaling to the current chart's axes
+ * @param mouseDY
+ *   The change in mouse Y
+ */
+void
+ChartTwoOverlaySet::applyMouseScaling(const float mouseDY)
+{
+    m_horizontalAxes->applyMouseScaling(mouseDY);
+    m_verticalAxes->applyMouseScaling(mouseDY);
+}
+
+/**
  * Get the text for the axis label.
  *
  * @param axis

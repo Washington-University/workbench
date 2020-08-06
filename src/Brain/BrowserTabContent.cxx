@@ -3145,14 +3145,10 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
         }
     }
     else if (isChartTwoDisplayed()) {
-        float scaling = getViewingTransformation()->getScaling();
-        if (mouseDY != 0.0) {
-            scaling *= (1.0f + (mouseDY * 0.01));
+        ChartTwoOverlaySet* overlaySet = getChartTwoOverlaySet();
+        if (overlaySet != NULL) {
+            overlaySet->applyMouseScaling(mouseDY);
         }
-        if (scaling < 0.01) {
-            scaling = 0.01;
-        }
-        getViewingTransformation()->setScaling(scaling);
     }
     else {
         float scaling = getViewingTransformation()->getScaling();
@@ -3268,12 +3264,11 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         }
     }
     else if (isChartTwoDisplayed()) {
-        float translation[3];
-        m_chartTwoMatrixViewingTranformation->getTranslation(translation);
-        translation[0] += mouseDX;
-        translation[1] += mouseDY;
-        translation[2] = 0; // NO Z-translation
-        m_chartTwoMatrixViewingTranformation->setTranslation(translation);
+        ChartTwoOverlaySet* overlaySet = getChartTwoOverlaySet();
+        if (overlaySet != NULL) {
+            overlaySet->applyMouseTranslation(mouseDX,
+                                              mouseDY);
+        }
     }
     else if (isCerebellumDisplayed()) {
         const float screenDX = mouseDX;

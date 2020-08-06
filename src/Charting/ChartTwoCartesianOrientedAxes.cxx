@@ -87,6 +87,8 @@ m_orientationType(orientationType)
     m_sceneAssistant->add("m_rightOrTopAxis",
                           "ChartTwoCartesianAxis",
                           m_rightOrTopAxis.get());
+    m_sceneAssistant->add("m_transformationEnabled",
+                          &m_transformationEnabled);
 }
 
 /**
@@ -138,6 +140,7 @@ ChartTwoCartesianOrientedAxes::copyHelperChartTwoCartesianOrientedAxes(const Cha
     m_userScaleMaximumValue   = obj.m_userScaleMaximumValue;
     *m_leftOrBottomAxis       = *m_leftOrBottomAxis;
     *m_rightOrTopAxis         = *m_rightOrTopAxis;
+    m_transformationEnabled   = obj.m_transformationEnabled;
 }
 
 /*
@@ -149,6 +152,7 @@ ChartTwoCartesianOrientedAxes::reset()
     m_scaleRangeMode = ChartTwoAxisScaleRangeModeEnum::AUTO;
     m_userScaleMinimumValue = -100.0f;
     m_userScaleMaximumValue = 100.0f;
+    m_transformationEnabled = false;
     
     m_leftOrBottomAxis->reset();
     m_rightOrTopAxis->reset();
@@ -831,5 +835,100 @@ ChartTwoCartesianOrientedAxes::getScaleValuesAndOffsets(const ChartTwoCartesianA
     
     CaretAssert(scaleValuesOffsetInPixelsOut.size() == scaleValuesOut.size());
     return ( ! scaleValuesOut.empty());
+}
+
+/**
+ * @return True if transformations are enabled
+ */
+bool
+ChartTwoCartesianOrientedAxes::isTransformationEnabled() const
+{
+    return m_transformationEnabled;
+}
+
+/**
+ * Set transformations enabled
+ * @param enabled
+ *    New enabled status for transformations
+ */
+void
+ChartTwoCartesianOrientedAxes::setTransformationEnabled(const bool enabled)
+{
+    m_transformationEnabled = enabled;
+}
+
+/**
+ * Apply mouse translation to the current chart's axes
+ * @param mouseDX
+ *   The change in mouse X
+ * @param mouseDY
+ *   The change in mouse Y
+ */
+void
+ChartTwoCartesianOrientedAxes::applyMouseTranslation(const float mouseDX,
+                                                     const float mouseDY)
+{
+    if ( ! m_transformationEnabled) {
+        return;
+    }
+    
+    float deltaXY(0.0);
+    switch (m_orientationType) {
+        case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
+            deltaXY = mouseDX;
+            break;
+        case ChartTwoAxisOrientationTypeEnum::VERTICAL:
+            deltaXY = mouseDY;
+            break;
+    }
+    
+    if (deltaXY != 0.0) {
+        const float percentRange(getPercentageOfDataRange(0.5));
+        const float delta((deltaXY > 0.0) ? percentRange : -percentRange);
+        
+        setUserScaleMinimumValueFromGUI(delta + getUserScaleMinimumValue());
+        setUserScaleMaximumValueFromGUI(delta + getUserScaleMaximumValue());
+    }
+}
+
+/**
+ * Apply mouse scaling to the current chart's axes
+ * @param mouseDY
+ *   The change in mouse Y
+ */
+void
+ChartTwoCartesianOrientedAxes::applyMouseScaling(const float mouseDY)
+{
+    if ( ! m_transformationEnabled) {
+        return;
+    }
+    
+    if (mouseDY == 0.0) {
+        return;
+    }
+    
+    const float percentRange(getPercentageOfDataRange(0.5));
+    const float delta((mouseDY > 0.0) ? percentRange : -percentRange);
+
+    const float newMin(getUserScaleMinimumValue() + delta);
+    const float newMax(getUserScaleMaximumValue() - delta);
+    if (newMax > newMin) {
+        setUserScaleMinimumValueFromGUI(newMin);
+        setUserScaleMaximumValueFromGUI(newMax);
+    }
+}
+
+/**
+ * @return A percentage of the data's range
+ * @param percentage
+ *   The percentage ranging [0.0, 100.0]
+ */
+float
+ChartTwoCartesianOrientedAxes::getPercentageOfDataRange(const float percentage) const
+{
+    float dataMin(0.0), dataMax(0.0);
+    getDataRange(dataMin, dataMax);
+    const float percent((dataMax - dataMin) * (percentage / 100.0));
+    return percent;
 }
 
