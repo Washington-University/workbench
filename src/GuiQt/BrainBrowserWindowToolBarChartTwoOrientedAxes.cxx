@@ -256,7 +256,9 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoA
                                "       whole numbers\n"
                                "Data - Axis range is limited to minimum and \n"
                                "       maximum values of the data\n"
-                               "User - Axis range is controlled by user");
+                               "User - Axis range is controlled by user\n"
+                               "Yoke - Axes with same \"Yoke x\" are synchronized\n"
+                               "       to have the same Min and Max values");
     EnumComboBoxTemplate* rangeModeComboBox = new EnumComboBoxTemplate(this);
     rangeModeComboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
     rangeModeComboBox->setup<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>();
@@ -317,7 +319,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoA
     WuQTrueFalseComboBox* transformEnabledComboBox = new WuQTrueFalseComboBox("On",
                                                                               "Off",
                                                                               this);
-    transformEnabledComboBox->setToolTip("Enable panning and zooming for this orientation");
+    transformEnabledComboBox->setToolTip("Enable mouse panning and zooming for this orientation");
     switch (orientation) {
         case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
             QObject::connect(transformEnabledComboBox, &WuQTrueFalseComboBox::statusChanged,

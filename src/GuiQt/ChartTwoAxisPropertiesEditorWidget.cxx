@@ -134,7 +134,6 @@ m_chartAxis(NULL)
     macroManager->addMacroSupportToObject(m_axisLabelToolButton,
                                           "Edit chart axis label");
     
-    QLabel* axisLabelFromOverlayLabel = new QLabel("Label From File In");
     m_axisLabelFromOverlayComboBox = new QComboBox();
     m_axisLabelFromOverlayComboBox->setToolTip("Label for axis is from file in selected layer");
     QObject::connect(m_axisLabelFromOverlayComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
@@ -262,6 +261,8 @@ m_chartAxis(NULL)
     QGridLayout* sizesLayout = new QGridLayout(sizesWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(sizesLayout, 2, 0);
     int32_t sizesRow = 0;
+    sizesLayout->addWidget(new QLabel("Sizes"), sizesRow, 0, 1, 2, Qt::AlignHCenter);
+    sizesRow++;
     sizesLayout->addWidget(new QLabel("Label"), sizesRow, 0);
     sizesLayout->addWidget(m_labelSizeSpinBox->getWidget(), sizesRow, 1);
     sizesRow++;
@@ -278,15 +279,12 @@ m_chartAxis(NULL)
     /*
      * Show widgets layout
      */
-    const bool displayLabelShowAtTopFlag = false;
     QWidget* showWidget = new QWidget();
     QGridLayout* showLayout = new QGridLayout(showWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(showLayout, 1, 0);
     int32_t axisRow = 0;
-    if (displayLabelShowAtTopFlag) {
-        showLayout->addWidget(new QLabel("Show"), axisRow, 0, Qt::AlignHCenter);
-        axisRow++;
-    }
+    showLayout->addWidget(new QLabel("Show"), axisRow, 0, Qt::AlignHCenter);
+    axisRow++;
     showLayout->addWidget(m_showLabelCheckBox, axisRow, 0);
     axisRow++;
     showLayout->addWidget(m_showNumericsCheckBox, axisRow, 0);
@@ -311,6 +309,8 @@ m_chartAxis(NULL)
     QGridLayout* numericsLayout = new QGridLayout(numericsWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(numericsLayout, 3, 0);
     int numericsRow = 0;
+    numericsLayout->addWidget(new QLabel("Numerics"), numericsRow, 0, 1, 2, Qt::AlignHCenter);
+    numericsRow++;
     numericsLayout->addWidget(new QLabel("Format"), numericsRow, 0);
     numericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), numericsRow, 1, 1, 2);
     numericsRow++;
@@ -320,31 +320,31 @@ m_chartAxis(NULL)
     numericsLayout->addLayout(subdivLayout, numericsRow, 0, 1, 3);
     
     /*
-     * Top layout
+     * Label layout
      */
-    QHBoxLayout* topLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(topLayout, 3, 0);
-    topLayout->addStretch();
-    topLayout->addWidget(axisLabelFromOverlayLabel);
-    topLayout->addWidget(m_axisLabelFromOverlayComboBox);
-    topLayout->addSpacing(3);
-    topLayout->addWidget(m_axisLabelToolButton);
-    topLayout->addStretch();
+    QWidget* labelWidget = new QWidget();
+    QGridLayout* labelLayout = new QGridLayout(labelWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(labelLayout, 3, 0);
+    int labelRow(0);
+    labelLayout->addWidget(new QLabel("Axis Label"), labelRow, 0);
+    labelRow++;
+    labelLayout->addWidget(m_axisLabelFromOverlayComboBox, labelRow, 0);
+    labelRow++;
+    labelLayout->addWidget(m_axisLabelToolButton, labelRow, 0);
+    labelRow++;
     
     /*
      * Grid layout containing layouts
      */
     QGridLayout* gridLayout = new QGridLayout();
-    gridLayout->setHorizontalSpacing(2);
-    gridLayout->setVerticalSpacing(1);
-    gridLayout->setContentsMargins(0, 0, 0, 0);
-    gridLayout->addLayout(topLayout, 0, 0, 1, 5);
     gridLayout->addWidget(showWidget, 1, 0, Qt::AlignTop);
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 1);
     gridLayout->addWidget(sizesWidget, 1, 2, Qt::AlignTop);
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 3);
     gridLayout->addWidget(numericsWidget, 1, 4, Qt::AlignTop);
-    
+    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 5);
+    gridLayout->addWidget(labelWidget, 1, 6, Qt::AlignTop);
+
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 4);
     layout->addLayout(gridLayout);
@@ -401,7 +401,7 @@ ChartTwoAxisPropertiesEditorWidget::updateControls(ChartTwoOverlaySet* chartOver
         }
         else if (overlayCount > comboBoxCount) {
             for (int32_t j = comboBoxCount; j < overlayCount; j++) {
-                m_axisLabelFromOverlayComboBox->addItem("Layer " + AString::number(j + 1));
+                m_axisLabelFromOverlayComboBox->addItem(" From Layer " + AString::number(j + 1));
             }
         }
         
