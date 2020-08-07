@@ -67,7 +67,10 @@ bool
 PaletteGroupUserCustomPalettes::addPaletteImplementation(const PaletteNew& palette,
                                                          AString& errorMessageOut)
 {
-    return false;
+    AString paletteXML;
+    return m_caretPreferences->paletteUserCustomAdd(palette.getName(),
+                                                    paletteXML,
+                                                    errorMessageOut);
 }
 
 /**
@@ -82,7 +85,10 @@ bool
 PaletteGroupUserCustomPalettes::replacePaletteImplementation(const PaletteNew& palette,
                                                              AString& errorMessageOut)
 {
-    return false;
+    AString paletteXML;
+    return m_caretPreferences->paletteUserCustomReplace(palette.getName(),
+                                                        paletteXML,
+                                                        errorMessageOut);
 }
 
 /**
@@ -100,6 +106,18 @@ PaletteGroupUserCustomPalettes::renamePaletteImplementation(const AString& palet
                                                             const AString& newPaletteName,
                                                             AString& errorMessageOut)
 {
+    std::unique_ptr<PaletteNew> palette = getPaletteWithName(paletteName);
+    if (palette) {
+        AString paletteXML;
+        return m_caretPreferences->paletteUserCustomRename(paletteName,
+                                                           newPaletteName,
+                                                           paletteXML,
+                                                           errorMessageOut);
+    }
+    
+    errorMessageOut = ("Palette with name \""
+                       + paletteName
+                       + "\" does not exist for renaming in preferences");
     return false;
 }
 
@@ -128,9 +146,13 @@ void
 PaletteGroupUserCustomPalettes::getPalettes(std::vector<PaletteNew>& palettesOut) const
 {
     palettesOut.clear();
-    //    for (auto p : m_palettes) {
-    //        palettesOut.push_back(p);
-    //    }
+    
+    std::vector<AString> allPalettesXML;
+    m_caretPreferences->paletteUserCustomGetAll(allPalettesXML);
+    
+    for (auto p : allPalettesXML) {
+        /* Convert from XML to a palette */
+    }
 }
 
 /**
@@ -143,13 +165,11 @@ std::unique_ptr<PaletteNew>
 PaletteGroupUserCustomPalettes::getPaletteWithName(const AString& paletteName)
 {
     std::unique_ptr<PaletteNew> paletteOut;
-    //    /* Need reference to palettes to a pointer can be obtained */
-    //    for (auto& p : m_palettes) {
-    //        if (p.getName() == paletteName) {
-    //            return &p;
-    //            break;
-    //        }
-    //    }
+    AString paletteXML;
+    if (m_caretPreferences->paletteUserCustomGetByName(paletteName,
+                                                       paletteXML)) {
+        
+    }
     
     return paletteOut;
 }
