@@ -105,6 +105,7 @@ ChartTwoCartesianOrientedAxes::~ChartTwoCartesianOrientedAxes()
  */
 ChartTwoCartesianOrientedAxes::ChartTwoCartesianOrientedAxes(const ChartTwoCartesianOrientedAxes& obj)
 : CaretObject(obj),
+SceneableInterface(obj),
 m_orientationType(obj.m_orientationType)
 {
     this->copyHelperChartTwoCartesianOrientedAxes(obj);

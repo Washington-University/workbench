@@ -531,34 +531,29 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::axisToolButtonEditClicked(const C
                      verticalAxes);
 
     if (chartOverlaySet != NULL) {
-        ChartTwoCartesianAxis* chartAxis(NULL);
         QWidget* button(NULL);
         QMenu* menu(NULL);
         switch (axis) {
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
                 if (horizontalAxes != NULL) {
-                    chartAxis = horizontalAxes->getLeftOrBottomAxis();
                     button    = m_bottomAxisEditToolButton;
                     menu      = m_bottomAxisMenu;
                 }
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                 if (verticalAxes != NULL) {
-                    chartAxis = verticalAxes->getLeftOrBottomAxis();
                     button    = m_leftAxisEditToolButton;
                     menu      = m_leftAxisMenu;
                 }
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
                 if (verticalAxes != NULL) {
-                    chartAxis = verticalAxes->getRightOrTopAxis();
                     button    = m_rightAxisEditToolButton;
                     menu      = m_rightAxisMenu;
                 }
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                 if (horizontalAxes != NULL) {
-                    chartAxis = horizontalAxes->getRightOrTopAxis();
                     button    = m_topAxisEditToolButton;
                     menu      = m_topAxisMenu;
                 }

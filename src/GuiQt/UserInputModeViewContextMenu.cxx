@@ -920,7 +920,7 @@ UserInputModeViewContextMenu::createChartMenu()
                     break;
                 case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
                 {
-                    QList<QAction*> layerActions = getChartTwoLineLayerMenuActions(chartTwoModel);
+                    QList<QAction*> layerActions = getChartTwoLineLayerMenuActions();
                     chartActions.append(layerActions);
                 }
                     break;
@@ -946,15 +946,11 @@ UserInputModeViewContextMenu::createChartMenu()
 }
 
 /**
- * @param chartTwoModel
- *     The valid chart two model.
  * @return Menu actions for chart two line layer
  */
 QList<QAction*>
-UserInputModeViewContextMenu::getChartTwoLineLayerMenuActions(const ModelChartTwo* chartTwoModel)
+UserInputModeViewContextMenu::getChartTwoLineLayerMenuActions()
 {
-    CaretAssert(chartTwoModel);
-    
     QList<QAction*> actions;
     
     const ChartTwoOverlaySet* overlaySet = this->browserTabContent->getChartTwoOverlaySet();

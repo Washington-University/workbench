@@ -159,7 +159,7 @@ namespace caret {
         
         QMenu* createLabelRegionOfInterestMenu();
         
-        QList<QAction*> getChartTwoLineLayerMenuActions(const ModelChartTwo* chartTwoModel);
+        QList<QAction*> getChartTwoLineLayerMenuActions();
         
         void addSubMenuToMenu(QMenu* menu,
                               const bool addSeparatorBeforeMenu);

@@ -1915,7 +1915,6 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showChartTwoOrientationWidget = false;
     bool showChartTwoAttributesWidget = false;
     bool showChartTwoAxesWidget = false;
-    bool showChartTwoTitleWidget = false;
     
     bool showModeWidget = true;
     bool showViewWidget = true;
@@ -2081,21 +2080,17 @@ BrainBrowserWindowToolBar::updateToolBar()
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                             showChartTwoAxesWidget = true;
-                            showChartTwoTitleWidget = true;
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
                             showChartTwoAxesWidget = true;
-                            showChartTwoTitleWidget = true;
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
                             showChartTwoAxesWidget = true;
-                            showChartTwoTitleWidget = true;
                             break;
                         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                             showChartTwoAxesWidget = true;
                             showChartTwoOrientationWidget = true;
                             showChartTwoAttributesWidget  = true;
-                            showChartTwoTitleWidget = true;
                             break;
                     }
                     

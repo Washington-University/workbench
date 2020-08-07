@@ -1349,7 +1349,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
                                                                 const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
-                                                                const float opacity,
+                                                                const float /*opacity*/,
                                                                 std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut)
 {
     GraphicsPrimitive* matrixPrimitive(NULL);
