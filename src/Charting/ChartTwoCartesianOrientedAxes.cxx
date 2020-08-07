@@ -23,6 +23,8 @@
 #include "ChartTwoCartesianOrientedAxes.h"
 #undef __CHART_TWO_CARTESIAN_ORIENTATED_AXES_DECLARE__
 
+#include <cmath>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartScaleAutoRanging.h"
@@ -924,10 +926,13 @@ ChartTwoCartesianOrientedAxes::applyMouseTranslation(const float mouseDX,
             deltaXY = mouseDY;
             break;
     }
+    const float absDeltaXY(std::min(std::fabs(deltaXY), 5.0f));
     
     if (deltaXY != 0.0) {
         const float percentRange(getPercentageOfDataRange(0.5));
-        const float delta((deltaXY > 0.0) ? percentRange : -percentRange);
+        const float delta((deltaXY > 0.0)
+                          ? (-percentRange * absDeltaXY)
+                          : (percentRange * absDeltaXY));
         
         setUserScaleMinimumValueFromGUI(delta + getUserScaleMinimumValue());
         setUserScaleMaximumValueFromGUI(delta + getUserScaleMaximumValue());

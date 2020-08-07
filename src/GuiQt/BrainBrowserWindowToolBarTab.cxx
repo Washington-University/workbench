@@ -251,8 +251,12 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     if (chartFlag) {
         m_yokeToLabel->setText("Yoke");
         m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getChartModelYokingGroup());
+        m_yokeToLabel->setEnabled(false);
+        m_yokingGroupComboBox->getWidget()->setEnabled(false);
     }
     else {
+        m_yokeToLabel->setEnabled(true);
+        m_yokingGroupComboBox->getWidget()->setEnabled(true);
         m_yokeToLabel->setText("Yoke");
         m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getBrainModelYokingGroup());
     }
