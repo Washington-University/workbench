@@ -2102,6 +2102,16 @@ BrainBrowserWindowToolBar::updateToolBar()
     }
     
     /*
+     * WB-900
+     * Do not show chart orientation widget since charts no longer use
+     * transformation matrices but instead pan/zoom by adjusting the
+     * axis min/max.  Need to work on conversion (if possible) from
+     * matrix to axis min/max.
+     */
+    showChartTwoOrientationWidget = false;
+    
+    
+    /*
      * Need to turn off display of all widgets, 
      * otherwise, the toolbar width may be overly
      * expanded with empty space as other widgets
