@@ -36,7 +36,7 @@ CaretMathExpression::CaretMathExpression(const AString& expression)
     m_root = orExpr();
     if (skipWhitespace())//if we DON'T hit the end of input, there are extra characters - like if the input is "x + 1 $blah"
     {
-        throw CaretException("extra characters on end of expression input: '" + m_input.mid(m_position) + "'");
+        throw CaretException("extra characters on end of expression: '" + m_input.mid(m_position) + "'");
     }
     CaretLogFiner("parsed '" + expression + "' as '" + toString() + "'");
 }
@@ -572,8 +572,8 @@ bool CaretMathExpression::accept(const char& c)
 void CaretMathExpression::expect(const char& c, const int& exprStart)
 {
     CaretAssert(exprStart < m_end);
-    if (!skipWhitespace()) throw CaretException("unexpected end of input while parsing '" + m_input.mid(exprStart) + "', expected '" + AString(c) + "'");
-    if (m_input[m_position] != c) throw CaretException("expected '" + AString(c) + "', got '" + m_input[m_position] + "' while parsing '" + m_input.mid(exprStart, m_position - exprStart + 1) + "'");
+    if (!skipWhitespace()) throw CaretException("unexpected end of expression while parsing '" + m_input.mid(exprStart) + "', expected '" + AString(c) + "'");
+    if (m_input[m_position] != c) throw CaretException("expected '" + AString(c) + "', got '" + m_input[m_position] + "' while parsing expression '" + m_input.mid(exprStart, m_position - exprStart + 1) + "'");
     ++m_position;
 }
 
@@ -804,6 +804,21 @@ CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::powExpr()
     return temp;
 }
 
+bool CaretMathExpression::isFuncNamePattern(const AString& testStr)
+{
+    bool onlydigits = true;
+    for (int i = 0; i < testStr.length(); ++i)
+    {
+        QChar thisChar = testStr[i];//allow letters, numbers, and underscore, basically same as variables
+        if (!thisChar.isLetterOrNumber() && thisChar != '_')
+        {
+            return false;
+        }
+        if (!thisChar.isDigit()) onlydigits = false;//if there are only digits, this is not a variable, tryLiteral failed on something that was intended to be a literal
+     }
+     return !onlydigits;
+}
+
 CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::funcExpr()
 {
     int start = m_position;
@@ -816,10 +831,15 @@ CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::funcExpr()
     int funcnameEnd = m_input.indexOf('(', m_position);
     if (funcnameEnd != -1)
     {
-        bool ok = false;
-        MathFunctionEnum::Enum myfunc = MathFunctionEnum::fromName(m_input.mid(m_position, funcnameEnd - m_position).trimmed(), &ok);
-        if (ok)
-        {
+        AString funcName = m_input.mid(m_position, funcnameEnd - m_position).trimmed();
+        if (isFuncNamePattern(funcName))
+        {//if it looks like a function name, error if it is unknown, rather than a generic "extra characters" message
+            bool ok = false;
+            MathFunctionEnum::Enum myfunc = MathFunctionEnum::fromName(funcName, &ok);
+            if (!ok)
+            {
+                throw CaretException("expression contains unknown function name '" + funcName + "'");
+            }
             int numArgs = -1;
             switch(myfunc)
             {
@@ -883,7 +903,7 @@ CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::terminal()
 {
     CaretPointer<MathNode> ret = tryLiteral();//try literal first, our relaxed rules for variable names overlap with integers
     if (ret != NULL) return ret;
-    if (!skipWhitespace()) throw CaretException("unexpected end of input, expected operand");//now, try named constant/variable
+    if (!skipWhitespace()) throw CaretException("unexpected end of expression, expected operand");//now, try named constant/variable
     int varEnd = m_position;
     bool onlydigits = true;
     while (varEnd < m_end)
@@ -900,7 +920,7 @@ CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::terminal()
     AString identifier = m_input.mid(m_position, varEnd - m_position);
     if (identifier.size() == 0)//hit an invalid character or end of input before getting any valid characters
     {//figure out why we stopped, give appropriate error
-        if (varEnd >= m_end) throw CaretException("unexpected end of input, expected operand");
+        if (varEnd >= m_end) throw CaretException("unexpected end of expression, expected operand");
         throw CaretException("unexpected character '" + AString(m_input[varEnd]) + "' at beginning of operand");//if it fails for all prefix unary, parens, function, literal, variable, then this character can never start an operand
     }
     if (onlydigits) throw CaretException("error parsing literal value beginning with '" + identifier + "'");
@@ -927,7 +947,7 @@ CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::terminal()
 
 CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::tryLiteral()
 {
-    if (!skipWhitespace()) throw CaretException("unexpected end of input, expected operand");//now, try literal
+    if (!skipWhitespace()) throw CaretException("unexpected end of expression, expected operand");//now, try literal
     int litstart = m_position, litend = m_position;
     if (m_input[litend] == '-' || m_input[litend] == '+') ++litend;//allow literals to start with - or + : however, - will not happen, due to unary - (which does that so that -2^-2 works as -(2^(-2))
     bool havedot = false, haveexp = false;

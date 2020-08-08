@@ -70,6 +70,7 @@ class CaretMathExpression
     bool skipWhitespace();
     bool accept(const char& c);
     void expect(const char& c, const int& exprStart);
+    static bool isFuncNamePattern(const AString& testStr);
     CaretPointer<MathNode> orExpr();//hopefully we have enough stack space that we won't overflow without a hundred or so levels of parenthesis/functions/exponents
     CaretPointer<MathNode> andExpr();
     CaretPointer<MathNode> equalExpr();
