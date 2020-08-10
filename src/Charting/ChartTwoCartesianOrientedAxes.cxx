@@ -365,19 +365,6 @@ ChartTwoCartesianOrientedAxes::updateMinMaxValuesForYoking() const
         }
             break;
     }
-    
-//    if (ChartTwoAxisScaleRangeModeEnum::isYokingRangeMode(m_scaleRangeMode)) {
-//        /*
-//         * When yoked, use min/max that is stored in the yoking manager
-//         */
-//        float minValue(0.0), maxValue(0.0);
-//        EventChartTwoCartesianOrientedAxesYoking::getMinMaxValues(m_orientationType,
-//                                                                  m_scaleRangeMode,
-//                                                                  minValue,
-//                                                                  maxValue);
-//        m_userScaleMinimumValue = minValue;
-//        m_userScaleMaximumValue = maxValue;
-//    }
 }
 
 /**
@@ -455,6 +442,58 @@ ChartTwoCartesianOrientedAxes::updateRangeModeAfterMinimumOrMaximumChanged()
             break;
     }
 }
+
+/*
+ * Reset the user scale range.
+ * For AUTO and DATA, no action is taken since they already use the data range.
+ * For USER, the range is reset to the data range.
+ * For YOKING, the range is set to the minimum and maximum from all axes yoked to the group.
+ */
+void
+ChartTwoCartesianOrientedAxes::resetUserScaleRange()
+{
+    switch (m_scaleRangeMode) {
+        case ChartTwoAxisScaleRangeModeEnum::AUTO:
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::DATA:
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::USER:
+        {
+            /*
+             * Reset to range of data
+             */
+            float minValue(0.0), maxValue(0.0);
+            getDataRange(minValue, maxValue);
+            m_userScaleMinimumValue = minValue;
+            m_userScaleMaximumValue = maxValue;
+        }
+            break;
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_A:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_B:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_C:
+        case ChartTwoAxisScaleRangeModeEnum::YOKE_D:
+        {
+            /*
+             * Get range of all yoked charts
+             */
+            float minValue(0.0), maxValue(0.0);
+            if (EventChartTwoCartesianOrientedAxesYoking::getDataRangeMinMaxValues(m_orientationType,
+                                                                                   m_scaleRangeMode,
+                                                                                   minValue,
+                                                                                   maxValue)) {
+                /*
+                 * Set yoked range
+                 */
+                EventChartTwoCartesianOrientedAxesYoking::setMinMaxValues(m_orientationType,
+                                                                          m_scaleRangeMode,
+                                                                          minValue,
+                                                                          maxValue);
+            }
+        }
+            break;
+    }
+}
+
 
 /**
  * Set the range mode and user scale from an old scene
@@ -903,49 +942,103 @@ ChartTwoCartesianOrientedAxes::setTransformationEnabled(const bool enabled)
 }
 
 /**
+ * Convert the given viewport value to a percentage of the viewport, multiply the
+ * percentage of the viewport by the range of the data, and return the data value.
+ * @param viewport
+ *    The viewport
+ * @param viewportValue
+ *    Value in viewport space
+ * @return Data value multiplied by percentage of viewport
+ */
+float
+ChartTwoCartesianOrientedAxes::getDataPercentageFromPercentageOfViewport(const int32_t viewport[4],
+                                                                    const float viewportValue) const
+{
+    float dataValueOut(0.0);
+    
+    /*
+     * Range of data
+     */
+    float dataMin(0.0), dataMax(0.0);
+    getDataRange(dataMin, dataMax);
+    const float dataRange(dataMax - dataMin);
+    if (dataRange <= 0.0) {
+        return dataValueOut;
+    }
+    
+    /*
+     * Size of viewport
+     */
+    float viewportSize(0.0);
+    switch (m_orientationType) {
+        case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
+            viewportSize = viewport[2];
+            break;
+        case ChartTwoAxisOrientationTypeEnum::VERTICAL:
+            viewportSize = viewport[3];
+            break;
+    }
+    /*
+     * Percentage of viewport
+     */
+    const float viewportPercentage((viewportSize > 0)
+                                   ? (viewportValue / viewportSize)
+                                   : 0.0);
+
+    dataValueOut = (dataRange * viewportPercentage);
+    
+    return dataValueOut;
+}
+
+/**
  * Apply mouse translation to the current chart's axes
+ * @param viewport
+ *    Viewport containing chart
  * @param mouseDX
  *   The change in mouse X
  * @param mouseDY
  *   The change in mouse Y
  */
 void
-ChartTwoCartesianOrientedAxes::applyMouseTranslation(const float mouseDX,
+ChartTwoCartesianOrientedAxes::applyMouseTranslation(const int32_t viewport[4],
+                                                     const float mouseDX,
                                                      const float mouseDY)
 {
     if ( ! m_transformationEnabled) {
         return;
     }
     
-    float deltaXY(0.0);
+    float mouseDeltaXY(0.0);
     switch (m_orientationType) {
         case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
-            deltaXY = mouseDX;
+            mouseDeltaXY = mouseDX;
             break;
         case ChartTwoAxisOrientationTypeEnum::VERTICAL:
-            deltaXY = mouseDY;
+            mouseDeltaXY = mouseDY;
             break;
     }
-    const float absDeltaXY(std::min(std::fabs(deltaXY), 5.0f));
+    if (mouseDeltaXY == 0.0) {
+        return;
+    }
     
-    if (deltaXY != 0.0) {
-        const float percentRange(getPercentageOfDataRange(0.5));
-        const float delta((deltaXY > 0.0)
-                          ? (-percentRange * absDeltaXY)
-                          : (percentRange * absDeltaXY));
-        
-        setUserScaleMinimumValueFromGUI(delta + getUserScaleMinimumValue());
-        setUserScaleMaximumValueFromGUI(delta + getUserScaleMaximumValue());
+    float deltaData = getDataPercentageFromPercentageOfViewport(viewport,
+                                                           mouseDeltaXY);
+    if (deltaData != 0.0) {
+        setUserScaleMinimumValueFromGUI(getUserScaleMinimumValue() - deltaData);
+        setUserScaleMaximumValueFromGUI(getUserScaleMaximumValue() - deltaData);
     }
 }
 
 /**
  * Apply mouse scaling to the current chart's axes
+ * @param viewport
+ *    Viewport containing chart
  * @param mouseDY
  *   The change in mouse Y
  */
 void
-ChartTwoCartesianOrientedAxes::applyMouseScaling(const float mouseDY)
+ChartTwoCartesianOrientedAxes::applyMouseScaling(const int32_t viewport[4],
+                                                 const float mouseDY)
 {
     if ( ! m_transformationEnabled) {
         return;
@@ -955,11 +1048,10 @@ ChartTwoCartesianOrientedAxes::applyMouseScaling(const float mouseDY)
         return;
     }
     
-    const float percentRange(getPercentageOfDataRange(0.5));
-    const float delta((mouseDY > 0.0) ? percentRange : -percentRange);
-
-    const float newMin(getUserScaleMinimumValue() + delta);
-    const float newMax(getUserScaleMaximumValue() - delta);
+    float deltaData = (2.0 * getDataPercentageFromPercentageOfViewport(viewport,
+                                                                       mouseDY));
+    const float newMin(getUserScaleMinimumValue() + deltaData);
+    const float newMax(getUserScaleMaximumValue() - deltaData);
     if (newMax > newMin) {
         setUserScaleMinimumValueFromGUI(newMin);
         setUserScaleMaximumValueFromGUI(newMax);

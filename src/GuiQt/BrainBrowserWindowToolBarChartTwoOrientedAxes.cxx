@@ -85,6 +85,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::BrainBrowserWindowToolBarChartTwo
     m_horizontalUserMinimumValueSpinBox  = std::get<1>(horizontalWidgets);
     m_horizontalUserMaximumValueSpinBox  = std::get<2>(horizontalWidgets);
     m_horizontalTransformEnabledComboBox = std::get<3>(horizontalWidgets);
+    m_horizontalRangeResetToolButton     = std::get<4>(horizontalWidgets);
 
     /*
      * Vertical range
@@ -95,6 +96,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::BrainBrowserWindowToolBarChartTwo
     m_verticalUserMinimumValueSpinBox  = std::get<1>(verticalWidgets);
     m_verticalUserMaximumValueSpinBox  = std::get<2>(verticalWidgets);
     m_verticalTransformEnabledComboBox = std::get<3>(verticalWidgets);
+    m_verticalRangeResetToolButton     = std::get<4>(verticalWidgets);
     
     /*
      * Left Axis display and edit
@@ -157,45 +159,50 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::BrainBrowserWindowToolBarChartTwo
      */
     int32_t columnCounter(0);
     const int32_t COLUMN_LABEL(columnCounter++);
-    const int32_t COLUMN_HORIZ(columnCounter++);
-    const int32_t COLUMN_VERT(columnCounter++);
+    const int32_t COLUMN_HORIZ_ONE(columnCounter++);
+    const int32_t COLUMN_HORIZ_TWO(columnCounter++);
+    const int32_t COLUMN_VERT_ONE(columnCounter++);
+    const int32_t COLUMN_VERT_TWO(columnCounter++);
     const int32_t COLUMN_LINE(columnCounter++);
     const int32_t COLUMN_CHECKBOX(columnCounter++);
     const int32_t COLUMN_EDIT(columnCounter++);
     QGridLayout* rangeLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(rangeLayout, 3, 0);
     int row(0);
-    rangeLayout->addWidget(new QLabel("Horizontal"), row, COLUMN_HORIZ);
-    rangeLayout->addWidget(new QLabel("Vertical"), row, COLUMN_VERT);
+    rangeLayout->addWidget(new QLabel("Horizontal"), row, COLUMN_HORIZ_ONE, 1, 2);
+    rangeLayout->addWidget(new QLabel("Vertical"), row, COLUMN_VERT_ONE, 1, 2);
     rangeLayout->addWidget(m_leftAxisCheckBox, row, COLUMN_CHECKBOX);
     rangeLayout->addWidget(m_leftAxisEditToolButton, row, COLUMN_EDIT);
     row++;
     
     rangeLayout->addWidget(new QLabel("Range"), row, COLUMN_LABEL);
-    rangeLayout->addWidget(m_horizontalRangeModeComboBox->getWidget(), row, COLUMN_HORIZ);
-    rangeLayout->addWidget(m_verticalRangeModeComboBox->getWidget(), row, COLUMN_VERT);
+    rangeLayout->addWidget(m_horizontalRangeModeComboBox->getWidget(), row, COLUMN_HORIZ_ONE);
+    rangeLayout->addWidget(m_horizontalRangeResetToolButton, row, COLUMN_HORIZ_TWO);
+    rangeLayout->addWidget(m_verticalRangeModeComboBox->getWidget(), row, COLUMN_VERT_ONE);
+    rangeLayout->addWidget(m_verticalRangeResetToolButton, row, COLUMN_VERT_TWO);
     rangeLayout->addWidget(m_rightAxisCheckBox, row, COLUMN_CHECKBOX);
     rangeLayout->addWidget(m_rightAxisEditToolButton, row, COLUMN_EDIT);
     
     row++;
     rangeLayout->addWidget(new QLabel("Max"), row, COLUMN_LABEL);
-    rangeLayout->addWidget(m_horizontalUserMaximumValueSpinBox->getWidget(), row, COLUMN_HORIZ);
-    rangeLayout->addWidget(m_verticalUserMaximumValueSpinBox->getWidget(), row, COLUMN_VERT);
+    rangeLayout->addWidget(m_horizontalUserMaximumValueSpinBox->getWidget(), row, COLUMN_HORIZ_ONE, 1, 2);
+    rangeLayout->addWidget(m_verticalUserMaximumValueSpinBox->getWidget(), row, COLUMN_VERT_ONE, 1, 2);
     rangeLayout->addWidget(m_topAxisCheckBox, row, COLUMN_CHECKBOX);
     rangeLayout->addWidget(m_topAxisEditToolButton, row, COLUMN_EDIT);
 
     row++;
     rangeLayout->addWidget(new QLabel("Min"), row, COLUMN_LABEL);
-    rangeLayout->addWidget(m_horizontalUserMinimumValueSpinBox->getWidget(), row, COLUMN_HORIZ);
-    rangeLayout->addWidget(m_verticalUserMinimumValueSpinBox->getWidget(), row, COLUMN_VERT);
+    rangeLayout->addWidget(m_horizontalUserMinimumValueSpinBox->getWidget(), row, COLUMN_HORIZ_ONE, 1, 2);
+    rangeLayout->addWidget(m_verticalUserMinimumValueSpinBox->getWidget(), row, COLUMN_VERT_ONE, 1, 2);
     rangeLayout->addWidget(m_bottomAxisCheckBox, row, COLUMN_CHECKBOX);
     rangeLayout->addWidget(m_bottomAxisEditToolButton, row, COLUMN_EDIT);
     row++;
     rangeLayout->addWidget(new QLabel("Xform"), row, COLUMN_LABEL);
-    rangeLayout->addWidget(m_horizontalTransformEnabledComboBox->getWidget(), row, COLUMN_HORIZ);
-    rangeLayout->addWidget(m_verticalTransformEnabledComboBox->getWidget(), row, COLUMN_VERT);
+    rangeLayout->addWidget(m_horizontalTransformEnabledComboBox->getWidget(), row, COLUMN_HORIZ_ONE, 1, 2);
+    rangeLayout->addWidget(m_verticalTransformEnabledComboBox->getWidget(), row, COLUMN_VERT_ONE, 1, 2);
     rangeLayout->addWidget(m_titleCheckBox, row, COLUMN_CHECKBOX);
     rangeLayout->addWidget(m_titleEditToolButton, row, COLUMN_EDIT);
+    row++;
 
     rangeLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
                            0, COLUMN_LINE,
@@ -239,7 +246,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::receiveEvent(Event* event)
  * @param objectNamePrefix
  *    Object name for macros
  */
-std::tuple<EnumComboBoxTemplate*, WuQDoubleSpinBox*, WuQDoubleSpinBox*, WuQTrueFalseComboBox*>
+std::tuple<EnumComboBoxTemplate*, WuQDoubleSpinBox*, WuQDoubleSpinBox*, WuQTrueFalseComboBox*, QToolButton*>
 BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoAxisOrientationTypeEnum::Enum orientation,
                                                                  const QString& objectNamePrefix)
 {
@@ -331,6 +338,27 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoA
             break;
     }
     
+    QToolButton* resetToolButton = new QToolButton();
+    resetToolButton->setText("R");
+    resetToolButton->setToolTip("<html>"
+                                "Reset the Min/Max Values:<br>"
+                                "   AUTO - No action is taken<br>"
+                                "   DATA - No action is taken<br>"
+                                "   USER - Resets to range of DATA in axis<br>"
+                                "   YOKE - Resets to range of DATA from all yoked axes"
+                                "</html>");
+    WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
+    switch (orientation) {
+        case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
+            QObject::connect(resetToolButton, &QToolButton::clicked,
+                             this, &BrainBrowserWindowToolBarChartTwoOrientedAxes::horizontalRangeResetToolButton);
+            break;
+        case ChartTwoAxisOrientationTypeEnum::VERTICAL:
+            QObject::connect(resetToolButton, &QToolButton::clicked,
+                             this, &BrainBrowserWindowToolBarChartTwoOrientedAxes::verticalRangeResetToolButton);
+            break;
+    }
+    
     /*
      * Group widgets for blocking signals
      */
@@ -339,11 +367,13 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoA
     m_widgetGroup->add(userMinimumValueSpinBox);
     m_widgetGroup->add(userMaximumValueSpinBox);
     m_widgetGroup->add(transformEnabledComboBox);
+    m_widgetGroup->add(resetToolButton);
     
     return std::make_tuple(rangeModeComboBox,
                            userMinimumValueSpinBox,
                            userMaximumValueSpinBox,
-                           transformEnabledComboBox);
+                           transformEnabledComboBox,
+                           resetToolButton);
 }
 
 /**
@@ -836,6 +866,24 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::horizontalTransformEnabledChecked
 }
 
 /**
+ * Called when reset horizontal range toolbutton is clicked
+ */
+void
+BrainBrowserWindowToolBarChartTwoOrientedAxes::horizontalRangeResetToolButton()
+{
+    ChartTwoOverlaySet* overlaySet(NULL);
+    ChartTwoCartesianOrientedAxes* horizontalAxis(NULL);
+    ChartTwoCartesianOrientedAxes* verticalAxis(NULL);
+    getSelectionData(overlaySet,
+                     horizontalAxis,
+                     verticalAxis);
+    if (horizontalAxis != NULL) {
+        horizontalAxis->resetUserScaleRange();
+        valueChanged();
+    }
+}
+
+/**
  * Called when the minimum value is changed.
  *
  * @param minimumValue
@@ -893,6 +941,24 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::verticalTransformEnabledChecked(b
                      verticalAxis);
     if (verticalAxis != NULL) {
         verticalAxis->setTransformationEnabled(checked);
+    }
+}
+
+/**
+ * Called when reset vertical range toolbutton is clicked
+ */
+void
+BrainBrowserWindowToolBarChartTwoOrientedAxes::verticalRangeResetToolButton()
+{
+    ChartTwoOverlaySet* overlaySet(NULL);
+    ChartTwoCartesianOrientedAxes* horizontalAxis(NULL);
+    ChartTwoCartesianOrientedAxes* verticalAxis(NULL);
+    getSelectionData(overlaySet,
+                     horizontalAxis,
+                     verticalAxis);
+    if (verticalAxis != NULL) {
+        verticalAxis->resetUserScaleRange();
+        valueChanged();
     }
 }
 

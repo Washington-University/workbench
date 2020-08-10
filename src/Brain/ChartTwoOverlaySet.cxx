@@ -99,6 +99,8 @@ m_tabIndex(tabIndex)
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
         {
+            m_horizontalAxes->initializeScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
+            m_verticalAxes->initializeScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::AUTO);
             chartAxisLeft->setUnits(CaretUnitsTypeEnum::NONE);
             chartAxisRight->setUnits(CaretUnitsTypeEnum::NONE);
             chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
@@ -114,6 +116,7 @@ m_tabIndex(tabIndex)
              * X-axis for line series shows full extent of data
              */
             m_horizontalAxes->initializeScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
+            m_verticalAxes->initializeScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::AUTO);
             chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
             chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
         }
@@ -127,6 +130,7 @@ m_tabIndex(tabIndex)
              * X-axis for line series shows full extent of data
              */
             m_horizontalAxes->initializeScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::DATA);
+            m_verticalAxes->initializeScaleRangeMode(ChartTwoAxisScaleRangeModeEnum::AUTO);
             chartAxisBottom->setUnits(CaretUnitsTypeEnum::NONE);
             chartAxisTop->setUnits(CaretUnitsTypeEnum::NONE);
         }
@@ -1020,31 +1024,41 @@ ChartTwoOverlaySet::getVerticalAxes() const
 
 /**
  * Apply mouse translation to the current chart's axes
+ * @param viewport
+ *    Viewport containing chart
  * @param mouseDX
  *   The change in mouse X
  * @param mouseDY
  *   The change in mouse Y
  */
 void
-ChartTwoOverlaySet::applyMouseTranslation(const float mouseDX,
+ChartTwoOverlaySet::applyMouseTranslation(const int32_t viewport[4],
+                                          const float mouseDX,
                                           const float mouseDY)
 {
-    m_horizontalAxes->applyMouseTranslation(mouseDX,
+    m_horizontalAxes->applyMouseTranslation(viewport,
+                                            mouseDX,
                                             mouseDY);
-    m_verticalAxes->applyMouseTranslation(mouseDX,
+    m_verticalAxes->applyMouseTranslation(viewport,
+                                          mouseDX,
                                           mouseDY);
 }
 
 /**
  * Apply mouse scaling to the current chart's axes
+ * @param viewport
+ *    Viewport containing chart
  * @param mouseDY
  *   The change in mouse Y
  */
 void
-ChartTwoOverlaySet::applyMouseScaling(const float mouseDY)
+ChartTwoOverlaySet::applyMouseScaling(const int32_t viewport[4],
+                                      const float mouseDY)
 {
-    m_horizontalAxes->applyMouseScaling(mouseDY);
-    m_verticalAxes->applyMouseScaling(mouseDY);
+    m_horizontalAxes->applyMouseScaling(viewport,
+                                        mouseDY);
+    m_verticalAxes->applyMouseScaling(viewport,
+                                      mouseDY);
 }
 
 /**

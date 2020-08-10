@@ -3107,13 +3107,16 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
 /**
  * Apply mouse scaling to the displayed model.
  *
+ * @param viewportContent
+ *    Content of the viewport
  * @param mouseDX
  *    Change in mouse X coordinate.
  * @param mouseDY
  *    Change in mouse Y coordinate.
  */
 void
-BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
+BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent,
+                                     const int32_t /*mouseDX*/,
                                      const int32_t mouseDY)
 {
     if (isChartOneDisplayed()) {
@@ -3147,7 +3150,10 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
     else if (isChartTwoDisplayed()) {
         ChartTwoOverlaySet* overlaySet = getChartTwoOverlaySet();
         if (overlaySet != NULL) {
-            overlaySet->applyMouseScaling(mouseDY);
+            int32_t viewport[4];
+            viewportContent->getModelViewport(viewport);
+            overlaySet->applyMouseScaling(viewport,
+                                          mouseDY);
         }
     }
     else {
@@ -3266,7 +3272,10 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
     else if (isChartTwoDisplayed()) {
         ChartTwoOverlaySet* overlaySet = getChartTwoOverlaySet();
         if (overlaySet != NULL) {
-            overlaySet->applyMouseTranslation(mouseDX,
+            int32_t viewport[4];
+            viewportContent->getModelViewport(viewport);
+            overlaySet->applyMouseTranslation(viewport,
+                                              mouseDX,
                                               mouseDY);
         }
     }

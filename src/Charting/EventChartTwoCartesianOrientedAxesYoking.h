@@ -49,6 +49,11 @@ namespace caret {
         static std::vector<ChartTwoCartesianOrientedAxes*> getYokedAxes(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientation,
                                                                         const ChartTwoAxisScaleRangeModeEnum::Enum yokingRangeMode);
         
+        static bool getDataRangeMinMaxValues(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientation,
+                                             const ChartTwoAxisScaleRangeModeEnum::Enum yokingRangeMode,
+                                             float& dataMinimumValueOut,
+                                             float& dataMaximumValueOut);
+
         static bool getMinMaxValues(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientation,
                                     const ChartTwoAxisScaleRangeModeEnum::Enum yokingRangeMode,
                                     float& minimumValueOut,

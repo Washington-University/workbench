@@ -384,7 +384,9 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
         return;
     }
     
-    browserTabContent->applyMouseScaling(mouseEvent.getDx(), mouseEvent.getDy());
+    browserTabContent->applyMouseScaling(viewportContent,
+                                         mouseEvent.getDx(),
+                                         mouseEvent.getDy());
     updateGraphics(mouseEvent);
 }
 
@@ -447,7 +449,8 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                     scaleFactor = -2.0;
                 }
                 if (scaleFactor != 0.0) {
-                    browserTabContent->applyMouseScaling(0.0f,
+                    browserTabContent->applyMouseScaling(viewportContent,
+                                                         0.0f,
                                                          scaleFactor);
                     updateGraphics(viewportContent);
                 }

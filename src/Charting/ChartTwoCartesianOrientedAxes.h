@@ -67,6 +67,8 @@ namespace caret {
         
         void setUserScaleMaximumValueFromGUI(const float value);
         
+        void resetUserScaleRange();
+        
         void setRangeModeAndUserScaleFromVersionOneScene(const ChartTwoAxisScaleRangeModeEnum::Enum scaleRangeMode,
                                                          const float userScaleMinimumValue,
                                                          const float userScaleMaximumValue);
@@ -94,10 +96,12 @@ namespace caret {
         
         void setTransformationEnabled(const bool enabled);
         
-        void applyMouseTranslation(const float mouseDX,
+        void applyMouseTranslation(const int32_t viewport[4],
+                                   const float mouseDX,
                                    const float mouseDY);
         
-        void applyMouseScaling(const float mouseDY);
+        void applyMouseScaling(const int32_t viewport[4],
+                               const float mouseDY);
         
         float getPercentageOfDataRange(const float percentage) const;
         
@@ -142,6 +146,9 @@ namespace caret {
         
         void updateMinMaxValuesForYoking() const;
         
+        float getDataPercentageFromPercentageOfViewport(const int32_t viewport[4],
+                                                        const float viewportValue) const;
+
         const ChartTwoOverlaySet* m_parentChartOverlaySet;
         
         const ChartTwoAxisOrientationTypeEnum::Enum m_orientationType;

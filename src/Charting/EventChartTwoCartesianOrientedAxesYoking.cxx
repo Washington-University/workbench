@@ -24,6 +24,7 @@
 #undef __EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING_DECLARE__
 
 #include "CaretAssert.h"
+#include "ChartTwoCartesianOrientedAxes.h"
 #include "EventManager.h"
 #include "EventTypeEnum.h"
 
@@ -187,6 +188,53 @@ EventChartTwoCartesianOrientedAxesYoking::getYokedAxes(const ChartTwoAxisOrienta
     return axesEvent.getYokedAxes();
 }
 
+/**
+ * Static method to get the minimum and maximum from the data in all yoked charts for an orientation and yoking group
+ * @param axisOrientation
+ *    The axis orientation
+ * @param yokingRangeMode
+ *    The yoking range mode
+ * @param minimumValueOut
+ *    Output with minimum value
+ * @param maximumValueOut
+ *    Output with maximum value
+ * @return True if the output values are valid; false if no axes are yoked to the yokingRangeMode
+ */
+bool
+EventChartTwoCartesianOrientedAxesYoking::getDataRangeMinMaxValues(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientation,
+                                                                   const ChartTwoAxisScaleRangeModeEnum::Enum yokingRangeMode,
+                                                                   float& dataMinimumValueOut,
+                                                                   float& dataMaximumValueOut)
+{
+    dataMinimumValueOut = 0.0;
+    dataMaximumValueOut = 0.0;
+    
+    EventChartTwoCartesianOrientedAxesYoking axesEvent(EventChartTwoCartesianOrientedAxesYoking::Mode::GET_YOKED_AXES,
+                                                       axisOrientation,
+                                                       yokingRangeMode);
+    EventManager::get()->sendEvent(axesEvent.getPointer());
+    if (axesEvent.getEventProcessCount() > 0) {
+        float minValue(std::numeric_limits<float>::max());
+        float maxValue(-minValue);
+        
+        std::vector<ChartTwoCartesianOrientedAxes*> axes = axesEvent.getYokedAxes();
+        for (auto a : axes) {
+            float minData(0.0), maxData(0.0);
+            a->getDataRange(minData, maxData);
+            
+            if (minData < minValue) minValue = minData;
+            if (maxData > maxValue) maxValue = maxData;
+        }
+        
+        if (maxValue > minValue) {
+            dataMinimumValueOut = minValue;
+            dataMaximumValueOut = maxValue;
+            return true;
+        }
+    }
+    
+    return false;
+}
 
 /**
  * Static method to get the minimum and maximum values for an orientation and yoking group

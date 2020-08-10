@@ -289,7 +289,8 @@ namespace caret {
                                 const int32_t mouseDeltaX,
                                 const int32_t mouseDeltaY);
         
-        void applyMouseScaling(const int32_t mouseDX,
+        void applyMouseScaling(BrainOpenGLViewportContent* viewportContent,
+                               const int32_t mouseDX,
                                const int32_t mouseDY);
         
         void applyMouseTranslation(BrainOpenGLViewportContent* viewportContent,

@@ -77,11 +77,15 @@ namespace caret {
         
         void horizontalTransformEnabledChecked(bool);
         
+        void horizontalRangeResetToolButton();
+        
         void verticalAxisMinimumValueChanged(double);
         
         void verticalAxisMaximumValueChanged(double);
         
         void verticalTransformEnabledChecked(bool);
+        
+        void verticalRangeResetToolButton();
         
         void axisCheckBoxOnOffClicked(const ChartAxisLocationEnum::Enum axis,
                                       const bool checkedStatus);
@@ -109,8 +113,12 @@ namespace caret {
         
         void updateGraphics();
         
-        std::tuple<EnumComboBoxTemplate*, WuQDoubleSpinBox*, WuQDoubleSpinBox*, WuQTrueFalseComboBox*> createAxesWidgets(const ChartTwoAxisOrientationTypeEnum::Enum orientation,
-                                                                                                  const QString& objectNamePrefix);
+        std::tuple<EnumComboBoxTemplate*,
+        WuQDoubleSpinBox*,
+        WuQDoubleSpinBox*,
+        WuQTrueFalseComboBox*,
+        QToolButton*> createAxesWidgets(const ChartTwoAxisOrientationTypeEnum::Enum orientation,
+                                        const QString& objectNamePrefix);
         
         std::tuple<QCheckBox*, QToolButton*> createAxisEditing(const ChartAxisLocationEnum::Enum axis,
                                                                const QString& objectNamePrefix);
@@ -127,6 +135,8 @@ namespace caret {
                 
         WuQTrueFalseComboBox* m_horizontalTransformEnabledComboBox;
         
+        QToolButton* m_horizontalRangeResetToolButton;
+        
         EnumComboBoxTemplate* m_verticalRangeModeComboBox;
         
         WuQDoubleSpinBox* m_verticalUserMinimumValueSpinBox;
@@ -134,6 +144,8 @@ namespace caret {
         WuQDoubleSpinBox* m_verticalUserMaximumValueSpinBox;
         
         WuQTrueFalseComboBox* m_verticalTransformEnabledComboBox;
+        
+        QToolButton* m_verticalRangeResetToolButton;
         
         QCheckBox* m_leftAxisCheckBox;
         
