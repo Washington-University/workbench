@@ -91,6 +91,8 @@ namespace caret {
                                    const float mouseDY);
         
         void applyMouseScaling(const int32_t viewport[4],
+                               const float mouseX,
+                               const float mouseY,
                                const float mouseDY);
         
         AString getAxisLabel(const ChartTwoCartesianAxis* axis) const;

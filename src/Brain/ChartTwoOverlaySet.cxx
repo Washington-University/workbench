@@ -1048,16 +1048,24 @@ ChartTwoOverlaySet::applyMouseTranslation(const int32_t viewport[4],
  * Apply mouse scaling to the current chart's axes
  * @param viewport
  *    Viewport containing chart
+ * @param mouseX
+ *   The position of mouse along x-axis
+ * @param mouseY
+ *   The position of mouse along y-axis
  * @param mouseDY
  *   The change in mouse Y
  */
 void
 ChartTwoOverlaySet::applyMouseScaling(const int32_t viewport[4],
+                                      const float mouseX,
+                                      const float mouseY,
                                       const float mouseDY)
 {
     m_horizontalAxes->applyMouseScaling(viewport,
+                                        mouseX,
                                         mouseDY);
     m_verticalAxes->applyMouseScaling(viewport,
+                                      mouseY,
                                       mouseDY);
 }
 

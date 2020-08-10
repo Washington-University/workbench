@@ -957,11 +957,9 @@ ChartTwoCartesianOrientedAxes::getDataPercentageFromPercentageOfViewport(const i
     float dataValueOut(0.0);
     
     /*
-     * Range of data
+     * Range of displayed data
      */
-    float dataMin(0.0), dataMax(0.0);
-    getDataRange(dataMin, dataMax);
-    const float dataRange(dataMax - dataMin);
+    const float dataRange(getUserScaleMaximumValue() - getUserScaleMinimumValue());
     if (dataRange <= 0.0) {
         return dataValueOut;
     }
@@ -1033,11 +1031,14 @@ ChartTwoCartesianOrientedAxes::applyMouseTranslation(const int32_t viewport[4],
  * Apply mouse scaling to the current chart's axes
  * @param viewport
  *    Viewport containing chart
+ * @param mouseXY
+ *    Position of the mouse along axis
  * @param mouseDY
  *   The change in mouse Y
  */
 void
 ChartTwoCartesianOrientedAxes::applyMouseScaling(const int32_t viewport[4],
+                                                 const float mouseXY,
                                                  const float mouseDY)
 {
     if ( ! m_transformationEnabled) {
@@ -1048,10 +1049,26 @@ ChartTwoCartesianOrientedAxes::applyMouseScaling(const int32_t viewport[4],
         return;
     }
     
-    float deltaData = (2.0 * getDataPercentageFromPercentageOfViewport(viewport,
-                                                                       mouseDY));
-    const float newMin(getUserScaleMinimumValue() + deltaData);
-    const float newMax(getUserScaleMaximumValue() - deltaData);
+    /*
+     * Want to scale about the position of the mouse
+     */
+    float percentMin(1.0);
+    switch (m_orientationType) {
+        case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
+            percentMin = (mouseXY / viewport[2]);
+            break;
+        case ChartTwoAxisOrientationTypeEnum::VERTICAL:
+            percentMin = (mouseXY / viewport[3]);
+            break;
+    }
+    const float percentMax(1.0 - percentMin);
+
+    const float deltaData = (2.0 * getDataPercentageFromPercentageOfViewport(viewport,
+                                                                             mouseDY));
+    float deltaMin(deltaData * percentMin);
+    float deltaMax(deltaData * percentMax);
+    const float newMin(getUserScaleMinimumValue() + deltaMin);
+    const float newMax(getUserScaleMaximumValue() - deltaMax);
     if (newMax > newMin) {
         setUserScaleMinimumValueFromGUI(newMin);
         setUserScaleMaximumValueFromGUI(newMax);

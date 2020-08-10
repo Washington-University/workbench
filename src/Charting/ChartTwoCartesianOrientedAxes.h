@@ -101,6 +101,7 @@ namespace caret {
                                    const float mouseDY);
         
         void applyMouseScaling(const int32_t viewport[4],
+                               const float mouseXY,
                                const float mouseDY);
         
         float getPercentageOfDataRange(const float percentage) const;

@@ -3109,6 +3109,10 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
  *
  * @param viewportContent
  *    Content of the viewport
+ * @param mouseX
+ *    Mouse X coordinate.
+ * @param mouseY
+ *    Mouse Y coordinate.
  * @param mouseDX
  *    Change in mouse X coordinate.
  * @param mouseDY
@@ -3116,6 +3120,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
  */
 void
 BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent,
+                                     const float mouseX,
+                                     const float mouseY,
                                      const int32_t /*mouseDX*/,
                                      const int32_t mouseDY)
 {
@@ -3153,6 +3159,8 @@ BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent
             int32_t viewport[4];
             viewportContent->getModelViewport(viewport);
             overlaySet->applyMouseScaling(viewport,
+                                          mouseX,
+                                          mouseY,
                                           mouseDY);
         }
     }
