@@ -1029,8 +1029,8 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
                               wheelY,
                               0,
                               deltaDegrees,
-                              0,
-                              0,
+                              wheelX,
+                              wheelY,
                               this->mouseNewDraggingStartedFlag);
         
         UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();

@@ -1063,8 +1063,9 @@ ChartTwoCartesianOrientedAxes::applyMouseScaling(const int32_t viewport[4],
     }
     const float percentMax(1.0 - percentMin);
 
-    const float deltaData = (2.0 * getDataPercentageFromPercentageOfViewport(viewport,
-                                                                             mouseDY));
+    const float accelerate(15.0);
+    const float deltaData = (accelerate * getDataPercentageFromPercentageOfViewport(viewport,
+                                                                                   mouseDY));
     float deltaMin(deltaData * percentMin);
     float deltaMax(deltaData * percentMax);
     const float newMin(getUserScaleMinimumValue() + deltaMin);
