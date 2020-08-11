@@ -164,6 +164,13 @@ namespace caret {
                                        Qt::KeyboardModifiers& keyModifiers,
                                        const bool isMouseMoving);
         
+        void checkForRightMouseButton(Qt::MouseButtons& mouseButtons,
+                                      Qt::MouseButton& button,
+                                      Qt::KeyboardModifiers& keyModifiers,
+                                      const int32_t mouseX,
+                                      const int32_t mouseY,
+                                      const bool isMouseMoving);
+        
         void captureImage(EventImageCapture* imageCaptureEvent);
         
         void repaintGraphics();

@@ -1081,6 +1081,71 @@ BrainOpenGLWidget::checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
     }
 }
 
+/*
+ * A mouse event that is the right mouse button but with no keys pressed
+ * is reported as a SHIFT-CTRL-DRAG and the mouse event is changed.
+ *
+ * @param mouseButtons
+ *     Button state when event was generated
+ * @param button
+ *     Button that caused the event.
+ * @param keyModifiers
+ *     Keys that are down, may be modified.
+ * @param mouseX
+ *     X-coord of mouse
+ * @param mouseY
+ *     Y-coord of mouse
+ * @param isMouseMoving
+ *     True if mouse is moving, else false.
+ */
+void
+BrainOpenGLWidget::checkForRightMouseButton(Qt::MouseButtons& mouseButtons,
+                                            Qt::MouseButton& button,
+                                            Qt::KeyboardModifiers& keyModifiers,
+                                            const int32_t mouseX,
+                                            const int32_t mouseY,
+                                            const bool isMouseMoving)
+{
+    /*
+     * Only check for right mouse if in View mode and a Chart Two Model is viewed
+     */
+    if (getSelectedInputMode() != UserInputModeEnum::Enum::VIEW) {
+        return;
+    }
+    const BrainOpenGLViewportContent* vpContent = getViewportContentAtXY(mouseX,
+                                                                         mouseY);
+    if (vpContent == NULL) {
+        return;
+    }
+    const BrowserTabContent* btc = vpContent->getBrowserTabContent();
+    if (btc == NULL) {
+        return;
+    }
+    if (btc->getSelectedModelType() != ModelTypeEnum::MODEL_TYPE_CHART_TWO) {
+        return;
+    }
+    
+    if (isMouseMoving) {
+        if (button == Qt::NoButton) {
+            if (mouseButtons == Qt::RightButton) {
+                if (keyModifiers == Qt::NoModifier) {
+                    mouseButtons = Qt::LeftButton;
+                    button = Qt::NoButton;
+                    keyModifiers = Qt::ControlModifier;
+                }
+            }
+        }
+    }
+    else {
+        if (button == Qt::RightButton) {
+            if (keyModifiers == Qt::NoModifier) {
+                button = Qt::LeftButton;
+                keyModifiers = Qt::ControlModifier;
+            }
+        }
+    }
+}
+
 /**
  * Receive key press events from Qt.
  * @param e
@@ -1168,6 +1233,13 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
                               button,
                               keyModifiers,
                               false);
+    
+    checkForRightMouseButton(mouseButtons,
+                             button,
+                             keyModifiers,
+                             me->x(),
+                             (this->windowHeight[this->windowIndex] - me->y()),
+                             false);
     
     /*
      * When the mouse is dragged, a mouse input receiver may want to
@@ -1259,6 +1331,13 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                               button,
                               keyModifiers,
                               false);
+    
+    checkForRightMouseButton(mouseButtons,
+                             button,
+                             keyModifiers,
+                             me->x(),
+                             (this->windowHeight[this->windowIndex] - me->y()),
+                             false);
     
     if (button == Qt::LeftButton) {
         const int mouseX = me->x();
@@ -1360,6 +1439,13 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
                               button,
                               keyModifiers,
                               false);
+    
+    checkForRightMouseButton(mouseButtons,
+                             button,
+                             keyModifiers,
+                             me->x(),
+                             (this->windowHeight[this->windowIndex] - me->y()),
+                             false);
     
     if (button == Qt::LeftButton) {
         if (keyModifiers == Qt::NoModifier) {
@@ -1759,6 +1845,13 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                               button,
                               keyModifiers,
                               true);
+    
+    checkForRightMouseButton(mouseButtons,
+                             button,
+                             keyModifiers,
+                             me->x(),
+                             (this->windowHeight[this->windowIndex] - me->y()),
+                             true);
     
     const int mouseX = me->x();
     const int mouseY = this->windowHeight[this->windowIndex] - me->y();
