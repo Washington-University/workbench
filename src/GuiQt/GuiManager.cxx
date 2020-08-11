@@ -211,6 +211,8 @@ GuiManager::initializeGuiManager()
                                                     "caret::WuQTabWidgetWithSizeHint");
     WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QTabBar",
                                                     "caret::WuQTabBar");
+    WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QSpinBox",
+                                                    "caret::WuQSpinBox");
     WuQMacroManager::instance()->addParentObject(this);
     WuQMacroManager::instance()->setMacroHelper(new WbMacroHelper(this));
     WuQMacroManager::instance()->setCustomCommandManager(new WbMacroCustomOperationManager());
