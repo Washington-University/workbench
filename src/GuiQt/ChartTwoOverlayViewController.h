@@ -122,6 +122,8 @@ namespace caret {
         
         void lineLayerActiveModeEnumComboBoxItemActivated();
         
+        void lineLayerNormalizationToolButtonClicked();
+        
         void selectedPointIndexSpinBoxValueChanged(int index);
         
     private:
@@ -187,6 +189,8 @@ namespace caret {
         QToolButton* m_lineLayerToolTipOffsetToolButton;
         
         bool m_useIconInLineLayerToolTipOffsetButtonFlag = false;
+        
+        QToolButton* m_lineLayerNormalizationToolButton;
         
         std::vector<std::tuple<ChartTwoMatrixTriangularViewingModeEnum::Enum, QAction*,QPixmap>> m_matrixViewMenuData;
 

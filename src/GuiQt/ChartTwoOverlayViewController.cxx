@@ -260,7 +260,24 @@ m_parentObjectName(parentObjectName)
     QObject::connect(m_lineLayerToolTipOffsetToolButton, &QToolButton::clicked,
                      this, &ChartTwoOverlayViewController::lineLayerToolTipOffsetToolButtonClicked);
     
-    std::vector<QWidget*> toolButtons { m_lineLayerColorToolButton, m_lineLayerToolTipOffsetToolButton } ;
+    /*
+     * Line layer normalization button
+     */
+    m_lineLayerNormalizationToolButton = new QToolButton();
+    m_lineLayerNormalizationToolButton->setText("N");
+    m_lineLayerNormalizationToolButton->setToolTip("Normalize line");
+    QObject::connect(m_lineLayerNormalizationToolButton, &QToolButton::clicked,
+                     this, &ChartTwoOverlayViewController::lineLayerNormalizationToolButtonClicked);
+    m_lineLayerNormalizationToolButton->setEnabled(false);  /* not implemented yet */
+    
+    /*
+     * Match button sizes
+     */
+    std::vector<QWidget*> toolButtons {
+        m_lineLayerColorToolButton,
+        m_lineLayerToolTipOffsetToolButton,
+        m_lineLayerNormalizationToolButton
+    } ;
     WuQtUtilities::matchWidgetSizes(toolButtons);
     
     /*
@@ -1278,6 +1295,15 @@ ChartTwoOverlayViewController::lineLayerActiveModeEnumComboBoxItemActivated()
         updateGraphicsWindow();
     }
 }
+
+/**
+ * Called when line layer normalization button is clicked
+ */
+void
+ChartTwoOverlayViewController::lineLayerNormalizationToolButtonClicked()
+{
+}
+
 
 /**
  * Called when selected point index spin box value changed
