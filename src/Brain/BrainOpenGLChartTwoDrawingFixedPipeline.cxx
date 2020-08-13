@@ -1332,6 +1332,35 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
             rowColumnHighlighting.clear();
         }
     }
+    
+    {
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        const float xMin(xMinBottomTop);
+        const float xMax(xMaxBottomTop);
+        const float yMin = yMinLeftRight;
+        const float yMax = yMaxLeftRight;
+        CaretAssert(xMin <= xMax);
+        CaretAssert(yMin <= yMax);
+        glOrtho(xMin, xMax,
+                yMin, yMax,
+                -10.0, 10.0);
+        
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+        if (m_chartOverlaySet->getChartSelectionBounds(minX, minY, maxX, maxY)) {
+            std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
+                                                                                 this->m_fixedPipelineDrawing->m_foregroundColorFloat));
+            primitive->addVertex(minX, minY);
+            primitive->addVertex(maxX, minY);
+            primitive->addVertex(maxX, maxY);
+            primitive->addVertex(minX, maxY);
+            primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT, 1.5);
+            drawPrimitivePrivate(primitive.get());
+        }
+    }
 }
 
 /*

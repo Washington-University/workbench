@@ -30,6 +30,7 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
+#include "CaretLogger.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
@@ -335,6 +336,26 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                           mouseEvent.getDy());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
     }
+    else if (browserTabContent->isChartTwoDisplayed()) {
+        int32_t viewport[4];
+        viewportContent->getModelViewport(viewport);
+        const int32_t x1(mouseEvent.getPressedX());
+        const int32_t y1(mouseEvent.getPressedY());
+        const int32_t x2(mouseEvent.getX());
+        const int32_t y2(mouseEvent.getY());
+        
+        Matrix4x4 m1, m2;
+        int32_t chartViewport[4];
+        if (viewportContent->getChartDataMatricesAndViewport(m1,
+                                                             m2,
+                                                             chartViewport)) {
+            browserTabContent->applyChartTwoAxesBoundSelection(chartViewport,
+                                                               x1, y1, x2, y2);
+        }
+        else {
+            CaretLogSevere("Chart viewport is invalid");
+        }
+    }
     else {
         browserTabContent->applyMouseRotation(viewportContent,
                                               mouseEvent.getPressedX(),
@@ -419,6 +440,59 @@ UserInputModeView::mouseLeftDragWithShift(const MouseEvent& mouseEvent)
                                              mouseEvent.getDx(),
                                              mouseEvent.getDy());
     updateGraphics(mouseEvent);
+}
+
+/**
+ * Process a mouse left release event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
+{
+    BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
+    if (viewportContent == NULL) {
+        return;
+    }
+    
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
+    if (browserTabContent->isChartTwoDisplayed()) {
+        int32_t viewport[4];
+        viewportContent->getModelViewport(viewport);
+        const int32_t x1(mouseEvent.getPressedX());
+        const int32_t y1(mouseEvent.getPressedY());
+        const int32_t x2(mouseEvent.getX());
+        const int32_t y2(mouseEvent.getY());
+        
+        Matrix4x4 m1, m2;
+        int32_t chartViewport[4];
+        if (viewportContent->getChartDataMatricesAndViewport(m1,
+                                                             m2,
+                                                             chartViewport)) {
+            browserTabContent->finalizeChartTwoAxesBoundSelection(chartViewport,
+                                                               x1, y1, x2, y2);
+            updateGraphics(viewportContent);
+        }
+        else {
+            CaretLogSevere("Chart viewport is invalid");
+        }
+    }
+}
+
+/**
+ * Process a mouse left press event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeView::mouseLeftPress(const MouseEvent& /*mouseEvent*/)
+{
 }
 
 /**

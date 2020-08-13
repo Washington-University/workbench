@@ -1070,6 +1070,132 @@ ChartTwoOverlaySet::applyMouseScaling(const int32_t viewport[4],
 }
 
 /**
+ * Apply chart two bounds selection as user drags the mouse
+ * @param viewport
+ * Chart  viewport
+ * @param x1
+ * X from first pair of coordinates
+ * @param y1
+ * Y from first pair of coordinates
+ * @param x2
+ * X from second pair of coordinates
+ * @param y2
+ * Y from second pair of coordinates
+ */
+void
+ChartTwoOverlaySet::applyChartTwoAxesBoundSelection(const int32_t viewport[4],
+                                                    const int32_t x1,
+                                                    const int32_t y1,
+                                                    const int32_t x2,
+                                                    const int32_t y2)
+{
+    setChartTwoAxesBoundSelection(viewport,
+                                  x1, y1, x2, y2);
+    m_chartSelectionBoundsValid = true;
+}
+
+/**
+ * Finalize chart two bounds selection to set the bounds of the chart
+ * @param viewport
+ * Chart viewport
+ * @param x1
+ * X from first pair of coordinates
+ * @param y1
+ * Y from first pair of coordinates
+ * @param x2
+ * X from second pair of coordinates
+ * @param y2
+ * Y from second pair of coordinates
+ */
+void
+ChartTwoOverlaySet::finalizeChartTwoAxesBoundSelection(const int32_t viewport[4],
+                                                       const int32_t x1,
+                                                       const int32_t y1,
+                                                       const int32_t x2,
+                                                       const int32_t y2)
+{
+    setChartTwoAxesBoundSelection(viewport,
+                                  x1, y1, x2, y2);
+    m_chartSelectionBoundsValid = false;
+
+    const float minX(m_chartSelectionBounds[0]);
+    const float minY(m_chartSelectionBounds[1]);
+    const float maxX(m_chartSelectionBounds[2]);
+    const float maxY(m_chartSelectionBounds[3]);
+    
+    if ((minX < maxX)
+        && (minY < maxY)) {
+        if (m_horizontalAxes->isTransformationEnabled()) {
+            m_horizontalAxes->setUserScaleMinimumValueFromGUI(minX);
+            m_horizontalAxes->setUserScaleMaximumValueFromGUI(maxX);
+        }
+        if (m_verticalAxes->isTransformationEnabled()) {
+            m_verticalAxes->setUserScaleMinimumValueFromGUI(minY);
+            m_verticalAxes->setUserScaleMaximumValueFromGUI(maxY);
+        }
+    }
+}
+
+void
+ChartTwoOverlaySet::setChartTwoAxesBoundSelection(const int32_t viewport[4],
+                                   const int32_t x1,
+                                   const int32_t y1,
+                                   const int32_t x2,
+                                   const int32_t y2)
+{
+    const int32_t vpX(viewport[0]);
+    const int32_t vpY(viewport[1]);
+    const int32_t viewportWidth(viewport[2]);
+    const int32_t viewportHeight(viewport[3]);
+    float xMin(m_horizontalAxes->getAxesCoordinateFromViewportCoordinate(viewportWidth,
+                                                                         viewportHeight,
+                                                                         x1 - vpX));
+    float xMax(m_horizontalAxes->getAxesCoordinateFromViewportCoordinate(viewportWidth,
+                                                                         viewportHeight,
+                                                                         x2 - vpX));
+    float yMin(m_verticalAxes->getAxesCoordinateFromViewportCoordinate(viewportWidth,
+                                                                       viewportHeight,
+                                                                       y1 - vpY));
+    float yMax(m_verticalAxes->getAxesCoordinateFromViewportCoordinate(viewportWidth,
+                                                                       viewportHeight,
+                                                                       y2 - vpY));
+    
+    if (xMax < xMin) std::swap(xMax, xMin);
+    if (yMax < yMin) std::swap(yMax, yMin);
+    
+    m_chartSelectionBounds[0] = xMin;
+    m_chartSelectionBounds[1] = yMin;
+    m_chartSelectionBounds[2] = xMax;
+    m_chartSelectionBounds[3] = yMax;
+}
+
+/**
+ * Get chart two bounds selection as user drags the mouse
+ * @param minX
+ * X from first pair of coordinates
+ * @param minY
+ * Y from first pair of coordinates
+ * @param maxX
+ * X from second pair of coordinates
+ * @param maxY
+ * Y from second pair of coordinates
+ * @return True if valid
+ */
+bool
+ChartTwoOverlaySet::getChartSelectionBounds(float& minX,
+                                            float& minY,
+                                            float& maxX,
+                                            float& maxY) const
+{
+    minX = m_chartSelectionBounds[0];
+    minY = m_chartSelectionBounds[1];
+    maxX = m_chartSelectionBounds[2];
+    maxY = m_chartSelectionBounds[3];
+    
+    return m_chartSelectionBoundsValid;
+}
+
+/**
  * Get the text for the axis label.
  *
  * @param axis

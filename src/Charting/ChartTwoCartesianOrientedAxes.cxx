@@ -944,15 +944,18 @@ ChartTwoCartesianOrientedAxes::setTransformationEnabled(const bool enabled)
 /**
  * Convert the given viewport value to a percentage of the viewport, multiply the
  * percentage of the viewport by the range of the data, and return the data value.
- * @param viewport
- *    The viewport
+ * @param viewportWidth
+ *    Width of viewport
+ * @param viewportHeight
+ *    Height of viewport
  * @param viewportValue
- *    Value in viewport space
+ *    Value in viewport
  * @return Data value multiplied by percentage of viewport
  */
 float
-ChartTwoCartesianOrientedAxes::getDataPercentageFromPercentageOfViewport(const int32_t viewport[4],
-                                                                    const float viewportValue) const
+ChartTwoCartesianOrientedAxes::getDataPercentageFromPercentageOfViewport(const int32_t viewportWidth,
+                                                                         const int32_t viewportHeight,
+                                                                         const float viewportValue) const
 {
     float dataValueOut(0.0);
     
@@ -970,10 +973,10 @@ ChartTwoCartesianOrientedAxes::getDataPercentageFromPercentageOfViewport(const i
     float viewportSize(0.0);
     switch (m_orientationType) {
         case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
-            viewportSize = viewport[2];
+            viewportSize = viewportWidth;
             break;
         case ChartTwoAxisOrientationTypeEnum::VERTICAL:
-            viewportSize = viewport[3];
+            viewportSize = viewportHeight;
             break;
     }
     /*
@@ -987,6 +990,29 @@ ChartTwoCartesianOrientedAxes::getDataPercentageFromPercentageOfViewport(const i
     
     return dataValueOut;
 }
+
+/**
+ * Convert the given viewport coodinate to an axes coordinate
+ * @param viewportWidth
+ *    Width of viewport
+ * @param viewportHeight
+ *    Height of viewport
+ *@param viewportCoordinate
+ *    Coordinate in viewport
+ * @return Data value multiplied by percentage of viewport
+ */
+float
+ChartTwoCartesianOrientedAxes::getAxesCoordinateFromViewportCoordinate(const int32_t viewportWidth,
+                                                                       const int32_t viewportHeight,
+                                                                       const float viewportCoordinate) const
+{
+    float value = getDataPercentageFromPercentageOfViewport(viewportWidth,
+                                                            viewportHeight,
+                                                            viewportCoordinate);
+    value += getUserScaleMinimumValue();
+    return value;
+}
+
 
 /**
  * Apply mouse translation to the current chart's axes
@@ -1019,8 +1045,9 @@ ChartTwoCartesianOrientedAxes::applyMouseTranslation(const int32_t viewport[4],
         return;
     }
     
-    float deltaData = getDataPercentageFromPercentageOfViewport(viewport,
-                                                           mouseDeltaXY);
+    float deltaData = getDataPercentageFromPercentageOfViewport(viewport[2],
+                                                                viewport[3],
+                                                                mouseDeltaXY);
     if (deltaData != 0.0) {
         setUserScaleMinimumValueFromGUI(getUserScaleMinimumValue() - deltaData);
         setUserScaleMaximumValueFromGUI(getUserScaleMaximumValue() - deltaData);
@@ -1064,8 +1091,9 @@ ChartTwoCartesianOrientedAxes::applyMouseScaling(const int32_t viewport[4],
     const float percentMax(1.0 - percentMin);
 
     const float accelerate(15.0);
-    const float deltaData = (accelerate * getDataPercentageFromPercentageOfViewport(viewport,
-                                                                                   mouseDY));
+    const float deltaData = (accelerate * getDataPercentageFromPercentageOfViewport(viewport[2],
+                                                                                    viewport[3],
+                                                                                    mouseDY));
     float deltaMin(deltaData * percentMin);
     float deltaMax(deltaData * percentMax);
     const float newMin(getUserScaleMinimumValue() + deltaMin);

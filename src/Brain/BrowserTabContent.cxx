@@ -3463,6 +3463,60 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
 }
 
 /**
+ * Apply chart two bounds selection as user drags the mouse
+ * @param viewport
+ * Chart viewport
+ * @param x1
+ * X from first pair of coordinates
+ * @param y1
+ * Y from first pair of coordinates
+ * @param x2
+ * X from second pair of coordinates
+ * @param y2
+ * Y from second pair of coordinates
+ */
+void
+BrowserTabContent::applyChartTwoAxesBoundSelection(const int32_t viewport[4],
+                                                   const int32_t x1,
+                                                   const int32_t y1,
+                                                   const int32_t x2,
+                                                   const int32_t y2)
+{
+    ChartTwoOverlaySet* ctos = getChartTwoOverlaySet();
+    if (ctos != NULL) {
+        ctos->applyChartTwoAxesBoundSelection(viewport,
+                                              x1, y1, x2, y2);
+    }
+}
+
+/**
+ * Finalize chart two bounds selection to set the bounds of the chart
+ * @param viewport
+ * Chart viewport
+ * @param x1
+ * X from first pair of coordinates
+ * @param y1
+ * Y from first pair of coordinates
+ * @param x2
+ * X from second pair of coordinates
+ * @param y2
+ * Y from second pair of coordinates
+ */
+void
+BrowserTabContent::finalizeChartTwoAxesBoundSelection(const int32_t viewport[4],
+                                                      const int32_t x1,
+                                                      const int32_t y1,
+                                                      const int32_t x2,
+                                                      const int32_t y2)
+{
+    ChartTwoOverlaySet* ctos = getChartTwoOverlaySet();
+    if (ctos != NULL) {
+        ctos->finalizeChartTwoAxesBoundSelection(viewport,
+                                                 x1, y1, x2, y2);
+    }
+}
+
+/**
  * Get the transformations for drawing a model.
  *
  * @param projectionViewType

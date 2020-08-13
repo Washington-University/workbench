@@ -63,6 +63,10 @@ namespace caret {
         
         virtual void mouseLeftDragWithShift(const MouseEvent& mouseEvent);
 
+        virtual void mouseLeftPress(const MouseEvent& mouseEvent);
+        
+        virtual void mouseLeftRelease(const MouseEvent& mouseEvent);
+        
         virtual void gestureEvent(const GestureEvent& gestureEvent);
         
         virtual void showContextMenu(const MouseEvent& mouseEvent,

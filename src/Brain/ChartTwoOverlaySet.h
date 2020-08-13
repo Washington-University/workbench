@@ -20,6 +20,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /*LICENSE_END*/
+
+#include <array>
 #include <memory>
 
 #include "BrainConstants.h"
@@ -94,6 +96,23 @@ namespace caret {
                                const float mouseX,
                                const float mouseY,
                                const float mouseDY);
+        
+        void applyChartTwoAxesBoundSelection(const int32_t viewport[4],
+                                             const int32_t x1,
+                                             const int32_t y1,
+                                             const int32_t x2,
+                                             const int32_t y2);
+        
+        void finalizeChartTwoAxesBoundSelection(const int32_t viewport[4],
+                                                const int32_t x1,
+                                                const int32_t y1,
+                                                const int32_t x2,
+                                                const int32_t y2);
+        
+        bool getChartSelectionBounds(float& minX,
+                                     float& minY,
+                                     float& maxX,
+                                     float& maxY) const;
         
         AString getAxisLabel(const ChartTwoCartesianAxis* axis) const;
         
@@ -175,6 +194,12 @@ namespace caret {
                                                  ChartTwoCartesianAxis* leftOrBottomAxis,
                                                  ChartTwoCartesianAxis* rightOrTopAxis);
         
+        void setChartTwoAxesBoundSelection(const int32_t viewport[4],
+                                           const int32_t x1,
+                                           const int32_t y1,
+                                           const int32_t x2,
+                                           const int32_t y2);
+
         SceneClassAssistant* m_sceneAssistant;
 
         std::vector<std::shared_ptr<ChartTwoOverlay>> m_overlays;
@@ -197,6 +222,10 @@ namespace caret {
         
         /** Thickness of box around chart and tick marks on axes*/
         float m_axisLineThickness = 0.5;
+        
+        std::array<float, 4> m_chartSelectionBounds;
+        
+        bool m_chartSelectionBoundsValid = false;
         
         // ADD_NEW_MEMBERS_HERE
         

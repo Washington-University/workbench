@@ -306,6 +306,18 @@ namespace caret {
                                                 double rotationMatrixOut[16],
                                                 float& scalingOut) const;
         
+        void applyChartTwoAxesBoundSelection(const int32_t viewport[4],
+                                             const int32_t x1,
+                                             const int32_t y1,
+                                             const int32_t x2,
+                                             const int32_t y2);
+        
+        void finalizeChartTwoAxesBoundSelection(const int32_t viewport[4],
+                                                const int32_t x1,
+                                                const int32_t y1,
+                                                const int32_t x2,
+                                                const int32_t y2);
+
         void getTransformationsInModelTransform(ModelTransform& modelTransform) const;
         
         void setTransformationsFromModelTransform(const ModelTransform& modelTransform);

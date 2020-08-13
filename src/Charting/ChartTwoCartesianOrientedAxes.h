@@ -108,6 +108,14 @@ namespace caret {
         
         void reset();
         
+        float getAxesCoordinateFromViewportCoordinate(const int32_t viewportWidth,
+                                                      const int32_t viewportHeight,
+                                                      const float viewportValue) const;
+        
+        float getDataPercentageFromPercentageOfViewport(const int32_t viewportWidth,
+                                                        const int32_t viewportHeight,
+                                                        const float viewportValue) const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -147,9 +155,6 @@ namespace caret {
         
         void updateMinMaxValuesForYoking() const;
         
-        float getDataPercentageFromPercentageOfViewport(const int32_t viewport[4],
-                                                        const float viewportValue) const;
-
         const ChartTwoOverlaySet* m_parentChartOverlaySet;
         
         const ChartTwoAxisOrientationTypeEnum::Enum m_orientationType;
