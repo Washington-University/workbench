@@ -690,8 +690,12 @@ ChartTwoCartesianOrientedAxes::getScaleValuesAndOffsets(const ChartTwoCartesianA
     
     switch (m_scaleRangeMode) {
         case ChartTwoAxisScaleRangeModeEnum::AUTO:
+            getDataRange(minimumValue,
+                         maximumValue);
             break;
         case ChartTwoAxisScaleRangeModeEnum::DATA:
+            getDataRange(minimumValue,
+                         maximumValue);
             break;
         case ChartTwoAxisScaleRangeModeEnum::USER:
             minimumValue = m_userScaleMinimumValue;
