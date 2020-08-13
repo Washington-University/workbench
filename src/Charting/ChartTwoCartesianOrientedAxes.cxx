@@ -141,8 +141,8 @@ ChartTwoCartesianOrientedAxes::copyHelperChartTwoCartesianOrientedAxes(const Cha
     m_scaleRangeMode          = obj.m_scaleRangeMode;
     m_userScaleMinimumValue   = obj.m_userScaleMinimumValue;
     m_userScaleMaximumValue   = obj.m_userScaleMaximumValue;
-    *m_leftOrBottomAxis       = *m_leftOrBottomAxis;
-    *m_rightOrTopAxis         = *m_rightOrTopAxis;
+    *m_leftOrBottomAxis       = *obj.m_leftOrBottomAxis;
+    *m_rightOrTopAxis         = *obj.m_rightOrTopAxis;
     m_transformationEnabled   = obj.m_transformationEnabled;
 }
 
