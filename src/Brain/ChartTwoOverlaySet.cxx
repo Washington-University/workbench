@@ -1114,26 +1114,51 @@ ChartTwoOverlaySet::finalizeChartTwoAxesBoundSelection(const int32_t viewport[4]
                                                        const int32_t x2,
                                                        const int32_t y2)
 {
-    setChartTwoAxesBoundSelection(viewport,
-                                  x1, y1, x2, y2);
-    m_chartSelectionBoundsValid = false;
-
-    const float minX(m_chartSelectionBounds[0]);
-    const float minY(m_chartSelectionBounds[1]);
-    const float maxX(m_chartSelectionBounds[2]);
-    const float maxY(m_chartSelectionBounds[3]);
+    if ( ! m_chartSelectionBoundsValid) {
+        return;
+    }
     
-    if ((minX < maxX)
-        && (minY < maxY)) {
-        if (m_horizontalAxes->isTransformationEnabled()) {
-            m_horizontalAxes->setUserScaleMinimumValueFromGUI(minX);
-            m_horizontalAxes->setUserScaleMaximumValueFromGUI(maxX);
-        }
-        if (m_verticalAxes->isTransformationEnabled()) {
-            m_verticalAxes->setUserScaleMinimumValueFromGUI(minY);
-            m_verticalAxes->setUserScaleMaximumValueFromGUI(maxY);
+    /*
+     * x2 and y2 are coordinates of where mouse button was released.
+     * Test to verify this coordinate is inside the chart axes.
+     * User can cancel this operation by releasing the mouse outside
+     * of the axes.
+     */
+    const int32_t extraPixels(3);
+    const int32_t vpMinX(viewport[0] - extraPixels);
+    const int32_t vpMaxX(viewport[0] + viewport[2] + extraPixels);
+    const int32_t vpMinY(viewport[1] - extraPixels);
+    const int32_t vpMaxY(viewport[1] + viewport[3] + extraPixels);
+    if ((x2 >= vpMinX)
+        && (x2 <= vpMaxX)
+        && (y2 >= vpMinY)
+        && (y2 <= vpMaxY)) {
+        setChartTwoAxesBoundSelection(viewport,
+                                      x1, y1, x2, y2);
+        const float minX(m_chartSelectionBounds[0]);
+        const float minY(m_chartSelectionBounds[1]);
+        const float maxX(m_chartSelectionBounds[2]);
+        const float maxY(m_chartSelectionBounds[3]);
+        
+        if ((minX < maxX)
+            && (minY < maxY)) {
+            if (m_horizontalAxes->isTransformationEnabled()) {
+                m_horizontalAxes->setUserScaleMinimumValueFromGUI(minX);
+                m_horizontalAxes->setUserScaleMaximumValueFromGUI(maxX);
+            }
+            if (m_verticalAxes->isTransformationEnabled()) {
+                m_verticalAxes->setUserScaleMinimumValueFromGUI(minY);
+                m_verticalAxes->setUserScaleMaximumValueFromGUI(maxY);
+            }
         }
     }
+    else {
+        /*
+         * Nothing, outside chart axes
+         */
+    }
+    
+    m_chartSelectionBoundsValid = false;
 }
 
 void

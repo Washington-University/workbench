@@ -462,8 +462,6 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
     }
     
     if (browserTabContent->isChartTwoDisplayed()) {
-        int32_t viewport[4];
-        viewportContent->getModelViewport(viewport);
         const int32_t x1(mouseEvent.getPressedX());
         const int32_t y1(mouseEvent.getPressedY());
         const int32_t x2(mouseEvent.getX());
@@ -475,7 +473,7 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
                                                              m2,
                                                              chartViewport)) {
             browserTabContent->finalizeChartTwoAxesBoundSelection(chartViewport,
-                                                               x1, y1, x2, y2);
+                                                                  x1, y1, x2, y2);
             updateGraphics(viewportContent);
         }
         else {

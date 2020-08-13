@@ -3157,11 +3157,13 @@ BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent
         ChartTwoOverlaySet* overlaySet = getChartTwoOverlaySet();
         if (overlaySet != NULL) {
             int32_t viewport[4];
-            viewportContent->getModelViewport(viewport);
-            overlaySet->applyMouseScaling(viewport,
-                                          mouseX,
-                                          mouseY,
-                                          mouseDY);
+            Matrix4x4 m1, m2;
+            if (viewportContent->getChartDataMatricesAndViewport(m1, m2, viewport)) {
+                overlaySet->applyMouseScaling(viewport,
+                                              mouseX,
+                                              mouseY,
+                                              mouseDY);
+            }
         }
     }
     else {
@@ -3281,10 +3283,12 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         ChartTwoOverlaySet* overlaySet = getChartTwoOverlaySet();
         if (overlaySet != NULL) {
             int32_t viewport[4];
-            viewportContent->getModelViewport(viewport);
-            overlaySet->applyMouseTranslation(viewport,
-                                              mouseDX,
-                                              mouseDY);
+            Matrix4x4 m1, m2;
+            if (viewportContent->getChartDataMatricesAndViewport(m1, m2, viewport)) {
+                overlaySet->applyMouseTranslation(viewport,
+                                                  mouseDX,
+                                                  mouseDY);
+            }
         }
     }
     else if (isCerebellumDisplayed()) {
