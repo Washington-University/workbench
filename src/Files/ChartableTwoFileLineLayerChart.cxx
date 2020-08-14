@@ -30,6 +30,7 @@
 #include "ChartTwoLineSeriesHistory.h"
 #include "CiftiMappableDataFile.h"
 #include "CiftiScalarDataSeriesFile.h"
+#include "DeveloperFlagsEnum.h"
 #include "EventChartTwoLoadLineSeriesData.h"
 #include "EventManager.h"
 #include "MetricFile.h"
@@ -574,11 +575,15 @@ ChartableTwoFileLineLayerChart::loadChartForMapFileSelector(const MapFileDataSel
 ChartTwoDataCartesian*
 ChartableTwoFileLineLayerChart::createChartData() const
 {
+    GraphicsPrimitive::PrimitiveType primitiveType = GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN;
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_CHART_OPENGL_LINES)) {
+        primitiveType = GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP;
+    }
     const CaretUnitsTypeEnum::Enum xUnits = getChartTwoCompoundDataType().getLineChartUnitsAxisX();
     return new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER,
                                      xUnits,
                                      CaretUnitsTypeEnum::NONE,
-                                     GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN);
+                                     primitiveType);
 }
 
 /**

@@ -141,6 +141,12 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_CHART_OPENGL_LINES,
+                                                "DEVELOPER_FLAG_CHART_OPENGL_LINES",
+                                                "Draw Chart Lines with OpenGL Lines",
+                                                CheckableEnum::YES,
+                                                true));
+    
 #ifdef HAVE_WEBKIT
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
                                                 "DEVELOPER_FLAG_BALSA",
