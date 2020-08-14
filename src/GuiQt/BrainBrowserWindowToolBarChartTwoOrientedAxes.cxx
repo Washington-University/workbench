@@ -232,7 +232,10 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN) {
         CaretAssert(dynamic_cast<EventBrowserWindowGraphicsRedrawn*>(event));
-        updateContent(getTabContentFromSelectedTab());
+        /*
+         * Disable due to using lots of CPU 8/14/2020
+         * updateContent(getTabContentFromSelectedTab());
+         */
     }
     else {
         BrainBrowserWindowToolBarComponent::receiveEvent(event);
