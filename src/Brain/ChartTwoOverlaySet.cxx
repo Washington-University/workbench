@@ -613,9 +613,6 @@ ChartTwoOverlaySet::firstOverlaySelectionChanged()
         m_overlays[i]->setChartTwoCompoundDataType(cdt);
     }
     
-    PlainTextStringBuilder description;
-    getDescriptionOfContent(description);
-    
     m_inFirstOverlayChangedMethodFlag = false;
 }
 
