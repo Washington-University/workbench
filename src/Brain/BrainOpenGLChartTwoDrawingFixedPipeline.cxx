@@ -1104,7 +1104,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 if (lineChart.m_lineChartColor != lineChart.m_chartTwoCartesianData->getColor()) {
                     lineChart.m_chartTwoCartesianData->setColor(lineChart.m_lineChartColor);
                 }
-                lineChart.m_chartTwoCartesianData->setLineWidth(lineChart.m_lineWidth);
+                
+                /*
+                 * Prevent zero line width that causes OpenGL error
+                 */
+                const float lineWidth((lineChart.m_lineWidth > 0.0)
+                                      ? lineChart.m_lineWidth
+                                      : 0.1);
+                lineChart.m_chartTwoCartesianData->setLineWidth(lineWidth);
 
                 GraphicsEngineDataOpenGL::draw(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive());
                 
