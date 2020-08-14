@@ -1309,6 +1309,14 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                    opacity,
                                    rowColumnHighlighting);
             firstFlag = false;
+            
+            /*
+             * Save the transformation matrices and the viewport
+             * If there is more than one line chart, this code will be executed
+             * several times but since the top overlay is drawn last, the contents
+             * of the top overlay will be used.
+             */
+            updateViewportContentForCharting(chartGraphicsDrawingViewport);
         }
         
         /*
