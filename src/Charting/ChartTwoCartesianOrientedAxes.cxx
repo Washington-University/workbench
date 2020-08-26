@@ -299,6 +299,24 @@ ChartTwoCartesianOrientedAxes::getDataRange(float& minimumValueOut,
 }
 
 /**
+ * Get user scale minimum and maximum value
+ * This is more efficient than calling both getUserScaleMinimumValue() and getUserScaleMaximumValue()
+ * @param minimumOut
+ *    Output with minimum value
+ * @param maximumOut
+ *    Output with maximum value
+ */
+void
+ChartTwoCartesianOrientedAxes::getUserScaleMinimumMaximumValues(float& minimumOut,
+                                                                float& maximumOut) const
+{
+    updateMinMaxValuesForYoking();
+    
+    minimumOut = m_userScaleMinimumValue;
+    maximumOut = m_userScaleMaximumValue;
+}
+
+/**
  * @return User scale's minimum value
  */
 float
@@ -966,7 +984,9 @@ ChartTwoCartesianOrientedAxes::getDataPercentageFromPercentageOfViewport(const i
     /*
      * Range of displayed data
      */
-    const float dataRange(getUserScaleMaximumValue() - getUserScaleMinimumValue());
+    float minValue(0.0), maxValue(0.0);
+    getUserScaleMinimumMaximumValues(minValue, maxValue);
+    const float dataRange(maxValue - minValue);
     if (dataRange <= 0.0) {
         return dataValueOut;
     }
@@ -1053,8 +1073,10 @@ ChartTwoCartesianOrientedAxes::applyMouseTranslation(const int32_t viewport[4],
                                                                 viewport[3],
                                                                 mouseDeltaXY);
     if (deltaData != 0.0) {
-        setUserScaleMinimumValueFromGUI(getUserScaleMinimumValue() - deltaData);
-        setUserScaleMaximumValueFromGUI(getUserScaleMaximumValue() - deltaData);
+        float minValue(0.0), maxValue(0.0);
+        getUserScaleMinimumMaximumValues(minValue, maxValue);
+        setUserScaleMinimumValueFromGUI(minValue - deltaData);
+        setUserScaleMaximumValueFromGUI(maxValue - deltaData);
     }
 }
 
@@ -1100,8 +1122,10 @@ ChartTwoCartesianOrientedAxes::applyMouseScaling(const int32_t viewport[4],
                                                                                     mouseDY));
     float deltaMin(deltaData * percentMin);
     float deltaMax(deltaData * percentMax);
-    const float newMin(getUserScaleMinimumValue() + deltaMin);
-    const float newMax(getUserScaleMaximumValue() - deltaMax);
+    float minValue(0.0), maxValue(0.0);
+    getUserScaleMinimumMaximumValues(minValue, maxValue);
+    const float newMin(minValue + deltaMin);
+    const float newMax(maxValue - deltaMax);
     if (newMax > newMin) {
         setUserScaleMinimumValueFromGUI(newMin);
         setUserScaleMaximumValueFromGUI(newMax);

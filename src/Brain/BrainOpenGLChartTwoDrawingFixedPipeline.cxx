@@ -391,10 +391,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
     /*
      * Get the histogram drawing information and overall extent
      */
-    float xMinBottomTop = m_chartOverlaySet->getHorizontalAxes()->getUserScaleMinimumValue();
-    float xMaxBottomTop = m_chartOverlaySet->getHorizontalAxes()->getUserScaleMaximumValue();
-    float yMinLeftRight = m_chartOverlaySet->getVerticalAxes()->getUserScaleMinimumValue();
-    float yMaxLeftRight = m_chartOverlaySet->getVerticalAxes()->getUserScaleMaximumValue();
+    float xMinBottomTop(0.0), xMaxBottomTop(0.0);
+    m_chartOverlaySet->getHorizontalAxes()->getUserScaleMinimumMaximumValues(xMinBottomTop,
+                                                                             xMaxBottomTop);
+
+    float yMinLeftRight(0.0), yMaxLeftRight(0.0);
+    m_chartOverlaySet->getVerticalAxes()->getUserScaleMinimumMaximumValues(yMinLeftRight,
+                                                                           yMaxLeftRight);
     
     /*
      * Find histograms or line-series charts for drawing

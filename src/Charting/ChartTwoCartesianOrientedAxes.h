@@ -59,6 +59,9 @@ namespace caret {
         void getDataRange(float& minimumValueOut,
                           float& maximumValueOut) const;
         
+        void getUserScaleMinimumMaximumValues(float& minimumOut,
+                                              float& maximumOut) const;
+        
         float getUserScaleMinimumValue() const;
         
         void setUserScaleMinimumValueFromGUI(const float value);

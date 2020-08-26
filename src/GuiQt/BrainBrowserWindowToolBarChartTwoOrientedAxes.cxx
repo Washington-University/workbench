@@ -703,15 +703,18 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::updateControls()
         m_topAxisCheckBox->setChecked(horizontalAxis->getRightOrTopAxis()->isDisplayedByUser());
         m_horizontalRangeModeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(horizontalAxis->getScaleRangeMode());
         
-        float horizMin(0.0), horizMax(0.0);
-        horizontalAxis->getDataRange(horizMin,
-                                     horizMax);
-        m_horizontalUserMinimumValueSpinBox->setRangeExceedable(horizMin,
-                                                                horizMax);
-        m_horizontalUserMinimumValueSpinBox->setValue(horizontalAxis->getUserScaleMinimumValue());
-        m_horizontalUserMaximumValueSpinBox->setRangeExceedable(horizMin,
-                                                                horizMax);
-        m_horizontalUserMaximumValueSpinBox->setValue(horizontalAxis->getUserScaleMaximumValue());
+        float horizRangeMin(0.0), horizRangeMax(0.0);
+        horizontalAxis->getDataRange(horizRangeMin,
+                                     horizRangeMax);
+        float horizMinValue(0.0), horizMaxValue(0.0);
+        horizontalAxis->getUserScaleMinimumMaximumValues(horizMinValue,
+                                                         horizMaxValue);
+        m_horizontalUserMinimumValueSpinBox->setRangeExceedable(horizRangeMin,
+                                                                horizRangeMax);
+        m_horizontalUserMinimumValueSpinBox->setValue(horizMinValue);
+        m_horizontalUserMaximumValueSpinBox->setRangeExceedable(horizRangeMin,
+                                                                horizRangeMax);
+        m_horizontalUserMaximumValueSpinBox->setValue(horizMaxValue);
         m_horizontalTransformEnabledComboBox->setStatus(horizontalAxis->isTransformationEnabled());
         
         /*
@@ -721,15 +724,18 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::updateControls()
         m_rightAxisCheckBox->setChecked(verticalAxis->getRightOrTopAxis()->isDisplayedByUser());
         m_verticalRangeModeComboBox->setSelectedItem<ChartTwoAxisScaleRangeModeEnum, ChartTwoAxisScaleRangeModeEnum::Enum>(verticalAxis->getScaleRangeMode());
         
-        float vertMin(0.0), vertMax(0.0);
-        verticalAxis->getDataRange(vertMin,
-                                   vertMax);
-        m_verticalUserMinimumValueSpinBox->setRangeExceedable(vertMin,
-                                                              vertMax);
-        m_verticalUserMinimumValueSpinBox->setValue(verticalAxis->getUserScaleMinimumValue());
-        m_verticalUserMaximumValueSpinBox->setRangeExceedable(vertMin,
-                                                              vertMax);
-        m_verticalUserMaximumValueSpinBox->setValue(verticalAxis->getUserScaleMaximumValue());
+        float vertRangeMin(0.0), vertRangeMax(0.0);
+        verticalAxis->getDataRange(vertRangeMin,
+                                   vertRangeMax);
+        float vertMinValue(0.0), vertMaxValue(0.0);
+        verticalAxis->getUserScaleMinimumMaximumValues(vertMinValue,
+                                                       vertMaxValue);
+        m_verticalUserMinimumValueSpinBox->setRangeExceedable(vertRangeMin,
+                                                              vertRangeMax);
+        m_verticalUserMinimumValueSpinBox->setValue(vertMinValue);
+        m_verticalUserMaximumValueSpinBox->setRangeExceedable(vertRangeMin,
+                                                              vertRangeMax);
+        m_verticalUserMaximumValueSpinBox->setValue(vertMaxValue);
         m_verticalTransformEnabledComboBox->setStatus(verticalAxis->isTransformationEnabled());
 
         /*
