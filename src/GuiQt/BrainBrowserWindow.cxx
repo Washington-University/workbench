@@ -1661,13 +1661,24 @@ BrainBrowserWindow::createActions()
     m_connectToConnectomeDatabaseAction->setEnabled(false);
     
     m_developerGraphicsTimingAction =
-    WuQtUtilities::createAction("Time Graphics Update",
+    WuQtUtilities::createAction(("Time Graphics Update for "
+                                 + AString::number(m_developerTimingIterations)
+                                 + " Iterations"),
                                 "Show the average time for updating the windows graphics",
                                 this,
                                 this,
                                 SLOT(processDevelopGraphicsTiming()));
     
-    m_developerExportVtkFileAction = 
+    m_developerGraphicsTimingDurationAction =
+    WuQtUtilities::createAction(("Time Graphics Update for "
+                                 + AString::number(m_developerTimingDuration, 'f', 0)
+                                 + " Seconds"),
+                                "Show the average time for updating the windows graphics",
+                                this,
+                                this,
+                                SLOT(processDevelopGraphicsTimingDuration()));
+    
+    m_developerExportVtkFileAction =
     WuQtUtilities::createAction("Export to VTK File",
                                 "Export model(s) to VTK File",
                                 this,
@@ -1738,6 +1749,7 @@ BrainBrowserWindow::createMenuDevelop()
     m_developerExportVtkFileAction->setVisible(false);
     
     menu->addAction(m_developerGraphicsTimingAction);
+    menu->addAction(m_developerGraphicsTimingDurationAction);
     
     std::vector<DeveloperFlagsEnum::Enum> developerFlags;
     DeveloperFlagsEnum::getAllEnums(developerFlags);
@@ -2822,12 +2834,11 @@ BrainBrowserWindow::processDevelopGraphicsTiming()
     ElapsedTimer et;
     et.start();
     
-    const float numTimes(10.0);
-    for (int32_t i = 0; i < numTimes; i++) {
+    for (int32_t i = 0; i < m_developerTimingIterations; i++) {
         EventManager::get()->sendEvent(EventGraphicsTimingOneWindow(m_browserWindowIndex).getPointer());
     }
     
-    const float time = et.getElapsedTimeSeconds() / numTimes;
+    const float time = et.getElapsedTimeSeconds() / m_developerTimingIterations;
     const AString timeString = AString::number(time, 'f', 5);
     
     AString fpsString;
@@ -2843,6 +2854,38 @@ BrainBrowserWindow::processDevelopGraphicsTiming()
     WuQMessageBox::informationOk(this, msg);
 }
 
+/**
+ * Time the graphics drawing for duration
+ */
+void
+BrainBrowserWindow::processDevelopGraphicsTimingDuration()
+{
+    ElapsedTimer durationTimer;
+    durationTimer.start();
+    
+    int32_t iterations(0);
+    while (durationTimer.getElapsedTimeSeconds() < m_developerTimingDuration) {
+        EventManager::get()->sendEvent(EventGraphicsTimingOneWindow(m_browserWindowIndex).getPointer());
+        iterations++;
+    }
+    const float actualDuration(durationTimer.getElapsedTimeSeconds());
+    
+    if (iterations > 0) {
+        const float fps(iterations / actualDuration);
+        const float frameTime(actualDuration / iterations);
+        
+        const AString text("Frames Per Second: "
+                           + AString::number(fps, 'f', 6)
+                           + "\nAverage Time: "
+                           + AString::number(frameTime, 'f', 6)
+                           + "\nIterations: "
+                           + AString::number(iterations)
+                           + "\nDuration (s): "
+                           + AString::number(actualDuration, 'f', 3));
+        WuQMessageBox::informationOk(this,
+                                     text);
+    }
+}
 
 /**
  * Export to VTK file.

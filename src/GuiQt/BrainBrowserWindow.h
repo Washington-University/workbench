@@ -226,7 +226,8 @@ namespace caret {
         void processShowVolumePropertiesDialog();
         
         void processDevelopGraphicsTiming();
-        
+        void processDevelopGraphicsTimingDuration();
+
         void processDevelopExportVtkFile();
         void developerMenuAboutToShow();
         void developerMenuFlagTriggered(QAction*);
@@ -418,6 +419,7 @@ namespace caret {
         QAction* m_developMenuAction;
         QActionGroup* m_developerFlagsActionGroup;
         QAction* m_developerGraphicsTimingAction;
+        QAction* m_developerGraphicsTimingDurationAction;
         QAction* m_developerExportVtkFileAction;
         
         QAction* m_overlayToolBoxAction;
@@ -470,6 +472,9 @@ namespace caret {
         
         bool m_keyEventProcessingFlag = false;
         
+        const float m_developerTimingDuration = 10.0;
+        
+        const int32_t m_developerTimingIterations = 10;
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
     std::set<BrainBrowserWindow*> BrainBrowserWindow::s_brainBrowserWindows;
