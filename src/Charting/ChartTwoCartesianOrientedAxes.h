@@ -33,13 +33,13 @@
 
 namespace caret {
     class ChartTwoCartesianAxis;
-    class ChartTwoOverlaySet;
+    class ChartTwoOverlaySetInterface;
     class SceneClassAssistant;
 
     class ChartTwoCartesianOrientedAxes : public CaretObject, public SceneableInterface {
         
     public:
-        ChartTwoCartesianOrientedAxes(const ChartTwoOverlaySet* parentChartOverlaySet,
+        ChartTwoCartesianOrientedAxes(const ChartTwoOverlaySetInterface* parentChartOverlaySetInterface,
                                 const ChartTwoAxisOrientationTypeEnum::Enum orientationType);
         
         virtual ~ChartTwoCartesianOrientedAxes();
@@ -158,7 +158,7 @@ namespace caret {
         
         void updateMinMaxValuesForYoking() const;
         
-        const ChartTwoOverlaySet* m_parentChartOverlaySet;
+        const ChartTwoOverlaySetInterface* m_parentChartOverlaySetInterface;
         
         const ChartTwoAxisOrientationTypeEnum::Enum m_orientationType;
         

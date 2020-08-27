@@ -26,7 +26,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartScaleAutoRanging.h"
-#include "EventChartTwoAxisGetDataRange.h"
+#include "ChartTwoOverlaySetInterface.h"
 #include "EventManager.h"
 #include "MathFunctions.h"
 #include "NumericTextFormatting.h"
@@ -51,11 +51,11 @@ using namespace caret;
  * @param parentChartOverlaySet
  *     Parent of this axis.
  */
-ChartTwoCartesianAxis::ChartTwoCartesianAxis(const ChartTwoOverlaySet* parentChartOverlaySet,
+ChartTwoCartesianAxis::ChartTwoCartesianAxis(const ChartTwoOverlaySetInterface* parentChartOverlaySetInterface,
                                              const ChartAxisLocationEnum::Enum axisLocation)
 : CaretObject(),
 SceneableInterface(),
-m_parentChartOverlaySet(parentChartOverlaySet),
+m_parentChartOverlaySetInterface(parentChartOverlaySetInterface),
 m_axisLocation(axisLocation)
 {
     /*
@@ -63,7 +63,7 @@ m_axisLocation(axisLocation)
      * to the parent to get the range of data.  Note that parent
      * chart overlay is in 'Brain' module which we have no access.
      */
-    CaretAssert(m_parentChartOverlaySet);
+    CaretAssert(m_parentChartOverlaySetInterface);
     
     reset();
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
@@ -239,14 +239,11 @@ void
 ChartTwoCartesianAxis::getDataRange(float& rangeMinimumOut,
                                     float& rangeMaximumOut) const
 {
-    EventChartTwoAxisGetDataRange rangeEvent(m_parentChartOverlaySet,
-                                             m_axisLocation);
-    EventManager::get()->sendEvent(rangeEvent.getPointer());
-    
-    if ( ! rangeEvent.getMinimumAndMaximumValues(rangeMinimumOut,
-                                                 rangeMaximumOut)) {
-        rangeMinimumOut = 0.0f;
-        rangeMaximumOut = 0.0f;
+    if ( ! m_parentChartOverlaySetInterface->getDataRangeForAxis(m_axisLocation,
+                                                                 rangeMinimumOut,
+                                                                 rangeMaximumOut)) {
+        rangeMinimumOut = 0.0;
+        rangeMaximumOut = 0.0;
     }
 }
 

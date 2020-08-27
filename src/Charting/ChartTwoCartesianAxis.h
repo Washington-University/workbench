@@ -33,13 +33,13 @@
 
 
 namespace caret {
-    class ChartTwoOverlaySet;
+    class ChartTwoOverlaySetInterface;
     class SceneClassAssistant;
 
     class ChartTwoCartesianAxis : public CaretObject, public SceneableInterface {
         
     public:
-        ChartTwoCartesianAxis(const ChartTwoOverlaySet* parentChartOverlaySet,
+        ChartTwoCartesianAxis(const ChartTwoOverlaySetInterface* parentChartOverlaySetInterface,
                               const ChartAxisLocationEnum::Enum axisLocation);
         
         virtual ~ChartTwoCartesianAxis();
@@ -140,7 +140,7 @@ namespace caret {
     private:
         void copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAxis& obj);
 
-        const ChartTwoOverlaySet* m_parentChartOverlaySet;
+        const ChartTwoOverlaySetInterface* m_parentChartOverlaySetInterface;
         
         const ChartAxisLocationEnum::Enum m_axisLocation;
         

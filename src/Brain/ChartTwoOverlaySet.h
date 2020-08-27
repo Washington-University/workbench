@@ -26,9 +26,8 @@
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
-#include "ChartAxisLocationEnum.h"
-#include "ChartTwoAxisOrientationTypeEnum.h"
 #include "ChartTwoDataTypeEnum.h"
+#include "ChartTwoOverlaySetInterface.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
@@ -43,7 +42,7 @@ namespace caret {
     class PlainTextStringBuilder;
     class SceneClassAssistant;
 
-    class ChartTwoOverlaySet : public CaretObject, public EventListenerInterface, public SceneableInterface {
+    class ChartTwoOverlaySet : public CaretObject, public ChartTwoOverlaySetInterface, public EventListenerInterface, public SceneableInterface {
         
     public:
         ChartTwoOverlaySet(const ChartTwoDataTypeEnum::Enum chartDataType,
@@ -121,13 +120,13 @@ namespace caret {
         
         bool isAxesSupportedByChartDataType() const;
         
-        bool getDataRangeForAxis(const ChartAxisLocationEnum::Enum chartAxisLocation,
-                                 float& minimumValueOut,
-                                 float& maximumValueOut) const;
+        virtual bool getDataRangeForAxis(const ChartAxisLocationEnum::Enum chartAxisLocation,
+                                         float& minimumValueOut,
+                                         float& maximumValueOut) const override;
         
-        bool getDataRangeForAxisOrientation(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientationType,
-                                            float& minimumValueOut,
-                                            float& maximumValueOut) const;
+        virtual bool getDataRangeForAxisOrientation(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientationType,
+                                                    float& minimumValueOut,
+                                                    float& maximumValueOut) const override;
 
         ChartTwoTitle* getChartTitle();
         

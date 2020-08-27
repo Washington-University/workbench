@@ -38,7 +38,6 @@
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
 #include "EventBrowserTabGet.h"
-#include "EventChartTwoAxisGetDataRange.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventMapYokingValidation.h"
@@ -73,6 +72,7 @@ ChartTwoOverlaySet::ChartTwoOverlaySet(const ChartTwoDataTypeEnum::Enum chartDat
                                  const AString& name,
                                  const int32_t tabIndex)
 : CaretObject(),
+ChartTwoOverlaySetInterface(),
 m_chartDataType(chartDataType),
 m_name(name),
 m_tabIndex(tabIndex)
@@ -175,7 +175,6 @@ m_tabIndex(tabIndex)
         m_overlays[i]->setWeakPointerToSelf(m_overlays[i]);
     }
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
 }
@@ -648,36 +647,7 @@ ChartTwoOverlaySet::toString() const
 void
 ChartTwoOverlaySet::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_AXIS_GET_DATA_RANGE) {
-        EventChartTwoAxisGetDataRange* rangeEvent = dynamic_cast<EventChartTwoAxisGetDataRange*>(event);
-        CaretAssert(rangeEvent);
-        
-        if (rangeEvent->getChartOverlaySet() == this) {
-            float minimumValue = 0.0f;
-            float maximumValue = 0.0f;
-            switch (rangeEvent->getAxisMode()) {
-                case EventChartTwoAxisGetDataRange::AXIS_LOCATION:
-                    if (getDataRangeForAxis(rangeEvent->getChartAxisLocation(),
-                                            minimumValue,
-                                            maximumValue)) {
-                        rangeEvent->setMinimumAndMaximumValues(minimumValue,
-                                                               maximumValue);
-                        rangeEvent->setEventProcessed();
-                    }
-                    break;
-                case EventChartTwoAxisGetDataRange::AXIS_ORIENTATION:
-                    if (getDataRangeForAxisOrientation(rangeEvent->getChartAxisOrientation(),
-                                                       minimumValue,
-                                                       maximumValue)) {
-                        rangeEvent->setMinimumAndMaximumValues(minimumValue,
-                                                               maximumValue);
-                        rangeEvent->setEventProcessed();
-                    }
-                    break;
-            }
-        }
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
+    if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
         /*
          * The events intended for overlays are received here so that
          * only DISPLAYED overlays are updated.

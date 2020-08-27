@@ -29,7 +29,7 @@
 #include "CaretLogger.h"
 #include "ChartScaleAutoRanging.h"
 #include "ChartTwoCartesianAxis.h"
-#include "EventChartTwoAxisGetDataRange.h"
+#include "ChartTwoOverlaySetInterface.h"
 #include "EventChartTwoCartesianOrientedAxesYoking.h"
 #include "EventManager.h"
 #include "MathFunctions.h"
@@ -52,25 +52,25 @@ using namespace caret;
  * @param orientationType
  *    The orientation type
  */
-ChartTwoCartesianOrientedAxes::ChartTwoCartesianOrientedAxes(const ChartTwoOverlaySet* parentChartOverlaySet,
+ChartTwoCartesianOrientedAxes::ChartTwoCartesianOrientedAxes(const ChartTwoOverlaySetInterface* parentChartOverlaySetInterface,
                                                  const ChartTwoAxisOrientationTypeEnum::Enum orientationType)
 : CaretObject(),
-m_parentChartOverlaySet(parentChartOverlaySet),
+m_parentChartOverlaySetInterface(parentChartOverlaySetInterface),
 m_orientationType(orientationType)
 {
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
     switch (m_orientationType) {
         case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
-            m_leftOrBottomAxis.reset(new ChartTwoCartesianAxis(m_parentChartOverlaySet,
+            m_leftOrBottomAxis.reset(new ChartTwoCartesianAxis(parentChartOverlaySetInterface,
                                                                ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM));
-            m_rightOrTopAxis.reset(new ChartTwoCartesianAxis(m_parentChartOverlaySet,
+            m_rightOrTopAxis.reset(new ChartTwoCartesianAxis(parentChartOverlaySetInterface,
                                                              ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP));
             break;
         case ChartTwoAxisOrientationTypeEnum::VERTICAL:
-            m_leftOrBottomAxis.reset(new ChartTwoCartesianAxis(m_parentChartOverlaySet,
+            m_leftOrBottomAxis.reset(new ChartTwoCartesianAxis(parentChartOverlaySetInterface,
                                                                ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT));
-            m_rightOrTopAxis.reset(new ChartTwoCartesianAxis(m_parentChartOverlaySet,
+            m_rightOrTopAxis.reset(new ChartTwoCartesianAxis(parentChartOverlaySetInterface,
                                                              ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT));
             break;
     }
@@ -287,14 +287,9 @@ void
 ChartTwoCartesianOrientedAxes::getDataRange(float& minimumValueOut,
                                             float& maximumValueOut) const
 {
-    EventChartTwoAxisGetDataRange rangeEvent(m_parentChartOverlaySet,
-                                             m_orientationType);
-    EventManager::get()->sendEvent(rangeEvent.getPointer());
-    
-    if ( ! rangeEvent.getMinimumAndMaximumValues(minimumValueOut,
-                                                 maximumValueOut)) {
-        minimumValueOut = 0.0f;
-        maximumValueOut = 0.0f;
+    if ( ! m_parentChartOverlaySetInterface->getDataRangeForAxisOrientation(m_orientationType, minimumValueOut, maximumValueOut)) {
+        minimumValueOut = 0.0;
+        maximumValueOut = 0.0;
     }
 }
 

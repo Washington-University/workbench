@@ -55,8 +55,8 @@ ChartTwoMatrixLoadingDimensionEnum.h
 ChartTwoMatrixTriangularViewingModeEnum.h
 ChartTwoNumericSubdivisionsModeEnum.h
 ChartTwoLineSeriesHistory.h
+ChartTwoOverlaySetInterface.h
 ChartTwoTitle.h
-EventChartTwoAxisGetDataRange.h
 EventChartTwoCartesianOrientedAxesYoking.h
 EventChartTwoLoadLineSeriesData.h
 MapFileDataSelector.h
@@ -101,8 +101,8 @@ ChartTwoMatrixLoadingDimensionEnum.cxx
 ChartTwoMatrixTriangularViewingModeEnum.cxx
 ChartTwoNumericSubdivisionsModeEnum.cxx
 ChartTwoLineSeriesHistory.cxx
+ChartTwoOverlaySetInterface.cxx
 ChartTwoTitle.cxx
-EventChartTwoAxisGetDataRange.cxx
 EventChartTwoCartesianOrientedAxesYoking.cxx
 EventChartTwoLoadLineSeriesData.cxx
 MapFileDataSelector.cxx
