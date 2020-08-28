@@ -805,7 +805,40 @@ PaletteFile::addDefaultPalettes()
         powerSurf.addScalarAndColor( 0.0, "_ps_0");
         addPalette(powerSurf);
     }
-    
+
+    //black to color versions of three of the fsl palettes below
+    if (this->getPaletteByName("black-red") == NULL) {
+        Palette blackRed;
+        blackRed.setName("black-red");
+        this->addColor("black-red_0", 0, 0, 0);
+        this->addColor("black-red_1", 255, 0, 0);
+        blackRed.addScalarAndColor(1.0f, "black-red_1");
+        blackRed.addScalarAndColor(0.0f, "black-red_0");
+        addPalette(blackRed);
+    }
+
+    if (this->getPaletteByName("black-green") == NULL) {
+        Palette blackGreen;
+        blackGreen.setName("black-green");
+        this->addColor("black-green_0", 0, 0, 0);
+        this->addColor("black-green_1", 0, 255, 0);
+        //this->addColor("black-green_1", 0, 180, 0); //experimental option to try to match brightness across color options
+        blackGreen.addScalarAndColor(1.0f, "black-green_1");
+        blackGreen.addScalarAndColor(0.0f, "black-green_0");
+        addPalette(blackGreen);
+    }
+
+    if (this->getPaletteByName("black-blue") == NULL) {
+        Palette blackBlue;
+        blackBlue.setName("black-blue");
+        this->addColor("black-blue_0", 0, 0, 0);
+        this->addColor("black-blue_1", 0, 0, 255);
+        //this->addColor("black-blue_1", 100, 100, 255); //experimental option to try to match brightness across color options
+        blackBlue.addScalarAndColor(1.0f, "black-blue_1");
+        blackBlue.addScalarAndColor(0.0f, "black-blue_0");
+        addPalette(blackBlue);
+    }
+
     /*
      * FSL Red palette from WB-289
      *
