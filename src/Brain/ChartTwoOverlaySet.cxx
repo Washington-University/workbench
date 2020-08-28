@@ -605,11 +605,11 @@ ChartTwoOverlaySet::firstOverlaySelectionChanged()
     
     m_inFirstOverlayChangedMethodFlag = true;
     
-    ChartTwoCompoundDataType cdt = m_overlays[0]->getChartTwoCompoundDataType();
+    const ChartTwoCompoundDataType* cdt = m_overlays[0]->getChartTwoCompoundDataType();
     
     for (int32_t i = 1; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
-        m_overlays[i]->setChartTwoCompoundDataType(cdt);
+        m_overlays[i]->setChartTwoCompoundDataType(*cdt);
     }
     
     m_inFirstOverlayChangedMethodFlag = false;

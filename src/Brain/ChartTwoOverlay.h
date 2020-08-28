@@ -65,7 +65,7 @@ namespace caret {
         
         ChartTwoDataTypeEnum::Enum getChartTwoDataType() const;
         
-        ChartTwoCompoundDataType getChartTwoCompoundDataType() const;
+        const ChartTwoCompoundDataType* getChartTwoCompoundDataType() const;
         
         void setChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType);
         

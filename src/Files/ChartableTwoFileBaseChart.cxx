@@ -277,13 +277,13 @@ ChartableTwoFileBaseChart::getChartTwoDataType() const
 /**
  * @return Chart compound data type supported by subclass.
  */
-ChartTwoCompoundDataType
+const ChartTwoCompoundDataType*
 ChartableTwoFileBaseChart::getChartTwoCompoundDataType() const
 {
     CaretAssertMessage((m_compoundChartDataType.getChartTwoDataType() != ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID),
                        "Data type is invalid, was updateChartCompoundDataTypeAfterFileChanges() called by "
                        "implementing class.");
-    return m_compoundChartDataType;
+    return &m_compoundChartDataType;
 }
 
 /**

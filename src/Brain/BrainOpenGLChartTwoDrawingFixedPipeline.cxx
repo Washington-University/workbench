@@ -366,18 +366,18 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
     const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
     CaretAssert(numberOfOverlays > 0);
     const ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
-    const ChartTwoCompoundDataType cdt = topOverlay->getChartTwoCompoundDataType();
+    const ChartTwoCompoundDataType* cdt = topOverlay->getChartTwoCompoundDataType();
     if (drawHistogramFlag) {
-        CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
+        CaretAssert(cdt->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);
     }
     else if (drawLineSeriesFlag) {
-        CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES);
+        CaretAssert(cdt->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES);
     }
     else if (drawLineLayerFlag) {
-        CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER);
+        CaretAssert(cdt->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER);
     }
     else if (drawMatrixFlag) {
-        CaretAssert(cdt.getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX);
+        CaretAssert(cdt->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX);
     }
     else {
         CaretAssert(0);

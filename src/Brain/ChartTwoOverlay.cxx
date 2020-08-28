@@ -259,10 +259,10 @@ ChartTwoOverlay::getChartTwoDataType() const
 /**
  * Get the chart compound data type
  */
-ChartTwoCompoundDataType
+const ChartTwoCompoundDataType*
 ChartTwoOverlay::getChartTwoCompoundDataType() const
 {
-    return m_chartCompoundDataType;
+    return &m_chartCompoundDataType;
 }
 
 /**
@@ -767,11 +767,11 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
         if (chartingFile->isChartingTwoSupported()) {
             bool useIt = false;
             
-            std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
+            std::vector<const ChartTwoCompoundDataType*> chartCompoundDataTypes;
             chartingFile->getSupportedChartTwoCompoundDataTypes(chartCompoundDataTypes);
             
             for (auto& compoundType : chartCompoundDataTypes) {
-                if (m_chartDataType == compoundType.getChartTwoDataType()) {
+                if (m_chartDataType == compoundType->getChartTwoDataType()) {
                     if (m_overlayIndex == 0) {
                         /*
                          * The first overlay displays ALL files that match the
@@ -780,7 +780,7 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
                         useIt = true;
                     }
                     else {
-                        if (m_chartCompoundDataType == compoundType) {
+                        if (m_chartCompoundDataType == *compoundType) {
                             /*
                              * If not the first overlay, the enumerated type
                              * and dimensions must also match

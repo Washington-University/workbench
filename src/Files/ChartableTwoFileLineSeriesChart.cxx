@@ -286,8 +286,8 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSerie
         getCaretMappableDataFile()->getDataForSelector(mapFileDataSelector,
                                                        data);
         if ( ! data.empty()) {
-            const CaretUnitsTypeEnum::Enum xUnits = getChartTwoCompoundDataType().getLineChartUnitsAxisX();
-            CaretAssert(getChartTwoCompoundDataType().getLineChartNumberOfElementsAxisX() == static_cast<int32_t>(data.size()));
+            const CaretUnitsTypeEnum::Enum xUnits = getChartTwoCompoundDataType()->getLineChartUnitsAxisX();
+            CaretAssert(getChartTwoCompoundDataType()->getLineChartNumberOfElementsAxisX() == static_cast<int32_t>(data.size()));
             ChartTwoDataCartesian* cartesianData = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                                                              xUnits,
                                                                              CaretUnitsTypeEnum::NONE,

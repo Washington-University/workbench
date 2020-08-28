@@ -80,7 +80,7 @@ namespace caret {
         
         void getSupportedChartTwoDataTypes(std::vector<ChartTwoDataTypeEnum::Enum>& chartDataTypesOut) const;
         
-        void getSupportedChartTwoCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const;
+        void getSupportedChartTwoCompoundDataTypes(std::vector<const ChartTwoCompoundDataType*>& chartCompoundDataTypesOut) const;
         
         bool getChartTwoCompoundDataTypeForChartTwoDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
                                                       ChartTwoCompoundDataType& chartCompoundDataTypeOut) const;

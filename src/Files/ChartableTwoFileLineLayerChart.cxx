@@ -545,7 +545,7 @@ ChartableTwoFileLineLayerChart::loadChartForMapFileSelector(const MapFileDataSel
         getCaretMappableDataFile()->getDataForSelector(mapFileDataSelector,
                                                        data);
         if ( ! data.empty()) {
-            CaretAssert(getChartTwoCompoundDataType().getLineChartNumberOfElementsAxisX() == static_cast<int32_t>(data.size()));
+            CaretAssert(getChartTwoCompoundDataType()->getLineChartNumberOfElementsAxisX() == static_cast<int32_t>(data.size()));
             chartDataOut = createChartData();
             chartDataOut->setMapFileDataSelector(mapFileDataSelector);
             
@@ -579,7 +579,7 @@ ChartableTwoFileLineLayerChart::createChartData() const
     if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_CHART_OPENGL_LINES)) {
         primitiveType = GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP;
     }
-    const CaretUnitsTypeEnum::Enum xUnits = getChartTwoCompoundDataType().getLineChartUnitsAxisX();
+    const CaretUnitsTypeEnum::Enum xUnits = getChartTwoCompoundDataType()->getLineChartUnitsAxisX();
     return new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER,
                                      xUnits,
                                      CaretUnitsTypeEnum::NONE,

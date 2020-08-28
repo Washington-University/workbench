@@ -64,7 +64,7 @@ namespace caret {
 
         ChartTwoDataTypeEnum::Enum getChartTwoDataType() const;
         
-        ChartTwoCompoundDataType getChartTwoCompoundDataType() const;
+        const ChartTwoCompoundDataType* getChartTwoCompoundDataType() const;
         
         AString getBottomTopAxisTitle() const;
         

@@ -448,11 +448,11 @@ ChartableTwoFileDelegate::isChartingSupportedForChartTwoDataType(const ChartTwoD
 bool
 ChartableTwoFileDelegate::isChartingSupportedForChartTwoCompoundDataType(const ChartTwoCompoundDataType& chartCompoundDataType) const
 {
-    std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
+    std::vector<const ChartTwoCompoundDataType*> chartCompoundDataTypes;
     getSupportedChartTwoCompoundDataTypes(chartCompoundDataTypes);
     
     for (auto& ccdt : chartCompoundDataTypes) {
-        if (ccdt == chartCompoundDataType) {
+        if (*ccdt == chartCompoundDataType) {
             return true;
         }
     }
@@ -492,7 +492,7 @@ ChartableTwoFileDelegate::getSupportedChartTwoDataTypes(std::vector<ChartTwoData
  *     Output containing all chart data types supported by this data file.
  */
 void
-ChartableTwoFileDelegate::getSupportedChartTwoCompoundDataTypes(std::vector<ChartTwoCompoundDataType>& chartCompoundDataTypesOut) const
+ChartableTwoFileDelegate::getSupportedChartTwoCompoundDataTypes(std::vector<const ChartTwoCompoundDataType*>& chartCompoundDataTypesOut) const
 {
     chartCompoundDataTypesOut.clear();
     
@@ -526,11 +526,11 @@ bool
 ChartableTwoFileDelegate::getChartTwoCompoundDataTypeForChartTwoDataType(const ChartTwoDataTypeEnum::Enum chartDataType,
                                                                 ChartTwoCompoundDataType& chartCompoundDataTypeOut) const
 {
-    std::vector<ChartTwoCompoundDataType> chartCompoundDataTypes;
+    std::vector<const ChartTwoCompoundDataType*> chartCompoundDataTypes;
     getSupportedChartTwoCompoundDataTypes(chartCompoundDataTypes);
     for (auto& cdt : chartCompoundDataTypes) {
-        if (cdt.getChartTwoDataType() == chartDataType) {
-            chartCompoundDataTypeOut = cdt;
+        if (cdt->getChartTwoDataType() == chartDataType) {
+            chartCompoundDataTypeOut = *cdt;
             return true;
         }
     }
