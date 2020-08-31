@@ -60,6 +60,7 @@ CommandParser::CommandParser(AutoOperationInterface* myAutoOper) :
     m_volumeDType = m_ciftiDType = NIFTI_TYPE_FLOAT32;
     m_volumeMax = m_ciftiMax = -1.0;//these values won't get used, but don't leave them uninitialized
     m_volumeMin = m_ciftiMin = -1.0;
+    m_ciftiReadMemory = false;
 }
 
 void CommandParser::disableProvenance()
@@ -97,6 +98,11 @@ void CommandParser::setVolumeOutputDTypeNoScale(const int16_t& dtype)
     m_volumeMax = -1.0;//for sanity, don't keep any previous value around
     m_volumeMin = -1.0;
     m_volumeScale = false;
+}
+
+void CommandParser::setCiftiReadMemory(const bool inMemory)
+{
+    m_ciftiReadMemory = inMemory;
 }
 
 void CommandParser::executeOperation(ProgramParameters& parameters)
@@ -235,7 +241,12 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                     FileInformation myInfo(nextArg);
                     CaretPointer<CiftiFile> myFile(new CiftiFile());
                     myFile->openFile(nextArg);
-                    m_inputCiftiNames[myInfo.getCanonicalFilePath()] = myFile;//track input cifti, so we can check their size
+                    if (m_ciftiReadMemory)
+                    {
+                        myFile->convertToInMemory();
+                    } else {
+                        m_inputCiftiOnDiskNames[myInfo.getCanonicalFilePath()] = myFile;//track input cifti, so we can avoid collision between on-disk inputs and outputs
+                    }
                     if (m_doProvenance)//just an optimization, if we aren't going to write provenance, don't generate it, either
                     {
                         const GiftiMetaData* md = myFile->getCiftiXML().getFileMetaData();
@@ -1006,8 +1017,8 @@ void CommandParser::makeOnDiskOutputs(const vector<OutputAssoc>& outAssociation)
             {
                 CiftiParameter* myCiftiParam = (CiftiParameter*)myParam;
                 FileInformation myInfo(outAssociation[i].m_fileName);
-                map<AString, const CiftiFile*>::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
-                if (iter != m_inputCiftiNames.end())
+                map<AString, const CiftiFile*>::iterator iter = m_inputCiftiOnDiskNames.find(myInfo.getCanonicalFilePath());
+                if (iter != m_inputCiftiOnDiskNames.end())
                 {
                     vector<int64_t> dims = iter->second->getDimensions();
                     int64_t totalSize = sizeof(float);

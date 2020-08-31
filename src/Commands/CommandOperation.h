@@ -50,6 +50,8 @@ namespace caret {
         virtual void setVolumeOutputDTypeNoScale(const int16_t& dtype);
 
         virtual AString doCompletion(ProgramParameters& parameters, const bool& useExtGlob);
+
+        virtual void setCiftiReadMemory(const bool inMemory);
         
     protected:
         /**

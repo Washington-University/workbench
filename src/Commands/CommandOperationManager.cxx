@@ -618,6 +618,11 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
         niftiMax = globalOptionArgs[1].toDouble(&valid);
         if (!valid) throw CommandException("non-numeric option to -nifti-output-range: '" + globalOptionArgs[1] + "'");
     }
+    bool ciftiReadMemory = true; //NOTE: intentionally wrong default to fix temporary issue
+    if (getGlobalOption(parameters, "-cifti-read-memory", 0, globalOptionArgs))
+    {
+        ciftiReadMemory = true;
+    }
 
     const uint64_t numberOfCommands = this->commandOperations.size();
     const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
@@ -705,6 +710,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
                 } else {
                     operation->setCiftiOutputDTypeNoScale(ciftiDType);
                 }
+                operation->setCiftiReadMemory(ciftiReadMemory);
                 operation->execute(parameters, preventProvenance);
             }
         }
@@ -761,7 +767,8 @@ AString CommandOperationManager::doCompletion(ProgramParameters& parameters, con
     {
         return "";
     }
-    ret = "wordlist -disable-provenance\\ -logging\\ -simd\\ -cifti-output-datatype\\ -cifti-output-range\\ -nifti-output-datatype\\ -nifti-output-range";//we could prevent suggesting an already-provided global option, but that would be a bit surprising
+    /*OptionInfo ciftiReadMemInfo = */parseGlobalOption(parameters, "-cifti-read-memory", 0, globalOptionArgs, true);
+    ret = "wordlist -disable-provenance\\ -logging\\ -simd\\ -cifti-output-datatype\\ -cifti-output-range\\ -nifti-output-datatype\\ -nifti-output-range\\ -cifti-read-memory";//we could prevent suggesting an already-provided global option, but that would be a bit surprising
     const uint64_t numberOfCommands = this->commandOperations.size();
     const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
     if (!parameters.hasNext())
@@ -1161,6 +1168,10 @@ void CommandOperationManager::printGlobalOptions()
          iter++) {
         cout << "         " << DotSIMDEnum::toName(*iter) << endl;
     }
+    cout << endl;
+    cout << "   -cifti-read-memory                read cifti input files into memory, to" << endl;
+    cout << "                                        avoid hitting limits on number of open" << endl;
+    cout << "                                        files" << endl;
     cout << endl;
     cout << "   -cifti-output-datatype <type>     deprecated, only affects cifti outputs" << endl;
     cout << "   -cifti-output-range <min> <max>   deprecated, only affects cifti outputs" << endl;

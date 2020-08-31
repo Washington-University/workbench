@@ -100,6 +100,10 @@ bool CommandOperation::takesParameters()
     return true;
 }
 
+void CommandOperation::setCiftiReadMemory(const bool)
+{
+}
+
 /**
  * Get the short description of the operation.
  */
