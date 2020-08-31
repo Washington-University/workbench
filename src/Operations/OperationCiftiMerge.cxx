@@ -72,7 +72,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
     int numInputs = (int)myInputs.size();
     if (numInputs == 0) throw OperationException("no inputs specified");
     vector<CiftiFile> ciftiList(numInputs);
-    ciftiList[0].openFile(myInputs[0]->getString(1));
+    ciftiList[0].openFile(myInputs[0]->getString(1));//FIXME: possible on-disk collision with output file
     const CiftiFile* firstCifti = &(ciftiList[0]);
     const CiftiXML& baseXML = firstCifti->getCiftiXML();
     if (baseXML.getNumberOfDimensions() != 2) throw OperationException("only 2D cifti are supported");
@@ -93,6 +93,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
         {
             ciftiList[i].openFile(myInputs[i]->getString(1));
         }
+        ciftiList[i].convertToInMemory();//FIXME: temporary hack for ulimit problem
         const CiftiFile* ciftiIn = &(ciftiList[i]);
         vector<int64_t> thisDims = ciftiIn->getDimensions();
         const CiftiXML& thisXML = ciftiIn->getCiftiXML();
