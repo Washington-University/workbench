@@ -139,6 +139,7 @@ LogManager.h
 LogRecord.h
 MathFunctionEnum.h
 MathFunctions.h
+Matrix4x4Interface.h
 MatrixFunctions.h
 ModelTransform.h
 MultiDimArray.h

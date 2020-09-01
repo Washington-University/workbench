@@ -23,6 +23,7 @@
 
 
 #include "CaretObject.h"
+#include "Matrix4x4Interface.h"
 #include <stdint.h>
 
 #include <AString.h>
@@ -35,7 +36,7 @@ namespace caret {
 /**
  * A 4x4 homogeneous transformation matrix.
  */
-class Matrix4x4 : public CaretObject {
+class Matrix4x4 : public Matrix4x4Interface, public CaretObject {
 
 public:
     Matrix4x4();
@@ -132,7 +133,7 @@ public:
 
     void multiplyPoint4(float p[4]) const;
 
-    void multiplyPoint3(float p[3]) const;
+    virtual void multiplyPoint3(float p[3]) const override;
     
     void multiplyPoint3(double p[3]) const;
     
