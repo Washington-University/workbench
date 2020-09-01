@@ -59,12 +59,7 @@ namespace caret {
         
         void getChartMapNames(std::vector<AString>& mapNamesOut);
         
-        ChartTwoDataCartesian* getChartMapLine(const int32_t chartMapIndex);
-        
         void clearChartLines();
-        
-        bool getBounds(const int32_t mapIndex,
-                       BoundingBox& boundingBoxOut) const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -73,7 +68,14 @@ namespace caret {
           
           
           
-    protected: 
+    protected:
+        /* Since line may be normalized, must access throught ChartTwoOverlay */
+        ChartTwoDataCartesian* getChartMapLineForChartTwoOverlay(const int32_t chartMapIndex);
+        
+        /* Since line may be normalized, must access throught ChartTwoOverlay */
+        bool getBoundsForChartTwoOverlay(const int32_t mapIndex,
+                                         BoundingBox& boundingBoxOut) const;
+        
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass) override;
 
@@ -95,6 +97,11 @@ namespace caret {
 
         void setVolumeMapNamesAndVoxelXYZ();
         
+        ChartTwoDataCartesian* getChartMapLinePrivate(const int32_t chartMapIndex);
+        
+        bool getBoundsPrivate(const int32_t mapIndex,
+                              BoundingBox& boundingBoxOut) const;
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         std::vector<std::unique_ptr<ChartTwoDataCartesian>> m_mapLineCharts;
@@ -109,6 +116,7 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        friend class ChartTwoOverlay;
     };
     
 #ifdef __CHARTABLE_TWO_FILE_LINE_LAYER_CHART_DECLARE__

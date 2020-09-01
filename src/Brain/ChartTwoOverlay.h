@@ -40,7 +40,9 @@ namespace caret {
     class AnnotationColorBar;
     class BoundingBox;
     class CaretMappableDataFile;
+    class ChartTwoDataCartesian;
     class ChartTwoOverlaySet;
+    class Matrix4x4;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
 
@@ -147,6 +149,10 @@ namespace caret {
         
         bool getBounds(BoundingBox& boundingBoxOut) const;
         
+        ChartTwoDataCartesian* getLineLayerChartCartesianData();
+        
+        const ChartTwoDataCartesian* getLineLayerChartCartesianData() const;
+
         CaretColor getLineLayerColor() const;
         
         void setLineLayerColor(const CaretColor& color);
@@ -172,6 +178,14 @@ namespace caret {
         CardinalDirectionEnum::Enum getSelectedLineChartTextOffset() const;
         
         void setSelectedLineChartTextOffset(const CardinalDirectionEnum::Enum offset);
+        
+        bool isLineChartNormalizationEnabled() const;
+        
+        void setLineChartNormalizationEnabled(const bool enabled);
+        
+        float getLineChartNormalizationDemeanValue() const;
+        
+        void setLineChartNormalizationDemeanValue(const float value);
         
         virtual void receiveEvent(Event* event);
 
@@ -273,6 +287,12 @@ namespace caret {
         ChartTwoOverlayActiveModeEnum::Enum m_lineChartActiveMode = ChartTwoOverlayActiveModeEnum::OFF;
         
         CardinalDirectionEnum::Enum m_selectedLineChartTextOffset = CardinalDirectionEnum::AUTO;
+        
+        bool m_lineChartNormalizationEnabled = false;
+        
+        float m_lineChartNormalizationDemeanValue = 0.0;
+        
+        mutable std::unique_ptr<ChartTwoDataCartesian> m_lineChartNormalizedCartesianData;
         
         /** A weak pointer to 'self' so that can be stored to safely test instance is valid and can be accessed */
         std::weak_ptr<ChartTwoOverlay> m_weakPointerToSelf;

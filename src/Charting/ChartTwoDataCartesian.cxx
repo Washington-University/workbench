@@ -34,6 +34,7 @@
 #include "GraphicsPrimitiveV3f.h"
 #include "MapFileDataSelector.h"
 #include "MathFunctions.h"
+#include "Matrix4x4Interface.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "ScenePrimitiveArray.h"
@@ -206,6 +207,26 @@ ChartTwoDataCartesian*
 ChartTwoDataCartesian::clone() const
 {
     ChartTwoDataCartesian* cloneCopy = new ChartTwoDataCartesian(*this);
+    return cloneCopy;
+}
+
+/**
+ * At times a copy of chart data will be needed BUT it must be
+ * the proper subclass so copy constructor and assignment operator
+ * will no function when this abstract, base class is used.  Each
+ * subclass will override this method so that the returned class
+ * is of the proper type.
+ *
+ * @param matrix
+ *    Data points are transformed using this matrix
+ * @return Copy of this instance that is the actual subclass
+ */
+ChartTwoDataCartesian*
+ChartTwoDataCartesian::clone(const Matrix4x4Interface& matrix) const
+{
+    ChartTwoDataCartesian* cloneCopy = new ChartTwoDataCartesian(*this);
+    GraphicsPrimitiveV3f* primitive = cloneCopy->getGraphicsPrimitive();
+    primitive->transformVerticesFloatXYZ(matrix);
     return cloneCopy;
 }
 

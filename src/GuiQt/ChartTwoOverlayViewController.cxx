@@ -33,17 +33,17 @@
 #include <QPainter>
 #include <QSpinBox>
 #include <QToolButton>
-
-#include "CaretAssert.h"
-using namespace caret;
+#include <QWidgetAction>
 
 #include "AnnotationColorBar.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "CardinalDirectionEnumMenu.h"
+#include "CaretAssert.h"
 #include "CaretColorToolButton.h"
 #include "CaretColorEnumMenu.h"
 #include "CaretMappableDataFile.h"
+#include "ChartTwoLineLayerNormalizationWidget.h"
 #include "ChartTwoOverlay.h"
 #include "ChartableTwoFileDelegate.h"
 #include "CursorDisplayScoped.h"
@@ -69,6 +69,8 @@ using namespace caret;
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
+
+using namespace caret;
 
 /**
  * \class caret::ChartTwoOverlayViewController 
@@ -233,7 +235,6 @@ m_parentObjectName(parentObjectName)
     m_matrixOpacitySpinBox->setRange(0.0, 1.0);
     m_matrixOpacitySpinBox->setDecimals(1);
     m_matrixOpacitySpinBox->setSingleStep(0.1);
-//    m_matrixOpacitySpinBox->getWidget()->setFixedWidth(60);
     QObject::connect(m_matrixOpacitySpinBox, &WuQDoubleSpinBox::valueChanged,
                      this, &ChartTwoOverlayViewController::matrixOpacityValueChanged);
 
@@ -260,15 +261,29 @@ m_parentObjectName(parentObjectName)
     QObject::connect(m_lineLayerToolTipOffsetToolButton, &QToolButton::clicked,
                      this, &ChartTwoOverlayViewController::lineLayerToolTipOffsetToolButtonClicked);
     
+     
     /*
      * Line layer normalization button
      */
     m_lineLayerNormalizationToolButton = new QToolButton();
     m_lineLayerNormalizationToolButton->setText("N");
     m_lineLayerNormalizationToolButton->setToolTip("Normalize line");
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_lineLayerNormalizationToolButton);
     QObject::connect(m_lineLayerNormalizationToolButton, &QToolButton::clicked,
                      this, &ChartTwoOverlayViewController::lineLayerNormalizationToolButtonClicked);
-    m_lineLayerNormalizationToolButton->setEnabled(false);  /* not implemented yet */
+    
+    /*
+     * Line layer normalization widget and menu
+     */
+    m_lineLayerNormalizationWidget = new ChartTwoLineLayerNormalizationWidget();
+    QWidgetAction* normalizationWidgetAction = new QWidgetAction(m_lineLayerNormalizationToolButton);
+    normalizationWidgetAction->setDefaultWidget(m_lineLayerNormalizationWidget);
+    
+    m_lineLayerNormalizationMenu = new QMenu(m_lineLayerNormalizationToolButton);
+    m_lineLayerNormalizationMenu->addAction(normalizationWidgetAction);
+    QObject::connect(m_lineLayerNormalizationMenu, &QMenu::aboutToShow,
+                     this, &ChartTwoOverlayViewController::lineLayerNormalizationMenuAboutToShow);
+
     
     /*
      * Match button sizes
@@ -987,6 +1002,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_lineLayerColorToolButton->setEnabled(false);
     m_lineLayerWidthSpinBox->getWidget()->setEnabled(false);
     m_lineLayerToolTipOffsetToolButton->setEnabled(false);
+    m_lineLayerNormalizationToolButton->setEnabled(false);
     if (validOverlayAndFileFlag) {
         m_lineLayerColorToolButton->setSelectedColor(m_chartOverlay->getLineLayerColor());
         m_lineLayerWidthSpinBox->setValue(m_chartOverlay->getLineLayerLineWidth());
@@ -994,6 +1010,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
             m_lineLayerColorToolButton->setEnabled(true);
             m_lineLayerWidthSpinBox->getWidget()->setEnabled(true);
             m_lineLayerToolTipOffsetToolButton->setEnabled(true);
+            m_lineLayerNormalizationToolButton->setEnabled(true);
         }
     }
     updateLineLayerToolTipOffsetToolButton();
@@ -1019,6 +1036,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     bool showLineLayerColorButtonFlag(false);
     bool showLineLayerOffsetButtonFlag(false);
     bool showLineLayerWidthButtonFlag(false);
+    bool showLineLayerNormalizationButtonFlag(false);
     bool showSelectedPointControlsFlag(false);
     bool showLineSeriesLoadingCheckBoxFlag(false);
     bool showMatrixDiagonalButtonFlag(false);
@@ -1036,6 +1054,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
             showLineLayerColorButtonFlag = true;
             showLineLayerOffsetButtonFlag = true;
             showLineLayerWidthButtonFlag = true;
+            showLineLayerNormalizationButtonFlag = true;
             showSelectedPointControlsFlag = true;
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
@@ -1053,6 +1072,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_colorBarToolButton->setVisible(showColorBarButtonFlag);
     m_lineLayerColorToolButton->setVisible(showLineLayerColorButtonFlag);
     m_lineLayerToolTipOffsetToolButton->setVisible(showLineLayerOffsetButtonFlag);
+    m_lineLayerNormalizationToolButton->setVisible(showLineLayerNormalizationButtonFlag);
     m_lineLayerWidthSpinBox->getWidget()->setVisible(showLineLayerWidthButtonFlag);
     m_lineSeriesLoadingEnabledCheckBox->setVisible(showLineSeriesLoadingCheckBoxFlag);
     m_matrixTriangularViewModeToolButton->setVisible(showMatrixDiagonalButtonFlag);
@@ -1302,8 +1322,17 @@ ChartTwoOverlayViewController::lineLayerActiveModeEnumComboBoxItemActivated()
 void
 ChartTwoOverlayViewController::lineLayerNormalizationToolButtonClicked()
 {
+    m_lineLayerNormalizationMenu->exec(m_lineLayerNormalizationToolButton->mapToGlobal(QPoint(0, m_lineLayerNormalizationToolButton->height())));
 }
 
+/**
+ * Called when line layer normalization button is clicked
+ */
+void
+ChartTwoOverlayViewController::lineLayerNormalizationMenuAboutToShow()
+{
+    m_lineLayerNormalizationWidget->updateContent(m_chartOverlay);
+}
 
 /**
  * Called when selected point index spin box value changed

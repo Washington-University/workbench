@@ -228,6 +228,9 @@ ChartableTwoFileLineLayerChart::receiveEvent(Event* event)
 }
 
 /**
+ * THIS METHOD IS FOR USE ONLY BY ChartTwoOverlay instances since the chart two overlay may
+ * transform the data.
+ *
  * Get a bounding box for map data displayed within this overlay.
  * Bounds are provided for histogram and line-series charts only.
  * @param mapIndex
@@ -237,13 +240,30 @@ ChartableTwoFileLineLayerChart::receiveEvent(Event* event)
  * @return
  *     True if the bounds are valid, else false.
  */bool
-ChartableTwoFileLineLayerChart::getBounds(const int32_t mapIndex,
-                                          BoundingBox& boundingBoxOut) const
+ChartableTwoFileLineLayerChart::getBoundsForChartTwoOverlay(const int32_t mapIndex,
+                                                            BoundingBox& boundingBoxOut) const
+{
+    return getBoundsPrivate(mapIndex,
+                            boundingBoxOut);
+}
+
+/**
+ * Get a bounding box for map data displayed within this overlay.
+ * Bounds are provided for histogram and line-series charts only.
+ * @param mapIndex
+ *     Index of map
+ * @param boundingBox
+ *     Upon exit contains bounds for data within this overlay
+ * @return
+ *     True if the bounds are valid, else false.
+ */bool
+ChartableTwoFileLineLayerChart::getBoundsPrivate(const int32_t mapIndex,
+                                                 BoundingBox& boundingBoxOut) const
 {
     boundingBoxOut.resetForUpdate();
     ChartableTwoFileLineLayerChart* nonConst = const_cast<ChartableTwoFileLineLayerChart*>(this);
     CaretAssert(nonConst);
-    const ChartTwoDataCartesian* cd = nonConst->getChartMapLine(mapIndex);
+    const ChartTwoDataCartesian* cd = nonConst->getChartMapLinePrivate(mapIndex);
     if (cd != NULL) {
         cd->getBounds(boundingBoxOut);
         return true;
@@ -418,13 +438,28 @@ ChartableTwoFileLineLayerChart::setVolumeMapNamesAndVoxelXYZ()
 }
 
 /**
+ * THIS METHOD IS FOR USE ONLY BY ChartTwoOverlay instances since the chart two overlay may
+ * transform the data.
+ *
+ * Get the chart lines for a map.
+ * @param chartMapIndex
+ * Index of the map
+ * @retrurn Line chart for map or NULL if not available.
+ */
+ChartTwoDataCartesian*
+ChartableTwoFileLineLayerChart::getChartMapLineForChartTwoOverlay(const int32_t chartMapIndex)
+{
+    return getChartMapLinePrivate(chartMapIndex);
+}
+
+/**
  * Get the chart lines for a map
  * @param chartMapIndex
  * Index of the map
  * @retrurn Line chart for map or NULL if not available.
  */
 ChartTwoDataCartesian*
-ChartableTwoFileLineLayerChart::getChartMapLine(const int32_t chartMapIndex)
+ChartableTwoFileLineLayerChart::getChartMapLinePrivate(const int32_t chartMapIndex)
 {
     ChartTwoDataCartesian* chartDataOut(NULL);
     
@@ -703,7 +738,7 @@ ChartableTwoFileLineLayerChart::restoreSubClassDataFromScene(const SceneAttribut
         std::vector<int32_t> mapIndices;
         mapIndicesArray->integerVectorValues(mapIndices);
         for (auto mi : mapIndices) {
-            getChartMapLine(mi);
+            getChartMapLinePrivate(mi);
         }
     }
     else {

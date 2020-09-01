@@ -924,7 +924,6 @@ IdentificationSimpleTextGenerator::generateChartTwoLineLayerIdentificationText(I
                        boldText,
                        mapFile->getFileNameNoPath());
         
-        cartesianData->getGraphicsPrimitive();
         const GraphicsPrimitive* primitive = cartesianData->getGraphicsPrimitive();
         CaretAssert(primitive);
         

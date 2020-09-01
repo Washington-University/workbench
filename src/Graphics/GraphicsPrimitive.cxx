@@ -26,6 +26,7 @@
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DescriptiveStatistics.h"
 #include "EventManager.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3f.h"
@@ -34,6 +35,7 @@
 #include "GraphicsPrimitiveV3fN3f.h"
 #include "GraphicsPrimitiveV3fN3fC4ub.h"
 #include "GraphicsPrimitiveV3fT3f.h"
+#include "Matrix4x4Interface.h"
 
 using namespace caret;
 
@@ -86,7 +88,7 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType       vertexDataType,
  m_primitiveType(primitiveType),
  m_boundingBoxValid(false)
 {
-    
+    invalidateVertexMeasurements();
 }
 
 /**
@@ -115,6 +117,7 @@ GraphicsPrimitive::GraphicsPrimitive(const GraphicsPrimitive& obj)
  m_primitiveType(obj.m_primitiveType),
  m_boundingBoxValid(false)
 {
+    invalidateVertexMeasurements();
     this->copyHelperGraphicsPrimitive(obj);
 }
 
@@ -142,6 +145,8 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
     m_textureImageBytesRGBA       = obj.m_textureImageBytesRGBA;
     m_textureImageWidth           = obj.m_textureImageWidth;
     m_textureImageHeight          = obj.m_textureImageHeight;
+    invalidateVertexMeasurements();
+
 
     m_graphicsEngineDataForOpenGL.reset();
 }
@@ -191,8 +196,8 @@ GraphicsPrimitive::reserveForNumberOfVertices(const int32_t numberOfVertices)
             m_floatTextureSTR.reserve(numberOfVertices * 3);
             break;
     }
-    
-    m_boundingBoxValid = false;
+
+    invalidateVertexMeasurements();
 }
 
 /**
@@ -877,8 +882,8 @@ GraphicsPrimitive::addVertexProtected(const float xyz[3],
             break;
     }
     
-    m_boundingBoxValid = false;
-    
+    invalidateVertexMeasurements();
+
     /*
      * The triangle strip primitve vertces are filled after two
      * vertices are added after requesting a restart
@@ -949,7 +954,7 @@ GraphicsPrimitive::replaceFloatXYZ(const std::vector<float>& xyz)
         CaretAssertMessage(0, msg);
     }
     
-    m_boundingBoxValid = false;
+    invalidateVertexMeasurements();
 }
 
 /**
@@ -989,6 +994,47 @@ GraphicsPrimitive::replaceVertexFloatXYZ(const int32_t vertexIndex,
 
     if (m_graphicsEngineDataForOpenGL != NULL) {
         m_graphicsEngineDataForOpenGL->invalidateCoordinates();
+    }
+}
+
+/**
+ * Replace the XYZ vertices in this primitive with vertices from other primitive
+ * and also transform the vertex using the given matrix.
+ *
+ * @param primitive
+ *     Primitive whose vertices are copied.
+ * @param matrix
+ *     Matrix used for transforming vertices
+ */
+void
+GraphicsPrimitive::replaceAndTransformVertices(const GraphicsPrimitive* primitive,
+                                               const Matrix4x4Interface& matrix)
+{
+    CaretAssert(primitive);
+    const int32_t numVertices = std::min(getNumberOfVertices(),
+                                         primitive->getNumberOfVertices());
+    for (int32_t i = 0; i < numVertices; i++) {
+        const std::vector<float>& primitiveXYZ = primitive->getFloatXYZ();
+        const int32_t i3(i * 3);
+        float xyz[3] { primitiveXYZ[i3], primitiveXYZ[i3 + 1], primitiveXYZ[i3 + 2] };
+        matrix.multiplyPoint3(xyz);
+        replaceVertexFloatXYZ(i, xyz);
+    }
+}
+
+
+/**
+ * Transform all vertices using the given matrix.
+ * @param matrix
+ *    Matrix for transformation of vertices
+ */
+void
+GraphicsPrimitive::transformVerticesFloatXYZ(const Matrix4x4Interface& matrix)
+{
+    const float numVertices = getNumberOfVertices();
+    for (int32_t i = 0; i < numVertices; i++) {
+        const int32_t i3(i * 3);
+        matrix.multiplyPoint3(&m_xyz[i3]);
     }
 }
 
@@ -1456,7 +1502,7 @@ GraphicsPrimitive::copyVertex(const int32_t copyFromIndex,
         }
     }
     
-    m_boundingBoxValid = false;
+    invalidateVertexMeasurements();
 }
 
 /**
@@ -1800,6 +1846,46 @@ GraphicsPrimitive::simplfyLines(const int32_t skipVertexCount)
 }
 
 /**
+ * Get the mean and standard deviation for the Y-values
+ * @param yMeanOut
+ *    Output with mean
+ * @param yStandardDeviationOut
+ *    Output with standard deviation
+ */
+void
+GraphicsPrimitive::getMeanAndStandardDeviationForY(float& yMeanOut,
+                                                   float& yStandardDeviationOut) const
+{
+    /*
+     * Standard deviation is always non-negative so use
+     * a negative values as invalid or not-computed
+     */
+    if (m_yStandardDeviation < 0.0) {
+        const int32_t numVertices = getNumberOfVertices();
+        if (numVertices <= 0) {
+            yMeanOut = 0.0;
+            yStandardDeviationOut = 1.0;
+            return;
+        }
+        
+        std::vector<float> yValues;
+        yValues.resize(numVertices);
+        for (int32_t i = 0; i < numVertices; i++) {
+            yValues[i] = m_xyz[(i * 3) + 1];
+        }
+        
+        DescriptiveStatistics stats;
+        stats.update(yValues);
+        m_yMean = stats.getMean();
+        m_yStandardDeviation = stats.getPopulationStandardDeviation();
+    }
+    
+    yMeanOut              = m_yMean;
+    yStandardDeviationOut = m_yStandardDeviation;
+}
+
+
+/**
  * Get the OpenGL graphics engine data in this instance.
  *
  * @return
@@ -1999,6 +2085,17 @@ GraphicsPrimitive::setOpenGLBuffersHaveBeenLoadedByGraphicsEngine()
         }
             break;
     }
+}
+
+/**
+ * Invalidate vertex measurements
+ */
+void
+GraphicsPrimitive::invalidateVertexMeasurements()
+{
+    m_boundingBoxValid  = false;
+    m_yMean              = 0.0;
+    m_yStandardDeviation = -1.0;
 }
 
 

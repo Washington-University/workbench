@@ -38,6 +38,7 @@ class QToolButton;
 namespace caret {
     class CaretColor;
     class CaretColorToolButton;
+    class ChartTwoLineLayerNormalizationWidget;
     class ChartTwoOverlay;
     class EnumComboBoxTemplate;
     class MapYokingGroupComboBox;
@@ -124,6 +125,8 @@ namespace caret {
         
         void lineLayerNormalizationToolButtonClicked();
         
+        void lineLayerNormalizationMenuAboutToShow();
+        
         void selectedPointIndexSpinBoxValueChanged(int index);
         
     private:
@@ -191,6 +194,10 @@ namespace caret {
         bool m_useIconInLineLayerToolTipOffsetButtonFlag = false;
         
         QToolButton* m_lineLayerNormalizationToolButton;
+        
+        ChartTwoLineLayerNormalizationWidget* m_lineLayerNormalizationWidget;
+        
+        QMenu* m_lineLayerNormalizationMenu;
         
         std::vector<std::tuple<ChartTwoMatrixTriangularViewingModeEnum::Enum, QAction*,QPixmap>> m_matrixViewMenuData;
 

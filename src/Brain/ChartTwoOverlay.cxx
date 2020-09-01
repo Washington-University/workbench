@@ -28,12 +28,12 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "ChartTwoDataCartesian.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
 #include "ChartableTwoFileLineLayerChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
-#include "ChartTwoDataCartesian.h"
 #include "ChartTwoLineSeriesHistory.h"
 #include "ChartTwoOverlaySet.h"
 #include "EventCaretMappableDataFilesGet.h"
@@ -41,6 +41,7 @@
 #include "EventManager.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "Histogram.h"
+#include "Matrix4x4.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -98,7 +99,9 @@ m_overlayIndex(overlayIndex)
     m_lineLayerLineWidth = ChartTwoDataCartesian::getDefaultLineWidth();
     m_selectedLineChartPointIndex = 0;
     m_lineChartActiveMode = ChartTwoOverlayActiveModeEnum::OFF;
-
+    m_lineChartNormalizationEnabled = false;
+    m_lineChartNormalizationDemeanValue = 0.0;
+    
     m_selectedLineChartTextOffset = CardinalDirectionEnum::AUTO;
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
@@ -123,6 +126,10 @@ m_overlayIndex(overlayIndex)
                                                                                               &m_lineChartActiveMode);
     m_sceneAssistant->add<CardinalDirectionEnum, CardinalDirectionEnum::Enum>("m_selectedLineChartTextOffset",
                                                                               &m_selectedLineChartTextOffset);
+    m_sceneAssistant->add("m_lineChartNormalizationEnabled",
+                          &m_lineChartNormalizationEnabled);
+    m_sceneAssistant->add("m_lineChartNormalizationDemeanValue",
+                          &m_lineChartNormalizationDemeanValue);
                                                                 
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CHART_TWO_OVERLAY_VALIDATE);
@@ -394,6 +401,8 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
     m_selectedLineChartPointIndex = overlay->m_selectedLineChartPointIndex;
     m_lineChartActiveMode = overlay->m_lineChartActiveMode;
     m_selectedLineChartTextOffset = overlay->m_selectedLineChartTextOffset;
+    m_lineChartNormalizationEnabled = overlay->m_lineChartNormalizationEnabled;
+    m_lineChartNormalizationDemeanValue = overlay->m_lineChartNormalizationDemeanValue;
 }
 
 /**
@@ -602,10 +611,8 @@ ChartTwoOverlay::getBounds(BoundingBox& boundingBoxOut) const
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
         {
-            const ChartableTwoFileLineLayerChart* layerChart = chartDelegate->getLineLayerCharting();
-            validFlag = layerChart->getBounds(selectedIndex,
-                                              boundingBoxOut);
-            
+            const ChartTwoDataCartesian* cartesianLine = getLineLayerChartCartesianData();
+            validFlag = cartesianLine->getBounds(boundingBoxOut);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
@@ -624,6 +631,108 @@ ChartTwoOverlay::getBounds(BoundingBox& boundingBoxOut) const
     }
     
     return validFlag;
+}
+
+/**
+ * @return The cartesian data for a line layer chart (ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER)
+ * NULL may be returned.   NULL always returned for types other than line layer.
+ * This is necessary since the line may be normalized.
+ * (const method)
+ */
+const ChartTwoDataCartesian*
+ChartTwoOverlay::getLineLayerChartCartesianData() const
+{
+    ChartTwoOverlay* nonConstThis = const_cast<ChartTwoOverlay*>(this);
+    return nonConstThis->getLineLayerChartCartesianData();
+}
+
+/**
+ * @return The cartesian data for a line layer chart (ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER)
+ * NULL may be returned.   NULL always returned for types other than line layer.
+ * This is necessary since the line may be normalized.
+ */
+ChartTwoDataCartesian*
+ChartTwoOverlay::getLineLayerChartCartesianData()
+{
+    CaretMappableDataFile* mapFile = NULL;
+    SelectedIndexType selectedIndexType = SelectedIndexType::INVALID;
+    int32_t selectedIndex = -1;
+    getSelectionData(mapFile,
+                     selectedIndexType,
+                     selectedIndex);
+    
+    if (mapFile == NULL) {
+        return NULL;
+    }
+    
+    ChartTwoDataCartesian* dataOut(NULL);
+    
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+        {
+            ChartableTwoFileDelegate* chartDelegate = mapFile->getChartingDelegate();
+            ChartableTwoFileLineLayerChart* layerChart = chartDelegate->getLineLayerCharting();
+            ChartTwoDataCartesian* cartesianLineData = layerChart->getChartMapLineForChartTwoOverlay(selectedIndex);
+            CaretAssert(cartesianLineData);
+            if (m_lineChartNormalizationEnabled) {
+                if (m_lineChartNormalizedCartesianData) {
+                    /*
+                     * Number of vertices changed (usually when selected file is changed)
+                     */
+                    if (m_lineChartNormalizedCartesianData->getGraphicsPrimitive()->getNumberOfVertices()
+                        != cartesianLineData->getGraphicsPrimitive()->getNumberOfVertices()) {
+                        m_lineChartNormalizedCartesianData.reset();
+                    }
+                }
+                
+                /*
+                 * Copy the line data, if needed
+                 */
+                if ( ! m_lineChartNormalizedCartesianData) {
+                    m_lineChartNormalizedCartesianData.reset(cartesianLineData->clone());
+                }
+                
+                /*
+                 * Create the transformation matrix for normalizing
+                 * the Y-values in the data
+                 */
+                float mean(0.0), stddev(1.0);
+                cartesianLineData->getGraphicsPrimitive()->getMeanAndStandardDeviationForY(mean,
+                                                                                 stddev);
+                Matrix4x4 matrix;
+                matrix.translate(0.0, -mean, 0.0);
+                matrix.translate(0.0, m_lineChartNormalizationDemeanValue, 0.0);
+                if (stddev > 0.0) {
+                    matrix.scale(1.0, (1.0 / stddev), 1.0);
+                }
+                    
+                /*
+                 * Copy and transform data from the line
+                 */
+                m_lineChartNormalizedCartesianData->getGraphicsPrimitive()->replaceAndTransformVertices(cartesianLineData->getGraphicsPrimitive(),
+                                                                                                        matrix);
+                dataOut = m_lineChartNormalizedCartesianData.get();
+            }
+            else {
+                dataOut = cartesianLineData;
+            }
+        }
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+        {
+            const QString msg("This method should only be called when chart "
+                              "type is CHART_DATA_TYPE_LINE_LAYER.  Was called with: "
+                              + ChartTwoDataTypeEnum::toName(m_chartDataType));
+            CaretAssertMessage(0, msg);
+            CaretLogWarning(msg);
+        }
+            break;
+    }
+    
+    return dataOut;
 }
 
 /**
@@ -1541,7 +1650,7 @@ ChartTwoOverlay::getSelectedLineChartNumberOfPoints() const
         {
             ChartableTwoFileLineLayerChart* layerChart = chartDelegate->getLineLayerCharting();
             CaretAssert(layerChart);
-            ChartTwoDataCartesian* cd = layerChart->getChartMapLine(selectedIndex);
+            const ChartTwoDataCartesian* cd = getLineLayerChartCartesianData();
             CaretAssert(cd);
             const GraphicsPrimitive* gp(cd->getGraphicsPrimitive());
             CaretAssert(gp);
@@ -1669,7 +1778,7 @@ ChartTwoOverlay::getSelectedLineChartPointXYZ(std::array<float, 3>& xyzOut) cons
             {
                 ChartableTwoFileLineLayerChart* layerChart = chartDelegate->getLineLayerCharting();
                 CaretAssert(layerChart);
-                ChartTwoDataCartesian* cd = layerChart->getChartMapLine(selectedIndex);
+                const ChartTwoDataCartesian* cd = getLineLayerChartCartesianData();
                 CaretAssert(cd);
                 cd->getPointXYZ(m_selectedLineChartPointIndex,
                                 xyzOut.data());
@@ -1704,6 +1813,46 @@ void
 ChartTwoOverlay::setSelectedLineChartTextOffset(const CardinalDirectionEnum::Enum offset)
 {
     m_selectedLineChartTextOffset = offset;
+}
+
+/**
+ * @return Line chart normalization enabled
+ */
+bool
+ChartTwoOverlay::isLineChartNormalizationEnabled() const
+{
+    return m_lineChartNormalizationEnabled;
+}
+
+/**
+ * Set line chart normalization enabled
+ * @param enabled
+ *    New enabled status
+ */
+void
+ChartTwoOverlay::setLineChartNormalizationEnabled(const bool enabled)
+{
+    m_lineChartNormalizationEnabled = enabled;
+}
+
+/**
+ * @return Line chart normalization demean value
+ */
+float
+ChartTwoOverlay::getLineChartNormalizationDemeanValue() const
+{
+    return m_lineChartNormalizationDemeanValue;
+}
+
+/**
+ * Set the line chart normalization demain value
+ * @param value
+ *    New demean value
+ */
+void
+ChartTwoOverlay::setLineChartNormalizationDemeanValue(const float value)
+{
+    m_lineChartNormalizationDemeanValue = value;
 }
 
 /**

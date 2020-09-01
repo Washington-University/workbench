@@ -34,6 +34,7 @@ namespace caret {
     class ChartPoint;
     class GraphicsPrimitiveV3f;
     class MapFileDataSelector;
+    class Matrix4x4Interface;
     class SceneClassAssistant;
     
     class ChartTwoDataCartesian : public CaretObjectTracksModification, public SceneableInterface {
@@ -47,6 +48,8 @@ namespace caret {
         virtual ~ChartTwoDataCartesian();
         
         virtual ChartTwoDataCartesian* clone() const;
+        
+        virtual ChartTwoDataCartesian* clone(const Matrix4x4Interface& matrix) const;
         
         bool isSelected() const;
         

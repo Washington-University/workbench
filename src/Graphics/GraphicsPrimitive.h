@@ -29,7 +29,6 @@
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 
-
 namespace caret {
 
     class BoundingBox;
@@ -40,6 +39,7 @@ namespace caret {
     class GraphicsPrimitiveV3fN3f;
     class GraphicsPrimitiveV3fN3fC4ub;
     class GraphicsPrimitiveV3fT3f;
+    class Matrix4x4Interface;
     
     class GraphicsPrimitive : public CaretObject, public EventListenerInterface {
         
@@ -451,6 +451,11 @@ namespace caret {
         void replaceVertexFloatXYZ(const int32_t vertexIndex,
                                    const float xyz[3]);
         
+        void replaceAndTransformVertices(const GraphicsPrimitive* primitive,
+                                         const Matrix4x4Interface& matrix);
+        
+        void transformVerticesFloatXYZ(const Matrix4x4Interface& matrix);
+        
         void getVertexFloatRGBA(const int32_t vertexIndex,
                                 float rgbaOut[4]) const;
 
@@ -504,6 +509,9 @@ namespace caret {
 
         void simplfyLines(const int32_t skipVertexCount);
         
+        void getMeanAndStandardDeviationForY(float& yMeanOut,
+                                             float& yStandardDeviationOut) const;
+        
     protected:
         AString toStringPrivate(const bool includeAllDataFlag) const;
         
@@ -526,6 +534,8 @@ namespace caret {
         AString getSphereSizeTypeAsText(const SphereSizeType sizeType) const;
         
         AString getVertexColorTypeAsText(const VertexColorType vertexColorType) const;
+        
+        void invalidateVertexMeasurements();
         
         const VertexDataType  m_vertexDataType;
         
@@ -602,6 +612,10 @@ namespace caret {
         
         std::vector<uint8_t> m_textureImageBytesRGBA;
 
+        mutable float m_yMean = 0.0;
+        
+        mutable float m_yStandardDeviation = -1.0;
+        
         friend class GraphicsEngineDataOpenGL;
         friend class GraphicsOpenGLPolylineTriangles;
         friend class GraphicsPrimitiveSelectionHelper;
