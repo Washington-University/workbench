@@ -51,8 +51,6 @@ namespace caret {
 
         virtual AString doCompletion(ProgramParameters& parameters, const bool& useExtGlob);
 
-        virtual void setCiftiReadMemory(const bool inMemory);
-        
     protected:
         /**
          * Execute the operation.

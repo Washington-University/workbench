@@ -249,7 +249,7 @@
 
 #include "CaretLogger.h"
 #include "dot_wrapper.h"
-#include "StructureEnum.h"
+#include "CaretCommandGlobalOptions.h"
 
 #include <iostream>
 #include <map>
@@ -618,10 +618,9 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
         niftiMax = globalOptionArgs[1].toDouble(&valid);
         if (!valid) throw CommandException("non-numeric option to -nifti-output-range: '" + globalOptionArgs[1] + "'");
     }
-    bool ciftiReadMemory = true; //NOTE: intentionally wrong default to fix temporary issue
     if (getGlobalOption(parameters, "-cifti-read-memory", 0, globalOptionArgs))
     {
-        ciftiReadMemory = true;
+        caret_global_command_options.m_ciftiReadMemory = true;
     }
 
     const uint64_t numberOfCommands = this->commandOperations.size();
@@ -710,7 +709,6 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
                 } else {
                     operation->setCiftiOutputDTypeNoScale(ciftiDType);
                 }
-                operation->setCiftiReadMemory(ciftiReadMemory);
                 operation->execute(parameters, preventProvenance);
             }
         }

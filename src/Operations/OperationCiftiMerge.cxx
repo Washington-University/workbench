@@ -23,7 +23,9 @@
 
 #include "CaretAssert.h"
 #include "CaretPointer.h"
+#include "CaretCommandGlobalOptions.h"
 #include "CiftiFile.h"
+#include "FileInformation.h"
 
 #include <algorithm>
 
@@ -67,12 +69,14 @@ OperationParameters* OperationCiftiMerge::getParameters()
 void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    CiftiFile* ciftiOut = myParams->getOutputCifti(1);
+    CiftiFile* ciftiOut = myParams->getOutputCifti(1);//NOTE: doesn't actually get created until the first setRow() call
+    FileInformation ciftiOutInfo(ciftiOut->getFileName());
+    AString ciftiOutCanonicalName = ciftiOutInfo.getCanonicalFilePath();
     const vector<ParameterComponent*>& myInputs = myParams->getRepeatableParameterInstances(2);
     int numInputs = (int)myInputs.size();
     if (numInputs == 0) throw OperationException("no inputs specified");
     vector<CiftiFile> ciftiList(numInputs);
-    ciftiList[0].openFile(myInputs[0]->getString(1));//FIXME: possible on-disk collision with output file
+    ciftiList[0].openFile(myInputs[0]->getString(1));
     const CiftiFile* firstCifti = &(ciftiList[0]);
     const CiftiXML& baseXML = firstCifti->getCiftiXML();
     if (baseXML.getNumberOfDimensions() != 2) throw OperationException("only 2D cifti are supported");
@@ -93,7 +97,15 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
         {
             ciftiList[i].openFile(myInputs[i]->getString(1));
         }
-        ciftiList[i].convertToInMemory();//FIXME: temporary hack for ulimit problem
+        if (caret_global_command_options.m_ciftiReadMemory)
+        {
+            ciftiList[i].convertToInMemory();
+        } else {//if you manually read input files, you manually check for filename collision...
+            if (!ciftiOut->isInMemory() && FileInformation(myInputs[i]->getString(1)).getCanonicalFilePath() == ciftiOutCanonicalName)
+            {
+                ciftiOut->convertToInMemory();
+            }
+        }
         const CiftiFile* ciftiIn = &(ciftiList[i]);
         vector<int64_t> thisDims = ciftiIn->getDimensions();
         const CiftiXML& thisXML = ciftiIn->getCiftiXML();

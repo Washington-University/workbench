@@ -65,6 +65,7 @@ CaretBinaryFile.h
 CaretColor.h
 CaretColorEnum.h
 CaretCommandLine.h
+CaretCommandGlobalOptions.h
 CaretCompact3DLookup.h
 CaretCompactLookup.h
 CaretException.h
@@ -224,6 +225,7 @@ CaretBinaryFile.cxx
 CaretColor.cxx
 CaretColorEnum.cxx
 CaretCommandLine.cxx
+CaretCommandGlobalOptions.cxx
 CaretException.cxx
 CaretHttpManager.cxx
 CaretLogger.cxx

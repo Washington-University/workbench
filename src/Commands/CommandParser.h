@@ -37,11 +37,11 @@ namespace caret {
     {
         int m_minIndent, m_maxIndent, m_indentIncrement, m_maxWidth;
         AString m_provenance, m_parentProvenance, m_workingDir;
-        bool m_doProvenance, m_ciftiScale, m_volumeScale, m_ciftiReadMemory;
+        bool m_doProvenance, m_ciftiScale, m_volumeScale;
         double m_ciftiMin, m_ciftiMax, m_volumeMin, m_volumeMax;
         int16_t m_ciftiDType, m_volumeDType;
         const static AString PROVENANCE_NAME, PARENT_PROVENANCE_NAME, PROGRAM_PROVENANCE_NAME, CWD_PROVENANCE_NAME;//TODO: put this elsewhere?
-        std::map<AString, const CiftiFile*> m_inputCiftiOnDiskNames;
+        std::map<AString, const CiftiFile*> m_inputCiftiOnDiskMap;
         struct OutputAssoc
         {//how the output is stored is up to the parser, in the GUI it should load into memory without writing to disk
             AString m_fileName;
@@ -78,7 +78,6 @@ namespace caret {
         void setCiftiOutputDTypeNoScale(const int16_t& dtype);
         void setVolumeOutputDTypeAndScale(const int16_t& dtype, const double& minVal, const double& maxVal);
         void setVolumeOutputDTypeNoScale(const int16_t& dtype);
-        void setCiftiReadMemory(const bool inMemory);
         void executeOperation(ProgramParameters& parameters);
         void showParsedOperation(ProgramParameters& parameters);
         AString doCompletion(ProgramParameters& parameters, const bool& useExtGlob);
