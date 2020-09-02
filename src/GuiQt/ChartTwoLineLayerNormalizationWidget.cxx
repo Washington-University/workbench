@@ -31,10 +31,12 @@
 #include <QLabel>
 
 #include "CaretAssert.h"
+#include "ChartTwoDataCartesian.h"
 #include "ChartTwoOverlay.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
+#include "GraphicsPrimitiveV3f.h"
 
 using namespace caret;
 
@@ -68,12 +70,17 @@ ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
     QObject::connect(m_demeanSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, [=] { this->valueChanged(); });
 
+    m_meanDevLabel = new QLabel("");
+    
     QGridLayout* layout = new QGridLayout(this);
     int32_t row(0);
     layout->addWidget(m_normalizeCheckBox, row, 0, 1, 2);
     row++;
     layout->addWidget(demeanLabel, row, 0);
     layout->addWidget(m_demeanSpinBox, row, 1);
+    row++;
+    layout->addWidget(m_meanDevLabel, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
 }
 
 /**
@@ -92,17 +99,33 @@ ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOve
 {
     m_chartTwoOverlay = chartTwoOverlay;
     
+    QString meanDevText;
+    
     bool validFlag(false);
     if (m_chartTwoOverlay != NULL) {
         m_normalizeCheckBox->setChecked(m_chartTwoOverlay->isLineChartNormalizationEnabled());
         QSignalBlocker blocker(m_demeanSpinBox);
         m_demeanSpinBox->setValue(m_chartTwoOverlay->getLineChartNormalizationDemeanValue());
         
+        float mean(0.0), dev(0.0);
+        const ChartTwoDataCartesian* cartData = m_chartTwoOverlay->getLineLayerChartCartesianData();
+        CaretAssert(cartData);
+        const GraphicsPrimitiveV3f* primitive = cartData->getGraphicsPrimitive();
+        primitive->getMeanAndStandardDeviationForY(mean, dev);
+        
+        const QString muCharacter(QChar(0x03BC));
+        const QString sigmaCharacter(QChar(0x03C3));
+        meanDevText = (muCharacter + ": "
+                       + QString::number(mean, 'f', 4)
+                       + " " + sigmaCharacter + ": "
+                       + QString::number(dev, 'f', 4));
         validFlag = true;
     }
     
     m_normalizeCheckBox->setEnabled(validFlag);
     m_demeanSpinBox->setEnabled(validFlag);
+    m_meanDevLabel->setEnabled(validFlag);
+    m_meanDevLabel->setText(meanDevText);
 }
 
 /**

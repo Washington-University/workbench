@@ -29,6 +29,7 @@
 
 class QCheckBox;
 class QDoubleSpinBox;
+class QLabel;
 
 namespace caret {
 
@@ -60,6 +61,8 @@ namespace caret {
         QCheckBox* m_normalizeCheckBox;
         
         QDoubleSpinBox* m_demeanSpinBox;
+        
+        QLabel* m_meanDevLabel;
         
         // ADD_NEW_MEMBERS_HERE
 
