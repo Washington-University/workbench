@@ -1048,17 +1048,28 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
         
         CaretAssert(selectionHelper.get());
         selectedPrimitiveIndexOut = selectionHelper->getPrimitiveIndexFromEncodedRGBA(pixelRGBA);
-        if ((selectedPrimitiveIndexOut >= 0)
-            && selectedPrimitiveIndexOut < static_cast<int32_t>(triangleVertexIndicesToLineVertexIndices.size())) {
-            CaretAssertVectorIndex(triangleVertexIndicesToLineVertexIndices, selectedPrimitiveIndexOut);
-            selectedPrimitiveIndexOut = triangleVertexIndicesToLineVertexIndices[selectedPrimitiveIndexOut];
-            
-            if (selectedPrimitiveIndexOut >= primitive->getNumberOfVertices()) {
+        
+        if (modelSpaceLineFlag
+            || windowSpaceLineFlag) {
+            if ((selectedPrimitiveIndexOut >= 0)
+                && selectedPrimitiveIndexOut < static_cast<int32_t>(triangleVertexIndicesToLineVertexIndices.size())) {
+                CaretAssertVectorIndex(triangleVertexIndicesToLineVertexIndices, selectedPrimitiveIndexOut);
+                selectedPrimitiveIndexOut = triangleVertexIndicesToLineVertexIndices[selectedPrimitiveIndexOut];
+                
+                if (selectedPrimitiveIndexOut >= primitive->getNumberOfVertices()) {
+                    selectedPrimitiveIndexOut = -1;
+                }
+            }
+            else {
                 selectedPrimitiveIndexOut = -1;
             }
         }
         else {
-            selectedPrimitiveIndexOut = -1;
+            if (selectedPrimitiveIndexOut >= 0) {
+                if (selectedPrimitiveIndexOut >= primitive->getNumberOfVertices()) {
+                    selectedPrimitiveIndexOut = -1;
+                }
+            }
         }
     }
 }
