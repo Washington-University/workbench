@@ -108,7 +108,7 @@ ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOve
         m_demeanSpinBox->setValue(m_chartTwoOverlay->getLineChartNormalizationDemeanValue());
         
         float mean(0.0), dev(0.0);
-        const ChartTwoDataCartesian* cartData = m_chartTwoOverlay->getLineLayerChartCartesianData();
+        const ChartTwoDataCartesian* cartData = m_chartTwoOverlay->getLineLayerChartMapFileCartesianData();
         CaretAssert(cartData);
         const GraphicsPrimitiveV3f* primitive = cartData->getGraphicsPrimitive();
         primitive->getMeanAndStandardDeviationForY(mean, dev);
@@ -117,7 +117,7 @@ ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOve
         const QString sigmaCharacter(QChar(0x03C3));
         meanDevText = (muCharacter + ": "
                        + QString::number(mean, 'f', 4)
-                       + " " + sigmaCharacter + ": "
+                       + ", " + sigmaCharacter + ": "
                        + QString::number(dev, 'f', 4));
         validFlag = true;
     }

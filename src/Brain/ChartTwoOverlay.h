@@ -149,10 +149,14 @@ namespace caret {
         
         bool getBounds(BoundingBox& boundingBoxOut) const;
         
-        ChartTwoDataCartesian* getLineLayerChartCartesianData();
+        ChartTwoDataCartesian* getLineLayerChartDisplayedCartesianData();
         
-        const ChartTwoDataCartesian* getLineLayerChartCartesianData() const;
+        const ChartTwoDataCartesian* getLineLayerChartDisplayedCartesianData() const;
 
+        ChartTwoDataCartesian* getLineLayerChartMapFileCartesianData();
+        
+        const ChartTwoDataCartesian* getLineLayerChartMapFileCartesianData() const;
+        
         CaretColor getLineLayerColor() const;
         
         void setLineLayerColor(const CaretColor& color);

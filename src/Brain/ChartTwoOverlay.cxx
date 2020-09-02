@@ -611,7 +611,7 @@ ChartTwoOverlay::getBounds(BoundingBox& boundingBoxOut) const
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
         {
-            const ChartTwoDataCartesian* cartesianLine = getLineLayerChartCartesianData();
+            const ChartTwoDataCartesian* cartesianLine = getLineLayerChartDisplayedCartesianData();
             validFlag = cartesianLine->getBounds(boundingBoxOut);
         }
             break;
@@ -634,25 +634,24 @@ ChartTwoOverlay::getBounds(BoundingBox& boundingBoxOut) const
 }
 
 /**
- * @return The cartesian data for a line layer chart (ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER)
+ * @return The displayed cartesian data for a line layer chart (ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER).
+ * This data may be normalized (if layer's normalization is enabled), otherwise the data as from the map file
  * NULL may be returned.   NULL always returned for types other than line layer.
- * This is necessary since the line may be normalized.
- * (const method)
  */
 const ChartTwoDataCartesian*
-ChartTwoOverlay::getLineLayerChartCartesianData() const
+ChartTwoOverlay::getLineLayerChartDisplayedCartesianData() const
 {
     ChartTwoOverlay* nonConstThis = const_cast<ChartTwoOverlay*>(this);
-    return nonConstThis->getLineLayerChartCartesianData();
+    return nonConstThis->getLineLayerChartDisplayedCartesianData();
 }
 
 /**
- * @return The cartesian data for a line layer chart (ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER)
+ * @return The displayed cartesian data for a line layer chart (ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER).
+ * This data may be normalized (if layer's normalization is enabled), otherwise the data as from the map file
  * NULL may be returned.   NULL always returned for types other than line layer.
- * This is necessary since the line may be normalized.
  */
 ChartTwoDataCartesian*
-ChartTwoOverlay::getLineLayerChartCartesianData()
+ChartTwoOverlay::getLineLayerChartDisplayedCartesianData()
 {
     CaretMappableDataFile* mapFile = NULL;
     SelectedIndexType selectedIndexType = SelectedIndexType::INVALID;
@@ -716,6 +715,62 @@ ChartTwoOverlay::getLineLayerChartCartesianData()
             else {
                 dataOut = cartesianLineData;
             }
+        }
+            break;
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+        {
+            const QString msg("This method should only be called when chart "
+                              "type is CHART_DATA_TYPE_LINE_LAYER.  Was called with: "
+                              + ChartTwoDataTypeEnum::toName(m_chartDataType));
+            CaretAssertMessage(0, msg);
+            CaretLogWarning(msg);
+        }
+            break;
+    }
+    
+    return dataOut;
+}
+
+/**
+ * @return The cartesian data from the map file in the layer for a line layer chart (ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER).
+ * NULL may be returned.   NULL always returned for types other than line layer.
+ */
+const ChartTwoDataCartesian*
+ChartTwoOverlay::getLineLayerChartMapFileCartesianData() const
+{
+    ChartTwoOverlay* nonConstThis = const_cast<ChartTwoOverlay*>(this);
+    return nonConstThis->getLineLayerChartMapFileCartesianData();
+}
+
+/**
+ * @return The cartesian data from the map file in the layer for a line layer chart (ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER).
+ * NULL may be returned.   NULL always returned for types other than line layer.
+ */
+ChartTwoDataCartesian*
+ChartTwoOverlay::getLineLayerChartMapFileCartesianData()
+{
+    CaretMappableDataFile* mapFile = NULL;
+    SelectedIndexType selectedIndexType = SelectedIndexType::INVALID;
+    int32_t selectedIndex = -1;
+    getSelectionData(mapFile,
+                     selectedIndexType,
+                     selectedIndex);
+    
+    if (mapFile == NULL) {
+        return NULL;
+    }
+    
+    ChartTwoDataCartesian* dataOut(NULL);
+    
+    switch (m_chartDataType) {
+        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
+        {
+            ChartableTwoFileDelegate* chartDelegate = mapFile->getChartingDelegate();
+            ChartableTwoFileLineLayerChart* layerChart = chartDelegate->getLineLayerCharting();
+            dataOut = layerChart->getChartMapLineForChartTwoOverlay(selectedIndex);
         }
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
@@ -1640,7 +1695,6 @@ ChartTwoOverlay::getSelectedLineChartNumberOfPoints() const
         return false;
     }
     
-    ChartableTwoFileDelegate* chartDelegate = mapFile->getChartingDelegate();
     switch (m_chartDataType) {
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
             break;
@@ -1648,9 +1702,7 @@ ChartTwoOverlay::getSelectedLineChartNumberOfPoints() const
             break;
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
         {
-            ChartableTwoFileLineLayerChart* layerChart = chartDelegate->getLineLayerCharting();
-            CaretAssert(layerChart);
-            const ChartTwoDataCartesian* cd = getLineLayerChartCartesianData();
+            const ChartTwoDataCartesian* cd = getLineLayerChartDisplayedCartesianData();
             CaretAssert(cd);
             const GraphicsPrimitive* gp(cd->getGraphicsPrimitive());
             CaretAssert(gp);
@@ -1768,7 +1820,6 @@ ChartTwoOverlay::getSelectedLineChartPointXYZ(std::array<float, 3>& xyzOut) cons
             return false;
         }
         
-        ChartableTwoFileDelegate* chartDelegate = mapFile->getChartingDelegate();
         switch (m_chartDataType) {
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
                 break;
@@ -1776,9 +1827,7 @@ ChartTwoOverlay::getSelectedLineChartPointXYZ(std::array<float, 3>& xyzOut) cons
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_LAYER:
             {
-                ChartableTwoFileLineLayerChart* layerChart = chartDelegate->getLineLayerCharting();
-                CaretAssert(layerChart);
-                const ChartTwoDataCartesian* cd = getLineLayerChartCartesianData();
+                const ChartTwoDataCartesian* cd = getLineLayerChartDisplayedCartesianData();
                 CaretAssert(cd);
                 cd->getPointXYZ(m_selectedLineChartPointIndex,
                                 xyzOut.data());
