@@ -1488,7 +1488,7 @@ GuiManager::receiveEvent(Event* event)
                      overlayEditorIter != m_overlaySettingsEditors.end();
                      overlayEditorIter++) {
                     OverlaySettingsEditorDialog* med = *overlayEditorIter;
-                    if (med->isDoNotReplaceSelected() == false) {
+                    if ( ! med->isDoNotReplaceSelected()) {
                         overlayEditor = med;
                         break;
                     }
@@ -2258,7 +2258,7 @@ GuiManager::showHideInfoWindowSelected(bool status)
     QString text("Show Information Window");
     if (status) {
         text = "Hide Information Window";
-        if (m_informationDisplayDialogEnabledAction->signalsBlocked() == false) {
+        if ( ! m_informationDisplayDialogEnabledAction->signalsBlocked()) {
             this->processShowInformationDisplayDialog(true);
         }
     }
@@ -2302,7 +2302,7 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
     if (showOldDialog) {
         if (m_informationDisplayDialog == NULL) {
             std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
-            if (bbws.empty() == false) {
+            if ( ! bbws.empty()) {
                 BrainBrowserWindow* parentWindow = bbws[0];
 #ifdef CARET_OS_MACOSX
                 m_informationDisplayDialog = new InformationDisplayDialog(parentWindow);
@@ -2329,7 +2329,7 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
     if (showNewDialog) {
         if (m_identificationDisplayDialog == NULL) {
             std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
-            if (bbws.empty() == false) {
+            if ( ! bbws.empty()) {
                 BrainBrowserWindow* parentWindow = bbws[0];
 #ifdef CARET_OS_MACOSX
                 m_identificationDisplayDialog = new IdentificationDisplayDialog(parentWindow);
@@ -2865,7 +2865,7 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     EventModelGetAll getAllModelsEvent;
     EventManager::get()->sendEvent(getAllModelsEvent.getPointer());
-    const bool haveModels = (getAllModelsEvent.getModels().empty() == false);
+    const bool haveModels = ( ! getAllModelsEvent.getModels().empty());
 
     ElapsedTimer timer;
     timer.start();
@@ -2954,7 +2954,7 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             if (m_informationDisplayDialog == NULL) {
                 processShowInformationWindow();
             }
-            else if (m_informationDisplayDialog->isVisible() == false) {
+            else if ( ! m_informationDisplayDialog->isVisible()) {
                 processShowInformationWindow();
             }
             if (m_informationDisplayDialog != NULL) {
@@ -2982,7 +2982,7 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             if (m_identificationDisplayDialog == NULL) {
                 processShowInformationWindow();
             }
-            else if (m_identificationDisplayDialog->isVisible() == false) {
+            else if ( ! m_identificationDisplayDialog->isVisible()) {
                 processShowInformationWindow();
             }
             if (m_identificationDisplayDialog != NULL) {
@@ -3011,7 +3011,7 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             if (m_surfacePropertiesEditorDialog == NULL) {
                 processShowSurfacePropertiesEditorDialog(firstBrowserWindow);
             }
-            else if (m_surfacePropertiesEditorDialog->isVisible() == false) {
+            else if ( ! m_surfacePropertiesEditorDialog->isVisible()) {
                 processShowSurfacePropertiesEditorDialog(firstBrowserWindow);
             }
             m_surfacePropertiesEditorDialog->restoreFromScene(sceneAttributes,
@@ -3161,7 +3161,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
          * node near the voxel coordinate, if it is close by.
          */
         bool nodeIdentificationCreatedFromVoxelIdentificationFlag = false;
-        if (idNode->isValid() == false) {
+        if ( ! idNode->isValid()) {
             if (idVoxel->isValid()) {
                 double doubleXYZ[3];
                 idVoxel->getModelXYZ(doubleXYZ);
@@ -3195,7 +3195,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
             /*
              * NOT: node id was NOT created from voxel ID
              */
-            if (nodeIdentificationCreatedFromVoxelIdentificationFlag == false) {
+            if ( ! nodeIdentificationCreatedFromVoxelIdentificationFlag) {
                 Surface* surface = idNode->getSurface();
                 const int32_t nodeIndex = idNode->getNodeNumber();
                 try {
@@ -3596,8 +3596,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
              * if it WAS NOT created from the voxel identification
              * location.
              */
-            if (nodeIdentificationCreatedFromVoxelIdentificationFlag == false) {
-                if (issuedIdentificationLocationEvent == false) {
+            if ( ! nodeIdentificationCreatedFromVoxelIdentificationFlag) {
+                if ( ! issuedIdentificationLocationEvent) {
                     EventIdentificationHighlightLocation idLocation(tabIndex,
                                                                     xyz,
                                                                     EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES);
@@ -3621,7 +3621,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                              xyz);
                 }
                 
-                if (issuedIdentificationLocationEvent == false) {
+                if ( ! issuedIdentificationLocationEvent) {
                     EventIdentificationHighlightLocation idLocation(tabIndex,
                                                                     xyz,
                                                                     EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES);
@@ -3637,14 +3637,15 @@ GuiManager::processIdentification(const int32_t tabIndex,
         }
         
         if (identifiedItem == NULL) {
-            if (identificationMessage.isEmpty() == false) {
+            if ( (! identificationMessage.isEmpty())
+                || ( ! formattedIdentificationMessage.isEmpty())) {
                 identifiedItem = new IdentifiedItem(identificationMessage,
                                                     formattedIdentificationMessage);
             }
         }
         
         AString ciftiInfo;
-        if (ciftiLoadingInfo.empty() == false) {
+        if ( ! ciftiLoadingInfo.empty()) {
             IdentificationStringBuilder ciftiIdStringBuilder;
             ciftiIdStringBuilder.addLine(false, "CIFTI data loaded", " ");
             for (std::vector<AString>::iterator iter = ciftiLoadingInfo.begin();
@@ -3655,7 +3656,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
             
             ciftiInfo = ciftiIdStringBuilder.toString();
         }
-        if (ciftiInfo.isEmpty() == false) {
+        if ( ! ciftiInfo.isEmpty()) {
             if (identifiedItem != NULL) {
                 identifiedItem->appendText(ciftiInfo,
                                            ciftiLoadingFormattedMessage);

@@ -1002,18 +1002,22 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 /*
                  * First find line nearest to mouse in vertical distance
                  */
-                bool showLinePointFlag(false);
+                bool performNearestVerticalIdentificationFlag(false);
                 switch (lineChart.m_chartTwoOverlay->getLineChartActiveMode()) {
                     case ChartTwoOverlayActiveModeEnum::ACTIVE:
-                        showLinePointFlag = true;
+                        performNearestVerticalIdentificationFlag = true;
                         break;
                     case ChartTwoOverlayActiveModeEnum::OFF:
                         break;
                     case ChartTwoOverlayActiveModeEnum::ON:
-                        showLinePointFlag = true;
+                        performNearestVerticalIdentificationFlag = true;
                         break;
                 }
-                if (showLinePointFlag) {
+                if (performNearestVerticalIdentificationFlag) {
+                    /*
+                     * Identify point on line that is neartest to mouse
+                     * in a vertical direction
+                     */
                     EventOpenGLObjectToWindowTransform windowTransform(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
                     EventManager::get()->sendEvent(windowTransform.getPointer());
                     if (windowTransform.isValid()) {
@@ -1070,32 +1074,33 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                         }
                     }
                 }
-                
-                /*
-                 * Identify line segment under mouse
-                 */
-                int32_t primitiveIndex = -1;
-                float   primitiveDepth = 0.0f;
-                
-                /*
-                 * Increase width as thin lines are difficult to select
-                 */
-                const float minWidth(3.0);
-                const float lineWidthPercentage(std::max(lineChart.m_lineWidth, minWidth));
-                lineChart.m_chartTwoCartesianData->setLineWidth(lineWidthPercentage);
-                GraphicsEngineDataOpenGL::drawWithSelection(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive(),
-                                                            m_fixedPipelineDrawing->mouseX,
-                                                            m_fixedPipelineDrawing->mouseY,
-                                                            primitiveIndex,
-                                                            primitiveDepth);
-                
-                if (primitiveIndex >= 0) {
-                    if (m_selectionItemLineLayer->isOtherScreenDepthCloserToViewer(primitiveDepth)) {
-                        m_selectionItemLineLayer->setLineLayerChart(const_cast<ChartableTwoFileLineLayerChart*>(lineChart.m_lineLayerChart),
-                                                                    const_cast<ChartTwoDataCartesian*>(lineChart.m_chartTwoCartesianData),
-                                                                    const_cast<ChartTwoOverlay*>(lineChart.m_chartTwoOverlay),
-                                                                    primitiveIndex);
-                        m_selectionItemLineLayer->setScreenDepth(primitiveDepth);
+                else {
+                    /*
+                     * Identify line segment point under mouse
+                     */
+                    int32_t primitiveIndex = -1;
+                    float   primitiveDepth = 0.0f;
+                    
+                    /*
+                     * Increase width as thin lines are difficult to select
+                     */
+                    const float minWidth(8.0);
+                    const float lineWidthPercentage(std::max(lineChart.m_lineWidth, minWidth));
+                    lineChart.m_chartTwoCartesianData->setLineWidth(lineWidthPercentage);
+                    GraphicsEngineDataOpenGL::drawWithSelection(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive(),
+                                                                m_fixedPipelineDrawing->mouseX,
+                                                                m_fixedPipelineDrawing->mouseY,
+                                                                primitiveIndex,
+                                                                primitiveDepth);
+                    
+                    if (primitiveIndex >= 0) {
+                        if (m_selectionItemLineLayer->isOtherScreenDepthCloserToViewer(primitiveDepth)) {
+                            m_selectionItemLineLayer->setLineLayerChart(const_cast<ChartableTwoFileLineLayerChart*>(lineChart.m_lineLayerChart),
+                                                                        const_cast<ChartTwoDataCartesian*>(lineChart.m_chartTwoCartesianData),
+                                                                        const_cast<ChartTwoOverlay*>(lineChart.m_chartTwoOverlay),
+                                                                        primitiveIndex);
+                            m_selectionItemLineLayer->setScreenDepth(primitiveDepth);
+                        }
                     }
                 }
             }

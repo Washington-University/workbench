@@ -46,6 +46,7 @@ namespace caret {
     class SelectionItemChartFrequencySeries;
     class SelectionItemChartMatrix;
     class SelectionItemChartTwoHistogram;
+    class SelectionItemChartTwoLineLayer;
     class SelectionItemChartTwoLineLayerVerticalNearest;
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
@@ -164,12 +165,19 @@ namespace caret {
                                                          const std::set<int32_t>& mapIndices,
                                                          const bool toolTipFlag) const;
         
-        void generateChartTwoLineLayerIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+        void generateChartTwoLineLayerNearestIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                           IdentificationStringBuilder& idText,
                                                           const SelectionItemChartTwoLineLayerVerticalNearest* idChartTwoLineLayer,
                                                           CaretMappableDataFile* mapFile,
                                                           const std::set<int32_t>& mapIndices,
                                                           const bool toolTipFlag) const;
+        
+        void generateChartTwoLineLayerIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                         IdentificationStringBuilder& idText,
+                                                         const SelectionItemChartTwoLineLayer* idChartTwoLineLayer,
+                                                         CaretMappableDataFile* mapFile,
+                                                         const std::set<int32_t>& mapIndices,
+                                                         const bool toolTipFlag) const;
         
         void generateChartTwoLineSeriesIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                           IdentificationStringBuilder& idText,

@@ -70,6 +70,7 @@
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemChartTwoHistogram.h"
+#include "SelectionItemChartTwoLineLayer.h"
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
@@ -197,13 +198,20 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
                                                                   fileInfo.m_mapIndices,
                                                                   false);
                 
-                this->generateChartTwoLineLayerIdentificationText(*chartHtmlTableBuilder,
-                                                                   idText,
-                                                                   selectionManager->getChartTwoLineLayerVerticalNearestIdentification(),
-                                                                   fileInfo.m_mapFile,
-                                                                   fileInfo.m_mapIndices,
-                                                                   false);
+                this->generateChartTwoLineLayerNearestIdentificationText(*chartHtmlTableBuilder,
+                                                                         idText,
+                                                                         selectionManager->getChartTwoLineLayerVerticalNearestIdentification(),
+                                                                         fileInfo.m_mapFile,
+                                                                         fileInfo.m_mapIndices,
+                                                                         false);
                 
+                this->generateChartTwoLineLayerIdentificationText(*chartHtmlTableBuilder,
+                                                                  idText,
+                                                                  selectionManager->getChartTwoLineLayerIdentification(),
+                                                                  fileInfo.m_mapFile,
+                                                                  fileInfo.m_mapIndices,
+                                                                  false);
+
                 this->generateChartTwoLineSeriesIdentificationText(*chartHtmlTableBuilder,
                                                                    idText,
                                                                    selectionManager->getChartTwoLineSeriesIdentification(),
@@ -1227,7 +1235,7 @@ IdentificationFormattedTextGenerator::generateChartTwoHistogramIdentificationTex
  *     If true, generate tooltip
  */
 void
-IdentificationFormattedTextGenerator::generateChartTwoLineLayerIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+IdentificationFormattedTextGenerator::generateChartTwoLineLayerNearestIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                                                    IdentificationStringBuilder& idText,
                                                                                    const SelectionItemChartTwoLineLayerVerticalNearest* idChartTwoLineLayer,
                                                                                    CaretMappableDataFile* mapFile,
@@ -1297,6 +1305,92 @@ IdentificationFormattedTextGenerator::generateChartTwoLineLayerIdentificationTex
     }
 }
 
+/**
+ * Generate identification text for a chart two line-layer.
+ *
+ * @param htmlTableBuilder
+ *     HTML table builder for identification text.
+ * @param idText
+ *     Identification string builder
+ * @param idChartTwoLineLayer
+ *     Information for selected chart two line-layer.
+ * @param mapFile
+ *     FIle for generating identification
+ * @param mapIndices
+ *     Indices of map
+ * @param toolTipFlag
+ *     If true, generate tooltip
+ */
+void
+IdentificationFormattedTextGenerator::generateChartTwoLineLayerIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                                                  IdentificationStringBuilder& idText,
+                                                                                  const SelectionItemChartTwoLineLayer* idChartTwoLineLayer,
+                                                                                  CaretMappableDataFile* mapFile,
+                                                                                  const std::set<int32_t>& /*mapIndices*/,
+                                                                                  const bool toolTipFlag) const
+{
+    if (idChartTwoLineLayer->isValid()) {
+        const ChartableTwoFileLineLayerChart* fileLineSeriesChart = idChartTwoLineLayer->getFileLineLayerChart();
+        CaretAssert(fileLineSeriesChart);
+        const CaretMappableDataFile* chartMapFile = fileLineSeriesChart->getCaretMappableDataFile();
+        CaretAssert(chartMapFile);
+        const ChartTwoDataCartesian* cartesianData = idChartTwoLineLayer->getChartTwoCartesianData();
+        CaretAssert(cartesianData);
+        const MapFileDataSelector* mapFileDataSelector = cartesianData->getMapFileDataSelector();
+        CaretAssert(mapFileDataSelector);
+        
+        if ( ! toolTipFlag) {
+            if (chartMapFile != mapFile) {
+                return;
+            }
+        }
+        int32_t primitiveIndex = idChartTwoLineLayer->getLineSegmentIndex();
+        
+        AString boldText("Line Layer Chart");
+        
+        cartesianData->getGraphicsPrimitive();
+        const GraphicsPrimitive* primitive = cartesianData->getGraphicsPrimitive();
+        CaretAssert(primitive);
+        
+        if (primitiveIndex >= 0) {
+            float xyz1[3];
+            primitive->getVertexFloatXYZ(primitiveIndex,
+                                         xyz1);
+            
+            const int32_t nextIndex(((primitiveIndex + 1) < primitive->getNumberOfVertices())
+                                    ? (primitiveIndex + 1)
+                                    : -1);
+            float xyz2[3];
+            if (nextIndex >= 0) {
+                primitive->getVertexFloatXYZ(nextIndex,
+                                             xyz2);
+            }
+            
+            if (toolTipFlag) {
+                idText.addLine(true,
+                               "XY Start",
+                               AString::fromNumbers(xyz1, 2, ", "));
+                if (nextIndex >= 0) {
+                    idText.addLine(true,
+                                   "XY End ",
+                                   AString::fromNumbers(xyz2, 2, ", "));
+                }
+            }
+            else {
+                AString text("XY Start:" + AString::fromNumbers(xyz1, 2, ", "));
+                if (nextIndex >= 0) {
+                    text.append(" XY End:" + AString::fromNumbers(xyz2, 2, ", "));
+                }
+                htmlTableBuilder.addRow(text,
+                                        boldText,
+                                        chartMapFile->getFileNameNoPath());
+            }
+        }
+        
+        generateMapFileSelectorText(htmlTableBuilder,
+                                    mapFileDataSelector);
+    }
+}
 
 /**
  * Generate identification text for a chart two line-series.
