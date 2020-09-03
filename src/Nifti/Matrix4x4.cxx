@@ -75,7 +75,8 @@ static  const double SMALL_NEGATIVE_NUMBER = -0.000001;
  *
  */
 Matrix4x4::Matrix4x4()
-    : CaretObject()
+    : Matrix4x4Interface(),
+      CaretObject()
 {
     this->initializeMembersMatrix4x4();
 }
@@ -92,7 +93,8 @@ Matrix4x4::~Matrix4x4()
  * @param Object that is copied.
  */
 Matrix4x4::Matrix4x4(const Matrix4x4& o)
-    : CaretObject(o)
+    : Matrix4x4Interface(o),
+      CaretObject(o)
 {
     this->initializeMembersMatrix4x4();
     this->copyHelper(o);
