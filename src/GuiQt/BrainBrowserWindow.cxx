@@ -1630,6 +1630,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processHcpWebsiteInBrowser()));
     
+    m_helpHcpUsersAction =
+    WuQtUtilities::createAction("Workbench Support (Ask a Question)...",
+                                "Get Workbench Support at HCP Users Group",
+                                this,
+                                this,
+                                SLOT(processHcpUsersGroup()));
+
     m_helpHcpFeatureRequestAction =
     WuQtUtilities::createAction("Submit HCP Software Feature Request...",
                                 "Go to HCP Feature Request Website in your computer's web browser",
@@ -2785,6 +2792,7 @@ BrainBrowserWindow::createMenuHelp()
     QAction* helpAction = GuiManager::get()->getHelpViewerDialogDisplayAction();
     menu->addAction(helpAction->text(),
                     this, SLOT(processShowHelpInformation()));
+    menu->addAction(m_helpHcpUsersAction);
     menu->addSeparator();
     menu->addAction(m_helpHcpWebsiteAction);
     menu->addAction(m_helpWorkbenchBugReportAction);
@@ -4404,6 +4412,16 @@ void
 BrainBrowserWindow::processHcpWebsiteInBrowser()
 {
     QUrl url("https://humanconnectome.org");
+    QDesktopServices::openUrl(url);
+}
+
+/**
+ * Load the HCP Website into the user's web browser.
+ */
+void
+BrainBrowserWindow::processHcpUsersGroup()
+{
+    QUrl url("https://groups.google.com/a/humanconnectome.org/g/hcp-users");
     QDesktopServices::openUrl(url);
 }
 

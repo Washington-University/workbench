@@ -219,6 +219,7 @@ namespace caret {
         void processConnectToConnectomeDataBase();
         
         void processHcpWebsiteInBrowser();
+        void processHcpUsersGroup();
         void processHcpFeatureRequestWebsiteInBrowser();
         void processReportWorkbenchBug();
         
@@ -413,6 +414,7 @@ namespace caret {
         QAction* m_connectToConnectomeDatabaseAction;
 
         QAction* m_helpHcpWebsiteAction;
+        QAction* m_helpHcpUsersAction;
         QAction* m_helpHcpFeatureRequestAction;
         QAction* m_helpWorkbenchBugReportAction;
         
