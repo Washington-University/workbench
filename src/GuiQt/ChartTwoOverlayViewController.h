@@ -161,6 +161,8 @@ namespace caret {
         
         void updateLineLayerToolTipOffsetToolButton();
         
+        QPixmap createNormalizationPixmap(QWidget *widget);
+        
         const int32_t m_browserWindowIndex;
         
         const int32_t m_chartOverlayIndex;

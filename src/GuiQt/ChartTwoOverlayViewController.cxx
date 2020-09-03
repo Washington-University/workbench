@@ -261,12 +261,18 @@ m_parentObjectName(parentObjectName)
     QObject::connect(m_lineLayerToolTipOffsetToolButton, &QToolButton::clicked,
                      this, &ChartTwoOverlayViewController::lineLayerToolTipOffsetToolButtonClicked);
     
-     
+    
     /*
      * Line layer normalization button
      */
     m_lineLayerNormalizationToolButton = new QToolButton();
-    m_lineLayerNormalizationToolButton->setText("N");
+    QPixmap normalizationPixmap = createNormalizationPixmap(m_lineLayerNormalizationToolButton);
+    if (normalizationPixmap.isNull()) {
+        m_lineLayerNormalizationToolButton->setText("N");
+    }
+    else {
+        m_lineLayerNormalizationToolButton->setIcon(normalizationPixmap);
+    }
     m_lineLayerNormalizationToolButton->setToolTip("Normalize line");
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_lineLayerNormalizationToolButton);
     QObject::connect(m_lineLayerNormalizationToolButton, &QToolButton::clicked,
@@ -1856,4 +1862,74 @@ ChartTwoOverlayViewController::menuConstructionPreColorAllFiles()
     fileComboBoxSelected(currentFileIndex);
     
     m_mapFileComboBox->clearFocus();
+}
+
+/**
+ * @return a pixmap containing a normal distribution curve (bell curve)
+ * @param widget
+ *    Widget used for foreground/background colors
+ */
+QPixmap
+ChartTwoOverlayViewController::createNormalizationPixmap(QWidget* widget)
+{
+    CaretAssert(widget);
+    
+    const int32_t iconSize(24);
+    QPixmap pixmap(static_cast<int>(iconSize),
+                   static_cast<int>(iconSize));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(widget,
+                                                                                                pixmap);
+    
+    QPen pen = painter->pen();
+    pen.setWidthF(2.0);
+    painter->setPen(pen);
+ 
+    /*
+     * XY points used in bezier functions
+     */
+    float t(2.0);
+    QPoint leftEnd(t, t);
+    QPoint mid((iconSize / 2), iconSize - (t * 3));
+    QPoint rightEnd(iconSize - t, t);
+    QPoint leftMid((leftEnd.x() + mid.x()) / 2.0,
+                   (leftEnd.y() + mid.y()) / 2.0);
+    QPoint rightMid((rightEnd.x() + mid.x()) / 2.0,
+                    (rightEnd.y() + mid.y()) / 2.0);
+    
+    /*
+     * Control points for left half of curve
+     */
+    QPoint leftCP2(leftEnd.x(), mid.y());
+    QPoint leftCP1(mid.x(), leftEnd.y());
+    
+    /*
+     * Control points for right half of curve
+     */
+    QPoint rightCP2(rightEnd.x(), mid.y());
+    QPoint rightCP1(mid.x(), rightEnd.y());
+    
+    QPainterPath path;
+    
+    /*
+     * left half of curve
+     */
+    path.moveTo(leftEnd);
+    path.cubicTo(leftCP1,
+                 leftCP2,
+                 mid);
+    
+    /*
+     * right half of curve
+     */
+    path.moveTo(rightEnd);
+    path.cubicTo(rightCP1,
+                 rightCP2,
+                 mid);
+    
+    /*
+     * Drawn a curve that approximates the normal distribution (bell curve)
+     */
+    painter->drawPath(path);
+    
+    return pixmap;
 }
