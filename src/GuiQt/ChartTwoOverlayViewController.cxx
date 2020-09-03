@@ -261,28 +261,17 @@ m_parentObjectName(parentObjectName)
     QObject::connect(m_lineLayerToolTipOffsetToolButton, &QToolButton::clicked,
                      this, &ChartTwoOverlayViewController::lineLayerToolTipOffsetToolButtonClicked);
     
-    
     /*
      * Line layer normalization button
      */
     m_lineLayerNormalizationToolButton = new QToolButton();
     QPixmap normalizationPixmap = createNormalizationPixmap(m_lineLayerNormalizationToolButton);
-    if (normalizationPixmap.isNull()) {
-        m_lineLayerNormalizationToolButton->setText("N");
-    }
-    else {
-        m_lineLayerNormalizationToolButton->setIcon(normalizationPixmap);
-    }
-    m_lineLayerNormalizationToolButton->setToolTip("Normalize line");
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_lineLayerNormalizationToolButton);
-    QObject::connect(m_lineLayerNormalizationToolButton, &QToolButton::clicked,
-                     this, &ChartTwoOverlayViewController::lineLayerNormalizationToolButtonClicked);
-    
+
     /*
      * Line layer normalization widget and menu
      */
     m_lineLayerNormalizationWidget = new ChartTwoLineLayerNormalizationWidget();
-    QWidgetAction* normalizationWidgetAction = new QWidgetAction(m_lineLayerNormalizationToolButton);
+    QWidgetAction* normalizationWidgetAction = new QWidgetAction(this);
     normalizationWidgetAction->setDefaultWidget(m_lineLayerNormalizationWidget);
     
     m_lineLayerNormalizationMenu = new QMenu(m_lineLayerNormalizationToolButton);
@@ -290,16 +279,37 @@ m_parentObjectName(parentObjectName)
     QObject::connect(m_lineLayerNormalizationMenu, &QMenu::aboutToShow,
                      this, &ChartTwoOverlayViewController::lineLayerNormalizationMenuAboutToShow);
 
+    /*
+     * Line layer normalization action
+     */
+    m_lineLayerNormalizationAction = new QAction(this);
+    m_lineLayerNormalizationAction->setCheckable(true);
+    m_lineLayerNormalizationAction->setMenu(m_lineLayerNormalizationMenu);
+
+    if (normalizationPixmap.isNull()) {
+        m_lineLayerNormalizationAction->setText("N");
+    }
+    else {
+        m_lineLayerNormalizationAction->setIcon(normalizationPixmap);
+    }
+    m_lineLayerNormalizationAction->setToolTip("Normalize line, click arrow for options");
+    QObject::connect(m_lineLayerNormalizationAction, &QAction::triggered,
+                     this, &ChartTwoOverlayViewController::lineLayerNormalizationActionTriggered);
+    
+    m_lineLayerNormalizationToolButton->setDefaultAction(m_lineLayerNormalizationAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_lineLayerNormalizationToolButton);
+    
+
     
     /*
      * Match button sizes
      */
     std::vector<QWidget*> toolButtons {
         m_lineLayerColorToolButton,
-        m_lineLayerToolTipOffsetToolButton,
-        m_lineLayerNormalizationToolButton
+        m_lineLayerToolTipOffsetToolButton
     } ;
     WuQtUtilities::matchWidgetSizes(toolButtons);
+    m_lineLayerNormalizationToolButton->setFixedHeight(m_lineLayerColorToolButton->height());
     
     /*
      * Line layer width
@@ -397,7 +407,7 @@ m_parentObjectName(parentObjectName)
     QObject::connect(m_mapRowOrColumnIndexSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(mapRowOrColumnIndexSpinBoxValueChanged(int)));
     m_mapRowOrColumnIndexSpinBox->setToolTip("Select map/row/column by its index");
-    m_mapRowOrColumnIndexSpinBox->setRange(1, 9999); // fix size for 4 digits
+    m_mapRowOrColumnIndexSpinBox->setRange(1, 9999); /* fix size for 4 digits */
     m_mapRowOrColumnIndexSpinBox->setFixedSize(m_mapRowOrColumnIndexSpinBox->sizeHint());
     m_mapRowOrColumnIndexSpinBox->setRange(1, 1);
     m_mapRowOrColumnIndexSpinBox->setValue(1);
@@ -1022,6 +1032,14 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     updateLineLayerToolTipOffsetToolButton();
     
     /*
+     * Update line layer normalization action
+     */
+    m_lineLayerNormalizationAction->setChecked(false);
+    if (validOverlayAndFileFlag) {
+        m_lineLayerNormalizationAction->setChecked(m_chartOverlay->isLineChartNormalizationEnabled());
+    }
+    
+    /*
      * Update selected point checkbox and index
      */
     bool pointValidFlag(false);
@@ -1326,9 +1344,13 @@ ChartTwoOverlayViewController::lineLayerActiveModeEnumComboBoxItemActivated()
  * Called when line layer normalization button is clicked
  */
 void
-ChartTwoOverlayViewController::lineLayerNormalizationToolButtonClicked()
+ChartTwoOverlayViewController::lineLayerNormalizationActionTriggered()
 {
-    m_lineLayerNormalizationMenu->exec(m_lineLayerNormalizationToolButton->mapToGlobal(QPoint(0, m_lineLayerNormalizationToolButton->height())));
+    if (m_chartOverlay != NULL) {
+        m_chartOverlay->setLineChartNormalizationEnabled(m_lineLayerNormalizationAction->isChecked());
+        updateGraphicsWindow();
+        updateUserInterface();
+    }
 }
 
 /**

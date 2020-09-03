@@ -27,7 +27,6 @@
 
 #include <QWidget>
 
-class QCheckBox;
 class QDoubleSpinBox;
 class QLabel;
 
@@ -57,8 +56,6 @@ namespace caret {
         
     private:
         ChartTwoOverlay* m_chartTwoOverlay = NULL;
-        
-        QCheckBox* m_normalizeCheckBox;
         
         QDoubleSpinBox* m_demeanSpinBox;
         

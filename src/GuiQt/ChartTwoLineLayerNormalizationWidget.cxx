@@ -25,7 +25,6 @@
 
 #include <limits>
 
-#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
@@ -54,11 +53,6 @@ ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
 {
     const QString toolTipText("Normalize: (y - mean + demean) / stddev");
  
-    m_normalizeCheckBox = new QCheckBox("Normalize");
-    m_normalizeCheckBox->setToolTip(toolTipText);
-    QObject::connect(m_normalizeCheckBox, &QCheckBox::clicked,
-                     this, [=] { this->valueChanged(); });
-    
     QLabel* demeanLabel = new QLabel("Demean");
     m_demeanSpinBox = new QDoubleSpinBox();
     m_demeanSpinBox->setDecimals(4);
@@ -74,8 +68,6 @@ ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
     
     QGridLayout* layout = new QGridLayout(this);
     int32_t row(0);
-    layout->addWidget(m_normalizeCheckBox, row, 0, 1, 2);
-    row++;
     layout->addWidget(demeanLabel, row, 0);
     layout->addWidget(m_demeanSpinBox, row, 1);
     row++;
@@ -103,7 +95,6 @@ ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOve
     
     bool validFlag(false);
     if (m_chartTwoOverlay != NULL) {
-        m_normalizeCheckBox->setChecked(m_chartTwoOverlay->isLineChartNormalizationEnabled());
         QSignalBlocker blocker(m_demeanSpinBox);
         m_demeanSpinBox->setValue(m_chartTwoOverlay->getLineChartNormalizationDemeanValue());
         
@@ -122,7 +113,6 @@ ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOve
         validFlag = true;
     }
     
-    m_normalizeCheckBox->setEnabled(validFlag);
     m_demeanSpinBox->setEnabled(validFlag);
     m_meanDevLabel->setEnabled(validFlag);
     m_meanDevLabel->setText(meanDevText);
@@ -135,7 +125,6 @@ void
 ChartTwoLineLayerNormalizationWidget::valueChanged()
 {
     if (m_chartTwoOverlay != NULL) {
-        m_chartTwoOverlay->setLineChartNormalizationEnabled(m_normalizeCheckBox->isChecked());
         m_chartTwoOverlay->setLineChartNormalizationDemeanValue(m_demeanSpinBox->value());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
