@@ -162,6 +162,7 @@ RecentFileItemTypeEnum.h
 RecentFileItemsContainer.h
 RecentFileItemsContainerModeEnum.h
 RecentFileItemsFilter.h
+RecentFilesSystemAccessModeEnum.h
 ReductionEnum.h
 ReductionOperation.h
 SpacerTabIndex.h
@@ -307,6 +308,7 @@ RecentFileItemTypeEnum.cxx
 RecentFileItemsContainer.cxx
 RecentFileItemsContainerModeEnum.cxx
 RecentFileItemsFilter.cxx
+RecentFilesSystemAccessModeEnum.cxx
 ReductionEnum.cxx
 ReductionOperation.cxx
 SpacerTabIndex.cxx

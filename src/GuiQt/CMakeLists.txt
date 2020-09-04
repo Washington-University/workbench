@@ -186,6 +186,7 @@ ELSE()
         PlotMagnifier.h
         PlotPanner.h
         PreferencesDialog.h
+	PreferencesRecentFilesWidget.h
         ProgressReportingDialog.h
         ProgressReportingFromEvent.h
         ProgressReportingWithSlots.h
@@ -475,6 +476,7 @@ PaletteSelectionWidget.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
+PreferencesRecentFilesWidget.h
 ProgressReportingDialog.h
 ProgressReportingFromEvent.h
 ProgressReportingWithSlots.h
@@ -782,6 +784,7 @@ PaletteSelectionWidget.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
 PreferencesDialog.cxx
+PreferencesRecentFilesWidget.cxx
 ProgressReportingDialog.cxx
 ProgressReportingFromEvent.cxx
 ProgressReportingWithSlots.cxx

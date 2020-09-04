@@ -48,6 +48,7 @@
 #include "GuiManager.h"
 #include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
+#include "PreferencesRecentFilesWidget.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
 #include "WuQFactory.h"
@@ -90,6 +91,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
      */
     m_allWidgets = new WuQWidgetObjectGroup(this);
     
+    m_recentFilesWidget = new PreferencesRecentFilesWidget();
+    
     /*
      * Create the tab widget and all tab content
      */
@@ -104,6 +107,9 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
                       "New Tabs");
     tabWidget->addTab(createOpenGLWidget(),
                       "OpenGL");
+    tabWidget->addTab(m_recentFilesWidget,
+                      "Recent Files");
+    
     setCentralWidget(tabWidget,
                            WuQDialog::SCROLL_AREA_NEVER);
     
