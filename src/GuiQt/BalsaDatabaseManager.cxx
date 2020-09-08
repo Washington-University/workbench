@@ -341,7 +341,7 @@ BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>&
             errorMessageOut = ("Upload failed.  (Http Code="
                                + AString::number(responseHttpCode)
                                + ").\n\n"
-                               "Either you do now have ownership/permission to edit the study or "
+                               "Either you do not have ownership/permission to edit the study or "
                                "the study has been submitted for curation.\n\n"
                                "Use your web browser to login to BALSA to view the study and "
                                "check its permissions.  If the the study has been submitted for "
