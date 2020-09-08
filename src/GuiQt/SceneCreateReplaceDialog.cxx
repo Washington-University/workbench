@@ -221,6 +221,7 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
         case MODE_INSERT_NEW_SCENE:
             m_sceneWindowDescription = ("Created on " + dataTimeCommitText + "\n");
             m_sceneWindowDescription.appendWithNewLine(windowDescription);
+            m_descriptionTextEdit->setPlainText("<Enter Description Here>");
             break;
         case MODE_REPLACE_SCENE:
             m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
@@ -232,6 +233,7 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
             m_descriptionTextEdit->setPlainText(sceneToInsertOrReplace->getDescription());
             break;
     }
+    
     
     m_nameLineEdit->setFocus();
     m_nameLineEdit->selectAll();
