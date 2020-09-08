@@ -443,6 +443,10 @@ namespace caret {
         
         void replaceFloatXYZ(const std::vector<float>& xyz);
         
+        void getFloatYComponents(std::vector<float>& yComponentsOut) const;
+        
+        void setFloatYComponents(const std::vector<float>& yComponents);
+        
         /**
          * @return The number of vertices
          */
@@ -511,6 +515,11 @@ namespace caret {
         
         void getMeanAndStandardDeviationForY(float& yMeanOut,
                                              float& yStandardDeviationOut) const;
+        
+        void applyNewMeanAndDeviationToYComponents(const bool applyNewMeanFlag,
+                                                   const float newMean,
+                                                   const bool applyNewDeviationFlag,
+                                                   const float newDeviation);
         
     protected:
         AString toStringPrivate(const bool includeAllDataFlag) const;

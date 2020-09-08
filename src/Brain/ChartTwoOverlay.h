@@ -183,15 +183,23 @@ namespace caret {
         
         void setSelectedLineChartTextOffset(const CardinalDirectionEnum::Enum offset);
         
-        bool isLineChartNormalizationEnabled() const;
+        bool isLineChartNewMeanEnabled() const;
         
-        void setLineChartNormalizationEnabled(const bool enabled);
+        void setLineChartNewMeanEnabled(const bool enabled);
         
-        float getLineChartNormalizationDemeanValue() const;
+        float getLineChartNewMeanValue() const;
         
-        void setLineChartNormalizationDemeanValue(const float value);
+        void setLineChartNewMeanValue(const float value);
         
-        virtual void receiveEvent(Event* event);
+        bool isLineChartNewDeviationEnabled() const;
+        
+        void setLineChartNewDeviationEnabled(const bool enabled);
+        
+        float getLineChartNewDeviationValue() const;
+        
+        void setLineChartNewDeviationValue(const float value);
+        
+       virtual void receiveEvent(Event* event);
 
         // ADD_NEW_METHODS_HERE
         
@@ -292,12 +300,30 @@ namespace caret {
         
         CardinalDirectionEnum::Enum m_selectedLineChartTextOffset = CardinalDirectionEnum::AUTO;
         
-        bool m_lineChartNormalizationEnabled = false;
+        bool m_lineChartNewMeanEnabled = false;
         
-        float m_lineChartNormalizationDemeanValue = 0.0;
+        float m_lineChartNewMeanValue = 0.0;
+        
+        bool m_lineChartNewDeviationEnabled = false;
+        
+        float m_lineChartNewDeviationValue = 1.0;
         
         mutable std::unique_ptr<ChartTwoDataCartesian> m_lineChartNormalizedCartesianData;
         
+        struct LineChartNormalizedSettings {
+            CaretMappableDataFile* m_mapFile = NULL;
+            int32_t m_mapIndex = -1;
+            int32_t m_numberOfMaps = -1;
+            ChartTwoDataCartesian* m_cartesianLineData = NULL;
+            int32_t m_numberOfCartesianVertices = -1;
+            float m_newMean = std::numeric_limits<float>::max();
+            float m_newDeviation = 1.0;
+            bool m_newMeanEnabled = false;
+            bool m_newDeviationEnabled = false;
+        };
+        
+        LineChartNormalizedSettings m_previousLineChartSettings;
+
         /** A weak pointer to 'self' so that can be stored to safely test instance is valid and can be accessed */
         std::weak_ptr<ChartTwoOverlay> m_weakPointerToSelf;
         

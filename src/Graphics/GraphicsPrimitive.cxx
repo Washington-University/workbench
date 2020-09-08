@@ -23,6 +23,9 @@
 #include "GraphicsPrimitive.h"
 #undef __GRAPHICS_PRIMITIVE_DECLARE__
 
+#include <algorithm>
+#include <numeric>
+
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -958,6 +961,57 @@ GraphicsPrimitive::replaceFloatXYZ(const std::vector<float>& xyz)
 }
 
 /**
+ * Get the Y-components from the XYZ coordinates
+ * @param yComponentsOut
+ *    Output containing the Y-components (this method will resize to correct number of elements)
+ */
+void
+GraphicsPrimitive::getFloatYComponents(std::vector<float>& yComponentsOut) const
+{
+    const int32_t numXYZ = getNumberOfVertices();
+    yComponentsOut.resize(numXYZ);
+    
+    for (int32_t i = 0; i < numXYZ; i++) {
+        const int32_t i3 = (i * 3);
+        CaretAssertVectorIndex(yComponentsOut, i);
+        CaretAssertVectorIndex(m_xyz, i3 + 1);
+        yComponentsOut[i] = m_xyz[i3 + 1];
+    }
+}
+
+/**
+ * Set the Y-components from the XYZ coordinates
+ * @param yComponents
+ *    The Y-components
+ */
+void
+GraphicsPrimitive::setFloatYComponents(const std::vector<float>& yComponents)
+{
+    const int32_t numXYZ = getNumberOfVertices();
+    if (numXYZ != static_cast<int32_t>(yComponents.size())) {
+        const QString msg("Number of XYZ="
+                          + QString::number(numXYZ)
+                          + " but number of input Y-components="
+                          + QString::number(yComponents.size()));
+        CaretLogSevere(msg);
+        CaretAssertMessage(0, msg);
+        return;
+    }
+    
+    for (int32_t i = 0; i < numXYZ; i++) {
+        const int32_t i3 = (i * 3);
+        CaretAssertVectorIndex(yComponents, i);
+        CaretAssertVectorIndex(m_xyz, i3 + 1);
+        m_xyz[i3 + 1] = yComponents[i];
+    }
+    
+    invalidateVertexMeasurements();
+    if (m_graphicsEngineDataForOpenGL != NULL) {
+        m_graphicsEngineDataForOpenGL->invalidateCoordinates();
+    }
+}
+
+/**
  * Replace the XYZ coordinate at the given index
  *
  * @param vertexIndex
@@ -1884,6 +1938,92 @@ GraphicsPrimitive::getMeanAndStandardDeviationForY(float& yMeanOut,
     yStandardDeviationOut = m_yStandardDeviation;
 }
 
+/**
+ * Apply a new mean and/or deviation to the Y-components
+ * @param applyNewMeanFlag
+ *   Apply the new mean
+ * @param newMean
+ *   Value for new mean
+ * @param applyNewDeviationFlag
+ *   Apply the new deviation
+ * @param newDeviation
+ *   Value for new deviation
+ */
+void
+GraphicsPrimitive::applyNewMeanAndDeviationToYComponents(const bool applyNewMeanFlag,
+                                                         const float newMean,
+                                                         const bool applyNewDeviationFlag,
+                                                         const float newDeviation)
+{
+    if ( ! (applyNewMeanFlag
+            || applyNewDeviationFlag)) {
+        return;
+    }
+    
+    std::vector<float> data;
+    getFloatYComponents(data);
+    
+    const int32_t num = static_cast<int32_t>(data.size());
+    if (num < 1) {
+        return;
+    }
+    const double numValuesDouble(num);
+    
+    /*
+     * Compute mean
+     */
+    double dataSum(0.0);
+    for (auto& d : data) {
+        dataSum += d;
+    }
+    const double dataMean(dataSum / numValuesDouble);
+    
+    /*
+     * Subtract mean from data
+     */
+    for (auto& d : data) {
+        d -= dataMean;
+    }
+    
+    if (applyNewDeviationFlag) {
+        /*
+         * Compute deviation of data.
+         * Note: mean has been already been subtracted from data
+         */
+        double sumSQ(0.0);
+        for (auto& d : data) {
+            sumSQ += (d * d);
+        }
+        const double variance(sumSQ / numValuesDouble);
+        const double dataDeviation((variance > 0.0)
+                                   ? (std::sqrt(variance))
+                                   : 0.0);
+        
+        /*
+         * Data = (Data / dataDeviation) * newDevation
+         *      => Data * (newDeviation / dataDeviation);
+         */
+        const double deviationRatio((dataDeviation != 0.0)
+                                    ? (newDeviation / dataDeviation)
+                                    : 0.0);
+        for (auto& d : data) {
+            d *= deviationRatio;
+        }
+    }
+    
+    if (applyNewMeanFlag) {
+        for (auto& d : data) {
+            d += newMean;
+        }
+    }
+    else {
+        for (auto& d : data) {
+            d += dataMean;
+        }
+    }
+    
+    setFloatYComponents(data);
+}
 
 /**
  * Get the OpenGL graphics engine data in this instance.

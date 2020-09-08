@@ -123,7 +123,7 @@ namespace caret {
         
         void lineLayerActiveModeEnumComboBoxItemActivated();
         
-        void lineLayerNormalizationActionTriggered();
+        void lineLayerNormalizationToolButtonClicked();
         
         void lineLayerNormalizationMenuAboutToShow();
         
@@ -196,8 +196,6 @@ namespace caret {
         bool m_useIconInLineLayerToolTipOffsetButtonFlag = false;
         
         QToolButton* m_lineLayerNormalizationToolButton;
-        
-        QAction* m_lineLayerNormalizationAction;
         
         ChartTwoLineLayerNormalizationWidget* m_lineLayerNormalizationWidget;
         

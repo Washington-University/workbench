@@ -27,8 +27,9 @@
 
 #include <QWidget>
 
-class QDoubleSpinBox;
+class QCheckBox;
 class QLabel;
+class QDoubleSpinBox;
 
 namespace caret {
 
@@ -54,12 +55,26 @@ namespace caret {
     private slots:
         void valueChanged();
         
+        void newMeanValueChanged(double value);
+        
+        void newDeviationValueChanged(double value);
+        
     private:
+        void updateGraphics();
+        
         ChartTwoOverlay* m_chartTwoOverlay = NULL;
         
-        QDoubleSpinBox* m_demeanSpinBox;
+        QCheckBox* m_newMeanEnabledCheckBox;
+        
+        QDoubleSpinBox* m_newMeanSpinBox;
+        
+        QCheckBox* m_newDeviationEnabledCheckBox;
+        
+        QDoubleSpinBox* m_newDeviationSpinBox;
         
         QLabel* m_meanDevLabel;
+        
+        bool m_blockUpdatesFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

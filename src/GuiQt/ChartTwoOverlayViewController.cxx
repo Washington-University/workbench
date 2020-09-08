@@ -279,24 +279,15 @@ m_parentObjectName(parentObjectName)
     QObject::connect(m_lineLayerNormalizationMenu, &QMenu::aboutToShow,
                      this, &ChartTwoOverlayViewController::lineLayerNormalizationMenuAboutToShow);
 
-    /*
-     * Line layer normalization action
-     */
-    m_lineLayerNormalizationAction = new QAction(this);
-    m_lineLayerNormalizationAction->setCheckable(true);
-    m_lineLayerNormalizationAction->setMenu(m_lineLayerNormalizationMenu);
-
     if (normalizationPixmap.isNull()) {
-        m_lineLayerNormalizationAction->setText("N");
+        m_lineLayerNormalizationToolButton->setText("N");
     }
     else {
-        m_lineLayerNormalizationAction->setIcon(normalizationPixmap);
+        m_lineLayerNormalizationToolButton->setIcon(normalizationPixmap);
     }
-    m_lineLayerNormalizationAction->setToolTip("Normalize line, click arrow for options");
-    QObject::connect(m_lineLayerNormalizationAction, &QAction::triggered,
-                     this, &ChartTwoOverlayViewController::lineLayerNormalizationActionTriggered);
-    
-    m_lineLayerNormalizationToolButton->setDefaultAction(m_lineLayerNormalizationAction);
+    m_lineLayerNormalizationToolButton->setToolTip("Normalize line, click arrow for options");
+    QObject::connect(m_lineLayerNormalizationToolButton, &QToolButton::clicked,
+                     this, &ChartTwoOverlayViewController::lineLayerNormalizationToolButtonClicked);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_lineLayerNormalizationToolButton);
     
 
@@ -1032,14 +1023,6 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     updateLineLayerToolTipOffsetToolButton();
     
     /*
-     * Update line layer normalization action
-     */
-    m_lineLayerNormalizationAction->setChecked(false);
-    if (validOverlayAndFileFlag) {
-        m_lineLayerNormalizationAction->setChecked(m_chartOverlay->isLineChartNormalizationEnabled());
-    }
-    
-    /*
      * Update selected point checkbox and index
      */
     bool pointValidFlag(false);
@@ -1344,10 +1327,10 @@ ChartTwoOverlayViewController::lineLayerActiveModeEnumComboBoxItemActivated()
  * Called when line layer normalization button is clicked
  */
 void
-ChartTwoOverlayViewController::lineLayerNormalizationActionTriggered()
+ChartTwoOverlayViewController::lineLayerNormalizationToolButtonClicked()
 {
     if (m_chartOverlay != NULL) {
-        m_chartOverlay->setLineChartNormalizationEnabled(m_lineLayerNormalizationAction->isChecked());
+        m_lineLayerNormalizationMenu->exec(m_lineLayerColorToolButton->mapToGlobal(QPoint(0,0)));
         updateGraphicsWindow();
         updateUserInterface();
     }

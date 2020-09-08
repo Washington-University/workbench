@@ -25,9 +25,10 @@
 
 #include <limits>
 
-#include <QDoubleSpinBox>
+#include <QCheckBox>
 #include <QGridLayout>
 #include <QLabel>
+#include <QDoubleSpinBox>
 
 #include "CaretAssert.h"
 #include "ChartTwoDataCartesian.h"
@@ -51,28 +52,52 @@ using namespace caret;
 ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
 : QWidget()
 {
-    const QString toolTipText("Normalize: (y - mean + demean) / stddev");
+    const QString toolTipText("Missing Tooltip Needed");
  
-    QLabel* demeanLabel = new QLabel("Demean");
-    m_demeanSpinBox = new QDoubleSpinBox();
-    m_demeanSpinBox->setDecimals(4);
-    m_demeanSpinBox->setSingleStep(1.0);
-    m_demeanSpinBox->setMinimum(-std::numeric_limits<float>::max());
-    m_demeanSpinBox->setMaximum( std::numeric_limits<float>::max());
-    m_demeanSpinBox->setToolTip(toolTipText);
-    m_demeanSpinBox->setMaximumWidth(100);
-    QObject::connect(m_demeanSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+    m_newMeanEnabledCheckBox = new QCheckBox("New Mean");
+    QObject::connect(m_newMeanEnabledCheckBox, &QCheckBox::clicked,
                      this, [=] { this->valueChanged(); });
+    m_newMeanSpinBox = new QDoubleSpinBox();
+    m_newMeanSpinBox->setDecimals(4);
+    m_newMeanSpinBox->setSingleStep(0.1);
+    m_newMeanSpinBox->setRange(-std::numeric_limits<float>::max(),
+                               std::numeric_limits<float>::max());
+    m_newMeanSpinBox->setToolTip(toolTipText);
+    m_newMeanSpinBox->setMaximumWidth(100);
+    QObject::connect(m_newMeanSpinBox, &QDoubleSpinBox::editingFinished,
+                     this, &ChartTwoLineLayerNormalizationWidget::valueChanged);
+    QObject::connect(m_newMeanSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &ChartTwoLineLayerNormalizationWidget::newMeanValueChanged);
+
+    m_newDeviationEnabledCheckBox = new QCheckBox("New Deviation");
+    QObject::connect(m_newDeviationEnabledCheckBox, &QCheckBox::clicked,
+                     this, [=] { this->valueChanged(); });
+    m_newDeviationSpinBox = new QDoubleSpinBox();
+    m_newDeviationSpinBox->setDecimals(4);
+    m_newDeviationSpinBox->setSingleStep(0.1);
+    m_newDeviationSpinBox->setRange(0.001,
+                                    std::numeric_limits<float>::max());
+    m_newDeviationSpinBox->setToolTip(toolTipText);
+    m_newDeviationSpinBox->setMaximumWidth(100);
+    QObject::connect(m_newDeviationSpinBox, &QDoubleSpinBox::editingFinished,
+                     this, &ChartTwoLineLayerNormalizationWidget::valueChanged);
+    QObject::connect(m_newDeviationSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &ChartTwoLineLayerNormalizationWidget::newDeviationValueChanged);
 
     m_meanDevLabel = new QLabel("");
     
     QGridLayout* layout = new QGridLayout(this);
     int32_t row(0);
-    layout->addWidget(demeanLabel, row, 0);
-    layout->addWidget(m_demeanSpinBox, row, 1);
+    layout->addWidget(m_newMeanEnabledCheckBox, row, 0);
+    layout->addWidget(m_newMeanSpinBox, row, 1);
+    row++;
+    layout->addWidget(m_newDeviationEnabledCheckBox, row, 0);
+    layout->addWidget(m_newDeviationSpinBox, row, 1);
     row++;
     layout->addWidget(m_meanDevLabel, row, 0, 1, 2, Qt::AlignLeft);
     row++;
+    
+    m_blockUpdatesFlag = false;
 }
 
 /**
@@ -89,14 +114,23 @@ ChartTwoLineLayerNormalizationWidget::~ChartTwoLineLayerNormalizationWidget()
 void
 ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOverlay)
 {
+    if (m_blockUpdatesFlag) {
+        return;
+    }
+    
     m_chartTwoOverlay = chartTwoOverlay;
     
     QString meanDevText;
     
     bool validFlag(false);
     if (m_chartTwoOverlay != NULL) {
-        QSignalBlocker blocker(m_demeanSpinBox);
-        m_demeanSpinBox->setValue(m_chartTwoOverlay->getLineChartNormalizationDemeanValue());
+        m_newMeanEnabledCheckBox->setChecked(m_chartTwoOverlay->isLineChartNewMeanEnabled());
+        QSignalBlocker meanBlocker(m_newMeanSpinBox);
+        m_newMeanSpinBox->setValue(m_chartTwoOverlay->getLineChartNewMeanValue());
+        
+        m_newDeviationEnabledCheckBox->setChecked(m_chartTwoOverlay->isLineChartNewDeviationEnabled());
+        QSignalBlocker devBlocker(m_newDeviationSpinBox);
+        m_newDeviationSpinBox->setValue(m_chartTwoOverlay->getLineChartNewDeviationValue());
         
         float mean(0.0), dev(0.0);
         const ChartTwoDataCartesian* cartData = m_chartTwoOverlay->getLineLayerChartMapFileCartesianData();
@@ -113,8 +147,8 @@ ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOve
         validFlag = true;
     }
     
-    m_demeanSpinBox->setEnabled(validFlag);
-    m_meanDevLabel->setEnabled(validFlag);
+    this->setEnabled(validFlag);
+
     m_meanDevLabel->setText(meanDevText);
 }
 
@@ -125,8 +159,55 @@ void
 ChartTwoLineLayerNormalizationWidget::valueChanged()
 {
     if (m_chartTwoOverlay != NULL) {
-        m_chartTwoOverlay->setLineChartNormalizationDemeanValue(m_demeanSpinBox->value());
+        m_chartTwoOverlay->setLineChartNewMeanEnabled(m_newMeanEnabledCheckBox->isChecked());
+        m_chartTwoOverlay->setLineChartNewMeanValue(m_newMeanSpinBox->value());
+        m_chartTwoOverlay->setLineChartNewDeviationEnabled(m_newDeviationEnabledCheckBox->isChecked());
+        m_chartTwoOverlay->setLineChartNewDeviationValue(m_newDeviationSpinBox->value());
+        
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        m_blockUpdatesFlag = true;
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        m_blockUpdatesFlag = false;
     }
 }
+
+/**
+ * Called when new mean value is changed
+ * @param value
+ *    New value
+ */
+void
+ChartTwoLineLayerNormalizationWidget::newMeanValueChanged(double value)
+{
+    m_chartTwoOverlay->setLineChartNewMeanValue(value);
+    updateGraphics();
+}
+
+/**
+ * Called when new deviation value is changed
+ * @param value
+ *    New value
+ */
+void
+ChartTwoLineLayerNormalizationWidget::newDeviationValueChanged(double value)
+{
+    m_chartTwoOverlay->setLineChartNewDeviationValue(value);
+    updateGraphics();
+}
+
+/**
+ * Called when new mean value is changed
+ * @param value
+ *    New value
+ */
+void
+ChartTwoLineLayerNormalizationWidget::updateGraphics()
+{
+    
+    m_blockUpdatesFlag = true;
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    m_blockUpdatesFlag = false;
+}
+
+
+
