@@ -210,6 +210,8 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::BrainBrowserWindowToolBarChartTwo
 
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_TOOLBAR_CHART_ORIENTED_AXES_UPDATE);
 }
 
 /**
@@ -217,8 +219,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::BrainBrowserWindowToolBarChartTwo
  */
 BrainBrowserWindowToolBarChartTwoOrientedAxes::~BrainBrowserWindowToolBarChartTwoOrientedAxes()
 {
-    EventManager::get()->removeEventFromListener(this,
-                                                 EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -236,6 +237,9 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::receiveEvent(Event* event)
          * Disable due to using lots of CPU 8/14/2020
          * updateContent(getTabContentFromSelectedTab());
          */
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_TOOLBAR_CHART_ORIENTED_AXES_UPDATE) {
+        updateContent(getTabContentFromSelectedTab());
     }
     else {
         BrainBrowserWindowToolBarComponent::receiveEvent(event);

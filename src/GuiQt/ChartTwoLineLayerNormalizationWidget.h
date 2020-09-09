@@ -55,12 +55,18 @@ namespace caret {
     private slots:
         void valueChanged();
         
+        void newMeanEnabledCheckBoxClicked(bool clicked);
+        
+        void newDeviationEnabledCheckBoxClicked(bool clicked);
+        
         void newMeanValueChanged(double value);
         
         void newDeviationValueChanged(double value);
         
     private:
         void updateGraphics();
+        
+        void updateToolBarChartAxes();
         
         ChartTwoOverlay* m_chartTwoOverlay = NULL;
         

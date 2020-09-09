@@ -2005,7 +2005,7 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponents(const bool applyNewMean
          */
         const double deviationRatio((dataDeviation != 0.0)
                                     ? (newDeviation / dataDeviation)
-                                    : 0.0);
+                                    : newDeviation);
         for (auto& d : data) {
             d *= deviationRatio;
         }

@@ -442,11 +442,15 @@ EventTypeEnum::initialize()
                                      "EVENT_TILE_TABS_MODIFICATION",
                                      "Tile tabs modification"));
     
+    enumData.push_back(EventTypeEnum(EVENT_TOOLBAR_CHART_ORIENTED_AXES_UPDATE,
+                                     "EVENT_TOOLBAR_CHART_ORIENTED_AXES_UPDATE",
+                                     "Update the toolbar's chart two oriented axes controls"));
+
     enumData.push_back(EventTypeEnum(EVENT_TOOLBOX_SELECTION_DISPLAY,
                                      "EVENT_TOOLBOX_SELECTION_DISPLAY", 
                                      "Display or hide the selection toolbox"));
-    
-    enumData.push_back(EventTypeEnum(EVENT_USER_INTERFACE_UPDATE, 
+        
+    enumData.push_back(EventTypeEnum(EVENT_USER_INTERFACE_UPDATE,
                                      "EVENT_USER_INTERFACE_UPDATE", 
                                      "Update the user-interface"));
     

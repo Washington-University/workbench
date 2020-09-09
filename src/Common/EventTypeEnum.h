@@ -228,6 +228,8 @@ public:
         EVENT_SURFACE_STRUCTURES_VALID_GET,
         /** Tile tabs modification */
         EVENT_TILE_TABS_MODIFICATION,
+        /** Update the toolbar's chart two oriented axes controls */
+        EVENT_TOOLBAR_CHART_ORIENTED_AXES_UPDATE,
         /** Display/Hide the selection toolbox */
         EVENT_TOOLBOX_SELECTION_DISPLAY,
         /** Update the User-Interface */

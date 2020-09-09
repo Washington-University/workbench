@@ -119,11 +119,13 @@ namespace caret {
         
         void lineLayerLineWidthChanged(const float lineWidth);
         
+        void lineLayerNormalizationActionTriggered(bool checked);
+        
         void lineLayerToolTipOffsetToolButtonClicked();
         
         void lineLayerActiveModeEnumComboBoxItemActivated();
         
-        void lineLayerNormalizationToolButtonClicked();
+        void lineLayerNormalizationMenuAboutToHide();
         
         void lineLayerNormalizationMenuAboutToShow();
         
@@ -139,6 +141,8 @@ namespace caret {
         void updateUserInterface();
         
         void updateGraphicsWindow();
+        
+        void updateLineLayerNormalizationAction();
         
         QMenu* createConstructionMenu(QWidget* parent,
                                       const QString& parentObjectName,
@@ -196,6 +200,8 @@ namespace caret {
         bool m_useIconInLineLayerToolTipOffsetButtonFlag = false;
         
         QToolButton* m_lineLayerNormalizationToolButton;
+        
+        QAction* m_lineLayerNormalizationAction;
         
         ChartTwoLineLayerNormalizationWidget* m_lineLayerNormalizationWidget;
         

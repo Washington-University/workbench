@@ -367,9 +367,13 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
 {
     
     switch (eventType) {
+        /*
+         * Simple Events (no Event subclass)
+         */
         case EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE:
         case EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE:
+        case EventTypeEnum::EVENT_TOOLBAR_CHART_ORIENTED_AXES_UPDATE:
         case EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR:
         {
             sendEvent(Event(eventType).getPointer());
@@ -384,6 +388,9 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
             CaretLogSevere(msg);
         }
             break;
+        /*
+         * Events that have a subclass of Event
+         */
         case EventTypeEnum::EVENT_ALERT_USER:
         case EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE:
         case EventTypeEnum::EVENT_ANNOTATION_BARS_GET:
