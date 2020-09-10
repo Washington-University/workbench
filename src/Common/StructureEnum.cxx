@@ -287,7 +287,7 @@ StructureEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type StructureEnum"));
+        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type StructureEnum"));
     }
     return enumValue;
 }
@@ -340,7 +340,7 @@ StructureEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type StructureEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type StructureEnum"));
     }
     return enumValue;
 }
@@ -396,7 +396,7 @@ StructureEnum::fromCiftiName(const AString& ciftiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + ciftiName + "failed to match enumerated value for type StructureEnum"));
+        CaretAssertMessage(0, AString("ciftiName " + ciftiName + " failed to match enumerated value for type StructureEnum"));
     }
     return enumValue;
 }
@@ -449,7 +449,7 @@ StructureEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type StructureEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type StructureEnum"));
     }
     return enumValue;
 }

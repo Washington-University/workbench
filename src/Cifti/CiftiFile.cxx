@@ -551,6 +551,7 @@ namespace
             default:
                 CaretLogWarning("unhandled cifti type in extension warning check, tell the developers what you just tried to do");
                 CaretAssert(0);//yes, let it fall through to "unknown" in release so that it at least looks for .nii
+                //-fallthrough
             case 3000://unknown
                 if (!filename.contains(QRegExp("\\.[^.]*\\.nii$")))
                 {
@@ -560,7 +561,7 @@ namespace
                 if (filename.contains(QRegExp("\\.(dconn|dtseries|pconn|ptseries|dscalar|dfan|fiberTEMP|dlabel|pscalar|pdconn|dpconn|pconnseries|pconnscalar)\\.nii$")))
                 {
                     CaretLogWarning("cifti file of nonstandard mapping combination '" + filename + "' should NOT be saved using an already-used cifti extension, "
-                                    + "please choose a different, reasonable cifti extension ending in .<something>.nii");
+                                    + "please choose a different, reasonable cifti extension of the form .<something>.nii");
                 }
                 break;
             case 3001:

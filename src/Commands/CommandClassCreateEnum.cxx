@@ -524,7 +524,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("        *isValidOut = validFlag;\n");
     t += ("    }\n");
     t += ("    else if (validFlag == false) {\n");
-    t += ("        CaretAssertMessage(0, AString(\"Name \" + name + \"failed to match enumerated value for type " + enumClassName + "\"));\n");
+    t += ("        CaretAssertMessage(0, AString(\"Name \" + name + \" failed to match enumerated value for type " + enumClassName + "\"));\n");
     t += ("    }\n");
     t += ("    return enumValue;\n");
     t += ("}\n");
@@ -581,7 +581,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("        *isValidOut = validFlag;\n");
     t += ("    }\n");
     t += ("    else if (validFlag == false) {\n");
-    t += ("        CaretAssertMessage(0, AString(\"guiName \" + guiName + \"failed to match enumerated value for type " + enumClassName + "\"));\n");
+    t += ("        CaretAssertMessage(0, AString(\"guiName \" + guiName + \" failed to match enumerated value for type " + enumClassName + "\"));\n");
     t += ("    }\n");
     t += ("    return enumValue;\n");
     t += ("}\n");
@@ -638,7 +638,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("        *isValidOut = validFlag;\n");
     t += ("    }\n");
     t += ("    else if (validFlag == false) {\n");
-    t += ("        CaretAssertMessage(0, AString(\"Integer code \" + AString::number(integerCode) + \"failed to match enumerated value for type " + enumClassName + "\"));\n");
+    t += ("        CaretAssertMessage(0, AString(\"Integer code \" + AString::number(integerCode) + \" failed to match enumerated value for type " + enumClassName + "\"));\n");
     t += ("    }\n");
     t += ("    return enumValue;\n");
     t += ("}\n");
