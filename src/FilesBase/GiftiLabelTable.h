@@ -70,7 +70,7 @@ private:
 public:
     void clear();
 
-    std::map<int32_t,int32_t> append(const GiftiLabelTable& glt);
+    std::map<int32_t,int32_t> append(const GiftiLabelTable& glt, const bool errorOnLabelConflict = false);
 
     int32_t addLabel(
                     const AString& labelName,

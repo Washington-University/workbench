@@ -148,7 +148,7 @@ GiftiLabelTable::clear()
  *
  */
 std::map<int32_t,int32_t>
-GiftiLabelTable::append(const GiftiLabelTable& glt)
+GiftiLabelTable::append(const GiftiLabelTable& glt, const bool errorOnLabelConflict)
 {
     std::map<int32_t,int32_t> keyConverterMap;
     
@@ -157,6 +157,16 @@ GiftiLabelTable::append(const GiftiLabelTable& glt)
          iter++) {
         int32_t key = iter->first;
         int32_t newKey = this->addLabel(iter->second);
+
+        if (newKey != key)
+        {
+            if (errorOnLabelConflict)
+            {
+                throw CaretException("conflicting key value " + AString::number(key) + " for label '" + iter->second->getName() + "', please fix this and any additional conflicts with a label-modify-keys command or an option in this command, if available");
+            } else {
+                CaretLogWarning("conflicting key value for label '" + iter->second->getName() + "' reassigned to key " + AString::number(newKey));
+            }
+        }
         
         keyConverterMap.insert(std::make_pair(key, newKey));
     }

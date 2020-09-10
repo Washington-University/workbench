@@ -35,7 +35,14 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiMergeDense(ProgressObject* myProgObj, const int& myDir, const std::vector<const CiftiFile*>& ciftiList, CiftiFile* myCiftiOut);
+        enum LabelConflictLogic
+        {
+            ERROR,
+            FIRST,
+            LEGACY
+        };
+        AlgorithmCiftiMergeDense(ProgressObject* myProgObj, const int& myDir, const std::vector<const CiftiFile*>& ciftiList, CiftiFile* myCiftiOut,
+                                 const LabelConflictLogic conflictLogic = ERROR);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

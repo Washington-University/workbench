@@ -101,6 +101,7 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
     bool discardUnusedLabels = myParams->getOptionalParameter(7)->m_present;
+    //FIXME: label resolution logic option?  not clear what can be intuitive for edge cases
     const vector<ParameterComponent*>& labelInst = myParams->getRepeatableParameterInstances(3);
     for (int i = 0; i < (int)labelInst.size(); ++i)
     {
@@ -151,8 +152,8 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
     myCifti.writeFile(ciftiName);//and write the modified file
 }
 
-AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                                               const StructureEnum::Enum& myStruct, const MetricFile* metricIn) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int myDir,
+                                                               const StructureEnum::Enum myStruct, const MetricFile* metricIn) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXML = ciftiInOut->getCiftiXML();
@@ -209,8 +210,9 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
     }
 }
 
-AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                                               const StructureEnum::Enum& myStruct, const LabelFile* labelIn, const bool& discardUnusedLabels) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int myDir,
+                                                               const StructureEnum::Enum myStruct, const LabelFile* labelIn,
+                                                               const bool discardUnusedLabels, const bool errorOnLabelConflict) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXML = ciftiInOut->getCiftiXML();
@@ -241,7 +243,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         for (int64_t j = 0; j < rowSize; ++j)
         {
             GiftiLabelTable myTable = *(labelIn->getLabelTable());//we remap the old label table values so that the new label table keys are unmolested
-            remapArray[j] = myTable.append(*(myLabelsMap.getMapLabelTable(j)));
+            remapArray[j] = myTable.append(*(myLabelsMap.getMapLabelTable(j)), errorOnLabelConflict);
             *(myLabelsMap.getMapLabelTable(j)) = myTable;
         }
         set<int64_t> writeRows;
@@ -323,7 +325,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         for (int64_t i = 0; i < colSize; ++i)
         {
             GiftiLabelTable myTable = *(labelIn->getLabelTable());//we remap the old label table values so that the new label table keys are unmolested
-            map<int32_t, int32_t> remap = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
+            map<int32_t, int32_t> remap = myTable.append(*(myLabelsMap.getMapLabelTable(i)), errorOnLabelConflict);
             *(myLabelsMap.getMapLabelTable(i)) = myTable;
             ciftiInOut->getRow(rowScratch, i, true);
             set<int32_t> used;
@@ -359,8 +361,9 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
     }
 }
 
-AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                                               const StructureEnum::Enum& myStruct, const VolumeFile* volIn, const bool& fromCropped, const bool& discardUnusedLabels) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int myDir,
+                                                               const StructureEnum::Enum myStruct, const VolumeFile* volIn, const bool fromCropped,
+                                                               const bool discardUnusedLabels, const bool errorOnLabelConflict) : AbstractAlgorithm(myProgObj)
 {
     const CiftiXML& myXML = ciftiInOut->getCiftiXML();
     if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw AlgorithmException("direction not supported in cifti replace structure");
@@ -410,7 +413,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
             for (int64_t i = 0; i < rowSize; ++i)
             {
                 GiftiLabelTable myTable = *(volIn->getMapLabelTable(i));//we remap the old label table values so that the new label table keys are unmolested
-                remapArray[i] = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
+                remapArray[i] = myTable.append(*(myLabelsMap.getMapLabelTable(i)), errorOnLabelConflict);
                 *(myLabelsMap.getMapLabelTable(i)) = myTable;
             }
             set<int64_t> writeRows;
@@ -495,7 +498,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
             for (int64_t i = 0; i < colSize; ++i)
             {
                 GiftiLabelTable myTable = *(volIn->getMapLabelTable(i));//we remap the old label table values so that the new label table keys are unmolested
-                map<int32_t, int32_t> remap = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
+                map<int32_t, int32_t> remap = myTable.append(*(myLabelsMap.getMapLabelTable(i)), errorOnLabelConflict);
                 *(myLabelsMap.getMapLabelTable(i)) = myTable;
                 ciftiInOut->getRow(rowScratch, i, true);
                 set<int32_t> used;
@@ -544,8 +547,9 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
     }
 }
 
-AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                                               const VolumeFile* volIn, const bool& fromCropped, const bool& discardUnusedLabels): AbstractAlgorithm(myProgObj)
+AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int myDir,
+                                                               const VolumeFile* volIn, const bool fromCropped,
+                                                               const bool discardUnusedLabels, const bool errorOnLabelConflict): AbstractAlgorithm(myProgObj)
 {
     const CiftiXML& myXML = ciftiInOut->getCiftiXML();
     if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("replace structure only supported on 2D cifti");
@@ -595,7 +599,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
             for (int64_t i = 0; i < rowSize; ++i)
             {
                 GiftiLabelTable myTable = *(volIn->getMapLabelTable(i));//we remap the old label table values so that the new label table keys are unmolested
-                remapArray[i] = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
+                remapArray[i] = myTable.append(*(myLabelsMap.getMapLabelTable(i)), errorOnLabelConflict);
                 *(myLabelsMap.getMapLabelTable(i)) = myTable;
             }
             set<int64_t> writeRows;
@@ -680,7 +684,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
             for (int64_t i = 0; i < colSize; ++i)
             {
                 GiftiLabelTable myTable = *(volIn->getMapLabelTable(i));//we remap the old label table values so that the new label table keys are unmolested
-                map<int32_t, int32_t> remap = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
+                map<int32_t, int32_t> remap = myTable.append(*(myLabelsMap.getMapLabelTable(i)), errorOnLabelConflict);
                 *(myLabelsMap.getMapLabelTable(i)) = myTable;
                 ciftiInOut->getRow(rowScratch, i, true);
                 set<int32_t> used;
