@@ -519,7 +519,8 @@ namespace caret {
         void applyNewMeanAndDeviationToYComponents(const bool applyNewMeanFlag,
                                                    const float newMean,
                                                    const bool applyNewDeviationFlag,
-                                                   const float newDeviation);
+                                                   const float newDeviation,
+                                                   bool& haveNanInfFlagOut);
         
     protected:
         AString toStringPrivate(const bool includeAllDataFlag) const;
@@ -609,6 +610,18 @@ namespace caret {
         
         void setOpenGLBuffersHaveBeenLoadedByGraphicsEngine();
         
+        void applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float>& data,
+                                                         const bool applyNewMeanFlag,
+                                                         const float newMean,
+                                                         const bool applyNewDeviationFlag,
+                                                         const float newDeviation);
+        
+        void applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<float>& data,
+                                                           const bool applyNewMeanFlag,
+                                                           const float newMean,
+                                                           const bool applyNewDeviationFlag,
+                                                           const float newDeviation);
+
         std::vector<float> m_xyz;
         
         std::vector<float> m_floatNormalVectorXYZ;

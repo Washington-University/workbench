@@ -38,6 +38,7 @@
 #include "GraphicsPrimitiveV3fN3f.h"
 #include "GraphicsPrimitiveV3fN3fC4ub.h"
 #include "GraphicsPrimitiveV3fT3f.h"
+#include "MathFunctions.h"
 #include "Matrix4x4Interface.h"
 
 using namespace caret;
@@ -1389,7 +1390,7 @@ GraphicsPrimitive::getVertexBounds(BoundingBox& boundingBoxOut) const
         for (int32_t i = 0; i < numberOfVertices; i++) {
             const int32_t i3 = i * 3;
             CaretAssertVectorIndex(m_xyz, i3 + 2);
-            m_boundingBox->update(&m_xyz[i3]);
+            m_boundingBox->updateExcludeNanInf(&m_xyz[i3]);
         }
         
         m_boundingBoxValid = true;
@@ -1948,13 +1949,17 @@ GraphicsPrimitive::getMeanAndStandardDeviationForY(float& yMeanOut,
  *   Apply the new deviation
  * @param newDeviation
  *   Value for new deviation
+ * @param haveNanInfFlagOut
+ *   Output: True if Not a Number or Infinity found in the data
  */
 void
 GraphicsPrimitive::applyNewMeanAndDeviationToYComponents(const bool applyNewMeanFlag,
                                                          const float newMean,
                                                          const bool applyNewDeviationFlag,
-                                                         const float newDeviation)
+                                                         const float newDeviation,
+                                                         bool& haveNanInfFlagOut)
 {
+    haveNanInfFlagOut = false;
     if ( ! (applyNewMeanFlag
             || applyNewDeviationFlag)) {
         return;
@@ -1963,6 +1968,140 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponents(const bool applyNewMean
     std::vector<float> data;
     getFloatYComponents(data);
     
+    for (auto& d : data) {
+        if ( ! MathFunctions::isNumeric(d)) {
+            haveNanInfFlagOut = true;
+            break;
+        }
+    }
+    
+    if (haveNanInfFlagOut) {
+        applyNewMeanAndDeviationToYComponentsWithNaNs(data,
+                                                      applyNewMeanFlag,
+                                                      newMean,
+                                                      applyNewDeviationFlag,
+                                                      newDeviation);
+    }
+    else {
+        applyNewMeanAndDeviationToYComponentsNoNaNs(data,
+                                                    applyNewMeanFlag,
+                                                    newMean,
+                                                    applyNewDeviationFlag,
+                                                    newDeviation);
+    }
+    
+    setFloatYComponents(data);
+}
+
+/**
+ * Apply a new mean and/or deviation to the Y-components that have NaNs or INFs
+ * @param applyNewMeanFlag
+ *   Apply the new mean
+ * @param newMean
+ *   Value for new mean
+ * @param applyNewDeviationFlag
+ *   Apply the new deviation
+ * @param newDeviation
+ *   Value for new deviation
+ */
+void
+GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<float>& data,
+                                                                 const bool applyNewMeanFlag,
+                                                                 const float newMean,
+                                                                 const bool applyNewDeviationFlag,
+                                                                 const float newDeviation)
+{
+
+    /*
+     * Sum of data while excluding invalid numbers
+     */
+    int32_t numData(0);
+    double dataSum(0.0);
+    for (auto& d : data) {
+        if (MathFunctions::isNumeric(d)) {
+            dataSum += d;
+            numData++;
+        }
+    }
+    
+    if (numData <= 0) {
+        /*
+         * All data is NaN of INF
+         */
+        return;
+    }
+    
+    /*
+     * Compute mean
+     */
+    const double numValuesDouble(numData);
+    const double dataMean(dataSum / numValuesDouble);
+
+    /*
+     * Subtract mean from data
+     */
+    for (auto& d : data) {
+        d -= dataMean;
+    }
+
+    if (applyNewDeviationFlag) {
+        /*
+         * Compute deviation of data.
+         * Note: mean has been already been subtracted from data
+         */
+        double sumSQ(0.0);
+        for (auto& d : data) {
+            if (MathFunctions::isNumeric(d)) {
+                sumSQ += (d * d);
+            }
+        }
+        const double variance(sumSQ / numValuesDouble);
+        const double dataDeviation((variance > 0.0)
+                                   ? (std::sqrt(variance))
+                                   : 0.0);
+
+        /*
+         * Data = (Data / dataDeviation) * newDevation
+         *      => Data * (newDeviation / dataDeviation);
+         */
+        const double deviationRatio((dataDeviation != 0.0)
+                                    ? (newDeviation / dataDeviation)
+                                    : newDeviation);
+        for (auto& d : data) {
+            d *= deviationRatio;
+        }
+    }
+
+    if (applyNewMeanFlag) {
+        for (auto& d : data) {
+            d += newMean;
+        }
+    }
+    else {
+        for (auto& d : data) {
+            d += dataMean;
+        }
+    }
+}
+
+/**
+ * Apply a new mean and/or deviation to the Y-components that DO NOT have NaNs or INFs
+ * @param applyNewMeanFlag
+ *   Apply the new mean
+ * @param newMean
+ *   Value for new mean
+ * @param applyNewDeviationFlag
+ *   Apply the new deviation
+ * @param newDeviation
+ *   Value for new deviation
+ */
+void
+GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float>& data,
+                                                               const bool applyNewMeanFlag,
+                                                               const float newMean,
+                                                               const bool applyNewDeviationFlag,
+                                                               const float newDeviation)
+{
     const int32_t num = static_cast<int32_t>(data.size());
     if (num < 1) {
         return;
@@ -2021,9 +2160,94 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponents(const bool applyNewMean
             d += dataMean;
         }
     }
-    
-    setFloatYComponents(data);
 }
+
+///**
+// * Apply a new mean and/or deviation to the Y-components
+// * @param applyNewMeanFlag
+// *   Apply the new mean
+// * @param newMean
+// *   Value for new mean
+// * @param applyNewDeviationFlag
+// *   Apply the new deviation
+// * @param newDeviation
+// *   Value for new deviation
+// */
+//void
+//GraphicsPrimitive::applyNewMeanAndDeviationToYComponents(const bool applyNewMeanFlag,
+//                                                         const float newMean,
+//                                                         const bool applyNewDeviationFlag,
+//                                                         const float newDeviation)
+//{
+//    if ( ! (applyNewMeanFlag
+//            || applyNewDeviationFlag)) {
+//        return;
+//    }
+//
+//    std::vector<float> data;
+//    getFloatYComponents(data);
+//
+//    const int32_t num = static_cast<int32_t>(data.size());
+//    if (num < 1) {
+//        return;
+//    }
+//    const double numValuesDouble(num);
+//
+//    /*
+//     * Compute mean
+//     */
+//    double dataSum(0.0);
+//    for (auto& d : data) {
+//        dataSum += d;
+//    }
+//    const double dataMean(dataSum / numValuesDouble);
+//
+//    /*
+//     * Subtract mean from data
+//     */
+//    for (auto& d : data) {
+//        d -= dataMean;
+//    }
+//
+//    if (applyNewDeviationFlag) {
+//        /*
+//         * Compute deviation of data.
+//         * Note: mean has been already been subtracted from data
+//         */
+//        double sumSQ(0.0);
+//        for (auto& d : data) {
+//            sumSQ += (d * d);
+//        }
+//        const double variance(sumSQ / numValuesDouble);
+//        const double dataDeviation((variance > 0.0)
+//                                   ? (std::sqrt(variance))
+//                                   : 0.0);
+//
+//        /*
+//         * Data = (Data / dataDeviation) * newDevation
+//         *      => Data * (newDeviation / dataDeviation);
+//         */
+//        const double deviationRatio((dataDeviation != 0.0)
+//                                    ? (newDeviation / dataDeviation)
+//                                    : newDeviation);
+//        for (auto& d : data) {
+//            d *= deviationRatio;
+//        }
+//    }
+//
+//    if (applyNewMeanFlag) {
+//        for (auto& d : data) {
+//            d += newMean;
+//        }
+//    }
+//    else {
+//        for (auto& d : data) {
+//            d += dataMean;
+//        }
+//    }
+//
+//    setFloatYComponents(data);
+//}
 
 /**
  * Get the OpenGL graphics engine data in this instance.

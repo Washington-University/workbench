@@ -1146,15 +1146,26 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                             255
                         };
 
+                        /*
+                         * May have NaN of Inf in the Y-component so
+                         * play Y at middle of screen.  Need to leave
+                         * the NaN/Inf in the xyz for conversion to text
+                         * so that user sees NaN/Inf
+                         */
+                        auto xyzSymbol(xyz);
+                        if ( ! MathFunctions::isNumeric(xyz[1])) {
+                            xyzSymbol[1] = (yMinLeftRight + yMaxLeftRight) / 2.0;
+                        }
+
                         std::array<float, 3> windowXYZ;
                         if (showCircleFlag) {
-                            GraphicsShape::drawCircleFilledPercentViewportHeight(xyz.data(),
+                            GraphicsShape::drawCircleFilledPercentViewportHeight(xyzSymbol.data(),
                                                                                  foregroundRGBA,
                                                                                  symbolSize,
                                                                                  &windowXYZ);
                         }
                         else if (showRingFlag) {
-                            GraphicsShape::drawRingPercentViewportHeight(xyz.data(),
+                            GraphicsShape::drawRingPercentViewportHeight(xyzSymbol.data(),
                                                                          foregroundRGBA,
                                                                          symbolSize * 0.65, /* inner diameter */
                                                                          symbolSize, /* diameter */

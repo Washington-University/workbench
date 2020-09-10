@@ -730,11 +730,27 @@ ChartTwoOverlay::getLineLayerChartDisplayedCartesianData()
                 /*
                  * Apply new mean and deviation to Y-components
                  */
+                bool haveNanInfFlag(false);
                 CaretAssert(m_lineChartNormalizedCartesianData->getGraphicsPrimitive());
                 m_lineChartNormalizedCartesianData->getGraphicsPrimitive()->applyNewMeanAndDeviationToYComponents(m_lineChartNewMeanEnabled,
                                                                                                                   m_lineChartNewMeanValue,
                                                                                                                   m_lineChartNewDeviationEnabled,
-                                                                                                                  m_lineChartNewDeviationValue);
+                                                                                                                  m_lineChartNewDeviationValue,
+                                                                                                                  haveNanInfFlag);
+                
+                if (haveNanInfFlag) {
+                    /*
+                     * Issue warning but only once per file/map
+                     */
+                    auto fileMap(std::make_pair(mapFile, selectedIndex));
+                    if (m_normalizedMapFilesWithNanInf.find(fileMap) == m_normalizedMapFilesWithNanInf.end()) {
+                        m_normalizedMapFilesWithNanInf.insert(fileMap);
+                        CaretLogWarning(mapFile->getFileName()
+                                        + " Contains NaNs and/or Infs in map index="
+                                        + QString::number(selectedIndex + 1)
+                                        + " " + mapFile->getMapName(selectedIndex));
+                    }
+                }
             }
             
             dataOut = m_lineChartNormalizedCartesianData.get();

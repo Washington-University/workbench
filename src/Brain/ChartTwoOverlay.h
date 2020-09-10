@@ -23,6 +23,7 @@
 
 #include <array>
 #include <memory>
+#include <set>
 
 #include "CardinalDirectionEnum.h"
 #include "CaretColor.h"
@@ -326,6 +327,9 @@ namespace caret {
 
         /** A weak pointer to 'self' so that can be stored to safely test instance is valid and can be accessed */
         std::weak_ptr<ChartTwoOverlay> m_weakPointerToSelf;
+        
+        /** prevents excessing warnings when NaNs and/or Inf found in normalization */
+        std::set<std::pair<CaretMappableDataFile*, int32_t>> m_normalizedMapFilesWithNanInf;
         
         static int32_t s_defaultColorIndexGenerator;
         

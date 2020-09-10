@@ -589,11 +589,27 @@ ChartableTwoFileLineLayerChart::loadChartForMapFileSelector(const MapFileDataSel
             getCaretMappableDataFile()->getMapIntervalStartAndStep(xStart,
                                                                    xStep);
             
+            /*
+             * Set to inject invalid numbers for testing
+             */
+            const bool testNanFlag(false);
             const int32_t numData = static_cast<int32_t>(data.size());
             for (int32_t i = 0; i < numData; i++) {
                 const float x(xStart + (i * xStep));
                 CaretAssertVectorIndex(data, i);
-                chartDataOut->addPoint(x, data[i]);
+                
+                if (testNanFlag) {
+                    float d = data[i];
+                    if ((i == 1)
+                        || (i == 50)
+                        || (i == 100)) {
+                        d = qQNaN();
+                    }
+                    chartDataOut->addPoint(x, d);
+                }
+                else {
+                    chartDataOut->addPoint(x, data[i]);
+                }
             }
         }
     }
