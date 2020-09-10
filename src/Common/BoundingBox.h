@@ -75,6 +75,12 @@ public:
                 const float y,
                 const float z);
     
+    void updateExcludeNanInf(const float xyz[]);
+    
+    void updateExcludeNanInf(const float x,
+                             const float y,
+                             const float z);
+
     const float* getBounds() const;
 
     void getBounds(float bounds[6]) const;

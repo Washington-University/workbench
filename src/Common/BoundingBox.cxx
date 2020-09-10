@@ -22,6 +22,7 @@
 #include <sstream>
 #include <QtCore>
 #include "BoundingBox.h"
+#include "MathFunctions.h"
 
 using namespace caret;
 
@@ -271,6 +272,63 @@ BoundingBox::update(const float x,
     if (y > this->boundingBox[3]) this->boundingBox[3] = y;
     if (z < this->boundingBox[4]) this->boundingBox[4] = z;
     if (z > this->boundingBox[5]) this->boundingBox[5] = z;
+}
+
+/**
+ * Update the bounding box with the XYZ value passed in.  The bound box
+ * must have been created with newInstanceForUpdate() or properly
+ * initialized by the user.
+ *
+ * @param xyz - Three dimensional array containing XYZ.
+ *
+ */
+void
+BoundingBox::updateExcludeNanInf(const float xyz[3])
+{
+    if (MathFunctions::isNumeric(xyz[0])) {
+        if (xyz[0] < this->boundingBox[0]) this->boundingBox[0] = xyz[0];
+        if (xyz[0] > this->boundingBox[1]) this->boundingBox[1] = xyz[0];
+    }
+    if (MathFunctions::isNumeric(xyz[1])) {
+        if (xyz[1] < this->boundingBox[2]) this->boundingBox[2] = xyz[1];
+        if (xyz[1] > this->boundingBox[3]) this->boundingBox[3] = xyz[1];
+    }
+    if (MathFunctions::isNumeric(xyz[2])) {
+        if (xyz[2] < this->boundingBox[4]) this->boundingBox[4] = xyz[2];
+        if (xyz[2] > this->boundingBox[5]) this->boundingBox[5] = xyz[2];
+    }
+}
+
+/**
+ * Update the bounding box with the XYZ value passed in.  The bound box
+ * must have been created with newInstanceForUpdate() or properly
+ * initialized by the user.
+ *
+ * @param x
+ *    X-coordinate.
+ * @param y
+ *    Y-coordinate.
+ * @param Z
+ *    Z-coordinate.
+ *
+ */
+void
+BoundingBox::updateExcludeNanInf(const float x,
+                    const float y,
+                    const float z)
+{
+    if (MathFunctions::isNumeric(x)) {
+        if (x < this->boundingBox[0]) this->boundingBox[0] = x;
+        if (x > this->boundingBox[1]) this->boundingBox[1] = x;
+    }
+    if (MathFunctions::isNumeric(y)) {
+        if (y < this->boundingBox[2]) this->boundingBox[2] = y;
+        if (y > this->boundingBox[3]) this->boundingBox[3] = y;
+    }
+    if (MathFunctions::isNumeric(z)) {
+        if (z < this->boundingBox[4]) this->boundingBox[4] = z;
+        if (z > this->boundingBox[5]) this->boundingBox[5] = z;
+    }
 }
 
 /**
