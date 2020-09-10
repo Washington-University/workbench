@@ -266,7 +266,6 @@ m_parentObjectName(parentObjectName)
      * Line layer normalization button
      */
     m_lineLayerNormalizationToolButton = new QToolButton();
-    QPixmap normalizationPixmap = createNormalizationPixmap(m_lineLayerNormalizationToolButton);
 
     /*
      * Line layer normalization widget and menu
@@ -285,24 +284,23 @@ m_parentObjectName(parentObjectName)
     /*
      * line layer normalization action
      */
-    const QString normActionText("<html><body>"
-                                 "When button is clicked:<ul>"
-                                 "<li>If both mean and deviation are enabled, both are disabled"
-                                 "<li>If one of mean and deviation are enabled, the other is enabled"
-                                 "<li>If neither mean nor deviation are enabled, mean is enabled"
-                                 "</ul>"
-                                 "Click arrow to enable mean and/or deviation and to enter mean"
-                                 "and/or deviation value"
-                                 "</body></html>");
+    const int greekMu(0x03bc);
+    const int greekSigma(0x03c3);
+    const QString normActionText(QString(greekMu)
+                                 + QString(greekSigma));
+    const QString normActionToolTipText("<html><body>"
+                                        "When button is clicked:<ul>"
+                                        "<li>If both mean and deviation are enabled, both are disabled"
+                                        "<li>If one of mean and deviation are enabled, the other is enabled"
+                                        "<li>If neither mean nor deviation are enabled, mean is enabled"
+                                        "</ul>"
+                                        "Click arrow to enable mean and/or deviation and to enter mean"
+                                        "and/or deviation value"
+                                        "</body></html>");
     m_lineLayerNormalizationAction = new QAction(this);
     m_lineLayerNormalizationAction->setCheckable(true);
-    if ( ! normalizationPixmap.isNull()) {
-        m_lineLayerNormalizationAction->setIcon(normalizationPixmap);
-    }
-    else {
-        m_lineLayerNormalizationAction->setText("C");
-    }
-    m_lineLayerNormalizationAction->setToolTip(normActionText);
+    m_lineLayerNormalizationAction->setText(normActionText);
+    m_lineLayerNormalizationAction->setToolTip(normActionToolTipText);
     m_lineLayerNormalizationAction->setMenu(m_lineLayerNormalizationMenu);
     m_lineLayerNormalizationAction->setObjectName(objectNamePrefix
                                           + ":LineLayerNormalization");
