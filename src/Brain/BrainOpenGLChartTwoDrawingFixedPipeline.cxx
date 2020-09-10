@@ -365,7 +365,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
     
     const int32_t numberOfOverlays = m_chartOverlaySet->getNumberOfDisplayedOverlays();
     CaretAssert(numberOfOverlays > 0);
-    const ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0);
+    CaretUsedInDebugCompileOnly(const ChartTwoOverlay* topOverlay = m_chartOverlaySet->getOverlay(0));
     CaretUsedInDebugCompileOnly(const ChartTwoCompoundDataType* cdt = topOverlay->getChartTwoCompoundDataType());
     if (drawHistogramFlag) {
         CaretAssert(cdt->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM);

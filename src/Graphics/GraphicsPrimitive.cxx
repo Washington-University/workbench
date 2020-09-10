@@ -24,6 +24,7 @@
 #undef __GRAPHICS_PRIMITIVE_DECLARE__
 
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 
 #include "BoundingBox.h"
