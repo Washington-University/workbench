@@ -115,6 +115,8 @@ namespace caret {
         
         void matrixOpacityValueChanged(double value);
         
+        void constructionToolButtonClicked();
+        
         void lineLayerColorSelected(const CaretColor& caretColor);
         
         void lineLayerLineWidthChanged(const float lineWidth);
@@ -185,7 +187,7 @@ namespace caret {
         
         QAction* m_colorBarAction;
         
-        QAction* m_constructionAction;
+        QMenu* m_constructionMenu;
         
         QToolButton* m_matrixTriangularViewModeToolButton;
         

@@ -196,20 +196,20 @@ m_parentObjectName(parentObjectName)
     QIcon constructionIcon;
     const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
                                                                constructionIcon);
-    m_constructionAction = WuQtUtilities::createAction("C",
-                                                           "Add/Move/Remove Layers",
-                                                           this);
-    if (constructionIconValid) {
-        m_constructionAction->setIcon(constructionIcon);
-    }
     m_constructionToolButton = new QToolButton();
-    QMenu* constructionMenu = createConstructionMenu(m_constructionToolButton,
+    m_constructionToolButton->setToolTip("Add/Move/Remove Layers");
+    if (constructionIconValid) {
+        m_constructionToolButton->setIcon(constructionIcon);
+    }
+    else {
+        m_constructionToolButton->setText("C");
+    }
+    m_constructionMenu = createConstructionMenu(m_constructionToolButton,
                                                      (objectNamePrefix
                                                       + "ConstructionMenu:"),
                                                      descriptivePrefix);
-    m_constructionAction->setMenu(constructionMenu);
-    m_constructionToolButton->setDefaultAction(m_constructionAction);
-    m_constructionToolButton->setPopupMode(QToolButton::InstantPopup);
+    QObject::connect(m_constructionToolButton, &QToolButton::clicked,
+                     this, &ChartTwoOverlayViewController::constructionToolButtonClicked);
     
     /*
      * Matrix triangular view mode button
@@ -979,11 +979,6 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_colorBarAction->blockSignals(false);
     
     /*
-     * Update construction button
-     */
-    m_constructionAction->setEnabled(true);
-    
-    /*
      * Update matrix triangular view mode
      */
     m_matrixTriangularViewModeAction->setEnabled(false);
@@ -1498,6 +1493,15 @@ ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent,
 
     return menu;
     
+}
+
+/**
+ * Called when construction tool button is clicked
+ */
+void
+ChartTwoOverlayViewController::constructionToolButtonClicked()
+{
+    m_constructionMenu->exec(QPoint(m_constructionToolButton->mapToGlobal(QPoint(0, m_constructionToolButton->height()))));
 }
 
 /**
