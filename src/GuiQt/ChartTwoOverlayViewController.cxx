@@ -263,17 +263,13 @@ m_parentObjectName(parentObjectName)
     
     
     /*
-     * Line layer normalization button
-     */
-    m_lineLayerNormalizationToolButton = new QToolButton();
-
-    /*
      * Line layer normalization widget and menu
      */
     m_lineLayerNormalizationWidget = new ChartTwoLineLayerNormalizationWidget();
     QWidgetAction* normalizationWidgetAction = new QWidgetAction(this);
     normalizationWidgetAction->setDefaultWidget(m_lineLayerNormalizationWidget);
     
+    m_lineLayerNormalizationToolButton = new QToolButton();
     m_lineLayerNormalizationMenu = new QMenu(m_lineLayerNormalizationToolButton);
     m_lineLayerNormalizationMenu->addAction(normalizationWidgetAction);
     QObject::connect(m_lineLayerNormalizationMenu, &QMenu::aboutToShow,
@@ -282,38 +278,26 @@ m_parentObjectName(parentObjectName)
                      this, &ChartTwoOverlayViewController::lineLayerNormalizationMenuAboutToHide);
 
     /*
-     * line layer normalization action
+     * Line layer normalization action
      */
     const int greekMu(0x03bc);
     const int greekSigma(0x03c3);
     const QString normActionText(QString(greekMu)
                                  + QString(greekSigma));
     const QString normActionToolTipText("<html><body>"
-                                        "When button is clicked:<ul>"
-                                        "<li>If both mean and deviation are enabled, both are disabled"
-                                        "<li>If one of mean and deviation are enabled, the other is enabled"
-                                        "<li>If neither mean nor deviation are enabled, mean is enabled"
-                                        "</ul>"
                                         "Click arrow to enable mean and/or deviation and to enter mean"
                                         "and/or deviation value"
                                         "</body></html>");
-    m_lineLayerNormalizationAction = new QAction(this);
-    m_lineLayerNormalizationAction->setCheckable(true);
-    m_lineLayerNormalizationAction->setText(normActionText);
-    m_lineLayerNormalizationAction->setToolTip(normActionToolTipText);
-    m_lineLayerNormalizationAction->setMenu(m_lineLayerNormalizationMenu);
-    m_lineLayerNormalizationAction->setObjectName(objectNamePrefix
-                                          + ":LineLayerNormalization");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_lineLayerNormalizationAction,
+    m_lineLayerNormalizationToolButton->setText(normActionText);
+    m_lineLayerNormalizationToolButton->setToolTip(normActionToolTipText);
+    m_lineLayerNormalizationToolButton->setObjectName(objectNamePrefix
+                                                      + ":LineLayerNormalizationToolButton");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_lineLayerNormalizationToolButton,
                                                          "Adjust Line Layer Normalization");
-    QObject::connect(m_lineLayerNormalizationAction, &QAction::triggered,
-                     this, &ChartTwoOverlayViewController::lineLayerNormalizationActionTriggered);
-    
-    /*
-     * Add action to toolbutton
-     */
-    m_lineLayerNormalizationToolButton->setDefaultAction(m_lineLayerNormalizationAction);
+
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_lineLayerNormalizationToolButton);
+    QObject::connect(m_lineLayerNormalizationToolButton, &QToolButton::clicked,
+                     this, &ChartTwoOverlayViewController::lineLayerNormalizationToolButtonClicked);
     
     /*
      * Match button sizes
@@ -1044,7 +1028,6 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
         }
     }
     updateLineLayerToolTipOffsetToolButton();
-    updateLineLayerNormalizationAction();
     
     /*
      * Update selected point checkbox and index
@@ -1348,74 +1331,11 @@ ChartTwoOverlayViewController::lineLayerActiveModeEnumComboBoxItemActivated()
 }
 
 /**
- * Called when line layer normalization action is triggered
- * @param checked
- *    New checked status
- */
-void
-ChartTwoOverlayViewController::lineLayerNormalizationActionTriggered(bool /*checked*/)
-{
-    if (m_chartOverlay != NULL) {
-        if (m_chartOverlay->isLineChartNewMeanEnabled()
-            && m_chartOverlay->isLineChartNewDeviationEnabled()) {
-            /*
-             * Both mean and deviation are enabled, turn both off
-             */
-            m_chartOverlay->setLineChartNewMeanEnabled(false);
-            m_chartOverlay->setLineChartNewDeviationEnabled(false);
-        }
-        else if (m_chartOverlay->isLineChartNewMeanEnabled()) {
-            /*
-             * Only mean is enabled, turn on deviation
-             */
-            m_chartOverlay->setLineChartNewDeviationEnabled(true);
-        }
-        else if (m_chartOverlay->isLineChartNewDeviationEnabled()) {
-            /*
-             * Only deviation is enabled, turn on mean
-             */
-            m_chartOverlay->setLineChartNewMeanEnabled(true);
-        }
-        else {
-            /*
-             * Neither are on, turn on mean
-             */
-            m_chartOverlay->setLineChartNewMeanEnabled(true);
-        }
-        
-        updateUserInterfaceAndGraphicsWindow();
-    }
-}
-
-/**
- * Update the line layer normalization action checked status
- */
-void
-ChartTwoOverlayViewController::updateLineLayerNormalizationAction()
-{
-    bool checkedFlag(false);
-    if (m_chartOverlay != NULL) {
-        if (m_chartOverlay->isLineChartNewMeanEnabled()
-            || m_chartOverlay->isLineChartNewDeviationEnabled()) {
-            checkedFlag = true;
-        }
-    }
-    
-    QSignalBlocker blocker(m_lineLayerNormalizationAction);
-    m_lineLayerNormalizationAction->setChecked(checkedFlag);
-}
-
-/**
  * Called when line layer normalization menu is about to hide
  */
 void
 ChartTwoOverlayViewController::lineLayerNormalizationMenuAboutToHide()
 {
-    /*
-     * Just need to update toolbar to update the chart axis range widgets
-     */
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
-    updateLineLayerNormalizationAction();
 }
 
 /**
@@ -1425,6 +1345,15 @@ void
 ChartTwoOverlayViewController::lineLayerNormalizationMenuAboutToShow()
 {
     m_lineLayerNormalizationWidget->updateContent(m_chartOverlay);
+}
+
+/**
+ * Called when line layer normalization button is clicked
+ */
+void
+ChartTwoOverlayViewController::lineLayerNormalizationToolButtonClicked()
+{
+    m_lineLayerNormalizationMenu->exec(QPoint(m_lineLayerNormalizationToolButton->mapToGlobal(QPoint(0, m_lineLayerNormalizationToolButton->height()))));
 }
 
 /**
