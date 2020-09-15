@@ -2321,10 +2321,17 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              */
             glShadeModel(GL_FLAT); 
             if (drawingType != SurfaceDrawingTypeEnum::DRAW_HIDE) {
+                /*
+                 * 15sep2020 - Disable culling to fix identification
+                 * problems on surfaces with clockwise oriented triangles
+                 */
+                glPushAttrib(GL_ENABLE_BIT);
+                glDisable(GL_CULL_FACE);
                 this->drawSurfaceNodes(surface,
                                        nodeColoringRGBA);
                 this->drawSurfaceTriangles(surface,
                                            nodeColoringRGBA);
+                glPopAttrib();
             }
 
             this->disableClippingPlanes();
