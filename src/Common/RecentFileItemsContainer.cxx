@@ -111,7 +111,7 @@ RecentFileItemsContainer::~RecentFileItemsContainer()
         }
     }
     
-    removeAllItems();
+    removeAllItemsIncludingFavorites();
 }
 
 /**
@@ -218,7 +218,7 @@ RecentFileItemsContainer::newInstanceRecentDirectories(CaretPreferences* prefere
 void
 RecentFileItemsContainer::updateFavorites(std::vector<RecentFileItemsContainer*>& otherContainers)
 {
-    removeAllItems();
+    removeAllItemsIncludingFavorites();
     
     for (auto& container : otherContainers) {
         for (auto& rfi : container->m_recentFiles) {
@@ -317,12 +317,25 @@ RecentFileItemsContainer::addItemPointer(std::shared_ptr<RecentFileItem>& recent
 }
 
 /**
- * Remove all items in this container
+ * Remove all items in this container including favorites
  */
 void
-RecentFileItemsContainer::removeAllItems()
+RecentFileItemsContainer::removeAllItemsIncludingFavorites()
 {
     m_recentFiles.clear();
+}
+
+/**
+ * Remove all items in this container excluding favorites
+ */
+void
+RecentFileItemsContainer::removeAllItemsExcludingFavorites()
+{
+    for (auto rf : m_recentFiles) {
+        if ( ! rf->isFavorite()) {
+            rf->setForget(true);
+        }
+    }
 }
 
 /**
@@ -398,13 +411,28 @@ std::vector<RecentFileItem*>
 RecentFileItemsContainer::getItems(const RecentFileItemsFilter& itemsFilter) const
 {
     std::vector<RecentFileItem*> itemsOut;
-
     
     for (const auto& item : m_recentFiles) {
         CaretAssert(item);
         if (itemsFilter.testItemPassesFilter(item.get())) {
             itemsOut.push_back(item.get());
         }
+    }
+    
+    return itemsOut;
+}
+
+/**
+ * @return All items in this container
+ */
+std::vector<RecentFileItem*>
+RecentFileItemsContainer::getAllItems() const
+{
+    std::vector<RecentFileItem*> itemsOut;
+    
+    for (const auto& item : m_recentFiles) {
+        CaretAssert(item);
+        itemsOut.push_back(item.get());
     }
     
     return itemsOut;
@@ -464,6 +492,70 @@ RecentFileItemsContainer::sort(const RecentFileItemSortingKeyEnum::Enum sortingK
 }
 
 /**
+ * Reduce the number of items in the container so that it does not exceed the given maximum number of items.
+ * Note: Favorites are NOT removed
+ * @param maximumNumberOfItems
+ *    Maximum number of items in the container after this method completes.  However, since favorites are
+ *    never removed, this maximum may be exceeded if it is less than the number of favorites in the container.
+ * @return Number of items that were removed from the container
+ */
+int32_t
+RecentFileItemsContainer::removeItemsExceedingMaximumNumber(const int32_t maximumNumberOfItems)
+{
+    std::vector<RecentFileItem*> allItems = getAllItems();
+    const int32_t numItems = static_cast<int32_t>(allItems.size());
+    if (numItems <= maximumNumberOfItems) {
+        return 0;
+    }
+    
+    /*
+     * Keep newest items so sort by date last accessed by wb_view
+     */
+    sort(RecentFileItemSortingKeyEnum::DATE_NEWEST,
+         allItems);
+    
+    /*
+     * Keep all favorites
+     */
+    std::vector<RecentFileItem*> itemsToKeep;
+    int32_t numItemsToKeep(maximumNumberOfItems);
+    for (int32_t i = 0; i < numItems; i++) {
+        CaretAssertVectorIndex(allItems, i);
+        if (allItems[i]->isFavorite()) {
+            --numItemsToKeep;
+            itemsToKeep.push_back(new RecentFileItem(*allItems[i]));
+        }
+    }
+    
+    /*
+     * Keep a limited number of non-favorites
+     */
+    if (numItemsToKeep > 0) {
+        for (int32_t i = 0; i < numItems; i++) {
+            CaretAssertVectorIndex(allItems, i);
+            if ( ! allItems[i]->isFavorite()) {
+                itemsToKeep.push_back(new RecentFileItem(*allItems[i]));
+                --numItemsToKeep;
+            }
+            if (numItemsToKeep <= 0) {
+                break;
+            }
+        }
+    }
+
+    /*
+     * Remove all existing items and add back items
+     */
+    removeAllItemsIncludingFavorites();
+    for (auto ptr : itemsToKeep) {
+        addItem(ptr);
+    }
+    
+    const int32_t numItemsRemoved = (numItems - m_recentFiles.size());
+    return numItemsRemoved;
+}
+
+/**
  * Read from the given xml string
  * @param xml
  *     String containing XML.
@@ -477,7 +569,7 @@ RecentFileItemsContainer::readFromXML(const AString& xml,
                                       AString& errorMessageOut)
 {
     errorMessageOut.clear();
-    removeAllItems();
+    removeAllItemsIncludingFavorites();
     
     QXmlStreamReader reader(xml);
     if (reader.atEnd()) {

@@ -25,6 +25,8 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "EventManager.h"
+#include "EventRecentFilesSystemAccessMode.h"
 #include "FileInformation.h"
 
 using namespace caret;
@@ -50,24 +52,65 @@ RecentFileItem::RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
 m_fileItemType(fileItemType),
 m_pathAndFileName(pathAndFileName)
 {
-    FileInformation fileInfo(pathAndFileName);
-    m_pathAndFileName = fileInfo.getAbsoluteFilePath();
-    
-    switch (m_fileItemType) {
-        case RecentFileItemTypeEnum::DIRECTORY:
-            m_pathName = m_pathAndFileName; /* directory !!! */
+    bool useFileSystemFlag(false);
+    EventRecentFilesSystemAccessMode modeEvent;
+    EventManager::get()->sendEvent(modeEvent.getPointer());
+    switch (modeEvent.getMode()) {
+        case RecentFilesSystemAccessModeEnum::OFF:
             break;
-        case RecentFileItemTypeEnum::SCENE_FILE:
-        case RecentFileItemTypeEnum::SPEC_FILE:
-            m_pathName = fileInfo.getAbsolutePath();
+        case RecentFilesSystemAccessModeEnum::OFF_THIS_SESSION:
+            break;
+        case RecentFilesSystemAccessModeEnum::ON:
+            useFileSystemFlag = true;
             break;
     }
-    m_fileName = fileInfo.getFileName();
+    
+    if (useFileSystemFlag) {
+        FileInformation fileInfo(pathAndFileName);
+        m_pathAndFileName = fileInfo.getAbsoluteFilePath();
+        switch (m_fileItemType) {
+            case RecentFileItemTypeEnum::DIRECTORY:
+                m_pathName = m_pathAndFileName; /* directory !!! */
+                break;
+            case RecentFileItemTypeEnum::SCENE_FILE:
+            case RecentFileItemTypeEnum::SPEC_FILE:
+                m_pathName = fileInfo.getAbsolutePath();
+                break;
+        }
+
+        m_fileName = fileInfo.getFileName();
+        m_notFoundFlag = ( ! fileInfo.exists());
+        m_lastModifiedDateTime = fileInfo.getLastModified();
+    }
+    else {
+        m_pathAndFileName = pathAndFileName;
+        switch (m_fileItemType) {
+            case RecentFileItemTypeEnum::DIRECTORY:
+                m_pathName = m_pathAndFileName; /* directory !!! */
+                break;
+            case RecentFileItemTypeEnum::SCENE_FILE:
+            case RecentFileItemTypeEnum::SPEC_FILE:
+            {
+                const int lastSlash = m_pathAndFileName.lastIndexOf('/');
+                m_pathName = "";
+                if (lastSlash >= 0) {
+                    m_pathName = m_pathAndFileName.left(lastSlash);
+                }
+            }
+                break;
+        }
+        
+        const int lastSlash = m_pathAndFileName.lastIndexOf('/');
+        if (lastSlash >= 0) {
+            m_fileName = m_pathAndFileName.mid(lastSlash);
+        }
+        m_notFoundFlag = false;
+        m_lastModifiedDateTime = QDateTime();
+    }
+    
     m_forgetFlag   = false;
-    m_notFoundFlag = ( ! fileInfo.exists());
     m_favoriteFlag = false;
     m_lastAccessDateTime = QDateTime(); /* invalid date/time */
-    m_lastModifiedDateTime = fileInfo.getLastModified();
 }
 
 /**
@@ -86,7 +129,6 @@ RecentFileItem::RecentFileItem(const RecentFileItem& obj)
 : CaretObjectTracksModification(obj)
 {
     this->copyHelperRecentFileItem(obj);
-    std::cout << "RecentFileItem Copy constructor." << std::endl;
 }
 
 /**

@@ -106,6 +106,26 @@ CaretPreferences::CaretPreferences()
                                                                              IdentificationDisplayModeEnum::toName(IdentificationDisplayModeEnum::OVERLAY_TOOLBOX)));
     m_preferenceStoredInSceneDataValues.push_back(m_identificationDisplayModePreference.get());
     
+    
+    const int32_t maximumFilesDirectories(25);
+    m_recentMaximumNumberOfSceneAndSpecFilesPreference.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                              "recentMaximumNumberOfFiles",
+                                                                              CaretPreferenceDataValue::DataType::INTEGER,
+                                                                              CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                              maximumFilesDirectories));
+
+    m_recentMaximumNumberOfDirectoriesPreferences.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                               "recentMaximumNumberOfDirectories",
+                                                                               CaretPreferenceDataValue::DataType::INTEGER,
+                                                                               CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                               maximumFilesDirectories));
+    
+    m_recentFilesSystemAccessMode.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                     "recentFilesSystemAccessMode",
+                                                                     CaretPreferenceDataValue::DataType::STRING,
+                                                                     CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                     RecentFilesSystemAccessModeEnum::toName(RecentFilesSystemAccessModeEnum::ON)));
+    
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
 }
 
@@ -114,6 +134,19 @@ CaretPreferences::CaretPreferences()
  */
 CaretPreferences::~CaretPreferences()
 {
+    switch (getRecentFilesSystemAccessMode()) {
+        case RecentFilesSystemAccessModeEnum::OFF:
+            break;
+        case RecentFilesSystemAccessModeEnum::OFF_THIS_SESSION:
+            /*
+             * Exiting program, so need to reset files system access mode back to ON
+             */
+            setRecentFilesSystemAccessMode(RecentFilesSystemAccessModeEnum::ON);
+            break;
+        case RecentFilesSystemAccessModeEnum::ON:
+            break;
+    }
+    
     /**
      * Note DO NOT delete items in this vector as they are pointers to items
      * in unique_ptr's
@@ -2128,21 +2161,14 @@ bool
 CaretPreferences::readRecentSceneAndSpecFiles(RecentFileItemsContainer* container,
                                               AString& errorMessageOut)
 {
-    CaretAssert(container);
-    bool resultFlag(false);
-    errorMessageOut.clear();
+    const bool successFlag = readRecentFileItemsContainer(NAME_RECENT_SCENE_AND_SPEC_FILES,
+                                                          container,
+                                                          errorMessageOut);
+    if (successFlag) {
+        container->removeItemsExceedingMaximumNumber(getRecentMaximumNumberOfSceneAndSpecFiles());
+    }
     
-    const AString xmlText = getString(NAME_RECENT_SCENE_AND_SPEC_FILES);
-    if ( ! xmlText.isEmpty()) {
-        resultFlag = container->readFromXML(xmlText,
-                                            errorMessageOut);
-    }
-    else {
-        /* Empty string (no previous value in preferences) is OK */
-        resultFlag = true;
-    }
-
-    return resultFlag;
+    return successFlag;
 }
 
 /**
@@ -2155,22 +2181,13 @@ CaretPreferences::readRecentSceneAndSpecFiles(RecentFileItemsContainer* containe
  *  @return True if successful, false if error.
  */
 bool
-CaretPreferences::writeRecentSceneAndSpecFiles(const RecentFileItemsContainer* container,
+CaretPreferences::writeRecentSceneAndSpecFiles(RecentFileItemsContainer* container,
                                                AString& errorMessageOut)
 {
-    CaretAssert(container);
-    bool resultFlag(false);
-    errorMessageOut.clear();
-
-    AString xmlText;
-    resultFlag = container->writeToXML(xmlText,
-                                       errorMessageOut);
-    if (resultFlag) {
-        setString(NAME_RECENT_SCENE_AND_SPEC_FILES,
-                  xmlText);
-    }
-
-    return resultFlag;
+    container->removeItemsExceedingMaximumNumber(getRecentMaximumNumberOfSceneAndSpecFiles());
+    return writeRecentFileItemsContainer(NAME_RECENT_SCENE_AND_SPEC_FILES,
+                                         container,
+                                         errorMessageOut);
 }
 
 /**
@@ -2189,6 +2206,12 @@ CaretPreferences::addToRecentFilesAndOrDirectories(const AString& directoryOrFil
     if (ApplicationInformation().getApplicationType() != ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
         return;
     }
+    
+    if ((getRecentMaximumNumberOfSceneAndSpecFiles() <= 0)
+        && (getRecentMaximumNumberOfDirectories() <= 0)) {
+        return;
+    }
+    
     /*
      * User could have a directory ending with a scene or spec file extension.
      * While highly unlikely, make sure it is a file before adding to
@@ -2235,9 +2258,18 @@ CaretPreferences::addToRecentSceneAndSpecFiles(const AString& filename)
         return;
     }
     
+    if (getRecentMaximumNumberOfSceneAndSpecFiles() <= 0) {
+        return;
+    }
+    
     if (filename.isEmpty()) {
         return;
     }
+    
+    if (isInRecentFilesExclusionPaths(filename)) {
+        return;
+    }
+    
     const AString errorPrefix("Error updating recent scene spec files ");
     
     RecentFileItemTypeEnum::Enum itemType = RecentFileItemTypeEnum::SCENE_FILE;
@@ -2295,6 +2327,69 @@ CaretPreferences::addToRecentSceneAndSpecFiles(const AString& filename)
     }
 }
 
+/**
+ * Read the recent file items container using the  given preference name.
+ *
+ * @param preferenceName
+ *   Name of container in preferences
+ * @param container
+ *   The recent file items container
+ * @param errorMessageOut
+ *   Eerror information if false returned
+ * @return True if successful, false if error.
+ */
+bool
+CaretPreferences::readRecentFileItemsContainer(const AString& preferenceName,
+                                               RecentFileItemsContainer* container,
+                                               AString& errorMessageOut)
+{
+    CaretAssert(container);
+    bool resultFlag(false);
+    errorMessageOut.clear();
+    
+    const AString xmlText = getString(preferenceName);
+    if ( ! xmlText.isEmpty()) {
+        resultFlag = container->readFromXML(xmlText,
+                                            errorMessageOut);
+    }
+    else {
+        /* Empty string (no previous value in preferences) is OK */
+        resultFlag = true;
+    }
+    
+    return resultFlag;
+}
+
+/**
+ * Write the recent file items container using the  given preference name.
+ *
+ * @param preferenceName
+ *   Name of container in preferences
+ * @param container
+ *   The recent file items container
+ * @param errorMessageOut
+ *   Eerror information if false returned
+ * @return True if successful, false if error.
+ */
+bool
+CaretPreferences::writeRecentFileItemsContainer(const AString& preferenceName,
+                                                const RecentFileItemsContainer* container,
+                                                AString& errorMessageOut)
+{
+    CaretAssert(container);
+    bool resultFlag(false);
+    errorMessageOut.clear();
+    
+    AString xmlText;
+    resultFlag = container->writeToXML(xmlText,
+                                       errorMessageOut);
+    if (resultFlag) {
+        setString(preferenceName,
+                  xmlText);
+    }
+    
+    return resultFlag;
+}
 
 /**
  * Read the recent directories from preferences and add them to the given container.
@@ -2309,21 +2404,14 @@ bool
 CaretPreferences::readRecentDirectories(RecentFileItemsContainer* container,
                                         AString& errorMessageOut)
 {
-    CaretAssert(container);
-    bool resultFlag(false);
-    errorMessageOut.clear();
+    const bool successFlag = readRecentFileItemsContainer(NAME_RECENT_DIRECTORIES,
+                                                          container,
+                                                          errorMessageOut);
+    if (successFlag) {
+        container->removeItemsExceedingMaximumNumber(getRecentMaximumNumberOfDirectories());
+    }
     
-    const AString xmlText = getString(NAME_RECENT_DIRECTORIES);
-    if ( ! xmlText.isEmpty()) {
-        resultFlag = container->readFromXML(xmlText,
-                                            errorMessageOut);
-    }
-    else {
-        /* Empty string (no previous value in preferences) is OK */
-        resultFlag = true;
-    }
-
-    return resultFlag;
+    return successFlag;
 }
 
 /**
@@ -2336,22 +2424,14 @@ CaretPreferences::readRecentDirectories(RecentFileItemsContainer* container,
  *  @return True if successful, false if error.
  */
 bool
-CaretPreferences::writeRecentDirectories(const RecentFileItemsContainer* container,
+CaretPreferences::writeRecentDirectories(RecentFileItemsContainer* container,
                                          AString& errorMessageOut)
 {
-    CaretAssert(container);
-    bool resultFlag(false);
-    errorMessageOut.clear();
+    container->removeItemsExceedingMaximumNumber(getRecentMaximumNumberOfDirectories());
     
-    AString xmlText;
-    resultFlag = container->writeToXML(xmlText,
-                                       errorMessageOut);
-    if (resultFlag) {
-        setString(NAME_RECENT_DIRECTORIES,
-                  xmlText);
-    }
-    
-    return resultFlag;
+    return writeRecentFileItemsContainer(NAME_RECENT_DIRECTORIES,
+                                         container,
+                                         errorMessageOut);
 }
 
 /**
@@ -2372,6 +2452,14 @@ CaretPreferences::addToRecentDirectories(const AString& directoryOrFileName)
         return;
     }
 
+    if (getRecentMaximumNumberOfDirectories() <= 0) {
+        return;
+    }
+    
+    if (isInRecentFilesExclusionPaths(directoryOrFileName)) {
+        return;
+    }
+    
     AString directoryName(directoryOrFileName);
     
     if (directoryName.isEmpty()) {
@@ -2462,6 +2550,254 @@ CaretPreferences::getRecentDirectoriesForOpenFileDialogHistory(const bool favori
     directoriesOut.insert(directoriesOut.end(),
                           notFavs.begin(),
                           notFavs.end());
+}
+
+/**
+ * @return Maximum number of recent files for open recent files dialog
+ */
+int32_t
+CaretPreferences::getRecentMaximumNumberOfSceneAndSpecFiles() const
+{
+    return m_recentMaximumNumberOfSceneAndSpecFilesPreference->getValue().toInt();
+}
+
+/**
+ * Set maximum number of recent files for open recent files dialog
+ * @param maximumNumberOfFiles
+ *    New maximum number of files
+ */
+void
+CaretPreferences::setRecentMaximumNumberOfSceneAndSpecFiles(const int32_t maximumNumberOfFiles)
+{
+    m_recentMaximumNumberOfSceneAndSpecFilesPreference->setValue(maximumNumberOfFiles);
+}
+
+/**
+ * Clear the recent files
+ * @param removeFavoritesFlag
+ *    If true remove any favorites, else keep them.
+ */
+void
+CaretPreferences::clearRecentSceneAndSpecFiles(const bool removeFavoritesFlag)
+{
+    const AString errorPrefix("Error updating recent directories ");
+    
+    std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstance());
+    AString errorMessage;
+    bool successFlag(readRecentSceneAndSpecFiles(container.get(),
+                                                 errorMessage));
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during reading: "
+                       + errorMessage);
+        return;
+    }
+    
+    if (removeFavoritesFlag) {
+        container->removeAllItemsIncludingFavorites();
+    }
+    else {
+        container->removeAllItemsExcludingFavorites();
+    }
+    
+    successFlag = writeRecentSceneAndSpecFiles(container.get(),
+                                               errorMessage);
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during writing: "
+                       + errorMessage);
+        return;
+    }
+}
+
+/**
+ * @return Maximum number of recent directories for open recent files dialog
+ */
+int32_t
+CaretPreferences::getRecentMaximumNumberOfDirectories() const
+{
+    return m_recentMaximumNumberOfDirectoriesPreferences->getValue().toInt();
+}
+
+/**
+ * Set maximum number of recent directories for open recent files dialog
+ * @param maximumNumberOfDirectories
+ *    New maximum number of directories
+ */
+void CaretPreferences::setRecentMaximumNumberOfDirectories(const int32_t maximumNumberOfDirectories)
+{
+    m_recentMaximumNumberOfDirectoriesPreferences->setValue(maximumNumberOfDirectories);
+}
+
+/**
+ * Clear the recent directories
+ * @param removeFavoritesFlag
+ *    If true remove any favorites, else keep them.
+ */
+void
+CaretPreferences::clearRecentDirectories(const bool removeFavoritesFlag)
+{
+    const AString errorPrefix("Error updating recent directories ");
+    
+    std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstance());
+    AString errorMessage;
+    bool successFlag(readRecentDirectories(container.get(),
+                                           errorMessage));
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during reading: "
+                       + errorMessage);
+        return;
+    }
+    
+    if (removeFavoritesFlag) {
+        container->removeAllItemsIncludingFavorites();
+    }
+    else {
+        container->removeAllItemsExcludingFavorites();
+    }
+    
+    successFlag = writeRecentDirectories(container.get(),
+                                         errorMessage);
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during writing: "
+                       + errorMessage);
+        return;
+    }
+}
+
+/**
+ * @return Mode for accessing the file system for recent files/directories file info (last modified)
+ */
+RecentFilesSystemAccessModeEnum::Enum
+CaretPreferences::getRecentFilesSystemAccessMode() const
+{
+    bool validFlag(false);
+    RecentFilesSystemAccessModeEnum::Enum mode = RecentFilesSystemAccessModeEnum::fromName(m_recentFilesSystemAccessMode->getValue().toString(),
+                                                                                           &validFlag);
+    return mode;
+}
+
+/**
+ * Set mode for accessing the file system for recent files/directories file info (last modified)
+ * @param filesSystemAccessMode
+ *    New mode
+ */
+void
+CaretPreferences::setRecentFilesSystemAccessMode(const RecentFilesSystemAccessModeEnum::Enum filesSystemAccessMode)
+{
+    m_recentFilesSystemAccessMode->setValue(RecentFilesSystemAccessModeEnum::toName(filesSystemAccessMode));
+}
+
+/**
+ * Get the recent files exclusion paths
+ * @param exclusionPathsOut
+ *    Output containing the exclusion paths
+ */
+void
+CaretPreferences::readRecentFilesExclusionPaths(std::set<AString>& exclusionPathsOut)
+{
+    exclusionPathsOut.clear();
+    
+    std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstance());
+    AString errorMessage;
+    const bool resultFlag = readRecentFileItemsContainer(NAME_RECENT_EXCLUSION_PATHS,
+                                                         container.get(),
+                                                         errorMessage);
+    if (resultFlag) {
+        RecentFileItemsFilter filter;
+        filter.setListDirectories(true);
+        std::vector<RecentFileItem*> items = container->getItems(filter);
+        for (auto p : items) {
+            exclusionPathsOut.insert(p->getPathAndFileName());
+        }
+    }
+    else {
+        CaretLogWarning("Reading recent files exclusion paths: "
+                        + errorMessage);
+    }
+}
+
+/**
+ * Set the recent files exclusion paths
+ * @param exclusionPathsOut
+ *    Exclusion paths saved into preferences
+ */
+void
+CaretPreferences::writeRecentFilesExclusionPaths(const std::set<AString>& exclusionPaths)
+{
+    std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstance());
+    for (auto p : exclusionPaths) {
+        RecentFileItem* item = new RecentFileItem(RecentFileItemTypeEnum::DIRECTORY,
+                                                  p);
+        container->addItem(item);
+    }
+    AString errorMessage;
+    const bool resultFlag = writeRecentFileItemsContainer(NAME_RECENT_EXCLUSION_PATHS,
+                                                         container.get(),
+                                                         errorMessage);
+    if ( ! resultFlag) {
+        CaretLogWarning("Writing recent files exclusion paths: "
+                        + errorMessage);
+    }
+}
+
+/**
+ * Add a path to the recent files exclusion paths
+ * @param exclusionPath
+ *    Path to add
+ */
+void
+CaretPreferences::addToRecentFilesExclusionPaths(const AString& exclusionPath)
+{
+    std::set<AString> paths;
+    readRecentFilesExclusionPaths(paths);
+    paths.insert(exclusionPath);
+    writeRecentFilesExclusionPaths(paths);
+}
+
+/**
+ * Remove a path to the recent files exclusion paths
+ * @param exclusionPath
+ *    Path to remove
+ */
+void
+CaretPreferences::removeFromRecentFilesExclusionPaths(const AString& exclusionPath)
+{
+    std::set<AString> paths;
+    readRecentFilesExclusionPaths(paths);
+    paths.erase(exclusionPath);
+    writeRecentFilesExclusionPaths(paths);
+}
+
+/**
+ * @return True if the given file/directory is in a recent files exclusion path
+ * @param fileOrDirectoryName
+ *    Name of file or directory
+ */
+bool
+CaretPreferences::isInRecentFilesExclusionPaths(const AString& fileOrDirectoryName)
+{
+    if (fileOrDirectoryName.isEmpty()) {
+        return false;
+    }
+    
+    std::set<AString> exclusionPaths;
+    readRecentFilesExclusionPaths(exclusionPaths);
+    if (exclusionPaths.empty()) {
+        return false;
+    }
+    
+    const AString directoryName = FileInformation(fileOrDirectoryName).getAbsolutePath();
+
+    for (auto ep : exclusionPaths) {
+        if (directoryName.startsWith(ep)) {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 /**

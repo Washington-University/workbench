@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <memory>
+#include <set>
 #include <utility>
 
 #include "BackgroundAndForegroundColors.h"
@@ -32,6 +33,7 @@
 #include "ImageCaptureMethodEnum.h"
 #include "LogLevelEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
+#include "RecentFilesSystemAccessModeEnum.h"
 #include "SpecFileDialogViewFilesTypeEnum.h"
 #include "ToolBarWidthModeEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
@@ -71,17 +73,41 @@ namespace caret {
         bool readRecentSceneAndSpecFiles(RecentFileItemsContainer* container,
                                          AString& errorMessageOut);
         
-        bool writeRecentSceneAndSpecFiles(const RecentFileItemsContainer* container,
+        bool writeRecentSceneAndSpecFiles(RecentFileItemsContainer* container,
                                           AString& errorMessageOut);
         
         bool readRecentDirectories(RecentFileItemsContainer* container,
                                    AString& errorMessageOut);
         
-        bool writeRecentDirectories(const RecentFileItemsContainer* container,
+        bool writeRecentDirectories(RecentFileItemsContainer* container,
                                     AString& errorMessageOut);
         
         void getRecentDirectoriesForOpenFileDialogHistory(const bool favoritesFirstFlag,
                                                           std::vector<AString>& directoriesOut);
+        
+        int32_t getRecentMaximumNumberOfSceneAndSpecFiles() const;
+        
+        void setRecentMaximumNumberOfSceneAndSpecFiles(const int32_t maximumNumberOfFiles);
+        
+        void clearRecentSceneAndSpecFiles(const bool removeFavoritesFlag);
+        
+        int32_t getRecentMaximumNumberOfDirectories() const;
+        
+        void setRecentMaximumNumberOfDirectories(const int32_t maximumNumberOfDirectories);
+        
+        void clearRecentDirectories(const bool removeFavoritesFlag);
+
+        RecentFilesSystemAccessModeEnum::Enum getRecentFilesSystemAccessMode() const;
+
+        void setRecentFilesSystemAccessMode(const RecentFilesSystemAccessModeEnum::Enum filesSystemAccessMode);
+        
+        void readRecentFilesExclusionPaths(std::set<AString>& exclusionPathsOut);
+        
+        void writeRecentFilesExclusionPaths(const std::set<AString>& exclusionPaths);
+        
+        void addToRecentFilesExclusionPaths(const AString& exclusionPath);
+        
+        void removeFromRecentFilesExclusionPaths(const AString& exclusionPath);
         
         LogLevelEnum::Enum getLoggingLevel() const;
         
@@ -317,6 +343,16 @@ namespace caret {
         
         AString getPaletteKey(const AString& paletteName) const;
         
+        bool readRecentFileItemsContainer(const AString& preferenceName,
+                                          RecentFileItemsContainer* container,
+                                          AString& errorMessageOut);
+
+        bool writeRecentFileItemsContainer(const AString& preferenceName,
+                                           const RecentFileItemsContainer* container,
+                                           AString& errorMessageOut);
+
+        bool isInRecentFilesExclusionPaths(const AString& fileOrDirectoryName);
+        
         mutable QSettings* qSettings;
         
         BackgroundAndForegroundColors userColors;
@@ -363,6 +399,12 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_fileOpenFromOperatingSystemTypePreference;
         
         std::vector<CaretPreferenceDataValue*> m_preferenceStoredInSceneDataValues;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_recentMaximumNumberOfSceneAndSpecFilesPreference;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_recentMaximumNumberOfDirectoriesPreferences;
+
+        std::unique_ptr<CaretPreferenceDataValue> m_recentFilesSystemAccessMode;
         
         bool splashScreenEnabled;
         
@@ -428,6 +470,7 @@ namespace caret {
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
         static const AString NAME_SPLASH_SCREEN;
         static const AString NAME_RECENT_DIRECTORIES;
+        static const AString NAME_RECENT_EXCLUSION_PATHS;
         static const AString NAME_RECENT_SCENE_AND_SPEC_FILES;
         static const AString NAME_REMOTE_FILE_USER_NAME;
         static const AString NAME_REMOTE_FILE_PASSWORD;
@@ -478,6 +521,7 @@ namespace caret {
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
     const AString CaretPreferences::NAME_SPLASH_SCREEN = "splashScreen";
     const AString CaretPreferences::NAME_RECENT_DIRECTORIES = "recentDirectories";
+    const AString CaretPreferences::NAME_RECENT_EXCLUSION_PATHS = "recentExclusionPaths";
     const AString CaretPreferences::NAME_RECENT_SCENE_AND_SPEC_FILES = "recentSceneAndSpecFiles";
     const AString CaretPreferences::NAME_REMOTE_FILE_USER_NAME = "remoteFileUserName";
     const AString CaretPreferences::NAME_REMOTE_FILE_PASSWORD = "remoteFilePassword";

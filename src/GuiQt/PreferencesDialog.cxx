@@ -92,6 +92,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     m_allWidgets = new WuQWidgetObjectGroup(this);
     
     m_recentFilesWidget = new PreferencesRecentFilesWidget();
+    QObject::connect(m_recentFilesWidget, &PreferencesRecentFilesWidget::updateDialog,
+                     this, &PreferencesDialog::recentFilesChanged);
     
     /*
      * Create the tab widget and all tab content
@@ -406,16 +408,6 @@ PreferencesDialog::createMiscellaneousWidget()
     m_allWidgets->add(m_miscLoggingLevelComboBox);
     
     /*
-     * Splash Screen
-     */
-    m_miscSplashScreenShowAtStartupComboBox = new WuQTrueFalseComboBox("On",
-                                                                       "Off",
-                                                                       this);
-    QObject::connect(m_miscSplashScreenShowAtStartupComboBox, SIGNAL(statusChanged(bool)),
-                     this, SLOT(miscSplashScreenShowAtStartupComboBoxChanged(bool)));
-    m_allWidgets->add(m_miscSplashScreenShowAtStartupComboBox);
-    
-    /*
      * Developer Menu
      */
     m_miscDevelopMenuEnabledComboBox = new WuQTrueFalseComboBox("On",
@@ -481,9 +473,6 @@ PreferencesDialog::createMiscellaneousWidget()
                       "Show Develop Menu in Menu Bar: ",
                       m_miscDevelopMenuEnabledComboBox->getWidget());
     addWidgetToLayout(gridLayout,
-                      "Show Splash Screen at Startup: ",
-                      m_miscSplashScreenShowAtStartupComboBox->getWidget());
-    addWidgetToLayout(gridLayout,
                       "Enable Trackpad Gestures: ",
                       m_guiGesturesEnabledComboBox->getWidget());
     addWidgetToLayout(gridLayout,
@@ -518,8 +507,6 @@ PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
     }
     
     m_miscDevelopMenuEnabledComboBox->setStatus(prefs->isDevelopMenuEnabled());
-    
-    m_miscSplashScreenShowAtStartupComboBox->setStatus(prefs->isSplashScreenEnabled());
     
     m_yokingDefaultComboBox->setStatus(prefs->isYokingDefaultedOn());
     
@@ -871,6 +858,15 @@ PreferencesDialog::addWidgetsToLayout(QGridLayout* gridLayout,
 }
 
 /**
+ * Called when changes are made to recent files
+ */
+void
+PreferencesDialog::recentFilesChanged()
+{
+    updateDialog();
+}
+
+/**
  * May be called to update the dialog's content.
  */
 void 
@@ -884,6 +880,7 @@ PreferencesDialog::updateDialog()
     updateIdentificationWidget(prefs);
     updateOpenGLWidget(prefs);
     updateVolumeWidget(prefs);
+    m_recentFilesWidget->updateContent(prefs);
     
     m_allWidgets->blockAllSignals(false);
 }
@@ -1163,17 +1160,6 @@ PreferencesDialog::yokingComboBoxToggled(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setYokingDefaultedOn(value);
-}
-
-/**
- * Called when show splash screen option changed.
- * @param value
- *   New value.
- */
-void PreferencesDialog::miscSplashScreenShowAtStartupComboBoxChanged(bool value)
-{
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->setSplashScreenEnabled(value);
 }
 
 /**

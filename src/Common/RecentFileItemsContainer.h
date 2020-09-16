@@ -78,7 +78,9 @@ namespace caret {
                 
         void addItem(RecentFileItem* recentFile);
         
-        void removeAllItems();
+        void removeAllItemsIncludingFavorites();
+        
+        void removeAllItemsExcludingFavorites();
         
         RecentFileItem* getItemWithPathAndFileName(const AString& pathAndFileName);
         
@@ -92,6 +94,8 @@ namespace caret {
 
         virtual AString toString() const;
         
+        int32_t removeItemsExceedingMaximumNumber(const int32_t maximumNumberOfItems);
+
         static void sort(const RecentFileItemSortingKeyEnum::Enum sortingKey,
                          std::vector<RecentFileItem*>& items);
         
@@ -116,6 +120,8 @@ namespace caret {
         
         void readFromXMLVersionOneRecentFileItem(QXmlStreamReader& reader);
         
+        std::vector<RecentFileItem*> getAllItems() const;
+
         RecentFileItemsContainerModeEnum::Enum m_mode;
         
         CaretPreferences* m_caretPreferences = NULL;
@@ -139,7 +145,7 @@ namespace caret {
          * comparison is performed on content of the RecentFileItem and NOT the pointers.
          *
          * A Favorites container uses items from other containers so shared pointers are used
-         * since an item may in a favotites container and another container.
+         * since an item may in a favorites container and another container.
          *
          * A set is used to avoid duplicate entries.
          */

@@ -58,7 +58,6 @@ namespace caret {
         
         void miscDevelopMenuEnabledComboBoxChanged(bool value);
         void miscLoggingLevelComboBoxChanged(int);
-        void miscSplashScreenShowAtStartupComboBoxChanged(bool value);
         void miscSpecFileDialogViewFilesTypeEnumComboBoxItemActivated();
         void miscGuiGesturesEnabledComboBoxChanged(bool value);
         void miscDynamicConnectivityComboBoxChanged(bool value);
@@ -79,6 +78,7 @@ namespace caret {
         void identificationSymbolToggled();
         void identificationModeEnumComboBoxItemActivated();
         
+        void recentFilesChanged();
     private:
         enum PREF_COLOR {
             PREF_COLOR_BACKGROUND_ALL          = 0,
@@ -141,7 +141,6 @@ namespace caret {
 
         WuQTrueFalseComboBox* m_miscDevelopMenuEnabledComboBox;
         QComboBox* m_miscLoggingLevelComboBox;
-        WuQTrueFalseComboBox* m_miscSplashScreenShowAtStartupComboBox;
         EnumComboBoxTemplate* m_miscSpecFileDialogViewFilesTypeEnumComboBox;
         WuQTrueFalseComboBox* m_guiGesturesEnabledComboBox;
         EnumComboBoxTemplate* m_windowToolBarWidthModeComboBox;

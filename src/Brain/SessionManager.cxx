@@ -58,6 +58,7 @@
 #include "EventModelGetAll.h"
 #include "EventModelGetAllDisplayed.h"
 #include "EventProgressUpdate.h"
+#include "EventRecentFilesSystemAccessMode.h"
 #include "EventSpacerTabGet.h"
 #include "ImageCaptureSettings.h"
 #include "LogManager.h"
@@ -113,6 +114,7 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_GET_ALL_DISPLAYED);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_RECENT_FILES_SYSTEM_ACCESS_MODE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SPACER_TAB_GET);
     
     Brain* brain = new Brain(m_caretPreferences);
@@ -565,6 +567,12 @@ SessionManager::receiveEvent(Event* event)
         }
         
         getDisplayedModelsEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_RECENT_FILES_SYSTEM_ACCESS_MODE) {
+        EventRecentFilesSystemAccessMode* modeEvent = dynamic_cast<EventRecentFilesSystemAccessMode*>(event);
+        CaretAssert(modeEvent);
+        modeEvent->setMode(m_caretPreferences->getRecentFilesSystemAccessMode());
+        modeEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_SPACER_TAB_GET) {
         EventSpacerTabGet* spacerTabEvent = dynamic_cast<EventSpacerTabGet*>(event);

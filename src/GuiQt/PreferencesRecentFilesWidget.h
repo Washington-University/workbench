@@ -32,7 +32,9 @@
 
 
 namespace caret {
+    class CaretPreferences;
     class EnumComboBoxTemplate;
+    class WuQTrueFalseComboBox;
 
     class PreferencesRecentFilesWidget : public QWidget {
         
@@ -47,37 +49,48 @@ namespace caret {
 
         PreferencesRecentFilesWidget& operator=(const PreferencesRecentFilesWidget&) = delete;
         
+        void updateContent(CaretPreferences* preferences);
 
         // ADD_NEW_METHODS_HERE
 
+    signals:
+        void updateDialog();
+        
     private slots:
         void recentFilesSystemAccessModeEnumComboBoxItemActivated();
         
-        void numberOfRecentFilesSpinBoxValueChanged(int);
+        void numberOfRecentSceneAndSpecFilesSpinBoxValueChanged(int);
         
         void numberOfRecentDirectoriesSpinBoxValueChanged(int);
         
-        void clearRecentFilesButtonClicked();
+        void clearRecentSceneAndSpecFilesButtonClicked();
         
         void clearRecentDirectoriesButtonClicked();
-        
-        void removeInvalidPathsButtonClicked();
         
         void addExclusionPathButtonClicked();
         
         void removeExclusionPathButtonClicked();
         
+        void showOpenRecentFilesDialogAtStartupComboBoxActivated(bool status);
+        
     private:
-        void updateContent();
+        void getMaximumSpinBoxAndClearButtonToolTips(const QString& typeName,
+                                                     QString& spinBoxToolTipOut,
+                                                     QString& clearButtonToolTipOut) const;
+        
+        /* DO NOT delete */
+        CaretPreferences* m_preferences = NULL;
         
         EnumComboBoxTemplate* m_recentFilesSystemAccessModeEnumComboBox;
         
-        QSpinBox* m_numberOfRecentFilesSpinBox;
+        QSpinBox* m_numberOfRecentSceneAndSpecFilesSpinBox;
         
         QSpinBox* m_numberOfRecentDirectoriesSpinBox;
         
         QListWidget* m_exclusionPathsListWidget;
         
+        WuQTrueFalseComboBox* m_showOpenRecentFilesDialogAtStartupComboBox;
+
         // ADD_NEW_MEMBERS_HERE
 
     };

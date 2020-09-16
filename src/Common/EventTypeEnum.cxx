@@ -410,6 +410,10 @@ EventTypeEnum::initialize()
                                      "EVENT_PALETTE_GROUPS_GET",
                                      "Get all palette groups"));
     
+    enumData.push_back(EventTypeEnum(EVENT_RECENT_FILES_SYSTEM_ACCESS_MODE,
+                                     "EVENT_RECENT_FILES_SYSTEM_ACCESS_MODE",
+                                     "Get file system access mode for recent files"));
+    
     enumData.push_back(EventTypeEnum(EVENT_SCENE_ACTIVE,
                                      "EVENT_SCENE_ACTIVE",
                                      "Get/Set the active scene"));
