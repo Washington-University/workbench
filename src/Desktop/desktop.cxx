@@ -56,6 +56,7 @@
 #include "MacApplication.h"
 #include "ProgramParameters.h"
 #include "RecentFilesDialog.h"
+#include "RecentFilesSystemAccessModeEnum.h"
 #include "SessionManager.h"
 #include "SystemUtilities.h"
 #include "WuQMessageBox.h"
@@ -776,15 +777,35 @@ void printHelp(const AString& progName)
     << "        similar to Linux and Window Applications.  "
     << "        May be useful for creating tutorial images and videos." << endl
     << endl
+    << "    -no-recent-files-dialog" << endl
+    << "         Inhibits display of Open Recent Files Dialog at wb_view startup." << endl
+    << endl
     << "    -no-splash" << endl
-    << "        disable all splash screens" << endl
+    << "        (Obsolete) Replaced by \"-no-recent-files-dialog\"" << endl
+    << "        Splash screen was replaced with Open Recent Fiels Dialog." << endl
+    << endl
+    << "    -recent-files-mode <mode>" << endl
+    << "        Set the recent file's file system access mode" << endl
+    << "        (overrides and replaces value in preferences)." << endl
+    << "        Using an off mode prevents file system access for " << endl
+    << "        obtaining last modified time and file existance." << endl
+    << "        This option may be useful if recent files are on a mounted" << endl
+    << "        file system that is having problems that may cause wb_view" << endl
+    << "        to hang at startup.  Valid modes are:" << endl;
+    
+    std::vector<RecentFilesSystemAccessModeEnum::Enum> recentFilesModes;
+    RecentFilesSystemAccessModeEnum::getAllEnums(recentFilesModes);
+    for (auto rfm : recentFilesModes) {
+        std::cout  << "            " <<RecentFilesSystemAccessModeEnum::toName(rfm) << endl;
+    }
+    
+    cout
     << endl
     << "    -scene-load <scene-file-name> <scene-name-or-number>" << endl
     << "        load the specified scene file and display the scene " << endl
     << "        in the file that matches by name or number.  Name" << endl
     << "        takes precedence over number.  The scene numbers " << endl
     << "        start at one." << endl
-    << "        " << endl
     << endl
     << "    -style <style-name>" << endl
     << "        change the window style to the specified style" << endl
@@ -854,8 +875,30 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                     }
                 } else if (thisParam == "-mac-menu-in-window") {
                     myState.macMenuFlag = true;
-                } else if (thisParam == "-no-splash") {
+                } else if ((thisParam == "-no-splash")
+                           || (thisParam == "-no-recent-files-dialog")) {
                     myState.showSplash = false;
+                } else if (thisParam == "-recent-files-mode") {
+                    if (myParams->hasNext()) {
+                        const AString recentFilesModeName = myParams->nextString("Recent Files Mode").toUpper();
+                        bool valid = false;
+                        const RecentFilesSystemAccessModeEnum::Enum recentFilesMode = RecentFilesSystemAccessModeEnum::fromName(recentFilesModeName, &valid);
+                        if (valid)
+                        {
+                            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+                            prefs->setRecentFilesSystemAccessMode(recentFilesMode);
+                        }
+                        else {
+                            cerr << "Invalid recent files mode \""
+                            << qPrintable(recentFilesModeName)
+                            << "\" for \"-recent-files-mode\" option" << std::endl;
+                            hasFatalError = true;
+                        }
+                    }
+                    else {
+                        cerr << "Missing recent files mode for \"-recent-files-mode\" option" << std::endl;
+                        hasFatalError = true;
+                    }
                 } else if (thisParam == "-scene-load") {
                     if (myParams->hasNext()) {
                         myState.sceneFileName = myParams->nextString("Scene File Name");
