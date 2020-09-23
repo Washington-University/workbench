@@ -117,6 +117,7 @@ ELSE()
         ChartMatrixParcelSelectionViewController.h
         ChartMatrixSeriesSelectionViewController.h
         ChartTwoAxisPropertiesEditorWidget.h
+	ChartTwoCartesianCustomSubdivisionsEditorWidget.h
 	ChartTwoLineLayerNormalizationWidget.h
         ChartTwoOverlaySetViewController.h
         ChartTwoOverlayViewController.h
@@ -366,11 +367,13 @@ CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
 CaretMappableDataFileAndMapSelectorObject.h
+CaretResultDialog.h
 ChartHistoryViewController.h
 ChartLinesSelectionViewController.h
 ChartMatrixParcelSelectionViewController.h
 ChartMatrixSeriesSelectionViewController.h
 ChartTwoAxisPropertiesEditorWidget.h
+ChartTwoCartesianCustomSubdivisionsEditorWidget.h
 ChartTwoLineLayerNormalizationWidget.h
 ChartTwoOverlaySetViewController.h
 ChartTwoOverlayViewController.h
@@ -675,11 +678,13 @@ CaretFileDialogExtendable.cxx
 CaretFileRemoteDialog.cxx
 CaretMappableDataFileAndMapSelector.cxx
 CaretMappableDataFileAndMapSelectorObject.cxx
+CaretResultDialog.cxx
 ChartHistoryViewController.cxx
 ChartLinesSelectionViewController.cxx
 ChartMatrixParcelSelectionViewController.cxx
 ChartMatrixSeriesSelectionViewController.cxx
 ChartTwoAxisPropertiesEditorWidget.cxx
+ChartTwoCartesianCustomSubdivisionsEditorWidget.cxx
 ChartTwoLineLayerNormalizationWidget.cxx
 ChartTwoOverlaySetViewController.cxx
 ChartTwoOverlayViewController.cxx

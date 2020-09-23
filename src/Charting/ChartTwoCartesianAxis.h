@@ -26,6 +26,7 @@
 #include "CaretObject.h"
 #include "ChartAxisLocationEnum.h"
 #include "ChartTwoAxisScaleRangeModeEnum.h"
+#include "ChartTwoCartesianSubdivisionsModeEnum.h"
 #include "ChartTwoNumericSubdivisionsModeEnum.h"
 #include "CaretUnitsTypeEnum.h"
 #include "NumericFormatModeEnum.h"
@@ -33,6 +34,7 @@
 
 
 namespace caret {
+    class ChartTwoCartesianCustomSubdivisions;
     class ChartTwoOverlaySetInterface;
     class SceneClassAssistant;
 
@@ -113,6 +115,14 @@ namespace caret {
         
         void setPaddingSize(const float paddingSize);
         
+        ChartTwoCartesianCustomSubdivisions* getCustomSubdivisions();
+        
+        const ChartTwoCartesianCustomSubdivisions* getCustomSubdivisions() const;
+        
+        ChartTwoCartesianSubdivisionsModeEnum::Enum getSubdivisionsMode() const;
+        
+        void setSubdivisionsMode(const ChartTwoCartesianSubdivisionsModeEnum::Enum subdivisionsMode);
+        
         int32_t getLabelOverlayIndex(const int32_t maximumNumberOfOverlays) const;
         
         void setLabelOverlayIndex(const int32_t labelOverlayIndex);
@@ -166,6 +176,10 @@ namespace caret {
         ChartTwoNumericSubdivisionsModeEnum::Enum m_numericSubdivsionsMode = ChartTwoNumericSubdivisionsModeEnum::AUTO;
 
         int32_t m_userNumberOfSubdivisions = 2;
+        
+        std::unique_ptr<ChartTwoCartesianCustomSubdivisions> m_customSubdivisions;
+        
+        ChartTwoCartesianSubdivisionsModeEnum::Enum m_subdivisionsMode = ChartTwoCartesianSubdivisionsModeEnum::STANDARD;
         
         /** size of label text*/
         float m_labelTextSize = 2.5f;

@@ -42,10 +42,10 @@ ChartTwoAxisOrientationTypeEnum.h
 ChartTwoAxisScaleRangeModeEnum.h
 ChartTwoCartesianAxis.h
 ChartTwoCartesianCustomSubdivisions.h
-ChartTwoCartesianCustomSubdivisionsLabel.h
+ChartTwoCartesianCustomAxisLabel.h
+ChartTwoCartesianCustomAxisLabelModeEnum.h
 ChartTwoCartesianOrientedAxes.h
 ChartTwoCartesianOrientedAxesYokingManager.h
-ChartTwoCartesianSubdivisionsModeEnum.h
 ChartTwoCompoundDataType.h
 ChartTwoDataCartesian.h
 ChartTwoDataTypeEnum.h
@@ -91,10 +91,10 @@ ChartTwoAxisOrientationTypeEnum.cxx
 ChartTwoAxisScaleRangeModeEnum.cxx
 ChartTwoCartesianAxis.cxx
 ChartTwoCartesianCustomSubdivisions.cxx
-ChartTwoCartesianCustomSubdivisionsLabel.cxx
+ChartTwoCartesianCustomAxisLabel.cxx
+ChartTwoCartesianCustomAxisLabelModeEnum.cxx
 ChartTwoCartesianOrientedAxes.cxx
 ChartTwoCartesianOrientedAxesYokingManager.cxx
-ChartTwoCartesianSubdivisionsModeEnum.cxx
 ChartTwoCompoundDataType.cxx
 ChartTwoDataCartesian.cxx
 ChartTwoDataTypeEnum.cxx

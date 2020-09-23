@@ -20,12 +20,15 @@
 /*LICENSE_END*/
 
 #include <QAction>
+#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QResizeEvent>
+#include <QStackedWidget>
 #include <QToolButton>
 
 #define __CHART_TWO_AXIS_PROPERTIES_EDITOR_WIDGET_DECLARE__
@@ -34,6 +37,7 @@
 
 #include "CaretAssert.h"
 #include "ChartTwoCartesianAxis.h"
+#include "ChartTwoCartesianCustomSubdivisionsEditorWidget.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
 #include "ChartableTwoFileBaseChart.h"
@@ -144,7 +148,7 @@ m_chartAxis(NULL)
                                           "Select chart axis overlay source");
     
     /*
-     * Format controls
+     * Numerics controls
      */
     m_userNumericFormatComboBox = new EnumComboBoxTemplate(this);
     m_userNumericFormatComboBox->setup<NumericFormatModeEnum, NumericFormatModeEnum::Enum>();
@@ -305,20 +309,49 @@ m_chartAxis(NULL)
     /*
      * Numerics widgets layout
      */
+    QWidget* stdNumericsWidget = new QWidget();
+    QGridLayout* stdNumericsLayout = new QGridLayout(stdNumericsWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(stdNumericsLayout, 3, 0);
+    int stdNumericsRow = 0;
+    stdNumericsLayout->addWidget(new QLabel("Format"), stdNumericsRow, 0);
+    stdNumericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), stdNumericsRow, 1, 1, 2);
+    stdNumericsRow++;
+    stdNumericsLayout->addWidget(new QLabel("Decimals"), stdNumericsRow, 0);
+    stdNumericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, stdNumericsRow, 1, 1, 2);
+    stdNumericsRow++;
+    stdNumericsLayout->addLayout(subdivLayout, stdNumericsRow, 0, 1, 3);
+    stdNumericsLayout->setColumnStretch(stdNumericsLayout->columnCount() + 1, 100);
+    
+    /*
+     * Custom axis numerics editor widget
+     */
+    m_customSubdivisionsEditorWidget = new ChartTwoCartesianCustomSubdivisionsEditorWidget();
+    
+    /*
+     * Subdivisions mode
+     */
+    m_chartSubdivisionsModeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_chartSubdivisionsModeEnumComboBox->setup<ChartTwoCartesianSubdivisionsModeEnum,ChartTwoCartesianSubdivisionsModeEnum::Enum>();
+    QObject::connect(m_chartSubdivisionsModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &ChartTwoAxisPropertiesEditorWidget::chartSubdivisionsModeEnumComboBoxItemActivated);
+    /*
+     * Numerics layout for its tab bar and stacked widget
+     */
+    m_numericsStackedWidget = new QStackedWidget();
+    m_numericsStackedWidgetStandardSubdivsionsIndex = m_numericsStackedWidget->addWidget(stdNumericsWidget);
+    m_numericsStackedWidgetCustomSubdivsionsIndex = m_numericsStackedWidget->addWidget(m_customSubdivisionsEditorWidget);
+
     QWidget* numericsWidget = new QWidget();
     QGridLayout* numericsLayout = new QGridLayout(numericsWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(numericsLayout, 3, 0);
-    int numericsRow = 0;
-    numericsLayout->addWidget(new QLabel("Numerics"), numericsRow, 0, 1, 2, Qt::AlignHCenter);
-    numericsRow++;
-    numericsLayout->addWidget(new QLabel("Format"), numericsRow, 0);
-    numericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), numericsRow, 1, 1, 2);
-    numericsRow++;
-    numericsLayout->addWidget(new QLabel("Decimals"), numericsRow, 0);
-    numericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, numericsRow, 1, 1, 2);
-    numericsRow++;
-    numericsLayout->addLayout(subdivLayout, numericsRow, 0, 1, 3);
-    
+    WuQtUtilities::setLayoutSpacingAndMargins(numericsLayout, 0, 0);
+//    numericsLayout->addWidget(new QLabel("Numerics"), 0, 0, 1, 3, Qt::AlignHCenter);
+//    numericsLayout->addWidget(new QLabel("Mode"), 1, 0);
+//    numericsLayout->addWidget(m_chartSubdivisionsModeEnumComboBox->getWidget(), 1, 1, Qt::AlignLeft);
+//    numericsLayout->addWidget(m_numericsStackedWidget, 2, 0, 1, 3, Qt::AlignLeft);
+    numericsLayout->addWidget(new QLabel("Numerics"), 0, 0, Qt::AlignRight);
+    numericsLayout->addWidget(m_chartSubdivisionsModeEnumComboBox->getWidget(), 0, 1, Qt::AlignLeft);
+    numericsLayout->addWidget(m_numericsStackedWidget, 1, 0, 1, 2, Qt::AlignLeft);
+
     /*
      * Label layout
      */
@@ -336,18 +369,14 @@ m_chartAxis(NULL)
     /*
      * Grid layout containing layouts
      */
-    QGridLayout* gridLayout = new QGridLayout();
-    gridLayout->addWidget(showWidget, 1, 0, Qt::AlignTop);
-    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 1);
-    gridLayout->addWidget(sizesWidget, 1, 2, Qt::AlignTop);
-    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 3);
-    gridLayout->addWidget(numericsWidget, 1, 4, Qt::AlignTop);
-    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 5);
-    gridLayout->addWidget(labelWidget, 1, 6, Qt::AlignTop);
-
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 4);
-    layout->addLayout(gridLayout);
+    QHBoxLayout* layout = new QHBoxLayout(this);
+    layout->addWidget(showWidget, 0, Qt::AlignTop);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addWidget(sizesWidget, 0, Qt::AlignTop);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addWidget(numericsWidget, 0, Qt::AlignTop);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addWidget(labelWidget, 0, Qt::AlignTop);
     layout->addStretch();
 }
 
@@ -376,6 +405,17 @@ ChartTwoAxisPropertiesEditorWidget::updateControls(ChartTwoOverlaySet* chartOver
     
     if ((m_chartOverlaySet != NULL)
         && (m_chartAxis != NULL)) {
+        const ChartTwoCartesianSubdivisionsModeEnum::Enum subdivisionsMode = m_chartAxis->getSubdivisionsMode();
+        m_chartSubdivisionsModeEnumComboBox->setSelectedItem<ChartTwoCartesianSubdivisionsModeEnum,ChartTwoCartesianSubdivisionsModeEnum::Enum>(subdivisionsMode);
+        switch (subdivisionsMode) {
+            case ChartTwoCartesianSubdivisionsModeEnum::CUSTOM:
+                m_numericsStackedWidget->setCurrentIndex(m_numericsStackedWidgetCustomSubdivsionsIndex);
+                break;
+            case ChartTwoCartesianSubdivisionsModeEnum::STANDARD:
+                m_numericsStackedWidget->setCurrentIndex(m_numericsStackedWidgetStandardSubdivsionsIndex);
+                break;
+        }
+
         m_showTickMarksCheckBox->setChecked(m_chartAxis->isShowTickmarks());
         m_showLabelCheckBox->setChecked(m_chartAxis->isShowLabel());
         m_showNumericsCheckBox->setChecked(m_chartAxis->isNumericsTextDisplayed());
@@ -415,8 +455,39 @@ ChartTwoAxisPropertiesEditorWidget::updateControls(ChartTwoOverlaySet* chartOver
         setEnabled(false);
     }
     
+    ChartTwoCartesianCustomSubdivisions* customSubdivsions = ((m_chartAxis != NULL)
+                                                              ? m_chartAxis->getCustomSubdivisions()
+                                                              : NULL);
+    m_customSubdivisionsEditorWidget->updateContent(customSubdivsions);
+    
     m_widgetGroup->blockAllSignals(false);
+    
+    layout()->invalidate();
+    adjustSize();
+    parentWidget()->adjustSize();
 }
+
+/**
+ * Called when subdivisions mode is changed
+ */
+void
+ChartTwoAxisPropertiesEditorWidget::chartSubdivisionsModeEnumComboBoxItemActivated()
+{
+    CaretAssert(m_chartAxis);
+    if (m_chartAxis != NULL) {
+        const ChartTwoCartesianSubdivisionsModeEnum::Enum subdivisionsMode = m_chartSubdivisionsModeEnumComboBox->getSelectedItem<ChartTwoCartesianSubdivisionsModeEnum,ChartTwoCartesianSubdivisionsModeEnum::Enum>();
+        m_chartAxis->setSubdivisionsMode(subdivisionsMode);
+        /*
+         * Need to update controls as some items (such as numeric format
+         * combo box) affect enabled status of items (numeric digits
+         * right of decimal)
+         */
+        updateControls(m_chartOverlaySet,
+                       m_chartAxis);
+        updateGraphics();
+    }
+}
+
 
 /**
  * Called when the axis line thickness changes.
@@ -523,7 +594,5 @@ ChartTwoAxisPropertiesEditorWidget::axisLabelToolButtonClicked(bool)
         }
     }
 }
-
-
 
 

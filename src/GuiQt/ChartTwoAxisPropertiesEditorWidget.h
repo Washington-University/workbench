@@ -28,6 +28,8 @@ class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
+class QStackedWidget;
+class QTabBar;
 class QToolButton;
 
 namespace caret {
@@ -35,6 +37,7 @@ namespace caret {
     class AnnotationPercentSizeText;
     class ChartTwoCartesianAxis;
     class ChartTwoCartesianAxisWidget;
+    class ChartTwoCartesianCustomSubdivisionsEditorWidget;
     class ChartTwoOverlaySet;
     class EnumComboBoxTemplate;
     class WuQDoubleSpinBox;
@@ -69,6 +72,8 @@ namespace caret {
         
         void axisLineThicknessChanged(double);
         
+        void chartSubdivisionsModeEnumComboBoxItemActivated();
+        
     private:
         ChartTwoAxisPropertiesEditorWidget(const ChartTwoAxisPropertiesEditorWidget&);
 
@@ -81,6 +86,8 @@ namespace caret {
         ChartTwoOverlaySet* m_chartOverlaySet;
         
         ChartTwoCartesianAxis* m_chartAxis;
+        
+        EnumComboBoxTemplate* m_chartSubdivisionsModeEnumComboBox;
         
         QToolButton* m_axisLabelToolButton;
         
@@ -109,6 +116,14 @@ namespace caret {
         WuQDoubleSpinBox* m_linesTicksSizeSpinBox;
         
         WuQDoubleSpinBox* m_paddingSizeSpinBox;
+        
+        QStackedWidget* m_numericsStackedWidget;
+        
+        int32_t m_numericsStackedWidgetStandardSubdivsionsIndex = -1;
+        
+        int32_t m_numericsStackedWidgetCustomSubdivsionsIndex = -1;
+
+        ChartTwoCartesianCustomSubdivisionsEditorWidget* m_customSubdivisionsEditorWidget;
         
         WuQWidgetObjectGroup* m_widgetGroup;
         

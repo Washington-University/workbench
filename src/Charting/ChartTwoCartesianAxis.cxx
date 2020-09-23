@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartScaleAutoRanging.h"
+#include "ChartTwoCartesianCustomSubdivisions.h"
 #include "ChartTwoOverlaySetInterface.h"
 #include "EventManager.h"
 #include "MathFunctions.h"
@@ -65,7 +66,10 @@ m_axisLocation(axisLocation)
      */
     CaretAssert(m_parentChartOverlaySetInterface);
     
+    m_customSubdivisions.reset(new ChartTwoCartesianCustomSubdivisions());
+    
     reset();
+    
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_displayedByUser",
                           &m_displayedByUser);
@@ -104,6 +108,11 @@ m_axisLocation(axisLocation)
                           &m_numericsTextRotated);
     m_sceneAssistant->add("m_paddingSize",
                           &m_paddingSize);
+    m_sceneAssistant->add("m_customSubdivisions",
+                          "ChartTwoCartesianCustomSubdivisions",
+                          m_customSubdivisions.get());
+    m_sceneAssistant->add<ChartTwoCartesianSubdivisionsModeEnum,ChartTwoCartesianSubdivisionsModeEnum::Enum>("m_subdivisionsMode",
+                                                                                                             &m_subdivisionsMode);
 }
 
 /**
@@ -171,6 +180,8 @@ ChartTwoCartesianAxis::copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAx
     m_showTickmarks             = obj.m_showTickmarks;
     m_showLabel                 = obj.m_showLabel;    
     m_displayedByUser           = obj.m_displayedByUser;
+    *m_customSubdivisions       = *obj.m_customSubdivisions;
+    m_subdivisionsMode          = obj.m_subdivisionsMode;
 }
 
 /*
@@ -197,6 +208,8 @@ ChartTwoCartesianAxis::reset()
     m_showTickmarks = true;
     m_showLabel = true;
     m_displayedByUser = true;
+    m_customSubdivisions->reset();
+    m_subdivisionsMode = ChartTwoCartesianSubdivisionsModeEnum::STANDARD;
 }
 
 /**
@@ -308,6 +321,44 @@ void
 ChartTwoCartesianAxis::setNumericSubdivsionsMode(const ChartTwoNumericSubdivisionsModeEnum::Enum numericSubdivsionsMode)
 {
     m_numericSubdivsionsMode = numericSubdivsionsMode;
+}
+
+/**
+ * @return The custom subdivisions
+ */
+ChartTwoCartesianCustomSubdivisions*
+ChartTwoCartesianAxis::getCustomSubdivisions()
+{
+    return m_customSubdivisions.get();
+}
+
+/**
+ * @return The custom subdivisions (const method)
+ */
+const ChartTwoCartesianCustomSubdivisions*
+ChartTwoCartesianAxis::getCustomSubdivisions() const
+{
+    return m_customSubdivisions.get();
+}
+
+/**
+ * @return The subdivisions mode
+ */
+ChartTwoCartesianSubdivisionsModeEnum::Enum
+ChartTwoCartesianAxis::getSubdivisionsMode() const
+{
+    return m_subdivisionsMode;
+}
+
+/**
+ * Set the subdivisions mode
+ * @param subdivisionsMode
+ *    New subdivisions mode
+ */
+void
+ChartTwoCartesianAxis::setSubdivisionsMode(const ChartTwoCartesianSubdivisionsModeEnum::Enum subdivisionsMode)
+{
+    m_subdivisionsMode = subdivisionsMode;
 }
 
 /**
