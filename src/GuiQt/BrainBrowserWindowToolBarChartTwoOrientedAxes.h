@@ -34,6 +34,7 @@ class QToolButton;
 
 namespace caret {
 
+    class ChartTwoAxisPropertiesEditorDialog;
     class ChartTwoAxisPropertiesEditorWidget;
     class ChartTwoCartesianOrientedAxes;
     class ChartTwoOverlaySet;
@@ -92,8 +93,6 @@ namespace caret {
         
         void axisToolButtonEditClicked(const ChartAxisLocationEnum::Enum axis);
         
-        void axisEditorMenuAboutToShow(const ChartAxisLocationEnum::Enum axis);
-        
         void titleCheckBoxClicked(bool checked);
         
         void titleEditToolButtonClicked();
@@ -113,16 +112,20 @@ namespace caret {
         
         void updateGraphics();
         
+        const AString m_objectNamePrefix;
+        
         std::tuple<EnumComboBoxTemplate*,
         WuQDoubleSpinBox*,
         WuQDoubleSpinBox*,
         WuQTrueFalseComboBox*,
-        QToolButton*> createAxesWidgets(const ChartTwoAxisOrientationTypeEnum::Enum orientation,
-                                        const QString& objectNamePrefix);
+        QToolButton*> createAxesWidgets(const ChartTwoAxisOrientationTypeEnum::Enum orientation);
         
-        std::tuple<QCheckBox*, QToolButton*> createAxisEditing(const ChartAxisLocationEnum::Enum axis,
-                                                               const QString& objectNamePrefix);
+        std::tuple<QCheckBox*, QToolButton*> createAxisEditing(const ChartAxisLocationEnum::Enum axis);
         
+        ChartTwoAxisPropertiesEditorDialog* createPropertiesEditorDialog(ChartAxisLocationEnum::Enum axis,
+                                                                         const AString& dialogName,
+                                                                         QWidget* parentToolButton);
+
         // ADD_NEW_MEMBERS_HERE
         
         int32_t m_browserTabIndex = -1;
@@ -151,33 +154,25 @@ namespace caret {
         
         QToolButton* m_leftAxisEditToolButton;
         
-        ChartTwoAxisPropertiesEditorWidget* m_leftAxisEditorWidget;
-        
-        QMenu* m_leftAxisMenu;
+        ChartTwoAxisPropertiesEditorDialog* m_leftAxisEditorDialog = NULL;
         
         QCheckBox* m_rightAxisCheckBox;
         
         QToolButton* m_rightAxisEditToolButton;
         
-        ChartTwoAxisPropertiesEditorWidget* m_rightAxisEditorWidget;
-        
-        QMenu* m_rightAxisMenu;
+        ChartTwoAxisPropertiesEditorDialog* m_rightAxisEditorDialog = NULL;
         
         QCheckBox* m_bottomAxisCheckBox;
         
         QToolButton* m_bottomAxisEditToolButton;
         
-        ChartTwoAxisPropertiesEditorWidget* m_bottomAxisEditorWidget;
-        
-        QMenu* m_bottomAxisMenu;
+        ChartTwoAxisPropertiesEditorDialog* m_bottomAxisEditorDialog = NULL;;
         
         QCheckBox* m_topAxisCheckBox;
         
         QToolButton* m_topAxisEditToolButton;
         
-        ChartTwoAxisPropertiesEditorWidget* m_topAxisEditorWidget;
-        
-        QMenu* m_topAxisMenu;
+        ChartTwoAxisPropertiesEditorDialog* m_topAxisEditorDialog = NULL;
         
         QCheckBox* m_titleCheckBox;
         

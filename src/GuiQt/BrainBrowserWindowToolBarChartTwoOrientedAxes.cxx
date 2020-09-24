@@ -33,7 +33,7 @@
 
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "ChartTwoAxisPropertiesEditorWidget.h"
+#include "ChartTwoAxisPropertiesEditorDialog.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoCartesianOrientedAxes.h"
 #include "ChartTwoOverlaySet.h"
@@ -71,16 +71,14 @@ using namespace caret;
  */
 BrainBrowserWindowToolBarChartTwoOrientedAxes::BrainBrowserWindowToolBarChartTwoOrientedAxes(BrainBrowserWindowToolBar* parentToolBar,
                                                                              const QString& parentObjectName)
-: BrainBrowserWindowToolBarComponent(parentToolBar)
+: BrainBrowserWindowToolBarComponent(parentToolBar),
+m_objectNamePrefix(parentObjectName
+                   + ":ChartAxes:")
 {
-    const QString objectNamePrefix(parentObjectName
-                                   + ":ChartAxes:");
-    
     /*
      * Horizontal range
      */
-    auto horizontalWidgets = createAxesWidgets(ChartTwoAxisOrientationTypeEnum::HORIZONTAL,
-                                               objectNamePrefix);
+    auto horizontalWidgets = createAxesWidgets(ChartTwoAxisOrientationTypeEnum::HORIZONTAL);
     m_horizontalRangeModeComboBox        = std::get<0>(horizontalWidgets);
     m_horizontalUserMinimumValueSpinBox  = std::get<1>(horizontalWidgets);
     m_horizontalUserMaximumValueSpinBox  = std::get<2>(horizontalWidgets);
@@ -90,8 +88,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::BrainBrowserWindowToolBarChartTwo
     /*
      * Vertical range
      */
-    auto verticalWidgets = createAxesWidgets(ChartTwoAxisOrientationTypeEnum::VERTICAL,
-                                             objectNamePrefix);
+    auto verticalWidgets = createAxesWidgets(ChartTwoAxisOrientationTypeEnum::VERTICAL);
     m_verticalRangeModeComboBox        = std::get<0>(verticalWidgets);
     m_verticalUserMinimumValueSpinBox  = std::get<1>(verticalWidgets);
     m_verticalUserMaximumValueSpinBox  = std::get<2>(verticalWidgets);
@@ -101,32 +98,28 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::BrainBrowserWindowToolBarChartTwo
     /*
      * Left Axis display and edit
      */
-    std::tuple<QCheckBox*, QToolButton*> leftWidgets = createAxisEditing(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT,
-                                                                         objectNamePrefix);
+    std::tuple<QCheckBox*, QToolButton*> leftWidgets = createAxisEditing(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
     m_leftAxisCheckBox = std::get<0>(leftWidgets);
     m_leftAxisEditToolButton = std::get<1>(leftWidgets);
     
     /*
      * Right Axis display and edit
      */
-    std::tuple<QCheckBox*, QToolButton*> rightWidgets = createAxisEditing(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT,
-                                                                         objectNamePrefix);
+    std::tuple<QCheckBox*, QToolButton*> rightWidgets = createAxisEditing(ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT);
     m_rightAxisCheckBox = std::get<0>(rightWidgets);
     m_rightAxisEditToolButton = std::get<1>(rightWidgets);
     
     /*
      * Bottom Axis display and edit
      */
-    std::tuple<QCheckBox*, QToolButton*> bottomWidgets = createAxisEditing(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM,
-                                                                         objectNamePrefix);
+    std::tuple<QCheckBox*, QToolButton*> bottomWidgets = createAxisEditing(ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
     m_bottomAxisCheckBox = std::get<0>(bottomWidgets);
     m_bottomAxisEditToolButton = std::get<1>(bottomWidgets);
     
     /*
      * Top Axis display and edit
      */
-    std::tuple<QCheckBox*, QToolButton*> topWidgets = createAxisEditing(ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP,
-                                                                         objectNamePrefix);
+    std::tuple<QCheckBox*, QToolButton*> topWidgets = createAxisEditing(ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP);
     m_topAxisCheckBox = std::get<0>(topWidgets);
     m_topAxisEditToolButton = std::get<1>(topWidgets);
     
@@ -145,7 +138,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::BrainBrowserWindowToolBarChartTwo
                      this, &BrainBrowserWindowToolBarChartTwoOrientedAxes::titleEditToolButtonClicked);
 
     m_titleEditorWidget = new ChartTwoTitleEditorWidget(m_titleEditToolButton,
-                                                        objectNamePrefix);
+                                                        m_objectNamePrefix);
     QWidgetAction* titleEditorWidgetAction = new QWidgetAction(m_titleEditToolButton);
     titleEditorWidgetAction->setDefaultWidget(m_titleEditorWidget);
     
@@ -250,16 +243,13 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::receiveEvent(Event* event)
  * @return Widgets for an axis
  * @param orientation
  *    Orientation of the axis
- * @param objectNamePrefix
- *    Object name for macros
  */
 std::tuple<EnumComboBoxTemplate*, WuQDoubleSpinBox*, WuQDoubleSpinBox*, WuQTrueFalseComboBox*, QToolButton*>
-BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoAxisOrientationTypeEnum::Enum orientation,
-                                                                 const QString& objectNamePrefix)
+BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoAxisOrientationTypeEnum::Enum orientation)
 {
     WuQMacroManager* macroManager = WuQMacroManager::instance();
 
-    const QString macroWidgetName(objectNamePrefix
+    const QString macroWidgetName(m_objectNamePrefix
                                   + ChartTwoAxisOrientationTypeEnum::toGuiName(orientation)
                                   + ":");
     /*
@@ -387,16 +377,13 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxesWidgets(const ChartTwoA
  * Create the axis editing widget
  * @param axis
  *   Axis for widget
- * @param objectNamePrefix
- *   Name for macros
  * @return Tupe containing widgets.
  */
 std::tuple<QCheckBox*, QToolButton*>
-BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxisEditing(const ChartAxisLocationEnum::Enum axis,
-                                                                 const QString& objectNamePrefix)
+BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxisEditing(const ChartAxisLocationEnum::Enum axis)
 {
     WuQMacroManager* macroManager = WuQMacroManager::instance();
-    const QString macroWidgetName(objectNamePrefix
+    const QString macroWidgetName(m_objectNamePrefix
                                   + ChartAxisLocationEnum::toGuiName(axis)
                                   + ":");
     
@@ -414,38 +401,6 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxisEditing(const ChartAxis
                                           checkBox->toolTip());
 
     QToolButton* toolButton = new QToolButton();
-    ChartTwoAxisPropertiesEditorWidget* editorWidget
-       = new ChartTwoAxisPropertiesEditorWidget(toolButton,
-                                                axis,
-                                                objectNamePrefix);
-    
-    QWidgetAction* editorWidgetAction = new QWidgetAction(toolButton);
-    editorWidgetAction->setDefaultWidget(editorWidget);
-    
-    QMenu* menu = new QMenu(toolButton);
-    menu->addAction(editorWidgetAction);
-    QObject::connect(menu, &QMenu::aboutToShow,
-                     this, [=]() { axisEditorMenuAboutToShow(axis); } );
-    
-    switch (axis) {
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-            m_bottomAxisEditorWidget = editorWidget;
-            m_bottomAxisMenu = menu;
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-            m_leftAxisEditorWidget = editorWidget;
-            m_leftAxisMenu = menu;
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-            m_rightAxisEditorWidget = editorWidget;
-            m_rightAxisMenu = menu;
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            m_topAxisEditorWidget = editorWidget;
-            m_topAxisMenu = menu;
-            break;
-    }
-    
     WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     toolButton->setText("Edit");
     toolButton->setToolTip("Edit the attributes of the "
@@ -461,52 +416,6 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxisEditing(const ChartAxis
     return std::make_tuple(checkBox,
                            toolButton);
 }
-
-/**
- * Called when an axis editor menu is about to show
- * @param axis
- *    Axis in the menu
- */
-void
-BrainBrowserWindowToolBarChartTwoOrientedAxes::axisEditorMenuAboutToShow(const ChartAxisLocationEnum::Enum axis)
-{
-    ChartTwoOverlaySet* overlaySet(NULL);
-    ChartTwoCartesianOrientedAxes* horizontalAxis(NULL);
-    ChartTwoCartesianOrientedAxes* verticalAxis(NULL);
-    getSelectionData(overlaySet,
-                     horizontalAxis,
-                     verticalAxis);
-    
-    if (overlaySet != NULL) {
-        switch (axis) {
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                if (horizontalAxis != NULL) {
-                    m_bottomAxisEditorWidget->updateControls(overlaySet,
-                                                             horizontalAxis->getLeftOrBottomAxis());
-                }
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                if (verticalAxis != NULL) {
-                    m_leftAxisEditorWidget->updateControls(overlaySet,
-                                                           verticalAxis->getLeftOrBottomAxis());
-                }
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                if (verticalAxis != NULL) {
-                    m_rightAxisEditorWidget->updateControls(overlaySet,
-                                                            verticalAxis->getRightOrTopAxis());
-                }
-                break;
-            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                if (horizontalAxis != NULL) {
-                    m_topAxisEditorWidget->updateControls(overlaySet,
-                                                          horizontalAxis->getRightOrTopAxis());
-                }
-                break;
-        }
-    }
-}
-
 
 /**
  * Called when an axis on/off checkbox is clicked
@@ -551,6 +460,19 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::axisCheckBoxOnOffClicked(const Ch
     updateGraphics();
 }
 
+ChartTwoAxisPropertiesEditorDialog*
+BrainBrowserWindowToolBarChartTwoOrientedAxes::createPropertiesEditorDialog(ChartAxisLocationEnum::Enum axis,
+                                                                            const AString& dialogName,
+                                                                            QWidget* parentToolButton)
+{
+    ChartTwoAxisPropertiesEditorDialog* dialog = new ChartTwoAxisPropertiesEditorDialog(axis,
+                                                                                        m_objectNamePrefix + dialogName + ":",
+                                                                                        parentToolButton);
+    //dialog->setFocusPolicy(Qt::StrongFocus);
+    dialog->move(parentToolButton->mapToGlobal(QPoint(parentToolButton->width() + 5, 0)));
+    return dialog;
+}
+
 /**
  * Called when an axis edit button is clicked
  * @param axis
@@ -568,38 +490,60 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::axisToolButtonEditClicked(const C
                      verticalAxes);
 
     if (chartOverlaySet != NULL) {
-        QWidget* button(NULL);
-        QMenu* menu(NULL);
+        ChartTwoAxisPropertiesEditorDialog* editorDialog = NULL;
+        ChartTwoCartesianAxis* cartesianAxis(NULL);
         switch (axis) {
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-                if (horizontalAxes != NULL) {
-                    button    = m_bottomAxisEditToolButton;
-                    menu      = m_bottomAxisMenu;
+            {
+                if (m_bottomAxisEditorDialog == NULL) {
+                    m_bottomAxisEditorDialog = createPropertiesEditorDialog(axis,
+                                                                          "bottomAxisEditorDialog:",
+                                                                          m_bottomAxisEditToolButton);
                 }
+                editorDialog = m_bottomAxisEditorDialog;
+                cartesianAxis = horizontalAxes->getLeftOrBottomAxis();
+            }
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                if (verticalAxes != NULL) {
-                    button    = m_leftAxisEditToolButton;
-                    menu      = m_leftAxisMenu;
+            {
+                if (m_leftAxisEditorDialog == NULL) {
+                    m_leftAxisEditorDialog = createPropertiesEditorDialog(axis,
+                                                                          "leftAxisEditorDialog:",
+                                                                          m_leftAxisEditToolButton);
                 }
+                editorDialog = m_leftAxisEditorDialog;
+                cartesianAxis = verticalAxes->getLeftOrBottomAxis();
+             }
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                if (verticalAxes != NULL) {
-                    button    = m_rightAxisEditToolButton;
-                    menu      = m_rightAxisMenu;
+            {
+                if (m_rightAxisEditorDialog == NULL) {
+                    m_rightAxisEditorDialog = createPropertiesEditorDialog(axis,
+                                                                          "rightAxisEditorDialog:",
+                                                                          m_rightAxisEditToolButton);
                 }
+                editorDialog = m_rightAxisEditorDialog;
+                cartesianAxis = verticalAxes->getRightOrTopAxis();
+            }
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-                if (horizontalAxes != NULL) {
-                    button    = m_topAxisEditToolButton;
-                    menu      = m_topAxisMenu;
+            {
+                if (m_topAxisEditorDialog == NULL) {
+                    m_topAxisEditorDialog = createPropertiesEditorDialog(axis,
+                                                                           "topAxisEditorDialog::",
+                                                                           m_topAxisEditToolButton);
                 }
+                editorDialog = m_topAxisEditorDialog;
+                cartesianAxis = horizontalAxes->getRightOrTopAxis();
+            }
                 break;
         }
         
-        if ((button != NULL)
-            && (menu != NULL)) {
-            menu->exec(button->mapToGlobal(QPoint(0, button->height())));
+        if ( ! editorDialog->isVisible()) {
+            editorDialog->updateControls(chartOverlaySet,
+                                         cartesianAxis);
+            editorDialog->show();
+//            editorDialog->setFocus();
         }
     }
 }

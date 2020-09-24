@@ -116,6 +116,7 @@ ELSE()
         ChartLinesSelectionViewController.h
         ChartMatrixParcelSelectionViewController.h
         ChartMatrixSeriesSelectionViewController.h
+	ChartTwoAxisPropertiesEditorDialog.h
         ChartTwoAxisPropertiesEditorWidget.h
 	ChartTwoCartesianCustomSubdivisionsEditorWidget.h
 	ChartTwoLineLayerNormalizationWidget.h
@@ -372,6 +373,7 @@ ChartHistoryViewController.h
 ChartLinesSelectionViewController.h
 ChartMatrixParcelSelectionViewController.h
 ChartMatrixSeriesSelectionViewController.h
+ChartTwoAxisPropertiesEditorDialog.h
 ChartTwoAxisPropertiesEditorWidget.h
 ChartTwoCartesianCustomSubdivisionsEditorWidget.h
 ChartTwoLineLayerNormalizationWidget.h
@@ -683,6 +685,7 @@ ChartHistoryViewController.cxx
 ChartLinesSelectionViewController.cxx
 ChartMatrixParcelSelectionViewController.cxx
 ChartMatrixSeriesSelectionViewController.cxx
+ChartTwoAxisPropertiesEditorDialog.cxx
 ChartTwoAxisPropertiesEditorWidget.cxx
 ChartTwoCartesianCustomSubdivisionsEditorWidget.cxx
 ChartTwoLineLayerNormalizationWidget.cxx

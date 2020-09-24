@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <QDialog>
 #include <QWidget>
 #include "ChartAxisLocationEnum.h"
 
@@ -48,9 +49,9 @@ namespace caret {
         Q_OBJECT
         
     public:
-        ChartTwoAxisPropertiesEditorWidget(QWidget* parent,
-                                           const ChartAxisLocationEnum::Enum,
-                                           const QString& parentObjectName);
+        ChartTwoAxisPropertiesEditorWidget(const ChartAxisLocationEnum::Enum axisLocation,
+                                           const QString& parentObjectName,
+                                           QWidget* parent = 0);
         
         virtual ~ChartTwoAxisPropertiesEditorWidget();
         
@@ -129,6 +130,25 @@ namespace caret {
         
     };
     
+//    class ChartTwoAxisPropertiesEditorDialog : public QDialog {
+//    public:
+//        ChartTwoAxisPropertiesEditorDialog(const ChartAxisLocationEnum::Enum axisLocation,
+//                                           const QString& parentObjectName,
+//                                           QWidget* parent = 0);
+//        
+//        virtual ~ChartTwoAxisPropertiesEditorDialog();
+//        
+//        void updateControls(ChartTwoOverlaySet* chartOverlaySet,
+//                            ChartTwoCartesianAxis* chartAxis);
+//        
+//    protected:
+//        void focusOutEvent(QFocusEvent* event);
+//        
+//    private:
+//        ChartTwoAxisPropertiesEditorWidget* m_editorWidget;
+//    };
+    
+
 #ifdef __CHART_TWO_AXIS_PROPERTIES_EDITOR_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __CHART_TWO_AXIS_PROPERTIES_EDITOR_WIDGET_DECLARE__

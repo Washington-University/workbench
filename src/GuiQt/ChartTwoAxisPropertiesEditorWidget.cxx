@@ -29,6 +29,7 @@
 #include <QLineEdit>
 #include <QResizeEvent>
 #include <QStackedWidget>
+#include <QTimer>
 #include <QToolButton>
 
 #define __CHART_TWO_AXIS_PROPERTIES_EDITOR_WIDGET_DECLARE__
@@ -60,12 +61,6 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartTwoAxisPropertiesEditorWidget
- * \brief Controls for chart attributes.
- * \ingroup GuiQt
- */
-
-/**
  * Constructor.
  *
  * @param parent
@@ -75,9 +70,9 @@ using namespace caret;
  * @param parentObjectName
  *   Name of parent object for macros
  */
-ChartTwoAxisPropertiesEditorWidget::ChartTwoAxisPropertiesEditorWidget(QWidget* parent,
-                                                                       const ChartAxisLocationEnum::Enum axisLocation,
-                                                                       const QString& parentObjectName)
+ChartTwoAxisPropertiesEditorWidget::ChartTwoAxisPropertiesEditorWidget(const ChartAxisLocationEnum::Enum axisLocation,
+                                                                       const QString& parentObjectName,
+                                                                       QWidget* parent)
 : QWidget(parent),
 m_chartOverlaySet(NULL),
 m_chartAxis(NULL)
@@ -326,6 +321,13 @@ m_chartAxis(NULL)
      * Custom axis numerics editor widget
      */
     m_customSubdivisionsEditorWidget = new ChartTwoCartesianCustomSubdivisionsEditorWidget();
+    QObject::connect(m_customSubdivisionsEditorWidget, &ChartTwoCartesianCustomSubdivisionsEditorWidget::widgetSizeChanged,
+                     [=]() {
+        QWidget* parent = parentWidget();
+        if (parent != NULL) {
+            parent->adjustSize();
+        }
+    });
     
     /*
      * Subdivisions mode
@@ -344,13 +346,13 @@ m_chartAxis(NULL)
     QWidget* numericsWidget = new QWidget();
     QGridLayout* numericsLayout = new QGridLayout(numericsWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(numericsLayout, 0, 0);
-//    numericsLayout->addWidget(new QLabel("Numerics"), 0, 0, 1, 3, Qt::AlignHCenter);
-//    numericsLayout->addWidget(new QLabel("Mode"), 1, 0);
-//    numericsLayout->addWidget(m_chartSubdivisionsModeEnumComboBox->getWidget(), 1, 1, Qt::AlignLeft);
-//    numericsLayout->addWidget(m_numericsStackedWidget, 2, 0, 1, 3, Qt::AlignLeft);
-    numericsLayout->addWidget(new QLabel("Numerics"), 0, 0, Qt::AlignRight);
-    numericsLayout->addWidget(m_chartSubdivisionsModeEnumComboBox->getWidget(), 0, 1, Qt::AlignLeft);
-    numericsLayout->addWidget(m_numericsStackedWidget, 1, 0, 1, 2, Qt::AlignLeft);
+    numericsLayout->addWidget(new QLabel("Numerics"), 0, 0, 1, 3, Qt::AlignHCenter);
+    numericsLayout->addWidget(new QLabel("Mode"), 1, 0);
+    numericsLayout->addWidget(m_chartSubdivisionsModeEnumComboBox->getWidget(), 1, 1, Qt::AlignLeft);
+    numericsLayout->addWidget(m_numericsStackedWidget, 2, 0, 1, 3, Qt::AlignLeft);
+//    numericsLayout->addWidget(new QLabel("Numerics"), 0, 0, Qt::AlignRight);
+//    numericsLayout->addWidget(m_chartSubdivisionsModeEnumComboBox->getWidget(), 0, 1, Qt::AlignLeft);
+//    numericsLayout->addWidget(m_numericsStackedWidget, 1, 0, 1, 2, Qt::AlignLeft);
 
     /*
      * Label layout
@@ -370,6 +372,7 @@ m_chartAxis(NULL)
      * Grid layout containing layouts
      */
     QHBoxLayout* layout = new QHBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 3, 4);
     layout->addWidget(showWidget, 0, Qt::AlignTop);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
     layout->addWidget(sizesWidget, 0, Qt::AlignTop);
@@ -594,5 +597,60 @@ ChartTwoAxisPropertiesEditorWidget::axisLabelToolButtonClicked(bool)
         }
     }
 }
+
+
+///**
+// * \class caret::ChartTwoAxisPropertiesEditorDialog
+// * \brief Controls for chart attributes.
+// * \ingroup GuiQt
+// */
+//
+//ChartTwoAxisPropertiesEditorDialog::ChartTwoAxisPropertiesEditorDialog(const ChartAxisLocationEnum::Enum axisLocation,
+//                                                                       const QString& parentObjectName,
+//                                                                       QWidget* parent)
+//: QDialog(parent,
+//          Qt::Popup) //Qt::CustomizeWindowHint)
+//{
+//    m_editorWidget = new ChartTwoAxisPropertiesEditorWidget(axisLocation,
+//                                                            parentObjectName,
+//                                                            parent);
+//    QVBoxLayout* layout = new QVBoxLayout(this);
+//    WuQtUtilities::setLayoutSpacingAndMargins(layout , 0, 0);
+//    layout->addWidget(m_editorWidget);
+//}
+//
+//ChartTwoAxisPropertiesEditorDialog::~ChartTwoAxisPropertiesEditorDialog()
+//{
+//    
+//}
+//
+//void ChartTwoAxisPropertiesEditorDialog::updateControls(ChartTwoOverlaySet* chartOverlaySet,
+//                                                        ChartTwoCartesianAxis* chartAxis)
+//{
+//    m_editorWidget->updateControls(chartOverlaySet,
+//                                   chartAxis);
+//}
+//
+//void
+//ChartTwoAxisPropertiesEditorDialog::focusOutEvent(QFocusEvent* event)
+//{
+//    /*
+//     * When focus is lost (user clicks anywhere outside this dialog),
+//     * close the dialog.  If the user clicks the button that launched
+//     * this dialog, the button click occurs after focus is lost and
+//     * results in the dialog immediately being displayed again.  To
+//     * the user, it appears that dialog does not close (dialog may flash).
+//     * So, use a timer to close this dialog in a short time.  If the
+//     * user clicks that button that launched this dialog, it will test
+//     * the visibility of the dialog and close it.  The timer will fire
+//     * after that and close() will do nothing since the dialog will
+//     * already be in a closed state.
+//     */
+////    const int32_t milliseconds(750);
+////    QTimer::singleShot(milliseconds,
+////                       this,
+////                       &ChartTwoAxisPropertiesEditorDialog::close);
+////    std::cout << "Focus out, closing" << std::endl << std::flush;
+//}
 
 
