@@ -122,6 +122,8 @@ ChartTwoCartesianCustomSubdivisionsEditorWidget::loadAxisIntoWidgets()
         const float spinBoxMax(1.0e10);
         WuQDoubleSpinBox* spinBox = new WuQDoubleSpinBox(this);
         spinBox->setRange(-spinBoxMax, spinBoxMax);
+        spinBox->setSingleStep(1.0);
+        spinBox->setDecimals(5);
         QObject::connect(spinBox, &WuQDoubleSpinBox::valueChanged,
                          [=](double value) { this->valueSpinBoxValueChanged(iRow, value); });
         
