@@ -2242,8 +2242,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
      */
     CaretAssert(scaleValuePositions.size() == scaleValuesText.size());
     const int32_t numValues = static_cast<int32_t>(scaleValuesText.size());
-    const int32_t firstIndex = 0;
-    const int32_t lastIndex = (numValues - 1);
     for (int32_t i = 0; i < numValues; i++) {
         AnnotationPercentSizeText* text = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                         AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT);
@@ -2261,109 +2259,120 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
                 xyz[0] = scaleValuePositions[i];
                 if (rotateNumericFlag) {
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-                    if (i == firstIndex) {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-                    }
-                    else if (i == lastIndex) {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-                    }
-                    else {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
-                    }
+//                    if (i == firstIndex) {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
+//                    }
+//                    else if (i == lastIndex) {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
+//                    }
+//                    else {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
+//                    }
+                    verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
                 }
                 else {
                     verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-                    if (i == firstIndex) {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-                    }
-                    else if (i == lastIndex) {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-                    }
-                    else {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
-                    }
+//                    if (i == firstIndex) {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
+//                    }
+//                    else if (i == lastIndex) {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
+//                    }
+//                    else {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
+//                    }
+                    horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
                 }
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                 xyz[0] = scaleValuePositions[i];
                 if (rotateNumericFlag) {
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-                    if (i == firstIndex) {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-                    }
-                    else if (i == lastIndex) {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-                    }
-                    else {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
-                    }
+//                    if (i == firstIndex) {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
+//                    }
+//                    else if (i == lastIndex) {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
+//                    }
+//                    else {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
+//                    }
+                    verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
                 }
                 else {
                     verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-                    if (i == firstIndex) {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-                    }
-                    else if (i == lastIndex) {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-                    }
-                    else {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
-                    }
+//                    if (i == firstIndex) {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
+//                    }
+//                    else if (i == lastIndex) {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
+//                    }
+//                    else {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
+//                    }
+                    horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
                 }
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                 xyz[1] = scaleValuePositions[i];
                 if (rotateNumericFlag) {
                     verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-                    if (i == firstIndex) {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-                    }
-                    else if (i == lastIndex) {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-                    }
-                    else {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
-                    }
+//                    if (i == firstIndex) {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
+//                    }
+//                    else if (i == lastIndex) {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
+//                    }
+//                    else {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
+//                    }
+                    horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
                 }
                 else {
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-                    if (i == firstIndex) {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-                    }
-                    else if (i == lastIndex) {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-                    }
-                    else {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
-                    }
+//                    if (i == firstIndex) {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
+//                    }
+//                    else if (i == lastIndex) {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
+//                    }
+//                    else {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
+//                    }
+                    verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
                 }
+                
+                
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
                 xyz[1] = scaleValuePositions[i];
                 if (rotateNumericFlag) {
                     verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-                    if (i == firstIndex) {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-                    }
-                    else if (i == lastIndex) {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-                    }
-                    else {
-                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
-                    }
+//                    if (i == firstIndex) {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
+//                    }
+//                    else if (i == lastIndex) {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
+//                    }
+//                    else {
+//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
+//                    }
+                    horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
                 }
                 else {
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-                    if (i == firstIndex) {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-                    }
-                    else if (i == lastIndex) {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-                    }
-                    else {
-                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
-                    }
+//                    if (i == firstIndex) {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
+//                    }
+//                    else if (i == lastIndex) {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
+//                    }
+//                    else {
+//                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
+//                    }
+                    verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
                 }
+                
                 break;
         }
         text->setHorizontalAlignment(horizontalAlignment);
@@ -2637,8 +2646,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
             AnnotationPercentSizeText* text = m_numericsText[i].get();
             float xyz[3];
             text->getCoordinate()->getXYZ(xyz);
-            const float textX = xyz[0];
-            const float textY = xyz[1];
+            float textX = xyz[0];
+            float textY = xyz[1];
             
             /*
              * Tick starts at an offset from its corresponding numerical value.
@@ -2674,12 +2683,77 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
                     break;
             }
             
+            const float viewportX      = m_axisViewport[0];
+            const float viewportY      = m_axisViewport[1];
+            const float viewportWidth  = m_axisViewport[2];
+            const float viewportHeight = m_axisViewport[3];
+
+            double textWidth(0.0);
+            double textHeight(0.0);
+            m_textRenderer->getTextWidthHeightInPixels(*text,
+                                                       BrainOpenGLTextRenderInterface::DrawingFlags(),
+                                                       m_tabViewportWidth, m_tabViewportHeight,
+                                                       textWidth, textHeight);
             if (showTicksEnabledFlag) {
-                if ((i != firstTickIndex)
-                    && (i != lastTickIndex)) {
+                bool showTicksFlag(true);
+                const bool hideFirstAndLastTicksFlag(false);
+                if (hideFirstAndLastTicksFlag) {
+                    if ((i == firstTickIndex)
+                        || (i == lastTickIndex)) {
+                    }
+                }
+                if (showTicksFlag) {
                     ticksData->addVertex(tickStartX, tickStartY);
                     ticksData->addVertex(tickEndX,   tickEndY);
                 }
+            }
+            
+            switch (m_axisLocation) {
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                {
+                    /*
+                     * Text alignment is center;
+                     */
+                    const float viewportLeft(viewportX);
+                    const float viewportRight(viewportX + viewportWidth);
+                    const float halfTextSize(m_axis->isNumericsTextRotated()
+                                             ? (textHeight / 2.0)
+                                             : (textWidth / 2.0));
+//                    const float halfTextWidth(textWidth / 2.0);
+                    const float textRight(textX + halfTextSize);
+                    if (textRight > viewportRight) {
+                        textX = viewportRight - halfTextSize;
+                    }
+                    
+                    const float textLeft = (textX - halfTextSize);
+                    if (textLeft < viewportLeft) {
+                        textX = viewportLeft + halfTextSize;
+                    }
+                }
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                {
+                    /*
+                     * Text alignment is middle;
+                     */
+                    const float viewportBottom(viewportY);
+                    const float viewportTop(viewportY + viewportHeight);
+                    const float halfTextSize(m_axis->isNumericsTextRotated()
+                                             ? (textWidth / 2.0)
+                                             : (textHeight / 2.0));
+                    const float textTop(textY + halfTextSize);
+                    if (textTop > viewportTop) {
+                        textY = viewportTop - halfTextSize;
+                    }
+                    
+                    const float textBottom = (textY - halfTextSize);
+                    if (textBottom < viewportBottom) {
+                        textY = viewportBottom + halfTextSize;
+                    }
+                }
+                    break;
             }
             
             /*

@@ -119,7 +119,9 @@ ChartTwoCartesianCustomSubdivisionsEditorWidget::loadAxisIntoWidgets()
         QObject::connect(constructionToolButton, &QToolButton::clicked,
                          [=]() { constructionMenu->exec(constructionToolButton->mapToGlobal(QPoint(0, 0))); } );
         
+        const float spinBoxMax(1.0e10);
         WuQDoubleSpinBox* spinBox = new WuQDoubleSpinBox(this);
+        spinBox->setRange(-spinBoxMax, spinBoxMax);
         QObject::connect(spinBox, &WuQDoubleSpinBox::valueChanged,
                          [=](double value) { this->valueSpinBoxValueChanged(iRow, value); });
         

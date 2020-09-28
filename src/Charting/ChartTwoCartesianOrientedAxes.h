@@ -86,6 +86,21 @@ namespace caret {
 
         const ChartTwoCartesianAxis* getRightOrTopAxis() const;
         
+        bool getCustomSubdivisionsScalesOffsets(const ChartTwoCartesianAxis* cartesianAxis,
+                                                  const float axisLength,
+                                                  const float labelsStart,
+                                                  const float labelsEnd,
+                                                  std::vector<float>& scaleValuesOffsetInPixelsOut,
+                                                  std::vector<AString>& scaleValuesOut) const;
+        
+        bool getStandardSubdivisionsScalesOffsets(const ChartTwoCartesianAxis* cartesianAxis,
+                                                  const float axisLength,
+                                                  const float labelsStart,
+                                                  const float labelsEnd,
+                                                  const float labelsStepIn,
+                                                  std::vector<float>& scaleValuesOffsetInPixelsOut,
+                                                  std::vector<AString>& scaleValuesOut) const;
+        
         bool getScaleValuesAndOffsets(const ChartTwoCartesianAxis* cartesianAxis,
                                       const float minimumDataValue,
                                       const float maximumDataValue,

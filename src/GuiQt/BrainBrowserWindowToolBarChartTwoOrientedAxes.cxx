@@ -407,7 +407,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createAxisEditing(const ChartAxis
                          + ChartAxisLocationEnum::toGuiName(axis)
                          + " axis");
     QObject::connect(toolButton, &QToolButton::clicked,
-                     this, [=]() { axisToolButtonEditClicked(axis); });
+                     this, [=]() { axisToolButtonEditClicked(axis, toolButton); });
     toolButton->setObjectName(macroWidgetName
                             + "EditToolButton");
     macroManager->addMacroSupportToObject(toolButton,
@@ -468,7 +468,6 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createPropertiesEditorDialog(Char
     ChartTwoAxisPropertiesEditorDialog* dialog = new ChartTwoAxisPropertiesEditorDialog(axis,
                                                                                         m_objectNamePrefix + dialogName + ":",
                                                                                         parentToolButton);
-    //dialog->setFocusPolicy(Qt::StrongFocus);
     dialog->move(parentToolButton->mapToGlobal(QPoint(parentToolButton->width() + 5, 0)));
     return dialog;
 }
@@ -477,9 +476,12 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::createPropertiesEditorDialog(Char
  * Called when an axis edit button is clicked
  * @param axis
  *    Axis of button that was clicked
+ * @param parentToolButton
+ *    Parent tool button of the menu
  */
 void
-BrainBrowserWindowToolBarChartTwoOrientedAxes::axisToolButtonEditClicked(const ChartAxisLocationEnum::Enum axis)
+BrainBrowserWindowToolBarChartTwoOrientedAxes::axisToolButtonEditClicked(const ChartAxisLocationEnum::Enum axis,
+                                                                         QToolButton* parentToolButton)
 {
     ChartTwoOverlaySet*            chartOverlaySet(NULL);
     ChartTwoCartesianOrientedAxes* horizontalAxes(NULL);
@@ -542,8 +544,8 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::axisToolButtonEditClicked(const C
         if ( ! editorDialog->isVisible()) {
             editorDialog->updateControls(chartOverlaySet,
                                          cartesianAxis);
+            editorDialog->move(parentToolButton->mapToGlobal(QPoint(parentToolButton->width(), 0)));
             editorDialog->show();
-//            editorDialog->setFocus();
         }
     }
 }

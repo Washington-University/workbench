@@ -306,7 +306,7 @@ m_chartAxis(NULL)
      */
     QWidget* stdNumericsWidget = new QWidget();
     QGridLayout* stdNumericsLayout = new QGridLayout(stdNumericsWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(stdNumericsLayout, 3, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(stdNumericsLayout, 6, 0);
     int stdNumericsRow = 0;
     stdNumericsLayout->addWidget(new QLabel("Format"), stdNumericsRow, 0);
     stdNumericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), stdNumericsRow, 1, 1, 2);
@@ -315,8 +315,8 @@ m_chartAxis(NULL)
     stdNumericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, stdNumericsRow, 1, 1, 2);
     stdNumericsRow++;
     stdNumericsLayout->addLayout(subdivLayout, stdNumericsRow, 0, 1, 3);
-    stdNumericsLayout->setColumnStretch(stdNumericsLayout->columnCount() + 1, 100);
-    
+    stdNumericsWidget->setFixedSize(stdNumericsWidget->sizeHint());
+
     /*
      * Custom axis numerics editor widget
      */

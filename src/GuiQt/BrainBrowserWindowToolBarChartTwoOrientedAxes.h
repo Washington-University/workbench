@@ -91,7 +91,8 @@ namespace caret {
         void axisCheckBoxOnOffClicked(const ChartAxisLocationEnum::Enum axis,
                                       const bool checkedStatus);
         
-        void axisToolButtonEditClicked(const ChartAxisLocationEnum::Enum axis);
+        void axisToolButtonEditClicked(const ChartAxisLocationEnum::Enum axis,
+                                       QToolButton* parentToolButton);
         
         void titleCheckBoxClicked(bool checked);
         

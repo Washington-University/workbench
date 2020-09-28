@@ -55,7 +55,7 @@ ChartTwoAxisPropertiesEditorDialog::ChartTwoAxisPropertiesEditorDialog(const Cha
                                                                        const QString& parentObjectName,
                                                                        QWidget* parent)
 : QDialog(parent,
-          Qt::Popup)
+          Qt::Popup) /* use 'Popup' attribute so not borders */
 {
     m_editorWidget = new ChartTwoAxisPropertiesEditorWidget(axisLocation,
                                                             parentObjectName,
