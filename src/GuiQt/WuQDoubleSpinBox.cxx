@@ -199,6 +199,7 @@ WuQDoubleSpinBox::decimals() const
 void
 WuQDoubleSpinBox::setDecimals(int prec)
 {
+    QSignalBlocker blocker(m_spinBox);
     m_decimalsMode = DecimalsMode::FIXED;
     m_spinBox->setDecimals(prec);
 }
@@ -322,6 +323,7 @@ WuQDoubleSpinBox::testDigitsRightOfDecimal()
 void
 WuQDoubleSpinBox::updateDecimalsForAutoMode()
 {
+    QSignalBlocker blocker(m_spinBox);
     static bool decimalsTestFlag = false;
     if (decimalsTestFlag) {
         testDigitsRightOfDecimal();
@@ -376,6 +378,7 @@ WuQDoubleSpinBox::prefix() const
 void
 WuQDoubleSpinBox::setPrefix(const QString &prefix)
 {
+    QSignalBlocker blocker(m_spinBox);
     m_spinBox->setPrefix(prefix);
 }
 
@@ -391,6 +394,7 @@ void
 WuQDoubleSpinBox::setRange(double minimum,
                            double maximum)
 {
+    QSignalBlocker blocker(m_spinBox);
     m_minimumValue = minimum;
     m_maximumValue = maximum;
     m_rangeMode = RangeMode::INCLUSIVE;
@@ -446,6 +450,7 @@ WuQDoubleSpinBox::setRangeExceedable(const double dataMinimum,
                                      const double spinBoxMinimum,
                                      const double spinBoxMaximum)
 {
+    QSignalBlocker blocker(m_spinBox);
     m_minimumValue = dataMinimum;
     m_maximumValue = dataMaximum;
     m_rangeMode = RangeMode::EXCEEDABLE;
@@ -541,6 +546,7 @@ WuQDoubleSpinBox::setRangePercentage(const double minimumPercentage,
 void
 WuQDoubleSpinBox::setSingleStep(double value)
 {
+    QSignalBlocker blocker(m_spinBox);
     CaretAssert(value >= 0.0);
     
     m_spinBox->setSingleStep(value);
@@ -577,6 +583,7 @@ WuQDoubleSpinBox::setSingleStepPercentage(double percentage)
 void
 WuQDoubleSpinBox::updateSingleStepPercentage()
 {
+    QSignalBlocker blocker(m_spinBox);
     switch (m_singleStepMode) {
         case SingleStepMode::FIXED:
             break;
@@ -607,6 +614,7 @@ WuQDoubleSpinBox::updateSingleStepPercentage()
 void
 WuQDoubleSpinBox::setSuffix(const QString &suffix)
 {
+    QSignalBlocker blocker(m_spinBox);
     m_spinBox->setSuffix(suffix);
 }
 
