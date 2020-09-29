@@ -92,23 +92,23 @@ m_chartAxis(NULL)
     macroManager->addMacroSupportToObject(m_showTickMarksCheckBox,
                                           "Enable chart axis ticks");
     
-    m_showLabelCheckBox = new QCheckBox("Label");
+    m_showLabelCheckBox = new QCheckBox("Title");
     QObject::connect(m_showLabelCheckBox, &QCheckBox::clicked,
                      this, &ChartTwoAxisPropertiesEditorWidget::valueChangedBool);
-    m_showLabelCheckBox->setToolTip("Show label on axis");
+    m_showLabelCheckBox->setToolTip("Show title on axis");
     m_showLabelCheckBox->setObjectName(objectNamePrefix
                                                  + "ShowLabel");
     macroManager->addMacroSupportToObject(m_showLabelCheckBox,
-                                          "Enable chart axis label");
+                                          "Enable chart axis title");
     
-    m_showNumericsCheckBox = new QCheckBox("Nums");
+    m_showNumericsCheckBox = new QCheckBox("Labels");
     QObject::connect(m_showNumericsCheckBox, &QCheckBox::clicked,
                      this, &ChartTwoAxisPropertiesEditorWidget::valueChangedBool);
-    m_showNumericsCheckBox->setToolTip("Show numeric scale values on axis");
+    m_showNumericsCheckBox->setToolTip("Show labels (numeric values) on axis");
     m_showNumericsCheckBox->setObjectName(objectNamePrefix
                                                  + "ShowNumerics");
     macroManager->addMacroSupportToObject(m_showNumericsCheckBox,
-                                          "Enable chart axis numerics");
+                                          "Enable chart axis labels");
     
     m_rotateNumericsCheckBox = new QCheckBox("Rotate");
     QObject::connect(m_rotateNumericsCheckBox, &QCheckBox::clicked,
@@ -123,7 +123,7 @@ m_chartAxis(NULL)
      * Controls for layer selection and label editing
      */
     m_axisLabelToolButton = new QToolButton();
-    m_axisLabelToolButton->setText("Edit Label...");
+    m_axisLabelToolButton->setText("Edit Title...");
     QObject::connect(m_axisLabelToolButton, &QToolButton::clicked,
                      this, &ChartTwoAxisPropertiesEditorWidget::axisLabelToolButtonClicked);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_axisLabelToolButton);
@@ -134,13 +134,13 @@ m_chartAxis(NULL)
                                           "Edit chart axis label");
     
     m_axisLabelFromOverlayComboBox = new QComboBox();
-    m_axisLabelFromOverlayComboBox->setToolTip("Label for axis is from file in selected layer");
+    m_axisLabelFromOverlayComboBox->setToolTip("Title for axis is from file in selected layer");
     QObject::connect(m_axisLabelFromOverlayComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
                      this, &ChartTwoAxisPropertiesEditorWidget::valueChangedInt);
     m_axisLabelFromOverlayComboBox->setObjectName(objectNamePrefix
                                                  + "LabelFromOverlay");
     macroManager->addMacroSupportToObject(m_axisLabelFromOverlayComboBox,
-                                          "Select chart axis overlay source");
+                                          "Select chart axis title overlay source");
     
     /*
      * Numerics controls
@@ -195,18 +195,18 @@ m_chartAxis(NULL)
     m_labelSizeSpinBox->setDecimals(1);
     QObject::connect(m_labelSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &ChartTwoAxisPropertiesEditorWidget::valueChangedDouble);
-    m_labelSizeSpinBox->setToolTip("Set height of label as percentage of tab height for selected axis");
+    m_labelSizeSpinBox->setToolTip("Set height of title as percentage of tab height for selected axis");
     m_labelSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "LabelHeight");
     macroManager->addMacroSupportToObject(m_labelSizeSpinBox->getWidget(),
-                                          "Set chart axis label height");
+                                          "Set chart axis title height");
     
     m_numericsSizeSpinBox = new WuQDoubleSpinBox(this);
     m_numericsSizeSpinBox->setRangePercentage(0.0, 99.0);
     m_numericsSizeSpinBox->setDecimals(1);
     QObject::connect(m_numericsSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &ChartTwoAxisPropertiesEditorWidget::valueChangedDouble);
-    m_numericsSizeSpinBox->setToolTip("Set height of numeric values as percentage of tab height for selected axis");
+    m_numericsSizeSpinBox->setToolTip("Set height of labels (numeric values) as percentage of tab height for selected axis");
     m_numericsSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "NumericValueHeight");
     macroManager->addMacroSupportToObject(m_numericsSizeSpinBox->getWidget(),
@@ -258,14 +258,11 @@ m_chartAxis(NULL)
      */
     QWidget* sizesWidget = new QWidget();
     QGridLayout* sizesLayout = new QGridLayout(sizesWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(sizesLayout, 2, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(sizesLayout, 4, 0);
     int32_t sizesRow = 0;
     sizesLayout->addWidget(new QLabel("Sizes"), sizesRow, 0, 1, 2, Qt::AlignHCenter);
     sizesRow++;
-    sizesLayout->addWidget(new QLabel("Label"), sizesRow, 0);
-    sizesLayout->addWidget(m_labelSizeSpinBox->getWidget(), sizesRow, 1);
-    sizesRow++;
-    sizesLayout->addWidget(new QLabel("Scale"), sizesRow, 0);
+    sizesLayout->addWidget(new QLabel("Labels"), sizesRow, 0);
     sizesLayout->addWidget(m_numericsSizeSpinBox->getWidget(), sizesRow, 1);
     sizesRow++;
     sizesLayout->addWidget(new QLabel("Pad"), sizesRow, 0);
@@ -274,23 +271,30 @@ m_chartAxis(NULL)
     sizesLayout->addWidget(new QLabel("Lines"), sizesRow, 0);
     sizesLayout->addWidget(m_linesTicksSizeSpinBox->getWidget(), sizesRow, 1);
     sizesRow++;
-    
+    sizesLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), sizesRow, 0, 1, 2);
+    sizesRow++;
+    sizesLayout->addWidget(new QLabel("Title"), sizesRow, 0);
+    sizesLayout->addWidget(m_labelSizeSpinBox->getWidget(), sizesRow, 1);
+    sizesRow++;
+
     /*
      * Show widgets layout
      */
     QWidget* showWidget = new QWidget();
     QGridLayout* showLayout = new QGridLayout(showWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(showLayout, 1, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(showLayout, 4, 0);
     int32_t axisRow = 0;
     showLayout->addWidget(new QLabel("Show"), axisRow, 0, Qt::AlignHCenter);
-    axisRow++;
-    showLayout->addWidget(m_showLabelCheckBox, axisRow, 0);
     axisRow++;
     showLayout->addWidget(m_showNumericsCheckBox, axisRow, 0);
     axisRow++;
     showLayout->addWidget(m_rotateNumericsCheckBox, axisRow, 0);
     axisRow++;
     showLayout->addWidget(m_showTickMarksCheckBox, axisRow, 0);
+    axisRow++;
+    showLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), axisRow, 0);
+    axisRow++;
+    showLayout->addWidget(m_showLabelCheckBox, axisRow, 0);
     axisRow++;
     showWidget->setSizePolicy(showWidget->sizePolicy().horizontalPolicy(),
                               QSizePolicy::Fixed);
@@ -361,7 +365,7 @@ m_chartAxis(NULL)
     QGridLayout* labelLayout = new QGridLayout(labelWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(labelLayout, 3, 0);
     int labelRow(0);
-    labelLayout->addWidget(new QLabel("Axis Label"), labelRow, 0);
+    labelLayout->addWidget(new QLabel("Axis Title"), labelRow, 0);
     labelRow++;
     labelLayout->addWidget(m_axisLabelFromOverlayComboBox, labelRow, 0);
     labelRow++;
@@ -586,9 +590,9 @@ ChartTwoAxisPropertiesEditorWidget::axisLabelToolButtonClicked(bool)
 {
     if ((m_chartOverlaySet != NULL)
         && (m_chartAxis != NULL)) {
-        WuQDataEntryDialog newNameDialog("Axis Label",
+        WuQDataEntryDialog newNameDialog("Axis Title",
                                          m_axisLabelToolButton);
-        QLineEdit* lineEdit = newNameDialog.addLineEditWidget("Label");
+        QLineEdit* lineEdit = newNameDialog.addLineEditWidget("Title");
         lineEdit->setText(m_chartOverlaySet->getAxisLabel(m_chartAxis));
         if (newNameDialog.exec() == WuQDataEntryDialog::Accepted) {
             const AString name = lineEdit->text().trimmed();

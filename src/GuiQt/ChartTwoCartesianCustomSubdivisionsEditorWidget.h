@@ -93,6 +93,8 @@ namespace caret {
         void constructionMenuItemSelected(const int32_t rowIndex,
                                           const ConstructionType constructionType);
         
+        void updateRangesOfValueSpinBoxes();
+        
         void updateGraphics();
         
         QMenu* createConstructionMenu(const int32_t rowIndex);

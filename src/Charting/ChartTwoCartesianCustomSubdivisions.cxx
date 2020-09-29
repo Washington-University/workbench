@@ -110,6 +110,56 @@ ChartTwoCartesianCustomSubdivisions::getNumberOfLabels() const
 }
 
 /**
+ * @return Numeric value for label at the given index
+ * @param index
+ *    Index of label
+ */
+float
+ChartTwoCartesianCustomSubdivisions::getLabelNumericValue(const int32_t index) const
+{
+    return getLabel(index)->getNumericValue();
+}
+
+/**
+ * Set the numeric value for the label at the given index
+ * @param index
+ *    Index of label
+ * @param value
+ *    New value for label
+ */
+void
+ChartTwoCartesianCustomSubdivisions::setLabelNumericValue(const int32_t index,
+                                                          const float value)
+{
+    getLabel(index)->setNumericValue(value);
+}
+
+/**
+ * @return Text for label at the given index
+ * @param index
+ *    Index of label
+ */
+AString
+ChartTwoCartesianCustomSubdivisions::getLabelText(const int32_t index) const
+{
+    return getLabel(index)->getCustomText();
+}
+
+/**
+ * Set the text value for the label at the given index
+ * @param index
+ *    Index of label
+ *    @param text
+ * New text for label
+ */
+void
+ChartTwoCartesianCustomSubdivisions::setLabelText(const int32_t index,
+                                                  const AString& text)
+{
+    getLabel(index)->setCustomText(text);
+}
+
+/**
  * Sort the label's in descending order using the numeric values.
  * @return True if the order of the labels is changed.
  */
@@ -332,6 +382,42 @@ ChartTwoCartesianCustomSubdivisions::removeLabelAtIndex(const int32_t index)
 }
 
 /**
+ * Get the valid range of values for a spin box containing the label value at the given index
+ * @param index
+ *    Index of the label
+ * @param rangeMinimumOut
+ *    Minimum value allowed in spin box
+ * @param rangeMaximumOut
+ *    Maximum value allowed in spin box
+ */
+void
+ChartTwoCartesianCustomSubdivisions::getRangeForLabelAtIndex(const int32_t index,
+                                                             float& rangeMinimumOut,
+                                                             float& rangeMaximumout) const
+{
+    rangeMaximumout = std::numeric_limits<float>::max();
+    rangeMinimumOut = -rangeMaximumout;
+    
+    const int32_t numLabels = getNumberOfLabels();
+    if (numLabels <= 1) {
+        return;
+    }
+    
+    /*
+     * Values are descending starting at index zero
+     */
+    if (index < (numLabels - 1)) {
+        const ChartTwoCartesianCustomSubdivisionsLabel* labelBelow = getLabel(index + 1);
+        rangeMinimumOut = labelBelow->getNumericValue();
+    }
+    if (index > 0) {
+        const ChartTwoCartesianCustomSubdivisionsLabel* labelAbove = getLabel(index - 1);
+        rangeMaximumout = labelAbove->getNumericValue();
+    }
+}
+
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -432,6 +518,8 @@ ChartTwoCartesianCustomSubdivisions::restoreFromScene(const SceneAttributes* sce
     if (m_labels.size() < 2) {
         reset();
     }
+    
+    sortLabelsByNumericValue();
     
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,

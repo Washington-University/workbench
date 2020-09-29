@@ -50,19 +50,25 @@ namespace caret {
         
         int32_t getNumberOfLabels() const;
         
-        int32_t getIndexOfLabel(const ChartTwoCartesianCustomSubdivisionsLabel* label);
+        float getLabelNumericValue(const int32_t index) const;
         
-        ChartTwoCartesianCustomSubdivisionsLabel* getLabel(const int32_t index);
-
-        const ChartTwoCartesianCustomSubdivisionsLabel* getLabel(const int32_t index) const;
+        void setLabelNumericValue(const int32_t index,
+                                  const float value);
+        
+        AString getLabelText(const int32_t index) const;
+        
+        void setLabelText(const int32_t index,
+                          const AString& text);
         
         std::unique_ptr<CaretResult> insertLabelAbove(const int32_t index);
         
         std::unique_ptr<CaretResult>  insertLabelBelow(const int32_t index);
         
-        std::unique_ptr<CaretResult> removeLabel(ChartTwoCartesianCustomSubdivisionsLabel* label);
-        
         std::unique_ptr<CaretResult> removeLabelAtIndex(const int32_t index);
+        
+        void getRangeForLabelAtIndex(const int32_t index,
+                                     float& rangeMinimumOut,
+                                     float& rangeMaximumout) const;
         
         bool sortLabelsByNumericValue();
         
@@ -97,6 +103,14 @@ namespace caret {
         void addLabel(ChartTwoCartesianCustomSubdivisionsLabel* label);
         
         bool isValidLabelIndex(const int32_t index) const;
+        
+        int32_t getIndexOfLabel(const ChartTwoCartesianCustomSubdivisionsLabel* label);
+        
+        ChartTwoCartesianCustomSubdivisionsLabel* getLabel(const int32_t index);
+
+        const ChartTwoCartesianCustomSubdivisionsLabel* getLabel(const int32_t index) const;
+        
+        std::unique_ptr<CaretResult> removeLabel(ChartTwoCartesianCustomSubdivisionsLabel* label);
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 

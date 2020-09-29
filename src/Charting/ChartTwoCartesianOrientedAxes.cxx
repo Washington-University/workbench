@@ -1200,16 +1200,13 @@ ChartTwoCartesianOrientedAxes::getCustomSubdivisionsScalesOffsets(const ChartTwo
     
     const int32_t numLabels = subdivisions->getNumberOfLabels();
     for (int32_t i = 0; i < numLabels; i++) {
-        const ChartTwoCartesianCustomSubdivisionsLabel * label = subdivisions->getLabel(i);
-        CaretAssert(label);
-        
-        const float labelValue = label->getNumericValue();
+        const float labelValue = subdivisions->getLabelNumericValue(i);
         const float normalizedValue = (labelValue - labelsStart) / labelRange;
         if ((normalizedValue >= 0.0)
             && (normalizedValue <= 1.0)) {
             const float pixelValue = (normalizedValue * axisLength);
             scaleValuesOffsetInPixelsOut.push_back(pixelValue);
-            scaleValuesOut.push_back(label->getCustomText());
+            scaleValuesOut.push_back(subdivisions->getLabelText(i));
         }
     }
     

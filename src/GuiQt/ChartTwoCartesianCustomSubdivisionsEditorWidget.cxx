@@ -147,15 +147,16 @@ ChartTwoCartesianCustomSubdivisionsEditorWidget::loadAxisIntoWidgets()
                                     gridRow, GRID_COLUMN_TEXT);
     }
 
+    updateRangesOfValueSpinBoxes();
+    
     const int32_t newNumRows = static_cast<int32_t>(m_rows.size());
     for (int32_t iRow = 0; iRow < newNumRows; iRow++) {
         CaretAssertVectorIndex(m_rows, iRow);
         
         const bool validRowFlag(iRow < numLabels);
         if (validRowFlag) {
-            const ChartTwoCartesianCustomSubdivisionsLabel* axisLabel = m_subdivisions->getLabel(iRow);
-            m_rows[iRow]->m_valueSpinBox->setValue(axisLabel->getNumericValue());
-            m_rows[iRow]->m_labelLineEdit->setText(axisLabel->getCustomText());
+            m_rows[iRow]->m_valueSpinBox->setValue(m_subdivisions->getLabelNumericValue(iRow));
+            m_rows[iRow]->m_labelLineEdit->setText(m_subdivisions->getLabelText(iRow));
         }
         
         m_rows[iRow]->m_constructionToolButton->setVisible(validRowFlag);
@@ -167,6 +168,23 @@ ChartTwoCartesianCustomSubdivisionsEditorWidget::loadAxisIntoWidgets()
     
     adjustSize();
     emit widgetSizeChanged();
+}
+
+/**
+ * Update the ranges of the value spin boxes
+ */
+void
+ChartTwoCartesianCustomSubdivisionsEditorWidget::updateRangesOfValueSpinBoxes()
+{
+    const int32_t numLabels = ((m_subdivisions != NULL)
+                               ? m_subdivisions->getNumberOfLabels()
+                               : 0);
+    for (int32_t iRow = 0; iRow < numLabels; iRow++) {
+        CaretAssertVectorIndex(m_rows, iRow);
+        float rangeMin(0.0), rangeMax(0.0);
+        m_subdivisions->getRangeForLabelAtIndex(iRow, rangeMin, rangeMax);
+        m_rows[iRow]->m_valueSpinBox->setRange(rangeMin, rangeMax);
+    }
 }
 
 /**
@@ -228,10 +246,11 @@ ChartTwoCartesianCustomSubdivisionsEditorWidget::constructionMenuItemSelected(co
  */
 void
 ChartTwoCartesianCustomSubdivisionsEditorWidget::valueSpinBoxValueChanged(const int32_t rowIndex,
-                                                                  const float value)
+                                                                          const float value)
 {
-    ChartTwoCartesianCustomSubdivisionsLabel* axisLabel = m_subdivisions->getLabel(rowIndex);
-    axisLabel->setNumericValue(value);
+    m_subdivisions->setLabelNumericValue(rowIndex,
+                                         value);
+    updateRangesOfValueSpinBoxes();
     updateGraphics();
 }
 
@@ -246,8 +265,8 @@ void
 ChartTwoCartesianCustomSubdivisionsEditorWidget::labelLineEditTextChanged(const int32_t rowIndex,
                                                                   const QString& text)
 {
-    ChartTwoCartesianCustomSubdivisionsLabel* axisLabel = m_subdivisions->getLabel(rowIndex);
-    axisLabel->setCustomText(text);
+    m_subdivisions->setLabelText(rowIndex,
+                                 text);
     updateGraphics();
 }
 
