@@ -156,18 +156,8 @@ GiftiLabelTable::append(const GiftiLabelTable& glt, const bool errorOnLabelConfl
          iter != glt.labelsMap.end();
          iter++) {
         int32_t key = iter->first;
-        int32_t newKey = this->addLabel(iter->second);
+        int32_t newKey = this->addLabel(iter->second, errorOnLabelConflict);
 
-        if (newKey != key)
-        {
-            if (errorOnLabelConflict)
-            {
-                throw CaretException("conflicting key value " + AString::number(key) + " for label '" + iter->second->getName() + "', please fix this and any additional conflicts with a label-modify-keys command or an option in this command, if available");
-            } else {
-                CaretLogWarning("conflicting key value for label '" + iter->second->getName() + "' reassigned to key " + AString::number(newKey));
-            }
-        }
-        
         keyConverterMap.insert(std::make_pair(key, newKey));
     }
     return keyConverterMap;
@@ -193,29 +183,8 @@ GiftiLabelTable::addLabel(
                    const float blue,
                    const float alpha)
 {
-    const GiftiLabel gl(GiftiLabel::getInvalidLabelKey(), labelName, red, green, blue, alpha);
+    const GiftiLabel gl(generateUnusedKey(), labelName, red, green, blue, alpha);
     return this->addLabel(&gl);
-}
-
-/**
- * Add a label.  If a label with the name exists, its colors
- * are replaced with these color components.
- * @param labelName Name of label.
- * @param red  Red color component ranging 0.0 to 1.0.
- * @param green Green color component ranging 0.0 to 1.0.
- * @param blue Blue color component ranging 0.0 to 1.0.
- * @return  Index of the existing label, or, if no label 
- * exists with name, index of new label.
- *
- */
-int32_t
-GiftiLabelTable::addLabel(
-                   const AString& labelName,
-                   const float red,
-                   const float green,
-                   const float blue)
-{
-    return this->addLabel(labelName, red, green, blue, 1.0f);
 }
 
 /**
@@ -238,29 +207,8 @@ GiftiLabelTable::addLabel(
                    const int32_t blue,
                    const int32_t alpha)
 {
-    const GiftiLabel gl(GiftiLabel::getInvalidLabelKey(), labelName, red, green, blue, alpha);
+    const GiftiLabel gl(generateUnusedKey(), labelName, red, green, blue, alpha);
     return this->addLabel(&gl);
-}
-
-/**
- * Add a label.  If a label with the name exists, its colors
- * are replaced with these color components.
- * @param labelName Name of label.
- * @param red  Red color component ranging 0 to 255.
- * @param green Green color component ranging 0 to 255.
- * @param blue Blue color component ranging 0 to 255.
- * @return  Index of the existing label, or, if no label 
- * exists with name, index of new label.
- *
- */
-int32_t
-GiftiLabelTable::addLabel(
-                   const AString& labelName,
-                   const int32_t red,
-                   const int32_t green,
-                   const int32_t blue)
-{
-    return this->addLabel(labelName, red, green, blue, 255);
 }
 
 /**
@@ -273,12 +221,16 @@ GiftiLabelTable::addLabel(
  *
  */
 int32_t
-GiftiLabelTable::addLabel(const GiftiLabel* glIn)
+GiftiLabelTable::addLabel(const GiftiLabel* glIn, const bool errorOnLabelConflict)
 {
     /*
      * First see if a label with the same name already exists
      */
     int32_t key = this->getLabelKeyFromName(glIn->getName());
+    if (key != GiftiLabel::getInvalidLabelKey() && key != glIn->getKey())
+    {//Matt says warn if this finds a key other than the one it already has
+        CaretLogWarning("merging keys for label '" + glIn->getName() + "' from key " + AString::number(glIn->getKey()) + " to key " + AString::number(key));
+    }
     
     /*
      * If no label with the name exists, get the key
@@ -297,9 +249,14 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
     /*
      * Still need a key, find an unused key
      */
-    if (key == GiftiLabel::getInvalidLabelKey()) {
+    if (key == GiftiLabel::getInvalidLabelKey()) {//addLabel without a key has been fixed to use generateUnused, not getInvalid...
         key = this->generateUnusedKey();
-        
+        if (errorOnLabelConflict)
+        {
+            throw CaretException("conflicting key value " + AString::number(glIn->getKey()) + " for label '" + glIn->getName() + "', please fix this and any additional conflicts with a label-modify-keys command, or an option in this command, if available");
+        } else {
+            CaretLogWarning("conflicting key value for label '" + glIn->getName() + "' reassigned to key " + AString::number(key));
+        }
         GiftiLabel* gl = new GiftiLabel(*glIn);
         gl->setKey(key);
         this->labelsMap.insert(std::make_pair(key, gl));

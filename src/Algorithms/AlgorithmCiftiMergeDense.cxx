@@ -110,20 +110,22 @@ AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, co
     const CiftiXMLOld& baseXML = ciftiList[0]->getCiftiXMLOld();
     if (baseXML.getMappingType(myDir) != CIFTI_INDEX_TYPE_BRAIN_MODELS) throw AlgorithmException("mapping type along specified dimension is not brain models");
     bool isLabel = (baseXML.getMappingType(otherDir) == CIFTI_INDEX_TYPE_LABELS);
-    CiftiXMLOld outXML = baseXML;
+    CiftiXMLOld outXML;
+    if (conflictLogic == FIRST)
+    {
+        outXML = ciftiList.back()->getCiftiXMLOld();//reduce warning spam by making the first replace not produce a conflict
+    } else {
+        outXML = baseXML;
+    }
+    outXML.resetColumnsToBrainModels();
     VolumeSpace baseSpace;
     bool haveVolSpace = false;
-    if (baseXML.hasVolumeData(myDir))
-    {
-        haveVolSpace = true;
-        baseXML.getVolumeSpace(baseSpace);
-    }
-    vector<int> sourceCifti(baseXML.getNumberOfBrainModels(myDir), 0);
-    for (int i = 1; i < (int)ciftiList.size(); ++i)
+    vector<int> sourceCifti;
+    for (int i = 0; i < (int)ciftiList.size(); ++i)
     {
         CaretAssert(ciftiList[i] != NULL);
         const CiftiXMLOld& otherXML = ciftiList[i]->getCiftiXMLOld();
-        if (!ciftiList[0]->getCiftiXML().getMap(otherDir)->approximateMatch(*(ciftiList[i]->getCiftiXML().getMap(otherDir))))
+        if (i != 0 && !ciftiList[0]->getCiftiXML().getMap(otherDir)->approximateMatch(*(ciftiList[i]->getCiftiXML().getMap(otherDir))))
         {
             throw AlgorithmException("mappings along other dimension do not match");
         }

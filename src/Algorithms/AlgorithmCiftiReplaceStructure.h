@@ -37,13 +37,13 @@ namespace caret {
                                        const StructureEnum::Enum myStruct, const MetricFile* metricIn);
         AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int myDir,
                                        const StructureEnum::Enum myStruct, const LabelFile* labelIn,
-                                       const bool discardUnusedLabels = false, const bool errorOnLabelConflict = false);
+                                       const bool discardUnusedLabels = false, const bool errorOnLabelConflict = true);
         AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int myDir,
                                        const StructureEnum::Enum myStruct, const VolumeFile* volIn, const bool fromCropped,
-                                       const bool discardUnusedLabels = false, const bool errorOnLabelConflict = false);
+                                       const bool discardUnusedLabels = false, const bool errorOnLabelConflict = true);
         AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int myDir,
                                        const VolumeFile* volIn, const bool fromCropped,
-                                       const bool discardUnusedLabels = false, const bool errorOnLabelConflict = false);
+                                       const bool discardUnusedLabels = false, const bool errorOnLabelConflict = true);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

@@ -77,28 +77,16 @@ public:
                     const float red,
                     const float green,
                     const float blue,
-                    const float alpha);
-
-    int32_t addLabel(
-                    const AString& labelName,
-                    const float red,
-                    const float green,
-                    const float blue);
+                    const float alpha = 1.0f);
 
     int32_t addLabel(
                     const AString& labelName,
                     const int32_t red,
                     const int32_t green,
                     const int32_t blue,
-                    const int32_t alpha);
+                    const int32_t alpha = 255);
 
-    int32_t addLabel(
-                    const AString& labelName,
-                    const int32_t red,
-                    const int32_t green,
-                    const int32_t blue);
-
-    int32_t addLabel(const GiftiLabel* glt);
+    int32_t addLabel(const GiftiLabel* glt, const bool errorOnLabelConflict = false);
 
     void deleteLabel(const int32_t key);
 

@@ -22,6 +22,7 @@
 //for computing the cropped volume space
 #include "AlgorithmCiftiSeparate.h"
 #include "AlgorithmException.h"
+#include "CaretLogger.h"
 #include "CaretPointer.h"
 #include "CiftiFile.h"
 #include "GiftiLabelTable.h"
@@ -31,6 +32,7 @@
 #include "VolumeFile.h"
 
 #include <cmath>
+#include <map>
 #include <set>
 
 using namespace caret;
@@ -71,11 +73,17 @@ OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
     volumeAllOpt->createOptionalParameter(2, "-from-cropped", "the input is cropped to the size of the data");
     
     ret->createOptionalParameter(7, "-discard-unused-labels", "when operating on a dlabel file, drop any unused label keys from the label table");
+    
+    OptionalParameter* collideOpt = ret->createOptionalParameter(8, "-label-collision", "how to handle conflicts between label keys");
+    collideOpt->addStringParameter(1, "action", "'ERROR', 'LEFT_SURFACE_FIRST', or 'LEGACY', default 'ERROR', use 'LEGACY' to match v1.4.2 and earlier");
 
-    AString helpText = AString("You must specify at least one of -metric, -label, -volume, or -volume-all for this command to do anything.  ") +
+    AString helpText = AString("This is a fairly low-level command, you probably want to use -cifti-create-dense-from-template instead.\n\n") +
+        "You must specify at least one of -metric, -label, -volume, or -volume-all for this command to do anything.  " +
         "Input volumes must line up with the output of -cifti-separate.  " +
-        "For dtseries/dscalar, use COLUMN, and if your matrix will be fully symmetric, COLUMN is more efficient.  " +
-        "The structure argument must be one of the following:\n";
+        "For dtseries/dscalar, use COLUMN, and if your dconn matrix will be fully symmetric, COLUMN is more efficient.  " +
+        "The -volume-all option must not be specified when using a -volume option.  " +
+        "A -metric option must not be specified when using a -label option, and is not recommended on a label-type cifti file.  " +
+        "For each <structure> argument, use one of the following strings:\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
@@ -84,6 +92,40 @@ OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
     }
     ret->setHelpText(helpText);
     return ret;
+}
+
+namespace
+{
+    enum DataSourceType
+    {
+        LABEL,
+        METRIC,
+        VOLUME,
+        VOLUME_ALL
+    };
+    
+    enum LabelConflictLogic
+    {
+        ERROR,
+        LEFT_SURFACE_FIRST,
+        LEGACY
+    };
+
+    struct DataSourceInfo
+    {
+        DataSourceType type;
+        int64_t index;//for repeatable options
+
+        DataSourceInfo(const DataSourceType myType, const int64_t myIndex)
+        {
+            type = myType;
+            index = myIndex;
+        };
+        DataSourceInfo()
+        {
+            index = -1;//make it obviously invalid by default
+        };
+    };
 }
 
 void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams, ProgressObject* /*myProgObj*/)
@@ -101,10 +143,36 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
     bool discardUnusedLabels = myParams->getOptionalParameter(7)->m_present;
-    //FIXME: label resolution logic option?  not clear what can be intuitive for edge cases
+    LabelConflictLogic conflictLogic = ERROR;
+    OptionalParameter* collideOpt = myParams->getOptionalParameter(8);
+    if (collideOpt->m_present)
+    {
+        AString collideStr = collideOpt->getString(1);
+        if (collideStr == "ERROR")
+        {
+            conflictLogic = ERROR;
+        } else if (collideStr == "LEFT_SURFACE_FIRST") {
+            conflictLogic = LEFT_SURFACE_FIRST;
+        } else if (collideStr == "LEGACY") {
+            conflictLogic = LEGACY;
+        } else {
+            throw AlgorithmException("incorrect string for label collision option");
+        }
+    }
     const vector<ParameterComponent*>& labelInst = myParams->getRepeatableParameterInstances(3);
+    const vector<ParameterComponent*>& metricInst = myParams->getRepeatableParameterInstances(4);
+    const vector<ParameterComponent*>& volumeInst = myParams->getRepeatableParameterInstances(5);
+    OptionalParameter* volumeAllOpt = myParams->getOptionalParameter(6);
+    if (volumeAllOpt->m_present && volumeInst.size() != 0)
+    {
+        throw AlgorithmException("using -volume-all and -volume at the same time in -cifti-replace-structure is strongly discouraged");
+    }
+    map<StructureEnum::Enum, DataSourceInfo> surfSources, volSources;
+    vector<DataSourceInfo> legacyOrder;//label versus metric was NOT checked for metric replace on dlabel...but, we should probably still error when the arguments are very wrong
+    int labelMode = 0;//0 unknown, 1 label, 2 not label
     for (int i = 0; i < (int)labelInst.size(); ++i)
     {
+        labelMode = 1;
         AString structName = labelInst[i]->getString(1);
         bool ok = false;
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
@@ -112,12 +180,21 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         {
             throw AlgorithmException("unrecognized structure name");
         }
-        LabelFile* labelIn = labelInst[i]->getLabel(2);
-        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, labelIn, discardUnusedLabels);
+        if (surfSources.find(myStruct) != surfSources.end())
+        {
+            throw AlgorithmException("-label specified more than once with structure " + structName);//this wasn't previously checked either...
+        }
+        DataSourceInfo thisInfo(LABEL, i);
+        surfSources[myStruct] = thisInfo;
+        legacyOrder.push_back(thisInfo);
     }
-    const vector<ParameterComponent*>& metricInst = myParams->getRepeatableParameterInstances(4);
     for (int i = 0; i < (int)metricInst.size(); ++i)
     {
+        if (labelMode == 1)
+        {
+            throw AlgorithmException("-metric and -label options cannot be used together");
+        }
+        labelMode = 2;
         AString structName = metricInst[i]->getString(1);
         bool ok = false;
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
@@ -125,10 +202,14 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         {
             throw AlgorithmException("unrecognized structure name");
         }
-        MetricFile* metricIn = metricInst[i]->getMetric(2);
-        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, metricIn);
+        if (surfSources.find(myStruct) != surfSources.end())
+        {
+            throw AlgorithmException("-metric specified more than once with structure " + structName);//this wasn't previously checked either...
+        }
+        DataSourceInfo thisInfo(METRIC, i);
+        surfSources[myStruct] = thisInfo;
+        legacyOrder.push_back(thisInfo);
     }
-    const vector<ParameterComponent*>& volumeInst = myParams->getRepeatableParameterInstances(5);
     for (int i = 0; i < (int)volumeInst.size(); ++i)
     {
         AString structName = volumeInst[i]->getString(1);
@@ -138,16 +219,230 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         {
             throw AlgorithmException("unrecognized structure name");
         }
-        VolumeFile* volIn = volumeInst[i]->getVolume(2);
-        bool fromCropVol = volumeInst[i]->getOptionalParameter(3)->m_present;
-        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, volIn, fromCropVol, discardUnusedLabels);
+        if (volSources.find(myStruct) != surfSources.end())
+        {
+            throw AlgorithmException("-volume specified more than once with structure " + structName);//this wasn't previously checked either...
+        }
+        DataSourceInfo thisInfo(VOLUME, i);
+        volSources[myStruct] = thisInfo;
+        legacyOrder.push_back(thisInfo);
+        bool thisLabel = (volumeInst[i]->getVolume(2)->getType() == SubvolumeAttributes::LABEL);
+        int thisLabelMode = (thisLabel ? 1 : 2);
+        if (labelMode == 0)
+        {
+            labelMode = thisLabelMode;
+        } else {
+            if (labelMode != thisLabelMode)
+            {
+                if (thisLabel)
+                {
+                    throw AlgorithmException("label volume encountered when other inputs are non-label type: " + volumeInst[i]->getVolume(2)->getFileName());
+                } else {
+                    throw AlgorithmException("non-label volume encountered when other inputs are label type: " + volumeInst[i]->getVolume(2)->getFileName());
+                }
+            }
+        }
     }
-    OptionalParameter* volumeAllOpt = myParams->getOptionalParameter(6);
     if (volumeAllOpt->m_present)
     {
-        VolumeFile* volIn = volumeAllOpt->getVolume(1);
-        bool fromCropVol = volumeAllOpt->getOptionalParameter(2)->m_present;
-        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, volIn, fromCropVol, discardUnusedLabels);
+        legacyOrder.push_back(DataSourceInfo(VOLUME_ALL, -1));
+        bool thisLabel = (volumeAllOpt->getVolume(1)->getType() == SubvolumeAttributes::LABEL);
+        int thisLabelMode = (thisLabel ? 1 : 2);
+        if (labelMode == 0)
+        {
+            labelMode = thisLabelMode;
+        } else {
+            if (labelMode != thisLabelMode)
+            {
+                if (thisLabel)
+                {
+                    throw AlgorithmException("label volume encountered when other inputs are non-label type: " + volumeAllOpt->getVolume(1)->getFileName());
+                } else {
+                    throw AlgorithmException("non-label volume encountered when other inputs are label type: " + volumeAllOpt->getVolume(1)->getFileName());
+                }
+            }
+        }
+    }
+    bool errorOnLabelConflict = (legacyOrder.size() > 1) && (conflictLogic == ERROR);//don't error when all priority options would give the same result
+    if (errorOnLabelConflict && labelMode == 1)//check for replacing everything when the new label tables don't collide, as that behavior also doesn't depend on priority
+    {
+        const CiftiXML& myXML = myCifti.getCiftiXML();
+        if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified dimension must contain brain models");
+        const CiftiBrainModelsMap& myMap = myXML.getBrainModelsMap(myDir);
+        bool allReplace = true;
+        for (auto surfStruct : myMap.getSurfaceStructureList())
+        {
+            if (surfSources.find(surfStruct) == surfSources.end())
+            {
+                allReplace = false;
+                break;
+            }
+        }
+        for (auto volStruct : myMap.getVolumeStructureList())
+        {
+            if (volSources.find(volStruct) == volSources.end())
+            {
+                allReplace = false;
+                break;
+            }
+        }
+        if (allReplace)
+        {
+            errorOnLabelConflict = false;//replace everything means we can ignore conflicts with the labels in the original cifti
+            vector<GiftiLabelTable> testTables;//but need to manually check the tables of the inputs
+            for (auto source : legacyOrder)//order doesn't really matter if we are just generating an error
+            {
+                CaretMappableDataFile* thisFile = NULL;
+                switch (source.type)
+                {
+                    case LABEL:
+                        thisFile = labelInst[source.index]->getLabel(2);
+                        break;
+                    case VOLUME:
+                        thisFile = volumeInst[source.index]->getVolume(2);
+                        break;
+                    case VOLUME_ALL:
+                        thisFile = volumeAllOpt->getVolume(1);
+                        break;
+                    default:
+                        CaretAssert(false);//it is an error to mix -metric and -label now, so this can't happen
+                        throw AlgorithmException("internal error, tell the developers what you tried to do");
+                }
+                if (testTables.empty())
+                {
+                    testTables.resize(thisFile->getNumberOfMaps());
+                } else {
+                    if (thisFile->getNumberOfMaps() != int(testTables.size()))
+                    {
+                        throw AlgorithmException("input files have different numbers of maps");
+                    }
+                }
+                for (int i = 0; i < int(testTables.size()); ++i)
+                {
+                    testTables[i].append(*(thisFile->getMapLabelTable(i)), true);//produce an error on conflict
+                }
+            }
+            if (!discardUnusedLabels)//Matt insisted on making this an error, too
+            {
+                if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("only 2D cifti are supported");
+                if (myXML.getMappingType(1 - myDir) != CiftiMappingType::LABELS) throw AlgorithmException("cannot replace structure with label data in non-label cifti file");
+                const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(1 - myDir);
+                if (myLabelsMap.getLength() != int64_t(testTables.size())) throw AlgorithmException("input files have the wrong number of maps for this cifti file");
+                try
+                {
+                    for (int i = 0; i < int(testTables.size()); ++i)
+                    {
+                        testTables[i].append(*(myLabelsMap.getMapLabelTable(i)), true);
+                    }
+                } catch (CaretException& e) {
+                    throw AlgorithmException("labels in the cifti file conflict with labels in other input files, but all structures are being replaced, so using either -label-collision or -discard-unused-labels will resolve this error");
+                }
+            }
+        }
+    }
+    vector<DataSourceInfo> grayordOrder;
+    {
+        //most predictable is probably to do -cifti-create-label order and ignore whatever the input cifti order is
+        auto iter = surfSources.find(StructureEnum::CORTEX_LEFT);
+        if (iter != surfSources.end())
+        {
+            grayordOrder.push_back(iter->second);
+            surfSources.erase(iter);
+        }
+        iter = surfSources.find(StructureEnum::CORTEX_RIGHT);
+        if (iter != surfSources.end())
+        {
+            grayordOrder.push_back(iter->second);
+            surfSources.erase(iter);
+        }
+        //cerebellum next, because this is what -cifti-create-label does
+        iter = surfSources.find(StructureEnum::CEREBELLUM);
+        if (iter != surfSources.end())
+        {
+            grayordOrder.push_back(iter->second);
+            surfSources.erase(iter);
+        }
+        //volume after main surfaces
+        if (volumeAllOpt->m_present)
+        {
+            grayordOrder.push_back(DataSourceInfo(VOLUME_ALL, -1));
+        }
+        for (auto vIter : volSources) //this is already checked as mutually exclusive with -volume-all
+        {
+            grayordOrder.push_back(vIter.second);
+        }
+        volSources.clear();
+        //any other surfaces last?  -cifti-create-label doesn't accept these
+        for (auto sIter : surfSources)
+        {
+            grayordOrder.push_back(sIter.second);
+        }
+        surfSources.clear();
+        CaretAssert(volSources.empty() && surfSources.empty());
+    }
+    vector<DataSourceInfo> useOrder;
+    switch (conflictLogic)
+    {
+        case ERROR://do scalar-type replace with legacy order, in case it makes a difference
+        case LEGACY:
+            useOrder = legacyOrder;
+            break;
+        case LEFT_SURFACE_FIRST:
+            useOrder = vector<DataSourceInfo>(grayordOrder.rbegin(), grayordOrder.rend());//reverse the order so high priority goes last
+            break;
+    }
+    for (auto iter : useOrder)
+    {
+        switch (iter.type)
+        {
+            case LABEL:
+            {
+                AString structName = labelInst[iter.index]->getString(1);
+                bool ok = false;
+                StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
+                if (!ok)
+                {
+                    throw AlgorithmException("unrecognized structure name");
+                }
+                LabelFile* labelIn = labelInst[iter.index]->getLabel(2);
+                AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, labelIn, discardUnusedLabels, errorOnLabelConflict);
+                break;
+            }
+            case METRIC:
+            {
+                AString structName = metricInst[iter.index]->getString(1);
+                bool ok = false;
+                StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
+                if (!ok)
+                {
+                    throw AlgorithmException("unrecognized structure name");
+                }
+                MetricFile* metricIn = metricInst[iter.index]->getMetric(2);
+                AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, metricIn);
+                break;
+            }
+            case VOLUME:
+            {//can't happen with -volume-all
+                AString structName = volumeInst[iter.index]->getString(1);
+                bool ok = false;
+                StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
+                if (!ok)
+                {
+                    throw AlgorithmException("unrecognized structure name");
+                }
+                VolumeFile* volIn = volumeInst[iter.index]->getVolume(2);
+                bool fromCropVol = volumeInst[iter.index]->getOptionalParameter(3)->m_present;
+                AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, volIn, fromCropVol, discardUnusedLabels, errorOnLabelConflict);
+                break;
+            }
+            case VOLUME_ALL:
+            {//can only exist once
+                VolumeFile* volIn = volumeAllOpt->getVolume(1);
+                bool fromCropVol = volumeAllOpt->getOptionalParameter(2)->m_present;
+                AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, volIn, fromCropVol, discardUnusedLabels, errorOnLabelConflict);
+                break;
+            }
+        }
     }
     myCifti.writeFile(ciftiName);//and write the modified file
 }
@@ -159,6 +454,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
     const CiftiXML& myXML = ciftiInOut->getCiftiXML();
     if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("replace structure only supported on 2D cifti");
     if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified dimension must contain brain models");
+    if (myXML.getMappingType(1 - myDir) == CiftiMappingType::LABELS) CaretLogWarning("replacing data in label-type cifti file with a metric file!");//previously not an error, so just warn, I guess
     const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(myDir);
     vector<CiftiBrainModelsMap::SurfaceMap> myMap;
     int rowSize = ciftiInOut->getNumberOfColumns(), colSize = ciftiInOut->getNumberOfRows();
@@ -224,7 +520,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
     int64_t rowSize = ciftiInOut->getNumberOfColumns(), colSize = ciftiInOut->getNumberOfRows();
     if (myDir == CiftiXML::ALONG_COLUMN)
     {
-        if (myXML.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::LABELS) throw AlgorithmException("label replace structure requested on non-label cifti");
         const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_ROW);
         myMap = myDenseMap.getSurfaceMap(myStruct);
         int64_t numNodes = myDenseMap.getSurfaceNumberOfNodes(myStruct);
@@ -300,7 +596,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         }
     } else {
         if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("unsupported cifti direction");
-        if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
+        if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::LABELS) throw AlgorithmException("label replace structure requested on non-label cifti");
         const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_COLUMN);
         myMap = myDenseMap.getSurfaceMap(myStruct);
         {

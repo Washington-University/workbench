@@ -1155,12 +1155,12 @@ PaletteFile::addDefaultPalettes()
     // Psych palette
     //
     if (this->getPaletteByName("PSYCH") == NULL) {
-        this->addColor("_pyell-oran",  0xff, 0xcc, 0x00 );
+        /*this->addColor("_pyell-oran",  0xff, 0xcc, 0x00 );//don't add colors repeatedly, since GiftiLabelTable now warns about everything
         this->addColor("_poran-red",  0xff, 0x44, 0x00 );
         this->addColor("_pblue",  0x00, 0x44, 0xff );
         this->addColor("_pltblue1",  0x00, 0x69, 0xff );
         this->addColor("_pltblue2",  0x00, 0x99, 0xff );
-        this->addColor("_pbluecyan",  0x00, 0xcc, 0xff );
+        this->addColor("_pbluecyan",  0x00, 0xcc, 0xff );//*/
         
         Palette psych;
         psych.setName("PSYCH");
@@ -1182,12 +1182,12 @@ PaletteFile::addDefaultPalettes()
     // Psych no-none palette
     //
     if (this->getPaletteByName("PSYCH-NO-NONE") == NULL) {
-        this->addColor("_pyell-oran",  0xff, 0xcc, 0x00 );
+        /*this->addColor("_pyell-oran",  0xff, 0xcc, 0x00 );
         this->addColor("_poran-red",  0xff, 0x44, 0x00 );
         this->addColor("_pblue",  0x00, 0x44, 0xff );
         this->addColor("_pltblue1",  0x00, 0x69, 0xff );
         this->addColor("_pltblue2",  0x00, 0x99, 0xff );
-        this->addColor("_pbluecyan",  0x00, 0xcc, 0xff );
+        this->addColor("_pbluecyan",  0x00, 0xcc, 0xff );//*/
         
         Palette psychNoNone;
         psychNoNone.setName("PSYCH-NO-NONE");
@@ -1332,12 +1332,12 @@ PaletteFile::addDefaultPalettes()
     //
     // Colors by Russ H.
     //
-    int _rbgyr20_10[3] = { 0x00, 0xff, 0x00 };
+    /*int _rbgyr20_10[3] = { 0x00, 0xff, 0x00 };
     this->addColor("_rbgyr20_10", _rbgyr20_10);
     int _rbgyr20_15[3] = { 0xff, 0xff, 0x00 };
     this->addColor("_rbgyr20_15", _rbgyr20_15);
     int _rbgyr20_20[3] = { 0xff, 0x00, 0x00 };
-    this->addColor("_rbgyr20_20", _rbgyr20_20);
+    this->addColor("_rbgyr20_20", _rbgyr20_20);//*/
     
     int _rbgyr20_21[3] = { 0x9d, 0x22, 0xc1 };
     this->addColor("_rbgyr20_21", _rbgyr20_21);
@@ -1544,8 +1544,8 @@ PaletteFile::addDefaultPalettes()
     // Positive/Negative palette
     //
     if (this->getPaletteByName("POS_NEG") == NULL) {
-        this->addColor("pos_neg_blue",  0x00, 0x00, 0xff );
-        this->addColor("pos_neg_red",  0xff, 0x00, 0x00 );
+        /*this->addColor("pos_neg_blue",  0x00, 0x00, 0xff );
+        this->addColor("pos_neg_red",  0xff, 0x00, 0x00 );//*/
         
         Palette posNeg;
         posNeg.setName("POS_NEG");

@@ -79,6 +79,9 @@ OperationParameters* OperationCiftiCreateDenseFromTemplate::getParameters()
     volOpt->addVolumeParameter(2, "volume-in", "the input volume file");
     volOpt->createOptionalParameter(3, "-from-cropped", "the input is cropped to the size of the volume structure");
     
+    OptionalParameter* collideOpt = ret->createOptionalParameter(9, "-label-collision", "how to handle conflicts between label keys");
+    collideOpt->addStringParameter(1, "action", "'ERROR', 'SURFACES_FIRST', or 'LEGACY', default 'ERROR', use 'LEGACY' to match v1.4.2 and earlier");
+
     AString helpText = AString("This command helps you make a new dscalar, dtseries, or dlabel cifti file that matches the brainordinate space used in another cifti file.  ") +
         "The template file must have the desired brainordinate space in the mapping along the column direction (for dtseries, dscalar, dlabel, and symmetric dconn this is always the case).  " +
         "All input cifti files must have a brain models mapping along column and use the same volume space and/or surface vertex count as the template for structures that they contain.  " +
@@ -113,11 +116,23 @@ namespace
         VOLUME_ALL
     };
     
+    enum LabelConflictLogic
+    {
+        ERROR,
+        SURFACES_FIRST,
+        LEGACY
+    };
+
     struct DataSourceInfo
     {
         DataSourceType type;
         int64_t index;//for repeatable options
         
+        DataSourceInfo(const DataSourceType myType, const int64_t myIndex)
+        {
+            type = myType;
+            index = myIndex;
+        };
         DataSourceInfo()
         {
             type = NONE;
@@ -131,6 +146,22 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
     LevelProgress myProgress(myProgObj);
     const CiftiFile* templateCifti = myParams->getCifti(1);
     CiftiFile* ciftiOut = myParams->getOutputCifti(2);
+    LabelConflictLogic conflictLogic = ERROR;
+    OptionalParameter* collideOpt = myParams->getOptionalParameter(9);
+    if (collideOpt->m_present)
+    {
+        AString collideStr = collideOpt->getString(1);
+        if (collideStr == "ERROR")
+        {
+            conflictLogic = ERROR;
+        } else if (collideStr == "SURFACES_FIRST") {
+            conflictLogic = SURFACES_FIRST;
+        } else if (collideStr == "LEGACY") {
+            conflictLogic = LEGACY;
+        } else {
+            throw OperationException("incorrect string for label collision option");
+        }
+    }
     const CiftiXML& templateXML = templateCifti->getCiftiXML();
     if (templateXML.getNumberOfDimensions() != 2)
     {
@@ -329,7 +360,7 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
         checkStructureMatch(thisMetric, thisStruct, "metric file '" + thisMetric->getFileName() + "'", "the -metric option specified");
         surfInfo[outIndex].type = METRIC;
         surfInfo[outIndex].index = instance;
-        if (instance == 0) nameFile = thisMetric;//-metric trumps -volume-all for names, but use the first -metric
+        if (nameFile == NULL) nameFile = thisMetric;
     }
     const vector<ParameterComponent*>& labelInstances = myParams->getRepeatableParameterInstances(7);
     for (int instance = 0; instance < (int)labelInstances.size(); ++instance)
@@ -371,7 +402,7 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
         checkStructureMatch(thisLabel, thisStruct, "label file '" + thisLabel->getFileName() + "'", "the -label option specified");
         surfInfo[outIndex].type = LABEL;
         surfInfo[outIndex].index = instance;
-        if (instance == 0) nameFile = thisLabel;//-label trumps -volume-all for names, but use the first -label
+        if (nameFile == NULL) nameFile = thisLabel;
     }
     const vector<ParameterComponent*>& volumeInstances = myParams->getRepeatableParameterInstances(8);
     for (int instance = 0; instance < (int)volumeInstances.size(); ++instance)
@@ -510,111 +541,129 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
         }
     }
     ciftiOut->setCiftiXML(outXML);
-    for (int whichStruct = 0; whichStruct < (int)surfStructures.size(); ++whichStruct)
+    vector<DataSourceInfo> legacyOrder = surfInfo;
+    vector<bool> legacyIsSurface(surfInfo.size(), true);//need to separately track what the type of model is
+    vector<StructureEnum::Enum> legacyStructure = surfStructures;//and its structure
+    if (volStructures.size() > 0 && volInfo[0].type == VOLUME_ALL)
     {
-        switch (surfInfo[whichStruct].type)
+        legacyOrder.push_back(volInfo[0]);//record order of things to do, not one per every structure
+        legacyIsSurface.push_back(false);
+        legacyStructure.push_back(StructureEnum::ALL);//doesn't matter
+    } else {
+        legacyOrder.insert(legacyOrder.end(), volInfo.begin(), volInfo.end());//there doesn't appear to be an append function
+        legacyIsSurface.resize(legacyOrder.size(), false);
+        legacyStructure.insert(legacyStructure.end(), volStructures.begin(), volStructures.end());
+    }
+    bool errorOnLabelConflict = (conflictLogic == ERROR);
+    auto useOrder = legacyOrder;
+    auto useIsSurface = legacyIsSurface;
+    auto useStructure = legacyStructure;
+    switch (conflictLogic)
+    {
+        case ERROR:
+        case LEGACY:
+            break;
+        case SURFACES_FIRST:
+            useOrder.assign(legacyOrder.rbegin(), legacyOrder.rend());//basically, legacy order had the right idea, but the label conflict logic reversed it
+            useIsSurface.assign(legacyIsSurface.rbegin(), legacyIsSurface.rend());
+            useStructure.assign(legacyStructure.rbegin(), legacyStructure.rend());
+    }
+    for (int i = 0; i < int(useOrder.size()); ++i)
+    {
+        switch(useOrder[i].type)
         {
             case CIFTI:
             {
-                const CiftiFile* toUse = ciftiInstances[surfInfo[whichStruct].index]->getCifti(1);
-                if (labelMode == 1)
+                if (useIsSurface[i])
                 {
-                    LabelFile tempLabel;
-                    AlgorithmCiftiSeparate(NULL, toUse, CiftiXML::ALONG_COLUMN, surfStructures[whichStruct], &tempLabel);
-                    AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, surfStructures[whichStruct], &tempLabel);
+                    const CiftiFile* toUse = ciftiInstances[useOrder[i].index]->getCifti(1);
+                    if (labelMode == 1)
+                    {
+                        LabelFile tempLabel;
+                        AlgorithmCiftiSeparate(NULL, toUse, CiftiXML::ALONG_COLUMN, useStructure[i], &tempLabel);
+                        AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, useStructure[i], &tempLabel, false, errorOnLabelConflict);
+                    } else {
+                        MetricFile tempMetric;
+                        AlgorithmCiftiSeparate(NULL, toUse, CiftiXML::ALONG_COLUMN, useStructure[i], &tempMetric);
+                        AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, useStructure[i], &tempMetric);
+                    }
                 } else {
-                    MetricFile tempMetric;
-                    AlgorithmCiftiSeparate(NULL, toUse, CiftiXML::ALONG_COLUMN, surfStructures[whichStruct], &tempMetric);
-                    AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, surfStructures[whichStruct], &tempMetric);
+                    const CiftiFile* toUse = ciftiInstances[useOrder[i].index]->getCifti(1);
+                    VolumeFile tempVol;
+                    int64_t dims1[3], dims2[3], off1[3], off2[3];//check if the cropped space matches, if so we can save memory easily by using the crop argument (and this is also the common case)
+                    vector<vector<float> > sform1, sform2;
+                    AlgorithmCiftiSeparate::getCroppedVolSpace(toUse, CiftiXML::ALONG_COLUMN, useStructure[i], dims1, sform1, off1);
+                    AlgorithmCiftiSeparate::getCroppedVolSpace(templateCifti, CiftiXML::ALONG_COLUMN, useStructure[i], dims2, sform2, off2);
+                    VolumeSpace space1(dims1, sform1), space2(dims2, sform2);
+                    if (space1.matches(space2))
+                    {
+                        AlgorithmCiftiSeparate(NULL, toUse, CiftiXML::ALONG_COLUMN, useStructure[i], &tempVol, off1, NULL, true);
+                        AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, useStructure[i], &tempVol, true, false, errorOnLabelConflict);
+                    } else {
+                        AlgorithmCiftiSeparate(NULL, toUse, CiftiXML::ALONG_COLUMN, useStructure[i], &tempVol, off1, NULL, false);
+                        AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, useStructure[i], &tempVol, false, false, errorOnLabelConflict);
+                    }
                 }
                 break;
             }
             case METRIC:
             {
-                const MetricFile* toUse = metricInstances[surfInfo[whichStruct].index]->getMetric(2);
-                AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, surfStructures[whichStruct], toUse);
+                const MetricFile* toUse = metricInstances[useOrder[i].index]->getMetric(2);
+                AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, useStructure[i], toUse);
                 break;
             }
             case LABEL:
             {
-                const LabelFile* toUse = labelInstances[surfInfo[whichStruct].index]->getLabel(2);
-                AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, surfStructures[whichStruct], toUse);
+                const LabelFile* toUse = labelInstances[useOrder[i].index]->getLabel(2);
+                AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, useStructure[i], toUse, false, errorOnLabelConflict);
+                break;
+            }
+            case VOLUME:
+            {
+                const VolumeFile* toUse = volumeInstances[useOrder[i].index]->getVolume(2);
+                bool fromCropped = volumeInstances[useOrder[i].index]->getOptionalParameter(3)->m_present;
+                AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, useStructure[i], toUse, fromCropped, false, errorOnLabelConflict);
+                break;
+            }
+            case VOLUME_ALL:
+            {//this only exists once in order vectors
+                const VolumeFile* toUse = volAllOpt->getVolume(1);
+                bool fromCropped = volAllOpt->getOptionalParameter(2)->m_present;
+                AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, toUse, fromCropped, false, errorOnLabelConflict);
                 break;
             }
             case NONE:
             {
-                int numNodes = templateMap.getSurfaceNumberOfNodes(surfStructures[whichStruct]);
-                if (labelMode == 1)
+                if (useIsSurface[i])
                 {
-                    LabelFile tempLabel;
-                    tempLabel.setNumberOfNodesAndColumns(numNodes, numMaps);
-                    int32_t unlabeledKey = tempLabel.getLabelTable()->getUnassignedLabelKey();
-                    vector<int32_t> scratchCol(numNodes, unlabeledKey);
-                    for (int64_t i = 0; i < numMaps; ++i)
+                    int numNodes = templateMap.getSurfaceNumberOfNodes(useStructure[i]);
+                    if (labelMode == 1)
                     {
-                        tempLabel.setLabelKeysForColumn(i, scratchCol.data());
-                    }
-                    AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, surfStructures[whichStruct], &tempLabel);
-                } else {
-                    MetricFile tempMetric;
-                    tempMetric.setNumberOfNodesAndColumns(numNodes, numMaps);
-                    vector<float> scratchCol(numNodes, 0.0f);
-                    for (int64_t i = 0; i < numMaps; ++i)
-                    {
-                        tempMetric.setValuesForColumn(i, scratchCol.data());
-                    }
-                    AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, surfStructures[whichStruct], &tempMetric);
-                }
-                break;
-            }
-            default:
-                CaretAssert(false);
-                throw OperationException("internal error, invalid source type for surface data, tell the developers what you did");
-        }
-    }
-    if (volStructures.size() > 0 && volInfo[0].type == VOLUME_ALL)//NOTE: if one structure is VOLUME_ALL, all are, and the cropped space is different than per-structure, so DO NOT enter the structure loop
-    {
-        const VolumeFile* toUse = volAllOpt->getVolume(1);
-        bool fromCropped = volAllOpt->getOptionalParameter(2)->m_present;
-        AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, toUse, fromCropped);
-    } else {
-        for (int whichStruct = 0; whichStruct < (int)volStructures.size(); ++whichStruct)
-        {
-            switch (volInfo[whichStruct].type)
-            {
-                case CIFTI:
-                {
-                    const CiftiFile* toUse = ciftiInstances[volInfo[whichStruct].index]->getCifti(1);
-                    VolumeFile tempVol;
-                    int64_t dims1[3], dims2[3], off1[3], off2[3];//check if the cropped space matches, if so we can save memory easily by using the crop argument (and this is also the common case)
-                    vector<vector<float> > sform1, sform2;
-                    AlgorithmCiftiSeparate::getCroppedVolSpace(toUse, CiftiXML::ALONG_COLUMN, volStructures[whichStruct], dims1, sform1, off1);
-                    AlgorithmCiftiSeparate::getCroppedVolSpace(templateCifti, CiftiXML::ALONG_COLUMN, volStructures[whichStruct], dims2, sform2, off2);
-                    VolumeSpace space1(dims1, sform1), space2(dims2, sform2);
-                    if (space1.matches(space2))
-                    {
-                        AlgorithmCiftiSeparate(NULL, toUse, CiftiXML::ALONG_COLUMN, volStructures[whichStruct], &tempVol, off1, NULL, true);
-                        AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, volStructures[whichStruct], &tempVol, true);
+                        LabelFile tempLabel;
+                        tempLabel.setNumberOfNodesAndColumns(numNodes, numMaps);
+                        int32_t unlabeledKey = tempLabel.getLabelTable()->getUnassignedLabelKey();
+                        vector<int32_t> scratchCol(numNodes, unlabeledKey);
+                        for (int64_t i = 0; i < numMaps; ++i)
+                        {
+                            tempLabel.setLabelKeysForColumn(i, scratchCol.data());
+                        }
+                        AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, useStructure[i], &tempLabel, false, errorOnLabelConflict);
                     } else {
-                        AlgorithmCiftiSeparate(NULL, toUse, CiftiXML::ALONG_COLUMN, volStructures[whichStruct], &tempVol, off1, NULL, false);
-                        AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, volStructures[whichStruct], &tempVol, false);
+                        MetricFile tempMetric;
+                        tempMetric.setNumberOfNodesAndColumns(numNodes, numMaps);
+                        vector<float> scratchCol(numNodes, 0.0f);
+                        for (int64_t i = 0; i < numMaps; ++i)
+                        {
+                            tempMetric.setValuesForColumn(i, scratchCol.data());
+                        }
+                        AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, useStructure[i], &tempMetric);
                     }
-                    break;
-                }
-                case VOLUME:
-                {
-                    const VolumeFile* toUse = volumeInstances[volInfo[whichStruct].index]->getVolume(2);
-                    bool fromCropped = volumeInstances[volInfo[whichStruct].index]->getOptionalParameter(3)->m_present;
-                    AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, volStructures[whichStruct], toUse, fromCropped);
-                    break;
-                }
-                case NONE:
-                {
+                } else {
                     VolumeFile tempVol;
                     int64_t offset[3];
                     vector<int64_t> dims(3);
                     vector<vector<float> > sform;
-                    AlgorithmCiftiSeparate::getCroppedVolSpace(templateCifti, CiftiXML::ALONG_COLUMN, volStructures[whichStruct], dims.data(), sform, offset);
+                    AlgorithmCiftiSeparate::getCroppedVolSpace(templateCifti, CiftiXML::ALONG_COLUMN, useStructure[i], dims.data(), sform, offset);
                     dims.push_back(numMaps);
                     if (labelMode == 1)
                     {
@@ -630,12 +679,9 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
                         tempVol.reinitialize(dims, sform);
                         tempVol.setValueAllVoxels(0.0f);
                     }
-                    AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, volStructures[whichStruct], &tempVol, true);
-                    break;
+                    AlgorithmCiftiReplaceStructure(NULL, ciftiOut, CiftiXML::ALONG_COLUMN, useStructure[i], &tempVol, true, false, errorOnLabelConflict);
                 }
-                default:
-                    CaretAssert(false);
-                    throw OperationException("internal error, invalid source type for volume structure data, tell the developers what you did");
+                break;
             }
         }
     }
