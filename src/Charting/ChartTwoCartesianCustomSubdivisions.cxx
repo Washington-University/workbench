@@ -218,6 +218,8 @@ ChartTwoCartesianCustomSubdivisions::addLabel(ChartTwoCartesianCustomSubdivision
 void
 ChartTwoCartesianCustomSubdivisions::reset()
 {
+    m_labels.clear();
+    
     ChartTwoCartesianCustomSubdivisionsLabel* labelOne = new ChartTwoCartesianCustomSubdivisionsLabel();
     labelOne->setCustomText("1.0");
     labelOne->setNumericValue(1.0);
