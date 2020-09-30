@@ -65,7 +65,8 @@ ChartTwoCartesianCustomSubdivisionsLabel::~ChartTwoCartesianCustomSubdivisionsLa
  *    Object that is copied.
  */
 ChartTwoCartesianCustomSubdivisionsLabel::ChartTwoCartesianCustomSubdivisionsLabel(const ChartTwoCartesianCustomSubdivisionsLabel& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     this->copyHelperChartTwoCartesianCustomSubdivisionsLabel(obj);
 }

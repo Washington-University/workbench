@@ -63,7 +63,8 @@ ChartTwoCartesianCustomSubdivisions::~ChartTwoCartesianCustomSubdivisions()
  *    Object that is copied.
  */
 ChartTwoCartesianCustomSubdivisions::ChartTwoCartesianCustomSubdivisions(const ChartTwoCartesianCustomSubdivisions& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     this->copyHelperChartTwoCartesianCustomSubdivisions(obj);
 }
