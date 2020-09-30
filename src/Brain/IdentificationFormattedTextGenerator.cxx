@@ -719,6 +719,16 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                     }
                 }
             }
+            else {
+                if (mapFile->isMappedWithLabelTable()) {
+                    labelHtmlTableBuilder.addRow(m_noDataText,
+                                                 mapFile->getFileNameNoPath());
+                }
+                if (mapFile->isMappedWithPalette()) {
+                    scalarHtmlTableBuilder.addRow(m_noDataText,
+                                                  mapFile->getFileNameNoPath());
+                }
+            }
         }
 }
 
