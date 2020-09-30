@@ -398,7 +398,6 @@ WuQDoubleSpinBox::setRange(double minimum,
     m_minimumValue = minimum;
     m_maximumValue = maximum;
     m_rangeMode = RangeMode::INCLUSIVE;
-    QSignalBlocker blocker(m_spinBox);
     m_spinBox->setRange(m_minimumValue, m_maximumValue);
     updateDecimalsForAutoMode();
     updateSingleStepPercentage();
@@ -455,7 +454,6 @@ WuQDoubleSpinBox::setRangeExceedable(const double dataMinimum,
     m_maximumValue = dataMaximum;
     m_rangeMode = RangeMode::EXCEEDABLE;
     
-    QSignalBlocker blocker(m_spinBox);
     m_spinBox->setRange(spinBoxMinimum,
                         spinBoxMaximum);
     
