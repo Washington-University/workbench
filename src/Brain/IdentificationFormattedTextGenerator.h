@@ -215,6 +215,8 @@ namespace caret {
         
         bool isParcelAndScalarTypeFile(const DataFileTypeEnum::Enum dataFileType) const;
 
+        const AString m_noDataText;
+        
         friend class DataToolTipsManager;
     };
     

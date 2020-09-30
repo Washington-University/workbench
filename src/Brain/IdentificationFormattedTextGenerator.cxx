@@ -105,7 +105,8 @@ using namespace caret;
  * Constructor.
  */
 IdentificationFormattedTextGenerator::IdentificationFormattedTextGenerator()
-: CaretObject()
+: CaretObject(),
+m_noDataText("no-data")
 {
     
 }
@@ -703,6 +704,18 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                                                               rowColumnIndex);
                             }
                         }
+                        else {
+                            /* no data */
+                            AString labelText;
+                            if (ciftiFile->isMappedWithLabelTable()) {
+                                labelHtmlTableBuilder.addRow(m_noDataText,
+                                                             ciftiFile->getFileNameNoPath());
+                            }
+                            if (ciftiFile->isMappedWithPalette()) {
+                                scalarHtmlTableBuilder.addRow(m_noDataText,
+                                                              ciftiFile->getFileNameNoPath());
+                            }
+                        }
                     }
                 }
             }
@@ -941,6 +954,16 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                     scalarHtmlTableBuilder.addRow(scalarText,
                                                   cmdf->getFileNameNoPath(),
                                                   rowColumnIndex);
+                }
+            }
+            else {
+                if (cmdf->isMappedWithLabelTable()) {
+                    labelHtmlTableBuilder.addRow(m_noDataText,
+                                                 cmdf->getFileNameNoPath());
+                }
+                if (cmdf->isMappedWithPalette()) {
+                    scalarHtmlTableBuilder.addRow(m_noDataText,
+                                                  cmdf->getFileNameNoPath());
                 }
             }
         }
