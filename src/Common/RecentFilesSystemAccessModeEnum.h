@@ -38,9 +38,7 @@ public:
         /** On */
         ON,
         /** Off */
-        OFF,
-        /** OFF this sesssion but changes to ON when session terminates */
-        OFF_THIS_SESSION
+        OFF
     };
 
 

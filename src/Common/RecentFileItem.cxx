@@ -58,8 +58,6 @@ m_pathAndFileName(pathAndFileName)
     switch (modeEvent.getMode()) {
         case RecentFilesSystemAccessModeEnum::OFF:
             break;
-        case RecentFilesSystemAccessModeEnum::OFF_THIS_SESSION:
-            break;
         case RecentFilesSystemAccessModeEnum::ON:
             useFileSystemFlag = true;
             break;

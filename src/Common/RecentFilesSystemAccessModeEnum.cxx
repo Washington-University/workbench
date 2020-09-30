@@ -118,11 +118,6 @@ RecentFilesSystemAccessModeEnum::initialize()
     enumData.push_back(RecentFilesSystemAccessModeEnum(OFF, 
                                     "OFF", 
                                     "Off"));
-    
-    enumData.push_back(RecentFilesSystemAccessModeEnum(OFF_THIS_SESSION, 
-                                    "OFF_THIS_SESSION", 
-                                    "Off (but turns On when session terminates)"));
-    
 }
 
 /**

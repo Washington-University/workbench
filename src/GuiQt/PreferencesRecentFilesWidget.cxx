@@ -64,6 +64,7 @@ PreferencesRecentFilesWidget::PreferencesRecentFilesWidget(QWidget* parent)
                                                                             this);
     QObject::connect(m_showOpenRecentFilesDialogAtStartupComboBox, &WuQTrueFalseComboBox::statusChanged,
                      this, &PreferencesRecentFilesWidget::showOpenRecentFilesDialogAtStartupComboBoxActivated);
+    m_showOpenRecentFilesDialogAtStartupComboBox->setToolTip("Show the Open Recent Files Dialog when wb_view is started");
 
     /*
      * Files system access mode
@@ -72,7 +73,7 @@ PreferencesRecentFilesWidget::PreferencesRecentFilesWidget(QWidget* parent)
     const QString fileSystemToolTip("File system access allows verification of a path's validity "
                                     "and display of last modified time.  Disabling file system "
                                     "access may be useful when there are problems with a file "
-                                    "system (usually remote, mounted file systems).");
+                                    "system (such as a mounted file systems that is not responding).");
     m_recentFilesSystemAccessModeEnumComboBox = new EnumComboBoxTemplate(this);
     m_recentFilesSystemAccessModeEnumComboBox->setup<RecentFilesSystemAccessModeEnum,RecentFilesSystemAccessModeEnum::Enum>();
     QObject::connect(m_recentFilesSystemAccessModeEnumComboBox, SIGNAL(itemActivated()),

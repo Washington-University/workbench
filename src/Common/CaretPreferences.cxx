@@ -134,19 +134,6 @@ CaretPreferences::CaretPreferences()
  */
 CaretPreferences::~CaretPreferences()
 {
-    switch (getRecentFilesSystemAccessMode()) {
-        case RecentFilesSystemAccessModeEnum::OFF:
-            break;
-        case RecentFilesSystemAccessModeEnum::OFF_THIS_SESSION:
-            /*
-             * Exiting program, so need to reset files system access mode back to ON
-             */
-            setRecentFilesSystemAccessMode(RecentFilesSystemAccessModeEnum::ON);
-            break;
-        case RecentFilesSystemAccessModeEnum::ON:
-            break;
-    }
-    
     /**
      * Note DO NOT delete items in this vector as they are pointers to items
      * in unique_ptr's
