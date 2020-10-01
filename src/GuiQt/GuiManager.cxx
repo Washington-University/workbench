@@ -1942,6 +1942,7 @@ GuiManager::processShowSceneDialog(BrainBrowserWindow* browserWindowIn)
  * @param showSceneDialogFlag
  *    If true, update the scene dialog.  Otherwise, load the scene
  *    without showing the scene dialog
+ * @return True if scene was loaded successfully, else false
  */
 void
 GuiManager::processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
@@ -2003,7 +2004,15 @@ GuiManager::processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
                                                         sceneFile,
                                                         scene);
     }
-    
+   
+    /*
+     * Close scene dialog if it was not requested for display
+     */
+    if ( ! showSceneDialogFlag) {
+        if (this->sceneDialog != NULL) {
+            this->sceneDialog->close();
+        }
+    }
 }
 
 /**

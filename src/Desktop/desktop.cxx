@@ -285,6 +285,7 @@ struct ProgramState
     AString specFileNameLoadAll;
     
     AString sceneFileName;
+    AString sceneFileNameNoDialog;
     AString sceneNameOrNumber;
     
     ProgramState();
@@ -617,7 +618,14 @@ main(int argc, char* argv[])
         
         if ( ! myState.sceneFileName.isEmpty()) {
             myWindow->loadSceneFromCommandLine(myState.sceneFileName,
-                                               myState.sceneNameOrNumber);
+                                               myState.sceneNameOrNumber,
+                                               BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_YES);
+        }
+        
+        if ( ! myState.sceneFileNameNoDialog.isEmpty()) {
+            myWindow->loadSceneFromCommandLine(myState.sceneFileNameNoDialog,
+                                               myState.sceneNameOrNumber,
+                                               BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_NO);
         }
         
         if ( ! myState.directoryName.isEmpty()) {
@@ -805,7 +813,12 @@ void printHelp(const AString& progName)
     << "        load the specified scene file and display the scene " << endl
     << "        in the file that matches by name or number.  Name" << endl
     << "        takes precedence over number.  The scene numbers " << endl
-    << "        start at one." << endl
+    << "        start at one.  The scene dialog remains visible " << endl
+    << "        after loading of the scene." << endl
+    << endl
+    << "    -scene-load-hd <scene-file-name> <scene-name-of-number>" << endl
+    << "        Same as \"-scene-load\" except that the scene dialog " << endl
+    << "        is hidden after the scene has loaded." << endl
     << endl
     << "    -style <style-name>" << endl
     << "        change the window style to the specified style" << endl
@@ -906,12 +919,27 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                             myState.sceneNameOrNumber = myParams->nextString("Scene Name or Number");
                         }
                         else {
-                            cerr << "Missing scene name/number for \"-scene\" option" << std::endl;
+                            cerr << "Missing scene name/number for \"-scene-load\" option" << std::endl;
                             hasFatalError = true;
                         }
                     }
                     else {
-                        cerr << "Missing scene file name for \"-scene\" option" << std::endl;
+                        cerr << "Missing scene file name for \"-scene-load\" option" << std::endl;
+                        hasFatalError = true;
+                    }
+                } else if (thisParam == "-scene-load-hd") {
+                    if (myParams->hasNext()) {
+                        myState.sceneFileNameNoDialog = myParams->nextString("Scene File Name");
+                        if (myParams->hasNext()) {
+                            myState.sceneNameOrNumber = myParams->nextString("Scene Name or Number");
+                        }
+                        else {
+                            cerr << "Missing scene name/number for " << thisParam << " option" << std::endl;
+                            hasFatalError = true;
+                        }
+                    }
+                    else {
+                        cerr << "Missing scene file name for " << thisParam << " option" << std::endl;
                         hasFatalError = true;
                     }
                 } else if (thisParam == "-spec-load-all") {
@@ -1039,6 +1067,9 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
     if ( ! myState.sceneFileName.isEmpty()) {
         myState.showSplash = false;
     }
+    if ( ! myState.sceneFileNameNoDialog.isEmpty()) {
+        myState.showSplash = false;
+    }
     if ( ! myState.specFileNameLoadWithDialog.isEmpty()) {
         myState.showSplash = false;
     }
@@ -1050,6 +1081,7 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
 ProgramState::ProgramState()
 {
     sceneFileName = "";
+    sceneFileNameNoDialog = "";
     sceneNameOrNumber = "";
     windowSizeXY[0] = -1;
     windowSizeXY[1] = -1;

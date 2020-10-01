@@ -3228,7 +3228,8 @@ BrainBrowserWindow::processOpenRecent()
             break;
         case RecentFilesDialog::ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE:
             loadSceneFromCommandLine(directoryOrFileName,
-                                     AString::number(sceneIndex));
+                                     AString::number(sceneIndex),
+                                     BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_YES);
             break;
         case RecentFilesDialog::ResultModeEnum::OPEN_DIRECTORY:
             s_previousOpenFileDirectory = directoryOrFileName;
@@ -3346,10 +3347,13 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
  * @param sceneNameOrNumber
  *    Name or number of scene.  Name takes precedence over number. 
  *    Scene numbers start at one.
+ * @param sceneDialogMode
+ *    Mode for showing/closing scene dialog after scene loads
  */
 void
 BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
-                                             const AString& sceneNameOrNumber)
+                                             const AString& sceneNameOrNumber,
+                                             const LoadSceneFromCommandLineDialogMode sceneDialogMode)
 {
     std::vector<AString> filenames;
     filenames.push_back(sceneFileName);
@@ -3382,7 +3386,14 @@ BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
             }
             
             if (scene != NULL) {
-                const bool showSceneDialogFlag(true);
+                bool showSceneDialogFlag(false);
+                switch (sceneDialogMode) {
+                    case LoadSceneFromCommandLineDialogMode::SHOW_NO:
+                        break;
+                    case LoadSceneFromCommandLineDialogMode::SHOW_YES:
+                        showSceneDialogFlag = true;
+                        break;
+                }
                 GuiManager::get()->processShowSceneDialogAndScene(this,
                                                                   sf,
                                                                   scene,

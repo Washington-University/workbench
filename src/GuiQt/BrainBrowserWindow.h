@@ -103,11 +103,22 @@ namespace caret {
             LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE
         };
         
+        /**
+         * For loading scene from command line
+         */
+        enum class LoadSceneFromCommandLineDialogMode {
+            /** After loading scene, show the scene dialog */
+            SHOW_YES,
+            /** After loading scene, close the scene dialog */
+            SHOW_NO
+        };
+        
         void loadFilesFromCommandLine(const std::vector<AString>& filenames,
                                       const LoadSpecFileMode loadSpecFileMode);
         
         void loadSceneFromCommandLine(const AString& sceneFileName,
-                                      const AString& sceneNameOrNumber);
+                                      const AString& sceneNameOrNumber,
+                                      const LoadSceneFromCommandLineDialogMode sceneDialogMode);
         
         void loadDirectoryFromCommandLine(const AString& directoryName);
         
