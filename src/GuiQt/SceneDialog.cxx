@@ -3044,8 +3044,6 @@ SceneDialog::helpButtonClicked()
     EventManager::get()->sendEvent(helpViewerEvent.getPointer());
 }
 
-
-
 /* ======================================================================== */
 /**
  * \class caret::SceneClassWidget

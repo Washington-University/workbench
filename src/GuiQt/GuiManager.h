@@ -222,6 +222,10 @@ namespace caret {
         
         void sceneDialogDisplayActionTriggered(bool);
         
+        void sceneDialogDisplayMenuTriggered(QAction* action);
+        
+        void sceneDialogDisplayMenuAboutToShow();
+        
         void showHelpDialogActionToggled(bool);
         
     private slots:
@@ -307,6 +311,8 @@ namespace caret {
         SceneDialog* sceneDialog;
         
         QAction* m_sceneDialogDisplayAction;
+        
+        QMenu* m_sceneDialogDisplayActionMenu;
         
         SurfacePropertiesEditorDialog* m_surfacePropertiesEditorDialog;
         

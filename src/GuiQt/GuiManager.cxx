@@ -311,6 +311,16 @@ GuiManager::initializeGuiManager()
                                                          "Display Scene Dialog");
     
     /*
+     * Menu for scene dialog action
+     */
+    m_sceneDialogDisplayActionMenu = new QMenu();
+    m_sceneDialogDisplayAction->setMenu(m_sceneDialogDisplayActionMenu);
+    QAction::connect(m_sceneDialogDisplayActionMenu, &QMenu::aboutToShow,
+                     this, &GuiManager::sceneDialogDisplayMenuAboutToShow);
+    QAction::connect(m_sceneDialogDisplayActionMenu, &QMenu::triggered,
+                     this, &GuiManager::sceneDialogDisplayMenuTriggered);
+
+    /*
      * Help dialog action
      */
     m_helpViewerDialogDisplayAction = WuQtUtilities::createAction("Workbench Help...",
@@ -1817,6 +1827,56 @@ GuiManager::processShowVolumePropertiesEditorDialog(BrainBrowserWindow* browserW
 }
 
 /**
+ * Called when an action (scene) is selected from the scene dialog action's menu
+ * @param action
+ *    Action that was selected
+ */
+void
+GuiManager::sceneDialogDisplayMenuTriggered(QAction* action)
+{
+    if (this->sceneDialog != NULL) {
+        SceneFile* sceneFile = this->sceneDialog->getSelectedSceneFile();
+        if (sceneFile != NULL) {
+            const int32_t numScenes = sceneFile->getNumberOfScenes();
+            if (action != NULL) {
+                const int32_t sceneIndex = action->data().toInt();
+                if ((sceneIndex >= 0)
+                    && (sceneIndex < numScenes)) {
+                    SceneDialog::displaySceneWithErrorMessageDialog(getActiveBrowserWindow(),
+                                                                    sceneFile,
+                                                                    sceneFile->getSceneAtIndex(sceneIndex));
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Called when the scene dialog action's menu is about to show
+ */
+void
+GuiManager::sceneDialogDisplayMenuAboutToShow()
+{
+    m_sceneDialogDisplayActionMenu->clear();
+    
+    if (this->sceneDialog != NULL) {
+        SceneFile* sceneFile = this->sceneDialog->getSelectedSceneFile();
+        if (sceneFile != NULL) {
+            const int32_t numScenes = sceneFile->getNumberOfScenes();
+            for (int32_t i = 0; i < numScenes; i++) {
+                Scene* scene = sceneFile->getSceneAtIndex(i);
+                CaretAssert(scene);
+                const AString name("(" + AString::number(i+1) + "): "
+                                   + scene->getName());
+                QAction* action = m_sceneDialogDisplayActionMenu->addAction(name);
+                action->setData(i);
+            }
+        }
+    }
+}
+
+
+/**
  * @return The action for showing/hiding the scene dialog.
  */
 QAction*
@@ -2402,7 +2462,6 @@ GuiManager::showHideIdentfyBrainordinateDialog(const bool status,
             }
             
             m_identifyBrainordinateDialog = new IdentifyBrainordinateDialog(idDialogParent);
-            //m_identifyBrainordinateDialog->setSaveWindowPositionForNextTime(true);
             this->addNonModalDialog(m_identifyBrainordinateDialog);
             QObject::connect(m_identifyBrainordinateDialog, SIGNAL(dialogWasClosed()),
                              this, SLOT(identifyBrainordinateDialogWasClosed()));

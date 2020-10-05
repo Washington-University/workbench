@@ -63,6 +63,8 @@ namespace caret {
         
         void createDefaultSceneFile();
         
+        SceneFile* getSelectedSceneFile();
+        
         static bool isInformUserAboutScenesOnExit();
 
         static bool checkForModifiedFiles(const GuiManager::TestModifiedMode testMode,
@@ -136,8 +138,6 @@ namespace caret {
         virtual void helpButtonClicked() override;
         
     private:
-        SceneFile* getSelectedSceneFile();
-        
         Scene* getSelectedScene();
         
         void loadSceneFileComboBox(SceneFile* selectedSceneFileIn);
