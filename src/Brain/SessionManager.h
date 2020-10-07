@@ -39,6 +39,8 @@ namespace caret {
     class BrowserTabContent;
     class BrowserWindowContent;
     class CaretPreferences;
+    class ChartTwoCartesianAxis;
+    class ChartTwoOverlaySet;
     class CiftiConnectivityMatrixDataFileManager;
     class CiftiFiberTrajectoryManager;
     class DataToolTipsManager;
@@ -178,6 +180,8 @@ namespace caret {
         std::map<SpacerTabIndex, SpacerTabContent*> m_spacerTabsMap;
         
         std::unique_ptr<MovieRecorder> m_movieRecorder;
+        
+        std::vector<std::unique_ptr<ChartTwoCartesianAxis>> m_chartingAxisDisplayGroups;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__

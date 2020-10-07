@@ -126,6 +126,8 @@ public:
         EVENT_CARET_PREFERENCES_GET,
         /** Event for yoking the loading of matrix chart rows/columns */
         EVENT_CHART_MATRIX_YOKING_VALIDATION,
+        /** Get a chart cartesian axis for a display group */
+        EVENT_CHART_TWO_CARTEISAN_AXIS_DISPLAY_GROUP,
         /** Event for yoking of chart two cartesian oriented axes */
         EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING,
         /** Load chart two line series data */

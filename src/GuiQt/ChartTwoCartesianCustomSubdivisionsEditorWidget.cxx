@@ -124,6 +124,7 @@ ChartTwoCartesianCustomSubdivisionsEditorWidget::loadAxisIntoWidgets()
         spinBox->setRange(-spinBoxMax, spinBoxMax);
         spinBox->setSingleStep(1.0);
         spinBox->setDecimals(5);
+        spinBox->setFixedWidth(120);
         QObject::connect(spinBox, &WuQDoubleSpinBox::valueChanged,
                          [=](double value) { this->valueSpinBoxValueChanged(iRow, value); });
         

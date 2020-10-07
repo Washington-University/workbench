@@ -433,6 +433,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_CARET_PREFERENCES_GET:
         case EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS:
         case EventTypeEnum::EVENT_CHART_MATRIX_YOKING_VALIDATION:
+        case EventTypeEnum::EVENT_CHART_TWO_CARTEISAN_AXIS_DISPLAY_GROUP:
         case EventTypeEnum::EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING:
         case EventTypeEnum::EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA:
         case EventTypeEnum::EVENT_CHART_TWO_OVERLAY_VALIDATE:

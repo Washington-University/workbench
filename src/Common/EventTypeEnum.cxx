@@ -254,6 +254,11 @@ EventTypeEnum::initialize()
                                      "EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME",
                                      "Delete an OpenGL Texture Name for an OpenGL Context"));
 
+    
+    enumData.push_back(EventTypeEnum(EVENT_CHART_TWO_CARTEISAN_AXIS_DISPLAY_GROUP,
+                                     "EVENT_CHART_TWO_CARTEISAN_AXIS_DISPLAY_GROUP",
+                                     "Get a cartesian axis for a display group"));
+    
     enumData.push_back(EventTypeEnum(EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING,
                                      "EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING",
                                      "Get/set/query chart two cartesian axes yoking"));

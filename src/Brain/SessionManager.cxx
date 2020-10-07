@@ -36,6 +36,8 @@
 #include "CaretLogger.h"
 #include "CaretPreferenceDataValue.h"
 #include "CaretPreferences.h"
+#include "ChartTwoCartesianAxis.h"
+#include "ChartTwoOverlaySet.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "DataToolTipsManager.h"
@@ -52,6 +54,7 @@
 #include "EventBrowserTabReopenClosed.h"
 #include "EventBrowserWindowContent.h"
 #include "EventCaretPreferencesGet.h"
+#include "EventChartTwoCartesianAxisDisplayGroup.h"
 #include "EventChartTwoCartesianOrientedAxesYoking.h"
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
@@ -98,6 +101,18 @@ SessionManager::SessionManager()
         m_browserWindowContent[i] = new BrowserWindowContent(i);
     }
     
+    /*
+     * Axes for display group yoking to chart axes
+     */
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        ChartTwoOverlaySet* nullChartOverlaySet(NULL);
+        std::vector<ChartTwoCartesianAxis*> emptyAxes;
+        ChartTwoCartesianAxis* axis = new ChartTwoCartesianAxis(nullChartOverlaySet,
+                                                                ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM,
+                                                                emptyAxes);
+        m_chartingAxisDisplayGroups.push_back(std::unique_ptr<ChartTwoCartesianAxis>(axis));
+    }
+
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_CLOSE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET);
@@ -109,6 +124,7 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_PREFERENCES_GET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_CARTEISAN_AXIS_DISPLAY_GROUP);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_ADD);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DELETE);
@@ -603,6 +619,16 @@ SessionManager::receiveEvent(Event* event)
         spacerTabEvent->setSpacerTabContent(spacerTabContent);
         spacerTabEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_CARTEISAN_AXIS_DISPLAY_GROUP) {
+        EventChartTwoCartesianAxisDisplayGroup* dgEvent = dynamic_cast<EventChartTwoCartesianAxisDisplayGroup*>(event);
+        CaretAssert(dgEvent);
+        
+        const DisplayGroupEnum::Enum displayGroup = dgEvent->getDisplayGroup();
+        const int32_t displayGroupIndex = DisplayGroupEnum::toIntegerCode(displayGroup);
+        CaretAssertVectorIndex(m_chartingAxisDisplayGroups, displayGroupIndex);
+        dgEvent->setAxis(m_chartingAxisDisplayGroups[displayGroupIndex].get());
+        dgEvent->setEventProcessed();
+    }
 }
 
 /**
@@ -758,6 +784,21 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addClass(savePreferencesToScene(sceneAttributes,
                                                 "ScenePreferenceDataValues"));
 
+    /*
+     * Save axis display groups
+     */
+    std::vector<SceneClass*> axisSceneClasses;
+    const int32_t numAxis = static_cast<int32_t>(m_chartingAxisDisplayGroups.size());
+    for (int32_t i = 0; i < numAxis; i++) {
+        CaretAssertVectorIndex(m_chartingAxisDisplayGroups, i);
+        SceneClass* sc = m_chartingAxisDisplayGroups[i]->saveToScene(sceneAttributes,
+                                                                     "m_chartingAxisDisplayGroups" + AString::number(i));
+        axisSceneClasses.push_back(sc);
+    }
+    SceneClassArray* axisArray = new SceneClassArray("m_chartingAxisDisplayGroups",
+                                                     axisSceneClasses);
+    sceneClass->addChild(axisArray);
+    
     return sceneClass;
 }
 
@@ -814,6 +855,23 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
     }
     
+    
+    /*
+     * Restore axis display groups
+     */
+    for (auto& a : m_chartingAxisDisplayGroups) {
+        a->reset();
+    }
+    
+    const SceneClassArray* axisArray = sceneClass->getClassArray("m_chartingAxisDisplayGroups");
+    if (axisArray != NULL) {
+        const int32_t numElem = std::min(static_cast<int32_t>(m_chartingAxisDisplayGroups.size()),
+                                         axisArray->getNumberOfArrayElements());
+        for (int32_t i = 0; i < numElem; i++) {
+            CaretAssertVectorIndex(m_chartingAxisDisplayGroups, i);
+            m_chartingAxisDisplayGroups[i]->restoreFromScene(sceneAttributes, axisArray->getClassAtIndex(i));
+        }
+    }
     
     {
         /*

@@ -44,6 +44,7 @@
 #include "ChartableTwoFileBaseChart.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileHistogramChart.h"
+#include "DisplayGroupEnumComboBox.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -75,7 +76,8 @@ ChartTwoAxisPropertiesEditorWidget::ChartTwoAxisPropertiesEditorWidget(const Cha
                                                                        QWidget* parent)
 : QWidget(parent),
 m_chartOverlaySet(NULL),
-m_chartAxis(NULL)
+m_chartAxis(NULL),
+m_axisLocation(axisLocation)
 {
     WuQMacroManager* macroManager = WuQMacroManager::instance();
     const QString objectNamePrefix(parentObjectName
@@ -212,12 +214,16 @@ m_chartAxis(NULL)
     macroManager->addMacroSupportToObject(m_numericsSizeSpinBox->getWidget(),
                                           "Set chart axis numerics height");
     
+    const QString linesToolTip(WuQtUtilities::createWordWrappedToolTipText("This is a TAB property (all axes in this tab use this line thickness).  "
+                                                                           "The line thickness is a percentage of the tab's height."));
+    QLabel* linesLabel = new QLabel("Lines");
+    linesLabel->setToolTip(linesToolTip);
     m_linesTicksSizeSpinBox = new WuQDoubleSpinBox(this);
     m_linesTicksSizeSpinBox->setDecimals(1);
     m_linesTicksSizeSpinBox->setRangePercentage(0.0, 99.0);
     QObject::connect(m_linesTicksSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &ChartTwoAxisPropertiesEditorWidget::axisLineThicknessChanged);
-    m_linesTicksSizeSpinBox->setToolTip("Set thickness of axis lines as percentage of tab height for ALL axes");
+    m_linesTicksSizeSpinBox->setToolTip(linesToolTip);
     m_linesTicksSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "TicksSize");
     macroManager->addMacroSupportToObject(m_linesTicksSizeSpinBox->getWidget(),
@@ -268,13 +274,13 @@ m_chartAxis(NULL)
     sizesLayout->addWidget(new QLabel("Pad"), sizesRow, 0);
     sizesLayout->addWidget(m_paddingSizeSpinBox->getWidget(), sizesRow, 1);
     sizesRow++;
-    sizesLayout->addWidget(new QLabel("Lines"), sizesRow, 0);
-    sizesLayout->addWidget(m_linesTicksSizeSpinBox->getWidget(), sizesRow, 1);
+    sizesLayout->addWidget(new QLabel("Title"), sizesRow, 0);
+    sizesLayout->addWidget(m_labelSizeSpinBox->getWidget(), sizesRow, 1);
     sizesRow++;
     sizesLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), sizesRow, 0, 1, 2);
     sizesRow++;
-    sizesLayout->addWidget(new QLabel("Title"), sizesRow, 0);
-    sizesLayout->addWidget(m_labelSizeSpinBox->getWidget(), sizesRow, 1);
+    sizesLayout->addWidget(linesLabel, sizesRow, 0);
+    sizesLayout->addWidget(m_linesTicksSizeSpinBox->getWidget(), sizesRow, 1);
     sizesRow++;
 
     /*
@@ -304,6 +310,7 @@ m_chartAxis(NULL)
     subdivLayout->addWidget(new QLabel("Subdiv"));
     subdivLayout->addWidget(m_numericSubdivisionsModeComboBox->getWidget());
     subdivLayout->addWidget(m_userSubdivisionsSpinBox);
+    subdivLayout->addStretch();
     
     /*
      * Numerics widgets layout
@@ -313,12 +320,11 @@ m_chartAxis(NULL)
     WuQtUtilities::setLayoutSpacingAndMargins(stdNumericsLayout, 6, 0);
     int stdNumericsRow = 0;
     stdNumericsLayout->addWidget(new QLabel("Format"), stdNumericsRow, 0);
-    stdNumericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), stdNumericsRow, 1, 1, 2);
+    stdNumericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), stdNumericsRow, 1);
+    stdNumericsLayout->addWidget(new QLabel("Decimals"), stdNumericsRow, 2);
+    stdNumericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, stdNumericsRow, 3);
     stdNumericsRow++;
-    stdNumericsLayout->addWidget(new QLabel("Decimals"), stdNumericsRow, 0);
-    stdNumericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, stdNumericsRow, 1, 1, 2);
-    stdNumericsRow++;
-    stdNumericsLayout->addLayout(subdivLayout, stdNumericsRow, 0, 1, 3);
+    stdNumericsLayout->addLayout(subdivLayout, stdNumericsRow, 0, 1, 4);
     stdNumericsWidget->setFixedSize(stdNumericsWidget->sizeHint());
 
     /*
@@ -359,7 +365,7 @@ m_chartAxis(NULL)
     numericsLayout->setColumnStretch(2, 100);
 
     /*
-     * Label layout
+     * Title layout
      */
     QWidget* labelWidget = new QWidget();
     QGridLayout* labelLayout = new QGridLayout(labelWidget);
@@ -375,16 +381,35 @@ m_chartAxis(NULL)
     /*
      * Grid layout containing layouts
      */
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 3, 4);
-    layout->addWidget(showWidget, 0, Qt::AlignTop);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(sizesWidget, 0, Qt::AlignTop);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(numericsWidget, 0, Qt::AlignTop);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(labelWidget, 0, Qt::AlignTop);
-    layout->addStretch();
+    QHBoxLayout* controlsLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(controlsLayout, 3, 4);
+    controlsLayout->addWidget(showWidget, 0, Qt::AlignTop);
+    controlsLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    controlsLayout->addWidget(sizesWidget, 0, Qt::AlignTop);
+    controlsLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    controlsLayout->addWidget(numericsWidget, 0, Qt::AlignTop);
+    controlsLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    controlsLayout->addWidget(labelWidget, 0, Qt::AlignTop);
+    controlsLayout->addStretch();
+    
+    QLabel* groupLabel = new QLabel("Group");
+    m_displayGroupComboBox = new DisplayGroupEnumComboBox(this,
+                                                                (objectNamePrefix
+                                                                 + ":DisplayGroup"),
+                                                                "AxisDisplayGroup");
+    QObject::connect(m_displayGroupComboBox, &DisplayGroupEnumComboBox::displayGroupSelected,
+                     this, &ChartTwoAxisPropertiesEditorWidget::displayGroupSelected);
+    
+    QHBoxLayout* groupLayout = new QHBoxLayout();
+    groupLayout->addWidget(groupLabel);
+    groupLayout->addWidget(m_displayGroupComboBox->getWidget());
+    groupLayout->addStretch();
+    
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 3, 0);
+    layout->addLayout(groupLayout);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addLayout(controlsLayout);
 }
 
 /**
@@ -412,6 +437,8 @@ ChartTwoAxisPropertiesEditorWidget::updateControls(ChartTwoOverlaySet* chartOver
     
     if ((m_chartOverlaySet != NULL)
         && (m_chartAxis != NULL)) {
+        m_displayGroupComboBox->setSelectedDisplayGroup(m_chartAxis->getDisplayGroup());
+        
         const ChartTwoCartesianSubdivisionsModeEnum::Enum subdivisionsMode = m_chartAxis->getSubdivisionsMode();
         m_chartSubdivisionsModeEnumComboBox->setSelectedItem<ChartTwoCartesianSubdivisionsModeEnum,ChartTwoCartesianSubdivisionsModeEnum::Enum>(subdivisionsMode);
         switch (subdivisionsMode) {
@@ -602,3 +629,18 @@ ChartTwoAxisPropertiesEditorWidget::axisLabelToolButtonClicked(bool)
     }
 }
 
+/**
+ * Called when the label display group combo box is changed.
+ * @param displayGroup
+ *   Newly selected group
+ */
+void
+ChartTwoAxisPropertiesEditorWidget::displayGroupSelected(const DisplayGroupEnum::Enum displayGroup)
+{
+    if (m_chartAxis != NULL) {
+        m_chartAxis->setDisplayGroup(displayGroup);
+        updateControls(m_chartOverlaySet,
+                       m_chartAxis);
+        updateGraphics();
+    }
+}

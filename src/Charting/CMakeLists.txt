@@ -60,6 +60,7 @@ ChartTwoNumericSubdivisionsModeEnum.h
 ChartTwoLineSeriesHistory.h
 ChartTwoOverlaySetInterface.h
 ChartTwoTitle.h
+EventChartTwoCartesianAxisDisplayGroup.h
 EventChartTwoCartesianOrientedAxesYoking.h
 EventChartTwoLoadLineSeriesData.h
 MapFileDataSelector.h
@@ -109,6 +110,7 @@ ChartTwoNumericSubdivisionsModeEnum.cxx
 ChartTwoLineSeriesHistory.cxx
 ChartTwoOverlaySetInterface.cxx
 ChartTwoTitle.cxx
+EventChartTwoCartesianAxisDisplayGroup.cxx
 EventChartTwoCartesianOrientedAxesYoking.cxx
 EventChartTwoLoadLineSeriesData.cxx
 MapFileDataSelector.cxx

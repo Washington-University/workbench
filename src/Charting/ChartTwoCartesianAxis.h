@@ -29,6 +29,7 @@
 #include "ChartTwoCartesianSubdivisionsModeEnum.h"
 #include "ChartTwoNumericSubdivisionsModeEnum.h"
 #include "CaretUnitsTypeEnum.h"
+#include "DisplayGroupEnum.h"
 #include "NumericFormatModeEnum.h"
 #include "SceneableInterface.h"
 
@@ -42,7 +43,8 @@ namespace caret {
         
     public:
         ChartTwoCartesianAxis(const ChartTwoOverlaySetInterface* parentChartOverlaySetInterface,
-                              const ChartAxisLocationEnum::Enum axisLocation);
+                              const ChartAxisLocationEnum::Enum axisLocation,
+                              std::vector<ChartTwoCartesianAxis*>& displayGroupAxes);
         
         virtual ~ChartTwoCartesianAxis();
         
@@ -57,6 +59,10 @@ namespace caret {
         bool isDisplayedByUser() const;
         
         void setDisplayedByUser(const bool displayed);
+        
+        DisplayGroupEnum::Enum getDisplayGroup() const;
+        
+        void setDisplayGroup(const DisplayGroupEnum::Enum displayGroup);
         
         void getDataRange(float& rangeMinimumOut,
                           float& rangeMaximumOut) const;
@@ -150,11 +156,20 @@ namespace caret {
     private:
         void copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAxis& obj);
 
+        const ChartTwoCartesianAxis* getDisplayGroupOrThisAxis() const;
+        
+        ChartTwoCartesianAxis* getDisplayGroupOrThisAxis();
+        
         const ChartTwoOverlaySetInterface* m_parentChartOverlaySetInterface;
         
         const ChartAxisLocationEnum::Enum m_axisLocation;
         
+        /* DO NOT delete display group axes */
+        std::vector<ChartTwoCartesianAxis*> m_displayGroupAxes;
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
+        
+        DisplayGroupEnum::Enum m_displayGroup = DisplayGroupEnum::DISPLAY_GROUP_TAB;
         
         mutable float m_userScaleMinimumValue = -100.0f;
         

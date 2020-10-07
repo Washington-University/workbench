@@ -24,6 +24,7 @@
 #include <QDialog>
 #include <QWidget>
 #include "ChartAxisLocationEnum.h"
+#include "DisplayGroupEnum.h"
 
 class QCheckBox;
 class QComboBox;
@@ -40,6 +41,7 @@ namespace caret {
     class ChartTwoCartesianAxisWidget;
     class ChartTwoCartesianCustomSubdivisionsEditorWidget;
     class ChartTwoOverlaySet;
+    class DisplayGroupEnumComboBox;
     class EnumComboBoxTemplate;
     class WuQDoubleSpinBox;
     class WuQSpinBox;
@@ -75,6 +77,8 @@ namespace caret {
         
         void chartSubdivisionsModeEnumComboBoxItemActivated();
         
+        void displayGroupSelected(const DisplayGroupEnum::Enum);
+        
     private:
         ChartTwoAxisPropertiesEditorWidget(const ChartTwoAxisPropertiesEditorWidget&);
 
@@ -87,6 +91,8 @@ namespace caret {
         ChartTwoOverlaySet* m_chartOverlaySet;
         
         ChartTwoCartesianAxis* m_chartAxis;
+        
+        const ChartAxisLocationEnum::Enum m_axisLocation;
         
         EnumComboBoxTemplate* m_chartSubdivisionsModeEnumComboBox;
         
@@ -124,6 +130,8 @@ namespace caret {
         
         int32_t m_numericsStackedWidgetCustomSubdivsionsIndex = -1;
 
+        DisplayGroupEnumComboBox* m_displayGroupComboBox;
+        
         ChartTwoCartesianCustomSubdivisionsEditorWidget* m_customSubdivisionsEditorWidget;
         
         WuQWidgetObjectGroup* m_widgetGroup;
