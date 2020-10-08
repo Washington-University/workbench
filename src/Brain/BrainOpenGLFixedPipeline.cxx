@@ -2213,7 +2213,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                 case SurfaceDrawingTypeEnum::DRAW_AS_LINKS:
                     /*
                      * Draw first as triangles without coloring which uses
-                     * the background color.  This prevents edges on back 
+                     * the background color.  This prevents edges on back
                      * from being seen.
                      */
                     glPolygonOffset(1.0, 1.0);
@@ -2223,6 +2223,17 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                NULL);
                     glDisable(GL_POLYGON_OFFSET_FILL);
                     
+                    /*
+                     * Now draw as polygon but outline only, do not fill.
+                     */
+                    enableLighting();
+                    setLineWidth(dps->getLinkSize());
+                    glPolygonMode(GL_FRONT, GL_LINE);
+                    this->drawSurfaceTrianglesWithVertexArrays(surface,
+                                                               nodeColoringRGBA);
+                    glPolygonMode(GL_FRONT, GL_FILL);
+                    break;
+                case SurfaceDrawingTypeEnum::DRAW_AS_LINKS_TRANSPARENT:
                     /*
                      * Now draw as polygon but outline only, do not fill.
                      */

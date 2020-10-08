@@ -39,6 +39,8 @@ public:
         DRAW_HIDE,
         /** Draw as links (edges) */
         DRAW_AS_LINKS,
+        /** Draw as links (edges) */
+        DRAW_AS_LINKS_TRANSPARENT,
         /** Draw as nodes */
         DRAW_AS_NODES,
         /** Draw as triangles */

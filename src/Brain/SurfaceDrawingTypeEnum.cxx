@@ -82,6 +82,10 @@ SurfaceDrawingTypeEnum::initialize()
                                     "DRAW_AS_LINKS", 
                                     "Links (Edges)"));
     
+    enumData.push_back(SurfaceDrawingTypeEnum(DRAW_AS_LINKS_TRANSPARENT,
+                                              "DRAW_AS_LINKS_TRANSPARENT",
+                                              "Links (Transparent)"));
+    
     enumData.push_back(SurfaceDrawingTypeEnum(DRAW_AS_NODES,
                                               "DRAW_AS_NODES",
                                               "Vertices"));
