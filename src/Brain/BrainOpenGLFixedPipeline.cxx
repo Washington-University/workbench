@@ -2196,7 +2196,13 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                         surface->getStructure());
     
     this->enableLighting();
-    
+
+    /*
+     * WB-911 Foci are completely obscured by not fully opaque surfaces
+     * Need to draw the foci before drawing the surface
+     */
+    this->drawSurfaceFoci(surface);
+
     const SurfaceDrawingTypeEnum::Enum drawingType = dps->getSurfaceDrawingType();
     switch (this->mode)  {
         case MODE_DRAWING:
@@ -2272,7 +2278,6 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                 drawSurfaceNormalVectors(surface);
             }
             this->drawSurfaceBorders(surface);
-            this->drawSurfaceFoci(surface);
             this->drawSurfaceNodeAttributes(surface);
             this->drawSurfaceBorderBeingDrawn(surface);
 
