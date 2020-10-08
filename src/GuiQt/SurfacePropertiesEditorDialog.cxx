@@ -69,6 +69,10 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
 {
     m_updateInProgress = true;
     
+    m_backfaceCullingCheckBox = new QCheckBox("Backface Culling");
+    QObject::connect(m_backfaceCullingCheckBox, &QCheckBox::clicked,
+                     this, &SurfacePropertiesEditorDialog::backfaceCullingCheckBoxClicked);
+    
     WuQMacroManager* mm = WuQMacroManager::instance();
     CaretAssert(mm);
     
@@ -154,6 +158,8 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     QGridLayout* gridLayout = new QGridLayout(w);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     int row = gridLayout->rowCount();
+    gridLayout->addWidget(m_backfaceCullingCheckBox, row, 0, 1, 3);
+    row++;
     gridLayout->addWidget(m_displayNormalVectorsCheckBox, row, 0, 1, 4);
     row++;
     gridLayout->addWidget(surfaceDrawingTypeLabel, row, 0);
@@ -174,6 +180,7 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     gridLayout->addWidget(m_surfaceColorWidget, row, 3);
     row++;
 
+    
     setCentralWidget(w,
                      WuQDialog::SCROLL_AREA_NEVER);
     
@@ -219,6 +226,10 @@ SurfacePropertiesEditorDialog::updateDialog()
                                                                           m_displayNormalVectorsCheckBox);
     
     m_updateInProgress = false;
+    
+    DisplayPropertiesSurface* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+    m_backfaceCullingCheckBox->setChecked(dps->isBackfaceCullingEnabled());
+
 }
 
 /**
@@ -371,5 +382,16 @@ SurfacePropertiesEditorDialog::restoreFromScene(const SceneAttributes* sceneAttr
      */
     SceneWindowGeometry swg(this);
     swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
+}
+
+/**
+ * Called when backface culling check box clicked
+ */
+void
+SurfacePropertiesEditorDialog::backfaceCullingCheckBoxClicked(bool checked)
+{
+    DisplayPropertiesSurface* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+    dps->setBackfaceCullingEnabled(checked);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

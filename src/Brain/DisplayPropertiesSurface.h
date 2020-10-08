@@ -76,6 +76,10 @@ namespace caret {
         
         void resetDefaultColorRGB();
         
+        bool isBackfaceCullingEnabled() const;
+        
+        void setBackfaceCullingEnabled(const bool enabled);
+        
     private:
         DisplayPropertiesSurface(const DisplayPropertiesSurface&);
 
@@ -92,6 +96,8 @@ namespace caret {
         float m_opacity;
         
         std::array<uint8_t, 3> m_defaultColorRGB;
+        
+        bool m_backfaceCullingEnabled = false;
     };
     
 #ifdef __DISPLAY_PROPERTIES_SURFACE_DECLARE__

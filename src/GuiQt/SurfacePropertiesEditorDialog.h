@@ -58,6 +58,8 @@ namespace caret {
         
         void surfaceResetColorToolButtonClicked();
 
+        void backfaceCullingCheckBoxClicked(bool checked);
+        
     private:
         SurfacePropertiesEditorDialog(const SurfacePropertiesEditorDialog&);
 
@@ -66,6 +68,8 @@ namespace caret {
         void updateDefaultSurfaceColorWidget();
         
         QCheckBox* m_displayNormalVectorsCheckBox;
+        
+        QCheckBox* m_backfaceCullingCheckBox;
         
         QDoubleSpinBox* m_linkSizeSpinBox;
         

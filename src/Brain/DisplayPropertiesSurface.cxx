@@ -306,5 +306,24 @@ DisplayPropertiesSurface::resetDefaultColorRGB()
     m_defaultColorRGB.fill(178);
 }
 
+/**
+ * @return True if backface culling is enabled
+ */
+bool
+DisplayPropertiesSurface::isBackfaceCullingEnabled() const
+{
+    return m_backfaceCullingEnabled;
+}
+
+/**
+ * Set backface culling enabled
+ * @param enabled
+ *    New status
+ */
+void
+DisplayPropertiesSurface::setBackfaceCullingEnabled(const bool enabled)
+{
+    m_backfaceCullingEnabled = enabled;
+}
 
 

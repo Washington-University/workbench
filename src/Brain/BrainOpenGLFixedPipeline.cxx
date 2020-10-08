@@ -2257,7 +2257,12 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                     }
 
                     glPushAttrib(GL_ENABLE_BIT);
-                    glDisable(GL_CULL_FACE);
+                    if (dps->isBackfaceCullingEnabled()) {
+                        glEnable(GL_CULL_FACE);
+                    }
+                    else {
+                        glDisable(GL_CULL_FACE);
+                    }
                     this->drawSurfaceTrianglesWithVertexArrays(surface,
                                                                nodeColoringRGBA);
                     glPopAttrib();
