@@ -540,7 +540,8 @@ namespace caret {
                                       std::vector<float>& rgbaOut) const;
         
         GraphicsPrimitive* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
-                                                                    const MatrixGridMode gridMode) const;
+                                                              const MatrixGridMode gridMode,
+                                                              const float opacity) const;
         
         /** Identifier for the matrix primitives alternative color used for the grid coloring */
         int32_t getMatrixChartGraphicsPrimitiveGridColorIdentifier() const { return 1; }
@@ -813,6 +814,8 @@ namespace caret {
         mutable std::unique_ptr<GraphicsPrimitiveV3fC4f> m_matrixGraphicsOutlinePrimitive;
         
         mutable uint8_t m_previousMatrixGridRGBA[4] = { 0, 1, 2, 3 };
+        
+        mutable float m_previousMatrixOpacity = -1.0;
         
         int32_t m_fileHistogramNumberOfBuckets = 100;
         

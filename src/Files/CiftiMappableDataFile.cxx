@@ -1571,11 +1571,22 @@ CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba)
  *     The matrix visualization mode (upper/lower).
  * @param gridModeIn
  *     The grid mode (filled or outline)
+ * @param opacity
+ *     Opacity of the matrix
  */
 GraphicsPrimitive*
 CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
-                                                          const MatrixGridMode gridModeIn) const
+                                                          const MatrixGridMode gridModeIn,
+                                                          const float opacityIn) const
 {
+    float opacity(opacityIn);
+    if (opacity < 0.0) {
+        opacity = 0.0;
+    }
+    if (opacity > 1.0) {
+        opacity = 1.0;
+    }
+    
     MatrixGridMode gridMode = gridModeIn;
     switch (gridMode) {
         case MatrixGridMode::FILLED_TEXTURE:
@@ -1678,6 +1689,10 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
             break;
     }
     
+    if (opacity != m_previousMatrixOpacity) {
+        matrixPrimitive = NULL;
+    }
+    
     if (matrixPrimitive == NULL) {
         int32_t numberOfRows = 0;
         int32_t numberOfColumns = 0;
@@ -1750,7 +1765,8 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                     int32_t indexX = 0;
                     for (int32_t columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
                         CaretAssertVectorIndex(matrixRGBA, rgbaOffset+3);
-                        const float* rgba = &matrixRGBA[rgbaOffset];
+                        float* rgba = &matrixRGBA[rgbaOffset];
+                        rgba[3] = opacity;
                         rgbaOffset += 4;
                         
                         bool drawCellFlag = true;
@@ -1941,6 +1957,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
             }
             break;
     }
+    m_previousMatrixOpacity = opacity;
     
     return matrixPrimitive;
 }

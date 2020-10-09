@@ -60,7 +60,8 @@ namespace caret {
                                std::vector<float>& rgbaOut) const;
         
         GraphicsPrimitive* getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTriangularViewingModeEnum::Enum matrixViewMode,
-                                                                    const CiftiMappableDataFile::MatrixGridMode gridMode) const;
+                                                              const CiftiMappableDataFile::MatrixGridMode gridMode,
+                                                              const float opacity) const;
         
         int32_t getMatrixChartGraphicsPrimitiveGridColorIdentifier() const;
         

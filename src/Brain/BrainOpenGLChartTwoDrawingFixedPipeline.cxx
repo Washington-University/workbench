@@ -481,7 +481,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
             if (matrixChart->isValid()) {
                 ChartTwoMatrixTriangularViewingModeEnum::Enum triangleMode = chartOverlay->getMatrixTriangularViewingMode();
                 GraphicsPrimitive* primitive = matrixChart->getMatrixChartingGraphicsPrimitive(triangleMode,
-                                                                                               CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE);
+                                                                                               CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE,
+                                                                                               chartOverlay->getMatrixOpacity());
                 if (primitive->isValid()) {
                     BoundingBox boundingBox;
                     if (primitive->getVertexBounds(boundingBox)) {
@@ -1412,18 +1413,20 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
                                                                 const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
-                                                                const float /*opacity*/,
+                                                                const float opacity,
                                                                 std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut)
 {
     GraphicsPrimitive* matrixPrimitive(NULL);
     const bool useTextureFlag(true);
     if (useTextureFlag) {
         matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
-                                                                          CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE);
+                                                                          CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE,
+                                                                          opacity);
     }
     else {
         matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
-                                                                          CiftiMappableDataFile::MatrixGridMode::FILLED_TRIANGLES);
+                                                                          CiftiMappableDataFile::MatrixGridMode::FILLED_TRIANGLES,
+                                                                          opacity);
     }
     
     if (matrixPrimitive == NULL) {
@@ -1480,7 +1483,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
         
         if (matrixProperties->isGridLinesDisplayed()) {
             GraphicsPrimitive* matrixGridPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,
-                                                                                                           CiftiMappableDataFile::MatrixGridMode::OUTLINE);
+                                                                                                     CiftiMappableDataFile::MatrixGridMode::OUTLINE,
+                                                                                                     opacity);
             drawPrimitivePrivate(matrixGridPrimitive);
         }
         

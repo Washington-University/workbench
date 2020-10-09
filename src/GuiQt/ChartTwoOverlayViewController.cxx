@@ -1086,7 +1086,6 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
     m_lineSeriesLoadingEnabledCheckBox->setVisible(showLineSeriesLoadingCheckBoxFlag);
     m_matrixTriangularViewModeToolButton->setVisible(showMatrixDiagonalButtonFlag);
     m_matrixOpacitySpinBox->getWidget()->setVisible(showMatrixOpacityFlag);
-    m_matrixOpacitySpinBox->getWidget()->setEnabled(false); /* Matrix opacity not supported at this time */
     m_lineLayerActiveComboBox->getWidget()->setVisible(showSelectedPointControlsFlag);
     m_selectedPointIndexSpinBox->setVisible(showSelectedPointControlsFlag);
     m_settingsToolButton->setVisible(showSettingsButtonFlag);
