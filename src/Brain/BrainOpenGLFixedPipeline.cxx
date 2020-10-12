@@ -2234,6 +2234,16 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                     glPolygonMode(GL_FRONT, GL_FILL);
                     break;
                 case SurfaceDrawingTypeEnum::DRAW_AS_LINKS_TRANSPARENT:
+                {
+                    /*
+                     * Enable alpha blending so that surface transparency
+                     * (using first overlay opacity) will function.
+                     */
+                    GLboolean blendingEnabled = false;
+                    glGetBooleanv(GL_BLEND, &blendingEnabled);
+                    glEnable(GL_BLEND);
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    
                     /*
                      * Now draw as polygon but outline only, do not fill.
                      */
@@ -2243,12 +2253,18 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                     this->drawSurfaceTrianglesWithVertexArrays(surface,
                                                                nodeColoringRGBA);
                     glPolygonMode(GL_FRONT, GL_FILL);
+
+                    if ( ! blendingEnabled) {
+                        glDisable(GL_BLEND);
+                    }
+                }
                     break;
                 case SurfaceDrawingTypeEnum::DRAW_AS_NODES:
                     this->drawSurfaceNodes(surface,
                                            nodeColoringRGBA);
                     break;
                 case SurfaceDrawingTypeEnum::DRAW_AS_TRIANGLES:
+                {
                     /*
                      * Enable alpha blending so that surface transparency
                      * (using first overlay opacity) will function.
@@ -2282,9 +2298,10 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                         glDisable(GL_POLYGON_OFFSET_FILL);
                     }
                     
-                    if (blendingEnabled == false) {
+                    if ( ! blendingEnabled) {
                         glDisable(GL_BLEND);
                     }
+                }
                     break;
             }
             
