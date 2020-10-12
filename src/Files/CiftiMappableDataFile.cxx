@@ -7955,9 +7955,17 @@ m_mapIndex(mapIndex)
                     const CiftiScalarsMap& map = ciftiXML.getScalarsMap(m_readingDirectionForCiftiXML);
                     m_metadata = map.getMapMetadata(mapIndex);
                     CaretAssert(m_metadata);
-                    m_paletteColorMapping = map.getMapPalette(mapIndex);
-                    CaretAssert(m_paletteColorMapping);
-                    
+                    if (ciftiMappableDataFile->isOnePaletteUsedForAllMaps()) {
+                        /*
+                         * One palette is used for all maps so use file's palette
+                         */
+                        m_paletteColorMapping = ciftiXML.getFilePalette();
+                    }
+                    else {
+                        m_paletteColorMapping = map.getMapPalette(mapIndex);
+                        CaretAssert(m_paletteColorMapping);
+                    }
+
                     m_mapName = map.getMapName(m_mapIndex);
                 }
                     break;
