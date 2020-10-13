@@ -520,6 +520,7 @@ namespace caret {
                                                    const float newMean,
                                                    const bool applyNewDeviationFlag,
                                                    const float newDeviation,
+                                                   const bool applyAbsoluteValueFlag,
                                                    bool& haveNanInfFlagOut);
         
     protected:
@@ -614,13 +615,15 @@ namespace caret {
                                                          const bool applyNewMeanFlag,
                                                          const float newMean,
                                                          const bool applyNewDeviationFlag,
-                                                         const float newDeviation);
+                                                         const float newDeviation,
+                                                         const bool applyAbsoluteValueFlag);
         
         void applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<float>& data,
                                                            const bool applyNewMeanFlag,
                                                            const float newMean,
                                                            const bool applyNewDeviationFlag,
-                                                           const float newDeviation);
+                                                           const float newDeviation,
+                                                           const bool applyAbsoluteValueFlag);
 
         std::vector<float> m_xyz;
         

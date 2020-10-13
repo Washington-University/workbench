@@ -102,6 +102,7 @@ m_overlayIndex(overlayIndex)
     m_lineChartNewMeanEnabled = false;
     m_lineChartNewMeanValue = 0.0;
     m_lineChartNewDeviationEnabled = false;
+    m_lineChartNormalizationAbsoluteValueEnabled = false;
     m_lineChartNewDeviationValue = 1.0;
     
     m_selectedLineChartTextOffset = CardinalDirectionEnum::AUTO;
@@ -134,6 +135,8 @@ m_overlayIndex(overlayIndex)
                           &m_lineChartNewMeanValue);
     m_sceneAssistant->add("m_lineChartNewDeviationEnabled",
                           &m_lineChartNewDeviationEnabled);
+    m_sceneAssistant->add("m_lineChartNormalizationAbsoluteValueEnabled",
+                          &m_lineChartNormalizationAbsoluteValueEnabled);
     m_sceneAssistant->add("m_lineChartNewDeviationValue",
                           &m_lineChartNewDeviationValue);
 
@@ -410,6 +413,7 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
     m_lineChartNewMeanEnabled = overlay->m_lineChartNewMeanEnabled;
     m_lineChartNewMeanValue = overlay->m_lineChartNewMeanValue;
     m_lineChartNewDeviationEnabled = overlay->m_lineChartNewDeviationEnabled;
+    m_lineChartNormalizationAbsoluteValueEnabled = overlay->m_lineChartNormalizationAbsoluteValueEnabled;
     m_lineChartNewDeviationValue   = overlay->m_lineChartNewDeviationValue;
 }
 
@@ -695,7 +699,8 @@ ChartTwoOverlay::getLineLayerChartDisplayedCartesianData()
                 || (m_previousLineChartSettings.m_newMean != m_lineChartNewMeanValue)
                 || (m_previousLineChartSettings.m_newDeviation != m_lineChartNewDeviationValue)
                 || (m_previousLineChartSettings.m_newMeanEnabled != m_lineChartNewMeanEnabled)
-                || (m_previousLineChartSettings.m_newDeviationEnabled != m_lineChartNewDeviationEnabled)) {
+                || (m_previousLineChartSettings.m_newDeviationEnabled != m_lineChartNewDeviationEnabled)
+                || (m_previousLineChartSettings.m_lineChartNormalizationAbsoluteValueEnabled != m_lineChartNormalizationAbsoluteValueEnabled)) {
                 m_lineChartNormalizedCartesianData.reset();
             }
                 
@@ -708,6 +713,7 @@ ChartTwoOverlay::getLineLayerChartDisplayedCartesianData()
             m_previousLineChartSettings.m_newDeviation = m_lineChartNewDeviationValue;
             m_previousLineChartSettings.m_newMeanEnabled = m_lineChartNewMeanEnabled;
             m_previousLineChartSettings.m_newDeviationEnabled = m_lineChartNewDeviationEnabled;
+            m_previousLineChartSettings.m_lineChartNormalizationAbsoluteValueEnabled = m_lineChartNormalizationAbsoluteValueEnabled;
 
             if ( ! m_lineChartNormalizedCartesianData) {
                 /*
@@ -726,7 +732,8 @@ ChartTwoOverlay::getLineLayerChartDisplayedCartesianData()
             
             
             if (m_lineChartNewMeanEnabled
-                || m_lineChartNewDeviationEnabled) {
+                || m_lineChartNewDeviationEnabled
+                || m_lineChartNormalizationAbsoluteValueEnabled) {
                 /*
                  * Apply new mean and deviation to Y-components
                  */
@@ -736,6 +743,7 @@ ChartTwoOverlay::getLineLayerChartDisplayedCartesianData()
                                                                                                                   m_lineChartNewMeanValue,
                                                                                                                   m_lineChartNewDeviationEnabled,
                                                                                                                   m_lineChartNewDeviationValue,
+                                                                                                                  m_lineChartNormalizationAbsoluteValueEnabled,
                                                                                                                   haveNanInfFlag);
                 
                 if (haveNanInfFlag) {
@@ -1963,6 +1971,26 @@ void
 ChartTwoOverlay::setLineChartNewDeviationEnabled(const bool enabled)
 {
     m_lineChartNewDeviationEnabled = enabled;
+}
+
+/**
+ * @return Line chart normalization absolute value enabled
+ */
+bool
+ChartTwoOverlay::isLineChartNormalizationAbsoluteValueEnabled() const
+{
+    return m_lineChartNormalizationAbsoluteValueEnabled;
+}
+
+/**
+ * Set line chart normalization absolute value enabled
+ * @param enable
+ *    New status
+ */
+void
+ChartTwoOverlay::setLineChartNormalizationAbsoluteValueEnabled(const bool enabled)
+{
+    m_lineChartNormalizationAbsoluteValueEnabled = enabled;
 }
 
 /**

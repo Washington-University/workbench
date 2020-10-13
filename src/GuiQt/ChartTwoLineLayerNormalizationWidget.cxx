@@ -76,10 +76,16 @@ ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
     QObject::connect(m_newDeviationSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &ChartTwoLineLayerNormalizationWidget::newDeviationValueChanged);
 
+    m_absoluteValueEnabledCheckBox = new QCheckBox("Absolute Value");
+    QObject::connect(m_absoluteValueEnabledCheckBox, &QCheckBox::clicked,
+                     this, &ChartTwoLineLayerNormalizationWidget::absoluteValueEnabledCheckBoxClicked);
+
     m_meanDevLabel = new QLabel("");
     
     QGridLayout* layout = new QGridLayout(this);
     int32_t row(0);
+    layout->addWidget(m_absoluteValueEnabledCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
     layout->addWidget(m_newMeanEnabledCheckBox, row, 0);
     layout->addWidget(m_newMeanSpinBox, row, 1);
     row++;
@@ -116,6 +122,8 @@ ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOve
     
     bool validFlag(false);
     if (m_chartTwoOverlay != NULL) {
+        m_absoluteValueEnabledCheckBox->setChecked(m_chartTwoOverlay->isLineChartNormalizationAbsoluteValueEnabled());
+        
         m_newMeanEnabledCheckBox->setChecked(m_chartTwoOverlay->isLineChartNewMeanEnabled());
         QSignalBlocker meanBlocker(m_newMeanSpinBox);
         m_newMeanSpinBox->setValue(m_chartTwoOverlay->getLineChartNewMeanValue());
@@ -157,10 +165,6 @@ ChartTwoLineLayerNormalizationWidget::valueChanged()
         m_chartTwoOverlay->setLineChartNewDeviationValue(m_newDeviationSpinBox->value());
         
         updateGraphics();
-//        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//        m_blockUpdatesFlag = true;
-////        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//        m_blockUpdatesFlag = false;
     }
 }
 
@@ -190,6 +194,18 @@ ChartTwoLineLayerNormalizationWidget::newDeviationEnabledCheckBoxClicked(bool cl
     updateToolBarChartAxes();
 }
 
+/**
+ * Called when new deviation checkbox is clicked
+ * @param clicked
+ *    New clicked status
+ */
+void
+ChartTwoLineLayerNormalizationWidget::absoluteValueEnabledCheckBoxClicked(bool clicked)
+{
+    m_chartTwoOverlay->setLineChartNormalizationAbsoluteValueEnabled(clicked);
+    updateGraphics();
+    updateToolBarChartAxes();
+}
 
 /**
  * Called when new mean value is changed

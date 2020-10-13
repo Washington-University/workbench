@@ -59,6 +59,8 @@ namespace caret {
         
         void newDeviationEnabledCheckBoxClicked(bool clicked);
         
+        void absoluteValueEnabledCheckBoxClicked(bool clicked);
+        
         void newMeanValueChanged(double value);
         
         void newDeviationValueChanged(double value);
@@ -79,6 +81,8 @@ namespace caret {
         QDoubleSpinBox* m_newDeviationSpinBox;
         
         QLabel* m_meanDevLabel;
+        
+        QCheckBox* m_absoluteValueEnabledCheckBox;
         
         bool m_blockUpdatesFlag = false;
         

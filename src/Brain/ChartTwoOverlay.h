@@ -196,6 +196,10 @@ namespace caret {
         
         void setLineChartNewDeviationEnabled(const bool enabled);
         
+        bool isLineChartNormalizationAbsoluteValueEnabled() const;
+        
+        void setLineChartNormalizationAbsoluteValueEnabled(const bool enabled);
+        
         float getLineChartNewDeviationValue() const;
         
         void setLineChartNewDeviationValue(const float value);
@@ -307,6 +311,8 @@ namespace caret {
         
         bool m_lineChartNewDeviationEnabled = false;
         
+        bool m_lineChartNormalizationAbsoluteValueEnabled = false;
+        
         float m_lineChartNewDeviationValue = 1.0;
         
         mutable std::unique_ptr<ChartTwoDataCartesian> m_lineChartNormalizedCartesianData;
@@ -321,6 +327,7 @@ namespace caret {
             float m_newDeviation = 1.0;
             bool m_newMeanEnabled = false;
             bool m_newDeviationEnabled = false;
+            bool m_lineChartNormalizationAbsoluteValueEnabled = false;
         };
         
         LineChartNormalizedSettings m_previousLineChartSettings;
