@@ -3519,7 +3519,7 @@ BrainOpenGLFixedPipeline::unstretchedBorderLineTest(const float p1[3],
 /**
  * Draw foci on a surface.
  * @param surface
- *   Surface on which foci are drawn.
+ *   Surface on which foci are drawn (may be NULL)
  */
 void 
 BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
@@ -3547,8 +3547,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             break;
     }
     
-    Brain* brain = surface->getBrainStructure()->getBrain();
-    const DisplayPropertiesFoci* fociDisplayProperties = brain->getDisplayPropertiesFoci();
+    const DisplayPropertiesFoci* fociDisplayProperties = m_brain->getDisplayPropertiesFoci();
     const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroupForTab(this->windowTabIndex);
     
     if (fociDisplayProperties->isDisplayed(displayGroup,
@@ -3560,7 +3559,9 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
                                                                                                this->windowTabIndex);
     
-    const StructureEnum::Enum surfaceStructure = surface->getStructure();
+    const StructureEnum::Enum surfaceStructure = ((surface != NULL)
+                                                  ? surface->getStructure()
+                                                  : StructureEnum::INVALID);
     const StructureEnum::Enum surfaceContralateralStructure = StructureEnum::getContralateralStructure(surfaceStructure);
     
     const bool doClipping = isFeatureClippingEnabled();
@@ -3594,9 +3595,9 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     
     const bool isContralateralEnabled = fociDisplayProperties->isContralateralDisplayed(displayGroup,
                                                                                         this->windowTabIndex);
-    const int32_t numFociFiles = brain->getNumberOfFociFiles();
+    const int32_t numFociFiles = m_brain->getNumberOfFociFiles();
     for (int32_t i = 0; i < numFociFiles; i++) {
-        FociFile* fociFile = brain->getFociFile(i);
+        FociFile* fociFile = m_brain->getFociFile(i);
         
         const GroupAndNameHierarchyModel* classAndNameSelection = fociFile->getGroupAndNameHierarchyModel();
         if (classAndNameSelection->isSelected(displayGroup,
@@ -3664,7 +3665,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             for (int32_t k = 0; k < numProjections; k++) {
                 const SurfaceProjectedItem* spi = focus->getProjection(k);
                 float xyz[3];
-                if (spi->getProjectedPosition(*surface,
+                if (spi->getProjectedPosition(surface, /* NULL is okay for this method */
                                               xyz,
                                               isPasteOntoSurface)) {
                     const StructureEnum::Enum focusStructure = spi->getStructure();
@@ -3679,6 +3680,13 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                         if (focusStructure == surfaceContralateralStructure) {
                             drawIt = true;
                         }
+                    }
+                    else if (surface == NULL) {
+                        /*
+                         * This is a special case for ALL view with
+                         * neither surfaces nor volumes displayed
+                         */
+                        drawIt = true;
                     }
 
                     if (doClipping) {
@@ -3742,10 +3750,10 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                                          depth);
         if (fociFileIndex >= 0) {
             if (idFocus->isOtherScreenDepthCloserToViewer(depth)) {
-                Focus* focus = brain->getFociFile(fociFileIndex)->getFocus(focusIndex);
-                idFocus->setBrain(brain);
+                Focus* focus = m_brain->getFociFile(fociFileIndex)->getFocus(focusIndex);
+                idFocus->setBrain(m_brain);
                 idFocus->setFocus(focus);
-                idFocus->setFociFile(brain->getFociFile(fociFileIndex));
+                idFocus->setFociFile(m_brain->getFociFile(fociFileIndex));
                 idFocus->setFocusIndex(focusIndex);
                 idFocus->setFocusProjectionIndex(focusProjectionIndex);
                 idFocus->setSurface(surface);
@@ -3763,7 +3771,6 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     
     glPopAttrib();
 }
-
 
 /**
  * Draw borders on a surface.
@@ -6577,6 +6584,13 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
                               drawModelSpaceAnnotationsFlag);
             glPopMatrix();
         }
+    }
+    
+    /*
+     * Special case to draw foci when surfaces are not displayed
+     */
+    if (numSurfaceToDraw <= 0) {
+        drawSurfaceFoci(NULL);
     }
 }
 

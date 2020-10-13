@@ -63,6 +63,10 @@ namespace caret {
         void unprojectToVolumeXYZ(const SurfaceFile& sf,
                                   const bool isUnprojectedOntoSurface);
         
+        bool getProjectedPosition(const SurfaceFile* sf,
+                                  float xyzOut[3],
+                                  const bool isUnprojectedOntoSurface) const;
+        
         bool getProjectedPosition(const SurfaceFile& sf,
                                   float xyzOut[3],
                                   const bool isUnprojectedOntoSurface) const;
