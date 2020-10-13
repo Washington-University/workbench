@@ -70,7 +70,7 @@ ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
     m_newDeviationSpinBox = new QDoubleSpinBox();
     m_newDeviationSpinBox->setDecimals(4);
     m_newDeviationSpinBox->setSingleStep(0.1);
-    m_newDeviationSpinBox->setRange(0.001,
+    m_newDeviationSpinBox->setRange(-std::numeric_limits<float>::max(),
                                     std::numeric_limits<float>::max());
     m_newDeviationSpinBox->setMaximumWidth(100);
     QObject::connect(m_newDeviationSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
