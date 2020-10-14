@@ -921,6 +921,28 @@ PaletteFile::addDefaultPalettes()
         addPalette(bbg);
     }
     
+    if (this->getPaletteByName("blue-black-red") == NULL) {
+        Palette bbg;
+        bbg.setName("blue-black-red");
+        
+        addPaletteScalarAndColor(bbg,  1.0, 255, 0,   0); /* red */
+        addPaletteScalarAndColor(bbg,  0.0,   0, 0,   0); /* black */
+        addPaletteScalarAndColor(bbg, -1.0,   0, 0, 255); /* blue */
+        
+        addPalette(bbg);
+    }
+    
+    if (this->getPaletteByName("red-black-green") == NULL) {
+        Palette bbg;
+        bbg.setName("red-black-green");
+        
+        addPaletteScalarAndColor(bbg,  1.0,   0, 255, 0); /* green */
+        addPaletteScalarAndColor(bbg,  0.0,   0,   0, 0); /* black */
+        addPaletteScalarAndColor(bbg, -1.0, 255,   0, 0); /* red */
+        
+        addPalette(bbg);
+    }
+    
     /*
      * FSL Red palette from WB-289
      *
