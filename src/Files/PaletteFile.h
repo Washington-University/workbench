@@ -75,6 +75,18 @@ namespace caret {
                       const AString& name,
                       const int32_t rgb[]);
         
+        void addPaletteScalarAndColor(Palette& palette,
+                                      const float scalar,
+                                      const int32_t red,
+                                      const int32_t green,
+                                      const int32_t blue);
+
+        void addPaletteScalarAndColorFloat(Palette& palette,
+                                           const float scalar,
+                                           const float red,
+                                           const float green,
+                                           const float blue);
+        
         const GiftiLabel* getColor(const int32_t index) const;
         
         const GiftiLabel* getColorByName(const AString& colorName) const;

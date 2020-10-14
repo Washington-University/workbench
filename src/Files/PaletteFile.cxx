@@ -95,6 +95,77 @@ PaletteFile::clear()
 }
 
 /**
+ * Add a scalar and RGB INTEGER color to a palette.  Palette MUST have a name.
+ * @param palette
+ *    Palette that receives scalar and color
+ * @param scalar
+ *    The scalar value
+ * @param red
+ *    Red component [0, 255]
+ * @param green
+ *    Green component [0, 255]
+ * @param blue
+ *    Blue component [0, 255]
+ */
+void
+PaletteFile::addPaletteScalarAndColor(Palette& palette,
+                                      const float scalar,
+                                      const int32_t red,
+                                      const int32_t green,
+                                      const int32_t blue)
+{
+    AString name(palette.getName());
+    if (name.isEmpty()) {
+        CaretAssertMessage(0, "Palette is missing name.  Palette will be invalid.");
+        return;
+    }
+    
+    /*
+     * Name of color is name of palette followed by index of color
+     */
+    name.append("_" + AString::number(palette.getNumberOfScalarsAndColors()));
+    
+#ifndef NDEBUG
+    if (this->labelTable.getLabel(name) != NULL) {
+        CaretAssertMessage(0, ("Generation of color name failed.  Color \""
+                               + name
+                               + "\" already exists."));
+    }
+#endif
+    
+    this->addColor(name, red, green, blue);
+    
+    palette.addScalarAndColor(scalar, name);
+}
+
+/**
+ * Add a scalar and RGB FLOAT color to a palette.  Palette MUST have a name.
+ * @param palette
+ *    Palette that receives scalar and color
+ * @param scalar
+ *    The scalar value
+ * @param red
+ *    Red component [0, 1]
+ * @param green
+ *    Green component [0, 1]
+ * @param blue
+ *    Blue component [0, 1]
+ */
+void
+PaletteFile::addPaletteScalarAndColorFloat(Palette& palette,
+                                           const float scalar,
+                                           const float red,
+                                           const float green,
+                                           const float blue)
+{
+    addPaletteScalarAndColor(palette,
+                             scalar,
+                             red * 255.0,
+                             green * 255.0,
+                             blue * 255.0);
+}
+
+/**
  * Add a palette color.
  * 
  * @param pc - color to add.
@@ -839,6 +910,17 @@ PaletteFile::addDefaultPalettes()
         addPalette(blackBlue);
     }
 
+    if (this->getPaletteByName("blue-black-green") == NULL) {
+        Palette bbg;
+        bbg.setName("blue-black-green");
+        
+        addPaletteScalarAndColor(bbg,  1.0, 0, 255,   0); /* green */
+        addPaletteScalarAndColor(bbg,  0.0, 0,   0,   0); /* black */
+        addPaletteScalarAndColor(bbg, -1.0, 0,   0, 255); /* blue */
+
+        addPalette(bbg);
+    }
+    
     /*
      * FSL Red palette from WB-289
      *
