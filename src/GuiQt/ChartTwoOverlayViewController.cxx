@@ -233,8 +233,8 @@ m_parentObjectName(parentObjectName)
     m_matrixOpacitySpinBox = new WuQDoubleSpinBox(this);
     m_matrixOpacitySpinBox->setToolTip("Set opacity for matrix");
     m_matrixOpacitySpinBox->setRange(0.0, 1.0);
-    m_matrixOpacitySpinBox->setDecimals(1);
-    m_matrixOpacitySpinBox->setSingleStep(0.1);
+    m_matrixOpacitySpinBox->setDecimals(2);
+    m_matrixOpacitySpinBox->setSingleStep(0.01);
     QObject::connect(m_matrixOpacitySpinBox, &WuQDoubleSpinBox::valueChanged,
                      this, &ChartTwoOverlayViewController::matrixOpacityValueChanged);
 

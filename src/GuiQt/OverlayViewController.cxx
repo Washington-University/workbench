@@ -174,8 +174,8 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                               + "Opacity");
     this->opacityDoubleSpinBox->setMinimum(0.0);
     this->opacityDoubleSpinBox->setMaximum(1.0);
-    this->opacityDoubleSpinBox->setSingleStep(0.10);
-    this->opacityDoubleSpinBox->setDecimals(1);
+    this->opacityDoubleSpinBox->setSingleStep(0.01);
+    this->opacityDoubleSpinBox->setDecimals(2);
     this->opacityDoubleSpinBox->setFixedWidth(50);
     QObject::connect(this->opacityDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(opacityDoubleSpinBoxValueChanged(double)));
