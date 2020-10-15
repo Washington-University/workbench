@@ -1368,7 +1368,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         }
     }
     
-    {
+    if ((xMinBottomTop < xMaxBottomTop)
+        && (yMinLeftRight < yMaxLeftRight)) {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         const float xMin(xMinBottomTop);
