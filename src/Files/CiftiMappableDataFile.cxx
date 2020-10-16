@@ -1490,6 +1490,7 @@ CiftiMappableDataFile::invalidateColoringInAllMaps()
     m_matrixGraphicsTexturePrimitive.reset();
     m_matrixGraphicsOutlinePrimitive.reset();
     invalidateHistogramChartColoring();
+    m_previousMatrixOpacity = -1.0;
 }
 
 /**
@@ -1690,6 +1691,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
     }
     
     if (opacity != m_previousMatrixOpacity) {
+        const_cast<CiftiMappableDataFile*>(this)->invalidateColoringInAllMaps();
         matrixPrimitive = NULL;
     }
     
@@ -2818,6 +2820,7 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex)
     m_matrixGraphicsTrianglesPrimitive.reset();
     m_matrixGraphicsTexturePrimitive.reset();
     m_matrixGraphicsOutlinePrimitive.reset();
+    m_previousMatrixOpacity = -1.0;
 }
 
 /**

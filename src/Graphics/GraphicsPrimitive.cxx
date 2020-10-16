@@ -1394,7 +1394,7 @@ GraphicsPrimitive::getVertexBounds(BoundingBox& boundingBoxOut) const
             m_boundingBox->updateExcludeNanInf(&m_xyz[i3]);
         }
         
-        m_boundingBoxValid = true;
+        m_boundingBoxValid = m_boundingBox->isValid2D();
     }
     
     boundingBoxOut = *m_boundingBox;

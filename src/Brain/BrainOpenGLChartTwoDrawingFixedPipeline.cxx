@@ -1313,7 +1313,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
     if (drawMatrixFlag) {
         std::vector<MatrixRowColumnHighight*> rowColumnHighlighting;
         
-        bool firstFlag(true);
+        /*
+         * Blending (alpha/opacity) is not allowed on the bottom-most
+         * layer since there is nothing under it for blending
+         */
+        bool allowBlendingFlag(false);
+        
         for (const auto matrixChart : matrixChartsToDraw) {
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
@@ -1330,12 +1335,12 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
             
-            const float opacity(firstFlag ? 1.0 : matrixChart.m_opacity);
             drawMatrixChartContent(matrixChart.m_matrixChart,
                                    matrixChart.m_triangularMode,
-                                   opacity,
-                                   rowColumnHighlighting);
-            firstFlag = false;
+                                   matrixChart.m_opacity,
+                                   rowColumnHighlighting,
+                                   allowBlendingFlag);
+            allowBlendingFlag = true;
             
             /*
              * Save the transformation matrices and the viewport
@@ -1410,12 +1415,15 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
  *     Opacity for matrix drawing.
  * @param rowColumnHighlightingOut
  *     Current Output with row/column highlighting.
+ * @param blendingEnabled
+ *     Allow blending.
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
                                                                 const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
                                                                 const float opacity,
-                                                                std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut)
+                                                                std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut,
+                                                                const bool blendingEnabled)
 {
     GraphicsPrimitive* matrixPrimitive(NULL);
     const bool useTextureFlag(true);
@@ -1440,11 +1448,17 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
     
     glPushMatrix();
     /*
-     * Enable alpha blending so voxels that are not drawn from higher layers
-     * allow voxels from lower layers to be seen.
+     * Blending is disabled for the bottom-most
+     * layer since there is nothing to blend with.  If allowed,
+     * the bottom layer would blend with the background.
      */
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (blendingEnabled) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    else {
+        glDisable(GL_BLEND);
+    }
     
     if (m_identificationModeFlag) {
         EventOpenGLObjectToWindowTransform transformEvent(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);

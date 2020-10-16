@@ -271,7 +271,8 @@ namespace caret {
         void drawMatrixChartContent(const ChartableTwoFileMatrixChart* matrixChart,
                                     const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
                                     const float opacity,
-                                    std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut);
+                                    std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut,
+                                    const bool blendingEnabled);
         
         void drawHistogramOrLineChart(const ChartTwoDataTypeEnum::Enum chartDataType);
         
