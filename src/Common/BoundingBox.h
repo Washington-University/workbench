@@ -47,6 +47,8 @@ public:
     virtual ~BoundingBox();
 
 public:
+    bool isValid2D() const;
+    
     void resetZeros();
 
     void resetWithMaximumExtent();
