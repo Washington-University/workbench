@@ -24,6 +24,9 @@
 #undef __EVENT_CHART_TWO_CARTESIAN_AXIS_DISPLAY_GROUP_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretResult.h"
+#include "ChartTwoCartesianAxis.h"
+#include "EventManager.h"
 #include "EventTypeEnum.h"
 
 using namespace caret;
@@ -41,9 +44,13 @@ using namespace caret;
  * @param displayGroup
  *    Display group for desired axis
  */
-EventChartTwoCartesianAxisDisplayGroup::EventChartTwoCartesianAxisDisplayGroup(const DisplayGroupEnum::Enum displayGroup)
+EventChartTwoCartesianAxisDisplayGroup::EventChartTwoCartesianAxisDisplayGroup(const Mode mode,
+                                                                               const DisplayGroupEnum::Enum displayGroup,
+                                                                               ChartTwoCartesianAxis* axis)
 : Event(EventTypeEnum::EVENT_CHART_TWO_CARTEISAN_AXIS_DISPLAY_GROUP),
-m_displayGroup(displayGroup)
+m_mode(mode),
+m_displayGroup(displayGroup),
+m_axis(axis)
 {
     
 }
@@ -54,6 +61,125 @@ m_displayGroup(displayGroup)
 EventChartTwoCartesianAxisDisplayGroup::~EventChartTwoCartesianAxisDisplayGroup()
 {
 }
+
+/**
+ * @return Axis associated with the given display group.  This axis exists
+ * in SessionManager but since the Charting module cannot access
+ * SessionManager, this axis is obtained throught this event.
+ *
+ * @param displayGroup (NEVER use TAB)
+ *    The display group
+ */
+ChartTwoCartesianAxis*
+EventChartTwoCartesianAxisDisplayGroup::getAxisForDisplayGroup(const DisplayGroupEnum::Enum displayGroup)
+{
+    switch (displayGroup) {
+        case DisplayGroupEnum::DISPLAY_GROUP_A:
+        case DisplayGroupEnum::DISPLAY_GROUP_B:
+        case DisplayGroupEnum::DISPLAY_GROUP_C:
+        case DisplayGroupEnum::DISPLAY_GROUP_D:
+            break;
+        case DisplayGroupEnum::DISPLAY_GROUP_TAB:
+            CaretAssert(0);
+            /** Note event below will function for TAB */
+            break;
+    }
+    
+    ChartTwoCartesianAxis* nullAxis(NULL);
+    EventChartTwoCartesianAxisDisplayGroup event(Mode::GET_DISPLAY_GROUP_AXIS,
+                                                 displayGroup,
+                                                 nullAxis);
+    EventManager::get()->sendEvent(event.getPointer());
+    CaretAssert(event.getEventProcessCount());
+    return event.getAxis();
+}
+
+/**
+ * @return All chart axes yoked to the given display group.  Only those axes that
+ * are in displayed charts are included.
+ * @param displayGroup (NEVER use TAB)
+ *    The display group
+ */
+std::vector<ChartTwoCartesianAxis*>
+EventChartTwoCartesianAxisDisplayGroup::getAxesYokedToDisplayGroup(const DisplayGroupEnum::Enum displayGroup)
+{
+    std::vector<ChartTwoCartesianAxis*> axes;
+    switch (displayGroup) {
+        case DisplayGroupEnum::DISPLAY_GROUP_A:
+        case DisplayGroupEnum::DISPLAY_GROUP_B:
+        case DisplayGroupEnum::DISPLAY_GROUP_C:
+        case DisplayGroupEnum::DISPLAY_GROUP_D:
+        {
+            
+            ChartTwoCartesianAxis* nullAxis(NULL);
+            EventChartTwoCartesianAxisDisplayGroup event(Mode::GET_ALL_YOKED_AXES,
+                                                         displayGroup,
+                                                         nullAxis);
+            EventManager::get()->sendEvent(event.getPointer());
+            axes = event.getYokedAxes();
+        }
+            break;
+        case DisplayGroupEnum::DISPLAY_GROUP_TAB:
+            CaretAssert(0);
+            return axes;
+            break;
+    }
+    
+    return axes;
+}
+
+/**
+ * Initialize the display group axis if it is not yoked to any axes, otherwise, do nothing.
+ * @param displayGroup (NEVER use TAB)
+ *    The display group
+ * @param axis
+ *    Axis that is copied to the display group axis.
+ */
+void
+EventChartTwoCartesianAxisDisplayGroup::initializeUnyokedDisplayGroupAxis(const DisplayGroupEnum::Enum displayGroup,
+                                                                          const ChartTwoCartesianAxis* axis)
+{
+    CaretAssert(axis);
+    
+    switch (displayGroup) {
+        case DisplayGroupEnum::DISPLAY_GROUP_A:
+        case DisplayGroupEnum::DISPLAY_GROUP_B:
+        case DisplayGroupEnum::DISPLAY_GROUP_C:
+        case DisplayGroupEnum::DISPLAY_GROUP_D:
+        {
+            /*
+             * Test for NO axes yoked to display group
+             */
+            std::vector<ChartTwoCartesianAxis*> axes = EventChartTwoCartesianAxisDisplayGroup::getAxesYokedToDisplayGroup(displayGroup);
+            if (axes.empty()) {
+                ChartTwoCartesianAxis* displayGroupAxis = EventChartTwoCartesianAxisDisplayGroup::getAxisForDisplayGroup(displayGroup);
+                if (displayGroupAxis != NULL) {
+                    /*
+                     * Since no axes yet yoked to display group, copy the given
+                     * axis parameters to the display group's axis
+                     */
+                    displayGroupAxis->copyAxisParameters(axis);
+                }
+            }
+        }
+            break;
+        case DisplayGroupEnum::DISPLAY_GROUP_TAB:
+            CaretAssert(0);
+            return;
+            break;
+    }
+}
+
+
+/**
+ * @return The mode
+ */
+EventChartTwoCartesianAxisDisplayGroup::Mode
+EventChartTwoCartesianAxisDisplayGroup::getMode() const
+{
+    return m_mode;
+}
+
 
 /**
  * @return The display group
@@ -92,3 +218,24 @@ EventChartTwoCartesianAxisDisplayGroup::setAxis(ChartTwoCartesianAxis* axis)
 {
     m_axis = axis;
 }
+
+/**
+ * @return All yoked axes
+ */
+std::vector<ChartTwoCartesianAxis*>
+EventChartTwoCartesianAxisDisplayGroup::getYokedAxes() const
+{
+    return m_yokedAxes;
+}
+
+/**
+ * Add to the yoked axes
+ * @param axes
+ *    Axes added to the yoked axes
+ */
+void
+EventChartTwoCartesianAxisDisplayGroup::addToYokedAxes(ChartTwoCartesianAxis* axis)
+{
+    m_yokedAxes.push_back(axis);
+}
+

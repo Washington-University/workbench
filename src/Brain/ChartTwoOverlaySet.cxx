@@ -38,6 +38,7 @@
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
 #include "EventBrowserTabGet.h"
+#include "EventChartTwoCartesianAxisDisplayGroup.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventMapYokingValidation.h"
@@ -175,6 +176,7 @@ m_tabIndex(tabIndex)
         m_overlays[i]->setWeakPointerToSelf(m_overlays[i]);
     }
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CHART_LABEL_GET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_CARTEISAN_AXIS_DISPLAY_GROUP);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_VALIDATION);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
 }
@@ -647,7 +649,27 @@ ChartTwoOverlaySet::toString() const
 void
 ChartTwoOverlaySet::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
+    if (event->getEventType() == EventTypeEnum::EVENT_CHART_TWO_CARTEISAN_AXIS_DISPLAY_GROUP) {
+        EventChartTwoCartesianAxisDisplayGroup* dgEvent = dynamic_cast<EventChartTwoCartesianAxisDisplayGroup*>(event);
+        CaretAssert(event);
+        switch (dgEvent->getMode()) {
+            case EventChartTwoCartesianAxisDisplayGroup::Mode::GET_ALL_YOKED_AXES:
+            {
+                std::vector<ChartTwoCartesianAxis*> axes;
+                getDisplayedChartAxes(axes);
+                for (auto& a : axes) {
+                    if (a->getDisplayGroup() == dgEvent->getDisplayGroup()) {
+                        dgEvent->addToYokedAxes(a);
+                    }
+                }
+                event->setEventProcessed();
+            }
+                break;
+            case EventChartTwoCartesianAxisDisplayGroup::Mode::GET_DISPLAY_GROUP_AXIS:
+                break;
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
         /*
          * The events intended for overlays are received here so that
          * only DISPLAYED overlays are updated.

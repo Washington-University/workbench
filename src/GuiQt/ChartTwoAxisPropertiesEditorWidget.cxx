@@ -46,6 +46,7 @@
 #include "ChartableTwoFileHistogramChart.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventChartTwoCartesianAxisDisplayGroup.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "ModelChartTwo.h"
@@ -87,7 +88,7 @@ m_axisLocation(axisLocation)
     
     m_showTickMarksCheckBox = new QCheckBox("Ticks");
     QObject::connect(m_showTickMarksCheckBox, &QCheckBox::clicked,
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChangedBool);
+                     [=](bool clicked) { m_chartAxis->setShowTickmarks(clicked); valueChanged(); });
     m_showTickMarksCheckBox->setToolTip("Show ticks along the axis");
     m_showTickMarksCheckBox->setObjectName(objectNamePrefix
                                                  + "ShowTicks");
@@ -96,7 +97,7 @@ m_axisLocation(axisLocation)
     
     m_showLabelCheckBox = new QCheckBox("Title");
     QObject::connect(m_showLabelCheckBox, &QCheckBox::clicked,
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChangedBool);
+                     [=](bool clicked) { m_chartAxis->setShowLabel(clicked); valueChanged(); });
     m_showLabelCheckBox->setToolTip("Show title on axis");
     m_showLabelCheckBox->setObjectName(objectNamePrefix
                                                  + "ShowLabel");
@@ -105,7 +106,7 @@ m_axisLocation(axisLocation)
     
     m_showNumericsCheckBox = new QCheckBox("Labels");
     QObject::connect(m_showNumericsCheckBox, &QCheckBox::clicked,
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChangedBool);
+                     [=](bool clicked) { m_chartAxis->setNumericsTextDisplayed(clicked); valueChanged(); });
     m_showNumericsCheckBox->setToolTip("Show labels (numeric values) on axis");
     m_showNumericsCheckBox->setObjectName(objectNamePrefix
                                                  + "ShowNumerics");
@@ -114,7 +115,7 @@ m_axisLocation(axisLocation)
     
     m_rotateNumericsCheckBox = new QCheckBox("Rotate");
     QObject::connect(m_rotateNumericsCheckBox, &QCheckBox::clicked,
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChangedBool);
+                     [=](bool clicked) { m_chartAxis->setNumericsTextRotated(clicked); valueChanged(); });
     m_rotateNumericsCheckBox->setToolTip("Rotate numeric scale values on axis");
     m_rotateNumericsCheckBox->setObjectName(objectNamePrefix
                                                  + "EnableNumericsRotate");
@@ -138,7 +139,7 @@ m_axisLocation(axisLocation)
     m_axisLabelFromOverlayComboBox = new QComboBox();
     m_axisLabelFromOverlayComboBox->setToolTip("Title for axis is from file in selected layer");
     QObject::connect(m_axisLabelFromOverlayComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChangedInt);
+                     [=](int index) { m_chartAxis->setLabelOverlayIndex(index); valueChanged(); });
     m_axisLabelFromOverlayComboBox->setObjectName(objectNamePrefix
                                                  + "LabelFromOverlay");
     macroManager->addMacroSupportToObject(m_axisLabelFromOverlayComboBox,
@@ -150,7 +151,7 @@ m_axisLocation(axisLocation)
     m_userNumericFormatComboBox = new EnumComboBoxTemplate(this);
     m_userNumericFormatComboBox->setup<NumericFormatModeEnum, NumericFormatModeEnum::Enum>();
     QObject::connect(m_userNumericFormatComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChanged);
+                     [=]() { m_chartAxis->setUserNumericFormat(m_userNumericFormatComboBox->getSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>());  valueChanged(); });
     m_userNumericFormatComboBox->getWidget()->setToolTip("Choose format of axis scale numeric values");
     m_userNumericFormatComboBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "Format");
@@ -161,7 +162,7 @@ m_axisLocation(axisLocation)
     m_userDigitsRightOfDecimalSpinBox->setRange(0, 10);
     m_userDigitsRightOfDecimalSpinBox->setSingleStep(1);
     QObject::connect(m_userDigitsRightOfDecimalSpinBox, static_cast<void (WuQSpinBox::*)(int)>(&WuQSpinBox::valueChanged),
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChangedInt);
+                     [=](int value) { m_chartAxis->setUserDigitsRightOfDecimal(value); valueChanged(); });
     m_userDigitsRightOfDecimalSpinBox->setToolTip("Set digits right of decimal for\ndecimal or scientific format");
     m_userDigitsRightOfDecimalSpinBox->setObjectName(objectNamePrefix
                                                  + "DigitsRightOfDecimal");
@@ -171,7 +172,7 @@ m_axisLocation(axisLocation)
     m_numericSubdivisionsModeComboBox = new EnumComboBoxTemplate(this);
     m_numericSubdivisionsModeComboBox->setup<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>();
     QObject::connect(m_numericSubdivisionsModeComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChanged);
+                     [=]() { m_chartAxis->setNumericSubdivsionsMode(m_numericSubdivisionsModeComboBox->getSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>()); valueChanged();} );
     m_numericSubdivisionsModeComboBox->getWidget()->setToolTip("Numeric subdivisions mode");
     m_numericSubdivisionsModeComboBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "NumericSubdivisionsMode");
@@ -182,7 +183,7 @@ m_axisLocation(axisLocation)
     m_userSubdivisionsSpinBox->setRange(0, 99);
     m_userSubdivisionsSpinBox->setSingleStep(1);
     QObject::connect(m_userSubdivisionsSpinBox, static_cast<void (WuQSpinBox::*)(int)>(&WuQSpinBox::valueChanged),
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChangedInt);
+                     [=](int value) { m_chartAxis->setUserNumberOfSubdivisions(value); valueChanged(); });
     m_userSubdivisionsSpinBox->setToolTip("Set subdivisions on the axis when Auto is not checked");
     m_userSubdivisionsSpinBox->setObjectName(objectNamePrefix
                                                  + "NumberOfSubdivisions");
@@ -196,7 +197,7 @@ m_axisLocation(axisLocation)
     m_labelSizeSpinBox->setRangePercentage(0.0, 99.0);
     m_labelSizeSpinBox->setDecimals(1);
     QObject::connect(m_labelSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChangedDouble);
+                     [=](double value) { m_chartAxis->setLabelTextSize(value); valueChanged(); });
     m_labelSizeSpinBox->setToolTip("Set height of title as percentage of tab height for selected axis");
     m_labelSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "LabelHeight");
@@ -207,7 +208,7 @@ m_axisLocation(axisLocation)
     m_numericsSizeSpinBox->setRangePercentage(0.0, 99.0);
     m_numericsSizeSpinBox->setDecimals(1);
     QObject::connect(m_numericsSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChangedDouble);
+                     [=](double value) { m_chartAxis->setNumericsTextSize(value); valueChanged(); });
     m_numericsSizeSpinBox->setToolTip("Set height of labels (numeric values) as percentage of tab height for selected axis");
     m_numericsSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "NumericValueHeight");
@@ -233,7 +234,7 @@ m_axisLocation(axisLocation)
     m_paddingSizeSpinBox->setDecimals(1);
     m_paddingSizeSpinBox->setRangePercentage(0.0, 99.0);
     QObject::connect(m_paddingSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
-                     this, &ChartTwoAxisPropertiesEditorWidget::valueChangedDouble);
+                     [=](double value) { m_chartAxis->setPaddingSize(value); valueChanged(); });
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height for selected axis");
     m_paddingSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "PaddingSize");
@@ -516,9 +517,7 @@ ChartTwoAxisPropertiesEditorWidget::chartSubdivisionsModeEnumComboBoxItemActivat
          * combo box) affect enabled status of items (numeric digits
          * right of decimal)
          */
-        updateControls(m_chartOverlaySet,
-                       m_chartAxis);
-        updateGraphics();
+        valueChanged();
     }
 }
 
@@ -529,6 +528,9 @@ ChartTwoAxisPropertiesEditorWidget::chartSubdivisionsModeEnumComboBoxItemActivat
 void
 ChartTwoAxisPropertiesEditorWidget::axisLineThicknessChanged(double)
 {
+    /*
+     * Line thickness is in parent overlay set
+     */
     if (m_chartOverlaySet != NULL) {
         m_chartOverlaySet->setAxisLineThickness(m_linesTicksSizeSpinBox->value());
         updateGraphics();
@@ -544,20 +546,6 @@ ChartTwoAxisPropertiesEditorWidget::valueChanged()
 {
     CaretAssert(m_chartAxis);
     if (m_chartAxis != NULL) {
-        m_chartAxis->setLabelOverlayIndex(m_axisLabelFromOverlayComboBox->currentIndex());
-        m_chartAxis->setShowTickmarks(m_showTickMarksCheckBox->isChecked());
-        m_chartAxis->setShowLabel(m_showLabelCheckBox->isChecked());
-        m_chartAxis->setNumericsTextDisplayed(m_showNumericsCheckBox->isChecked());
-        m_chartAxis->setNumericsTextRotated(m_rotateNumericsCheckBox->isChecked());
-        m_chartAxis->setUserNumericFormat(m_userNumericFormatComboBox->getSelectedItem<NumericFormatModeEnum, NumericFormatModeEnum::Enum>());
-        m_chartAxis->setUserDigitsRightOfDecimal(m_userDigitsRightOfDecimalSpinBox->value());
-        m_chartAxis->setNumericSubdivsionsMode(m_numericSubdivisionsModeComboBox->getSelectedItem<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>());
-        m_chartAxis->setUserNumberOfSubdivisions(m_userSubdivisionsSpinBox->value());
-        
-        m_chartAxis->setLabelTextSize(m_labelSizeSpinBox->value());
-        m_chartAxis->setNumericsTextSize(m_numericsSizeSpinBox->value());
-        m_chartAxis->setPaddingSize(m_paddingSizeSpinBox->value());
-        
         /*
          * Need to update controls as some items (such as numeric format
          * combo box) affect enabled status of items (numeric digits
@@ -577,36 +565,6 @@ void
 ChartTwoAxisPropertiesEditorWidget::updateGraphics()
 {
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
-
-/**
- * Called when a widget is changed by a slot using a bool parameter.
- * Parameters must match when using function pointers.
- */
-void
-ChartTwoAxisPropertiesEditorWidget::valueChangedBool(bool)
-{
-    valueChanged();
-}
-
-/**
- * Called when a widget is changed by a slot using a double parameter.
- * Parameters must match when using function pointers.
- */
-void
-ChartTwoAxisPropertiesEditorWidget::valueChangedDouble(double)
-{
-    valueChanged();
-}
-
-/**
- * Called when a widget is changed by a slot using a int parameter.
- * Parameters must match when using function pointers.
- */
-void
-ChartTwoAxisPropertiesEditorWidget::valueChangedInt(int)
-{
-    valueChanged();
 }
 
 /**
@@ -638,9 +596,25 @@ void
 ChartTwoAxisPropertiesEditorWidget::displayGroupSelected(const DisplayGroupEnum::Enum displayGroup)
 {
     if (m_chartAxis != NULL) {
+        /*
+         * Newly selected group is NOT TAB so it must be a GROUP
+         */
+        if (displayGroup != DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+            /*
+             * New group is different from old group so have
+             * transitioned from TAB to a GROUP or from
+             * a GROUP to a DIFFERENT GROUP
+             */
+            if (displayGroup != m_chartAxis->getDisplayGroup()) {
+                /*
+                 * if NO axes are yoked to the display group, this axis parameters
+                 * are copied to the display group
+                 */
+                EventChartTwoCartesianAxisDisplayGroup::initializeUnyokedDisplayGroupAxis(displayGroup,
+                                                                                          m_chartAxis);
+            }
+        }
         m_chartAxis->setDisplayGroup(displayGroup);
-        updateControls(m_chartOverlaySet,
-                       m_chartAxis);
-        updateGraphics();
+        valueChanged();
     }
 }

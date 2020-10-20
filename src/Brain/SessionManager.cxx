@@ -106,10 +106,8 @@ SessionManager::SessionManager()
      */
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         ChartTwoOverlaySet* nullChartOverlaySet(NULL);
-        std::vector<ChartTwoCartesianAxis*> emptyAxes;
         ChartTwoCartesianAxis* axis = new ChartTwoCartesianAxis(nullChartOverlaySet,
-                                                                ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM,
-                                                                emptyAxes);
+                                                                ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
         m_chartingAxisDisplayGroups.push_back(std::unique_ptr<ChartTwoCartesianAxis>(axis));
     }
 
@@ -623,11 +621,19 @@ SessionManager::receiveEvent(Event* event)
         EventChartTwoCartesianAxisDisplayGroup* dgEvent = dynamic_cast<EventChartTwoCartesianAxisDisplayGroup*>(event);
         CaretAssert(dgEvent);
         
-        const DisplayGroupEnum::Enum displayGroup = dgEvent->getDisplayGroup();
-        const int32_t displayGroupIndex = DisplayGroupEnum::toIntegerCode(displayGroup);
-        CaretAssertVectorIndex(m_chartingAxisDisplayGroups, displayGroupIndex);
-        dgEvent->setAxis(m_chartingAxisDisplayGroups[displayGroupIndex].get());
-        dgEvent->setEventProcessed();
+        switch (dgEvent->getMode()) {
+            case EventChartTwoCartesianAxisDisplayGroup::Mode::GET_ALL_YOKED_AXES:
+                break;
+            case EventChartTwoCartesianAxisDisplayGroup::Mode::GET_DISPLAY_GROUP_AXIS:
+            {
+                const DisplayGroupEnum::Enum displayGroup = dgEvent->getDisplayGroup();
+                const int32_t displayGroupIndex = DisplayGroupEnum::toIntegerCode(displayGroup);
+                CaretAssertVectorIndex(m_chartingAxisDisplayGroups, displayGroupIndex);
+                dgEvent->setAxis(m_chartingAxisDisplayGroups[displayGroupIndex].get());
+                dgEvent->setEventProcessed();
+            }
+                break;
+        }
     }
 }
 

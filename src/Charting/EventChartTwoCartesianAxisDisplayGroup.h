@@ -31,14 +31,30 @@
 
 namespace caret {
 
+    class CaretResult;
     class ChartTwoCartesianAxis;
     
     class EventChartTwoCartesianAxisDisplayGroup : public Event {
-        
     public:
-        EventChartTwoCartesianAxisDisplayGroup(const DisplayGroupEnum::Enum displayGroup);
+        enum class Mode {
+            /** Get a list of all active yoked axes */
+            GET_ALL_YOKED_AXES,
+            /* Get the axis associated with a display group*/
+            GET_DISPLAY_GROUP_AXIS
+        };
+        
+        static ChartTwoCartesianAxis* getAxisForDisplayGroup(const DisplayGroupEnum::Enum displayGroup);
+        
+        static std::vector<ChartTwoCartesianAxis*> getAxesYokedToDisplayGroup(const DisplayGroupEnum::Enum displayGroup);
+        
+        static void initializeUnyokedDisplayGroupAxis(const DisplayGroupEnum::Enum displayGroup,
+                                                      const ChartTwoCartesianAxis* axis);
+        
+      //  add static method to initialize display group with an axis when no axes are yokeed
         
         virtual ~EventChartTwoCartesianAxisDisplayGroup();
+        
+        Mode getMode() const;
         
         DisplayGroupEnum::Enum getDisplayGroup() const;
         
@@ -48,6 +64,10 @@ namespace caret {
         
         void setAxis(ChartTwoCartesianAxis* axis);
         
+        std::vector<ChartTwoCartesianAxis*> getYokedAxes() const;
+        
+        void addToYokedAxes(ChartTwoCartesianAxis* axis);
+        
         EventChartTwoCartesianAxisDisplayGroup(const EventChartTwoCartesianAxisDisplayGroup&) = delete;
 
         EventChartTwoCartesianAxisDisplayGroup& operator=(const EventChartTwoCartesianAxisDisplayGroup&) = delete;
@@ -56,9 +76,18 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        EventChartTwoCartesianAxisDisplayGroup(const Mode mode,
+                                               const DisplayGroupEnum::Enum displayGroup,
+                                               ChartTwoCartesianAxis* axis);
+        
+        const Mode m_mode;
+        
         const DisplayGroupEnum::Enum m_displayGroup;
         
         ChartTwoCartesianAxis* m_axis = NULL;
+        
+        std::vector<ChartTwoCartesianAxis*> m_yokedAxes;
+        
         
         // ADD_NEW_MEMBERS_HERE
 

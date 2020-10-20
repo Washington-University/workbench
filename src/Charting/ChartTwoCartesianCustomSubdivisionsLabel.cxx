@@ -43,13 +43,7 @@ using namespace caret;
 ChartTwoCartesianCustomSubdivisionsLabel::ChartTwoCartesianCustomSubdivisionsLabel()
 : CaretObject()
 {
-    
-    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->add("m_numericValue",
-                          &m_numericValue);
-    m_sceneAssistant->add("m_customLabelText",
-                          &m_customLabelText);
-
+    initializeInstance();
 }
 
 /**
@@ -68,6 +62,7 @@ ChartTwoCartesianCustomSubdivisionsLabel::ChartTwoCartesianCustomSubdivisionsLab
 : CaretObject(obj),
 SceneableInterface(obj)
 {
+    initializeInstance();
     this->copyHelperChartTwoCartesianCustomSubdivisionsLabel(obj);
 }
 
@@ -98,6 +93,19 @@ bool
 ChartTwoCartesianCustomSubdivisionsLabel::operator<(const ChartTwoCartesianCustomSubdivisionsLabel& customAxisLabel) const
 {
     return (m_numericValue < customAxisLabel.m_numericValue);
+}
+
+/**
+ * Initialize an instance of this class
+ */
+void
+ChartTwoCartesianCustomSubdivisionsLabel::initializeInstance()
+{
+    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    m_sceneAssistant->add("m_numericValue",
+                          &m_numericValue);
+    m_sceneAssistant->add("m_customLabelText",
+                          &m_customLabelText);
 }
 
 /**
@@ -215,6 +223,5 @@ ChartTwoCartesianCustomSubdivisionsLabel::restoreFromScene(const SceneAttributes
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
-    
 }
 

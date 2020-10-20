@@ -32,7 +32,6 @@
 #include "ChartTwoCartesianCustomSubdivisions.h"
 #include "ChartTwoCartesianCustomSubdivisionsLabel.h"
 #include "ChartTwoOverlaySetInterface.h"
-#include "EventChartTwoCartesianAxisDisplayGroup.h"
 #include "EventChartTwoCartesianOrientedAxesYoking.h"
 #include "EventManager.h"
 #include "MathFunctions.h"
@@ -63,36 +62,18 @@ m_orientationType(orientationType)
 {
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-    std::vector<ChartTwoCartesianAxis*> displayGroupAxes(DisplayGroupEnum::NUMBER_OF_GROUPS, NULL);
-    std::vector<DisplayGroupEnum::Enum> displayGroups;
-    DisplayGroupEnum::getAllEnums(displayGroups);
-    for (auto& dg : displayGroups) {
-        EventChartTwoCartesianAxisDisplayGroup dgEvent(dg);
-        EventManager::get()->sendEvent(dgEvent.getPointer());
-        CaretAssert(dgEvent.getEventProcessCount() > 0);
-        ChartTwoCartesianAxis* dgAxis = dgEvent.getAxis();
-        CaretAssert(dgAxis);
-        const int32_t dgIndex = DisplayGroupEnum::toIntegerCode(dg);
-        CaretAssertVectorIndex(displayGroupAxes, dgIndex);
-        displayGroupAxes[dgIndex] = dgAxis;
-    }
-    
     switch (m_orientationType) {
         case ChartTwoAxisOrientationTypeEnum::HORIZONTAL:
             m_leftOrBottomAxis.reset(new ChartTwoCartesianAxis(parentChartOverlaySetInterface,
-                                                               ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM,
-                                                               displayGroupAxes));
+                                                               ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM));
             m_rightOrTopAxis.reset(new ChartTwoCartesianAxis(parentChartOverlaySetInterface,
-                                                             ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP,
-                                                             displayGroupAxes));
+                                                             ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP));
             break;
         case ChartTwoAxisOrientationTypeEnum::VERTICAL:
             m_leftOrBottomAxis.reset(new ChartTwoCartesianAxis(parentChartOverlaySetInterface,
-                                                               ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT,
-                                                               displayGroupAxes));
+                                                               ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT));
             m_rightOrTopAxis.reset(new ChartTwoCartesianAxis(parentChartOverlaySetInterface,
-                                                             ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT,
-                                                             displayGroupAxes));
+                                                             ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT));
             break;
     }
     
@@ -1086,154 +1067,6 @@ ChartTwoCartesianOrientedAxes::getCustomSubdivisionsScalesOffsets(const ChartTwo
         return true;
     }
     return false;
-    
-//    float labelsStep(labelsStepIn);
-//    
-//    switch (cartesianAxis->getNumericSubdivsionsMode()) {
-//        case ChartTwoNumericSubdivisionsModeEnum::AUTO:
-//            break;
-//        case ChartTwoNumericSubdivisionsModeEnum::USER:
-//        {
-//            const float labelsRange = labelsEnd - labelsStart;
-//            if (labelsRange <= 0.0) {
-//                return false;
-//            }
-//            const float dividend = (1.0 + cartesianAxis->getUserNumberOfSubdivisions());
-//            labelsStep = labelsRange / dividend;
-//        }
-//            break;
-//    }
-//    
-//    /*
-//     * If the "labels end" or "labels start" value is not valid (infinity or not-a-number) there
-//     * are invalid values in the data and will cause the labels processing later
-//     * in this method to fail.  So, alert the user that there is a problem in
-//     * the data.
-//     *
-//     * A set is used to track those models for which the user has
-//     * already been alerted.  Otherwise, the alert message will be
-//     * displayed every time this method is called (which is many) and
-//     * the user will receive endless pop-ups.
-//     */
-//    if ( (! MathFunctions::isNumeric(labelsStart))
-//        || (! MathFunctions::isNumeric(labelsEnd))) {
-//        const AString msg("Invalid numbers (infinity or not-a-number) found when trying to create chart.  "
-//                          "Run \"wb_command -file-information\" on files being charted to find the file "
-//                          "that contains invalid data so that the file can be fixed.");
-//        CaretLogWarning(msg);
-//        return false;
-//    }
-//    
-//    float labelsRange = (labelsEnd - labelsStart);
-//    if (labelsRange <= 0.0) {
-//        return false;
-//    }
-//    
-//    const float tickLabelsStep = labelsStep;
-//    if (tickLabelsStep <= 0.0) {
-//        return false;
-//    }
-//    
-//    const float onePercentRange = labelsRange * 0.01f;
-//    
-//    std::vector<float> labelNumericValues;
-//    
-//    float labelValue  = labelsStart;
-//    while (labelValue <= labelsEnd) {
-//        float labelParametricValue = (labelValue - labelsStart) / labelsRange;
-//        
-//        float labelValueForText = labelValue;
-//        
-//        if (labelsRange >= 10.0) {
-//            /*
-//             * Is this the first label?
-//             */
-//            if (labelValue <= labelsStart) {
-//                /*
-//                 * Handles case when the minimum DATA value is just a little
-//                 * bit greater than the minimum value for axis labels such
-//                 * as in Data-Series data when the minimum data value is "1"
-//                 * and the minimum axis label value is "0".  Without this
-//                 * code no value is displayed at the left edge of the axis.
-//                 */
-//                if (labelParametricValue < 0.0) {
-//                    const float nextParametricValue = ((labelValue + tickLabelsStep) - labelsStart) / labelsRange;
-//                    if (nextParametricValue > 0.05) {
-//                        labelParametricValue = 0.0;
-//                        labelValueForText = labelsStart;
-//                    }
-//                }
-//            }
-//            
-//            if (labelParametricValue < 0.0) {
-//                if (labelParametricValue >= -0.01) {
-//                    labelParametricValue = 0.0;
-//                }
-//            }
-//            
-//            /*
-//             * Is this the last label?
-//             */
-//            if (labelValue >= labelsEnd) {
-//                /*
-//                 * Like above, ensures a value is displayed at the right
-//                 * edge of the axis.
-//                 */
-//                if (labelParametricValue > 1.0) {
-//                    const float prevParametricValue = ((labelValue - tickLabelsStep) - labelsStart) / labelsRange;
-//                    if (prevParametricValue < 0.95) {
-//                        labelParametricValue = 1.0;
-//                        labelValueForText = labelsEnd;
-//                    }
-//                }
-//            }
-//            
-//            if (labelParametricValue > 1.0) {
-//                if (labelParametricValue < 1.01) {
-//                    labelParametricValue = 1.0;
-//                }
-//            }
-//        }
-//        
-//        if ((labelParametricValue >= 0.0)
-//            && (labelParametricValue <= 1.0)) {
-//            const float labelPixelsPosition = axisLength * labelParametricValue;
-//            labelNumericValues.push_back(labelValueForText);
-//            scaleValuesOffsetInPixelsOut.push_back(labelPixelsPosition);
-//        }
-//        
-//        labelValue  += tickLabelsStep;
-//        
-//        /*
-//         * It is possible that 'labelValue' may be slightly greater than 'labelsEnd'
-//         * for the last label which results in the last label not displayed.
-//         * So, if the 'labelValue' is slightly greater than 'labelsEnd',
-//         * limit 'labelValue' so that the label at the end of the data range
-//         * is displayed.
-//         *
-//         * Example: labelValue = 73.9500046
-//         *          labelsEnd  = 73.9499969
-//         */
-//        if (labelValue > labelsEnd) {
-//            const float diff = labelValue - labelsEnd;
-//            if (diff < onePercentRange) {
-//                labelValue = labelsEnd;
-//            }
-//        }
-//    }
-//    
-//    const int32_t numValues = static_cast<int32_t>(labelNumericValues.size());
-//    if (numValues > 0) {
-//        scaleValuesOut.resize(numValues);
-//        NumericTextFormatting::formatValueRange(cartesianAxis->getUserNumericFormat(),
-//                                                cartesianAxis->getUserDigitsRightOfDecimal(),
-//                                                &labelNumericValues[0],
-//                                                &scaleValuesOut[0],
-//                                                labelNumericValues.size());
-//    }
-//    
-//    CaretAssert(scaleValuesOffsetInPixelsOut.size() == scaleValuesOut.size());
-//    return ( ! scaleValuesOut.empty());
 }
 
 /**

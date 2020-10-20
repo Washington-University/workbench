@@ -43,8 +43,7 @@ namespace caret {
         
     public:
         ChartTwoCartesianAxis(const ChartTwoOverlaySetInterface* parentChartOverlaySetInterface,
-                              const ChartAxisLocationEnum::Enum axisLocation,
-                              std::vector<ChartTwoCartesianAxis*>& displayGroupAxes);
+                              const ChartAxisLocationEnum::Enum axisLocation);
         
         virtual ~ChartTwoCartesianAxis();
         
@@ -53,6 +52,8 @@ namespace caret {
         ChartTwoCartesianAxis& operator=(const ChartTwoCartesianAxis& obj);
         
         void reset();
+        
+        void copyAxisParameters(const ChartTwoCartesianAxis* axis);
         
         ChartAxisLocationEnum::Enum getAxisLocation() const;
         
@@ -156,16 +157,13 @@ namespace caret {
     private:
         void copyHelperChartTwoCartesianAxis(const ChartTwoCartesianAxis& obj);
 
-        const ChartTwoCartesianAxis* getDisplayGroupOrThisAxis() const;
+        const ChartTwoCartesianAxis* getDisplayGroupOrThisAxisForGet() const;
         
-        ChartTwoCartesianAxis* getDisplayGroupOrThisAxis();
+        ChartTwoCartesianAxis* getDisplayGroupOrThisAxisForSet();
         
         const ChartTwoOverlaySetInterface* m_parentChartOverlaySetInterface;
         
         const ChartAxisLocationEnum::Enum m_axisLocation;
-        
-        /* DO NOT delete display group axes */
-        std::vector<ChartTwoCartesianAxis*> m_displayGroupAxes;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
         

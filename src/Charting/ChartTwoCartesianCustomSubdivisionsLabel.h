@@ -81,6 +81,8 @@ namespace caret {
     private:
         void copyHelperChartTwoCartesianCustomSubdivisionsLabel(const ChartTwoCartesianCustomSubdivisionsLabel& obj);
 
+        void initializeInstance();
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         float m_numericValue = 0.0;

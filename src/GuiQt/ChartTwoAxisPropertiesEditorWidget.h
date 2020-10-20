@@ -65,12 +65,6 @@ namespace caret {
     private slots:
         void valueChanged();
         
-        void valueChangedBool(bool);
-        
-        void valueChangedDouble(double);
-        
-        void valueChangedInt(int);
-        
         void axisLabelToolButtonClicked(bool);
         
         void axisLineThicknessChanged(double);
