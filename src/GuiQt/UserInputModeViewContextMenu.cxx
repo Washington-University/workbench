@@ -1014,12 +1014,9 @@ UserInputModeViewContextMenu::createFociMenu()
     if (surfaceID->isValid()
         && (focusID->isValid() == false)) {
         const int32_t nodeIndex = surfaceID->getNodeNumber();
-        const Surface* surface = surfaceID->getSurface();
         const QString text = ("Create Focus at Vertex "
                               + QString::number(nodeIndex)
-                              + " ("
-                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
-                              + ")...");
+                              + "...");
         
         fociActions.push_back(WuQtUtilities::createAction(text,
                                                             "",
@@ -1030,12 +1027,9 @@ UserInputModeViewContextMenu::createFociMenu()
     else if (idSymbol->isValid()
              && (focusID->isValid() == false)) {
         const int32_t nodeIndex = idSymbol->getNodeNumber();
-        const Surface* surface = idSymbol->getSurface();
         const QString text = ("Create Focus at Selected Vertex "
                               + QString::number(nodeIndex)
-                              + " ("
-                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
-                              + ")...");
+                              + "...");
         
         fociActions.push_back(WuQtUtilities::createAction(text,
                                                             "",
@@ -1574,7 +1568,12 @@ void
 UserInputModeViewContextMenu::createSurfaceFocusSelected()
 {
     SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
-    const Surface* surface = surfaceID->getSurface();
+    const Surface* focusSurface = surfaceID->getSurface();
+    const StructureEnum::Enum structure = focusSurface->getStructure();
+    const Surface* anatSurface = GuiManager::get()->getBrain()->getPrimaryAnatomicalSurfaceForStructure(structure);
+    const Surface* surface((anatSurface != NULL)
+                           ? anatSurface
+                           : focusSurface);
     const int32_t nodeIndex = surfaceID->getNodeNumber();
     const float* xyz = surface->getCoordinate(nodeIndex);
     
