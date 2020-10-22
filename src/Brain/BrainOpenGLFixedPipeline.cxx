@@ -3524,6 +3524,25 @@ BrainOpenGLFixedPipeline::unstretchedBorderLineTest(const float p1[3],
 void 
 BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
 {
+    const DisplayPropertiesFoci* fociDisplayProperties = m_brain->getDisplayPropertiesFoci();
+    const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroupForTab(this->windowTabIndex);
+    const FociDrawingProjectionTypeEnum::Enum drawingProjectionType = fociDisplayProperties->getDrawingProjectionType(displayGroup,
+                                                                                                                      this->windowTabIndex);
+    switch (drawingProjectionType) {
+        case FociDrawingProjectionTypeEnum::PROJECTED:
+            if (surface == NULL) {
+                return;
+            }
+            break;
+        case FociDrawingProjectionTypeEnum::STEREOTAXIC:
+            break;
+    }
+    
+    if (fociDisplayProperties->isDisplayed(displayGroup,
+                                           this->windowTabIndex) == false) {
+        return;
+    }
+    
     SelectionItemFocusSurface* idFocus = m_brain->getSelectionManager()->getSurfaceFocusIdentification();
     
     /*
@@ -3547,13 +3566,6 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             break;
     }
     
-    const DisplayPropertiesFoci* fociDisplayProperties = m_brain->getDisplayPropertiesFoci();
-    const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroupForTab(this->windowTabIndex);
-    
-    if (fociDisplayProperties->isDisplayed(displayGroup,
-                                           this->windowTabIndex) == false) {
-        return;
-    }
     const float focusDiameter = fociDisplayProperties->getFociSize(displayGroup,
                                                                  this->windowTabIndex);
     const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
@@ -3665,59 +3677,70 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             for (int32_t k = 0; k < numProjections; k++) {
                 const SurfaceProjectedItem* spi = focus->getProjection(k);
                 float xyz[3];
-                if (spi->getProjectedPosition(surface, /* NULL is okay for this method */
-                                              xyz,
-                                              isPasteOntoSurface)) {
-                    const StructureEnum::Enum focusStructure = spi->getStructure();
-                    bool drawIt = false;
-                    if (focusStructure == surfaceStructure) {
-                        drawIt = true;
-                    }
-                    else if (focusStructure == StructureEnum::INVALID) {
-                        drawIt = true;
-                    }
-                    else if (isContralateralEnabled) {
-                        if (focusStructure == surfaceContralateralStructure) {
+                bool drawIt = false;
+
+                switch (drawingProjectionType) {
+                    case FociDrawingProjectionTypeEnum::PROJECTED:
+                        if (spi->getProjectedPosition(surface, /* NULL is okay for this method */
+                                                      xyz,
+                                                      isPasteOntoSurface)) {
+                            const StructureEnum::Enum focusStructure = spi->getStructure();
+                            if (focusStructure == surfaceStructure) {
+                                drawIt = true;
+                            }
+                            else if (focusStructure == StructureEnum::INVALID) {
+                                drawIt = true;
+                            }
+                            else if (isContralateralEnabled) {
+                                if (focusStructure == surfaceContralateralStructure) {
+                                    drawIt = true;
+                                }
+                            }
+                            else if (surface == NULL) {
+                                /*
+                                 * This is a special case for ALL view with
+                                 * neither surfaces nor volumes displayed
+                                 */
+                                drawIt = true;
+                            }
+                            
+                            if (doClipping) {
+                                if ( ! isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                                    xyz)) {
+                                    drawIt = false;
+                                }
+                            }
+                        }
+                        break;
+                    case FociDrawingProjectionTypeEnum::STEREOTAXIC:
+                        if (spi->isStereotaxicXYZValid()) {
+                            spi->getStereotaxicXYZ(xyz);
                             drawIt = true;
                         }
-                    }
-                    else if (surface == NULL) {
-                        /*
-                         * This is a special case for ALL view with
-                         * neither surfaces nor volumes displayed
-                         */
-                        drawIt = true;
-                    }
+                        break;
+                }
 
-                    if (doClipping) {
-                        if ( ! isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
-                                                                            xyz)) {
-                            drawIt = false;
-                        }
+                if (drawIt) {
+                    if (isSelect) {
+                        uint8_t idRGBA[4];
+                        this->colorIdentification->addItem(idRGBA,
+                                                           SelectionItemDataTypeEnum::FOCUS_SURFACE,
+                                                           i, /* file index */
+                                                           j, /* focus index */
+                                                           k);/* projection index */
+                        idRGBA[3] = 255;
+                        fociPrimitive->addVertex(xyz, idRGBA);
                     }
-                    
-                    if (drawIt) {
-                        if (isSelect) {
-                            uint8_t idRGBA[4];
-                            this->colorIdentification->addItem(idRGBA,
-                                                               SelectionItemDataTypeEnum::FOCUS_SURFACE, 
-                                                               i, /* file index */
-                                                               j, /* focus index */
-                                                               k);/* projection index */
-                            idRGBA[3] = 255;
-                            fociPrimitive->addVertex(xyz, idRGBA);
-                        }
-                        else {
-                            const uint8_t rgbaByte[4] = {
-                                static_cast<uint8_t>(rgbaFloat[0] * 255),
-                                static_cast<uint8_t>(rgbaFloat[1] * 255),
-                                static_cast<uint8_t>(rgbaFloat[2] * 255),
-                                static_cast<uint8_t>(rgbaFloat[3] * 255)
-                            };
-                            fociPrimitive->addVertex(xyz, rgbaByte);
-                        }
+                    else {
+                        const uint8_t rgbaByte[4] = {
+                            static_cast<uint8_t>(rgbaFloat[0] * 255),
+                            static_cast<uint8_t>(rgbaFloat[1] * 255),
+                            static_cast<uint8_t>(rgbaFloat[2] * 255),
+                            static_cast<uint8_t>(rgbaFloat[3] * 255)
+                        };
+                        fociPrimitive->addVertex(xyz, rgbaByte);
                     }
-                }                
+                }
             }
         }
     }

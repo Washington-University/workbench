@@ -111,6 +111,7 @@ FeatureColoringTypeEnum.h
 FiberOrientationSamplesLoader.h
 FiberOrientationSamplesVector.h
 FiberOrientationSymbolTypeEnum.h
+FociDrawingProjectionTypeEnum.h
 FociDrawingTypeEnum.h
 FtglFontTextRenderer.h
 GapsAndMargins.h
@@ -282,6 +283,7 @@ EventUserInputModeGet.cxx
 FeatureColoringTypeEnum.cxx
 FiberOrientationSamplesLoader.cxx
 FiberOrientationSymbolTypeEnum.cxx
+FociDrawingProjectionTypeEnum.cxx
 FociDrawingTypeEnum.cxx
 FtglFontTextRenderer.cxx
 GapsAndMargins.cxx

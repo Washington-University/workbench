@@ -26,6 +26,7 @@
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
 #include "FeatureColoringTypeEnum.h"
+#include "FociDrawingProjectionTypeEnum.h"
 #include "FociDrawingTypeEnum.h"
 
 namespace caret {
@@ -84,6 +85,13 @@ namespace caret {
                             const int32_t tabIndex,
                             const FociDrawingTypeEnum::Enum drawingType);
         
+        FociDrawingProjectionTypeEnum::Enum getDrawingProjectionType(const DisplayGroupEnum::Enum displayGroup,
+                                                                     const int32_t tabIndex) const;
+        
+        void setDrawingProjectionType(const DisplayGroupEnum::Enum displayGroup,
+                                      const int32_t tabIndex,
+                                      const FociDrawingProjectionTypeEnum::Enum drawingProjectionType);
+        
         CaretColorEnum::Enum getStandardColorType(const DisplayGroupEnum::Enum displayGroup,
                                                   const int32_t tabIndex) const;
         
@@ -105,6 +113,8 @@ namespace caret {
                                       const SceneClass* sceneClass);
         
     private:
+        void resetPrivate();
+        
         DisplayPropertiesFoci(const DisplayPropertiesFoci&);
 
         DisplayPropertiesFoci& operator=(const DisplayPropertiesFoci&);
@@ -134,6 +144,10 @@ namespace caret {
         FociDrawingTypeEnum::Enum m_drawingTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         FociDrawingTypeEnum::Enum m_drawingTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        FociDrawingProjectionTypeEnum::Enum m_drawingProjectionTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        FociDrawingProjectionTypeEnum::Enum m_drawingProjectionTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         CaretColorEnum::Enum m_standardColorTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         

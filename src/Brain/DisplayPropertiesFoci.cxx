@@ -43,30 +43,11 @@ using namespace caret;
 DisplayPropertiesFoci::DisplayPropertiesFoci()
 : DisplayProperties()
 {
+    resetPrivate();
+    
     const CaretColorEnum::Enum defaultColor = CaretColorEnum::BLACK;
-
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
-        m_pasteOntoSurfaceInTab[i] = false;
-        m_displayStatusInTab[i] = false;
-        m_contralateralDisplayStatusInTab[i] = false;
-        m_fociSizeInTab[i] = 4.0;
-        m_coloringTypeInTab[i] = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
-        m_drawingTypeInTab[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
-        m_standardColorTypeInTab[i] = defaultColor;
-    }
     
-    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        m_pasteOntoSurfaceInDisplayGroup[i] = false;
-        m_displayStatusInDisplayGroup[i] = false;
-        m_contralateralDisplayStatusInDisplayGroup[i] = false;
-        m_fociSizeInDisplayGroup[i] = 4.0;
-        m_coloringTypeInDisplayGroup[i] = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
-        m_drawingTypeInDisplayGroup[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
-        m_standardColorTypeInDisplayGroup[i] = defaultColor;
-    }
-    
-    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup", 
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
     m_sceneAssistant->addTabIndexedBooleanArray("m_pasteOntoSurfaceInTab", 
                                m_pasteOntoSurfaceInTab);
@@ -80,6 +61,8 @@ DisplayPropertiesFoci::DisplayPropertiesFoci()
                                                                                                         m_coloringTypeInTab);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FociDrawingTypeEnum,FociDrawingTypeEnum::Enum>("m_drawingTypeInTab", 
                                                                                                       m_drawingTypeInTab);
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<FociDrawingProjectionTypeEnum,FociDrawingProjectionTypeEnum::Enum>("m_drawingProjectionTypeInTab",
+                                                                                                                          m_drawingProjectionTypeInTab);
     
     m_sceneAssistant->addArray("m_pasteOntoSurfaceInDisplayGroup", 
                                m_pasteOntoSurfaceInDisplayGroup,
@@ -106,6 +89,10 @@ DisplayPropertiesFoci::DisplayPropertiesFoci()
                                                                                m_drawingTypeInDisplayGroup,
                                                                                DisplayGroupEnum::NUMBER_OF_GROUPS,
                                                                                FociDrawingTypeEnum::DRAW_AS_SQUARES);
+    m_sceneAssistant->addArray<FociDrawingProjectionTypeEnum,FociDrawingProjectionTypeEnum::Enum>("m_drawingProjectionTypeInDisplayGroup",
+                                                                                                  m_drawingProjectionTypeInDisplayGroup,
+                                                                                                  DisplayGroupEnum::NUMBER_OF_GROUPS,
+                                                                                                  FociDrawingProjectionTypeEnum::PROJECTED);
     m_sceneAssistant->addArray<CaretColorEnum, CaretColorEnum::Enum>("m_standardColorTypeInDisplayGroup",
                                                                      m_standardColorTypeInDisplayGroup,
                                                                      DisplayGroupEnum::NUMBER_OF_GROUPS,
@@ -141,6 +128,7 @@ DisplayPropertiesFoci::copyDisplayProperties(const int32_t sourceTabIndex,
     m_contralateralDisplayStatusInTab[targetTabIndex] = m_contralateralDisplayStatusInTab[sourceTabIndex];
     m_displayStatusInTab[targetTabIndex]    = m_displayStatusInTab[sourceTabIndex];
     m_drawingTypeInTab[targetTabIndex]      = m_drawingTypeInTab[sourceTabIndex];
+    m_drawingProjectionTypeInTab[targetTabIndex] = m_drawingProjectionTypeInTab[sourceTabIndex];
     m_fociSizeInTab[targetTabIndex]         = m_fociSizeInTab[sourceTabIndex];
     m_pasteOntoSurfaceInTab[targetTabIndex] = m_pasteOntoSurfaceInTab[sourceTabIndex];
     m_standardColorTypeInTab[targetTabIndex] = m_standardColorTypeInTab[sourceTabIndex];
@@ -153,12 +141,36 @@ DisplayPropertiesFoci::copyDisplayProperties(const int32_t sourceTabIndex,
 void 
 DisplayPropertiesFoci::reset()
 {
-//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-//        m_displayStatus[i] = true;
-//        m_contralateralDisplayStatus[i] = false;
-//        m_displayGroup[i] = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
-//        m_pasteOntoSurface[i] = false;
-//    }
+    resetPrivate();
+}
+
+void
+DisplayPropertiesFoci::resetPrivate()
+{
+    const CaretColorEnum::Enum defaultColor = CaretColorEnum::BLACK;
+    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
+        m_pasteOntoSurfaceInTab[i] = false;
+        m_displayStatusInTab[i] = false;
+        m_contralateralDisplayStatusInTab[i] = false;
+        m_fociSizeInTab[i] = 4.0;
+        m_coloringTypeInTab[i] = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
+        m_drawingTypeInTab[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
+        m_drawingProjectionTypeInTab[i] = FociDrawingProjectionTypeEnum::PROJECTED;
+        m_standardColorTypeInTab[i] = defaultColor;
+    }
+    
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        m_pasteOntoSurfaceInDisplayGroup[i] = false;
+        m_displayStatusInDisplayGroup[i] = false;
+        m_contralateralDisplayStatusInDisplayGroup[i] = false;
+        m_fociSizeInDisplayGroup[i] = 4.0;
+        m_coloringTypeInDisplayGroup[i] = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
+        m_drawingTypeInDisplayGroup[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
+        m_drawingProjectionTypeInDisplayGroup[i] = FociDrawingProjectionTypeEnum::PROJECTED;
+        m_standardColorTypeInDisplayGroup[i] = defaultColor;
+    }
 }
 
 /**
@@ -486,6 +498,53 @@ DisplayPropertiesFoci::setDrawingType(const DisplayGroupEnum::Enum displayGroup,
 }
 
 /**
+ * @param displayGroup
+ *     Display group.
+ * @return The drawing type.
+ */
+FociDrawingProjectionTypeEnum::Enum
+DisplayPropertiesFoci::getDrawingProjectionType(const DisplayGroupEnum::Enum displayGroup,
+                                                const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_drawingProjectionTypeInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_drawingProjectionTypeInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_drawingProjectionTypeInTab[tabIndex];
+    }
+    return m_drawingProjectionTypeInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the drawing type to the given value.
+ * @param displayGroup
+ *     Display group.
+ * @param drawingType
+ *     New value for drawing type.
+ */
+void
+DisplayPropertiesFoci::setDrawingProjectionType(const DisplayGroupEnum::Enum displayGroup,
+                                      const int32_t tabIndex,
+                                      const FociDrawingProjectionTypeEnum::Enum drawingType)
+{
+    CaretAssertArrayIndex(m_drawingProjectionTypeInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_drawingProjectionTypeInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_drawingProjectionTypeInTab[tabIndex] = drawingType;
+    }
+    else {
+        m_drawingProjectionTypeInDisplayGroup[displayGroup] = drawingType;
+    }
+}
+
+/**
  * Set paste onto surface so the foci are placed directly on the surface.
  * @param displayGroup
  *     Display group.
@@ -586,6 +645,7 @@ DisplayPropertiesFoci::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (sceneClass == NULL) {
         return;
     }
+    resetPrivate();
     
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
@@ -596,6 +656,5 @@ DisplayPropertiesFoci::restoreFromScene(const SceneAttributes* sceneAttributes,
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
     }
-    
 }
 

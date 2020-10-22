@@ -186,6 +186,17 @@ FociSelectionViewController::createAttributesWidget()
     macroManager->addMacroSupportToObject(m_pasteOntoSurfaceCheckBox,
                                           "Enable paste foci onto surface");
     
+    QLabel* projectionLabel = new QLabel("Coordinate Type");
+    m_drawingProjectionTypeComboBox = new EnumComboBoxTemplate(this);
+    m_drawingProjectionTypeComboBox->setup<FociDrawingProjectionTypeEnum, FociDrawingProjectionTypeEnum::Enum>();
+    QObject::connect(m_drawingProjectionTypeComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &FociSelectionViewController::processAttributesChanges);
+    m_drawingProjectionTypeComboBox->getComboBox()->setObjectName(m_objectNamePrefix
+                                                                  + ":ProjectionType");
+    macroManager->addMacroSupportToObject(m_drawingProjectionTypeComboBox->getComboBox(),
+                                          "Select foci projection type");
+    m_drawingProjectionTypeComboBox->setToolTip(FociDrawingProjectionTypeEnum::getToolTip());
+    
     QLabel* coloringLabel = new QLabel("Coloring");
     m_coloringTypeComboBox = new EnumComboBoxTemplate(this);
     m_coloringTypeComboBox->setup<FeatureColoringTypeEnum,
@@ -259,6 +270,9 @@ FociSelectionViewController::createAttributesWidget()
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
     row++;
+    gridLayout->addWidget(projectionLabel, row, 0);
+    gridLayout->addWidget(m_drawingProjectionTypeComboBox->getComboBox(), row, 1);
+    row++;
     gridLayout->addWidget(coloringLabel, row, 0);
     gridLayout->addWidget(m_coloringTypeComboBox->getWidget(), row, 1);
     row++;
@@ -295,6 +309,7 @@ FociSelectionViewController::processAttributesChanges()
     const int selectedDrawTypeIndex = m_drawTypeComboBox->currentIndex();
     const int drawTypeInteger = m_drawTypeComboBox->itemData(selectedDrawTypeIndex).toInt();
     const FociDrawingTypeEnum::Enum selectedDrawingType = static_cast<FociDrawingTypeEnum::Enum>(drawTypeInteger);
+    const FociDrawingProjectionTypeEnum::Enum selectedDrawingProjectionType = m_drawingProjectionTypeComboBox->getSelectedItem<FociDrawingProjectionTypeEnum, FociDrawingProjectionTypeEnum::Enum>();
     const CaretColorEnum::Enum standardColorType = m_standardColorComboBox->getSelectedColor();
     
     BrowserTabContent* browserTabContent = 
@@ -314,6 +329,9 @@ FociSelectionViewController::processAttributesChanges()
     dpf->setPasteOntoSurface(displayGroup,
                              browserTabIndex,
                              m_pasteOntoSurfaceCheckBox->isChecked());
+    dpf->setDrawingProjectionType(displayGroup,
+                                  browserTabIndex,
+                                  selectedDrawingProjectionType);
     dpf->setColoringType(displayGroup,
                          browserTabIndex,
                          selectedColoringType);
@@ -417,6 +435,8 @@ FociSelectionViewController::updateFociViewController()
     m_coloringTypeComboBox->setSelectedItem<FeatureColoringTypeEnum, FeatureColoringTypeEnum::Enum>(dpf->getColoringType(displayGroup,
                                                                                                                          browserTabIndex));
     
+    m_drawingProjectionTypeComboBox->setSelectedItem<FociDrawingProjectionTypeEnum,FociDrawingProjectionTypeEnum::Enum>(dpf->getDrawingProjectionType(displayGroup,
+                                                                                                                                                      browserTabIndex));
     m_standardColorComboBox->setSelectedColor(dpf->getStandardColorType(displayGroup,
                                                                         browserTabIndex));
     const FociDrawingTypeEnum::Enum selectedDrawingType = dpf->getDrawingType(displayGroup,

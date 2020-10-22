@@ -97,6 +97,8 @@ namespace caret {
         
         DisplayGroupEnumComboBox* m_fociDisplayGroupComboBox;
 
+        EnumComboBoxTemplate* m_drawingProjectionTypeComboBox;
+        
         EnumComboBoxTemplate* m_coloringTypeComboBox;
         
         CaretColorEnumComboBox* m_standardColorComboBox;
