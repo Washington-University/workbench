@@ -111,10 +111,6 @@ namespace caret {
         
         void toolBarManageFilesLoadedNotLoadedActionTriggered(QAction* action);
         
-//        void chooseSpecFileNameActionTriggered();
-
-//        void specFileOptionsActionTriggered();
-        
         void fileReloadOrOpenFileActionSelected(int indx);
         
         void fileRemoveActionSelected(int indx);
@@ -239,7 +235,9 @@ namespace caret {
         
         SpecFile* m_specFile;
     
-        QPushButton* m_loadScenesPushButton;
+        QPushButton* m_reloadAllDataFilesPushButton = NULL;
+        
+        QPushButton* m_loadScenesPushButton = NULL;
         
         QActionGroup* m_fileTypesActionGroup;
         

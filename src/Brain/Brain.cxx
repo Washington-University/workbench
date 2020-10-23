@@ -36,6 +36,7 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretDataFileHelper.h"
+#include "CaretHttpManager.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "ChartTwoCartesianOrientedAxesYokingManager.h"
@@ -75,6 +76,7 @@
 #include "EventDataFileDelete.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
+#include "EventDataFileReloadAll.h"
 #include "EventCaretDataFilesGet.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventModelAdd.h"
@@ -202,6 +204,8 @@ Brain::Brain(CaretPreferences* caretPreferences)
                                           EventTypeEnum::EVENT_DATA_FILE_READ);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_DATA_FILE_RELOAD);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_DATA_FILE_RELOAD_ALL);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
     EventManager::get()->addEventListener(this,
@@ -5170,7 +5174,168 @@ Brain::processReloadDataFileEvent(EventDataFileReload* reloadDataFileEvent)
     updateAfterFilesAddedOrRemoved();
 }
 
-#include "CaretHttpManager.h"
+/**
+ * @return All reloadable data files.  Surfaces and Volume files are
+ * at the beginning of the vector and followed by all other files.
+ */
+std::vector<CaretDataFile*>
+Brain::getReloadableDataFiles() const
+{
+    std::vector<CaretDataFile*> allDataFiles;
+    getAllDataFiles(allDataFiles);
+    
+    std::deque<CaretDataFile*> filesToReload;
+    for (auto& df : allDataFiles) {
+        /* Surfaces and volume must be read before other files */
+        bool loadFirstFlag(false);
+        bool reloadFlag(true);
+        
+        switch (df->getDataFileType()) {
+            case DataFileTypeEnum::ANNOTATION:
+                break;
+            case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+                break;
+            case DataFileTypeEnum::BORDER:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                reloadFlag = false;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                break;
+            case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::IMAGE:
+                break;
+            case DataFileTypeEnum::LABEL:
+                break;
+            case DataFileTypeEnum::METRIC:
+                break;
+            case DataFileTypeEnum::METRIC_DYNAMIC:
+                reloadFlag = false;
+                break;
+            case DataFileTypeEnum::PALETTE:
+                reloadFlag = false;
+                break;
+            case DataFileTypeEnum::RGBA:
+                break;
+            case DataFileTypeEnum::SCENE:
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                reloadFlag = false;
+                break;
+            case DataFileTypeEnum::SURFACE:
+                loadFirstFlag = true;
+                break;
+            case DataFileTypeEnum::UNKNOWN:
+                reloadFlag = false;
+                break;
+            case DataFileTypeEnum::VOLUME:
+                loadFirstFlag = true;
+                break;
+            case DataFileTypeEnum::VOLUME_DYNAMIC:
+                reloadFlag = false;
+                break;
+        }
+        
+        if (reloadFlag) {
+            if (loadFirstFlag) {
+                filesToReload.push_front(df);
+            }
+            else {
+                filesToReload.push_back(df);
+            }
+        }
+    }
+
+    std::vector<CaretDataFile*> filesOut(filesToReload.begin(),
+                                         filesToReload.end());
+    return filesOut;
+}
+
+
+/**
+ * Process a reload all data files event.
+ * @param reloadAllDataFilesEvent
+ *    Event containing forreloading all files and my be updated with error messages.
+ */
+void
+Brain::processReloadAllDataFilesEvent(EventDataFileReloadAll* reloadAllDataFilesEvent)
+{
+    CaretAssert(reloadAllDataFilesEvent);
+    
+    std::vector<CaretDataFile*> filesToReload(getReloadableDataFiles());
+    
+    switch (reloadAllDataFilesEvent->getMode()) {
+        case EventDataFileReloadAll::Mode::GET_FILES:
+        {
+            for (auto& df : filesToReload) {
+                reloadAllDataFilesEvent->addReloadableFile(df);
+            }
+        }
+            break;
+        case EventDataFileReloadAll::Mode::RELOAD_FILES:
+        {
+            const int32_t numFiles = static_cast<int32_t>(filesToReload.size());
+            EventProgressUpdate progressEvent(1, numFiles, 1, "Reloading Files");
+            EventManager::get()->sendEvent(progressEvent.getPointer());
+            
+            int32_t progressCount(1);
+            AString errorMessage;
+            for (auto& df : filesToReload) {
+                progressEvent.setProgress(progressCount, "Reloading " + df->getFileNameNoPath());
+                EventManager::get()->sendEvent(progressEvent.getPointer());
+                
+                try {
+                    addReadOrReloadDataFile(FILE_MODE_RELOAD,
+                                            df,
+                                            df->getDataFileType(),
+                                            df->getStructure(),
+                                            df->getFileName(),
+                                            false);
+                }
+                catch (const DataFileException& dfe) {
+                    errorMessage.appendWithNewLine(dfe.whatString());
+                }
+            }
+            
+            if ( ! errorMessage.isEmpty()) {
+                reloadAllDataFilesEvent->setErrorMessage(errorMessage);
+            }
+            
+            progressEvent.setProgress(progressCount, "Finishing reloading of files");
+            EventManager::get()->sendEvent(progressEvent.getPointer());
+            
+            updateAfterFilesAddedOrRemoved();
+        }
+            break;
+    }
+    
+    reloadAllDataFilesEvent->setEventProcessed();
+}
 
 /**
  * Process a read data file event.
@@ -6119,6 +6284,15 @@ Brain::receiveEvent(Event* event)
         if (reloadDataFileEvent->getBrain() == this) {
             reloadDataFileEvent->setEventProcessed();
             processReloadDataFileEvent(reloadDataFileEvent);
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_RELOAD_ALL) {
+        EventDataFileReloadAll* reloadAllEvent = dynamic_cast<EventDataFileReloadAll*>(event);
+        CaretAssert(reloadAllEvent);
+        
+        if (reloadAllEvent->getBrain() == this) {
+            reloadAllEvent->setEventProcessed();
+            processReloadAllDataFilesEvent(reloadAllEvent);
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_CARET_DATA_FILES_GET) {

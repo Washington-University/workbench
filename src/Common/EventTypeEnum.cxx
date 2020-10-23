@@ -287,6 +287,10 @@ EventTypeEnum::initialize()
                                      "EVENT_DATA_FILE_RELOAD",
                                      "Reopen a data file (replace it with saved version) in the Brain"));
     
+    enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_RELOAD_ALL,
+                                     "EVENT_DATA_FILE_RELOAD_ALL",
+                                     "Reopen all data files (replace it with saved version) in the Brain"));
+    
     enumData.push_back(EventTypeEnum(EVENT_GET_DISPLAYED_DATA_FILES,
                                      "EVENT_GET_DISPLAYED_DATA_FILES",
                                      "Get data files displayed in windows/tabs"));

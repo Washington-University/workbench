@@ -82,6 +82,7 @@ namespace caret {
     class DisplayPropertiesVolume;
     class EventDataFileRead;
     class EventDataFileReload;
+    class EventDataFileReloadAll;
     class EventSpecFileReadDataFiles;
     class GapsAndMargins;
     class IdentificationManager;
@@ -508,6 +509,8 @@ namespace caret {
         
         void processReloadDataFileEvent(EventDataFileReload* reloadDataFileEvent);
         
+        void processReloadAllDataFilesEvent(EventDataFileReloadAll* reloadAllDataFilesEvent);
+        
         CaretDataFile* readDataFile(const DataFileTypeEnum::Enum dataFileType,
                           const StructureEnum::Enum structure,
                           const AString& dataFileName,
@@ -743,6 +746,8 @@ namespace caret {
         int32_t getDuplicateFileNameCounterForFileType(const DataFileTypeEnum::Enum dataFileType);
         
         void resetDuplicateFileNameCounter(const bool preserveSceneFileCounter);
+        
+        std::vector<CaretDataFile*> getReloadableDataFiles() const;
         
         std::vector<BrainStructure*> m_brainStructures;
         

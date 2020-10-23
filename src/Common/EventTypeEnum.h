@@ -142,6 +142,8 @@ public:
         EVENT_DATA_FILE_READ,
         /** Reload (replace) a data file with its saved version in the brain*/
         EVENT_DATA_FILE_RELOAD,
+        /** Reload (replace) a data file with its saved version in the brain*/
+        EVENT_DATA_FILE_RELOAD_ALL,
         /** Get data files that are display in windows/tabs */
         EVENT_GET_DISPLAYED_DATA_FILES,
         /** Get node data files */
