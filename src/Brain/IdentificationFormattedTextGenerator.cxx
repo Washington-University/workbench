@@ -1965,36 +1965,30 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
         htmlTableBuilder.addRow(stereoXYZText,
                                       ("FOCUS " + AString::number(focusIndex)),
                                       ("Name: " + focus->getName() + "<br>Class: " + focus->getClassName()));
-        float xyzProj[3];
         if (surface != NULL) {
-            spi->getProjectedPosition(*surface, xyzProj, false);
-        }
-        
-        
-        bool projValid = false;
-        AString xyzProjName = "XYZ (Projected)";
-        if (spi->getBarycentricProjection()->isValid()) {
-            xyzProjName = "(Projected to Triangle)";
-            projValid = true;
-        }
-        else if (spi->getVanEssenProjection()->isValid()) {
-            xyzProjName = "(Projected to Edge)";
-            projValid = true;
-        }
-        if (projValid) {
-            idText.addLine(true,
-                           xyzProjName,
-                           xyzProj,
-                           3,
-                           true);
-            htmlTableBuilder.addRow((AString::fromNumbers(xyzProj, 3, ", ") + xyzProjName),
-                                    StructureEnum::toGuiName(spi->getStructure()),
-                                    "");
-        }
-        else {
-            htmlTableBuilder.addRow("Projection Invalid",
-                                    StructureEnum::toGuiName(spi->getStructure()),
-                                    "");
+            float xyzProj[3];
+            if (spi->getProjectedPosition(*surface, xyzProj, false)) {
+                bool projValid = false;
+                AString xyzProjName = "XYZ (Projected)";
+                if (spi->getBarycentricProjection()->isValid()) {
+                    xyzProjName = "(Projected to Triangle)";
+                    projValid = true;
+                }
+                else if (spi->getVanEssenProjection()->isValid()) {
+                    xyzProjName = "(Projected to Edge)";
+                    projValid = true;
+                }
+                if (projValid) {
+                    idText.addLine(true,
+                                   xyzProjName,
+                                   xyzProj,
+                                   3,
+                                   true);
+                    htmlTableBuilder.addRow((AString::fromNumbers(xyzProj, 3, ", ") + xyzProjName),
+                                            StructureEnum::toGuiName(spi->getStructure()),
+                                            "");
+                }
+            }
         }
     }
 }
