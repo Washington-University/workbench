@@ -307,8 +307,9 @@ m_specFile(specFile)
         case SpecFileManagementDialog::MODE_MANAGE_FILES:
             setOkButtonText("Save Checked Files");
             setCancelButtonText("Close");
-            m_reloadAllDataFilesPushButton = addUserPushButton("Reload All Files",
+            m_reloadAllDataFilesPushButton = addUserPushButton("Reload All Loaded Files",
                                                                QDialogButtonBox::AcceptRole);
+            m_reloadAllDataFilesPushButton->setToolTip("Reloads all files that are currently loaded");
             testForDisplayedDataFiles = true;
             break;
         case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
@@ -316,6 +317,7 @@ m_specFile(specFile)
             setCancelButtonText("Cancel");
             m_loadScenesPushButton = addUserPushButton("Load Scenes",
                                                        QDialogButtonBox::AcceptRole);
+            m_loadScenesPushButton->setToolTip("Loads all scene files and no other files");
             break;
         case SpecFileManagementDialog::MODE_SAVE_FILES_WHILE_QUITTING:
             setOkButtonText("Save Selected Files and Exit");
@@ -1778,6 +1780,14 @@ SpecFileManagementDialog::userButtonPressed(QPushButton* userPushButton)
         CursorDisplayScoped cursor;
         cursor.showWaitCursor();
         
+        /*
+         * Events are sent by the 'Brain' that are received by
+         * the ProgressReportingDialog that cause the dialog to
+         * be displayed.
+         */
+        ProgressReportingDialog progressDialog("Reload All Files",
+                                               "Reloading files",
+                                               m_reloadAllDataFilesPushButton);
         result = EventDataFileReloadAll::reloadAllFiles(GuiManager::get()->getBrain());
         cursor.restoreCursor();
         CaretResultDialog::isError(result,
