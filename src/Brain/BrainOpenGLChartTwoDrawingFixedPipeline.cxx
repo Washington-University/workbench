@@ -889,7 +889,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         }
         
         if (drawLineSeriesFlag) {
-            for (const auto lineChart : lineSeriesChartsToDraw) {
+            for (const auto& lineChart : lineSeriesChartsToDraw) {
                 glMatrixMode(GL_PROJECTION);
                 glLoadIdentity();
                 CaretAssert(xMinBottomTop < xMaxBottomTop);
@@ -962,7 +962,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
          */
         std::vector<std::tuple<float, float, float, AnnotationPercentSizeText>> textToolTips;
         
-        for (const auto lineChart : lineLayerChartsToDraw) {
+        for (const auto& lineChart : lineLayerChartsToDraw) {
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             const float xMin(xMinBottomTop);
@@ -1319,7 +1319,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
          */
         bool allowBlendingFlag(false);
         
-        for (const auto matrixChart : matrixChartsToDraw) {
+        for (const auto& matrixChart : matrixChartsToDraw) {
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             const float xMin(xMinBottomTop);

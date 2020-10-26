@@ -121,7 +121,7 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
         }
         
         AString indicesString;
-        for (const auto s : tabIndices) {
+        for (const auto& s : tabIndices) {
             if (indicesString.isEmpty()) {
                 indicesString.append(":");
             }

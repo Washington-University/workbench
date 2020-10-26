@@ -82,7 +82,7 @@ SceneDataFileTreeItemModel::SceneDataFileTreeItemModel(const AString& sceneFileP
     /*
      * Add the data files
      */
-    for (const auto dataFileInfo : sceneDataFileInfo) {
+    for (const auto& dataFileInfo : sceneDataFileInfo) {
         AString pathName;
         AString pathAndFileName;
         switch (sortMode) {
@@ -174,7 +174,7 @@ SceneDataFileTreeItemModel::addFindDirectoryPath(const AString& absoluteDirName)
         
         if (debugFlag) {
             std::cout << "Parent directory hierarchy: " << std::endl;
-            for (const auto s : parentDirectoryHierarchy) {
+            for (const auto& s : parentDirectoryHierarchy) {
                 std::cout << "    " << s << std::endl;
             }
         }

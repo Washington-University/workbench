@@ -761,7 +761,7 @@ WuQMacroDialog::updateDialogContents()
     const QString windowText = m_runOptionsWindowComboBox->currentText();
     m_runOptionsWindowComboBox->clear();
     const std::vector<QString> windowIDs = WuQMacroManager::instance()->getMainWindowIdentifiers();
-    for (const auto id : windowIDs) {
+    for (const auto& id : windowIDs) {
         m_runOptionsWindowComboBox->addItem(id);
     }
     m_runOptionsWindowComboBox->setCurrentText(windowText);

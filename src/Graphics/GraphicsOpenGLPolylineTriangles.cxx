@@ -1291,7 +1291,7 @@ GraphicsOpenGLPolylineTriangles::getAverageColorRGBA(const int32_t primitiveVert
 void
 GraphicsOpenGLPolylineTriangles::addJoinTriangles()
 {
-    for (const auto tj : m_triangleJoins) {
+    for (const auto& tj : m_triangleJoins) {
         CaretAssertVectorIndex(m_vertexWindowXYZ, tj.m_windowVertexIndex * 3 + 2);
         const float* v1 = &m_vertexWindowXYZ[tj.m_windowVertexIndex*3];
         

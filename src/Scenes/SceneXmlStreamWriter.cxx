@@ -271,7 +271,7 @@ SceneXmlStreamWriter::writeMapObject(const SceneObjectMapIntegerKey* objectMap)
                                 objectMap->getName());
 
     const std::map<int32_t, SceneObject*>& sceneMap = objectMap->getMap();
-    for (const auto iter : sceneMap) {
+    for (const auto& iter : sceneMap) {
         const int32_t key = iter.first;
         const QString keyString(QString::number(key));
         

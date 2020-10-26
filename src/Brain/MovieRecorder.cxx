@@ -620,7 +620,7 @@ MovieRecorder::createMovieWithQProcessPipe(const QString& programName,
 
     TextFile textFile;
     try {
-        for (const auto name : m_imageFileNames) {
+        for (const auto& name : m_imageFileNames) {
             textFile.addLine("file "
                              + name);
         }

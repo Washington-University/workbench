@@ -696,7 +696,7 @@ ModelChartTwo::restoreLineSeriesChartFromChartOneModel(ModelChart* modelChartOne
      * Find the data files and setup for loading of
      * lines series data.
      */
-    for (const auto filenameAndColor : dataFileNamesAndColors) {
+    for (const auto& filenameAndColor : dataFileNamesAndColors) {
         const AString filename = filenameAndColor.first;
         CaretColorEnum::Enum color = filenameAndColor.second;
         CaretMappableDataFile* mapFileFullPath = NULL;

@@ -1184,7 +1184,7 @@ AnnotationFile::getAllAnnotationGroups(std::vector<AnnotationGroup*>& annotation
 bool
 AnnotationFile::hasAnnotationsInCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace) const
 {
-    for (const auto groupIter : m_annotationGroups) {
+    for (const auto& groupIter : m_annotationGroups) {
         if (groupIter->getCoordinateSpace() == coordinateSpace) {
             return true;
         }

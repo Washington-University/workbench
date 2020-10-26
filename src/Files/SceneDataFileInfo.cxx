@@ -307,7 +307,7 @@ SceneDataFileInfo::sort(std::vector<SceneDataFileInfo>& sceneDataFileInfo,
 void
 SceneDataFileInfo::print(const std::vector<SceneDataFileInfo>& sceneDataFileInfo)
 {
-    for (const auto sdfi : sceneDataFileInfo) {
+    for (const auto& sdfi : sceneDataFileInfo) {
         std::cout << sdfi.getAbsolutePathAndFileName() << std::endl;
     }
 }

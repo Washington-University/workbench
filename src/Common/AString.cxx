@@ -977,7 +977,7 @@ AString::findLongestCommonPrefix(const std::vector<AString>& stringVector)
          */
         CaretAssertVectorIndex(stringVector, 0);
         AString shortestString = stringVector[0];
-        for (const auto name : stringVector) {
+        for (const auto& name : stringVector) {
             if (name.length() < shortestString.length()) {
                 shortestString = name;
             }
@@ -992,7 +992,7 @@ AString::findLongestCommonPrefix(const std::vector<AString>& stringVector)
             const QChar character = shortestString.at(ich);
             
             bool allMatchFlag = true;
-            for (const auto name : stringVector) {
+            for (const auto& name : stringVector) {
                 CaretAssert(ich  < name.length());
                 if (name.at(ich) != character) {
                     allMatchFlag = false;
@@ -1020,7 +1020,7 @@ AString::findLongestCommonPrefix(const std::vector<AString>& stringVector)
     const bool debugFlag = false;
     if (debugFlag) {
         std::cout << "Longest prefix: " << longestPrefix << std::endl;
-        for (const auto name : stringVector) {
+        for (const auto& name : stringVector) {
             std::cout << "   " << name << std::endl;
         }
     }

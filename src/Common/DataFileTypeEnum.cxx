@@ -981,7 +981,7 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
     const bool includeVolumeDynamicFlag = (options & OPTIONS_INCLUDE_VOLUME_DENSE_DYNAMIC);
     const bool includeUnknownFlag       = (options & OPTIONS_INCLUDE_UNKNOWN);
     
-    for (const auto dataType : enumData) {
+    for (const auto& dataType : enumData) {
         bool addEnumFlag(true);
         
         switch (dataType.enumValue) {

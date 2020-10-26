@@ -1213,7 +1213,7 @@ SceneFile::findBaseDirectoryForDataFiles(AString& baseDirectoryOut,
      */
     bool firstFlag = true;
     std::vector<AString> longestPathMatch;
-    for (const auto dirName : directoryNamesUniqueSet) {
+    for (const auto& dirName : directoryNamesUniqueSet) {
         if (firstFlag) {
             firstFlag = false;
             longestPathMatch = AString::stringListToVector(dirName.split(directorySeparator));
@@ -1468,7 +1468,7 @@ SceneFile::getAllDataFileInfoFromAllScenes() const
     
     std::vector<SceneDataFileInfo> fileInfoOut;
  
-    for (const auto nameAndIndices : allNamesAndIndices) {
+    for (const auto& nameAndIndices : allNamesAndIndices) {
         fileInfoOut.emplace_back(nameAndIndices.m_dataFileName,
                                  basePath,
                                  getFileName(),

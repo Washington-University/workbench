@@ -330,7 +330,7 @@ void
 AnnotationTextSubstitutionFile::getSubstitutionValues(EventAnnotationTextSubstitutionGet* substituteEvent) const
 {
     const std::vector<AString>& substitutionNames = substituteEvent->getSubstitutionNames();
-    for (const auto name : substitutionNames) {
+    for (const auto& name : substitutionNames) {
         AString value = getTextSubstitution(name,
                                             getSelectedValueIndex());
         substituteEvent->setSubstitutionValueForName(name,

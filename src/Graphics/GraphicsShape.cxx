@@ -509,7 +509,7 @@ GraphicsShape::drawSpheresByteColor(const float xyz[],
     const int32_t numLatLonDivisions = 10;
     
     GraphicsPrimitive* spherePrimitive = NULL;
-    for (const auto iter : s_byteSpherePrimitives) {
+    for (const auto& iter : s_byteSpherePrimitives) {
         const auto& key = iter.first;
         if ((key  == numLatLonDivisions)) {
             spherePrimitive = iter.second;
@@ -566,7 +566,7 @@ GraphicsShape::drawCircleFilled(const float xyz[3],
     const int32_t numberOfDivisions = 20;
     
     GraphicsPrimitive* circlePrimitive = NULL;
-    for (const auto keyPrim : s_byteCirclePrimitives) {
+    for (const auto& keyPrim : s_byteCirclePrimitives) {
         if (keyPrim.first == numberOfDivisions) {
             circlePrimitive = keyPrim.second;
             break;
@@ -933,7 +933,7 @@ GraphicsShape::drawRing(const float xyz[3],
     const int32_t numberOfDivisions = 20;
     
     GraphicsPrimitive* ringPrimitive = NULL;
-    for (const auto keyPrim : s_byteRingPrimitives) {
+    for (const auto& keyPrim : s_byteRingPrimitives) {
         if (keyPrim.first.matches(numberOfDivisions,
                                   innerRadius,
                                   outerRadius)) {

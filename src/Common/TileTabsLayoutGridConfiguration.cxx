@@ -207,7 +207,7 @@ TileTabsLayoutGridConfiguration::getNumberOfTabs() const
      */
     
     int32_t rowCount(0);
-    for (const auto row : m_rows) {
+    for (const auto& row : m_rows) {
         switch (row.getContentType()) {
             case TileTabsGridRowColumnContentTypeEnum::SPACE:
                 break;
@@ -218,7 +218,7 @@ TileTabsLayoutGridConfiguration::getNumberOfTabs() const
     }
     
     int32_t columnCount(0);
-    for (const auto col : m_columns) {
+    for (const auto& col : m_columns) {
         switch (col.getContentType()) {
             case TileTabsGridRowColumnContentTypeEnum::SPACE:
                 break;
@@ -696,7 +696,7 @@ TileTabsLayoutGridConfiguration::encodeInXMLWithStreamWriterVersionOne() const
     writer.writeAttribute(s_v1_rowStretchFactorsSelectedCountAttributeName, AString::number(numberOfRows));
     writer.writeAttribute(s_v1_rowStretchFactorsTotalCountAttributeName, AString::number(numberOfRows));
     std::vector<float> rowStretchFactors;
-    for (const auto e : m_rows) {
+    for (const auto& e : m_rows) {
         rowStretchFactors.push_back(e.getWeightStretch());
     }
     writer.writeCharacters(AString::fromNumbers(rowStretchFactors, " "));
@@ -707,7 +707,7 @@ TileTabsLayoutGridConfiguration::encodeInXMLWithStreamWriterVersionOne() const
     writer.writeAttribute(s_v1_columnStretchFactorsSelectedCountAttributeName, AString::number(numberOfColumns));
     writer.writeAttribute(s_v1_columnStretchFactorsTotalCountAttributeName, AString::number(numberOfColumns));
     std::vector<float> columnStretchFactors;
-    for (const auto e : m_columns) {
+    for (const auto& e : m_columns) {
         columnStretchFactors.push_back(e.getWeightStretch());
     }
     writer.writeCharacters(AString::fromNumbers(columnStretchFactors, " "));
@@ -760,7 +760,7 @@ TileTabsLayoutGridConfiguration::encodeRowColumnElement(QXmlStreamWriter& writer
 {
     writer.writeStartElement(tagName);
     
-    for (const auto e : elements) {
+    for (const auto& e : elements) {
         writer.writeStartElement(s_v2_elementTagName);
         writer.writeAttribute(s_v2_contentTypeAttributeName,    TileTabsGridRowColumnContentTypeEnum::toName(e.getContentType()));
         writer.writeAttribute(s_v2_stretchTypeAttributeName,    TileTabsGridRowColumnStretchTypeEnum::toName(e.getStretchType()));
@@ -916,7 +916,7 @@ TileTabsLayoutGridConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStr
          * If invalid elements were encountered, don't throw
          */
         AString msg("Invalid element(s) ignored: ");
-        for (const auto s : invalidElements) {
+        for (const auto& s : invalidElements) {
             msg.append(s + " ");
         }
         CaretLogWarning(msg);
@@ -1068,7 +1068,7 @@ TileTabsLayoutGridConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStr
          * If invalid elements were encountered, don't throw
          */
         AString msg("Invalid element(s) ignored: ");
-        for (const auto s : invalidElements) {
+        for (const auto& s : invalidElements) {
             msg.append(s + " ");
         }
         CaretLogWarning(msg);
@@ -1183,12 +1183,12 @@ TileTabsLayoutGridConfiguration::toString() const
     s.append("\n");
     
     int32_t indx(0);
-    for (const auto item : m_columns) {
+    for (const auto& item : m_columns) {
         s.append("   Column " + AString::number(indx) + ": " + item.toString() + "\n");
         indx++;
     }
     indx = 0;
-    for (const auto item : m_rows) {
+    for (const auto& item : m_rows) {
         s.append("   Row " + AString::number(indx) + ": " + item.toString() + "\n");
         indx++;
     }

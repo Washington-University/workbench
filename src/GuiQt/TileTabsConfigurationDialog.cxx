@@ -1883,7 +1883,7 @@ TileTabsConfigurationDialog::updateUserConfigurationListWidget()
     std::vector<std::pair<AString, AString>> nameUniqueIDs =
     m_caretPreferences->getTileTabsUserConfigurationsNamesAndUniqueIdentifiers(includeManualConfigurationsFlag);
     
-    for (const auto nameID : nameUniqueIDs) {
+    for (const auto& nameID : nameUniqueIDs) {
         /*
          * Second element is user data which contains the Unique ID
          */
@@ -1920,7 +1920,7 @@ TileTabsConfigurationDialog::updateTemplateConfigurationListWidget()
     std::vector<std::pair<AString, AString>> nameUniqueIDs =
     m_caretPreferences->getTileTabsUserConfigurationsNamesAndUniqueIdentifiers(includeManualConfigurationsFlag);
     
-    for (const auto nameID : nameUniqueIDs) {
+    for (const auto& nameID : nameUniqueIDs) {
         /*
          * Second element is user data which contains the Unique ID
          */

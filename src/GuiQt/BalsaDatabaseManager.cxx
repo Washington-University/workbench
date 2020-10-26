@@ -1442,7 +1442,7 @@ BalsaDatabaseManager::isStudyIDValid(const AString& studyID)
     
     if (getAllStudyInformation(studyInformation,
                                errorMessage)) {
-        for (const auto info : studyInformation) {
+        for (const auto& info : studyInformation) {
             if (info.getStudyID() == studyID) {
                 return true;
             }
