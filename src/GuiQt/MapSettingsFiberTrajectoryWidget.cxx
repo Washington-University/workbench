@@ -355,7 +355,7 @@ MapSettingsFiberTrajectoryWidget::updateEditor(CiftiFiberTrajectoryFile* fiberTr
             defaultIndex = i;
         }
         m_colorSelectionComboBox->addItem(item->getName(),
-                                          qVariantFromValue((void*)item));
+                                          QVariant::fromValue((void*)item));
     }
     if ((defaultIndex >= 0)
         && (defaultIndex < m_colorSelectionComboBox->count())) {

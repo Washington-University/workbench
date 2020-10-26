@@ -265,7 +265,7 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
          iter++) {
         ModelSurface* surfaceController = *iter;
         this->surfaceControllerSelectionComboBox->addItem(surfaceController->getNameForGUI(allSelected),
-                                                          qVariantFromValue((void*)surfaceController));
+                                                          QVariant::fromValue((void*)surfaceController));
         if (selectedSurfaceController == surfaceController) {
             defaultSurfaceIndex = this->surfaceControllerSelectionComboBox->count() - 1;
         }

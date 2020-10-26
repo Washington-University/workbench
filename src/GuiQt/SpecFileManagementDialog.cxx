@@ -2603,7 +2603,7 @@ SpecFileManagementDialog::createFilesTypesToolBar(QLabel* &labelOut)
     
     QAction* fileTypeAllAction = m_fileTypesActionGroup->addAction("All");
     fileTypeAllAction->setCheckable(true);
-    fileTypeAllAction->setData(qVariantFromValue(DataFileTypeEnum::toIntegerCode(DataFileTypeEnum::UNKNOWN)));
+    fileTypeAllAction->setData(QVariant::fromValue(DataFileTypeEnum::toIntegerCode(DataFileTypeEnum::UNKNOWN)));
     
     /*
      * All types of files
@@ -2643,7 +2643,7 @@ SpecFileManagementDialog::createFilesTypesToolBar(QLabel* &labelOut)
         
         QAction* action = m_fileTypesActionGroup->addAction(text);
         action->setCheckable(true);
-        action->setData(qVariantFromValue(DataFileTypeEnum::toIntegerCode(dataFileType)));
+        action->setData(QVariant::fromValue(DataFileTypeEnum::toIntegerCode(dataFileType)));
     }
     
     if (m_fileTypesActionGroup->actions().isEmpty() == false) {
@@ -2673,10 +2673,10 @@ SpecFileManagementDialog::createFilesSelectionToolBar(QLabel* &labelOut)
                      this, SLOT(toolBarSelectFilesActionTriggered(QAction*)));
     
     QAction* allFilesAction = m_fileSelectionActionGroup->addAction("All");
-    allFilesAction->setData(qVariantFromValue(SHOW_FILES_ALL));
+    allFilesAction->setData(QVariant::fromValue(SHOW_FILES_ALL));
     
     QAction* noneFilesAction = m_fileSelectionActionGroup->addAction("None");
-    noneFilesAction->setData(qVariantFromValue(SHOW_FILES_NONE));
+    noneFilesAction->setData(QVariant::fromValue(SHOW_FILES_NONE));
     
     QToolBar* toolbar = createToolBarWithActionGroup("Select Files: ",
                                                      labelOut,
@@ -2699,23 +2699,23 @@ SpecFileManagementDialog::createManageFilesLoadedNotLoadedToolBar(QLabel* &label
                      this, SLOT(toolBarManageFilesLoadedNotLoadedActionTriggered(QAction*)));
     
     QAction* allFilesAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("All");
-    allFilesAction->setData(qVariantFromValue((int)MANAGE_FILES_ALL));
+    allFilesAction->setData(QVariant::fromValue((int)MANAGE_FILES_ALL));
     allFilesAction->setCheckable(true);
     
     QAction* loadedFilesAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("Loaded");
-    loadedFilesAction->setData(qVariantFromValue((int)MANAGE_FILES_LOADED));
+    loadedFilesAction->setData(QVariant::fromValue((int)MANAGE_FILES_LOADED));
     loadedFilesAction->setCheckable(true);
     
     QAction* loadedFilesModifiedAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("Loaded:Modified");
-    loadedFilesModifiedAction->setData(qVariantFromValue((int)MANAGE_FILES_LOADED_MODIFIED));
+    loadedFilesModifiedAction->setData(QVariant::fromValue((int)MANAGE_FILES_LOADED_MODIFIED));
     loadedFilesModifiedAction->setCheckable(true);
     
     QAction* loadedFilesNotModifiedAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("Loaded:Not Modified");
-    loadedFilesNotModifiedAction->setData(qVariantFromValue((int)MANAGE_FILES_LOADED_NOT_MODIFIED));
+    loadedFilesNotModifiedAction->setData(QVariant::fromValue((int)MANAGE_FILES_LOADED_NOT_MODIFIED));
     loadedFilesNotModifiedAction->setCheckable(true);
     
     QAction* notLoadedFilesAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("Not Loaded");
-    notLoadedFilesAction->setData(qVariantFromValue((int)MANAGE_FILES_NOT_LOADED));
+    notLoadedFilesAction->setData(QVariant::fromValue((int)MANAGE_FILES_NOT_LOADED));
     notLoadedFilesAction->setCheckable(true);
     
     m_manageFilesLoadedNotLoadedActionGroup->blockSignals(true);
@@ -2772,7 +2772,7 @@ SpecFileManagementDialog::createStructureToolBar(QLabel* &labelOut)
         StructureEnum::Enum structure = *iter;
         QAction* action = m_structureActionGroup->addAction(StructureEnum::toGuiName(structure));
         action->setCheckable(true);
-        action->setData(qVariantFromValue(StructureEnum::toIntegerCode(structure)));
+        action->setData(QVariant::fromValue(StructureEnum::toIntegerCode(structure)));
     }
     
     if (m_structureActionGroup->actions().isEmpty() == false) {

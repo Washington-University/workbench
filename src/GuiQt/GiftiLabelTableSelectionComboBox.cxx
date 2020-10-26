@@ -161,7 +161,7 @@ GiftiLabelTableSelectionComboBox::rowsWereInserted(const QModelIndex& /*parent*/
                                      label->getBlue()));
             QIcon icon(pm);
             
-            QVariant userData = qVariantFromValue((void*)label);
+            QVariant userData = QVariant::fromValue((void*)label);
             m_comboBox->setItemData(i, userData);
             m_comboBox->setItemIcon(i, icon);
         }
@@ -266,7 +266,7 @@ GiftiLabelTableSelectionComboBox::updateContent(GiftiLabelTable* giftiLabelTable
                                      label->getBlue()));
             QIcon icon(pm);
             
-            QVariant userData = qVariantFromValue((void*)label);
+            QVariant userData = QVariant::fromValue((void*)label);
             
             m_comboBox->addItem(icon,
                                 labelName,
@@ -342,7 +342,7 @@ void
 GiftiLabelTableSelectionComboBox::setSelectedLabel(const GiftiLabel* label)
 {
     if (label != NULL) {
-        QVariant userData = qVariantFromValue((void*)label);
+        QVariant userData = QVariant::fromValue((void*)label);
         int indx = m_comboBox->findData(userData);
         if (indx >= 0) {
             m_comboBox->setCurrentIndex(indx);

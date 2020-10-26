@@ -82,7 +82,7 @@ VolumeSurfaceOutlineColorOrTabViewController::updateViewController(VolumeSurface
         }
         
         this->modelComboBox->addItem(item->getName(),
-                                     qVariantFromValue((void*)item));
+                                     QVariant::fromValue((void*)item));
     }
     
     if (selectedItemIndex >= 0) {

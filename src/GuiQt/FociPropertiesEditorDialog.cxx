@@ -409,7 +409,7 @@ FociPropertiesEditorDialog::loadFociFileComboBox(const FociFile* selectedFociFil
         FociFile* fociFile = brain->getFociFile(i);
         const AString name = fociFile->getFileNameNoPath();
         m_fociFileSelectionComboBox->addItem(name,
-                                                   qVariantFromValue((void*)fociFile));
+                                                   QVariant::fromValue((void*)fociFile));
         if (selectedFociFile == fociFile) {
             defaultFileComboIndex = m_fociFileSelectionComboBox->count() - 1;
         }

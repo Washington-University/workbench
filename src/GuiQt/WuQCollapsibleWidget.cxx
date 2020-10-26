@@ -121,7 +121,7 @@ WuQCollapsibleWidget::addItem(QWidget* widget,
     QLabel* label = new QLabel(text);
     
     QAction* showHideAction = this->showHideActionGroup->addAction("-");
-    showHideAction->setData(qVariantFromValue((void*)widget));
+    showHideAction->setData(QVariant::fromValue((void*)widget));
     QToolButton* showHideToolButton = new QToolButton();
     showHideToolButton->setDefaultAction(showHideAction);
     

@@ -804,7 +804,7 @@ BrainBrowserWindowToolBar::replaceBrowserTabs(const std::vector<BrowserTabConten
     const int32_t beforeNumTabs = this->tabBar->count();
     for (int32_t iTab = 0; iTab < beforeNumTabs; iTab++) {
         this->tabBar->setTabData(iTab,
-                                 qVariantFromValue((void*)NULL));
+                                 QVariant::fromValue((void*)NULL));
     }
     
     /*
@@ -833,7 +833,7 @@ BrainBrowserWindowToolBar::replaceBrowserTabs(const std::vector<BrowserTabConten
         BrowserTabContent* btc = browserTabs[iTab];
         CaretAssert(btc);
         this->tabBar->setTabData(iTab,
-                                 qVariantFromValue((void*)btc));
+                                 QVariant::fromValue((void*)btc));
         this->updateTabName(iTab);
     }
     
@@ -949,7 +949,7 @@ BrainBrowserWindowToolBar::insertTabContentPrivate(const InsertTabMode insertTab
 
     if (newTabIndex >= 0) {
         this->tabBar->setTabData(newTabIndex,
-                                 qVariantFromValue((void*)browserTabContent));
+                                 QVariant::fromValue((void*)browserTabContent));
         
         const int32_t numOpenTabs = this->tabBar->count();
         this->tabBar->setTabsClosable(numOpenTabs > 1);
@@ -1414,7 +1414,7 @@ BrainBrowserWindowToolBar::moveTabsToNewWindows()
                 }
                 else {
                     lastParent = eventNewWindow.getBrowserWindowCreated();
-                    this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
+                    this->tabBar->setTabData(i, QVariant::fromValue((void*)NULL));
                     this->tabClosed(i,
                                     RemoveTabMode::INGORE_TAB_CONTENT);
                 }
@@ -1446,7 +1446,7 @@ BrainBrowserWindowToolBar::removeAndReturnAllTabs(std::vector<BrowserTabContent*
         if (btc != NULL) {
             allTabContent.push_back(btc);
         }
-        this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
+        this->tabBar->setTabData(i, QVariant::fromValue((void*)NULL));
         this->tabClosed(i,
                         RemoveTabMode::INGORE_TAB_CONTENT);
     }
@@ -1490,7 +1490,7 @@ BrainBrowserWindowToolBar::removeTabWithContent(BrowserTabContent* browserTabCon
         void* p = this->tabBar->tabData(i).value<void*>();
         BrowserTabContent* btc = (BrowserTabContent*)p;
         if (btc == browserTabContent) {
-            this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
+            this->tabBar->setTabData(i, QVariant::fromValue((void*)NULL));
             this->tabClosed(i,
                             RemoveTabMode::INGORE_TAB_CONTENT);
             if (this->tabBar->count() <= 0) {

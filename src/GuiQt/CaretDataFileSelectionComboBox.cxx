@@ -131,7 +131,7 @@ CaretDataFileSelectionComboBox::updateComboBox(CaretDataFileSelectionModel* sele
             
             CaretAssertVectorIndex(displayNames, iFile);
             m_comboBox->addItem(displayNames[iFile],
-                                qVariantFromValue((void*)cdf));
+                                QVariant::fromValue((void*)cdf));
             
             if (cdf == selectedFile) {
                 defaultIndex = m_comboBox->count() - 1;

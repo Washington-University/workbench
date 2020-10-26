@@ -220,7 +220,7 @@ SurfaceSelectionViewController::updateControl(SurfaceSelectionModel* selectionMo
     for (int32_t i = 0; i < numSurfaces; i++) {
         const int32_t indx = this->surfaceComboBox->count();
         this->surfaceComboBox->addItem(displayNames[i]);
-        this->surfaceComboBox->setItemData(indx, qVariantFromValue((void*)surfaces[i]));
+        this->surfaceComboBox->setItemData(indx, QVariant::fromValue((void*)surfaces[i]));
         
         if (surfaces[i] == selectedSurface) {
             selectedIndex = indx;

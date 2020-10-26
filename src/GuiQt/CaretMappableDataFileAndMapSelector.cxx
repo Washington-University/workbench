@@ -281,7 +281,7 @@ CaretMappableDataFileAndMapSelector::loadMapFileComboBox(const int32_t selectedF
          iter++) {
         CaretMappableDataFile* cmdf = *iter;
         this->mapFileComboBox->addItem(cmdf->getFileNameNoPath(),
-                                       qVariantFromValue((void*)cmdf));
+                                       QVariant::fromValue((void*)cmdf));
     }
     
     if ((selectedFileIndex >= 0) 
@@ -974,7 +974,7 @@ CaretMappableDataFileAndMapSelector::loadLastSelectionsForFileType(const DataFil
         }
         m_mapFileStructureComboBox->setSelectedStructure(ps->m_structure);
         
-        const int fileIndex = this->mapFileComboBox->findData(qVariantFromValue((void*)ps->m_mapFile));
+        const int fileIndex = this->mapFileComboBox->findData(QVariant::fromValue((void*)ps->m_mapFile));
         if (fileIndex >= 0) {
             this->setMapFileComboBoxCurrentIndex(fileIndex);
             

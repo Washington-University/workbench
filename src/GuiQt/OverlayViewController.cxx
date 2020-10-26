@@ -697,7 +697,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
         AString dataTypeName = DataFileTypeEnum::toOverlayTypeName(dataFile->getDataFileType());
         CaretAssertVectorIndex(displayNames, i);
         this->fileComboBox->addItem(displayNames[i],
-                                    qVariantFromValue((void*)dataFile));
+                                    QVariant::fromValue((void*)dataFile));
         if (dataFile == selectedFile) {
             selectedFileIndex = i;
         }

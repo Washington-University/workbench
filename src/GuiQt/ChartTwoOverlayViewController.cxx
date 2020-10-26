@@ -841,7 +841,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
         AString dataTypeName = DataFileTypeEnum::toOverlayTypeName(dataFile->getDataFileType());
         CaretAssertVectorIndex(displayNames, i);
         m_mapFileComboBox->addItem(displayNames[i],
-                                    qVariantFromValue((void*)dataFile));
+                                    QVariant::fromValue((void*)dataFile));
         if (dataFile == selectedFile) {
             selectedFileIndex = i;
         }

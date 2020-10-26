@@ -642,7 +642,7 @@ GiftiLabelTableEditor::loadLabels(const AString& selectedNameIn,
         setWidgetItemIconColor(colorItem, rgba);
         
         colorItem->setData(Qt::UserRole, 
-                           qVariantFromValue((void*)gl));
+                           QVariant::fromValue((void*)gl));
         m_labelSelectionListWidget->addItem(colorItem);
         
         if (selectedName == gl->getName()) {

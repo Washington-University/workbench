@@ -824,7 +824,7 @@ UserInputModeViewContextMenu::createLabelRegionOfInterestMenu()
                 const AString actionName("Show Connectivity for "
                                          + sourceLabelName);
                 QAction* action = connectivityActionGroup->addAction(actionName);
-                action->setData(qVariantFromValue((void*)parcelConnectivity));
+                action->setData(QVariant::fromValue((void*)parcelConnectivity));
                 connectivityActions.push_back(action);
             }
         }
@@ -833,7 +833,7 @@ UserInputModeViewContextMenu::createLabelRegionOfInterestMenu()
             const AString fiberTrajActionName("Show Average Fiber Trajectory for "
                                               + sourceLabelName);
             QAction* fiberTrajAction = ciftiFiberTrajectoryActionGroup->addAction(fiberTrajActionName);
-            fiberTrajAction->setData(qVariantFromValue((void*)parcelConnectivity));
+            fiberTrajAction->setData(QVariant::fromValue((void*)parcelConnectivity));
             ciftiFiberTrajectoryActions.push_back(fiberTrajAction);
         }
         
@@ -867,7 +867,7 @@ UserInputModeViewContextMenu::createLabelRegionOfInterestMenu()
                 const AString tsActionName("Show Data/Time Series Graph For "
                                            + sourceLabelName);
                 QAction* tsAction = chartableDataActionGroup->addAction(tsActionName);
-                tsAction->setData(qVariantFromValue((void*)parcelConnectivity));
+                tsAction->setData(QVariant::fromValue((void*)parcelConnectivity));
                 chartableDataActions.push_back(tsAction);
             }
         }

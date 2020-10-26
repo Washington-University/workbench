@@ -221,7 +221,7 @@ ChartLinesSelectionViewController::updateSelectionViewController()
             
             const bool checkBoxStatus = chartBrainFile->isLineSeriesChartingEnabled(browserTabIndex);
             
-            QVariant brainordinateFilePointerVariant = qVariantFromValue((void*)chartBrainFile);
+            QVariant brainordinateFilePointerVariant = QVariant::fromValue((void*)chartBrainFile);
             
             CaretMappableDataFile* caretMappableDataFile = chartBrainFile->getLineSeriesChartCaretMappableDataFile();
             

@@ -181,7 +181,7 @@ DisplayGroupAndTabItemTreeWidgetItem::setDisplayGroupAndTabItem(DisplayGroupAndT
 {
     setData(NAME_COLUMN,
             Qt::UserRole,
-            qVariantFromValue<void*>(displayGroupAndTabItem));
+            QVariant::fromValue<void*>(displayGroupAndTabItem));
 }
 
 

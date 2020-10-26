@@ -260,7 +260,7 @@ CaretFileRemoteDialog::createAndLoadStandardData()
     const int numStandardData = static_cast<int>(m_standardData.size());
     for (int i = 0; i < numStandardData; i++) {
         m_standardFileComboBox->addItem(m_standardData[i].m_userFriendlyName,
-                                        qVariantFromValue(i));
+                                        QVariant::fromValue(i));
     }
 
     m_standardFileComboBox->blockSignals(false);

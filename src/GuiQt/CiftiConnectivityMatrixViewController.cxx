@@ -289,7 +289,7 @@ CiftiConnectivityMatrixViewController::updateViewController()
         
         checkBox->setChecked(checkStatus);
         checkBox->setProperty(FILE_POINTER_PROPERTY_NAME,
-                              qVariantFromValue((void*)files[i]));
+                              QVariant::fromValue((void*)files[i]));
 
         const CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<const CiftiConnectivityMatrixDenseDynamicFile*>(files[i]);
         if (dynConnFile != NULL) {
@@ -382,7 +382,7 @@ CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
                     }
                     
                     comboBox->addItem(orientFile->getFileNameNoPath(),
-                                      qVariantFromValue((void*)orientFile));
+                                      QVariant::fromValue((void*)orientFile));
                 }
             }
             

@@ -428,7 +428,7 @@ BrainBrowserWindowToolBarAllSurface::updateWholeBrainSurfaceMenu(QMenu* menu,
                 if (surfaces[i] == selectedSurface) {
                     action->setChecked(true);
                 }
-                action->setData(qVariantFromValue((void*)surfaces[i]));
+                action->setData(QVariant::fromValue((void*)surfaces[i]));
                 menu->addAction(action);
             }
         }

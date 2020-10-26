@@ -385,11 +385,11 @@ SceneDialog::loadSceneFileComboBox(SceneFile* selectedSceneFileIn)
             && m_cautionIconValid) {
             m_sceneFileSelectionComboBox->addItem(m_cautionIcon,
                                                   name,
-                                                  qVariantFromValue((void*)sceneFile));
+                                                  QVariant::fromValue((void*)sceneFile));
         }
         else {
             m_sceneFileSelectionComboBox->addItem(name,
-                                                  qVariantFromValue((void*)sceneFile));
+                                                  QVariant::fromValue((void*)sceneFile));
         }
     }
     
