@@ -339,7 +339,7 @@ BorderPropertiesEditorDialog::loadBorderFileComboBox()
             if (borderFile->getStructure() == borderStructure) {
                 const AString name = borderFile->getFileNameNoPath();
                 m_borderFileSelectionComboBox->addItem(name,
-                                                       qVariantFromValue((void*)borderFile));
+                                                       QVariant::fromValue((void*)borderFile));
                 if (s_previousBorderFile == borderFile) {
                     defaultFileComboIndex = m_borderFileSelectionComboBox->count() - 1;
                 }

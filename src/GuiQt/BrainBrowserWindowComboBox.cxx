@@ -108,7 +108,7 @@ BrainBrowserWindowComboBox::updateComboBox()
                 break;
         }
         m_comboBox->setItemData(i,
-                                qVariantFromValue((void*)bbw));
+                                QVariant::fromValue((void*)bbw));
         
         if (bbw == selectedWindow) {
             defaultIndex = i;

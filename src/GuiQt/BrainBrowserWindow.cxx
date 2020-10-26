@@ -4048,7 +4048,7 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuAboutToBeDisplayed()
     if (m_toolbar->tabBar->count() > 1) {
         QAction* toNewWindowAction = new QAction("New Window",
                                                  m_moveSelectedTabToWindowMenu);
-        toNewWindowAction->setData(qVariantFromValue((void*)NULL));
+        toNewWindowAction->setData(QVariant::fromValue((void*)NULL));
         m_moveSelectedTabToWindowMenu->addAction(toNewWindowAction);
     }
     
@@ -4057,7 +4057,7 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuAboutToBeDisplayed()
         if (browserWindows[i] != this) {
             QAction* action = new QAction(browserWindows[i]->windowTitle(),
                                           m_moveSelectedTabToWindowMenu);
-            action->setData(qVariantFromValue((void*)browserWindows[i]));
+            action->setData(QVariant::fromValue((void*)browserWindows[i]));
             m_moveSelectedTabToWindowMenu->addAction(action);
         }
     }    
