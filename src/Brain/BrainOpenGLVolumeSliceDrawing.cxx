@@ -2924,7 +2924,12 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
                     focus->getNameRgba(rgba);
                     break;
             }
-            
+
+            /*
+             * Some label tables may have alpha at zero, so correct it
+             */
+            rgba[3] = 1.0;
+
             const int32_t numProjections = focus->getNumberOfProjections();
             for (int32_t k = 0; k < numProjections; k++) {
                 const SurfaceProjectedItem* spi = focus->getProjection(k);
