@@ -272,9 +272,11 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
     
     m_specialCaseGraphicsAnnotations.clear();
     
+    const bool selectionModeFlag(true);
     std::vector<const BrainOpenGLViewportContent*> viewportContentsVector;
     viewportContentsVector.push_back(viewportContent);
-    setAnnotationColorBarsAndBrowserTabsForDrawing(viewportContentsVector);
+    setAnnotationColorBarsAndBrowserTabsForDrawing(viewportContentsVector,
+                                                   selectionModeFlag);
     
     m_clippingPlaneGroup = NULL;
     
@@ -509,9 +511,12 @@ BrainOpenGLFixedPipeline::setTabViewport(const BrainOpenGLViewportContent* vpCon
  *
  * @param viewportContents
  *     Contents of the viewports.
+ *@param selectionModeFlag
+ *     True if in selection mode, else false.
  */
 void
-BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
+BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents,
+                                                                         const bool selectionModeFlag)
 {
     m_annotationColorBarsForDrawing.clear();
     m_annotationScaleBarsForDrawing.clear();
@@ -532,18 +537,49 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const s
      * tab view).
      */
     for (auto colorBar : allColorBars) {
+        bool windowSpaceSelectionFlag(false);
         const int32_t tabIndex = colorBar->getTabIndex();
-        for (auto vc : viewportContents) {
-            if (vc->getTabIndex() == tabIndex) {
-                /*
-                 * While color bars are associated with tabs, the color bar
-                 * may be in window space so always update the window index
-                 * (users can move tabs to other windows).
-                 */
-                colorBar->setWindowIndex(vc->getWindowIndex());
-                m_annotationColorBarsForDrawing.push_back(colorBar);
+        switch (colorBar->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::CHART:
                 break;
-            }
+            case AnnotationCoordinateSpaceEnum::SPACER:
+                break;
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+                break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                /*
+                 * Need to include colorbars in window space since they
+                 * can outside of current tab
+                 */
+                for (auto vc : viewportContents) {
+                    if (colorBar->getWindowIndex() == vc->getWindowIndex()) {
+                        windowSpaceSelectionFlag = true;
+                    }
+                }
+                break;
+        }
+        if (windowSpaceSelectionFlag) {
+            m_annotationColorBarsForDrawing.push_back(colorBar);
+        }
+        else {
+            for (auto vc : viewportContents) {
+                if (vc->getTabIndex() == tabIndex) {
+                    /*
+                     * While color bars are associated with tabs, the color bar
+                     * may be in window space so always update the window index
+                     * (users can move tabs to other windows).
+                     */
+                    colorBar->setWindowIndex(vc->getWindowIndex());
+                    m_annotationColorBarsForDrawing.push_back(colorBar);
+                    break;
+                }
+        }
         }
     }
     
@@ -664,8 +700,10 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     
     setTabViewport(NULL);
     
+    const bool selectionModeFlag(false);
     m_specialCaseGraphicsAnnotations.clear();
-    setAnnotationColorBarsAndBrowserTabsForDrawing(viewportContents);
+    setAnnotationColorBarsAndBrowserTabsForDrawing(viewportContents,
+                                                   selectionModeFlag);
     
     m_tileTabsActiveFlag = (viewportContents.size() > 1);
     

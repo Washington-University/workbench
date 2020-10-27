@@ -512,7 +512,8 @@ namespace caret {
         
         void setTabViewport(const BrainOpenGLViewportContent* vpContent);
         
-        void setAnnotationColorBarsAndBrowserTabsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents);
+        void setAnnotationColorBarsAndBrowserTabsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents,
+                                                            const bool selectionModeFlag);
 
         void drawTabHighlighting(const float width,
                                  const float height,
