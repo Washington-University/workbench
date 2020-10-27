@@ -1389,8 +1389,6 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
     updateSpecFileRowInTable();
     updateAnnotationSceneFileRowInTable();
     
-    bool haveModifiedFilesFlag(false);
-    
     /*
      * Load all of the data file content.
      */
@@ -1454,7 +1452,6 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                              */
                             if (mapFile->isModifiedExcludingPaletteColorMapping()) {
                                 statusItem->setText("YES");
-                                haveModifiedFilesFlag = true;
                             }
                             else {
                                 switch (mapFile->getPaletteColorMappingModifiedStatus()) {
@@ -1472,7 +1469,6 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                         else {
                             if (caretDataFile->isModified()) {
                                 statusItem->setText("YES");
-                                haveModifiedFilesFlag = true;
                             }
                         }
                     }
