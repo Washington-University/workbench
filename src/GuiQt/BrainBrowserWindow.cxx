@@ -541,6 +541,26 @@ BrainBrowserWindow::receiveEvent(Event* event)
                     }
                 }
                 break;
+            case EventGetViewportSize::MODE_WINDOW_FROM_TAB_INDEX:
+                for (std::vector<const BrainOpenGLViewportContent*>::iterator vpIter = allViewportContent.begin();
+                     vpIter != allViewportContent.end();
+                     vpIter++) {
+                    const BrainOpenGLViewportContent* vpContent = *vpIter;
+                    if (vpContent != NULL) {
+                        BrowserTabContent* btc = vpContent->getBrowserTabContent();
+                        if (btc != NULL) {
+                            if (btc->getTabNumber() == viewportSizeEvent->getIndex()) {
+                                /*
+                                 * Found Tab so report Window viewport containing tab
+                                 */
+                                vpContent->getWindowViewport(viewport);
+                                viewportValid = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                break;
         }
 
         if ( ! viewportValid) {
@@ -566,6 +586,7 @@ BrainBrowserWindow::receiveEvent(Event* event)
         
         if (viewportValid) {
             viewportSizeEvent->setViewportSize(viewport);
+            viewportSizeEvent->setEventProcessed();
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_TILE_TABS_MODIFICATION) {

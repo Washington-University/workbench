@@ -372,6 +372,11 @@ namespace caret {
         virtual bool intersectionTest(const Annotation* other,
                                       const int32_t windowIndex) const;
         
+        void matchPixelPositionAndSizeInNewViewport(const int32_t oldViewport[4],
+                                                    const int32_t newViewport[4],
+                                                    const bool matchPositionFlag,
+                                                    const bool matchSizeFlag);
+        
     protected:
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass) = 0;

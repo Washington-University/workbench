@@ -90,6 +90,8 @@ namespace caret {
         
         EnumComboBoxTemplate* m_annotationCoordinateSpaceEnumComboBox;
         
+        QCheckBox* m_manualPositionAutoMoveResizeCheckBox;
+        
         EnumComboBoxTemplate* m_colorBarDataModeComboBox;
         
         QLabel* m_colorBarNumericFormatModeLabel;

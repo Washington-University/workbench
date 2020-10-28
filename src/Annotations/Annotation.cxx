@@ -2747,6 +2747,128 @@ Annotation::intersectionTest(const Annotation* other,
 }
 
 /**
+ * Resize the annotation so that it is the same size, in pixels, in the new viewport.
+ * @param oldViewport
+ *    Current viewport of annotation
+ * @param newViewport
+ *    New viewport for annotation
+ * @param matchPositionFlag
+ *     If true, try to match position, but may require moving the annotion
+ * @param matchSizeFlag
+ *     If true, match the size of the annotaiton
+ */
+void
+Annotation::matchPixelPositionAndSizeInNewViewport(const int32_t oldViewport[4],
+                                                   const int32_t newViewport[4],
+                                                   const bool matchPositionFlag,
+                                                   const bool matchSizeFlag)
+{
+    const float newViewportWidth(newViewport[2]);
+    if (newViewportWidth <= 0.0) {
+        return;
+    }
+    const float newViewportHeight(newViewport[3]);
+    if (newViewportHeight <= 0.0) {
+        return;
+    }
+
+    bool tabOrWindowFlag(false);
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            tabOrWindowFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            tabOrWindowFlag = true;
+            break;
+    }
+    
+    if ( ! tabOrWindowFlag) {
+        return;
+    }
+    
+    AnnotationOneDimensionalShape* oneDimAnn = castToOneDimensionalShape();
+    if (oneDimAnn != NULL) {
+        const AnnotationCoordinate* coordOne = oneDimAnn->getStartCoordinate();
+        CaretAssert(coordOne);
+        const AnnotationCoordinate* coordTwo = oneDimAnn->getEndCoordinate();
+        CaretAssert(coordTwo);
+        const float length = MathFunctions::distance3D(coordOne->getXYZ(),
+                                                       coordTwo->getXYZ());
+        if (length > 0.0) {
+        }
+        CaretLogWarning("Matching size not supported for one-dimensional annotations");
+    }
+    else {
+        AnnotationTwoDimensionalShape* twoDimAnn = castToTwoDimensionalShape();
+        if (twoDimAnn) {
+            if (twoDimAnn->isFixedAspectRatio()) {
+                CaretLogWarning("Matching size not supported for fixed aspect ratio two-dimensional annotations");
+            }
+            else {
+                const float oldViewportWidth(oldViewport[2]);
+                const float oldViewportHeight(oldViewport[3]);
+                const float widthPixels((twoDimAnn->getWidth() / 100.0) * oldViewportWidth);
+                const float heightPixels((twoDimAnn->getHeight() / 100.0) * oldViewportHeight);
+                const float newWidthPct((widthPixels / newViewportWidth) * 100.0);
+                const float newHeightPct((heightPixels / newViewportHeight) * 100.0);
+                if (matchSizeFlag) {
+                    twoDimAnn->setWidth(newWidthPct);
+                    twoDimAnn->setHeight(newHeightPct);
+                }
+                
+                if (matchPositionFlag) {
+                    float oldXYZ[3];
+                    twoDimAnn->getCoordinate()->getXYZ(oldXYZ);
+                    const float oldPixelX(((oldXYZ[0] / 100.0) * oldViewportWidth)  + oldViewport[0]);
+                    const float oldPixelY(((oldXYZ[1] / 100.0) * oldViewportHeight) + oldViewport[1]);
+                    const float newPixelX(oldPixelX - newViewport[0]);
+                    const float newPixelY(oldPixelY - newViewport[1]);
+                    float newPctX((newPixelX / newViewportWidth) * 100.0);
+                    if (newPctX <= 0.0) {
+                        newPctX = std::min((twoDimAnn->getWidth() / 2.0), 99.0);
+                    }
+                    else if (newPctX >= 100.0) {
+                        newPctX = std::max((100.0 - (twoDimAnn->getWidth() / 2.0)), 1.0);
+                    }
+                    float newPctY((newPixelY / newViewportHeight) * 100.0);
+                    if (newPctY <= 0.0) {
+                        newPctY = std::min((twoDimAnn->getHeight() / 2.0), 99.0);
+                    }
+                    else if (newPctY >= 100.0) {
+                        newPctY = std::max((100.0 - (twoDimAnn->getHeight() / 2.0)), 1.0);
+                    }
+                    twoDimAnn->getCoordinate()->setXYZ(newPctX,
+                                                       newPctY,
+                                                       oldXYZ[2]);
+                }
+                
+                AnnotationColorBar* colorBar = dynamic_cast<AnnotationColorBar*>(twoDimAnn);
+                if (colorBar != NULL) {
+                    const float oldFontHeightPixels((colorBar->getFontPercentViewportSize() / 100.0) * oldViewport[3]);
+                    const float newFontHeightPct((oldFontHeightPixels / newViewportHeight) * 100.0);
+                    if (matchSizeFlag) {
+                        colorBar->setFontPercentViewportSize(newFontHeightPct);
+                    }
+                }
+            }
+        }
+        else {
+            CaretAssertMessage(0, "Annotation is neither one- nor two-dimensional");
+        }
+    }
+}
+
+/**
  * Set the bounds from last time annotation was drawn
  * @param windowIndex
  * Index of window

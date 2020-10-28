@@ -34,7 +34,9 @@
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventGetViewportSize.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "MapSettingsColorBarPaletteOptionsWidget.h"
 #include "NumericFormatModeEnum.h"
@@ -218,10 +220,68 @@ MapSettingsColorBarWidget::annotationColorBarPositionModeEnumComboBoxItemActivat
 void
 MapSettingsColorBarWidget::annotationCoordinateSpaceEnumComboBoxItemActivated()
 {
-    const AnnotationCoordinateSpaceEnum::Enum coordinateSpace = m_annotationCoordinateSpaceEnumComboBox->getSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>();
+    const AnnotationCoordinateSpaceEnum::Enum newCoordinateSpace = m_annotationCoordinateSpaceEnumComboBox->getSelectedItem<AnnotationCoordinateSpaceEnum,AnnotationCoordinateSpaceEnum::Enum>();
     if (m_colorBar != NULL) {
-        m_colorBar->setCoordinateSpace(coordinateSpace);
+        if (m_colorBar->getPositionMode() == AnnotationColorBarPositionModeEnum::MANUAL) {
+            if (m_manualPositionAutoMoveResizeCheckBox->isChecked()) {
+                bool tabToWindowFlag(false);
+                bool windowToTabFlag(false);
+                if ((m_colorBar->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB)
+                    && (newCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW)) {
+                    tabToWindowFlag = true;
+                }
+                if ((m_colorBar->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::WINDOW)
+                    && (newCoordinateSpace == AnnotationCoordinateSpaceEnum::TAB)) {
+                    windowToTabFlag = true;
+                }
+                
+                if (tabToWindowFlag
+                    || windowToTabFlag) {
+                    /*
+                     * Transitioning  between TAB to WINDOW space
+                     * Change percentage width/height so pixel width/height
+                     * does not change
+                     */
+                    const int32_t tabIndex = m_colorBar->getTabIndex();
+                    EventGetViewportSize tabSizeEvent(EventGetViewportSize::MODE_TAB_AFTER_MARGINS_INDEX,
+                                                      tabIndex);
+                    EventManager::get()->sendEvent(tabSizeEvent.getPointer());
+                    if (tabSizeEvent.getEventProcessCount() > 0) {
+                        EventGetViewportSize windowSizeEvent(EventGetViewportSize::MODE_WINDOW_FROM_TAB_INDEX,
+                                                             tabIndex);
+                        EventManager::get()->sendEvent(windowSizeEvent.getPointer());
+                        if (windowSizeEvent.getEventProcessCount() > 0) {
+                            int32_t tabViewport[4];
+                            tabSizeEvent.getViewportSize(tabViewport);
+                            int32_t windowViewport[4];
+                            windowSizeEvent.getViewportSize(windowViewport);
+                            
+                            const bool matchPositionFlag(true);
+                            const bool matchSizeFlag(true);
+                            if (tabToWindowFlag) {
+                                m_colorBar->matchPixelPositionAndSizeInNewViewport(tabViewport,
+                                                                                   windowViewport,
+                                                                                   matchPositionFlag,
+                                                                                   matchSizeFlag);
+                            }
+                            else if (windowToTabFlag) {
+                                m_colorBar->matchPixelPositionAndSizeInNewViewport(windowViewport,
+                                                                                   tabViewport,
+                                                                                   matchPositionFlag,
+                                                                                   matchSizeFlag);
+                            }
+                            else {
+                                CaretAssert(0);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        m_colorBar->setCoordinateSpace(newCoordinateSpace);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
 }
 
@@ -253,6 +313,14 @@ MapSettingsColorBarWidget::createLocationPositionSection()
                                                                      "WINDOW - Allows colorbar in any\n"
                                                                      "   location in the graphics area");
     
+    const QString autoMoveToolTip("When Manual Positioning is Selected, "
+                                  "minimize any movement and resizing of the "
+                                  "colorbar when the colorbar is switched between "
+                                  "Tab and Window Spaces");
+    m_manualPositionAutoMoveResizeCheckBox = new QCheckBox("Move/Resize in Manual Positioning");
+    WuQtUtilities::setWordWrappedToolTip(m_manualPositionAutoMoveResizeCheckBox,
+                                         autoMoveToolTip);
+    
     QWidget* modeSpaceWidget = new QWidget();
     QGridLayout* modeSpaceLayout = new QGridLayout(modeSpaceWidget);
     modeSpaceLayout->setContentsMargins(0, 0, 0, 0);
@@ -260,6 +328,7 @@ MapSettingsColorBarWidget::createLocationPositionSection()
     modeSpaceLayout->addWidget(m_annotationCoordinateSpaceEnumComboBox->getWidget(), 0, 1);
     modeSpaceLayout->addWidget(positionModeLabel, 1, 0);
     modeSpaceLayout->addWidget(m_annotationColorBarPositionModeEnumComboBox->getWidget(), 1, 1);
+    modeSpaceLayout->addWidget(m_manualPositionAutoMoveResizeCheckBox, 2, 0, 1, 2, Qt::AlignLeft);
     
     QGroupBox* locationAndDimGroupBox = new QGroupBox("Location and Positioning");
     QVBoxLayout* locationAndDimLayout = new QVBoxLayout(locationAndDimGroupBox);

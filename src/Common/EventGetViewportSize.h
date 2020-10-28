@@ -37,6 +37,8 @@ namespace caret {
             MODE_TAB_AFTER_MARGINS_INDEX,
             MODE_VOLUME_MONTAGE,
             MODE_WINDOW_INDEX,
+            /** Gets window viewport for window containing the tab with the index*/
+            MODE_WINDOW_FROM_TAB_INDEX
         };
         
         EventGetViewportSize(const Mode mode,
