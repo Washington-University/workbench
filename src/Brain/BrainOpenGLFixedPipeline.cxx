@@ -539,30 +539,33 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const s
     for (auto colorBar : allColorBars) {
         bool windowSpaceSelectionFlag(false);
         const int32_t tabIndex = colorBar->getTabIndex();
-        switch (colorBar->getCoordinateSpace()) {
-            case AnnotationCoordinateSpaceEnum::CHART:
-                break;
-            case AnnotationCoordinateSpaceEnum::SPACER:
-                break;
-            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                break;
-            case AnnotationCoordinateSpaceEnum::SURFACE:
-                break;
-            case AnnotationCoordinateSpaceEnum::TAB:
-                break;
-            case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                break;
-            case AnnotationCoordinateSpaceEnum::WINDOW:
-                /*
-                 * Need to include colorbars in window space since they
-                 * can outside of current tab
-                 */
-                for (auto vc : viewportContents) {
-                    if (colorBar->getWindowIndex() == vc->getWindowIndex()) {
-                        windowSpaceSelectionFlag = true;
+        
+        if (selectionModeFlag) {
+            switch (colorBar->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SPACER:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    break;
+                case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    /*
+                     * Need to include colorbars in window space since they
+                     * can outside of current tab
+                     */
+                    for (auto vc : viewportContents) {
+                        if (colorBar->getWindowIndex() == vc->getWindowIndex()) {
+                            windowSpaceSelectionFlag = true;
+                        }
                     }
-                }
-                break;
+                    break;
+            }
         }
         if (windowSpaceSelectionFlag) {
             m_annotationColorBarsForDrawing.push_back(colorBar);

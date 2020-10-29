@@ -317,7 +317,7 @@ MapSettingsColorBarWidget::createLocationPositionSection()
                                   "minimize any movement and resizing of the "
                                   "colorbar when the colorbar is switched between "
                                   "Tab and Window Spaces");
-    m_manualPositionAutoMoveResizeCheckBox = new QCheckBox("Move/Resize in Manual Positioning");
+    m_manualPositionAutoMoveResizeCheckBox = new QCheckBox("Manual 'Tab <--> Window' Minimize Move/Resize");
     WuQtUtilities::setWordWrappedToolTip(m_manualPositionAutoMoveResizeCheckBox,
                                          autoMoveToolTip);
     
