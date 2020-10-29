@@ -240,6 +240,11 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
                                    + AnnotationRedoUndoCommandModeEnum::toName(m_mode)
                                    + " is handle in the redo() and undo() functions."));
             break;
+        case AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATIONS:
+            CaretAssertMessage(0, ("This mode "
+                                   + AnnotationRedoUndoCommandModeEnum::toName(m_mode)
+                                   + " is handle in the redo() and undo() functions."));
+            break;
         case AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP:
             CaretAssert(0);
             break;
@@ -643,7 +648,8 @@ AnnotationRedoUndoCommand::redo(AString& errorMessageOut)
                 validFlag = false;
             }
         }
-        else if (m_mode == AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATION) {
+        else if ((m_mode == AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATION)
+                 || (m_mode == AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATIONS)) {
             EventAnnotationAddToRemoveFromFile duplicateEvent(EventAnnotationAddToRemoveFromFile::MODE_DUPLICATE,
                                                           annMem->m_annotationFile,
                                                           annMem->m_annotation);
@@ -777,7 +783,8 @@ AnnotationRedoUndoCommand::undo(AString& errorMessageOut)
                 validFlag = false;
             }
         }
-        else if (m_mode == AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATION) {
+        else if ((m_mode == AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATION)
+                 || (m_mode == AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATIONS)) {
             EventAnnotationAddToRemoveFromFile duplicateEvent(EventAnnotationAddToRemoveFromFile::MODE_UNDUPLICATE,
                                                               annMem->m_annotationFile,
                                                               annMem->m_annotation);
@@ -1682,6 +1689,43 @@ AnnotationRedoUndoCommand::setModeDuplicateAnnotation(AnnotationFile* annotation
                                                   NULL);
     
     m_annotationMementos.push_back(am);
+}
+
+/**
+ * Set the mode to duplicate annotations and create the undo/redo instances.
+ *
+ * @param fileAndAnnotations
+ *       Pairs with file and annotation
+ */
+void
+AnnotationRedoUndoCommand::setModeDuplicateAnnotations(std::vector<std::pair<AnnotationFile*, Annotation*>>& fileAndAnnotations)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATIONS;
+    setDescription("Duplicate Annotations");
+    
+    CaretAssert(fileAndAnnotations.size() > 0);
+    
+    for (auto& fileAnn : fileAndAnnotations) {
+        AnnotationFile* file(fileAnn.first);
+        Annotation*     annotation(fileAnn.second);
+        CaretAssert(file);
+        CaretAssert(annotation);
+        
+        /*
+         * NOTE: We only need the pointer since the file containing
+         * the annotation will handle delete/undelete of the
+         * annotation.  If we don't use NULL for the redo and
+         * undo annotations, copies of the annotation would be
+         * needed since the AnnotationMemento will delete
+         * the redo and undo annotations when it is deleted.
+         */
+        AnnotationMemento* am = new AnnotationMemento(file,
+                                                      annotation,
+                                                      NULL,
+                                                      NULL);
+        
+        m_annotationMementos.push_back(am);
+    }
 }
 
 

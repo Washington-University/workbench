@@ -154,6 +154,10 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                          "DUPLICATE_ANNOTATION",
                                                          "Duplicate Annotation"));
     
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(DUPLICATE_ANNOTATIONS,
+                                                         "DUPLICATE_ANNOTATIONS",
+                                                         "Duplicate Annotations"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(GROUPING_GROUP,
                                                          "GROUPING_GROUP",
                                                          "Group Annotations"));

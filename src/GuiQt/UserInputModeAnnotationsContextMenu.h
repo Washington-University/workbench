@@ -118,6 +118,8 @@ namespace caret {
         
         std::vector<Annotation*> m_threeDimCoordAnnotations;
         
+        std::vector<std::pair<AnnotationFile*, Annotation*>> m_tabSpaceFileAndAnnotations;
+        
         Annotation* m_annotation;
         
         AnnotationText* m_textAnnotation;

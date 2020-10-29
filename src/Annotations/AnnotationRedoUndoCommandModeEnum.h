@@ -61,6 +61,8 @@ public:
         DELETE_ANNOTATIONS,
         /** Duplicate Annotation */
         DUPLICATE_ANNOTATION,
+        /** Duplicate Annotations  */
+        DUPLICATE_ANNOTATIONS,
         /** Group Annotations */
         GROUPING_GROUP,
         /** Regroup Annotations */
