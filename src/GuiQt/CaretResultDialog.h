@@ -25,10 +25,11 @@
 
 #include <memory>
 
+#include "CaretResult.h"
+
 class QWidget;
 
 namespace caret {
-    class CaretResult;
 
     class CaretResultDialog  {
         

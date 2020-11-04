@@ -26,7 +26,6 @@
 #include <QMessageBox>
 
 #include "CaretAssert.h"
-#include "CaretResult.h"
 
 using namespace caret;
 
