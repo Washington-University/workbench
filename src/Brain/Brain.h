@@ -50,6 +50,7 @@ namespace caret {
     class CaretDataFile;
     class CaretMappableDataFile;
     class CaretPreferences;
+    class CaretResult;
     class ChartTwoCartesianOrientedAxesYokingManager;
     class ChartingDataManager;
     class ChartableLineSeriesBrainordinateInterface;
@@ -453,6 +454,8 @@ namespace caret {
         bool isSurfaceMatchingToAnatomical() const;
         
         void setSurfaceMatchingToAnatomical(const bool matchStatus);
+        
+        std::unique_ptr<CaretResult> getBaseDirectoryForLoadedDataFiles(AString& baseDirectoryOut) const;
         
     private:
         /**

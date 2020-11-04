@@ -45,7 +45,31 @@ namespace caret {
         SceneFile& operator=(const SceneFile&);
         
     public:
-
+        class FileAndSceneIndicesInfo {
+        public:
+            FileAndSceneIndicesInfo(const AString& dataFileName,
+                                    const int32_t sceneIndex)
+            : m_dataFileName(dataFileName) {
+                m_sceneIndices.push_back(sceneIndex + 1);
+            }
+            
+            bool operator<(const FileAndSceneIndicesInfo& rhs) const {
+                return m_dataFileName < rhs.m_dataFileName;
+            }
+            
+            void addSceneIndex(const int32_t sceneIndex) const {
+                m_sceneIndices.push_back(sceneIndex + 1);
+            }
+            
+            AString getSceneIndices() const {
+                return AString::fromNumbers(m_sceneIndices, ",");
+            }
+            
+            const AString m_dataFileName;
+            
+            mutable std::vector<int32_t> m_sceneIndices;
+        };
+        
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
         void clear();
@@ -117,36 +141,17 @@ namespace caret {
                                            std::vector<AString>& missingFileNamesOut,
                                            AString& errorMessageOut) const;
         
+        static bool findBaseDirectoryForDataFiles(const AString& sceneFileName,
+                                                  const std::set<FileAndSceneIndicesInfo>& filesFromScenes,
+                                                  AString& baseDirectoryOut,
+                                                  std::vector<AString>& missingFileNamesOut,
+                                                  AString& errorMessageOut);
+
         std::vector<AString> getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCount = 25);
         
         bool getSelectedBasePathTypeAndName(SceneFileBasePathTypeEnum::Enum& basePathTypeOut,
                                                  AString& basePathNameOut,
                                                  AString& errorMessageOut) const;
-        
-        class FileAndSceneIndicesInfo {
-        public:
-            FileAndSceneIndicesInfo(const AString& dataFileName,
-                                  const int32_t sceneIndex)
-            : m_dataFileName(dataFileName) {
-                m_sceneIndices.push_back(sceneIndex + 1);
-            }
-            
-            bool operator<(const FileAndSceneIndicesInfo& rhs) const {
-                return m_dataFileName < rhs.m_dataFileName;
-            }
-            
-            void addSceneIndex(const int32_t sceneIndex) const {
-                m_sceneIndices.push_back(sceneIndex + 1);
-            }
-            
-            AString getSceneIndices() const {
-                return AString::fromNumbers(m_sceneIndices, ",");
-            }
-            
-            const AString m_dataFileName;
-            
-            mutable std::vector<int32_t> m_sceneIndices;
-        };
         
         std::set<FileAndSceneIndicesInfo> getAllDataFileNamesFromAllScenes() const;
         

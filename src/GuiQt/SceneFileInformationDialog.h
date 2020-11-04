@@ -55,6 +55,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        void loadContentIntoDialog();
+        
         void displayFilesList(const SceneFileBasePathTypeEnum::Enum basePathType,
                               const AString& basePathName);
         

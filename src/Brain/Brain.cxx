@@ -39,6 +39,7 @@
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "CaretResult.h"
 #include "ChartTwoCartesianOrientedAxesYokingManager.h"
 #include "ChartingDataManager.h"
 #include "ChartableTwoFileDelegate.h"
@@ -7917,6 +7918,77 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     setSurfaceMatchingToAnatomical(m_surfaceMatchingToAnatomicalFlag);
 }
+
+/**
+ * @return The base directory for the loaded data files excluding Scene and Spec files
+ * @param validFlagOut
+ *    On output, it will be true if the returne
+ */
+std::unique_ptr<CaretResult>
+Brain::getBaseDirectoryForLoadedDataFiles(AString& baseDirectoryOut) const
+{
+    baseDirectoryOut.clear();
+    
+    std::vector<CaretDataFile*> allDataFilesOrig;
+    getAllDataFiles(allDataFilesOrig);
+    
+    std::set<SceneFile::FileAndSceneIndicesInfo> fileInfo;
+
+    AString modifiedFileNames;
+    std::vector<CaretDataFile*> allDataFiles;
+    for (auto& df : allDataFilesOrig) {
+        CaretAssert(df);
+        switch (df->getDataFileType()) {
+            case DataFileTypeEnum::SCENE:
+                break;
+            default:
+                if (df->supportsWriting()) {
+                    if (df->isModified()) {
+                        modifiedFileNames.appendWithNewLine(df->getFileNameNoPath());
+                    }
+                    allDataFiles.push_back(df);
+
+                    /*
+                     * Test to see if this file is already in the output file info
+                     */
+                    const float sceneIndex(1);
+                    const AString pathName(FileInformation(df->getFileName()).getAbsoluteFilePath());
+                    bool foundFlag = false;
+                    for (auto& dfi : fileInfo) {
+                        if (dfi.m_dataFileName == pathName) {
+                            dfi.addSceneIndex(sceneIndex);
+                            foundFlag = true;
+                            break;
+                        }
+                    }
+                    
+                    if ( ! foundFlag) {
+                        fileInfo.insert(SceneFile::FileAndSceneIndicesInfo(pathName,
+                                                                           sceneIndex));
+                    }
+                }
+                break;
+        }
+    }
+    
+    if (fileInfo.empty()) {
+        return CaretResult::newInstanceError("No data files (excluding Scene and Spec) are loaded for finding base path");
+    }
+    
+    std::vector<AString> missingFileNames;
+    AString errorMessage;
+    AString emptySceneFileName;
+    
+    if (SceneFile::findBaseDirectoryForDataFiles(emptySceneFileName,
+                                                 fileInfo,
+                                                 baseDirectoryOut,
+                                                 missingFileNames,
+                                                 errorMessage)) {
+        return CaretResult::newInstanceSuccess();
+    }
+    return CaretResult::newInstanceError(errorMessage);
+}
+
 
 /**
  * Load the default row/column for a matrix charting file.

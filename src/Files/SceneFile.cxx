@@ -1144,6 +1144,37 @@ SceneFile::findBaseDirectoryForDataFiles(AString& baseDirectoryOut,
                                          std::vector<AString>& missingFileNamesOut,
                                          AString& errorMessageOut) const
 {
+    return SceneFile::findBaseDirectoryForDataFiles(getFileName(),
+                                                    getAllDataFileNamesFromAllScenes(),
+                                                    baseDirectoryOut,
+                                                    missingFileNamesOut,
+                                                    errorMessageOut);
+}
+
+/**
+ * Find the base directory that is a directory that is parent to all loaded data files
+ * and also including the scene file.
+ *
+ * @param sceneFileName
+ *    Name of scene file
+ * @param filesFromScenes
+ *    Files in all scenes in the scene file
+ * @param baseDirectoryOut
+ *    Output containing the base directory
+ * @param missingFileNamesOut
+ *    Will contain data files that are in scenes but do not exist.
+ * @param errorMessageOut
+ *    Error message if finding base directory fails
+ * @return
+ *    True if the base directory is valid, else false.
+ */
+bool
+SceneFile::findBaseDirectoryForDataFiles(const AString& sceneFileName,
+                                         const std::set<FileAndSceneIndicesInfo>& filesFromScenes,
+                                         AString& baseDirectoryOut,
+                                         std::vector<AString>& missingFileNamesOut,
+                                         AString& errorMessageOut)
+{
     baseDirectoryOut.clear();
     missingFileNamesOut.clear();
     errorMessageOut.clear();
@@ -1151,11 +1182,12 @@ SceneFile::findBaseDirectoryForDataFiles(AString& baseDirectoryOut,
     const AString directorySeparator("/");
     
     std::vector<AString> allFileNames;
-    std::set<FileAndSceneIndicesInfo> filesFromScenes = getAllDataFileNamesFromAllScenes();
     for (const auto& nameInfo : filesFromScenes) {
         allFileNames.push_back(nameInfo.m_dataFileName);
     }
-    allFileNames.push_back(getFileName());
+    if ( ! sceneFileName.isEmpty()) {
+        allFileNames.push_back(sceneFileName);
+    }
     
     /*
      * Find a unique set of directory names used by the data files and
@@ -1189,8 +1221,11 @@ SceneFile::findBaseDirectoryForDataFiles(AString& baseDirectoryOut,
         }
     }
     
-    const FileInformation fileInfo(getFileName());
-    const AString sceneFilePath = fileInfo.getAbsolutePath().trimmed();
+    AString sceneFilePath;
+    if ( ! sceneFileName.isEmpty()) {
+        const FileInformation fileInfo(sceneFileName);
+        sceneFilePath = fileInfo.getAbsolutePath().trimmed();
+    }
     
     missingFileNamesOut.insert(missingFileNamesOut.end(),
                                missingFileNames.begin(),
@@ -1199,8 +1234,13 @@ SceneFile::findBaseDirectoryForDataFiles(AString& baseDirectoryOut,
     const int32_t numDirs = static_cast<int32_t>(directoryNamesUniqueSet.size());
     if (numDirs <= 0) {
         /*
-         * if no valid files in scene, user path of scene file.
+         * if no valid files in scene, use path of scene file.
          */
+        if (sceneFilePath.isEmpty()) {
+            errorMessageOut = "No data files available for determining base path";
+            return false;
+        }
+        
         baseDirectoryOut = sceneFilePath;
         return true;
     }
@@ -1226,13 +1266,12 @@ SceneFile::findBaseDirectoryForDataFiles(AString& baseDirectoryOut,
         }
     }
     
-    baseDirectoryOut = sceneFilePath;
     if ( ! longestPathMatch.empty()) {
         /*
          * Assemble the path components into a directory.
          */
         baseDirectoryOut = AString::join(longestPathMatch,
-                                          directorySeparator);
+                                         directorySeparator);
     }
     
     /*

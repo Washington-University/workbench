@@ -66,36 +66,18 @@ m_sceneFile(sceneFile)
     setDeleteWhenClosed(true);
     setApplyButtonText("");
     
-    AString basePathName;
-    SceneFileBasePathTypeEnum::Enum basePathType = SceneFileBasePathTypeEnum::AUTOMATIC;
-    {
-        AString errorMessage;
-        const bool validFlag = m_sceneFile->getSelectedBasePathTypeAndName(basePathType,
-                                                                           basePathName,
-                                                                           errorMessage);
-        if ( ! validFlag) {
-            basePathName = ("INVALID " + errorMessage);
-        }
-    }
     
     QLabel* basePathLabel = new QLabel("Base Path:");
     m_basePathLineEdit = new QLineEdit();
     m_basePathLineEdit->setReadOnly(true);
-    m_basePathLineEdit->setText(basePathName);
-    m_basePathLineEdit->home(true);
     
-    FileInformation sceneFileInfo(sceneFile->getFileName());
     QLabel* sceneFileNameLabel = new QLabel("Scene File Name:");
     m_sceneFileNameLineEdit = new QLineEdit();
     m_sceneFileNameLineEdit->setReadOnly(true);
-    m_sceneFileNameLineEdit->setText(sceneFileInfo.getFileName());
-    m_sceneFileNameLineEdit->home(true);
 
     QLabel* sceneFilePathLabel = new QLabel("Scene File Path:");
     m_sceneFilePathLineEdit = new QLineEdit();
     m_sceneFilePathLineEdit->setReadOnly(true);
-    m_sceneFilePathLineEdit->setText(sceneFileInfo.getPathName());
-    m_sceneFilePathLineEdit->home(true);
     
     m_textEdit = new QTextEdit();
     
@@ -124,11 +106,9 @@ m_sceneFile(sceneFile)
     
     setCentralWidget(dialogWidget, WuQDialog::SCROLL_AREA_NEVER);
     
-    displayFilesHierarchy();
-    displayFilesList(basePathType,
-                     basePathName);
-    
     setSizeOfDialogWhenDisplayed(QSize(600, 800));
+    
+    loadContentIntoDialog();
 }
 
 /**
@@ -136,6 +116,37 @@ m_sceneFile(sceneFile)
  */
 SceneFileInformationDialog::~SceneFileInformationDialog()
 {
+}
+
+void
+SceneFileInformationDialog::loadContentIntoDialog()
+{
+    CaretAssert(m_sceneFile);
+    AString basePathName;
+    SceneFileBasePathTypeEnum::Enum basePathType = SceneFileBasePathTypeEnum::AUTOMATIC;
+    {
+        AString errorMessage;
+        const bool validFlag = m_sceneFile->getSelectedBasePathTypeAndName(basePathType,
+                                                                           basePathName,
+                                                                           errorMessage);
+        if ( ! validFlag) {
+            basePathName = ("INVALID " + errorMessage);
+        }
+    }
+    
+    m_basePathLineEdit->setText(basePathName);
+    m_basePathLineEdit->home(true);
+    
+    FileInformation sceneFileInfo(m_sceneFile->getFileName());
+    m_sceneFileNameLineEdit->setText(sceneFileInfo.getFileName());
+    m_sceneFileNameLineEdit->home(true);
+    
+    m_sceneFilePathLineEdit->setText(sceneFileInfo.getPathName());
+    m_sceneFilePathLineEdit->home(true);
+    
+    displayFilesHierarchy();
+    displayFilesList(basePathType,
+                     basePathName);
 }
 
 /**
