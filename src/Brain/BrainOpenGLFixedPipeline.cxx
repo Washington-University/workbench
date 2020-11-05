@@ -4249,16 +4249,12 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
 void
 BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDrawInfo>& volumeDrawInfoIn)
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOXEL_CUBES_TEST)) {
-        drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(volumeDrawInfoIn);
-        return;
-    }
-    
     /*
      * Filter volumes for drawing and only draw those volumes that
      * are to be drawn as 3D Voxel Cubes.
      */
     std::vector<VolumeDrawInfo> volumeDrawInfo;
+    std::vector<VolumeDrawInfo> volumeDrawInfoOutsideFaces;
     for (std::vector<VolumeDrawInfo>::iterator iter = volumeDrawInfoIn.begin();
          iter != volumeDrawInfoIn.end();
          iter++) {
@@ -4273,8 +4269,31 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                 break;
         }
         if (useIt) {
-            volumeDrawInfo.push_back(vdi);
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOXEL_CUBES_TEST)) {
+                if (vdi.opacity >= 1.0) {
+                    /*
+                     * When opacity is one, there is no need to draw "interior"
+                     * voxels because they cannot be seen and this may result
+                     * in faster drawing
+                     */
+                    volumeDrawInfoOutsideFaces.push_back(vdi);
+                }
+                else {
+                    /*
+                     * Need interior voxels when opacity less than one
+                     * sincd we can see through the exterior voxels
+                     */
+                    volumeDrawInfo.push_back(vdi);
+                }
+            }
+            else {
+                volumeDrawInfo.push_back(vdi);
+            }
         }
+    }
+    
+    if ( ! volumeDrawInfoOutsideFaces.empty()) {
+        drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(volumeDrawInfoOutsideFaces);
     }
     
     const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
