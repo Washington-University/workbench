@@ -89,15 +89,19 @@ m_sceneFile(sceneFile)
     tabWidget->addTab(m_textEdit, "List");
     
     QGridLayout* namesLayout = new QGridLayout();
+    int32_t nameLayoutRow(0);
     namesLayout->setColumnStretch(0, 0);
     namesLayout->setColumnStretch(1, 100);
-    namesLayout->addWidget(basePathLabel, 0, 0);
-    namesLayout->addWidget(m_basePathLineEdit, 0, 1);
-    namesLayout->addWidget(sceneFileNameLabel, 1, 0);
-    namesLayout->addWidget(m_sceneFileNameLineEdit, 1, 1);
-    namesLayout->addWidget(sceneFilePathLabel, 2, 0);
-    namesLayout->addWidget(m_sceneFilePathLineEdit, 2, 1);
-    
+    namesLayout->addWidget(basePathLabel, nameLayoutRow, 0);
+    namesLayout->addWidget(m_basePathLineEdit, nameLayoutRow, 1);
+    nameLayoutRow++;
+    namesLayout->addWidget(sceneFilePathLabel, nameLayoutRow, 0);
+    namesLayout->addWidget(m_sceneFilePathLineEdit, nameLayoutRow, 1);
+    nameLayoutRow++;
+    namesLayout->addWidget(sceneFileNameLabel, nameLayoutRow, 0);
+    namesLayout->addWidget(m_sceneFileNameLineEdit, nameLayoutRow, 1);
+    nameLayoutRow++;
+
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
     dialogLayout->setSpacing(3);
