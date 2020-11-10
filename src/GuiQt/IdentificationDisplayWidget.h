@@ -41,6 +41,7 @@ class QTextBrowser;
 
 namespace caret {
     class CaretColorEnumComboBox;
+    class EnumComboBoxTemplate;
     class IdentificationFileFilteringTableWidget;
     class IdentificationHistoryManager;
     class SceneClassAssistant;
@@ -103,6 +104,9 @@ namespace caret {
         void tabFilterRadioButtonClicked(int buttonID);
         
         void chartLineLayerSymbolChanged();
+        
+        void symbolSizeTypeComboBoxActivated();
+        
     private:
         void updateContent(const bool scrollTextToEndFlag);
         
@@ -163,6 +167,8 @@ namespace caret {
         CaretColorEnumComboBox* m_symbolsIdColorComboBox;
         
         CaretColorEnumComboBox* m_symbolsContralateralIdColorComboBox;
+        
+        EnumComboBoxTemplate* m_symbolSizeTypeComboBox;
         
         QDoubleSpinBox* m_symbolsIdDiameterSpinBox;
         

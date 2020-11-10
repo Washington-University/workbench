@@ -826,18 +826,6 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
         }
     }
     
-    drawIdentificationSymbols(slicePlane);
-    
-    if ( ! m_identificationModeFlag) {
-        if (slicePlane.isValidPlane()) {
-            drawLayers(sliceDrawingType,
-                       sliceProjectionType,
-                       sliceViewPlane,
-                       slicePlane,
-                       sliceCoordinates);
-        }
-    }
-    
     /*
      * Draw model space annotaitons on the volume slice
      */
@@ -863,6 +851,20 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
             }
         }
     }
+    
+    drawIdentificationSymbols(slicePlane,
+                              sliceThickness);
+    
+    if ( ! m_identificationModeFlag) {
+        if (slicePlane.isValidPlane()) {
+            drawLayers(sliceDrawingType,
+                       sliceProjectionType,
+                       sliceViewPlane,
+                       slicePlane,
+                       sliceCoordinates);
+        }
+    }
+    
     const bool annotationModeFlag = (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
     const bool tileTabsEditModeFlag = (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING);
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
@@ -1603,11 +1605,17 @@ BrainOpenGLVolumeSliceDrawing::showBrainordinateHighlightRegionOfInterest(const 
  * Draw identification symbols on volume slice with the given plane.
  *
  * @param plane
- *      The plane equation.
+ *   The plane equation.
+ * @param sliceThickess
+ *   Thickness of the slice
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane)
+BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane,
+                                                         const float sliceThickness)
 {
+    const float halfSliceThickness(sliceThickness > 0.0
+                                   ? (sliceThickness * 0.55) /* ensure symbol falls within a slice*/
+                                   : 1.0);
     IdentificationManager* idManager = m_brain->getIdentificationManager();
     
     SelectionItemVoxelIdentificationSymbol* symbolID = m_brain->getSelectionManager()->getVoxelIdentificationSymbol();
@@ -1645,11 +1653,21 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane)
             float xyz[3];
             voxel.getXYZ(xyz);
             
-            const float symbolDiameter = voxel.getSymbolSize();
-            const float halfSymbolSize = symbolDiameter / 2.0;
+            float symbolDiameter = voxel.getSymbolSize();
             
             const float dist = std::fabs(plane.signedDistanceToPlane(xyz));
-            if (dist < halfSymbolSize) {
+            if (dist < halfSliceThickness) {
+                switch (voxel.getIdentificationSymbolSizeType()) {
+                    case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+                        break;
+                    case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+                    {
+                        const float viewportSize = std::fabs(m_fixedPipelineDrawing->orthographicRight - m_fixedPipelineDrawing->orthographicLeft);
+                        symbolDiameter = viewportSize * (symbolDiameter / 100.0);
+                    }
+                        break;
+                }
+                
                 if (isSelect) {
                     m_fixedPipelineDrawing->colorIdentification->addItem(rgba,
                                                                          SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,

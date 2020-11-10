@@ -25,6 +25,7 @@
 #include <memory>
 
 #include "CaretColorEnum.h"
+#include "IdentificationSymbolSizeTypeEnum.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
 
@@ -78,6 +79,10 @@ namespace caret {
         
         void setContralateralIdentificationEnabled(const bool enabled);
         
+        IdentificationSymbolSizeTypeEnum::Enum getIdentificationSymbolSizeType() const;
+        
+        void setIdentificationSymbolSizeType(const IdentificationSymbolSizeTypeEnum::Enum sizeType);
+        
         float getIdentificationSymbolSize() const;
         
         void setIdentificationSymbolSize(const float symbolSize);
@@ -85,6 +90,14 @@ namespace caret {
         float getMostRecentIdentificationSymbolSize() const;
         
         void setMostRecentIdentificationSymbolSize(const float symbolSize);
+        
+        float getIdentificationSymbolPercentageSize() const;
+        
+        void setIdentificationSymbolPercentageSize(const float symbolSize);
+        
+        float getMostRecentIdentificationSymbolPercentageSize() const;
+        
+        void setMostRecentIdentificationSymbolPercentageSize(const float symbolSize);
         
         CaretColorEnum::Enum getIdentificationSymbolColor() const;
         
@@ -141,9 +154,15 @@ namespace caret {
         
         bool m_contralateralIdentificationEnabled;
         
+        IdentificationSymbolSizeTypeEnum::Enum m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
+        
         float m_identifcationSymbolSize;
         
         float m_identifcationMostRecentSymbolSize;
+        
+        float m_identifcationSymbolPercentageSize;
+        
+        float m_identifcationMostRecentSymbolPercentageSize;
         
         CaretColorEnum::Enum m_identificationSymbolColor;
         

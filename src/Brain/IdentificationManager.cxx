@@ -64,8 +64,11 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_contralateralIdentificationEnabled = false;
     m_identificationSymbolColor = CaretColorEnum::WHITE;
     m_identificationContralateralSymbolColor = CaretColorEnum::LIME;
+    m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
     m_identifcationSymbolSize = 3.0;
     m_identifcationMostRecentSymbolSize = 5.0;
+    m_identifcationSymbolPercentageSize = 3.0;
+    m_identifcationMostRecentSymbolPercentageSize = 5.0;
     m_showSurfaceIdentificationSymbols = caretPreferences->isShowSurfaceIdentificationSymbols();
     m_showVolumeIdentificationSymbols  = caretPreferences->isShowVolumeIdentificationSymbols();
     m_identificationFilter.reset(new IdentificationFilter());
@@ -77,11 +80,19 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_sceneAssistant->add("m_contralateralIdentificationEnabled",
                           &m_contralateralIdentificationEnabled);
     
+    m_sceneAssistant->add<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>("m_identificationSymbolSizeType",
+                                                                                                    &m_identificationSymbolSizeType);
     m_sceneAssistant->add("m_identifcationSymbolSize",
                           &m_identifcationSymbolSize);
     
     m_sceneAssistant->add("m_identifcationMostRecentSymbolSize",
                           &m_identifcationMostRecentSymbolSize);
+    
+    m_sceneAssistant->add("m_identifcationSymbolPercentageSize",
+                          &m_identifcationSymbolPercentageSize);
+    
+    m_sceneAssistant->add("m_identifcationMostRecentSymbolPercentageSize",
+                          &m_identifcationMostRecentSymbolPercentageSize);
     
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationSymbolColor",
                                                                 &m_identificationSymbolColor);
@@ -250,11 +261,26 @@ IdentificationManager::getNodeIdentifiedItemsForSurface(const StructureEnum::Enu
                         nodeID.setSymbolRGB(symbolRGB);
                         const float* contralateralSymbolRGB = CaretColorEnum::toRGB(m_identificationContralateralSymbolColor);
                         nodeID.setContralateralSymbolRGB(contralateralSymbolRGB);
+                        nodeID.setIdentificationSymbolSizeType(m_identificationSymbolSizeType);
                         if (item == m_mostRecentIdentifiedItem) {
-                            nodeID.setSymbolSize(m_identifcationMostRecentSymbolSize);
+                            switch (m_identificationSymbolSizeType) {
+                                case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+                                    nodeID.setSymbolSize(m_identifcationMostRecentSymbolSize);
+                                    break;
+                                case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+                                    nodeID.setSymbolSize(m_identifcationMostRecentSymbolPercentageSize);
+                                    break;
+                            }
                         }
                         else {
-                            nodeID.setSymbolSize(m_identifcationSymbolSize);
+                            switch (m_identificationSymbolSizeType) {
+                                case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+                                    nodeID.setSymbolSize(m_identifcationSymbolSize);
+                                    break;
+                                case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+                                    nodeID.setSymbolSize(m_identifcationSymbolPercentageSize);
+                                    break;
+                            }
                         }
                         nodeItemsOut.push_back(nodeID);
                     }
@@ -284,7 +310,15 @@ IdentificationManager::getIdentifiedItemsForVolume() const
                 IdentifiedItemVoxel voxelID(*voxelItem);
                 const float* symbolRGB = CaretColorEnum::toRGB(m_identificationSymbolColor);
                 voxelID.setSymbolRGB(symbolRGB);
-                voxelID.setSymbolSize(m_identifcationSymbolSize);
+                voxelID.setIdentificationSymbolSizeType(m_identificationSymbolSizeType);
+                switch (m_identificationSymbolSizeType) {
+                    case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+                        voxelID.setSymbolSize(m_identifcationSymbolSize);
+                        break;
+                    case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+                        voxelID.setSymbolSize(m_identifcationSymbolPercentageSize);
+                        break;
+                }
                 itemsOut.push_back(voxelID);
             }
         }
@@ -451,6 +485,26 @@ IdentificationManager::setContralateralIdentificationEnabled(const bool enabled)
 }
 
 /**
+ * @param The identification symbol size type
+ */
+IdentificationSymbolSizeTypeEnum::Enum
+IdentificationManager::getIdentificationSymbolSizeType() const
+{
+    return m_identificationSymbolSizeType;
+}
+
+/**
+ * Set the identification size type
+ * @param sizeType
+ *    The new size type
+ */
+void
+IdentificationManager::setIdentificationSymbolSizeType(const IdentificationSymbolSizeTypeEnum::Enum sizeType)
+{
+    m_identificationSymbolSizeType = sizeType;
+}
+
+/**
  * @return The size of the identification symbol
  */
 float
@@ -488,6 +542,46 @@ void
 IdentificationManager::setMostRecentIdentificationSymbolSize(const float symbolSize)
 {
     m_identifcationMostRecentSymbolSize = symbolSize;
+}
+
+/**
+ * @return The percentage size of the identification symbol
+ */
+float
+IdentificationManager::getIdentificationSymbolPercentageSize() const
+{
+    return m_identifcationSymbolPercentageSize;
+}
+
+/**
+ * Set the percentage size of the identification symbol
+ * @param symbolSize
+ *    New size of symbol.
+ */
+void
+IdentificationManager::setIdentificationSymbolPercentageSize(const float symbolSize)
+{
+    m_identifcationSymbolPercentageSize = symbolSize;
+}
+
+/**
+ * @return The percentage size of the most recent identification symbol
+ */
+float
+IdentificationManager::getMostRecentIdentificationSymbolPercentageSize() const
+{
+    return m_identifcationMostRecentSymbolPercentageSize;
+}
+
+/**
+ * Set the percentage size of the most recent identification symbol
+ * @param symbolSize
+ *    New size of symbol.
+ */
+void
+IdentificationManager::setMostRecentIdentificationSymbolPercentageSize(const float symbolSize)
+{
+    m_identifcationMostRecentSymbolPercentageSize = symbolSize;
 }
 
 /**
@@ -673,6 +767,7 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
     removeAllIdentifiedItems();
     
     m_sceneAssistant->restoreMembers(sceneAttributes,

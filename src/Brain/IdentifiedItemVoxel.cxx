@@ -119,11 +119,14 @@ IdentifiedItemVoxel::initializeMembers()
     m_symbolRGB[1] = 0;
     m_symbolRGB[1] = 0;
     m_symbolSize   = 0.0;
-    
+    m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
+
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->addArray("m_xyz", m_xyz, 3, 0.0);
     m_sceneAssistant->addArray("m_symbolRGB", m_symbolRGB, 3, 0);
     m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
+    m_sceneAssistant->add<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>("m_identificationSymbolSizeType",
+                                                                                                    &m_identificationSymbolSizeType);
 }
 
 /**
@@ -143,6 +146,7 @@ IdentifiedItemVoxel::copyHelperIdentifiedItemVoxel(const IdentifiedItemVoxel& ob
     m_symbolRGB[2] = obj.m_symbolRGB[2];
     
     m_symbolSize = obj.m_symbolSize;
+    m_identificationSymbolSizeType = obj.m_identificationSymbolSizeType;
 }
 
 /**
@@ -235,6 +239,26 @@ IdentifiedItemVoxel::setSymbolSize(const float symbolSize)
 }
 
 /**
+ * @param The identification symbol size type
+ */
+IdentificationSymbolSizeTypeEnum::Enum
+IdentifiedItemVoxel::getIdentificationSymbolSizeType() const
+{
+    return m_identificationSymbolSizeType;
+}
+
+/**
+ * Set the identification size type
+ * @param sizeType
+ *    The new size type
+ */
+void
+IdentifiedItemVoxel::setIdentificationSymbolSizeType(const IdentificationSymbolSizeTypeEnum::Enum sizeType)
+{
+    m_identificationSymbolSizeType = sizeType;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -298,6 +322,8 @@ IdentifiedItemVoxel::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (sceneClass == NULL) {
         return;
     }
+    
+    m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    

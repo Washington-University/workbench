@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 
+#include "IdentificationSymbolSizeTypeEnum.h"
 #include "IdentifiedItem.h"
 #include "StructureEnum.h"
 
@@ -76,6 +77,10 @@ namespace caret {
         
         void setSymbolSize(const float symbolSize);
         
+        IdentificationSymbolSizeTypeEnum::Enum getIdentificationSymbolSizeType() const;
+        
+        void setIdentificationSymbolSizeType(const IdentificationSymbolSizeTypeEnum::Enum sizeType);
+        
         virtual AString toString() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -104,6 +109,8 @@ namespace caret {
         float m_contralateralSymbolRGB[3];
         
         float m_symbolSize;
+        
+        IdentificationSymbolSizeTypeEnum::Enum m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
         
         SceneClassAssistant* m_sceneAssistant;
     };

@@ -124,6 +124,7 @@ IdentificationHistoryRecord.h
 IdentificationManager.h
 IdentificationSimpleTextGenerator.h
 IdentificationStringBuilder.h
+IdentificationSymbolSizeTypeEnum.h
 IdentificationWithColor.h
 IdentifiedItem.h
 IdentifiedItemNode.h
@@ -297,6 +298,7 @@ IdentificationHistoryRecord.cxx
 IdentificationManager.cxx
 IdentificationSimpleTextGenerator.cxx
 IdentificationStringBuilder.cxx
+IdentificationSymbolSizeTypeEnum.cxx
 IdentificationWithColor.cxx
 IdentifiedItem.cxx
 IdentifiedItemNode.cxx

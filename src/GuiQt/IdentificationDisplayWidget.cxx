@@ -42,6 +42,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUpdateInformationWindows.h"
@@ -57,8 +58,6 @@
 #include "WuQtUtilities.h"
 using namespace caret;
 
-
-    
 /**
  * \class caret::IdentificationDisplayWidget 
  * \brief Widget for display of identification data
@@ -512,10 +511,24 @@ IdentificationDisplayWidget::updateSymbolsWidget()
 
     m_symbolsIdColorComboBox->setSelectedColor(info->getIdentificationSymbolColor());
     m_symbolsContralateralIdColorComboBox->setSelectedColor(info->getIdentificationContralateralSymbolColor());
+    m_symbolSizeTypeComboBox->setSelectedItem<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>(info->getIdentificationSymbolSizeType());
+
     QSignalBlocker symbolSizeBlocker(m_symbolsIdDiameterSpinBox);
-    m_symbolsIdDiameterSpinBox->setValue(info->getIdentificationSymbolSize());
     QSignalBlocker recentSymbolSizeBlocker(m_symbolsMostRecentIdDiameterSpinBox);
-    m_symbolsMostRecentIdDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolSize());
+    switch (info->getIdentificationSymbolSizeType()) {
+        case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+            m_symbolsIdDiameterSpinBox->setValue(info->getIdentificationSymbolSize());
+            m_symbolsMostRecentIdDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolSize());
+            m_symbolsIdDiameterSpinBox->setSuffix("mm");
+            m_symbolsMostRecentIdDiameterSpinBox->setSuffix("mm");
+            break;
+        case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+            m_symbolsIdDiameterSpinBox->setValue(info->getIdentificationSymbolPercentageSize());
+            m_symbolsMostRecentIdDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolPercentageSize());
+            m_symbolsIdDiameterSpinBox->setSuffix("%");
+            m_symbolsMostRecentIdDiameterSpinBox->setSuffix("%");
+            break;
+    }
 }
 
 /**
@@ -539,6 +552,13 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolsContralateralIdColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::DISABLED,
                                                                                 CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
                                                                                 this);
+    
+    QLabel* symbolSizeTypeLabel = new QLabel("Diameter Type:");
+    m_symbolSizeTypeComboBox = new EnumComboBoxTemplate(this);
+    m_symbolSizeTypeComboBox->setup<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>();
+    QObject::connect(m_symbolSizeTypeComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &IdentificationDisplayWidget::symbolSizeTypeComboBoxActivated);
+    m_symbolSizeTypeComboBox->setToolTip(IdentificationSymbolSizeTypeEnum::getToolTip());
     
     QLabel* symbolDiameterLabel = new QLabel("Diameter:");
     m_symbolsIdDiameterSpinBox = new QDoubleSpinBox();
@@ -582,6 +602,11 @@ IdentificationDisplayWidget::createSymbolsWidget()
                       row, 0);
     symbolLayout->addWidget(m_symbolsContralateralIdColorComboBox->getWidget(),
                       row, 1);
+    row++;
+    symbolLayout->addWidget(symbolSizeTypeLabel,
+                            row, 0);
+    symbolLayout->addWidget(m_symbolSizeTypeComboBox->getWidget(),
+                            row, 1);
     row++;
     symbolLayout->addWidget(symbolDiameterLabel,
                       row, 0);
@@ -637,8 +662,29 @@ IdentificationDisplayWidget::symbolChanged()
     info->setContralateralIdentificationEnabled(m_symbolsSurfaceContralateralVertexCheckBox->isChecked());
     info->setIdentificationSymbolColor(m_symbolsIdColorComboBox->getSelectedColor());
     info->setIdentificationContralateralSymbolColor(m_symbolsContralateralIdColorComboBox->getSelectedColor());
-    info->setIdentificationSymbolSize(m_symbolsIdDiameterSpinBox->value());
-    info->setMostRecentIdentificationSymbolSize(m_symbolsMostRecentIdDiameterSpinBox->value());
+    switch (info->getIdentificationSymbolSizeType()) {
+        case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+            info->setIdentificationSymbolSize(m_symbolsIdDiameterSpinBox->value());
+            info->setMostRecentIdentificationSymbolSize(m_symbolsMostRecentIdDiameterSpinBox->value());
+            break;
+        case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+            info->setIdentificationSymbolPercentageSize(m_symbolsIdDiameterSpinBox->value());
+            info->setMostRecentIdentificationSymbolPercentageSize(m_symbolsMostRecentIdDiameterSpinBox->value());
+            break;
+    }
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Called when symbol size type combo box changed
+ */
+void
+IdentificationDisplayWidget::symbolSizeTypeComboBoxActivated()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* info = brain->getIdentificationManager();
+    info->setIdentificationSymbolSizeType(m_symbolSizeTypeComboBox->getSelectedItem<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>());
+    updateSymbolsWidget();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

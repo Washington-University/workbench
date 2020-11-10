@@ -139,6 +139,7 @@ IdentifiedItemNode::copyHelperIdentifiedItemNode(const IdentifiedItemNode& obj)
     m_contralateralStructure = obj.m_contralateralStructure;
     m_surfaceNumberOfNodes = obj.m_surfaceNumberOfNodes;
     m_nodeIndex = obj.m_nodeIndex;
+    m_identificationSymbolSizeType = obj.m_identificationSymbolSizeType;
     
     m_symbolRGB[0] = obj.m_symbolRGB[0];
     m_symbolRGB[1] = obj.m_symbolRGB[1];
@@ -161,6 +162,8 @@ IdentifiedItemNode::initializeMembers()
     m_contralateralStructure = StructureEnum::INVALID;
     m_surfaceNumberOfNodes = -1,
     m_nodeIndex = -1;
+    m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
+
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add<StructureEnum>("m_structure", &m_structure);
@@ -170,6 +173,8 @@ IdentifiedItemNode::initializeMembers()
     m_sceneAssistant->addArray("m_symbolRGB", m_symbolRGB, 3, 0);
     m_sceneAssistant->addArray("m_contralateralSymbolRGB", m_contralateralSymbolRGB, 3, 0);
     m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
+    m_sceneAssistant->add<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>("m_identificationSymbolSizeType",
+                                                                                                &m_identificationSymbolSizeType);
 }
 
 /**
@@ -337,6 +342,26 @@ IdentifiedItemNode::setSymbolSize(const float symbolSize)
     m_symbolSize = symbolSize;
 }
 
+/**
+ * @param The identification symbol size type
+ */
+IdentificationSymbolSizeTypeEnum::Enum
+IdentifiedItemNode::getIdentificationSymbolSizeType() const
+{
+    return m_identificationSymbolSizeType;
+}
+
+/**
+ * Set the identification size type
+ * @param sizeType
+ *    The new size type
+ */
+void
+IdentifiedItemNode::setIdentificationSymbolSizeType(const IdentificationSymbolSizeTypeEnum::Enum sizeType)
+{
+    m_identificationSymbolSizeType = sizeType;
+}
+
 
 /**
  * Get a description of this object's content.
@@ -411,6 +436,8 @@ IdentifiedItemNode::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (sceneClass == NULL) {
         return;
     }
+    
+    m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

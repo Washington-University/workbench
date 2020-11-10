@@ -3083,8 +3083,6 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                 }
             }
             
-            const float symbolDiameter = nodeID.getSymbolSize();
-            
             uint8_t symbolRGBA[4];
             
             if (isSelect) {
@@ -3104,6 +3102,18 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                 }
             }
             symbolRGBA[3] = 255;
+            
+            float symbolDiameter = nodeID.getSymbolSize();
+            switch (nodeID.getIdentificationSymbolSizeType()) {
+                case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+                    break;
+                case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+                {
+                    const float viewportSize = std::fabs(this->orthographicRight - this->orthographicLeft);
+                    symbolDiameter = viewportSize * (symbolDiameter / 100.0);
+                }
+                    break;
+            }
             
             /*
              * Need to draw each symbol independently since each symbol
