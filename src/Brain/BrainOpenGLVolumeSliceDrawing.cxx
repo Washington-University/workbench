@@ -850,10 +850,12 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
                     break;
             }
         }
+        
+        CaretAssertVectorIndex(m_volumeDrawInfo, 0);
+        drawIdentificationSymbols(m_volumeDrawInfo[0].volumeFile,
+                                  slicePlane,
+                                  sliceThickness);
     }
-    
-    drawIdentificationSymbols(slicePlane,
-                              sliceThickness);
     
     if ( ! m_identificationModeFlag) {
         if (slicePlane.isValidPlane()) {
@@ -1604,24 +1606,33 @@ BrainOpenGLVolumeSliceDrawing::showBrainordinateHighlightRegionOfInterest(const 
 /**
  * Draw identification symbols on volume slice with the given plane.
  *
+ * @param volume
+ *    The underlay volume
  * @param plane
  *   The plane equation.
  * @param sliceThickess
  *   Thickness of the slice
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane,
+BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                         const Plane& plane,
                                                          const float sliceThickness)
 {
     drawIdentificationSymbols(m_fixedPipelineDrawing,
                               m_brain,
+                              volume,
                               plane,
                               sliceThickness);
 }
 
 /**
  * Draw identification symbols on volume slice with the given plane.
- *
+ * @param fixedPipelineDrawing
+ *   The fixed pipeline drawing
+ * @param brain
+ *    The brain
+ * @param volume
+ *    The underlay volume
  * @param plane
  *   The plane equation.
  * @param sliceThickess
@@ -1630,9 +1641,14 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane,
 void
 BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                          Brain* brain,
+                                                         const VolumeMappableInterface* volume,
                                                          const Plane& plane,
                                                          const float sliceThickness)
 {
+    CaretAssert(fixedPipelineDrawing);
+    CaretAssert(brain);
+    CaretAssert(volume);
+    
     const float halfSliceThickness(sliceThickness > 0.0
                                    ? (sliceThickness * 0.55) /* ensure symbol falls within a slice*/
                                    : 1.0);
@@ -1682,8 +1698,10 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(BrainOpenGLFixedPipelin
                         break;
                     case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
                     {
-                        const float viewportSize = std::fabs(fixedPipelineDrawing->orthographicRight - fixedPipelineDrawing->orthographicLeft);
-                        symbolDiameter = viewportSize * (symbolDiameter / 100.0);
+                        BoundingBox boundingBox;
+                        volume->getVoxelSpaceBoundingBox(boundingBox);
+                        const float maxDimension = boundingBox.getMaximumDifferenceOfXYZ();
+                        symbolDiameter = maxDimension * (symbolDiameter / 100.0);
                     }
                         break;
                 }

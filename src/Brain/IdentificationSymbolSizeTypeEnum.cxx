@@ -393,7 +393,8 @@ IdentificationSymbolSizeTypeEnum::getToolTip()
                           "on smaller brains (monkey, child) and smaller on larger brains (human, adult).");
                 break;
             case PERCENTAGE:
-                tt.append("Symbols are sized as a percentage of the viewport containing the model.  "
+                tt.append("Symbols are sized as a percentage of the maximum brain dimension (typically "
+                          "the Anterior-Posterior axis).  "
                           "Thus, the symbols are drawn in a similar size on all brains.");
                 break;
         }

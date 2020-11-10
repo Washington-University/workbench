@@ -93,6 +93,8 @@ public:
 
     float getDifferenceZ() const;
 
+    float getMaximumDifferenceOfXYZ() const;
+    
     float getMinX() const;
 
     float getMaxX() const;

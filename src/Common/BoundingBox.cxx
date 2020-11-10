@@ -405,6 +405,18 @@ BoundingBox::getDifferenceZ() const
 }
 
 /**
+ * @return The maximum difference of the X, Y, Z differences.
+ */
+float
+BoundingBox::getMaximumDifferenceOfXYZ() const
+{
+    const float maxDiff(std::max(getDifferenceX(),
+                                 std::max(getDifferenceY(),
+                                          getDifferenceZ())));
+    return maxDiff;
+}
+
+/**
  * Get the X minimum value.
  * @return Its value.
  *

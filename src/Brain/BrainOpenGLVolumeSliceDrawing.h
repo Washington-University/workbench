@@ -85,6 +85,7 @@ namespace caret {
         
         static void drawIdentificationSymbols(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                               Brain* brain,
+                                              const VolumeMappableInterface* volume,
                                               const Plane& plane,
                                               const float sliceThickness);
         
@@ -341,7 +342,8 @@ namespace caret {
         bool getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
                                                 float spacingOut[3]);
         
-        void drawIdentificationSymbols(const Plane& plane,
+        void drawIdentificationSymbols(const VolumeMappableInterface* volume,
+                                       const Plane& plane,
                                        const float sliceThickness);
         
         void addVoxelToIdentification(const int32_t volumeIndex,

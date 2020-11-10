@@ -3109,8 +3109,10 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                     break;
                 case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
                 {
-                    const float viewportSize = std::fabs(this->orthographicRight - this->orthographicLeft);
-                    symbolDiameter = viewportSize * (symbolDiameter / 100.0);
+                    BoundingBox boundingBox;
+                    surface->getBounds(boundingBox);
+                    const float maxDiff(boundingBox.getMaximumDifferenceOfXYZ());
+                    symbolDiameter = maxDiff * (symbolDiameter / 100.0);
                 }
                     break;
             }

@@ -851,12 +851,15 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
                     break;
             }
         }
+        
+        CaretAssertVectorIndex(m_volumeDrawInfo, 0);
+        BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(m_fixedPipelineDrawing,
+                                                                 this->m_brain,
+                                                                 m_volumeDrawInfo[0].volumeFile,
+                                                                 slicePlane,
+                                                                 sliceThickness);
+        
     }
-    
-    BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(m_fixedPipelineDrawing,
-                                                             this->m_brain,
-                                                             slicePlane,
-                                                             sliceThickness);
     
     const bool annotationModeFlag = (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
     const bool tileTabsEditModeFlag = (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING);
