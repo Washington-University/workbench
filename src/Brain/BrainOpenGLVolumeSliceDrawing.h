@@ -83,6 +83,11 @@ namespace caret {
                                        BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                        const bool useNegativePolygonOffsetFlag);
         
+        static void drawIdentificationSymbols(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                              Brain* brain,
+                                              const Plane& plane,
+                                              const float sliceThickness);
+        
         // ADD_NEW_METHODS_HERE
         
     private:

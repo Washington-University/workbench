@@ -1613,20 +1613,40 @@ void
 BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane,
                                                          const float sliceThickness)
 {
+    drawIdentificationSymbols(m_fixedPipelineDrawing,
+                              m_brain,
+                              plane,
+                              sliceThickness);
+}
+
+/**
+ * Draw identification symbols on volume slice with the given plane.
+ *
+ * @param plane
+ *   The plane equation.
+ * @param sliceThickess
+ *   Thickness of the slice
+ */
+void
+BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                         Brain* brain,
+                                                         const Plane& plane,
+                                                         const float sliceThickness)
+{
     const float halfSliceThickness(sliceThickness > 0.0
                                    ? (sliceThickness * 0.55) /* ensure symbol falls within a slice*/
                                    : 1.0);
-    IdentificationManager* idManager = m_brain->getIdentificationManager();
+    IdentificationManager* idManager = brain->getIdentificationManager();
     
-    SelectionItemVoxelIdentificationSymbol* symbolID = m_brain->getSelectionManager()->getVoxelIdentificationSymbol();
-
+    SelectionItemVoxelIdentificationSymbol* symbolID = brain->getSelectionManager()->getVoxelIdentificationSymbol();
+    
     const std::vector<IdentifiedItemVoxel> voxelIDs = idManager->getIdentifiedItemsForVolume();
     
     /*
      * Check for a 'selection' type mode
      */
     bool isSelect = false;
-    switch (m_fixedPipelineDrawing->mode) {
+    switch (fixedPipelineDrawing->mode) {
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
@@ -1642,7 +1662,7 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane,
             return;
             break;
     }
-
+    
     if (idManager->isShowVolumeIdentificationSymbols()) {
         uint8_t rgba[4];
         const int32_t numVoxelIdSymbols = static_cast<int32_t>(voxelIDs.size());
@@ -1662,14 +1682,14 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane,
                         break;
                     case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
                     {
-                        const float viewportSize = std::fabs(m_fixedPipelineDrawing->orthographicRight - m_fixedPipelineDrawing->orthographicLeft);
+                        const float viewportSize = std::fabs(fixedPipelineDrawing->orthographicRight - fixedPipelineDrawing->orthographicLeft);
                         symbolDiameter = viewportSize * (symbolDiameter / 100.0);
                     }
                         break;
                 }
                 
                 if (isSelect) {
-                    m_fixedPipelineDrawing->colorIdentification->addItem(rgba,
+                    fixedPipelineDrawing->colorIdentification->addItem(rgba,
                                                                          SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,
                                                                          iVoxel);
                     rgba[3] = 255;
@@ -1680,7 +1700,7 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane,
                 
                 glPushMatrix();
                 glTranslatef(xyz[0], xyz[1], xyz[2]);
-                m_fixedPipelineDrawing->drawSphereWithDiameter(rgba,
+                fixedPipelineDrawing->drawSphereWithDiameter(rgba,
                                                                symbolDiameter);
                 glPopMatrix();
             }
@@ -1691,11 +1711,11 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane,
     if (isSelect) {
         int voxelIdIndex = -1;
         float depth = -1.0;
-        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,
-                                         m_fixedPipelineDrawing->mouseX,
-                                         m_fixedPipelineDrawing->mouseY,
-                                         voxelIdIndex,
-                                         depth);
+        fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,
+                                                           fixedPipelineDrawing->mouseX,
+                                                           fixedPipelineDrawing->mouseY,
+                                                           voxelIdIndex,
+                                                           depth);
         if (voxelIdIndex >= 0) {
             if (symbolID->isOtherScreenDepthCloserToViewer(depth)) {
                 CaretAssertVectorIndex(voxelIDs, voxelIdIndex);
@@ -1703,15 +1723,14 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane,
                 float xyz[3];
                 voxel.getXYZ(xyz);
                 symbolID->setVoxelXYZ(xyz);
-                symbolID->setBrain(m_brain);
+                symbolID->setBrain(brain);
                 symbolID->setScreenDepth(depth);
-                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(symbolID, xyz);
+                fixedPipelineDrawing->setSelectedItemScreenXYZ(symbolID, xyz);
                 CaretLogFine("Selected Vertex Identification Symbol: " + QString::number(voxelIdIndex));
             }
         }
     }
 }
-
 
 /**
  * Draw an orthogonal slice with culling to avoid drawing
