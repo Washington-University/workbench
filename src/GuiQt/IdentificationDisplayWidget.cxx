@@ -98,7 +98,6 @@ m_location(location)
     layout->addWidget(m_tabWidget, 100);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -125,14 +124,6 @@ IdentificationDisplayWidget::receiveEvent(Event* event)
         textEvent->setEventProcessed();
 
         updateContent(true);
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-        EventUserInterfaceUpdate* uiUpdateEvent =
-        dynamic_cast<EventUserInterfaceUpdate*>(event);
-        CaretAssert(uiUpdateEvent);
-        uiUpdateEvent->setEventProcessed();
-
-        updateContent(false);
     }
 }
 

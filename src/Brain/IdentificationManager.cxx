@@ -150,7 +150,9 @@ IdentificationManager::addIdentifiedItem(IdentifiedItem* item)
         }
     }
     
-    addIdentifiedItemPrivate(item);
+    const bool restoringSceneFlag(false);
+    addIdentifiedItemPrivate(item,
+                             restoringSceneFlag);
 }
 
 /**
@@ -158,18 +160,23 @@ IdentificationManager::addIdentifiedItem(IdentifiedItem* item)
  * @param item
  *    Identified item that is added.
  *    NOTE: Takes ownership of this item and will delete, at the appropriate time.
+ * @param restoringSceneFlag
+ *    If true, item is from a scene
  */
 void
-IdentificationManager::addIdentifiedItemPrivate(IdentifiedItem* item)
+IdentificationManager::addIdentifiedItemPrivate(IdentifiedItem* item,
+                                                const bool restoringSceneFlag)
 {
     CaretAssert(item);
     m_mostRecentIdentifiedItem = item;
     
     m_identifiedItems.push_back(item);
     
-    IdentificationHistoryRecord* historyRecord = new IdentificationHistoryRecord();
-    historyRecord->setText(item->getFormattedText());
-    m_identificationHistoryManager->addHistoryRecord(historyRecord);
+    if ( ! restoringSceneFlag) {
+        IdentificationHistoryRecord* historyRecord = new IdentificationHistoryRecord();
+        historyRecord->setText(item->getFormattedText());
+        m_identificationHistoryManager->addHistoryRecord(historyRecord);
+    }
 }
 
 /**
@@ -773,6 +780,7 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
+    const bool restoringSceneFlag(true);
     const int32_t numChildren = sceneClass->getNumberOfObjects();
     for (int32_t i = 0; i < numChildren; i++) {
         const SceneObject* so = sceneClass->getObjectAtIndex(i);
@@ -784,7 +792,8 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                     IdentifiedItem* item = new IdentifiedItem();
                     item->restoreFromScene(sceneAttributes, sc);
                     if (item->isValid()) {
-                        addIdentifiedItemPrivate(item);
+                        addIdentifiedItemPrivate(item,
+                                                 restoringSceneFlag);
                     }
                     else {
                         delete item;
@@ -794,7 +803,8 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                     IdentifiedItemNode* item = new IdentifiedItemNode();
                     item->restoreFromScene(sceneAttributes, sc);
                     if (item->isValid()) {
-                        addIdentifiedItemPrivate(item);
+                        addIdentifiedItemPrivate(item,
+                                                 restoringSceneFlag);
                     }
                     else {
                         delete item;
@@ -804,7 +814,8 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                     IdentifiedItemVoxel* item = new IdentifiedItemVoxel();
                     item->restoreFromScene(sceneAttributes, sc);
                     if (item->isValid()) {
-                        addIdentifiedItemPrivate(item);
+                        addIdentifiedItemPrivate(item,
+                                                 restoringSceneFlag);
                     }
                     else {
                         delete item;

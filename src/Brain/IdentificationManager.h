@@ -140,7 +140,8 @@ namespace caret {
 
     private:
 
-        void addIdentifiedItemPrivate(IdentifiedItem* item);
+        void addIdentifiedItemPrivate(IdentifiedItem* item,
+                                      const bool restoringSceneFlag);
         
         // ADD_NEW_MEMBERS_HERE
 

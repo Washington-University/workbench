@@ -3068,6 +3068,10 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             }
         }
 
+        /*
+         * Restore Information Widgets (newer replacement for information display dialog)
+         */
+        EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
         
         /*
          * Restore surface properties
