@@ -64,6 +64,10 @@ namespace caret {
         void setRightCortexFlatMapOffset(const float rightCortexFlatMapOffsetX,
                                          const float rightCortexFlatMapOffsetY);
 
+        Matrix4x4 getFlatRotationMatrix() const;
+        
+        void setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix);
+        
         float getRightCortexFlatMapZoomFactor() const;
         
         void setRightCortexFlatMapZoomFactor(const float rightCortexFlatMapZoomFactor);
@@ -101,6 +105,9 @@ namespace caret {
         
         /** Scaling. */
         float m_scaling;
+        
+        /** Rotation matrix for flat surface */
+        Matrix4x4* m_flatRotationMatrix;
         
         /** Offset for right cortex flat map */
         float m_rightCortexFlatMapOffset[2];

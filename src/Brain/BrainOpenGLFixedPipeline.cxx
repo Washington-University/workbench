@@ -6995,10 +6995,14 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithHeight(const int32_t view
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
             glOrtho(this->orthographicRight, this->orthographicLeft,
                     this->orthographicBottom, this->orthographicTop,
                     this->orthographicFar, this->orthographicNear);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+            glOrtho(this->orthographicLeft, this->orthographicRight,
+                    this->orthographicBottom, this->orthographicTop,
+                    this->orthographicNear, this->orthographicFar);
             break;
     }
     
@@ -7055,10 +7059,14 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithWidth(const int32_t viewp
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
             glOrtho(this->orthographicRight, this->orthographicLeft,
                     this->orthographicBottom, this->orthographicTop,
                     this->orthographicFar, this->orthographicNear);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+            glOrtho(this->orthographicLeft, this->orthographicRight,
+                    this->orthographicBottom, this->orthographicTop,
+                    this->orthographicNear, this->orthographicFar);
             break;
     }
 }

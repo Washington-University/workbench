@@ -49,6 +49,8 @@ ViewingTransformations::ViewingTransformations()
     m_translation[1] = 0.0;
     m_translation[2] = 0.0;
     m_scaling = 1.0;
+    m_flatRotationMatrix = new Matrix4x4();
+    
     m_rightCortexFlatMapOffset[0] = 0.0;
     m_rightCortexFlatMapOffset[1] = 0.0;
     m_rightCortexFlatMapZoomFactor = 1.0;
@@ -59,6 +61,7 @@ ViewingTransformations::ViewingTransformations()
                                0.0);
     m_sceneAssistant->add("m_scaling",
                           &m_scaling);
+    
     m_sceneAssistant->addArray("m_rightCortexFlatMapOffset",
                                m_rightCortexFlatMapOffset,
                                2,
@@ -73,6 +76,7 @@ ViewingTransformations::ViewingTransformations()
 ViewingTransformations::~ViewingTransformations()
 {
     delete m_rotationMatrix;
+    delete m_flatRotationMatrix;
     delete m_sceneAssistant;
 }
 
@@ -117,6 +121,7 @@ ViewingTransformations::copyHelperViewingTransformations(const ViewingTransforma
     m_translation[1]  = obj.m_translation[1];
     m_translation[2]  = obj.m_translation[2];
     m_scaling         = obj.m_scaling;
+    *m_flatRotationMatrix = *obj.m_flatRotationMatrix;
     m_rightCortexFlatMapOffset[0]  = obj.m_rightCortexFlatMapOffset[0];
     m_rightCortexFlatMapOffset[1]  = obj.m_rightCortexFlatMapOffset[1];
     m_rightCortexFlatMapZoomFactor = obj.m_rightCortexFlatMapZoomFactor;
@@ -221,6 +226,26 @@ ViewingTransformations::setRotationMatrix(const Matrix4x4& rotationMatrix)
 }
 
 /**
+ * @return The flat rotation matrix
+ */
+Matrix4x4
+ViewingTransformations::getFlatRotationMatrix() const
+{
+    return *m_flatRotationMatrix;
+}
+
+/**
+ * Set the flat rotation matrix
+ * @param flatRotationMatrix
+ *    New  flat rotation matrix
+ */
+void
+ViewingTransformations::setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix)
+{
+    *m_flatRotationMatrix = flatRotationMatrix;
+}
+
+/**
  * Get the offset for the right cortex flat map.
  *
  * @param rightCortexFlatMapOffsetX
@@ -283,6 +308,7 @@ ViewingTransformations::resetView()
     setTranslation(0.0, 0.0, 0.0);
     m_rotationMatrix->identity();
     setScaling(1.0);
+    m_flatRotationMatrix->identity();
     setRightCortexFlatMapOffset(0.0, 0.0);
     setRightCortexFlatMapZoomFactor(1.0);
     leftView();
@@ -318,8 +344,6 @@ ViewingTransformations::anteriorView()
 {
     m_rotationMatrix->identity();
     m_rotationMatrix->setRotation(90.0, 0.0, -180.0);
-//    m_rotationMatrix->rotateX(-90.0);
-//    m_rotationMatrix->rotateY(180.0);
 }
 
 /**
@@ -330,7 +354,6 @@ ViewingTransformations::posteriorView()
 {
     m_rotationMatrix->identity();
     m_rotationMatrix->setRotation(-90.0, 0.0, 0.0);
-//    m_rotationMatrix->rotateX(-90.0);
 }
 
 /**
@@ -339,7 +362,6 @@ ViewingTransformations::posteriorView()
 void
 ViewingTransformations::dorsalView()
 {
-//    m_rotationMatrix->identity();
     m_rotationMatrix->setRotation(0.0, 0.0, 90.0);
 }
 
@@ -349,8 +371,6 @@ ViewingTransformations::dorsalView()
 void
 ViewingTransformations::ventralView()
 {
-//    m_rotationMatrix->identity();
-//    m_rotationMatrix->rotateY(-180.0);
     m_rotationMatrix->setRotation(0.0, 180.0, 90.0);
 }
 
@@ -392,6 +412,11 @@ ViewingTransformations::saveToScene(const SceneAttributes* sceneAttributes,
     m_rotationMatrix->getMatrix(matrix);
     sceneClass->addFloatArray("m_rotationMatrix", (float*)matrix, 16);
     
+    /*
+     * Save flat rotation matrices.
+     */
+    m_flatRotationMatrix->getMatrix(matrix);
+    sceneClass->addFloatArray("m_flatRotationMatrix", (float*)matrix, 16);
     return sceneClass;
 }
 
@@ -427,6 +452,17 @@ ViewingTransformations::restoreFromScene(const SceneAttributes* sceneAttributes,
     else {
         m_rotationMatrix->identity();
     }
+    
+    /*
+     * Restore flat rotation matrices.
+     */
+    if (sceneClass->getFloatArrayValue("m_flatRotationMatrix", (float*)matrix, 16) == 16) {
+        m_flatRotationMatrix->setMatrix(matrix);
+    }
+    else {
+        m_flatRotationMatrix->identity();
+    }
+    
 }
 
 

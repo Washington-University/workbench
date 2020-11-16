@@ -96,6 +96,7 @@ namespace caret {
                                             double& obRotX,
                                             double& obRotY,
                                             double& obRotZ,
+                                            double& flatRotate,
                                             double& zoom,
                                             double& rightFlatX,
                                             double& rightFlatY,
@@ -110,6 +111,7 @@ namespace caret {
                                             const double obRotX,
                                             const double obRotY,
                                             const double obRotZ,
+                                            const double flatRotate,
                                             const double zoom,
                                             const double rightFlatX,
                                             const double rightFlatY,
@@ -152,6 +154,8 @@ namespace caret {
         QDoubleSpinBox* m_yObliqueRotateDoubleSpinBox;
         
         QDoubleSpinBox* m_zObliqueRotateDoubleSpinBox;
+        
+        QDoubleSpinBox* m_flatRotationDoubleSpinBox;
         
         QDoubleSpinBox* m_zoomDoubleSpinBox;
 

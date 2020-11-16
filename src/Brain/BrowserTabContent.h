@@ -250,6 +250,10 @@ namespace caret {
         
         void setObliqueVolumeRotationMatrix(const Matrix4x4& obliqueRotationMatrix);
 
+        Matrix4x4 getFlatRotationMatrix() const;
+        
+        void setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix);
+        
         void getRightCortexFlatMapOffset(float& offsetX,
                                          float& offsetY) const;
         

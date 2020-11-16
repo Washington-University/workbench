@@ -45,6 +45,8 @@ namespace caret {
         
         void getObliqueRotation(float obliqueRotation[4][4]) const;
         
+        void getFlatRotation(float flatRotation[4][4]) const;
+        
         void getRightCortexFlatMapOffset(float& rightCortexFlatMapOffsetX,
                                          float& rightCortexFlatMapOffsetY) const;
         
@@ -68,6 +70,8 @@ namespace caret {
         
         void setObliqueRotation(const float obliqueRotation[4][4]);
         
+        void setFlatRotation(const float flatRotation[4][4]);
+        
         void setRightCortexFlatMapOffset(const float rightCortexFlatMapOffsetX,
                                          const float rightCortexFlatMapOffsetY);
         
@@ -80,6 +84,7 @@ namespace caret {
                                              const float panZ,
                                              const float rotationMatrix[4][4],
                                              const float obliqueRotationMatrix[4][4],
+                                             const float flatRotationMatrix[4][4],
                                              const float zoom,
                                              const float rightCortexFlatMapOffsetX,
                                              const float rightCortexFlatMapOffsetY,
@@ -90,6 +95,7 @@ namespace caret {
                                              float& panZ,
                                              float rotationMatrix[4][4],
                                              float obliqueRotationMatrix[4][4],
+                                             float flatRotationMatrix[4][4],
                                              float& zoom,
                                              float& rightCortexFlatMapOffsetX,
                                              float& rightCortexFlatMapOffsetY,
@@ -120,6 +126,8 @@ namespace caret {
         float rotation[4][4];
         
         float obliqueRotation[4][4];
+        
+        float flatRotation[4][4];
         
         float scaling;
         

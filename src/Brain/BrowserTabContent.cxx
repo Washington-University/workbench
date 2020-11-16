@@ -2507,6 +2507,20 @@ BrowserTabContent::setObliqueVolumeRotationMatrix(const Matrix4x4& obliqueRotati
     updateBrainModelYokedBrowserTabs();
 }
 
+Matrix4x4
+BrowserTabContent::getFlatRotationMatrix() const
+{
+    return getViewingTransformation()->getFlatRotationMatrix();
+}
+
+void
+BrowserTabContent::setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix)
+{
+    getViewingTransformation()->setFlatRotationMatrix(flatRotationMatrix);
+    updateYokedModelBrowserTabs();
+}
+
+
 /**
  * Get the offset for the right flat map offset.
  *
@@ -2938,6 +2952,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
         float rotateDX = 0.0;
         float rotateDY = 0.0;
         float rotateDZ = 0.0;
+        float rotateFlat = 0.0;
         
         ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
         if (montageModel != NULL) {
@@ -2976,6 +2991,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
                             foundMontageViewportFlag = true;
+                            rotateFlat = -screenDY;
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
                             break;
@@ -2997,6 +3013,12 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
             }
         }
         else {
+            ModelSurface* modelSurface = getDisplayedSurfaceModel();
+            if (modelSurface != NULL) {
+                if (isFlatSurfaceDisplayed()) {
+                    rotateFlat = -screenDY;
+                }
+            }
             rotateDX = -screenDY;
             rotateDY =  screenDX;
         }
@@ -3018,6 +3040,10 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
         else {
             float dx = mouseDeltaX;
             float dy = mouseDeltaY;
+            
+            StructureEnum::Enum flatStructure(StructureEnum::INVALID);
+            float flatRotate(0.0);
+            int32_t flatViewport[4] { -1, -1, -1, -1 };
             
             ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
             if (montageModel != NULL) {
@@ -3044,6 +3070,9 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
                                 break;
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+                                isFlat = true;
+                                smv->getViewport(flatViewport);
+                                flatStructure = StructureEnum::CEREBELLUM;
                                 break;
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
                                 isLeft = true;
@@ -3056,6 +3085,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
                                 isLeft = true;
                                 isFlat = true;
+                                smv->getViewport(flatViewport);
+                                flatStructure = StructureEnum::CORTEX_LEFT;
                                 break;
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
                                 isLeft = false;
@@ -3068,6 +3099,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
                                 isLeft = false;
                                 isFlat = true;
+                                smv->getViewport(flatViewport);
+                                flatStructure = StructureEnum::CORTEX_RIGHT;
                                 break;
                         }
                         isValid = true;
@@ -3080,7 +3113,12 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 
                 if (isFlat) {
                     /*
-                     * No rotation.
+                     * Special flat map rotation
+                     */
+                    flatRotate = dy;
+                    
+                    /*
+                     * No 3D rotation.
                      */
                     dx = 0.0;
                     dy = 0.0;
@@ -3095,10 +3133,98 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 }
             }
             
+            ModelSurface* modelSurface = getDisplayedSurfaceModel();
+            if (modelSurface != NULL) {
+                const Surface* surface = modelSurface->getSurface();
+                if (surface != NULL) {
+                    switch (surface->getSurfaceType()) {
+                        case SurfaceTypeEnum::ANATOMICAL:
+                        case SurfaceTypeEnum::ELLIPSOID:
+                        case SurfaceTypeEnum::HULL:
+                        case SurfaceTypeEnum::INFLATED:
+                        case SurfaceTypeEnum::RECONSTRUCTION:
+                        case SurfaceTypeEnum::SEMI_SPHERICAL:
+                        case SurfaceTypeEnum::SPHERICAL:
+                        case SurfaceTypeEnum::UNKNOWN:
+                        case SurfaceTypeEnum::VERY_INFLATED:
+                            break;
+                        case SurfaceTypeEnum::FLAT:
+                            viewportContent->getModelViewport(flatViewport);
+                            flatRotate = dy;
+                            flatStructure = surface->getStructure();
+//                            if (StructureEnum::isRight(surface->getStructure())) {
+//                                flatRotate = -flatRotate;
+//                            }
+                            break;
+                    }
+                }
+            }
+            
             Matrix4x4 rotationMatrix = viewingTransform->getRotationMatrix();
             rotationMatrix.rotateX(-dy);
             rotationMatrix.rotateY(dx);
             viewingTransform->setRotationMatrix(rotationMatrix);
+            
+            if (flatRotate != 0.0) {
+                if ((flatViewport[2] > 0)
+                    && (flatViewport[3] > 0)) {
+                    if ((mouseDeltaX != 0)
+                        || (mouseDeltaY != 0)) {
+                        
+                        const int previousMouseX = mouseX - mouseDeltaX;
+                        const int previousMouseY = mouseY - mouseDeltaY;
+                        
+                        /*
+                         * Need to account for the quadrants!!!!
+                         */
+                        const float viewportCenter[3] = {
+                            (float)(flatViewport[0] + flatViewport[2] / 2),
+                            ((float)flatViewport[1] + flatViewport[3] / 2),
+                            0.0
+                        };
+                        
+                        const float oldPos[3] = {
+                            (float)previousMouseX,
+                            (float)previousMouseY,
+                            0.0
+                        };
+                        
+                        const float newPos[3] = {
+                            (float)mouseX,
+                            (float)mouseY,
+                            0.0
+                        };
+                        
+                        /*
+                         * Compute normal vector from viewport center to
+                         * old mouse position to new mouse position.
+                         * If normal-Z is positive, mouse has been moved
+                         * in a counter clockwise motion relative to center.
+                         * If normal-Z is negative, mouse has moved clockwise.
+                         */
+                        float normalDirection[3];
+                        MathFunctions::normalVectorDirection(viewportCenter,
+                                                             oldPos,
+                                                             newPos,
+                                                             normalDirection);
+                        flatRotate = std::fabs(flatRotate);
+                        if (normalDirection[2] > 0.0) {
+                            /* mouse movied counter-clockwise */
+                        }
+                        else if (normalDirection[2] < 0.0) {
+                            /* mouse movied clockwise */
+                            flatRotate = -flatRotate;
+                        }
+                        
+                        if (StructureEnum::isRight(flatStructure)) {
+                            flatRotate = -flatRotate;
+                        }
+                    }
+                }
+                Matrix4x4 flatRotationMatrix = viewingTransform->getFlatRotationMatrix();
+                flatRotationMatrix.rotateZ(flatRotate);
+                viewingTransform->setFlatRotationMatrix(flatRotationMatrix);
+            }
         }
     }
     updateYokedModelBrowserTabs();
@@ -3617,16 +3743,18 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
         }
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
-            rotationX =     0.0;
-            rotationY =     0.0;
+            getFlatRotationMatrix().getRotation(rotationX,
+                                                rotationY,
+                                                rotationZ);
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
-            rotationX =     0.0;
-            rotationY =     0.0;
+            getFlatRotationMatrix().getRotation(rotationX,
+                                                rotationY,
+                                                rotationZ);
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
             rotationX = rotationFlippedX;
@@ -3637,8 +3765,11 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
             rotationY = rotationFlippedY;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
-            rotationX =   0.0;
-            rotationY = 180.0;
+            translationOut[0] = -translationOut[0];
+            getFlatRotationMatrix().getRotation(rotationX,
+                                                rotationY,
+                                                rotationZ);
+            rotationZ = -rotationZ;
             break;
     }
     
@@ -3671,6 +3802,11 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     float mob[4][4];
     obliqueRotationMatrix.getMatrix(mob);
     modelTransform.setObliqueRotation(mob);
+    
+    const Matrix4x4 flatRotationMatrix = getFlatRotationMatrix();
+    float fm[4][4];
+    flatRotationMatrix.getMatrix(fm);
+    modelTransform.setFlatRotation(fm);
     
     float rightFlatX, rightFlatY;
     getRightCortexFlatMapOffset(rightFlatX, rightFlatY);
@@ -3710,6 +3846,12 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
     obliqueRotationMatrix.setMatrix(mob);
     setObliqueVolumeRotationMatrix(obliqueRotationMatrix);
 
+    float fm[4][4];
+    modelTransform.getFlatRotation(fm);
+    Matrix4x4 flatRotationMatrix;
+    flatRotationMatrix.setMatrix(fm);
+    setFlatRotationMatrix(flatRotationMatrix);
+    
     const float scale = modelTransform.getScaling();
     setScaling(scale);
     
@@ -4052,6 +4194,7 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
             }
         }
     }
+    
     
     testForRestoreSceneWarnings(sceneAttributes,
                                 sceneClass->getVersionNumber());
