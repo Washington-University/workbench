@@ -1147,6 +1147,15 @@ BrainOpenGLFixedPipeline::drawSpacerAnnotations(const BrainOpenGLViewportContent
     
     int tabViewport[4];
     tabContent->getModelViewport(tabViewport);
+    
+    /*
+     * Is viewport width/height invalid?
+     */
+    if ((tabViewport[2] <= 0)
+        || (tabViewport[3] <= 0)) {
+        return;
+    }
+    
     CaretAssertMessage(m_brain, "m_brain must NOT be NULL for drawing spacer tab annotations.");
     glViewport(tabViewport[0],
                tabViewport[1],
