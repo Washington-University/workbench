@@ -2931,6 +2931,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
         float rotateDY = 0.0;
         float rotateDZ = 0.0;
         float rotateFlat = 0.0;
+        bool flatFlag(false);
         
         ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
         if (montageModel != NULL) {
@@ -2969,7 +2970,6 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
                             foundMontageViewportFlag = true;
-                            rotateFlat = -screenDY;
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
                             break;
@@ -2994,18 +2994,84 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
             ModelSurface* modelSurface = getDisplayedSurfaceModel();
             if (modelSurface != NULL) {
                 if (isFlatSurfaceDisplayed()) {
+                    flatFlag   = true;
                     rotateFlat = -screenDY;
                 }
+                else {
+                    rotateDX = -screenDY;
+                    rotateDY =  screenDX;
+                }
             }
-            rotateDX = -screenDY;
-            rotateDY =  screenDX;
         }
         
-        Matrix4x4 rotationMatrix = m_cerebellumViewingTransformation->getRotationMatrix();
-        rotationMatrix.rotateX(rotateDX);
-        rotationMatrix.rotateY(rotateDY);
-        rotationMatrix.rotateZ(rotateDZ);
-        m_cerebellumViewingTransformation->setRotationMatrix(rotationMatrix);
+        if (flatFlag) {
+            if (rotateFlat != 0.0) {
+                int viewport[4];
+                viewportContent->getModelViewport(viewport);
+                if ((viewport[2] > 0)
+                    && (viewport[3] > 0)) {
+                    if ((mouseDeltaX != 0)
+                        || (mouseDeltaY != 0)) {
+                        
+                        const int previousMouseX = mouseX - mouseDeltaX;
+                        const int previousMouseY = mouseY - mouseDeltaY;
+                        
+                        /*
+                         * Need to account for the quadrants!!!!
+                         */
+                        const float viewportCenter[3] = {
+                            (float)(viewport[0] + viewport[2] / 2),
+                            ((float)viewport[1] + viewport[3] / 2),
+                            0.0
+                        };
+                        
+                        const float oldPos[3] = {
+                            (float)previousMouseX,
+                            (float)previousMouseY,
+                            0.0
+                        };
+                        
+                        const float newPos[3] = {
+                            (float)mouseX,
+                            (float)mouseY,
+                            0.0
+                        };
+                        
+                        /*
+                         * Compute normal vector from viewport center to
+                         * old mouse position to new mouse position.
+                         * If normal-Z is positive, mouse has been moved
+                         * in a counter clockwise motion relative to center.
+                         * If normal-Z is negative, mouse has moved clockwise.
+                         */
+                        float normalDirection[3];
+                        MathFunctions::normalVectorDirection(viewportCenter,
+                                                             oldPos,
+                                                             newPos,
+                                                             normalDirection);
+                        rotateFlat = std::fabs(rotateFlat);
+                        if (normalDirection[2] > 0.0) {
+                            /* mouse movied counter-clockwise */
+                        }
+                        else if (normalDirection[2] < 0.0) {
+                            /* mouse movied clockwise */
+                            rotateFlat = -rotateFlat;
+                        }
+                    }
+                }
+                ViewingTransformations* viewingTransform = getViewingTransformation();
+                Matrix4x4 flatRotationMatrix = viewingTransform->getFlatRotationMatrix();
+                flatRotationMatrix.rotateZ(rotateFlat);
+                viewingTransform->setFlatRotationMatrix(flatRotationMatrix);
+            }
+        }
+        else {
+            Matrix4x4 rotationMatrix = m_cerebellumViewingTransformation->getRotationMatrix();
+            rotationMatrix.rotateX(rotateDX);
+            rotationMatrix.rotateY(rotateDY);
+            rotationMatrix.rotateZ(rotateDZ);
+            m_cerebellumViewingTransformation->setRotationMatrix(rotationMatrix);
+        }
     }
     else {
         ViewingTransformations* viewingTransform = getViewingTransformation();
@@ -3130,9 +3196,6 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                             viewportContent->getModelViewport(flatViewport);
                             flatRotate = dy;
                             flatStructure = surface->getStructure();
-//                            if (StructureEnum::isRight(surface->getStructure())) {
-//                                flatRotate = -flatRotate;
-//                            }
                             break;
                     }
                 }
