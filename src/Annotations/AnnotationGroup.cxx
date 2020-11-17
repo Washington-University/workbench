@@ -1059,6 +1059,67 @@ AnnotationGroup::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGrou
 }
 
 /**
+ * Copy the selections for annotations that are displayed in more than one
+ * tab.  This includes chart, stereotaxic, and surface annotations.
+ *
+ * @param sourceTabIndex
+ *     Index of source tab (copy "from")
+ * @param targetTabIndex
+ *     Index of target tab (copy "to")
+ */
+void
+AnnotationGroup::copySelections(const int32_t sourceTabIndex,
+                                const int32_t targetTabIndex)
+{
+    bool supportedSpaceFlag(false);
+    switch (m_coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            supportedSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            supportedSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            supportedSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    
+    if ( ! supportedSpaceFlag) {
+        return;
+    }
+    
+    /*
+     * Note: We DO NOT copy the selection status for the group.
+     * When getItemDisplaySelected() is called, it will determine
+     * the selection status based (on, partial, off) based upon
+     * the selection status of the annotations in the group.
+     */
+    setItemExpanded(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                    targetTabIndex,
+                    isItemExpanded(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                   sourceTabIndex));
+    
+    for (auto ann : m_annotations) {
+        ann->setItemDisplaySelected(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                    targetTabIndex,
+                                    ann->getItemDisplaySelected(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                                sourceTabIndex));
+        ann->setItemExpanded(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                             targetTabIndex,
+                             ann->isItemExpanded(DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                 sourceTabIndex));
+    }
+}
+
+/**
  * Update the tab index to correspond to the tab index used for this
  * annotation group if it is in tab annotation space.  This functionality 
  * was added to resolve WB-831.

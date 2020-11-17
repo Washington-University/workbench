@@ -129,6 +129,18 @@ namespace caret {
                                      const int32_t tabIndex,
                                      const TriStateSelectionStatusEnum::Enum status);
         
+        /**
+         * Copy the selections from one tab to another tab.
+         * Also copies selections in all descendants.
+         *
+         * @param sourceTabIndex
+         *     Index of source tab (copy "from")
+         * @param targetTabIndex
+         *     Index of target tab (copy "to")
+         */
+        void copySelections(const int32_t sourceTabIndex,
+                            const int32_t targetTabIndex);
+
         virtual bool isItemSelectedForEditingInWindow(const int32_t windowIndex);
         
           

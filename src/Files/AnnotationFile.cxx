@@ -991,20 +991,35 @@ AnnotationFile::cloneAnnotationsFromTabToTab(const int32_t fromTabIndex,
     
     for (auto group : groupPointers) {
         CaretAssert(group);
-        if (group->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
-            if (group->getTabOrWindowIndex() == fromTabIndex) {
-                std::vector<Annotation*> annotations;
-                group->getAllAnnotations(annotations);
-                
-                for (auto ann : annotations) {
-                    CaretAssert(ann->getTabIndex() == fromTabIndex);
-                    Annotation* newAnn = ann->clone();
-                    newAnn->setTabIndex(toTabIndex);
-                    addAnnotationPrivate(newAnn,
-                                         generateUniqueKey());
-                    annotationsWereClonedFlag = true;
+        switch (group->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::SPACER:
+                break;
+            case AnnotationCoordinateSpaceEnum::CHART:
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+                group->copySelections(fromTabIndex,
+                                      toTabIndex);
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+                if (group->getTabOrWindowIndex() == fromTabIndex) {
+                    std::vector<Annotation*> annotations;
+                    group->getAllAnnotations(annotations);
+                    
+                    for (auto ann : annotations) {
+                        CaretAssert(ann->getTabIndex() == fromTabIndex);
+                        Annotation* newAnn = ann->clone();
+                        newAnn->setTabIndex(toTabIndex);
+                        addAnnotationPrivate(newAnn,
+                                             generateUniqueKey());
+                        annotationsWereClonedFlag = true;
+                    }
                 }
-            }
+                break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssert(0);
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                break;
         }
     }
     

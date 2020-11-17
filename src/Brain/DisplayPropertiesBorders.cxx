@@ -208,6 +208,7 @@ DisplayPropertiesBorders::copyDisplayProperties(const int32_t sourceTabIndex,
     this->setDisplayGroupForTab(targetTabIndex, displayGroup);
     
     this->m_contralateralDisplayStatusInTab[targetTabIndex] = this->m_contralateralDisplayStatusInTab[sourceTabIndex];
+    this->m_coloringTypeInTab[targetTabIndex]  = this->m_coloringTypeInTab[sourceTabIndex];
     this->m_displayStatusInTab[targetTabIndex] = this->m_displayStatusInTab[sourceTabIndex];
     this->m_drawingTypeInTab[targetTabIndex] = this->m_drawingTypeInTab[sourceTabIndex];
     this->m_lineWidthInTab[targetTabIndex]   = this->m_lineWidthInTab[sourceTabIndex];

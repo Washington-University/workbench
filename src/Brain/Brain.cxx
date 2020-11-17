@@ -895,14 +895,65 @@ Brain::resetBrainKeepSceneFiles()
  *    Index of target tab.
  */
 void 
-Brain::copyDisplayProperties(const int32_t sourceTabIndex,
-                             const int32_t targetTabIndex)
+Brain::copyDisplayPropertiesToTab(const int32_t sourceTabIndex,
+                                  const int32_t targetTabIndex)
 {
     for (std::vector<DisplayProperties*>::iterator iter = m_displayProperties.begin();
          iter != m_displayProperties.end();
          iter++) {
         (*iter)->copyDisplayProperties(sourceTabIndex,
                                        targetTabIndex);
+    }
+}
+
+/**
+ * Copy data file properties from the source tab to the target tab.
+ * @param sourceTabIndex
+ *    Index of source tab.
+ * @param targetTabIndex
+ *    Index of target tab.
+ */
+void
+Brain::copyFilePropertiesToTab(const int32_t sourceTabIndex,
+                               const int32_t targetTabIndex)
+{
+    const int32_t numberOfBrainStructures = getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numberOfBrainStructures; i++) {
+        BrainStructure* bs = getBrainStructure(i);
+        const int32_t numLabelFiles = bs->getNumberOfLabelFiles();
+        for (int32_t j = 0; j < numLabelFiles; j++) {
+            LabelFile* labelFile = bs->getLabelFile(j);
+            labelFile->getGroupAndNameHierarchyModel()->copySelections(sourceTabIndex,
+                                                                       targetTabIndex);
+        }
+    }
+    
+    const int32_t numBorderFiles = getNumberOfBorderFiles();
+    for (int32_t i = 0; i < numBorderFiles; i++) {
+        BorderFile* bf = getBorderFile(i);
+        bf->getGroupAndNameHierarchyModel()->copySelections(sourceTabIndex,
+                                                            targetTabIndex);
+    }
+    
+    std::vector<CiftiMappableDataFile*> ciftiMapFiles;
+    getAllCiftiMappableDataFiles(ciftiMapFiles);
+    for (auto cmf : ciftiMapFiles) {
+        cmf->getGroupAndNameHierarchyModel()->copySelections(sourceTabIndex,
+                                                             targetTabIndex);
+    }
+    
+    const int32_t numFociFiles = getNumberOfFociFiles();
+    for (int32_t i = 0; i < numFociFiles; i++) {
+        FociFile* ff = getFociFile(i);
+        ff->getGroupAndNameHierarchyModel()->copySelections(sourceTabIndex,
+                                                            targetTabIndex);
+    }
+
+    const int32_t numVolumeFiles = getNumberOfVolumeFiles();
+    for (int32_t i = 0; i < numVolumeFiles; i++) {
+        VolumeFile* vf = getVolumeFile(i);
+        vf->getGroupAndNameHierarchyModel()->copySelections(sourceTabIndex,
+                                                            targetTabIndex);
     }
 }
 
@@ -7631,7 +7682,11 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
         sceneClass->addClass(ff->getGroupAndNameHierarchyModel()->saveToScene(sceneAttributes,
                                                          ff->getFileNameNoPath()));
     }
-    
+    for (auto lf : m_volumeFiles) {
+        sceneClass->addClass(lf->getGroupAndNameHierarchyModel()->saveToScene(sceneAttributes,
+                                                                              lf->getFileNameNoPath()));
+    }
+
     sceneClass->addClass(m_identificationManager->saveToScene(sceneAttributes,
                                                               "m_identificationManager"));
     
@@ -7904,6 +7959,10 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         FociFile* ff = *fociIter;
         ff->getGroupAndNameHierarchyModel()->restoreFromScene(sceneAttributes,
                                                               sceneClass->getClass(ff->getFileNameNoPath()));
+    }
+    for (auto vf : m_volumeFiles) {
+        vf->getGroupAndNameHierarchyModel()->restoreFromScene(sceneAttributes,
+                                                              sceneClass->getClass(vf->getFileNameNoPath()));
     }
 
     m_identificationManager->restoreFromScene(sceneAttributes,

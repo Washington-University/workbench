@@ -722,6 +722,19 @@ GroupAndNameHierarchyItem::copySelections(const int32_t sourceTabIndex,
     m_selectedInTab[targetTabIndex] = m_selectedInTab[sourceTabIndex];
     m_expandedStatusInTab[targetTabIndex] = m_expandedStatusInTab[sourceTabIndex];
 
+    AString indent;
+    switch (m_itemType) {
+        case ITEM_TYPE_GROUP:
+            indent = "   ";
+            break;
+        case ITEM_TYPE_MODEL:
+            std::cout << std::endl;
+            break;
+        case ITEM_TYPE_NAME:
+            indent = "      ";
+            break;
+    }
+    
     for (std::vector<GroupAndNameHierarchyItem*>::const_iterator iter = m_children.begin();
          iter != m_children.end();
          iter++) {
