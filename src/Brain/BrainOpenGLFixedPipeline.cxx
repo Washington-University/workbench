@@ -4314,7 +4314,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
     }
     
     if ( ! volumeDrawInfoOutsideFaces.empty()) {
+        glPushAttrib(GL_ENABLE_BIT);
         drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(volumeDrawInfoOutsideFaces);
+        glPopAttrib();
     }
     
     const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
@@ -4779,6 +4781,22 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
         const bool xRightFlag(dx > 0.0);
         const bool yAnteriorFlag(dy > 0.0);
         const bool zSuperiorFlag(dz > 0.0);
+        
+        if (xRightFlag
+            && yAnteriorFlag
+            && zSuperiorFlag) {
+            glEnable(GL_CULL_FACE);
+        }
+        else {
+            /*
+             * 19 Nov 2020
+             * Disable culling as there are problems with Right-to-Left orientations
+             * and to truly fix it requires rewriting drawing voxels as cubes.
+             * Another reason to rewrite drawing voxels as cubes as it probably will
+             * not work for oblique volumes.
+             */
+            glDisable(GL_CULL_FACE);
+        }
         
         std::vector<float> labelMapData;
         const CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<const CiftiBrainordinateLabelFile*>(volumeFile);
