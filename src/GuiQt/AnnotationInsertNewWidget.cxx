@@ -351,6 +351,9 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
+            case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                //CaretAssertToDoWarning();
+                break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:
                 stereotaxicSpaceValidFlag = true;
                 surfaceSpaceValidFlag = true;

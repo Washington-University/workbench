@@ -455,6 +455,45 @@ CaretDataFile::getFileNameNoExtension() const
     return name;
 }
 
+/**
+ * @return File casted to an image file (avoids use of dynamic_cast that can be slow)
+ */
+ImageFile*
+CaretDataFile::castToImageFile()
+{
+    return NULL;
+}
+
+/**
+ * @return File casted to an image file (avoids use of dynamic_cast that can be slow)
+ * Overidden in ImageFile
+ */
+const ImageFile*
+CaretDataFile::castToImageFile() const
+{
+    return NULL;
+}
+
+
+/**
+ * @return File casted to an media file (avoids use of dynamic_cast that can be slow)
+ * Overidden in MediaFile
+ */
+MediaFile*
+CaretDataFile::castToMediaFile()
+{
+    return NULL;
+}
+
+/**
+ * @return File casted to an media file (avoids use of dynamic_cast that can be slow)
+ * Overidden in ImageFile
+ */
+const MediaFile*
+CaretDataFile::castToMediaFile() const
+{
+    return NULL;
+}
 
 
 

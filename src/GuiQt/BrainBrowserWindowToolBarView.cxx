@@ -27,9 +27,12 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 
+#include "Brain.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "GuiManager.h"
+#include "SessionManager.h"
 #include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
@@ -65,6 +68,11 @@ BrainBrowserWindowToolBarView::BrainBrowserWindowToolBarView(const QString& pare
                                                      + ":ChartOld");
     macroManager->addMacroSupportToObject(this->viewModeChartOneRadioButton,
                                           "Select Chart Old View");
+    /*
+     * Chart Old is displayed only if an old scene was loaded
+     * that has a chart one model selected
+     */
+    this->viewModeChartOneRadioButton->setVisible(false);
     
     this->viewModeChartTwoRadioButton = new QRadioButton("Chart");
     this->viewModeChartTwoRadioButton->setToolTip("Show Chart View");
@@ -101,6 +109,13 @@ BrainBrowserWindowToolBarView::BrainBrowserWindowToolBarView(const QString& pare
     macroManager->addMacroSupportToObject(this->viewModeWholeBrainRadioButton,
                                           "Select all view");
     
+    this->viewModeMediaRadioButton = new QRadioButton("Media");
+    this->viewModeMediaRadioButton->setToolTip("Show Media View");
+    this->viewModeMediaRadioButton->setObjectName(objectNamePrefix
+                                                       + ":Media");
+    macroManager->addMacroSupportToObject(this->viewModeMediaRadioButton,
+                                          "Select Media View");
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
 #ifdef CARET_OS_MACOSX
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
@@ -112,6 +127,7 @@ BrainBrowserWindowToolBarView::BrainBrowserWindowToolBarView(const QString& pare
     layout->addWidget(this->viewModeWholeBrainRadioButton);
     layout->addWidget(this->viewModeChartTwoRadioButton);
     layout->addWidget(this->viewModeSurfaceRadioButton);
+    layout->addWidget(this->viewModeMediaRadioButton);
     layout->addWidget(this->viewModeChartOneRadioButton);
     
     QButtonGroup* viewModeRadioButtonGroup = new QButtonGroup(this);
@@ -121,6 +137,7 @@ BrainBrowserWindowToolBarView::BrainBrowserWindowToolBarView(const QString& pare
     viewModeRadioButtonGroup->addButton(this->viewModeSurfaceMontageRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeVolumeRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeWholeBrainRadioButton);
+    viewModeRadioButtonGroup->addButton(this->viewModeMediaRadioButton);
     QObject::connect(viewModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(viewModeRadioButtonClicked(QAbstractButton*)));
     
@@ -130,6 +147,7 @@ BrainBrowserWindowToolBarView::BrainBrowserWindowToolBarView(const QString& pare
     addToWidgetGroup(this->viewModeSurfaceMontageRadioButton);
     addToWidgetGroup(this->viewModeVolumeRadioButton);
     addToWidgetGroup(this->viewModeWholeBrainRadioButton);
+    addToWidgetGroup(this->viewModeMediaRadioButton);
 }
 
 /**
@@ -158,6 +176,7 @@ BrainBrowserWindowToolBarView::updateContent(BrowserTabContent* browserTabConten
     /*
      * Enable buttons for valid types
      */
+    bool hideChartOneFlag(true);
     if (browserTabContent != NULL) {
         this->viewModeSurfaceRadioButton->setEnabled(browserTabContent->isSurfaceModelValid());
         this->viewModeSurfaceMontageRadioButton->setEnabled(browserTabContent->isSurfaceMontageModelValid());
@@ -165,18 +184,32 @@ BrainBrowserWindowToolBarView::updateContent(BrowserTabContent* browserTabConten
         this->viewModeWholeBrainRadioButton->setEnabled(browserTabContent->isWholeBrainModelValid());
         this->viewModeChartOneRadioButton->setEnabled(browserTabContent->isChartOneModelValid());
         this->viewModeChartTwoRadioButton->setEnabled(browserTabContent->isChartTwoModelValid());
+        this->viewModeMediaRadioButton->setEnabled(browserTabContent->isMediaModelValid());
+        if (SessionManager::get()->hasSceneWithChartOld()) {
+            hideChartOneFlag = false;
+        }
+        else {
+            hideChartOneFlag = true;
+        }
     }
     else {
+        hideChartOneFlag = true;
         this->viewModeSurfaceRadioButton->setEnabled(false);
         this->viewModeSurfaceMontageRadioButton->setEnabled(false);
         this->viewModeVolumeRadioButton->setEnabled(false);
         this->viewModeWholeBrainRadioButton->setEnabled(false);
         this->viewModeChartOneRadioButton->setEnabled(false);
         this->viewModeChartTwoRadioButton->setEnabled(false);
+        this->viewModeMediaRadioButton->setEnabled(false);
     }
+    
+    this->viewModeChartOneRadioButton->setHidden(hideChartOneFlag);
     
     switch (modelType) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            this->viewModeMediaRadioButton->setChecked(true);
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             this->viewModeSurfaceRadioButton->setChecked(true);
@@ -229,6 +262,9 @@ BrainBrowserWindowToolBarView::viewModeRadioButtonClicked(QAbstractButton*)
     }
     else if (this->viewModeWholeBrainRadioButton->isChecked()) {
         btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN);
+    }
+    else if (this->viewModeMediaRadioButton->isChecked()) {
+        btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA);
     }
     else {
         btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_INVALID);

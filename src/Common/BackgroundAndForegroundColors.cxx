@@ -140,6 +140,14 @@ BackgroundAndForegroundColors::operator==(const BackgroundAndForegroundColors& o
             equalFlag = false;
             break;
         }
+        if (m_colorBackgroundMedia[i] != obj.m_colorBackgroundMedia[i]) {
+            equalFlag = false;
+            break;
+        }
+        if (m_colorForegroundMedia[i] != obj.m_colorForegroundMedia[i]) {
+            equalFlag = false;
+            break;
+        }
     }
     
     return equalFlag;
@@ -166,6 +174,8 @@ BackgroundAndForegroundColors::copyHelperBackgroundAndForegroundColors(const Bac
         m_colorBackgroundVolume[i]        = obj.m_colorBackgroundVolume[i];
         m_colorChartMatrixGridLines[i]    = obj.m_colorChartMatrixGridLines[i];
         m_colorChartHistogramThreshold[i] = obj.m_colorChartHistogramThreshold[i];
+        m_colorForegroundMedia[i]    = obj.m_colorForegroundMedia[i];
+        m_colorBackgroundMedia[i]    = obj.m_colorBackgroundMedia[i];
     }
 }
 
@@ -212,6 +222,10 @@ BackgroundAndForegroundColors::reset()
     const uint8_t threshGreen = 100;
     const uint8_t threshBlue  = 255;
     setColor(m_colorChartHistogramThreshold, threshRed, threshGreen, threshBlue);
+    
+    setColor(m_colorForegroundMedia, foreRed, foreGreen, foreBlue);
+    
+    setColor(m_colorBackgroundMedia, backRed, backGreen, backBlue);
 }
 
 /**
@@ -554,6 +568,61 @@ BackgroundAndForegroundColors::setColorChartHistogramThreshold(const uint8_t col
     }
 }
 
+/**
+ * Get the foreground color for viewing the Mult-Media model.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+BackgroundAndForegroundColors::getColorForegroundMediaView(uint8_t colorForeground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorForeground[i] = m_colorForegroundMedia[i];
+    }
+}
+
+/**
+ * Set the foreground color for viewing the  Mult-Media model.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+BackgroundAndForegroundColors::setColorForegroundMediaView(const uint8_t colorForeground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        m_colorForegroundMedia[i] = colorForeground[i];
+    }
+}
+
+/**
+ * Get the background color for viewing the  Mult-Media model.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+BackgroundAndForegroundColors::getColorBackgroundMediaView(uint8_t colorBackground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorBackground[i] = m_colorBackgroundMedia[i];
+    }
+}
+
+/**
+ * Set the background color for viewing the  Mult-Media model.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+BackgroundAndForegroundColors::setColorBackgroundMediaView(const uint8_t colorBackground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        m_colorBackgroundMedia[i] = colorBackground[i];
+    }
+}
 
 /**
  * Set a color with the given color components that range 0 to 255.

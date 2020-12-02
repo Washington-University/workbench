@@ -21,8 +21,9 @@
 #ifndef __IMAGE_FILE_H__
 #define __IMAGE_FILE_H__
 
-#include "CaretDataFile.h"
+#include "MediaFile.h"
 #include "CaretPointer.h"
+#include "GraphicsPrimitiveV3fT3f.h"
 
 class QColor;
 class QImage;
@@ -33,7 +34,7 @@ namespace caret {
     class VolumeFile;
     
 /// File for images
-class ImageFile : public CaretDataFile {
+class ImageFile : public MediaFile {
 public:
 //    class ControlPoint {
 //    public:
@@ -99,32 +100,25 @@ public:
     void clear();
     
     /**
-     * @return The structure for this file.
+     * @return Number of frames in the file
      */
-    virtual StructureEnum::Enum getStructure() const;
-    
-    /**
-     * Set the structure for this file.
-     * @param structure
-     *   New structure for this file.
-     */
-    virtual void setStructure(const StructureEnum::Enum structure);
-    
+    virtual int32_t getNumberOfFrames() const override;
+
     /**
      * @return Get access to the file's metadata.
      */
-    virtual GiftiMetaData* getFileMetaData();
+    virtual GiftiMetaData* getFileMetaData() override;
     
     /**
      * @return Get access to unmodifiable file's metadata.
      */
-    virtual const GiftiMetaData* getFileMetaData() const;
+    virtual const GiftiMetaData* getFileMetaData() const override;
     
     virtual bool compareFileForUnitTesting(const DataFile* df,
                                            const float tolerance,
                                            AString& messageOut) const;
     
-    bool isEmpty() const;
+    bool isEmpty() const override;
     
     //QImage* getAsQImage();
     
@@ -151,9 +145,9 @@ public:
     
     int32_t getHeight() const;
     
-    virtual void readFile(const AString& filename);
+    virtual void readFile(const AString& filename) override;
     
-    virtual void writeFile(const AString& filename);
+    virtual void writeFile(const AString& filename) override;
     
     void cropImageRemoveBackground(const int marginSize,
                                    const uint8_t backgroundColor[3]);
@@ -205,15 +199,22 @@ public:
     VolumeFile* convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
                                     AString& errorMessageOut) const;
 
+    GraphicsPrimitiveV3fT3f* getGraphicsPrimitiveForMediaDrawing() const;
+    
     ControlPointFile* getControlPointFile();
     
     const ControlPointFile* getControlPointFile() const;
     
     virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
-                                     SceneClass* sceneClass);
+                                     SceneClass* sceneClass) override;
     
     virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
-                                          const SceneClass* sceneClass);
+                                          const SceneClass* sceneClass) override;
+
+    ImageFile* castToImageFile();
+
+    const ImageFile* castToImageFile() const;
+    
 private:
     ImageFile(const ImageFile&);
     
@@ -234,6 +235,8 @@ private:
     
     CaretPointer<ControlPointFile> m_controlPointFile;
     
+    mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitiveForMediaDrawing;
+
     static const float s_defaultWindowDepthPercentage;
 };
 

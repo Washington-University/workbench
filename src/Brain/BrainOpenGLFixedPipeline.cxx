@@ -46,6 +46,7 @@
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #include "BrainOpenGLChartTwoDrawingFixedPipeline.h"
+#include "BrainOpenGLMediaDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
@@ -133,6 +134,7 @@
 #include "MathFunctions.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
+#include "ModelMedia.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelVolume.h"
@@ -456,6 +458,10 @@ BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(const BrainOpenGLV
                         break;
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
                         break;
+                    case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                        prefs->getBackgroundAndForegroundColors()->getColorForegroundMediaView(m_foregroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorBackgroundMediaView(m_backgroundColorByte);
+                        break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE:
                         prefs->getBackgroundAndForegroundColors()->getColorForegroundSurfaceView(m_foregroundColorByte);
                         prefs->getBackgroundAndForegroundColors()->getColorBackgroundSurfaceView(m_backgroundColorByte);
@@ -635,6 +641,10 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const s
                         colors->getColorForegroundChartView(foregroundColor);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
+                        break;
+                    case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                        colors->getColorBackgroundMediaView(backgroundColor);
+                        colors->getColorForegroundMediaView(foregroundColor);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE:
                         colors->getColorBackgroundSurfaceView(backgroundColor);
@@ -1263,6 +1273,7 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
         case ModelTypeEnum::MODEL_TYPE_CHART:
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+        case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             drawScaleBarsFlag = false;
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
@@ -1431,6 +1442,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             
             ModelChart* modelChart = dynamic_cast<ModelChart*>(model);
             ModelChartTwo* modelTwoChart = dynamic_cast<ModelChartTwo*>(model);
+            ModelMedia* mediaModel = dynamic_cast<ModelMedia*>(model);
             ModelSurface* surfaceModel = dynamic_cast<ModelSurface*>(model);
             ModelSurfaceMontage* surfaceMontageModel = dynamic_cast<ModelSurfaceMontage*>(model);
             ModelVolume* volumeModel = dynamic_cast<ModelVolume*>(model);
@@ -1440,6 +1452,11 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             }
             else if (modelTwoChart != NULL) {
                 drawChartTwoData(viewportContent, modelTwoChart, viewport);
+            }
+            else if (mediaModel != NULL) {
+                drawMediaModel(browserTabContent,
+                               mediaModel,
+                               viewport);
             }
             else if (surfaceModel != NULL) {
                 m_mirroredClippingEnabled = true;
@@ -8483,6 +8500,28 @@ BrainOpenGLFixedPipeline::getStateOfOpenGL() const
     s.appendWithNewLine("   Cull Face " + cullFaceValue);
     
     return s;
+}
+
+/**
+ * Draw a medial model
+ *
+ * @param browserTabContent
+ *    Content of the browser tab
+ * @param mediaModel
+ *    The medial model for drawing
+ * @param viewport
+ *    The viewport
+ */
+void
+BrainOpenGLFixedPipeline::drawMediaModel(BrowserTabContent* browserTabContent,
+                                         ModelMedia* mediaModel,
+                                         const int32_t viewport[4])
+{
+    BrainOpenGLMediaDrawing mediaDrawing;
+    mediaDrawing.draw(this,
+                      browserTabContent,
+                      mediaModel,
+                      { viewport[0], viewport[1], viewport[2], viewport[3] });
 }
 
 

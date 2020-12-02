@@ -115,6 +115,7 @@
 #include "Model.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
+#include "ModelMedia.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelSurfaceSelector.h"
@@ -1101,6 +1102,7 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     
     ModelChart* chartModel = NULL;
     ModelChartTwo* chartTwoModel = NULL;
+    ModelMedia* mediaModel(NULL);
     ModelSurfaceMontage* surfaceMontageModel = NULL;
     ModelVolume* volumeModel = NULL;
     ModelWholeBrain* wholeBrainModel = NULL;
@@ -1171,13 +1173,16 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
         else if (dynamic_cast<ModelWholeBrain*>(*iter) != NULL) {
             wholeBrainModel = dynamic_cast<ModelWholeBrain*>(*iter);
         }
-        else if (dynamic_cast<ModelChart*>(*iter)) {
+        else if (dynamic_cast<ModelChart*>(*iter) != NULL) {
             if (includeOldChartFlag) {
                 chartModel = dynamic_cast<ModelChart*>(*iter);
             }
         }
-        else if (dynamic_cast<ModelChartTwo*>(*iter)) {
+        else if (dynamic_cast<ModelChartTwo*>(*iter) != NULL) {
             chartTwoModel = dynamic_cast<ModelChartTwo*>(*iter);
+        }
+        else if (dynamic_cast<ModelMedia*>(*iter) != NULL) {
+            mediaModel = dynamic_cast<ModelMedia*>(*iter);
         }
         else {
             CaretAssertMessage(0, AString("Unknow controller type: ") + (*iter)->getNameForGUI(true));
@@ -1228,6 +1233,9 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     if (cerebellumSurfaceModel != NULL) {
         numberOfTabsNeeded++;
     }
+    if (mediaModel != NULL) {
+        numberOfTabsNeeded++;
+    }
     
     const int32_t numberOfTabsToAdd = numberOfTabsNeeded - this->tabBar->count();
     for (int32_t i = 0; i < numberOfTabsToAdd; i++) {
@@ -1257,6 +1265,8 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
                            rightSurfaceModel);
     tabIndex = loadIntoTab(tabIndex,
                            cerebellumSurfaceModel);
+    tabIndex = loadIntoTab(tabIndex,
+                           mediaModel);
     
     const int numTabs = this->tabBar->count();
     if (numTabs > 0) {
@@ -1283,6 +1293,8 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
             if (btc != NULL) {
                 switch (btc->getSelectedModelType()) {
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
+                        break;
+                    case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE:
                         if (surfaceTabIndex < 0) {
@@ -1940,6 +1952,8 @@ BrainBrowserWindowToolBar::updateToolBar()
     switch (viewModel) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             borderCompatibleViewFlag = true;
             fociCompatibleViewFlag   = true;
@@ -2022,6 +2036,9 @@ BrainBrowserWindowToolBar::updateToolBar()
         
         switch (viewModel) {
             case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                showOrientationWidget = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:
                 showOrientationWidget = true;

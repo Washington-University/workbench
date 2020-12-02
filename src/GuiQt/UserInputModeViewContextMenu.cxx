@@ -337,6 +337,8 @@ UserInputModeViewContextMenu::createIdentifyMenu()
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
+            case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:
                 showRemoveVertexSymbolsFlag = true;
                 break;

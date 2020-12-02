@@ -145,6 +145,34 @@ Model::getChartTwoOverlaySet(const int /*tabIndex*/) const
 }
 
 /**
+ * Get the medai overlay set for this model.
+ *
+ * @param tabIndex
+ *     Index for the chart overlay set.
+ * @return
+ *     media overlay set or NULL if not valid for this model.
+ */
+MediaOverlaySet*
+Model::getMediaOverlaySet(const int /*tabIndex*/)
+{
+    return NULL;
+}
+
+/**
+ * Get the media overlay set for this model.
+ *
+ * @param tabIndex
+ *     Index for the chart overlay set.
+ * @return
+ *     media overlay set or NULL if not valid for this model.
+ */
+const MediaOverlaySet*
+Model::getMediaOverlaySet(const int /*tabIndex*/) const
+{
+    return NULL;
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes

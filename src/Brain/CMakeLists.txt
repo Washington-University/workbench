@@ -37,6 +37,7 @@ BrainOpenGLChartDrawingFixedPipeline.h
 BrainOpenGLChartTwoDrawingFixedPipeline.h
 BrainOpenGLChartTwoDrawingInterface.h
 BrainOpenGLFixedPipeline.h
+BrainOpenGLMediaDrawing.h
 BrainOpenGLPrimitiveDrawing.h
 BrainOpenGLShape.h
 BrainOpenGLShapeCone.h
@@ -130,9 +131,13 @@ IdentifiedItem.h
 IdentifiedItemNode.h
 IdentifiedItemVoxel.h
 ImageDepthPositionEnum.h
+MediaOverlay.h
+MediaOverlaySet.h
+MediaOverlaySetArray.h
 Model.h
 ModelChart.h
 ModelChartTwo.h
+ModelMedia.h
 ModelSurface.h
 ModelSurfaceMontage.h
 ModelSurfaceSelector.h
@@ -191,6 +196,7 @@ TabContentBase.h
 UserInputModeEnum.h
 ViewingTransformations.h
 ViewingTransformationsCerebellum.h
+ViewingTransformationsMedia.h
 ViewingTransformationsVolume.h
 VolumeSliceDrawingTypeEnum.h
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.h
@@ -213,6 +219,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline.cxx
 BrainOpenGLChartDrawingFixedPipeline.cxx
 BrainOpenGLChartTwoDrawingFixedPipeline.cxx
 BrainOpenGLFixedPipeline.cxx
+BrainOpenGLMediaDrawing.cxx
 BrainOpenGLPrimitiveDrawing.cxx
 BrainOpenGLShape.cxx
 BrainOpenGLShapeCone.cxx
@@ -304,9 +311,13 @@ IdentifiedItem.cxx
 IdentifiedItemNode.cxx
 IdentifiedItemVoxel.cxx
 ImageDepthPositionEnum.cxx
+MediaOverlay.cxx
+MediaOverlaySet.cxx
+MediaOverlaySetArray.cxx
 Model.cxx
 ModelChart.cxx
 ModelChartTwo.cxx
+ModelMedia.cxx
 ModelSurface.cxx
 ModelSurfaceMontage.cxx
 ModelSurfaceSelector.cxx
@@ -365,6 +376,7 @@ TabContentBase.cxx
 UserInputModeEnum.cxx
 ViewingTransformations.cxx
 ViewingTransformationsCerebellum.cxx
+ViewingTransformationsMedia.cxx
 ViewingTransformationsVolume.cxx
 VolumeSliceDrawingTypeEnum.cxx
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.cxx

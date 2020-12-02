@@ -60,6 +60,7 @@ namespace caret {
         QRadioButton* viewModeWholeBrainRadioButton;
         QRadioButton* viewModeChartOneRadioButton;
         QRadioButton* viewModeChartTwoRadioButton;
+        QRadioButton* viewModeMediaRadioButton;
         
         // ADD_NEW_MEMBERS_HERE
 

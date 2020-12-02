@@ -43,6 +43,7 @@ namespace caret {
     class IdentificationDisplayWidget;
     class ImageSelectionViewController;
     class LabelSelectionViewController;
+    class MediaOverlaySetViewController;
     class OverlaySetViewController;
     class VolumeSurfaceOutlineSetViewController;
     class WuQTabWidgetWithSizeHint;
@@ -115,6 +116,8 @@ namespace caret {
         
         LabelSelectionViewController* m_labelSelectionViewController;
         
+        MediaOverlaySetViewController* m_mediaSelectionViewController;
+        
         VolumeSurfaceOutlineSetViewController* m_volumeSurfaceOutlineSetViewController;
         
         WuQTabWidgetWithSizeHint* m_tabWidget;
@@ -144,6 +147,8 @@ namespace caret {
         int32_t m_imageTabIndex;
         
         int32_t m_labelTabIndex;
+        
+        int32_t m_mediaTabIndex;
         
         int32_t m_volumeSurfaceOutlineTabIndex;
         

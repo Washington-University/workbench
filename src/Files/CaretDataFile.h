@@ -29,6 +29,8 @@
 
 namespace caret {
 
+    class ImageFile;
+    class MediaFile;
     class GiftiMetaData;
     
     class CaretDataFile : public DataFile, public SceneableInterface {
@@ -84,6 +86,12 @@ namespace caret {
         static AString getFileReadingUsername();
         
         static AString getFileReadingPassword();
+        
+        virtual ImageFile* castToImageFile();
+        virtual const ImageFile* castToImageFile() const;
+        
+        virtual MediaFile* castToMediaFile();
+        virtual const MediaFile* castToMediaFile() const;
         
     protected:
         CaretDataFile(const CaretDataFile& cdf);

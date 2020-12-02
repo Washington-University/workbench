@@ -56,8 +56,10 @@ namespace caret {
     class ClippingPlaneGroup;
     class EventCaretMappableDataFilesAndMapsInDisplayedOverlays;
     class Matrix4x4;
+    class MediaOverlaySet;
     class ModelChart;
     class ModelChartTwo;
+    class ModelMedia;
     class ModelSurface;
     class ModelSurfaceMontage;
     class ModelSurfaceSelector;
@@ -71,6 +73,7 @@ namespace caret {
     class Surface;
     class ViewingTransformations;
     class ViewingTransformationsCerebellum;
+    class ViewingTransformationsMedia;
     class ViewingTransformationsVolume;
     class VolumeMappableInterface;
     class VolumeSliceSettings;
@@ -110,6 +113,10 @@ namespace caret {
         std::vector<ChartTwoCartesianOrientedAxes*> getYokedAxes(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientation,
                                                                  const ChartTwoAxisScaleRangeModeEnum::Enum yokingRangeMode) const;
         
+        MediaOverlaySet* getMediaOverlaySet();
+        
+        const MediaOverlaySet* getMediaOverlaySet() const;
+        
         int32_t getTabNumber() const;
         
         ModelTypeEnum::Enum getSelectedModelType() const;
@@ -127,6 +134,10 @@ namespace caret {
         ModelChartTwo* getDisplayedChartTwoModel();
         
         const ModelChartTwo* getDisplayedChartTwoModel() const;
+        
+        ModelMedia* getDisplayedMediaModel();
+        
+        const ModelMedia* getDisplayedMediaModel() const;
         
         ModelSurface* getDisplayedSurfaceModel();
         
@@ -158,6 +169,8 @@ namespace caret {
         
         bool isVolumeSlicesDisplayed() const;
         
+        bool isMediaDisplayed() const;
+        
         bool isWholeBrainDisplayed() const;
         
         void getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayedDataFilesOut);
@@ -177,6 +190,8 @@ namespace caret {
         bool isWholeBrainModelValid() const;
 
         bool isSurfaceMontageModelValid() const;
+        
+        bool isMediaModelValid() const;
         
         void getAnnotationColorBars(std::vector<AnnotationColorBar*>& colorBarsOut);
         
@@ -294,6 +309,8 @@ namespace caret {
                                 const int32_t mouseDeltaY);
         
         void applyMouseScaling(BrainOpenGLViewportContent* viewportContent,
+                               const int32_t mousePressX,
+                               const int32_t mousePressY,
                                const float mouseX,
                                const float mouseY,
                                const int32_t mouseDX,
@@ -564,6 +581,9 @@ namespace caret {
         /** The chart two model */
         ModelChartTwo* m_chartTwoModel;
         
+        /** The multi-media model */
+        ModelMedia* m_mediaModel;
+        
         /** 
          * Name requested by user interface - reflects contents 
          * such as Surface, Volume Slices, etc
@@ -605,6 +625,9 @@ namespace caret {
         
         /** Transformation for surface/all viewing */
         ViewingTransformations* m_flatSurfaceViewingTransformation;
+        
+        /** Transformation for media viewing */
+        ViewingTransformationsMedia* m_mediaViewingTransformation;
         
         /** Transformation for volume slices viewing */
         ViewingTransformationsVolume* m_volumeSliceViewingTransformation;

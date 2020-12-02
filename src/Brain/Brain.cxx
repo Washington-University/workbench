@@ -80,6 +80,7 @@
 #include "EventDataFileReloadAll.h"
 #include "EventCaretDataFilesGet.h"
 #include "EventGetDisplayedDataFiles.h"
+#include "EventMediaFilesGet.h"
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
@@ -102,6 +103,7 @@
 #include "MetricFile.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
+#include "ModelMedia.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelVolume.h"
@@ -165,6 +167,7 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_surfaceMontageModel = NULL;
     m_volumeSliceModel = NULL;
     m_wholeBrainModel = NULL;
+    m_mediaModel = NULL;
     
     m_displayPropertiesAnnotation = new DisplayPropertiesAnnotation(this);
     m_displayProperties.push_back(m_displayPropertiesAnnotation);
@@ -211,6 +214,8 @@ Brain::Brain(CaretPreferences* caretPreferences)
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_MEDIA_FILES_GET);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
     EventManager::get()->addEventListener(this,
@@ -326,6 +331,9 @@ Brain::~Brain()
     }
     if (m_wholeBrainModel != NULL) {
         delete m_wholeBrainModel;
+    }
+    if (m_mediaModel != NULL) {
+        delete m_mediaModel;
     }
 
     delete m_selectionManager;
@@ -518,6 +526,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
 {
     m_isSpecFileBeingRead = false;
     m_activeScene = NULL;
+    SessionManager::get()->resetSceneWithChartOld();
     
     m_surfaceMatchingToAnatomicalFlag = false;
     
@@ -5074,6 +5083,40 @@ Brain::createModelChartTwo()
 }
 
 /**
+ * Update the multi-meda model.
+ */
+void
+Brain::updateMediaModel()
+{
+    bool isValid = false;
+    if ((getNumberOfImageFiles() > 0)) {
+        isValid = true;
+    }
+    
+    if (isValid) {
+        if (m_mediaModel == NULL) {
+            m_mediaModel = new ModelMedia(this);
+            EventModelAdd eventAddModel(m_mediaModel);
+            EventManager::get()->sendEvent(eventAddModel.getPointer());
+            
+            if ( ! m_isSpecFileBeingRead) {
+                m_mediaModel->initializeOverlays();
+            }
+        }
+        
+        m_mediaModel->updateModel();
+    }
+    else {
+        if (m_mediaModel != NULL) {
+            EventModelDelete eventDeleteModel(m_mediaModel);
+            EventManager::get()->sendEvent(eventDeleteModel.getPointer());
+            delete m_mediaModel;
+            m_mediaModel = NULL;
+        }
+    }
+}
+
+/**
  * Update the volume slice model.
  */
 void
@@ -5781,6 +5824,7 @@ Brain::updateAfterFilesAddedOrRemoved()
     updateVolumeSliceModel();
     updateWholeBrainModel();
     updateChartModel();
+    updateMediaModel();
     
     updateFiberTrajectoryMatchingFiberOrientationFiles();
 }
@@ -6372,6 +6416,16 @@ Brain::receiveEvent(Event* event)
         
         dataFilesEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MEDIA_FILES_GET) {
+        EventMediaFilesGet* mediaEvent = dynamic_cast<EventMediaFilesGet*>(event);
+        CaretAssert(mediaEvent);
+        
+        for (auto f : m_imageFiles) {
+            mediaEvent->addMediaFile(f);
+        }
+        
+        mediaEvent->setEventProcessed();
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES) {
         EventSpecFileReadDataFiles* readSpecFileDataFilesEvent =
         dynamic_cast<EventSpecFileReadDataFiles*>(event);
@@ -6551,6 +6605,24 @@ const ModelChartTwo*
 Brain::getChartTwoModel() const
 {
     return m_modelChartTwo;
+}
+
+/**
+ * @return The multi-media model (warning may be NULL)
+ */
+ModelMedia*
+Brain::getMediaModel()
+{
+    return m_mediaModel;
+}
+
+/**
+ * @return The multi-media model (warning may be NULL) const method
+ */
+const ModelMedia*
+Brain::getMediaModel() const
+{
+    return m_mediaModel;
 }
 
 /**

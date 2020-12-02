@@ -67,9 +67,13 @@
 #include "LabelFile.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
+#include "MediaFile.h"
+#include "MediaOverlay.h"
+#include "MediaOverlaySet.h"
 #include "MetricDynamicConnectivityFile.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
+#include "ModelMedia.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelSurfaceSelector.h"
@@ -94,6 +98,7 @@
 #include "VolumeFile.h"
 #include "ViewingTransformations.h"
 #include "ViewingTransformationsCerebellum.h"
+#include "ViewingTransformationsMedia.h"
 #include "ViewingTransformationsVolume.h"
 #include "VolumeDynamicConnectivityFile.h"
 #include "VolumeSliceSettings.h"
@@ -125,6 +130,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_surfaceMontageModel = NULL;
     m_chartModel = NULL;
     m_chartTwoModel = NULL;
+    m_mediaModel = NULL;
     m_guiName = "";
     m_userName = "";
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
@@ -149,6 +155,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_cerebellumViewingTransformation  = new ViewingTransformationsCerebellum();
     m_flatSurfaceViewingTransformation = new ViewingTransformations();
     m_viewingTransformation            = new ViewingTransformations();
+    m_mediaViewingTransformation       = new ViewingTransformationsMedia();
     m_volumeSliceViewingTransformation = new ViewingTransformationsVolume();
     m_chartTwoMatrixViewingTranformation  = new ViewingTransformations();
     m_chartTwoMatrixDisplayProperties = new ChartTwoMatrixDisplayProperties();
@@ -195,6 +202,10 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_viewingTransformation",
                                "ViewingTransformations",
                                m_viewingTransformation);
+    
+    m_sceneClassAssistant->add("m_mediaViewingTransformation",
+                               "ViewingTransformationsMedia",
+                               m_mediaViewingTransformation);
     
     m_sceneClassAssistant->add("m_volumeSliceViewingTransformation",
                                "ViewingTransformations",
@@ -300,6 +311,7 @@ BrowserTabContent::~BrowserTabContent()
     delete m_flatSurfaceViewingTransformation;
     delete m_cerebellumViewingTransformation;
     delete m_viewingTransformation;
+    delete m_mediaViewingTransformation;
     delete m_volumeSliceViewingTransformation;
     delete m_chartTwoMatrixViewingTranformation;
     delete m_chartTwoMatrixDisplayProperties;
@@ -357,6 +369,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_cerebellumViewingTransformation = *tabToClone->m_cerebellumViewingTransformation;
     *m_flatSurfaceViewingTransformation = *tabToClone->m_flatSurfaceViewingTransformation;
     *m_viewingTransformation = *tabToClone->m_viewingTransformation;
+    *m_mediaViewingTransformation = *tabToClone->m_mediaViewingTransformation;
     *m_volumeSliceViewingTransformation = *tabToClone->m_volumeSliceViewingTransformation;
     *m_chartTwoMatrixViewingTranformation = *tabToClone->m_chartTwoMatrixViewingTranformation;
     *m_chartTwoMatrixDisplayProperties = *tabToClone->m_chartTwoMatrixDisplayProperties;
@@ -511,6 +524,7 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
     if (model != NULL) {
         bool chartOneFlag = false;
         bool chartTwoFlag = false;
+        bool mediaFlag    = false;
         bool surfaceFlag  = false;
         bool surfaceMontageFlag = false;
         bool wholeBrainFlag = false;
@@ -523,6 +537,9 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
                 chartTwoFlag = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                mediaFlag = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:
                 surfaceFlag = true;
@@ -581,6 +598,10 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
             model->getDescriptionOfContent(tabIndex,
                                            descriptionOut);
         }
+        else if (mediaFlag) {
+            model->getDescriptionOfContent(tabIndex,
+                                           descriptionOut);
+        }
         
         if (wholeBrainFlag
             || volumeFlag) {
@@ -595,6 +616,9 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
         }
         else if (chartTwoFlag) {
             getChartTwoOverlaySet()->getDescriptionOfContent(descriptionOut);
+        }
+        else if (mediaFlag) {
+            getMediaOverlaySet()->getDescriptionOfContent(descriptionOut);
         }
         else {
             getOverlaySet()->getDescriptionOfContent(descriptionOut);
@@ -642,6 +666,9 @@ BrowserTabContent::getModelForDisplay()
     switch (m_selectedModelType) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            mdc = m_mediaModel;
+            break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             mdc = m_surfaceModelSelector->getSelectedSurfaceModel();
             break;
@@ -678,6 +705,9 @@ BrowserTabContent::getModelForDisplay() const
     
     switch (m_selectedModelType) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            mdc = m_mediaModel;
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             mdc = m_surfaceModelSelector->getSelectedSurfaceModel();
@@ -757,6 +787,35 @@ BrowserTabContent::getDisplayedChartTwoModel() const
     const ModelChartTwo* mc = dynamic_cast<const ModelChartTwo*>(getModelForDisplay());
     return mc;
 }
+
+/**
+ * Get the displayed media model
+ *
+ * @return  Pointer to displayed media model or
+ *          NULL if the displayed model is NOT a
+ *          media.
+ */
+ModelMedia*
+BrowserTabContent::getDisplayedMediaModel()
+{
+    ModelMedia* mm = dynamic_cast<ModelMedia*>(getModelForDisplay());
+    return mm;
+}
+
+/**
+ * Get the displayed media model
+ *
+ * @return  Pointer to displayed media model or
+ *          NULL if the displayed model is NOT a
+ *          media.
+ */
+const ModelMedia*
+BrowserTabContent::getDisplayedMediaModel() const
+{
+    const ModelMedia* mm = dynamic_cast<const ModelMedia*>(getModelForDisplay());
+    return mm;
+}
+
 
 /**
  * Get the displayed surface model.
@@ -891,6 +950,17 @@ BrowserTabContent::isChartTwoDisplayed() const
     return false;
 }
 
+/**
+ * @return Is the displayed model a media model?
+ */
+bool
+BrowserTabContent::isMediaDisplayed() const
+{
+    const ModelMedia* mm = dynamic_cast<const ModelMedia*>(getModelForDisplay());
+    
+    const bool mediaFlag = (mm != NULL);
+    return mediaFlag;
+}
 
 /**
  * @return Is the displayed model a volume slice model?
@@ -1036,6 +1106,33 @@ BrowserTabContent::getChartTwoOverlaySet() const
 }
 
 /**
+ * @return Media overlay set for this tab.
+ */
+MediaOverlaySet*
+BrowserTabContent::getMediaOverlaySet()
+{
+    if (m_mediaModel == NULL) {
+        return NULL;
+    }
+    
+    CaretAssert(m_mediaModel);
+    return m_mediaModel->getMediaOverlaySet(m_tabNumber);
+}
+
+/**
+ * @return Media overlay set for this tab.
+ */
+const MediaOverlaySet*
+BrowserTabContent::getMediaOverlaySet() const
+{
+    if (m_mediaModel == NULL) {
+        return NULL;
+    }
+    CaretAssert(m_mediaModel);
+    return m_mediaModel->getMediaOverlaySet(m_tabNumber);
+}
+
+/**
  * Get all axes for chart two models (histogram, lines matrix) that are yoked with the given axes and range mode
  * @param axisOrientation
  *    The axes orientation
@@ -1119,6 +1216,7 @@ BrowserTabContent::update(const std::vector<Model*> models)
     m_surfaceMontageModel = NULL;
     m_chartModel = NULL;
     m_chartTwoModel = NULL;
+    m_mediaModel = NULL;
     
     for (int i = 0; i < numModels; i++) {
         Model* mdc = models[i];
@@ -1129,6 +1227,7 @@ BrowserTabContent::update(const std::vector<Model*> models)
         ModelSurfaceMontage* mdcsm = dynamic_cast<ModelSurfaceMontage*>(mdc);
         ModelChart* mdch = dynamic_cast<ModelChart*>(mdc);
         ModelChartTwo* mdchTwo = dynamic_cast<ModelChartTwo*>(mdc);
+        ModelMedia* mdmm = dynamic_cast<ModelMedia*>(mdc);
         
         if (mdcs != NULL) {
             /* nothing to do since the surface model selector handles surfaces */
@@ -1153,6 +1252,9 @@ BrowserTabContent::update(const std::vector<Model*> models)
             CaretAssertMessage((m_chartTwoModel == NULL), "There is more than one chart two model.");
             m_chartTwoModel = mdchTwo;
         }
+        else if (mdmm != NULL) {
+            m_mediaModel = mdmm;
+        }
         else {
             CaretAssertMessage(0, (AString("Unknown type of brain model.") + mdc->getNameForGUI(true)));
         }
@@ -1160,6 +1262,11 @@ BrowserTabContent::update(const std::vector<Model*> models)
     
     switch (m_selectedModelType) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            if (m_mediaModel == NULL) {
+                m_selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
+            }
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             if (m_surfaceModelSelector->getSelectedSurfaceModel() == NULL) {
@@ -1211,6 +1318,9 @@ BrowserTabContent::update(const std::vector<Model*> models)
         }
         else if (m_chartModel != NULL) {
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_CHART;
+        }
+        else if (m_mediaModel != NULL) {
+            m_selectedModelType = ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA;
         }
     }
     
@@ -1279,6 +1389,17 @@ bool
 BrowserTabContent::isSurfaceModelValid() const
 {
     bool valid = (m_allSurfaceModels.empty() == false);
+    return valid;
+}
+
+/**
+ * Is the multi-medial model selection valid?
+ * @return True if valid, else false.
+ */
+bool
+BrowserTabContent::isMediaModelValid() const
+{
+    bool valid(m_mediaModel != NULL);
     return valid;
 }
 
@@ -1521,6 +1642,8 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
             useChartTwoFlag = true;
             break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             useOverlayFlag = true;
             break;
@@ -1743,6 +1866,8 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
             useChartTwoFlag = true;
+            break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             useOverlayFlag = true;
@@ -2000,6 +2125,9 @@ BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAn
             }
         }
             break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            CaretAssertToDoWarning();
+            break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
@@ -2050,6 +2178,27 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
     const int32_t tabIndex = getTabNumber();
     switch (getSelectedModelType()) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+        {
+            MediaOverlaySet* overlaySet = m_mediaModel->getMediaOverlaySet(tabIndex);
+            if (overlaySet != NULL) {
+                const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+                for (int32_t i = 0; i < numOverlays; i++) {
+                    MediaOverlay* mediaOverlay = overlaySet->getOverlay(i);
+                    if (mediaOverlay->isEnabled()) {
+                        MediaFile* mediaFile = NULL;
+                        int32_t selectedIndex = -1;
+                        mediaOverlay->getSelectionData(mediaFile,
+                                                       selectedIndex);
+                        
+                        if (mediaFile != NULL) {
+                            displayedDataFiles.insert(mediaFile);
+                        }
+                    }
+                }
+            }
+        }
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
         {
@@ -2342,6 +2491,9 @@ BrowserTabContent::getViewingTransformation()
     else if (isChartTwoDisplayed()) {
         return m_chartTwoMatrixViewingTranformation;
     }
+    else if (isMediaDisplayed()) {
+        return m_mediaViewingTransformation;
+    }
     return m_viewingTransformation;
 }
 
@@ -2359,6 +2511,9 @@ BrowserTabContent::getViewingTransformation() const
     }
     else if (isChartTwoDisplayed()) {
         return m_chartTwoMatrixViewingTranformation;
+    }
+    else if (isMediaDisplayed()) {
+        return m_mediaViewingTransformation;
     }
     return m_viewingTransformation;
 }
@@ -2923,6 +3078,9 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
              || isChartTwoDisplayed()) {
         /* no rotation for chart */
     }
+    else if (isMediaDisplayed()) {
+        /* no rotation for media */
+    }
     else if (isCerebellumDisplayed()) {
         const float screenDX = mouseDeltaX;
         const float screenDY = mouseDeltaY;
@@ -3276,6 +3434,10 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
  *
  * @param viewportContent
  *    Content of the viewport
+ * @param mousePressX
+ *    X coordinate of where mouse was pressed.
+ * @param mousePressY
+ *    X coordinate of where mouse was pressed.
  * @param mouseX
  *    Mouse X coordinate.
  * @param mouseY
@@ -3287,6 +3449,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
  */
 void
 BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent,
+                                     const int32_t mousePressX,
+                                     const int32_t mousePressY,
                                      const float mouseX,
                                      const float mouseY,
                                      const int32_t /*mouseDX*/,
@@ -3457,6 +3621,14 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                                                   mouseDY);
             }
         }
+    }
+    else if (isMediaDisplayed()) {
+        float txyz[4];
+        m_mediaViewingTransformation->getTranslation(txyz);
+        const float accelerate(3.0);
+        txyz[0] += (mouseDX * accelerate);
+        txyz[1] += (mouseDY * accelerate);
+        m_mediaViewingTransformation->setTranslation(txyz);
     }
     else if (isCerebellumDisplayed()) {
         const float screenDX = mouseDX;
@@ -4148,6 +4320,8 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
+            case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:
             {
                 ModelSurface* modelSurface = getDisplayedSurfaceModel();
@@ -4570,6 +4744,8 @@ BrowserTabContent::getValidSliceProjectionTypes(std::vector<VolumeSliceProjectio
         case ModelTypeEnum::MODEL_TYPE_CHART:
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
             orthoValidFlag = true;
@@ -5290,6 +5466,7 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 *m_flatSurfaceViewingTransformation = *btc->m_flatSurfaceViewingTransformation;
                 *m_cerebellumViewingTransformation = *btc->m_cerebellumViewingTransformation;
                 *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
+                *m_mediaViewingTransformation = *btc->m_mediaViewingTransformation;
                 const VolumeSliceViewPlaneEnum::Enum slicePlane = m_volumeSliceSettings->getSliceViewPlane();
                 *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
                 m_volumeSliceSettings->setSliceViewPlane(slicePlane); // do not yoke the slice plane
@@ -5347,6 +5524,8 @@ BrowserTabContent::updateYokedModelBrowserTabs()
             break;
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
@@ -5393,6 +5572,7 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 *btc->m_flatSurfaceViewingTransformation = *m_flatSurfaceViewingTransformation;
                 *btc->m_cerebellumViewingTransformation = *m_cerebellumViewingTransformation;
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
+                *btc->m_mediaViewingTransformation = *m_mediaViewingTransformation;
                 const VolumeSliceViewPlaneEnum::Enum slicePlane = btc->m_volumeSliceSettings->getSliceViewPlane();
                 *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
                 btc->m_volumeSliceSettings->setSliceViewPlane(slicePlane); // do not yoke the slice plane

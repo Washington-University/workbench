@@ -82,6 +82,7 @@ EventChartMatrixParcelYokingValidation.h
 EventGetDisplayedDataFiles.h
 EventMapYokingSelectMap.h
 EventMapYokingValidation.h
+EventMediaFilesGet.h
 EventSurfaceColoringInvalidate.h
 EventSurfaceStructuresValidGet.h
 Fiber.h
@@ -113,6 +114,7 @@ LabelDrawingProperties.h
 LabelDrawingTypeEnum.h
 LabelFile.h
 MapYokingGroupEnum.h
+MediaFile.h
 MetricDynamicConnectivityFile.h
 MetricFile.h
 MetricSmoothingObject.h
@@ -221,6 +223,7 @@ EventChartMatrixParcelYokingValidation.cxx
 EventGetDisplayedDataFiles.cxx
 EventMapYokingSelectMap.cxx
 EventMapYokingValidation.cxx
+EventMediaFilesGet.cxx
 EventSurfaceColoringInvalidate.cxx
 EventSurfaceStructuresValidGet.cxx
 Fiber.cxx
@@ -252,6 +255,7 @@ LabelDrawingProperties.cxx
 LabelDrawingTypeEnum.cxx
 LabelFile.cxx
 MapYokingGroupEnum.cxx
+MediaFile.cxx
 MetricDynamicConnectivityFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx

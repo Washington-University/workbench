@@ -359,6 +359,10 @@ EventTypeEnum::initialize()
                                      "EVENT_MAP_YOKING_VALIDATION",
                                      "Map Yoking Validation"));
     
+    enumData.push_back(EventTypeEnum(EVENT_MEDIA_FILES_GET,
+                                     "EVENT_MEDIA_FILES_GET",
+                                     "Get media files"));
+    
     enumData.push_back(EventTypeEnum(EVENT_MODEL_ADD,
                                      "EVENT_MODEL_ADD",
                                      "Add a model"));

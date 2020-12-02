@@ -406,6 +406,8 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
     int32_t modelViewport[4];
     viewportContent->getModelViewport(modelViewport);
     browserTabContent->applyMouseScaling(viewportContent,
+                                         mouseEvent.getPressedX(),
+                                         mouseEvent.getPressedY(),
                                          mouseEvent.getPressedX() - modelViewport[0],
                                          mouseEvent.getPressedY() - modelViewport[1],
                                          mouseEvent.getDx(),
@@ -524,6 +526,8 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                 }
                 if (scaleFactor != 0.0) {
                     browserTabContent->applyMouseScaling(viewportContent,
+                                                         gestureEvent.getStartCenterX(),
+                                                         gestureEvent.getStartCenterX(),
                                                          gestureEvent.getStartCenterX(),
                                                          gestureEvent.getStartCenterY(),
                                                          0.0f,

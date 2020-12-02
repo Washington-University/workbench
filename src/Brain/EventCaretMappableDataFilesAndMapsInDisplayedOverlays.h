@@ -80,6 +80,10 @@ namespace caret {
                                    const int32_t mapIndex,
                                    const int32_t tabIndex);
         
+//        void addMediaFileAndFrame(MediaFile* mediaFile,
+//                                  const int32_t frameIndex,
+//                                  const int32_ tabIndex);
+                
         std::map<CaretMappableDataFile*, std::set<int32_t>> getMapFilesAndIndices() const;
         
         std::vector<FileInfo> getFilesAndMaps() const;

@@ -93,6 +93,7 @@ namespace caret {
     class MetricDynamicConnectivityFile;
     class ModelChart;
     class ModelChartTwo;
+    class ModelMedia;
     class ModelSurfaceMontage;
     class ModelVolume;
     class ModelWholeBrain;
@@ -221,6 +222,10 @@ namespace caret {
         ChartingDataManager* getChartingDataManager();
         
         const ChartingDataManager* getChartingDataManager() const;
+        
+        ModelMedia* getMediaModel();
+        
+        const ModelMedia* getMediaModel() const;
         
         void getAllCiftiMappableDataFiles(std::vector<CiftiMappableDataFile*>& allCiftiMappableDataFilesOut) const;
         
@@ -743,6 +748,8 @@ namespace caret {
         
         void updateSurfaceMontageModel();
         
+        void updateMediaModel();
+        
         void updateBrainStructures();
         
         void updateFiberTrajectoryMatchingFiberOrientationFiles();
@@ -814,6 +821,8 @@ namespace caret {
         ModelVolume* m_volumeSliceModel;
         
         ModelWholeBrain* m_wholeBrainModel;
+        
+        ModelMedia* m_mediaModel = NULL;
         
         ModelSurfaceMontage* m_surfaceMontageModel;
         

@@ -65,17 +65,18 @@ namespace caret {
     class SelectionManager;
     class IdentificationWithColor;
     class ImageFile;
-    class Plane;
-    class Surface;
     class Model;
     class ModelChart;
     class ModelChartTwo;
+    class ModelMedia;
     class ModelSurface;
     class ModelSurfaceMontage;
     class ModelVolume;
     class ModelWholeBrain;
     class Palette;
     class PaletteColorMapping;
+    class Plane;
+    class Surface;
     class SurfaceFile;
     class SurfaceMontageConfigurationCerebellar;
     class SurfaceMontageConfigurationCerebral;
@@ -265,6 +266,10 @@ namespace caret {
         
         void drawFiberTrajectories(const Plane* plane,
                                    const StructureEnum::Enum structure);
+        
+        void drawMediaModel(BrowserTabContent* browserTabContent,
+                            ModelMedia* mediaModel,
+                            const int32_t viewport[4]);
         
         void drawVolumeModel(BrowserTabContent* browserTabContent,
                                   ModelVolume* volumeModel,
@@ -644,6 +649,7 @@ namespace caret {
         friend class BrainOpenGLAnnotationDrawingFixedPipeline;
         friend class BrainOpenGLChartDrawingFixedPipeline;
         friend class BrainOpenGLChartTwoDrawingFixedPipeline;
+        friend class BrainOpenGLMediaDrawing;
         friend class BrainOpenGLVolumeObliqueSliceDrawing;
         friend class BrainOpenGLVolumeSliceDrawing;
         friend class BrainOpenGLVolumeTextureSliceDrawing;

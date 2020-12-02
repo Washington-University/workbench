@@ -830,6 +830,8 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_caretPreferences->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
     m_caretPreferences->invalidateSceneDataValues();
 
+    m_sceneRestoredWithChartOldFlag = false;
+    
     if (sceneClass == NULL) {
         return;
     }
@@ -1051,6 +1053,26 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         CaretAssert(tabIndex >= 0);
         CaretAssertStdArrayIndex(m_browserTabs, tabIndex);
         m_browserTabs[tabIndex] = tab;
+        
+        switch (tab->getSelectedModelType()) {
+            case ModelTypeEnum::MODEL_TYPE_CHART:
+                m_sceneRestoredWithChartOldFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                break;
+        }
     }
     
     /*
@@ -1580,4 +1602,23 @@ SessionManager::isTabInClosedBrowserTabs(const int32_t tabIndex)
     }
     return false;
 }
+
+/**
+ * @return True if a scene was loaded that contains a chart old
+ */
+bool
+SessionManager::hasSceneWithChartOld() const
+{
+    return m_sceneRestoredWithChartOldFlag;
+}
+
+/**
+ * Reset the scene contains an old chart model
+ */
+void
+SessionManager::resetSceneWithChartOld()
+{
+    m_sceneRestoredWithChartOldFlag = false;
+}
+
 

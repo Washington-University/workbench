@@ -171,6 +171,8 @@ ELSE()
         MapSettingsPaletteColorMappingWidget.h
         MapSettingsParcelsWidget.h
         MapYokingGroupComboBox.h
+	MediaOverlayViewController.h
+	MediaOverlaySetViewController.h
         MetaDataEditorDialog.h
         MetaDataEditorWidget.h
         MovieDialog.h
@@ -462,6 +464,8 @@ MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
 MapSettingsParcelsWidget.h
 MapYokingGroupComboBox.h
+MediaOverlayViewController.h
+MediaOverlaySetViewController.h
 MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MouseEvent.h
@@ -773,6 +777,8 @@ MapSettingsLayerWidget.cxx
 MapSettingsPaletteColorMappingWidget.cxx
 MapSettingsParcelsWidget.cxx
 MapYokingGroupComboBox.cxx
+MediaOverlayViewController.cxx
+MediaOverlaySetViewController.cxx
 MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MouseEvent.cxx

@@ -96,6 +96,11 @@ namespace caret {
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
+        
+        bool hasSceneWithChartOld() const;
+        
+        void resetSceneWithChartOld();
+        
     private:
         SessionManager();
         
@@ -182,6 +187,8 @@ namespace caret {
         std::unique_ptr<MovieRecorder> m_movieRecorder;
         
         std::vector<std::unique_ptr<ChartTwoCartesianAxis>> m_chartingAxisDisplayGroups;
+        
+        bool m_sceneRestoredWithChartOldFlag = false;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__

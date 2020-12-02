@@ -104,6 +104,12 @@ ModelTypeEnum::initialize()
                                      6,
                                      "MODEL_TYPE_WHOLE_BRAIN",
                                      "Whole Brain"));
+    
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_MULTI_MEDIA,
+                                     7,
+                                     "MODEL_TYPE_MULTI_MEDIA",
+                                     "Media"));
+    
 }
 
 /**

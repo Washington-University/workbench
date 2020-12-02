@@ -192,6 +192,8 @@ VolumeSliceSettings::getDescriptionOfContent(const ModelTypeEnum::Enum modelType
             break;
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:

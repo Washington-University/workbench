@@ -186,6 +186,8 @@ public:
         EVENT_MAP_YOKING_SELECT_MAP,
         /** Select a map for mapped yoked files */
         EVENT_MAP_YOKING_VALIDATION,
+        /** Get media files */
+        EVENT_MEDIA_FILES_GET,
         /** model - ADD */
         EVENT_MODEL_ADD,
         /** model  - DELETE */

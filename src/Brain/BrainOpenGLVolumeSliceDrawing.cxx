@@ -2563,6 +2563,8 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineCached(const VolumeMappableInte
             break;
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
@@ -2739,6 +2741,8 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineNotCached(const ModelTypeEnum::
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
             break;
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             break;

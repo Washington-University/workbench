@@ -34,6 +34,7 @@ using namespace caret;
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "Model.h"
+#include "ModelMedia.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelVolume.h"
@@ -371,6 +372,7 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
     
     const Model* mdc = getParentToolBar()->getDisplayedModel();
     if (mdc != NULL) {
+        const ModelMedia* mdm    = dynamic_cast<const ModelMedia*>(mdc);
         const ModelSurface* mdcs = dynamic_cast<const ModelSurface*>(mdc);
         const ModelSurfaceMontage* mdcsm = dynamic_cast<const ModelSurfaceMontage*>(mdc);
         const ModelVolume* mdcv = dynamic_cast<const ModelVolume*>(mdc);
@@ -427,6 +429,9 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
         else if (mdcwb != NULL) {
             leftRightFlag = true;
             showSingleViewOrientationButtons = true;
+        }
+        else if (mdm != NULL) {
+            /* nothing */
         }
         else {
             CaretAssertMessage(0, "Unknown model display controller type");

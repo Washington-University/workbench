@@ -56,6 +56,7 @@
 #include "IdentificationDisplayWidget.h"
 #include "ImageSelectionViewController.h"
 #include "LabelSelectionViewController.h"
+#include "MediaOverlaySetViewController.h"
 #include "OverlaySetViewController.h"
 #include "SceneClass.h"
 #include "ScenePrimitiveArray.h"
@@ -152,6 +153,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_fociSelectionViewController      = NULL;
     m_imageSelectionViewController     = NULL;
     m_labelSelectionViewController     = NULL;
+    m_mediaSelectionViewController     = NULL;
     m_overlaySetViewController         = NULL;
     m_volumeSurfaceOutlineSetViewController = NULL;
 
@@ -187,6 +189,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_fociTabIndex = -1;
     m_imageTabIndex = -1;
     m_labelTabIndex = -1;
+    m_mediaTabIndex = -1;
     m_overlayTabIndex = -1;
     m_volumeSurfaceOutlineTabIndex = -1;
     
@@ -278,6 +281,15 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                           this);
         m_labelTabIndex = addToTabWidget(m_labelSelectionViewController,
                        "Labels");
+    }
+    
+    if (isOverlayToolBox) {
+        m_mediaSelectionViewController = new MediaOverlaySetViewController(orientation,
+                                                                           browserWindowIndex,
+                                                                           objectNamePrefix,
+                                                                           this);
+        m_mediaTabIndex = addToTabWidget(m_mediaSelectionViewController,
+                                         "Media");
     }
     
     if (isOverlayToolBox) {
@@ -895,6 +907,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          */
         int defaultTabIndex = -1;
         bool enableLayers = true;
+        bool enableMedia  = false;
         bool enableVolumeSurfaceOutline = false;
         bool enableChartOne = false;
         bool enableChartTwo = false;
@@ -904,6 +917,16 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
             if (windowContent != NULL) {
                 switch (windowContent->getSelectedModelType()) {
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
+                        break;
+                    case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                        defaultTabIndex = m_mediaTabIndex;
+                        enableMedia     = true;
+                        enableLayers = false;
+                        enableVolumeSurfaceOutline = false;
+                        haveBorders = false;
+                        haveFibers  = false;
+                        haveFoci    = false;
+                        haveLabels  = false;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE:
                         defaultTabIndex = m_overlayTabIndex;
@@ -1000,6 +1023,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         if (m_labelTabIndex >= 0) m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
         
         if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, enableLayers);
+        if (m_mediaTabIndex >= 0) m_tabWidget->setTabEnabled(m_mediaTabIndex, enableMedia);
         
         if (m_annotationTabWidget != NULL) {
             const int32_t numTabs = m_annotationTabWidget->count();

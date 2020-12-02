@@ -19,6 +19,7 @@
 /*LICENSE_END*/
 
 #include <cmath>
+#include <cstdint>
 
 #include <QBuffer>
 #include <QColor>
@@ -48,7 +49,7 @@ const float ImageFile::s_defaultWindowDepthPercentage = 990;
  * Constructor.
  */
 ImageFile::ImageFile()
-: CaretDataFile(DataFileTypeEnum::IMAGE)
+: MediaFile(DataFileTypeEnum::IMAGE)
 {
     m_controlPointFile.grabNew(new ControlPointFile());
     
@@ -63,7 +64,7 @@ ImageFile::ImageFile()
  *    QImage that is copied to this image file.
  */
 ImageFile::ImageFile(const QImage& qimage)
-: CaretDataFile(DataFileTypeEnum::IMAGE)
+: MediaFile(DataFileTypeEnum::IMAGE)
 {
     m_controlPointFile.grabNew(new ControlPointFile());
     
@@ -89,7 +90,7 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
                      const int imageWidth,
                      const int imageHeight,
                      const IMAGE_DATA_ORIGIN_LOCATION imageOrigin)
-: CaretDataFile(DataFileTypeEnum::IMAGE)
+: MediaFile(DataFileTypeEnum::IMAGE)
 {
     m_controlPointFile.grabNew(new ControlPointFile());
     
@@ -162,23 +163,15 @@ ImageFile::clear()
 }
 
 /**
- * @return The structure for this file.
+ * @return Number of frames in the file
  */
-StructureEnum::Enum
-ImageFile::getStructure() const
+int32_t
+ImageFile::getNumberOfFrames() const
 {
-    return StructureEnum::INVALID;
-}
-
-/**
- * Set the structure for this file.
- * @param structure
- *   New structure for this file.
- */
-void
-ImageFile::setStructure(const StructureEnum::Enum /*structure */)
-{
-    /* File does not support structures */
+    if (m_image != NULL) {
+        return 1;
+    }
+    return 0;
 }
 
 /**
@@ -1708,6 +1701,54 @@ ImageFile::getControlPointFile() const
 }
 
 /**
+ * @return The graphics primitive for drawing the image as a texture in media drawing model.
+ */
+GraphicsPrimitiveV3fT3f*
+ImageFile::getGraphicsPrimitiveForMediaDrawing() const
+{
+    if (m_graphicsPrimitiveForMediaDrawing == NULL) {
+        std::vector<uint8_t> bytesRGBA;
+        int32_t width(0);
+        int32_t height(0);
+        if (getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                              bytesRGBA,
+                              width,
+                              height)) {
+            
+            GraphicsPrimitiveV3fT3f* primitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                                                                       &bytesRGBA[0],
+                                                                                       width,
+                                                                                       height,
+                                                                                       GraphicsPrimitive::TextureWrappingType::CLAMP,
+                                                                                       GraphicsPrimitive::TextureFilteringType::LINEAR);
+            /*
+             * A Triangle Strip (consisting of two triangles) is used
+             * for drawing the image.  At this time, the XYZ coordinates
+             * do not matter and they will be updated when the annotation
+             * is drawn by a call to ::setVertexBounds().
+             * The order of the vertices in the triangle strip is
+             * Top Left, Bottom Left, Top Right, Bottom Right.  If this
+             * order changes, ::setVertexBounds must be updated.
+             *
+             * Zeros are used for the X- and Y-coordinates.
+             * The third and fourth parameters are the texture
+             * S and T coordinates.
+             */
+            const float halfWidth(width * 0.5);
+            const float halfHeight(height * 0.5);
+            primitive->addVertex(-halfWidth,  halfHeight, 0, 1);  /* Top Left */
+            primitive->addVertex(-halfWidth, -halfHeight, 0, 0);  /* Bottom Left */
+            primitive->addVertex(halfWidth,   halfHeight, 1, 1);  /* Top Right */
+            primitive->addVertex(halfWidth,  -halfHeight, 1, 0);  /* Bottom Right */
+            
+            m_graphicsPrimitiveForMediaDrawing.reset(primitive);
+        }
+    }
+    
+    return m_graphicsPrimitiveForMediaDrawing.get();
+}
+
+/**
  * Save file data from the scene.  For subclasses that need to
  * save to a scene, this method should be overriden.  sceneClass
  * will be valid and any scene data should be added to it.
@@ -1724,6 +1765,9 @@ void
 ImageFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                    SceneClass* sceneClass)
 {
+    MediaFile::saveFileDataToScene(sceneAttributes,
+                                   sceneClass);
+    
     if (m_controlPointFile != NULL) {
         sceneClass->addClass(m_controlPointFile->saveToScene(sceneAttributes,
                                                              "m_controlPointFile"));
@@ -1748,8 +1792,29 @@ void
 ImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                         const SceneClass* sceneClass)
 {
+    MediaFile::restoreFileDataFromScene(sceneAttributes,
+                                        sceneClass);
+    
     m_controlPointFile->restoreFromScene(sceneAttributes,
                                          sceneClass->getClass("m_controlPointFile"));
 }
 
+/**
+ * @return File casted to an image file (avoids use of dynamic_cast that can be slow)
+ */
+ImageFile*
+ImageFile::castToImageFile()
+{
+    return this;
+}
+
+/**
+ * @return File casted to an image file (avoids use of dynamic_cast that can be slow)
+ * Overidden in ImageFile
+ */
+const ImageFile*
+ImageFile::castToImageFile() const
+{
+    return this;
+}
 

@@ -463,6 +463,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_IMAGE_CAPTURE:
         case EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP:
         case EventTypeEnum::EVENT_MAP_YOKING_VALIDATION:
+        case EventTypeEnum::EVENT_MEDIA_FILES_GET:
         case EventTypeEnum::EVENT_MODEL_ADD:
         case EventTypeEnum::EVENT_MODEL_DELETE:
         case EventTypeEnum::EVENT_MODEL_GET_ALL:
