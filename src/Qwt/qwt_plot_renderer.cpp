@@ -23,6 +23,7 @@
 #if QT_VERSION >= 0x050000
 #include <QtPrintSupport/QPrinter>
 #include <QtPrintSupport/QPrintDialog>
+#include <QPainterPath>
 #else // QT_VERSION
 #include <qprinter.h>
 #include <qprintdialog.h>

@@ -27,6 +27,7 @@
 #include <qpaintengine.h>
 #include <qapplication.h>
 #include <qdesktopwidget.h>
+#include <QPainterPath>
 
 #if QT_VERSION >= 0x050000
 #include <qwindow.h>

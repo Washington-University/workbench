@@ -31,6 +31,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QPainter>
+#include <QPainterPath>
 #include <QSpinBox>
 #include <QToolButton>
 #include <QWidgetAction>
