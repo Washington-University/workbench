@@ -215,6 +215,8 @@ public:
 
     const ImageFile* castToImageFile() const;
     
+    virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
+    
 private:
     ImageFile(const ImageFile&);
     

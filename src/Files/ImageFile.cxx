@@ -32,6 +32,7 @@
 #include "ControlPointFile.h"
 #include "ControlPoint3D.h"
 #include "DataFileException.h"
+#include "DataFileContentInformation.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "ImageCaptureSettings.h"
@@ -1706,15 +1707,40 @@ ImageFile::getControlPointFile() const
 GraphicsPrimitiveV3fT3f*
 ImageFile::getGraphicsPrimitiveForMediaDrawing() const
 {
+    if (m_image == NULL) {
+        return NULL;
+    }
+    
     if (m_graphicsPrimitiveForMediaDrawing == NULL) {
         std::vector<uint8_t> bytesRGBA;
         int32_t width(0);
         int32_t height(0);
-        if (getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                              bytesRGBA,
-                              width,
-                              height)) {
-            
+        
+        /*
+         * Some images may use a color table so convert images
+         * if there are not in preferred format prior to
+         * getting colors of pixels
+         */
+        bool validRGBA(false);
+        if (m_image->format() != QImage::Format_RGB32) {
+            QImage image = m_image->convertToFormat(QImage::Format_RGB32);
+            if (! image.isNull()) {
+                ImageFile convImageFile;
+                convImageFile.setFromQImage(image);
+                validRGBA = convImageFile.getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                                            bytesRGBA,
+                                                            width,
+                                                            height);
+            }
+        }
+        else {
+            validRGBA = getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                          bytesRGBA,
+                                          width,
+                                          height);
+        }
+        
+        if (validRGBA) {
             GraphicsPrimitiveV3fT3f* primitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &bytesRGBA[0],
                                                                                        width,
@@ -1818,3 +1844,20 @@ ImageFile::castToImageFile() const
     return this;
 }
 
+/**
+ * @param dataFileInformation
+ *    Item to which information is added.
+ */
+void
+ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    MediaFile::addToDataFileContentInformation(dataFileInformation);
+    
+    if (m_image != NULL) {
+        dataFileInformation.addNameAndValue("Width", m_image->width());
+        dataFileInformation.addNameAndValue("Height", m_image->height());
+        dataFileInformation.addNameAndValue("Color Table", (m_image->colorTable().empty()
+                                                            ? "No"
+                                                            : "Yes"));
+    }
+}
