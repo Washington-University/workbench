@@ -23,15 +23,20 @@
 #include "BrainOpenGLMediaDrawing.h"
 #undef __BRAIN_OPEN_G_L_MEDIA_DRAWING_DECLARE__
 
+#include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventManager.h"
+#include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "ImageFile.h"
 #include "ModelMedia.h"
 #include "MediaOverlay.h"
 #include "MediaOverlaySet.h"
+#include "SelectionItemImage.h"
+#include "SelectionManager.h"
 
 using namespace caret;
 
@@ -88,13 +93,12 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
         || (m_viewport[3] < 1)) {
         return;
     }
-
-    
     glViewport(m_viewport[0],
                m_viewport[1],
                m_viewport[2],
                m_viewport[3]);
     
+
     const float halfHeight(500);
     const float aspectRatio = (static_cast<float>(m_viewport[3])
                                / static_cast<float>(m_viewport[2]));
@@ -125,11 +129,32 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
 void
 BrainOpenGLMediaDrawing::drawModelLayers()
 {
+    SelectionItemImage* idImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getImageIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool selectImageFlag(false);
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (idImage->isEnabledForSelection()) {
+                selectImageFlag = true;
+            }
+            else {
+                return;
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
     MediaOverlaySet* mediaOverlaySet = m_mediaModel->getMediaOverlaySet(m_browserTabContent->getTabNumber());
     CaretAssert(mediaOverlaySet);
     const int32_t numberOfOverlays = mediaOverlaySet->getNumberOfDisplayedOverlays();
     
-    bool firstFlag(true);
     for (int32_t i = (numberOfOverlays - 1); i >= 0; i--) {
         MediaOverlay* overlay = mediaOverlaySet->getOverlay(i);
         CaretAssert(overlay);
@@ -143,9 +168,18 @@ BrainOpenGLMediaDrawing::drawModelLayers()
             if (selectedFile != NULL) {
                 ImageFile* imageFile = selectedFile->castToImageFile();
                 if (imageFile != NULL) {
+                    /*
+                     * Image is drawn using a primitive in which
+                     * the image is a texture
+                     */
                     GraphicsPrimitiveV3fT3f* primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
                     if (primitive) {
                         GraphicsEngineDataOpenGL::draw(primitive);
+                        
+                        if (selectImageFlag) {
+                            processImageFileSelection(imageFile,
+                                                      primitive);
+                        }
                     }
                 }
                 else {
@@ -155,12 +189,95 @@ BrainOpenGLMediaDrawing::drawModelLayers()
                 }
             }
         }
-        
-        if (firstFlag) {
-            firstFlag = false;
-        }
     }
-    
+}
+
+/**
+ * Process selection in an image file
+ * @param imageFile
+ *    The image file
+ * @param primitive
+ *    Primitive that draws image file
+ */
+void
+BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
+                                                   GraphicsPrimitiveV3fT3f* primitive)
+{
+    SelectionItemImage* idImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getImageIdentification();
+    EventOpenGLObjectToWindowTransform xform(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
+    EventManager::get()->sendEvent(xform.getPointer());
+    if (xform.isValid()) {
+        BoundingBox bounds;
+        primitive->getVertexBounds(bounds);
+        
+        /*
+         * Transform bottom left and top right coordinates of
+         * primitive containing image to window coordinates
+         */
+        const float* minXYZ = bounds.getMinXYZ();
+        float windowMinXYZ[3];
+        xform.transformPoint(minXYZ,
+                             windowMinXYZ);
+        
+        const float* maxXYZ = bounds.getMaxXYZ();
+        float windowMaxXYZ[3];
+        xform.transformPoint(maxXYZ,
+                             windowMaxXYZ);
+        
+        const float drawnImageWidth(bounds.getDifferenceX());
+        const float drawnImageHeight(bounds.getDifferenceY());
+        if ((drawnImageWidth > 0.0)
+            && (drawnImageHeight > 0.0)) {
+            const float imageWidth(imageFile->getWidth());
+            const float imageHeight(imageFile->getHeight());
+            
+            const float mouseX(this->m_fixedPipelineDrawing->mouseX);
+            const float mouseY(this->m_fixedPipelineDrawing->mouseY);
+            
+            /*
+             * Offset of mouse from bottom left of image in window coordinates
+             */
+            const float relativeX = mouseX - windowMinXYZ[0];
+            const float relativeY = mouseY - windowMinXYZ[1];
+            
+            /*
+             * Normalized coordinate in image (range is 0 to 1 if inside image)
+             */
+            const float normalizedX = relativeX / static_cast<float>(windowMaxXYZ[0] - windowMinXYZ[0]);
+            const float normalizedY = relativeY / static_cast<float>(windowMaxXYZ[1] - windowMinXYZ[1]);
+            
+            /*
+             * Pixel X&Y in image
+             */
+            const int32_t pixelX = static_cast<int32_t>(normalizedX *
+                                                        static_cast<float>(imageWidth));
+            const int32_t pixelY = static_cast<int32_t>(normalizedY *
+                                                        static_cast<float>(imageHeight));
+            
+            /*
+             * Verify clicked location is inside image
+             */
+            if ((pixelX    >= 0)
+                && (pixelX <  imageWidth)
+                && (pixelY >= 0)
+                && (pixelY <  imageHeight)) {
+                idImage->setImageFile(imageFile);
+                idImage->setPixelI(pixelX);
+                idImage->setPixelJ(pixelY);
+                
+                uint8_t pixelByteRGBA[4];
+                if (imageFile->getImagePixelRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                                 pixelX,
+                                                 pixelY,
+                                                 pixelByteRGBA)) {
+                    idImage->setPixelRGBA(pixelByteRGBA);
+                }
+            }
+        }
+        
+        delete[] minXYZ;
+        delete[] maxXYZ;
+    }
 }
 
 /**

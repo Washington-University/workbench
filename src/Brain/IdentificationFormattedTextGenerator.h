@@ -86,7 +86,7 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::FileInfo> getFilesForIdentification(const IdentificationFilter* filter,
+        std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo> getFilesForIdentification(const IdentificationFilter* filter,
                                                                                                                const int32_t tabIndex) const;
         
         void generateSurfaceToolTip(const Brain* brain,

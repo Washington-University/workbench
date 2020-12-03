@@ -33,6 +33,8 @@ namespace caret {
 
     class BrainOpenGLFixedPipeline;
     class BrowserTabContent;
+    class GraphicsPrimitiveV3fT3f;
+    class ImageFile;
     class ModelMedia;
     
     class BrainOpenGLMediaDrawing : public CaretObject {
@@ -58,6 +60,9 @@ namespace caret {
         
     private:
         void drawModelLayers();
+        
+        void processImageFileSelection(ImageFile* imageFile,
+                                       GraphicsPrimitiveV3fT3f* primitive);
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
         

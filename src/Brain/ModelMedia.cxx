@@ -107,7 +107,7 @@ ModelMedia::reset()
  *     The event that the receive can respond to.
  */
 void 
-ModelMedia::receiveEvent(Event* event)
+ModelMedia::receiveEvent(Event* /*event*/)
 {
 }
 

@@ -162,12 +162,12 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
                                                 brain,
                                                 selectionManager->getVoxelIdentification());
 
-    const std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::FileInfo> displayedFiles = getFilesForIdentification(filter,
+    const std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo> displayedFiles = getFilesForIdentification(filter,
                                                                                                                                   tabIndex);
 
     for (auto fileInfo : displayedFiles) {
         switch (fileInfo.m_overlayType) {
-            case EventCaretMappableDataFilesAndMapsInDisplayedOverlays::OverlayType::BRAINORDINATE:
+            case EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapOverlayType::BRAINORDINATE:
                 if (surfaceID->isValid()) {
                     if (fileInfo.m_mapFile->isSurfaceMappable()) {
                         this->generateSurfaceDataIdentificationText(*labelHtmlTableBuilder,
@@ -189,9 +189,9 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
                     }
                 }
                 break;
-            case EventCaretMappableDataFilesAndMapsInDisplayedOverlays::OverlayType::CHART_ONE:
+            case EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapOverlayType::CHART_ONE:
                 break;
-            case EventCaretMappableDataFilesAndMapsInDisplayedOverlays::OverlayType::CHART_TWO:
+            case EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapOverlayType::CHART_TWO:
                 this->generateChartTwoHistogramIdentificationText(*chartHtmlTableBuilder,
                                                                   idText,
                                                                   selectionManager->getChartTwoHistogramIdentification(),
@@ -283,7 +283,7 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
  * @param tabIndex
  * Index of tab where ID took place
  */
-std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::FileInfo>
+std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo>
 IdentificationFormattedTextGenerator::getFilesForIdentification(const IdentificationFilter* filter,
                                                                 const int32_t tabIndex) const
 {
@@ -352,7 +352,7 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
     /*
      * Get the displayed and user selected file and return them
      */
-    std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::FileInfo> displayedFiles = overlayFilesEvent.getFilesAndMaps();
+    std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo> displayedFiles = overlayFilesEvent.getFilesAndMaps();
     return displayedFiles;
 }
 

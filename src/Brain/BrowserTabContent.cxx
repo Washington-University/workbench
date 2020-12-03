@@ -2126,7 +2126,27 @@ BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAn
         }
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-            CaretAssertToDoWarning();
+        {
+            MediaOverlaySet* overlaySet = model->getMediaOverlaySet(tabIndex);
+            const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+            for (int32_t i = 0; i < numOverlays; i++) {
+                MediaOverlay* overlay = overlaySet->getOverlay(i);
+                if (overlay->isEnabled()) {
+                    MediaFile* mediaFile = NULL;
+                    int32_t frameIndex;
+                    overlay->getSelectionData(mediaFile,
+                                              frameIndex);
+                    
+                    if (mediaFile != NULL) {
+                        if (frameIndex >= 0) {
+                            fileAndMapsEvent->addMediaFileAndFrame(mediaFile,
+                                                                   frameIndex,
+                                                                   m_tabNumber);
+                        }
+                    }
+                }
+            }
+        }
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
