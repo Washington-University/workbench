@@ -35,6 +35,7 @@
 #include "DataFileContentInformation.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "ImageCaptureSettings.h"
 #include "ImageFile.h"
 #include "Matrix4x4.h"
@@ -1716,6 +1717,27 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
         int32_t width(0);
         int32_t height(0);
         
+        /*
+         * If image is too big for OpenGL texture limits, scale image to acceptable size
+         */
+        const int32_t maxTextureWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
+        if (maxTextureWidthHeight > 0) {
+            const int32_t excessWidth(m_image->width() - maxTextureWidthHeight);
+            const int32_t excessHeight(m_image->height() - maxTextureWidthHeight);
+            if ((excessWidth > 0)
+                || (excessHeight > 0)) {
+                if (excessWidth > excessHeight) {
+                    CaretLogWarning(getFileName()
+                                    + " is too big for texture.  Maximum width/height is: "
+                                    + AString::number(maxTextureWidthHeight)
+                                    + " Image Width: "
+                                    + AString::number(m_image->width())
+                                    + " Image Height: "
+                                    + AString::number(m_image->height()));
+                }
+            }
+        }
+
         /*
          * Some images may use a color table so convert images
          * if there are not in preferred format prior to
