@@ -214,14 +214,14 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
          * Transform bottom left and top right coordinates of
          * primitive containing image to window coordinates
          */
-        const float* minXYZ = bounds.getMinXYZ();
+        const auto minXYZ = bounds.getMinXYZ();
         float windowMinXYZ[3];
-        xform.transformPoint(minXYZ,
+        xform.transformPoint(minXYZ.data(),
                              windowMinXYZ);
         
-        const float* maxXYZ = bounds.getMaxXYZ();
+        const auto maxXYZ = bounds.getMaxXYZ();
         float windowMaxXYZ[3];
-        xform.transformPoint(maxXYZ,
+        xform.transformPoint(maxXYZ.data(),
                              windowMaxXYZ);
         
         const float drawnImageWidth(bounds.getDifferenceX());
@@ -274,9 +274,6 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
                 }
             }
         }
-        
-        delete[] minXYZ;
-        delete[] maxXYZ;
     }
 }
 

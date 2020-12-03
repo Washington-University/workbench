@@ -3469,8 +3469,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
  */
 void
 BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent,
-                                     const int32_t mousePressX,
-                                     const int32_t mousePressY,
+                                     const int32_t /*mousePressX*/,
+                                     const int32_t /*mousePressY*/,
                                      const float mouseX,
                                      const float mouseY,
                                      const int32_t /*mouseDX*/,

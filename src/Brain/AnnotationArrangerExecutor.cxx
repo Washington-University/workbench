@@ -527,8 +527,8 @@ AnnotationArrangerExecutor::initializeForArranging(const AnnotationArrangerInput
          annInfoIter++) {
         const AnnotationInfo& annInfo = *annInfoIter;
         
-        m_allAnnotationsBoundingBox.update(annInfo.m_windowBoundingBox.getMinXYZ());
-        m_allAnnotationsBoundingBox.update(annInfo.m_windowBoundingBox.getMaxXYZ());
+        m_allAnnotationsBoundingBox.update(annInfo.m_windowBoundingBox.getMinXYZ().data());
+        m_allAnnotationsBoundingBox.update(annInfo.m_windowBoundingBox.getMaxXYZ().data());
     }
 }
 

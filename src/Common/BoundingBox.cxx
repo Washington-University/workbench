@@ -483,14 +483,12 @@ BoundingBox::getMaxZ() const
 }
 
 /**
- * Get the minimum XYZ of the bounding box.
  * @return Minimum XYZ of the bounding box.
- * in an array that the caller MUST delete[];
  */
-float*
+std::array<float, 3>
 BoundingBox::getMinXYZ() const
 {
-    float* f = new float[3];
+    std::array<float, 3> f;
     f[0] = this->boundingBox[0];
     f[1] = this->boundingBox[2];
     f[2] = this->boundingBox[4];
@@ -498,14 +496,12 @@ BoundingBox::getMinXYZ() const
 }
 
 /**
- * Get the maximum XYZ of the bounding box.
  * @return Maximum XYZ of the bounding box
- * in an array that the caller MUST delete[];
  */
-float*
+std::array<float, 3>
 BoundingBox::getMaxXYZ() const
 {
-    float* f = new float[3];
+    std::array<float, 3> f;
     f[0] = this->boundingBox[1];
     f[1] = this->boundingBox[3];
     f[2] = this->boundingBox[5];

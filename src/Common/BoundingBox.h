@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include <array>
 #include <CaretObject.h>
 
 #include <AString.h>
@@ -107,9 +107,9 @@ public:
 
     float getMaxZ() const;
 
-    float* getMinXYZ() const;
+    std::array<float, 3> getMinXYZ() const;
 
-    float* getMaxXYZ() const;
+    std::array<float, 3> getMaxXYZ() const;
 
     void setMinX(const float value);
 
