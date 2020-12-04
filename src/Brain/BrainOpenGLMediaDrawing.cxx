@@ -270,6 +270,7 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
                                                  pixelX,
                                                  pixelY,
                                                  pixelByteRGBA)) {
+                    idImage->setImageFile(imageFile);
                     idImage->setPixelRGBA(pixelByteRGBA);
                 }
             }

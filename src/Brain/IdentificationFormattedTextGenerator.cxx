@@ -2037,7 +2037,12 @@ IdentificationFormattedTextGenerator::generateImageIdentificationText(HtmlTableB
     if (idImage->isValid()) {
         uint8_t pixelRGBA[4] = { 0, 0, 0, 0 };
         idImage->getPixelRGBA(pixelRGBA);
-        htmlTableBuilder.addRow((" RGBA (" + AString::fromNumbers(pixelRGBA, 4, ",") + ")"),
+        const ImageFile* imageFile = idImage->getImageFile();
+        if (imageFile != NULL) {
+            htmlTableBuilder.addRow("Filename",
+                                    imageFile->getFileNameNoPath());
+        }
+        htmlTableBuilder.addRow(("RGBA (" + AString::fromNumbers(pixelRGBA, 4, ",") + ")"),
                                 ("Pixel IJ ("
                                  + AString::number(idImage->getPixelI())
                                  + ","
