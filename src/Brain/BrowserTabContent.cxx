@@ -3643,7 +3643,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         }
     }
     else if (isMediaDisplayed()) {
-        float txyz[4];
+        float txyz[3];
         m_mediaViewingTransformation->getTranslation(txyz);
         const float accelerate(3.0);
         txyz[0] += (mouseDX * accelerate);
@@ -5592,7 +5592,6 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 *btc->m_flatSurfaceViewingTransformation = *m_flatSurfaceViewingTransformation;
                 *btc->m_cerebellumViewingTransformation = *m_cerebellumViewingTransformation;
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
-                *btc->m_mediaViewingTransformation = *m_mediaViewingTransformation;
                 const VolumeSliceViewPlaneEnum::Enum slicePlane = btc->m_volumeSliceSettings->getSliceViewPlane();
                 *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
                 btc->m_volumeSliceSettings->setSliceViewPlane(slicePlane); // do not yoke the slice plane
@@ -5603,6 +5602,12 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_displayVolumeAxesCrosshairLabels = m_displayVolumeAxesCrosshairLabels;
                 btc->m_displayVolumeMontageAxesCoordinates = m_displayVolumeMontageAxesCoordinates;
                 btc->m_volumeMontageCoordinatePrecision = m_volumeMontageCoordinatePrecision;
+
+                /*
+                 * DO NOT YOKE MEDIA TRANSFORMATION (but might have its own yoking in the future 
+                 * *btc->m_mediaViewingTransformation = *m_mediaViewingTransformation;
+                 */
+
                 /**
                  * lighting enabled NOT yoked
                  * btc->m_lightingEnabled = m_lightingEnabled;
