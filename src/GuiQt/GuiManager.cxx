@@ -30,6 +30,7 @@
 #include <QPainter>
 #include <QPen>
 #include <QPushButton>
+#include <QToolTip>
 
 #define __GUI_MANAGER_DEFINE__
 #include "GuiManager.h"
@@ -319,6 +320,8 @@ GuiManager::initializeGuiManager()
                      this, &GuiManager::sceneDialogDisplayMenuAboutToShow);
     QAction::connect(m_sceneDialogDisplayActionMenu, &QMenu::triggered,
                      this, &GuiManager::sceneDialogDisplayMenuTriggered);
+    QAction::connect(m_sceneDialogDisplayActionMenu, &QMenu::hovered,
+                     this, &GuiManager::sceneDialogDisplayMenuHovered);
 
     /*
      * Help dialog action
@@ -1823,6 +1826,44 @@ GuiManager::processShowVolumePropertiesEditorDialog(BrainBrowserWindow* browserW
     if (wasCreatedFlag) {
         WuQtUtilities::moveWindowToSideOfParent(browserWindow,
                                                 m_volumePropertiesEditorDialog);
+    }
+}
+
+/**
+ * Called when an action (scene) is hovered from the scene dialog action's menu
+ * @param action
+ *    Action that was selected
+ */
+void
+GuiManager::sceneDialogDisplayMenuHovered(QAction* action)
+{
+    if (this->sceneDialog != NULL) {
+        SceneFile* sceneFile = this->sceneDialog->getSelectedSceneFile();
+        if (sceneFile != NULL) {
+            const int32_t numScenes = sceneFile->getNumberOfScenes();
+            if (action != NULL) {
+                const int32_t sceneIndex = action->data().toInt();
+                if ((sceneIndex >= 0)
+                    && (sceneIndex < numScenes)) {
+                    const Scene* scene = sceneFile->getSceneAtIndex(sceneIndex);
+                    CaretAssert(scene);
+                    const AString description = scene->getDescription();
+                    if (description.isEmpty()) {
+                        QToolTip::hideText();
+                    }
+                    else {
+                        /*
+                         * Show tooltip containing scene description
+                         * below mouse (note: positive Y is down in Qt coords)
+                         */
+                        const AString wrappedText(WuQtUtilities::createWordWrappedToolTipText(description));
+                        const QPoint toolTipXY(QCursor::pos() + QPoint(0, 15));
+                        QToolTip::showText(toolTipXY,
+                                           wrappedText);
+                    }
+                }
+            }
+        }
     }
 }
 

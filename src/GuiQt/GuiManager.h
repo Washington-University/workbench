@@ -222,6 +222,8 @@ namespace caret {
         
         void sceneDialogDisplayActionTriggered(bool);
         
+        void sceneDialogDisplayMenuHovered(QAction* action);
+        
         void sceneDialogDisplayMenuTriggered(QAction* action);
         
         void sceneDialogDisplayMenuAboutToShow();
