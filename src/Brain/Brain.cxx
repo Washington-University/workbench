@@ -6160,6 +6160,8 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Load new files and add existing files that were previously loaded.
      */
+    const int64_t numberOfFilesToLoad(specFileToLoad->getNumberOfFilesSelectedForLoading());
+    int64_t fileLoadingCounter(1);
     const int32_t numFileGroups = specFileToLoad->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
         const SpecFileDataFileTypeGroup* group = specFileToLoad->getDataFileTypeGroupByIndex(ig);
@@ -6195,8 +6197,14 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
                     else {
                         const StructureEnum::Enum structure = fileInfo->getStructure();
                         
-                        const QString msg = ("Loading "
+                        const QString msg = ("Loading ("
+                                             + AString::number(fileLoadingCounter)
+                                             + " of "
+                                             + AString::number(numberOfFilesToLoad)
+                                             + ") "
                                              + FileInformation(filename).getFileName());
+                        ++fileLoadingCounter;
+                        
                         progressEvent.setProgressMessage(msg);
                         EventManager::get()->sendEvent(progressEvent.getPointer());
                         if (progressEvent.isCancelled()) {
