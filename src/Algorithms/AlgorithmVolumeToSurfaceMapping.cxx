@@ -25,6 +25,7 @@
 #include "FloatMatrix.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
+#include "SignedDistanceHelper.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
 #include "Vector3D.h"
@@ -74,6 +75,8 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     ribbonOpt->createOptionalParameter(7, "-thin-columns", "use non-overlapping polyhedra");
     OptionalParameter* gaussianOpt = ribbonOpt->createOptionalParameter(8, "-gaussian", "reduce weight to voxels that aren't near <surface>");
     gaussianOpt->addDoubleParameter(1, "scale", "value to multiply the local thickness by, to get the gaussian sigma");
+    OptionalParameter* ribbonInterpOpt = ribbonOpt->createOptionalParameter(10, "-interpolate", "instead of a weighted average of voxels, interpolate at subpoints inside the ribbon");
+    ribbonInterpOpt->addStringParameter(1, "method", "interpolation method, must be CUBIC, ENCLOSING_VOXEL, or TRILINEAR");
     OptionalParameter* badVertOpt = ribbonOpt->createOptionalParameter(9, "-bad-vertices-out", "output an ROI of which vertices didn't intersect any valid voxels");
     badVertOpt->addMetricOutputParameter(1, "roi-out", "the output metric file of vertices that have no data");
     OptionalParameter* ribbonWeights = ribbonOpt->createOptionalParameter(5, "-output-weights", "write the voxel weights for a vertex to a volume file");
@@ -102,7 +105,8 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
         "voxels that don't have a positive value in the mask.  The subdivision number specifies how it approximates the amount of the volume the polyhedron " +
         "intersects, by splitting each voxel into NxNxN pieces, and checking whether the center of each piece is inside the polyhedron.  If you have very large " +
         "voxels, consider increasing this if you get zeros in your output.  " +
-        "The -gaussian option makes it act more like the myelin method, where the distance of a voxel from <surface> is used to downweight the voxel.\n\n" +
+        "The -gaussian option makes it act more like the myelin method, where the distance of a voxel from <surface> is used to downweight the voxel.  " +
+        "The -interpolate suboption, instead of doing a weighted average of voxels, interpolates from the volume at the subdivided points inside the ribbon.\n\n" +
         "The myelin style method uses part of the caret5 myelin mapping command to do the mapping: for each surface vertex, take all voxels that are in a cylinder " +
         "with radius and height equal to cortical thickness, centered on the vertex and aligned with the surface normal, and that are also within the ribbon ROI, " +
         "and apply a gaussian kernel with the specified sigma to them to get the weights to use.  " +
@@ -218,6 +222,23 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                 gaussScale = (float)gaussianOpt->getDouble(1);
                 if (!(gaussScale > 0.0f)) throw AlgorithmException("gaussian scale must be positive");
             }
+            bool ribbonInterp = false;
+            OptionalParameter* ribbonInterpOpt = ribbonOpt->getOptionalParameter(10);
+            if (ribbonInterpOpt->m_present)
+            {
+                ribbonInterp = true;
+                AString interpMethod = ribbonInterpOpt->getString(1);
+                if (interpMethod == "CUBIC")
+                {
+                    volInterpMethod = VolumeFile::CUBIC;
+                } else if (interpMethod == "TRILINEAR") {
+                    volInterpMethod = VolumeFile::TRILINEAR;
+                } else if (interpMethod == "ENCLOSING_VOXEL") {
+                    volInterpMethod = VolumeFile::ENCLOSING_VOXEL;
+                } else {
+                    throw AlgorithmException("unrecognized volume interpolation method");
+                }
+            }
             MetricFile* badVertices = NULL;
             OptionalParameter* badVertOpt = ribbonOpt->getOptionalParameter(9);
             if (badVertOpt->m_present)
@@ -232,9 +253,19 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                 weightsOutVertex = (int)ribbonWeights->getInteger(1);
                 weightsOut = ribbonWeights->getOutputVolume(2);
             }
-            AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, myRoiVol, subdivisions, thinColumns,
-                                            mySubVol, gaussScale, badVertices, weightsOutVertex, weightsOut);
             OptionalParameter* ribbonWeightsText = ribbonOpt->getOptionalParameter(6);
+            if (ribbonInterp)
+            {
+                if (ribbonWeightsText->m_present || weightsOut != NULL)
+                {
+                    throw AlgorithmException("-output-weights options are incompatible with -interpolate");
+                }
+                AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, volInterpMethod, myRoiVol, subdivisions, thinColumns,
+                                                mySubVol, gaussScale, badVertices);
+            } else {
+                AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, myRoiVol, subdivisions, thinColumns,
+                                                mySubVol, gaussScale, badVertices, weightsOutVertex, weightsOut);
+            }
             if (ribbonWeightsText->m_present)
             {//do this after the algorithm, to let it do the error condition checking
                 ofstream outFile(ribbonWeightsText->getString(1).toLocal8Bit().constData());
@@ -503,6 +534,120 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                     }
             }
             myMetricOut->setValuesForColumn(thisCol, myScratch);
+        }
+    }
+    if (badVertices != NULL)
+    {
+        badVertices->setValuesForColumn(0, badVertScratch.data());
+    }
+}
+
+//interpolation ribbon mapping
+AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
+                                                                 const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile::InterpType interpType, const VolumeFile* roiVol,
+                                                                 const int32_t& subdivisions, const bool& thinColumns, const int64_t& mySubVol, const float& gaussScale, MetricFile* badVertices) : AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    vector<int64_t> myVolDims;
+    myVolume->getDimensions(myVolDims);
+    if (mySubVol >= myVolDims[3] || mySubVol < -1)
+    {
+        throw AlgorithmException("invalid subvolume specified");
+    }
+    if (!mySurface->hasNodeCorrespondence(*outerSurf) || !mySurface->hasNodeCorrespondence(*innerSurf))
+    {
+        throw AlgorithmException("all surfaces must have vertex correspondence");
+    }
+    if (roiVol != NULL && !roiVol->matchesVolumeSpace(myVolume))
+    {
+        throw AlgorithmException("roi volume is not in the same volume space as input volume");
+    }
+    int64_t startVol = 0, endVol = myVolDims[3];
+    if (mySubVol > -1)
+    {
+        startVol = mySubVol;
+        endVol = mySubVol + 1;
+    }
+    int64_t numColumns = (endVol - startVol) * myVolDims[4];
+    int64_t numNodes = mySurface->getNumberOfNodes();
+    myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
+    myMetricOut->setStructure(mySurface->getStructure());
+    vector<float> badVertScratch, myScratchArray(numNodes);
+    if (badVertices != NULL)
+    {
+        badVertices->setNumberOfNodesAndColumns(numNodes, 1);
+        badVertices->setStructure(mySurface->getStructure());
+        badVertScratch.resize(numNodes, 0.0f);
+    }
+    const float* roiFrame = NULL;
+    if (roiVol != NULL) roiFrame = roiVol->getFrame();
+    vector<vector<PointWeight> > pointList = RibbonMappingHelper::computePointsRibbon(myVolume->getVolumeSpace(), innerSurf, outerSurf, roiFrame, subdivisions, thinColumns);
+    CaretPointer<SignedDistanceHelperBase> myHelpBase;
+    if (gaussScale > 0.0f)
+    {
+        myHelpBase.grabNew(new SignedDistanceHelperBase(mySurface));
+    }
+    MetricFile thickness;
+    AlgorithmSurfaceToSurface3dDistance(NULL, innerSurf, outerSurf, &thickness);
+    for (int64_t i = startVol; i < endVol; ++i)
+    {
+        for (int64_t j = 0; j < myVolDims[4]; ++j)
+        {
+            if (interpType == VolumeFile::CUBIC)
+            {
+                myVolume->validateSpline(i, j);//to do spline deconvolution in parallel
+            }
+            int64_t thisCol = (i - startVol) * myVolDims[4] + j;
+            AString metricLabel = myVolume->getMapName(i);
+            if (myVolDims[4] != 1)
+            {
+                metricLabel += " component " + AString::number(j);
+            }
+            myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PAR
+            {
+                CaretPointer<SignedDistanceHelper> distHelp;
+                if (gaussScale > 0.0f)
+                {
+                    distHelp.grabNew(new SignedDistanceHelper(myHelpBase));
+                }
+#pragma omp CARET_FOR
+                for (int64_t node = 0; node < numNodes; ++node)
+                {
+                    double accum = 0.0, weightAccum = 0.0;
+                    float thisThick = thickness.getValue(node, 0);
+                    for (auto& point : pointList[node])
+                    {
+                        float value = myVolume->interpolateValue(point.coord, interpType, NULL, i, j);
+                        if (gaussScale > 0.0f)
+                        {
+                            float dist = distHelp->dist(point.coord, SignedDistanceHelper::EVEN_ODD);//could make a function for unsigned distance to speed this up some
+                            float toSquare = dist / (thisThick * gaussScale);
+                            float weight = point.weight * exp(-toSquare * toSquare / 2);
+                            accum += value * weight;
+                            weightAccum += weight;
+                        } else {
+                            accum += point.weight * value;
+                            weightAccum += point.weight;
+                        }
+                    }
+                    if (weightAccum > 0.0)
+                    {
+                        myScratchArray[node] = accum / weightAccum;
+                    } else {
+                        myScratchArray[node] = 0.0f;
+                        if (badVertices != NULL)
+                        {
+                            badVertScratch[node] = 1.0f;
+                        }
+                    }
+                }
+            }
+            myMetricOut->setValuesForColumn(thisCol, myScratchArray.data());
+            if (interpType == VolumeFile::CUBIC)
+            {
+                myVolume->freeSpline(i, j);//release memory we no longer need, if we allocated it
+            }
         }
     }
     if (badVertices != NULL)

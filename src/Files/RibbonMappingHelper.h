@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include "Vector3D.h"
+
 #include "stdint.h"
 #include <cstddef>
 #include <vector>
@@ -45,11 +47,24 @@ namespace caret
         }
     };
     
+    struct PointWeight
+    {//for precomputation for interpolation-type ribbon mapping
+        Vector3D coord;
+        int_fast8_t weight;//will be 1 or 2, needed because of quadrilateral ambiguity
+        PointWeight() { };
+        PointWeight(const int weightIn, const Vector3D coordIn) { weight = weightIn; coord = coordIn; }
+    };
+    
     class RibbonMappingHelper
     {
     public:
         ///compute per-vertex ribbon mapping weights - surfaces must have vertex correspondence, or an exception is thrown
         static void computeWeightsRibbon(std::vector<std::vector<VoxelWeight> >& myWeightsOut, const VolumeSpace& myVolSpace,
+                                         const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,
+                                         const float* roiFrame = NULL, const int& numDivisions = 3, const bool& thinColumn = false);
+        
+        ///compute per-vertex ribbon mapping points - surfaces must have vertex correspondence, or an exception is thrown
+        static std::vector<std::vector<PointWeight> > computePointsRibbon(const VolumeSpace& myVolSpace,
                                          const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,
                                          const float* roiFrame = NULL, const int& numDivisions = 3, const bool& thinColumn = false);
     };

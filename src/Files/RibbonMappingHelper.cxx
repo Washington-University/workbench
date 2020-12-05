@@ -263,6 +263,120 @@ namespace
         return ((float)inside) / (divisions * divisions * divisions * 2);
     }
     
+    void appendSubvoxelWeights(vector<PointWeight>& outList, const VolumeSpace& myVolSpace, const int64_t* ijk, PolyInfo& myPoly, const int divisions,
+                               const Vector3D& ivec, const Vector3D& jvec, const Vector3D& kvec)
+    {
+        Vector3D myLowCorner;
+        myVolSpace.indexToSpace(ijk[0] - 0.5f, ijk[1] - 0.5f, ijk[2] - 0.5f, myLowCorner);
+        Vector3D istep = ivec / divisions;
+        Vector3D jstep = jvec / divisions;
+        Vector3D kstep = kvec / divisions;
+        myLowCorner += istep * 0.5f + jstep * 0.5f + kstep * 0.5f;
+        for (int i = 0; i < divisions; ++i)
+        {
+            Vector3D tempVeci = myLowCorner + istep * i;
+            for (int j = 0; j < divisions; ++j)
+            {
+                Vector3D tempVecj = tempVeci + jstep * j;
+                for (int k = 0; k < divisions; ++k)
+                {
+                    Vector3D thisPoint = tempVecj + kstep * k;
+                    int inside = myPoly.isInside(thisPoint);
+                    if (inside > 0)
+                    {
+                        outList.push_back(PointWeight(inside, thisPoint));
+                    }
+                }
+            }
+        }
+    }
+}
+
+vector<vector<PointWeight> > RibbonMappingHelper::computePointsRibbon(const VolumeSpace& myVolSpace, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,
+                                              const float* roiFrame, const int& numDivisions, const bool& thinColumn)
+{
+    if (!innerSurf->hasNodeCorrespondence(*outerSurf))
+    {
+        throw CaretException("input surfaces to ribbon mapping do not have vertex correspondence");
+    }
+    if (numDivisions < 1)
+    {
+        throw CaretException("number of voxel subdivisions must be positive for ribbon mapping");
+    }
+    int64_t numNodes = outerSurf->getNumberOfNodes();
+    vector<vector<PointWeight> > myPointsOut(numNodes);
+    Vector3D origin, ivec, jvec, kvec;//these are the spatial projections of the ijk unit vectors (also, the offset that specifies the origin)
+    myVolSpace.getSpacingVectors(ivec, jvec, kvec, origin);
+    const float* outerCoords = outerSurf->getCoordinateData();
+    const float* innerCoords = innerSurf->getCoordinateData();
+    const int64_t* myDims = myVolSpace.getDims();
+#pragma omp CARET_PAR
+    {
+        int maxPointCount = numDivisions * numDivisions * numDivisions;//guess for preallocating vectors
+        CaretPointer<TopologyHelper> myTopoHelp = innerSurf->getTopologyHelper();
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int64_t node = 0; node < numNodes; ++node)
+        {
+            myPointsOut[node].clear();
+            myPointsOut[node].reserve(maxPointCount);
+            int64_t node3 = node * 3;
+            PolyInfo myPoly(innerSurf, outerSurf, node, thinColumn);//build the polygon
+            Vector3D minIndex, maxIndex, tempvec;
+            myVolSpace.spaceToIndex(innerCoords + node3, minIndex);//find the bounding box in VOLUME INDEX SPACE, starting with the center nodes
+            maxIndex = minIndex;//this could be tightened to bounding box in divided voxel space, but as-is it is symmetric with the voxel weight code
+            myVolSpace.spaceToIndex(outerCoords + node3, tempvec);
+            for (int i = 0; i < 3; ++i)
+            {
+                if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
+                if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
+            }
+            int numNeigh;
+            const int* myNeighList = myTopoHelp->getNodeNeighbors(node, numNeigh);//and now the neighbors
+            for (int j = 0; j < numNeigh; ++j)
+            {
+                int neigh3 = myNeighList[j] * 3;
+                myVolSpace.spaceToIndex(outerCoords + neigh3, tempvec);
+                for (int i = 0; i < 3; ++i)
+                {
+                    if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
+                    if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
+                }
+                myVolSpace.spaceToIndex(innerCoords + neigh3, tempvec);
+                for (int i = 0; i < 3; ++i)
+                {
+                    if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
+                    if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
+                }
+            }
+            int startIndex[3], endIndex[3];
+            for (int i = 0; i < 3; ++i)
+            {
+                startIndex[i] = (int)ceil(minIndex[i] - 0.5f);//give an extra half voxel in order to get anything which could have some polygon in it
+                endIndex[i] = (int)floor(maxIndex[i] + 0.5f) + 1;//ditto, plus the one-after end convention
+                if (startIndex[i] < 0) startIndex[i] = 0;//keep it inside the volume boundaries
+                if (endIndex[i] > myDims[i]) endIndex[i] = myDims[i];
+            }
+            int64_t ijk[3];
+            for (ijk[0] = startIndex[0]; ijk[0] < endIndex[0]; ++ijk[0])
+            {
+                for (ijk[1] = startIndex[1]; ijk[1] < endIndex[1]; ++ijk[1])
+                {
+                    for (ijk[2] = startIndex[2]; ijk[2] < endIndex[2]; ++ijk[2])
+                    {
+                        if (roiFrame == NULL || roiFrame[myVolSpace.getIndex(ijk)] > 0.0f)
+                        {
+                            appendSubvoxelWeights(myPointsOut[node], myVolSpace, ijk, myPoly, numDivisions, ivec, jvec, kvec);
+                        }
+                    }
+                }
+            }
+            if ((int)myPointsOut[node].size() > maxPointCount)
+            {//capacity() would use more memory
+                maxPointCount = myPointsOut[node].size();
+            }
+        }
+    }
+    return myPointsOut;
 }
 
 void RibbonMappingHelper::computeWeightsRibbon(vector<vector<VoxelWeight> >& myWeightsOut, const VolumeSpace& myVolSpace, const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,

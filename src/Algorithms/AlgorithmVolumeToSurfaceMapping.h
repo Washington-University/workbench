@@ -58,6 +58,10 @@ namespace caret {
                                         const int64_t& mySubVol = -1, const float& gaussScale = -1.0f, MetricFile* badVertices = NULL,
                                         const int& weightsOutVertex = -1, VolumeFile* weightsOut = NULL);
         AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
+                                        const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile::InterpType interpType,
+                                        const VolumeFile* roiVol = NULL, const int32_t& subdivisions = 3, const bool& thinColumns = false,
+                                        const int64_t& mySubVol = -1, const float& gaussScale = -1.0f, MetricFile* badVertices = NULL);
+        AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
                                         const VolumeFile* roiVol, const MetricFile* thickness, const float& sigma, const int64_t& mySubVol = -1, const bool& oldCutoffBug = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
