@@ -1012,6 +1012,13 @@ CaretPreferences::setUserBackgroundAndForegroundColors(const BackgroundAndForegr
                            this->userColors.m_colorBackgroundChart,
                            3);
     
+    writeUnsignedByteArray(NAME_COLOR_FOREGROUND_MEDIA,
+                           this->userColors.m_colorForegroundMedia,
+                           3);
+    writeUnsignedByteArray(NAME_COLOR_BACKGROUND_MEDIA,
+                           this->userColors.m_colorBackgroundMedia,
+                           3);
+    
     writeUnsignedByteArray(NAME_COLOR_FOREGROUND_SURFACE,
                            this->userColors.m_colorForegroundSurface,
                            3);
@@ -1908,6 +1915,18 @@ CaretPreferences::readPreferences()
                           3);
     userColors.setColorBackgroundSurfaceView(colorRGB);
     
+    userColors.getColorForegroundMediaView(colorRGB);
+    readUnsignedByteArray(NAME_COLOR_FOREGROUND_MEDIA,
+                          colorRGB,
+                          3);
+    userColors.setColorForegroundMediaView(colorRGB);
+    
+    userColors.getColorBackgroundMediaView(colorRGB);
+    readUnsignedByteArray(NAME_COLOR_BACKGROUND_MEDIA,
+                          colorRGB,
+                          3);
+    userColors.setColorBackgroundMediaView(colorRGB);
+
     userColors.getColorForegroundVolumeView(colorRGB);
     readUnsignedByteArray(NAME_COLOR_FOREGROUND_VOLUME,
                           colorRGB,

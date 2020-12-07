@@ -69,6 +69,11 @@ m_wasRestoredFromSceneFlag(false)
     m_sceneAssistant->addArray("m_colorBackgroundSurface",
                                m_colors.m_colorBackgroundSurface, 3, 0);
     
+    m_sceneAssistant->addArray("m_colorForegroundMedia",
+                               m_colors.m_colorForegroundMedia, 3, 255);
+    m_sceneAssistant->addArray("m_colorBackgroundMedia",
+                               m_colors.m_colorBackgroundMedia, 3, 0);
+    
     m_sceneAssistant->addArray("m_colorForegroundVolume",
                                m_colors.m_colorForegroundVolume, 3, 255);
     m_sceneAssistant->addArray("m_colorBackgroundVolume",

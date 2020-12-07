@@ -449,6 +449,8 @@ namespace caret {
         static const AString NAME_COLOR_FOREGROUND_ALL;
         static const AString NAME_COLOR_BACKGROUND_CHART;
         static const AString NAME_COLOR_FOREGROUND_CHART;
+        static const AString NAME_COLOR_BACKGROUND_MEDIA;
+        static const AString NAME_COLOR_FOREGROUND_MEDIA;
         static const AString NAME_COLOR_BACKGROUND_SURFACE;
         static const AString NAME_COLOR_FOREGROUND_SURFACE;
         static const AString NAME_COLOR_BACKGROUND_VOLUME;
@@ -500,6 +502,8 @@ namespace caret {
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_ALL     = "colorForegroundAll";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND_CHART     = "colorBackgroundChart";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_CHART     = "colorForegroundChart";
+    const AString CaretPreferences::NAME_COLOR_BACKGROUND_MEDIA     = "colorBackgroundMedia";
+    const AString CaretPreferences::NAME_COLOR_FOREGROUND_MEDIA     = "colorForegroundMedia";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND_SURFACE     = "colorBackgroundSurface";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_SURFACE     = "colorForegroundSurface";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND_VOLUME     = "colorBackgroundVolume";

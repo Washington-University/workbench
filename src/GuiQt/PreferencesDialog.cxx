@@ -206,6 +206,16 @@ PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
             buttonText = "Window Foreground";
             m_foregroundColorWindowWidget = colorSwatchWidget;
             break;
+        case PREF_COLOR_BACKGROUND_MEDIA:
+            buttonToolTip = "Color for background in Media Display";
+            buttonText    = "Media Background";
+            m_backgroundColorMediaWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_FOREGROUND_MEDIA:
+            buttonToolTip = "Color for foreground (text) in Media Display";
+            buttonText    = "Media Foreground";
+            m_foregroundColorMediaWidget = colorSwatchWidget;
+            break;
         case NUMBER_OF_PREF_COLORS:
             CaretAssert(0);
             break;
@@ -270,7 +280,12 @@ PreferencesDialog::createColorsWidget()
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_BACKGROUND_SURFACE,
                             colorSignalMapper);
-    
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_FOREGROUND_MEDIA,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_BACKGROUND_MEDIA,
+                            colorSignalMapper);
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_FOREGROUND_VOLUME,
                             colorSignalMapper);
@@ -356,6 +371,14 @@ PreferencesDialog::updateColorWidget(CaretPreferences* prefs)
             case PREF_COLOR_FOREGROUND_WINDOW:
                 colors.getColorForegroundWindow(rgb);
                 colorSwatchWidget = m_foregroundColorWindowWidget;
+                break;
+            case PREF_COLOR_FOREGROUND_MEDIA:
+                colors.getColorForegroundMediaView(rgb);
+                colorSwatchWidget = m_foregroundColorMediaWidget;
+                break;
+            case PREF_COLOR_BACKGROUND_MEDIA:
+                colors.getColorBackgroundMediaView(rgb);
+                colorSwatchWidget = m_backgroundColorMediaWidget;
                 break;
             case NUMBER_OF_PREF_COLORS:
                 CaretAssert(0);
@@ -949,6 +972,14 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
             colors.getColorForegroundWindow(rgb);
             prefColorName = "Foreground - Window";
             break;
+        case PREF_COLOR_BACKGROUND_MEDIA:
+            colors.getColorBackgroundMediaView(rgb);
+            prefColorName = "Background - Media";
+            break;
+        case PREF_COLOR_FOREGROUND_MEDIA:
+            colors.getColorForegroundMediaView(rgb);
+            prefColorName = "Foreground - Media";
+            break;
         case NUMBER_OF_PREF_COLORS:
             CaretAssert(0);
             break;
@@ -1007,6 +1038,12 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
                 break;
             case PREF_COLOR_FOREGROUND_WINDOW:
                 colors.setColorForegroundWindow(rgb);
+                break;
+            case PREF_COLOR_BACKGROUND_MEDIA:
+                colors.setColorBackgroundMediaView(rgb);
+                break;
+            case PREF_COLOR_FOREGROUND_MEDIA:
+                colors.setColorForegroundMediaView(rgb);
                 break;
             case NUMBER_OF_PREF_COLORS:
                 CaretAssert(0);
