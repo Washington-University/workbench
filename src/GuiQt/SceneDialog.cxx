@@ -2574,14 +2574,14 @@ SceneDialog::showImagePreviewButtonClicked()
             
             AString nameText;
             AString sceneIdText;
-            AString descriptionText;
-            const int32_t negativeIsUnlimitedNumberOfLines = -1;
+            AString abbreviatedDescriptionText;
+            AString fullDescriptionText;
             SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
                                                                              -1,
                                                                              nameText,
                                                                              sceneIdText,
-                                                                             descriptionText,
-                                                                             negativeIsUnlimitedNumberOfLines);
+                                                                             abbreviatedDescriptionText,
+                                                                             fullDescriptionText);
             QLabel* nameLabel = new QLabel(nameText);
             ded.addWidget("",
                           nameLabel);
@@ -2590,8 +2590,8 @@ SceneDialog::showImagePreviewButtonClicked()
             ded.addWidget("",
                           sceneIdLabel);
             
-            if (! descriptionText.isEmpty()) {
-                QLabel* descriptionLabel = new QLabel(descriptionText);
+            if (! fullDescriptionText.isEmpty()) {
+                QLabel* descriptionLabel = new QLabel(fullDescriptionText);
                 descriptionLabel->setWordWrap(true);
                 ded.addWidget("",
                               descriptionLabel);
@@ -3067,8 +3067,22 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     m_nameLabel = new QLabel();
     m_nameLabel->setWordWrap(true);
     
-    m_descriptionLabel = new QLabel();
-    m_descriptionLabel->setWordWrap(true);
+    QWidget* descriptionWidget(NULL);
+    m_descriptionLabel = NULL;
+    m_descriptionTextEdit = NULL;
+    switch (s_scrollableDescriptionMode) {
+        case 1:
+            m_descriptionTextEdit = new QTextEdit();
+            m_descriptionTextEdit->setReadOnly(true);
+            descriptionWidget = m_descriptionTextEdit;
+            break;
+        case 2: /* fallthrough */
+        default:
+            m_descriptionLabel = new QLabel();
+            m_descriptionLabel->setWordWrap(true);
+            descriptionWidget = m_descriptionLabel;
+            break;
+    }
     
     m_sceneIdLabel = new QLabel();
     
@@ -3082,7 +3096,7 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     rightLayout->addWidget(m_activeSceneLabel);
     rightLayout->addWidget(m_nameLabel,1);
     rightLayout->addWidget(m_sceneIdLabel);
-    rightLayout->addWidget(m_descriptionLabel, 100);
+    rightLayout->addWidget(descriptionWidget, 100);
     rightLayout->addStretch();
     
     m_leftSideWidget = new QWidget();
@@ -3150,13 +3164,14 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         AString nameText;
         AString sceneIdText;
         AString descriptionText;
-        const int32_t numLinesToDisplay = 9;
+        AString abbreviatedDescriptionText;
+        AString fullDescriptionText;
         SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
                                                                          sceneIndex,
                                                                          nameText,
                                                                          sceneIdText,
-                                                                         descriptionText,
-                                                                         numLinesToDisplay);
+                                                                         abbreviatedDescriptionText,
+                                                                         fullDescriptionText);
         
         if (activeSceneFlag) {
             m_activeSceneLabel->setText("<html><font color=\"red\">Current Scene</font></html>");
@@ -3168,7 +3183,17 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         }
         m_nameLabel->setText(nameText);
         m_sceneIdLabel->setText(sceneIdText);
-        m_descriptionLabel->setText(descriptionText);
+        if (m_descriptionLabel != NULL) {
+            if (s_scrollableDescriptionMode == 2) {
+                m_descriptionLabel->setText(fullDescriptionText);
+            }
+            else {
+                m_descriptionLabel->setText(abbreviatedDescriptionText);
+            }
+        }
+        if (m_descriptionTextEdit != NULL) {
+            m_descriptionTextEdit->setText(fullDescriptionText);
+        }
         
         QByteArray imageByteArray;
         AString imageBytesFormat;
@@ -3249,19 +3274,18 @@ SceneClassInfoWidget::limitToNumberOfLines(AString& textLines,
  *    Text for name.
  * @param sceneIdTextOut
  *    Text for scene ID.
- * @param desciptionTextOut
- *    Text for description.
- * @param maximumLinesInDescription
- *    Maximum number of lines allowed in description.
- *    If value is negative, an unlimited number of lines are allowed.
+ * @param abbreviatedDescriptionTextOut
+ *    Abbreviated text for description.
+ * @param fullDescriptionTextOut
+ *    Full text for description.
  */
 void
 SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo* sceneInfo,
                                                                  const int32_t sceneIndex,
                                                                  AString& nameTextOut,
                                                                  AString& sceneIdTextOut,
-                                                                 AString& descriptionTextOut,
-                                                                 const int32_t maximumLinesInDescription)
+                                                                 AString& abbreviatedDescriptionTextOut,
+                                                                 AString& fullDescriptionTextOut)
 {
     CaretAssert(sceneInfo);
     
@@ -3290,14 +3314,13 @@ SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo
                       + sceneInfo->getBalsaSceneID()
                       + "</html>");
     
-    AString description = sceneInfo->getDescription();
-    
-    if (maximumLinesInDescription > 0) {
-        SceneClassInfoWidget::limitToNumberOfLines(description,
-                                                   maximumLinesInDescription);
-    }
-    
-    if ( ! description.isEmpty()) {
+    fullDescriptionTextOut = sceneInfo->getDescription();
+    abbreviatedDescriptionTextOut = fullDescriptionTextOut;
+    const int32_t maximumLinesInDescription(9);
+    SceneClassInfoWidget::limitToNumberOfLines(abbreviatedDescriptionTextOut,
+                                               maximumLinesInDescription);
+
+    if ( ! fullDescriptionTextOut.isEmpty()) {
         /*
          * HTML formatting is needed so text is properly displayed.
          * Want to put "Description" at beginning in bold but any
@@ -3305,13 +3328,25 @@ SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo
          * HTML, perform a replace to insert "Description" in bold.
          */
         const AString replaceWithDescriptionBoldText = "REPLACE_WITH_DESCRIPTION";
-        description = WuQtUtilities::createWordWrappedToolTipText(replaceWithDescriptionBoldText
-                                                                  + description);
-        description.replace(replaceWithDescriptionBoldText,
+        fullDescriptionTextOut = WuQtUtilities::createWordWrappedToolTipText(replaceWithDescriptionBoldText
+                                                                  + fullDescriptionTextOut);
+        fullDescriptionTextOut.replace(replaceWithDescriptionBoldText,
                             "<b>DESCRIPTION:</b> ");
     }
-    
-    descriptionTextOut = description;
+
+    if ( ! abbreviatedDescriptionTextOut.isEmpty()) {
+        /*
+         * HTML formatting is needed so text is properly displayed.
+         * Want to put "Description" at beginning in bold but any
+         * HTML tags are converted to text.  So, after conversion to
+         * HTML, perform a replace to insert "Description" in bold.
+         */
+        const AString replaceWithDescriptionBoldText = "REPLACE_WITH_DESCRIPTION";
+        abbreviatedDescriptionTextOut = WuQtUtilities::createWordWrappedToolTipText(replaceWithDescriptionBoldText
+                                                                  + abbreviatedDescriptionTextOut);
+        abbreviatedDescriptionTextOut.replace(replaceWithDescriptionBoldText,
+                            "<b>DESCRIPTION:</b> ");
+    }
 }
 
 
@@ -3373,5 +3408,16 @@ SceneClassInfoWidget::isValid() const
     }
     
     return false;
+}
+
+/**
+ * Enable/disable scrollable scene description so all text visible
+ * @param scrollMode
+ *    The scroll mode
+ */
+void
+SceneClassInfoWidget::setScrollableDescriptionMode(const int32_t scrollMode)
+{
+    s_scrollableDescriptionMode = scrollMode;
 }
 

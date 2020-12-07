@@ -95,21 +95,21 @@ ScenePreviewDialog::ScenePreviewDialog(const Scene* scene,
     
     AString nameText;
     AString sceneIdText;
-    AString descriptionText;
-    const int32_t negativeIsUnlimitedNumberOfLines = -1;
+    AString abbreviatedDescriptionText;
+    AString fullDescriptionText;
     SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
                                                                      -1,
                                                                      nameText,
                                                                      sceneIdText,
-                                                                     descriptionText,
-                                                                     negativeIsUnlimitedNumberOfLines);
+                                                                     abbreviatedDescriptionText,
+                                                                     fullDescriptionText);
     QLabel* nameLabel = new QLabel(nameText);
     
     QLabel* sceneIdLabel = new QLabel(sceneIdText);
     
     QLabel* descriptionLabel = NULL;
-    if (! descriptionText.isEmpty()) {
-        descriptionLabel = new QLabel(descriptionText);
+    if (! fullDescriptionText.isEmpty()) {
+        descriptionLabel = new QLabel(fullDescriptionText);
         descriptionLabel->setWordWrap(true);
     }
     

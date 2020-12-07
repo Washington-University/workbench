@@ -57,6 +57,7 @@
 #include "ProgramParameters.h"
 #include "RecentFilesDialog.h"
 #include "RecentFilesSystemAccessModeEnum.h"
+#include "SceneDialog.h"
 #include "SessionManager.h"
 #include "SystemUtilities.h"
 #include "WuQMessageBox.h"
@@ -940,6 +941,15 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                     }
                     else {
                         cerr << "Missing scene file name for " << thisParam << " option" << std::endl;
+                        hasFatalError = true;
+                    }
+                } else if (thisParam == "-scene-scroll") {
+                    if (myParams->hasNext()) {
+                        const int32_t scrollMode = myParams->nextInt("scroll mode");
+                        SceneClassInfoWidget::setScrollableDescriptionMode(scrollMode);
+                    }
+                    else {
+                        cerr << "Missing scroll mode" << std::endl;
                         hasFatalError = true;
                     }
                 } else if (thisParam == "-spec-load-all") {

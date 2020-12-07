@@ -35,6 +35,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 class QScrollArea;
+class QTextEdit;
 class QVBoxLayout;
 
 namespace caret {
@@ -295,8 +296,10 @@ namespace caret {
                                                                const int32_t sceneIndex,
                                                                AString& nameTextOut,
                                                                AString& sceneIdTextOut,
-                                                               AString& descriptionTextOut,
-                                                               const int32_t maximumLinesInDescription);
+                                                               AString& abbreviatedDescriptionTextOut,
+                                                               AString& fullDescriptionTextOut);
+        
+        static void setScrollableDescriptionMode(const int32_t scrollMode);
         
     signals:
         /**
@@ -332,6 +335,8 @@ namespace caret {
         
         QLabel* m_descriptionLabel;
         
+        QTextEdit* m_descriptionTextEdit;
+        
         Scene* m_scene;
         
         int32_t m_sceneIndex;
@@ -342,12 +347,15 @@ namespace caret {
         
         QPalette::ColorRole m_defaultBackgroundRole;
         
+        static int32_t s_scrollableDescriptionMode;
+        
     };
 #ifdef __SCENE_DIALOG_DECLARE__
     const AString SceneDialog::PREFERRED_IMAGE_FORMAT = "jpg";
     bool SceneDialog::s_informUserAboutScenesOnExitFlag = true;
     bool SceneDialog::s_warnUserWhenCreatingSceneFlag = true;
     bool SceneDialog::s_useSceneForegroundBackgroundColorsFlag = true;
+    int32_t SceneClassInfoWidget::s_scrollableDescriptionMode = 0;
     
 #endif // __SCENE_DIALOG_DECLARE__
 
