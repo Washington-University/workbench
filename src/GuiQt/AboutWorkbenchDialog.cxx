@@ -77,13 +77,12 @@ AboutWorkbenchDialog::AboutWorkbenchDialog(BrainOpenGLWidget* openGLParentWidget
     workbenchFont.setPointSize(32);
     workbenchLabel->setFont(workbenchFont);
     
-    const QString labelStyle = ("QLabel { "
-                                " font: 20px bold "
-                                "}");
     QLabel* hcpWebsiteLabel = new QLabel("<html>"
-                                         "<bold><a href=\"http://www.humanconnectome.org\">Visit the Human Connectome Project</a></bold>"
+                                         "<a href=\"http://www.humanconnectome.org\">Visit the Human Connectome Project</a>"
                                          "</html>");
-    hcpWebsiteLabel->setStyleSheet(labelStyle);
+    QFont hcpWebsiteFont(hcpWebsiteLabel->font());
+    hcpWebsiteFont.setPointSize(16);
+    hcpWebsiteLabel->setFont(hcpWebsiteFont);
     hcpWebsiteLabel->setAlignment(Qt::AlignCenter);
     QObject::connect(hcpWebsiteLabel, SIGNAL(linkActivated(const QString&)),
                      this, SLOT(websiteLinkActivated(const QString&)));
