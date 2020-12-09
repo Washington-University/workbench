@@ -24,6 +24,7 @@
 #include <QBuffer>
 #include <QColor>
 #include <QImage>
+#include <QImageReader>
 #include <QImageWriter>
 #include <QTime>
 
@@ -1881,5 +1882,102 @@ ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
         dataFileInformation.addNameAndValue("Color Table", (m_image->colorTable().empty()
                                                             ? "No"
                                                             : "Yes"));
+    }
+}
+
+/**
+ * Get all image file extensions supported by Qt for reading and writing image files.
+ * @param readableExtensionsOut
+ *    Output contains all readable image file extensions
+ * @param writableExtensionsOut
+ *    Output contains all writable image file extensions
+ */
+void
+ImageFile::getQtSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
+                                             std::vector<AString>& writableExtensionsOut)
+{
+    readableExtensionsOut.clear();
+    writableExtensionsOut.clear();
+
+    /*
+     * Extensions Qt can read (use set so extensions sorted)
+     */
+    std::set<AString> qtReadExtensions;
+    QList<QByteArray> readTypes(QImageReader::supportedImageFormats());
+    QListIterator<QByteArray> readTypesIterator(readTypes);
+    while (readTypesIterator.hasNext()) {
+        QString fmt(readTypesIterator.next());
+        qtReadExtensions.insert(fmt);
+    }
+    
+    /*
+     * Extensions Qt can write
+     */
+    std::set<AString> qtWriteExtensions;
+    QList<QByteArray> writeTypes(QImageWriter::supportedImageFormats());
+    QListIterator<QByteArray> writeTypesIterator(writeTypes);
+    while (writeTypesIterator.hasNext()) {
+        QString fmt(writeTypesIterator.next());
+        qtWriteExtensions.insert(fmt);
+    }
+    
+    readableExtensionsOut.insert(readableExtensionsOut.end(),
+                                 qtReadExtensions.begin(),
+                                 qtReadExtensions.end());
+    
+    writableExtensionsOut.insert(writableExtensionsOut.end(),
+                                 qtWriteExtensions.begin(),
+                                 qtWriteExtensions.end());
+}
+
+/**
+ * Get all image file extensions supported by Workbench for reading and writing image files.
+ * These are a subset of the extensions supported by Qt.
+ * @param readableExtensionsOut
+ *    Output contains all readable image file extensions
+ * @param writableExtensionsOut
+ *    Output contains all writable image file extensions
+ */
+void
+ImageFile::getWorkbenchSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
+                                                    std::vector<AString>& writableExtensionsOut)
+{
+    readableExtensionsOut.clear();
+    writableExtensionsOut.clear();
+
+    /*
+     * Extensions that we want to support
+     * There are some such as SVG that we don't want to support
+     */
+    std::set<AString> supportedExtensions;
+    supportedExtensions.insert("bmp");
+    supportedExtensions.insert("gif");
+    supportedExtensions.insert("jpg");
+    supportedExtensions.insert("jpeg");
+    supportedExtensions.insert("jp2");
+    supportedExtensions.insert("png");
+    supportedExtensions.insert("ppm");
+    supportedExtensions.insert("tiff");
+    supportedExtensions.insert("tif");
+    
+    std::vector<AString> qtReadExtensions;
+    std::vector<AString> qtWriteExtensions;
+    getQtSupportedImageFileExtensions(qtReadExtensions,
+                                      qtWriteExtensions);
+    
+    /*
+     * Use only those extensions preferred for reading and writing
+     */
+    for (auto& ext : supportedExtensions) {
+        if (std::find(qtReadExtensions.begin(),
+                      qtReadExtensions.end(),
+                      ext) != qtReadExtensions.end()) {
+            readableExtensionsOut.push_back(ext);
+        }
+        if (std::find(qtWriteExtensions.begin(),
+                      qtWriteExtensions.end(),
+                      ext) != qtWriteExtensions.end()) {
+            writableExtensionsOut.push_back(ext);
+        }
     }
 }

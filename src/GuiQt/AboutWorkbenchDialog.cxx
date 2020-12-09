@@ -34,6 +34,7 @@
 #include "ApplicationInformation.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
+#include "ImageFile.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQtUtilities.h"
 
@@ -173,7 +174,19 @@ AboutWorkbenchDialog::displayMoreInformation()
     }
     informationData.push_back(QString("Style Name: " + styleName));
     
-    
+    std::vector<AString> imageReadExtensions, imageWriteExtensions;
+    ImageFile::getQtSupportedImageFileExtensions(imageReadExtensions, imageWriteExtensions);
+    informationData.push_back("Qt Readable Images: "
+                              + AString::join(imageReadExtensions, ", "));
+    informationData.push_back("Qt Writable Images: "
+                              + AString::join(imageWriteExtensions, ", "));
+
+    ImageFile::getWorkbenchSupportedImageFileExtensions(imageReadExtensions, imageWriteExtensions);
+    informationData.push_back("Workbench Readable Images: "
+                              + AString::join(imageReadExtensions, ", "));
+    informationData.push_back("Workbench Writable Images: "
+                              + AString::join(imageWriteExtensions, ", "));
+
     WuQDataEntryDialog ded("More " + appInfo.getName() + " Information",
                            this,
                            true);

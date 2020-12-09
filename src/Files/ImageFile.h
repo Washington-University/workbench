@@ -217,6 +217,12 @@ public:
     
     virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
     
+    static void getQtSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
+                                                  std::vector<AString>& writableExtensionsOut);
+    
+    static void getWorkbenchSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
+                                                         std::vector<AString>& writableExtensionsOut);
+    
 private:
     ImageFile(const ImageFile&);
     
