@@ -21,6 +21,7 @@
 #include "AlgorithmVolumeToSurfaceMapping.h"
 #include "AlgorithmException.h"
 
+#include "CaretAssert.h"
 #include "CaretOMP.h"
 #include "FloatMatrix.h"
 #include "MathFunctions.h"
@@ -69,7 +70,8 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     ribbonOpt->addSurfaceParameter(1, "inner-surf", "the inner surface of the ribbon");
     ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
     OptionalParameter* roiVol = ribbonOpt->createOptionalParameter(3, "-volume-roi", "use a volume roi");
-    roiVol->addVolumeParameter(1, "roi-volume", "the volume file");
+    roiVol->addVolumeParameter(1, "roi-volume", "the roi volume file");
+    roiVol->createOptionalParameter(2, "-weighted", "treat the roi values as weightings rather than binary");
     OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(4, "-voxel-subdiv", "voxel divisions while estimating voxel weights");
     ribbonSubdiv->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
     ribbonOpt->createOptionalParameter(7, "-thin-columns", "use non-overlapping polyhedra");
@@ -96,7 +98,8 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     
     ret->setHelpText(
         AString("You must specify exactly one mapping method.  Enclosing voxel uses the value from the voxel the vertex lies inside, while trilinear does a 3D ") + 
-        "linear interpolation based on the voxels immediately on each side of the vertex's position.\n\n" +
+        "linear interpolation based on the voxels immediately on each side of the vertex's position." +
+        "\n\n" +
         "The ribbon mapping method constructs a polyhedron from the vertex's neighbors on each " +
         "surface, and estimates the amount of this polyhedron's volume that falls inside any nearby voxels, to use as the weights for sampling.  " +
         "If -thin-columns is specified, the polyhedron uses the edge midpoints and triangle centroids, so that neighboring vertices do not have overlapping polyhedra.  " +
@@ -106,7 +109,10 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
         "intersects, by splitting each voxel into NxNxN pieces, and checking whether the center of each piece is inside the polyhedron.  If you have very large " +
         "voxels, consider increasing this if you get zeros in your output.  " +
         "The -gaussian option makes it act more like the myelin method, where the distance of a voxel from <surface> is used to downweight the voxel.  " +
-        "The -interpolate suboption, instead of doing a weighted average of voxels, interpolates from the volume at the subdivided points inside the ribbon.\n\n" +
+        "The -interpolate suboption, instead of doing a weighted average of voxels, interpolates from the volume at the subdivided points inside the ribbon.  " +
+        "If using both -interpolate and the -weighted suboption to -volume-roi, the roi volume weights are linearly interpolated, " +
+        "unless the -interpolate method is ENCLOSING_VOXEL, in which case ENCLOSING_VOXEL is also used for sampling the roi volume weights." +
+        "\n\n" +
         "The myelin style method uses part of the caret5 myelin mapping command to do the mapping: for each surface vertex, take all voxels that are in a cylinder " +
         "with radius and height equal to cortical thickness, centered on the vertex and aligned with the surface normal, and that are also within the ribbon ROI, " +
         "and apply a gaussian kernel with the specified sigma to them to get the weights to use.  " +
@@ -200,9 +206,11 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
             SurfaceFile* outerSurf = ribbonOpt->getSurface(2);
             OptionalParameter* roiVol = ribbonOpt->getOptionalParameter(3);
             VolumeFile* myRoiVol = NULL;
+            bool weightedRoi = false;
             if (roiVol->m_present)
             {
                 myRoiVol = roiVol->getVolume(1);
+                weightedRoi = roiVol->getOptionalParameter(2)->m_present;
             }
             int32_t subdivisions = 3;
             OptionalParameter* ribbonSubdiv = ribbonOpt->getOptionalParameter(4);
@@ -260,10 +268,10 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                 {
                     throw AlgorithmException("-output-weights options are incompatible with -interpolate");
                 }
-                AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, volInterpMethod, myRoiVol, subdivisions, thinColumns,
+                AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, volInterpMethod, myRoiVol, weightedRoi, subdivisions, thinColumns,
                                                 mySubVol, gaussScale, badVertices);
             } else {
-                AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, myRoiVol, subdivisions, thinColumns,
+                AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, myRoiVol, weightedRoi, subdivisions, thinColumns,
                                                 mySubVol, gaussScale, badVertices, weightsOutVertex, weightsOut);
             }
             if (ribbonWeightsText->m_present)
@@ -273,7 +281,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                 vector<vector<VoxelWeight> > myWeights;
                 const float* roiFrame = NULL;
                 if (myRoiVol != NULL) roiFrame = myRoiVol->getFrame();
-                AlgorithmVolumeToSurfaceMapping::precomputeWeightsRibbon(myWeights, myVolume->getVolumeSpace(), innerSurf, outerSurf, roiFrame, subdivisions, thinColumns, mySurface, gaussScale);
+                AlgorithmVolumeToSurfaceMapping::precomputeWeightsRibbon(myWeights, myVolume->getVolumeSpace(), innerSurf, outerSurf, roiFrame, weightedRoi, subdivisions, thinColumns, mySurface, gaussScale);
                 for (int i = 0; i < (int)myWeights.size(); ++i)
                 {
                     outFile << i << ", " << myWeights[i].size();
@@ -400,7 +408,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
 
 //ribbon mapping
 AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
-                                                                 const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile* roiVol,
+                                                                 const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile* roiVol, const bool roiWeights,
                                                                  const int32_t& subdivisions, const bool& thinColumns, const int64_t& mySubVol, const float& gaussScale, MetricFile* badVertices,
                                                                  const int& weightsOutVertex, VolumeFile* weightsOut) : AbstractAlgorithm(myProgObj)
 {
@@ -446,7 +454,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     vector<vector<VoxelWeight> > myWeights;
     const float* roiFrame = NULL;
     if (roiVol != NULL) roiFrame = roiVol->getFrame();
-    precomputeWeightsRibbon(myWeights, myVolume->getVolumeSpace(), innerSurf, outerSurf, roiFrame, subdivisions, thinColumns, mySurface, gaussScale);
+    precomputeWeightsRibbon(myWeights, myVolume->getVolumeSpace(), innerSurf, outerSurf, roiFrame, roiWeights, subdivisions, thinColumns, mySurface, gaussScale);
     if (weightsOut != NULL)
     {
         weightsOut->setValueAllVoxels(0.0f);
@@ -544,7 +552,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
 
 //interpolation ribbon mapping
 AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
-                                                                 const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile::InterpType interpType, const VolumeFile* roiVol,
+                                                                 const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile::InterpType interpType, const VolumeFile* roiVol, const bool roiWeights,
                                                                  const int32_t& subdivisions, const bool& thinColumns, const int64_t& mySubVol, const float& gaussScale, MetricFile* badVertices) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -588,6 +596,11 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
         myHelpBase.grabNew(new SignedDistanceHelperBase(mySurface));
     }
     MetricFile thickness;
+    VolumeFile::InterpType roiInterp = VolumeFile::TRILINEAR;//TODO: should this change based on interpType? be explicit?
+    if (interpType == VolumeFile::ENCLOSING_VOXEL)
+    {
+        roiInterp = VolumeFile::ENCLOSING_VOXEL;
+    }
     AlgorithmSurfaceToSurface3dDistance(NULL, innerSurf, outerSurf, &thickness);
     for (int64_t i = startVol; i < endVol; ++i)
     {
@@ -619,17 +632,19 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                     for (auto& point : pointList[node])
                     {
                         float value = myVolume->interpolateValue(point.coord, interpType, NULL, i, j);
+                        float weight = point.weight;
+                        if (roiWeights)
+                        {
+                            weight = weight * roiVol->interpolateValue(point.coord, roiInterp);
+                        }
                         if (gaussScale > 0.0f)
                         {
                             float dist = distHelp->dist(point.coord, SignedDistanceHelper::EVEN_ODD);//could make a function for unsigned distance to speed this up some
                             float toSquare = dist / (thisThick * gaussScale);
-                            float weight = point.weight * exp(-toSquare * toSquare / 2);
-                            accum += value * weight;
-                            weightAccum += weight;
-                        } else {
-                            accum += point.weight * value;
-                            weightAccum += point.weight;
+                            weight = weight * exp(-toSquare * toSquare / 2);
                         }
+                        accum += value * weight;
+                        weightAccum += weight;
                     }
                     if (weightAccum > 0.0)
                     {
@@ -657,16 +672,28 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
 }
 
 void AlgorithmVolumeToSurfaceMapping::precomputeWeightsRibbon(vector<vector<VoxelWeight> >& myWeights, const VolumeSpace& volSpace,
-                                                              const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const float* roiFrame,
+                                                              const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const float* roiFrame, const bool roiWeights,
                                                               const int& subdivisions, const bool& thinColumns, const SurfaceFile* gaussSurf, const float& gaussScale)
 {
     RibbonMappingHelper::computeWeightsRibbon(myWeights, volSpace, innerSurf, outerSurf, roiFrame, subdivisions, thinColumns);
+    const int numNodes = innerSurf->getNumberOfNodes();
+    if (roiWeights)
+    {
+        CaretAssert(roiFrame != NULL);
+        for (int i = 0; i < numNodes; ++i)
+        {//modify the weights from the ribbon helper
+            vector<VoxelWeight>& nodeWeights = myWeights[i];
+            for (int j = 0; j < (int)nodeWeights.size(); ++j)
+            {
+                nodeWeights[j].weight *= roiFrame[volSpace.getIndex(nodeWeights[j].ijk)];
+            }
+        }
+    }
     if (gaussScale > 0.0f)
     {
         VolumeFile signedDistVol;
         MetricFile thickness;
         AlgorithmSurfaceToSurface3dDistance(NULL, innerSurf, outerSurf, &thickness);
-        int numNodes = innerSurf->getNumberOfNodes();
         float maxThick = thickness.getValue(0, 0);
         for (int i = 1; i < numNodes; ++i)
         {
