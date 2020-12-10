@@ -143,13 +143,14 @@ OperationShowScene::getParameters()
                      "The available image formats may vary by operating system.\n"
                      "Image formats available on this system are:\n"
                      );
-    std::vector<AString> imageFileExtensions;
+    std::vector<AString> readImageFileExtensions, writeImageFileExtensions;
     AString defaultExtension;
-    ImageFile::getImageFileExtensions(imageFileExtensions,
-                                      defaultExtension);
+    ImageFile::getWorkbenchSupportedImageFileExtensions(readImageFileExtensions,
+                                                        writeImageFileExtensions,
+                                                        defaultExtension);
     
-    for (std::vector<AString>::iterator iter = imageFileExtensions.begin();
-         iter != imageFileExtensions.end();
+    for (std::vector<AString>::iterator iter = writeImageFileExtensions.begin();
+         iter != writeImageFileExtensions.end();
          iter++) {
         const AString ext = *iter;
         helpText += ("    "

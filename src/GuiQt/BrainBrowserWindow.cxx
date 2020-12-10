@@ -2954,7 +2954,8 @@ BrainBrowserWindow::processDevelopExportVtkFile()
         if (surfaceFiles.empty() == false) {
             QString vtkSurfaceFileFilter = "VTK Poly Data File (*.vtp)";
             
-            CaretFileDialog cfd(this,
+            CaretFileDialog cfd(CaretFileDialog::Mode::MODE_SAVE,
+                                this,
                                 "Export to VTK File",
                                 GuiManager::get()->getBrain()->getCurrentDirectory(),
                                 vtkSurfaceFileFilter);
@@ -3144,7 +3145,7 @@ BrainBrowserWindow::processDataFileOpen()
 {
     if (s_previousOpenFileNameFilter.isEmpty()) {
         s_previousOpenFileNameFilter = 
-            DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION);
+            DataFileTypeEnum::toQFileDialogFilterForReading(DataFileTypeEnum::SPECIFICATION);
     }
     
     /*
@@ -3158,14 +3159,15 @@ BrainBrowserWindow::processDataFileOpen()
     for (std::vector<DataFileTypeEnum::Enum>::const_iterator iter = dataFileTypes.begin();
          iter != dataFileTypes.end();
          iter++) {
-        AString filterName = DataFileTypeEnum::toQFileDialogFilter(*iter);
+        AString filterName = DataFileTypeEnum::toQFileDialogFilterForReading(*iter);
         filenameFilterList.append(filterName);
     }
     
     /*
      * Setup file selection dialog.
      */
-    CaretFileDialog fd(this);
+    CaretFileDialog fd(CaretFileDialog::Mode::MODE_OPEN,
+                       this);
     fd.setAcceptMode(CaretFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::ExistingFiles);

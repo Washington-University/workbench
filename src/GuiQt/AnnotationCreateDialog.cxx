@@ -613,9 +613,10 @@ AnnotationCreateDialog::selectImageButtonClicked()
     /*
      * Setup file selection dialog.
      */
-    CaretFileDialog fd(this);
+    CaretFileDialog fd(CaretFileDialog::Mode::MODE_OPEN,
+                       this);
     fd.setAcceptMode(CaretFileDialog::AcceptOpen);
-    fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::IMAGE));
+    fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilterForReading(DataFileTypeEnum::IMAGE));
     fd.setFileMode(CaretFileDialog::ExistingFile);
     fd.setViewMode(CaretFileDialog::List);
     fd.setLabelText(CaretFileDialog::Accept, "Choose"); // OK button shows Insert

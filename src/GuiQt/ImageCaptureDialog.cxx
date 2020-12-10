@@ -971,8 +971,8 @@ ImageCaptureDialog::selectImagePushButtonPressed()
     
     std::vector<AString> imageFileFilters;
     AString defaultFileFilter;
-    ImageFile::getImageFileFilters(imageFileFilters, 
-                                   defaultFileFilter);
+    ImageFile::getSaveQFileDialogImageFilters(imageFileFilters,
+                                              defaultFileFilter);
     QString filters;
     for (std::vector<AString>::iterator filterIterator = imageFileFilters.begin();
          filterIterator != imageFileFilters.end();
@@ -990,6 +990,8 @@ ImageCaptureDialog::selectImagePushButtonPressed()
                                                   filters,
                                                   &defaultFileFilter);
     if (name.isEmpty() == false) {
+        name = DataFileTypeEnum::addFileExtensionIfMissing(name,
+                                                           DataFileTypeEnum::IMAGE);
         ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
         imageCaptureSettings->setImageFileName(name);
         updateDestinationSection();
@@ -1110,16 +1112,17 @@ ImageCaptureDialog::applyButtonClicked()
         }
 
         if (m_saveImageToFileCheckBox->isChecked()) {
-            std::vector<AString> imageFileExtensions;
-            AString defaultFileExtension;
-            ImageFile::getImageFileExtensions(imageFileExtensions,
-                                              defaultFileExtension);
+            std::vector<AString> readImageFileExtensions, writeImageFileExtensions;
+            AString defaultImageExtension;
+            ImageFile::getWorkbenchSupportedImageFileExtensions(readImageFileExtensions,
+                                                                writeImageFileExtensions,
+                                                                defaultImageExtension);
             
             CaretAssert( ! imageFileName.isEmpty());
             
             bool validExtension = false;
-            for (std::vector<AString>::iterator extensionIterator = imageFileExtensions.begin();
-                 extensionIterator != imageFileExtensions.end();
+            for (std::vector<AString>::iterator extensionIterator = writeImageFileExtensions.begin();
+                 extensionIterator != writeImageFileExtensions.end();
                  extensionIterator++) {
                 if (imageFileName.endsWith(*extensionIterator)) {
                     validExtension = true;
@@ -1127,8 +1130,8 @@ ImageCaptureDialog::applyButtonClicked()
             }
             
             if ( ! validExtension) {
-                if (defaultFileExtension.isEmpty() == false) {
-                    imageFileName += ("." + defaultFileExtension);
+                if (defaultImageExtension.isEmpty() == false) {
+                    imageFileName += ("." + defaultImageExtension);
                 }
             }
             

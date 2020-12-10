@@ -205,17 +205,6 @@ ImageFile::isEmpty() const
     return (m_image->width() <= 0);
 }
 
-///**
-// * @return A pointer to the QImage in this file.
-// * Note that manipulating the pointer's data will
-// * alter the contents of this file.
-// */
-//QImage*
-//ImageFile::getAsQImage()
-//{
-//    return m_image;
-//}
-
 /**
  * @return A pointer to the QImage in this file.
  */
@@ -990,76 +979,7 @@ ImageFile::writeFile(const AString& filename)
 }
 
 /**
- * Get the image file extensions for the supported image types.
- * The extensions do not include the leading period.
- *
- * @param imageFileExtensions
- *    Output filled with extensions for supported image types.
- * @param defaultExtension
- *    The default extension (preference is png, jpg, jpeg)
- */
-void
-ImageFile::getImageFileExtensions(std::vector<AString>& imageFileExtensions,
-                                  AString& defaultExtension)
-{
-    imageFileExtensions.clear();
-    defaultExtension = "";
-    
-    QString firstExtension;
-    QString pngExtension;
-    QString jpegExtension;
-    QString jpgExtension;
-    QString tifExtension;
-    QString tiffExtension;
-    
-    QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
-    const int numFormats = imageFormats.count();
-    for (int i = 0; i < numFormats; i++) {
-        AString extension = QString(imageFormats.at(i)).toLower();
-        imageFileExtensions.push_back(extension);
-        
-        if (i == 0) {
-            firstExtension = extension;
-        }
-        if (extension == "png") {
-            pngExtension = extension;
-        }
-        else if (extension == "jpg") {
-            jpgExtension = extension;
-        }
-        else if (extension == "jpeg") {
-            jpegExtension = extension;
-        }
-        else if (extension == "tif") {
-            tifExtension = extension;
-        }
-        else if (extension == "tiff") {
-            tiffExtension = extension;
-        }
-    }
-    
-    if (pngExtension.isEmpty() == false) {
-        defaultExtension = pngExtension;
-    }
-    else if (jpgExtension.isEmpty() == false) {
-        defaultExtension = jpgExtension;
-    }
-    else if (jpegExtension.isEmpty() == false) {
-        defaultExtension = jpegExtension;
-    }
-    else if (tifExtension.isEmpty() == false) {
-        defaultExtension = tifExtension;
-    }
-    else if (tiffExtension.isEmpty() == false) {
-        defaultExtension = tiffExtension;
-    }
-    else {
-        defaultExtension = firstExtension;
-    }
-}
-
-/**
- * Get the image file filters for the supported image types.
+ * Get the image file filters for the supported image types for saving image files
  *
  * @param imageFileFilters
  *    Output filled with the filters for supported image types.
@@ -1067,36 +987,11 @@ ImageFile::getImageFileExtensions(std::vector<AString>& imageFileExtensions,
  *    Filter for the preferred image type.
  */
 void
-ImageFile::getImageFileFilters(std::vector<AString>& imageFileFilters,
-                               AString& defaultFilter)
+ImageFile::getSaveQFileDialogImageFilters(std::vector<AString>& imageFileFilters,
+                                          AString& defaultFilter)
 {
-    imageFileFilters.clear();
-    defaultFilter.clear();
-    
-    std::vector<AString> imageFileExtensions;
-    AString defaultExtension;
-    ImageFile::getImageFileExtensions(imageFileExtensions,
-                                      defaultExtension);
-    
-    const int32_t numExtensions = static_cast<int32_t>(imageFileExtensions.size());
-    for (int32_t i = 0; i < numExtensions; i++) {
-        const AString ext = imageFileExtensions[i];
-        const AString filter = (ext.toUpper()
-                                + " Image File (*."
-                                + ext
-                                + ")");
-        imageFileFilters.push_back(filter);
-        
-        if (ext == defaultExtension) {
-            defaultFilter = filter;
-        }
-    }
-    
-    if (defaultFilter.isEmpty()) {
-        if (imageFileFilters.empty() == false) {
-            defaultFilter = imageFileFilters[0];
-        }
-    }
+    DataFileTypeEnum::getSaveQFileDialogImageFilters(imageFileFilters,
+                                                     defaultFilter);
 }
 
 /**
@@ -1896,38 +1791,8 @@ void
 ImageFile::getQtSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
                                              std::vector<AString>& writableExtensionsOut)
 {
-    readableExtensionsOut.clear();
-    writableExtensionsOut.clear();
-
-    /*
-     * Extensions Qt can read (use set so extensions sorted)
-     */
-    std::set<AString> qtReadExtensions;
-    QList<QByteArray> readTypes(QImageReader::supportedImageFormats());
-    QListIterator<QByteArray> readTypesIterator(readTypes);
-    while (readTypesIterator.hasNext()) {
-        QString fmt(readTypesIterator.next());
-        qtReadExtensions.insert(fmt);
-    }
-    
-    /*
-     * Extensions Qt can write
-     */
-    std::set<AString> qtWriteExtensions;
-    QList<QByteArray> writeTypes(QImageWriter::supportedImageFormats());
-    QListIterator<QByteArray> writeTypesIterator(writeTypes);
-    while (writeTypesIterator.hasNext()) {
-        QString fmt(writeTypesIterator.next());
-        qtWriteExtensions.insert(fmt);
-    }
-    
-    readableExtensionsOut.insert(readableExtensionsOut.end(),
-                                 qtReadExtensions.begin(),
-                                 qtReadExtensions.end());
-    
-    writableExtensionsOut.insert(writableExtensionsOut.end(),
-                                 qtWriteExtensions.begin(),
-                                 qtWriteExtensions.end());
+    DataFileTypeEnum::getQtSupportedImageFileExtensions(readableExtensionsOut,
+                                                        writableExtensionsOut);
 }
 
 /**
@@ -1937,47 +1802,15 @@ ImageFile::getQtSupportedImageFileExtensions(std::vector<AString>& readableExten
  *    Output contains all readable image file extensions
  * @param writableExtensionsOut
  *    Output contains all writable image file extensions
+ * @param defaultWritableExtension
+ *    The default file extension
  */
 void
 ImageFile::getWorkbenchSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
-                                                    std::vector<AString>& writableExtensionsOut)
+                                                    std::vector<AString>& writableExtensionsOut,
+                                                    AString& defaultWritableExtension)
 {
-    readableExtensionsOut.clear();
-    writableExtensionsOut.clear();
-
-    /*
-     * Extensions that we want to support
-     * There are some such as SVG that we don't want to support
-     */
-    std::set<AString> supportedExtensions;
-    supportedExtensions.insert("bmp");
-    supportedExtensions.insert("gif");
-    supportedExtensions.insert("jpg");
-    supportedExtensions.insert("jpeg");
-    supportedExtensions.insert("jp2");
-    supportedExtensions.insert("png");
-    supportedExtensions.insert("ppm");
-    supportedExtensions.insert("tiff");
-    supportedExtensions.insert("tif");
-    
-    std::vector<AString> qtReadExtensions;
-    std::vector<AString> qtWriteExtensions;
-    getQtSupportedImageFileExtensions(qtReadExtensions,
-                                      qtWriteExtensions);
-    
-    /*
-     * Use only those extensions preferred for reading and writing
-     */
-    for (auto& ext : supportedExtensions) {
-        if (std::find(qtReadExtensions.begin(),
-                      qtReadExtensions.end(),
-                      ext) != qtReadExtensions.end()) {
-            readableExtensionsOut.push_back(ext);
-        }
-        if (std::find(qtWriteExtensions.begin(),
-                      qtWriteExtensions.end(),
-                      ext) != qtWriteExtensions.end()) {
-            writableExtensionsOut.push_back(ext);
-        }
-    }
+    DataFileTypeEnum::getWorkbenchSupportedImageFileExtensions(readableExtensionsOut,
+                                                               writableExtensionsOut,
+                                                               defaultWritableExtension);
 }

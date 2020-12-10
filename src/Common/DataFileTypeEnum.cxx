@@ -23,7 +23,11 @@
 #include "DataFileTypeEnum.h"
 #undef __DATA_FILE_TYPE_ENUM_DECLARE__
 
+#include <set>
+
 #include <QDir>
+#include <QImageReader>
+#include <QImageWriter>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -74,32 +78,49 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
     this->oneStructureFlag = fileIsUsedWithOneStructure;
     
     if (fileExtensionOne.isEmpty() == false) {
-        this->fileExtensions.push_back(fileExtensionOne);
+        this->readAndWriteFileExtensions.push_back(fileExtensionOne);
     }
     if (fileExtensionTwo.isEmpty() == false) {
-        this->fileExtensions.push_back(fileExtensionTwo);
+        this->readAndWriteFileExtensions.push_back(fileExtensionTwo);
     }
     if (fileExtensionThree.isEmpty() == false) {
-        this->fileExtensions.push_back(fileExtensionThree);
+        this->readAndWriteFileExtensions.push_back(fileExtensionThree);
     }
     if (fileExtensionFour.isEmpty() == false) {
-        this->fileExtensions.push_back(fileExtensionFour);
+        this->readAndWriteFileExtensions.push_back(fileExtensionFour);
     }
 
-    AString filterText = this->guiName + " Files (";
-    
-    
-    for (std::vector<AString>::const_iterator iter = this->fileExtensions.begin();
-         iter != this->fileExtensions.end();
-         iter++) {
-        if (iter != fileExtensions.begin()) {
-            filterText += " ";
-        }
-        filterText += ("*." + *iter);
+    if (this->enumValue == DataFileTypeEnum::IMAGE) {
+        /*
+         * Images support different extensions for reading and writing
+         */
+        AString defaultWriteImageExtension;
+        getWorkbenchSupportedImageFileExtensions(this->readFileExtensions,
+                                                 this->writeFileExtensions,
+                                                 defaultWriteImageExtension);
+        
+        std::set<AString> uniqueExtensions(this->readFileExtensions.begin(),
+                                           this->readFileExtensions.end());
+        uniqueExtensions.insert(this->writeFileExtensions.begin(),
+                                this->writeFileExtensions.end());
+        
+        this->readAndWriteFileExtensions.clear();
+        this->readAndWriteFileExtensions.insert(this->readAndWriteFileExtensions.end(),
+                                                uniqueExtensions.begin(),
+                                                uniqueExtensions.end());
     }
-    filterText += ")";
+    else {
+        /*
+         * Most files use same extension for reading or writing
+         */
+        this->readFileExtensions  = this->readAndWriteFileExtensions;
+        this->writeFileExtensions = this->readAndWriteFileExtensions;
+    }
     
-    this->qFileDialogNameFilter = filterText;
+    this->qReadFileDialogNameFilter  = createQFileDialogNameFilter(this->guiName,
+                                                                   this->readFileExtensions);
+    this->qWriteFileDialogNameFilter = createQFileDialogNameFilter(this->guiName,
+                                                                   this->writeFileExtensions);
 }
 
 /**
@@ -253,10 +274,7 @@ DataFileTypeEnum::initialize()
                                         "Image",
                                         "IMAGE",
                                         false,
-                                        "jpg",
-                                        "jpeg",
-                                        "png",
-                                        "ppm"));
+                                        "XXX")); /* Extensions for IMAGE set in constructor */
     
     enumData.push_back(DataFileTypeEnum(LABEL,
                                         "LABEL", 
@@ -566,7 +584,8 @@ DataFileTypeEnum::fromQFileDialogFilter(const AString& qFileDialogNameFilter,
          iter != enumData.end();
          iter++) {
         const DataFileTypeEnum& d = *iter;
-        if (d.qFileDialogNameFilter == qFileDialogNameFilter) {
+        if ((d.qReadFileDialogNameFilter == qFileDialogNameFilter)
+            && (d.qWriteFileDialogNameFilter == qFileDialogNameFilter)) {
             enumValue = d.enumValue;
             validFlag = true;
             break;
@@ -583,7 +602,7 @@ DataFileTypeEnum::fromQFileDialogFilter(const AString& qFileDialogNameFilter,
 }
 
 /**
- * Get the file filter text for use in a QFileDialog.
+ * Get the file filter text for use in a QFileDialog for READING files
  *
  * @param enumValue
  *     Enumerated type for file filter.
@@ -591,11 +610,27 @@ DataFileTypeEnum::fromQFileDialogFilter(const AString& qFileDialogNameFilter,
  *     Text containing file filter.
  */
 AString 
-DataFileTypeEnum::toQFileDialogFilter(const Enum enumValue)
+DataFileTypeEnum::toQFileDialogFilterForReading(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
     const DataFileTypeEnum* enumInstance = findData(enumValue);
-    return enumInstance->qFileDialogNameFilter;
+    return enumInstance->qReadFileDialogNameFilter;
+}
+
+/**
+ * Get the file filter text for use in a QFileDialog for WRITING files
+ *
+ * @param enumValue
+ *     Enumerated type for file filter.
+ * @return
+ *     Text containing file filter.
+ */
+AString
+DataFileTypeEnum::toQFileDialogFilterForWriting(const Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->qWriteFileDialogNameFilter;
 }
 
 /**
@@ -624,7 +659,7 @@ DataFileTypeEnum::getWildCardMatching(const Enum enumValue)
     
     const DataFileTypeEnum* enumInstance = findData(enumValue);
     std::vector<AString> wildcards;
-    for (auto ext : enumInstance->fileExtensions) {
+    for (auto ext : enumInstance->readAndWriteFileExtensions) {
         wildcards.push_back("*." + ext);
     }
     
@@ -676,7 +711,7 @@ DataFileTypeEnum::getAllFileExtensions(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
     const DataFileTypeEnum* enumInstance = findData(enumValue);
-    return enumInstance->fileExtensions;
+    return enumInstance->readAndWriteFileExtensions;
 }
 
 /**
@@ -765,8 +800,8 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
         
         if (validFlag) {
             allExtensions.insert(allExtensions.end(),
-                                 enumIter->fileExtensions.begin(),
-                                 enumIter->fileExtensions.end());
+                                 enumIter->readAndWriteFileExtensions.begin(),
+                                 enumIter->readAndWriteFileExtensions.end());
         }
     }
     
@@ -798,8 +833,8 @@ DataFileTypeEnum::addFileExtensionIfMissing(const AString& filenameIn,
      * See if filename ends with any of the available extensions for the
      * given data file type.
      */
-    for (std::vector<AString>::const_iterator iter = enumInstance->fileExtensions.begin();
-         iter != enumInstance->fileExtensions.end();
+    for (std::vector<AString>::const_iterator iter = enumInstance->writeFileExtensions.begin();
+         iter != enumInstance->writeFileExtensions.end();
          iter++) {
         const AString ext = ("." + *iter);
         if (filename.endsWith(ext)) {
@@ -830,9 +865,22 @@ DataFileTypeEnum::toFileExtension(const Enum enumValue)
     const DataFileTypeEnum* enumInstance = findData(enumValue);
     
     AString ext = "file";
-    if (enumInstance->fileExtensions.empty() == false) {
-        ext = enumInstance->fileExtensions[0];
+    
+    if ( ! enumInstance->readAndWriteFileExtensions.empty()) {
+        ext = enumInstance->readAndWriteFileExtensions[0];
     }
+    
+    if (enumValue == IMAGE) {
+        /*
+         * Image file's preferred extension
+         */
+        std::vector<AString> readFileExtensions;
+        std::vector<AString> writeFileExtensions;
+        getWorkbenchSupportedImageFileExtensions(readFileExtensions,
+                                                 writeFileExtensions,
+                                                 ext);
+    }
+    
     return ext;
 }
 
@@ -857,8 +905,8 @@ DataFileTypeEnum::isValidFileExtension(const AString& filename,
      * See if filename ends with any of the available extensions for the
      * given data file type.
      */
-    for (std::vector<AString>::const_iterator iter = enumInstance->fileExtensions.begin();
-         iter != enumInstance->fileExtensions.end();
+    for (std::vector<AString>::const_iterator iter = enumInstance->readAndWriteFileExtensions.begin();
+         iter != enumInstance->readAndWriteFileExtensions.end();
          iter++) {
         const AString ext = ("." + *iter);
         if (filename.endsWith(ext)) {
@@ -891,7 +939,7 @@ DataFileTypeEnum::fromFileExtension(const AString& filename, bool* isValidOut)
          iter != enumData.end();
          iter++) {
         const DataFileTypeEnum& d = *iter;
-        const std::vector<AString> extensions = iter->fileExtensions;
+        const std::vector<AString> extensions = iter->readAndWriteFileExtensions;
         for (std::vector<AString>::const_iterator extIter = extensions.begin();
              extIter != extensions.end();
              extIter++) {
@@ -1104,4 +1152,221 @@ DataFileTypeEnum::getAllConnectivityEnums(std::vector<Enum>& connectivityEnumsOu
     
 }
 
+/**
+ * Create a QDialog file filter using the given file type name and extensions
+ * @param fileTypeName
+ *    Description of file type name
+ * @param fileExtensions
+ *    Valid file extensions
+ */
+AString
+DataFileTypeEnum::createQFileDialogNameFilter(const AString& fileTypeName,
+                                              const std::vector<AString>& fileExtensions)
+{
+    AString filterText(fileTypeName + " Files (");
+    
+    bool firstTime(true);
+    for (auto& ext : fileExtensions) {
+        if ( ! firstTime) {
+            filterText += " ";
+        }
+        filterText += ("*." + ext);
+        
+        firstTime = false;
+    }
+    filterText += ")";
+    
+    return filterText;
+}
+
+/**
+ * Get all image file extensions supported by Qt for reading and writing image files.
+ * @param readableExtensionsOut
+ *    Output contains all readable image file extensions
+ * @param writableExtensionsOut
+ *    Output contains all writable image file extensions
+ */
+void
+DataFileTypeEnum::getQtSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
+                                                    std::vector<AString>& writableExtensionsOut)
+{
+    readableExtensionsOut.clear();
+    writableExtensionsOut.clear();
+    
+    /*
+     * Extensions Qt can read (use set so extensions sorted)
+     */
+    std::set<AString> qtReadExtensions;
+    QList<QByteArray> readTypes(QImageReader::supportedImageFormats());
+    QListIterator<QByteArray> readTypesIterator(readTypes);
+    while (readTypesIterator.hasNext()) {
+        QString fmt(readTypesIterator.next());
+        qtReadExtensions.insert(fmt);
+    }
+    
+    /*
+     * Extensions Qt can write
+     */
+    std::set<AString> qtWriteExtensions;
+    QList<QByteArray> writeTypes(QImageWriter::supportedImageFormats());
+    QListIterator<QByteArray> writeTypesIterator(writeTypes);
+    while (writeTypesIterator.hasNext()) {
+        QString fmt(writeTypesIterator.next());
+        qtWriteExtensions.insert(fmt);
+    }
+    
+    readableExtensionsOut.insert(readableExtensionsOut.end(),
+                                 qtReadExtensions.begin(),
+                                 qtReadExtensions.end());
+    
+    writableExtensionsOut.insert(writableExtensionsOut.end(),
+                                 qtWriteExtensions.begin(),
+                                 qtWriteExtensions.end());
+}
+
+/**
+ * Get all image file extensions supported by Workbench for reading and writing image files.
+ * These are a subset of the extensions supported by Qt.
+ * @param readableExtensionsOut
+ *    Output contains all readable image file extensions
+ * @param writableExtensionsOut
+ *    Output contains all writable image file extensions
+ * @param defaultWritableExtension
+ *    Default extension for writing images
+ */
+void
+DataFileTypeEnum::getWorkbenchSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
+                                                           std::vector<AString>& writableExtensionsOut,
+                                                           AString& defaultWritableExtension)
+{
+    readableExtensionsOut.clear();
+    writableExtensionsOut.clear();
+    defaultWritableExtension.clear();
+    
+    /*
+     * Extensions that we want to support
+     * There are some such as SVG that we don't want to support
+     */
+    std::set<AString> supportedExtensions;
+    supportedExtensions.insert("bmp");
+    supportedExtensions.insert("gif");
+    supportedExtensions.insert("jpg");
+    supportedExtensions.insert("jpeg");
+    supportedExtensions.insert("jp2");
+    supportedExtensions.insert("png");
+    supportedExtensions.insert("ppm");
+    supportedExtensions.insert("tiff");
+    supportedExtensions.insert("tif");
+    
+    std::vector<AString> qtReadExtensions;
+    std::vector<AString> qtWriteExtensions;
+    getQtSupportedImageFileExtensions(qtReadExtensions,
+                                      qtWriteExtensions);
+    
+    /*
+     * Use only those extensions preferred for reading and writing
+     */
+    for (auto& ext : supportedExtensions) {
+        if (std::find(qtReadExtensions.begin(),
+                      qtReadExtensions.end(),
+                      ext) != qtReadExtensions.end()) {
+            readableExtensionsOut.push_back(ext);
+        }
+        if (std::find(qtWriteExtensions.begin(),
+                      qtWriteExtensions.end(),
+                      ext) != qtWriteExtensions.end()) {
+            writableExtensionsOut.push_back(ext);
+        }
+    }
+    
+    AString pngExtension;
+    AString jpegExtension;
+    AString jpgExtension;
+    AString tifExtension;
+    AString tiffExtension;
+    
+    for (auto& extension : writableExtensionsOut) {
+        if (extension == "png") {
+            pngExtension = extension;
+        }
+        else if (extension == "jpg") {
+            jpgExtension = extension;
+        }
+        else if (extension == "jpeg") {
+            jpegExtension = extension;
+        }
+        else if (extension == "tif") {
+            tifExtension = extension;
+        }
+        else if (extension == "tiff") {
+            tiffExtension = extension;
+        }
+    }
+
+    if ( ! writableExtensionsOut.empty()) {
+        defaultWritableExtension = writableExtensionsOut[0];
+        
+        if ( ! pngExtension.isEmpty()) {
+            defaultWritableExtension = pngExtension;
+        }
+        else if ( ! jpgExtension.isEmpty()) {
+            defaultWritableExtension = jpgExtension;
+        }
+        else if ( ! jpegExtension.isEmpty()) {
+            defaultWritableExtension = jpegExtension;
+        }
+        else if ( ! tiffExtension.isEmpty()) {
+            defaultWritableExtension = tiffExtension;
+        }
+        else if ( ! tifExtension.isEmpty()) {
+            defaultWritableExtension = tifExtension;
+        }
+    }
+}
+
+/**
+ * Get filters for saving images with each image type in its own filter and the default filter
+ * @param imageFiltersOut
+ *    All image filters to saving images
+ * @param defaultImageFilterOut
+ *    Default image filter
+ */
+void
+DataFileTypeEnum::getSaveQFileDialogImageFilters(std::vector<AString>& imageFiltersOut,
+                                                 AString& defaultImageFilterOut)
+{
+    imageFiltersOut.clear();
+    defaultImageFilterOut.clear();
+    
+    std::vector<AString> readableExtensions;
+    std::vector<AString> writableExtensions;
+    AString defaultWritableExtension;
+    getWorkbenchSupportedImageFileExtensions(readableExtensions,
+                                             writableExtensions,
+                                             defaultWritableExtension);
+    
+    const DataFileTypeEnum* imageType = findData(DataFileTypeEnum::IMAGE);
+    CaretAssert(imageType);
+    
+    for (const auto& extension: writableExtensions) {
+        const AString name(extension.toUpper()
+                           + " "
+                           + imageType->guiName);
+        const std::vector<AString> extVector { extension };
+        
+        const AString filter(createQFileDialogNameFilter(name,
+                                                         extVector));
+        imageFiltersOut.push_back(filter);
+
+        if (extension == defaultWritableExtension) {
+            defaultImageFilterOut = filter;
+        }
+    }
+    
+    if (defaultImageFilterOut.isEmpty()) {
+        if ( ! imageFiltersOut.empty()) {
+            defaultImageFilterOut = imageFiltersOut[0];
+        }
+    }
+}
 

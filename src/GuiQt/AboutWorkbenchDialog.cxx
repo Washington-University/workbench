@@ -174,17 +174,23 @@ AboutWorkbenchDialog::displayMoreInformation()
     informationData.push_back(QString("Style Name: " + styleName));
     
     std::vector<AString> imageReadExtensions, imageWriteExtensions;
-    ImageFile::getQtSupportedImageFileExtensions(imageReadExtensions, imageWriteExtensions);
+    ImageFile::getQtSupportedImageFileExtensions(imageReadExtensions,
+                                                 imageWriteExtensions);
     informationData.push_back("Qt Readable Images: "
                               + AString::join(imageReadExtensions, ", "));
     informationData.push_back("Qt Writable Images: "
                               + AString::join(imageWriteExtensions, ", "));
 
-    ImageFile::getWorkbenchSupportedImageFileExtensions(imageReadExtensions, imageWriteExtensions);
+    AString imageWriteDefaultExtension;
+    ImageFile::getWorkbenchSupportedImageFileExtensions(imageReadExtensions,
+                                                        imageWriteExtensions,
+                                                        imageWriteDefaultExtension);
     informationData.push_back("Workbench Readable Images: "
                               + AString::join(imageReadExtensions, ", "));
     informationData.push_back("Workbench Writable Images: "
                               + AString::join(imageWriteExtensions, ", "));
+    informationData.push_back("Default Image Type: "
+                              + imageWriteDefaultExtension);
 
     WuQDataEntryDialog ded("More " + appInfo.getName() + " Information",
                            this,

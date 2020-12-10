@@ -34,14 +34,21 @@ namespace caret {
         Q_OBJECT
         
     public:
-        CaretFileDialog(QWidget* parent,
+        enum class Mode {
+            MODE_OPEN,
+            MODE_SAVE
+        };
+        
+        CaretFileDialog(const Mode mode,
+                        QWidget* parent,
                         Qt::WindowFlags f);
         
-        CaretFileDialog(QWidget* parent = 0,
-                      const QString& caption = QString(),
-                      const QString& directory = QString(),
-                      const QString& filter = QString());
-        
+        CaretFileDialog(const Mode mode,
+                        QWidget* parent = 0,
+                        const QString& caption = QString(),
+                        const QString& directory = QString(),
+                        const QString& filter = QString());
+
         virtual ~CaretFileDialog();
         
         // modal method to get open file name
@@ -109,6 +116,8 @@ namespace caret {
         CaretFileDialog& operator=(const CaretFileDialog&);
         
         void initializeCaretFileDialog();
+        
+        const Mode m_mode;
         
         FilterFilesProxyModel* m_filterFilesProxyModel;
 

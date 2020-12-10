@@ -123,27 +123,47 @@ FilterFilesProxyModel::sort(int column, Qt::SortOrder order)
 
 /**
  * Constructor.
+ * @param mode
+ *    The mode for open/save
+ * @param parent
+ *    Parent on which this dialog is displayed.
+ * @param f
+ *    Qt's window flags
  */
-CaretFileDialog::CaretFileDialog(QWidget* parent,
+CaretFileDialog::CaretFileDialog(const Mode mode,
+                                 QWidget* parent,
                                  Qt::WindowFlags f)
 : QFileDialog(parent,
-                f)
+                f),
+m_mode(mode)
 {
     this->initializeCaretFileDialog();
         
     this->setDirectory(GuiManager::get()->getBrain()->getCurrentDirectory());
 }
+
 /**
  * Constructor.
+ * @param mode
+ *    The mode for open/save
+ * @param parent
+ *    Parent on which this dialog is displayed.
+ * @param caption
+ *    Caption for dialog (if not provided a default caption is shown)
+ * @param directory
+ *    Directory show by dialog (Brain's current directory if empty string)
+ * @param filter
  */
-CaretFileDialog::CaretFileDialog(QWidget* parent,
+CaretFileDialog::CaretFileDialog(const Mode mode,
+                                 QWidget* parent,
                                  const QString& caption,
                                  const QString& directory,
                                  const QString& filter)
 : QFileDialog(parent,
               caption,
               directory,
-              filter)
+              filter),
+m_mode(mode)
 {
     this->initializeCaretFileDialog();
     
@@ -281,7 +301,8 @@ CaretFileDialog::getOpenFileNameDialog(QWidget *parent,
                                      QString *selectedFilter,
                                      Options options )
 {
-    CaretFileDialog cfd(parent,
+    CaretFileDialog cfd(Mode::MODE_OPEN,
+                        parent,
                         caption,
                         dir,
                         filter);
@@ -329,11 +350,12 @@ CaretFileDialog::getOpenFileNameDialog(const DataFileTypeEnum::Enum dataFileType
                                        Options options)
 {
     
-    CaretFileDialog cfd(parent,
+    CaretFileDialog cfd(Mode::MODE_OPEN,
+                        parent,
                         caption,
                         dir,
-                        DataFileTypeEnum::toQFileDialogFilter(dataFileType));
-    cfd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+                        DataFileTypeEnum::toQFileDialogFilterForReading(dataFileType));
+    cfd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilterForReading(dataFileType));
     cfd.setOptions(options);
     cfd.setAcceptMode(CaretFileDialog::AcceptOpen);
     cfd.setFileMode(CaretFileDialog::AnyFile);
@@ -376,7 +398,8 @@ CaretFileDialog::getSaveFileNameDialog(QWidget *parent,
                                      QString *selectedFilter,
                                      Options options)
 {
-    CaretFileDialog cfd(parent,
+    CaretFileDialog cfd(Mode::MODE_SAVE,
+                        parent,
                         caption,
                         dir,
                         filter);
@@ -427,11 +450,12 @@ CaretFileDialog::getSaveFileNameDialog(const DataFileTypeEnum::Enum dataFileType
                                        const QString &dir,
                                        Options options)
 {
-    CaretFileDialog cfd(parent,
+    CaretFileDialog cfd(Mode::MODE_SAVE,
+                        parent,
                         caption,
                         dir,
-                        DataFileTypeEnum::toQFileDialogFilter(dataFileType));
-    cfd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+                        DataFileTypeEnum::toQFileDialogFilterForWriting(dataFileType));
+    cfd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilterForWriting(dataFileType));
     cfd.setOptions(options);
     cfd.setAcceptMode(QFileDialog::AcceptSave);
     cfd.setFileMode(CaretFileDialog::AnyFile);
@@ -479,11 +503,12 @@ CaretFileDialog::getChooseFileNameDialog(const DataFileTypeEnum::Enum dataFileTy
                                          const QString& directoryOrFileName,
                                          QWidget *parent)
 {
-    CaretFileDialog fd(parent);
+    CaretFileDialog fd(Mode::MODE_SAVE,
+                       parent);
     if (dataFileType != DataFileTypeEnum::UNKNOWN) {
-        fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+        fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilterForWriting(dataFileType));
     }
-    fd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+    fd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilterForWriting(dataFileType));
     fd.setAcceptMode(CaretFileDialog::AcceptSave);
     fd.setFileMode(CaretFileDialog::AnyFile);
     fd.setViewMode(CaretFileDialog::List);
@@ -540,7 +565,8 @@ CaretFileDialog::getExistingDirectoryDialog(QWidget *parent,
                                           const QString &dir,
                                           Options options)
 {
-    CaretFileDialog cfd(parent,
+    CaretFileDialog cfd(Mode::MODE_SAVE,
+                        parent,
                         caption,
                         dir,
                         "");
@@ -587,7 +613,8 @@ CaretFileDialog::getOpenFileNamesDialog(QWidget *parent,
                                           QString *selectedFilter,
                                           Options options)
 {
-    CaretFileDialog cfd(parent,
+    CaretFileDialog cfd(Mode::MODE_OPEN,
+                        parent,
                         caption,
                         dir,
                         filter);

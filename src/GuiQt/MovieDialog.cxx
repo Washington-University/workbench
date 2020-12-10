@@ -721,16 +721,15 @@ void MovieDialog::captureFrame(AString filename)
         croppedImageY = imageFile.getAsQImage()->size().width();
     }*/
 
-    std::vector<AString> imageFileExtensions;
-    AString defaultFileExtension;
-    ImageFile::getImageFileExtensions(imageFileExtensions, 
-        defaultFileExtension);
-
-
+    std::vector<AString> readImageFileExtensions, writeImageFileExtensions;
+    AString defaultImageExtension;
+    ImageFile::getWorkbenchSupportedImageFileExtensions(readImageFileExtensions,
+                                                        writeImageFileExtensions,
+                                                        defaultImageExtension);
 
     bool validExtension = false;
-    for (std::vector<AString>::iterator extensionIterator = imageFileExtensions.begin();
-        extensionIterator != imageFileExtensions.end();
+    for (std::vector<AString>::iterator extensionIterator = writeImageFileExtensions.begin();
+        extensionIterator != writeImageFileExtensions.end();
         extensionIterator++) {
             if (filename.endsWith(*extensionIterator)) {
                 validExtension = true;
@@ -738,8 +737,8 @@ void MovieDialog::captureFrame(AString filename)
     }
 
     if (validExtension == false) {
-        if (defaultFileExtension.isEmpty() == false) {
-            filename += ("." + defaultFileExtension);
+        if (defaultImageExtension.isEmpty() == false) {
+            filename += ("." + defaultImageExtension);
         }
     }
 

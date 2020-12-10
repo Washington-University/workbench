@@ -137,7 +137,9 @@ public:
 
     static Enum fromQFileDialogFilter(const AString& qFileDialogNameFilter, bool* isValidOut);
     
-    static AString toQFileDialogFilter(const Enum enumValue);
+    static AString toQFileDialogFilterForReading(const Enum enumValue);
+    
+    static AString toQFileDialogFilterForWriting(const Enum enumValue);
     
     static Enum fromFileExtension(const AString& filename, bool* isValidOut);
     
@@ -164,6 +166,15 @@ public:
     static AString addFileExtensionIfMissing(const AString& filename,
                                              const Enum enumValue);
     
+    static void getSaveQFileDialogImageFilters(std::vector<AString>& imageFiltersOut,
+                                               AString& defaultImageFilterOut);
+    
+    static void getQtSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
+                                                  std::vector<AString>& writableExtensionsOut);
+    
+    static void getWorkbenchSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
+                                                         std::vector<AString>& writableExtensionsOut,
+                                                         AString& defaultWritableExtension);
 private:
     DataFileTypeEnum(const Enum enumValue, 
                      const AString& name,
@@ -177,6 +188,9 @@ private:
 
     static const DataFileTypeEnum* findData(const Enum enumValue);
 
+    static AString createQFileDialogNameFilter(const AString& fileTypeName,
+                                               const std::vector<AString>& fileExtensions);
+    
     /** Holds all instance of enum values and associated metadata */
     static std::vector<DataFileTypeEnum> enumData;
 
@@ -204,11 +218,20 @@ private:
     /** Name for use in overlay selection */
     AString overlayTypeName;
     
-    /** Extension(s) for the file */
-    std::vector<AString> fileExtensions;
+    /** All Extension(s) for the file */
+    std::vector<AString> readAndWriteFileExtensions;
     
-    /** Name filter for use in a QFileDialog */
-    AString qFileDialogNameFilter;
+    /** Extension(s) for reading the file */
+    std::vector<AString> readFileExtensions;
+    
+    /** Extension(s) for writing the file */
+    std::vector<AString> writeFileExtensions;
+    
+    /** Name filter for reading files in a QFileDialog */
+    AString qReadFileDialogNameFilter;
+    
+    /** Name filter for writing files in a QFileDialog */
+    AString qWriteFileDialogNameFilter;
     
     /** Is file for use with one structure */
     bool oneStructureFlag;

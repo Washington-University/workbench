@@ -120,8 +120,6 @@ public:
     
     bool isEmpty() const override;
     
-    //QImage* getAsQImage();
-    
     const QImage* getAsQImage() const;
     
     void setFromQImage(const QImage& img);
@@ -185,11 +183,8 @@ public:
                                                 const int numImagesPerRow,
                                                 const uint8_t backgroundColor[3]);
     
-    static void getImageFileExtensions(std::vector<AString>& imageFileExtensions,
-                                       AString& defaultExtension);
-    
-    static void getImageFileFilters(std::vector<AString>& imageFileFilters,
-                                    AString& defaultFilter);
+    static void getSaveQFileDialogImageFilters(std::vector<AString>& imageFileFilters,
+                                               AString& defaultFilter);
 
     static QImage scaleToSizeWithPadding(const QImage& image,
                                          const int width,
@@ -221,7 +216,8 @@ public:
                                                   std::vector<AString>& writableExtensionsOut);
     
     static void getWorkbenchSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
-                                                         std::vector<AString>& writableExtensionsOut);
+                                                         std::vector<AString>& writableExtensionsOut,
+                                                         AString& defaultWritableExtension);
     
 private:
     ImageFile(const ImageFile&);

@@ -113,9 +113,10 @@ AnnotationMenuFileSelection::chooseDiskFile()
     /*
      * Setup file selection dialog.
      */
-    CaretFileDialog fd(this);
+    CaretFileDialog fd(CaretFileDialog::Mode::MODE_SAVE,
+                       this);
     fd.setAcceptMode(CaretFileDialog::AcceptSave);
-    fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::ANNOTATION));
+    fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilterForWriting(DataFileTypeEnum::ANNOTATION));
     fd.setFileMode(CaretFileDialog::AnyFile);
     fd.setViewMode(CaretFileDialog::List);
     fd.setLabelText(CaretFileDialog::Accept, "Choose"); // OK button shows Insert
