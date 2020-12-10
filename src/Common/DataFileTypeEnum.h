@@ -175,6 +175,9 @@ public:
     static void getWorkbenchSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
                                                          std::vector<AString>& writableExtensionsOut,
                                                          AString& defaultWritableExtension);
+
+    static void getQtSupportedMovieFileExtensions(std::vector<AString>& readableExtensionsOut);
+    
 private:
     DataFileTypeEnum(const Enum enumValue, 
                      const AString& name,

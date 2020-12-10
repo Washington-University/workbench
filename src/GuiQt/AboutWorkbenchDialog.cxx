@@ -192,6 +192,11 @@ AboutWorkbenchDialog::displayMoreInformation()
     informationData.push_back("Default Image Type: "
                               + imageWriteDefaultExtension);
 
+    std::vector<AString> movieReadExtensions;
+    DataFileTypeEnum::getQtSupportedMovieFileExtensions(movieReadExtensions);
+    informationData.push_back("Qt Readable Movies (QMovie): "
+                              + AString::join(movieReadExtensions, ", "));
+
     WuQDataEntryDialog ded("More " + appInfo.getName() + " Information",
                            this,
                            true);

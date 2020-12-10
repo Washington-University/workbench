@@ -28,6 +28,7 @@
 #include <QDir>
 #include <QImageReader>
 #include <QImageWriter>
+#include <QMovie>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -1368,5 +1369,30 @@ DataFileTypeEnum::getSaveQFileDialogImageFilters(std::vector<AString>& imageFilt
             defaultImageFilterOut = imageFiltersOut[0];
         }
     }
+}
+
+/**
+ * Get files extensions supports by QMovie
+ * @param readableExtensionsOut
+ *   Output containing extensions of files that can be read by QMovie
+ */
+void
+DataFileTypeEnum::getQtSupportedMovieFileExtensions(std::vector<AString>& readableExtensionsOut)
+{
+    /*
+     * Extensions Qt can read (use set so extensions sorted)
+     */
+    std::set<AString> qtReadExtensions;
+    QList<QByteArray> readTypes(QMovie::supportedFormats());
+    QListIterator<QByteArray> readTypesIterator(readTypes);
+    while (readTypesIterator.hasNext()) {
+        QString fmt(readTypesIterator.next());
+        qtReadExtensions.insert(fmt);
+    }
+
+    readableExtensionsOut.clear();
+    readableExtensionsOut.insert(readableExtensionsOut.end(),
+                                 qtReadExtensions.begin(),
+                                 qtReadExtensions.end());
 }
 
