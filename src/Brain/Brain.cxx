@@ -23,7 +23,7 @@
 #include <limits>
 #include <new>
 
-#include "CaretAssert.h"
+#include <QCollator>
 
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
@@ -35,6 +35,7 @@
 #include "BrainordinateRegionOfInterest.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
+#include "CaretAssert.h"
 #include "CaretDataFileHelper.h"
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
@@ -136,6 +137,28 @@
 
 
 using namespace caret;
+
+/**
+ * Sort data files by the filename and excluding the path
+ *
+ * @param dataFiles
+ *     All files of a particular data type that are loaded.
+ */
+template <class DFT>
+static void
+sortDataFileTypeByFileNameNoPath(std::vector<DFT*>& dataFiles)
+{
+    QCollator collator;
+    collator.setNumericMode(true);
+    collator.setCaseSensitivity(Qt::CaseInsensitive);
+    
+    std::sort(dataFiles.begin(),
+              dataFiles.end(),
+              [&collator](DFT* a, DFT* b) -> bool {
+        return (collator.compare(a->getFileNameNoPath(), b->getFileNameNoPath()) < 0);
+        
+    });
+}
 
 /**
  *  Constructor.
@@ -5966,10 +5989,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
 //    testingAnnFile->setFileName("Testing." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::ANNOTATION));
 //    addDataFile(testingAnnFile);
     
-    
-    
-    
-    
+    sortDataFilesByFileNameNoPath();
+
     /*
      * Reset the primary anatomical surfaces since they can get set
      * incorrectly when loading files
@@ -6015,6 +6036,15 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     
     CaretDataFile::setFileReadingUsernameAndPassword("",
                                                      "");
+}
+
+/**
+ * Some files are sorted by name
+ */
+void
+Brain::sortDataFilesByFileNameNoPath()
+{
+    sortDataFileTypeByFileNameNoPath(m_imageFiles);
 }
 
 /**
@@ -6356,6 +6386,8 @@ Brain::receiveEvent(Event* event)
             addDataFileEvent->setErrorMessage(dfe.whatString());
         }
         addDataFileEvent->setEventProcessed();
+
+        sortDataFilesByFileNameNoPath();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_DELETE) {
         EventDataFileDelete* deleteDataFileEvent =
@@ -6378,6 +6410,8 @@ Brain::receiveEvent(Event* event)
         if (readDataFileEvent->getLoadIntoBrain() == this) {
             readDataFileEvent->setEventProcessed();
             processReadDataFileEvent(readDataFileEvent);
+            
+            sortDataFilesByFileNameNoPath();
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_RELOAD) {
@@ -7933,6 +7967,11 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         trajFile->finishRestorationOfScene();
     }
 
+    /*
+     * Some files are sorted by name
+     */
+    sortDataFilesByFileNameNoPath();
+    
     /*
      * Restore members
      */

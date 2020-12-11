@@ -61,7 +61,7 @@ void
 EventMediaFilesGet::addMediaFile(MediaFile* dataFile)
 {
     CaretAssert(dataFile);
-    m_mediaFiles.insert(dataFile);
+    m_mediaFiles.push_back(dataFile);
 }
 
 /**
@@ -70,8 +70,6 @@ EventMediaFilesGet::addMediaFile(MediaFile* dataFile)
 std::vector<MediaFile*>
 EventMediaFilesGet::getMediaFiles() const
 {
-    std::vector<MediaFile*> filesOut(m_mediaFiles.begin(),
-                                     m_mediaFiles.end());
-    return filesOut;
+    return m_mediaFiles;
 }
 

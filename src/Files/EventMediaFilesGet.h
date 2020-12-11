@@ -21,8 +21,6 @@
  */
 /*LICENSE_END*/
 
-
-
 #include <memory>
 #include <set>
 
@@ -53,7 +51,7 @@ namespace caret {
 
     private:
         
-        std::set<MediaFile*> m_mediaFiles;
+        std::vector<MediaFile*> m_mediaFiles;
         
         // ADD_NEW_MEMBERS_HERE
 

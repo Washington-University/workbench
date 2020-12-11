@@ -527,6 +527,8 @@ namespace caret {
                           const AString& dataFileName,
                           const bool markDataFileAsModified);
         
+        void sortDataFilesByFileNameNoPath();
+        
         void createModelChartTwo();
         
         /**
