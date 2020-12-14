@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_ONE_DIMENSIONAL_SHAPE_H__
-#define __ANNOTATION_ONE_DIMENSIONAL_SHAPE_H__
+#ifndef __ANNOTATION_TWO_COORDINATE_SHAPE_H__
+#define __ANNOTATION_TWO_COORDINATE_SHAPE_H__
 
 /*LICENSE_START*/
 /*
@@ -29,25 +29,25 @@ namespace caret {
 
     class AnnotationCoordinate;
 
-    class AnnotationOneDimensionalShape : public Annotation {
+    class AnnotationTwoCoordinateShape : public Annotation {
         
     public:
-        AnnotationOneDimensionalShape(const AnnotationTypeEnum::Enum type,
+        AnnotationTwoCoordinateShape(const AnnotationTypeEnum::Enum type,
                                       const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
-        virtual ~AnnotationOneDimensionalShape();
+        virtual ~AnnotationTwoCoordinateShape();
         
-        AnnotationOneDimensionalShape(const AnnotationOneDimensionalShape& obj);
+        AnnotationTwoCoordinateShape(const AnnotationTwoCoordinateShape& obj);
 
-        AnnotationOneDimensionalShape& operator=(const AnnotationOneDimensionalShape& obj);
+        AnnotationTwoCoordinateShape& operator=(const AnnotationTwoCoordinateShape& obj);
         
-        virtual AnnotationOneDimensionalShape* castToOneDimensionalShape() override;
+        virtual AnnotationTwoCoordinateShape* castToTwoCoordinateShape() override;
         
-        virtual const AnnotationOneDimensionalShape* castToOneDimensionalShape() const override;
+        virtual const AnnotationTwoCoordinateShape* castToTwoCoordinateShape() const override;
         
-        virtual AnnotationTwoDimensionalShape* castToTwoDimensionalShape() override;
+        virtual AnnotationOneCoordinateShape* castToOneCoordinateShape() override;
         
-        virtual const AnnotationTwoDimensionalShape* castToTwoDimensionalShape() const override;
+        virtual const AnnotationOneCoordinateShape* castToOneCoordinateShape() const override;
         
         AnnotationCoordinate* getStartCoordinate();
         
@@ -92,9 +92,9 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
     private:
-        void copyHelperAnnotationOneDimensionalShape(const AnnotationOneDimensionalShape& obj);
+        void copyHelperAnnotationTwoCoordinateShape(const AnnotationTwoCoordinateShape& obj);
 
-        void initializeMembersAnnotationOneDimensionalShape();
+        void initializeMembersAnnotationTwoCoordinateShape();
         
         bool applySpatialModificationChartSpace(const AnnotationSpatialModification& spatialModification);
         
@@ -116,9 +116,9 @@ namespace caret {
 
     };
     
-#ifdef __ANNOTATION_ONE_DIMENSIONAL_SHAPE_DECLARE__
+#ifdef __ANNOTATION_TWO_COORDINATE_SHAPE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_ONE_DIMENSIONAL_SHAPE_DECLARE__
+#endif // __ANNOTATION_TWO_COORDINATE_SHAPE_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_ONE_DIMENSIONAL_SHAPE_H__
+#endif  //__ANNOTATION_TWO_COORDINATE_SHAPE_H__

@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __ANNOTATION_ONE_DIMENSIONAL_SHAPE_DECLARE__
-#include "AnnotationOneDimensionalShape.h"
-#undef __ANNOTATION_ONE_DIMENSIONAL_SHAPE_DECLARE__
+#define __ANNOTATION_TWO_COORDINATE_SHAPE_DECLARE__
+#include "AnnotationTwoCoordinateShape.h"
+#undef __ANNOTATION_TWO_COORDINATE_SHAPE_DECLARE__
 
 #include <cmath>
 
@@ -37,7 +37,7 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationOneDimensionalShape 
+ * \class caret::AnnotationTwoCoordinateShape 
  * \brief Class for annotations that are one-dimensional (lines)
  * \ingroup Annotations
  */
@@ -49,18 +49,18 @@ using namespace caret;
  * @param attributeDefaultType
  *    Type for attribute defaults
  */
-AnnotationOneDimensionalShape::AnnotationOneDimensionalShape(const AnnotationTypeEnum::Enum type,
+AnnotationTwoCoordinateShape::AnnotationTwoCoordinateShape(const AnnotationTypeEnum::Enum type,
                                                              const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
 : Annotation(type,
              attributeDefaultType)
 {
-    initializeMembersAnnotationOneDimensionalShape();
+    initializeMembersAnnotationTwoCoordinateShape();
 }
 
 /**
  * Destructor.
  */
-AnnotationOneDimensionalShape::~AnnotationOneDimensionalShape()
+AnnotationTwoCoordinateShape::~AnnotationTwoCoordinateShape()
 {
 }
 
@@ -69,12 +69,12 @@ AnnotationOneDimensionalShape::~AnnotationOneDimensionalShape()
  * @param obj
  *    Object that is copied.
  */
-AnnotationOneDimensionalShape::AnnotationOneDimensionalShape(const AnnotationOneDimensionalShape& obj)
+AnnotationTwoCoordinateShape::AnnotationTwoCoordinateShape(const AnnotationTwoCoordinateShape& obj)
 : Annotation(obj)
 {
-    initializeMembersAnnotationOneDimensionalShape();
+    initializeMembersAnnotationTwoCoordinateShape();
     
-    this->copyHelperAnnotationOneDimensionalShape(obj);
+    this->copyHelperAnnotationTwoCoordinateShape(obj);
 }
 
 /**
@@ -84,12 +84,12 @@ AnnotationOneDimensionalShape::AnnotationOneDimensionalShape(const AnnotationOne
  * @return 
  *    Reference to this object.
  */
-AnnotationOneDimensionalShape&
-AnnotationOneDimensionalShape::operator=(const AnnotationOneDimensionalShape& obj)
+AnnotationTwoCoordinateShape&
+AnnotationTwoCoordinateShape::operator=(const AnnotationTwoCoordinateShape& obj)
 {
     if (this != &obj) {
         Annotation::operator=(obj);
-        this->copyHelperAnnotationOneDimensionalShape(obj);
+        this->copyHelperAnnotationTwoCoordinateShape(obj);
     }
     return *this;    
 }
@@ -100,7 +100,7 @@ AnnotationOneDimensionalShape::operator=(const AnnotationOneDimensionalShape& ob
  *    Object that is copied.
  */
 void 
-AnnotationOneDimensionalShape::copyHelperAnnotationOneDimensionalShape(const AnnotationOneDimensionalShape& obj)
+AnnotationTwoCoordinateShape::copyHelperAnnotationTwoCoordinateShape(const AnnotationTwoCoordinateShape& obj)
 {
     *m_startCoordinate = *obj.m_startCoordinate;
     *m_endCoordinate   = *obj.m_endCoordinate;
@@ -110,7 +110,7 @@ AnnotationOneDimensionalShape::copyHelperAnnotationOneDimensionalShape(const Ann
  * Initialize members of this class.
  */
 void
-AnnotationOneDimensionalShape::initializeMembersAnnotationOneDimensionalShape()
+AnnotationTwoCoordinateShape::initializeMembersAnnotationTwoCoordinateShape()
 {
     m_startCoordinate.grabNew(new AnnotationCoordinate(m_attributeDefaultType));
     m_endCoordinate.grabNew(new AnnotationCoordinate(m_attributeDefaultType));
@@ -129,8 +129,8 @@ AnnotationOneDimensionalShape::initializeMembersAnnotationOneDimensionalShape()
 /**
  * @return 'this' as a one-dimensional shape. NULL if this is not a one-dimensional shape.
  */
-AnnotationOneDimensionalShape*
-AnnotationOneDimensionalShape::castToOneDimensionalShape()
+AnnotationTwoCoordinateShape*
+AnnotationTwoCoordinateShape::castToTwoCoordinateShape()
 {
     return this;
 }
@@ -138,8 +138,8 @@ AnnotationOneDimensionalShape::castToOneDimensionalShape()
 /**
  * @return 'this' as a one-dimensional shape. NULL if this is not a one-dimensional shape.
  */
-const AnnotationOneDimensionalShape*
-AnnotationOneDimensionalShape::castToOneDimensionalShape() const
+const AnnotationTwoCoordinateShape*
+AnnotationTwoCoordinateShape::castToTwoCoordinateShape() const
 {
     return this;
 }
@@ -147,8 +147,8 @@ AnnotationOneDimensionalShape::castToOneDimensionalShape() const
 /**
  * @return 'this' as a one-dimensional shape. NULL if this is not a two-dimensional shape.
  */
-AnnotationTwoDimensionalShape*
-AnnotationOneDimensionalShape::castToTwoDimensionalShape()
+AnnotationOneCoordinateShape*
+AnnotationTwoCoordinateShape::castToOneCoordinateShape()
 {
     return NULL;
 }
@@ -156,8 +156,8 @@ AnnotationOneDimensionalShape::castToTwoDimensionalShape()
 /**
  * @return 'this' as a one-dimensional shape. NULL if this is not a two-dimensional shape.
  */
-const AnnotationTwoDimensionalShape*
-AnnotationOneDimensionalShape::castToTwoDimensionalShape() const
+const AnnotationOneCoordinateShape*
+AnnotationTwoCoordinateShape::castToOneCoordinateShape() const
 {
     return NULL;
 }
@@ -166,7 +166,7 @@ AnnotationOneDimensionalShape::castToTwoDimensionalShape() const
  * @return The start coordinate for the one dimensional shape.
  */
 AnnotationCoordinate*
-AnnotationOneDimensionalShape::getStartCoordinate()
+AnnotationTwoCoordinateShape::getStartCoordinate()
 {
     return m_startCoordinate;
 }
@@ -175,7 +175,7 @@ AnnotationOneDimensionalShape::getStartCoordinate()
  * @return The start coordinate for the one dimensional shape.
  */
 const AnnotationCoordinate*
-AnnotationOneDimensionalShape::getStartCoordinate() const
+AnnotationTwoCoordinateShape::getStartCoordinate() const
 {
     return m_startCoordinate;
 }
@@ -184,7 +184,7 @@ AnnotationOneDimensionalShape::getStartCoordinate() const
  * @return The end coordinate for the one dimensional shape.
  */
 AnnotationCoordinate*
-AnnotationOneDimensionalShape::getEndCoordinate()
+AnnotationTwoCoordinateShape::getEndCoordinate()
 {
     return m_endCoordinate;
 }
@@ -193,7 +193,7 @@ AnnotationOneDimensionalShape::getEndCoordinate()
  * @return The end coordinate for the one dimensional shape.
  */
 const AnnotationCoordinate*
-AnnotationOneDimensionalShape::getEndCoordinate() const
+AnnotationTwoCoordinateShape::getEndCoordinate() const
 {
     return m_endCoordinate;
 }
@@ -202,7 +202,7 @@ AnnotationOneDimensionalShape::getEndCoordinate() const
  * @return The surface offset vector type for this annotation.
  */
 AnnotationSurfaceOffsetVectorTypeEnum::Enum
-AnnotationOneDimensionalShape::getSurfaceOffsetVectorType() const
+AnnotationTwoCoordinateShape::getSurfaceOffsetVectorType() const
 {
     CaretAssert(m_startCoordinate);
     return m_startCoordinate->getSurfaceOffsetVectorType();
@@ -213,7 +213,7 @@ AnnotationOneDimensionalShape::getSurfaceOffsetVectorType() const
  * @return true if modified, else false.
  */
 bool
-AnnotationOneDimensionalShape::isModified() const
+AnnotationTwoCoordinateShape::isModified() const
 {
     if (Annotation::isModified()) {
         return true;
@@ -234,7 +234,7 @@ AnnotationOneDimensionalShape::isModified() const
  * Set the status to unmodified.
  */
 void
-AnnotationOneDimensionalShape::clearModified()
+AnnotationTwoCoordinateShape::clearModified()
 {
     Annotation::clearModified();
     
@@ -250,10 +250,10 @@ AnnotationOneDimensionalShape::clearModified()
  *     The other annotation from which attributes are obtained.
  */
 void
-AnnotationOneDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation)
+AnnotationTwoCoordinateShape::applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation)
 {
     CaretAssert(otherAnnotation);
-    const AnnotationOneDimensionalShape* otherOneDim = dynamic_cast<const AnnotationOneDimensionalShape*>(otherAnnotation);
+    const AnnotationTwoCoordinateShape* otherOneDim = dynamic_cast<const AnnotationTwoCoordinateShape*>(otherAnnotation);
     CaretAssert(otherOneDim);
     
     AnnotationCoordinate* startCoord = getStartCoordinate();
@@ -281,7 +281,7 @@ AnnotationOneDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
  *     Rotation angle of the annotation.
  */
 float
-AnnotationOneDimensionalShape::getRotationAngle(const float viewportWidth,
+AnnotationTwoCoordinateShape::getRotationAngle(const float viewportWidth,
                                                 const float viewportHeight) const
 {
     if ( ! isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
@@ -320,7 +320,7 @@ AnnotationOneDimensionalShape::getRotationAngle(const float viewportWidth,
  *     Rotation angle for the annotation.
  */
 void
-AnnotationOneDimensionalShape::setRotationAngle(const float viewportWidth,
+AnnotationTwoCoordinateShape::setRotationAngle(const float viewportWidth,
                                                 const float viewportHeight,
                                                 const float rotationAngle)
 {
@@ -367,7 +367,7 @@ AnnotationOneDimensionalShape::setRotationAngle(const float viewportWidth,
  *    True if sizing handle valid, else false.
  */
 bool
-AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const
+AnnotationTwoCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const
 {
     bool xyPlaneFlag = false;
     
@@ -441,7 +441,7 @@ AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
  *     True if the annotation was modified, else false.
  */
 bool
-AnnotationOneDimensionalShape::applySpatialModificationSurfaceSpace(const AnnotationSpatialModification& spatialModification)
+AnnotationTwoCoordinateShape::applySpatialModificationSurfaceSpace(const AnnotationSpatialModification& spatialModification)
 {
     bool validFlag = false;
     
@@ -525,7 +525,7 @@ AnnotationOneDimensionalShape::applySpatialModificationSurfaceSpace(const Annota
  *     True if the annotation was modified, else false.
  */
 bool
-AnnotationOneDimensionalShape::applySpatialModificationSpacerTabSpace(const AnnotationSpatialModification& spatialModification)
+AnnotationTwoCoordinateShape::applySpatialModificationSpacerTabSpace(const AnnotationSpatialModification& spatialModification)
 {
     return applySpatialModificationTabOrWindowSpace(spatialModification);
 }
@@ -540,7 +540,7 @@ AnnotationOneDimensionalShape::applySpatialModificationSpacerTabSpace(const Anno
  *     True if the annotation was modified, else false.
  */
 bool
-AnnotationOneDimensionalShape::applySpatialModificationTabOrWindowSpace(const AnnotationSpatialModification& spatialModification)
+AnnotationTwoCoordinateShape::applySpatialModificationTabOrWindowSpace(const AnnotationSpatialModification& spatialModification)
 {
     float xyz1[3];
     float xyz2[3];
@@ -629,7 +629,7 @@ AnnotationOneDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
                 rotationAngle += 360.0;
             }
             
-            CaretPointer<AnnotationOneDimensionalShape> shapeCopy(dynamic_cast<AnnotationOneDimensionalShape*>(this->clone()));
+            CaretPointer<AnnotationTwoCoordinateShape> shapeCopy(dynamic_cast<AnnotationTwoCoordinateShape*>(this->clone()));
             shapeCopy->setRotationAngle(spatialModification.m_viewportWidth,
                                         spatialModification.m_viewportHeight,
                                         rotationAngle);
@@ -678,7 +678,7 @@ AnnotationOneDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
  *     True if the annotation was modified, else false.
  */
 bool
-AnnotationOneDimensionalShape::applySpatialModificationChartSpace(const AnnotationSpatialModification& spatialModification)
+AnnotationTwoCoordinateShape::applySpatialModificationChartSpace(const AnnotationSpatialModification& spatialModification)
 {
     bool validFlag = false;
     
@@ -743,7 +743,7 @@ AnnotationOneDimensionalShape::applySpatialModificationChartSpace(const Annotati
  *     True if the annotation was modified, else false.
  */
 bool
-AnnotationOneDimensionalShape::applySpatialModificationStereotaxicSpace(const AnnotationSpatialModification& spatialModification)
+AnnotationTwoCoordinateShape::applySpatialModificationStereotaxicSpace(const AnnotationSpatialModification& spatialModification)
 {
     bool validFlag = false;
     
@@ -798,7 +798,7 @@ AnnotationOneDimensionalShape::applySpatialModificationStereotaxicSpace(const An
  *     True if the annotation was modified, else false.
  */
 bool
-AnnotationOneDimensionalShape::applySpatialModification(const AnnotationSpatialModification& spatialModification)
+AnnotationTwoCoordinateShape::applySpatialModification(const AnnotationSpatialModification& spatialModification)
 {
     if ( ! isSizeHandleValid(spatialModification.m_sizingHandleType)) {
         return false;
@@ -843,7 +843,7 @@ AnnotationOneDimensionalShape::applySpatialModification(const AnnotationSpatialM
  *     be valid (non-NULL).
  */
 void
-AnnotationOneDimensionalShape::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+AnnotationTwoCoordinateShape::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
     m_sceneAssistant->saveMembers(sceneAttributes,
@@ -863,7 +863,7 @@ AnnotationOneDimensionalShape::saveSubClassDataToScene(const SceneAttributes* sc
  *     this interface.  Will NEVER be NULL.
  */
 void
-AnnotationOneDimensionalShape::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+AnnotationTwoCoordinateShape::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
     m_sceneAssistant->restoreMembers(sceneAttributes,

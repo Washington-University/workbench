@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_TWO_DIMENSIONAL_SHAPE_H__
-#define __ANNOTATION_TWO_DIMENSIONAL_SHAPE_H__
+#ifndef __ANNOTATION_ONE_COORDINATE_SHAPE_H__
+#define __ANNOTATION_ONE_COORDINATE_SHAPE_H__
 
 /*LICENSE_START*/
 /*
@@ -30,25 +30,25 @@ namespace caret {
 
     class AnnotationCoordinate;
     
-    class AnnotationTwoDimensionalShape : public Annotation {
+    class AnnotationOneCoordinateShape : public Annotation {
         
     public:
-        AnnotationTwoDimensionalShape(const AnnotationTypeEnum::Enum type,
+        AnnotationOneCoordinateShape(const AnnotationTypeEnum::Enum type,
                                       const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
-        virtual ~AnnotationTwoDimensionalShape();
+        virtual ~AnnotationOneCoordinateShape();
         
-        AnnotationTwoDimensionalShape(const AnnotationTwoDimensionalShape& obj);
+        AnnotationOneCoordinateShape(const AnnotationOneCoordinateShape& obj);
 
-        AnnotationTwoDimensionalShape& operator=(const AnnotationTwoDimensionalShape& obj);
+        AnnotationOneCoordinateShape& operator=(const AnnotationOneCoordinateShape& obj);
         
-        virtual AnnotationOneDimensionalShape* castToOneDimensionalShape() override;
+        virtual AnnotationTwoCoordinateShape* castToTwoCoordinateShape() override;
         
-        virtual const AnnotationOneDimensionalShape* castToOneDimensionalShape() const override;
+        virtual const AnnotationTwoCoordinateShape* castToTwoCoordinateShape() const override;
         
-        virtual AnnotationTwoDimensionalShape* castToTwoDimensionalShape() override;
+        virtual AnnotationOneCoordinateShape* castToOneCoordinateShape() override;
         
-        virtual const AnnotationTwoDimensionalShape* castToTwoDimensionalShape() const override;
+        virtual const AnnotationOneCoordinateShape* castToOneCoordinateShape() const override;
         
         AnnotationCoordinate* getCoordinate();
         
@@ -118,9 +118,9 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
     private:
-        void copyHelperAnnotationTwoDimensionalShape(const AnnotationTwoDimensionalShape& obj);
+        void copyHelperAnnotationOneCoordinateShape(const AnnotationOneCoordinateShape& obj);
 
-        void initializeMembersAnnotationTwoDimensionalShape();
+        void initializeMembersAnnotationOneCoordinateShape();
         
         void addToXYZWithXY(float xyz[3],
                             const float addX,
@@ -157,11 +157,11 @@ namespace caret {
 
     };
     
-#ifdef __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
-    float AnnotationTwoDimensionalShape::s_userDefaultWidth = 25.0;
+#ifdef __ANNOTATION_ONE_COORDINATE_SHAPE_DECLARE__
+    float AnnotationOneCoordinateShape::s_userDefaultWidth = 25.0;
     
-    float AnnotationTwoDimensionalShape::s_userDefaultHeight = 25.0;
-#endif // __ANNOTATION_TWO_DIMENSIONAL_SHAPE_DECLARE__
+    float AnnotationOneCoordinateShape::s_userDefaultHeight = 25.0;
+#endif // __ANNOTATION_ONE_COORDINATE_SHAPE_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_TWO_DIMENSIONAL_SHAPE_H__
+#endif  //__ANNOTATION_ONE_COORDINATE_SHAPE_H__
