@@ -760,8 +760,15 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
             annotations.push_back(annotation.releasePointer());
         }
         else {
-            m_streamHelper->throwDataFileException("Unexpected XML element "
-                                                   + elementName);
+            /*
+             * Issue warning (instead of fatal error) if unrecognized element found.
+             * Will skip over remainder of element later in code.
+             */
+            annotationFile->addFileReadWarning("Unrecognized element \""
+                                               + elementName
+                                               + "\" and content ignored.  Updating Workbench "
+                                               "may correct this problem.");
+            skipCurrentElementFlag = true;
         }
         
         /*
