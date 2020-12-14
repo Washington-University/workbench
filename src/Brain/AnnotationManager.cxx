@@ -29,12 +29,12 @@
 #include "AnnotationColorBar.h"
 #include "AnnotationFile.h"
 #include "AnnotationGroup.h"
-#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationEditingSelectionInformation.h"
 #include "AnnotationScaleBar.h"
 #include "AnnotationStackingOrderOperation.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "BrowserTabContent.h"
 #include "BrowserWindowContent.h"
 #include "Brain.h"
@@ -1038,14 +1038,14 @@ AnnotationManager::moveTabOrWindowAnnotationToFront(Annotation* annotation,
         }
         else {
             float z(1.0);
-            AnnotationOneDimensionalShape* oneDim = a->castToOneDimensionalShape();
+            AnnotationTwoCoordinateShape* oneDim = a->castToTwoCoordinateShape();
             if (oneDim != NULL) {
                 float xyz[3];
                 oneDim->getStartCoordinate()->getXYZ(xyz);
                 z = xyz[2];
             }
             else {
-                AnnotationTwoDimensionalShape* twoDim = a->castToTwoDimensionalShape();
+                AnnotationOneCoordinateShape* twoDim = a->castToOneCoordinateShape();
                 if (twoDim != NULL) {
                     float xyz[3];
                     twoDim->getCoordinate()->getXYZ(xyz);
@@ -1067,7 +1067,7 @@ AnnotationManager::moveTabOrWindowAnnotationToFront(Annotation* annotation,
             abt->setStackingOrder(orderIndex);
         }
         else {
-            AnnotationOneDimensionalShape* oneDim = a->castToOneDimensionalShape();
+            AnnotationTwoCoordinateShape* oneDim = a->castToTwoCoordinateShape();
             if (oneDim != NULL) {
                 float xyz[3];
                 oneDim->getStartCoordinate()->getXYZ(xyz);
@@ -1078,7 +1078,7 @@ AnnotationManager::moveTabOrWindowAnnotationToFront(Annotation* annotation,
                 oneDim->getEndCoordinate()->setXYZ(xyz);
             }
             else {
-                AnnotationTwoDimensionalShape* twoDim = a->castToTwoDimensionalShape();
+                AnnotationOneCoordinateShape* twoDim = a->castToOneCoordinateShape();
                 if (twoDim != NULL) {
                     float xyz[3];
                     twoDim->getCoordinate()->getXYZ(xyz);

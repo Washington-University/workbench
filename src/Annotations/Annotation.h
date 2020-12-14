@@ -43,8 +43,8 @@
 namespace caret {
     class AnnotationScaleBar;
     
-    class AnnotationOneDimensionalShape;
-    class AnnotationTwoDimensionalShape;
+    class AnnotationTwoCoordinateShape;
+    class AnnotationOneCoordinateShape;
     class AnnotationSpatialModification;
     class DisplayGroupAndTabItemHelper;
     class SceneClassAssistant;
@@ -129,13 +129,13 @@ namespace caret {
         
         Annotation* clone() const;
         
-        virtual AnnotationOneDimensionalShape* castToOneDimensionalShape() = 0;
+        virtual AnnotationTwoCoordinateShape* castToTwoCoordinateShape() = 0;
         
-        virtual const AnnotationOneDimensionalShape* castToOneDimensionalShape() const = 0;
+        virtual const AnnotationTwoCoordinateShape* castToTwoCoordinateShape() const = 0;
 
-        virtual AnnotationTwoDimensionalShape* castToTwoDimensionalShape() = 0;
+        virtual AnnotationOneCoordinateShape* castToOneCoordinateShape() = 0;
         
-        virtual const AnnotationTwoDimensionalShape* castToTwoDimensionalShape() const = 0;
+        virtual const AnnotationOneCoordinateShape* castToOneCoordinateShape() const = 0;
 
         /**
          * @return this annotation cast to AnnotationScaleBar (NULL if not a scale bar)

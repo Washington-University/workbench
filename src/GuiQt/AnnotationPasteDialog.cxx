@@ -33,7 +33,7 @@
 #include "AnnotationCoordinateSelectionWidget.h"
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
-#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
@@ -94,7 +94,7 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
         
         bool validCoordsFlag = false;
         
-        AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
+        AnnotationTwoCoordinateShape* oneDimShape = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
         if (oneDimShape != NULL) {
             /*
              * Pasting line while preserving its orientation only
@@ -307,7 +307,7 @@ AnnotationPasteDialog::getAnnotationThatWasCreated()
  *     True if the shape's coordinate was updated for pasting, else false.
  */
 bool
-AnnotationPasteDialog::pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
+AnnotationPasteDialog::pasteOneDimensionalShape(AnnotationTwoCoordinateShape* oneDimShape,
                                                    AnnotationCoordinateInformation& coordInfo)
 {
     

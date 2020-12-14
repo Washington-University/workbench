@@ -607,7 +607,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
  */
 void
 AnnotationFileXmlReader::readOneDimensionalAnnotation(const QString& annotationElementName,
-                                                      AnnotationOneDimensionalShape* annotation)
+                                                      AnnotationTwoCoordinateShape* annotation)
 {
     CaretAssert(annotation);
 
@@ -799,7 +799,7 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
  */
 void
 AnnotationFileXmlReader::readTwoDimensionalAnnotation(const QString& annotationElementName,
-                                                      AnnotationTwoDimensionalShape* annotation)
+                                                      AnnotationOneCoordinateShape* annotation)
 {
     CaretAssert(annotation);
     

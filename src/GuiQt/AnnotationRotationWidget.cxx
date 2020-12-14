@@ -32,9 +32,9 @@
 
 
 #include "AnnotationManager.h"
-#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoCommand.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "EventGetViewportSize.h"
@@ -104,10 +104,10 @@ AnnotationRotationWidget::~AnnotationRotationWidget()
  *     stereotaxic space for rotation angle.
  *
  */
-AnnotationOneDimensionalShape*
+AnnotationTwoCoordinateShape*
 AnnotationRotationWidget::getValidOneDimAnnotation(Annotation* annotation)
 {
-    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
+    AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
     
     if (oneDimAnn != NULL) {
         bool validSpaceFlag = false;
@@ -160,8 +160,8 @@ AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
             Annotation* ann = annotations[i];
             if (ann->testProperty(Annotation::Property::ROTATION)) {
                 if (ann->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
-                    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
-                    AnnotationOneDimensionalShape* oneDimAnn = getValidOneDimAnnotation(ann);
+                    AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(ann);
+                    AnnotationTwoCoordinateShape* oneDimAnn = getValidOneDimAnnotation(ann);
                     
                     float angle = 0.0;
                     float angleValid = false;

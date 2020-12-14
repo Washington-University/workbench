@@ -390,7 +390,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
  *     The top left corner of the annotation bounds.
  */
 bool
-BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const AnnotationTwoDimensionalShape* annotation2D,
+BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const AnnotationOneCoordinateShape* annotation2D,
                                                                           const float windowXYZ[3],
                                                                           float bottomLeftOut[3],
                                                                           float bottomRightOut[3],
@@ -755,7 +755,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                     float y = yStart;
                     int32_t lastTabIndex = -1;
                     bool firstColorBarFlag = true;
-                    std::vector<AnnotationTwoDimensionalShape*> colorAndScaleBars;
+                    std::vector<AnnotationOneCoordinateShape*> colorAndScaleBars;
                     colorAndScaleBars.insert(colorAndScaleBars.end(),
                                              colorBars.begin(), colorBars.end());
                     colorAndScaleBars.insert(colorAndScaleBars.end(),
@@ -899,8 +899,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 continue;
             }
             
-            AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
-            AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+            AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
+            AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(annotation);
             
             /*
              * Limit drawing of annotations to those in the
@@ -1178,14 +1178,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
     bool drawnFlag = false;
     
     if (annotation->isInSurfaceSpaceWithTangentOffset()) {
-        AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+        AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(annotation);
         if (twoDimAnn != NULL) {
             drawnFlag = drawTwoDimAnnotationSurfaceTextureOffset(annotationFile,
                                                                  twoDimAnn,
                                                                  surfaceDisplayed);
         }
         else {
-            AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
+            AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
             drawnFlag = drawOneDimAnnotationSurfaceTextureOffset(annotationFile,
                                                                  oneDimAnn,
                                                                  surfaceDisplayed);
@@ -1252,7 +1252,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
  */
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
-                                                                                    AnnotationTwoDimensionalShape* annotation,
+                                                                                    AnnotationOneCoordinateShape* annotation,
                                                                                     const Surface* surfaceDisplayed)
 {
     bool drawnFlag = false;
@@ -1513,7 +1513,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOff
  */
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawOneDimAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
-                                                                                    AnnotationOneDimensionalShape* annotation,
+                                                                                    AnnotationTwoCoordinateShape* annotation,
                                                                                     const Surface* surfaceDisplayed)
 {
     CaretAssert(annotationFile);

@@ -44,7 +44,7 @@ using namespace caret;
  *    Type for attribute defaults
  */
 AnnotationOval::AnnotationOval(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::OVAL,
+: AnnotationOneCoordinateShape(AnnotationTypeEnum::OVAL,
                                 attributeDefaultType)
 {
     initializeMembersAnnotationOval();
@@ -63,7 +63,7 @@ AnnotationOval::~AnnotationOval()
  *    Object that is copied.
  */
 AnnotationOval::AnnotationOval(const AnnotationOval& obj)
-: AnnotationTwoDimensionalShape(obj)
+: AnnotationOneCoordinateShape(obj)
 {
     this->initializeMembersAnnotationOval();
     this->copyHelperAnnotationOval(obj);
@@ -80,7 +80,7 @@ AnnotationOval&
 AnnotationOval::operator=(const AnnotationOval& obj)
 {
     if (this != &obj) {
-        AnnotationTwoDimensionalShape::operator=(obj);
+        AnnotationOneCoordinateShape::operator=(obj);
         this->copyHelperAnnotationOval(obj);
     }
     return *this;
@@ -124,7 +124,7 @@ void
 AnnotationOval::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::saveSubClassDataToScene(sceneAttributes,
+    AnnotationOneCoordinateShape::saveSubClassDataToScene(sceneAttributes,
                                                            sceneClass);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -146,7 +146,7 @@ void
 AnnotationOval::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(sceneAttributes,
+    AnnotationOneCoordinateShape::restoreSubClassDataFromScene(sceneAttributes,
                                                                 sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

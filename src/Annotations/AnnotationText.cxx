@@ -53,7 +53,7 @@ using namespace caret;
  */
 AnnotationText::AnnotationText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
                                const AnnotationTextFontSizeTypeEnum::Enum fontSizeType)
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::TEXT,
+: AnnotationOneCoordinateShape(AnnotationTypeEnum::TEXT,
                                 attributeDefaultType),
 AnnotationFontAttributesInterface(),
 m_fontSizeType(fontSizeType)
@@ -74,7 +74,7 @@ m_fontSizeType(fontSizeType)
 AnnotationText::AnnotationText(const AnnotationTypeEnum::Enum type,
                                const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
                                const AnnotationTextFontSizeTypeEnum::Enum fontSizeType)
-: AnnotationTwoDimensionalShape(type,
+: AnnotationOneCoordinateShape(type,
                                 attributeDefaultType),
 AnnotationFontAttributesInterface(),
 m_fontSizeType(fontSizeType)
@@ -95,7 +95,7 @@ AnnotationText::~AnnotationText()
  *    Object that is copied.
  */
 AnnotationText::AnnotationText(const AnnotationText& obj)
-: AnnotationTwoDimensionalShape(obj),
+: AnnotationOneCoordinateShape(obj),
 AnnotationFontAttributesInterface(),
 m_fontSizeType(obj.m_fontSizeType)
 {
@@ -914,7 +914,7 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
 void
 AnnotationText::applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation)
 {
-    AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(otherAnnotation);
+    AnnotationOneCoordinateShape::applyCoordinatesSizeAndRotationFromOther(otherAnnotation);
     
     /*
      * Text size may change when an annotation is moved to a different
@@ -1038,7 +1038,7 @@ AnnotationText::applySpatialModification(const AnnotationSpatialModification& sp
     
     bool validFlag = false;
     if (operationSupportedFlag) {
-        validFlag = AnnotationTwoDimensionalShape::applySpatialModification(spatialModification);
+        validFlag = AnnotationOneCoordinateShape::applySpatialModification(spatialModification);
     }
     
     return validFlag;
@@ -1060,7 +1060,7 @@ void
 AnnotationText::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::saveSubClassDataToScene(sceneAttributes,
+    AnnotationOneCoordinateShape::saveSubClassDataToScene(sceneAttributes,
                                                            sceneClass);
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
         sceneClass->addBoolean("hasAttributesFlag", true);
@@ -1085,7 +1085,7 @@ void
 AnnotationText::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(sceneAttributes,
+    AnnotationOneCoordinateShape::restoreSubClassDataFromScene(sceneAttributes,
                                                                 sceneClass);
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
         /*

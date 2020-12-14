@@ -150,9 +150,9 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
-        friend class AnnotationOneDimensionalShape;
+        friend class AnnotationTwoCoordinateShape;
         friend class AnnotationText;
-        friend class AnnotationTwoDimensionalShape;
+        friend class AnnotationOneCoordinateShape;
     };
     
 #ifdef __ANNOTATION_SPATIAL_MODIFICATION_DECLARE__

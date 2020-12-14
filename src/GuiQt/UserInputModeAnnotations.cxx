@@ -33,13 +33,13 @@
 #include "AnnotationCoordinateInformation.h"
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
-#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationPasteDialog.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationSpatialModification.h"
 #include "AnnotationText.h"
 #include "AnnotationTextEditorDialog.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLViewportContent.h"
@@ -500,8 +500,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             break;
                     }
                     
-                    AnnotationOneDimensionalShape* oneDim = dynamic_cast<AnnotationOneDimensionalShape*>(selectedAnnotation);
-                    AnnotationTwoDimensionalShape* twoDim = dynamic_cast<AnnotationTwoDimensionalShape*>(selectedAnnotation);
+                    AnnotationTwoCoordinateShape* oneDim = dynamic_cast<AnnotationTwoCoordinateShape*>(selectedAnnotation);
+                    AnnotationOneCoordinateShape* twoDim = dynamic_cast<AnnotationOneCoordinateShape*>(selectedAnnotation);
                     
                     {
                             bool surfaceFlag = false;
@@ -1269,9 +1269,9 @@ UserInputModeAnnotations::gestureEvent(const GestureEvent& gestureEvent)
             std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
             
             float rotationAngle(0.0);
-            std::vector<AnnotationTwoDimensionalShape*> twoDimAnns;
+            std::vector<AnnotationOneCoordinateShape*> twoDimAnns;
             for (auto a : selectedAnnotations) {
-                AnnotationTwoDimensionalShape* a2d = a->castToTwoDimensionalShape();
+                AnnotationOneCoordinateShape* a2d = a->castToOneCoordinateShape();
                 if (a2d != NULL) {
                     if (a2d->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
                         if (twoDimAnns.empty()) {
@@ -1323,8 +1323,8 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
                                                              mouseEvent.getY(),
                                                              coordInfo);
     
-    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(selectedAnnotation);
-    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(selectedAnnotation);
+    AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<AnnotationTwoCoordinateShape*>(selectedAnnotation);
+    AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(selectedAnnotation);
 
     AnnotationCoordinate* coordinate = NULL;
     AnnotationCoordinate* otherCoordinate = NULL;
@@ -2021,8 +2021,8 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
     m_annotation->setCoordinateSpace(annotationSpace);
     CaretAssert(m_annotation);
 
-    AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
-    AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
+    AnnotationTwoCoordinateShape* oneDimShape = dynamic_cast<AnnotationTwoCoordinateShape*>(m_annotation);
+    AnnotationOneCoordinateShape* twoDimShape = dynamic_cast<AnnotationOneCoordinateShape*>(m_annotation);
     
     if (oneDimShape != NULL) {
         setCoordinate(oneDimShape->getStartCoordinate(),
@@ -2072,8 +2072,8 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const int32_t mou
     int32_t mouseWindowX = mouseWindowXIn - m_windowOriginX;
     int32_t mouseWindowY = mouseWindowYIn - m_windowOriginY;
     
-    AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
-    AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
+    AnnotationTwoCoordinateShape* oneDimShape = dynamic_cast<AnnotationTwoCoordinateShape*>(m_annotation);
+    AnnotationOneCoordinateShape* twoDimShape = dynamic_cast<AnnotationOneCoordinateShape*>(m_annotation);
     
     if (oneDimShape != NULL) {
         setCoordinate(oneDimShape->getEndCoordinate(),

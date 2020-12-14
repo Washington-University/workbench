@@ -35,10 +35,10 @@
 #include "AnnotationCoordinateInformation.h"
 #include "AnnotationImage.h"
 #include "AnnotationManager.h"
-#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationRedoUndoCommand.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
@@ -537,8 +537,8 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
 
     CaretPointer<Annotation> redoAnnotation(annotation->clone());
     
-    AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(redoAnnotation.getPointer());
-    AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(redoAnnotation.getPointer());
+    AnnotationTwoCoordinateShape* oneDimShape = dynamic_cast<AnnotationTwoCoordinateShape*>(redoAnnotation.getPointer());
+    AnnotationOneCoordinateShape* twoDimShape = dynamic_cast<AnnotationOneCoordinateShape*>(redoAnnotation.getPointer());
 
     
     AnnotationCoordinate* coordinate = NULL;
@@ -813,8 +813,8 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
         return false;
     }
     
-    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
-    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+    AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
+    AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(annotation);
     
     bool validCoordsFlag = false;
     

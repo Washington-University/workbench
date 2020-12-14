@@ -32,7 +32,7 @@ namespace caret {
     class AnnotationCoordinateInformation;
     class AnnotationCoordinateSelectionWidget;
     class AnnotationFile;
-    class AnnotationOneDimensionalShape;
+    class AnnotationTwoCoordinateShape;
     class MouseEvent;
     
     class AnnotationPasteDialog : public WuQDialogModal {
@@ -62,7 +62,7 @@ namespace caret {
 
         AnnotationPasteDialog& operator=(const AnnotationPasteDialog&);
         
-        static bool pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
+        static bool pasteOneDimensionalShape(AnnotationTwoCoordinateShape* oneDimShape,
                                              AnnotationCoordinateInformation& coordInfo);
         
         virtual void okButtonClicked();

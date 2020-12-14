@@ -159,7 +159,7 @@ MapSettingsColorBarWidget::updateContentPrivate()
         std::vector<Annotation*> annotationVector;
         annotationVector.push_back(m_colorBar);
         
-        std::vector<AnnotationTwoDimensionalShape*> annotationTwoDimVector;
+        std::vector<AnnotationOneCoordinateShape*> annotationTwoDimVector;
         annotationTwoDimVector.push_back(m_colorBar);
 
         m_paletteOptionsWidget->updateEditor(m_caretMappableDataFile,

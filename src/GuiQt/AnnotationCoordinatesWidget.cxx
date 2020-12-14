@@ -39,10 +39,10 @@
 #include "AnnotationColorBar.h"
 #include "AnnotationManager.h"
 #include "AnnotationCoordinate.h"
-#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationScaleBar.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
@@ -245,8 +245,8 @@ AnnotationCoordinatesWidget::getCoordinate(const int32_t coordinateIndex)
     
     
     if (m_annotation != NULL) {
-        AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
-        AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
+        AnnotationTwoCoordinateShape* oneDimShape = dynamic_cast<AnnotationTwoCoordinateShape*>(m_annotation);
+        AnnotationOneCoordinateShape* twoDimShape = dynamic_cast<AnnotationOneCoordinateShape*>(m_annotation);
         
         switch (coordinateIndex) {
             case 0:

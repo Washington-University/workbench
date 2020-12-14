@@ -46,7 +46,7 @@ using namespace caret;
  *    Type for attribute defaults
  */
 AnnotationImage::AnnotationImage(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::IMAGE,
+: AnnotationOneCoordinateShape(AnnotationTypeEnum::IMAGE,
                                 attributeDefaultType)
 {
     initializeMembersAnnotationImage();
@@ -67,7 +67,7 @@ AnnotationImage::~AnnotationImage()
  *    Object that is copied.
  */
 AnnotationImage::AnnotationImage(const AnnotationImage& obj)
-: AnnotationTwoDimensionalShape(obj)
+: AnnotationOneCoordinateShape(obj)
 {
     initializeMembersAnnotationImage();
     this->copyHelperAnnotationImage(obj);
@@ -84,7 +84,7 @@ AnnotationImage&
 AnnotationImage::operator=(const AnnotationImage& obj)
 {
     if (this != &obj) {
-        AnnotationTwoDimensionalShape::operator=(obj);
+        AnnotationOneCoordinateShape::operator=(obj);
         this->copyHelperAnnotationImage(obj);
     }
     return *this;
@@ -295,7 +295,7 @@ void
 AnnotationImage::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::saveSubClassDataToScene(sceneAttributes,
+    AnnotationOneCoordinateShape::saveSubClassDataToScene(sceneAttributes,
                                                            sceneClass);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -317,7 +317,7 @@ void
 AnnotationImage::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(sceneAttributes,
+    AnnotationOneCoordinateShape::restoreSubClassDataFromScene(sceneAttributes,
                                                                 sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

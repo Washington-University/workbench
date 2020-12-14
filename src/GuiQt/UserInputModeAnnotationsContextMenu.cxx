@@ -31,7 +31,7 @@
 #include "AnnotationCreateDialog.h"
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
-#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationText.h"
 #include "AnnotationTextEditorDialog.h"

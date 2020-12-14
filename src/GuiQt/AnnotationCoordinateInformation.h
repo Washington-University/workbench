@@ -31,8 +31,8 @@ class QLabel;
 namespace caret {
 
     class Annotation;
-    class AnnotationOneDimensionalShape;
-    class AnnotationTwoDimensionalShape;
+    class AnnotationTwoCoordinateShape;
+    class AnnotationOneCoordinateShape;
     class BrainOpenGLWidget;
     class BrainOpenGLViewportContent;
     class MouseEvent;
@@ -131,12 +131,12 @@ namespace caret {
 
         AnnotationCoordinateInformation& operator=(const AnnotationCoordinateInformation&);
         
-        static bool setOneDimAnnotationCoordinatesForSpace(AnnotationOneDimensionalShape* annotation,
+        static bool setOneDimAnnotationCoordinatesForSpace(AnnotationTwoCoordinateShape* annotation,
                                                            const AnnotationCoordinateSpaceEnum::Enum space,
                                                            const AnnotationCoordinateInformation* coordInfoOne,
                                                            const AnnotationCoordinateInformation* coordInfoTwo);
         
-        static bool setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDimensionalShape* annotation,
+        static bool setTwoDimAnnotationCoordinatesForSpace(AnnotationOneCoordinateShape* annotation,
                                                            const AnnotationCoordinateSpaceEnum::Enum space,
                                                            const AnnotationCoordinateInformation* coordInfoOne,
                                                            const AnnotationCoordinateInformation* coordInfoTwo);

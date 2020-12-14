@@ -47,7 +47,7 @@ using namespace caret;
  *    Type for attribute defaults
  */
 AnnotationColorBar::AnnotationColorBar(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::COLOR_BAR,
+: AnnotationOneCoordinateShape(AnnotationTypeEnum::COLOR_BAR,
                                 attributeDefaultType),
 AnnotationFontAttributesInterface()
 {
@@ -89,7 +89,7 @@ AnnotationColorBar::~AnnotationColorBar()
  *    Object that is copied.
  */
 AnnotationColorBar::AnnotationColorBar(const AnnotationColorBar& obj)
-: AnnotationTwoDimensionalShape(obj),
+: AnnotationOneCoordinateShape(obj),
 AnnotationFontAttributesInterface()
 {
     this->copyHelperAnnotationColorBar(obj);
@@ -106,7 +106,7 @@ AnnotationColorBar&
 AnnotationColorBar::operator=(const AnnotationColorBar& obj)
 {
     if (this != &obj) {
-        AnnotationTwoDimensionalShape::operator=(obj);
+        AnnotationOneCoordinateShape::operator=(obj);
         this->copyHelperAnnotationColorBar(obj);
     }
     return *this;    
@@ -537,7 +537,7 @@ void
 AnnotationColorBar::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::saveSubClassDataToScene(sceneAttributes,
+    AnnotationOneCoordinateShape::saveSubClassDataToScene(sceneAttributes,
                                                            sceneClass);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -559,7 +559,7 @@ void
 AnnotationColorBar::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(sceneAttributes,
+    AnnotationOneCoordinateShape::restoreSubClassDataFromScene(sceneAttributes,
                                                                 sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

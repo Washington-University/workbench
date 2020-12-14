@@ -42,7 +42,6 @@ AnnotationGroupTypeEnum.h
 AnnotationGroupingModeEnum.h
 AnnotationImage.h
 AnnotationLine.h
-AnnotationOneDimensionalShape.h
 AnnotationOval.h
 AnnotationPercentSizeText.h
 AnnotationPointSizeText.h
@@ -65,7 +64,8 @@ AnnotationTextFontNameEnum.h
 AnnotationTextFontPointSizeEnum.h
 AnnotationTextFontSizeTypeEnum.h
 AnnotationTextOrientationEnum.h
-AnnotationTwoDimensionalShape.h
+AnnotationOneCoordinateShape.h
+AnnotationTwoCoordinateShape.h
 AnnotationTypeEnum.h
 EventAnnotationAddToRemoveFromFile.h
 EventAnnotationChartLabelGet.h
@@ -94,7 +94,6 @@ AnnotationGroupTypeEnum.cxx
 AnnotationGroupingModeEnum.cxx
 AnnotationImage.cxx
 AnnotationLine.cxx
-AnnotationOneDimensionalShape.cxx
 AnnotationOval.cxx
 AnnotationPercentSizeText.cxx
 AnnotationPointSizeText.cxx
@@ -117,7 +116,8 @@ AnnotationTextFontNameEnum.cxx
 AnnotationTextFontPointSizeEnum.cxx
 AnnotationTextFontSizeTypeEnum.cxx
 AnnotationTextOrientationEnum.cxx
-AnnotationTwoDimensionalShape.cxx
+AnnotationOneCoordinateShape.cxx
+AnnotationTwoCoordinateShape.cxx
 AnnotationTypeEnum.cxx
 EventAnnotationAddToRemoveFromFile.cxx
 EventAnnotationChartLabelGet.cxx

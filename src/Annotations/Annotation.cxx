@@ -765,7 +765,7 @@ Annotation::isInSameCoordinateSpace(const Annotation* annotation) const
         {
             StructureEnum::Enum myStructure = StructureEnum::INVALID;
             int32_t myNumberOfVertices(-1);
-            const AnnotationOneDimensionalShape* oneDimAnn = castToOneDimensionalShape();
+            const AnnotationTwoCoordinateShape* oneDimAnn = castToTwoCoordinateShape();
             if (oneDimAnn != NULL) {
                 int32_t vertexIndex(-1);
                 oneDimAnn->getStartCoordinate()->getSurfaceSpace(myStructure,
@@ -773,7 +773,7 @@ Annotation::isInSameCoordinateSpace(const Annotation* annotation) const
                                                                  vertexIndex);
             }
             else {
-                const AnnotationTwoDimensionalShape* twoDimAnn = castToTwoDimensionalShape();
+                const AnnotationOneCoordinateShape* twoDimAnn = castToOneCoordinateShape();
                 if (twoDimAnn != NULL) {
                     int32_t vertexIndex(-1);
                     twoDimAnn->getCoordinate()->getSurfaceSpace(myStructure,
@@ -784,7 +784,7 @@ Annotation::isInSameCoordinateSpace(const Annotation* annotation) const
             
             StructureEnum::Enum otherStructure = StructureEnum::INVALID;
             int32_t otherSurfaceNumberOfVertices(-1);
-            const AnnotationOneDimensionalShape* otherOneDimAnn = annotation->castToOneDimensionalShape();
+            const AnnotationTwoCoordinateShape* otherOneDimAnn = annotation->castToTwoCoordinateShape();
             if (otherOneDimAnn != NULL) {
                 int32_t vertexIndex(-1);
                 otherOneDimAnn->getStartCoordinate()->getSurfaceSpace(otherStructure,
@@ -792,7 +792,7 @@ Annotation::isInSameCoordinateSpace(const Annotation* annotation) const
                                                                  vertexIndex);
             }
             else {
-                const AnnotationTwoDimensionalShape* otherTwoDimAnn = annotation->castToTwoDimensionalShape();
+                const AnnotationOneCoordinateShape* otherTwoDimAnn = annotation->castToOneCoordinateShape();
                 if (otherTwoDimAnn != NULL) {
                     int32_t vertexIndex(-1);
                     otherTwoDimAnn->getCoordinate()->getSurfaceSpace(otherStructure,
@@ -874,13 +874,13 @@ Annotation::changeSurfaceSpaceToTangentOffset()
 {
     std::vector<AnnotationCoordinate*> coords;
     if (getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
-        AnnotationOneDimensionalShape* oneDimAnn = castToOneDimensionalShape();
+        AnnotationTwoCoordinateShape* oneDimAnn = castToTwoCoordinateShape();
         if (oneDimAnn != NULL) {
             coords.push_back(oneDimAnn->getStartCoordinate());
             coords.push_back(oneDimAnn->getEndCoordinate());
         }
         else {
-            AnnotationTwoDimensionalShape* twoDimAnn = castToTwoDimensionalShape();
+            AnnotationOneCoordinateShape* twoDimAnn = castToOneCoordinateShape();
             if (twoDimAnn != NULL) {
                 coords.push_back(twoDimAnn->getCoordinate());
             }
@@ -928,7 +928,7 @@ Annotation::getSurfaceSpaceWithTangentOffsetRotation(const StructureEnum::Enum s
 {
     float angleOut(0.0);
     
-    const AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<const AnnotationTwoDimensionalShape*>(this);
+    const AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<const AnnotationOneCoordinateShape*>(this);
     if (twoDimAnn != NULL) {
         if (isInSurfaceSpaceWithTangentOffset()) {
             enum class OrientationType {
@@ -1067,7 +1067,7 @@ Annotation::initializeSurfaceSpaceWithTangentOffsetRotation(const StructureEnum:
     return;
     
     
-    AnnotationTwoDimensionalShape* twoDimAnn = castToTwoDimensionalShape();
+    AnnotationOneCoordinateShape* twoDimAnn = castToOneCoordinateShape();
     if (twoDimAnn != NULL) {
         if (isInSurfaceSpaceWithTangentOffset()) {
             const float angle = getSurfaceSpaceWithTangentOffsetRotation(structure,
@@ -2796,7 +2796,7 @@ Annotation::matchPixelPositionAndSizeInNewViewport(const int32_t oldViewport[4],
         return;
     }
     
-    AnnotationOneDimensionalShape* oneDimAnn = castToOneDimensionalShape();
+    AnnotationTwoCoordinateShape* oneDimAnn = castToTwoCoordinateShape();
     if (oneDimAnn != NULL) {
         const AnnotationCoordinate* coordOne = oneDimAnn->getStartCoordinate();
         CaretAssert(coordOne);
@@ -2809,7 +2809,7 @@ Annotation::matchPixelPositionAndSizeInNewViewport(const int32_t oldViewport[4],
         CaretLogWarning("Matching size not supported for one-dimensional annotations");
     }
     else {
-        AnnotationTwoDimensionalShape* twoDimAnn = castToTwoDimensionalShape();
+        AnnotationOneCoordinateShape* twoDimAnn = castToOneCoordinateShape();
         if (twoDimAnn) {
             if (twoDimAnn->isFixedAspectRatio()) {
                 CaretLogWarning("Matching size not supported for fixed aspect ratio two-dimensional annotations");

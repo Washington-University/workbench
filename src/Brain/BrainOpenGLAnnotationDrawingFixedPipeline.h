@@ -45,11 +45,11 @@ namespace caret {
     class AnnotationFile;
     class AnnotationImage;
     class AnnotationLine;
-    class AnnotationOneDimensionalShape;
+    class AnnotationTwoCoordinateShape;
     class AnnotationOval;
     class AnnotationScaleBar;
     class AnnotationText;
-    class AnnotationTwoDimensionalShape;
+    class AnnotationOneCoordinateShape;
     class Brain;
     class BrainOpenGLFixedPipeline;
     class EventOpenGLObjectToWindowTransform;
@@ -185,7 +185,7 @@ namespace caret {
                                                  const Surface* surfaceDisplayed,
                                                  float xyzOut[3]) const;
         
-        bool getAnnotationTwoDimShapeBounds(const AnnotationTwoDimensionalShape* annotation2D,
+        bool getAnnotationTwoDimShapeBounds(const AnnotationOneCoordinateShape* annotation2D,
                                  const float windowXYZ[3],
                                  float bottomLeftOut[3],
                                  float bottomRightOut[3],
@@ -204,11 +204,11 @@ namespace caret {
                             const Surface* surfaceDisplayed);
         
         bool drawTwoDimAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
-                                                      AnnotationTwoDimensionalShape* annotation,
+                                                      AnnotationOneCoordinateShape* annotation,
                                                       const Surface* surfaceDisplayed);
         
         bool drawOneDimAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
-                                                      AnnotationOneDimensionalShape* annotation,
+                                                      AnnotationTwoCoordinateShape* annotation,
                                                       const Surface* surfaceDisplayed);
         
         void drawColorBar(AnnotationFile* annotationFile,

@@ -22,13 +22,13 @@
 /*LICENSE_END*/
 
 
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "CaretPointer.h"
 
 
 namespace caret {
 
-    class AnnotationBox : public AnnotationTwoDimensionalShape {
+    class AnnotationBox : public AnnotationOneCoordinateShape {
         
     public:
         AnnotationBox(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);

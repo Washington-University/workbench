@@ -50,7 +50,7 @@ using namespace caret;
  *    Type for attribute defaults
  */
 AnnotationScaleBar::AnnotationScaleBar(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::SCALE_BAR,
+: AnnotationOneCoordinateShape(AnnotationTypeEnum::SCALE_BAR,
                                 attributeDefaultType),
 AnnotationFontAttributesInterface()
 {
@@ -103,7 +103,7 @@ AnnotationScaleBar::~AnnotationScaleBar()
  *    Object that is copied.
  */
 AnnotationScaleBar::AnnotationScaleBar(const AnnotationScaleBar& obj)
-: AnnotationTwoDimensionalShape(obj),
+: AnnotationOneCoordinateShape(obj),
 AnnotationFontAttributesInterface()
 {
     initializeScaleBarInstance();
@@ -122,7 +122,7 @@ AnnotationScaleBar&
 AnnotationScaleBar::operator=(const AnnotationScaleBar& obj)
 {
     if (this != &obj) {
-        AnnotationTwoDimensionalShape::operator=(obj);
+        AnnotationOneCoordinateShape::operator=(obj);
         this->copyHelperAnnotationScaleBar(obj);
     }
     return *this;    
@@ -765,7 +765,7 @@ void
 AnnotationScaleBar::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::saveSubClassDataToScene(sceneAttributes,
+    AnnotationOneCoordinateShape::saveSubClassDataToScene(sceneAttributes,
                                                            sceneClass);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -787,7 +787,7 @@ void
 AnnotationScaleBar::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(sceneAttributes,
+    AnnotationOneCoordinateShape::restoreSubClassDataFromScene(sceneAttributes,
                                                                 sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

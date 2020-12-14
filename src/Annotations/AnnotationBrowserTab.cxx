@@ -49,7 +49,7 @@ using namespace caret;
  *    Type for attribute defaults
  */
 AnnotationBrowserTab::AnnotationBrowserTab(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::BROWSER_TAB,
+: AnnotationOneCoordinateShape(AnnotationTypeEnum::BROWSER_TAB,
                                 attributeDefaultType)
 {
     initializeMembersAnnotationBrowserTab();
@@ -68,7 +68,7 @@ AnnotationBrowserTab::~AnnotationBrowserTab()
  *    Object that is copied.
  */
 AnnotationBrowserTab::AnnotationBrowserTab(const AnnotationBrowserTab& obj)
-: AnnotationTwoDimensionalShape(obj)
+: AnnotationOneCoordinateShape(obj)
 {
     this->initializeMembersAnnotationBrowserTab();
     this->copyHelperAnnotationBrowserTab(obj);
@@ -85,7 +85,7 @@ AnnotationBrowserTab&
 AnnotationBrowserTab::operator=(const AnnotationBrowserTab& obj)
 {
     if (this != &obj) {
-        AnnotationTwoDimensionalShape::operator=(obj);
+        AnnotationOneCoordinateShape::operator=(obj);
         this->copyHelperAnnotationBrowserTab(obj);
     }
     return *this;
@@ -133,7 +133,7 @@ void
 AnnotationBrowserTab::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::saveSubClassDataToScene(sceneAttributes,
+    AnnotationOneCoordinateShape::saveSubClassDataToScene(sceneAttributes,
                                                            sceneClass);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -155,7 +155,7 @@ void
 AnnotationBrowserTab::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(sceneAttributes,
+    AnnotationOneCoordinateShape::restoreSubClassDataFromScene(sceneAttributes,
                                                                 sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

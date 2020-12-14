@@ -45,7 +45,7 @@
 #include "AnnotationLineArrowTipsWidget.h"
 #include "AnnotationManager.h"
 #include "AnnotationNameWidget.h"
-#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoWidget.h"
 #include "AnnotationRotationWidget.h"
 #include "AnnotationText.h"
@@ -403,8 +403,8 @@ UserInputModeAnnotationsWidget::updateWidget()
     std::vector<AnnotationLine*> lineAnnotations;
     std::vector<AnnotationText*> textAnnotations;
     std::vector<AnnotationFontAttributesInterface*> fontStyleAnnotations;
-    std::vector<AnnotationTwoDimensionalShape*> twoDimAnnotations;
-    std::vector<AnnotationOneDimensionalShape*> oneDimAnnotations;
+    std::vector<AnnotationOneCoordinateShape*> twoDimAnnotations;
+    std::vector<AnnotationTwoCoordinateShape*> oneDimAnnotations;
     
     for (std::vector<Annotation*>::iterator iter = selectedAnnotations.begin();
          iter != selectedAnnotations.end();
@@ -429,12 +429,12 @@ UserInputModeAnnotationsWidget::updateWidget()
             fontStyleAnnotations.push_back(annFontStyle);
         }
         
-        AnnotationOneDimensionalShape* annOne = dynamic_cast<AnnotationOneDimensionalShape*>(ann);
+        AnnotationTwoCoordinateShape* annOne = dynamic_cast<AnnotationTwoCoordinateShape*>(ann);
         if (annOne != NULL) {
             oneDimAnnotations.push_back(annOne);
         }
         
-        AnnotationTwoDimensionalShape* annTwo= dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
+        AnnotationOneCoordinateShape* annTwo= dynamic_cast<AnnotationOneCoordinateShape*>(ann);
         if (annTwo != NULL) {
             twoDimAnnotations.push_back(annTwo);
         }

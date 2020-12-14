@@ -503,7 +503,7 @@ AnnotationFileXmlWriter::getAnnotationPropertiesAsAttributes(const Annotation* a
  *    XML attributes to which properties are appended.
  */
 void
-AnnotationFileXmlWriter::getTwoDimAnnotationPropertiesAsAttributes(const AnnotationTwoDimensionalShape* shape,
+AnnotationFileXmlWriter::getTwoDimAnnotationPropertiesAsAttributes(const AnnotationOneCoordinateShape* shape,
                                                QXmlStreamAttributes& attributes)
 {
     CaretAssert(shape);
@@ -530,7 +530,7 @@ AnnotationFileXmlWriter::getTwoDimAnnotationPropertiesAsAttributes(const Annotat
  *     The XML element for the annotation.
  */
 void
-AnnotationFileXmlWriter::writeTwoDimensionalAnnotation(const AnnotationTwoDimensionalShape* shape,
+AnnotationFileXmlWriter::writeTwoDimensionalAnnotation(const AnnotationOneCoordinateShape* shape,
                                                        const QString& annotationXmlElement)
 {
     CaretAssert(shape);
@@ -559,7 +559,7 @@ AnnotationFileXmlWriter::writeTwoDimensionalAnnotation(const AnnotationTwoDimens
  *     The XML element for the annotation.
  */
 void
-AnnotationFileXmlWriter::writeOneDimensionalAnnotation(const AnnotationOneDimensionalShape* shape,
+AnnotationFileXmlWriter::writeOneDimensionalAnnotation(const AnnotationTwoCoordinateShape* shape,
                                                        const QString& annotationXmlElement)
 {
     CaretAssert(shape);

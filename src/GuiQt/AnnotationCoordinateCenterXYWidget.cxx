@@ -35,9 +35,9 @@
 #include "AnnotationColorBar.h"
 #include "AnnotationManager.h"
 #include "AnnotationCoordinate.h"
-#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoCommand.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
@@ -175,8 +175,8 @@ AnnotationCoordinateCenterXYWidget::updateContent(std::vector<Annotation*>& sele
     
     if (! m_annotations.empty()) {
         for (auto ann : m_annotations) {
-            AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(ann);
-            AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
+            AnnotationTwoCoordinateShape* oneDimShape = dynamic_cast<AnnotationTwoCoordinateShape*>(ann);
+            AnnotationOneCoordinateShape* twoDimShape = dynamic_cast<AnnotationOneCoordinateShape*>(ann);
             
             AnnotationCoordinate* ac(NULL);
             switch (m_whichCoordinate) {
@@ -466,8 +466,8 @@ AnnotationCoordinateCenterXYWidget::processValueChanged(QDoubleSpinBox* spinBox,
 {
     if (! m_annotations.empty()) {
         for (auto ann : m_annotations) {
-            AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(ann);
-            AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(ann);
+            AnnotationTwoCoordinateShape* oneDimShape = dynamic_cast<AnnotationTwoCoordinateShape*>(ann);
+            AnnotationOneCoordinateShape* twoDimShape = dynamic_cast<AnnotationOneCoordinateShape*>(ann);
             
             AnnotationCoordinate* ac(NULL);
             switch (m_whichCoordinate) {

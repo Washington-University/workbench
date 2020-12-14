@@ -31,7 +31,7 @@
 #include "AnnotationArrangerInputs.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationManager.h"
-#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationText.h"
 #include "BrainOpenGLTextRenderInterface.h"
@@ -649,8 +649,8 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
                 break;
         }
         
-        const AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<const AnnotationOneDimensionalShape*>(annotation);
-        const AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<const AnnotationTwoDimensionalShape*>(annotation);
+        const AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<const AnnotationTwoCoordinateShape*>(annotation);
+        const AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<const AnnotationOneCoordinateShape*>(annotation);
         
         float viewportPixelOneXYZ[3] = { 0.0, 0.0, 0.0 };
         float viewportPixelTwoXYZ[3] = { 0.0, 0.0, 0.0 };
@@ -1044,8 +1044,8 @@ AnnotationArrangerExecutor::AnnotationInfo::moveAnnotationByXY(Annotation* annot
                                                                const float dy) const
 {
     CaretAssert(m_annotation);
-    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
-    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+    AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
+    AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(annotation);
     
     const float newPixelOneX = m_viewportPixelOneXY[0] + dx;
     const float relativeOneX = (newPixelOneX / m_viewport[2]) * 100.0;

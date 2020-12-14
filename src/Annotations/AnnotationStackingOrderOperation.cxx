@@ -28,9 +28,9 @@
 
 #include "Annotation.h"
 #include "AnnotationCoordinate.h"
-#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationText.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "CaretAssert.h"
 
 using namespace caret;
@@ -241,8 +241,8 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
                 switch (m_mode) {
                     case Mode::MODE_APPLY_NEW_ORDER_TO_ANNOTAIONS:
                     {
-                        AnnotationOneDimensionalShape* oneDim = ann->castToOneDimensionalShape();
-                        AnnotationTwoDimensionalShape* twoDim = ann->castToTwoDimensionalShape();
+                        AnnotationTwoCoordinateShape* oneDim = ann->castToTwoCoordinateShape();
+                        AnnotationOneCoordinateShape* twoDim = ann->castToOneCoordinateShape();
                         if (oneDim != NULL) {
                             setCoordinateZ(oneDim->getStartCoordinate(), orderValue);
                             setCoordinateZ(oneDim->getEndCoordinate(), orderValue);
@@ -376,8 +376,8 @@ AnnotationStackingOrderOperation::preOrderAnnotations(std::vector<OrderInfo>& an
             case AnnotationTypeEnum::OVAL:
             case AnnotationTypeEnum::TEXT:
             {
-                const AnnotationOneDimensionalShape* oneDim = ann->castToOneDimensionalShape();
-                const AnnotationTwoDimensionalShape* twoDim = ann->castToTwoDimensionalShape();
+                const AnnotationTwoCoordinateShape* oneDim = ann->castToTwoCoordinateShape();
+                const AnnotationOneCoordinateShape* twoDim = ann->castToOneCoordinateShape();
                 float xyz[3] { 0.0, 0.0, 0.0 };
                 if (oneDim != NULL) {
                     oneDim->getStartCoordinate()->getXYZ(xyz);

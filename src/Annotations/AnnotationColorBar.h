@@ -24,14 +24,14 @@
 #include "AnnotationColorBarPositionModeEnum.h"
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationTextAlignHorizontalEnum.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 
 namespace caret {
 
     class AnnotationColorBarSection;
     class AnnotationColorBarNumericText;
     
-    class AnnotationColorBar : public AnnotationTwoDimensionalShape, public AnnotationFontAttributesInterface {
+    class AnnotationColorBar : public AnnotationOneCoordinateShape, public AnnotationFontAttributesInterface {
         
     public:
         AnnotationColorBar(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);

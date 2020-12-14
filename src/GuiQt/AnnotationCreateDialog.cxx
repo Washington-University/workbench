@@ -392,7 +392,7 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
     if (validFlag) {
         if ((newAnnotationInfo.m_percentageWidth > 0)
             && (newAnnotationInfo.m_percentageHeight > 0)) {
-            AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(newAnnotation);
+            AnnotationOneCoordinateShape* twoDimShape = dynamic_cast<AnnotationOneCoordinateShape*>(newAnnotation);
             if (twoDimShape != NULL) {
                 twoDimShape->setWidth(newAnnotationInfo.m_percentageWidth);
                 twoDimShape->setHeight(newAnnotationInfo.m_percentageHeight);

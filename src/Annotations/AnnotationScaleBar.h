@@ -29,13 +29,13 @@
 #include "AnnotationScaleBarUnitsTypeEnum.h"
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationTextAlignHorizontalEnum.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 
 namespace caret {
 
     class AnnotationPercentSizeText;
     
-    class AnnotationScaleBar : public AnnotationTwoDimensionalShape, public AnnotationFontAttributesInterface {
+    class AnnotationScaleBar : public AnnotationOneCoordinateShape, public AnnotationFontAttributesInterface {
         
     public:
         /**

@@ -44,7 +44,7 @@ using namespace caret;
  *    Type for attribute defaults
  */
 AnnotationLine::AnnotationLine(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
-: AnnotationOneDimensionalShape(AnnotationTypeEnum::LINE,
+: AnnotationTwoCoordinateShape(AnnotationTypeEnum::LINE,
                                 attributeDefaultType)
 {
     initializeMembersAnnotationLine();
@@ -63,7 +63,7 @@ AnnotationLine::~AnnotationLine()
  *    Object that is copied.
  */
 AnnotationLine::AnnotationLine(const AnnotationLine& obj)
-: AnnotationOneDimensionalShape(obj)
+: AnnotationTwoCoordinateShape(obj)
 {
     this->initializeMembersAnnotationLine();
     this->copyHelperAnnotationLine(obj);
@@ -80,7 +80,7 @@ AnnotationLine&
 AnnotationLine::operator=(const AnnotationLine& obj)
 {
     if (this != &obj) {
-        AnnotationOneDimensionalShape::operator=(obj);
+        AnnotationTwoCoordinateShape::operator=(obj);
         this->copyHelperAnnotationLine(obj);
     }
     return *this;
@@ -179,7 +179,7 @@ void
 AnnotationLine::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
-    AnnotationOneDimensionalShape::saveSubClassDataToScene(sceneAttributes,
+    AnnotationTwoCoordinateShape::saveSubClassDataToScene(sceneAttributes,
                                                            sceneClass);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -201,7 +201,7 @@ void
 AnnotationLine::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
-    AnnotationOneDimensionalShape::restoreSubClassDataFromScene(sceneAttributes,
+    AnnotationTwoCoordinateShape::restoreSubClassDataFromScene(sceneAttributes,
                                                   sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

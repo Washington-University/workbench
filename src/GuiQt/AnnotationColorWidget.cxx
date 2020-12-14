@@ -32,8 +32,8 @@
 #include <QVBoxLayout>
 
 #include "AnnotationManager.h"
-#include "AnnotationOneDimensionalShape.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "BrainOpenGL.h"

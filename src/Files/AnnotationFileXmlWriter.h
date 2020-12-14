@@ -37,10 +37,10 @@ namespace caret {
     class AnnotationGroup;
     class AnnotationImage;
     class AnnotationLine;
-    class AnnotationOneDimensionalShape;
+    class AnnotationTwoCoordinateShape;
     class AnnotationOval;
     class AnnotationText;
-    class AnnotationTwoDimensionalShape;
+    class AnnotationOneCoordinateShape;
     class XmlStreamWriterHelper;
 
     class AnnotationFileXmlWriter : public AnnotationFileXmlFormatBase {
@@ -70,7 +70,7 @@ namespace caret {
         void getAnnotationPropertiesAsAttributes(const Annotation* annotation,
                                                  QXmlStreamAttributes& attributes);
         
-        void getTwoDimAnnotationPropertiesAsAttributes(const AnnotationTwoDimensionalShape* shape,
+        void getTwoDimAnnotationPropertiesAsAttributes(const AnnotationOneCoordinateShape* shape,
                                                  QXmlStreamAttributes& attributes);
         
         void writeFileContentToXmlStreamWriter(const AnnotationFile* annotationFile,
@@ -87,10 +87,10 @@ namespace caret {
         
         void writeLine(const AnnotationLine* line);
         
-        void writeOneDimensionalAnnotation(const AnnotationOneDimensionalShape* shape,
+        void writeOneDimensionalAnnotation(const AnnotationTwoCoordinateShape* shape,
                                            const QString& annotationXmlElement);
         
-        void writeTwoDimensionalAnnotation(const AnnotationTwoDimensionalShape* shape,
+        void writeTwoDimensionalAnnotation(const AnnotationOneCoordinateShape* shape,
                                            const QString& annotationXmlElement);
         
         void writeOval(const AnnotationOval* oval);

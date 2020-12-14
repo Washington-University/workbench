@@ -44,7 +44,7 @@ using namespace caret;
  *    Type for attribute defaults
  */
 AnnotationBox::AnnotationBox(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
-: AnnotationTwoDimensionalShape(AnnotationTypeEnum::BOX,
+: AnnotationOneCoordinateShape(AnnotationTypeEnum::BOX,
                                 attributeDefaultType)
 {
     initializeMembersAnnotationBox();
@@ -63,7 +63,7 @@ AnnotationBox::~AnnotationBox()
  *    Object that is copied.
  */
 AnnotationBox::AnnotationBox(const AnnotationBox& obj)
-: AnnotationTwoDimensionalShape(obj)
+: AnnotationOneCoordinateShape(obj)
 {
     this->initializeMembersAnnotationBox();
     this->copyHelperAnnotationBox(obj);
@@ -80,7 +80,7 @@ AnnotationBox&
 AnnotationBox::operator=(const AnnotationBox& obj)
 {
     if (this != &obj) {
-        AnnotationTwoDimensionalShape::operator=(obj);
+        AnnotationOneCoordinateShape::operator=(obj);
         this->copyHelperAnnotationBox(obj);
     }
     return *this;
@@ -126,7 +126,7 @@ void
 AnnotationBox::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::saveSubClassDataToScene(sceneAttributes,
+    AnnotationOneCoordinateShape::saveSubClassDataToScene(sceneAttributes,
                                                            sceneClass);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -148,7 +148,7 @@ void
 AnnotationBox::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
-    AnnotationTwoDimensionalShape::restoreSubClassDataFromScene(sceneAttributes,
+    AnnotationOneCoordinateShape::restoreSubClassDataFromScene(sceneAttributes,
                                                                 sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);

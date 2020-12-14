@@ -36,8 +36,8 @@ namespace caret {
     class AnnotationCoordinate;
     class AnnotationCoordinateInformation;
     class AnnotationFile;
-    class AnnotationOneDimensionalShape;
-    class AnnotationTwoDimensionalShape;
+    class AnnotationTwoCoordinateShape;
+    class AnnotationOneCoordinateShape;
     class KeyEvent;
     class MouseEvent;
     class SelectionItemAnnotation;
@@ -222,7 +222,7 @@ namespace caret {
         
         void pasteAnnotationFromAnnotationClipboardAndChangeSpace(const MouseEvent& mouseEvent);
         
-//        bool pasteOneDimensionalShape(AnnotationOneDimensionalShape* oneDimShape,
+//        bool pasteOneDimensionalShape(AnnotationTwoCoordinateShape* oneDimShape,
 //                                      AnnotationCoordinateInformation& coordInfo);
         
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;

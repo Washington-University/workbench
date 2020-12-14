@@ -28,12 +28,12 @@
 #include "AnnotationTextFontSizeTypeEnum.h"
 #include "AnnotationTextConnectTypeEnum.h"
 #include "AnnotationTextOrientationEnum.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "CaretPointer.h"
 
 namespace caret {
 
-    class AnnotationText : public AnnotationTwoDimensionalShape, public AnnotationFontAttributesInterface {
+    class AnnotationText : public AnnotationOneCoordinateShape, public AnnotationFontAttributesInterface {
         
     public:
         /**

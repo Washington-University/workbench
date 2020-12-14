@@ -31,7 +31,7 @@
 #include "AnnotationBox.h"
 #include "AnnotationManager.h"
 #include "AnnotationRedoUndoCommand.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -142,7 +142,7 @@ AnnotationWidthHeightWidget::~AnnotationWidthHeightWidget()
  *    Two dimensional annotation.
  */
 void
-AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotations2D)
+AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationOneCoordinateShape*>& annotations2D)
 {
     m_annotations2D.clear();
     for (auto a2d : annotations2D) {
@@ -240,8 +240,8 @@ AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalS
 
             switch (m_parentWidgetType) {
                 case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-                    AnnotationTwoDimensionalShape::setUserDefaultWidth(widthValue);
-                    AnnotationTwoDimensionalShape::setUserDefaultHeight(heightValue);
+                    AnnotationOneCoordinateShape::setUserDefaultWidth(widthValue);
+                    AnnotationOneCoordinateShape::setUserDefaultHeight(heightValue);
                     break;
                 case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
                     CaretAssert(0);
@@ -287,7 +287,7 @@ AnnotationWidthHeightWidget::heightValueChanged(double value)
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
             
-            AnnotationTwoDimensionalShape::setUserDefaultHeight(value);
+            AnnotationOneCoordinateShape::setUserDefaultHeight(value);
             break;
         case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
             CaretAssert(0);
@@ -325,7 +325,7 @@ AnnotationWidthHeightWidget::widthValueChanged(double value)
     
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-            AnnotationTwoDimensionalShape::setUserDefaultWidth(value);
+            AnnotationOneCoordinateShape::setUserDefaultWidth(value);
             break;
         case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
             CaretAssert(0);

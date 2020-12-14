@@ -23,13 +23,13 @@
 
 #include <memory>
 
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 
 namespace caret {
 
     class GraphicsPrimitiveV3fT3f;
     
-    class AnnotationImage : public AnnotationTwoDimensionalShape {
+    class AnnotationImage : public AnnotationOneCoordinateShape {
         
     public:
         AnnotationImage(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);

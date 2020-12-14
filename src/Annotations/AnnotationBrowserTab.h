@@ -23,7 +23,7 @@
 
 #include <array>
 
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "CaretPointer.h"
 #include "TileTabsLayoutBackgroundTypeEnum.h"
 
@@ -32,7 +32,7 @@ namespace caret {
     class BrowserTabContent;
     class TileTabsBrowserTabGeometry;
     
-    class AnnotationBrowserTab : public AnnotationTwoDimensionalShape {
+    class AnnotationBrowserTab : public AnnotationOneCoordinateShape {
         
     public:
         AnnotationBrowserTab(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);

@@ -36,8 +36,8 @@ namespace caret {
     class Annotation;
     class AnnotationCoordinate;
     class AnnotationImage;
-    class AnnotationOneDimensionalShape;
-    class AnnotationTwoDimensionalShape;
+    class AnnotationTwoCoordinateShape;
+    class AnnotationOneCoordinateShape;
     
     class AnnotationCoordinateSelectionWidget : public QWidget {
         
@@ -74,9 +74,9 @@ namespace caret {
         
         QRadioButton* createRadioButtonForSpace(const AnnotationCoordinateSpaceEnum::Enum space);
 
-//        void setOneDimAnnotationCoordinates(AnnotationOneDimensionalShape* annotation);
+//        void setOneDimAnnotationCoordinates(AnnotationTwoCoordinateShape* annotation);
 //        
-//        void setTwoDimAnnotationCoordinates(AnnotationTwoDimensionalShape* annotation);
+//        void setTwoDimAnnotationCoordinates(AnnotationOneCoordinateShape* annotation);
         
         QButtonGroup* m_spaceButtonGroup;
         

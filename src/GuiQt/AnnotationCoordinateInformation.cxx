@@ -25,8 +25,8 @@
 
 #include "Annotation.h"
 #include "AnnotationCoordinate.h"
-#include "AnnotationOneDimensionalShape.h"
-#include "AnnotationTwoDimensionalShape.h"
+#include "AnnotationTwoCoordinateShape.h"
+#include "AnnotationOneCoordinateShape.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
@@ -436,8 +436,8 @@ AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(Annotation* an
     
     bool validCoordinateFlag = false;
     
-    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
-    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+    AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
+    AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(annotation);
     
     if (oneDimAnn != NULL) {
         validCoordinateFlag = setOneDimAnnotationCoordinatesForSpace(oneDimAnn,
@@ -468,7 +468,7 @@ AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(Annotation* an
  *     Data for the second coordinate.
  */
 bool
-AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(AnnotationOneDimensionalShape* annotation,
+AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(AnnotationTwoCoordinateShape* annotation,
                                                                         const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                                                         const AnnotationCoordinateInformation* coordInfoOne,
                                                                         const AnnotationCoordinateInformation* coordInfoTwo)
@@ -667,7 +667,7 @@ AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(Annotati
  *     Data for the optional second coordinate.
  */
 bool
-AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(AnnotationTwoDimensionalShape* annotation,
+AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(AnnotationOneCoordinateShape* annotation,
                                                                         const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                                                         const AnnotationCoordinateInformation* coordInfoOne,
                                                                         const AnnotationCoordinateInformation* optionalCoordInfoTwo)

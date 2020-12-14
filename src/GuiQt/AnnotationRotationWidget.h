@@ -33,7 +33,7 @@ class QDoubleSpinBox;
 
 namespace caret {
     class Annotation;
-    class AnnotationOneDimensionalShape;
+    class AnnotationTwoCoordinateShape;
 
     class AnnotationRotationWidget : public QWidget {
 
@@ -59,7 +59,7 @@ namespace caret {
 
         AnnotationRotationWidget& operator=(const AnnotationRotationWidget&);
         
-        AnnotationOneDimensionalShape* getValidOneDimAnnotation(Annotation* annotation);
+        AnnotationTwoCoordinateShape* getValidOneDimAnnotation(Annotation* annotation);
         
         std::vector<Annotation*> m_annotations;
         
