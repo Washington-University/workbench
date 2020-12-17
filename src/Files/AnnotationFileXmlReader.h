@@ -35,6 +35,7 @@ namespace caret {
     class AnnotationFile;
     class AnnotationGroup;
     class AnnotationImage;
+    class AnnotationMultiCoordinateShape;
     class AnnotationTwoCoordinateShape;
     class AnnotationText;
     class AnnotationOneCoordinateShape;
@@ -69,11 +70,14 @@ namespace caret {
         
         void readGroup(AnnotationFile* annotationFile);
         
-        void readOneDimensionalAnnotation(const QString& annotationElementName,
+        void readTwoCoordinateAnnotation(const QString& annotationElementName,
                                           AnnotationTwoCoordinateShape* annotation);
 
-        void readTwoDimensionalAnnotation(const QString& annotationElementName,
+        void readOneCoordinateAnnotation(const QString& annotationElementName,
                                           AnnotationOneCoordinateShape* annotation);
+        
+        void readMultiCoordinateAnnotation(const QString& annotationElementName,
+                                           AnnotationMultiCoordinateShape* annotation);
         
         void readCoordinate(const QString& coordinateElementName,
                             AnnotationCoordinate* coordinate);

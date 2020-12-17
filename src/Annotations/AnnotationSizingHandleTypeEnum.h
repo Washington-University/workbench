@@ -58,7 +58,9 @@ public:
         /** Line End */
         ANNOTATION_SIZING_HANDLE_LINE_END,
         /** Line Start */
-        ANNOTATION_SIZING_HANDLE_LINE_START
+        ANNOTATION_SIZING_HANDLE_LINE_START,
+        /** Point in poly line */
+        ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE
     };
 
 

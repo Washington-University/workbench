@@ -45,14 +45,17 @@ namespace caret {
     class AnnotationFile;
     class AnnotationImage;
     class AnnotationLine;
+    class AnnotationMultiCoordinateShape;
     class AnnotationTwoCoordinateShape;
     class AnnotationOval;
+    class AnnotationPolyLine;
     class AnnotationScaleBar;
     class AnnotationText;
     class AnnotationOneCoordinateShape;
     class Brain;
     class BrainOpenGLFixedPipeline;
     class EventOpenGLObjectToWindowTransform;
+    class GraphicsPrimitive;
     class Surface;
     
     class BrainOpenGLAnnotationDrawingFixedPipeline : public CaretObject {
@@ -122,10 +125,12 @@ namespace caret {
             SelectionInfo(AnnotationFile* annotationFile,
                           Annotation* annotation,
                           AnnotationSizingHandleTypeEnum::Enum sizingHandle,
+                          int32_t polyLineCoordinateIndex,
                           const float windowXYZ[3]) {
                 m_annotationFile = annotationFile;
                 m_annotation     = annotation;
                 m_sizingHandle   = sizingHandle;
+                m_polyLineCoordinateIndex = polyLineCoordinateIndex;
                 m_windowXYZ[0]   = windowXYZ[0];
                 m_windowXYZ[1]   = windowXYZ[1];
                 m_windowXYZ[2]   = windowXYZ[2];
@@ -136,6 +141,8 @@ namespace caret {
             Annotation* m_annotation;
             
             AnnotationSizingHandleTypeEnum::Enum m_sizingHandle;
+            
+            int32_t m_polyLineCoordinateIndex;
             
             double m_windowXYZ[3];
         };
@@ -203,13 +210,17 @@ namespace caret {
                             Annotation* annotation,
                             const Surface* surfaceDisplayed);
         
-        bool drawTwoDimAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
+        bool drawOneCoordinateAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
                                                       AnnotationOneCoordinateShape* annotation,
                                                       const Surface* surfaceDisplayed);
         
-        bool drawOneDimAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
+        bool drawTwoCoordinateAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
                                                       AnnotationTwoCoordinateShape* annotation,
                                                       const Surface* surfaceDisplayed);
+        
+        bool drawMultiCoordinateAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
+                                                   AnnotationMultiCoordinateShape* annotation,
+                                                   const Surface* surfaceDisplayed);
         
         void drawColorBar(AnnotationFile* annotationFile,
                           AnnotationColorBar* colorBar);
@@ -247,6 +258,15 @@ namespace caret {
         bool drawOval(AnnotationFile* annotationFile,
                       AnnotationOval* oval,
                       const Surface* surfaceDisplayed);
+        
+        bool drawPolyLine(AnnotationFile* annotationFile,
+                          AnnotationPolyLine* polyLine,
+                          const Surface* surfaceDisplayed);
+        
+        bool drawPolyLineSurfaceTextureOffset(AnnotationFile* annotationFile,
+                                              AnnotationPolyLine* polyLine,
+                                              const Surface* surfaceDisplayed,
+                                              const float surfaceExtentZ);
         
         bool drawOvalSurfaceTangentOffset(AnnotationFile* annotationFile,
                                           AnnotationOval* oval,
@@ -294,9 +314,10 @@ namespace caret {
                               Annotation* annotation,
                               const float xyz[3],
                               const float halfWidthHeight,
-                              const float rotationAngle);
+                              const float rotationAngle,
+                              const int32_t polyLineCoordinateIndex);
         
-        void drawAnnotationTwoDimSizingHandles(AnnotationFile* annotationFile,
+        void drawAnnotationTwoDimShapeSizingHandles(AnnotationFile* annotationFile,
                                                Annotation* annotation,
                                                const float bottomLeft[3],
                                                const float bottomRight[3],
@@ -305,11 +326,16 @@ namespace caret {
                                                const float lineThickness,
                                                const float rotationAngle);
 
-        void drawAnnotationOneDimSizingHandles(AnnotationFile* annotationFile,
+        void drawAnnotationLineSizingHandles(AnnotationFile* annotationFile,
                                                Annotation* annotation,
                                                const float firstPoint[3],
                                                const float secondPoint[3],
                                                const float lineThickness);
+        
+        void drawAnnotationPolyLineSizingHandles(AnnotationFile* annotationFile,
+                                                 Annotation* annotation,
+                                                 const GraphicsPrimitive* primitive,
+                                                 const float lineThickness);
         
         bool isDrawnWithDepthTesting(const Annotation* annotation,
                                      const Surface* surface);

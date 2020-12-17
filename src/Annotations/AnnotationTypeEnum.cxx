@@ -130,6 +130,10 @@ AnnotationTypeEnum::initialize()
                                           "OVAL",
                                           "Oval"));
     
+    enumData.push_back(AnnotationTypeEnum(POLY_LINE,
+                                          "POLY_LINE",
+                                          "Poly Line"));
+    
     enumData.push_back(AnnotationTypeEnum(SCALE_BAR,
                                           "SCALE_BAR",
                                           "Scale Bar"));

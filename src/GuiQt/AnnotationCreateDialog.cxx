@@ -203,6 +203,8 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
             break;
         case AnnotationTypeEnum::OVAL:
             break;
+        case AnnotationTypeEnum::POLY_LINE:
+            break;
         case AnnotationTypeEnum::SCALE_BAR:
             CaretAssertMessage(0, "Scale bars do not get created !!!");
             break;
@@ -377,6 +379,14 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                     return NULL;
                     break;
                 case AnnotationTypeEnum::OVAL:
+                    break;
+                case AnnotationTypeEnum::POLY_LINE:
+                    delete newAnnotation;
+                    newAnnotation = NULL;
+                    errorMessageOut = ("A poly line annotation cannot be created from a mouse click in "
+                                       + AnnotationCoordinateSpaceEnum::toGuiName(annotationSpace)
+                                       + " coordinate space.   Hold the mouse down, drag the mouse, and then release the mouse.");
+                    return NULL;
                     break;
                 case AnnotationTypeEnum::SCALE_BAR:
                     break;
@@ -815,6 +825,8 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
             break;
         case AnnotationTypeEnum::OVAL:
             break;
+        case AnnotationTypeEnum::POLY_LINE:
+            break;
         case AnnotationTypeEnum::SCALE_BAR:
             break;
         case AnnotationTypeEnum::TEXT:
@@ -924,6 +936,10 @@ m_annotationFile(annotationFile)
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;
+            case AnnotationTypeEnum::POLY_LINE:
+                CaretAssertToDoWarning();
+                addSecondCoordFlag = true;
+                break;
             case AnnotationTypeEnum::SCALE_BAR:
                 break;
             case AnnotationTypeEnum::TEXT:
@@ -992,6 +1008,9 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                 useAverageFlag = true;
                 break;
             case AnnotationTypeEnum::LINE:
+                useAverageFlag = false;
+                break;
+            case AnnotationTypeEnum::POLY_LINE:
                 useAverageFlag = false;
                 break;
             case AnnotationTypeEnum::SCALE_BAR:

@@ -55,6 +55,8 @@ using namespace caret;
  *     Change in mouse X-coordinate.
  * @param mouseDY
  *     Change in mouse Y-coordinate.
+ * @param polyLineCoordinateIndex
+ *     Index of poly line coordinate
  * @param startOfDraggingFlag
  *     True when user starts to drag mouse.
  */
@@ -67,6 +69,7 @@ AnnotationSpatialModification::AnnotationSpatialModification(const AnnotationSiz
                                                              const float mouseY,
                                                              const float mouseDX,
                                                              const float mouseDY,
+                                                             const int32_t polyLineCoordinateIndex,
                                                              const bool  startOfDraggingFlag)
 : CaretObject(),
 m_sizingHandleType(sizingHandleType),
@@ -78,6 +81,7 @@ m_mouseX(mouseX),
 m_mouseY(mouseY),
 m_mouseDX(mouseDX),
 m_mouseDY(mouseDY),
+m_polyLineCoordinateIndex(polyLineCoordinateIndex),
 m_startOfDraggingFlag(startOfDraggingFlag)
 {
     m_chartCoordAtMouseXY.m_chartXYZValid  = false;

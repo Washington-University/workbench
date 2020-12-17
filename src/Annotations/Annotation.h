@@ -43,9 +43,10 @@
 namespace caret {
     class AnnotationScaleBar;
     
-    class AnnotationTwoCoordinateShape;
+    class AnnotationMultiCoordinateShape;
     class AnnotationOneCoordinateShape;
     class AnnotationSpatialModification;
+    class AnnotationTwoCoordinateShape;
     class DisplayGroupAndTabItemHelper;
     class SceneClassAssistant;
 
@@ -129,14 +130,36 @@ namespace caret {
         
         Annotation* clone() const;
         
-        virtual AnnotationTwoCoordinateShape* castToTwoCoordinateShape() = 0;
+        /**
+         * @return Cast to multi-coordinate (NULL if NOT multi-coordinate annotation
+         */
+        virtual AnnotationMultiCoordinateShape* castToMultiCoordinateShape() { return NULL; }
         
-        virtual const AnnotationTwoCoordinateShape* castToTwoCoordinateShape() const = 0;
-
-        virtual AnnotationOneCoordinateShape* castToOneCoordinateShape() = 0;
+        /**
+         * @return Cast to multi-coordinate (NULL if NOT multi-coordinate annotation
+        */
+        virtual const AnnotationMultiCoordinateShape* castToMultiCoordinateShape() const { return NULL; }
         
-        virtual const AnnotationOneCoordinateShape* castToOneCoordinateShape() const = 0;
+        /**
+         * @return Cast to one-coordinate (NULL if NOT one-coordinate annotation
+        */
+        virtual AnnotationOneCoordinateShape* castToOneCoordinateShape() { return NULL; }
+        
+        /**
+         * @return Cast to one-coordinate (NULL if NOT one-coordinate annotation
+        */
+        virtual const AnnotationOneCoordinateShape* castToOneCoordinateShape() const { return NULL; }
 
+        /**
+         * @return Cast to two-coordinate (NULL if NOT two-coordinate annotation
+        */
+        virtual AnnotationTwoCoordinateShape* castToTwoCoordinateShape()  { return NULL; }
+        
+        /**
+         * @return Cast to two-coordinate (NULL if NOT two-coordinate annotation
+        */
+        virtual const AnnotationTwoCoordinateShape* castToTwoCoordinateShape() const  { return NULL; }
+        
         /**
          * @return this annotation cast to AnnotationScaleBar (NULL if not a scale bar)
          * Intended for overriding by the annotation type

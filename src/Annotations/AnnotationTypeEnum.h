@@ -47,6 +47,8 @@ public:
         LINE,
         /** Oval */
         OVAL,
+        /** Poly Line */
+        POLY_LINE,
         /** Scale Bar */
         SCALE_BAR,
         /** Text */

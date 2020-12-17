@@ -154,6 +154,9 @@ AnnotationSizingHandleTypeEnum::initialize()
                                                       "ANNOTATION_SIZING_HANDLE_LINE_START",
                                                       "Line Start"));
     
+    enumData.push_back(AnnotationSizingHandleTypeEnum(ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE,
+                                                      "ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE",
+                                                      "Coordinate in a Poly Line"));
 }
 
 /**

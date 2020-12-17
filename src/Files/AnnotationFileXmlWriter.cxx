@@ -34,6 +34,7 @@
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
+#include "AnnotationPolyLine.h"
 #include "AnnotationText.h"
 #include "CaretAssert.h"
 #include "DataFileException.h"
@@ -254,6 +255,9 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
             case AnnotationTypeEnum::OVAL:
                 writeOval(dynamic_cast<const AnnotationOval*>(annotation));
                 break;
+            case AnnotationTypeEnum::POLY_LINE:
+                writePolyLine(dynamic_cast<const AnnotationPolyLine*>(annotation));
+                break;
             case AnnotationTypeEnum::SCALE_BAR:
                 CaretAssertMessage(0, "Scale bar is NEVER written to an annotation file");
                 break;
@@ -277,7 +281,7 @@ AnnotationFileXmlWriter::writeBox(const AnnotationBox* box)
 {
     CaretAssert(box);
     
-    writeTwoDimensionalAnnotation(box,
+    writeOneCoordinateShapeAnnotation(box,
                                   ELEMENT_BOX);
 }
 
@@ -344,8 +348,23 @@ AnnotationFileXmlWriter::writeLine(const AnnotationLine* line)
 {
     CaretAssert(line);
     
-    writeOneDimensionalAnnotation(line,
+    writeTwoCoordinateShapeAnnotation(line,
                                   ELEMENT_LINE);
+}
+
+/**
+ * Write the given annotation poly line in XML.
+ *
+ * @param polyLine
+ *     The annotation line.
+ */
+void
+AnnotationFileXmlWriter::writePolyLine(const AnnotationPolyLine* polyLine)
+{
+    CaretAssert(polyLine);
+    
+    writeMultiCoordinateShapeAnnotation(polyLine,
+                                        ELEMENT_POLY_LINE);
 }
 
 /**
@@ -359,7 +378,7 @@ AnnotationFileXmlWriter::writeOval(const AnnotationOval* oval)
 {
     CaretAssert(oval);
     
-    writeTwoDimensionalAnnotation(oval,
+    writeOneCoordinateShapeAnnotation(oval,
                                   ELEMENT_OVAL);
 }
 
@@ -522,15 +541,15 @@ AnnotationFileXmlWriter::getTwoDimAnnotationPropertiesAsAttributes(const Annotat
 }
 
 /**
- * Write the given two dimensional annotation in XML.
+ * Write the given one coordinate shape annotation in XML.
  *
  * @param shape
- *     The two-dimensional annotation.
+ *     The one coordinate shape annotation.
  * @param annotationXmlElement
  *     The XML element for the annotation.
  */
 void
-AnnotationFileXmlWriter::writeTwoDimensionalAnnotation(const AnnotationOneCoordinateShape* shape,
+AnnotationFileXmlWriter::writeOneCoordinateShapeAnnotation(const AnnotationOneCoordinateShape* shape,
                                                        const QString& annotationXmlElement)
 {
     CaretAssert(shape);
@@ -551,15 +570,15 @@ AnnotationFileXmlWriter::writeTwoDimensionalAnnotation(const AnnotationOneCoordi
 
 
 /**
- * Write the given one dimensional annotation in XML.
+ * Write the given two coordinate shape annotation in XML.
  *
  * @param shape
- *     The one-dimensional annotation.
+ *     The two coordinate shape annotation.
  * @param annotationXmlElement
  *     The XML element for the annotation.
  */
 void
-AnnotationFileXmlWriter::writeOneDimensionalAnnotation(const AnnotationTwoCoordinateShape* shape,
+AnnotationFileXmlWriter::writeTwoCoordinateShapeAnnotation(const AnnotationTwoCoordinateShape* shape,
                                                        const QString& annotationXmlElement)
 {
     CaretAssert(shape);
@@ -585,6 +604,42 @@ AnnotationFileXmlWriter::writeOneDimensionalAnnotation(const AnnotationTwoCoordi
     
     writeCoordinate(shape->getEndCoordinate(),
                     ELEMENT_COORDINATE_TWO);
+    
+    m_stream->writeEndElement();
+}
+
+/**
+ * Write the given mult-coordinate annotation in XML.
+ *
+ * @param shape
+ *     The multi-coordinate annotation.
+ * @param annotationXmlElement
+ *     The XML element for the annotation.
+ */
+void
+AnnotationFileXmlWriter::writeMultiCoordinateShapeAnnotation(const AnnotationMultiCoordinateShape* shape,
+                                                             const QString& annotationXmlElement)
+{
+    CaretAssert(shape);
+    
+    QXmlStreamAttributes attributes;
+    getAnnotationPropertiesAsAttributes(shape,
+                                        attributes);
+    
+    m_stream->writeStartElement(annotationXmlElement);
+    
+    m_stream->writeAttributes(attributes);
+    
+    const int32_t numCoords = shape->getNumberOfCoordinates();
+    
+    m_stream->writeStartElement(ELEMENT_COORDINATE_LIST);
+    m_stream->writeAttribute(ATTRIBUTE_COORDINATE_LIST_COUNT,
+                             AString::number(numCoords));
+    for (int32_t i = 0; i < numCoords; i++) {
+        const AnnotationCoordinate* ac = shape->getCoordinate(i);
+        writeCoordinate(ac, ELEMENT_COORDINATE);
+    }
+    m_stream->writeEndElement();
     
     m_stream->writeEndElement();
 }

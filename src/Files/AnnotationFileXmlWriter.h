@@ -37,6 +37,8 @@ namespace caret {
     class AnnotationGroup;
     class AnnotationImage;
     class AnnotationLine;
+    class AnnotationMultiCoordinateShape;
+    class AnnotationPolyLine;
     class AnnotationTwoCoordinateShape;
     class AnnotationOval;
     class AnnotationText;
@@ -87,10 +89,15 @@ namespace caret {
         
         void writeLine(const AnnotationLine* line);
         
-        void writeOneDimensionalAnnotation(const AnnotationTwoCoordinateShape* shape,
+        void writePolyLine(const AnnotationPolyLine* polyLine);
+        
+        void writeMultiCoordinateShapeAnnotation(const AnnotationMultiCoordinateShape* shape,
+                                                 const QString& annotationXmlElement);
+        
+        void writeTwoCoordinateShapeAnnotation(const AnnotationTwoCoordinateShape* shape,
                                            const QString& annotationXmlElement);
         
-        void writeTwoDimensionalAnnotation(const AnnotationOneCoordinateShape* shape,
+        void writeOneCoordinateShapeAnnotation(const AnnotationOneCoordinateShape* shape,
                                            const QString& annotationXmlElement);
         
         void writeOval(const AnnotationOval* oval);

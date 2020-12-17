@@ -161,6 +161,8 @@ AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationOneCoordinateSh
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;
+            case AnnotationTypeEnum::POLY_LINE:
+                break;
             case AnnotationTypeEnum::SCALE_BAR:
                 /* Scale bar width/height not adjustable */
                 includeFlag = false;

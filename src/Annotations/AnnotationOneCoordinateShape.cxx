@@ -153,24 +153,6 @@ AnnotationOneCoordinateShape::initializeMembersAnnotationOneCoordinateShape()
 }
 
 /**
- * @return 'this' as a one-dimensional shape. NULL if this is not a one-dimensional shape.
- */
-AnnotationTwoCoordinateShape*
-AnnotationOneCoordinateShape::castToTwoCoordinateShape()
-{
-    return NULL;
-}
-
-/**
- * @return 'this' as a one-dimensional shape. NULL if this is not a one-dimensional shape.
- */
-const AnnotationTwoCoordinateShape*
-AnnotationOneCoordinateShape::castToTwoCoordinateShape() const
-{
-    return NULL;
-}
-
-/**
  * @return 'this' as a one-dimensional shape. NULL if this is not a two-dimensional shape.
  */
 AnnotationOneCoordinateShape*
@@ -419,6 +401,8 @@ AnnotationOneCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
             allowsSideResizingFlag = true;
             allowsRotationFlag = true;
             break;
+        case AnnotationTypeEnum::POLY_LINE:
+            break;
         case AnnotationTypeEnum::SCALE_BAR:
             allowsMovingFlag   = true;
             break;
@@ -490,6 +474,8 @@ AnnotationOneCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
                 if (allowsRotationFlag) {
                     validFlag = true;
                 }
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
                 break;
         }
     }
@@ -628,6 +614,8 @@ AnnotationOneCoordinateShape::applySpatialModificationChartSpace(const Annotatio
             validFlag = true;
         }
             break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+            break;
     }
     
     if (validDxyFlag) {
@@ -665,6 +653,8 @@ AnnotationOneCoordinateShape::applySpatialModificationChartSpace(const Annotatio
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
                     break;
             }
         }
@@ -880,6 +870,8 @@ AnnotationOneCoordinateShape::applySpatialModificationSurfaceOrStereotaxicSpace(
             validFlag = true;
         }
             break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+            break;
     }
     
     if (validDxyFlag) {
@@ -917,6 +909,8 @@ AnnotationOneCoordinateShape::applySpatialModificationSurfaceOrStereotaxicSpace(
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
                     break;
             }
         }
@@ -1225,6 +1219,8 @@ AnnotationOneCoordinateShape::applySpatialModificationTabOrWindowSpace(const Ann
             validRotationFlag = true;
         }
             break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+            break;
     }
     
     if (validCoordinatesFlag
@@ -1315,6 +1311,8 @@ AnnotationOneCoordinateShape::applySpatialModificationTabOrWindowSpace(const Ann
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
                         break;
                 }
             }
@@ -1484,6 +1482,8 @@ AnnotationOneCoordinateShape::getSideHandleMouseDelta(const AnnotationSizingHand
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
             break;
     }
     

@@ -65,6 +65,7 @@ SelectionItemAnnotation::reset()
     m_annotationFile = NULL;
     m_annotation     = NULL;
     m_sizingHandle   = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
+    m_polyLineCoordinateIndex = -1;
 }
 
 /**
@@ -104,6 +105,15 @@ SelectionItemAnnotation::getSizingHandle() const
 }
 
 /**
+ * @return Index of poly line coordinate
+ */
+int32_t
+SelectionItemAnnotation::getPolyLineCoordinateIndex() const
+{
+    return m_polyLineCoordinateIndex;
+}
+
+/**
  * Add a annotation to the selected annotations.
  *
  * @param annotationFile
@@ -112,17 +122,21 @@ SelectionItemAnnotation::getSizingHandle() const
  *     Annotation that is added.
  * @param annotationSizingHandle
  *     Sizing handle that is selected.
+ * @param polyLineCoordinateIndex
+ *     Index of poly line coordinate
  */
 void
 SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
                                        Annotation* annotation,
-                                       const AnnotationSizingHandleTypeEnum::Enum annotationSizingHandle)
+                                       const AnnotationSizingHandleTypeEnum::Enum annotationSizingHandle,
+                                       const int32_t polyLineCoordinateIndex)
 {
     CaretAssert(annotationFile);
     CaretAssert(annotation);
     m_annotationFile = annotationFile;
     m_annotation     = annotation;
     m_sizingHandle   = annotationSizingHandle;
+    m_polyLineCoordinateIndex = polyLineCoordinateIndex;
 }
 /**
  * Get a description of m_ object's content.
@@ -133,7 +147,8 @@ SelectionItemAnnotation::toString() const
 {
     AString text = SelectionItem::toString();
     text += ("Annotation type=" + AnnotationTypeEnum::toGuiName(m_annotation->getType())
-             + "   sizeHandleType=" + AnnotationSizingHandleTypeEnum::toGuiName(m_sizingHandle));
+             + "   sizeHandleType=" + AnnotationSizingHandleTypeEnum::toGuiName(m_sizingHandle)
+             + "   m_polyLineCoordinateIndex=" + AString::number(m_polyLineCoordinateIndex));
     
     AnnotationText* textAnn = dynamic_cast<AnnotationText*>(m_annotation);
     if (textAnn != NULL) {

@@ -71,6 +71,8 @@ namespace caret {
         void processValueChanged(QDoubleSpinBox* spinBox,
                                  const double value);
         
+        std::vector<AnnotationCoordinate*> getSelectedCoordinates();
+        
         // ADD_NEW_MEMBERS_HERE
 
         const UserInputModeEnum::Enum m_userInputMode;

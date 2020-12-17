@@ -49,9 +49,12 @@ namespace caret {
         
         AnnotationSizingHandleTypeEnum::Enum getSizingHandle() const;
         
+        int32_t getPolyLineCoordinateIndex() const;
+        
         void setAnnotation(AnnotationFile* annotationFile,
                            Annotation* annotation,
-                           const AnnotationSizingHandleTypeEnum::Enum annotationSizingHandle);
+                           const AnnotationSizingHandleTypeEnum::Enum annotationSizingHandle,
+                           const int32_t polyLineCoordinateIndex);
 
         // ADD_NEW_METHODS_HERE
 
@@ -60,11 +63,13 @@ namespace caret {
 
         SelectionItemAnnotation& operator=(const SelectionItemAnnotation&);
         
-        AnnotationFile* m_annotationFile;
+        AnnotationFile* m_annotationFile = NULL;
         
-        Annotation* m_annotation;
+        Annotation* m_annotation = NULL;
         
         AnnotationSizingHandleTypeEnum::Enum m_sizingHandle;
+        
+        int32_t m_polyLineCoordinateIndex = -1;
         
         // ADD_NEW_MEMBERS_HERE
 

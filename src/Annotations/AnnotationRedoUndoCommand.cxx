@@ -1986,6 +1986,8 @@ AnnotationRedoUndoCommand::setModeTextCharacters(const AString& text,
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;
+            case AnnotationTypeEnum::POLY_LINE:
+                break;
             case AnnotationTypeEnum::SCALE_BAR:
                 break;
             case AnnotationTypeEnum::TEXT:

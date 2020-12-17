@@ -52,6 +52,8 @@ namespace caret {
         
         static const QString ATTRIBUTE_BACKGROUND_CUSTOM_RGBA;
         
+        static const QString ATTRIBUTE_COORDINATE_LIST_COUNT;
+        
         static const QString ATTRIBUTE_COORDINATE_SPACE;
         
         static const QString ATTRIBUTE_COORD_X;
@@ -136,6 +138,10 @@ namespace caret {
         
         static const QString ELEMENT_BOX;
         
+        static const QString ELEMENT_COORDINATE;
+        
+        static const QString ELEMENT_COORDINATE_LIST;
+        
         static const QString ELEMENT_COORDINATE_ONE;
         
         static const QString ELEMENT_COORDINATE_TWO;
@@ -155,6 +161,8 @@ namespace caret {
         static const QString ELEMENT_PERCENT_WIDTH_SIZE_TEXT;
         
         static const QString ELEMENT_POINT_SIZE_TEXT;
+        
+        static const QString ELEMENT_POLY_LINE;
         
         static const QString ELEMENT_TEXT_OBSOLETE;
         
@@ -177,6 +185,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_BACKGROUND_CUSTOM_RGBA = "backgroundCustomRGBA";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORDINATE_SPACE = "coordinateSpace";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORDINATE_LIST_COUNT = "count";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_X = "x";
     
@@ -260,6 +270,10 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_BOX = "box";
     
+    const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE = "coord";
+    
+    const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_LIST = "coordList";
+    
     const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_ONE = "coordOne";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_TWO = "coordTwo";
@@ -279,6 +293,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ELEMENT_PERCENT_WIDTH_SIZE_TEXT = "percentWidthSizeText";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_POINT_SIZE_TEXT = "pointSizeText";
+    
+    const QString AnnotationFileXmlFormatBase::ELEMENT_POLY_LINE = "polyLine";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_TEXT_OBSOLETE = "text";
     

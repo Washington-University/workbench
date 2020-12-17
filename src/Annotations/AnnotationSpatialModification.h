@@ -42,6 +42,7 @@ namespace caret {
                                       const float mouseY,
                                       const float mouseDX,
                                       const float mouseDY,
+                                      const int32_t polyLineCoordinateIndex,
                                       const bool  startOfDraggingFlag);
         
         void setSurfaceCoordinateAtMouseXY(const StructureEnum::Enum structure,
@@ -138,6 +139,8 @@ namespace caret {
         
         const float m_mouseDY;
         
+        const int32_t m_polyLineCoordinateIndex;
+        
         const bool  m_startOfDraggingFlag;
         
         ChartCoord m_chartCoordAtMouseXY;
@@ -150,9 +153,10 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
-        friend class AnnotationTwoCoordinateShape;
+        friend class AnnotationMultiCoordinateShape;
         friend class AnnotationText;
         friend class AnnotationOneCoordinateShape;
+        friend class AnnotationTwoCoordinateShape;
     };
     
 #ifdef __ANNOTATION_SPATIAL_MODIFICATION_DECLARE__

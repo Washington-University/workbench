@@ -220,17 +220,20 @@ SelectionManager::receiveEvent(Event* /*event*/)
 void 
 SelectionManager::filterSelections(const bool applySelectionBackgroundFiltering)
 {
-    AString logText;
-    for (std::vector<SelectionItem*>::iterator iter = m_allSelectionItems.begin();
-         iter != m_allSelectionItems.end();
-         iter++) {
-        SelectionItem* item = *iter;
-        if (item->isValid()) {
-            logText += ("\n" + item->toString() + "\n");
+    const bool debugFlag(false);
+    if (debugFlag) {
+        AString logText;
+        for (std::vector<SelectionItem*>::iterator iter = m_allSelectionItems.begin();
+             iter != m_allSelectionItems.end();
+             iter++) {
+            SelectionItem* item = *iter;
+            if (item->isValid()) {
+                logText += ("\n" + item->toString() + "\n");
+            }
         }
+        std::cout << "Selected Items BEFORE filtering: " << logText << std::endl;
     }
-    CaretLogFine("Selected Items BEFORE filtering: " + logText);
-    
+
     SelectionItemSurfaceTriangle* triangleID = m_surfaceTriangleIdentification;
     SelectionItemSurfaceNode* nodeID = m_surfaceNodeIdentification;
     
@@ -310,16 +313,18 @@ SelectionManager::filterSelections(const bool applySelectionBackgroundFiltering)
          clearDistantSelections();
     }
     
-    logText = "";
-    for (std::vector<SelectionItem*>::iterator iter = m_allSelectionItems.begin();
-         iter != m_allSelectionItems.end();
-         iter++) {
-        SelectionItem* item = *iter;
-        if (item->isValid()) {
-            logText += ("\n" + item->toString() + "\n");
+    if (debugFlag) {
+        AString logText;
+        for (std::vector<SelectionItem*>::iterator iter = m_allSelectionItems.begin();
+             iter != m_allSelectionItems.end();
+             iter++) {
+            SelectionItem* item = *iter;
+            if (item->isValid()) {
+                logText += ("\n" + item->toString() + "\n");
+            }
         }
+        std::cout << "Selected Items BEFORE filtering: " << logText << std::endl;
     }
-    CaretLogFine("Selected Items AFTER filtering: " + logText);
 }
 
 /**

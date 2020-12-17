@@ -42,10 +42,6 @@ namespace caret {
 
         AnnotationOneCoordinateShape& operator=(const AnnotationOneCoordinateShape& obj);
         
-        virtual AnnotationTwoCoordinateShape* castToTwoCoordinateShape() override;
-        
-        virtual const AnnotationTwoCoordinateShape* castToTwoCoordinateShape() const override;
-        
         virtual AnnotationOneCoordinateShape* castToOneCoordinateShape() override;
         
         virtual const AnnotationOneCoordinateShape* castToOneCoordinateShape() const override;

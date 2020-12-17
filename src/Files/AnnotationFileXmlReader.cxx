@@ -34,6 +34,7 @@
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
+#include "AnnotationPolyLine.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "CaretAssert.h"
@@ -231,50 +232,50 @@ AnnotationFileXmlReader::readVersionOne(AnnotationFile* annotationFile)
         }
         else if (elementName == ELEMENT_BOX) {
             CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_BOX,
+            readOneCoordinateAnnotation(ELEMENT_BOX,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_IMAGE) {
             CaretPointer<AnnotationImage> annotation(new AnnotationImage(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_IMAGE,
+            readOneCoordinateAnnotation(ELEMENT_IMAGE,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_LINE) {
             CaretPointer<AnnotationLine> annotation(new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneDimensionalAnnotation(ELEMENT_LINE,
+            readTwoCoordinateAnnotation(ELEMENT_LINE,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_OVAL) {
             CaretPointer<AnnotationOval> annotation(new AnnotationOval(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_OVAL,
+            readOneCoordinateAnnotation(ELEMENT_OVAL,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_PERCENT_SIZE_TEXT,
+            readOneCoordinateAnnotation(ELEMENT_PERCENT_SIZE_TEXT,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_WIDTH_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                                   AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH));
-            readTwoDimensionalAnnotation(ELEMENT_PERCENT_WIDTH_SIZE_TEXT,
+            readOneCoordinateAnnotation(ELEMENT_PERCENT_WIDTH_SIZE_TEXT,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_POINT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPointSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_POINT_SIZE_TEXT,
+            readOneCoordinateAnnotation(ELEMENT_POINT_SIZE_TEXT,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_TEXT_OBSOLETE) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_TEXT_OBSOLETE,
+            readOneCoordinateAnnotation(ELEMENT_TEXT_OBSOLETE,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
@@ -598,7 +599,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
 }
 
 /**
- * Read a one dimensional annotation.
+ * Read a two coordinate annotation.
  *
  * @param annotationElementName
  *     Name of one-dimensional attribute.
@@ -606,7 +607,7 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
  *     One-dimensional annotation that has its data read.
  */
 void
-AnnotationFileXmlReader::readOneDimensionalAnnotation(const QString& annotationElementName,
+AnnotationFileXmlReader::readTwoCoordinateAnnotation(const QString& annotationElementName,
                                                       AnnotationTwoCoordinateShape* annotation)
 {
     CaretAssert(annotation);
@@ -633,6 +634,54 @@ AnnotationFileXmlReader::readOneDimensionalAnnotation(const QString& annotationE
                    annotation->getStartCoordinate());
     readCoordinate(ELEMENT_COORDINATE_TWO,
                    annotation->getEndCoordinate());
+}
+
+/**
+ * Read a multi coordinate annotation.
+ *
+ * @param annotationElementName
+ *     Name of one-dimensional attribute.
+ * @param annotation
+ *     One-dimensional annotation that has its data read.
+ */
+void
+AnnotationFileXmlReader::readMultiCoordinateAnnotation(const QString& annotationElementName,
+                                         AnnotationMultiCoordinateShape* annotation)
+{
+    CaretAssert(annotation);
+    
+    const QXmlStreamAttributes attributes = m_stream->attributes();
+    
+    readAnnotationAttributes(annotation,
+                             annotationElementName,
+                             attributes);
+    
+    if (m_stream->readNextStartElement()) {
+        if (m_stream->name() == ELEMENT_COORDINATE_LIST) {
+            const QXmlStreamAttributes coordListAtts(m_stream->attributes());
+            const int32_t numberOfCoordiantes = m_streamHelper->getRequiredAttributeIntValue(coordListAtts,
+                                                                                             ELEMENT_COORDINATE_LIST,
+                                                                                             ATTRIBUTE_COORDINATE_LIST_COUNT);
+            for (int32_t i = 0; i < numberOfCoordiantes; i++) {
+                AnnotationCoordinate* ac = new AnnotationCoordinate(annotation->m_attributeDefaultType);
+                readCoordinate(ELEMENT_COORDINATE, ac);
+                annotation->addCoordinate(ac);
+            }
+            
+            m_stream->skipCurrentElement();
+        }
+        else {
+            m_streamHelper->throwDataFileException("Expected elment "
+                                                   + ELEMENT_COORDINATE_LIST
+                                                   + " but read element "
+                                                   + m_stream->name().toString());
+
+        }
+    }
+    else {
+        m_streamHelper->throwDataFileException("Failed to multi-coordinate child element "
+                                               + ELEMENT_COORDINATE_LIST);
+    }
 }
 
 /**
@@ -713,49 +762,55 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
         
         if (elementName == ELEMENT_BOX) {
             CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_BOX,
+            readOneCoordinateAnnotation(ELEMENT_BOX,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_IMAGE) {
             CaretPointer<AnnotationImage> annotation(new AnnotationImage(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_IMAGE,
+            readOneCoordinateAnnotation(ELEMENT_IMAGE,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_LINE) {
             CaretPointer<AnnotationLine> annotation(new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneDimensionalAnnotation(ELEMENT_LINE,
+            readTwoCoordinateAnnotation(ELEMENT_LINE,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_OVAL) {
             CaretPointer<AnnotationOval> annotation(new AnnotationOval(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_OVAL,
+            readOneCoordinateAnnotation(ELEMENT_OVAL,
                                          annotation);
+            annotations.push_back(annotation.releasePointer());
+        }
+        else if (elementName == ELEMENT_POLY_LINE) {
+            CaretPointer<AnnotationPolyLine> annotation(new AnnotationPolyLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readMultiCoordinateAnnotation(ELEMENT_POLY_LINE,
+                                           annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_PERCENT_SIZE_TEXT,
+            readOneCoordinateAnnotation(ELEMENT_PERCENT_SIZE_TEXT,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_WIDTH_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_PERCENT_WIDTH_SIZE_TEXT,
+            readOneCoordinateAnnotation(ELEMENT_PERCENT_WIDTH_SIZE_TEXT,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_POINT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPointSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_POINT_SIZE_TEXT,
+            readOneCoordinateAnnotation(ELEMENT_POINT_SIZE_TEXT,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_TEXT_OBSOLETE) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoDimensionalAnnotation(ELEMENT_TEXT_OBSOLETE,
+            readOneCoordinateAnnotation(ELEMENT_TEXT_OBSOLETE,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
@@ -798,7 +853,7 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
  *     Two-dimensional annotation that has its data read.
  */
 void
-AnnotationFileXmlReader::readTwoDimensionalAnnotation(const QString& annotationElementName,
+AnnotationFileXmlReader::readOneCoordinateAnnotation(const QString& annotationElementName,
                                                       AnnotationOneCoordinateShape* annotation)
 {
     CaretAssert(annotation);

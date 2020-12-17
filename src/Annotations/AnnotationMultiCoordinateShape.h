@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_TWO_COORDINATE_SHAPE_H__
-#define __ANNOTATION_TWO_COORDINATE_SHAPE_H__
+#ifndef __ANNOTATION_MULTI_COORDINATE_SHAPE_H__
+#define __ANNOTATION_MULTI_COORDINATE_SHAPE_H__
 
 /*LICENSE_START*/
 /*
@@ -21,37 +21,37 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 
 #include "Annotation.h"
-#include "CaretPointer.h"
 
 namespace caret {
 
     class AnnotationCoordinate;
 
-    class AnnotationTwoCoordinateShape : public Annotation {
+    class AnnotationMultiCoordinateShape : public Annotation {
         
     public:
-        AnnotationTwoCoordinateShape(const AnnotationTypeEnum::Enum type,
+        AnnotationMultiCoordinateShape(const AnnotationTypeEnum::Enum type,
                                       const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
-        virtual ~AnnotationTwoCoordinateShape();
+        virtual ~AnnotationMultiCoordinateShape();
         
-        AnnotationTwoCoordinateShape(const AnnotationTwoCoordinateShape& obj);
+        AnnotationMultiCoordinateShape(const AnnotationMultiCoordinateShape& obj);
 
-        AnnotationTwoCoordinateShape& operator=(const AnnotationTwoCoordinateShape& obj);
+        AnnotationMultiCoordinateShape& operator=(const AnnotationMultiCoordinateShape& obj);
         
-        virtual AnnotationTwoCoordinateShape* castToTwoCoordinateShape() override;
+        void addCoordinate(AnnotationCoordinate* coord);
         
-        virtual const AnnotationTwoCoordinateShape* castToTwoCoordinateShape() const override;
+        virtual AnnotationMultiCoordinateShape* castToMultiCoordinateShape() override;
         
-        AnnotationCoordinate* getStartCoordinate();
+        virtual const AnnotationMultiCoordinateShape* castToMultiCoordinateShape() const override;
         
-        const AnnotationCoordinate* getStartCoordinate() const;
+        int32_t getNumberOfCoordinates() const;
         
-        AnnotationCoordinate* getEndCoordinate();
+        AnnotationCoordinate* getCoordinate(const int32_t index);
         
-        const AnnotationCoordinate* getEndCoordinate() const;
+        const AnnotationCoordinate* getCoordinate(const int32_t index) const;
         
         virtual AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const override;
         
@@ -64,23 +64,10 @@ namespace caret {
         virtual bool applySpatialModification(const AnnotationSpatialModification& spatialModification);
         
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
-        
-        float getRotationAngle(const float viewportWidth,
-                               const float viewportHeight) const;
-        
-        void setRotationAngle(const float viewportWidth,
-                              const float viewportHeight,
-                              const float rotationAngle);
-        
-        
+                
         // ADD_NEW_METHODS_HERE
 
-          
-          
-          
-          
-          
-    protected: 
+    protected:
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
 
@@ -88,9 +75,9 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
     private:
-        void copyHelperAnnotationTwoCoordinateShape(const AnnotationTwoCoordinateShape& obj);
+        void copyHelperAnnotationMultiCoordinateShape(const AnnotationMultiCoordinateShape& obj);
 
-        void initializeMembersAnnotationTwoCoordinateShape();
+        void initializeMembersAnnotationMultiCoordinateShape();
         
         bool applySpatialModificationChartSpace(const AnnotationSpatialModification& spatialModification);
         
@@ -102,19 +89,17 @@ namespace caret {
         
         bool applySpatialModificationSpacerTabSpace(const AnnotationSpatialModification& spatialModification);
         
-        CaretPointer<SceneClassAssistant> m_sceneAssistant;
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
         
-        CaretPointer<AnnotationCoordinate> m_startCoordinate;
-        
-        CaretPointer<AnnotationCoordinate> m_endCoordinate;
+        std::vector<std::unique_ptr<AnnotationCoordinate>> m_coordinates;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __ANNOTATION_TWO_COORDINATE_SHAPE_DECLARE__
+#ifdef __ANNOTATION_MULTI_COORDINATE_SHAPE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_TWO_COORDINATE_SHAPE_DECLARE__
+#endif // __ANNOTATION_MULTI_COORDINATE_SHAPE_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_TWO_COORDINATE_SHAPE_H__
+#endif  //__ANNOTATION_MULTI_COORDINATE_SHAPE_H__

@@ -115,6 +115,7 @@ m_annotationBeingDragged(NULL)
     m_allowMultipleSelectionModeFlag = true;
     m_mode = MODE_SELECT;
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
+    m_annotationUnderMousePolyLineCoordinateIndex = -1;
     
     m_modeNewAnnotationFileSpaceAndType.grabNew(new NewAnnotationFileSpaceAndType(NULL,
                                                                                   AnnotationCoordinateSpaceEnum::VIEWPORT,
@@ -192,6 +193,7 @@ UserInputModeAnnotations::resetAnnotationUnderMouse()
 {
     m_annotationUnderMouse  = NULL;
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
+    m_annotationUnderMousePolyLineCoordinateIndex = -1;
     m_annotationBeingDragged = NULL;
     m_annotationBeingDraggedHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
 }
@@ -300,6 +302,9 @@ UserInputModeAnnotations::getCursor() const
                         break;
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
                         cursor = CursorEnum::CURSOR_ROTATION;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+                        cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
                         break;
                 }
             }
@@ -820,6 +825,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                         mouseViewportY,
                                                         dx,
                                                         dy,
+                                                        m_annotationUnderMousePolyLineCoordinateIndex,
                                                         mouseEvent.isFirstDragging());
             if (coordInfo.m_surfaceSpaceInfo.m_validFlag) {
                 annSpatialMod.setSurfaceCoordinateAtMouseXY(coordInfo.m_surfaceSpaceInfo.m_structure,
@@ -1071,6 +1077,7 @@ UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
     if (annotationID->isValid()) {
         m_annotationUnderMouse = annotationID->getAnnotation();
         m_annotationUnderMouseSizeHandleType = annotationID->getSizingHandle();
+        m_annotationUnderMousePolyLineCoordinateIndex = annotationID->getPolyLineCoordinateIndex();
     }
     else {
         m_annotationUnderMouse = NULL; 
@@ -1497,6 +1504,7 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     if (selectedAnnotation != NULL) {
         m_annotationBeingDragged = selectedAnnotation;
         m_annotationBeingDraggedHandleType = annotationID->getSizingHandle();
+        m_annotationUnderMousePolyLineCoordinateIndex = annotationID->getPolyLineCoordinateIndex();
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

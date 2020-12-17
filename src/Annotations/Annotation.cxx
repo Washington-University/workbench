@@ -33,6 +33,7 @@
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
+#include "AnnotationPolyLine.h"
 #include "AnnotationScaleBar.h"
 #include "AnnotationText.h"
 #include "BrainConstants.h"
@@ -218,6 +219,13 @@ Annotation::clone() const
             myClone = new AnnotationOval(*oval);
         }
             break;
+        case AnnotationTypeEnum::POLY_LINE:
+        {
+            const AnnotationPolyLine* polyLine = dynamic_cast<const AnnotationPolyLine*>(this);
+            CaretAssert(polyLine);
+            myClone = new AnnotationPolyLine(*polyLine);
+        }
+            break;
         case AnnotationTypeEnum::SCALE_BAR:
         {
             const AnnotationScaleBar* scaleBar = dynamic_cast<const AnnotationScaleBar*>(this);
@@ -381,6 +389,9 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
         case AnnotationTypeEnum::OVAL:
             annotation = new AnnotationOval(attributeDefaultType);
             break;
+        case AnnotationTypeEnum::POLY_LINE:
+            annotation = new AnnotationPolyLine(attributeDefaultType);
+            break;
         case AnnotationTypeEnum::SCALE_BAR:
             annotation = new AnnotationScaleBar(attributeDefaultType);
             break;
@@ -454,6 +465,8 @@ Annotation::initializeAnnotationMembers()
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
+                case AnnotationTypeEnum::POLY_LINE:
+                    break;
                 case AnnotationTypeEnum::SCALE_BAR:
                     m_colorBackground = CaretColorEnum::BLACK;
                     break;
@@ -517,6 +530,11 @@ Annotation::initializeAnnotationMembers()
                         m_colorBackground = defaultColor;
                     }
                     break;
+                case AnnotationTypeEnum::POLY_LINE:
+                    if (m_colorLine == CaretColorEnum::NONE) {
+                        m_colorLine = defaultColor;
+                    }
+                    break;
                 case AnnotationTypeEnum::SCALE_BAR:
                     break;
                 case AnnotationTypeEnum::TEXT:
@@ -562,6 +580,9 @@ Annotation::initializeAnnotationMembers()
             disallowLineColorNoneFlag = true;
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLY_LINE:
+            disallowLineColorNoneFlag = true;
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             disallowLineColorNoneFlag = true;
@@ -676,6 +697,8 @@ Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
         case AnnotationTypeEnum::LINE:
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLY_LINE:
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             break;
@@ -1622,6 +1645,9 @@ Annotation::initializeProperties()
             break;
         case AnnotationTypeEnum::OVAL:
             break;
+        case AnnotationTypeEnum::POLY_LINE:
+            fillColorFlag = false;
+            break;
         case AnnotationTypeEnum::SCALE_BAR:
             scaleBarFlag = true;
             break;
@@ -1974,6 +2000,8 @@ Annotation::textAnnotationResetName()
         case AnnotationTypeEnum::LINE:
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLY_LINE:
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             break;

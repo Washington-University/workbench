@@ -145,24 +145,6 @@ AnnotationTwoCoordinateShape::castToTwoCoordinateShape() const
 }
 
 /**
- * @return 'this' as a one-dimensional shape. NULL if this is not a two-dimensional shape.
- */
-AnnotationOneCoordinateShape*
-AnnotationTwoCoordinateShape::castToOneCoordinateShape()
-{
-    return NULL;
-}
-
-/**
- * @return 'this' as a one-dimensional shape. NULL if this is not a two-dimensional shape.
- */
-const AnnotationOneCoordinateShape*
-AnnotationTwoCoordinateShape::castToOneCoordinateShape() const
-{
-    return NULL;
-}
-
-/**
  * @return The start coordinate for the one dimensional shape.
  */
 AnnotationCoordinate*
@@ -427,6 +409,8 @@ AnnotationTwoCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
                 validFlag = true;
             }
             break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+            break;
     }
     
     return validFlag;
@@ -505,6 +489,8 @@ AnnotationTwoCoordinateShape::applySpatialModificationSurfaceSpace(const Annotat
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
             break;
     }
     
@@ -643,6 +629,8 @@ AnnotationTwoCoordinateShape::applySpatialModificationTabOrWindowSpace(const Ann
             validFlag = true;
         }
             break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+            break;
     }
     
     if (validFlag) {
@@ -725,6 +713,8 @@ AnnotationTwoCoordinateShape::applySpatialModificationChartSpace(const Annotatio
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
             break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+            break;
     }
     
     if (validFlag) {
@@ -779,6 +769,8 @@ AnnotationTwoCoordinateShape::applySpatialModificationStereotaxicSpace(const Ann
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
             break;
     }
     

@@ -165,9 +165,20 @@ XmlStreamReaderHelper::getRequiredAttributeStringValue(const QXmlStreamAttribute
         }
     }
     else {
-        throwDataFileException(attributeName
-                               + " is missing from element "
-                               + elementName);
+        std::vector<AString> attNames;
+        for (int32_t i = 0; i < attributes.count(); i++) {
+            attNames.push_back(attributes.at(i).name().toString());
+        }
+        
+        AString msg(attributeName
+                    + " is missing from element "
+                    + elementName);
+        if ( ! attributes.empty()) {
+            msg.appendWithNewLine("Available attributes: "
+                                  + AString::join(attNames, "; "));
+        }
+        throwDataFileException(msg);
+        
     }
     
     return valueString;

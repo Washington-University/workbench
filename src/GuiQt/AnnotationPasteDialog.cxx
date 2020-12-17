@@ -130,6 +130,8 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
+                case AnnotationTypeEnum::POLY_LINE:
+                    break;
                 case AnnotationTypeEnum::SCALE_BAR:
                     break;
                 case AnnotationTypeEnum::TEXT:
@@ -471,6 +473,8 @@ AnnotationPasteDialog::okButtonClicked()
         case AnnotationTypeEnum::LINE:
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLY_LINE:
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             break;
