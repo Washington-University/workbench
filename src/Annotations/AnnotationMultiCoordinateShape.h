@@ -53,6 +53,14 @@ namespace caret {
         
         const AnnotationCoordinate* getCoordinate(const int32_t index) const;
         
+        void getCopyOfAllCoordinates(std::vector<std::unique_ptr<AnnotationCoordinate>>& allCoordsOut) const;
+        
+        void getCopyOfAllCoordinates(std::vector<std::unique_ptr<const AnnotationCoordinate>>& allCoordsOut) const;
+        
+        void removeCoordinateAtIndex(const int32_t index);
+        
+        void replaceAllCoordinates(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates);
+        
         virtual AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const override;
         
         virtual bool isModified() const;

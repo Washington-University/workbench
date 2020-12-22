@@ -53,6 +53,8 @@ public:
         COORDINATE_ONE_AND_TWO,
         /** Coordinate Two */
         COORDINATE_TWO,
+        /** Coordinates in Multi-Coord Annotation */
+        COORDINATE_MULTI,
         /** Create an annotation */
         CREATE_ANNOTATION,
         /** Cut Annotation */

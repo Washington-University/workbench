@@ -45,6 +45,7 @@
 #include "BrainOpenGLWindowContent.h"
 #include "CaretPointer.h"
 #include "EventListenerInterface.h"
+#include "MouseEvent.h"
 #include "UserInputModeEnum.h"
 #include "WuQMacroMouseEventWidgetInterface.h"
 
@@ -61,7 +62,6 @@ namespace caret {
     class SelectionItemAnnotation;
     class SelectionManager;
     class Model;
-    class MouseEvent;
     class SurfaceProjectedItem;
     class UserInputModeAbstract;
     class VolumeFile;
@@ -197,6 +197,8 @@ namespace caret {
         int lastMouseX;
         
         int lastMouseY;
+        
+        std::vector<MouseEvent::XY> m_mouseHistoryXY;
         
         bool m_newKeyPressStartedFlag;
         

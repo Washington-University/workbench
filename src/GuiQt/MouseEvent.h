@@ -38,6 +38,20 @@ namespace caret {
     class MouseEvent : public CaretObject {
         
     public:
+        /**
+         * Contains mouse X/Y coordinates
+         */
+        class XY {
+        public:
+            XY(const int32_t x,
+               const int32_t y)
+            : m_x(x),
+              m_y(y) { }
+            
+            int32_t m_x;
+            int32_t m_y;
+        };
+        
         MouseEvent(const BrainOpenGLViewportContent* viewportContent,
                    BrainOpenGLWidget* openGLWidget,
                    const int32_t browserWindowIndex,
@@ -47,6 +61,7 @@ namespace caret {
                    const int32_t dy,
                    const int32_t mousePressX,
                    const int32_t mousePressY,
+                   const std::vector<XY>& mouseHistoryXY,
                    const bool firstDraggingFlag);
         
         virtual ~MouseEvent();
@@ -81,6 +96,10 @@ namespace caret {
         
         int32_t getPressedY() const;
         
+        int32_t getXyHistoryCount() const;
+        
+        XY getHistoryAtIndex(const int32_t index) const;
+        
         void getGlobalXY(const int32_t x,
                          const int32_t y,
                          int32_t& outGlobalX,
@@ -108,6 +127,8 @@ namespace caret {
         int32_t m_pressX;
         
         int32_t m_pressY;
+        
+        std::vector<XY> m_xyHistory;
         
         int32_t m_wheelRotation;
         

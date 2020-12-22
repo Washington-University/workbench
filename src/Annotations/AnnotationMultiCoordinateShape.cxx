@@ -110,6 +110,8 @@ AnnotationMultiCoordinateShape::copyHelperAnnotationMultiCoordinateShape(const A
         std::unique_ptr<AnnotationCoordinate> ac(new AnnotationCoordinate(*ptr));
         m_coordinates.push_back(std::move(ac));
     }
+    
+    setModified();
 }
 
 /**
@@ -152,6 +154,7 @@ AnnotationMultiCoordinateShape::addCoordinate(AnnotationCoordinate* coord)
     CaretAssert(coord);
     std::unique_ptr<AnnotationCoordinate> ptr(coord);
     m_coordinates.push_back(std::move(ptr));
+    setModified();
 }
 
 /**
@@ -186,6 +189,65 @@ AnnotationMultiCoordinateShape::getCoordinate(const int32_t index) const
     CaretAssertVectorIndex(m_coordinates, index);
     return m_coordinates[index].get();
 }
+
+/**
+ * Get a copy of all coordinates in the annotation
+ * @param allCoordsOut
+ *    Output containing copy of all coordinates
+ */
+void
+AnnotationMultiCoordinateShape::getCopyOfAllCoordinates(std::vector<std::unique_ptr<AnnotationCoordinate>>& allCoordsOut) const
+{
+    allCoordsOut.clear();
+    for (auto& ac : m_coordinates) {
+        std::unique_ptr<AnnotationCoordinate> acCopy(new AnnotationCoordinate(*ac));
+        allCoordsOut.push_back(std::move(acCopy));
+    }
+}
+
+/**
+ * Get a copy of all coordinates in the annotation in const 
+ * @param allCoordsOut
+ *    Output containing copy of all coordinates
+ */
+void
+AnnotationMultiCoordinateShape::getCopyOfAllCoordinates(std::vector<std::unique_ptr<const AnnotationCoordinate>>& allCoordsOut) const
+{
+    allCoordsOut.clear();
+    for (auto& ac : m_coordinates) {
+        std::unique_ptr<const AnnotationCoordinate> acCopy(new AnnotationCoordinate(*ac));
+        allCoordsOut.push_back(std::move(acCopy));
+    }
+}
+
+/**
+ * Remove the coordinate at the given index
+ * @param index
+ *    Index of coordinate for removal
+ */
+void
+AnnotationMultiCoordinateShape::removeCoordinateAtIndex(const int32_t index)
+{
+    CaretAssertVectorIndex(m_coordinates, index);
+    m_coordinates.erase(m_coordinates.begin() + index);
+    setModified();
+}
+
+/**
+ * Replace all coordinates in this annotation with copies of the given coordinates
+ * @param coordinates
+ *    Coordinates that are copied into this annotation
+ */
+void AnnotationMultiCoordinateShape::replaceAllCoordinates(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates)
+{
+    m_coordinates.clear();
+    
+    for (const auto& coord : coordinates) {
+        AnnotationCoordinate* ac = new AnnotationCoordinate(*coord);
+        addCoordinate(ac);
+    }
+}
+
 
 /**
  * @return The surface offset vector type for this annotation.
@@ -269,6 +331,7 @@ AnnotationMultiCoordinateShape::applyCoordinatesSizeAndRotationFromOther(const A
     setCoordinateSpace(otherAnn->getCoordinateSpace());
     setTabIndex(otherAnn->getTabIndex());
     setWindowIndex(otherAnn->getWindowIndex());
+    setModified();
 }
 
 /**
@@ -570,6 +633,9 @@ AnnotationMultiCoordinateShape::applySpatialModificationTabOrWindowSpace(const A
                        + AString::number(getNumberOfCoordinates()));
     }
 
+    if (validFlag) {
+        setModified();
+    }
     return validFlag;
 }
 
@@ -584,62 +650,76 @@ AnnotationMultiCoordinateShape::applySpatialModificationTabOrWindowSpace(const A
 bool
 AnnotationMultiCoordinateShape::applySpatialModificationChartSpace(const AnnotationSpatialModification& spatialModification)
 {
-    CaretAssertToDoFatal();
-    
-    return false;
-    
-//    bool validFlag = false;
-//
-//    switch (spatialModification.m_sizingHandleType) {
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
-//            if (spatialModification.m_chartCoordAtMouseXY.m_chartXYZValid) {
-//                m_endCoordinate->setXYZ(spatialModification.m_chartCoordAtMouseXY.m_chartXYZ);
-//                validFlag = true;
-//            }
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
-//            if (spatialModification.m_chartCoordAtMouseXY.m_chartXYZValid) {
-//                m_startCoordinate->setXYZ(spatialModification.m_chartCoordAtMouseXY.m_chartXYZ);
-//                validFlag = true;
-//            }
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-//            if (spatialModification.m_chartCoordAtMouseXY.m_chartXYZValid
-//                && spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZValid) {
-//                const float dx = spatialModification.m_chartCoordAtMouseXY.m_chartXYZ[0] - spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZ[0];
-//                const float dy = spatialModification.m_chartCoordAtMouseXY.m_chartXYZ[1] - spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZ[1];
-//                const float dz = spatialModification.m_chartCoordAtMouseXY.m_chartXYZ[2] - spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZ[2];
-//
-//                m_startCoordinate->addToXYZ(dx, dy, dz);
-//                m_endCoordinate->addToXYZ(dx, dy, dz);
-//                validFlag = true;
-//            }
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
-//            break;
-//    }
-//
-//    if (validFlag) {
-//        setModified();
-//    }
-//
-//    return validFlag;
+    bool validFlag = false;
+    const int32_t coordIndex(spatialModification.m_polyLineCoordinateIndex);
+    const int32_t numCoords(getNumberOfCoordinates());
+    if ((coordIndex >= 0)
+        && (coordIndex < numCoords)) {
+        int32_t startIndex(-1);
+        int32_t endIndex(-1);
+        switch (spatialModification.m_sizingHandleType) {
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+                /*
+                 * Moving entire shape (all coordinates change)
+                 */
+                startIndex = 0;
+                endIndex   = numCoords - 1;
+                validFlag = true;
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+                /*
+                 * Moving one coordinate in the shape
+                 */
+                startIndex = spatialModification.m_polyLineCoordinateIndex;
+                endIndex   = spatialModification.m_polyLineCoordinateIndex;
+                validFlag = true;
+                break;
+        }
+        if (validFlag) {
+            validFlag = false;
+            
+            if (spatialModification.m_chartCoordAtMouseXY.m_chartXYZValid
+                && spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZValid) {
+                const float dx = spatialModification.m_chartCoordAtMouseXY.m_chartXYZ[0] - spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZ[0];
+                const float dy = spatialModification.m_chartCoordAtMouseXY.m_chartXYZ[1] - spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZ[1];
+                const float dz = spatialModification.m_chartCoordAtMouseXY.m_chartXYZ[2] - spatialModification.m_chartCoordAtPreviousMouseXY.m_chartXYZ[2];
+
+                for (int32_t i = startIndex; i <= endIndex; i++) {
+                    AnnotationCoordinate* ac = getCoordinate(i);
+                    ac->addToXYZ(dx, dy, dz);
+                }
+                validFlag = true;
+            }
+        }
+    }
+
+    if (validFlag) {
+        setModified();
+    }
+
+    return validFlag;
 }
 
 /**
@@ -653,52 +733,51 @@ AnnotationMultiCoordinateShape::applySpatialModificationChartSpace(const Annotat
 bool
 AnnotationMultiCoordinateShape::applySpatialModificationStereotaxicSpace(const AnnotationSpatialModification& spatialModification)
 {
-    CaretAssertToDoFatal();
+    bool validFlag = false;
+    const int32_t coordIndex(spatialModification.m_polyLineCoordinateIndex);
+    const int32_t numCoords(getNumberOfCoordinates());
+    if ((coordIndex >= 0)
+        && (coordIndex < numCoords)) {
+        switch (spatialModification.m_sizingHandleType) {
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+                validFlag = true;
+                break;
+        }
+        if (validFlag) {
+            AnnotationCoordinate* ac = getCoordinate(coordIndex);
+            ac->setXYZ(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ);
+        }
+    }
     
-    return false;
-
-//    bool validFlag = false;
-//
-//    switch (spatialModification.m_sizingHandleType) {
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
-//            if (spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid) {
-//                m_endCoordinate->setXYZ(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ);
-//                validFlag = true;
-//            }
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
-//            if (spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid) {
-//                m_startCoordinate->setXYZ(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ);
-//                validFlag = true;
-//            }
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-//            break;
-//        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
-//            break;
-//    }
-//
-//    if (validFlag) {
-//        setModified();
-//    }
-//
-//    return validFlag;
+    if (validFlag) {
+        setModified();
+    }
+    
+    return validFlag;
 }
 
 /**

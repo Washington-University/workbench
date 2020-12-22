@@ -30,6 +30,7 @@
 #include "AnnotationLine.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
+#include "AnnotationPolyLine.h"
 #include "AnnotationStackingOrderOperation.h"
 #include "AnnotationOneCoordinateShape.h"
 #include "CaretLogger.h"
@@ -214,6 +215,22 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
                 AnnotationCoordinate* coordDest = oneDimShape->getEndCoordinate();
                 const AnnotationCoordinate* coordFrom = valueOneDimShape->getEndCoordinate();
                 *coordDest = *coordFrom;
+            }
+            else {
+                CaretAssert(0);
+            }
+        }
+            break;
+        case AnnotationRedoUndoCommandModeEnum::COORDINATE_MULTI:
+        {
+            AnnotationMultiCoordinateShape* multiCoordShape = dynamic_cast<AnnotationMultiCoordinateShape*>(annotation);
+            const AnnotationMultiCoordinateShape* valueMultiCoordShape = dynamic_cast<const AnnotationMultiCoordinateShape*>(annotationValue);
+            
+            if ((multiCoordShape != NULL)
+                && (valueMultiCoordShape != NULL)) {
+                std::vector<std::unique_ptr<const AnnotationCoordinate>> coords;
+                valueMultiCoordShape->getCopyOfAllCoordinates(coords);
+                multiCoordShape->replaceAllCoordinates(coords);
             }
             else {
                 CaretAssert(0);
@@ -1290,6 +1307,51 @@ AnnotationRedoUndoCommand::setModeCoordinateTwo(const AnnotationCoordinate& coor
         }
     }
 }
+
+/**
+ * Set them mode to second coordinate and create the redo/undo instances.
+ *
+ * @param coordinate
+ *     New value of the coordinate.
+ * @param annotations
+ *     Annotations that receive this new coordinate.
+ */
+void
+AnnotationRedoUndoCommand::setModeCoordinateMulti(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates,
+                                                  const std::vector<Annotation*>& annotations)
+{
+    std::vector<AnnotationMultiCoordinateShape*> multiCoordAnns;
+    for (auto& ann : annotations) {
+        CaretAssert(ann);
+        AnnotationMultiCoordinateShape* mc = ann->castToMultiCoordinateShape();
+        if (mc != NULL) {
+            multiCoordAnns.push_back(mc);
+        }
+        else {
+            CaretLogWarning("Attempting to apply set multi-coords on annotation that is does not support multi-coordinates: "
+                            + ann->toString());
+        }
+    }
+    if (multiCoordAnns.empty()) {
+        CaretLogWarning("No multi-coord annotations for setting coordinates");
+        return;
+    }
+    
+    m_mode        = AnnotationRedoUndoCommandModeEnum::COORDINATE_MULTI;
+    setDescription("Set coordinates for multi-coordinate annotations");
+    
+    for (auto& ann : multiCoordAnns) {
+        CaretAssert(ann);
+        AnnotationMultiCoordinateShape* redoAnnotation = dynamic_cast<AnnotationMultiCoordinateShape*>(ann->clone());
+        ann->replaceAllCoordinates(coordinates);
+        Annotation* undoAnnotation = ann->clone();
+        AnnotationMemento* am = new AnnotationMemento(ann,
+                                                      redoAnnotation,
+                                                      undoAnnotation);
+        m_annotationMementos.push_back(am);
+    }
+}
+
 
 /**
  * Set them mode to line arrow start and create the redo/undo instances.

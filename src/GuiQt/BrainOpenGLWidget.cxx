@@ -149,6 +149,7 @@ windowIndex(windowIndex)
                                                 0,
                                                 0,
                                                 0,
+                                                m_mouseHistoryXY,
                                                 false));
     
     this->mousePressX = -10000;
@@ -915,6 +916,7 @@ BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                mouseY);
     if (viewportContent != NULL) {
+        std::vector<MouseEvent::XY> emptyHistoryXY;
         MouseEvent mouseEvent(viewportContent,
                               this,
                               this->windowIndex,
@@ -924,6 +926,7 @@ BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
                               0,
                               mouseX,
                               mouseY,
+                              emptyHistoryXY,
                               false);
         
         UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
@@ -1022,6 +1025,7 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
                                                                                      wheelY);
     if (viewportContent != NULL) {
+        std::vector<MouseEvent::XY> emptyHistoryXY;
         MouseEvent mouseEvent(viewportContent,
                               this,
                               this->windowIndex,
@@ -1031,6 +1035,7 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
                               deltaDegrees,
                               wheelX,
                               wheelY,
+                              emptyHistoryXY,
                               this->mouseNewDraggingStartedFlag);
         
         UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
@@ -1192,6 +1197,10 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
         this->mouseMovementMinimumY = mouseY;
         this->mouseMovementMaximumY = mouseY;
         
+        m_mouseHistoryXY.clear();
+        m_mouseHistoryXY.emplace_back(mouseX,
+                                      mouseY);
+        
         /*
          * The user may intend to increase the size of a toolbox
          * but instead misses the edge of the toolbox when trying
@@ -1219,6 +1228,7 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
                                   0,
                                   this->mousePressX,
                                   this->mousePressY,
+                                  m_mouseHistoryXY,
                                   this->mouseNewDraggingStartedFlag);
             
             if (keyModifiers == Qt::NoModifier) {
@@ -1234,6 +1244,7 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
     else {
         this->mousePressX = -10000;
         this->mousePressY = -10000;
+        m_mouseHistoryXY.clear();
     }
     
     me->accept();
@@ -1292,6 +1303,7 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                                       0,
                                       this->mousePressX,
                                       this->mousePressY,
+                                      m_mouseHistoryXY,
                                       this->mouseNewDraggingStartedFlag);
                 inputProcessor->mouseLeftRelease(mouseEvent);
             }
@@ -1317,6 +1329,7 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                                       dy,
                                       this->mousePressX,
                                       this->mousePressY,
+                                      m_mouseHistoryXY,
                                       this->mouseNewDraggingStartedFlag);
                 
                 if (keyModifiers == Qt::NoModifier) {
@@ -1335,6 +1348,7 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
     
     this->mousePressX = -10000;
     this->mousePressY = -10000;
+    m_mouseHistoryXY.clear();
     this->isMousePressedNearToolBox = false;
     
     me->accept();
@@ -1375,6 +1389,7 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
             const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                        mouseY);
             if (viewportContent != NULL) {
+                std::vector<MouseEvent::XY> emptyHistoryXY;
                 MouseEvent mouseEvent(viewportContent,
                                       this,
                                       this->windowIndex,
@@ -1384,6 +1399,7 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
                                       0,
                                       this->mousePressX,
                                       this->mousePressY,
+                                      emptyHistoryXY,
                                       this->mouseNewDraggingStartedFlag);
                 
                 getSelectedInputProcessor()->mouseLeftDoubleClick(mouseEvent);
@@ -1778,6 +1794,9 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
         
         if ((absDX > 0)
             || (absDY > 0)) {
+            m_mouseHistoryXY.emplace_back(mouseX,
+                                          mouseY);
+            
             /*
              * Use location of mouse press so that the model
              * being manipulated does not change if mouse moves
@@ -1796,6 +1815,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                                       dy,
                                       this->mousePressX,
                                       this->mousePressY,
+                                      m_mouseHistoryXY,
                                       this->mouseNewDraggingStartedFlag);
                 
                 if (keyModifiers == Qt::NoModifier) {
@@ -1835,6 +1855,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                                   0,
                                   this->mousePressX,
                                   this->mousePressY,
+                                  m_mouseHistoryXY,
                                   this->mouseNewDraggingStartedFlag);
             
             if (keyModifiers == Qt::NoModifier) {
@@ -1858,6 +1879,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                                                     0,
                                                     this->mousePressX,
                                                     this->mousePressY,
+                                                    m_mouseHistoryXY,
                                                     this->mouseNewDraggingStartedFlag));
         
         inputProcessor->setMousePosition(m_mousePositionEvent,

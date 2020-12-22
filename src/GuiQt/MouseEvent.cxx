@@ -54,6 +54,8 @@ using namespace caret;
  *    X-coordinate of mouse when button was pressed
  * @param mousePressY
  *    Y-coordinate of mouse when button was pressed
+ * @param mouseHistoryXY
+ *    History of XY-coordinatdes from time mouse was pressed until released
  * @param firstDraggingFlag
  *    Should be true the first time in in a mouse dragging operation.
  */
@@ -66,6 +68,7 @@ MouseEvent::MouseEvent(const BrainOpenGLViewportContent* viewportContent,
                        const int32_t dy,
                        const int32_t mousePressX,
                        const int32_t mousePressY,
+                       const std::vector<XY>& mouseHistoryXY,
                        const bool firstDraggingFlag)
 : CaretObject()
 {
@@ -87,6 +90,7 @@ MouseEvent::MouseEvent(const BrainOpenGLViewportContent* viewportContent,
     m_dy = dy;
     m_pressX = mousePressX;
     m_pressY = mousePressY;
+    m_xyHistory = mouseHistoryXY;
     m_firstDraggingFlag = firstDraggingFlag;
 }
 
@@ -293,6 +297,27 @@ int32_t
 MouseEvent::getPressedY() const
 {
     return m_pressY;
+}
+
+/**
+ * @return Number of items in XY history
+ */
+int32_t
+MouseEvent::getXyHistoryCount() const
+{
+    return m_xyHistory.size();
+}
+
+/**
+ * @return xy point at given history count
+ * @param index
+ *    Index of item
+ */
+MouseEvent::XY
+MouseEvent::getHistoryAtIndex(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_xyHistory, index);
+    return m_xyHistory[index];
 }
 
 /**

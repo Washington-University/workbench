@@ -827,15 +827,17 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
     
     if (oneDimAnn != NULL) {
         validCoordsFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(oneDimAnn,
-                                                                   coordinateSpace,
-                                                                   &m_coordInfo,
-                                                                   m_optionalSecondCoordInfo);
+                                                                                            coordinateSpace,
+                                                                                            &m_coordInfo,
+                                                                                            m_optionalSecondCoordInfo,
+                                                                                            m_optionalMultiCoordInfo);
     }
     else if (twoDimAnn != NULL) {
         validCoordsFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(twoDimAnn,
-                                                                   coordinateSpace,
-                                                                   &m_coordInfo,
-                                                                   m_optionalSecondCoordInfo);
+                                                                                            coordinateSpace,
+                                                                                            &m_coordInfo,
+                                                                                            m_optionalSecondCoordInfo,
+                                                                                            m_optionalMultiCoordInfo);
     }
     else {
         const QString msg("PROGRAM ERROR: Annotation is neither one nor two dimensional");

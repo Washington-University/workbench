@@ -81,6 +81,9 @@ namespace caret {
         void setModeCoordinateTwo(const AnnotationCoordinate& coordinate,
                                   const std::vector<Annotation*>& annotations);
         
+        void setModeCoordinateMulti(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates,
+                                    const std::vector<Annotation*>& annotations);
+        
         void setModeLineArrowStart(const bool newStatus,
                                    const std::vector<Annotation*>& annotations);
         

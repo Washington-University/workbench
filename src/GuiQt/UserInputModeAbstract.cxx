@@ -54,6 +54,7 @@ m_userInputMode(inputMode),
 m_widgetForToolBar(NULL),
 m_mousePositionValid(false)
 {
+    std::vector<MouseEvent::XY> emptyHistoryXY;
     m_mousePositionEvent.grabNew(new MouseEvent(NULL,
                                                 NULL,
                                                 -1,
@@ -63,6 +64,7 @@ m_mousePositionValid(false)
                                                 0,
                                                 0,
                                                 0,
+                                                emptyHistoryXY,
                                                 false));
 }
 

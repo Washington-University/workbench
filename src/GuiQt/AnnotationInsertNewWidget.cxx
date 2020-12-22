@@ -80,16 +80,18 @@ m_browserWindowIndex(browserWindowIndex)
      * Shape buttons
      */
     m_shapeActionGroup = new QActionGroup(this);
-    QToolButton* shapeBoxToolButton   = createShapeToolButton(AnnotationTypeEnum::BOX,
-                                                              m_shapeActionGroup);
-    QToolButton* shapeImageToolButton = createShapeToolButton(AnnotationTypeEnum::IMAGE,
-                                                              m_shapeActionGroup);
-    QToolButton* shapeLineToolButton  = createShapeToolButton(AnnotationTypeEnum::LINE,
-                                                              m_shapeActionGroup);
-    QToolButton* shapeOvalToolButton  = createShapeToolButton(AnnotationTypeEnum::OVAL,
-                                                              m_shapeActionGroup);
-    QToolButton* shapeTextToolButton  = createShapeToolButton(AnnotationTypeEnum::TEXT,
-                                                              m_shapeActionGroup);
+    QToolButton* shapeBoxToolButton      = createShapeToolButton(AnnotationTypeEnum::BOX,
+                                                                 m_shapeActionGroup);
+    QToolButton* shapeImageToolButton    = createShapeToolButton(AnnotationTypeEnum::IMAGE,
+                                                                 m_shapeActionGroup);
+    QToolButton* shapeLineToolButton     = createShapeToolButton(AnnotationTypeEnum::LINE,
+                                                                 m_shapeActionGroup);
+    QToolButton* shapePolyLineToolButton = createShapeToolButton(AnnotationTypeEnum::POLY_LINE,
+                                                                 m_shapeActionGroup);
+    QToolButton* shapeOvalToolButton     = createShapeToolButton(AnnotationTypeEnum::OVAL,
+                                                                 m_shapeActionGroup);
+    QToolButton* shapeTextToolButton     = createShapeToolButton(AnnotationTypeEnum::TEXT,
+                                                                 m_shapeActionGroup);
     QObject::connect(m_shapeActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(spaceOrShapeActionTriggered()));
     
@@ -125,6 +127,7 @@ m_browserWindowIndex(browserWindowIndex)
         shapeImageToolButton->setMaximumSize(mw, mh);
         shapeLineToolButton->setMaximumSize(mw, mh);
         shapeOvalToolButton->setMaximumSize(mw, mh);
+        shapePolyLineToolButton->setMaximumSize(mw, mh);
         shapeTextToolButton->setMaximumSize(mw, mh);
 
         chartSpaceToolButton->setMaximumSize(mw, mh);
@@ -197,10 +200,12 @@ m_browserWindowIndex(browserWindowIndex)
                               3, 4);
         gridLayout->addWidget(shapeLineToolButton,
                               3, 5);
-        gridLayout->addWidget(shapeOvalToolButton,
+        gridLayout->addWidget(shapePolyLineToolButton,
                               3, 6);
-        gridLayout->addWidget(shapeTextToolButton,
+        gridLayout->addWidget(shapeOvalToolButton,
                               3, 7);
+        gridLayout->addWidget(shapeTextToolButton,
+                              3, 8);
     }
     else {
         QLabel* insertLabel = new QLabel("Insert New");
@@ -249,10 +254,12 @@ m_browserWindowIndex(browserWindowIndex)
                               3, 4);
         gridLayout->addWidget(shapeLineToolButton,
                               3, 5);
-        gridLayout->addWidget(shapeOvalToolButton,
+        gridLayout->addWidget(shapePolyLineToolButton,
                               3, 6);
-        gridLayout->addWidget(shapeTextToolButton,
+        gridLayout->addWidget(shapeOvalToolButton,
                               3, 7);
+        gridLayout->addWidget(shapeTextToolButton,
+                              3, 8);
     }
     
     setSizePolicy(QSizePolicy::Fixed,
@@ -352,7 +359,6 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-                //CaretAssertToDoWarning();
                 break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:
                 stereotaxicSpaceValidFlag = true;
@@ -621,7 +627,16 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
             painter->drawEllipse(1, 1, width - 1, height - 1);
             break;
         case AnnotationTypeEnum::POLY_LINE:
-            CaretAssertToDoFatal();
+        {
+            const int hh(height / 2);
+            const int hw(width / 2);
+            QPolygon polyLine;
+            polyLine.push_back(QPoint(2, hh));
+            polyLine.push_back(QPoint(6, 3));
+            polyLine.push_back(QPoint(hw + 5, height - 3));
+            polyLine.push_back(QPoint(width - 2, hh - 3));
+            painter->drawPolyline(polyLine);
+        }
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             CaretAssertMessage(0, "No pixmap for scale bar as user does not create them like other annotations");

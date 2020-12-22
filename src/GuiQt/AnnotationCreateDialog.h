@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include "AnnotationCoordinateInformation.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
@@ -102,6 +104,8 @@ namespace caret {
             AnnotationCoordinateInformation m_coordOneInfo;
             
             AnnotationCoordinateInformation m_coordTwoInfo;
+            
+            std::vector<std::unique_ptr<AnnotationCoordinateInformation>> m_coordMultiInfo;
             
             bool m_coordTwoInfoValid;
             

@@ -24,6 +24,7 @@
 
 #include <QWidget>
 
+//#include "AnnotationCoordinateInformation.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "UserInputModeAnnotations.h"
@@ -85,6 +86,8 @@ namespace caret {
         const AnnotationCoordinateInformation& m_coordInfo;
         
         const AnnotationCoordinateInformation* m_optionalSecondCoordInfo;
+        
+        std::vector<std::unique_ptr<AnnotationCoordinateInformation>> m_optionalMultiCoordInfo;
         
         static const QString s_SPACE_PROPERTY_NAME;
         

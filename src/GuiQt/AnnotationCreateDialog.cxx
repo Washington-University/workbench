@@ -185,7 +185,6 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
         return NULL;
     }
     
-    
     bool needImageOrTextFlag = false;
     switch (annotationType) {
         case AnnotationTypeEnum::BOX:
@@ -220,7 +219,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
         }
         else {
             AString errorMessage;
-            Annotation* newAnn = createAnnotation(newInfo, newInfo.m_selectedSpace, /*annotationSpace,*/ errorMessage);
+            Annotation* newAnn = createAnnotation(newInfo, newInfo.m_selectedSpace, errorMessage);
             if (newAnn != NULL) {
                 DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
                 dpa->updateForNewAnnotation(newAnn);
@@ -398,7 +397,8 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
     const bool validFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(newAnnotation,
                                                                                              annotationSpace,
                                                                                              &newAnnotationInfo.m_coordOneInfo,
-                                                                                             coordTwo);
+                                                                                             coordTwo,
+                                                                                             newAnnotationInfo.m_coordMultiInfo);
     if (validFlag) {
         if ((newAnnotationInfo.m_percentageWidth > 0)
             && (newAnnotationInfo.m_percentageHeight > 0)) {
@@ -888,11 +888,50 @@ m_annotationFile(annotationFile)
     m_coordOneInfo.reset();
     m_coordTwoInfo.reset();
     m_coordTwoInfoValid = false;
+    m_coordMultiInfo.clear();
     m_percentageWidth  = -1;
     m_percentageHeight = -1;
     
+    bool multiCoordAnnFlag(false);
+    switch (annotationType) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLY_LINE:
+            multiCoordAnnFlag = true;
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            break;
+        case AnnotationTypeEnum::TEXT:
+            break;
+    }
     
-    if (useBothCoordinatesFromMouseFlag) {
+    if (multiCoordAnnFlag) {
+        const int32_t numXY(mouseEvent.getXyHistoryCount());
+        for (int32_t i = 0; i < numXY; i++) {
+            const auto xy(mouseEvent.getHistoryAtIndex(i));
+            std::unique_ptr<AnnotationCoordinateInformation> ptr(new AnnotationCoordinateInformation());
+            AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
+                                                                               xy.m_x,
+                                                                               xy.m_y,
+                                                                               *ptr.get());
+            m_coordMultiInfo.push_back(std::move(ptr));
+        }
+        
+        AnnotationCoordinateInformation::getValidCoordinateSpaces(m_coordMultiInfo,
+                                                                  m_validSpaces);
+        
+    }
+    else if (useBothCoordinatesFromMouseFlag) {
         AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
                                                                            mouseEvent.getX(),
                                                                            mouseEvent.getY(),

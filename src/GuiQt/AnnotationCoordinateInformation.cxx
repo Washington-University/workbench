@@ -26,6 +26,7 @@
 #include "Annotation.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationTwoCoordinateShape.h"
+#include "AnnotationMultiCoordinateShape.h"
 #include "AnnotationOneCoordinateShape.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainOpenGLViewportContent.h"
@@ -221,6 +222,124 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
     }
 }
 
+/**
+ * Get the valid coordinate spaces for all annotation coordinate information.
+ * The space must be valid  for all coordinates, AND, if tab or window
+ * space the tab or window indices must also be the same.
+ *
+ * @param coordInfoMulti
+ *     All coordinate information.
+ * @param spacesOut
+ *     Output containing spaces valid for both.
+ */
+void
+AnnotationCoordinateInformation::getValidCoordinateSpaces(const std::vector<std::unique_ptr<AnnotationCoordinateInformation>>& coordInfoMulti,
+                                                          std::vector<AnnotationCoordinateSpaceEnum::Enum>& spacesOut)
+{
+    spacesOut.clear();
+    
+    const int32_t numCoordInfo(static_cast<int32_t>(coordInfoMulti.size()));
+    if (numCoordInfo <= 0) {
+        return;
+    }
+    CaretAssertVectorIndex(coordInfoMulti, 0);
+    const auto firstCoordInfo(coordInfoMulti[0].get());
+    
+    std::vector<AnnotationCoordinateSpaceEnum::Enum> allSpaces;
+    AnnotationCoordinateSpaceEnum::getAllEnums(allSpaces);
+    
+    for (const auto space : allSpaces) {
+        switch (space) {
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                break;
+            case AnnotationCoordinateSpaceEnum::CHART:
+            case AnnotationCoordinateSpaceEnum::SPACER:
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+            case AnnotationCoordinateSpaceEnum::TAB:
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                /*
+                 * See if space for first coord info is valid
+                 */
+                if (firstCoordInfo->isCoordinateSpaceValid(space)) {
+                    bool addItFlag = true;
+                    
+                    for(int32_t i = 1; i < numCoordInfo; i++) {
+                        CaretAssertVectorIndex(coordInfoMulti, i);
+                        const auto coordInfo(coordInfoMulti[i].get());
+ 
+                        /*
+                         * See if same space is valid for second coord info
+                         */
+                        addItFlag = coordInfo->isCoordinateSpaceValid(space);
+                        
+                        switch (space) {
+                            case AnnotationCoordinateSpaceEnum::CHART:
+                                /*
+                                 * Both coord info's must be in the SAME TAB
+                                 */
+                                if (firstCoordInfo->m_tabSpaceInfo.m_index != coordInfo->m_tabSpaceInfo.m_index) {
+                                    addItFlag = false;
+                                }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::SPACER:
+                                if (firstCoordInfo->m_spacerTabSpaceInfo.m_spacerTabIndex != coordInfo->m_spacerTabSpaceInfo.m_spacerTabIndex) {
+                                    addItFlag = false;
+                                }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                                /*
+                                 * Both coord info's must be in the SAME TAB
+                                 */
+                                if (firstCoordInfo->m_tabSpaceInfo.m_index != coordInfo->m_tabSpaceInfo.m_index) {
+                                    addItFlag = false;
+                                }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::SURFACE:
+                                /*
+                                 * Both coord info's must be on same surface and
+                                 * in the SAME TAB
+                                 */
+                                if ((firstCoordInfo->m_tabSpaceInfo.m_index != coordInfo->m_tabSpaceInfo.m_index)
+                                    || (firstCoordInfo->m_surfaceSpaceInfo.m_numberOfNodes != coordInfo->m_surfaceSpaceInfo.m_numberOfNodes)
+                                    || (firstCoordInfo->m_surfaceSpaceInfo.m_structure != coordInfo->m_surfaceSpaceInfo.m_structure)) {
+                                    addItFlag = false;
+                                }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::TAB:
+                                if (firstCoordInfo->m_tabSpaceInfo.m_index != coordInfo->m_tabSpaceInfo.m_index) {
+                                    addItFlag = false;
+                                }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                                //if (coordInfoOne->m_windowIndex != coordInfoTwo->m_windowIndex) {
+                                //    addItFlag = false;
+                                //}
+                                break;
+                            case AnnotationCoordinateSpaceEnum::WINDOW:
+                                if (firstCoordInfo->m_windowSpaceInfo.m_index != coordInfo->m_windowSpaceInfo.m_index) {
+                                    addItFlag = false;
+                                }
+                                break;
+                        }
+                        
+                        /*
+                         * If an annotation does not match space of first,
+                         * then the space is not valid
+                         */
+                        if ( ! addItFlag) {
+                            break;
+                        }
+                    }
+                    
+                    if (addItFlag) {
+                        spacesOut.push_back(space);
+                    }
+                }
+                break;
+        }
+    }
+}
 
 /**
  * Get the different types of coordinates at the given mouse location.
@@ -340,6 +459,7 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
             coordInfoOut.m_tabSpaceInfo.m_index = tabContent->getTabNumber();
             coordInfoOut.m_tabSpaceInfo.m_width = tabViewport[2];
             coordInfoOut.m_tabSpaceInfo.m_height = tabViewport[3];
+            coordInfoOut.m_tabSpaceInfo.m_validFlag = true;
         }
     }
     
@@ -405,6 +525,7 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
     coordInfoOut.m_windowSpaceInfo.m_index  = viewportContent->getWindowIndex();
     coordInfoOut.m_windowSpaceInfo.m_width  = windowViewport[2];
     coordInfoOut.m_windowSpaceInfo.m_height = windowViewport[3];
+    coordInfoOut.m_windowSpaceInfo.m_validFlag = true;
     
     /*
      * Normalize window coordinates (width and height range [0, 100]
@@ -430,26 +551,32 @@ bool
 AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(Annotation* annotation,
                                                                   const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                                                   const AnnotationCoordinateInformation* coordInfoOne,
-                                                                  const AnnotationCoordinateInformation* coordInfoTwo)
+                                                                  const AnnotationCoordinateInformation* coordInfoTwo,
+                                                                  const std::vector<std::unique_ptr<AnnotationCoordinateInformation>>& coordInfoMulti)
 {
     CaretAssert(annotation);
     
     bool validCoordinateFlag = false;
     
-    AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
-    AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(annotation);
-    
-    if (oneDimAnn != NULL) {
-        validCoordinateFlag = setOneDimAnnotationCoordinatesForSpace(oneDimAnn,
+    AnnotationTwoCoordinateShape* twoCoordAnn = annotation->castToTwoCoordinateShape();
+    AnnotationOneCoordinateShape* oneCoordAnn = annotation->castToOneCoordinateShape();
+    AnnotationMultiCoordinateShape* multiCoordAnn = annotation->castToMultiCoordinateShape();
+    if (twoCoordAnn != NULL) {
+        validCoordinateFlag = setOneDimAnnotationCoordinatesForSpace(twoCoordAnn,
                                                                      coordinateSpace,
                                                                      coordInfoOne,
                                                                      coordInfoTwo);
     }
-    else if (twoDimAnn != NULL) {
-        validCoordinateFlag = setTwoDimAnnotationCoordinatesForSpace(twoDimAnn,
+    else if (oneCoordAnn != NULL) {
+        validCoordinateFlag = setTwoDimAnnotationCoordinatesForSpace(oneCoordAnn,
                                                                      coordinateSpace,
                                                                      coordInfoOne,
                                                                      coordInfoTwo);
+    }
+    else if (multiCoordAnn != NULL) {
+        validCoordinateFlag = setMultiDimAnnotationCoordinatesForSpace(multiCoordAnn,
+                                                                       coordinateSpace,
+                                                                       coordInfoMulti);
     }
     
     return validCoordinateFlag;
@@ -878,5 +1005,311 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
     }
     
     return validCoordinateFlag;
+}
+
+/**
+ * Set the coordinates for the multi-coordinate annotation.
+ *
+ * @param annotation
+ *     The annotation.
+ * @param coordinateSpace
+ *     The coordinate space.
+ * @param coordInfoMulti
+ *     Info for the coordinates
+ */
+bool
+AnnotationCoordinateInformation::setMultiDimAnnotationCoordinatesForSpace(AnnotationMultiCoordinateShape* annotation,
+                                                                          const AnnotationCoordinateSpaceEnum::Enum space,
+                                                                          const std::vector<std::unique_ptr<AnnotationCoordinateInformation>>& coordInfoMulti)
+{
+    if (coordInfoMulti.empty()) {
+        return false;
+    }
+    
+    CaretAssert(annotation);
+    
+//    AnnotationCoordinate* startCoordinate = annotation->getStartCoordinate();
+//    CaretAssert(startCoordinate);
+//    AnnotationCoordinate* endCoordinate   = annotation->getEndCoordinate();
+//    CaretAssert(endCoordinate);
+//
+    /*
+     * Set annotation parameters using first coord info
+     */
+    bool validSpaceFlag(false);
+    CaretAssertVectorIndex(coordInfoMulti, 0);
+    const auto& firstCoordInfo = coordInfoMulti[0];
+    switch (space) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            if (firstCoordInfo->m_chartSpaceInfo.m_validFlag) {
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::CHART);
+                validSpaceFlag = true;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            if (firstCoordInfo->m_spacerTabSpaceInfo.m_spacerTabIndex.isValid()) {
+                annotation->setSpacerTabIndex(firstCoordInfo->m_spacerTabSpaceInfo.m_spacerTabIndex);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SPACER);
+                validSpaceFlag = true;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            if (firstCoordInfo->m_modelSpaceInfo.m_validFlag) {
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
+                validSpaceFlag = true;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            if (firstCoordInfo->m_surfaceSpaceInfo.m_validFlag) {
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
+                validSpaceFlag = true;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            if (firstCoordInfo->m_tabSpaceInfo.m_validFlag) {
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+                annotation->setTabIndex(firstCoordInfo->m_tabSpaceInfo.m_index);
+                validSpaceFlag = true;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            CaretAssert(0);
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            if (firstCoordInfo->m_windowSpaceInfo.m_index >= 0) {
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+                annotation->setWindowIndex(firstCoordInfo->m_windowSpaceInfo.m_index);
+                validSpaceFlag = true;
+            }
+            break;
+    }
+
+    if ( ! validSpaceFlag) {
+        return false;
+    }
+    
+    /*
+     * Set coordinates
+     */
+    std::vector<std::unique_ptr<const AnnotationCoordinate>> coordinates;
+    
+    for (auto& coordInfo : coordInfoMulti) {
+        AnnotationCoordinate* ac(new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER));
+        switch (space) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+                if (coordInfo->m_chartSpaceInfo.m_validFlag) {
+                    ac->setXYZ(coordInfo->m_chartSpaceInfo.m_xyz);
+                }
+                break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
+                if (coordInfo->m_spacerTabSpaceInfo.m_spacerTabIndex.isValid()) {
+                    ac->setXYZ(coordInfo->m_spacerTabSpaceInfo.m_xyz);
+                }
+                break;
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                if (coordInfo->m_modelSpaceInfo.m_validFlag) {
+                    ac->setXYZ(coordInfo->m_modelSpaceInfo.m_xyz);
+                }
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+                if (coordInfo->m_surfaceSpaceInfo.m_validFlag) {
+                    const float surfaceOffsetLength = ac->getSurfaceOffsetLength();
+                    const AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVector = ac->getSurfaceOffsetVectorType();
+                    ac->setSurfaceSpace(coordInfo->m_surfaceSpaceInfo.m_structure,
+                                        coordInfo->m_surfaceSpaceInfo.m_numberOfNodes,
+                                        coordInfo->m_surfaceSpaceInfo.m_nodeIndex,
+                                        surfaceOffsetLength,
+                                        surfaceOffsetVector);
+                }
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+                if (coordInfo->m_tabSpaceInfo.m_validFlag) {
+                    ac->setXYZ(coordInfo->m_tabSpaceInfo.m_xyz);
+                }
+                break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssert(0);
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                if (coordInfo->m_windowSpaceInfo.m_index >= 0) {
+                    ac->setXYZ(coordInfo->m_windowSpaceInfo.m_xyz);
+                }
+                break;
+        }
+        
+        std::unique_ptr<AnnotationCoordinate> ptr(ac);
+        coordinates.push_back(std::move(ptr));
+    }
+    
+    annotation->replaceAllCoordinates(coordinates);
+    
+    return (annotation->getNumberOfCoordinates() > 0);
+
+//    switch (space) {
+//        case AnnotationCoordinateSpaceEnum::CHART:
+//            if (coordInfoOne->m_chartSpaceInfo.m_validFlag) {
+//                startCoordinate->setXYZ(coordInfoOne->m_chartSpaceInfo.m_xyz);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::CHART);
+//
+//                validCoordinateFlag = true;
+//
+//                if (coordInfoTwo != NULL) {
+//                    if (coordInfoTwo->m_chartSpaceInfo.m_validFlag) {
+//                        if (endCoordinate != NULL) {
+//                            endCoordinate->setXYZ(coordInfoTwo->m_chartSpaceInfo.m_xyz);
+//                        }
+//                    }
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::SPACER:
+//            if (coordInfoOne->m_spacerTabSpaceInfo.m_spacerTabIndex.isValid()) {
+//                startCoordinate->setXYZ(coordInfoOne->m_spacerTabSpaceInfo.m_xyz);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SPACER);
+//                annotation->setSpacerTabIndex(coordInfoOne->m_spacerTabSpaceInfo.m_spacerTabIndex);
+//
+//                validCoordinateFlag = true;
+//
+//
+//                if (coordInfoTwo != NULL) {
+//                    if (coordInfoTwo->m_spacerTabSpaceInfo.m_spacerTabIndex.isValid()) {
+//                        if (endCoordinate != NULL) {
+//                            endCoordinate->setXYZ(coordInfoTwo->m_spacerTabSpaceInfo.m_xyz);
+//                        }
+//                    }
+//                }
+//                else if (endCoordinate != NULL) {
+//                    double xyz[3] = {
+//                        coordInfoOne->m_spacerTabSpaceInfo.m_xyz[0],
+//                        coordInfoOne->m_spacerTabSpaceInfo.m_xyz[1],
+//                        coordInfoOne->m_spacerTabSpaceInfo.m_xyz[2]
+//                    };
+//                    if (xyz[1] > 50.0) {
+//                        xyz[1] -= 25.0;
+//                        endCoordinate->setXYZ(xyz);
+//                    }
+//                    else {
+//                        xyz[1] += 25.0;
+//                        endCoordinate->setXYZ(coordInfoOne->m_spacerTabSpaceInfo.m_xyz);
+//                        startCoordinate->setXYZ(xyz);
+//                    }
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+//            if (coordInfoOne->m_modelSpaceInfo.m_validFlag) {
+//                startCoordinate->setXYZ(coordInfoOne->m_modelSpaceInfo.m_xyz);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
+//
+//                validCoordinateFlag = true;
+//
+//                if (coordInfoTwo != NULL) {
+//                    if (coordInfoTwo->m_modelSpaceInfo.m_validFlag) {
+//                        if (endCoordinate != NULL) {
+//                            endCoordinate->setXYZ(coordInfoTwo->m_modelSpaceInfo.m_xyz);
+//                        }
+//                    }
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::SURFACE:
+//            if (coordInfoOne->m_surfaceSpaceInfo.m_validFlag) {
+//                const float surfaceOffsetLength = startCoordinate->getSurfaceOffsetLength();
+//                const AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVector = startCoordinate->getSurfaceOffsetVectorType();
+//                startCoordinate->setSurfaceSpace(coordInfoOne->m_surfaceSpaceInfo.m_structure,
+//                                                 coordInfoOne->m_surfaceSpaceInfo.m_numberOfNodes,
+//                                                 coordInfoOne->m_surfaceSpaceInfo.m_nodeIndex,
+//                                                 surfaceOffsetLength,
+//                                                 surfaceOffsetVector);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
+//
+//                validCoordinateFlag = true;
+//
+//                if (coordInfoTwo != NULL) {
+//                    if (coordInfoTwo->m_surfaceSpaceInfo.m_validFlag) {
+//                        if (endCoordinate != NULL) {
+//                            endCoordinate->setSurfaceSpace(coordInfoTwo->m_surfaceSpaceInfo.m_structure,
+//                                                           coordInfoTwo->m_surfaceSpaceInfo.m_numberOfNodes,
+//                                                           coordInfoTwo->m_surfaceSpaceInfo.m_nodeIndex,
+//                                                           surfaceOffsetLength,
+//                                                           surfaceOffsetVector);
+//                        }
+//                    }
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::TAB:
+//            if (coordInfoOne->m_tabSpaceInfo.m_index >= 0) {
+//                startCoordinate->setXYZ(coordInfoOne->m_tabSpaceInfo.m_xyz);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+//                annotation->setTabIndex(coordInfoOne->m_tabSpaceInfo.m_index);
+//
+//                validCoordinateFlag = true;
+//
+//
+//                if (coordInfoTwo != NULL) {
+//                    if (coordInfoTwo->m_tabSpaceInfo.m_index >= 0) {
+//                        if (endCoordinate != NULL) {
+//                            endCoordinate->setXYZ(coordInfoTwo->m_tabSpaceInfo.m_xyz);
+//                        }
+//                    }
+//                }
+//                else if (endCoordinate != NULL) {
+//                    double xyz[3] = {
+//                        coordInfoOne->m_tabSpaceInfo.m_xyz[0],
+//                        coordInfoOne->m_tabSpaceInfo.m_xyz[1],
+//                        coordInfoOne->m_tabSpaceInfo.m_xyz[2]
+//                    };
+//                    if (xyz[1] > 50.0) {
+//                        xyz[1] -= 25.0;
+//                        endCoordinate->setXYZ(xyz);
+//                    }
+//                    else {
+//                        xyz[1] += 25.0;
+//                        endCoordinate->setXYZ(coordInfoOne->m_tabSpaceInfo.m_xyz);
+//                        startCoordinate->setXYZ(xyz);
+//                    }
+//                }
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+//            CaretAssert(0);
+//            break;
+//        case AnnotationCoordinateSpaceEnum::WINDOW:
+//            if (coordInfoOne->m_windowSpaceInfo.m_index >= 0) {
+//                startCoordinate->setXYZ(coordInfoOne->m_windowSpaceInfo.m_xyz);
+//                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+//                annotation->setWindowIndex(coordInfoOne->m_windowSpaceInfo.m_index);
+//
+//                validCoordinateFlag = true;
+//
+//                if (coordInfoTwo != NULL) {
+//                    if (coordInfoTwo->m_windowSpaceInfo.m_index >= 0) {
+//                        if (endCoordinate != NULL) {
+//                            endCoordinate->setXYZ(coordInfoTwo->m_windowSpaceInfo.m_xyz);
+//                        }
+//                    }
+//                }
+//                else if (endCoordinate != NULL) {
+//                    double xyz[3] = {
+//                        coordInfoOne->m_windowSpaceInfo.m_xyz[0],
+//                        coordInfoOne->m_windowSpaceInfo.m_xyz[1],
+//                        coordInfoOne->m_windowSpaceInfo.m_xyz[2]
+//                    };
+//                    if (xyz[1] > 50.0) {
+//                        xyz[1] -= 25.0;
+//                        endCoordinate->setXYZ(xyz);
+//                    }
+//                    else {
+//                        xyz[1] += 25.0;
+//                        endCoordinate->setXYZ(coordInfoOne->m_windowSpaceInfo.m_xyz);
+//                        startCoordinate->setXYZ(xyz);
+//                    }
+//                }
+//            }
+//            break;
+//    }
+//
+//    return validCoordinateFlag;
 }
 

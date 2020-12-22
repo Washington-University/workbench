@@ -105,10 +105,12 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
         }
         
         if (! validCoordsFlag) {
+            std::vector<std::unique_ptr<AnnotationCoordinateInformation>> emptyMultiCoordInfo;
             validCoordsFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(annotation,
                                                                                                 annotation->getCoordinateSpace(),
                                                                                                 &coordInfo,
-                                                                                                NULL);
+                                                                                                NULL,
+                                                                                                emptyMultiCoordInfo);
         }
         
         

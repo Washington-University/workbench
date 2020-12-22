@@ -33,6 +33,7 @@
 #include "AnnotationCoordinateInformation.h"
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
+#include "AnnotationMultiCoordinateShape.h"
 #include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationPasteDialog.h"
 #include "AnnotationRedoUndoCommand.h"
@@ -505,8 +506,9 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             break;
                     }
                     
-                    AnnotationTwoCoordinateShape* oneDim = dynamic_cast<AnnotationTwoCoordinateShape*>(selectedAnnotation);
-                    AnnotationOneCoordinateShape* twoDim = dynamic_cast<AnnotationOneCoordinateShape*>(selectedAnnotation);
+                    AnnotationTwoCoordinateShape* twoCoordShape = selectedAnnotation->castToTwoCoordinateShape();
+                    AnnotationOneCoordinateShape* oneCoordShape = selectedAnnotation->castToOneCoordinateShape();
+                    AnnotationMultiCoordinateShape* multiCoordShape = selectedAnnotation->castToMultiCoordinateShape();
                     
                     {
                             bool surfaceFlag = false;
@@ -533,15 +535,15 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                                 std::vector<Annotation*> annotations;
                                 annotations.push_back(selectedAnnotation);
                                 
-                                if (oneDim != NULL) {
-                                    AnnotationCoordinate startCoord = *oneDim->getStartCoordinate();
+                                if (twoCoordShape != NULL) {
+                                    AnnotationCoordinate startCoord = *twoCoordShape->getStartCoordinate();
                                     float xyzStart[3];
                                     startCoord.getXYZ(xyzStart);
                                     xyzStart[0] += dx;
                                     xyzStart[1] += dy;
                                     startCoord.setXYZ(xyzStart);
                                     
-                                    AnnotationCoordinate endCoord   = *oneDim->getEndCoordinate();
+                                    AnnotationCoordinate endCoord   = *twoCoordShape->getEndCoordinate();
                                     float xyzEnd[3];
                                     endCoord.getXYZ(xyzEnd);
                                     xyzEnd[0] += dx;
@@ -550,8 +552,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                                     
                                     undoCommand->setModeCoordinateOneAndTwo(startCoord, endCoord, annotations);
                                 }
-                                else if (twoDim != NULL) {
-                                    AnnotationCoordinate coord = *twoDim->getCoordinate();
+                                else if (oneCoordShape != NULL) {
+                                    AnnotationCoordinate coord = *oneCoordShape->getCoordinate();
                                     float xyz[3];
                                     coord.getXYZ(xyz);
                                     xyz[0] += dx;
@@ -560,6 +562,23 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                                     
                                     undoCommand->setModeCoordinateOne(coord,
                                                                       annotations);
+                                }
+                                else if (multiCoordShape != NULL) {
+                                    std::vector<std::unique_ptr<AnnotationCoordinate>> allCoords;
+                                    std::vector<std::unique_ptr<const AnnotationCoordinate>> constCoords;
+                                    multiCoordShape->getCopyOfAllCoordinates(allCoords);
+                                    for (const auto& ac : allCoords) {
+                                        float xyz[3];
+                                        ac->getXYZ(xyz);
+                                        xyz[0] += dx;
+                                        xyz[1] += dy;
+                                        ac->setXYZ(xyz);
+                                        std::unique_ptr<const AnnotationCoordinate> acCopy(new AnnotationCoordinate(*ac));
+                                        constCoords.push_back(std::move(acCopy));
+                                    }
+                                    
+                                    undoCommand->setModeCoordinateMulti(constCoords,
+                                                                        annotations);
                                 }
                                 else {
                                     CaretAssert(0);
@@ -1330,8 +1349,9 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
                                                              mouseEvent.getY(),
                                                              coordInfo);
     
-    AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<AnnotationTwoCoordinateShape*>(selectedAnnotation);
-    AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(selectedAnnotation);
+    AnnotationTwoCoordinateShape* twoCoordShape = selectedAnnotation->castToTwoCoordinateShape();
+    AnnotationOneCoordinateShape* oneCoordShape = selectedAnnotation->castToOneCoordinateShape();
+    AnnotationMultiCoordinateShape* multiCoordShape = selectedAnnotation->castToMultiCoordinateShape();
 
     AnnotationCoordinate* coordinate = NULL;
     AnnotationCoordinate* otherCoordinate = NULL;
@@ -1347,18 +1367,18 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
         case MODE_SELECT:
             break;
         case MODE_SET_COORDINATE_ONE:
-            if (oneDimAnn != NULL) {
-                coordinate      = oneDimAnn->getStartCoordinate();
-                otherCoordinate = oneDimAnn->getEndCoordinate();
+            if (twoCoordShape != NULL) {
+                coordinate      = twoCoordShape->getStartCoordinate();
+                otherCoordinate = twoCoordShape->getEndCoordinate();
             }
-            else if (twoDimAnn != NULL) {
-                coordinate = twoDimAnn->getCoordinate();
+            else if (oneCoordShape != NULL) {
+                coordinate = oneCoordShape->getCoordinate();
             }
             break;
         case MODE_SET_COORDINATE_TWO:
-            if (oneDimAnn != NULL) {
-                coordinate      = oneDimAnn->getEndCoordinate();
-                otherCoordinate = oneDimAnn->getStartCoordinate();
+            if (twoCoordShape != NULL) {
+                coordinate      = twoCoordShape->getEndCoordinate();
+                otherCoordinate = twoCoordShape->getStartCoordinate();
             }
             break;
     }
@@ -2029,23 +2049,29 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
     m_annotation->setCoordinateSpace(annotationSpace);
     CaretAssert(m_annotation);
 
-    AnnotationTwoCoordinateShape* oneDimShape = dynamic_cast<AnnotationTwoCoordinateShape*>(m_annotation);
-    AnnotationOneCoordinateShape* twoDimShape = dynamic_cast<AnnotationOneCoordinateShape*>(m_annotation);
-    
-    if (oneDimShape != NULL) {
-        setCoordinate(oneDimShape->getStartCoordinate(),
+    AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
+    AnnotationOneCoordinateShape* oneCoordShape     = m_annotation->castToOneCoordinateShape();
+    AnnotationTwoCoordinateShape* twoCoordShape     = m_annotation->castToTwoCoordinateShape();
+
+    if (twoCoordShape != NULL) {
+        setCoordinate(twoCoordShape->getStartCoordinate(),
                       m_mousePressWindowX,
                       m_mousePressWindowY);
-        setCoordinate(oneDimShape->getEndCoordinate(),
+        setCoordinate(twoCoordShape->getEndCoordinate(),
                       m_mousePressWindowX,
                       m_mousePressWindowY);
     }
-    else if (twoDimShape != NULL) {
-        setCoordinate(twoDimShape->getCoordinate(),
+    else if (oneCoordShape != NULL) {
+        setCoordinate(oneCoordShape->getCoordinate(),
                       m_mousePressWindowX,
                       m_mousePressWindowY);
-        twoDimShape->setWidth(1.0);
-        twoDimShape->setHeight(1.0);
+        oneCoordShape->setWidth(1.0);
+        oneCoordShape->setHeight(1.0);
+    }
+    else if (multiCoordShape != NULL) {
+        AnnotationCoordinate* ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+        setCoordinate(ac, m_mousePressWindowX, m_mousePressWindowY);
+        multiCoordShape->addCoordinate(ac);
     }
     else {
         CaretAssert(0);
@@ -2080,15 +2106,16 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const int32_t mou
     int32_t mouseWindowX = mouseWindowXIn - m_windowOriginX;
     int32_t mouseWindowY = mouseWindowYIn - m_windowOriginY;
     
-    AnnotationTwoCoordinateShape* oneDimShape = dynamic_cast<AnnotationTwoCoordinateShape*>(m_annotation);
-    AnnotationOneCoordinateShape* twoDimShape = dynamic_cast<AnnotationOneCoordinateShape*>(m_annotation);
+    AnnotationTwoCoordinateShape* twoCoordShape = m_annotation->castToTwoCoordinateShape();
+    AnnotationOneCoordinateShape* oneCoordShape = m_annotation->castToOneCoordinateShape();
+    AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
     
-    if (oneDimShape != NULL) {
-        setCoordinate(oneDimShape->getEndCoordinate(),
+    if (twoCoordShape != NULL) {
+        setCoordinate(twoCoordShape->getEndCoordinate(),
                       mouseWindowX,
                       mouseWindowY);
     }
-    else if (twoDimShape != NULL) {
+    else if (oneCoordShape != NULL) {
         const float minX = std::min(m_mousePressWindowX,
                                     mouseWindowX);
         const float maxX = std::max(m_mousePressWindowX,
@@ -2112,10 +2139,15 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const int32_t mou
                                               ? (height / static_cast<float>(m_windowHeight))
                                               : 0.01);
         
-        AnnotationCoordinate* coord = twoDimShape->getCoordinate();
+        AnnotationCoordinate* coord = oneCoordShape->getCoordinate();
         setCoordinate(coord, x, y);
-        twoDimShape->setWidth(relativeWidth);
-        twoDimShape->setHeight(relativeHeight);
+        oneCoordShape->setWidth(relativeWidth);
+        oneCoordShape->setHeight(relativeHeight);
+    }
+    else if (multiCoordShape != NULL) {
+        AnnotationCoordinate* ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+        setCoordinate(ac, mouseWindowX, mouseWindowY);
+        multiCoordShape->addCoordinate(ac);
     }
     else {
         CaretAssert(0);
