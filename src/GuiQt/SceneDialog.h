@@ -355,7 +355,7 @@ namespace caret {
     bool SceneDialog::s_informUserAboutScenesOnExitFlag = true;
     bool SceneDialog::s_warnUserWhenCreatingSceneFlag = true;
     bool SceneDialog::s_useSceneForegroundBackgroundColorsFlag = true;
-    int32_t SceneClassInfoWidget::s_scrollableDescriptionMode = 0;
+    int32_t SceneClassInfoWidget::s_scrollableDescriptionMode = 2;
     
 #endif // __SCENE_DIALOG_DECLARE__
 
