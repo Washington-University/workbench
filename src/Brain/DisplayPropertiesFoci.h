@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include "BrainConstants.h"
 #include "CaretColorEnum.h"
 #include "DisplayGroupEnum.h"
