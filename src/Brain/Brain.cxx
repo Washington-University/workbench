@@ -8332,6 +8332,15 @@ Brain::setSurfaceMatchingToAnatomical(const bool matchStatus)
     }
 }
 
+/**
+ * @return The active scene (NULL if no active scene)
+ */
+const Scene*
+Brain::getActiveScene() const
+{
+    return m_activeScene;
+}
+
 
 
 

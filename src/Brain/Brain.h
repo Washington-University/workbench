@@ -465,6 +465,8 @@ namespace caret {
         
         std::unique_ptr<CaretResult> getBaseDirectoryForLoadedDataFiles(AString& baseDirectoryOut) const;
         
+        const Scene* getActiveScene() const;
+        
     private:
         /**
          * Reset the brain scene file mode

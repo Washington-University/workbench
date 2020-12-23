@@ -1900,17 +1900,20 @@ GuiManager::sceneDialogDisplayMenuAboutToShow()
 {
     m_sceneDialogDisplayActionMenu->clear();
     
+    const Scene* activeScene = getBrain()->getActiveScene();
     if (this->sceneDialog != NULL) {
         SceneFile* sceneFile = this->sceneDialog->getSelectedSceneFile();
         if (sceneFile != NULL) {
             const int32_t numScenes = sceneFile->getNumberOfScenes();
             for (int32_t i = 0; i < numScenes; i++) {
-                Scene* scene = sceneFile->getSceneAtIndex(i);
+                const Scene* scene = sceneFile->getSceneAtIndex(i);
                 CaretAssert(scene);
                 const AString name("(" + AString::number(i+1) + "): "
                                    + scene->getName());
                 QAction* action = m_sceneDialogDisplayActionMenu->addAction(name);
                 action->setData(i);
+                action->setCheckable(true);
+                action->setChecked(scene == activeScene);
             }
         }
     }
