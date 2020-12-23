@@ -375,10 +375,10 @@ IdentificationSymbolSizeTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNam
  * Get tooltip for use in GUI.
  */
 AString
-IdentificationSymbolSizeTypeEnum::getToolTip()
+IdentificationSymbolSizeTypeEnum::getToolTip(const AString& symbolTypeName)
 {
     AString tt("<html>"
-               "Select method for sizing identification symbols."
+               "Select method for sizing YYYY symbols."
                "<ul>");
     
     std::vector<IdentificationSymbolSizeTypeEnum::Enum> allEnums;
@@ -388,20 +388,29 @@ IdentificationSymbolSizeTypeEnum::getToolTip()
         tt.append("<li>" + toGuiName(e) + " - ");
         switch (e) {
             case MILLIMETERS:
-                tt.append("Symbols are sized in millimeters.  If viewing brains of different sizes "
-                          "(different species; child vs adult), the identification symbols appear larger "
+                tt.append("XXXX symbols are sized in millimeters.  If viewing brains of different sizes "
+                          "(different species; child vs adult), the YYYY symbols appear larger "
                           "on smaller brains (monkey, child) and smaller on larger brains (human, adult).");
                 break;
             case PERCENTAGE:
-                tt.append("Symbols are sized as a percentage of the maximum brain dimension (typically "
+                tt.append("XXXX symbols are sized as a percentage of the maximum brain dimension (typically "
                           "the Anterior-Posterior axis).  "
-                          "Thus, the symbols are drawn in a similar size on all brains.");
+                          "Thus, the YYYY symbols are drawn in a proportional size on all brains.");
                 break;
         }
     }
     tt.append("</ul>");
-    tt.append("Zooming a surface or volume always affects the drawn size of the identification symbol.");
+    tt.append("Zooming a surface or volume always affects the drawn size of the YYYY symbols.");
     tt.append("</html>");
+    
+    if ( ! symbolTypeName.isEmpty()) {
+        AString upperCase(symbolTypeName);
+        upperCase[0] = upperCase[0].toUpper();
+        AString lowerCase(symbolTypeName);
+        lowerCase[0] = lowerCase[0].toLower();
+        tt = tt.replace("XXXX", upperCase);
+        tt = tt.replace("YYYY", lowerCase);
+    }
     
     return tt;
 }

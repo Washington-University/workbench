@@ -62,7 +62,7 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
-    static AString getToolTip();
+    static AString getToolTip(const AString& symbolTypeName);
     
 private:
     IdentificationSymbolSizeTypeEnum(const Enum enumValue, 

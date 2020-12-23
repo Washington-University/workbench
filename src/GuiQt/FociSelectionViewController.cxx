@@ -243,7 +243,7 @@ FociSelectionViewController::createAttributesWidget()
     m_symbolSizeTypeComboBox->setup<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>();
     QObject::connect(m_symbolSizeTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &FociSelectionViewController::symbolSizeTypeComboBoxActivated);
-    m_symbolSizeTypeComboBox->setToolTip(IdentificationSymbolSizeTypeEnum::getToolTip());
+    m_symbolSizeTypeComboBox->setToolTip(IdentificationSymbolSizeTypeEnum::getToolTip("focus"));
 
     QLabel* pointSizeLabel = new QLabel("Symbol Diameter");
     m_sizeSpinBox = WuQFactory::newDoubleSpinBox();

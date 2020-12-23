@@ -549,7 +549,7 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolSizeTypeComboBox->setup<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>();
     QObject::connect(m_symbolSizeTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &IdentificationDisplayWidget::symbolSizeTypeComboBoxActivated);
-    m_symbolSizeTypeComboBox->setToolTip(IdentificationSymbolSizeTypeEnum::getToolTip());
+    m_symbolSizeTypeComboBox->setToolTip(IdentificationSymbolSizeTypeEnum::getToolTip("identification"));
     
     QLabel* symbolDiameterLabel = new QLabel("Diameter:");
     m_symbolsIdDiameterSpinBox = new QDoubleSpinBox();
