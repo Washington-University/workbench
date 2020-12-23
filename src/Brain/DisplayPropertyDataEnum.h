@@ -24,6 +24,7 @@
 #include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretObject.h"
+#include "CaretPointer.h"
 #include "DisplayGroupEnum.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"

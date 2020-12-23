@@ -25,12 +25,15 @@
 #include "CaretColorEnum.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
+#include "DisplayPropertyDataEnum.h"
 #include "FeatureColoringTypeEnum.h"
 #include "FociDrawingProjectionTypeEnum.h"
 #include "FociDrawingTypeEnum.h"
+#include "IdentificationSymbolSizeTypeEnum.h"
 
 namespace caret {
-
+    class DisplayPropertyDataFloat;
+    
     class DisplayPropertiesFoci : public DisplayProperties {
         
     public:
@@ -64,12 +67,26 @@ namespace caret {
         void setDisplayGroupForTab(const int32_t browserTabIndex,
                              const DisplayGroupEnum::Enum  displayGroup);
         
-        float getFociSize(const DisplayGroupEnum::Enum displayGroup,
-                          const int32_t tabIndex) const;
+        IdentificationSymbolSizeTypeEnum::Enum getFociSymbolSizeType(const DisplayGroupEnum::Enum displayGroup,
+                                                                     const int32_t tabIndex) const;
         
-        void setFociSize(const DisplayGroupEnum::Enum displayGroup,
-                         const int32_t tabIndex,
-                         const float pointSize);
+        void setFociSymbolSizeType(const DisplayGroupEnum::Enum displayGroup,
+                                   const int32_t tabIndex,
+                                   const IdentificationSymbolSizeTypeEnum::Enum sizeType);
+
+        float getFociSizeMillimeters(const DisplayGroupEnum::Enum displayGroup,
+                                     const int32_t tabIndex) const;
+        
+        void setFociSizeMillimeters(const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex,
+                                    const float pointSize);
+        
+        float getFociSizePercentage(const DisplayGroupEnum::Enum displayGroup,
+                                    const int32_t tabIndex) const;
+        
+        void setFociSizePercentage(const DisplayGroupEnum::Enum displayGroup,
+                                   const int32_t tabIndex,
+                                   const float pointSize);
         
         FeatureColoringTypeEnum::Enum getColoringType(const DisplayGroupEnum::Enum displayGroup,
                                                    const int32_t tabIndex) const;
@@ -132,6 +149,10 @@ namespace caret {
         bool m_pasteOntoSurfaceInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         bool m_pasteOntoSurfaceInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        DisplayPropertyDataEnum<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum> m_fociSymbolSizeType;
+        
+        std::unique_ptr<DisplayPropertyDataFloat> m_fociSizePercentage;
         
         float m_fociSizeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         

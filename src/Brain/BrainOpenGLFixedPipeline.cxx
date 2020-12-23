@@ -3645,8 +3645,24 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             break;
     }
     
-    const float focusDiameter = fociDisplayProperties->getFociSize(displayGroup,
-                                                                 this->windowTabIndex);
+    float focusDiameter(1.0);
+    switch (fociDisplayProperties->getFociSymbolSizeType(displayGroup,
+                                                         this->windowTabIndex)) {
+        case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+            focusDiameter = fociDisplayProperties->getFociSizeMillimeters(displayGroup,
+                                                                          this->windowTabIndex);
+            break;
+        case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+        {
+            focusDiameter = fociDisplayProperties->getFociSizePercentage(displayGroup,
+                                                                         this->windowTabIndex);
+            BoundingBox boundingBox;
+            surface->getBounds(boundingBox);
+            const float maxDiff(boundingBox.getMaximumDifferenceOfXYZ());
+            focusDiameter = maxDiff * (focusDiameter / 100.0);
+        }
+            break;
+    }
     const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
                                                                                                this->windowTabIndex);
     

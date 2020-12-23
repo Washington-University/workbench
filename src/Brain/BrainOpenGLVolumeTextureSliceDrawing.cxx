@@ -1403,7 +1403,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
                                            m_fixedPipelineDrawing->windowTabIndex) == false) {
         return;
     }
-    const float focusDiameter = fociDisplayProperties->getFociSize(displayGroup,
+    const float focusDiameter = fociDisplayProperties->getFociSizeMillimeters(displayGroup,
                                                                    m_fixedPipelineDrawing->windowTabIndex);
     const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
                                                                                                   m_fixedPipelineDrawing->windowTabIndex);

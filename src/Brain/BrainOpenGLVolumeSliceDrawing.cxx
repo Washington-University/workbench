@@ -2904,8 +2904,27 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
                                            m_fixedPipelineDrawing->windowTabIndex) == false) {
         return;
     }
-    const float focusDiameter = fociDisplayProperties->getFociSize(displayGroup,
-                                                                   m_fixedPipelineDrawing->windowTabIndex);
+//    const float focusDiameter = fociDisplayProperties->getFociSizeMillimeters(displayGroup,
+//                                                                   m_fixedPipelineDrawing->windowTabIndex);
+    float focusDiameter(1.0);
+    switch (fociDisplayProperties->getFociSymbolSizeType(displayGroup,
+                                                         m_fixedPipelineDrawing->windowTabIndex)) {
+        case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+            focusDiameter = fociDisplayProperties->getFociSizeMillimeters(displayGroup,
+                                                                          m_fixedPipelineDrawing->windowTabIndex);
+            break;
+        case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+        {
+            focusDiameter = fociDisplayProperties->getFociSizePercentage(displayGroup,
+                                                                         m_fixedPipelineDrawing->windowTabIndex);
+            BoundingBox boundingBox;
+            underlayVolume->getVoxelSpaceBoundingBox(boundingBox);
+            const float maxDimension = boundingBox.getMaximumDifferenceOfXYZ();
+            focusDiameter = maxDimension * (focusDiameter / 100.0);
+        }
+            break;
+    }
+    
     const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
                                                                                                   m_fixedPipelineDrawing->windowTabIndex);
     

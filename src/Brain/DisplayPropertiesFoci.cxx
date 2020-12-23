@@ -24,6 +24,7 @@
 #undef __DISPLAY_PROPERTIES_FOCI_DECLARE__
 
 #include "CaretAssert.h"
+#include "DisplayPropertyDataFloat.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -43,10 +44,15 @@ using namespace caret;
 DisplayPropertiesFoci::DisplayPropertiesFoci()
 : DisplayProperties()
 {
-    resetPrivate();
-    
     const CaretColorEnum::Enum defaultColor = CaretColorEnum::BLACK;
     
+    m_fociSizePercentage.reset(new DisplayPropertyDataFloat(4.0));
+    m_fociSymbolSizeType.initialize(IdentificationSymbolSizeTypeEnum::MILLIMETERS);
+    resetPrivate();
+    
+    m_sceneAssistant->add("m_fociSizePercentage", "DisplayPropertyDataFloat", m_fociSizePercentage.get());
+    m_sceneAssistant->add("m_fociSymbolSizeType", "DisplayPropertyDataEnum", &m_fociSymbolSizeType);
+
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
     m_sceneAssistant->addTabIndexedBooleanArray("m_pasteOntoSurfaceInTab", 
@@ -171,6 +177,9 @@ DisplayPropertiesFoci::resetPrivate()
         m_drawingProjectionTypeInDisplayGroup[i] = FociDrawingProjectionTypeEnum::PROJECTED;
         m_standardColorTypeInDisplayGroup[i] = defaultColor;
     }
+    
+    m_fociSizePercentage->setAllValues(4.0);
+    m_fociSymbolSizeType.setAllValues(IdentificationSymbolSizeTypeEnum::MILLIMETERS);
 }
 
 /**
@@ -310,12 +319,48 @@ DisplayPropertiesFoci::setDisplayGroupForTab(const int32_t browserTabIndex,
 }
 
 /**
+ * @return  Size type for foci symbol
+ * @param displayGroup
+ *     Display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+IdentificationSymbolSizeTypeEnum::Enum
+DisplayPropertiesFoci::getFociSymbolSizeType(const DisplayGroupEnum::Enum displayGroup,
+                                             const int32_t tabIndex) const
+{
+    return m_fociSymbolSizeType.getValue(displayGroup,
+                                         tabIndex);
+}
+
+/**
+ * Set the foci size to the given value.
+ * @param displayGroup
+ *     Display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param sizeType
+ *     Size type for foci symbol.
+ */
+void
+DisplayPropertiesFoci::setFociSymbolSizeType(const DisplayGroupEnum::Enum displayGroup,
+                                             const int32_t tabIndex,
+                                             const IdentificationSymbolSizeTypeEnum::Enum sizeType)
+{
+    m_fociSymbolSizeType.setValue(displayGroup,
+                                  tabIndex,
+                                  sizeType);
+}
+
+/**
  * @return The foci size.
  * @param displayGroup
  *     Display group.
+ * @param tabIndex
+ *     Index of the tab
  */
 float 
-DisplayPropertiesFoci::getFociSize(const DisplayGroupEnum::Enum displayGroup,
+DisplayPropertiesFoci::getFociSizeMillimeters(const DisplayGroupEnum::Enum displayGroup,
                                    const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_fociSizeInDisplayGroup, 
@@ -334,11 +379,13 @@ DisplayPropertiesFoci::getFociSize(const DisplayGroupEnum::Enum displayGroup,
  * Set the foci size to the given value.
  * @param displayGroup
  *     Display group.
+ * @param tabIndex
+ *     Index of the tab
  * @param fociSize
  *     New value for foci size.
  */
 void 
-DisplayPropertiesFoci::setFociSize(const DisplayGroupEnum::Enum displayGroup,
+DisplayPropertiesFoci::setFociSizeMillimeters(const DisplayGroupEnum::Enum displayGroup,
                                    const int32_t tabIndex,
                                    const float fociSize)
 {
@@ -354,6 +401,40 @@ DisplayPropertiesFoci::setFociSize(const DisplayGroupEnum::Enum displayGroup,
     else {
         m_fociSizeInDisplayGroup[displayGroup] = fociSize;
     }
+}
+
+/**
+ * @return The foci size.
+ * @param displayGroup
+ *     Display group.
+ * @param tabIndex
+ *     Index of the tab
+ */
+float
+DisplayPropertiesFoci::getFociSizePercentage(const DisplayGroupEnum::Enum displayGroup,
+                            const int32_t tabIndex) const
+{
+    return m_fociSizePercentage->getValue(displayGroup,
+                                          tabIndex);
+}
+
+/**
+ * Set the foci size to the given value.
+ * @param displayGroup
+ *     Display group.
+ * @param tabIndex
+ *     Index of the tab
+ * @param fociSize
+ *     New value for foci size.
+ */
+void
+DisplayPropertiesFoci::setFociSizePercentage(const DisplayGroupEnum::Enum displayGroup,
+                           const int32_t tabIndex,
+                           const float pointSize)
+{
+    m_fociSizePercentage->setValue(displayGroup,
+                                   tabIndex,
+                                   pointSize);
 }
 
 /**
