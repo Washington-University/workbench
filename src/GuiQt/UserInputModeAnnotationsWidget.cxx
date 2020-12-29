@@ -275,14 +275,6 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
                                                                 m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
     
-//    /*
-//     * Connect signals for setting a coordinate with the mouse.
-//     */
-//    QObject::connect(m_coordinateOneWidget, SIGNAL(signalSelectCoordinateWithMouse()),
-//                     this, SLOT(selectCoordinateOneWithMouse()));
-//    QObject::connect(m_coordinateTwoWidget, SIGNAL(signalSelectCoordinateWithMouse()),
-//                     this, SLOT(selectCoordinateTwoWithMouse()));
-    
     /*
      * Layout top row of widgets
      */
@@ -378,7 +370,11 @@ UserInputModeAnnotationsWidget::updateWidget()
      * Show the proper widget
      */
     switch (m_inputModeAnnotations->getMode()) {
-        case UserInputModeAnnotations::MODE_NEW_WITH_CLICK:
+        case UserInputModeAnnotations::MODE_NEW_WITH_DRAG_START:
+            break;
+        case UserInputModeAnnotations::MODE_NEW_WITH_CLICK_SERIES:
+            break;
+        case UserInputModeAnnotations::MODE_NEW_WITH_CLICK_SERIES_START:
             break;
         case UserInputModeAnnotations::MODE_NEW_WITH_DRAG:
             break;

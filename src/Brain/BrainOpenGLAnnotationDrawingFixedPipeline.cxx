@@ -4702,10 +4702,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyLine(AnnotationFile* annotati
     if (polyLine->getLineWidthPercentage() <= 0.0) {
         convertObsoleteLineWidthPixelsToPercentageWidth(polyLine);
     }
-    const float lineWidth = getLineWidthFromPercentageHeight(polyLine->getLineWidthPercentage());
-    
     primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                            lineWidth);
+                            polyLine->getLineWidthPercentage());
     
     BoundingBox boundingBox;
     primitive->getVertexBounds(boundingBox);

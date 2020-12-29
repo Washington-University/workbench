@@ -77,6 +77,8 @@ using namespace caret;
  *
  * @param mouseEvent
  *     The mouse event indicating where user clicked in the window
+ * @param drawingCoordinates
+ *     Coordinates of annotation that was drawn
  * @param annotationSpace
  *      Space of annotation being created.
  * @param annotationType
@@ -89,12 +91,14 @@ using namespace caret;
  */
 Annotation*
 AnnotationCreateDialog::newAnnotationFromSpaceAndType(const MouseEvent& mouseEvent,
+                                                      const std::vector<Vector3D>& drawingCoordinates,
                                                       const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                       const AnnotationTypeEnum::Enum annotationType,
                                                       AnnotationFile* annotationFile)
 {
     Annotation* newAnnotation = newAnnotationFromSpaceTypeAndCoords(MODE_NEW_ANNOTATION_TYPE_CLICK,
                                                                     mouseEvent,
+                                                                    drawingCoordinates,
                                                                     annotationSpace,
                                                                     annotationType,
                                                                     annotationFile);
@@ -109,6 +113,8 @@ AnnotationCreateDialog::newAnnotationFromSpaceAndType(const MouseEvent& mouseEve
  *
  * @param mouseEvent
  *     The mouse event indicating where user clicked in the window
+ * @param drawingCoordinates
+ *     Coordinates of annotation that was drawn
  * @param annotationSpace
  *      Space of annotation being created.
  * @param annotationType
@@ -121,12 +127,14 @@ AnnotationCreateDialog::newAnnotationFromSpaceAndType(const MouseEvent& mouseEve
  */
 Annotation*
 AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mouseEvent,
-                                                       const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-                                                       const AnnotationTypeEnum::Enum annotationType,
-                                                       AnnotationFile* annotationFile)
+                                                            const std::vector<Vector3D>& drawingCoordinates,
+                                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                            const AnnotationTypeEnum::Enum annotationType,
+                                                            AnnotationFile* annotationFile)
 {
     Annotation* newAnnotation = newAnnotationFromSpaceTypeAndCoords(MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
                                                                      mouseEvent,
+                                                                    drawingCoordinates,
                                                                      annotationSpace,
                                                                      annotationType,
                                                                      annotationFile);
@@ -142,6 +150,8 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mo
  *     The mode.
  * @param mouseEvent
  *     The mouse event indicating where user clicked in the window
+ *@param drawingCoordinates
+ *     Coordinates of annotation that was drawn
  * @param annotationSpace
  *      Space of annotation being created.
  * @param annotationType
@@ -159,6 +169,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mo
 Annotation*
 AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
                                                             const MouseEvent& mouseEvent,
+                                                            const std::vector<Vector3D>& drawingCoordinates,
                                                             const AnnotationCoordinateSpaceEnum::Enum annotationSpaceIn,
                                                             const AnnotationTypeEnum::Enum annotationType,
                                                             AnnotationFile* annotationFile)
@@ -173,6 +184,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
     }
     
     NewAnnotationInfo newInfo(mouseEvent,
+                              drawingCoordinates,
                               annotationSpaceIn,
                               annotationType,
                               useBothFlag,
@@ -863,6 +875,8 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
  *
  * @param mouseEvent
  *     The mouse event.
+ * @param drawingCoordinates
+ *     Coordinates of annotation that was drawn
  * @param selectedSpace
  *     The space selected by the user.
  * @param annotationType
@@ -873,6 +887,7 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
  *     File to which annotation is added.
  */
 AnnotationCreateDialog::NewAnnotationInfo::NewAnnotationInfo(const MouseEvent& mouseEvent,
+                                                             const std::vector<Vector3D>& drawingCoordinates,
                                                              const AnnotationCoordinateSpaceEnum::Enum selectedSpace,
                                                              const AnnotationTypeEnum::Enum annotationType,
                                                              const bool useBothCoordinatesFromMouseFlag,
@@ -916,15 +931,31 @@ m_annotationFile(annotationFile)
     }
     
     if (multiCoordAnnFlag) {
-        const int32_t numXY(mouseEvent.getXyHistoryCount());
-        for (int32_t i = 0; i < numXY; i++) {
-            const auto xy(mouseEvent.getHistoryAtIndex(i));
-            std::unique_ptr<AnnotationCoordinateInformation> ptr(new AnnotationCoordinateInformation());
-            AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
-                                                                               xy.m_x,
-                                                                               xy.m_y,
-                                                                               *ptr.get());
-            m_coordMultiInfo.push_back(std::move(ptr));
+        const bool newFlag(true);
+        if (newFlag) {
+            for (const auto& vec3D : drawingCoordinates) {
+               std::unique_ptr<AnnotationCoordinateInformation> ptr(new AnnotationCoordinateInformation());
+                AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
+                                                                                   vec3D[0],
+                                                                                   vec3D[1],
+                                                                                   *ptr.get());
+                m_coordMultiInfo.push_back(std::move(ptr));
+            }
+            
+            AnnotationCoordinateInformation::getValidCoordinateSpaces(m_coordMultiInfo,
+                                                                      m_validSpaces);
+        }
+        else {
+            const int32_t numXY(mouseEvent.getXyHistoryCount());
+            for (int32_t i = 0; i < numXY; i++) {
+                const auto xy(mouseEvent.getHistoryAtIndex(i));
+                std::unique_ptr<AnnotationCoordinateInformation> ptr(new AnnotationCoordinateInformation());
+                AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
+                                                                                   xy.m_x,
+                                                                                   xy.m_y,
+                                                                                   *ptr.get());
+                m_coordMultiInfo.push_back(std::move(ptr));
+            }
         }
         
         AnnotationCoordinateInformation::getValidCoordinateSpaces(m_coordMultiInfo,
