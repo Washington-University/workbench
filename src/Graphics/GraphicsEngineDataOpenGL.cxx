@@ -36,6 +36,7 @@
 #include "GraphicsOpenGLTextureName.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveSelectionHelper.h"
+#include "GraphicsPrimitiveV3f.h"
 #include "GraphicsShape.h"
 #include "GraphicsUtilitiesOpenGL.h"
 #include "Matrix4x4.h"
@@ -573,6 +574,56 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
         case GraphicsPrimitive::PrimitiveType::SPHERES:
             spheresFlag = true;
             break;
+    }
+    
+    if (modelSpaceLineFlag
+        || windowSpaceLineFlag) {
+        if (primitive->getNumberOfVertices() == 1) {
+            spheresFlag = true;
+            
+            uint8_t rgba[4];
+            switch (primitive->getColorDataType()) {
+                case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
+                {
+                    float rgbaFloat[4];
+                    primitive->getVertexFloatRGBA(0, rgbaFloat);
+                    for (int32_t i = 0; i < 4; i++) {
+                        rgba[i] = static_cast<uint8_t>(rgbaFloat[i] / 255.0);
+                    }
+                }
+                    break;
+                case GraphicsPrimitive::ColorDataType::NONE:
+                    break;
+                case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
+                    primitive->getVertexByteRGBA(0, rgba);
+                    break;
+            }
+            float sphereXYZ[3];
+            primitive->getVertexFloatXYZ(0, sphereXYZ);
+            GraphicsPrimitive::LineWidthType lineWidthType;
+            float lineWidth;
+            primitive->getLineWidth(lineWidthType, lineWidth);
+            std::unique_ptr<GraphicsPrimitiveV3f> pointPrimitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS,
+                                                                                                     rgba));
+            pointPrimitive->addVertex(sphereXYZ);
+            
+            GraphicsPrimitive::PointSizeType pointSizeType(GraphicsPrimitive::PointSizeType::PIXELS);
+            switch (lineWidthType) {
+                case GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT:
+                    pointSizeType = GraphicsPrimitive::PointSizeType::PERCENTAGE_VIEWPORT_HEIGHT;
+                    break;
+                case GraphicsPrimitive::LineWidthType::PIXELS:
+                    pointSizeType = GraphicsPrimitive::PointSizeType::PIXELS;
+                    break;
+            }
+            pointPrimitive->setPointDiameter(pointSizeType,
+                                             lineWidth);
+
+            drawPrivate(PrivateDrawMode::DRAW_NORMAL,
+                        pointPrimitive.get(),
+                        NULL);
+            return;
+        }
     }
     
     if (millimeterPointsFlag) {
