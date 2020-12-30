@@ -269,7 +269,13 @@ AnnotationImage::setVertexBounds(const float bottomLeft[3],
                                  const float topLeft[3])
 {
     GraphicsPrimitiveV3fT3f* primitive = getGraphicsPrimitive();
-    CaretAssert(primitive);
+    if (primitive == NULL) {
+        /*
+         * Primitive will be invalid if when user is dragging mouse
+         * to create the annotation.
+         */
+        return;
+    }
     
     CaretAssert(primitive->getNumberOfVertices() == 4);
 

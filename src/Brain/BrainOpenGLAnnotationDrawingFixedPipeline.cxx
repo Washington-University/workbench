@@ -4019,10 +4019,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
     if ((imageWidth > 0)
         && (imageHeight > 0)
         && (imageRgbaBytes != NULL)) {
-        
+        /* OK */
     }
     else {
-        CaretLogWarning("Attempt to draw invalid image annotation.");
+        /*
+         * This will occur when the user is dragging the mouse to ceate
+         * an image annotation.  Continue processing so that a box
+         * outline is drawn.
+         */
+        CaretLogFine("Image annotation is invalid for drawing.  This will "
+                     "occur when user is dragging mouse to create image annotation.  ");
     }
 
     float annXYZ[3];
