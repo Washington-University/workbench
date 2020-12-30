@@ -392,12 +392,6 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                 case AnnotationTypeEnum::OVAL:
                     break;
                 case AnnotationTypeEnum::POLY_LINE:
-                    delete newAnnotation;
-                    newAnnotation = NULL;
-                    errorMessageOut = ("A poly line annotation cannot be created from a mouse click in "
-                                       + AnnotationCoordinateSpaceEnum::toGuiName(annotationSpace)
-                                       + " coordinate space.   Hold the mouse down, drag the mouse, and then release the mouse.");
-                    return NULL;
                     break;
                 case AnnotationTypeEnum::SCALE_BAR:
                     break;
@@ -421,10 +415,36 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
             }
         }
         
+        int32_t tabIndex(newAnnotationInfo.m_coordOneInfo.m_tabSpaceInfo.m_index);
+        switch (newAnnotationInfo.m_annotationType) {
+            case AnnotationTypeEnum::BOX:
+                break;
+            case AnnotationTypeEnum::BROWSER_TAB:
+                break;
+            case AnnotationTypeEnum::COLOR_BAR:
+                break;
+            case AnnotationTypeEnum::IMAGE:
+                break;
+            case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::OVAL:
+                break;
+            case AnnotationTypeEnum::POLY_LINE:
+                if (annotationSpace == AnnotationCoordinateSpaceEnum::CHART) {
+                    if ( ! newAnnotationInfo.m_coordMultiInfo.empty()) {
+                        tabIndex = newAnnotationInfo.m_coordMultiInfo[0]->m_tabSpaceInfo.m_index;
+                    }
+                }
+                break;
+            case AnnotationTypeEnum::SCALE_BAR:
+                break;
+            case AnnotationTypeEnum::TEXT:
+                break;
+        }
         finishAnnotationCreation(newAnnotationInfo.m_annotationFile,
                                  newAnnotation,
                                  newAnnotationInfo.m_mouseEvent.getBrowserWindowIndex(),
-                                 newAnnotationInfo.m_coordOneInfo.m_tabSpaceInfo.m_index);
+                                 tabIndex);
         return newAnnotation;
     }
     
@@ -641,7 +661,7 @@ AnnotationCreateDialog::selectImageButtonClicked()
     fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilterForReading(DataFileTypeEnum::IMAGE));
     fd.setFileMode(CaretFileDialog::ExistingFile);
     fd.setViewMode(CaretFileDialog::List);
-    fd.setLabelText(CaretFileDialog::Accept, "Choose"); // OK button shows Insert
+    fd.setLabelText(CaretFileDialog::Accept, "Choose"); /* OK button shows Insert */
     fd.restoreDialogSettings(fileDialogSettingsName);
     
     AString errorMessages;
@@ -1007,8 +1027,6 @@ m_annotationFile(annotationFile)
             case AnnotationTypeEnum::OVAL:
                 break;
             case AnnotationTypeEnum::POLY_LINE:
-                CaretAssertToDoWarning();
-                addSecondCoordFlag = true;
                 break;
             case AnnotationTypeEnum::SCALE_BAR:
                 break;

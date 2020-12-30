@@ -165,16 +165,20 @@ std::vector<AnnotationCoordinate*>
 AnnotationCoordinateCenterXYWidget::getSelectedCoordinates()
 {
     std::vector<AnnotationCoordinate*> coordsOut;
+ 
+    /*
+     * Do not allow editing of a multi-coord annotation's coordinates
+     */
+    for (auto ann : m_annotations) {
+        if (ann->castToMultiCoordinateShape() != NULL) {
+            return coordsOut;
+        }
+    }
     
     for (auto ann : m_annotations) {
         AnnotationTwoCoordinateShape* twoCoordShape = ann->castToTwoCoordinateShape();
         AnnotationOneCoordinateShape* oneCoordShape = ann->castToOneCoordinateShape();
-        AnnotationMultiCoordinateShape* multiCoordShape = ann->castToMultiCoordinateShape();
-        
-        if (multiCoordShape != NULL) {
-            CaretAssertToDoWarning();
-        }
-        
+
         AnnotationCoordinate* ac(NULL);
         switch (m_whichCoordinate) {
             case COORDINATE_ONE:
@@ -314,7 +318,10 @@ AnnotationCoordinateCenterXYWidget::processValueChanged(QDoubleSpinBox* spinBox,
             AnnotationMultiCoordinateShape* multiCoordShape = ann->castToMultiCoordinateShape();
             
             if (multiCoordShape != NULL) {
-                CaretAssertToDoWarning();
+                /*
+                 * Skip
+                 */
+                continue;
             }
 
             AnnotationCoordinate* ac(NULL);
@@ -332,9 +339,7 @@ AnnotationCoordinateCenterXYWidget::processValueChanged(QDoubleSpinBox* spinBox,
                         ac = twoCoordShape->getEndCoordinate();
                     }
                     break;
-            }
-            //  until multi-coord shape updated: CaretAssert(ac);
-            
+            }            
             
             AnnotationCoordinate coordinateCopy(*ac);
             float xyz[3];
