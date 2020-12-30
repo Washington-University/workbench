@@ -475,8 +475,104 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
     
     action->setData(AnnotationTypeEnum::toIntegerCode(annotationType));
     
-    action->setToolTip(typeGuiName
-                       + " annotation");
+//    AString toolTipText(typeGuiName
+//                        + " annotation");
+    AString typeText;
+    AString clickText;
+    AString dragText;
+    switch (annotationType) {
+        case AnnotationTypeEnum::BOX:
+            typeText = "Box Annotation";
+            clickText = ("Click the mouse to create a box with a default size.  "
+                         "Change the box by moving its corners or edges.");
+            dragText = ("Press and hold the left mouse button down at a corner of the box.  "
+                        "While continuing to hold the mouse button down, drag the mouse to "
+                        "another corner of the box and release the mouse button to create the box.");
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            CaretAssert(0);
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            CaretAssert(0);
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            typeText = "Image Annotation";
+            clickText = ("Click the mouse and a dialog is displayed.  In the dialog, click the "
+                         "Choose Image File button and select an image file.  Click the OK button "
+                         "to finish creation of the image annotation.  Adjust the size of the image "
+                         "by moving the edges or corners.");
+            dragText = ("Press and hold the left mouse button down at a corner for the image.  "
+                        "While continuing to hold the mouse button down, drag the mouse to "
+                        "another corner for the image and release the mouse button.  In the "
+                        "dialog that is displayed, click the "
+                        "Choose Image File button and select an image file.  Click the OK button "
+                        "to finish creation of the image annotation.");
+            break;
+        case AnnotationTypeEnum::LINE:
+            typeText = "Line Segment Annotation";
+            clickText = ("Click the mouse to create a line with a default size.  "
+                         "Change the line by moving its end points.");
+            dragText = ("Press and hold the left mouse button down at one end of the line.  "
+                        "While continuing to hold the mouse button down, drag the mouse to "
+                        "the other end of the line and release the mouse button to create the line.");
+
+            break;
+        case AnnotationTypeEnum::OVAL:
+            typeText = "Oval Annotation";
+            clickText = ("Click the mouse to create an oval with a default size.  "
+                         "Change the oval by moving the bounds of the oval.");
+            dragText = ("Press and hold the left mouse button down at a side of the oval.  "
+                        "While continuing to hold the mouse button down, drag the mouse to "
+                        "another side of the oval and release the mouse button to create the oval.");
+            break;
+        case AnnotationTypeEnum::POLY_LINE:
+            typeText = ("Polyline Annotation.  A polyline is a series of line segments connected at their end points.");
+            clickText = ("Move and click (press and release) the left mouse to create each of the vertices of the connected lines.  "
+                         "SHIFT-click the mouse to set the last vertex and finish creation of the polyline.  "
+                         "Pressing the ESC key will cancel creation of the polyline.");
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            CaretAssert(0);
+            break;
+        case AnnotationTypeEnum::TEXT:
+        {
+            typeText = "Text Annotation";
+            clickText = ("Click the mouse at the location for the text.  After the mouse is clicked, "
+                         "a dialog is displayed for entry of the text.  Enter text in the dialog "
+                         "and click the OK button to finish.  The resulting text is offset from the mouse-click location using the "
+                         "current Text Alignment and Orientation selections in the toolbar.");
+            dragText = ("Press and hold the left mouse button down at a box corner for the text.  "
+                        "While continuing to hold the mouse button down, drag the mouse to "
+                        "another corner of the box and release the mouse button.  In the dialog "
+                        "that appears, enter the text and click the OK button to finish.  "
+                        "The Text Alignment and Orientation options affect the location of the "
+                        "text within the box formed by the mouse actions.");
+        }
+            break;
+    }
+    
+    AString toolTip("<html>");
+    if ( ! typeText.isEmpty()) {
+        toolTip.appendWithNewLine(typeText + "<p>");
+    }
+    if ( ( ! clickText.isEmpty())
+        && ( ! dragText.isEmpty())) {
+        toolTip.appendWithNewLine("There are two methods for creating this type of annotation.<p> ");
+        clickText.insert(0, "(1) ");
+        dragText.insert(0, "(2) ");
+    }
+    if ( ! clickText.isEmpty()) {
+        toolTip.appendWithNewLine(clickText);
+    }
+    if ( ! dragText.isEmpty()) {
+        if ( ! clickText.isEmpty()) {
+            toolTip.appendWithNewLine("<p>");
+        }
+        toolTip.appendWithNewLine(dragText);
+    }
+    toolTip.appendWithNewLine("</html>");
+    
+    action->setToolTip(toolTip);
 
     action->setCheckable(true);
     action->setChecked(false);
