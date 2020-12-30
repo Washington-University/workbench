@@ -901,6 +901,13 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
         this->drawModelInternal(MODE_DRAWING,
                                 vpContent);
         
+        if (vpContent->getSpacerTabContent() != NULL) {
+            drawSpacerAnnotations(vpContent);
+        }
+        else {
+            drawTabAnnotations(vpContent);
+        }
+        
         /*
          * Draw border in foreground color around tab that is highlighted
          * in Tile Tabs when user selects a tab.
@@ -919,27 +926,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
          * everything else.
          */
         glClear(GL_DEPTH_BUFFER_BIT);
-        
-        for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
-            /*
-             * Viewport of window.
-             */
-            const BrainOpenGLViewportContent* vpContent = viewportContents[i];
-            setTabViewport(vpContent);
-            
-            /*
-             * Update foreground and background colors for model
-             */
-            updateForegroundAndBackgroundColors(vpContent);
-            
-            if (vpContent->getSpacerTabContent() != NULL) {
-                drawSpacerAnnotations(vpContent);
-            }
-            else {
-                drawTabAnnotations(vpContent);
-            }
-        }
-        
+                
         /*
          * Draw window viewport annotations
          */
