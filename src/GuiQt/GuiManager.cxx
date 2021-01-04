@@ -313,15 +313,21 @@ GuiManager::initializeGuiManager()
     
     /*
      * Menu for scene dialog action
+     * Disabled because in the Window Menu, it creates a sub menu with
+     * listing of scenes but there is no menu item to display the dialog.
      */
-    m_sceneDialogDisplayActionMenu = new QMenu();
-    m_sceneDialogDisplayAction->setMenu(m_sceneDialogDisplayActionMenu);
-    QAction::connect(m_sceneDialogDisplayActionMenu, &QMenu::aboutToShow,
-                     this, &GuiManager::sceneDialogDisplayMenuAboutToShow);
-    QAction::connect(m_sceneDialogDisplayActionMenu, &QMenu::triggered,
-                     this, &GuiManager::sceneDialogDisplayMenuTriggered);
-    QAction::connect(m_sceneDialogDisplayActionMenu, &QMenu::hovered,
-                     this, &GuiManager::sceneDialogDisplayMenuHovered);
+    const bool allowSceneMenuFlag(false);
+    m_sceneDialogDisplayActionMenu = NULL;
+    if (allowSceneMenuFlag) {
+        m_sceneDialogDisplayActionMenu = new QMenu();
+        m_sceneDialogDisplayAction->setMenu(m_sceneDialogDisplayActionMenu);
+        QAction::connect(m_sceneDialogDisplayActionMenu, &QMenu::aboutToShow,
+                         this, &GuiManager::sceneDialogDisplayMenuAboutToShow);
+        QAction::connect(m_sceneDialogDisplayActionMenu, &QMenu::triggered,
+                         this, &GuiManager::sceneDialogDisplayMenuTriggered);
+        QAction::connect(m_sceneDialogDisplayActionMenu, &QMenu::hovered,
+                         this, &GuiManager::sceneDialogDisplayMenuHovered);
+    }
 
     /*
      * Help dialog action
