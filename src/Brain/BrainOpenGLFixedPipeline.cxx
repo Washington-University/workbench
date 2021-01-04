@@ -758,6 +758,12 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     CaretAssert(windowContent);
     const bool manualLayoutFlag = windowContent->isManualModeTileTabsConfigurationEnabled();
     
+    bool windowAnnotationsDrawnFlag(false);
+    const int32_t windowAnnotationsStackOrder(manualLayoutFlag
+                                              ? windowContent->getWindowAnnotationsStackingOrder()
+                                              : -1000); /* smaller numbers are in front */
+    int32_t lastTabStackOrder(std::numeric_limits<int32_t>::max());
+
     const int32_t numberOfTabs = static_cast<int32_t>(viewportContents.size());
     for (int32_t i = 0; i < numberOfTabs; i++) {
         const BrainOpenGLViewportContent* vpContent = viewportContents[i];
@@ -818,8 +824,26 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
          */
         updateForegroundAndBackgroundColors(vpContent);
         
-        bool tileTabsFlag(false);
         const BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
+
+        if ( ! windowAnnotationsDrawnFlag) {
+            if (tabContent != NULL) {
+                const int32_t tabStackOrder = tabContent->getManualLayoutBrowserTabAnnotation()->getStackingOrder();
+                if ((windowAnnotationsStackOrder < lastTabStackOrder)
+                    && (windowAnnotationsStackOrder >= tabStackOrder)) {
+                    CaretAssertVectorIndex(viewportContents, 0);
+                    int windowViewport[4];
+                    viewportContents[0]->getWindowViewport(windowViewport);
+                    CaretAssert(m_windowIndex == viewportContents[0]->getWindowIndex());
+                    drawWindowAnnotations(windowViewport);
+                    windowAnnotationsDrawnFlag = true;
+                }
+                
+                lastTabStackOrder = tabStackOrder;
+            }
+        }
+        
+        bool tileTabsFlag(false);
         if (tabContent != NULL) {
             if (numberOfTabs > 1) {
                 bool opaqueFlag(true);
@@ -930,10 +954,12 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
         /*
          * Draw window viewport annotations
          */
-        int windowViewport[4];
-        viewportContents[0]->getWindowViewport(windowViewport);
-        CaretAssert(m_windowIndex == viewportContents[0]->getWindowIndex());
-        drawWindowAnnotations(windowViewport);
+        if ( ! windowAnnotationsDrawnFlag) {
+            int windowViewport[4];
+            viewportContents[0]->getWindowViewport(windowViewport);
+            CaretAssert(m_windowIndex == viewportContents[0]->getWindowIndex());
+            drawWindowAnnotations(windowViewport);
+        }
         
         if ( ! viewportContents.empty()) {
             if (windowContent->isWindowAspectLocked()) {

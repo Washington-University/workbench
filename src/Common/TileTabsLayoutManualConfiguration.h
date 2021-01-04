@@ -67,6 +67,12 @@ namespace caret {
         
         virtual const TileTabsLayoutManualConfiguration* castToManualConfiguration() const override;
         
+        int32_t getWindowAnnotationsStackingOrder() const;
+        
+        void setWindowAnnotationsStackingOrder(const int32_t stackingOrder);
+        
+        void initializeManualConfiguration();
+        
         // ADD_NEW_METHODS_HERE
 
     protected:
@@ -82,6 +88,9 @@ namespace caret {
 
         std::vector<std::unique_ptr<TileTabsBrowserTabGeometry>> m_tabInfo;
         
+        int32_t m_windowAnnotationsStackingOrder = -1000;
+        
+
         // ADD_NEW_MEMBERS_HERE
 
         
@@ -102,6 +111,9 @@ namespace caret {
         static const AString s_tabInfoAttributeStackingOrder;
         static const AString s_tabInfoAttributeBackground;
 
+        static const AString s_windowInfoElementName;
+        static const AString s_windowInfoAttributeStackingOrder;
+        
         friend class TileTabsLayoutBaseConfiguration;
     };
     
@@ -122,6 +134,10 @@ namespace caret {
     const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeMaxY = "MaxY";
     const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeStackingOrder = "StackingOrder";
     const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeBackground = "Background";
+
+    const AString TileTabsLayoutManualConfiguration::s_windowInfoElementName            = "WindowInfo";
+    const AString TileTabsLayoutManualConfiguration::s_windowInfoAttributeStackingOrder = "StackingOrder";
+    
 #endif // __TILE_TABS_LAYOUT_MANUAL_CONFIGURATION_DECLARE__
 
 } // namespace

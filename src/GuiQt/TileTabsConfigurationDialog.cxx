@@ -708,6 +708,7 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
     }
     
     getBrowserWindowContent()->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
+    getBrowserWindowContent()->setWindowAnnotationsStackingOrder(manualConfiguration->getWindowAnnotationsStackingOrder());
 
     updateDialog();
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -807,6 +808,8 @@ TileTabsConfigurationDialog::createManualConfigurationFromCurrentTabs() const
         manualConfig->addTabInfo(geometry);
     }
 
+    manualConfig->setWindowAnnotationsStackingOrder(getBrowserWindowContent()->getWindowAnnotationsStackingOrder());
+    
     return manualConfig;
 }
 
@@ -855,7 +858,21 @@ TileTabsConfigurationDialog::getBrowserWindowContent()
     return bwc;
 }
 
-
+/**
+ * @return The browser window content for the selected window index.
+ * May be NULL when no tabs are open.
+ */
+const BrowserWindowContent*
+TileTabsConfigurationDialog::getBrowserWindowContent() const
+{
+    const BrowserWindowContent* bwc(NULL);
+    const BrainBrowserWindow* bbw = getBrowserWindow();
+    if (bbw != NULL) {
+        bwc = bbw->getBrowerWindowContent();
+    }
+    
+    return bwc;
+}
 /**
  * @return The configuration selection widget.
  */
@@ -1448,6 +1465,13 @@ TileTabsConfigurationDialog::updateManualGeometryEditorWidget()
         m_manualGeometryEditorWidgets[iRow]->updateContent(tabContent);
     }
     
+    BrowserWindowContent* bwc = getBrowserWindowContent();
+    if (bwc != NULL) {
+        QSignalBlocker winAnnBlocker(m_manualConfigurationWindowAnnotationsDepthSpinBox);
+        m_manualConfigurationWindowAnnotationsDepthSpinBox->setValue(bwc->getWindowAnnotationsStackingOrder());
+    }
+    m_manualConfigurationWindowAnnotationsDepthSpinBox->setEnabled(bwc != NULL);
+    
     m_manualGeometryGridLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
 }
 
@@ -1479,13 +1503,29 @@ TileTabsConfigurationDialog::addManualGeometryWidget(QGridLayout* gridLayout,
         
         gridLayout->setHorizontalSpacing(8);
         gridLayout->addWidget(new QLabel("Show"), rowIndex, columnIndex++, Qt::AlignLeft);
+        const int32_t nameColumn(columnIndex);
         gridLayout->addWidget(new QLabel("Tab Name"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Left"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Right"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Bottom"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Top"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Background"), rowIndex, columnIndex++, Qt::AlignLeft);
+        const int32_t zOrderColumn(columnIndex);
         gridLayout->addWidget(new QLabel("Z-Order"), rowIndex, columnIndex++, Qt::AlignLeft);
+        
+        m_manualConfigurationWindowAnnotationsDepthSpinBox = new QSpinBox();
+        m_manualConfigurationWindowAnnotationsDepthSpinBox->setMinimum(-1000);
+        m_manualConfigurationWindowAnnotationsDepthSpinBox->setMaximum(1000);
+        m_manualConfigurationWindowAnnotationsDepthSpinBox->setSingleStep(1);
+        QObject::connect(m_manualConfigurationWindowAnnotationsDepthSpinBox,  QOverload<int>::of(&QSpinBox::valueChanged),
+                         this, &TileTabsConfigurationDialog::manualConfigurationWindowAnnotationsDepthSpinBoxValueChanged);
+        m_manualConfigurationWindowAnnotationsDepthSpinBox->setToolTip(TileTabsManualTabGeometryWidget::getStackOrderToolTipText());
+        
+        const int32_t windowRow(1000); /* will be at bottom */
+        gridLayout->addWidget(new QLabel("Window Annotations"),
+                              windowRow, nameColumn, 1, 5, Qt::AlignLeft);
+        gridLayout->addWidget(m_manualConfigurationWindowAnnotationsDepthSpinBox,
+                              windowRow, zOrderColumn);
     }
     
     TileTabsManualTabGeometryWidget* geometryWidget = new TileTabsManualTabGeometryWidget(this,
@@ -1613,9 +1653,11 @@ void
 TileTabsConfigurationDialog::manualConfigurationSetMenuFromAutomaticItemTriggered()
 {
     BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    TileTabsLayoutGridConfiguration* gridConfiguration = browserWindowContent->getAutomaticGridTileTabsConfiguration();
-    CaretAssert(gridConfiguration);
-    loadIntoManualConfiguration(gridConfiguration);
+    if (browserWindowContent != NULL) {
+        TileTabsLayoutGridConfiguration* gridConfiguration = browserWindowContent->getAutomaticGridTileTabsConfiguration();
+        CaretAssert(gridConfiguration);
+        loadIntoManualConfiguration(gridConfiguration);
+    }
 }
 
 /**
@@ -1638,6 +1680,21 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromCustomItemTriggered()
         loadIntoManualConfiguration(gridConfiguration);
     }
 }
+
+/**
+ * Called when manual configuration window annotation depth changed
+ * @param value
+ *    New value for window annotation depth
+ */
+void
+TileTabsConfigurationDialog::manualConfigurationWindowAnnotationsDepthSpinBoxValueChanged(int value)
+{
+    BrowserWindowContent* bwc = getBrowserWindowContent();
+    CaretAssert(bwc);
+    bwc->setWindowAnnotationsStackingOrder(value);
+    updateGraphicsWindow();
+}
+
 
 /**
  * Create the active configuration type widget

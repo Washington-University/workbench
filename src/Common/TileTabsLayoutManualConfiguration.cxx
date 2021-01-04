@@ -49,7 +49,7 @@ using namespace caret;
 TileTabsLayoutManualConfiguration::TileTabsLayoutManualConfiguration()
 : TileTabsLayoutBaseConfiguration(TileTabsLayoutConfigurationTypeEnum::MANUAL)
 {
-    
+    initializeManualConfiguration();
 }
 
 /**
@@ -95,8 +95,9 @@ TileTabsLayoutManualConfiguration::operator=(const TileTabsLayoutManualConfigura
 void 
 TileTabsLayoutManualConfiguration::copyHelperTileTabsLayoutManualConfiguration(const TileTabsLayoutManualConfiguration& obj)
 {
+    initializeManualConfiguration();
     copyHelperTileTabsLayoutBaseConfiguration(obj);
-    m_tabInfo.clear();
+    m_windowAnnotationsStackingOrder = obj.m_windowAnnotationsStackingOrder;
     
     for (const auto& ti : obj.m_tabInfo) {
         TileTabsBrowserTabGeometry* tabInfo = new TileTabsBrowserTabGeometry(*ti);
@@ -259,6 +260,16 @@ TileTabsLayoutManualConfiguration::addTabInfo(TileTabsBrowserTabGeometry* tabInf
 }
 
 /**
+ * Initialize a configuration
+ */
+void
+TileTabsLayoutManualConfiguration::initializeManualConfiguration()
+{
+    m_windowAnnotationsStackingOrder = -1000;
+    m_tabInfo.clear();
+}
+
+/**
  * @return Number of tab info in this configuration
  */
 int32_t
@@ -294,6 +305,26 @@ TileTabsLayoutManualConfiguration::getTabInfo(const int32_t index) const
 }
 
 /**
+ * @return The window annotations stacking order for a manual tile tabs layout
+ */
+int32_t
+TileTabsLayoutManualConfiguration::getWindowAnnotationsStackingOrder() const
+{
+    return m_windowAnnotationsStackingOrder;
+}
+
+/**
+ * Set the window annotations stacking order for a manual tile tabs layout
+ * @param stackingOrder
+ *    The new stacking order
+ */
+void
+TileTabsLayoutManualConfiguration::setWindowAnnotationsStackingOrder(const int32_t stackingOrder)
+{
+    m_windowAnnotationsStackingOrder = stackingOrder;
+}
+
+/**
  * @return String version of an instance.
  */
 AString
@@ -302,6 +333,8 @@ TileTabsLayoutManualConfiguration::toString() const
     QString str(TileTabsLayoutBaseConfiguration::toString());
     
     QTextStream ts(&str);
+    ts << "\n" << "m_windowAnnotationsStackingOrder=" << m_windowAnnotationsStackingOrder << "\n";
+    
     ts << "\n" << "TileTabsLayoutManualConfiguration: " << "\n";
     
     for (const auto& ti : m_tabInfo) {
@@ -333,6 +366,11 @@ TileTabsLayoutManualConfiguration::encodeInXMLString(AString& xmlTextOut) const
                           s_rootElementAttributeValueVersionOne);
     writer.writeAttribute(s_rootElementAttributeUniqueID,
                           getUniqueIdentifier());
+    
+    writer.writeStartElement(s_windowInfoElementName);
+    writer.writeAttribute(s_windowInfoAttributeStackingOrder,
+                          AString::number(m_windowAnnotationsStackingOrder));
+    writer.writeEndElement();
     
     for (const auto& tabInfo : m_tabInfo) {
         writer.writeStartElement(s_tabInfoElementName);
@@ -372,6 +410,8 @@ void
 TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
                                                        const AString& rootElementText)
 {
+    initializeManualConfiguration();
+    
     static int32_t invalidNameCounter(1);
     
     CaretAssert( ! rootElementText.isEmpty());
@@ -426,7 +466,15 @@ TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
         if (xml.isStartElement()) {
             const QString elementName(xml.name().toString());
             
-            if (elementName == s_tabInfoElementName) {
+            if (elementName == s_windowInfoElementName) {
+                const QXmlStreamAttributes atts = xml.attributes();
+                bool stackOrderValidFlag(false);
+                const int32_t stackOrder = atts.value(s_windowInfoAttributeStackingOrder).toInt(&stackOrderValidFlag);
+                if (stackOrderValidFlag) {
+                    m_windowAnnotationsStackingOrder = stackOrder;
+                }
+            }
+            else if (elementName == s_tabInfoElementName) {
                 bool tabIndexValid(false);
                 bool minXValid(false);
                 bool maxXValid(false);
@@ -475,6 +523,14 @@ TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
                 invalidElementNames.insert(elementName);
             }
         }
+    }
+    
+    if ( ! invalidElementNames.empty()) {
+        AString msg("Invalid element(s):");
+        for (auto& n : invalidElementNames) {
+            msg.append(" " + n);
+        }
+        CaretLogWarning(msg);
     }
     
     correctOldStackingOrder();

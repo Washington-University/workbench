@@ -104,6 +104,10 @@ namespace caret {
         
         void setSceneWindowTabIndices(const std::vector<int32_t>& sceneTabIndices);
         
+        int32_t getWindowAnnotationsStackingOrder() const;
+        
+        void setWindowAnnotationsStackingOrder(const int32_t stackingOrder);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -164,6 +168,8 @@ namespace caret {
         int32_t m_sceneSelectedTabIndex = 0;
         
         std::vector<int32_t> m_sceneTabIndices;
+        
+        int32_t m_windowAnnotationsStackingOrder = -1000;
         
         friend class BrainBrowserWindow;
 

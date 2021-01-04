@@ -69,6 +69,7 @@ m_windowIndex(windowIndex)
     m_sceneAssistant->add("m_sceneGraphicsWidth", &m_sceneGraphicsWidth);
     m_sceneAssistant->add("m_sceneGraphicsHeight", &m_sceneGraphicsHeight);
     m_sceneAssistant->add("m_sceneSelectedTabIndex", &m_sceneSelectedTabIndex);
+    m_sceneAssistant->add("m_windowAnnotationsStackingOrder", &m_windowAnnotationsStackingOrder);
 }
 
 /**
@@ -119,6 +120,7 @@ BrowserWindowContent::reset()
     setCustomGridConfigurationToDefault();
     m_sceneSelectedTabIndex = 0;
     m_sceneTabIndices.clear();
+    m_windowAnnotationsStackingOrder = -1000;  /* way in front */
 }
 
 /**
@@ -614,6 +616,26 @@ void
 BrowserWindowContent::setSceneWindowTabIndices(const std::vector<int32_t>& sceneTabIndices)
 {
     m_sceneTabIndices = sceneTabIndices;
+}
+
+/**
+ * @return The window annotations stacking order for a manual tile tabs layout
+ */
+int32_t
+BrowserWindowContent::getWindowAnnotationsStackingOrder() const
+{
+    return m_windowAnnotationsStackingOrder;
+}
+
+/**
+ * Set the window annotations stacking order for a manual tile tabs layout
+ * @param stackingOrder
+ *    The new stacking order
+ */
+void
+BrowserWindowContent::setWindowAnnotationsStackingOrder(const int32_t stackingOrder)
+{
+    m_windowAnnotationsStackingOrder = stackingOrder;
 }
 
 /**

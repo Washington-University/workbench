@@ -115,6 +115,8 @@ namespace caret {
         
         void manualConfigurationSetMenuFromCustomItemTriggered();
         
+        void manualConfigurationWindowAnnotationsDepthSpinBoxValueChanged(int value);
+        
         void userConfigurationSelectionListWidgetItemChanged();
         
         void templateConfigurationSelectionListWidgetItemChanged();
@@ -186,6 +188,8 @@ namespace caret {
         const BrainBrowserWindow* getBrowserWindow() const;
         
         BrowserWindowContent* getBrowserWindowContent();
+        
+        const BrowserWindowContent* getBrowserWindowContent() const;
         
         AString getNewConfigurationName(QWidget* dialogParent);
         
@@ -270,6 +274,8 @@ namespace caret {
         QString m_setManualToGridColumnsActionText;
         
         std::vector<TileTabsManualTabGeometryWidget*> m_manualGeometryEditorWidgets;
+        
+        QSpinBox* m_manualConfigurationWindowAnnotationsDepthSpinBox;
         
         std::vector<std::unique_ptr<TileTabsLayoutBaseConfiguration>> m_templateLayoutConfigurations;
         
