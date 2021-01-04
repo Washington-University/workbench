@@ -191,6 +191,7 @@ FociSelectionViewController::createAttributesWidget()
     m_drawingProjectionTypeComboBox->setup<FociDrawingProjectionTypeEnum, FociDrawingProjectionTypeEnum::Enum>();
     QObject::connect(m_drawingProjectionTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &FociSelectionViewController::processAttributesChanges);
+    m_drawingProjectionTypeComboBox->getComboBox()->setToolTip("Select foci projection type");
     m_drawingProjectionTypeComboBox->getComboBox()->setObjectName(m_objectNamePrefix
                                                                   + ":ProjectionType");
     macroManager->addMacroSupportToObject(m_drawingProjectionTypeComboBox->getComboBox(),
