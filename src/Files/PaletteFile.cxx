@@ -882,32 +882,54 @@ PaletteFile::addDefaultPalettes()
         Palette blackRed;
         blackRed.setName("black-red");
         this->addColor("black-red_0", 0, 0, 0);
+        this->addColor("black-red_05", 127, 0, 0); //provide a zero color for neg to pos palette, for sanity
         this->addColor("black-red_1", 255, 0, 0);
         blackRed.addScalarAndColor(1.0f, "black-red_1");
-        blackRed.addScalarAndColor(0.0f, "black-red_0");
+        blackRed.addScalarAndColor(0.0f, "black-red_05");
+        blackRed.addScalarAndColor(-1.0f, "black-red_0");
         addPalette(blackRed);
-    }
 
-    if (this->getPaletteByName("black-green") == NULL) {
         Palette blackGreen;
         blackGreen.setName("black-green");
         this->addColor("black-green_0", 0, 0, 0);
+        this->addColor("black-green_05", 0, 127, 0);
         this->addColor("black-green_1", 0, 255, 0);
-        //this->addColor("black-green_1", 0, 180, 0); //experimental option to try to match brightness across color options
+        //this->addColor("black-green_05", 0, 90, 0); //experimental option to try to match brightness across color options
+        //this->addColor("black-green_1", 0, 180, 0);
         blackGreen.addScalarAndColor(1.0f, "black-green_1");
-        blackGreen.addScalarAndColor(0.0f, "black-green_0");
+        blackGreen.addScalarAndColor(0.0f, "black-green_05");
+        blackGreen.addScalarAndColor(-1.0f, "black-green_0");
         addPalette(blackGreen);
-    }
 
-    if (this->getPaletteByName("black-blue") == NULL) {
         Palette blackBlue;
         blackBlue.setName("black-blue");
         this->addColor("black-blue_0", 0, 0, 0);
+        this->addColor("black-blue_05", 0, 0, 127);
         this->addColor("black-blue_1", 0, 0, 255);
-        //this->addColor("black-blue_1", 100, 100, 255); //experimental option to try to match brightness across color options
+        //this->addColor("black-blue_05", 50, 50, 127); //experimental option to try to match brightness across color options
+        //this->addColor("black-blue_1", 100, 100, 255);
         blackBlue.addScalarAndColor(1.0f, "black-blue_1");
-        blackBlue.addScalarAndColor(0.0f, "black-blue_0");
+        blackBlue.addScalarAndColor(0.0f, "black-blue_05");
+        blackBlue.addScalarAndColor(-1.0f, "black-blue_0");
         addPalette(blackBlue);
+
+        Palette blackRedPos;
+        blackRedPos.setName("black-red-positive");
+        blackRedPos.addScalarAndColor(1.0f, "black-red_1");
+        blackRedPos.addScalarAndColor(0.0f, "black-red_0");
+        addPalette(blackRedPos);
+        
+        Palette blackGreenPositive;
+        blackGreenPositive.setName("black-green-positive");
+        blackGreenPositive.addScalarAndColor(1.0f, "black-green_1");
+        blackGreenPositive.addScalarAndColor(0.0f, "black-green_0");
+        addPalette(blackGreenPositive);
+        
+        Palette blackBluePositive;
+        blackBluePositive.setName("black-blue-positive");
+        blackBluePositive.addScalarAndColor(1.0f, "black-blue_1");
+        blackBluePositive.addScalarAndColor(0.0f, "black-blue_0");
+        addPalette(blackBluePositive);
     }
 
     if (this->getPaletteByName("blue-black-green") == NULL) {
@@ -922,25 +944,25 @@ PaletteFile::addDefaultPalettes()
     }
     
     if (this->getPaletteByName("blue-black-red") == NULL) {
-        Palette bbg;
-        bbg.setName("blue-black-red");
+        Palette bbr;
+        bbr.setName("blue-black-red");
         
-        addPaletteScalarAndColor(bbg,  1.0, 255, 0,   0); /* red */
-        addPaletteScalarAndColor(bbg,  0.0,   0, 0,   0); /* black */
-        addPaletteScalarAndColor(bbg, -1.0,   0, 0, 255); /* blue */
+        addPaletteScalarAndColor(bbr,  1.0, 255, 0,   0); /* red */
+        addPaletteScalarAndColor(bbr,  0.0,   0, 0,   0); /* black */
+        addPaletteScalarAndColor(bbr, -1.0,   0, 0, 255); /* blue */
         
-        addPalette(bbg);
+        addPalette(bbr);
     }
     
     if (this->getPaletteByName("red-black-green") == NULL) {
-        Palette bbg;
-        bbg.setName("red-black-green");
+        Palette rbg;
+        rbg.setName("red-black-green");
         
-        addPaletteScalarAndColor(bbg,  1.0,   0, 255, 0); /* green */
-        addPaletteScalarAndColor(bbg,  0.0,   0,   0, 0); /* black */
-        addPaletteScalarAndColor(bbg, -1.0, 255,   0, 0); /* red */
+        addPaletteScalarAndColor(rbg,  1.0,   0, 255, 0); /* green */
+        addPaletteScalarAndColor(rbg,  0.0,   0,   0, 0); /* black */
+        addPaletteScalarAndColor(rbg, -1.0, 255,   0, 0); /* red */
         
-        addPalette(bbg);
+        addPalette(rbg);
     }
     
     /*
