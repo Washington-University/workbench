@@ -867,7 +867,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
                 glClearColor(m_backgroundColorFloat[0],
                              m_backgroundColorFloat[1],
                              m_backgroundColorFloat[2],
-                             m_backgroundColorFloat[3]);
+                             1.0);
                 
                 glEnable(GL_SCISSOR_TEST);
                 glScissor(tabViewport[0],
