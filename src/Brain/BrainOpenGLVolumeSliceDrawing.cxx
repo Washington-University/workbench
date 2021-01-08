@@ -1162,8 +1162,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
     const bool allowBlendingFlag(true);
     glPushAttrib(GL_COLOR_BUFFER_BIT);
     if (allowBlendingFlag) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        BrainOpenGLFixedPipeline::setupBlending();
     }
     
     /*
@@ -1787,8 +1786,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
     const bool allowBlendingFlag(true);
     glPushAttrib(GL_COLOR_BUFFER_BIT);
     if (allowBlendingFlag) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        BrainOpenGLFixedPipeline::setupBlending();
     }
     
     /*

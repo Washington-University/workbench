@@ -7995,8 +7995,7 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
     glGetBooleanv(GL_BLEND, &blendingEnabled);
     
     if (useBlendingFlag) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        BrainOpenGLFixedPipeline::setupBlending();
     }
     
     /*
@@ -8553,7 +8552,37 @@ BrainOpenGLFixedPipeline::drawMediaModel(BrowserTabContent* browserTabContent,
                       { viewport[0], viewport[1], viewport[2], viewport[3] });
 }
 
-
+/**
+ * Setup opengl blending
+ */
+void
+BrainOpenGLFixedPipeline::setupBlending()
+{
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_BLENDING)) {
+        glEnable(GL_BLEND);
+        
+        /*
+         * Equivelent of glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         */
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        
+        /*
+         * Blend RGB but DO NOT blend Alpha; Alpha is always one
+         */
+        glBlendFuncSeparate(GL_SRC_ALPHA,           /* source (incoming) RGB blending factor */
+                            GL_ONE_MINUS_SRC_ALPHA, /* destination (frame buffer) RGB blending factor */
+                            GL_ZERO,                /* source (incoming) Alpha blending factor */
+                            GL_ONE);                /* destination (frame buffer) Alpha blending factor */
+    }
+    else {
+        /*
+         * Used prior to 06 Jan 2021 that places alpha
+         * values less than one in the frame buffer
+         */
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+}
 
 /* ============================================================================ */
 /**

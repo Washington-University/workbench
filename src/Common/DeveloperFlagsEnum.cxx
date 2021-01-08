@@ -147,6 +147,11 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BLENDING,
+                                                "DEVELOPER_FLAG_BLENDING",
+                                                "Separate RGB / Alpha Opacity",
+                                                CheckableEnum::YES,
+                                                true));
 #ifdef HAVE_WEBKIT
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
                                                 "DEVELOPER_FLAG_BALSA",

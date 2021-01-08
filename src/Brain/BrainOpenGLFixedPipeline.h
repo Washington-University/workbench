@@ -538,6 +538,8 @@ namespace caret {
                                              const float orthographicProjectionLeft,
                                              const float orthographicProjectionRight);
         
+        static void setupBlending();
+        
         /** Index of window */
         int32_t m_windowIndex = -1;
         
