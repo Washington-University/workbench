@@ -4772,10 +4772,15 @@ BrowserTabContent::getValidSliceProjectionTypes(std::vector<VolumeSliceProjectio
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
         {
+            /*
+             * Note: OverlaySet will be NULL if loading a scene
+             * and the volume file(s) in the scene are missing (do not exist)
+             */
             const OverlaySet* overlaySet = getOverlaySet();
-            CaretAssert(overlaySet);
-            if ( ! overlaySet->hasObliqueOnlyVolumeSelected()) {
-                orthoValidFlag = true;
+            if (overlaySet != NULL) {
+                if ( ! overlaySet->hasObliqueOnlyVolumeSelected()) {
+                    orthoValidFlag = true;
+                }
             }
         }
             break;
