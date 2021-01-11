@@ -190,6 +190,7 @@ Vector3D.h
 VectorOperation.h
 VolumeSliceViewAllPlanesLayoutEnum.h
 VoxelIJK.h
+WorkbenchQtMessageHandler.h
 WorkbenchSpecialVersionEnum.h
 WuQMacro.h
 WuQMacroCommand.h
@@ -336,6 +337,7 @@ TriStateSelectionStatusEnum.cxx
 Vector3D.cxx
 VectorOperation.cxx
 VolumeSliceViewAllPlanesLayoutEnum.cxx
+WorkbenchQtMessageHandler.cxx
 WorkbenchSpecialVersionEnum.cxx
 WuQMacro.cxx
 WuQMacroCommand.cxx

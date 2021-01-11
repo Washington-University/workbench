@@ -53,6 +53,11 @@ namespace caret {
          */
         inline static Logger* getLogger() { return CaretLogger::logger; }
         
+        /**
+         * @return True if the CaretLogger is valid and can be used, else false.
+         */
+        static bool isValid() { return (CaretLogger::logger != NULL); }
+        
     private:
         CaretLogger() { }
         ~CaretLogger() { }
