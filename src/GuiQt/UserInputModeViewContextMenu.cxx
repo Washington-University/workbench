@@ -36,6 +36,7 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "ChartableLineSeriesBrainordinateInterface.h"
 #include "ChartingDataManager.h"
 #include "ChartTwoCartesianAxis.h"
@@ -50,6 +51,7 @@
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventImageCapture.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
@@ -169,7 +171,17 @@ UserInputModeViewContextMenu::UserInputModeViewContextMenu(const MouseEvent& mou
     QMenu* labelMenu = createLabelRegionOfInterestMenu();
     if (labelMenu != NULL) {
         addMenu(labelMenu);
-    }    
+    }
+    
+    if (SessionManager::get()->getCaretPreferences()->isDevelopMenuEnabled()) {
+        if (this->actions().count() > 0) {
+            this->addSeparator();
+        }
+            
+        QAction* rgbaPixelAction = this->addAction("Show Pixel RGBA...");
+        QObject::connect(rgbaPixelAction, &QAction::triggered,
+                         this, &UserInputModeViewContextMenu::showFrameBufferPixelRgbaSelected);
+    }
 }
 
 /**
@@ -1810,6 +1822,50 @@ UserInputModeViewContextMenu::warnIfNetworkBrainordinateCountIsLarge(const int64
                                                     "Do you want to continue?",
                                                     msg);
     return result;
+}
+
+/**
+ * Called to display RGBA for pixel under mouse
+ */
+void
+UserInputModeViewContextMenu::showFrameBufferPixelRgbaSelected()
+{
+    CaretAssert(this->parentOpenGLWidget);
+    const QPoint mouseXY(this->parentOpenGLWidget->mapFromGlobal(pos()));
+    
+    QImage image(this->parentOpenGLWidget->grabFramebuffer());
+    const int32_t x(mouseXY.x());
+    const int32_t y(mouseXY.y());
+
+    if ( ! image.isNull()) {
+        if ((x >= 0)
+            && (x < image.width())
+            && (y >= 0)
+            && (y < image.height())) {
+            QColor color = image.pixelColor(x, y);
+            
+            const int intWidth(5);
+            const int floatWidth(4);
+            const int precision(2);
+            const char format('f');
+            AString txt("<html>");
+            txt.appendWithNewLine(QString("Pixel XY (origin top left): (%1, %2) <br>").arg(x).arg(y));
+            txt.appendWithNewLine(QString("Red:    %1   %2 <br>").arg((int)color.red(), intWidth).arg((double)color.redF(), floatWidth, format, precision));
+            txt.appendWithNewLine(QString("Green:  %1   %2 <br>").arg((int)color.green(), intWidth).arg((double)color.greenF(), floatWidth, format, precision));
+            txt.appendWithNewLine(QString("Blue:   %1   %2 <br>").arg((int)color.blue(), intWidth).arg((double)color.blueF(), floatWidth, format, precision));
+            if (image.hasAlphaChannel()) {
+                txt.appendWithNewLine(QString("Alpha:  %1   %2 <br>").arg((int)color.alpha(), intWidth).arg((double)color.alphaF(), floatWidth, format, precision));
+            }
+            else {
+                txt.appendWithNewLine("Alpha: no alpha channel in image.<br>");
+            }
+
+            txt.appendWithNewLine("</html>");
+            
+            WuQMessageBox::informationOk(this->parentOpenGLWidget,
+                                         txt.replace(" ", "&nbsp;"));
+        }
+    }
 }
 
 

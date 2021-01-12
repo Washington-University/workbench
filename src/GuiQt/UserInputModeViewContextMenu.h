@@ -97,6 +97,8 @@ namespace caret {
         
         void editChartLabelSelected();
         
+        void showFrameBufferPixelRgbaSelected();
+        
     private:
         enum class ParcelType {
             PARCEL_TYPE_INVALID,
