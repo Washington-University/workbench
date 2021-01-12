@@ -2029,6 +2029,11 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
     double dataSum(0.0);
     for (auto& d : data) {
         if (MathFunctions::isNumeric(d)) {
+            if (applyAbsoluteValueFlag) {
+                if (d < 0.0) {
+                    d = -d;
+                }
+            }
             dataSum += d;
             numData++;
         }
@@ -2092,14 +2097,6 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
             d += dataMean;
         }
     }
-    
-    if (applyAbsoluteValueFlag) {
-        for (auto& d : data) {
-            if (d < 0.0) {
-                d = -d;
-            }
-        }
-    }
 }
 
 /**
@@ -2134,6 +2131,11 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float
      */
     double dataSum(0.0);
     for (auto& d : data) {
+        if (applyAbsoluteValueFlag) {
+            if (d < 0.0) {
+                d = -d;
+            }
+        }
         dataSum += d;
     }
     const double dataMean(dataSum / numValuesDouble);
@@ -2181,15 +2183,32 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float
             d += dataMean;
         }
     }
-    
-    if (applyAbsoluteValueFlag) {
-        for (auto& d : data) {
-            if (d < 0.0) {
-                d = -d;
-            }
-        }
-    }
 }
+
+/**
+ * @return A description of the mean/deviation operations.
+ */
+AString
+GraphicsPrimitive::getNewMeanDeviationOperationDescriptionInHtml()
+{
+    AString txt;
+    
+    txt.appendWithNewLine("<html>");
+    txt.appendWithNewLine("Order of data elements transformation");
+    txt.appendWithNewLine("<ol>");
+    txt.appendWithNewLine("<li> If <i>Absolute Values</i> is checked, convert data elements to absolute values.");
+    txt.appendWithNewLine("<li> Subtract <i>Data Mean</i> from data elements.");
+    txt.appendWithNewLine("<li> if <i>New Deviation</i> is checked, multiply data elements by "
+                          "<i>(New Deviation</i> / <i>Data Deviation></i>).");
+    txt.appendWithNewLine("<li> If <i>New Mean</i> is checked, add <i>New Mean</i> to data elements.  "
+                          "Otherwise, add <i>Data Mean</i> to data elements.");
+    txt.appendWithNewLine("</ol>");
+    txt.appendWithNewLine("Note: NaNs are ignored in all computations.");
+    txt.appendWithNewLine("</html>");
+    
+    return txt;
+}
+
 
 /**
  * Get the OpenGL graphics engine data in this instance.

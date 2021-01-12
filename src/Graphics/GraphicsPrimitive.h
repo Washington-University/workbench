@@ -523,6 +523,8 @@ namespace caret {
                                                    const bool applyAbsoluteValueFlag,
                                                    bool& haveNanInfFlagOut);
         
+        static AString getNewMeanDeviationOperationDescriptionInHtml();
+        
     protected:
         AString toStringPrivate(const bool includeAllDataFlag) const;
         

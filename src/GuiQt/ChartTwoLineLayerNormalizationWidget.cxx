@@ -37,6 +37,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GraphicsPrimitiveV3f.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -76,25 +77,35 @@ ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
     QObject::connect(m_newDeviationSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &ChartTwoLineLayerNormalizationWidget::newDeviationValueChanged);
 
-    m_absoluteValueEnabledCheckBox = new QCheckBox("Absolute Value");
+    m_absoluteValueEnabledCheckBox = new QCheckBox("Absolute Values");
     QObject::connect(m_absoluteValueEnabledCheckBox, &QCheckBox::clicked,
                      this, &ChartTwoLineLayerNormalizationWidget::absoluteValueEnabledCheckBoxClicked);
 
     m_meanDevLabel = new QLabel("");
     
+    QLabel* descripionLabel = new QLabel(GraphicsPrimitive::getNewMeanDeviationOperationDescriptionInHtml());
+    descripionLabel->setWordWrap(true);
+    descripionLabel->setMaximumWidth(400);
+    
     QGridLayout* layout = new QGridLayout(this);
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 100);
     int32_t row(0);
     layout->addWidget(m_absoluteValueEnabledCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     layout->addWidget(m_newMeanEnabledCheckBox, row, 0);
-    layout->addWidget(m_newMeanSpinBox, row, 1);
+    layout->addWidget(m_newMeanSpinBox, row, 1, Qt::AlignLeft);
     row++;
     layout->addWidget(m_newDeviationEnabledCheckBox, row, 0);
-    layout->addWidget(m_newDeviationSpinBox, row, 1);
+    layout->addWidget(m_newDeviationSpinBox, row, 1, Qt::AlignLeft);
     row++;
     layout->addWidget(m_meanDevLabel, row, 0, 1, 2, Qt::AlignLeft);
     row++;
-    
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
+    row++;
+    layout->addWidget(descripionLabel, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
+
     m_blockUpdatesFlag = false;
 }
 
@@ -138,8 +149,8 @@ ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOve
         const GraphicsPrimitiveV3f* primitive = cartData->getGraphicsPrimitive();
         primitive->getMeanAndStandardDeviationForY(mean, dev);
         
-        const QString muCharacter(QChar(0x03BC));
-        const QString sigmaCharacter(QChar(0x03C3));
+        const QString muCharacter("Data Mean"); //QChar(0x03BC));
+        const QString sigmaCharacter("Data Deviation"); //QChar(0x03C3));
         meanDevText = (muCharacter + ": "
                        + QString::number(mean, 'f', 4)
                        + ", " + sigmaCharacter + ": "

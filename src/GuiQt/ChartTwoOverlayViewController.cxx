@@ -286,8 +286,7 @@ m_parentObjectName(parentObjectName)
     const QString normActionText(QString(greekMu)
                                  + QString(greekSigma));
     const QString normActionToolTipText("<html><body>"
-                                        "Click arrow to enable mean and/or deviation and to enter mean"
-                                        "and/or deviation value"
+                                        "Transform chart data elements"
                                         "</body></html>");
     m_lineLayerNormalizationToolButton->setText(normActionText);
     m_lineLayerNormalizationToolButton->setToolTip(normActionToolTipText);
