@@ -2321,8 +2321,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                      */
                     GLboolean blendingEnabled = false;
                     glGetBooleanv(GL_BLEND, &blendingEnabled);
-                    glEnable(GL_BLEND);
-                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    setupBlending(BlendDataType::SURFACE_PROPERTIES_OPACITY);
                     
                     /*
                      * Now draw as polygon but outline only, do not fill.
@@ -2351,9 +2350,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                      */
                     GLboolean blendingEnabled = false;
                     glGetBooleanv(GL_BLEND, &blendingEnabled);
-                    glEnable(GL_BLEND);
-                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                    
+                    setupBlending(BlendDataType::SURFACE_PROPERTIES_OPACITY);
+
                     const DisplayPropertiesBorders* dpb = m_brain->getDisplayPropertiesBorders();
                     const float borderAboveSurfaceOffset = dpb->getAboveSurfaceOffset();
                     if (borderAboveSurfaceOffset != 0.0) {
@@ -4440,8 +4438,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
         if ( ! transparencyActiveFlag) {
             if (volInfo.opacity < 1.0) {
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                setupBlending(BlendDataType::VOLUME_ALL_VIEW_CUBES);
             }
             else {
                 glDisable(GL_BLEND);
@@ -4778,8 +4775,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
         VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
         if ( ! transparencyActiveFlag) {
             if (volInfo.opacity < 1.0) {
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                setupBlending(BlendDataType::VOLUME_ALL_VIEW_CUBES);
             }
             else {
                 glDisable(GL_BLEND);
@@ -5820,8 +5816,7 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane,
     glDisable(GL_CLIP_PLANE4);
     glDisable(GL_CLIP_PLANE5);
     
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    setupBlending(BlendDataType::FIBER_TRAJECTORIES);
     
     CaretAssert(this->browserTabContent);
     OverlaySet* overlaySet = this->browserTabContent->getOverlaySet();
@@ -7995,7 +7990,7 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
     glGetBooleanv(GL_BLEND, &blendingEnabled);
     
     if (useBlendingFlag) {
-        BrainOpenGLFixedPipeline::setupBlending();
+        BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
     }
     
     /*
@@ -8554,11 +8549,46 @@ BrainOpenGLFixedPipeline::drawMediaModel(BrowserTabContent* browserTabContent,
 
 /**
  * Setup opengl blending
+ * @param blendDataType
+ *    Type of data that is blended
  */
 void
-BrainOpenGLFixedPipeline::setupBlending()
+BrainOpenGLFixedPipeline::setupBlending(const BlendDataType blendDataType)
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_BLENDING)) {
+    bool separateBlendingFlag(false);
+    
+    /*
+     * May want or not want separate blending for some data types
+     */
+    switch (blendDataType) {
+        case BlendDataType::CHART_TWO_MATRIX:
+            separateBlendingFlag = true;
+            break;
+        case BlendDataType::FEATURE_IMAGE:
+            separateBlendingFlag = true;
+            break;
+        case BlendDataType::FIBER_TRAJECTORIES:
+            separateBlendingFlag = true;
+            break;
+        case BlendDataType::SURFACE_PROPERTIES_OPACITY:
+            separateBlendingFlag = true;
+            break;
+        case BlendDataType::VOLUME_ALL_VIEW_CUBES:
+            separateBlendingFlag = true;
+            break;
+        case BlendDataType::VOLUME_ALL_VIEW_SLICES:
+            separateBlendingFlag = true;
+            break;
+        case BlendDataType::VOLUME_ORTHOGONAL_SLICES:
+            separateBlendingFlag = true;
+            break;
+    }
+    
+    if ( ! DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_BLENDING)) {
+        separateBlendingFlag = false;
+    }
+    
+    if (separateBlendingFlag) {
         glEnable(GL_BLEND);
         
         /*

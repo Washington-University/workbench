@@ -538,7 +538,17 @@ namespace caret {
                                              const float orthographicProjectionLeft,
                                              const float orthographicProjectionRight);
         
-        static void setupBlending();
+        enum class BlendDataType {
+            CHART_TWO_MATRIX,
+            FEATURE_IMAGE, /* older image display selected in Features ToolBox*/
+            FIBER_TRAJECTORIES,
+            SURFACE_PROPERTIES_OPACITY,
+            VOLUME_ALL_VIEW_CUBES,
+            VOLUME_ALL_VIEW_SLICES,
+            VOLUME_ORTHOGONAL_SLICES
+        };
+        
+        static void setupBlending(const BlendDataType blendDataType);
         
         /** Index of window */
         int32_t m_windowIndex = -1;

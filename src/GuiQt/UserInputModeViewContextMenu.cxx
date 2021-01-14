@@ -1831,9 +1831,10 @@ void
 UserInputModeViewContextMenu::showFrameBufferPixelRgbaSelected()
 {
     CaretAssert(this->parentOpenGLWidget);
-    const QPoint mouseXY(this->parentOpenGLWidget->mapFromGlobal(pos()));
     
     QImage image(this->parentOpenGLWidget->grabFramebuffer());
+    
+    const QPoint mouseXY(this->parentOpenGLWidget->mapFromGlobal(pos()));
     const int32_t x(mouseXY.x());
     const int32_t y(mouseXY.y());
 
@@ -1843,23 +1844,89 @@ UserInputModeViewContextMenu::showFrameBufferPixelRgbaSelected()
             && (y >= 0)
             && (y < image.height())) {
             QColor color = image.pixelColor(x, y);
+            double red(color.redF());
+            double green(color.greenF());
+            double blue(color.blueF());
+            double alpha(color.alphaF());
+            
+            int redInt(color.red());
+            int greenInt(color.green());
+            int blueInt(color.blue());
+            int alphaInt(color.alpha());
+            
+            bool premultipliedFlag(false);
+            QString formatName(QString::number(image.format()));
+            switch (image.format()) {
+                case QImage::Format_ARGB32_Premultiplied:
+                    formatName = "Format_ARGB32_Premultiplied";
+                    premultipliedFlag = true;
+                    break;
+                case QImage::Format_ARGB32:
+                    formatName = "Format_ARGB32";
+                    break;
+                default:
+                    break;
+            }
             
             const int intWidth(5);
             const int floatWidth(4);
             const int precision(2);
             const char format('f');
             AString txt("<html>");
+            txt.appendWithNewLine("QImage::Format: " + formatName);
             txt.appendWithNewLine(QString("Pixel XY (origin top left): (%1, %2) <br>").arg(x).arg(y));
-            txt.appendWithNewLine(QString("Red:    %1   %2 <br>").arg((int)color.red(), intWidth).arg((double)color.redF(), floatWidth, format, precision));
-            txt.appendWithNewLine(QString("Green:  %1   %2 <br>").arg((int)color.green(), intWidth).arg((double)color.greenF(), floatWidth, format, precision));
-            txt.appendWithNewLine(QString("Blue:   %1   %2 <br>").arg((int)color.blue(), intWidth).arg((double)color.blueF(), floatWidth, format, precision));
+            txt.appendWithNewLine(QString("Red:    %1   %2 <br>").arg(redInt, intWidth).arg(red, floatWidth, format, precision));
+            txt.appendWithNewLine(QString("Green:  %1   %2 <br>").arg(greenInt, intWidth).arg(green, floatWidth, format, precision));
+            txt.appendWithNewLine(QString("Blue:   %1   %2 <br>").arg(blueInt, intWidth).arg(blue, floatWidth, format, precision));
             if (image.hasAlphaChannel()) {
-                txt.appendWithNewLine(QString("Alpha:  %1   %2 <br>").arg((int)color.alpha(), intWidth).arg((double)color.alphaF(), floatWidth, format, precision));
+                txt.appendWithNewLine(QString("Alpha:  %1   %2 <br>").arg(alphaInt, intWidth).arg(alpha, floatWidth, format, precision));
             }
             else {
                 txt.appendWithNewLine("Alpha: no alpha channel in image.<br>");
             }
 
+            if (image.format() == QImage::Format_ARGB32_Premultiplied) {
+                red   *= alpha;
+                green *= alpha;
+                blue  *= alpha;
+                
+                redInt   = static_cast<int>(red * 255.0);
+                greenInt = static_cast<int>(green * 255.0);
+                blueInt  = static_cast<int>(blue * 255.0);
+                alphaInt = static_cast<int>(alpha * 255.0);
+                
+                txt.appendWithNewLine("<p>");
+                txt.appendWithNewLine("After removal of alpha pre-multiplication:");
+                txt.appendWithNewLine(QString("Red:    %1   %2 <br>").arg(redInt, intWidth).arg(red, floatWidth, format, precision));
+                txt.appendWithNewLine(QString("Green:  %1   %2 <br>").arg(greenInt, intWidth).arg(green, floatWidth, format, precision));
+                txt.appendWithNewLine(QString("Blue:   %1   %2 <br>").arg(blueInt, intWidth).arg(blue, floatWidth, format, precision));
+                if (image.hasAlphaChannel()) {
+                    txt.appendWithNewLine(QString("Alpha:  %1   %2 <br>").arg(alphaInt, intWidth).arg(alpha, floatWidth, format, precision));
+                }
+            }
+
+            const bool debugFlag(false);
+            if (debugFlag) {
+                for (int32_t i = 0; i < 30; i++) {
+                    QImage imageCopy = image.convertToFormat((QImage::Format)i);
+                    QColor color = imageCopy.pixelColor(x, y);
+                    AString txt;
+                    txt.appendWithNewLine("<p>");
+                    txt.appendWithNewLine("QImage::Format: " + AString::number(imageCopy.format()));
+                    txt.appendWithNewLine(QString("Pixel XY (origin top left): (%1, %2) <br>").arg(x).arg(y));
+                    txt.appendWithNewLine(QString("Red:    %1   %2 <br>").arg((int)color.red(), intWidth).arg((double)color.redF(), floatWidth, format, precision));
+                    txt.appendWithNewLine(QString("Green:  %1   %2 <br>").arg((int)color.green(), intWidth).arg((double)color.greenF(), floatWidth, format, precision));
+                    txt.appendWithNewLine(QString("Blue:   %1   %2 <br>").arg((int)color.blue(), intWidth).arg((double)color.blueF(), floatWidth, format, precision));
+                    if (image.hasAlphaChannel()) {
+                        txt.appendWithNewLine(QString("Alpha:  %1   %2 <br>").arg((int)color.alpha(), intWidth).arg((double)color.alphaF(), floatWidth, format, precision));
+                    }
+                    else {
+                        txt.appendWithNewLine("Alpha: no alpha channel in image.<br>");
+                    }
+                    std::cout << txt << std::endl << std::endl;
+                }
+            }
+            
             txt.appendWithNewLine("</html>");
             
             WuQMessageBox::informationOk(this->parentOpenGLWidget,

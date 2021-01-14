@@ -1162,7 +1162,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
     const bool allowBlendingFlag(true);
     glPushAttrib(GL_COLOR_BUFFER_BIT);
     if (allowBlendingFlag) {
-        BrainOpenGLFixedPipeline::setupBlending();
+        BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::VOLUME_ORTHOGONAL_SLICES);
     }
     
     /*
@@ -1786,7 +1786,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
     const bool allowBlendingFlag(true);
     glPushAttrib(GL_COLOR_BUFFER_BIT);
     if (allowBlendingFlag) {
-        BrainOpenGLFixedPipeline::setupBlending();
+        BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::VOLUME_ORTHOGONAL_SLICES);
     }
     
     /*
@@ -5601,8 +5601,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
         if (volInfo.opacity < 1.0) {
             if (allowBlendingFlag) {
                 if ( ! m_identificationModeFlag) {
-                    glEnable(GL_BLEND);
-                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::VOLUME_ALL_VIEW_SLICES);
                 }
             }
         }

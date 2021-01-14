@@ -1453,7 +1453,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
      * the bottom layer would blend with the background.
      */
     if (blendingEnabled) {
-        BrainOpenGLFixedPipeline::setupBlending();
+        BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::CHART_TWO_MATRIX);
     }
     else {
         glDisable(GL_BLEND);
