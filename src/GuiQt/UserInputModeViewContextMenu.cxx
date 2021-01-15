@@ -1832,8 +1832,12 @@ UserInputModeViewContextMenu::showFrameBufferPixelRgbaSelected()
 {
     CaretAssert(this->parentOpenGLWidget);
     
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     QImage image(this->parentOpenGLWidget->grabFramebuffer());
-    
+#else
+    QImage image(this->parentOpenGLWidget->grabFrameBuffer());
+#endif
+
     const QPoint mouseXY(this->parentOpenGLWidget->mapFromGlobal(pos()));
     const int32_t x(mouseXY.x());
     const int32_t y(mouseXY.y());

@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include <memory>
 #include <QWidget>
 
 //#include "AnnotationCoordinateInformation.h"
