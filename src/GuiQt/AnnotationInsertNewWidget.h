@@ -84,6 +84,8 @@ namespace caret {
         
         AnnotationMenuFileSelection* m_fileSelectionMenu;
         
+        QToolButton* m_polyLineToolButton = NULL;
+        
         static AString s_previousImageFileDirectory;
         
         // ADD_NEW_MEMBERS_HERE

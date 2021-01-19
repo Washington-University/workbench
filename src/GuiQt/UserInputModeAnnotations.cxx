@@ -176,7 +176,14 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             case AnnotationTypeEnum::OVAL:
                 break;
             case AnnotationTypeEnum::POLY_LINE:
-                mode = MODE_NEW_WITH_CLICK_SERIES_START;
+                switch (annotationEvent->getPolyLineDrawingMode()) {
+                    case EventAnnotationCreateNewType::CONTINUOUS:
+                        mode = MODE_NEW_WITH_DRAG_START;
+                        break;
+                    case EventAnnotationCreateNewType::DISCRETE:
+                        mode = MODE_NEW_WITH_CLICK_SERIES_START;
+                        break;
+                }
                 break;
             case AnnotationTypeEnum::SCALE_BAR:
                 break;

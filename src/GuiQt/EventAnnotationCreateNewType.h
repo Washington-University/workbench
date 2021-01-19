@@ -34,9 +34,15 @@ namespace caret {
     class EventAnnotationCreateNewType : public Event {
         
     public:
+        enum PolyLineDrawingMode {
+            CONTINUOUS,
+            DISCRETE
+        };
+        
         EventAnnotationCreateNewType(AnnotationFile* annotationFile,
                                      const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-                                     const AnnotationTypeEnum::Enum annotationType);
+                                     const AnnotationTypeEnum::Enum annotationType,
+                                     const PolyLineDrawingMode polyLineDrawingMode);
         
         virtual ~EventAnnotationCreateNewType();
         
@@ -45,6 +51,8 @@ namespace caret {
         AnnotationCoordinateSpaceEnum::Enum getAnnotationSpace() const;
         
         AnnotationTypeEnum::Enum getAnnotationType() const;
+        
+        PolyLineDrawingMode getPolyLineDrawingMode() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -59,6 +67,8 @@ namespace caret {
         
         const AnnotationTypeEnum::Enum m_annotationType;
 
+        const PolyLineDrawingMode m_polyLineDrawingMode;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

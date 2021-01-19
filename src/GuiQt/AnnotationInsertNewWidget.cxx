@@ -88,6 +88,7 @@ m_browserWindowIndex(browserWindowIndex)
                                                                  m_shapeActionGroup);
     QToolButton* shapePolyLineToolButton = createShapeToolButton(AnnotationTypeEnum::POLY_LINE,
                                                                  m_shapeActionGroup);
+    m_polyLineToolButton = shapePolyLineToolButton;
     QToolButton* shapeOvalToolButton     = createShapeToolButton(AnnotationTypeEnum::OVAL,
                                                                  m_shapeActionGroup);
     QToolButton* shapeTextToolButton     = createShapeToolButton(AnnotationTypeEnum::TEXT,
@@ -624,11 +625,53 @@ AnnotationInsertNewWidget::spaceOrShapeActionTriggered()
                                                                             &shapeValidFlag);
     CaretAssert(shapeValidFlag);
     
+    EventAnnotationCreateNewType::PolyLineDrawingMode polyLineDrawingMode
+    = EventAnnotationCreateNewType::PolyLineDrawingMode::DISCRETE;
+    
+    switch (annShape) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLY_LINE:
+        {
+            CaretAssert(m_polyLineToolButton);
+            QMenu menu;
+            QAction* continuousAction = menu.addAction("Drag (Continuous)");
+            QAction* discreateAction  = menu.addAction("Clicks (Discrete)");
+            
+            QAction* selectedAction = menu.exec(m_polyLineToolButton->mapToGlobal(QPoint(0,0)));
+            if (selectedAction == continuousAction) {
+                polyLineDrawingMode = EventAnnotationCreateNewType::PolyLineDrawingMode::CONTINUOUS;
+            }
+            else if (selectedAction == discreateAction) {
+                polyLineDrawingMode = EventAnnotationCreateNewType::PolyLineDrawingMode::DISCRETE;
+            }
+            else {
+                return;
+            }
+        }
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            break;
+        case AnnotationTypeEnum::TEXT:
+            break;
+    }
+    
     DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
     dpa->setDisplayAnnotations(true);
     EventManager::get()->sendEvent(EventAnnotationCreateNewType(annotationFile,
                                                                 annSpace,
-                                                                annShape).getPointer());
+                                                                annShape,
+                                                                polyLineDrawingMode).getPointer());
 }
 
 /**

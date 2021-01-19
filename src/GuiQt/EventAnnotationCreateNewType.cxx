@@ -39,19 +39,25 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param annotationFile
+ *    File for annotation
  * @param annotationSpace
  *    Space for new annotation.
  * @param annotationType
  *    Type for new annotation.
+ * @param polyLineDrawingMode
+ *    Mode for drawing polyline
  *
  */
 EventAnnotationCreateNewType::EventAnnotationCreateNewType(AnnotationFile* annotationFile,
                                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-                                                           const AnnotationTypeEnum::Enum annotationType)
+                                                           const AnnotationTypeEnum::Enum annotationType,
+                                                           const PolyLineDrawingMode polyLineDrawingMode)
 : Event(EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE),
 m_annotationFile(annotationFile),
 m_annotationSpace(annotationSpace),
-m_annotationType(annotationType)
+m_annotationType(annotationType),
+m_polyLineDrawingMode(polyLineDrawingMode)
 {
     
 }
@@ -88,6 +94,15 @@ AnnotationTypeEnum::Enum
 EventAnnotationCreateNewType::getAnnotationType() const
 {
     return m_annotationType;
+}
+
+/**
+ * @return Mode for polyline drawing
+ */
+EventAnnotationCreateNewType::PolyLineDrawingMode
+EventAnnotationCreateNewType::getPolyLineDrawingMode() const
+{
+    return m_polyLineDrawingMode;
 }
 
 
