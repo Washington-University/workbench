@@ -120,6 +120,7 @@
 #include "WuQMacroMenu.h"
 #include "WuQMessageBox.h"
 #include "WuQTabBar.h"
+#include "WuQToolTipHelper.h"
 #include "WuQtUtilities.h"
 #include "WuQTextEditorDialog.h"
 #include "VtkFileExporter.h"
@@ -1726,6 +1727,7 @@ BrainBrowserWindow::createMenus()
      * Create the menu bar and add menus to it.
      */
     QMenuBar* menubar = menuBar();
+    
     menubar->addMenu(createMenuFile());
     
     menubar->addMenu(createMenuEdit());
@@ -2633,17 +2635,26 @@ BrainBrowserWindow::createMenuSurface()
 {
     QMenu* menu = new QMenu("Surface", this);
     
-    menu->addAction("Information...", 
-                    this, 
-                    SLOT(processSurfaceMenuInformation()));
+
+    QAction* infoAction = menu->addAction("Information...",
+                                          this,
+                                          SLOT(processSurfaceMenuInformation()));
+    infoAction->setToolTip("Display information about the surface(s) in the selected tab including: "
+                           "Surface Type, Number of Triangles/Vertices, and Extent.");
     
-    menu->addAction("Properties...",
-                    this,
-                    SLOT(processShowSurfacePropertiesDialog()));
+    QAction* propertiesAction = menu->addAction("Properties...",
+                                                this,
+                                                SLOT(processShowSurfacePropertiesDialog()));
+    propertiesAction->setToolTip("Edit surface properties including opacity and default color.");
     
-    menu->addAction("Primary Anatomical...", 
-                    this, 
-                    SLOT(processSurfaceMenuPrimaryAnatomical()));
+    QAction* primaryAnatAction = menu->addAction("Primary Anatomical...",
+                                                 this,
+                                                 SLOT(processSurfaceMenuPrimaryAnatomical()));
+    primaryAnatAction->setToolTip("Set surfaces used for border projection, foci projection, and "
+                                  "selection of surfaces for coordinate translation to and from "
+                                  "volumes.");
+
+    WuQToolTipHelper::newInstanceForMenu(menu);
     
     return menu;
 }

@@ -271,6 +271,7 @@ ELSE()
         WuQTabWidgetWithSizeHint.h
         WuQTextEditorDialog.h
         WuQTimedMessageDisplay.h
+	WuQToolTipHelper.h
         WuQTreeWidget.h
         WuQTrueFalseComboBox.h
 	WuQValueChangedSignalWatcher.h
@@ -598,6 +599,7 @@ WuQTabWidget.h
 WuQTabWidgetWithSizeHint.h
 WuQTextEditorDialog.h
 WuQTimedMessageDisplay.h
+WuQToolTipHelper.h
 WuQTreeWidget.h
 WuQTrueFalseComboBox.h
 WuQValueChangedSignalWatcher.h
@@ -907,6 +909,7 @@ WuQTabWidget.cxx
 WuQTabWidgetWithSizeHint.cxx
 WuQTextEditorDialog.cxx
 WuQTimedMessageDisplay.cxx
+WuQToolTipHelper.cxx
 WuQTreeWidget.cxx
 WuQTrueFalseComboBox.cxx
 WuQValueChangedSignalWatcher.cxx
