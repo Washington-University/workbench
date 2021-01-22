@@ -111,6 +111,7 @@ namespace caret {
         
         ///return the signed distance value at the point
         float dist(const float coord[3], WindingLogic myWinding);
+        float distLimited(const float coord[3], const float limit, bool& validOut, WindingLogic myWinding);
         
         ///find the closest point ON the surface, and return information about it
         ///will never have negative barycentric weights, or a point outside the triangle

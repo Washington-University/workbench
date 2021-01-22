@@ -19,17 +19,21 @@
 /*LICENSE_END*/
 
 #include "AlgorithmCreateSignedDistanceVolume.h"
+
 #include "AlgorithmException.h"
-#include "VolumeFile.h"
+#include "CaretLogger.h"
 #include "CaretOMP.h"
 #include "CaretHeap.h"
+#include "FastStatistics.h"
 #include "MathFunctions.h"
 #include "NiftiIO.h"
 #include "SurfaceFile.h"
+#include "VolumeFile.h"
 
 #include <algorithm>
 #include <cmath>
 #include <set>
+#include <vector>
 
 using namespace caret;
 using namespace std;
@@ -181,135 +185,253 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     if (kOrthHat.dot(kvec) < 0) kOrthHat = -kOrthHat;
     vector<int64_t> myDims;
     myVolOut->getDimensions(myDims);
-    myVolOut->setValueAllVoxels(fillValue);
     //list all voxels to be exactly computed
     int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
-    CaretArray<int> volMarked(frameSize, 0);
-    myProgress.setTask("marking voxel to be calculated exactly");
+    vector<int> volMarked(frameSize, 0);
+    vector<float> scratchFrame (frameSize, fillValue);
+    const float outThresh = max(exactLim, approxLim); //don't output values beyond the specified limits
+    vector<int64_t> exactVoxelList;
+    VolumeSpace outSpace = myVolOut->getVolumeSpace();
+    const int faceNeigh[] = { 1, 0, 0, 
+                            -1, 0, 0,
+                            0, 1, 0,
+                            0, -1, 0,
+                            0, 0, 1,
+                            0, 0, -1 };
+    
+    //fudge factor for mark and fixup method
+    const float smallestSpacing = min(min(ivec.length(), jvec.length()), kvec.length());
+    const float exactLimFudge = exactLim + 1.0f * smallestSpacing; //spend some extra computation in the parallel section to reduce total wall time (by reducing fixup work)
     //compare expected runtimes of kernel based and locator based marking methods
-    if (2.9 * myDims[0] * myDims[1] * myDims[2] < (numNodes * exactLim * exactLim * exactLim / iOrthHat.dot(ivec) / jOrthHat.dot(jvec) / kOrthHat.dot(kvec)))
+    const bool useStencil = 2.9 * myDims[0] * myDims[1] * myDims[2] > (numNodes * exactLimFudge * exactLimFudge * exactLimFudge / iOrthHat.dot(ivec) / jOrthHat.dot(jvec) / kOrthHat.dot(kvec));
+    
+    //correction for point locator screening for direct method
+    FastStatistics edgeStats;
+    mySurf->getNodesSpacingStatistics(edgeStats);
+    const float longestEdge = edgeStats.getMostPositiveValue(); //can bound the error from distance to node based on edge length
+    const float edgeCorrection = longestEdge / sqrt(3.0f); //worst case is equilateral triangle with longest edges, this is distance from vertex to barycenter
+    const float nodeDistFudge = sqrt(exactLim * exactLim + edgeCorrection * edgeCorrection); //vectors from barycenter to farthest point and barycenter to vertex are orthogonal
+    const bool uselocator = (nodeDistFudge < 2.0f * exactLim); //take a guess at the crossover point where point locator isn't specific enough to be helpful
+    
+    //fixup method is faster when it chooses to use stencil (high resolution voxels, small exact distance)
+    //direct method is faster on decently-shaped surfaces at larger limits (when stencil would be slow), and is far simpler code
+    const bool useDirect = !useStencil;
+    //yes, this means the fixup method never gets used in non-stencil mode
+    //fixup is single-threaded, like the approximation, but calls signed distance, so the fully parallel direct method generally finishes faster unless stencil saves a lot of time
+    if (useDirect)
     {
-#pragma omp CARET_PARFOR schedule(dynamic)
-        for (int64_t k = 0; k < myDims[2]; ++k)
+        //exclude the easy calls with point locator, slightly faster when the surface is well-behaved, slower when the edges are long
+#pragma omp CARET_PAR
         {
-            for (int64_t j = 0; j < myDims[1]; ++j)
+            CaretPointer<SignedDistanceHelper> myDist = mySurf->getSignedDistanceHelper();
+#pragma omp CARET_FOR schedule(dynamic)
+            for (int64_t k = 0; k < myDims[2]; ++k)
             {
-                for (int64_t i = 0; i < myDims[0]; ++i)
+                for (int64_t j = 0; j < myDims[1]; ++j)
                 {
-                    Vector3D voxCoord;
-                    myVolOut->indexToSpace(i, j, k, voxCoord);
-                    int32_t ret = mySurf->closestNode(voxCoord, exactLim);
-                    if (ret != -1)
+                    for (int64_t i = 0; i < myDims[0]; ++i)
                     {
-                        volMarked[myVolOut->getIndex(i, j, k)] = 1;
+                        Vector3D voxCoord = outSpace.indexToSpace(i, j, k);
+                        if (!uselocator || mySurf->closestNode(voxCoord, nodeDistFudge) != -1)
+                        {
+                            bool valid = false;
+                            float tempf = myDist->distLimited(voxCoord, exactLim, valid, myWinding);
+                            if (valid)
+                            {
+                                int64_t tempindex = myVolOut->getIndex(i, j, k);
+                                scratchFrame[tempindex] = tempf;
+                                volMarked[tempindex] = 23; //frozen, is in exact list, has valid value for pos and neg
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        int64_t ijk[3];
+        for (ijk[2] = 0; ijk[2] < myDims[2]; ++ijk[2])
+        {
+            for (ijk[1] = 0; ijk[1] < myDims[1]; ++ijk[1])
+            {
+                for (ijk[0] = 0; ijk[0] < myDims[0]; ++ijk[0])
+                {
+                    if (volMarked[myVolOut->getIndex(ijk)] != 0)
+                    {
+                        exactVoxelList.push_back(ijk[0]);
+                        exactVoxelList.push_back(ijk[1]);
+                        exactVoxelList.push_back(ijk[2]);
                     }
                 }
             }
         }
     } else {
-#pragma omp CARET_PARFOR schedule(dynamic)
-        for (int node = 0; node < numNodes; ++node)
+        myProgress.setTask("marking voxels to be calculated exactly");
+        if (!useStencil)
         {
-            int64_t ijk[3];
-            Vector3D nodeCoord = mySurf->getCoordinate(node), tempvec;
-            float tempf, tempf2, tempf3;
-            tempvec = nodeCoord - iOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);//compute bounding box once rather than doing a convoluted sphere loop construct
-            int64_t imin = (int64_t)ceil(tempf);
-            if (imin < 0) imin = 0;
-            tempvec = nodeCoord + iOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
-            int64_t imax = (int64_t)floor(tempf) + 1;
-            if (imax > myDims[0]) imax = myDims[0];
-            tempvec = nodeCoord - jOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
-            int64_t jmin = (int64_t)ceil(tempf2);
-            if (jmin < 0) jmin = 0;
-            tempvec = nodeCoord + jOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
-            int64_t jmax = (int64_t)floor(tempf2) + 1;
-            if (jmax > myDims[1]) jmax = myDims[1];
-            tempvec = nodeCoord - kOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
-            int64_t kmin = (int64_t)ceil(tempf3);
-            if (kmin < 0) kmin = 0;
-            tempvec = nodeCoord + kOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
-            int64_t kmax = (int64_t)floor(tempf3) + 1;
-            if (kmax > myDims[2]) kmax = myDims[2];
-            for (ijk[2] = kmin; ijk[2] < kmax; ++ijk[2])
+#pragma omp CARET_PARFOR schedule(dynamic)
+            for (int64_t k = 0; k < myDims[2]; ++k)
             {
-                for (ijk[1] = jmin; ijk[1] < jmax; ++ijk[1])
+                for (int64_t j = 0; j < myDims[1]; ++j)
                 {
-                    for (ijk[0] = imin; ijk[0] < imax; ++ijk[0])
+                    for (int64_t i = 0; i < myDims[0]; ++i)
                     {
-                        myVolOut->indexToSpace(ijk, tempvec);
-                        tempvec -= nodeCoord;
-                        if (tempvec.length() <= exactLim)
+                        Vector3D voxCoord;
+                        myVolOut->indexToSpace(i, j, k, voxCoord);
+                        int32_t ret = mySurf->closestNode(voxCoord, exactLimFudge);
+                        if (ret != -1)
                         {
-                            volMarked[myVolOut->getIndex(ijk)] = 1;
+                            volMarked[myVolOut->getIndex(i, j, k)] = 1; //this mark only matters during approximation - if we calculate an exact distance that is beyond the exact limit, use it as long as it is within approx limit
+                        }
+                    }
+                }
+            }
+        } else { //when you only need to set a very small fraction of the total voxels, it is faster to mark everything near each vertex with a stencil and fix up holes later
+#pragma omp CARET_PARFOR schedule(dynamic)
+            for (int node = 0; node < numNodes; ++node)
+            {
+                int64_t ijk[3];
+                Vector3D nodeCoord = mySurf->getCoordinate(node), tempvec;
+                float tempf, tempf2, tempf3;
+                tempvec = nodeCoord - iOrthHat * exactLimFudge;
+                myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);//compute bounding box once rather than doing a convoluted sphere loop construct
+                int64_t imin = (int64_t)ceil(tempf);
+                if (imin < 0) imin = 0;
+                tempvec = nodeCoord + iOrthHat * exactLimFudge;
+                myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
+                int64_t imax = (int64_t)floor(tempf) + 1;
+                if (imax > myDims[0]) imax = myDims[0];
+                tempvec = nodeCoord - jOrthHat * exactLimFudge;
+                myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
+                int64_t jmin = (int64_t)ceil(tempf2);
+                if (jmin < 0) jmin = 0;
+                tempvec = nodeCoord + jOrthHat * exactLimFudge;
+                myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
+                int64_t jmax = (int64_t)floor(tempf2) + 1;
+                if (jmax > myDims[1]) jmax = myDims[1];
+                tempvec = nodeCoord - kOrthHat * exactLimFudge;
+                myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
+                int64_t kmin = (int64_t)ceil(tempf3);
+                if (kmin < 0) kmin = 0;
+                tempvec = nodeCoord + kOrthHat * exactLimFudge;
+                myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
+                int64_t kmax = (int64_t)floor(tempf3) + 1;
+                if (kmax > myDims[2]) kmax = myDims[2];
+                for (ijk[2] = kmin; ijk[2] < kmax; ++ijk[2])
+                {
+                    for (ijk[1] = jmin; ijk[1] < jmax; ++ijk[1])
+                    {
+                        for (ijk[0] = imin; ijk[0] < imax; ++ijk[0])
+                        {
+                            myVolOut->indexToSpace(ijk, tempvec);
+                            tempvec -= nodeCoord;
+                            if (tempvec.length() <= exactLimFudge)
+                            {
+                                volMarked[myVolOut->getIndex(ijk)] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        int64_t ijk[3];
+        for (ijk[2] = 0; ijk[2] < myDims[2]; ++ijk[2])
+        {
+            for (ijk[1] = 0; ijk[1] < myDims[1]; ++ijk[1])
+            {
+                for (ijk[0] = 0; ijk[0] < myDims[0]; ++ijk[0])
+                {
+                    if (volMarked[myVolOut->getIndex(ijk)] == 1)
+                    {
+                        exactVoxelList.push_back(ijk[0]);
+                        exactVoxelList.push_back(ijk[1]);
+                        exactVoxelList.push_back(ijk[2]);
+                    }
+                }
+            }
+        }
+        myProgress.reportProgress(markweight);
+        myProgress.setTask("computing exact distances");
+#pragma omp CARET_PAR
+        {
+            int64_t numExact = (int64_t)exactVoxelList.size();
+            CaretPointer<SignedDistanceHelper> myDist = mySurf->getSignedDistanceHelper();
+            Vector3D thisCoord;
+#pragma omp CARET_FOR schedule(dynamic)
+            for (int64_t i = 0; i < numExact; i += 3)
+            {
+                const int64_t* thisVox = exactVoxelList.data() + i;
+                myVolOut->indexToSpace(thisVox, thisCoord);
+                bool valid = false;
+                float thisDist = myDist->distLimited(thisCoord, outThresh, valid, myWinding);
+                if (valid)
+                {
+                    int64_t tempindex = myVolOut->getIndex(thisVox);
+                    scratchFrame[tempindex] = thisDist;
+                    volMarked[tempindex] |= 22;//set marked to have valid value (positive and negative), and frozen
+                }
+            }
+        }
+        //fix up missing exact distances due to vertex-based marking, should be faster for extreme cases than increasing the limit based on longest edge
+        //crawl neighbors of marked vertices that aren't marked, looking for any below exact threshold
+        CaretPointer<SignedDistanceHelper> myDist = mySurf->getSignedDistanceHelper();
+        vector<int64_t> toVisit = exactVoxelList;
+        for (int64_t i = 0; i < int64_t(toVisit.size()); i += 3)
+        {
+            int64_t tempindex = myVolOut->getIndex(toVisit.data() + i);
+            if ((volMarked[tempindex] & 22) != 0 && abs(scratchFrame[tempindex]) <= exactLim) //don't grow from a voxel with an invalid value, or that is already beyond exactLim
+            {
+                //check face neighbors for being unmarked
+                for (int neigh = 0; neigh < 18; neigh += 3)
+                {
+                    int64_t tempijk[3] = { toVisit[i] + faceNeigh[neigh],
+                                        toVisit[i + 1] + faceNeigh[neigh + 1],
+                                        toVisit[i + 2] + faceNeigh[neigh + 2] };
+                    if (myVolOut->indexValid(tempijk))
+                    {
+                        int64_t tempindex = myVolOut->getIndex(tempijk);
+                        if ((volMarked[tempindex] & 1) == 0)
+                        {
+                            volMarked[tempindex] |= 1; //mark it as having had exact signed distance run on it
+                            Vector3D thisCoord = outSpace.indexToSpace(tempijk);
+                            bool valid = false;
+                            float thisDist = myDist->distLimited(thisCoord, outThresh, valid, myWinding);
+                            if (valid) //don't throw the distance away unless it is outside the maximum distance requested
+                            {
+                                scratchFrame[tempindex] = thisDist;
+                                volMarked[tempindex] |= 22; //mark it as having a valid value
+                                exactVoxelList.push_back(tempijk[0]);
+                                exactVoxelList.push_back(tempijk[1]);
+                                exactVoxelList.push_back(tempijk[2]);
+                                if (abs(thisDist) <= exactLim) //only evaluate exact distances to one neighbor past exact threshold
+                                {
+                                    toVisit.push_back(tempijk[0]);
+                                    toVisit.push_back(tempijk[1]);
+                                    toVisit.push_back(tempijk[2]);
+                                }
+                            }
                         }
                     }
                 }
             }
         }
     }
-    vector<int64_t> exactVoxelList;
-    int64_t ijk[3];
-    for (ijk[2] = 0; ijk[2] < myDims[2]; ++ijk[2])
-    {
-        for (ijk[1] = 0; ijk[1] < myDims[1]; ++ijk[1])
-        {
-            for (ijk[0] = 0; ijk[0] < myDims[0]; ++ijk[0])
-            {
-                if (volMarked[myVolOut->getIndex(ijk)] == 1)
-                {
-                    exactVoxelList.push_back(ijk[0]);
-                    exactVoxelList.push_back(ijk[1]);
-                    exactVoxelList.push_back(ijk[2]);
-                }
-            }
-        }
-    }
-    myProgress.reportProgress(markweight);
-    myProgress.setTask("computing exact distances");
-#pragma omp CARET_PAR
-    {
-        CaretPointer<SignedDistanceHelper> myDist = mySurf->getSignedDistanceHelper();
-        int numExact = (int)exactVoxelList.size();
-        Vector3D thisCoord;
-#pragma omp CARET_FOR schedule(dynamic)
-        for (int i = 0; i < numExact; i += 3)
-        {
-            myVolOut->indexToSpace(exactVoxelList.data() + i, thisCoord);
-            myVolOut->setValue(myDist->dist(thisCoord, myWinding), exactVoxelList.data() + i);
-            volMarked[myVolOut->getIndex(exactVoxelList.data() + i)] |= 22;//set marked to have valid value (positive and negative), and frozen
-        }
-    }
     myProgress.reportProgress(markweight + exactweight);
     if (approxLim > exactLim)
     {
         myProgress.setTask("approximating distances in extended region");
-        int faceNeigh[] = { 1, 0, 0, 
-                            -1, 0, 0,
-                            0, 1, 0,
-                            0, -1, 0,
-                            0, 0, 1,
-                            0, 0, -1 };
         vector<DistVoxOffset> neighborhood;//this will contain ONLY the shortest voxel offsets with unique 3d slopes within the neighborhood
-        DistVoxOffset tempIndex;
+        DistVoxOffset tempOffset;
         Vector3D tempvec;
         for (int i = -approxNeighborhood; i <= approxNeighborhood; ++i)
         {
-            tempIndex.m_offset[0] = i;
+            tempOffset.m_offset[0] = i;
             for (int j = -approxNeighborhood; j <= approxNeighborhood; ++j)
             {
-                tempIndex.m_offset[1] = j;
+                tempOffset.m_offset[1] = j;
                 for (int k = -approxNeighborhood; k <= approxNeighborhood; ++k)
                 {
-                    tempIndex.m_offset[2] = k;
+                    tempOffset.m_offset[2] = k;
                     tempvec = ivec * i + jvec * j + kvec * k;
-                    tempIndex.m_dist = tempvec.length();
+                    tempOffset.m_dist = tempvec.length();
                     int low, med, high;
                     low = min(min(abs(i), abs(j)), abs(k));//stupid sort
                     high = max(max(abs(i), abs(j)), abs(k));
@@ -327,18 +449,18 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                         {
                             if (high == 1)
                             {
-                                neighborhood.push_back(tempIndex);//face neighbors
+                                neighborhood.push_back(tempOffset);//face neighbors
                             }
                         } else {
                             if (MathFunctions::gcd(med, high) == 1)
                             {
-                                neighborhood.push_back(tempIndex);//unique in-plane
+                                neighborhood.push_back(tempOffset);//unique in-plane
                             }
                         }
                     } else {
                         if (MathFunctions::gcd(MathFunctions::gcd(low, med), high) == 1)
                         {
-                            neighborhood.push_back(tempIndex);//unique out of plane
+                            neighborhood.push_back(tempOffset);//unique out of plane
                         }
                     }
                 }
@@ -349,43 +471,47 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
         CaretMinHeap<VoxelIndex, float> posHeap;
         CaretArray<int64_t> heapIndexes(frameSize);
         int numExact = (int)exactVoxelList.size();
-        for (int i = 0; i < numExact; i += 3)
+        for (int64_t i = 0; i < numExact; i += 3)
         {
             int64_t* thisVoxel = exactVoxelList.data() + i;
-            float tempf = myVolOut->getValue(thisVoxel);
-            for (int neigh = 0; neigh < neighSize; ++neigh)
+            int64_t thisindex = myVolOut->getIndex(thisVoxel);
+            if ((volMarked[thisindex] & 2) != 0) //using fixup method, there are voxels marked as "exact signed distance run" that don't have a value, because it was beyond both limits
             {
-                int64_t tempijk[3];
-                tempijk[0] = thisVoxel[0] + neighborhood[neigh].m_offset[0];
-                tempijk[1] = thisVoxel[1] + neighborhood[neigh].m_offset[1];
-                tempijk[2] = thisVoxel[2] + neighborhood[neigh].m_offset[2];
-                if (myVolOut->indexValid(tempijk))
-                {
-                    int64_t tempindex = myVolOut->getIndex(tempijk);
-                    float tempf2 = tempf + neighborhood[neigh].m_dist;
-                    if (abs(tempf2) <= approxLim && (volMarked[tempindex] & 4) == 0 && ((volMarked[tempindex] & 2) == 0 || tempf2 < myVolOut->getValue(tempijk)))
-                    {//within approxlim (so no stragglers outside limit), not frozen, and either no value or worse value
-                        volMarked[tempindex] |= 2;
-                        myVolOut->setValue(tempf2, tempijk);
-                    }
-                }
-            }
-            if (tempf > 0.0f)
-            {//start only from positive values
-                //check face neighbors for being unmarked
-                for (int neigh = 0; neigh < 18; neigh += 3)
+                float tempf = scratchFrame[thisindex];
+                for (int neigh = 0; neigh < neighSize; ++neigh)
                 {
                     int64_t tempijk[3];
-                    tempijk[0] = thisVoxel[0] + faceNeigh[neigh];
-                    tempijk[1] = thisVoxel[1] + faceNeigh[neigh + 1];
-                    tempijk[2] = thisVoxel[2] + faceNeigh[neigh + 2];
+                    tempijk[0] = thisVoxel[0] + neighborhood[neigh].m_offset[0];
+                    tempijk[1] = thisVoxel[1] + neighborhood[neigh].m_offset[1];
+                    tempijk[2] = thisVoxel[2] + neighborhood[neigh].m_offset[2];
                     if (myVolOut->indexValid(tempijk))
                     {
-                        int64_t tempIndex = myVolOut->getIndex(tempijk);
-                        if ((volMarked[tempIndex] & 1) == 0)
-                        {//only add this to the heap if it has unmarked face neighbors
-                            posHeap.push(VoxelIndex(thisVoxel), tempf);//don't need to store the index to change the key, value is frozen
-                            break;
+                        int64_t tempindex = myVolOut->getIndex(tempijk);
+                        float tempf2 = tempf + neighborhood[neigh].m_dist;
+                        if (abs(tempf2) <= approxLim && (volMarked[tempindex] & 4) == 0 && ((volMarked[tempindex] & 2) == 0 || tempf2 < scratchFrame[tempindex]))
+                        {//within approxlim (so no stragglers outside limit), not frozen, and either no value or worse value
+                            volMarked[tempindex] |= 2;
+                            scratchFrame[tempindex] = tempf2;
+                        }
+                    }
+                }
+                if (tempf > 0.0f)
+                {//start only from positive values
+                    //check face neighbors for being unmarked
+                    for (int neigh = 0; neigh < 18; neigh += 3)
+                    {
+                        int64_t tempijk[3];
+                        tempijk[0] = thisVoxel[0] + faceNeigh[neigh];
+                        tempijk[1] = thisVoxel[1] + faceNeigh[neigh + 1];
+                        tempijk[2] = thisVoxel[2] + faceNeigh[neigh + 2];
+                        if (myVolOut->indexValid(tempijk))
+                        {
+                            int64_t tempIndex = myVolOut->getIndex(tempijk);
+                            if ((volMarked[tempIndex] & 1) == 0)
+                            {//only add this to the heap if it has unmarked face neighbors
+                                posHeap.push(VoxelIndex(thisVoxel), tempf);//don't need to store the index to change the key, value is frozen
+                                break;
+                            }
                         }
                     }
                 }
@@ -409,10 +535,10 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                     float tempf = curDist + neighborhood[neigh].m_dist;
                     int tempindex = myVolOut->getIndex(tempijk);
                     int& tempmark = volMarked[tempindex];
-                    if (abs(tempf) <= approxLim && (tempmark & 4) == 0 && ((tempmark & 2) == 0 || myVolOut->getValue(tempijk) > tempf))
+                    if (abs(tempf) <= approxLim && (tempmark & 4) == 0 && ((tempmark & 2) == 0 || scratchFrame[tempindex] > tempf))
                     {//within range, not frozen, no value or current value is worse
                         tempmark |= 2;//valid value
-                        myVolOut->setValue(tempf, tempijk);
+                        scratchFrame[tempindex] = tempf;
                         if ((tempmark & 8) != 0)//if it is already in the heap, we must update its key (log time worst case, but changes should generally be small)
                         {
                             posHeap.changekey(heapIndexes[tempindex], tempf);
@@ -420,7 +546,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                     }
                     if ((tempmark & 12) == 0 && (tempmark & 2) != 0 && neighborhood[neigh].m_dist <= maxFaceDist)
                     {//this neatly handles both face neighbors and any other needed neighbors to maintain dijkstra correctness under extreme scenarios
-                        heapIndexes[tempindex] = posHeap.push(VoxelIndex(tempijk), myVolOut->getValue(tempijk));
+                        heapIndexes[tempindex] = posHeap.push(VoxelIndex(tempijk), scratchFrame[tempindex]);
                         tempmark |= 8;//has a heap index
                     }
                 }
@@ -428,43 +554,47 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
         }//negatives
         myProgress.reportProgress(markweight + exactweight + approxweight * 0.5f);
         CaretMaxHeap<VoxelIndex, float> negHeap;
-        for (int i = 0; i < numExact; i += 3)
+        for (int64_t i = 0; i < numExact; i += 3)
         {
             int64_t* thisVoxel = exactVoxelList.data() + i;
-            float tempf = myVolOut->getValue(thisVoxel);
-            for (int neigh = 0; neigh < neighSize; ++neigh)
+            int64_t thisindex = myVolOut->getIndex(thisVoxel);
+            if ((volMarked[thisindex] & 16) != 0) //using fixup method, there are voxels marked as "exact signed distance run" that don't have a valid value, because it was beyond both limits
             {
-                int64_t tempijk[3];
-                tempijk[0] = thisVoxel[0] + neighborhood[neigh].m_offset[0];
-                tempijk[1] = thisVoxel[1] + neighborhood[neigh].m_offset[1];
-                tempijk[2] = thisVoxel[2] + neighborhood[neigh].m_offset[2];
-                if (myVolOut->indexValid(tempijk))
-                {
-                    int64_t tempindex = myVolOut->getIndex(tempijk);
-                    float tempf2 = tempf - neighborhood[neigh].m_dist;
-                    if (abs(tempf2) <= approxLim && (volMarked[tempindex] & 4) == 0 && ((volMarked[tempindex] & 16) == 0 || tempf2 > myVolOut->getValue(tempijk)))
-                    {//within approxlim (so no stragglers outside limit), not frozen, and either no value or worse value
-                        volMarked[tempindex] |= 16;
-                        myVolOut->setValue(tempf2, tempijk);
-                    }
-                }
-            }
-            if (tempf < 0.0f)
-            {//start only from negative values
-                //check face neighbors for being unmarked
-                for (int neigh = 0; neigh < 18; neigh += 3)
+                float tempf = scratchFrame[thisindex];
+                for (int neigh = 0; neigh < neighSize; ++neigh)
                 {
                     int64_t tempijk[3];
-                    tempijk[0] = thisVoxel[0] + faceNeigh[neigh];
-                    tempijk[1] = thisVoxel[1] + faceNeigh[neigh + 1];
-                    tempijk[2] = thisVoxel[2] + faceNeigh[neigh + 2];
+                    tempijk[0] = thisVoxel[0] + neighborhood[neigh].m_offset[0];
+                    tempijk[1] = thisVoxel[1] + neighborhood[neigh].m_offset[1];
+                    tempijk[2] = thisVoxel[2] + neighborhood[neigh].m_offset[2];
                     if (myVolOut->indexValid(tempijk))
                     {
-                        int64_t tempIndex = myVolOut->getIndex(tempijk);
-                        if ((volMarked[tempIndex] & 1) == 0)
-                        {//only add this to the heap if it has unmarked face neighbors
-                            negHeap.push(VoxelIndex(thisVoxel), tempf);//don't need to store the index to change the key, value is frozen
-                            break;
+                        int64_t tempindex = myVolOut->getIndex(tempijk);
+                        float tempf2 = tempf - neighborhood[neigh].m_dist;
+                        if (abs(tempf2) <= approxLim && (volMarked[tempindex] & 4) == 0 && ((volMarked[tempindex] & 16) == 0 || tempf2 > scratchFrame[tempindex]))
+                        {//within approxlim (so no stragglers outside limit), not frozen, and either no value or worse value
+                            volMarked[tempindex] |= 16;
+                            scratchFrame[tempindex] = tempf2;
+                        }
+                    }
+                }
+                if (tempf < 0.0f)
+                {//start only from negative values
+                    //check face neighbors for being unmarked
+                    for (int neigh = 0; neigh < 18; neigh += 3)
+                    {
+                        int64_t tempijk[3];
+                        tempijk[0] = thisVoxel[0] + faceNeigh[neigh];
+                        tempijk[1] = thisVoxel[1] + faceNeigh[neigh + 1];
+                        tempijk[2] = thisVoxel[2] + faceNeigh[neigh + 2];
+                        if (myVolOut->indexValid(tempijk))
+                        {
+                            int64_t tempIndex = myVolOut->getIndex(tempijk);
+                            if ((volMarked[tempIndex] & 1) == 0)
+                            {//only add this to the heap if it has unmarked face neighbors
+                                negHeap.push(VoxelIndex(thisVoxel), tempf);//don't need to store the index to change the key, value is frozen
+                                break;
+                            }
                         }
                     }
                 }
@@ -488,10 +618,10 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                     float tempf = curDist - neighborhood[neigh].m_dist;
                     int tempindex = myVolOut->getIndex(tempijk);
                     int& tempmark = volMarked[tempindex];
-                    if (abs(tempf) <= approxLim && (tempmark & 4) == 0 && ((tempmark & 16) == 0 || myVolOut->getValue(tempijk) < tempf))
+                    if (abs(tempf) <= approxLim && (tempmark & 4) == 0 && ((tempmark & 16) == 0 || scratchFrame[tempindex] < tempf))
                     {//within range, not frozen, no value or current value is worse
                         tempmark |= 16;//valid value
-                        myVolOut->setValue(tempf, tempijk);
+                        scratchFrame[tempindex] = tempf;
                         if ((tempmark & 8) != 0)//if it is already in the heap, we must update its key (log time worst case, but changes should generally be small)
                         {
                             negHeap.changekey(heapIndexes[tempindex], tempf);
@@ -499,32 +629,36 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                     }
                     if ((tempmark & 12) == 0 && (tempmark & 16) != 0 && neighborhood[neigh].m_dist <= maxFaceDist)
                     {//this neatly handles both face neighbors and any other needed neighbors to maintain dijkstra correctness under extreme scenarios
-                        heapIndexes[tempindex] = negHeap.push(VoxelIndex(tempijk), myVolOut->getValue(tempijk));
+                        heapIndexes[tempindex] = negHeap.push(VoxelIndex(tempijk), scratchFrame[tempindex]);
                         tempmark |= 8;//has a heap index
                     }
                 }
             }
         }
-    }//now make the roi volume
+    }
+    myVolOut->setFrame(scratchFrame.data());
     if (myRoiOut != NULL)
-    {
+    {//now make the roi volume
         myDims.resize(3);
         myRoiOut->reinitialize(myDims, myVolOut->getSform());
+        int64_t ijk[3];
         for (ijk[2] = 0; ijk[2] < myDims[2]; ++ijk[2])
         {
             for (ijk[1] = 0; ijk[1] < myDims[1]; ++ijk[1])
             {
                 for (ijk[0] = 0; ijk[0] < myDims[0]; ++ijk[0])
                 {
-                    if ((volMarked[myVolOut->getIndex(ijk)] & 4) == 0)//only mark "frozen" (4) as valid, though "have value" (2) should now be the same
+                    int64_t tempindex = myVolOut->getIndex(ijk);
+                    if ((volMarked[tempindex] & 4) == 0)//only mark "frozen" (4) as valid, though "have value" (2 or 16) should now be the same
                     {
-                        myRoiOut->setValue(0.0f, ijk);
+                        scratchFrame[tempindex] = 0.0f;
                     } else {
-                        myRoiOut->setValue(1.0f, ijk);
+                        scratchFrame[tempindex] = 1.0f;
                     }
                 }
             }
         }
+        myRoiOut->setFrame(scratchFrame.data());
     }
 }
 

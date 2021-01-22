@@ -113,6 +113,69 @@ float SignedDistanceHelper::dist(const float coord[3], WindingLogic myWinding)
     return bestTriDist * computeSign(coord, bestInfo, myWinding);
 }
 
+float SignedDistanceHelper::distLimited(const float coord[3], const float limit, bool& validOut, SignedDistanceHelper::WindingLogic myWinding)
+{
+    CaretMutexLocker locked(&m_mutex);
+    validOut = false;
+    CaretSimpleMinHeap<Oct<SignedDistanceHelperBase::TriVector>*, float> myHeap;
+    myHeap.push(m_base->m_indexRoot, m_base->m_indexRoot->distToPoint(coord));
+    ClosestPointInfo tempInfo, bestInfo;
+    float tempf = -1.0f, bestTriDist = limit;
+    int numChanged = 0;
+    while (!myHeap.isEmpty())
+    {
+        Oct<SignedDistanceHelperBase::TriVector>* curOct = myHeap.pop(&tempf);
+        if (tempf < bestTriDist)
+        {
+            if (curOct->m_leaf)
+            {
+                vector<int32_t>& myVecRef = *(curOct->m_data.m_triList);
+                int numTris = (int)myVecRef.size();
+                for (int i = 0; i < numTris; ++i)
+                {
+                    if (m_triMarked[myVecRef[i]] != 1)
+                    {
+                        m_triMarked[myVecRef[i]] = 1;
+                        m_triMarkChanged[numChanged++] = myVecRef[i];
+                        tempf = unsignedDistToTri(coord, myVecRef[i], tempInfo);
+                        if (tempf < bestTriDist)
+                        {
+                            bestInfo = tempInfo;
+                            bestTriDist = tempf;
+                            validOut = true;
+                        }
+                    }
+                }
+            } else {
+                for (int ci = 0; ci < 2; ++ci)
+                {
+                    for (int cj = 0; cj < 2; ++cj)
+                    {
+                        for (int ck = 0; ck < 2; ++ck)
+                        {
+                            tempf = curOct->m_children[ci][cj][ck]->distToPoint(coord);
+                            if (tempf < bestTriDist)
+                            {
+                                myHeap.push(curOct->m_children[ci][cj][ck], tempf);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    while (numChanged)
+    {
+        m_triMarked[m_triMarkChanged[--numChanged]] = 0;//need to do this before computeSign
+    }
+    if (validOut)
+    {
+        return bestTriDist * computeSign(coord, bestInfo, myWinding);
+    } else {
+        return NAN;//should never be used in this case, so give a nan
+    }
+}
+
 void SignedDistanceHelper::barycentricWeights(const float coord[3], BarycentricInfo& baryInfoOut)
 {
     CaretMutexLocker locked(&m_mutex);
