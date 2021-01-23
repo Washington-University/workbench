@@ -52,7 +52,7 @@ OperationParameters* AlgorithmSurfaceCortexLayer::getParameters()
     
     ret->addSurfaceOutputParameter(4, "out-surface", "the output surface");
     
-    OptionalParameter* metricOpt = ret->createOptionalParameter(5, "-placement-out", "output the placement as a distance fraction from pial to white");
+    OptionalParameter* metricOpt = ret->createOptionalParameter(5, "-placement-out", "output the placement as a volume fraction from pial to white");
     metricOpt->addMetricOutputParameter(1, "placement-metric", "output metric");
     
     //ret->createOptionalParameter(6, "-untwist", "temporary option for comparing methods, specify to use old method");
