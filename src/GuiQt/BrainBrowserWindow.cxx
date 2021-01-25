@@ -2654,8 +2654,11 @@ BrainBrowserWindow::createMenuSurface()
                                   "selection of surfaces for coordinate translation to and from "
                                   "volumes.");
 
-    menu->setToolTipsVisible(true);
-    // WuQToolTipHelper::newInstanceForMenu(menu);
+    /*
+     * Note: menu->setToolTipsVisible(true);
+     * does not work for menus in Mac Menubar
+     */
+    WuQToolTipHelper::newInstanceForMenu(menu);
     
     return menu;
 }

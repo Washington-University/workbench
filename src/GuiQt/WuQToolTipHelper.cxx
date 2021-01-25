@@ -159,9 +159,10 @@ WuQToolTipHelper::menuActionHovered(QAction* action)
         }
         else {
             /*
-             * If an action does not have a tooltip, Qt
-             * return's the action's text as a tooltip.
-             * In this case, do not show tooltip.
+             * When an action has not been given a tooltip,
+             * calling QAction::toolTip() returns QAction::text().
+             * In this case, do not show tooltip since it
+             * is useful (same as the menu text)
              */
             if (action->text() == action->toolTip()) {
                 QToolTip::hideText();
@@ -172,7 +173,7 @@ WuQToolTipHelper::menuActionHovered(QAction* action)
                  * If tooltip is not formatted, word wrap the text
                  */
                 if ( ! text.toLower().contains("<html>")) {
-                    text = ("<html><body>" + text + "</body></html>"); //WuQtUtilities::createWordWrappedToolTipText(text);
+                    text = ("<html><body>" + text + "</body></html>");
                 }
                 
                 /*
@@ -205,6 +206,6 @@ WuQToolTipHelper::hideToolTip()
 bool
 WuQToolTipHelper::event(QEvent* event)
 {
-    std::cout << "Event: " << (int)event->type() << std::endl << std::flush;
+    //std::cout << "Event: " << (int)event->type() << std::endl << std::flush;
     return QObject::event(event);
 }
