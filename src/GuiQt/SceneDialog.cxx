@@ -2239,7 +2239,7 @@ SceneDialog::createSceneFileWidget()
      */
     m_showFileStructurePushButton = new QPushButton("Show Files and Folders...");
     WuQtUtilities::setWordWrappedToolTip(m_showFileStructurePushButton,
-                                         "In a dialog, show the organization files and folders contained in the Scene File");
+                                         "In a dialog, show the organization of files and folders contained in the Scene File");
     QObject::connect(m_showFileStructurePushButton, &QPushButton::clicked,
                      this, &SceneDialog::showFileStructure);
     
@@ -2279,7 +2279,7 @@ SceneDialog::createSceneFileWidget()
      * Upload button
      */
     m_uploadSceneFilePushButton = new QPushButton("Upload...");
-    m_uploadSceneFilePushButton->setToolTip("Upload the selected scene file to the BALSA Database");
+    m_uploadSceneFilePushButton->setToolTip("<html>Upload the selected scene file to the BALSA Database, balsa.wustl.edu</html>");
     QObject::connect(m_uploadSceneFilePushButton, SIGNAL(clicked()),
                      this, SLOT(uploadSceneFileButtonClicked()));
     

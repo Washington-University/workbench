@@ -154,13 +154,19 @@
 <file>./HelpFiles/Open_Spec_File_Dialog/Open_Spec_File_Dialog.html</file>
 <file>./HelpFiles/Open_Spec_File_Dialog/Thumbs.db</file>
 <file>./HelpFiles/Overlay_Toolbox/Chart_Layers/Chart Layers.html</file>
+<file>./HelpFiles/Overlay_Toolbox/Chart_Layers/DynLinesChartingLayers.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Chart_Layers/HistogramChartingLayers.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Chart_Layers/LineChartingLayers.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Chart_Layers/LinesChartingLayers.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Chart_Layers/MatrixChartLayers.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Charting/Charting.html</file>
 <file>./HelpFiles/Overlay_Toolbox/Charting/Charting_History.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Charting/Charting_Loading.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Charting/Thumbs.db</file>
 <file>./HelpFiles/Overlay_Toolbox/Connectivity/Connectivity.html</file>
 <file>./HelpFiles/Overlay_Toolbox/Connectivity/Connectivity.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Information/Information.html</file>
+<file>./HelpFiles/Overlay_Toolbox/Information/Information.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Layers/Add_Layer.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Layers/Colorbar.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Layers/Layers.html</file>
@@ -170,6 +176,8 @@
 <file>./HelpFiles/Overlay_Toolbox/Layers/Overlay_and_Map_Settings/Settings_icon.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Layers/Overlay_Toolbox_horiz.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Layers/Settings_icon.png</file>
+<file>./HelpFiles/Overlay_Toolbox/Media/Media.html</file>
+<file>./HelpFiles/Overlay_Toolbox/Media/Media.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Overlay_Toolbox.html</file>
 <file>./HelpFiles/Overlay_Toolbox/Overlay_Toolbox_horiz.png</file>
 <file>./HelpFiles/Overlay_Toolbox/Overlay_Toolbox_vert.png</file>
@@ -185,9 +193,6 @@
 <file>./HelpFiles/Scenes_Window/Scenes_Window.html</file>
 <file>./HelpFiles/Scenes_Window/Scenes_Window.png</file>
 <file>./HelpFiles/Scenes_Window/Thumbs.db</file>
-<file>./HelpFiles/Splash_Screen/Splash_Screen.html</file>
-<file>./HelpFiles/Splash_Screen/Splash_screen.png</file>
-<file>./HelpFiles/Splash_Screen/Thumbs.db</file>
 <file>./HelpFiles/Toolbar/AllToolbar.png</file>
 <file>./HelpFiles/Toolbar/Clipping/Clipping.html</file>
 <file>./HelpFiles/Toolbar/Clipping/Clipping_Planes.png</file>

@@ -276,17 +276,20 @@ RecentFilesDialog::createFilesFilteringWidget()
     m_listDirectoriesCheckBox->setChecked(true);
     QObject::connect(m_listDirectoriesCheckBox, &QCheckBox::clicked,
                      this, &RecentFilesDialog::listDirectoriesCheckBoxClicked);
+    m_listDirectoriesCheckBox->setToolTip("<html>Show/hide directories</html>");
 
     m_listSceneFilesCheckBox = new QCheckBox("Scene");
     m_listSceneFilesCheckBox->setChecked(true);
     QObject::connect(m_listSceneFilesCheckBox, &QCheckBox::clicked,
                      this, &RecentFilesDialog::listSceneFilesCheckBoxClicked);
-    
+    m_listSceneFilesCheckBox->setToolTip("<html>Show/hide scene files</html>");
+
     m_listSpecFilesCheckBox = new QCheckBox("Spec");
     m_listSpecFilesCheckBox->setChecked(true);
     QObject::connect(m_listSpecFilesCheckBox, &QCheckBox::clicked,
                      this, &RecentFilesDialog::listSpecFilesCheckBoxClicked);
-    
+    m_listSpecFilesCheckBox->setToolTip("<html>Show/hide spec files</html>");
+
     QLabel* nameFilterLabel = new QLabel("Name Filter: ");
     m_nameFilterLineEdit = new QLineEdit();
     m_nameFilterLineEdit->setClearButtonEnabled(true);
@@ -299,7 +302,8 @@ RecentFilesDialog::createFilesFilteringWidget()
     m_showFilePathsCheckBox->setChecked(true);
     QObject::connect(m_showFilePathsCheckBox, &QCheckBox::clicked,
                      this, &RecentFilesDialog::showFilePathsCheckBoxClicked);
-    
+    m_showFilePathsCheckBox->setToolTip("<html>Show/hide paths below the names of scene and spec files</html>");
+
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
     layout->addWidget(listLabel);

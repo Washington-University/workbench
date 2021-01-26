@@ -85,12 +85,25 @@ m_location(location)
     m_chartLineLayerSymbolWidget = createChartLineLayerSymbolsWidget();
     
     m_tabWidget = new QTabWidget();
-    m_tabWidget->addTab(m_infoWidget,                 "Info");
-    m_tabWidget->addTab(m_chartLineLayerSymbolWidget, "Chart");
-    m_tabWidget->addTab(m_filteringFilesWidget,       "Files");
-    m_tabWidget->addTab(m_filteringSettingsWidget,    "Filter");
-    m_tabWidget->addTab(m_symbolsWidget,              "Symbols");
+    const int32_t infoIndex    = m_tabWidget->addTab(m_infoWidget,                 "Info");
+    const int32_t chartIndex   = m_tabWidget->addTab(m_chartLineLayerSymbolWidget, "Chart");
+    const int32_t filesIndex   = m_tabWidget->addTab(m_filteringFilesWidget,       "Files");
+    const int32_t filterIndex  = m_tabWidget->addTab(m_filteringSettingsWidget,    "Filter");
+    const int32_t symbolsIndex = m_tabWidget->addTab(m_symbolsWidget,              "Symbols");
     
+    m_tabWidget->setTabToolTip(infoIndex,
+                            "<html><body>Display results of identification operations</body></hmtl>");
+    m_tabWidget->setTabToolTip(chartIndex,
+                            "<html><body>Controls for chart identification</body></html>");
+    m_tabWidget->setTabToolTip(filesIndex,
+                            "<html><body>Select specific files for identification; Enables "
+                            "identification of files that are NOT in an overlay</body></html>");
+    m_tabWidget->setTabToolTip(filterIndex,
+                            "<html><body>Select tabs (all or selected)for identification data; "
+                               "Enable feature (borders/foci) identification</body></html>");
+    m_tabWidget->setTabToolTip(symbolsIndex,
+                            "<html><body></body>Control the size/color/types of symbols shown "
+                            "on surfaces and volume slices</html>");
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -188,7 +201,7 @@ IdentificationDisplayWidget::createInfoWidget()
     
     QToolButton* copyHistoryToolButton = new QToolButton();
     copyHistoryToolButton->setText("Copy");
-    copyHistoryToolButton->setToolTip("Copy the SELECTED information text to the Clipboard");
+    copyHistoryToolButton->setToolTip("Copy the SELECTED text to the Clipboard");
     QObject::connect(copyHistoryToolButton, &QToolButton::clicked,
                      m_infoTextBrowser, &QTextBrowser::copy);
     QObject::connect(m_infoTextBrowser, &QTextBrowser::copyAvailable,
@@ -212,7 +225,8 @@ IdentificationDisplayWidget::createInfoWidget()
     QObject::connect(removeSymbolsButton, &QToolButton::clicked,
                      this, &IdentificationDisplayWidget::infoRemoveSymbolsButtonClicked);
     
-    const QString showToolTip(WuQtUtilities::createWordWrappedToolTipText("Selects number of identification operations displayed in the information text"));
+    const QString showToolTip("<html>Selects number of recent identification operations displayed in the information text. "
+                              "Selections are All, 1, 2, etc.</html>");
     m_infoShowHistoryCountSpinBox = new QSpinBox();
     m_infoShowHistoryCountSpinBox->setRange(0, 99);
     m_infoShowHistoryCountSpinBox->setSingleStep(1);
@@ -390,10 +404,14 @@ IdentificationDisplayWidget::createFilteringSettingsWidget()
     }
     
     m_filteringCiftiLoadingCheckBox = new QCheckBox("CIFTI Row/Column");
+    m_filteringCiftiLoadingCheckBox->setToolTip("<html>Show the row/column for any CIFTI File data loaded "
+                                                "in response to an identification operation</html>");
     
     m_filteringBorderCheckBox = new QCheckBox("Border");
+    m_filteringBorderCheckBox->setToolTip("<html>Enable identification of borders</html>");
     
     m_filteringFociCheckBox  = new QCheckBox("Focus");
+    m_filteringFociCheckBox->setToolTip("<html>Enable identification of foci</html>");
     
     WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);
     QObject::connect(signalWatcher, &WuQValueChangedSignalWatcher::valueChanged,
@@ -529,20 +547,25 @@ QWidget*
 IdentificationDisplayWidget::createSymbolsWidget()
 {
     m_symbolsShowSurfaceIdCheckBox = new QCheckBox("Show Surface ID Symbols");
+    m_symbolsShowSurfaceIdCheckBox->setToolTip("<html>Enable display of surface identification symbols</html>");
 
     m_symbolsShowVolumeIdCheckBox = new QCheckBox("Show Volume ID Symbols");
-    
+    m_symbolsShowVolumeIdCheckBox->setToolTip("<html>Enable display of volume identification symbols</html>");
+
     m_symbolsSurfaceContralateralVertexCheckBox = new QCheckBox("Show Surface Contralateral");
-    
+    m_symbolsSurfaceContralateralVertexCheckBox->setToolTip("<html>Enable display of contralateral surface identification symbols</html>");
+
     QLabel* idSymbolColorLabel = new QLabel("ID Color:");
     m_symbolsIdColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::DISABLED,
                                                                    CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
                                                                    this);
+    m_symbolsIdColorComboBox->setToolTip("<html>Set color of identification symbols shown on surfaces and volumes</html>");
     
     QLabel* contralateralIdSymbolColorLabel = new QLabel("Contralateral:");
     m_symbolsContralateralIdColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::DISABLED,
                                                                                 CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
                                                                                 this);
+    m_symbolsContralateralIdColorComboBox->setToolTip("<html>Set color of identification symbol on contralateral surface</html>");
     
     QLabel* symbolSizeTypeLabel = new QLabel("Diameter Type:");
     m_symbolSizeTypeComboBox = new EnumComboBoxTemplate(this);
@@ -557,6 +580,7 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolsIdDiameterSpinBox->setSingleStep(0.1);
     m_symbolsIdDiameterSpinBox->setDecimals(1);
     m_symbolsIdDiameterSpinBox->setSuffix("mm");
+    m_symbolsIdDiameterSpinBox->setToolTip("<html>Set diameter of identification symbols</html>");
     
     QLabel* mostRecentSymbolDiameterLabel = new QLabel("Most Recent:");
     m_symbolsMostRecentIdDiameterSpinBox = new QDoubleSpinBox();
@@ -564,6 +588,7 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolsMostRecentIdDiameterSpinBox->setSingleStep(0.1);
     m_symbolsMostRecentIdDiameterSpinBox->setDecimals(1);
     m_symbolsMostRecentIdDiameterSpinBox->setSuffix("mm");
+    m_symbolsMostRecentIdDiameterSpinBox->setToolTip("<html>Set diamater of most recent identification symbol</html>");
     
     WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);
     QObject::connect(signalWatcher, &WuQValueChangedSignalWatcher::valueChanged,
@@ -748,7 +773,7 @@ IdentificationDisplayWidget::createChartLineLayerSymbolsWidget()
     m_chartLineLayerSymbolSizeSpinBox->setSingleStep(0.1);
     m_chartLineLayerSymbolSizeSpinBox->setDecimals(1);
     m_chartLineLayerSymbolSizeSpinBox->setSuffix("%");
-    m_chartLineLayerSymbolSizeSpinBox->setToolTip("Size of point symbol as a percentage\n"
+    m_chartLineLayerSymbolSizeSpinBox->setToolTip("Size of selected chart lines point symbol as a percentage\n"
                                                   "of viewport height");
     
     QLabel* toolTipTextSizeLabel = new QLabel("Text Height:");
@@ -757,7 +782,7 @@ IdentificationDisplayWidget::createChartLineLayerSymbolsWidget()
     m_chartLineLayerToolTipTextSizeSpinBox->setSingleStep(0.1);
     m_chartLineLayerToolTipTextSizeSpinBox->setDecimals(1);
     m_chartLineLayerToolTipTextSizeSpinBox->setSuffix("%");
-    m_chartLineLayerToolTipTextSizeSpinBox->setToolTip("Size of tooltip text as a\n"
+    m_chartLineLayerToolTipTextSizeSpinBox->setToolTip("Size of selected chart lines point tooltip text as a\n"
                                                        "percentage of viewport height");
 
     WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);

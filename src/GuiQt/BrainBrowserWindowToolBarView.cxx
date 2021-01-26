@@ -79,42 +79,42 @@ BrainBrowserWindowToolBarView::BrainBrowserWindowToolBarView(const QString& pare
     this->viewModeChartTwoRadioButton->setObjectName(objectNamePrefix
                                                      + ":Chart");
     macroManager->addMacroSupportToObject(this->viewModeChartTwoRadioButton,
-                                          "Select Chart View");
+                                          "<html>Select Chart View of Histogram, Lines, Matrices</html>");
     
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
     this->viewModeSurfaceRadioButton->setToolTip("Show Surface View");
     this->viewModeSurfaceRadioButton->setObjectName(objectNamePrefix
                                                     + ":Surface");
     macroManager->addMacroSupportToObject(this->viewModeSurfaceRadioButton,
-                                          "Select surface view");
+                                          "<html>Select surface view of single left/right/cerebellum</html>");
     
     this->viewModeSurfaceMontageRadioButton = new QRadioButton("Montage");
     this->viewModeSurfaceMontageRadioButton->setToolTip("Show Montage View");
     this->viewModeSurfaceMontageRadioButton->setObjectName(objectNamePrefix
                                                            + ":Montage");
     macroManager->addMacroSupportToObject(this->viewModeSurfaceMontageRadioButton,
-                                          "Select surface montage view");
+                                          "<html>Select surface montage view of multiple views of left/right/cerebellum</html>");
     
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeVolumeRadioButton->setToolTip("Show Volume View");
     this->viewModeVolumeRadioButton->setObjectName(objectNamePrefix
                                                    + ":Volume");
     macroManager->addMacroSupportToObject(this->viewModeVolumeRadioButton,
-                                          "Select volume view");
+                                          "<html>Select volume slice view</html>");
     
     this->viewModeWholeBrainRadioButton = new QRadioButton("All");
     this->viewModeWholeBrainRadioButton->setToolTip("Show All View");
     this->viewModeWholeBrainRadioButton->setObjectName(objectNamePrefix
                                                        + ":All");
     macroManager->addMacroSupportToObject(this->viewModeWholeBrainRadioButton,
-                                          "Select all view");
+                                          "<html>Select all view that shows 3D view of surfaces and volume cubes/slices</html>");
     
     this->viewModeMediaRadioButton = new QRadioButton("Media");
     this->viewModeMediaRadioButton->setToolTip("Show Media View");
     this->viewModeMediaRadioButton->setObjectName(objectNamePrefix
                                                        + ":Media");
     macroManager->addMacroSupportToObject(this->viewModeMediaRadioButton,
-                                          "Select Media View");
+                                          "<html>Select Media View of Images</html>");
     
     QVBoxLayout* layout = new QVBoxLayout(this);
 #ifdef CARET_OS_MACOSX
