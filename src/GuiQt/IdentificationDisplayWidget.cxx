@@ -111,6 +111,8 @@ m_location(location)
     layout->addWidget(m_tabWidget, 100);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
+    
+    updateContent(true);
 }
 
 /**
