@@ -35,6 +35,7 @@
 #include "AnnotationCoordinateInformation.h"
 #include "AnnotationImage.h"
 #include "AnnotationManager.h"
+#include "AnnotationMultiCoordinateShape.h"
 #include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationRedoUndoCommand.h"
@@ -83,6 +84,7 @@ m_annotationType(annotationType),
 m_coordInfo(coordInfo),
 m_optionalSecondCoordInfo(optionalSecondCoordInfo)
 {
+    CaretAssertToDoWarning(); // need multi-coordinate info
     bool enableChartSpaceFlag   = false;
     bool enableModelSpaceFlag   = false;
     bool enableSurfaceSpaceFlag = false;
@@ -820,8 +822,9 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
         return false;
     }
     
-    AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
-    AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(annotation);
+    AnnotationTwoCoordinateShape* oneDimAnn = annotation->castToTwoCoordinateShape();
+    AnnotationOneCoordinateShape* twoDimAnn = annotation->castToOneCoordinateShape();
+    AnnotationMultiCoordinateShape* multiCoordAnn = annotation->castToMultiCoordinateShape();
     
     bool validCoordsFlag = false;
     
@@ -839,8 +842,15 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
                                                                                             m_optionalSecondCoordInfo,
                                                                                             m_optionalMultiCoordInfo);
     }
+    else if (multiCoordAnn != NULL) {
+        validCoordsFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(multiCoordAnn,
+                                                                                            coordinateSpace,
+                                                                                            &m_coordInfo,
+                                                                                            m_optionalSecondCoordInfo,
+                                                                                            m_optionalMultiCoordInfo);
+    }
     else {
-        const QString msg("PROGRAM ERROR: Annotation is neither one nor two dimensional");
+        const QString msg("PROGRAM ERROR: Annotation is of unknown base type");
         CaretAssertMessage(0, msg);
         CaretLogSevere(msg);
         errorMessageOut = msg;
@@ -848,7 +858,7 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
     }
     
     if ( ! validCoordsFlag) {
-        errorMessageOut = "Failed to set coordinates for annotatin.";
+        errorMessageOut = "Failed to set coordinates for annotation.";
     }
     
     updateAnnotationDisplayProperties(annotation);
