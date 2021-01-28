@@ -1,0 +1,575 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=utf-8">
+<meta name=Generator content="Microsoft Word 15 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:"Calibri Light";
+	panose-1:2 15 3 2 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	font-size:12.0pt;
+	font-family:"Calibri",sans-serif;}
+h1
+	{mso-style-link:"Heading 1 Char";
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:0in;
+	page-break-after:avoid;
+	font-size:16.0pt;
+	font-family:"Calibri Light",sans-serif;
+	color:#2F5496;
+	font-weight:normal;}
+h2
+	{mso-style-link:"Heading 2 Char";
+	margin-top:2.0pt;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:0in;
+	page-break-after:avoid;
+	font-size:13.0pt;
+	font-family:"Calibri Light",sans-serif;
+	color:#2F5496;
+	font-weight:normal;}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	font-size:12.0pt;
+	font-family:"Calibri",sans-serif;}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	font-size:12.0pt;
+	font-family:"Calibri",sans-serif;}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	font-size:12.0pt;
+	font-family:"Calibri",sans-serif;}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	font-size:12.0pt;
+	font-family:"Calibri",sans-serif;}
+span.Heading1Char
+	{mso-style-name:"Heading 1 Char";
+	mso-style-link:"Heading 1";
+	font-family:"Calibri Light",sans-serif;
+	color:#2F5496;}
+span.Heading2Char
+	{mso-style-name:"Heading 2 Char";
+	mso-style-link:"Heading 2";
+	font-family:"Calibri Light",sans-serif;
+	color:#2F5496;}
+.MsoChpDefault
+	{font-family:"Calibri",sans-serif;}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US style='word-wrap:break-word'>
+
+<div class=WordSection1>
+
+<h1>Macros Overview</h1>
+
+<p class=MsoNormal><span style='font-size:14.0pt'>&nbsp;</span></p>
+
+<p class=MsoNormal><span style='font-size:14.0pt'>Two new features have been
+added and continue to be updated in wb_view.  The first new feature, macros,
+permit the automation of a sequence of commands in wb_view.  These commands
+encompass events from user-interface controls and special complex operations.  
+Facilities exist for creating macros by recording user interactions with the
+user-interface and manual editing of the macros.  In addition, the macro system
+is integrated with another new feature, a new and improved movie creation
+system.</span></p>
+
+<p class=MsoNormal><span style='font-size:14.0pt'>&nbsp;</span></p>
+
+<p class=MsoNormal><span style='font-size:14.0pt'>The macro system in wb_view
+is similar to the macro systems in other software applications such as
+Microsoft Office including PowerPoint’s animation system.</span></p>
+
+<p class=MsoNormal><span style='font-size:14.0pt'>In wb_view, the user can
+record a macro while interacting that forms a sequence of commands from the
+user interacting with the controls in wb_view.  In addition, facilities are
+available to edit a macro and to add, delete, or move commands within the
+macro.  In addition, there are special complex commands the user may insert
+into a macro.  For the most part, these special commands perform an animation-like
+operation.</span></p>
+
+<p class=MsoNormal><span style='font-size:14.0pt'>&nbsp;</span></p>
+
+<p class=MsoNormal><b><span style='font-size:14.0pt'>In the current
+implementation, macros are always associated with the ‘current scene’.</span></b><span
+style='font-size:14.0pt'>  The current scene is either the most recently
+created or loaded scene.  In most cases, the current scene defines valid
+preconditions for running of an associated macro<b>.  In the future, macros may
+also be stored in files or in the user’s preferences in order to simply a
+sequence of operations in wb_view.</b>  In addition,  a designated ‘command key
+can be assigned to macro to simplify execution of the macro.  For example, a
+macro that selects a particular volume slice view and selects slices at a
+particular coordinate.</span></p>
+
+<p class=MsoNormal><span style='font-size:14.0pt'>&nbsp;</span></p>
+
+<p class=MsoNormal><span style='font-size:14.0pt'>As previously mentioned, the
+macro system is integrated with a new movie creation system.  To simplify movie
+creation, the user may create a macro that generates all commands needed to
+create the movie.  One key feature in the macro system allows the user to
+specify a delay before the execution of a macro command and a duration for
+special commands.  This time duration, along with the movie system’s frame rate
+(number of frames per second), results in the related section in the movie
+running for the requested amount of time.  For example, the special command for
+Surface Interpolation requires the user to enter the starting surface, ending
+surface, and a time duration.  Wb_view will determine the number of iterations
+in the interpolation operation so that the interpolation runs for the requested
+duration in the movie.  Note that a larger duration or higher frame rate
+results in a smoother animation operation.</span></p>
+
+<p class=MsoNormal><span style='font-size:14.0pt'>&nbsp;</span></p>
+
+<p class=MsoNormal><span style='font-size:14.0pt'>&nbsp;</span></p>
+
+<h1>Macro Menu</h1>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Macros…. – Displays the Macro Dialog for editing and running
+macros.  A button in the toolbar also will display this dialog.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Start Recording New Macro…  Displays a dialog for recording a
+macro from selections made in the GUI.  Recording of a new macro is also
+available by pressing the Record button on the Macro Dialog.</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Stop Recording New Macro – Select this item to finish recording
+of a macro</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<h2>Record Macro Dialog</h2>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><img width=327 height=249 id="Picture 1"
+src="MacrosWorkbench.fld/image001.png"></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Store macro in – Chooses where the macro is placed.  Choices are
+the current scene or into the user’s preferences (disabled at this time)</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Macro name – Name for the macro</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Short Cut Key – Allows user to launch the macro using a short cut
+key instead of running the macro from the macro dialog (primarily aimed at
+macros stored in the preferences)</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Description – User should enter a description of the macro in
+this text box</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>After pressing the OK button, make selections in the GUI. 
+When finished, select Stop Recording from the Macro Menu.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><span class=Heading1Char><span style='font-size:16.0pt'>Macro
+Dialog with Macro Selected</span></span><img width=327 height=523 id="Picture 7"
+src="MacrosWorkbench.fld/image002.png"></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Top Row Buttons</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Macros in – Selects macros displayed in the dialog.  Macros are
+available from the current scene or preferences</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Reload button (curly arrow) – Reloads the current scene</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Import/Export (…) – Allows import or export of the macro group</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Second Row Buttons</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Stop – Stops a macro that is running or  stops recording of a new
+macro.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Run – Run the selected macro (this button is only enabled when a
+macro is selected (it is disabled if a command is selected)</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Pause – Pauses the currently running macro.  Pressing the button
+while a macro is paused will resume execution of the macro.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Record – When recording is off, a red outline circle is
+displayed.  Pressing the button while it is in this state will display the
+Record Button Menu as described below.  When recording is active, a red filled
+circle is displayed and pressing the button will top recording.   </p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Insert (Plus) – Allows insertion of new macros or insertion of
+commands into an existing macro.  See Insert Button Menu below</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Up Arrow – Move the selected item up one position</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Down Arrow – Move the selected item down one position</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>X – Delete the selected item (macro or macro command)</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Record Button Menu</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Record and Insert New Commands Below – Starts recording new
+command from the user interacting with the user-interface.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Record and Insert New Macro Below – Starts recording a new macro
+from the user interacting with the user-interface.</p>
+
+<p class=MsoListParagraphCxSpLast>&nbsp;</p>
+
+<p class=MsoNormal>Insert (plus) button Menu</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Insert New Command Below – Displays the Add Macro Command for
+inserting a new command.  </p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Copy and Insert Macro Below – Copies and inserts a macro,
+possibly from another scene.</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Insert New Macro Below – Inserts a new, empty macro.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>The list view contains macro and macro commands.  A macro
+has an arrow button on its left side that can be toggled to show the commands
+within the macro.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Macro -</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Name – Allows editing of the macro’s name</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Short Cut Key – Allows assignment of a short cut key to the macro</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Description – Allows editing of the macro’s description</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Run Macro Options</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Window – Selects window in which macro runs</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Loop – Macro loops continuously until it is stopped and reloads
+the current scene when at the end of the loop</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Ignore delays and durations – While a macro is running, all delay
+times are ignored and for in iterative command, the iterations are limited to
+the first and last iterations.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Move mouse to highlight controls – If the macro was recorded from
+the GUI the mouse will move and highlight a control until the control is
+processed.  Note: If this is selected, the user will have difficulty using the
+mouse while the macro runs.  </p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Record movie while macro runs – Movie recording is enabled while
+the macro runs.  </p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Create movie after macro finishes – When running of the macro has
+completed, a movie is automatically created.  When this checkbox transitions
+from unchecked to checked, a dialog for movie file selection is displayed.</p>
+
+<span style='font-size:12.0pt;font-family:"Calibri",sans-serif'><br clear=all
+style='page-break-before:always'>
+</span>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<h1>Macro Dialog with a Macro Command Selected</h1>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><img width=327 height=523 id="Picture 8"
+src="MacrosWorkbench.fld/image003.png"></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Command</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Title – Title of the macro command</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>GUI Name – This name is assigned by the GUI to uniquely identify
+items in the user-interface that are affected by the selected command.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>GUI Type – The type of item affected by the macro</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Delay – Amount to wait before the command starts</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Description – Describes the command</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Edit Parameters – The content varies and includes parameters for
+the command</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<span style='font-size:12.0pt;font-family:"Calibri",sans-serif'><br clear=all
+style='page-break-before:always'>
+</span>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<h1>Add Macro Command Dialog</h1>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><img width=281 height=392 id="Picture 2"
+src="MacrosWorkbench.fld/image004.png"></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>The Add Macro Command dialog appears when the adds a command
+using the Plus button.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Type – Selects the type of command.  Choices are “Custom
+Operation” that performs a special operation and Widget for items in the
+user-interface.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Commands – Lists commands available </p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Description – Contains a description of the command</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<span style='font-size:12.0pt;font-family:"Calibri",sans-serif'><br clear=all
+style='page-break-before:always'>
+</span>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<h1>Movie Recording Dialog Main Tab</h1>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><img width=309 height=326 id="Picture 10"
+src="MacrosWorkbench.fld/image005.png"></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Source</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Record from Window – Selects window that is recorded</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Record Region – Choose from Graphics (area in which brain models
+are drawn) or Window (entire window including toolbar, toolbox, graphics, etc)</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Recording Mode</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Automatic – Images are recorded anytime there is an update</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Manual – Pressing the record button will record an image for the
+selected number of seconds</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Output Movie</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Create Movie – Displays a file selection dialog for selection of
+the movie file.  If the user clicks the Save button on the file dialog, the
+movie is created. Creation of a movie may take some time.  The format of the
+movie file is based upon the extension of the movie filename.  </p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Reset – Erases all recorded images. Typically used if the user
+wants to erase a partial recording and start over.   In addition, this button
+is also used if the user has disabled “Remove temporary images after movie
+creation” on the settings tab.</p>
+
+<p class=MsoListParagraphCxSpMiddle>&nbsp;</p>
+
+<p class=MsoListParagraphCxSpMiddle>&nbsp;</p>
+
+<p class=MsoListParagraphCxSpLast>&nbsp;</p>
+
+<h1>Movie Recording Settings Tab</h1>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal><img width=278 height=296 id="Picture 12"
+src="MacrosWorkbench.fld/image006.png"></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Resolution – Selection the resolution (width/height) of the
+movie.  This may only be changed when there are no recorded images.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Custom Resolution – Enabled when Resolution is Custom and allows
+user to specify width and height.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Frames Per Second – Number of frames per second in the movie.
+Some Macro Commands contain a duration (seconds) and will use the Frames Per
+Second to ensure proper length of movie.</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'><span
+style='font-size:14.0pt;font-family:Symbol'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span>Remove temporary images after movie creation – After the movie is
+created, image that were used to make the movie are removed.  If this is
+disabled (usually only for debugging), a new movie may contain recorded images
+from a previous movie.  Use the “Reset” button on the Main tab to remove the
+temporary images.</p>
+
+</div>
+
+</body>
+
+</html>

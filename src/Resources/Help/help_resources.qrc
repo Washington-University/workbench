@@ -78,6 +78,13 @@
 <file>./HelpFiles/Information_Window/Information_Window.png</file>
 <file>./HelpFiles/Information_Window/Properties/Information_Properties.png</file>
 <file>./HelpFiles/Information_Window/Properties/Properties.html</file>
+<file>./HelpFiles/Macros/MacrosWorkbench.fld/image001.png</file>
+<file>./HelpFiles/Macros/MacrosWorkbench.fld/image002.png</file>
+<file>./HelpFiles/Macros/MacrosWorkbench.fld/image003.png</file>
+<file>./HelpFiles/Macros/MacrosWorkbench.fld/image004.png</file>
+<file>./HelpFiles/Macros/MacrosWorkbench.fld/image005.png</file>
+<file>./HelpFiles/Macros/MacrosWorkbench.fld/image006.png</file>
+<file>./HelpFiles/Macros/MacrosWorkbench.html</file>
 <file>./HelpFiles/Menus/Data_Menu/Data_Menu.html</file>
 <file>./HelpFiles/Menus/Data_Menu/Project_Foci_Dialog.png</file>
 <file>./HelpFiles/Menus/Data_Menu/Thumbs.db</file>
@@ -118,6 +125,7 @@
 <file>./HelpFiles/Menus/Help_Menu/Help_Menu.png</file>
 <file>./HelpFiles/Menus/Help_Menu/Help_Search.png</file>
 <file>./HelpFiles/Menus/Help_Menu/Workbench_Help.png</file>
+<file>./HelpFiles/Menus/Macro_Menu/Macro_Menu.html</file>
 <file>./HelpFiles/Menus/Menus.html</file>
 <file>./HelpFiles/Menus/Surface_Menu/Surface_Menu.html</file>
 <file>./HelpFiles/Menus/Surface_Menu/Surface_Properties.png</file>
@@ -136,6 +144,7 @@
 <file>./HelpFiles/Menus/View_Menu/Tile_Tabs_Configuration/Window_Tile_Editing_Toolbar.png</file>
 <file>./HelpFiles/Menus/View_Menu/View_Menu.html</file>
 <file>./HelpFiles/Menus/View_Menu/View_Menu.png</file>
+<file>./HelpFiles/Menus/Volume_Menu/Volume_Menu.html</file>
 <file>./HelpFiles/Menus/wb_view_Menu/Thumbs.db</file>
 <file>./HelpFiles/Menus/wb_view_Menu/wb_view_Menu.html</file>
 <file>./HelpFiles/Menus/wb_view_Menu/wb_view_Menu.png</file>
