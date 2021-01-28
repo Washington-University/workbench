@@ -30,9 +30,11 @@
 #include <QVBoxLayout>
 
 #include "Annotation.h"
+#include "AnnotationCoordinateInformation.h"
 #include "AnnotationCoordinateSelectionWidget.h"
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
+#include "AnnotationMultiCoordinateShape.h"
 #include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationRedoUndoCommand.h"
@@ -46,6 +48,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "MathFunctions.h"
 #include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
 #include "WuQMessageBox.h"
@@ -104,8 +107,17 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
                                                        coordInfo);
         }
         
+        AnnotationMultiCoordinateShape* multiCoordShape = annotation->castToMultiCoordinateShape();
+        if (multiCoordShape != NULL) {
+            /*
+             * Pasting poly line while only works for tab and window spaces
+             */
+            validCoordsFlag = pasteMultiCoordinateShape(multiCoordShape,
+                                                        coordInfo);
+        }
+        
+        std::vector<std::unique_ptr<AnnotationCoordinateInformation>> emptyMultiCoordInfo;
         if (! validCoordsFlag) {
-            std::vector<std::unique_ptr<AnnotationCoordinateInformation>> emptyMultiCoordInfo;
             validCoordsFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(annotation,
                                                                                                 annotation->getCoordinateSpace(),
                                                                                                 &coordInfo,
@@ -416,6 +428,120 @@ AnnotationPasteDialog::pasteOneDimensionalShape(AnnotationTwoCoordinateShape* on
             
             oneDimShape->getStartCoordinate()->setXYZ(startXYZ);
             oneDimShape->getEndCoordinate()->setXYZ(endXYZ);
+        }
+    }
+    
+    return validCoordsFlag;
+}
+
+/**
+ * Paste a multi-coordinate shape (poly-line) The first coordinate is pasted at
+ * the coordinate in 'coordInfo'.
+ *
+ * @param multiCoordShape
+ *     multi-coordinate shape that will be pasted.
+ * @param coordInfo
+ *     Coordinate information that will be used for the shape's 'start' coordinate.
+ * @return
+ *     True if the shape's coordinate was updated for pasting, else false.
+ */
+bool
+AnnotationPasteDialog::pasteMultiCoordinateShape(AnnotationMultiCoordinateShape* multiCoordShape,
+                                                 AnnotationCoordinateInformation& coordInfo)
+{
+    const int32_t numCoords = multiCoordShape->getNumberOfCoordinates();
+    if (numCoords < 2) {
+        return false;
+    }
+    
+    bool tabFlag = false;
+    bool windowFlag = false;
+    
+    switch (multiCoordShape->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            tabFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            windowFlag = true;
+            break;
+    }
+    
+    bool validCoordsFlag = false;
+    
+    if (tabFlag
+        || windowFlag) {
+        float startXYZ[3];
+        multiCoordShape->getCoordinate(0)->getXYZ(startXYZ);
+        
+        const float originalStartXYZ[3] = {
+            startXYZ[0],
+            startXYZ[1],
+            startXYZ[2]
+        };
+        
+        if (tabFlag
+            && (coordInfo.m_tabSpaceInfo.m_index >= 0)) {
+            startXYZ[0] = coordInfo.m_tabSpaceInfo.m_xyz[0];
+            startXYZ[1] = coordInfo.m_tabSpaceInfo.m_xyz[1];
+            startXYZ[2] = coordInfo.m_tabSpaceInfo.m_xyz[2];
+            multiCoordShape->setTabIndex(coordInfo.m_tabSpaceInfo.m_index);
+            validCoordsFlag = true;
+        }
+        else if (windowFlag
+                 && (coordInfo.m_windowSpaceInfo.m_index >= 0)) {
+            startXYZ[0] = coordInfo.m_windowSpaceInfo.m_xyz[0];
+            startXYZ[1] = coordInfo.m_windowSpaceInfo.m_xyz[1];
+            startXYZ[2] = coordInfo.m_windowSpaceInfo.m_xyz[2];
+            multiCoordShape->setWindowIndex(coordInfo.m_windowSpaceInfo.m_index);
+            validCoordsFlag = true;
+        }
+        
+        if (validCoordsFlag) {
+            /*
+             * Set first coordinate
+             */
+            multiCoordShape->getCoordinate(0)->setXYZ(startXYZ);
+            
+            /*
+             * Set additional coordinates
+             */
+            for (int32_t iCoord = 1; iCoord < numCoords; iCoord++) {
+                float ptXYZ[3];
+                multiCoordShape->getCoordinate(iCoord)->getXYZ(ptXYZ);
+                
+                const float diffXYZ[3] = {
+                    startXYZ[0] - originalStartXYZ[0],
+                    startXYZ[1] - originalStartXYZ[1],
+                    startXYZ[2] - originalStartXYZ[2]
+                };
+                if (validCoordsFlag) {
+                    ptXYZ[0] += diffXYZ[0]; // + originalStartXYZ[0];
+                    ptXYZ[1] += diffXYZ[1]; //+ originalStartXYZ[1];
+                    ptXYZ[2] += diffXYZ[2]; // + originalStartXYZ[2];
+                    
+                    /*
+                     * Tab/Window coordinates are percentage ranging [0.0, 100.0]
+                     * Need to "clip" lines if they exceed the viewport's edges
+                     */
+                    const float minCoord = 1.0;
+                    const float maxCoord = 99.0;
+                    
+                    ptXYZ[0] = MathFunctions::limitRange(ptXYZ[0], minCoord, maxCoord);
+                    ptXYZ[1] = MathFunctions::limitRange(ptXYZ[1], minCoord, maxCoord);
+                    
+                    multiCoordShape->getCoordinate(iCoord)->setXYZ(ptXYZ);
+                }
+            }
         }
     }
     

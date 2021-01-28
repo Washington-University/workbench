@@ -32,6 +32,7 @@ namespace caret {
     class AnnotationCoordinateInformation;
     class AnnotationCoordinateSelectionWidget;
     class AnnotationFile;
+    class AnnotationMultiCoordinateShape;
     class AnnotationTwoCoordinateShape;
     class MouseEvent;
     
@@ -64,6 +65,9 @@ namespace caret {
         
         static bool pasteOneDimensionalShape(AnnotationTwoCoordinateShape* oneDimShape,
                                              AnnotationCoordinateInformation& coordInfo);
+        
+        static bool pasteMultiCoordinateShape(AnnotationMultiCoordinateShape* multiCoordShape,
+                                              AnnotationCoordinateInformation& coordInfo);
         
         virtual void okButtonClicked();
         

@@ -527,10 +527,18 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
                         "another side of the oval and release the mouse button to create the oval.");
             break;
         case AnnotationTypeEnum::POLY_LINE:
-            typeText = ("Polyline Annotation.  A polyline is a series of line segments connected at their end points.");
-            clickText = ("Move and click (press and release) the left mouse to create each of the vertices of the connected lines.  "
-                         "SHIFT-click the mouse to set the last vertex and finish creation of the polyline.  "
-                         "Pressing the ESC key will cancel creation of the polyline.");
+            clickText = ("Click the mouse to draw each vertex of the polyline and "
+                         "shift-click the mouse to draw the last vertex and finish the polyline.");
+            dragText = ("Move the mouse to the first vertex of the polyline. While holding "
+                        "down the left mouse button, drag the mouse to draw the polyline and "
+                        "release the left mouse button to finish the polyline.  This method will "
+                        "create a polyline with many vertices and there may be a pause when "
+                        "the mouse button is released to finish the polyline.");
+            typeText = ("Polyline Annotation.  A polyline is a series of line segments connected at their end points. "
+                        "When this button is clicked, a menu will appear for selecting the method used "
+                        "to draw the polyline.");
+            m_polyLineDrawClicksToolTipText = ("<html>" + clickText + "</html>");
+            m_polyLineDrawDragToolTipText   = ("<html>" + dragText + "<html>");
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             CaretAssert(0);
@@ -558,7 +566,7 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
     }
     if ( ( ! clickText.isEmpty())
         && ( ! dragText.isEmpty())) {
-        toolTip.appendWithNewLine("There are two methods for creating this type of annotation.<p> ");
+        toolTip.appendWithNewLine("There are two methods for creating this type of annotation:<p> ");
         clickText.insert(0, "(1) ");
         dragText.insert(0, "(2) ");
     }
@@ -645,14 +653,17 @@ AnnotationInsertNewWidget::spaceOrShapeActionTriggered()
         {
             CaretAssert(m_polyLineToolButton);
             QMenu menu;
-            QAction* continuousAction = menu.addAction("Drag (Continuous)");
-            QAction* discreateAction  = menu.addAction("Clicks (Discrete)");
+            menu.setToolTipsVisible(true);
+            QAction* dragAction = menu.addAction("Drag (Continuous)");
+            dragAction->setToolTip(m_polyLineDrawDragToolTipText);
+            QAction* clicksAction  = menu.addAction("Clicks (Discrete)");
+            clicksAction->setToolTip(m_polyLineDrawClicksToolTipText);
             
             QAction* selectedAction = menu.exec(m_polyLineToolButton->mapToGlobal(QPoint(0,0)));
-            if (selectedAction == continuousAction) {
+            if (selectedAction == dragAction) {
                 polyLineDrawingMode = EventAnnotationCreateNewType::PolyLineDrawingMode::CONTINUOUS;
             }
-            else if (selectedAction == discreateAction) {
+            else if (selectedAction == clicksAction) {
                 polyLineDrawingMode = EventAnnotationCreateNewType::PolyLineDrawingMode::DISCRETE;
             }
             else {

@@ -84,7 +84,6 @@ m_annotationType(annotationType),
 m_coordInfo(coordInfo),
 m_optionalSecondCoordInfo(optionalSecondCoordInfo)
 {
-    CaretAssertToDoWarning(); // need multi-coordinate info
     bool enableChartSpaceFlag   = false;
     bool enableModelSpaceFlag   = false;
     bool enableSurfaceSpaceFlag = false;

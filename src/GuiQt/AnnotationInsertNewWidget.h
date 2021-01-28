@@ -86,6 +86,10 @@ namespace caret {
         
         QToolButton* m_polyLineToolButton = NULL;
         
+        AString m_polyLineDrawClicksToolTipText;
+        
+        AString m_polyLineDrawDragToolTipText;
+        
         static AString s_previousImageFileDirectory;
         
         // ADD_NEW_MEMBERS_HERE

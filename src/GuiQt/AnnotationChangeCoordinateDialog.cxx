@@ -30,6 +30,7 @@
 
 #include "Annotation.h"
 #include "AnnotationCoordinate.h"
+#include "AnnotationCoordinateInformation.h"
 #include "AnnotationCoordinateSelectionWidget.h"
 #include "CaretAssert.h"
 #include "WuQMessageBox.h"
