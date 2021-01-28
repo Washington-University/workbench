@@ -222,6 +222,7 @@ namespace caret {
         void processFileMenuAboutToShow();
         void processDataMenuAboutToShow();
         void processViewMenuAboutToShow();
+        void processWindowMenuAboutToShow();
         
         void processSurfaceMenuInformation();
         void processSurfaceMenuPrimaryAnatomical();

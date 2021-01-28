@@ -634,6 +634,7 @@ PreferencesDialog::identificationModeEnumComboBoxItemActivated()
     const IdentificationDisplayModeEnum::Enum idMode = m_identificationModeComboBox->getSelectedItem<IdentificationDisplayModeEnum, IdentificationDisplayModeEnum::Enum>();
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setIdentificationDisplayMode(idMode);
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**

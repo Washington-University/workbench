@@ -271,6 +271,8 @@ namespace caret {
         
         void processOpenDataFileEvent(EventOperatingSystemRequestOpenDataFile* openDataFileEvent);
         
+        void updateInformationDisplayDialogAction();
+
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;
         

@@ -234,8 +234,10 @@ GuiManager::initializeGuiManager()
 
     m_informationDisplayDialogEnabledAction =
     WuQtUtilities::createAction("Information...",
-                                "Enables display of the Information Window\n"
-                                "when new information is available",
+                                ("<html>Enables display of the Information Window "
+                                 "when new information is available.<p>"
+                                 "This is disabled "
+                                 "when information window is located in the Overlay Toolbox.</html>"),
                                 this,
                                 this,
                                 SLOT(showHideInfoWindowSelected(bool)));
@@ -1640,6 +1642,7 @@ GuiManager::receiveEvent(Event* event)
         if (m_movieRecordingDialog != NULL) {
             m_movieRecordingDialog->updateDialog();
         }
+        updateInformationDisplayDialogAction();
     }
 }
 
@@ -2374,23 +2377,38 @@ GuiManager::processShowInformationWindow()
 void 
 GuiManager::showHideInfoWindowSelected(bool status)
 {
-    QString text("Show Information Window");
     if (status) {
-        text = "Hide Information Window";
         if ( ! m_informationDisplayDialogEnabledAction->signalsBlocked()) {
             this->processShowInformationDisplayDialog(true);
         }
     }
-    
-    text += ("\n\n"
-             "When this button is 'on', the information window\n"
-             "is automatically displayed when an identification\n"
-             "operation (mouse click over surface or volume slice)\n"
-             "is performed.  ");
-    m_informationDisplayDialogEnabledAction->setToolTip(text);
 }
 
-
+/* Update the information display dialog action
+ *
+ */
+void
+GuiManager::updateInformationDisplayDialogAction()
+{
+    bool enabledFlag(false);
+    switch(SessionManager::get()->getCaretPreferences()->getIdentificationDisplayMode()) {
+        case IdentificationDisplayModeEnum::DIALOG:
+            enabledFlag = true;
+            break;
+        case IdentificationDisplayModeEnum::LEGACY_DIALOG:
+            enabledFlag = true;
+            break;
+        case IdentificationDisplayModeEnum::OVERLAY_TOOLBOX:
+            enabledFlag = false;
+            break;
+        case IdentificationDisplayModeEnum::DEBUG_MODE:
+            enabledFlag = true;
+            break;
+    }
+    
+    m_informationDisplayDialogEnabledAction->setEnabled(enabledFlag);
+}
+    
 /**
  * Show the information display window.
  * @param forceDisplayOfDialog

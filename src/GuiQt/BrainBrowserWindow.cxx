@@ -2807,7 +2807,19 @@ BrainBrowserWindow::createMenuWindow()
     menu->addAction(m_bringAllToFrontAction);
     menu->addAction(m_tileWindowsAction);
     
+    QObject::connect(menu, &QMenu::aboutToShow,
+                     this, &BrainBrowserWindow::processWindowMenuAboutToShow);
+    
     return menu;
+}
+
+/**
+ * Called when window window menu is about to show
+ */
+void
+BrainBrowserWindow::processWindowMenuAboutToShow()
+{
+    m_informationDialogAction->setEnabled(GuiManager::get()->getInformationDisplayDialogEnabledAction()->isEnabled());
 }
 
 /**
