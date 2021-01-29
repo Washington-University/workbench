@@ -3067,23 +3067,9 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     m_nameLabel = new QLabel();
     m_nameLabel->setWordWrap(true);
     
-    QWidget* descriptionWidget(NULL);
-    m_descriptionLabel = NULL;
-    m_descriptionTextEdit = NULL;
-    switch (s_scrollableDescriptionMode) {
-        case 1:
-            m_descriptionTextEdit = new QTextEdit();
-            m_descriptionTextEdit->setReadOnly(true);
-            descriptionWidget = m_descriptionTextEdit;
-            break;
-        case 2: /* fallthrough */
-        default:
-            m_descriptionLabel = new QLabel();
-            m_descriptionLabel->setWordWrap(true);
-            descriptionWidget = m_descriptionLabel;
-            break;
-    }
-    
+    m_descriptionLabel = new QLabel();
+    m_descriptionLabel->setWordWrap(true);
+
     m_sceneIdLabel = new QLabel();
     
     m_previewImageLabel = new QLabel();
@@ -3096,7 +3082,7 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     rightLayout->addWidget(m_activeSceneLabel);
     rightLayout->addWidget(m_nameLabel,1);
     rightLayout->addWidget(m_sceneIdLabel);
-    rightLayout->addWidget(descriptionWidget, 100);
+    rightLayout->addWidget(m_descriptionLabel, 100);
     rightLayout->addStretch();
     
     m_leftSideWidget = new QWidget();
@@ -3183,17 +3169,7 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         }
         m_nameLabel->setText(nameText);
         m_sceneIdLabel->setText(sceneIdText);
-        if (m_descriptionLabel != NULL) {
-            if (s_scrollableDescriptionMode == 2) {
-                m_descriptionLabel->setText(fullDescriptionText);
-            }
-            else {
-                m_descriptionLabel->setText(abbreviatedDescriptionText);
-            }
-        }
-        if (m_descriptionTextEdit != NULL) {
-            m_descriptionTextEdit->setText(fullDescriptionText);
-        }
+        m_descriptionLabel->setText(fullDescriptionText);
         
         QByteArray imageByteArray;
         AString imageBytesFormat;
@@ -3409,15 +3385,3 @@ SceneClassInfoWidget::isValid() const
     
     return false;
 }
-
-/**
- * Enable/disable scrollable scene description so all text visible
- * @param scrollMode
- *    The scroll mode
- */
-void
-SceneClassInfoWidget::setScrollableDescriptionMode(const int32_t scrollMode)
-{
-    s_scrollableDescriptionMode = scrollMode;
-}
-

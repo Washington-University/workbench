@@ -754,15 +754,6 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                         cerr << "Missing scene file name for " << thisParam << " option" << std::endl;
                         hasFatalError = true;
                     }
-                } else if (thisParam == "-scene-scroll") {
-                    if (myParams->hasNext()) {
-                        const int32_t scrollMode = myParams->nextInt("scroll mode");
-                        SceneClassInfoWidget::setScrollableDescriptionMode(scrollMode);
-                    }
-                    else {
-                        cerr << "Missing scroll mode" << std::endl;
-                        hasFatalError = true;
-                    }
                 } else if (thisParam == "-spec-load-all") {
                     if ( ! myState.specFileNameLoadAll.isEmpty()) {
                         cerr << qPrintable(moreThanOneSpecFileErrorMessage) << endl;

@@ -299,8 +299,6 @@ namespace caret {
                                                                AString& abbreviatedDescriptionTextOut,
                                                                AString& fullDescriptionTextOut);
         
-        static void setScrollableDescriptionMode(const int32_t scrollMode);
-        
     signals:
         /**
          * Emited when user activates (double clicks) this widget.
@@ -335,8 +333,6 @@ namespace caret {
         
         QLabel* m_descriptionLabel;
         
-        QTextEdit* m_descriptionTextEdit;
-        
         Scene* m_scene;
         
         int32_t m_sceneIndex;
@@ -347,16 +343,12 @@ namespace caret {
         
         QPalette::ColorRole m_defaultBackgroundRole;
         
-        static int32_t s_scrollableDescriptionMode;
-        
     };
 #ifdef __SCENE_DIALOG_DECLARE__
     const AString SceneDialog::PREFERRED_IMAGE_FORMAT = "jpg";
     bool SceneDialog::s_informUserAboutScenesOnExitFlag = true;
     bool SceneDialog::s_warnUserWhenCreatingSceneFlag = true;
     bool SceneDialog::s_useSceneForegroundBackgroundColorsFlag = true;
-    int32_t SceneClassInfoWidget::s_scrollableDescriptionMode = 2;
-    
 #endif // __SCENE_DIALOG_DECLARE__
 
 } // namespace
