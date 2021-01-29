@@ -1858,12 +1858,10 @@ UserInputModeViewContextMenu::showFrameBufferPixelRgbaSelected()
             int blueInt(color.blue());
             int alphaInt(color.alpha());
             
-            bool premultipliedFlag(false);
             QString formatName(QString::number(image.format()));
             switch (image.format()) {
                 case QImage::Format_ARGB32_Premultiplied:
                     formatName = "Format_ARGB32_Premultiplied";
-                    premultipliedFlag = true;
                     break;
                 case QImage::Format_ARGB32:
                     formatName = "Format_ARGB32";
