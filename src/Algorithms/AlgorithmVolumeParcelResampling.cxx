@@ -25,6 +25,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "Vector3D.h"
+
 #include <vector>
 #include <map>
 #include <utility>
@@ -54,11 +55,13 @@ OperationParameters* AlgorithmVolumeParcelResampling::getParameters()
     
     ret->addVolumeParameter(3, "new-parcels", "label volume of where the parcels should be");
     
-    ret->addDoubleParameter(4, "kernel", "gaussian kernel sigma to smooth by during resampling");
+    ret->addDoubleParameter(4, "kernel", "gaussian kernel size in mm to smooth by during resampling, as sigma by default");
     
     ret->addVolumeOutputParameter(5, "volume-out", "output volume");
     
     ret->createOptionalParameter(6, "-fix-zeros", "treat zero values as not being data");
+    
+    ret->createOptionalParameter(8, "-fwhm", "smoothing kernel size is FWHM, not sigma");
     
     OptionalParameter* subvolSelect = ret->createOptionalParameter(7, "-subvolume", "select a single subvolume as input");
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
@@ -79,6 +82,10 @@ void AlgorithmVolumeParcelResampling::useParameters(OperationParameters* myParam
     VolumeFile* curLabel = myParams->getVolume(2);
     VolumeFile* newLabel = myParams->getVolume(3);
     float kernel = (float)myParams->getDouble(4);
+    if (myParams->getOptionalParameter(8)->m_present)
+    {
+        kernel = kernel / (2.0f * sqrt(2.0f * log(2.0f)));
+    }
     VolumeFile* outVol = myParams->getOutputVolume(5);
     bool fixZeros = false;
     if (myParams->getOptionalParameter(6)->m_present)

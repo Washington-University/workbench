@@ -51,7 +51,8 @@ OperationParameters* AlgorithmVolumeGradient::getParameters()
     ret->addVolumeOutputParameter(2, "volume-out", "the output gradient magnitude volume");
     
     OptionalParameter* presmoothOpt = ret->createOptionalParameter(3, "-presmooth", "smooth the volume before computing the gradient");
-    presmoothOpt->addDoubleParameter(1, "kernel", "sigma for gaussian weighting function, in mm");
+    presmoothOpt->addDoubleParameter(1, "kernel", "the size of the gaussian smoothing kernel in mm, as sigma by default");
+    presmoothOpt->createOptionalParameter(2, "-fwhm", "kernel size is FWHM, not sigma");
     
     OptionalParameter* roiOption = ret->createOptionalParameter(4, "-roi", "select a region of interest to take the gradient of");
     roiOption->addVolumeParameter(1, "roi-volume", "the region to take the gradient within");
@@ -79,6 +80,10 @@ void AlgorithmVolumeGradient::useParameters(OperationParameters* myParams, Progr
     if (presmoothOpt->m_present)
     {
         presmooth = (float)presmoothOpt->getDouble(1);
+        if (presmoothOpt->getOptionalParameter(2)->m_present)
+        {
+            presmooth = presmooth / (2.0f * sqrt(2.0f * log(2.0f)));
+        }
     }
     VolumeFile* myRoi = NULL;
     OptionalParameter* roiOption = myParams->getOptionalParameter(4);

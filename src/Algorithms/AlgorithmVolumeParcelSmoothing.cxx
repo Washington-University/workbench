@@ -22,6 +22,7 @@
 #include "AlgorithmException.h"
 #include "VolumeFile.h"
 #include "AlgorithmVolumeSmoothing.h"
+
 #include <map>
 #include <cmath>
 
@@ -45,9 +46,11 @@ OperationParameters* AlgorithmVolumeParcelSmoothing::getParameters()
     
     ret->addVolumeParameter(2, "label-volume", "a label volume containing the parcels to smooth");
     
-    ret->addDoubleParameter(3, "kernel", "the gaussian smoothing kernel sigma, in mm");
+    ret->addDoubleParameter(3, "kernel", "the size of the gaussian smoothing kernel in mm, as sigma by default");
     
     ret->addVolumeOutputParameter(4, "volume-out", "the output volume");
+    
+    ret->createOptionalParameter(7, "-fwhm", "smoothing kernel size is FWHM, not sigma");
     
     ret->createOptionalParameter(5, "-fix-zeros", "treat zero values as not being data");
     
@@ -66,6 +69,10 @@ void AlgorithmVolumeParcelSmoothing::useParameters(OperationParameters* myParams
     VolumeFile* myVol = myParams->getVolume(1);
     VolumeFile* myLabelVol = myParams->getVolume(2);
     float myKernel = (float)myParams->getDouble(3);
+    if (myParams->getOptionalParameter(7)->m_present)
+    {
+        myKernel = myKernel / (2.0f * sqrt(2.0f * log(2.0f)));
+    }
     VolumeFile* myOutVol = myParams->getOutputVolume(4);
     OptionalParameter* fixZerosOpt = myParams->getOptionalParameter(5);
     bool fixZeros = fixZerosOpt->m_present;

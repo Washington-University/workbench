@@ -25,6 +25,7 @@
 #include "CaretLogger.h"
 #include "CaretOMP.h"
 #include "VolumeFile.h"
+
 #include <cmath>
 #include <utility>
 #include <vector>
@@ -52,7 +53,8 @@ OperationParameters* AlgorithmVolumeExtrema::getParameters()
     ret->addVolumeOutputParameter(3, "volume-out", "the output extrema volume");
     
     OptionalParameter* presmoothOpt = ret->createOptionalParameter(4, "-presmooth", "smooth the volume before finding extrema");
-    presmoothOpt->addDoubleParameter(1, "kernel", "the sigma for the gaussian smoothing kernel, in mm");
+    presmoothOpt->addDoubleParameter(1, "kernel", "the size of the gaussian smoothing kernel in mm, as sigma by default");
+    presmoothOpt->createOptionalParameter(2, "-fwhm", "kernel size is FWHM, not sigma");
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-roi", "ignore values outside the selected area");
     roiOpt->addVolumeParameter(1, "roi-volume", "the area to find extrema in");
@@ -100,6 +102,10 @@ void AlgorithmVolumeExtrema::useParameters(OperationParameters* myParams, Progre
         if (presmooth <= 0.0f)
         {
             throw AlgorithmException("smoothing kernel must be positive");
+        }
+        if (presmoothOpt->getOptionalParameter(2)->m_present)
+        {
+            presmooth = presmooth / (2.0f * sqrt(2.0f * log(2.0f)));
         }
     }
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);

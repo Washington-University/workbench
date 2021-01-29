@@ -27,6 +27,7 @@
 #include "MetricFile.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
+
 #include <cmath>
 #include <utility>
 #include <vector>
@@ -56,7 +57,8 @@ OperationParameters* AlgorithmMetricExtrema::getParameters()
     ret->addMetricOutputParameter(4, "metric-out", "the output extrema metric");
     
     OptionalParameter* presmoothOpt = ret->createOptionalParameter(5, "-presmooth", "smooth the metric before finding extrema");
-    presmoothOpt->addDoubleParameter(1, "kernel", "the sigma for the gaussian smoothing kernel, in mm");
+    presmoothOpt->addDoubleParameter(1, "kernel", "the size of the gaussian smoothing kernel in mm, as sigma by default");
+    presmoothOpt->createOptionalParameter(2, "-fwhm", "kernel size is FWHM, not sigma");
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(6, "-roi", "ignore values outside the selected area");
     roiOpt->addMetricParameter(1, "roi-metric", "the area to find extrema in, as a metric");
@@ -107,6 +109,10 @@ void AlgorithmMetricExtrema::useParameters(OperationParameters* myParams, Progre
         if (presmooth <= 0.0f)
         {
             throw AlgorithmException("smoothing kernel must be positive");
+        }
+        if (presmoothOpt->getOptionalParameter(2)->m_present)
+        {
+            presmooth = presmooth / (2.0f * sqrt(2.0f * log(2.0f)));
         }
     }
     OptionalParameter* roiOpt = myParams->getOptionalParameter(6);

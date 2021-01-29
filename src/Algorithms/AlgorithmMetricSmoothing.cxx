@@ -27,6 +27,7 @@
 #include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
+
 #include <cmath>
 
 using namespace caret;
@@ -49,9 +50,11 @@ OperationParameters* AlgorithmMetricSmoothing::getParameters()
     
     ret->addMetricParameter(2, "metric-in", "the metric to smooth");
     
-    ret->addDoubleParameter(3, "smoothing-kernel", "the sigma for the gaussian kernel function, in mm");
+    ret->addDoubleParameter(3, "smoothing-kernel", "the size of the gaussian smoothing kernel in mm, as sigma by default");
     
     ret->addMetricOutputParameter(4, "metric-out", "the output metric");
+    
+    ret->createOptionalParameter(10, "-fwhm", "kernel size is FWHM, not sigma");
     
     OptionalParameter* roiOption = ret->createOptionalParameter(5, "-roi", "select a region of interest to smooth");
     roiOption->addMetricParameter(1, "roi-metric", "the roi to smooth within, as a metric");
@@ -105,6 +108,10 @@ void AlgorithmMetricSmoothing::useParameters(OperationParameters* myParams, Prog
     SurfaceFile* mySurf = myParams->getSurface(1);
     MetricFile* myMetric = myParams->getMetric(2);
     double myKernel = myParams->getDouble(3);
+    if (myParams->getOptionalParameter(10)->m_present)
+    {
+        myKernel = myKernel / (2.0 * sqrt(2.0 * log(2.0)));
+    }
     MetricFile* myMetricOut = myParams->getOutputMetric(4);
     MetricFile* myRoi = NULL;
     bool matchRoiColumns = false;

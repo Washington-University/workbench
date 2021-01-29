@@ -72,10 +72,12 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     cerebCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
     OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(6, "-surface-presmooth", "smooth on the surface before computing the gradient");
-    presmoothSurfOpt->addDoubleParameter(1, "surface-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
+    presmoothSurfOpt->addDoubleParameter(1, "surface-kernel", "the size of the gaussian surface smoothing kernel in mm, as sigma by default");
     
     OptionalParameter* presmoothVolOpt = ret->createOptionalParameter(7, "-volume-presmooth", "smooth the volume before computing the gradient");
-    presmoothVolOpt->addDoubleParameter(1, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
+    presmoothVolOpt->addDoubleParameter(1, "volume-kernel", "the size of the gaussian volume smoothing kernel in mm, as sigma by default");
+    
+    ret->createOptionalParameter(15, "-presmooth-fwhm", "smoothing kernel sizes are FWHM, not sigma");
     
     ret->createOptionalParameter(8, "-undo-fisher-z", "apply the inverse fisher small z transform to the input");
     
@@ -152,6 +154,11 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
     if (presmoothVolOpt->m_present)
     {
         volKern = (float)presmoothVolOpt->getDouble(1);
+    }
+    if (myParams->getOptionalParameter(15)->m_present)
+    {
+        if (surfKern > 0.0f) surfKern = surfKern / (2.0f * sqrt(2.0f * log(2.0f)));
+        if (volKern > 0.0f) volKern = volKern / (2.0f * sqrt(2.0f * log(2.0f)));
     }
     bool undoFisherInput = myParams->getOptionalParameter(8)->m_present;
     bool applyFisher = myParams->getOptionalParameter(12)->m_present;

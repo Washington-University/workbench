@@ -29,6 +29,8 @@
 #include "AlgorithmCiftiSeparate.h"
 #include "AlgorithmCiftiReplaceStructure.h"
 
+#include <cmath>
+
 using namespace caret;
 using namespace std;
 
@@ -46,10 +48,12 @@ OperationParameters* AlgorithmCiftiSmoothing::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addCiftiParameter(1, "cifti", "the input cifti");
-    ret->addDoubleParameter(2, "surface-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
-    ret->addDoubleParameter(3, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
+    ret->addDoubleParameter(2, "surface-kernel", "the size of the gaussian surface smoothing kernel in mm, as sigma by default");
+    ret->addDoubleParameter(3, "volume-kernel", "the size of the gaussian volume smoothing kernel in mm, as sigma by default");
     ret->addStringParameter(4, "direction", "which dimension to smooth along, ROW or COLUMN");
     ret->addCiftiOutputParameter(5, "cifti-out", "the output cifti");
+    
+    ret->createOptionalParameter(13, "-fwhm", "kernel sizes are FWHM, not sigma");
     
     OptionalParameter* leftSurfOpt = ret->createOptionalParameter(6, "-left-surface", "specify the left surface to use");
     leftSurfOpt->addSurfaceParameter(1, "surface", "the left surface file");
@@ -94,6 +98,11 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     CiftiFile* myCifti = myParams->getCifti(1);
     float surfKern = (float)myParams->getDouble(2);
     float volKern = (float)myParams->getDouble(3);
+    if (myParams->getOptionalParameter(13)->m_present)
+    {
+        surfKern = surfKern / (2.0f * sqrt(2.0f * log(2.0f)));
+        volKern = volKern / (2.0f * sqrt(2.0f * log(2.0f)));
+    }
     AString directionName = myParams->getString(4);
     int myDir;
     if (directionName == "ROW")

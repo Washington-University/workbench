@@ -57,7 +57,8 @@ OperationParameters* AlgorithmMetricTFCE::getParameters()
     ret->addMetricOutputParameter(3, "metric-out", "the output metric");
     
     OptionalParameter* presmoothOpt = ret->createOptionalParameter(4, "-presmooth", "smooth the metric before running TFCE");
-    presmoothOpt->addDoubleParameter(1, "kernel", "the sigma for the gaussian smoothing kernel, in mm");
+    presmoothOpt->addDoubleParameter(1, "kernel", "the size of the gaussian smoothing kernel in mm, as sigma by default");
+    presmoothOpt->createOptionalParameter(2, "-fwhm", "kernel size is FWHM, not sigma");
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-roi", "select a region of interest to run TFCE on");
     roiOpt->addMetricParameter(1, "roi-metric", "the area to run TFCE on, as a metric");
@@ -96,6 +97,10 @@ void AlgorithmMetricTFCE::useParameters(OperationParameters* myParams, ProgressO
     {
         presmooth = (float)presmoothOpt->getDouble(1);
         if (presmooth <= 0.0f) throw AlgorithmException("presmooth kernel size must be positive");
+        if (presmoothOpt->getOptionalParameter(2)->m_present)
+        {
+            presmooth = presmooth / (2.0f * sqrt(2.0f * log(2.0f)));
+        }
     }
     MetricFile* myRoi = NULL;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);

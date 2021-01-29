@@ -58,7 +58,8 @@ OperationParameters* AlgorithmMetricGradient::getParameters()
     ret->addMetricOutputParameter(3, "metric-out", "the magnitude of the gradient");
     
     OptionalParameter* presmooth = ret->createOptionalParameter(4, "-presmooth", "smooth the metric before computing the gradient");
-    presmooth->addDoubleParameter(1, "kernel", "the sigma for the gaussian smoothing kernel, in mm");
+    presmooth->addDoubleParameter(1, "kernel", "the size of the gaussian smoothing kernel in mm, as sigma by default");
+    presmooth->createOptionalParameter(2, "-fwhm", "kernel size is FWHM, not sigma");
     
     OptionalParameter* roiOption = ret->createOptionalParameter(5, "-roi", "select a region of interest to take the gradient of");
     roiOption->addMetricParameter(1, "roi-metric", "the area to take the gradient within, as a metric");
@@ -99,11 +100,15 @@ void AlgorithmMetricGradient::useParameters(OperationParameters* myParams, Progr
     MetricFile* myMetricIn = myParams->getMetric(2);
     MetricFile* myMetricOut = myParams->getOutputMetric(3);
     float myPresmooth = -1.0f;//negative or zero means no smoothing
-    OptionalParameter* presmooth = myParams->getOptionalParameter(4);
-    if (presmooth->m_present)
+    OptionalParameter* presmoothOpt = myParams->getOptionalParameter(4);
+    if (presmoothOpt->m_present)
     {
-        myPresmooth = (float)presmooth->getDouble(1);
+        myPresmooth = (float)presmoothOpt->getDouble(1);
         if (myPresmooth <= 0.0f) throw AlgorithmException("presmooth kernel size must be positive");
+        if (presmoothOpt->getOptionalParameter(2)->m_present)
+        {
+            myPresmooth = myPresmooth / (2.0f * sqrt(2.0f * log(2.0f)));
+        }
     }
     MetricFile* myRoi = NULL;
     bool matchRoiColumns = false;

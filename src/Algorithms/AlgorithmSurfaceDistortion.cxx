@@ -55,7 +55,8 @@ OperationParameters* AlgorithmSurfaceDistortion::getParameters()
     ret->addMetricOutputParameter(3, "metric-out", "the output distortion metric");
     
     OptionalParameter* smoothOpt = ret->createOptionalParameter(4, "-smooth", "smooth the area data");
-    smoothOpt->addDoubleParameter(1, "sigma", "the smoothing kernel sigma in mm");
+    smoothOpt->addDoubleParameter(1, "sigma", "the size of the smoothing kernel in mm, as sigma by default");
+    smoothOpt->createOptionalParameter(2, "-fwhm", "kernel size is FWHM, not sigma");
     
     ret->createOptionalParameter(5, "-caret5-method", "use the surface distortion method from caret5");
     
@@ -89,6 +90,10 @@ void AlgorithmSurfaceDistortion::useParameters(OperationParameters* myParams, Pr
     {
         smooth = (float)smoothOpt->getDouble(1);
         if (smooth <= 0.0f) throw AlgorithmException("smoothing kernel must be positive if specified");
+        if (smoothOpt->getOptionalParameter(2)->m_present)
+        {
+            smooth = smooth / (2.0f * sqrt(2.0f * log(2.0f)));
+        }
     }
     int methodCount = 0;
     bool caret5method = myParams->getOptionalParameter(5)->m_present;

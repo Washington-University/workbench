@@ -30,6 +30,8 @@
 #include "SurfaceFile.h"
 #include "VolumeFile.h"
 
+#include <cmath>
+
 using namespace caret;
 using namespace std;
 
@@ -62,11 +64,13 @@ OperationParameters* AlgorithmCiftiExtrema::getParameters()
     cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
     
     OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(9, "-surface-presmooth", "smooth on the surface before finding extrema");
-    presmoothSurfOpt->addDoubleParameter(1, "surface-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
+    presmoothSurfOpt->addDoubleParameter(1, "surface-kernel", "the size of the gaussian surface smoothing kernel in mm, as sigma by default");
     
     OptionalParameter* presmoothVolOpt = ret->createOptionalParameter(10, "-volume-presmooth", "smooth volume components before finding extrema");
-    presmoothVolOpt->addDoubleParameter(1, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
+    presmoothVolOpt->addDoubleParameter(1, "volume-kernel", "the size of the gaussian volume smoothing kernel in mm, as sigma by default");
     
+    ret->createOptionalParameter(17, "-presmooth-fwhm", "smoothing kernel distances are FWHM, not sigma");
+
     OptionalParameter* thresholdOpt = ret->createOptionalParameter(11, "-threshold", "ignore small extrema");
     thresholdOpt->addDoubleParameter(1, "low", "the largest value to consider for being a minimum");
     thresholdOpt->addDoubleParameter(2, "high", "the smallest value to consider for being a maximum");
@@ -132,6 +136,11 @@ void AlgorithmCiftiExtrema::useParameters(OperationParameters* myParams, Progres
     if (presmoothVolOpt->m_present)
     {
         volPresmooth = (float)presmoothVolOpt->getDouble(1);
+    }
+    if (myParams->getOptionalParameter(17)->m_present)
+    {
+        if (surfPresmooth > 0.0f) surfPresmooth = surfPresmooth / (2.0f * sqrt(2.0f * log(2.0f)));
+        if (volPresmooth > 0.0f) volPresmooth = volPresmooth / (2.0f * sqrt(2.0f * log(2.0f)));
     }
     OptionalParameter* thresholdOpt = myParams->getOptionalParameter(11);
     bool thresholdMode = false;

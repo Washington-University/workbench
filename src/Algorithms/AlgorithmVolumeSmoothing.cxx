@@ -25,6 +25,7 @@
 #include "CaretLogger.h"
 #include "CaretOMP.h"
 #include "CaretAssert.h"
+
 #include <cmath>
 
 using namespace caret;
@@ -48,10 +49,12 @@ OperationParameters* AlgorithmVolumeSmoothing::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addVolumeParameter(1, "volume-in", "the volume to smooth");
     
-    ret->addDoubleParameter(2, "kernel", "the gaussian smoothing kernel sigma, in mm");
+    ret->addDoubleParameter(2, "kernel", "the size of the gaussian smoothing kernel in mm, as sigma by default");
     
     ret->addVolumeOutputParameter(3, "volume-out", "the output volume");
     
+    ret->createOptionalParameter(7, "-fwhm", "kernel size is FWHM, not sigma");
+
     OptionalParameter* roiVolOpt = ret->createOptionalParameter(4, "-roi", "smooth only from data within an ROI");
     roiVolOpt->addVolumeParameter(1, "roivol", "the volume to use as an ROI");
     
@@ -75,6 +78,10 @@ void AlgorithmVolumeSmoothing::useParameters(OperationParameters* myParams, Prog
 {
     VolumeFile* myVol = myParams->getVolume(1);
     float myKernel = (float)myParams->getDouble(2);
+    if (myParams->getOptionalParameter(7)->m_present)
+    {
+        myKernel = myKernel / (2.0f * sqrt(2.0f * log(2.0f)));
+    }
     VolumeFile* myOutVol = myParams->getOutputVolume(3);
     OptionalParameter* roiVolOpt = myParams->getOptionalParameter(4);
     VolumeFile* roiVol = NULL;
