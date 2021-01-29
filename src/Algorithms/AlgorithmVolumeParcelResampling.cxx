@@ -253,12 +253,12 @@ void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, const 
         int64_t listSize = (int64_t)thisList.size();
         if (listSize > 2)//NOTE: this should NEVER be something other than a multiple of 3, but check against what we will actually access anyway
         {
-            int extrema[6] = { thisList[0],
-                                thisList[0],
-                                thisList[1],
-                                thisList[1],
-                                thisList[2],
-                                thisList[2] };
+            int64_t extrema[6] = { thisList[0],
+                                   thisList[0],
+                                   thisList[1],
+                                   thisList[1],
+                                   thisList[2],
+                                   thisList[2] };
             for (int64_t base = 3; base < listSize; base += 3)
             {
                 if (thisList[base] < extrema[0]) extrema[0] = thisList[base];
@@ -500,12 +500,12 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
         int64_t listSize = (int64_t)thisList.size();
         if (listSize > 2)//NOTE: this should NEVER be something other than a multiple of 3, but check against what we will actually access anyway
         {
-            int extrema[6] = { thisList[0],
-                                thisList[0],
-                                thisList[1],
-                                thisList[1],
-                                thisList[2],
-                                thisList[2] };
+            int64_t extrema[6] = { thisList[0],
+                                   thisList[0],
+                                   thisList[1],
+                                   thisList[1],
+                                   thisList[2],
+                                   thisList[2] };
             for (int64_t base = 3; base < listSize; base += 3)
             {
                 if (thisList[base] < extrema[0]) extrema[0] = thisList[base];
