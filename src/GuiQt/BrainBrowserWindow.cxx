@@ -2658,7 +2658,8 @@ BrainBrowserWindow::createMenuSurface()
      * Note: menu->setToolTipsVisible(true);
      * does not work for menus in Mac Menubar
      */
-    WuQToolTipHelper::newInstanceForMenu(menu);
+    menu->setToolTipsVisible(true);
+    //WuQToolTipHelper::newInstanceForMenu(menu);
     
     return menu;
 }

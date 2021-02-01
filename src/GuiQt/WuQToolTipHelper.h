@@ -22,13 +22,14 @@
 /*LICENSE_END*/
 
 
-
+#include <array>
 #include <memory>
 
 #include <QObject>
 
 class QAction;
 class QMenu;
+class QTimer;
 
 namespace caret {
 
@@ -53,6 +54,8 @@ namespace caret {
         
         void hideToolTip();
         
+        void showToolTipAfterTimeout();
+        
     protected:
         virtual bool event(QEvent* event) override;
         
@@ -69,6 +72,12 @@ namespace caret {
         QMenu* m_menu = NULL;
         
         bool m_useWhatsThisFlag = false;
+        
+        QTimer* m_timer = NULL;
+        
+        QString m_toolTipText;
+        
+        std::array<int32_t, 2> m_toolTipXY;
         
         // ADD_NEW_MEMBERS_HERE
 

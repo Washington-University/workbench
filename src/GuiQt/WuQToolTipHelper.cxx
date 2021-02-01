@@ -25,6 +25,7 @@
 
 #include <QEvent>
 #include <QMenu>
+#include <QTimer>
 #include <QToolTip>
 #include <QWhatsThis>
 
@@ -75,6 +76,10 @@ m_mode(mode)
 {
     CaretAssert(parent);
     
+    m_timer = new QTimer(this);
+    QObject::connect(m_timer, &QTimer::timeout,
+                     this, &WuQToolTipHelper::showToolTipAfterTimeout);
+    
     switch (mode) {
         case Mode::MENU_TOOLTIPS:
         {
@@ -122,7 +127,7 @@ WuQToolTipHelper::menuActionHovered(QAction* action)
 
     if (m_useWhatsThisFlag) {
         if (text.isEmpty()) {
-            QWhatsThis::hideText();
+            hideToolTip();
         }
         else {
             /*
@@ -131,7 +136,7 @@ WuQToolTipHelper::menuActionHovered(QAction* action)
              * In this case, do not show tooltip.
              */
             if (action->text() == action->toolTip()) {
-                QWhatsThis::hideText();
+                hideToolTip();
                 return;
             }
             else {
@@ -155,35 +160,54 @@ WuQToolTipHelper::menuActionHovered(QAction* action)
     }
     else {
         if (text.isEmpty()) {
-            QToolTip::hideText();
+            hideToolTip();
         }
         else {
             /*
              * When an action has not been given a tooltip,
              * calling QAction::toolTip() returns QAction::text().
              * In this case, do not show tooltip since it
-             * is useful (same as the menu text)
+             * is NOT useful (same as the menu text)
              */
             if (action->text() == action->toolTip()) {
-                QToolTip::hideText();
+                hideToolTip();
                 return;
             }
             else {
                 /*
-                 * If tooltip is not formatted, word wrap the text
+                 * If tooltip is not formatted, using HTML word wraps the text
                  */
                 if ( ! text.toLower().contains("<html>")) {
                     text = ("<html><body>" + text + "</body></html>");
                 }
                 
                 /*
-                 * Show tooltip containing scene description below mouse
-                 * (note: positive Y is down in Qt coords)
+                 * If text has not changed, tooltip is displayed
+                 * so don't need to display again.
                  */
-                const QPoint toolTipXY(QCursor::pos()
-                                       + QPoint(0, 15));
-                QToolTip::showText(toolTipXY,
-                                   text);
+                if (text != m_toolTipText) {
+                    hideToolTip();
+                    
+                    m_toolTipText = text;
+                    
+                    /*
+                     * Set position of tooltip below mouse
+                     * (note: positive Y is down in Qt coords)
+                     */
+                    const QPoint toolTipPos(QCursor::pos()
+                                            + QPoint(0, 15));
+                    m_toolTipXY[0] = toolTipPos.x();
+                    m_toolTipXY[1] = toolTipPos.y();
+                    
+                    /*
+                     * Set delay for display of tooltip
+                     */
+                    if ( ! m_timer->isActive()) {
+                        const int32_t timeMilliseconds(1000);
+                        m_timer->start(timeMilliseconds);
+                    }
+                    
+                }
             }
         }
     }
@@ -201,6 +225,21 @@ WuQToolTipHelper::hideToolTip()
     else {
         QToolTip::hideText();
     }
+    
+    m_toolTipText.clear();
+    m_timer->stop();
+}
+
+/**
+ * Called when timer times out to show the tooltip
+ */
+void
+WuQToolTipHelper::showToolTipAfterTimeout()
+{
+    QPoint pos(m_toolTipXY[0],
+               m_toolTipXY[1]);
+    QToolTip::showText(pos,
+                       m_toolTipText);
 }
 
 bool
