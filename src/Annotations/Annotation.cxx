@@ -1624,6 +1624,7 @@ Annotation::initializeProperties()
     bool colorBarFlag = false;
     bool fillColorFlag = true;
     bool lineArrowsFlag = false;
+    bool polyLineFlag(false);
     bool scaleBarFlag = false;
     bool textFlag = false;
     switch (m_type) {
@@ -1647,6 +1648,7 @@ Annotation::initializeProperties()
             break;
         case AnnotationTypeEnum::POLY_LINE:
             fillColorFlag = false;
+            polyLineFlag  = true;
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             scaleBarFlag = true;
@@ -1696,6 +1698,11 @@ Annotation::initializeProperties()
         resetProperty(Property::TEXT_EDIT);
         
         setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
+    }
+    
+    if (polyLineFlag) {
+        /* Disables cut/copy for polyline until that functionality can be implemeted */
+        resetProperty(Property::COPY_CUT_PASTE);
     }
     
     if (scaleBarFlag) {

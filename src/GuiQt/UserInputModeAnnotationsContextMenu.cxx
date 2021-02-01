@@ -103,6 +103,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
         allSelectedAnnotationsDeletableFlag = false;
     }
     
+    bool cutCopyValidFlag(true);
     int32_t tabIndex(-1);
     m_tabSpaceFileAndAnnotations.clear();
     m_threeDimCoordAnnotations.clear();
@@ -145,6 +146,10 @@ m_newAnnotationCreatedByContextMenu(NULL)
         
         if ( ! ann->testProperty(Annotation::Property::DELETION)) {
             allSelectedAnnotationsDeletableFlag = false;
+        }
+        
+        if ( !ann->testProperty(Annotation::Property::COPY_CUT_PASTE)) {
+            cutCopyValidFlag = false;
         }
     }
     const bool haveThreeDimCoordAnnotationsFlag = ( ! m_threeDimCoordAnnotations.empty());
@@ -190,14 +195,16 @@ m_newAnnotationCreatedByContextMenu(NULL)
      */
     QAction* cutAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::CUT),
                                    this, SLOT(cutAnnnotation()));
-    cutAction->setEnabled(oneDeletableAnnotationSelectedFlag);
+    cutAction->setEnabled(oneDeletableAnnotationSelectedFlag
+                          && cutCopyValidFlag);
     
     /*
      * Copy
      */
     QAction* copyAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::COPY),
                                     this, SLOT(copyAnnotationToAnnotationClipboard()));
-    copyAction->setEnabled(oneDeletableAnnotationSelectedFlag);
+    copyAction->setEnabled(oneDeletableAnnotationSelectedFlag
+                           && cutCopyValidFlag);
 
     /*
      * Delete
