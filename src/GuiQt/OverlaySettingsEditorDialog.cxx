@@ -120,7 +120,7 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
                       "Layer");
     
     m_lineHistoryWidgetTabIndex = m_tabWidget->addTab(m_lineHistoryWidget,
-                                                      "Line-Series");
+                                                      "Dyn-Lines");
     m_metadataWidgetTabIndex = m_tabWidget->addTab(new QWidget(),
                       "Metadata");
     m_tabWidget->setTabEnabled(m_tabWidget->count() - 1, false);
