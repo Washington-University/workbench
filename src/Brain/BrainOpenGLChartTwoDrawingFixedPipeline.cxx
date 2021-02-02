@@ -1532,7 +1532,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
              * Disabled by WB-741
              */
             const bool limitSelectionToTriangularFlag = false;
-            const float lineWidthPercentageHeight = 1.0f;
+            const float lineWidthPercentageHeight(0.5f);
             
             for (auto rowIndex : selectedRowIndices) {
                 float minX = 0;
