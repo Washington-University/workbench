@@ -1,6 +1,5 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-<file>./all_files.txt</file>
 <file>./help_resources.qrc</file>
 <file>./HelpFiles/Annotations/Annotations_1.4.2.fld/image001.png</file>
 <file>./HelpFiles/Annotations/Annotations_1.4.2.fld/image002.png</file>
@@ -279,8 +278,6 @@
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/Window_Elements_Hide-Show_Buttons.html</file>
 <file>./HelpFiles/Workbench_Window/Window_Elements_Hide-Show_Buttons/WindowForScene.tiff</file>
 <file>./HelpFiles/Workbench_Window/Workbench_Window.html</file>
-<file>./OLD_1_help_resources.qrc</file>
-<file>./OLD_help_resources.qrc</file>
 <file>./update_resources.sh</file>
 </qresource>
 </RCC>
