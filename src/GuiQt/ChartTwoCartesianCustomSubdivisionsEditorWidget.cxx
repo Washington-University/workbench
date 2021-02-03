@@ -63,7 +63,7 @@ ChartTwoCartesianCustomSubdivisionsEditorWidget::ChartTwoCartesianCustomSubdivis
     const int gridRow = m_rowsGridLayout->rowCount();
     m_rowsGridLayout->addWidget(new QLabel("Edit"),
                                 gridRow, GRID_COLUMN_CONSTRUCTION);
-    m_rowsGridLayout->addWidget(new QLabel("Value"),
+    m_rowsGridLayout->addWidget(new QLabel("Value (Descending)"),
                                 gridRow, GRID_COLUMN_VALUE);
     m_rowsGridLayout->addWidget(new QLabel("Label"),
                                 gridRow, GRID_COLUMN_TEXT);
