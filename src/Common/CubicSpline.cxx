@@ -66,7 +66,7 @@ CubicSpline CubicSpline::hermite(float frac, bool lowEdge, bool highEdge)
 
 CubicSpline CubicSpline::bspline(float frac, bool lowEdge, bool highEdge)
 {
-    CaretAssert(frac > -0.01f && frac < 1.01f);//give some leeway for rounding errors
+    CaretAssert(frac > -0.05f && frac < 1.05f);//give some leeway for rounding errors, but don't allow large extrapolation
     CubicSpline ret;
     float frac2 = frac * frac;
     float frac3 = frac2 * frac;

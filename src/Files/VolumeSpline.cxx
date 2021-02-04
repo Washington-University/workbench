@@ -177,7 +177,7 @@ float VolumeSpline::sample(const float& ifloat, const float& jfloat, const float
 {
     if (m_dims[0] < 2 || m_dims[1] < 2 || m_dims[2] < 2 ||
         ifloat < -0.01f || jfloat < -0.01f || kfloat < -0.01f ||
-        ifloat > m_dims[0] - 0.99f || jfloat > m_dims[1] - 0.99f || kfloat > m_dims[2] - 0.99f) return 0.0f;//allow slight rounding error beyond voxel center
+        ifloat > m_dims[0] - 0.99f || jfloat > m_dims[1] - 0.99f || kfloat > m_dims[2] - 0.99f) return 0.0f;//allow tiny extrapolation beyond voxel center
     const int64_t zstep = m_dims[0] * m_dims[1];
     float fparti, fpartj, fpartk;
     bool lowedgei, highedgei, lowedgej, highedgej, lowedgek, highedgek;
