@@ -29,7 +29,7 @@ CubicSpline::CubicSpline()
 
 CubicSpline CubicSpline::hermite(float frac, bool lowEdge, bool highEdge)
 {//these equations are derived from hermite basis functions, plug the commented m0, m1 into the hermite representation to rederive
-    CaretAssert(frac > -0.01f && frac < 1.01f);//give some leeway for rounding errors
+    CaretAssert(frac > -0.05f && frac < 1.05f);//give some leeway for rounding errors, but don't allow large extrapolation
     CubicSpline ret;
     float frac2 = frac * frac;
     float frac3 = frac2 * frac;
