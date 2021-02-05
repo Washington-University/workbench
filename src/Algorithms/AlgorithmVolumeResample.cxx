@@ -61,7 +61,7 @@ OperationParameters* AlgorithmVolumeResample::getParameters()
 
     ParameterComponent* affineSeriesOpt = ret->createRepeatableParameter(6, "-affine-series", "add an independent affine per-frame");
     affineSeriesOpt->addStringParameter(1, "affine-series", "text file containing 12 or 16 numbers per line, each being a row-major flattened affine");
-    OptionalParameter* seriesFlirtOpt = affineSeriesOpt->createOptionalParameter(2, "-flirt", "MUST be used if affine is a flirt affine");
+    OptionalParameter* seriesFlirtOpt = affineSeriesOpt->createOptionalParameter(2, "-flirt", "MUST be used if the affines are flirt affines");
     seriesFlirtOpt->addStringParameter(1, "source-volume", "the source volume used when generating the affine");
     seriesFlirtOpt->addStringParameter(2, "target-volume", "the target volume used when generating the affine");
 
