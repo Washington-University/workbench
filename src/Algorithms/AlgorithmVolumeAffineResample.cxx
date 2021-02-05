@@ -58,7 +58,8 @@ OperationParameters* AlgorithmVolumeAffineResample::getParameters()
     flirtOpt->addStringParameter(2, "target-volume", "the target volume used when generating the affine");
     
     ret->setHelpText(
-        AString("Resample a volume file with an affine transformation.  ") +
+        AString("DEPRECATED: this command may be removed in a future release, use -volume-resample.\n\n") +
+        "Resample a volume file with an affine transformation.  " +
         "The recommended methods are CUBIC (cubic spline) for most data, and ENCLOSING_VOXEL for label data.  "
         "The parameter <method> must be one of:\n\n" +
         "CUBIC\nENCLOSING_VOXEL\nTRILINEAR"
