@@ -215,6 +215,7 @@
 <file>./HelpFiles/Toolbar/MatrixChartToolbar.png</file>
 <file>./HelpFiles/Toolbar/Mode/Border_Drawing/Border_Drawing.html</file>
 <file>./HelpFiles/Toolbar/Mode/Border_Drawing/Border_drawing.png</file>
+<file>./HelpFiles/Toolbar/Mode/Border_Drawing/Border_drawing_toolbar.png</file>
 <file>./HelpFiles/Toolbar/Mode/Border_Drawing/Border_Editing/Border_edit.png</file>
 <file>./HelpFiles/Toolbar/Mode/Border_Drawing/Border_Editing/Border_Editing.html</file>
 <file>./HelpFiles/Toolbar/Mode/Border_Drawing/Border_Editing/Edit_Border_Properties.png</file>
@@ -237,6 +238,8 @@
 <file>./HelpFiles/Toolbar/Mode/Mode.html</file>
 <file>./HelpFiles/Toolbar/Mode/Thumbs.db</file>
 <file>./HelpFiles/Toolbar/Mode/Volume_Tools.png</file>
+<file>./HelpFiles/Toolbar/Mode/Voxel Editing/VoxelEditing.html</file>
+<file>./HelpFiles/Toolbar/Mode/Voxel Editing/VoxelEditing.png</file>
 <file>./HelpFiles/Toolbar/MontageToolbar.png</file>
 <file>./HelpFiles/Toolbar/SurfaceToolbar.png</file>
 <file>./HelpFiles/Toolbar/Tab_Functions/Tab_Functions.html</file>
