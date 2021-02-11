@@ -120,7 +120,6 @@
 #include "WuQMacroMenu.h"
 #include "WuQMessageBox.h"
 #include "WuQTabBar.h"
-#include "WuQToolTipHelper.h"
 #include "WuQtUtilities.h"
 #include "WuQTextEditorDialog.h"
 #include "VtkFileExporter.h"
@@ -2653,12 +2652,6 @@ BrainBrowserWindow::createMenuSurface()
     primaryAnatAction->setToolTip("Set surfaces used for border projection, foci projection, and "
                                   "selection of surfaces for coordinate translation to and from "
                                   "volumes.");
-
-    /*
-     * Note: menu->setToolTipsVisible(true);
-     * does not work for menus in Mac Menubar
-     */
-    WuQToolTipHelper::newInstanceForMenu(menu);
     
     return menu;
 }
