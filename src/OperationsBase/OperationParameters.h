@@ -396,6 +396,7 @@ namespace caret {
         LazyFileParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
         {
             m_doOnDiskWrite = false;//on-disk writing, like cifti, needs special checks for overwriting inputs, so default to false
+            m_collidingParam = NULL;
         }
         void checkExists() { if (!QFile::exists(m_filename)) throw DataFileException(m_filename, "file does not exist"); }
         T* lazyGet() { if (m_parameter == NULL) { m_parameter.grabNew(new T()); } return m_parameter; }
