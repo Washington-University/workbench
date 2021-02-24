@@ -140,7 +140,7 @@ namespace
         {
             if (labelMode)
             {
-                return (dataRoi == NULL || dataRoi->getValue(i, j, k) > 0.0f) && floor(0.5f + volIn->getValue(i, j, k, insubvol, component)) == unlabeledKey;//without bad roi, bad is implicitly "data and not 0/unlabeled"
+                return (dataRoi == NULL || dataRoi->getValue(i, j, k) > 0.0f) && floor(0.5f + volIn->getValue(i, j, k, insubvol, component)) == unlabeledKey;//without bad roi, bad is implicitly "data and 0/unlabeled"
             } else {
                 return (dataRoi == NULL || dataRoi->getValue(i, j, k) > 0.0f) && volIn->getValue(i, j, k, insubvol, component) == 0.0f;
             }
