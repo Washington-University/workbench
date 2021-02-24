@@ -420,12 +420,19 @@ void CiftiFile::verifyWriteImpl()
 
 void CiftiFile::copyImplData(const ReadImplInterface* from, WriteImplInterface* to, const vector<int64_t>& dims)
 {
-    vector<int64_t> iterateDims(dims.begin() + 1, dims.end());
-    vector<float> scratchRow(dims[0]);
-    for (MultiDimIterator<int64_t> iter(iterateDims); !iter.atEnd(); ++iter)
+    if (dims.size() == 2 && dims[0] == 1)
     {
-        from->getRow(scratchRow.data(), *iter, false);
-        to->setRow(scratchRow.data(), *iter);
+        vector<float> scratchCol(dims[1]); //column is fast for the special case of only 1 column
+        from->getColumn(scratchCol.data(), 0);
+        to->setColumn(scratchCol.data(), 0);
+    } else {
+        vector<int64_t> iterateDims(dims.begin() + 1, dims.end());
+        vector<float> scratchRow(dims[0]);
+        for (MultiDimIterator<int64_t> iter(iterateDims); !iter.atEnd(); ++iter)
+        {
+            from->getRow(scratchRow.data(), *iter, false);
+            to->setRow(scratchRow.data(), *iter);
+        }
     }
 }
 
@@ -701,14 +708,19 @@ void CiftiOnDiskImpl::getColumn(float* dataOut, const int64_t& index) const
 {
     CaretAssert(m_matrixDims.size() == 2);//otherwise this shouldn't be called
     CaretAssert(index >= 0 && index < m_matrixDims[0]);
-    CaretLogFine("getColumn called on CiftiOnDiskImpl, this will be slow");//generate logging messages at a low priority
-    vector<int64_t> indexSelect(2);
-    indexSelect[0] = index;
-    int64_t colLength = m_matrixDims[1];
-    for (int64_t i = 0; i < colLength; ++i)//assume if they really want getColumn on disk, they don't want their pagecache obliterated, so read it 1 element at a time
+    if (m_matrixDims[0] > 1)
     {
-        indexSelect[1] = i;
-        m_nifti.readData(dataOut + i, 4, indexSelect);//4 means just the 4 reserved dimensions, so 1 element of the matrix
+        CaretLogFine("getColumn called on CiftiOnDiskImpl with multiple columns, this will be slow");//generate logging messages at a low priority
+        vector<int64_t> indexSelect(2);
+        indexSelect[0] = index;
+        int64_t colLength = m_matrixDims[1];
+        for (int64_t i = 0; i < colLength; ++i)//assume if they really want getColumn on disk, they don't want their pagecache obliterated, so read it 1 element at a time
+        {
+            indexSelect[1] = i;
+            m_nifti.readData(dataOut + i, 4, indexSelect);//4 means just the 4 reserved dimensions, so 1 element of the matrix
+        }
+    } else {//special case for single-column cifti
+        m_nifti.readData(dataOut, 6, vector<int64_t>());
     }
 }
 
