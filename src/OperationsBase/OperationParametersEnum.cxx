@@ -50,12 +50,10 @@ bool OperationParametersEnum::initializedFlag = false;
  *    User-friendly name for use in user-interface.
  */
 OperationParametersEnum::OperationParametersEnum(const Enum enumValue,
-                           const int32_t integerCode,
                            const AString& name,
                            const AString& guiName)
 {
     this->enumValue = enumValue;
-    this->integerCode = integerCode;
     this->name = name;
     this->guiName = guiName;
 }
@@ -79,62 +77,50 @@ OperationParametersEnum::initialize()
     initializedFlag = true;
 
     enumData.push_back(OperationParametersEnum(SURFACE, 
-                                    0, 
                                     "Surface File", 
                                     "Surface"));
     
     enumData.push_back(OperationParametersEnum(VOLUME, 
-                                    1, 
                                     "Volume File", 
                                     "Volume"));
     
     enumData.push_back(OperationParametersEnum(METRIC, 
-                                    2, 
                                     "Metric File", 
                                     "Metric"));
     
     enumData.push_back(OperationParametersEnum(LABEL, 
-                                    3, 
                                     "Label File", 
                                     "Label"));
     
     enumData.push_back(OperationParametersEnum(CIFTI, 
-                                    4, 
                                     "Cifti File", 
                                     "Cifti"));
     
     enumData.push_back(OperationParametersEnum(FOCI, 
-                                    5, 
                                     "Foci File", 
                                     "Foci File"));
     
     enumData.push_back(OperationParametersEnum(BORDER, 
-                                    6, 
                                     "Border File", 
                                     "Border File"));
     
     enumData.push_back(OperationParametersEnum(DOUBLE, 
-                                    7, 
                                     "Floating Point", 
                                     "Floating Point"));
     
     enumData.push_back(OperationParametersEnum(INT, 
-                                    8, 
                                     "Integer", 
                                     "Integer"));
     
     enumData.push_back(OperationParametersEnum(STRING, 
-                                    9, 
                                     "String", 
                                     "String"));
     
     enumData.push_back(OperationParametersEnum(BOOL, 
-                                    10, 
                                     "Boolean", 
                                     "Boolean"));
     
     enumData.push_back(OperationParametersEnum(ANNOTATION,
-                                               11,
                                                "Annotation File",
                                                "Annotation"));
     
@@ -265,59 +251,6 @@ OperationParametersEnum::fromGuiName(const AString& guiName, bool* isValidOut)
     }
     else {
         CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type AlgorithmParametersEnum"));
-    }
-    return enumValue;
-}
-
-/**
- * Get the integer code for a data type.
- *
- * @return
- *    Integer code for data type.
- */
-int32_t
-OperationParametersEnum::toIntegerCode(Enum enumValue)
-{
-    if (initializedFlag == false) initialize();
-    const OperationParametersEnum* enumInstance = findData(enumValue);
-    return enumInstance->integerCode;
-}
-
-/**
- * Find the data type corresponding to an integer code.
- *
- * @param integerCode
- *     Integer code for enum.
- * @param isValidOut
- *     If not NULL, on exit isValidOut will indicate if
- *     integer code is valid.
- * @return
- *     Enum for integer code.
- */
-OperationParametersEnum::Enum
-OperationParametersEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
-{
-    if (initializedFlag == false) initialize();
-    
-    bool validFlag = false;
-    Enum enumValue = SURFACE;
-    
-    for (std::vector<OperationParametersEnum>::iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const OperationParametersEnum& enumInstance = *iter;
-        if (enumInstance.integerCode == integerCode) {
-            enumValue = enumInstance.enumValue;
-            validFlag = true;
-            break;
-        }
-    }
-    
-    if (isValidOut != 0) {
-        *isValidOut = validFlag;
-    }
-    else {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type AlgorithmParametersEnum"));
     }
     return enumValue;
 }

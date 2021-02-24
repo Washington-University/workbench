@@ -22,10 +22,15 @@
 /*LICENSE_END*/
 
 #include "AString.h"
-#include <vector>
-#include "stdint.h"
+#include "CaretMutex.h"
 #include "CaretPointer.h"
 #include "OperationParametersEnum.h"
+#include "DataFileException.h"
+
+#include <QFile>
+
+#include <cstdint>
+#include <vector>
 
 namespace caret {
 
@@ -34,12 +39,25 @@ namespace caret {
     class CiftiFile;
     class FociFile;
     class LabelFile;
+    class GiftiMetaData;
     class MetricFile;
     class SurfaceFile;
     class VolumeFile;
     
     struct OptionalParameter;
     struct RepeatableOption;
+    
+    struct ProvenanceHelper
+    {
+        const static AString PROVENANCE_NAME, PARENT_PROVENANCE_NAME, PROGRAM_PROVENANCE_NAME, CWD_PROVENANCE_NAME;
+        AString m_parentProvenance, m_provenance, m_versionProvenance, m_workingDir;
+        //track whether an input is lazy read after an on-disk output file is obtained
+        bool m_outputProvDone, m_doProvenance;
+        CaretMutex m_mutex;//synchronize by mutex rather than omp, to be safe
+        ProvenanceHelper() { m_outputProvDone = false; m_doProvenance = true; }
+        void addToProvenance(const GiftiMetaData* md, const AString& filename);
+        void outputProvenance(GiftiMetaData* md);
+    };
     
     struct AbstractParameter
     {
@@ -56,6 +74,7 @@ namespace caret {
         {
         };
         virtual ~AbstractParameter();
+        virtual void checkExists() { }
     };
     
     struct ParameterComponent
@@ -64,6 +83,17 @@ namespace caret {
         std::vector<AbstractParameter*> m_outputList;//should this be a different type? input and output parameters are very similar, just pointers to files
         std::vector<OptionalParameter*> m_optionList;//optional arguments
         std::vector<RepeatableOption*> m_repeatableOptions;//repeatable options
+        
+        //for lazy loading with on-disk output, provenance needs to be tracked (and added) during the operation code, so the parser can't do it
+        //ParameterComponent does not own this instance
+        ProvenanceHelper* m_provHelper;
+        
+        //recursively populate parameter tree with provenance helper pointer
+        void prepareProvenance(ProvenanceHelper* helper);
+        
+        //helpers for lazy reading, throw rather than return on problem
+        void checkInputFilesExist();
+        void openAllInputFiles();
         
         ///constructor
         ParameterComponent();
@@ -74,7 +104,6 @@ namespace caret {
         ///copy constructor so RepeatableOption can copy its template to a new instance
         ParameterComponent(const ParameterComponent& rhs);
         
-        //convenience methods for algorithms to use to easily specify parameters
         ///add a parameter to get next item as a string
         void addStringParameter(const int32_t key, const AString& name, const AString& description);
         
@@ -201,12 +230,6 @@ namespace caret {
         ///convenience method to create, add, and return an optional parameter
         ParameterComponent* createRepeatableParameter(const int32_t key, const AString& optionSwitch, const AString& description);
         
-        ///return pointer to an input parameter
-        AbstractParameter* getInputParameter(const int32_t key, const OperationParametersEnum::Enum type);
-        
-        ///return pointer to an output
-        AbstractParameter* getOutputParameter(const int32_t key, const OperationParametersEnum::Enum type);
-        
         ///return pointer to an option
         OptionalParameter* getOptionalParameter(const int32_t key);
         
@@ -233,6 +256,11 @@ namespace caret {
         
         ///helper for checking that all parameters have been checked by the operation, returns warning strings
         std::vector<AString> findUncheckedParams(const AString& contextString) const;
+        
+    private:
+        //these should be private to help ensure parent provenance gets populated, as that code is in the type-specific functions
+        AbstractParameter* getInputParameter(const int32_t key, const OperationParametersEnum::Enum type);
+        AbstractParameter* getOutputParameter(const int32_t key, const OperationParametersEnum::Enum type);
     };
     
     struct OptionalParameter : public ParameterComponent
@@ -286,6 +314,9 @@ namespace caret {
         {
         }
         ~RepeatableOption();
+        void prepareProvenance(ProvenanceHelper* helper);
+        void checkInputFilesExist();
+        void openAllInputFiles();
     };
     
     struct OperationParameters : public ParameterComponent
@@ -331,7 +362,7 @@ namespace caret {
         }
         PrimitiveTemplateParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
         {
-            m_parameter = 0;
+            m_parameter = T(0);
         }
     };
     
@@ -349,15 +380,37 @@ namespace caret {
         }
     };
     
+    template<typename T, OperationParametersEnum::Enum TYPE>
+    struct LazyFileParameter : public AbstractParameter
+    {
+        virtual OperationParametersEnum::Enum getType() { return TYPE; }
+        virtual AbstractParameter* cloneAbstractParameter()
+        {//clone is currently implemented to NOT copy pointer or value in other things of this type, so...
+            AbstractParameter* ret = new LazyFileParameter<T, TYPE>(m_key, m_shortName, m_description);
+            return ret;
+        }
+        CaretPointer<T> m_parameter;//so the GUI parser and the commandline parser don't need to do different things to delete the parameter info
+        AString m_filename;
+        bool m_doOnDiskWrite;
+        const LazyFileParameter<T, TYPE>* m_collidingParam;
+        LazyFileParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
+        {
+            m_doOnDiskWrite = false;//on-disk writing, like cifti, needs special checks for overwriting inputs, so default to false
+        }
+        void checkExists() { if (!QFile::exists(m_filename)) throw DataFileException(m_filename, "file does not exist"); }
+        T* lazyGet() { if (m_parameter == NULL) { m_parameter.grabNew(new T()); } return m_parameter; }
+    };
+    
     //some friendlier names
-    typedef PointerTemplateParameter<SurfaceFile, OperationParametersEnum::SURFACE> SurfaceParameter;
-    typedef PointerTemplateParameter<VolumeFile, OperationParametersEnum::VOLUME> VolumeParameter;
-    typedef PointerTemplateParameter<AnnotationFile, OperationParametersEnum::ANNOTATION> AnnotationParameter;
-    typedef PointerTemplateParameter<MetricFile, OperationParametersEnum::METRIC> MetricParameter;
-    typedef PointerTemplateParameter<LabelFile, OperationParametersEnum::LABEL> LabelParameter;
-    typedef PointerTemplateParameter<CiftiFile, OperationParametersEnum::CIFTI> CiftiParameter;
-    typedef PointerTemplateParameter<FociFile, OperationParametersEnum::FOCI> FociParameter;
-    typedef PointerTemplateParameter<BorderFile, OperationParametersEnum::BORDER> BorderParameter;
+    typedef LazyFileParameter<AnnotationFile, OperationParametersEnum::ANNOTATION> AnnotationParameter;
+    typedef LazyFileParameter<BorderFile, OperationParametersEnum::BORDER> BorderParameter;
+    typedef LazyFileParameter<CiftiFile, OperationParametersEnum::CIFTI> CiftiParameter;
+    typedef LazyFileParameter<FociFile, OperationParametersEnum::FOCI> FociParameter;
+    typedef LazyFileParameter<LabelFile, OperationParametersEnum::LABEL> LabelParameter;
+    typedef LazyFileParameter<MetricFile, OperationParametersEnum::METRIC> MetricParameter;
+    typedef LazyFileParameter<SurfaceFile, OperationParametersEnum::SURFACE> SurfaceParameter;
+    typedef LazyFileParameter<VolumeFile, OperationParametersEnum::VOLUME> VolumeParameter;
+    
     typedef PrimitiveTemplateParameter<double, OperationParametersEnum::DOUBLE> DoubleParameter;
     typedef PrimitiveTemplateParameter<int64_t, OperationParametersEnum::INT> IntegerParameter;
     typedef PrimitiveTemplateParameter<bool, OperationParametersEnum::BOOL> BooleanParameter;

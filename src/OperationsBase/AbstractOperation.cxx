@@ -43,11 +43,6 @@ AbstractOperation::~AbstractOperation()
 {
 }
 
-OperationParserInterface::~OperationParserInterface()
-{
-    delete m_autoOper;
-}
-
 AutoOperationInterface::~AutoOperationInterface()
 {
 }

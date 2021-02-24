@@ -21,11 +21,21 @@
  */
 /*LICENSE_END*/
 
+#include "nifti1.h"
+
+#include <cstdint>
+
 namespace caret {
 
     struct CommandGlobalOptions
     {
         bool m_ciftiReadMemory = false;
+        bool m_disableProvenance = false;
+        int16_t m_volumeDType = NIFTI_TYPE_FLOAT32;
+        int16_t m_ciftiDType = NIFTI_TYPE_FLOAT32;
+        bool m_volumeScale = false, m_ciftiScale = false;
+        float m_volumeMin = -1.0f, m_volumeMax = -1.0f;//these values won't get used, but don't leave them uninitialized
+        float m_ciftiMin = -1.0f, m_ciftiMax = -1.0f;
     };
 
     extern CommandGlobalOptions caret_global_command_options;

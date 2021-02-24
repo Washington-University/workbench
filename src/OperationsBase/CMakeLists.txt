@@ -20,10 +20,12 @@ ENDIF ()
 #
 ADD_LIBRARY(OperationsBase
 AbstractOperation.h
+CaretCommandGlobalOptions.h
 OperationParameters.h
 OperationParametersEnum.h
 
 AbstractOperation.cxx
+CaretCommandGlobalOptions.cxx
 OperationParameters.cxx
 OperationParametersEnum.cxx
 )

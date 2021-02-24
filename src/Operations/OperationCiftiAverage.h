@@ -1,9 +1,9 @@
-#ifndef __ALGORITHM_CIFTI_AVERAGE_H__
-#define __ALGORITHM_CIFTI_AVERAGE_H__
+#ifndef __OPERATION_CIFTI_AVERAGE_H__
+#define __OPERATION_CIFTI_AVERAGE_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2021  Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,28 +21,23 @@
  */
 /*LICENSE_END*/
 
-#include "AbstractAlgorithm.h"
-#include <vector>
+#include "AbstractOperation.h"
 
 namespace caret {
     
-    class AlgorithmCiftiAverage : public AbstractAlgorithm
+    class OperationCiftiAverage : public AbstractOperation
     {
-        AlgorithmCiftiAverage();
-    protected:
-        static float getSubAlgorithmWeight();
-        static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiAverage(ProgressObject* myProgObj, const std::vector<const CiftiFile*>& ciftiList, CiftiFile* ciftiOut, const std::vector<float>* weightsPtr = NULL);
-        AlgorithmCiftiAverage(ProgressObject* myProgObj, const std::vector<const CiftiFile*>& ciftiList, const float& sigmaBelow, const float& sigmaAbove, CiftiFile* ciftiOut, const std::vector<float>* weightsPtr = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
+        
+        static bool lazyFileReading() { return true; }
     };
 
-    typedef TemplateAutoOperation<AlgorithmCiftiAverage> AutoAlgorithmCiftiAverage;
+    typedef TemplateAutoOperation<OperationCiftiAverage> AutoOperationCiftiAverage;
 
 }
 
-#endif //__ALGORITHM_CIFTI_AVERAGE_H__
+#endif //__OPERATION_CIFTI_AVERAGE_H__

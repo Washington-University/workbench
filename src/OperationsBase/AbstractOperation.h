@@ -54,6 +54,9 @@ namespace caret {
         ///override this if the operation doesn't take parameters
         static bool takesParameters() { return true; }
         
+        ///override this if the operation wants files to only be loaded when they are requested (note: must ask for (cifti) outputs *last*)
+        static bool lazyFileReading() { return false; }
+        
         ///convenience method for checking structures of input files
         static void checkStructureMatch(const CaretDataFile* toCheck, const StructureEnum::Enum& correctStruct, const AString& fileDescrip, const AString& basisDescrip);
     };
@@ -66,6 +69,7 @@ namespace caret {
         virtual AString getCommandSwitch() = 0;
         virtual AString getShortDescription() = 0;
         virtual bool takesParameters() = 0;
+        virtual bool lazyFileReading() = 0;
         virtual ~AutoOperationInterface();
     };
 
@@ -80,17 +84,8 @@ namespace caret {
         AString getCommandSwitch() { return T::getCommandSwitch(); }
         AString getShortDescription() { return T::getShortDescription(); }
         bool takesParameters() { return T::takesParameters(); }
+        bool lazyFileReading() { return T::lazyFileReading(); }
     };
 
-    ///interface class for parsers to inherit from
-    class OperationParserInterface
-    {
-        OperationParserInterface();//must take an interface object, for its vtable to the real operation, so deny default construction
-    protected:
-        AutoOperationInterface* m_autoOper;
-    public:
-        OperationParserInterface(AutoOperationInterface* myAutoOper) : m_autoOper(myAutoOper) { }
-        virtual ~OperationParserInterface();
-    };
 }
 #endif //__ABSTRACT_OPERATION_H__

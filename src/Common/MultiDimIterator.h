@@ -21,6 +21,9 @@
  */
 /*LICENSE_END*/
 
+#include "CaretAssert.h"
+#include "CaretException.h"
+
 #include "stdint.h"
 #include <vector>
 
@@ -31,7 +34,7 @@ namespace caret
     class MultiDimIterator
     {
         std::vector<T> m_dims, m_pos;
-        bool m_atEnd;
+        bool m_atEnd, m_beforeBegin;
         void gotoBegin();
         void gotoLast();
     public:
@@ -56,6 +59,7 @@ namespace caret
     {
         m_pos = std::vector<T>(m_dims.size(), 0);
         m_atEnd = false;
+        m_beforeBegin = false;
         size_t numDims = m_dims.size();
         for (size_t i = 0; i < numDims; ++i)
         {
@@ -72,6 +76,7 @@ namespace caret
     {
         m_pos = std::vector<T>(m_dims.size());
         m_atEnd = false;
+        m_beforeBegin = false;
         size_t numDims = m_dims.size();
         for (size_t i = 0; i < numDims; ++i)
         {
@@ -86,7 +91,12 @@ namespace caret
     template<typename T>
     void MultiDimIterator<T>::operator++()
     {
-        if (atEnd())//wrap around
+        if (atEnd())//error
+        {
+            CaretAssert(false);
+            throw CaretException("tried to increment MultiDimIterator that is out of range");
+        }
+        if (m_beforeBegin)
         {
             gotoBegin();
             return;
@@ -94,6 +104,7 @@ namespace caret
         if (m_dims.size() == 0)
         {
             m_atEnd = true;//special case: no dimensions works the same as 1 dimension of length 1
+            m_beforeBegin = false;
             return;
         }
         size_t numDims = m_dims.size();
@@ -115,14 +126,20 @@ namespace caret
     template<typename T>
     void MultiDimIterator<T>::operator--()
     {
-        if (atEnd())//wrap around
+        if (m_beforeBegin)//error
+        {
+            CaretAssert(false);
+            throw CaretException("tried to decrement MultiDimIterator that is out of range");
+        }
+        if (atEnd())
         {
             gotoLast();
             return;
         }
         if (m_dims.size() == 0)
         {
-            m_atEnd = true;//special case: no dimensions works the same as 1 dimension of length 1
+            m_atEnd = false;//special case: no dimensions works the same as 1 dimension of length 1
+            m_beforeBegin = true;
             return;
         }
         size_t numDims = m_dims.size();
@@ -136,7 +153,7 @@ namespace caret
                 m_pos[i] = m_dims[i] - 1;
             }
         }
-        m_atEnd = true;//if we didn't return already, all of them wrapped, so we are at the end
+        m_beforeBegin = true;//if we didn't return already, all of them wrapped, so we are before the beginning
     }
     
     template<typename T>

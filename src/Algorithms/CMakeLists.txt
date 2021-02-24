@@ -27,7 +27,6 @@ AlgorithmAnnotationResample.h
 AlgorithmBorderResample.h
 AlgorithmBorderToVertices.h
 AlgorithmCiftiAllLabelsToROIs.h
-AlgorithmCiftiAverage.h
 AlgorithmCiftiAverageDenseROI.h
 AlgorithmCiftiAverageROICorrelation.h
 AlgorithmCiftiCorrelation.h
@@ -149,7 +148,6 @@ AlgorithmAnnotationResample.cxx
 AlgorithmBorderResample.cxx
 AlgorithmBorderToVertices.cxx
 AlgorithmCiftiAllLabelsToROIs.cxx
-AlgorithmCiftiAverage.cxx
 AlgorithmCiftiAverageDenseROI.cxx
 AlgorithmCiftiAverageROICorrelation.cxx
 AlgorithmCiftiCorrelation.cxx

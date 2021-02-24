@@ -35,18 +35,19 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        SURFACE,
-        VOLUME,
-        METRIC,
-        LABEL,
+        ANNOTATION,
+        BORDER,
         CIFTI,
         FOCI,
-        BORDER,
+        LABEL,
+        METRIC,
+        SURFACE,
+        VOLUME,
+        
         DOUBLE,
         INT,
         STRING,
-        BOOL,
-        ANNOTATION
+        BOOL
     };
 
 
@@ -60,10 +61,6 @@ public:
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     
-    static int32_t toIntegerCode(Enum enumValue);
-    
-    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
-
     static void getAllEnums(std::vector<Enum>& allEnums);
 
     static void getAllNames(std::vector<AString>& allNames, const bool isSorted);
@@ -71,8 +68,7 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    OperationParametersEnum(const Enum enumValue, 
-                 const int32_t integerCode, 
+    OperationParametersEnum(const Enum enumValue,
                  const AString& name,
                  const AString& guiName);
 
@@ -89,9 +85,6 @@ private:
     
     /** The enumerated type value for an instance */
     Enum enumValue;
-
-    /** The integer code associated with an enumerated value */
-    int32_t integerCode;
 
     /** The name, a text string that is identical to the enumerated value */
     AString name;

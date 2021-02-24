@@ -28,7 +28,6 @@
 #include "AlgorithmBorderResample.h"
 #include "AlgorithmBorderToVertices.h"
 #include "AlgorithmCiftiAllLabelsToROIs.h"
-#include "AlgorithmCiftiAverage.h"
 #include "AlgorithmCiftiAverageDenseROI.h"
 #include "AlgorithmCiftiAverageROICorrelation.h"
 #include "AlgorithmCiftiCorrelation.h"
@@ -150,6 +149,7 @@
 #include "OperationBorderFileExportToCaret5.h"
 #include "OperationBorderLength.h"
 #include "OperationBorderMerge.h"
+#include "OperationCiftiAverage.h"
 #include "OperationCiftiChangeMapping.h"
 #include "OperationCiftiChangeTimestep.h"
 #include "OperationCiftiConvert.h"
@@ -294,7 +294,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmBorderResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmBorderToVertices()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiAllLabelsToROIs()));
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiAverage()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiAverageDenseROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiAverageROICorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCorrelation()));
@@ -414,6 +413,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationBorderFileExportToCaret5()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBorderLength()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBorderMerge()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiAverage()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiChangeMapping()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiCreateDenseFromTemplate()));
@@ -535,7 +535,7 @@ CommandOperationManager::~CommandOperationManager()
 namespace
 {
     //quick hack to convert type argument to internal integer
-    int16_t stringToCiftiType(const AString& input)
+    int16_t stringToNiftiType(const AString& input)
     {
         map<AString, int16_t> nameToCode;
         nameToCode["INT8"] = NIFTI_TYPE_INT8;
@@ -589,34 +589,35 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
             CaretLogWarning("SIMD type '" + DotSIMDEnum::toName(impl) + "' not supported (could be cpu, compiler, or build options), using '" + DotSIMDEnum::toName(retval) + "'");
         }
     }
-    int16_t ciftiDType = NIFTI_TYPE_FLOAT32, niftiDType = NIFTI_TYPE_FLOAT32;
-    bool ciftiScale = false, niftiScale = false;
-    double ciftiMin = -1.0, ciftiMax = -1.0, niftiMin = -1.0, niftiMax = -1.0;
-    if (getGlobalOption(parameters, "-cifti-output-datatype", 1, globalOptionArgs))
-    {
-        ciftiDType = stringToCiftiType(globalOptionArgs[0]);
-    }
-    if (getGlobalOption(parameters, "-cifti-output-range", 2, globalOptionArgs))
-    {
-        ciftiScale = true;
-        bool valid = false;
-        ciftiMin = globalOptionArgs[0].toDouble(&valid);
-        if (!valid) throw CommandException("non-numeric option to -cifti-output-range: '" + globalOptionArgs[0] + "'");
-        ciftiMax = globalOptionArgs[1].toDouble(&valid);
-        if (!valid) throw CommandException("non-numeric option to -cifti-output-range: '" + globalOptionArgs[1] + "'");
-    }
     if (getGlobalOption(parameters, "-nifti-output-datatype", 1, globalOptionArgs))
     {
-        niftiDType = stringToCiftiType(globalOptionArgs[0]);
+        caret_global_command_options.m_ciftiDType =
+            caret_global_command_options.m_volumeDType = stringToNiftiType(globalOptionArgs[0]);
     }
     if (getGlobalOption(parameters, "-nifti-output-range", 2, globalOptionArgs))
     {
-        niftiScale = true;
+        caret_global_command_options.m_ciftiScale =
+            caret_global_command_options.m_volumeScale = true;
         bool valid = false;
-        niftiMin = globalOptionArgs[0].toDouble(&valid);
+        caret_global_command_options.m_ciftiMin =
+            caret_global_command_options.m_volumeMin = globalOptionArgs[0].toDouble(&valid);
         if (!valid) throw CommandException("non-numeric option to -nifti-output-range: '" + globalOptionArgs[0] + "'");
-        niftiMax = globalOptionArgs[1].toDouble(&valid);
+        caret_global_command_options.m_ciftiMax =
+            caret_global_command_options.m_volumeMax = globalOptionArgs[1].toDouble(&valid);
         if (!valid) throw CommandException("non-numeric option to -nifti-output-range: '" + globalOptionArgs[1] + "'");
+    }
+    if (getGlobalOption(parameters, "-cifti-output-datatype", 1, globalOptionArgs))
+    {
+        caret_global_command_options.m_ciftiDType = stringToNiftiType(globalOptionArgs[0]);
+    }
+    if (getGlobalOption(parameters, "-cifti-output-range", 2, globalOptionArgs))
+    {
+        caret_global_command_options.m_ciftiScale = true;
+        bool valid = false;
+        caret_global_command_options.m_ciftiMin = globalOptionArgs[0].toDouble(&valid);
+        if (!valid) throw CommandException("non-numeric option to -cifti-output-range: '" + globalOptionArgs[0] + "'");
+        caret_global_command_options.m_ciftiMax = globalOptionArgs[1].toDouble(&valid);
+        if (!valid) throw CommandException("non-numeric option to -cifti-output-range: '" + globalOptionArgs[1] + "'");
     }
     if (getGlobalOption(parameters, "-cifti-read-memory", 0, globalOptionArgs))
     {
@@ -695,20 +696,6 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
             {
                 cout << operation->getHelpInformation(myProgramName) << endl;
             } else {
-                if (niftiScale)
-                {
-                    operation->setCiftiOutputDTypeAndScale(niftiDType, niftiMin, niftiMax);
-                    operation->setVolumeOutputDTypeAndScale(niftiDType, niftiMin, niftiMax);
-                } else {
-                    operation->setCiftiOutputDTypeNoScale(niftiDType);
-                    operation->setVolumeOutputDTypeNoScale(niftiDType);
-                }
-                if (ciftiScale)
-                {
-                    operation->setCiftiOutputDTypeAndScale(ciftiDType, ciftiMin, ciftiMax);
-                } else {
-                    operation->setCiftiOutputDTypeNoScale(ciftiDType);
-                }
                 operation->execute(parameters, preventProvenance);
             }
         }

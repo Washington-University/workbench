@@ -26,6 +26,7 @@ OperationBorderExportColorTable.h
 OperationBorderFileExportToCaret5.h
 OperationBorderLength.h
 OperationBorderMerge.h
+OperationCiftiAverage.h
 OperationCiftiChangeMapping.h
 OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
@@ -117,6 +118,7 @@ OperationBorderExportColorTable.cxx
 OperationBorderFileExportToCaret5.cxx
 OperationBorderLength.cxx
 OperationBorderMerge.cxx
+OperationCiftiAverage.cxx
 OperationCiftiChangeMapping.cxx
 OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
