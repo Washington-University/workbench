@@ -68,7 +68,8 @@ OperationParameters* AlgorithmVolumeTFCE::getParameters()
     subvolSelect->addStringParameter(1, "subvolume", "the subvolume number or name");
     
     ret->setHelpText(
-        AString("Threshold-free cluster enhancement is a method to increase the relative value of regions that would form clusters in a standard thresholding test.  ") +
+        AString("This command does not do any statistical analysis.  Please use something like PALM if you are just trying to do statistics on your data.\n\n") +
+        "Threshold-free cluster enhancement is a method to increase the relative value of regions that would form clusters in a standard thresholding test.  " +
         "This is accomplished by evaluating the integral of:\n\n" +
         "e(h, p)^E * h^H * dh\n\n" +
         "at each vertex p, where h ranges from 0 to the maximum value in the data, and e(h, p) is the extent of the cluster containing vertex p at threshold h.  " +
