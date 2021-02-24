@@ -42,6 +42,7 @@ float ReductionOperation::reduce(const float* data, const int64_t& numElems, con
         case ReductionEnum::TSNR:
         case ReductionEnum::COV:
             if (numElems < 2) throw CaretException("taking the sample standard deviation of 1 element would require dividing by zero");
+        //fallthrough
         case ReductionEnum::MEAN:
         case ReductionEnum::STDEV:
         case ReductionEnum::VARIANCE:
@@ -355,6 +356,7 @@ float ReductionOperation::reduceWeighted(const float* data, const float* weights
         case ReductionEnum::TSNR:
         case ReductionEnum::COV:
             if (numElems < 2) throw CaretException("'SAMPSTDEV' weighted reduction on 1 element would require dividing by zero");
+        //fallthrough
         case ReductionEnum::MEAN:
         case ReductionEnum::STDEV:
         case ReductionEnum::VARIANCE:
