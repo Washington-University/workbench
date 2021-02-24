@@ -54,7 +54,7 @@ OperationParameters* OperationCiftiStats::getParameters()
     reduceOpt->addStringParameter(1, "operation", "the reduction operation");
     
     OptionalParameter* percentileOpt = ret->createOptionalParameter(3, "-percentile", "give the value at a percentile");
-    percentileOpt->addDoubleParameter(1, "percent", "the percentile to find");
+    percentileOpt->addDoubleParameter(1, "percent", "the percentile to find, must be between 0 and 100");
     
     OptionalParameter* columnOpt = ret->createOptionalParameter(4, "-column", "only display output for one column");
     columnOpt->addIntegerParameter(1, "column", "the column index (starting from 1)");

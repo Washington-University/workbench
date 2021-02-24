@@ -81,7 +81,7 @@ OperationParameters* OperationCiftiWeightedStats::getParameters()
     stdevOpt->createOptionalParameter(1, "-sample", "estimate population stdev from the sample");
     
     OptionalParameter* percentileOpt = ret->createOptionalParameter(8, "-percentile", "compute weighted percentile");
-    percentileOpt->addDoubleParameter(1, "percent", "the percentile to find");
+    percentileOpt->addDoubleParameter(1, "percent", "the percentile to find, must be between 0 and 100");
     
     ret->createOptionalParameter(9, "-sum", "compute weighted sum");
     

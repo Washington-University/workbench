@@ -54,7 +54,7 @@ OperationParameters* OperationVolumeStats::getParameters()
     reduceOpt->addStringParameter(1, "operation", "the reduction operation");
     
     OptionalParameter* percentileOpt = ret->createOptionalParameter(3, "-percentile", "give the value at a percentile");
-    percentileOpt->addDoubleParameter(1, "percent", "the percentile to find");
+    percentileOpt->addDoubleParameter(1, "percent", "the percentile to find, must be between 0 and 100");
     
     OptionalParameter* subvolOpt = ret->createOptionalParameter(4, "-subvolume", "only display output for one subvolume");
     subvolOpt->addStringParameter(1, "subvolume", "the subvolume number or name");
