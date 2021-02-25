@@ -32,6 +32,8 @@ namespace caret {
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
+        
+        static bool lazyFileReading() { return true; }
     };
 
     typedef TemplateAutoOperation<OperationCiftiMerge> AutoOperationCiftiMerge;

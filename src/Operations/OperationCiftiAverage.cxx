@@ -135,6 +135,8 @@ void OperationCiftiAverage::useParameters(OperationParameters* myParams, Progres
         } else {//by default, do enough rows to read at least 10MB (assuming float) from each file before moving to the next
             int64_t rowBytes = sizeof(float) * firstdims[0];
             chunkRows = ((10<<20) - 1) / rowBytes + 1;
+            int64_t numPasses = totalRows / chunkRows;//make sure we never make chunks smaller, so different fenceposting
+            chunkRows = (totalRows - 1) / numPasses + 1;
         }
     }
     CaretAssert(chunkRows > 0);
@@ -154,6 +156,7 @@ void OperationCiftiAverage::useParameters(OperationParameters* myParams, Progres
             {
                 throw OperationException("cifti file '" + thisCifti->getFileName() + "' does not match the first input");
             }
+            thisCifti->getCiftiXML().getFileMetaData()->clear();//don't need the metadata anymore, so free its memory too
             //HACK: don't need the info in the XML anymore, so free the memory
             for (size_t i = 0; i < thisCifti->getDimensions().size(); ++i)
             {//since this is a hack, probably not a good idea to add a convenience function to do this loop
@@ -162,7 +165,7 @@ void OperationCiftiAverage::useParameters(OperationParameters* myParams, Progres
         } catch (...) {
 #pragma omp critical
             {
-                if (exceptedFile < 0 || int64_t(i) < exceptedFile)
+                if (exceptedFile < 0 || i < exceptedFile)
                 {//emulate serial order or processing, because why not
                     exceptedFile = i;
                     exPtr = current_exception();

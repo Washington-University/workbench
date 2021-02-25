@@ -25,9 +25,10 @@
 #include "CaretPointer.h"
 #include "CaretCommandGlobalOptions.h"
 #include "CiftiFile.h"
-#include "FileInformation.h"
 
 #include <algorithm>
+#include <vector>
+#include <utility>
 
 using namespace caret;
 using namespace std;
@@ -49,12 +50,15 @@ OperationParameters* OperationCiftiMerge::getParameters()
     ret->addCiftiOutputParameter(1, "cifti-out", "output cifti file");
     
     ParameterComponent* ciftiOpt = ret->createRepeatableParameter(2, "-cifti", "specify an input cifti file");
-    ciftiOpt->addStringParameter(1, "cifti-in", "a cifti file to use columns from");
+    ciftiOpt->addCiftiParameter(1, "cifti-in", "a cifti file to use columns from");
     ParameterComponent* columnOpt = ciftiOpt->createRepeatableParameter(2, "-column", "select a single column to use");
     columnOpt->addStringParameter(1, "column", "the column number (starting from 1) or name");
     OptionalParameter* upToOpt = columnOpt->createOptionalParameter(2, "-up-to", "use an inclusive range of columns");
     upToOpt->addStringParameter(1, "last-column", "the number or name of the last column to include");
     upToOpt->createOptionalParameter(2, "-reverse", "use the range in reverse order");
+    
+    OptionalParameter* memLimitOpt = ret->createOptionalParameter(3, "-mem-limit", "restrict memory used for file reading efficiency");
+    memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
     
     ret->setHelpText(
         AString("Given input CIFTI files which have matching mappings along columns, and for which mappings along rows ") +
@@ -69,18 +73,24 @@ OperationParameters* OperationCiftiMerge::getParameters()
 void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    CiftiFile* ciftiOut = myParams->getOutputCifti(1);//NOTE: doesn't actually get created until the first setRow() call
-    FileInformation ciftiOutInfo(ciftiOut->getFileName());
-    AString ciftiOutCanonicalName = ciftiOutInfo.getCanonicalFilePath();
     const vector<ParameterComponent*>& myInputs = myParams->getRepeatableParameterInstances(2);
+    float memLimitGB = -1.0f;
+    OptionalParameter* memLimitOpt = myParams->getOptionalParameter(3);
+    if (memLimitOpt->m_present)
+    {
+        memLimitGB = float(memLimitOpt->getDouble(1));
+        if (memLimitGB < 0.0f)
+        {
+            throw OperationException("memory limit must be positive");
+        }
+    }
     int numInputs = (int)myInputs.size();
     if (numInputs == 0) throw OperationException("no inputs specified");
-    vector<CiftiFile> ciftiList(numInputs);
-    ciftiList[0].openFile(myInputs[0]->getString(1));
-    const CiftiFile* firstCifti = &(ciftiList[0]);
+    const CiftiFile* firstCifti = myInputs[0]->getCifti(1);
     const CiftiXML& baseXML = firstCifti->getCiftiXML();
     if (baseXML.getNumberOfDimensions() != 2) throw OperationException("only 2D cifti are supported");
     const CiftiMappingType& baseColMapping = *(baseXML.getMap(CiftiXML::ALONG_COLUMN)), &baseRowMapping = *(baseXML.getMap(CiftiXML::ALONG_ROW));
+    int64_t numRows = baseColMapping.getLength();
     switch (baseRowMapping.getType())
     {
         case CiftiMappingType::SCALARS:
@@ -91,53 +101,67 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
             throw OperationException("row mapping type must be series, scalars, or labels");
     }
     int64_t numOutColumns = 0;//output row length
-    for (int i = 0; i < numInputs; ++i)
+    exception_ptr exPtr;
+    int64_t exceptedFile = -1;
+    //NOTE: throwing inside omp parallel causes an uninformative abort, so catch, skip the rest, and rethrow later
+    //our build/processing setup seems to bottleneck on lots of multithreaded memory allocation, so limit to 4 threads for now
+    //windows compiler doesn't like unsigned omp loop variables
+#pragma omp CARET_PARFOR schedule(dynamic) num_threads(4)
+    for (int64_t i = 0; i < int64_t(myInputs.size()); ++i)
     {
-        if (i != 0)
+        if (exceptedFile > -1) continue;//"abort" checking any more files
+        try
         {
-            ciftiList[i].openFile(myInputs[i]->getString(1));
-        }
-        if (caret_global_command_options.m_ciftiReadMemory)
-        {
-            ciftiList[i].convertToInMemory();
-        } else {//if you manually read input files, you manually check for filename collision...
-            if (!ciftiOut->isInMemory() && FileInformation(myInputs[i]->getString(1)).getCanonicalFilePath() == ciftiOutCanonicalName)
+            CiftiFile* ciftiIn = myInputs[i]->getCifti(1);
+            vector<int64_t> thisDims = ciftiIn->getDimensions();
+            const CiftiXML& thisXML = ciftiIn->getCiftiXML();
+            if (thisXML.getNumberOfDimensions() != 2) throw OperationException("only 2D cifti are supported");
+            if (!thisXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(baseColMapping)) throw OperationException("file '" + ciftiIn->getFileName() + "' has non-matching mapping along columns");
+            if (thisXML.getMappingType(CiftiXML::ALONG_ROW) != baseRowMapping.getType()) throw OperationException("file '" + ciftiIn->getFileName() + "' has different mapping type along rows");
+            const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
+            int numColumnOpts = (int)columnOpts.size();
+#pragma omp critical
             {
-                ciftiOut->convertToInMemory();
-            }
-        }
-        const CiftiFile* ciftiIn = &(ciftiList[i]);
-        vector<int64_t> thisDims = ciftiIn->getDimensions();
-        const CiftiXML& thisXML = ciftiIn->getCiftiXML();
-        if (thisXML.getNumberOfDimensions() != 2) throw OperationException("only 2D cifti are supported");
-        if (!thisXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(baseColMapping)) throw OperationException("file '" + ciftiIn->getFileName() + "' has non-matching mapping along columns");
-        if (thisXML.getMappingType(CiftiXML::ALONG_ROW) != baseRowMapping.getType()) throw OperationException("file '" + ciftiIn->getFileName() + "' has different mapping type along rows");
-        const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
-        int numColumnOpts = (int)columnOpts.size();
-        if (numColumnOpts > 0)
-        {
-            for (int j = 0; j < numColumnOpts; ++j)
-            {
-                int64_t initialColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpts[j]->getString(1));//this function has the 1-indexing convention built in
-                if (initialColumn < 0 || initialColumn >= thisDims[0]) throw OperationException("column '" + columnOpts[j]->getString(1) + "' not valid in file '" + ciftiIn->getFileName() + "'");
-                OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
-                if (upToOpt->m_present)
+                if (numColumnOpts > 0)
                 {
-                    int finalColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(upToOpt->getString(1));//ditto
-                    if (finalColumn < 0 || finalColumn >= thisDims[0]) throw OperationException("ending column '" + columnOpts[j]->getString(1) + "' not valid in file '" + ciftiIn->getFileName() + "'");
-                    if (finalColumn < initialColumn) throw OperationException("ending column occurs before starting column in file '" + ciftiIn->getFileName() + "'");
-                    numOutColumns += finalColumn - initialColumn + 1;//inclusive - we don't need to worry about reversing for counting, though
+                    for (int j = 0; j < numColumnOpts; ++j)
+                    {
+                        int64_t initialColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpts[j]->getString(1));//this function has the 1-indexing convention built in
+                        if (initialColumn < 0 || initialColumn >= thisDims[0]) throw OperationException("column '" + columnOpts[j]->getString(1) + "' not valid in file '" + ciftiIn->getFileName() + "'");
+                        OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);
+                        if (upToOpt->m_present)
+                        {
+                            int64_t finalColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(upToOpt->getString(1));//ditto
+                            if (finalColumn < 0 || finalColumn >= thisDims[0]) throw OperationException("ending column '" + columnOpts[j]->getString(1) + "' not valid in file '" + ciftiIn->getFileName() + "'");
+                            if (finalColumn < initialColumn) throw OperationException("ending column occurs before starting column in file '" + ciftiIn->getFileName() + "'");
+                            numOutColumns += finalColumn - initialColumn + 1;//inclusive - we don't need to worry about reversing for counting, though
+                        } else {
+                            numOutColumns += 1;
+                        }
+                    }
                 } else {
-                    numOutColumns += 1;
+                    numOutColumns += thisDims[0];
                 }
             }
-        } else {
-            numOutColumns += thisDims[0];
+            ciftiIn->getCiftiXML().getFileMetaData()->clear();//don't need the metadata anymore, so free its memory too
+            if (i != 0)//don't mess with the first file, we use its mapping for the output file
+            {
+                ciftiIn->forgetMapping(CiftiXML::ALONG_COLUMN);//HACK: release the memory being used to store the dense or parcel mapping, to deal with thousands of inputs
+            }
+        } catch (...) {
+#pragma omp critical
+            {
+                if (exceptedFile < 0 || i < exceptedFile)
+                {//emulate serial order or processing, because why not
+                    exceptedFile = i;
+                    exPtr = current_exception();
+                }
+            }//exit from critical flushes everything
         }
-        if (i != 0)//don't mess with the first file, we use its mapping for the output file
-        {
-            ciftiList[i].forgetMapping(CiftiXML::ALONG_COLUMN);//HACK: release the memory being used to store the dense or parcel mapping, to deal with thousands of inputs
-        }
+    }
+    if (exceptedFile > -1)
+    {
+        rethrow_exception(exPtr);
     }
     CiftiScalarsMap outScalarMap;//we only use one of these
     CiftiLabelsMap outLabelMap;
@@ -162,17 +186,22 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
         default:
             CaretAssert(false);
     }
-    int64_t curCol = 0, scratchRowLength = 0;
+    int64_t curCol = 0, scratchRowLength = 0, shortestRow = -1;
     for (int i = 0; i < numInputs; ++i)
     {
-        const CiftiFile* ciftiIn = &(ciftiList[i]);
+        const CiftiFile* ciftiIn = myInputs[i]->getCifti(1);
         vector<int64_t> thisDims = ciftiIn->getDimensions();
         const CiftiXML& thisXML = ciftiIn->getCiftiXML();
+        int64_t thisRowLength = thisXML.getDimensionLength(CiftiXML::ALONG_ROW);
+        if (thisRowLength < shortestRow || shortestRow < 0)
+        {
+            shortestRow = thisRowLength;
+        }
         const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
         int numColumnOpts = (int)columnOpts.size();
         if (numColumnOpts > 0)
         {
-            scratchRowLength = max(scratchRowLength, thisXML.getDimensionLength(CiftiXML::ALONG_ROW));//if we use the entire row, we don't need a separate scratch row for it
+            scratchRowLength = max(scratchRowLength, thisRowLength);//if we use the entire row, we don't need a separate scratch row for it
             if (doLoop)
             {
                 for (int j = 0; j < numColumnOpts; ++j)
@@ -262,6 +291,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
     CiftiXML outXML;
     outXML.setNumberOfDimensions(2);
     outXML.setMap(CiftiXML::ALONG_COLUMN, baseColMapping);
+    CiftiFile* ciftiOut = myParams->getOutputCifti(1);//NOTE: get this after all the inputs, so that parent provenance works
     switch (baseRowMapping.getType())
     {
         case CiftiMappingType::LABELS:
@@ -277,54 +307,85 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
             CaretAssert(false);
     }
     ciftiOut->setCiftiXML(outXML);
-    int64_t numRows = baseColMapping.getLength();
-    vector<float> outRow(numOutColumns), scratchRow(scratchRowLength);
-    for (int64_t row = 0; row < numRows; ++row)
+    int64_t chunkRows = -1;//invalid value
+    //checking first cifti for "in memory" should catch both -cifti-read-memory and possible future GUI-based operation
+    if (firstCifti->isInMemory())
     {
-        curCol = 0;
+        chunkRows = 1;//chunking is for reading (and memory) efficiency, if we have already read all cifti into memory, reading efficiency is moot, so minimize additional memory
+    } else {
+        if (memLimitGB > 0.0f)
+        {
+            int64_t chunkMaxBytes = int64_t(memLimitGB * (1<<30));
+            int64_t computeBytes = sizeof(float) * numRows * numOutColumns;
+            int64_t numPasses = (computeBytes - 1) / chunkMaxBytes + 1;
+            chunkRows = (numRows - 1) / numPasses + 1;
+        } else {//by default, do enough rows to read at least 10MB (assuming float) from each file before moving to the next
+            int64_t rowBytes = sizeof(float) * shortestRow;
+            chunkRows = ((10<<20) - 1) / rowBytes + 1;
+            int64_t numPasses = numRows / chunkRows;//make sure we never make chunks smaller, so different fenceposting
+            chunkRows = (numRows - 1) / numPasses + 1;
+        }
+    }
+    CaretAssert(chunkRows > 0);
+    vector<vector<float> > outRows(chunkRows, vector<float>(numOutColumns));
+    vector<float> scratchRow(scratchRowLength);
+    for (int64_t chunkStart = 0; chunkStart < numRows; chunkStart += chunkRows)
+    {
+        int64_t chunkEnd = min(chunkStart + chunkRows, numRows);
+        int64_t chunkCol = 0;
         for (int i = 0; i < numInputs; ++i)
         {
-            const CiftiFile* ciftiIn = &(ciftiList[i]);
+            const CiftiFile* ciftiIn = myInputs[i]->getCifti(1);
             vector<int64_t> thisDims = ciftiIn->getDimensions();
             const CiftiXML& thisXML = ciftiIn->getCiftiXML();
             const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
             int numColumnOpts = (int)columnOpts.size();
-            if (numColumnOpts > 0)
+            for (int64_t row = chunkStart; row < chunkEnd; ++row)
             {
-                ciftiIn->getRow(scratchRow.data(), row);
-                for (int j = 0; j < numColumnOpts; ++j)
+                int64_t chunkIndex = row - chunkStart;
+                curCol = chunkCol;
+                if (numColumnOpts > 0)
                 {
-                    int64_t initialColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpts[j]->getString(1));//this function has the 1-indexing convention built in
-                    OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);//we already checked that these strings give a valid column
-                    if (upToOpt->m_present)
+                    ciftiIn->getRow(scratchRow.data(), row);
+                    for (int j = 0; j < numColumnOpts; ++j)
                     {
-                        int finalColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(upToOpt->getString(1));//ditto
-                        bool reverse = upToOpt->getOptionalParameter(2)->m_present;
-                        if (reverse)
+                        int64_t initialColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(columnOpts[j]->getString(1));//this function has the 1-indexing convention built in
+                        OptionalParameter* upToOpt = columnOpts[j]->getOptionalParameter(2);//we already checked that these strings give a valid column
+                        if (upToOpt->m_present)
                         {
-                            for (int c = finalColumn; c >= initialColumn; --c)
+                            int finalColumn = thisXML.getMap(CiftiXML::ALONG_ROW)->getIndexFromNumberOrName(upToOpt->getString(1));//ditto
+                            bool reverse = upToOpt->getOptionalParameter(2)->m_present;
+                            if (reverse)
                             {
-                                outRow[curCol] = scratchRow[c];
-                                ++curCol;
+                                for (int c = finalColumn; c >= initialColumn; --c)
+                                {
+                                    outRows[chunkIndex][curCol] = scratchRow[c];
+                                    ++curCol;
+                                }
+                            } else {
+                                for (int c = initialColumn; c <= finalColumn; ++c)
+                                {
+                                    outRows[chunkIndex][curCol] = scratchRow[c];
+                                    ++curCol;
+                                }
                             }
                         } else {
-                            for (int c = initialColumn; c <= finalColumn; ++c)
-                            {
-                                outRow[curCol] = scratchRow[c];
-                                ++curCol;
-                            }
+                            outRows[chunkIndex][curCol] = scratchRow[initialColumn];
+                            ++curCol;
                         }
-                    } else {
-                        outRow[curCol] = scratchRow[initialColumn];
-                        ++curCol;
                     }
+                } else {
+                    ciftiIn->getRow(outRows[chunkIndex].data() + curCol, row);
+                    curCol += thisDims[0];
                 }
-            } else {
-                ciftiIn->getRow(outRow.data() + curCol, row);
-                curCol += thisDims[0];
             }
+            chunkCol = curCol;//done with chunk for this file, update for next file
         }
         CaretAssert(curCol == numOutColumns);
-        ciftiOut->setRow(outRow.data(), row);
+        for (int64_t row = chunkStart; row < chunkEnd; ++row)
+        {
+            int64_t chunkIndex = row - chunkStart;
+            ciftiOut->setRow(outRows[chunkIndex].data(), row);
+        }
     }
 }
