@@ -20,6 +20,8 @@
 
 #include "AlgorithmVolumeDilate.h"
 
+#include "AlgorithmVolumeGradient.h"
+
 #include "AlgorithmException.h"
 #include "CaretHeap.h"
 #include "CaretLogger.h"
@@ -71,6 +73,11 @@ OperationParameters* AlgorithmVolumeDilate::getParameters()
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->createOptionalParameter(9, "-legacy-cutoff", "use the v1.3.2 method of excluding voxels further than the dilation distance when calculating the dilated value");
+    
+    OptionalParameter* extrapOpt = ret->createOptionalParameter(10, "-grad-extrapolate", "additionally use the gradient to extrapolate, intended to be used with WEIGHTED");
+    OptionalParameter* extrapPresmoothOpt = extrapOpt->createOptionalParameter(1, "-presmooth", "apply presmoothing before computing gradient vectors, not recommended");
+    extrapPresmoothOpt->addDoubleParameter(1, "kernel", "the size of gaussian smoothing kernel in mm, as sigma by default");
+    extrapPresmoothOpt->createOptionalParameter(2, "-fwhm", "kernel size is FWHM, not sigma");
     
     ret->setHelpText(
         AString("For all voxels that are designated as bad, if they neighbor a non-bad voxel with data or are within the specified distance of such a voxel, ") +
@@ -127,7 +134,27 @@ void AlgorithmVolumeDilate::useParameters(OperationParameters* myParams, Progres
         if (subvol < 0) throw AlgorithmException("invalid subvolume specified");
     }
     bool legacyCutoff = myParams->getOptionalParameter(9)->m_present;
-    AlgorithmVolumeDilate(myProgObj, volIn, distance, myMethod, volOut, badRoi, dataRoi, subvol, exponent, legacyCutoff);
+    bool extrapolate = false;
+    float extrapPresmooth = -1.0f;
+    OptionalParameter* extrapOpt = myParams->getOptionalParameter(10);
+    if (extrapOpt->m_present)
+    {
+        if (myMethod != WEIGHTED)
+        {
+            CaretLogWarning("extrapolation requested with method other than WEIGHTED");
+        }
+        extrapolate = true;
+        OptionalParameter* extrapPresmoothOpt = extrapOpt->getOptionalParameter(1);
+        if (extrapPresmoothOpt->m_present)
+        {
+            extrapPresmooth = float(extrapPresmoothOpt->getDouble(1));
+            if (extrapPresmoothOpt->m_present)
+            {
+                extrapPresmooth = extrapPresmooth / (2.0f * sqrt(2.0f * log(2.0f)));
+            }
+        }
+    }
+    AlgorithmVolumeDilate(myProgObj, volIn, distance, myMethod, volOut, badRoi, dataRoi, subvol, exponent, legacyCutoff, extrapolate, extrapPresmooth);
 }
 
 namespace
@@ -155,7 +182,8 @@ namespace
     }
     
     void dilateFrame(const bool labelMode, const VolumeFile* volIn, const int& insubvol, const int& component, VolumeFile* volOut, const int& outsubvol, const VolumeFile* badRoi,
-                            const VolumeFile* dataRoi, const float& distance, const AlgorithmVolumeDilate::Method& myMethod, const float& exponent, const bool& legacyCutoff)
+                            const VolumeFile* dataRoi, const float& distance, const AlgorithmVolumeDilate::Method& myMethod, const float& exponent, const bool& legacyCutoff,
+                            const bool extrapolate, const float extrapPresmooth)
     {//copy data that is outside the dataROI, replace values where badROI is > 0 (with zero if nothing else), if no badROI, pretend badROI is (data == 0 && dataROI > 0)
         int neighbors[18] = {0, 0, -1,
                            0, -1, 0,
@@ -177,7 +205,12 @@ namespace
         if (labelMode) unlabeledKey = volIn->getMapLabelTable(insubvol)->getUnassignedLabelKey();
         vector<float> validPoints;
         vector<VoxelIJK> validIndices, toReplace;
-        vector<float> scratchFrame(myDims[0] * myDims[1] * myDims[2]);//uninitialized, we will copy every voxel we don't replace
+        vector<float> scratchFrame(myDims[0] * myDims[1] * myDims[2]), scratchFrame2;//uninitialized, we will copy every voxel we don't replace
+        VolumeFile gradVecTemp, tempROI;
+        if (extrapolate)
+        {//precompute gradient when we need it
+            scratchFrame2.resize(myDims[0] * myDims[1] * myDims[2]);
+        }
         for (int64_t k = 0; k < myDims[2]; ++k)
         {
             for (int64_t j = 0; j < myDims[1]; ++j)
@@ -187,6 +220,7 @@ namespace
                     if (badVoxel(labelMode, unlabeledKey, i, j, k, volIn, insubvol, component, badRoi, dataRoi))
                     {
                         toReplace.push_back(VoxelIJK(i, j, k));
+                        if (extrapolate) scratchFrame2[myVolSpace.getIndex(i, j, k)] = 0.0f;
                     } else {//copy it, and if it is data, add to usable set
                         if (labelMode)
                         {
@@ -202,10 +236,23 @@ namespace
                             validPoints.push_back(tempCoord[1]);
                             validPoints.push_back(tempCoord[2]);
                             validIndices.push_back(tempVoxel);
+                            if (extrapolate) scratchFrame2[myVolSpace.getIndex(i, j, k)] = 1.0f;
+                        } else {
+                            if (extrapolate) scratchFrame2[myVolSpace.getIndex(i, j, k)] = 0.0f;
                         }
                     }
                 }
             }
+        }
+        if (extrapolate)
+        {
+            vector<int64_t> tempDims = myDims;
+            tempDims.resize(3, 1);
+            tempROI.reinitialize(tempDims, myVolSpace.getSform());
+            tempROI.setFrame(scratchFrame2.data());
+            vector<float>().swap(scratchFrame2);//deallocate the memory, shrink_to_fit doesn't guarantee it will
+            VolumeFile gradTemp;
+            AlgorithmVolumeGradient(NULL, volIn, &gradTemp, extrapPresmooth, &tempROI, &gradVecTemp, insubvol);//gradient of just this frame
         }
         if (!toReplace.empty())
         {
@@ -233,17 +280,29 @@ namespace
                                     int64_t neighVox[3] = {i + neighbors[neighbase], j + neighbors[neighbase + 1], k + neighbors[neighbase + 2]};
                                     if (myVolSpace.indexValid(neighVox) && ! badVoxel(labelMode, unlabeledKey, neighVox[0], neighVox[1], neighVox[2], volIn, insubvol, component, badRoi, dataRoi))
                                     {
-                                        float tempdist = (myVolSpace.indexToSpace(neighbors + neighbase) - myVolSpace.indexToSpace(0, 0, 0)).length();//slightly hacky, but won't have inconsistencies from different rounding per bad voxel
+                                        Vector3D distVec = myVolSpace.indexToSpace(0, 0, 0) - myVolSpace.indexToSpace(neighbors + neighbase);//slightly hacky, but won't have inconsistencies from different rounding per bad voxel
+                                        float tempdist = distVec.length();
                                         if (tempdist < bestDist || bestDist == -1.0f)
                                         {
                                             bestDist = tempdist;
                                             bestVal = volIn->getValue(neighVox, insubvol, component);
+                                            if (extrapolate)
+                                            {
+                                                Vector3D gradVec(gradVecTemp.getValue(neighVox, 0), gradVecTemp.getValue(neighVox, 1), gradVecTemp.getValue(neighVox, 2));
+                                                bestVal = bestVal + gradVec.dot(distVec);
+                                            }
                                         }
                                     }
                                 }
                             }
                         } else {
                             bestVal = volIn->getValue(validIndices[index], insubvol, component);
+                            if (extrapolate)
+                            {
+                                Vector3D distVec = myVolSpace.indexToSpace(i, j, k) - myVolSpace.indexToSpace(validIndices[index]);
+                                Vector3D gradVec(gradVecTemp.getValue(validIndices[index], 0), gradVecTemp.getValue(validIndices[index], 1), gradVecTemp.getValue(validIndices[index], 2));
+                                bestVal = bestVal + gradVec.dot(distVec);
+                            }
                         }
                         if (labelMode)
                         {
@@ -276,7 +335,7 @@ namespace
                                         int64_t neighVox[3] = {i + neighbors[neighbase], j + neighbors[neighbase + 1], k + neighbors[neighbase + 2]};
                                         if (myVolSpace.indexValid(neighVox) && ! badVoxel(labelMode, unlabeledKey, neighVox[0], neighVox[1], neighVox[2], volIn, insubvol, component, badRoi, dataRoi))
                                         {
-                                            float tempdist = (myVolSpace.indexToSpace(neighbors + neighbase) - myVolSpace.indexToSpace(0, 0, 0)).length();//slightly hacky, but won't have inconsistencies from different rounding per voxel
+                                            float tempdist = (myVolSpace.indexToSpace(0, 0, 0) - myVolSpace.indexToSpace(neighbors + neighbase)).length();//slightly hacky, but won't have inconsistencies from different rounding per voxel
                                             if (tempdist < closeDist || !found)
                                             {
                                                 found = true;
@@ -291,7 +350,7 @@ namespace
                                 //find what cutoff corresponds to 98% of the total weight being found compared to an infinite kernel
                                 //to do this, assume a non-adversarial situation, where farther parts have at most equal angular area to closer ones
                                 //49 = 98/(100-98)
-                                float cutoffRatio = max(1.1f, pow(49.0f, 1.0f / (exponent - 3.0f))), cutoffDist = cutoffBase;//find what cutoff ratio corresponds to a hudredth of weight
+                                float cutoffRatio = max(1.1f, pow(49.0f, 1.0f / (exponent - 3.0f))), cutoffDist = cutoffBase;
                                 if (exponent > 3.0f && cutoffRatio < 100.0f && cutoffRatio > 1.0f)//if the ratio is sane, use it, but never exceed cutoffBase
                                 {
                                     cutoffDist = max(min(cutoffRatio * closeDist, cutoffDist), minKernel);//but small kernels are rather cheap anyway, so have a minimum size just in case
@@ -319,7 +378,8 @@ namespace
                             }
                             for (auto thisVoxel : voxelsToUse)//unfortunately, this means we need to write a copy of the loop for the common case not to do unneeded work
                             {
-                                float thisdist = (myVolSpace.indexToSpace(thisVoxel) - voxcoord).length();
+                                Vector3D distVec = voxcoord - myVolSpace.indexToSpace(thisVoxel);
+                                float thisdist = distVec.length();
                                 float weight = 1.0f / pow(thisdist, exponent);
                                 if (labelMode)
                                 {
@@ -332,14 +392,21 @@ namespace
                                         iter->second += weight;
                                     }
                                 } else {
-                                    sum += weight * volIn->getValue(thisVoxel, insubvol, component);
+                                    float voxVal = volIn->getValue(thisVoxel, insubvol, component);
+                                    if (extrapolate)
+                                    {
+                                        Vector3D gradVec(gradVecTemp.getValue(thisVoxel, 0), gradVecTemp.getValue(thisVoxel, 1), gradVecTemp.getValue(thisVoxel, 2));
+                                        voxVal = voxVal + gradVec.dot(distVec);
+                                    }
+                                    sum += weight * voxVal;
                                     weightsum += weight;
                                 }
                             }
                         } else {
                             for (auto thisInfo : inRange)
                             {
-                                float thisdist = (thisInfo.coords - voxcoord).length();
+                                Vector3D distVec = voxcoord - thisInfo.coords;
+                                float thisdist = distVec.length();
                                 float weight = 1.0f / pow(thisdist, exponent);
                                 if (labelMode)
                                 {
@@ -352,7 +419,13 @@ namespace
                                         iter->second += weight;
                                     }
                                 } else {
-                                    sum += weight * volIn->getValue(validIndices[thisInfo.index], insubvol, component);
+                                    float voxVal = volIn->getValue(validIndices[thisInfo.index], insubvol, component);
+                                    if (extrapolate)
+                                    {
+                                        Vector3D gradVec(gradVecTemp.getValue(validIndices[thisInfo.index], 0), gradVecTemp.getValue(validIndices[thisInfo.index], 1), gradVecTemp.getValue(validIndices[thisInfo.index], 2));
+                                        voxVal = voxVal + gradVec.dot(distVec);
+                                    }
+                                    sum += weight * voxVal;
                                     weightsum += weight;
                                 }
                             }
@@ -388,7 +461,8 @@ namespace
 }
 
 AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const VolumeFile* volIn, const float& distance, const Method& myMethod, VolumeFile* volOut,
-                                             const VolumeFile* badRoi, const VolumeFile* dataRoi, const int& subvol, const float& exponent, const bool legacyCutoff) : AbstractAlgorithm(myProgObj)
+                                             const VolumeFile* badRoi, const VolumeFile* dataRoi, const int& subvol, const float& exponent, const bool legacyCutoff,
+                                             const bool extrapolate, const float extrapPresmooth) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myDims;
@@ -445,13 +519,13 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
         {
             for (int c = 0; c < myDims[4]; ++c)
             {
-                dilateFrame(isLabelData, volIn, s, c, volOut, s, badRoi, dataRoi, distance, myMethod, exponent, legacyCutoff);
+                dilateFrame(isLabelData, volIn, s, c, volOut, s, badRoi, dataRoi, distance, myMethod, exponent, legacyCutoff, extrapolate, extrapPresmooth);
             }
         }
     } else {
         for (int c = 0; c < myDims[4]; ++c)
         {
-            dilateFrame(isLabelData, volIn, subvol, c, volOut, 0, badRoi, dataRoi, distance, myMethod, exponent, legacyCutoff);
+            dilateFrame(isLabelData, volIn, subvol, c, volOut, 0, badRoi, dataRoi, distance, myMethod, exponent, legacyCutoff, extrapolate, extrapPresmooth);
         }
     }
 }

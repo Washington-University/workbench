@@ -38,7 +38,8 @@ namespace caret {
             WEIGHTED
         };
         AlgorithmVolumeDilate(ProgressObject* myProgObj, const VolumeFile* volIn, const float& distance, const Method& myMethod, VolumeFile* volOut,
-                              const VolumeFile* badRoi = NULL, const VolumeFile* dataRoi = NULL, const int& subvol = -1, const float& exponent = 7.0f, const bool legacyCutoff = false);
+                              const VolumeFile* badRoi = NULL, const VolumeFile* dataRoi = NULL, const int& subvol = -1, const float& exponent = 7.0f,
+                              const bool legacyCutoff = false, const bool extrapolate = false, const float extrapPresmooth = -1.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
