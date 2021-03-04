@@ -491,11 +491,14 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
     
     action->setData(AnnotationTypeEnum::toIntegerCode(annotationType));
 
-    const AString polyDrawingText("A polygon is drawn by either clicking the mouse or dragging the mouse.  Both clicks "
-                                  "and drags may be intermixed when drawing a polygon.  Use clicks to create longer, "
-                                  "straight line segments; use dragging to draw curved segments.  To finish a "
-                                  "polygon, shift-click the mouse (the shift-click does NOT add an addition line to "
-                                  "the polygon).");
+    const AString polyDrawingText("To draw a polygon:"
+                                  "<ul>"
+                                  "<li> <i>Click</i> the mouse to insert coordinates and create straight, possibly longer lines"
+                                  "<li> <i>Drag</i> (move with left button down) the mouse to create curved lines "
+                                  "<li> Note that one can intermix clicks and drags while drawing"
+                                  "<li> When finished, <i>shift-click</i> the mouse to finalize the polygon (does NOT add "
+                                  "another coordinate)"
+                                  "</ul>");
     AString typeText;
     AString clickText;
     AString dragText;
@@ -546,8 +549,9 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
             break;
         case AnnotationTypeEnum::POLYGON:
             if (polyClickAndDragDrawingFlag) {
-                typeText = ("Polygon Annotation.  A polygon is a series of line segments that form a closed shape "
-                            "(last vertex automatically connects to first vertex). "
+                typeText = ("Polygon Annotation.<p>"
+                            "A polygon is a series of connected line segments that form a closed shape "
+                            "(last coordinate automatically connects to first coordinate). "
                             "<p>"
                             + polyDrawingText);
             }
@@ -577,8 +581,9 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
             if (polyClickAndDragDrawingFlag) {
                 AString polyDrawTextCopy(polyDrawingText);
                 polyDrawTextCopy.replace("olygon", "olyline");
-                typeText = ("Polygon Annotation.  A polygon is a series of line segments that form a closed shape "
-                            "(last vertex automatically connects to first vertex). "
+                typeText = ("Polyline Annotation.<p>"
+                            "A polyline is a series of connected line segments"
+                            "(last coordinate DOES NOT connect to first coordinate). "
                             "<p>"
                             + polyDrawTextCopy);
             }
