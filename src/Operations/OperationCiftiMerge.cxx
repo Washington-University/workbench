@@ -106,7 +106,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
     //NOTE: throwing inside omp parallel causes an uninformative abort, so catch, skip the rest, and rethrow later
     //our build/processing setup seems to bottleneck on lots of multithreaded memory allocation, so limit to 4 threads for now
     //windows compiler doesn't like unsigned omp loop variables
-#pragma omp CARET_PARFOR schedule(dynamic) num_threads(4)
+#pragma omp CARET_PARFOR schedule(dynamic) num_threads(min(4, omp_get_max_threads()))
     for (int64_t i = 0; i < int64_t(myInputs.size()); ++i)
     {
         if (exceptedFile > -1) continue;//"abort" checking any more files

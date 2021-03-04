@@ -27,6 +27,7 @@
 #include "CiftiFile.h"
 #include "MathFunctions.h"
 
+#include <algorithm>
 #include <vector>
 
 using namespace caret;
@@ -145,7 +146,7 @@ void OperationCiftiAverage::useParameters(OperationParameters* myParams, Progres
     //NOTE: throwing inside omp parallel causes an uninformative abort, so catch, skip the rest, and rethrow later
     //our build/processing setup seems to bottleneck on lots of multithreaded memory allocation, so limit to 4 threads for now
     //windows compiler doesn't like unsigned omp loop variables
-#pragma omp CARET_PARFOR schedule(dynamic) num_threads(4)
+#pragma omp CARET_PARFOR schedule(dynamic) num_threads(min(4, omp_get_max_threads()))
     for (int64_t i = 1; i < int64_t(myInstances.size()); ++i)
     {//don't delete the first one, we have a live reference to it
         if (exceptedFile > -1) continue;//"abort" checking any more files
