@@ -25,6 +25,8 @@
 
 #include "AnnotationText.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+
 using namespace caret;
 
 
@@ -114,6 +116,16 @@ SelectionItemAnnotation::getPolyLineCoordinateIndex() const
 }
 
 /**
+ * @return The annotation's coordinates converted to window coordinates
+ */
+std::vector<Vector3D>
+SelectionItemAnnotation::getAnnotationCoordsInWindowXYZ() const
+{
+    return m_coordsInWindowXYZ;
+}
+
+
+/**
  * Add a annotation to the selected annotations.
  *
  * @param annotationFile
@@ -124,12 +136,15 @@ SelectionItemAnnotation::getPolyLineCoordinateIndex() const
  *     Sizing handle that is selected.
  * @param polyLineCoordinateIndex
  *     Index of poly line coordinate
+ * @param coordsInWindowXYZ
+ *     Coordinates convertex to window XYZ
  */
 void
 SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
                                        Annotation* annotation,
                                        const AnnotationSizingHandleTypeEnum::Enum annotationSizingHandle,
-                                       const int32_t polyLineCoordinateIndex)
+                                       const int32_t polyLineCoordinateIndex,
+                                       const std::vector<Vector3D>& coordsInWindowXYZ)
 {
     CaretAssert(annotationFile);
     CaretAssert(annotation);
@@ -137,6 +152,51 @@ SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
     m_annotation     = annotation;
     m_sizingHandle   = annotationSizingHandle;
     m_polyLineCoordinateIndex = polyLineCoordinateIndex;
+    m_coordsInWindowXYZ       = coordsInWindowXYZ;
+    
+    if (annotation != NULL) {
+        bool validateFlag(false);
+        switch (annotation->getType()) {
+            case AnnotationTypeEnum::BOX:
+                validateFlag = true;
+                break;
+            case AnnotationTypeEnum::BROWSER_TAB:
+                break;
+            case AnnotationTypeEnum::COLOR_BAR:
+                break;
+            case AnnotationTypeEnum::IMAGE:
+                validateFlag = true;
+                break;
+            case AnnotationTypeEnum::LINE:
+                validateFlag = true;
+                break;
+            case AnnotationTypeEnum::OVAL:
+                validateFlag = true;
+                break;
+            case AnnotationTypeEnum::POLYGON:
+                validateFlag = true;
+                break;
+            case AnnotationTypeEnum::POLYLINE:
+                validateFlag = true;
+                break;
+            case AnnotationTypeEnum::SCALE_BAR:
+                break;
+            case AnnotationTypeEnum::TEXT:
+                validateFlag = true;
+                break;
+        }
+        if (validateFlag) {
+            if (annotation->getNumberOfCoordinates() != static_cast<int32_t>(coordsInWindowXYZ.size())) {
+                CaretLogSevere("Selection failed for annotation "
+                               + annotation->toString()
+                               + " with "
+                               + AString::number(annotation->getNumberOfCoordinates())
+                               + " coordinates but only "
+                               + AString::number(coordsInWindowXYZ.size())
+                               + " coordinates have valid window positions.");
+            }
+        }
+    }
 }
 /**
  * Get a description of m_ object's content.

@@ -79,6 +79,10 @@ public:
         LINE_WIDTH_FOREGROUND,
         /** Location and size of annotations (coords, size, space, window, tab) */
         LOCATION_AND_SIZE,
+        /** Insert a multi-coord annotation  coordinate */
+        MULTI_COORD_INSERT_COORDINATE,
+        /** Remove a multi-coord annotation coordinate */
+        MULTI_COORD_REMOVE_COORDINATE,
         /** Paste Annotation */
         PASTE_ANNOTATION,
         /** Rotation Angle */

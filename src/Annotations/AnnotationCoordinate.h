@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "AnnotationAttributesDefaultTypeEnum.h"
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "CaretObjectTracksModification.h"
 #include "SceneableInterface.h"
@@ -98,6 +99,8 @@ namespace caret {
 
         virtual AString toString() const;
         
+        virtual AString toStringForCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum space) const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
 
@@ -110,7 +113,6 @@ namespace caret {
         static void setUserDefautlSurfaceOffsetVectorType(const AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorType);
         
         static void setUserDefaultSurfaceOffsetLength(const float surfaceOffsetLength);
-          
           
 // If there will be sub-classes of this class that need to save
 // and restore data from scenes, these pure virtual methods can

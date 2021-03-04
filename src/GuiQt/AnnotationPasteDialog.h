@@ -24,16 +24,14 @@
 #include "AnnotationCoordinateInformation.h"
 #include "WuQDialogModal.h"
 
-
+class QRadioButton;
 
 namespace caret {
 
     class Annotation;
     class AnnotationCoordinateInformation;
-    class AnnotationCoordinateSelectionWidget;
     class AnnotationFile;
-    class AnnotationMultiCoordinateShape;
-    class AnnotationTwoCoordinateShape;
+    class AnnotationPastingInformation;
     class MouseEvent;
     
     class AnnotationPasteDialog : public WuQDialogModal {
@@ -41,8 +39,7 @@ namespace caret {
         Q_OBJECT
 
     public:
-        static Annotation* pasteAnnotationOnClipboard(const MouseEvent& mouseEvent,
-                                                      const int32_t windowIndex);
+        static Annotation* pasteAnnotationOnClipboard(const MouseEvent& mouseEvent);
         
         static Annotation* pasteAnnotationOnClipboardChangeSpace(const MouseEvent& mouseEvent);
         
@@ -54,6 +51,7 @@ namespace caret {
 
     private:
         AnnotationPasteDialog(const MouseEvent& mouseEvent,
+                              const AnnotationPastingInformation& annotationPastingInformation,
                               AnnotationFile* annotationFile,
                               const Annotation* annotation,
                               const AString& informationMessage,
@@ -63,28 +61,30 @@ namespace caret {
 
         AnnotationPasteDialog& operator=(const AnnotationPasteDialog&);
         
-        static bool pasteOneDimensionalShape(AnnotationTwoCoordinateShape* oneDimShape,
-                                             AnnotationCoordinateInformation& coordInfo);
-        
-        static bool pasteMultiCoordinateShape(AnnotationMultiCoordinateShape* multiCoordShape,
-                                              AnnotationCoordinateInformation& coordInfo);
-        
+        static bool pasteAnnotationInSpace(AnnotationFile* annotationFile,
+                                           Annotation* annotation,
+                                           const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                           const AnnotationPastingInformation& annotationPastingInformation);
+
         virtual void okButtonClicked();
         
-        void adjustTextAnnotationFontHeight(const AnnotationCoordinateSpaceEnum::Enum previousSpace,
-                                            Annotation* annotation);
+        static void adjustTextAnnotationFontHeight(const MouseEvent& mouseEvent,
+                                                   const AnnotationCoordinateSpaceEnum::Enum previousSpace,
+                                                   Annotation* annotation);
         
         const MouseEvent& m_mouseEvent;
+        
+        const AnnotationPastingInformation& m_annotationPastingInformation;
         
         AnnotationFile* m_annotationFile;
         
         const Annotation* m_annotation;
         
-        AnnotationCoordinateSelectionWidget* m_coordinateSelectionWidget;
-        
-        AnnotationCoordinateInformation m_coordInfo;
-        
         Annotation* m_annotationThatWasCreated;
+        
+        std::vector<QRadioButton*> m_spaceRadioButtons;
+        
+        std::vector<AnnotationCoordinateSpaceEnum::Enum> m_spaceRadioButtonsSpaces;
         
         // ADD_NEW_MEMBERS_HERE
 

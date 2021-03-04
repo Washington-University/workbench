@@ -142,6 +142,7 @@ windowIndex(windowIndex)
     m_mousePositionValid = false;
     m_mousePositionEvent.grabNew(new MouseEvent(NULL,
                                                 NULL,
+                                                NULL,
                                                 -1,
                                                 0,
                                                 0,
@@ -915,26 +916,25 @@ BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
     
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                mouseY);
-    if (viewportContent != NULL) {
-        std::vector<MouseEvent::XY> emptyHistoryXY;
-        MouseEvent mouseEvent(viewportContent,
-                              this,
-                              this->windowIndex,
-                              mouseX,
-                              mouseY,
-                              0,
-                              0,
-                              mouseX,
-                              mouseY,
-                              emptyHistoryXY,
-                              false);
-        
-        UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
-        
-        inputProcessor->showContextMenu(mouseEvent,
-                                        contextMenuEvent->globalPos(),
-                                        this);
-    }
+    std::vector<MouseEvent::XY> emptyHistoryXY;
+    MouseEvent mouseEvent(&m_windowContent,
+                          viewportContent,
+                          this,
+                          this->windowIndex,
+                          mouseX,
+                          mouseY,
+                          0,
+                          0,
+                          mouseX,
+                          mouseY,
+                          emptyHistoryXY,
+                          false);
+    
+    UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
+    
+    inputProcessor->showContextMenu(mouseEvent,
+                                    contextMenuEvent->globalPos(),
+                                    this);
 }
 
 /**
@@ -1026,7 +1026,8 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
                                                                                      wheelY);
     if (viewportContent != NULL) {
         std::vector<MouseEvent::XY> emptyHistoryXY;
-        MouseEvent mouseEvent(viewportContent,
+        MouseEvent mouseEvent(&m_windowContent,
+                              viewportContent,
                               this,
                               this->windowIndex,
                               wheelX,
@@ -1219,7 +1220,8 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
         const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                    mouseY);
         if (viewportContent != NULL) {
-            MouseEvent mouseEvent(viewportContent,
+            MouseEvent mouseEvent(&m_windowContent,
+                                  viewportContent,
                                   this,
                                   this->windowIndex,
                                   mouseX,
@@ -1294,7 +1296,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
             const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                        mouseY);
             if (viewportContent != NULL) {
-                MouseEvent mouseEvent(viewportContent,
+                MouseEvent mouseEvent(&m_windowContent,
+                                      viewportContent,
                                       this,
                                       this->windowIndex,
                                       mouseX,
@@ -1320,7 +1323,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
         if (viewportContent != NULL) {
             if ((absDX <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)
                 && (absDY <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
-                MouseEvent mouseEvent(viewportContent,
+                MouseEvent mouseEvent(&m_windowContent,
+                                      viewportContent,
                                       this,
                                       this->windowIndex,
                                       mouseX,
@@ -1390,7 +1394,8 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
                                                                                        mouseY);
             if (viewportContent != NULL) {
                 std::vector<MouseEvent::XY> emptyHistoryXY;
-                MouseEvent mouseEvent(viewportContent,
+                MouseEvent mouseEvent(&m_windowContent,
+                                      viewportContent,
                                       this,
                                       this->windowIndex,
                                       mouseX,
@@ -1806,7 +1811,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(this->mousePressX,
                                                                                              this->mousePressY);
             if (viewportContent != NULL) {
-                MouseEvent mouseEvent(viewportContent,
+                MouseEvent mouseEvent(&m_windowContent,
+                                      viewportContent,
                                       this,
                                       this->windowIndex,
                                       mouseX,
@@ -1846,7 +1852,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
         const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                          mouseY);
         if (viewportContent != NULL) {
-            MouseEvent mouseEvent(viewportContent,
+            MouseEvent mouseEvent(&m_windowContent,
+                                  viewportContent,
                                   this,
                                   this->windowIndex,
                                   mouseX,
@@ -1870,7 +1877,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                mouseY);
     if (viewportContent != NULL) {
-        m_mousePositionEvent.grabNew(new MouseEvent(viewportContent,
+        m_mousePositionEvent.grabNew(new MouseEvent(&m_windowContent,
+                                                    viewportContent,
                                                     this,
                                                     this->windowIndex,
                                                     mouseX,

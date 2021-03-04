@@ -41,10 +41,12 @@
 
 
 namespace caret {
+    class AnnotationCoordinate;
     class AnnotationScaleBar;
-    
     class AnnotationMultiCoordinateShape;
     class AnnotationOneCoordinateShape;
+    class AnnotationPolygon;
+    class AnnotationPolyLine;
     class AnnotationSpatialModification;
     class AnnotationTwoCoordinateShape;
     class DisplayGroupAndTabItemHelper;
@@ -131,35 +133,54 @@ namespace caret {
         Annotation* clone() const;
         
         /**
-         * @return Cast to multi-coordinate (NULL if NOT multi-coordinate annotation
+         * @return Cast to multi-coordinate (NULL if NOT multi-coordinate annotation)
          */
         virtual AnnotationMultiCoordinateShape* castToMultiCoordinateShape() { return NULL; }
         
         /**
-         * @return Cast to multi-coordinate (NULL if NOT multi-coordinate annotation
+         * @return Cast to multi-coordinate (NULL if NOT multi-coordinate annotation)
         */
         virtual const AnnotationMultiCoordinateShape* castToMultiCoordinateShape() const { return NULL; }
         
         /**
-         * @return Cast to one-coordinate (NULL if NOT one-coordinate annotation
+         * @return Cast to one-coordinate (NULL if NOT one-coordinate annotation)
         */
         virtual AnnotationOneCoordinateShape* castToOneCoordinateShape() { return NULL; }
         
         /**
-         * @return Cast to one-coordinate (NULL if NOT one-coordinate annotation
+         * @return Cast to one-coordinate (NULL if NOT one-coordinate annotation)
         */
         virtual const AnnotationOneCoordinateShape* castToOneCoordinateShape() const { return NULL; }
 
         /**
-         * @return Cast to two-coordinate (NULL if NOT two-coordinate annotation
+         * @return Cast to two-coordinate (NULL if NOT two-coordinate annotation)
         */
         virtual AnnotationTwoCoordinateShape* castToTwoCoordinateShape()  { return NULL; }
         
         /**
-         * @return Cast to two-coordinate (NULL if NOT two-coordinate annotation
+         * @return Cast to two-coordinate (NULL if NOT two-coordinate annotation)
         */
         virtual const AnnotationTwoCoordinateShape* castToTwoCoordinateShape() const  { return NULL; }
         
+        /**
+         * @return Cast to polygon (NULL if NOT polygon)
+         */
+        virtual AnnotationPolygon* castToPolygon() { return NULL; }
+
+        /**
+         * @return Cast to polygon (NULL if NOT polygon) const method
+         */
+        virtual const AnnotationPolygon* castToPolygon() const { return NULL; }
+        
+        /**
+         * @return Cast to polyline (NULL if NOT polyline)
+         */
+        virtual AnnotationPolyLine* castToPolyline() { return NULL; }
+        
+        /**
+         * @return Cast to polyline (NULL if NOT polyline) const method
+         */
+        virtual const AnnotationPolyLine* castToPolyline() const { return NULL; }
         /**
          * @return this annotation cast to AnnotationScaleBar (NULL if not a scale bar)
          * Intended for overriding by the annotation type
@@ -209,6 +230,20 @@ namespace caret {
         void setCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace);
         
         bool isInSameCoordinateSpace(const Annotation* annotation) const;
+        
+        virtual int32_t getNumberOfCoordinates() const = 0;
+        
+        virtual AnnotationCoordinate* getCoordinate(const int32_t index) = 0;
+        
+        virtual const AnnotationCoordinate* getCoordinate(const int32_t index) const = 0;
+
+        std::vector<std::unique_ptr<AnnotationCoordinate>> getCopyOfAllCoordinates() const;
+        
+        std::vector<const AnnotationCoordinate*> getAllCoordinates() const;
+        
+        void replaceAllCoordinatesNotConst(const std::vector<std::unique_ptr<AnnotationCoordinate>>& coordinates);
+
+        virtual void replaceAllCoordinates(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates) = 0;
         
         virtual AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const = 0;
         
@@ -399,6 +434,8 @@ namespace caret {
                                                     const int32_t newViewport[4],
                                                     const bool matchPositionFlag,
                                                     const bool matchSizeFlag);
+        
+        virtual bool validate(AString& messageOut) const;
         
     protected:
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,

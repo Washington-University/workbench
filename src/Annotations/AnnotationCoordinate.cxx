@@ -466,6 +466,54 @@ AnnotationCoordinate::toString() const
 }
 
 /**
+ * @return A descritption of the coordinates for the given space
+ * @param space
+ *    The coordinate space
+ */
+AString
+AnnotationCoordinate::toStringForCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum space) const
+{
+    AString s(AnnotationCoordinateSpaceEnum::toGuiName(space) + " ");
+    
+    switch (space) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            s.append(AString::fromNumbers(m_xyz, 3, " "));
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            s.append(AString::fromNumbers(m_xyz, 3, " "));
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            s.append(AString::fromNumbers(m_xyz, 3, " "));
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+        {
+            StructureEnum::Enum structure(StructureEnum::INVALID);
+            int32_t surfaceVertexCount(-1);
+            int32_t vertexIndex(-1);
+            getSurfaceSpace(structure,
+                                       surfaceVertexCount,
+                                       vertexIndex);
+            s.append("Structure: " + StructureEnum::toGuiName(m_surfaceSpaceStructure));
+            s.append(" Surface Num Vertices: " + AString::number(m_surfaceSpaceNumberOfNodes));
+            s.append(" Surface Vertex: " + AString::number(m_surfaceSpaceNodeIndex));
+        }
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            s.append(AString::fromNumbers(m_xyz, 3, " "));
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            s.append("Invalid");
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            s.append(AString::fromNumbers(m_xyz, 3, " "));
+            break;
+    }
+    
+    return s;
+}
+
+
+/**
  * Set the user default for the surface offset vector type.
  *
  * @param surfaceOffsetVectorType

@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __ANNOTATION_POLY_LINE_DECLARE__
-#include "AnnotationPolyLine.h"
-#undef __ANNOTATION_POLY_LINE_DECLARE__
+#define __ANNOTATION_POLYGON_DECLARE__
+#include "AnnotationPolygon.h"
+#undef __ANNOTATION_POLYGON_DECLARE__
 
 #include "CaretAssert.h"
 #include "SceneClass.h"
@@ -32,7 +32,7 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationPolyLine
+ * \class caret::AnnotationPolygon
  * \brief An annotation poly line
  * \ingroup Annotations
  */
@@ -43,17 +43,17 @@ using namespace caret;
  * @param attributeDefaultType
  *    Type for attribute defaults
  */
-AnnotationPolyLine::AnnotationPolyLine(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
-: AnnotationMultiCoordinateShape(AnnotationTypeEnum::POLYLINE,
+AnnotationPolygon::AnnotationPolygon(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
+: AnnotationMultiCoordinateShape(AnnotationTypeEnum::POLYGON,
                                 attributeDefaultType)
 {
-    initializeMembersAnnotationPolyLine();
+    initializeMembersAnnotationPolygon();
 }
 
 /**
  * Destructor.
  */
-AnnotationPolyLine::~AnnotationPolyLine()
+AnnotationPolygon::~AnnotationPolygon()
 {
 }
 
@@ -62,11 +62,11 @@ AnnotationPolyLine::~AnnotationPolyLine()
  * @param obj
  *    Object that is copied.
  */
-AnnotationPolyLine::AnnotationPolyLine(const AnnotationPolyLine& obj)
+AnnotationPolygon::AnnotationPolygon(const AnnotationPolygon& obj)
 : AnnotationMultiCoordinateShape(obj)
 {
-    this->initializeMembersAnnotationPolyLine();
-    this->copyHelperAnnotationPolyLine(obj);
+    this->initializeMembersAnnotationPolygon();
+    this->copyHelperAnnotationPolygon(obj);
 }
 
 /**
@@ -76,12 +76,12 @@ AnnotationPolyLine::AnnotationPolyLine(const AnnotationPolyLine& obj)
  * @return
  *    Reference to this object.
  */
-AnnotationPolyLine&
-AnnotationPolyLine::operator=(const AnnotationPolyLine& obj)
+AnnotationPolygon&
+AnnotationPolygon::operator=(const AnnotationPolygon& obj)
 {
     if (this != &obj) {
         AnnotationMultiCoordinateShape::operator=(obj);
-        this->copyHelperAnnotationPolyLine(obj);
+        this->copyHelperAnnotationPolygon(obj);
     }
     return *this;
 }
@@ -92,7 +92,7 @@ AnnotationPolyLine::operator=(const AnnotationPolyLine& obj)
  *    Object that is copied.
  */
 void
-AnnotationPolyLine::copyHelperAnnotationPolyLine(const AnnotationPolyLine& obj)
+AnnotationPolygon::copyHelperAnnotationPolygon(const AnnotationPolygon& obj)
 {
 }
 
@@ -100,7 +100,7 @@ AnnotationPolyLine::copyHelperAnnotationPolyLine(const AnnotationPolyLine& obj)
  * Initialize a new instance of this class.
  */
 void
-AnnotationPolyLine::initializeMembersAnnotationPolyLine()
+AnnotationPolygon::initializeMembersAnnotationPolygon()
 {
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
@@ -108,19 +108,19 @@ AnnotationPolyLine::initializeMembersAnnotationPolyLine()
 }
 
 /**
- * @return Cast to polyline (NULL if NOT polyline)
+ * @return Cast to polygon (NULL if NOT polygon)
  */
-AnnotationPolyLine*
-AnnotationPolyLine::castToPolyline()
+AnnotationPolygon*
+AnnotationPolygon::castToPolygon()
 {
     return this;
 }
 
 /**
- * @return Cast to polyline (NULL if NOT polyline) const method
+ * @return Cast to polygon (NULL if NOT polygon) const method
  */
-const AnnotationPolyLine*
-AnnotationPolyLine::castToPolyline() const
+const AnnotationPolygon*
+AnnotationPolygon::castToPolygon() const
 {
     return this;
 }
@@ -138,7 +138,7 @@ AnnotationPolyLine::castToPolyline() const
  *     be valid (non-NULL).
  */
 void
-AnnotationPolyLine::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+AnnotationPolygon::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
     AnnotationMultiCoordinateShape::saveSubClassDataToScene(sceneAttributes,
@@ -160,7 +160,7 @@ AnnotationPolyLine::saveSubClassDataToScene(const SceneAttributes* sceneAttribut
  *     this interface.  Will NEVER be NULL.
  */
 void
-AnnotationPolyLine::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+AnnotationPolygon::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
     AnnotationMultiCoordinateShape::restoreSubClassDataFromScene(sceneAttributes,

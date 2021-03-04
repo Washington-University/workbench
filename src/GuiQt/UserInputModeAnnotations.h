@@ -218,6 +218,8 @@ namespace caret {
         
         void initializeUserDrawingNewAnnotation(const MouseEvent& mouseEvent);
 
+        void initializeNewAnnotationFromStartClick(const MouseEvent& mouseEvent);
+        
         void selectAnnotation(Annotation* annotation);
         
         Annotation* getSingleSelectedAnnotation();
@@ -236,6 +238,8 @@ namespace caret {
         
         void resetAnnotationBeingCreated();
 
+        void deselectAnnotationsForEditingInAnnotationManager();
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;
@@ -255,7 +259,9 @@ namespace caret {
         CaretPointer<NewAnnotationFileSpaceAndType> m_modeNewAnnotationFileSpaceAndType;
         
         CaretPointer<NewMouseDragCreateAnnotation> m_newAnnotationCreatingWithMouseDrag;
-        
+                
+        std::vector<Vector3D> m_lastSelectedAnnotationWindowCoordinates;
+
         bool m_allowMultipleSelectionModeFlag;
         
         // ADD_NEW_MEMBERS_HERE

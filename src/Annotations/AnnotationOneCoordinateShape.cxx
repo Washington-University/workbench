@@ -189,6 +189,67 @@ AnnotationOneCoordinateShape::getCoordinate() const
 }
 
 /**
+ * @return Number of coordinates in this annotation
+ */
+int32_t
+AnnotationOneCoordinateShape::getNumberOfCoordinates() const
+{
+    return 1;
+}
+
+/**
+ * @return Coordinate at the given index
+ * @param index
+ *    Inde of the coordinate
+ */
+AnnotationCoordinate*
+AnnotationOneCoordinateShape::getCoordinate(const int32_t index)
+{
+    if (index == 0) {
+        return getCoordinate();
+    }
+
+    CaretAssertMessage(0, "Index must be 0");
+    return NULL;
+}
+
+/**
+ * @return Coordinate at the given index
+ * @param index
+ *    Inde of the coordinate
+ */
+const AnnotationCoordinate*
+AnnotationOneCoordinateShape::getCoordinate(const int32_t index) const
+{
+    if (index == 0) {
+        return getCoordinate();
+    }
+    
+    CaretAssertMessage(0, "Index must be 0");
+    return NULL;
+}
+
+/**
+ * Replace all coordinates in this annotation with copies of the given coordinates
+ * @param coordinates
+ *    Coordinates that are copied into this annotation
+ */
+void
+AnnotationOneCoordinateShape::replaceAllCoordinates(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates)
+{
+    if (coordinates.size() == 1) {
+        CaretAssertVectorIndex(coordinates, 0);
+        *m_coordinate = *coordinates[0];
+    }
+    else {
+        const QString msg("Replacing one coordinate annotation; coordinates wrong size="
+                          + AString::number(coordinates.size()));
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
+    }
+}
+
+/**
  * @return The surface offset vector type for this annotation.
  */
 AnnotationSurfaceOffsetVectorTypeEnum::Enum
@@ -401,7 +462,9 @@ AnnotationOneCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
             allowsSideResizingFlag = true;
             allowsRotationFlag = true;
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+            break;
+        case AnnotationTypeEnum::POLYLINE:
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             allowsMovingFlag   = true;

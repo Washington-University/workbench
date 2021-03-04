@@ -189,7 +189,15 @@ AnnotationRedoUndoCommandModeEnum::initialize()
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(PASTE_ANNOTATION,
                                                          "PASTE_ANNOTATION",
                                                          "Paste Annotation"));
+
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(MULTI_COORD_INSERT_COORDINATE,
+                                                         "MULTI_COORD_INSERT_COORDINATE",
+                                                         "Insert Poly Coordinate"));
     
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(MULTI_COORD_REMOVE_COORDINATE,
+                                                         "MULTI_COORD_REMOVE_COORDINATE",
+                                                         "Remove Poly Coordinate"));
+
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(ROTATION_ANGLE,
                                                          "ROTATION_ANGLE",
                                                          "Rotation Angle"));

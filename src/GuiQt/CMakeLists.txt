@@ -62,6 +62,7 @@ ELSE()
         AnnotationMenuFileSelection.h
 	AnnotationNameWidget.h
         AnnotationPasteDialog.h
+	AnnotationPastingInformation.h
         AnnotationRedoUndoWidget.h
         AnnotationRotationWidget.h
         AnnotationSelectionViewController.h
@@ -315,6 +316,7 @@ AnnotationMenuArrange.h
 AnnotationMenuFileSelection.h
 AnnotationNameWidget.h
 AnnotationPasteDialog.h
+AnnotationPastingInformation.h
 AnnotationRedoUndoWidget.h
 AnnotationRotationWidget.h
 AnnotationSelectionViewController.h
@@ -630,6 +632,7 @@ AnnotationMenuArrange.cxx
 AnnotationMenuFileSelection.cxx
 AnnotationNameWidget.cxx
 AnnotationPasteDialog.cxx
+AnnotationPastingInformation.cxx
 AnnotationRedoUndoWidget.cxx
 AnnotationRotationWidget.cxx
 AnnotationSelectionViewController.cxx

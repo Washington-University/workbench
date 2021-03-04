@@ -34,10 +34,12 @@
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
+#include "AnnotationPolygon.h"
 #include "AnnotationPolyLine.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "DataFileException.h"
 #include "GiftiXmlElements.h"
 #include "XmlStreamReaderHelper.h"
@@ -675,7 +677,6 @@ AnnotationFileXmlReader::readMultiCoordinateAnnotation(const QString& annotation
                                                    + ELEMENT_COORDINATE_LIST
                                                    + " but read element "
                                                    + m_stream->name().toString());
-
         }
     }
     else {
@@ -784,10 +785,16 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
+        else if (elementName == ELEMENT_POLYGON) {
+            CaretPointer<AnnotationPolygon> annotation(new AnnotationPolygon(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readMultiCoordinateAnnotation(ELEMENT_POLYGON,
+                                           annotation);
+            annotations.push_back(annotation.releasePointer());
+        }
         else if (elementName == ELEMENT_POLY_LINE) {
             CaretPointer<AnnotationPolyLine> annotation(new AnnotationPolyLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readMultiCoordinateAnnotation(ELEMENT_POLY_LINE,
-                                           annotation);
+                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {

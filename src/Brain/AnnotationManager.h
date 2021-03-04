@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include "AnnotationAlignmentEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationDistributeEnum.h"
@@ -38,6 +40,7 @@ namespace caret {
     class Annotation;
     class AnnotationArrangerInputs;
     class AnnotationBrowserTab;
+    class AnnotationClipboard;
     class AnnotationFile;
     class AnnotationGroupKey;
     class AnnotationRedoUndoCommand;
@@ -114,16 +117,20 @@ namespace caret {
         void getAnnotationsAndFilesSelectedForEditingIncludingLabels(const int32_t windowIndex,
                                               std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const;
         
-        bool isAnnotationOnClipboardValid() const;
+        AnnotationClipboard* getClipboard();
         
-        AnnotationFile* getAnnotationFileOnClipboard() const;
+        const AnnotationClipboard* getClipboard() const;
         
-        const Annotation* getAnnotationOnClipboard() const;
+//        bool isAnnotationOnClipboardValid() const;
+//
+//        AnnotationFile* getAnnotationFileOnClipboard() const;
+//
+//        const Annotation* getAnnotationOnClipboard() const;
+//
+//        Annotation* getCopyOfAnnotationOnClipboard() const;
         
-        Annotation* getCopyOfAnnotationOnClipboard() const;
-        
-        void copyAnnotationToClipboard(const AnnotationFile* annotationFile,
-                                       const Annotation* annotation);
+//        void copyAnnotationToClipboard(const AnnotationFile* annotationFile,
+//                                       const Annotation* annotation);
         
         const Annotation* getAnnotationBeingDrawnInWindow(const int32_t windowIndex) const;
         
@@ -222,14 +229,16 @@ namespace caret {
          */
         mutable AnnotationEditingSelectionInformation* m_selectionInformation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
+        std::unique_ptr<AnnotationClipboard> m_clipboard;
+        
         /** 
          * Do not use a Caret Pointer for this as it points to a file in the brain.
          * If a pointer was used it may get deleted which will cause deletion of the
          * file that is owned by the Brain.
          */
-        mutable AnnotationFile* m_clipboardAnnotationFile;
-        
-        CaretPointer<Annotation> m_clipboardAnnotation;
+//        mutable AnnotationFile* m_clipboardAnnotationFile;
+//        
+//        CaretPointer<Annotation> m_clipboardAnnotation;
         
         CaretPointer<CaretUndoStack> m_annotationsExceptBrowserTabsRedoUndoStack;
         

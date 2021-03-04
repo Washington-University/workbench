@@ -27,7 +27,9 @@
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
 
+class QAbstractButton;
 class QActionGroup;
+class QRadioButton;
 class QToolButton;
 
 namespace caret {
@@ -83,6 +85,12 @@ namespace caret {
         QAction* m_fileSelectionToolButtonAction;
         
         AnnotationMenuFileSelection* m_fileSelectionMenu;
+        
+        QToolButton* m_polygonToolButton = NULL;
+        
+        AString m_polygonDrawClicksToolTipText;
+        
+        AString m_polygonDrawDragToolTipText;
         
         QToolButton* m_polyLineToolButton = NULL;
         

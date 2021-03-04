@@ -31,6 +31,7 @@ namespace caret {
     
     class BrainOpenGLViewportContent;
     class BrainOpenGLWidget;
+    class BrainOpenGLWindowContent;
     
     /**
      * Contains information about a mouse event in the OpenGL region.
@@ -52,7 +53,8 @@ namespace caret {
             int32_t m_y;
         };
         
-        MouseEvent(const BrainOpenGLViewportContent* viewportContent,
+        MouseEvent(const BrainOpenGLWindowContent* windowContent,
+                   const BrainOpenGLViewportContent* viewportContent,
                    BrainOpenGLWidget* openGLWidget,
                    const int32_t browserWindowIndex,
                    const int32_t x,
@@ -77,6 +79,8 @@ namespace caret {
         
     public:
         AString toString() const;
+        
+        BrainOpenGLWindowContent* getWindowContent() const;
         
         BrainOpenGLViewportContent* getViewportContent() const;
         
@@ -110,6 +114,8 @@ namespace caret {
         bool isFirstDragging() const;
         
     private:
+        BrainOpenGLWindowContent* m_windowContent;
+        
         BrainOpenGLViewportContent* m_viewportContent;
         
         BrainOpenGLWidget* m_openGLWidget;

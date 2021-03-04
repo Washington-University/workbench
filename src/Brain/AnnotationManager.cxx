@@ -26,6 +26,7 @@
 #include "Annotation.h"
 #include "AnnotationArrangerExecutor.h"
 #include "AnnotationBrowserTab.h"
+#include "AnnotationClipboard.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationFile.h"
 #include "AnnotationGroup.h"
@@ -73,8 +74,10 @@ m_brain(brain)
 {
     CaretAssert(m_brain);
     
-    m_clipboardAnnotationFile = NULL;
-    m_clipboardAnnotation.grabNew(NULL);
+    m_clipboard.reset(new AnnotationClipboard(m_brain));
+    
+//    m_clipboardAnnotationFile = NULL;
+//    m_clipboardAnnotation.grabNew(NULL);
     
     m_annotationsExceptBrowserTabsRedoUndoStack.grabNew(new CaretUndoStack());
     m_annotationsExceptBrowserTabsRedoUndoStack->setUndoLimit(500);
@@ -1129,73 +1132,91 @@ AnnotationManager::toString() const
 }
 
 /**
- * @return True if there is an annotation on the clipboard.
+ * @return The annotation clipboard
  */
-bool
-AnnotationManager::isAnnotationOnClipboardValid() const
+AnnotationClipboard*
+AnnotationManager::getClipboard()
 {
-    return (m_clipboardAnnotation != NULL);
+    return m_clipboard.get();
 }
 
 /**
- * @return Pointer to annotation file on clipboard.
- *     If there is not annotation file on the clipboard,
- *     NULL is returned.
+ * @return The annotation clipboard
  */
-AnnotationFile*
-AnnotationManager::getAnnotationFileOnClipboard() const
+const AnnotationClipboard*
+AnnotationManager::getClipboard() const
 {
-    if (m_clipboardAnnotationFile != NULL) {
-        /*
-         * It is possible that the file has been destroyed.
-         * If so, invalidate the file (set it to NULL).
-         */
-        std::vector<AnnotationFile*> allAnnotationFiles;
-        m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
-        
-        if (std::find(allAnnotationFiles.begin(),
-                      allAnnotationFiles.end(),
-                      m_clipboardAnnotationFile) == allAnnotationFiles.end()) {
-            m_clipboardAnnotationFile = NULL;
-        }
-    }
-    
-    return m_clipboardAnnotationFile;
+    return m_clipboard.get();
 }
 
-/**
- * @return Pointer to annotation on clipboard.
- *     If there is not annotation on the clipboard,
- *     NULL is returned.
- */
-const Annotation*
-AnnotationManager::getAnnotationOnClipboard() const
-{
-    return m_clipboardAnnotation;
-}
+///**
+// * @return True if there is an annotation on the clipboard.
+// */
+//bool
+//AnnotationManager::isAnnotationOnClipboardValid() const
+//{
+//    return (m_clipboardAnnotation != NULL);
+//}
 
-/**
- * @return A copy of the annotation on the clipboard.
- *     If there is not annotation on the clipboard,
- *     NULL is returned.
- */
-Annotation*
-AnnotationManager::getCopyOfAnnotationOnClipboard() const
-{
-    if (m_clipboardAnnotation != NULL) {
-        return m_clipboardAnnotation->clone();
-    }
-    
-    return NULL;
-}
+///**
+// * @return Pointer to annotation file on clipboard.
+// *     If there is not annotation file on the clipboard,
+// *     NULL is returned.
+// */
+//AnnotationFile*
+//AnnotationManager::getAnnotationFileOnClipboard() const
+//{
+//    if (m_clipboardAnnotationFile != NULL) {
+//        /*
+//         * It is possible that the file has been destroyed.
+//         * If so, invalidate the file (set it to NULL).
+//         */
+//        std::vector<AnnotationFile*> allAnnotationFiles;
+//        m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
+//        
+//        if (std::find(allAnnotationFiles.begin(),
+//                      allAnnotationFiles.end(),
+//                      m_clipboardAnnotationFile) == allAnnotationFiles.end()) {
+//            m_clipboardAnnotationFile = NULL;
+//        }
+//    }
+//    
+//    return m_clipboardAnnotationFile;
+//}
 
-void
-AnnotationManager::copyAnnotationToClipboard(const AnnotationFile* annotationFile,
-                                             const Annotation* annotation)
-{
-    m_clipboardAnnotationFile = const_cast<AnnotationFile*>(annotationFile);
-    m_clipboardAnnotation.grabNew(annotation->clone());
-}
+///**
+// * @return Pointer to annotation on clipboard.
+// *     If there is not annotation on the clipboard,
+// *     NULL is returned.
+// */
+//const Annotation*
+//AnnotationManager::getAnnotationOnClipboard() const
+//{
+//    return m_clipboardAnnotation;
+//}
+
+///**
+// * @return A copy of the annotation on the clipboard.
+// *     If there is not annotation on the clipboard,
+// *     NULL is returned.
+// */
+//Annotation*
+//AnnotationManager::getCopyOfAnnotationOnClipboard() const
+//{
+//    if (m_clipboardAnnotation != NULL) {
+//        return m_clipboardAnnotation->clone();
+//    }
+//    
+//    return NULL;
+//}
+
+//void
+//AnnotationManager::copyAnnotationToClipboard(const AnnotationFile* annotationFile,
+//                                             const Annotation* annotation)
+//{
+//    m_clipboardAnnotationFile = const_cast<AnnotationFile*>(annotationFile);
+//    m_clipboardAnnotation.grabNew(annotation->clone());
+//}
 
 /**
  * Get the annotation being drawn in window with the given window index.

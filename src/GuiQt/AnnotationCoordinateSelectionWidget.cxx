@@ -116,7 +116,12 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+            enableChartSpaceFlag   = true;
+            enableModelSpaceFlag   = true;
+            enableSurfaceSpaceFlag = true;
+            break;
+        case AnnotationTypeEnum::POLYLINE:
             enableChartSpaceFlag   = true;
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
@@ -777,7 +782,9 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             break;
         case AnnotationTypeEnum::OVAL:
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+            break;
+        case AnnotationTypeEnum::POLYLINE:
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             break;

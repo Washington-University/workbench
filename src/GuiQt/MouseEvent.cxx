@@ -22,6 +22,7 @@
 #include <QWheelEvent>
 
 #include "BrainOpenGLViewportContent.h"
+#include "BrainOpenGLWindowContent.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
 #include "MouseEvent.h"
@@ -36,8 +37,10 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param windowContent
+ *    Content of window viewport.
  * @param viewportContent
- *    Content of viewport.
+ *    Content of tab viewport.
  * @param openGLWidget
  *    OpenGL Widget in which mouse activity took place.
  * @param browserWindowIndex
@@ -59,7 +62,8 @@ using namespace caret;
  * @param firstDraggingFlag
  *    Should be true the first time in in a mouse dragging operation.
  */
-MouseEvent::MouseEvent(const BrainOpenGLViewportContent* viewportContent,
+MouseEvent::MouseEvent(const BrainOpenGLWindowContent* windowContent,
+                       const BrainOpenGLViewportContent* viewportContent,
                        BrainOpenGLWidget* openGLWidget,
                        const int32_t browserWindowIndex,
                        const int32_t x,
@@ -75,14 +79,18 @@ MouseEvent::MouseEvent(const BrainOpenGLViewportContent* viewportContent,
     initializeMembersMouseEvent();
 
     /*
-     * MUST copy viewport content as it may be deleted by caller
+     * MUST copy window and viewport content as it may be deleted by caller
      * prior to this instance being deleted
      */
+    m_windowContent = NULL;
+    if (windowContent != NULL) {
+        m_windowContent = new BrainOpenGLWindowContent(*windowContent);
+    }
     m_viewportContent = NULL;
     if (viewportContent != NULL) {
         m_viewportContent = new BrainOpenGLViewportContent(*viewportContent);
     }
-    m_openGLWidget    = openGLWidget;
+    m_openGLWidget       = openGLWidget;
     m_browserWindowIndex = browserWindowIndex;
     m_x = x;
     m_y = y;
@@ -99,6 +107,9 @@ MouseEvent::MouseEvent(const BrainOpenGLViewportContent* viewportContent,
  */
 MouseEvent::~MouseEvent()
 {
+    if (m_windowContent != NULL) {
+        delete m_windowContent;
+    }
     if (m_viewportContent != NULL) {
         delete m_viewportContent;
     }
@@ -142,11 +153,19 @@ void
 MouseEvent::copyHelperMouseEvent(const MouseEvent& obj)
 {
     /*
-     * MUST copy viewport content as it may be deleted
+     * MUST copy viewport and window content as it may be deleted
      */
+    if (m_windowContent != NULL) {
+        delete m_windowContent;
+        m_windowContent = NULL;
+    }
     if (m_viewportContent != NULL) {
         delete m_viewportContent;
         m_viewportContent = NULL;
+    }
+    CaretAssert(obj.m_windowContent);
+    if (obj.m_windowContent != NULL) {
+        m_windowContent = new BrainOpenGLWindowContent(*obj.m_windowContent);
     }
     CaretAssert(obj.m_viewportContent);
     if (obj.m_viewportContent != NULL) {
@@ -171,8 +190,9 @@ MouseEvent::copyHelperMouseEvent(const MouseEvent& obj)
 void
 MouseEvent::initializeMembersMouseEvent()
 {
-    m_viewportContent = NULL;
-    m_openGLWidget = NULL;
+    m_windowContent      = NULL;
+    m_viewportContent    = NULL;
+    m_openGLWidget       = NULL;
     m_browserWindowIndex = -1;
     m_x = 0;
     m_y = 0;
@@ -183,6 +203,16 @@ MouseEvent::initializeMembersMouseEvent()
     m_wheelRotation = 0;
     m_firstDraggingFlag = false;
 }
+
+/**
+ * @returnb The window content in which the mouse was pressed
+ */
+BrainOpenGLWindowContent*
+MouseEvent::getWindowContent() const
+{
+    return m_windowContent;
+}
+
 
 /**
  * @return The viewport content in which the mouse was pressed.

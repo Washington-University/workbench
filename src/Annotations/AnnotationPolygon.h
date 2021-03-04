@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_POLY_LINE_H__
-#define __ANNOTATION_POLY_LINE_H__
+#ifndef __ANNOTATION_POLYGON_H__
+#define __ANNOTATION_POLYGON_H__
 
 /*LICENSE_START*/
 /*
@@ -27,20 +27,20 @@
 
 namespace caret {
 
-    class AnnotationPolyLine : public AnnotationMultiCoordinateShape {
+    class AnnotationPolygon : public AnnotationMultiCoordinateShape {
         
     public:
-        AnnotationPolyLine(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
+        AnnotationPolygon(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
-        virtual ~AnnotationPolyLine();
+        virtual ~AnnotationPolygon();
         
-        AnnotationPolyLine(const AnnotationPolyLine& obj);
+        AnnotationPolygon(const AnnotationPolygon& obj);
         
-        AnnotationPolyLine& operator=(const AnnotationPolyLine& obj);
+        AnnotationPolygon& operator=(const AnnotationPolygon& obj);
 
-        virtual AnnotationPolyLine* castToPolyline() override;
+        virtual AnnotationPolygon* castToPolygon() override;
         
-        virtual const AnnotationPolyLine* castToPolyline() const override;
+        virtual const AnnotationPolygon* castToPolygon() const override;
         
        // ADD_NEW_METHODS_HERE
           
@@ -52,9 +52,9 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
     private:
-        void copyHelperAnnotationPolyLine(const AnnotationPolyLine& obj);
+        void copyHelperAnnotationPolygon(const AnnotationPolygon& obj);
         
-        void initializeMembersAnnotationPolyLine();
+        void initializeMembersAnnotationPolygon();
         
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
@@ -62,8 +62,8 @@ namespace caret {
 
     };
     
-#ifdef __ANNOTATION_POLY_LINE_DECLARE__
-#endif // __ANNOTATION_POLY_LINE_DECLARE__
+#ifdef __ANNOTATION_POLYGON_DECLARE__
+#endif // __ANNOTATION_POLYGON_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_POLY_LINE_H__
+#endif  //__ANNOTATION_POLYGON_H__

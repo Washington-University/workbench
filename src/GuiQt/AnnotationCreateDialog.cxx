@@ -36,6 +36,8 @@
 #include "AnnotationImage.h"
 #include "AnnotationManager.h"
 #include "AnnotationPercentSizeText.h"
+#include "AnnotationPolygon.h"
+#include "AnnotationPolyLine.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -214,7 +216,9 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
             break;
         case AnnotationTypeEnum::OVAL:
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+            break;
+        case AnnotationTypeEnum::POLYLINE:
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             CaretAssertMessage(0, "Scale bars do not get created !!!");
@@ -391,7 +395,9 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
-                case AnnotationTypeEnum::POLY_LINE:
+                case AnnotationTypeEnum::POLYGON:
+                    break;
+                case AnnotationTypeEnum::POLYLINE:
                     break;
                 case AnnotationTypeEnum::SCALE_BAR:
                     break;
@@ -429,7 +435,14 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;
-            case AnnotationTypeEnum::POLY_LINE:
+            case AnnotationTypeEnum::POLYGON:
+                if (annotationSpace == AnnotationCoordinateSpaceEnum::CHART) {
+                    if ( ! newAnnotationInfo.m_coordMultiInfo.empty()) {
+                        tabIndex = newAnnotationInfo.m_coordMultiInfo[0]->m_tabSpaceInfo.m_index;
+                    }
+                }
+                break;
+            case AnnotationTypeEnum::POLYLINE:
                 if (annotationSpace == AnnotationCoordinateSpaceEnum::CHART) {
                     if ( ! newAnnotationInfo.m_coordMultiInfo.empty()) {
                         tabIndex = newAnnotationInfo.m_coordMultiInfo[0]->m_tabSpaceInfo.m_index;
@@ -857,7 +870,9 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
             break;
         case AnnotationTypeEnum::OVAL:
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+            break;
+        case AnnotationTypeEnum::POLYLINE:
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             break;
@@ -941,7 +956,10 @@ m_annotationFile(annotationFile)
             break;
         case AnnotationTypeEnum::OVAL:
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+            multiCoordAnnFlag = true;
+            break;
+        case AnnotationTypeEnum::POLYLINE:
             multiCoordAnnFlag = true;
             break;
         case AnnotationTypeEnum::SCALE_BAR:
@@ -1026,7 +1044,9 @@ m_annotationFile(annotationFile)
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;
-            case AnnotationTypeEnum::POLY_LINE:
+            case AnnotationTypeEnum::POLYGON:
+                break;
+            case AnnotationTypeEnum::POLYLINE:
                 break;
             case AnnotationTypeEnum::SCALE_BAR:
                 break;
@@ -1098,7 +1118,10 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
             case AnnotationTypeEnum::LINE:
                 useAverageFlag = false;
                 break;
-            case AnnotationTypeEnum::POLY_LINE:
+            case AnnotationTypeEnum::POLYGON:
+                useAverageFlag = false;
+                break;
+            case AnnotationTypeEnum::POLYLINE:
                 useAverageFlag = false;
                 break;
             case AnnotationTypeEnum::SCALE_BAR:

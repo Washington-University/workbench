@@ -57,6 +57,7 @@ m_mousePositionValid(false)
     std::vector<MouseEvent::XY> emptyHistoryXY;
     m_mousePositionEvent.grabNew(new MouseEvent(NULL,
                                                 NULL,
+                                                NULL,
                                                 -1,
                                                 0,
                                                 0,

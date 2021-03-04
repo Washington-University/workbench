@@ -27,6 +27,7 @@ ENDIF ()
 ADD_LIBRARY(Brain
 AnnotationArrangerExecutor.h
 AnnotationArrangerInputs.h
+AnnotationClipboard.h
 AnnotationManager.h
 BorderDrawingTypeEnum.h
 Brain.h
@@ -211,6 +212,7 @@ WholeBrainVoxelDrawingMode.h
 
 AnnotationArrangerExecutor.cxx
 AnnotationArrangerInputs.cxx
+AnnotationClipboard.cxx
 AnnotationManager.cxx
 BorderDrawingTypeEnum.cxx
 Brain.cxx

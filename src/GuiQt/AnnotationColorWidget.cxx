@@ -520,7 +520,10 @@ AnnotationColorWidget::isBothColorsSetToNoneAllowed(QWidget* widget,
                 case AnnotationTypeEnum::OVAL:
                     allowBothColorsNoneFlag = false;
                     break;
-                case AnnotationTypeEnum::POLY_LINE:
+                case AnnotationTypeEnum::POLYGON:
+                    allowBothColorsNoneFlag = false;
+                    break;
+                case AnnotationTypeEnum::POLYLINE:
                     allowBothColorsNoneFlag = false;
                     break;
                 case AnnotationTypeEnum::SCALE_BAR:

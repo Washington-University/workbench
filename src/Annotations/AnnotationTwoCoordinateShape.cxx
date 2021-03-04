@@ -28,6 +28,7 @@
 #include "AnnotationCoordinate.h"
 #include "AnnotationSpatialModification.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -178,6 +179,74 @@ const AnnotationCoordinate*
 AnnotationTwoCoordinateShape::getEndCoordinate() const
 {
     return m_endCoordinate;
+}
+
+/**
+ * @return Number of coordinates in this annotation
+ */
+int32_t
+AnnotationTwoCoordinateShape::getNumberOfCoordinates() const
+{
+    return 2;
+}
+
+/**
+ * @return Coordinate at the given index (NULL if index invalid)
+ * @param index
+ *    Inde of the coordinate
+ */
+AnnotationCoordinate*
+AnnotationTwoCoordinateShape::getCoordinate(const int32_t index)
+{
+    if (index == 0) {
+        return getStartCoordinate();
+    }
+    else if (index == 1) {
+        return getEndCoordinate();
+    }
+    
+    CaretAssertMessage(0, "Index must be 0 or 1");
+    return NULL;
+}
+
+/**
+ * @return Coordinate at the given index
+ * @param index
+ *    Inde of the coordinate
+ */
+const AnnotationCoordinate*
+AnnotationTwoCoordinateShape::getCoordinate(const int32_t index) const
+{
+    if (index == 0) {
+        return getStartCoordinate();
+    }
+    else if (index == 1) {
+        return getEndCoordinate();
+    }
+    
+    CaretAssertMessage(0, "Index must be 0 or 1");
+    return NULL;
+}
+
+/**
+ * Replace all coordinates in this annotation with copies of the given coordinates
+ * @param coordinates
+ *    Coordinates that are copied into this annotation
+ */
+void
+AnnotationTwoCoordinateShape::replaceAllCoordinates(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates)
+{
+    if (coordinates.size() == 2) {
+        CaretAssertVectorIndex(coordinates, 1);
+        *m_startCoordinate = *coordinates[0];
+        *m_endCoordinate   = *coordinates[1];
+    }
+    else {
+        const QString msg("Replacing two coordinate annotation; coordinates wrong size="
+                          + AString::number(coordinates.size()));
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
+    }
 }
 
 /**

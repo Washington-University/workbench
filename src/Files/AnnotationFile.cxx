@@ -618,6 +618,12 @@ void
 AnnotationFile::addAnnotationPrivate(Annotation* annotation,
                                      const int32_t uniqueKey)
 {
+    AString message;
+    const bool validFlag(annotation->validate(message));
+    if ( ! validFlag) {
+        CaretLogSevere(message);
+    }
+    
     if (annotation->getType() == AnnotationTypeEnum::TEXT) {
         AnnotationPointSizeText* pointSizeAnnotation = dynamic_cast<AnnotationPointSizeText*>(annotation);
         if (pointSizeAnnotation != NULL) {

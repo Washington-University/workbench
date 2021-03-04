@@ -23,9 +23,12 @@
 #include "AnnotationMultiCoordinateShape.h"
 #undef __ANNOTATION_MULTI_COORDINATE_SHAPE_DECLARE__
 
+#include <algorithm>
 #include <cmath>
 
 #include "AnnotationCoordinate.h"
+#include "AnnotationPolygon.h"
+#include "AnnotationPolyLine.h"
 #include "AnnotationSpatialModification.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -191,33 +194,217 @@ AnnotationMultiCoordinateShape::getCoordinate(const int32_t index) const
 }
 
 /**
- * Get a copy of all coordinates in the annotation
- * @param allCoordsOut
- *    Output containing copy of all coordinates
+ * Replace all coordinates in this annotation with copies of the given coordinates
+ * @param coordinates
+ *    Coordinates that are copied into this annotation
  */
 void
-AnnotationMultiCoordinateShape::getCopyOfAllCoordinates(std::vector<std::unique_ptr<AnnotationCoordinate>>& allCoordsOut) const
+AnnotationMultiCoordinateShape::replaceAllCoordinates(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates)
 {
-    allCoordsOut.clear();
-    for (auto& ac : m_coordinates) {
-        std::unique_ptr<AnnotationCoordinate> acCopy(new AnnotationCoordinate(*ac));
-        allCoordsOut.push_back(std::move(acCopy));
+    m_coordinates.clear();
+    
+    for (const auto& coord : coordinates) {
+        AnnotationCoordinate* ac = new AnnotationCoordinate(*coord);
+        addCoordinate(ac);
     }
 }
 
 /**
- * Get a copy of all coordinates in the annotation in const 
- * @param allCoordsOut
- *    Output containing copy of all coordinates
+ * Insert a new coordinate after the given index. New coordinate is at midpoint to next coordinate.
+ * @param insertAfterCoordinateIndex
+ *    Insert a coordinate after this coordinate index.
  */
 void
-AnnotationMultiCoordinateShape::getCopyOfAllCoordinates(std::vector<std::unique_ptr<const AnnotationCoordinate>>& allCoordsOut) const
+AnnotationMultiCoordinateShape::insertCoordinate(const int32_t insertAfterCoordinateIndex)
 {
-    allCoordsOut.clear();
-    for (auto& ac : m_coordinates) {
-        std::unique_ptr<const AnnotationCoordinate> acCopy(new AnnotationCoordinate(*ac));
-        allCoordsOut.push_back(std::move(acCopy));
+    bool validFlag(true);
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            validFlag = false;
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            validFlag = false;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
     }
+    
+    if ( ! validFlag) {
+        return;
+    }
+
+    AnnotationPolyLine* polyline = dynamic_cast<AnnotationPolyLine*>(this);
+    AnnotationPolygon*  polygon  = dynamic_cast<AnnotationPolygon*>(this);
+    if ((polyline == NULL)
+        && (polygon == NULL)) {
+        AString msg("Shape is not polyline or polygon.  Has new multi-coordinate shape been added?");
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
+        return;
+    }
+    
+    validFlag = false;
+    
+    const int32_t numCoords = static_cast<int32_t>(m_coordinates.size());
+    if (numCoords < 2) {
+        CaretLogSevere("Multicoordinate Shape has invalid number of coordinates="
+                       + AString::number(numCoords)
+                       + "cannot insert new coordinates.");
+        return;
+    }
+    
+    int32_t indexOne(-1);
+    int32_t indexTwo(-1);
+    if (polygon != NULL) {
+        /*
+         * Polygon allows insertion of coordinate after last or before first
+         */
+        if ((insertAfterCoordinateIndex >= 0)
+            && (insertAfterCoordinateIndex < (numCoords - 1))) {
+            indexOne = insertAfterCoordinateIndex;
+            indexTwo = insertAfterCoordinateIndex + 1;
+            validFlag = true;
+        }
+        else if (insertAfterCoordinateIndex == -1) {
+            indexOne = numCoords - 1;
+            indexTwo = 0;
+            validFlag = true;
+        }
+        else if (insertAfterCoordinateIndex == (numCoords - 1)) {
+            indexOne = numCoords - 1;
+            indexTwo = 0;
+            validFlag = true;
+        }
+    }
+    else if (polyline != NULL) {
+        if ((insertAfterCoordinateIndex >= 0)
+            && (insertAfterCoordinateIndex < (numCoords - 1))) {
+            indexOne = insertAfterCoordinateIndex;
+            indexTwo = insertAfterCoordinateIndex + 1;
+            validFlag = true;
+        }
+    }
+    else {
+        CaretAssert(0);
+    }
+
+    if ( ! validFlag) {
+        CaretLogSevere("Attempting to insert coordinate after invalid index="
+                       + AString::number(insertAfterCoordinateIndex)
+                       + " into annotation with coordinate count="
+                       + AString::number(numCoords));
+        return;
+    }
+    
+    CaretAssertVectorIndex(m_coordinates, indexOne);
+    CaretAssertVectorIndex(m_coordinates, indexTwo);
+
+    float xyzOne[3];
+    m_coordinates[indexOne]->getXYZ(xyzOne);
+    float xyzTwo[3];
+    m_coordinates[indexTwo]->getXYZ(xyzTwo);
+    const float midPointXYZ[3] {
+        (xyzOne[0] + xyzTwo[0]) / 2.0f,
+        (xyzOne[1] + xyzTwo[1]) / 2.0f,
+        (xyzOne[2] + xyzTwo[2]) / 2.0f
+    };
+    
+    std::unique_ptr<AnnotationCoordinate> newCoord(new AnnotationCoordinate(m_attributeDefaultType));
+    newCoord->setXYZ(midPointXYZ);
+    m_coordinates.insert(m_coordinates.begin() + indexOne + 1,
+                         std::move(newCoord));
+}
+
+/**
+ * Get the coordinates indices for coordinates clockwise and counter-clockwise to the given coordinates
+ * @param coordinateIndex
+ *    The coordinate index
+ * @param clockwiseIndexOut
+ *    Output with clockwise index (negative if not valid)
+ * @param counterClockwiseIndexOut
+ *    Output with counter-clockwise index (negative if not valid)
+ * @return True if successful, else false
+ */
+bool
+AnnotationMultiCoordinateShape::getClockwiseAndCounterClockwiseCoordinates(const int32_t coordinateIndex,
+                                                                           int32_t& clockwiseIndexOut,
+                                                                           int32_t& counterClockwiseIndexOut) const
+{
+    clockwiseIndexOut        = -1;
+    counterClockwiseIndexOut = -1;
+    
+    bool validSpaceFlag(true);
+    switch (getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            validSpaceFlag = false;
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    const int32_t numCoords(m_coordinates.size());
+    if (numCoords < 3) {
+        return false;
+    }
+    
+    int32_t i1(0);
+    int32_t i2(1);
+    int32_t i3(2);
+    
+    if (numCoords > 3) {
+        int32_t index(coordinateIndex);
+        if (index == 0) {
+            index++;
+        }
+        const int32_t lastIndex(numCoords - 1);
+        if (index >= lastIndex) {
+            index = lastIndex - 1;
+        }
+        i1 = index - 1;
+        i2 = index;
+        i3 = index + 1;
+    }
+    
+    CaretAssertVectorIndex(m_coordinates, i1);
+    CaretAssertVectorIndex(m_coordinates, i2);
+    CaretAssertVectorIndex(m_coordinates, i3);
+
+    float normalVector[3];
+    if (MathFunctions::normalVector(m_coordinates[i1]->getXYZ(),
+                                    m_coordinates[i2]->getXYZ(),
+                                    m_coordinates[i3]->getXYZ(),
+                                    normalVector)) {
+        if (normalVector[2] < 0.0f) {
+            std::swap(i1, i3);
+        }
+        
+        clockwiseIndexOut        = i1;
+        counterClockwiseIndexOut = i3;
+        
+        std::cout << "index=" << coordinateIndex
+        << " clockwise=" << clockwiseIndexOut
+        << " counter-clockwise=" << counterClockwiseIndexOut
+        << std::endl << std::flush;
+    }
+    
+    return false;
 }
 
 /**
@@ -231,21 +418,6 @@ AnnotationMultiCoordinateShape::removeCoordinateAtIndex(const int32_t index)
     CaretAssertVectorIndex(m_coordinates, index);
     m_coordinates.erase(m_coordinates.begin() + index);
     setModified();
-}
-
-/**
- * Replace all coordinates in this annotation with copies of the given coordinates
- * @param coordinates
- *    Coordinates that are copied into this annotation
- */
-void AnnotationMultiCoordinateShape::replaceAllCoordinates(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates)
-{
-    m_coordinates.clear();
-    
-    for (const auto& coord : coordinates) {
-        AnnotationCoordinate* ac = new AnnotationCoordinate(*coord);
-        addCoordinate(ac);
-    }
 }
 
 

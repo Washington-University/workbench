@@ -34,6 +34,7 @@
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
+#include "AnnotationPolygon.h"
 #include "AnnotationPolyLine.h"
 #include "AnnotationText.h"
 #include "CaretAssert.h"
@@ -255,7 +256,10 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
             case AnnotationTypeEnum::OVAL:
                 writeOval(dynamic_cast<const AnnotationOval*>(annotation));
                 break;
-            case AnnotationTypeEnum::POLY_LINE:
+            case AnnotationTypeEnum::POLYGON:
+                writePolygon(annotation->castToPolygon());
+                break;
+            case AnnotationTypeEnum::POLYLINE:
                 writePolyLine(dynamic_cast<const AnnotationPolyLine*>(annotation));
                 break;
             case AnnotationTypeEnum::SCALE_BAR:
@@ -350,6 +354,21 @@ AnnotationFileXmlWriter::writeLine(const AnnotationLine* line)
     
     writeTwoCoordinateShapeAnnotation(line,
                                   ELEMENT_LINE);
+}
+
+/**
+ * Write the given annotation polygon in XML.
+ *
+ * @param polygonb
+ *     The annotation polygon.
+ */
+void
+AnnotationFileXmlWriter::writePolygon(const AnnotationPolygon* polygon)
+{
+    CaretAssert(polygon);
+    
+    writeMultiCoordinateShapeAnnotation(polygon,
+                                        ELEMENT_POLYGON);
 }
 
 /**

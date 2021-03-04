@@ -38,6 +38,7 @@ namespace caret {
     class AnnotationImage;
     class AnnotationLine;
     class AnnotationMultiCoordinateShape;
+    class AnnotationPolygon;
     class AnnotationPolyLine;
     class AnnotationTwoCoordinateShape;
     class AnnotationOval;
@@ -88,6 +89,8 @@ namespace caret {
         void writeImage(const AnnotationImage* image);
         
         void writeLine(const AnnotationLine* line);
+        
+        void writePolygon(const AnnotationPolygon* polygon);
         
         void writePolyLine(const AnnotationPolyLine* polyLine);
         

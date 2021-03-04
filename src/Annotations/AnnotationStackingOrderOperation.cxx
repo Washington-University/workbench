@@ -236,7 +236,9 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
             case AnnotationTypeEnum::IMAGE:
             case AnnotationTypeEnum::LINE:
             case AnnotationTypeEnum::OVAL:
-            case AnnotationTypeEnum::POLY_LINE:
+            case AnnotationTypeEnum::POLYGON:
+                break;
+            case AnnotationTypeEnum::POLYLINE:
             case AnnotationTypeEnum::TEXT:
             {
                 switch (m_mode) {
@@ -375,7 +377,9 @@ AnnotationStackingOrderOperation::preOrderAnnotations(std::vector<OrderInfo>& an
             case AnnotationTypeEnum::IMAGE:
             case AnnotationTypeEnum::LINE:
             case AnnotationTypeEnum::OVAL:
-            case AnnotationTypeEnum::POLY_LINE:
+            case AnnotationTypeEnum::POLYGON:
+                break;
+            case AnnotationTypeEnum::POLYLINE:
             case AnnotationTypeEnum::TEXT:
             {
                 const AnnotationTwoCoordinateShape* oneDim = ann->castToTwoCoordinateShape();

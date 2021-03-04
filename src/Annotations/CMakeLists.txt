@@ -48,6 +48,7 @@ AnnotationOneCoordinateShape.h
 AnnotationOval.h
 AnnotationPercentSizeText.h
 AnnotationPointSizeText.h
+AnnotationPolygon.h
 AnnotationPolyLine.h
 AnnotationRedoUndoCommand.h
 AnnotationRedoUndoCommandModeEnum.h
@@ -102,6 +103,7 @@ AnnotationOneCoordinateShape.cxx
 AnnotationOval.cxx
 AnnotationPercentSizeText.cxx
 AnnotationPointSizeText.cxx
+AnnotationPolygon.cxx
 AnnotationPolyLine.cxx
 AnnotationRedoUndoCommand.cxx
 AnnotationRedoUndoCommandModeEnum.cxx

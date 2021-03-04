@@ -27,10 +27,13 @@
 
 #include <QLineEdit>
 
+#include "AnnotationClipboard.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationCreateDialog.h"
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
+#include "AnnotationPolygon.h"
+#include "AnnotationPolyLine.h"
 #include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationText.h"
@@ -70,7 +73,7 @@ using namespace caret;
  * @param selectionManager
  *    The selection manager, provides data under the cursor.
  * @param browserTabContent
- *    Content of browser tab.
+ *    Content of browser tab.  May be NULL.
  * @param parentOpenGLWidget
  *    Parent OpenGL Widget on which the menu is displayed.
  */
@@ -88,6 +91,7 @@ m_parentOpenGLWidget(parentOpenGLWidget),
 m_newAnnotationCreatedByContextMenu(NULL)
 {
     CaretAssert(m_userInputModeAnnotations);
+    CaretAssert(selectionManager);
     
     const int32_t browserWindexIndex = m_mouseEvent.getBrowserWindowIndex();
     std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
@@ -97,6 +101,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
     
     m_annotationFile = NULL;
     m_annotation     = NULL;
+    m_polyLineCoordinateSelected = -1;
     
     bool allSelectedAnnotationsDeletableFlag = true;
     if (selectedAnnotations.empty()) {
@@ -161,8 +166,14 @@ m_newAnnotationCreatedByContextMenu(NULL)
         m_tabSpaceFileAndAnnotations.clear();
     }
     
+    AString multiCoordTypeName("ERROR");
+    bool polyLineSelectedFlag(false);
+    bool polylineIsPolygonFlag(false);
+    int32_t polyLineNumberOfVertices(-1);
+    bool polyLineInsertAllowedFlag(false);
     bool oneAnnotationSelectedFlag(false);
     bool oneDeletableAnnotationSelectedFlag = false;
+    bool polyineRemoveCoordinateAllowedFlag(false);
     if (selectedAnnotations.size() == 1) {
         oneAnnotationSelectedFlag = true;
         
@@ -171,6 +182,44 @@ m_newAnnotationCreatedByContextMenu(NULL)
         m_annotation     = selectedAnnotations[0].first;
         if (m_annotation->testProperty(Annotation::Property::DELETION)) {
             oneDeletableAnnotationSelectedFlag = true;
+        }
+        
+        const AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
+        if (multiCoordShape != NULL) {
+            const AnnotationPolygon*  polygon = multiCoordShape->castToPolygon();
+            const AnnotationPolyLine* polyline = multiCoordShape->castToPolyline();
+            if (polygon != NULL) {
+                multiCoordTypeName = "Polygon";
+            }
+            else if (polyline != NULL) {
+                multiCoordTypeName = "Polyline";
+            }
+            else {
+                CaretAssert(0);
+            }
+            const SelectionItemAnnotation* annSel = m_selectionManager->getAnnotationIdentification();
+            if (annSel->isValid()) {
+                polyLineSelectedFlag     = true;
+                m_polyLineCoordinateSelected   = annSel->getPolyLineCoordinateIndex();
+                polyLineNumberOfVertices = multiCoordShape->getNumberOfCoordinates();
+                if (m_polyLineCoordinateSelected >= 0) {
+                    polyLineInsertAllowedFlag = (multiCoordShape->getCoordinateSpace() != AnnotationCoordinateSpaceEnum::SURFACE);
+                    if (multiCoordShape->getNumberOfCoordinates() >= 3) {
+                        if (polygon != NULL) {
+                            polylineIsPolygonFlag = true;
+                            if (polygon->getNumberOfCoordinates() >= 4) {
+                                polyineRemoveCoordinateAllowedFlag = true;
+                            }
+                        }
+                        else if (polyline != NULL) {
+                            polyineRemoveCoordinateAllowedFlag = true;
+                        }
+                        else {
+                            CaretAssert(0);
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -224,22 +273,23 @@ m_newAnnotationCreatedByContextMenu(NULL)
     /*
      * Paste
      */
+    const AnnotationClipboard* clipboard(annotationManager->getClipboard());
     QAction* pasteAction = addAction(pasteText,
                                      this, SLOT(pasteAnnotationFromAnnotationClipboard()));
-    pasteAction->setEnabled(annotationManager->isAnnotationOnClipboardValid());
+    pasteAction->setEnabled(clipboard->isAnnotationValid());
 
     /*
      * Paste Special
      */
     QAction* pasteSpecialAction = addAction(pasteSpecialText,
                                            this, SLOT(pasteSpecialAnnotationFromAnnotationClipboard()));
-    pasteSpecialAction->setEnabled(annotationManager->isAnnotationOnClipboardValid());
+    pasteSpecialAction->setEnabled(clipboard->isAnnotationValid());
 
     /*
      * Separator
      */
     addSeparator();
-
+    
     /*
      * De/Select All annotations
      */
@@ -248,6 +298,53 @@ m_newAnnotationCreatedByContextMenu(NULL)
     deselectAction->setEnabled( ! selectedAnnotations.empty());
     addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL),
               this, SLOT(selectAllAnnotations()));
+    
+    /*
+     * Separator
+     */
+    addSeparator();
+    
+    /*
+     * Insert poly line coordinate after
+     */
+    QAction* insertPolylineCoordinateAfterAction = addAction("Insert "
+                                                             + multiCoordTypeName
+                                                             + " Coordinate Towards Larger Symbol",
+                                                         this, &UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAfterSelected);
+    insertPolylineCoordinateAfterAction->setEnabled(polyLineSelectedFlag
+                                                && polyLineInsertAllowedFlag
+                                                && (m_polyLineCoordinateSelected >= 0)
+                                                && (m_polyLineCoordinateSelected < (polyLineNumberOfVertices - 1)));
+    if (polylineIsPolygonFlag) {
+        insertPolylineCoordinateAfterAction->setEnabled(polyLineSelectedFlag
+                                                        && polyLineInsertAllowedFlag
+                                                        && (m_polyLineCoordinateSelected >= 0));
+    }
+    
+    /*
+     * Insert poly line coordinate before
+     */
+    QAction* insertPolylineCoordinateBeforeAction = addAction("Insert "
+                                                              + multiCoordTypeName
+                                                              + " Coordinate Towards Smaller Symbol",
+                                                          this, &UserInputModeAnnotationsContextMenu::insertPolylineCoordinateBeforeSelected);
+    insertPolylineCoordinateBeforeAction->setEnabled(polyLineSelectedFlag
+                                                 && polyLineInsertAllowedFlag
+                                                 && (m_polyLineCoordinateSelected > 0));
+    if (polylineIsPolygonFlag) {
+        insertPolylineCoordinateBeforeAction->setEnabled(polyLineSelectedFlag
+                                                         && polyLineInsertAllowedFlag
+                                                         && (m_polyLineCoordinateSelected >= 0));
+    }
+    
+    /*
+     * Remove poly line coordinate
+     */
+    QAction* removePolylineCoordinateAction = addAction("Remove "
+                                                        + multiCoordTypeName
+                                                        + " Coordinate",
+                                                    this, &UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected);
+    removePolylineCoordinateAction->setEnabled(polyineRemoveCoordinateAllowedFlag);
     
     /*
      * Separator
@@ -274,7 +371,6 @@ m_newAnnotationCreatedByContextMenu(NULL)
     bringForwardAction->setEnabled(oneAnnotationSelectedFlag);
     sendToBackAction->setEnabled(oneAnnotationSelectedFlag);
     sendBackwardAction->setEnabled(oneAnnotationSelectedFlag);
-    
 
     /*
      * Separator
@@ -377,8 +473,16 @@ UserInputModeAnnotationsContextMenu::copyAnnotationToAnnotationClipboard()
     CaretAssert(m_annotation);
     
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->copyAnnotationToClipboard(m_annotationFile,
-                                                 m_annotation);
+    
+    std::vector<Vector3D> annotationWindowCoordinates(m_selectionManager->getAnnotationIdentification()->getAnnotationCoordsInWindowXYZ());
+    Vector3D mouseCoordinates(m_mouseEvent.getX(),
+                              m_mouseEvent.getY(),
+                              0.0);
+    AnnotationClipboard* clipboard = annotationManager->getClipboard();
+    clipboard->set(m_annotationFile,
+                   m_annotation,
+                   annotationWindowCoordinates,
+                   mouseCoordinates);
 }
 
 /**
@@ -479,6 +583,9 @@ UserInputModeAnnotationsContextMenu::setAnnotationText()
 void
 UserInputModeAnnotationsContextMenu::turnOffDisplayInOtherTabs()
 {
+    if (m_browserTabContent == NULL) {
+        return;
+    }
     for (std::vector<Annotation*>::iterator iter = m_threeDimCoordAnnotations.begin();
          iter != m_threeDimCoordAnnotations.end();
          iter++) {
@@ -760,4 +867,76 @@ UserInputModeAnnotationsContextMenu::processAnnotationOrderOperation(const Annot
     }
 }
 
+/**
+ * Called when insert polyline coordinate after is selected
+ */
+void
+UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAfterSelected()
+{
+    insertPolylineCoordinateAfterIndex(m_polyLineCoordinateSelected);
+}
 
+/**
+ * Called when insert polyline coordinate before is selected
+ */
+void
+UserInputModeAnnotationsContextMenu::insertPolylineCoordinateBeforeSelected()
+{
+    insertPolylineCoordinateAfterIndex(m_polyLineCoordinateSelected - 1);
+}
+
+/**
+ * Called when remove polyline coordinate is selected
+ */
+void
+UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected()
+{
+    /*
+     * Remove coordinate from annotation
+     */
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_mouseEvent.getBrowserWindowIndex());
+    if ( ! selectedAnnotations.empty()) {
+        CaretAssertVectorIndex(selectedAnnotations, 0);
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeMultiCoordAnnRemoveCoordinate(m_polyLineCoordinateSelected,
+                                                          selectedAnnotations[0]);
+        AString errorMessage;
+        if ( ! annotationManager->applyCommand(m_userInputModeAnnotations->getUserInputMode(),
+                                               undoCommand,
+                                               errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+/**
+ * Insert a coordinate into a polyline after the given index
+ */
+void
+UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAfterIndex(const int32_t index)
+{
+    /*
+     * Insert coordinate into annotation
+     */
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_mouseEvent.getBrowserWindowIndex());
+    if ( ! selectedAnnotations.empty()) {
+        CaretAssertVectorIndex(selectedAnnotations, 0);
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeMultiCoordAnnInsertCoordinate(index,
+                                                      selectedAnnotations[0]);
+        AString errorMessage;
+        if ( ! annotationManager->applyCommand(m_userInputModeAnnotations->getUserInputMode(),
+                                               undoCommand,
+                                               errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}

@@ -23,6 +23,7 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSurfaceOffsetVectorTypeEnum.h"
+#include "CaretObject.h"
 #include "SpacerTabIndex.h"
 #include "StructureEnum.h"
 
@@ -31,6 +32,7 @@ class QLabel;
 namespace caret {
 
     class Annotation;
+    class AnnotationClipboard;
     class AnnotationTwoCoordinateShape;
     class AnnotationOneCoordinateShape;
     class AnnotationMultiCoordinateShape;
@@ -38,16 +40,24 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class MouseEvent;
     
-    class AnnotationCoordinateInformation {
+    class AnnotationCoordinateInformation : public CaretObject {
         
     public:
         AnnotationCoordinateInformation();
         
         virtual ~AnnotationCoordinateInformation();
         
+        AnnotationCoordinateInformation(const AnnotationCoordinateInformation&);
+        
+        AnnotationCoordinateInformation& operator=(const AnnotationCoordinateInformation&);
+        
         bool isCoordinateSpaceValid(const AnnotationCoordinateSpaceEnum::Enum space) const;
         
         void reset();
+        
+        AString toString() const override;
+        
+        static AnnotationCoordinateInformation getValidCoordInfoForAll(const std::vector<std::unique_ptr<AnnotationCoordinateInformation>>& annotationCoordInfo);
         
         static void getValidCoordinateSpaces(const std::vector<std::unique_ptr<AnnotationCoordinateInformation>>& coordInfoMulti,
                                              std::vector<AnnotationCoordinateSpaceEnum::Enum>& spacesOut);
@@ -75,6 +85,12 @@ namespace caret {
                                                      const AnnotationCoordinateInformation* coordInfoTwo,
                                                      const std::vector<std::unique_ptr<AnnotationCoordinateInformation>>& coordInfoMulti);
         
+        static bool createCoordinateInformationForPasting(const MouseEvent& mouseEvent,
+                                                          const AnnotationClipboard* clipboard,
+                                                          AnnotationCoordinateInformation& mouseCoordInfoOut,
+                                                          std::vector<std::unique_ptr<AnnotationCoordinateInformation>>& coordsOut,
+                                                          AString& errorMessageOut);
+
         class SpaceInfo {
         public:
             bool m_validFlag = false;
@@ -131,9 +147,7 @@ namespace caret {
         SurfaceSpaceInfo m_surfaceSpaceInfo;
         
     private:
-        AnnotationCoordinateInformation(const AnnotationCoordinateInformation&);
-
-        AnnotationCoordinateInformation& operator=(const AnnotationCoordinateInformation&);
+        void copyHelperAnnotationCoordinateInformation(const AnnotationCoordinateInformation& obj);
         
         static bool setOneDimAnnotationCoordinatesForSpace(AnnotationTwoCoordinateShape* annotation,
                                                            const AnnotationCoordinateSpaceEnum::Enum space,

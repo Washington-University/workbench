@@ -33,6 +33,7 @@
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
+#include "AnnotationPolygon.h"
 #include "AnnotationPolyLine.h"
 #include "AnnotationScaleBar.h"
 #include "AnnotationText.h"
@@ -219,7 +220,14 @@ Annotation::clone() const
             myClone = new AnnotationOval(*oval);
         }
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+        {
+            const AnnotationPolygon* polygon = dynamic_cast<const AnnotationPolygon*>(this);
+            CaretAssert(polygon);
+            myClone = new AnnotationPolygon(*polygon);
+        }
+            break;
+        case AnnotationTypeEnum::POLYLINE:
         {
             const AnnotationPolyLine* polyLine = dynamic_cast<const AnnotationPolyLine*>(this);
             CaretAssert(polyLine);
@@ -389,7 +397,10 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
         case AnnotationTypeEnum::OVAL:
             annotation = new AnnotationOval(attributeDefaultType);
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+            annotation = new AnnotationPolygon(attributeDefaultType);
+            break;
+        case AnnotationTypeEnum::POLYLINE:
             annotation = new AnnotationPolyLine(attributeDefaultType);
             break;
         case AnnotationTypeEnum::SCALE_BAR:
@@ -465,7 +476,9 @@ Annotation::initializeAnnotationMembers()
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
-                case AnnotationTypeEnum::POLY_LINE:
+                case AnnotationTypeEnum::POLYGON:
+                    break;
+                case AnnotationTypeEnum::POLYLINE:
                     break;
                 case AnnotationTypeEnum::SCALE_BAR:
                     m_colorBackground = CaretColorEnum::BLACK;
@@ -530,7 +543,12 @@ Annotation::initializeAnnotationMembers()
                         m_colorBackground = defaultColor;
                     }
                     break;
-                case AnnotationTypeEnum::POLY_LINE:
+                case AnnotationTypeEnum::POLYGON:
+                    if (m_colorLine == CaretColorEnum::NONE) {
+                        m_colorLine = defaultColor;
+                    }
+                    break;
+                case AnnotationTypeEnum::POLYLINE:
                     if (m_colorLine == CaretColorEnum::NONE) {
                         m_colorLine = defaultColor;
                     }
@@ -581,7 +599,10 @@ Annotation::initializeAnnotationMembers()
             break;
         case AnnotationTypeEnum::OVAL:
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+            disallowLineColorNoneFlag = true;
+            break;
+        case AnnotationTypeEnum::POLYLINE:
             disallowLineColorNoneFlag = true;
             break;
         case AnnotationTypeEnum::SCALE_BAR:
@@ -698,7 +719,9 @@ Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
             break;
         case AnnotationTypeEnum::OVAL:
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+            break;
+        case AnnotationTypeEnum::POLYLINE:
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             break;
@@ -752,6 +775,57 @@ Annotation::setCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordin
                            "Annotation coordinate space should never change to VIEWPORT space.");
         setModified();
     }
+}
+
+/**
+ * @return All coordinates in the annotation (const method)
+ */
+std::vector<const AnnotationCoordinate*>
+Annotation::getAllCoordinates() const
+{
+    std::vector<const AnnotationCoordinate*> allCoords;
+    
+    const int32_t numCoords(getNumberOfCoordinates());
+    for (int32_t i = 0; i < numCoords; i++) {
+        allCoords.push_back(getCoordinate(i));
+    }
+    
+    return allCoords;
+}
+
+/**
+ * Replace all coordinates in this annotation with copies of the given coordinates
+ * @param coordinates
+ *    Coordinates (const) that are copied into this annotation
+ */
+void
+Annotation::replaceAllCoordinatesNotConst(const std::vector<std::unique_ptr<AnnotationCoordinate>>& coordinates)
+{
+    std::vector<std::unique_ptr<const AnnotationCoordinate>> constCoords;
+    for (const auto& ac : coordinates) {
+        std::unique_ptr<const AnnotationCoordinate> cc(new AnnotationCoordinate(*ac.get()));
+        constCoords.push_back(std::move(cc));
+    }
+    replaceAllCoordinates(constCoords);
+}
+
+/**
+ * Get a copy of all coordinates in the annotation
+ * @param allCoordsOut
+ *    Output containing copy of all coordinates
+ */
+std::vector<std::unique_ptr<AnnotationCoordinate>>
+Annotation::getCopyOfAllCoordinates() const
+{
+    std::vector<std::unique_ptr<AnnotationCoordinate>> allCoords;
+    
+    const int32_t numCoords(getNumberOfCoordinates());
+    for (int32_t i = 0; i < numCoords; i++) {
+        std::unique_ptr<AnnotationCoordinate> ac(new AnnotationCoordinate(*getCoordinate(i)));
+        allCoords.push_back(std::move(ac));
+    }
+    
+    return allCoords;
 }
 
 /**
@@ -1646,7 +1720,11 @@ Annotation::initializeProperties()
             break;
         case AnnotationTypeEnum::OVAL:
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+            fillColorFlag = false;
+            polyLineFlag  = true;
+            break;
+        case AnnotationTypeEnum::POLYLINE:
             fillColorFlag = false;
             polyLineFlag  = true;
             break;
@@ -1698,11 +1776,6 @@ Annotation::initializeProperties()
         resetProperty(Property::TEXT_EDIT);
         
         setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
-    }
-    
-    if (polyLineFlag) {
-        /* Disables cut/copy for polyline until that functionality can be implemeted */
-        resetProperty(Property::COPY_CUT_PASTE);
     }
     
     if (scaleBarFlag) {
@@ -2008,7 +2081,9 @@ Annotation::textAnnotationResetName()
             break;
         case AnnotationTypeEnum::OVAL:
             break;
-        case AnnotationTypeEnum::POLY_LINE:
+        case AnnotationTypeEnum::POLYGON:
+            break;
+        case AnnotationTypeEnum::POLYLINE:
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             break;
@@ -2932,5 +3007,123 @@ Annotation::getDrawnInWindowBounds(const int32_t windowIndex) const
     CaretAssert((windowIndex >= 0)
                 && (windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
     return m_boundsFromDrawing[windowIndex];
+}
+
+/**
+ * @param True if the annotation passes validation, else false.
+ * @param messageOut
+ *     Output describing failure of validation.
+ */
+bool
+Annotation::validate(AString& messageOut) const
+{
+    messageOut.clear();
+    bool validFlag(true);
+    
+    const std::vector<const AnnotationCoordinate*> coords(getAllCoordinates());
+    const int32_t numCoords(coords.size());
+    
+    const AnnotationMultiCoordinateShape* multiCoordAnn = castToMultiCoordinateShape();
+    if (numCoords == 0) {
+        messageOut.appendWithNewLine("Has no coordinates");
+    }
+    else if (numCoords == 1) {
+        if (multiCoordAnn != NULL) {
+            messageOut.appendWithNewLine("Has only one coordinate, must have two");
+        }
+    }
+    
+    switch (m_coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            if (numCoords > 0) {
+                bool structuresMatchFlag(true);
+                bool structureInvalidFlag(false);
+                bool surfaceVertexCountsMatchFlag(true);
+                int32_t invalidVertexIndexFlag(false);
+                
+                StructureEnum::Enum firstStructure(StructureEnum::INVALID);
+                int32_t firstSurfaceVertexCount(-1);
+                int32_t firstVertexIndex(-1);
+                coords[0]->getSurfaceSpace(firstStructure,
+                                           firstSurfaceVertexCount,
+                                           firstVertexIndex);
+                
+                for (int32_t i = 0; i < numCoords; i++) {
+                    StructureEnum::Enum structure(StructureEnum::INVALID);
+                    int32_t surfaceVertexCount(-1);
+                    int32_t vertexIndex(-1);
+                    coords[i]->getSurfaceSpace(structure,
+                                               surfaceVertexCount,
+                                               vertexIndex);
+                    if (structure == StructureEnum::INVALID) {
+                        structureInvalidFlag = true;
+                    }
+                    if (structure != firstStructure) {
+                        structuresMatchFlag = false;
+                    }
+                    if (surfaceVertexCount != firstSurfaceVertexCount) {
+                        surfaceVertexCountsMatchFlag = false;
+                    }
+                    if (vertexIndex < 0) {
+                        invalidVertexIndexFlag = true;
+                    }
+                }
+                
+                if (structureInvalidFlag) {
+                    messageOut.appendWithNewLine("Structure is invalid for surface space.");
+                }
+                if ( ! structuresMatchFlag) {
+                    messageOut.appendWithNewLine("Structures do not match for surface space.");
+                }
+                if ( ! surfaceVertexCountsMatchFlag) {
+                    messageOut.appendWithNewLine("Surface vertex counts do not match for surface space.");
+                }
+                if (invalidVertexIndexFlag) {
+                    messageOut.appendWithNewLine("Surface vertex index less than zero for surface space.");
+                }
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            if ((m_tabIndex < 0)
+                || (m_tabIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
+                messageOut.appendWithNewLine("Tab index is invalid: "
+                                             + AString::number(m_tabIndex));
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            if ((m_windowIndex < 0)
+                || (m_windowIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
+                messageOut.appendWithNewLine("Window index is invalid: "
+                                             + AString::number(m_tabIndex));
+            }
+            break;
+    }
+    
+    if ( ! messageOut.isEmpty()) {
+        AString infoMsg("Annotation is invalid: "
+                        + this->toString());
+        for (int32_t i = 0; i < numCoords; i++) {
+            infoMsg.appendWithNewLine("Coord "
+                                      + AString::number(i)
+                                      + ": "
+                                      + coords[i]->toStringForCoordinateSpace(m_coordinateSpace));
+        }
+        if (numCoords > 0) {
+            infoMsg.append("\n");
+        }
+        messageOut.insert(0, infoMsg);
+        messageOut.replace("\n", "\n   ");
+        validFlag = false;
+    }
+    
+    return validFlag;
 }
 
