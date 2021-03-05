@@ -226,9 +226,6 @@ m_annotationThatWasCreated(NULL)
     CaretAssert(m_annotationFile);
     CaretAssert(m_annotation);
     
-    const AnnotationClipboard* clipboard = GuiManager::get()->getBrain()->getAnnotationManager()->getClipboard();
-    CaretAssert(clipboard);
-    
     m_spaceRadioButtonsSpaces = m_annotationPastingInformation.getPasteableSpaces();
     CaretAssert( ! m_spaceRadioButtonsSpaces.empty());
     

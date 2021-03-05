@@ -359,6 +359,9 @@ AnnotationMultiCoordinateShape::getClockwiseAndCounterClockwiseCoordinates(const
         case AnnotationCoordinateSpaceEnum::WINDOW:
             break;
     }
+    if ( ! validSpaceFlag) {
+        return false;
+    }
     const int32_t numCoords(m_coordinates.size());
     if (numCoords < 3) {
         return false;

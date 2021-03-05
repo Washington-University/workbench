@@ -1378,10 +1378,9 @@ AnnotationCoordinateInformation::createCoordinateInformationForPasting(const Mou
                                       mouseEvent.getX(),
                                       mouseEvent.getY(),
                                       mouseCoordInfoOut);
-    
-    const Annotation* annotation = clipboard->getAnnotation();
-    CaretAssert(annotation);
-    
+        
+    CaretAssert(clipboard->getAnnotation());
+
     /*
      * Get the window coordinates for each of the annotation's coordinates
      * from when the annotation was cut/copied

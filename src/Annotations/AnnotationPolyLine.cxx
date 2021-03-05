@@ -92,7 +92,7 @@ AnnotationPolyLine::operator=(const AnnotationPolyLine& obj)
  *    Object that is copied.
  */
 void
-AnnotationPolyLine::copyHelperAnnotationPolyLine(const AnnotationPolyLine& obj)
+AnnotationPolyLine::copyHelperAnnotationPolyLine(const AnnotationPolyLine& /*obj*/)
 {
 }
 

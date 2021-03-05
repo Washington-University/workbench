@@ -62,7 +62,6 @@ ELSE()
         AnnotationMenuFileSelection.h
 	AnnotationNameWidget.h
         AnnotationPasteDialog.h
-	AnnotationPastingInformation.h
         AnnotationRedoUndoWidget.h
         AnnotationRotationWidget.h
         AnnotationSelectionViewController.h

@@ -92,7 +92,7 @@ AnnotationPolygon::operator=(const AnnotationPolygon& obj)
  *    Object that is copied.
  */
 void
-AnnotationPolygon::copyHelperAnnotationPolygon(const AnnotationPolygon& obj)
+AnnotationPolygon::copyHelperAnnotationPolygon(const AnnotationPolygon& /*obj*/)
 {
 }
 

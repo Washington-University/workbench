@@ -1698,7 +1698,6 @@ Annotation::initializeProperties()
     bool colorBarFlag = false;
     bool fillColorFlag = true;
     bool lineArrowsFlag = false;
-    bool polyLineFlag(false);
     bool scaleBarFlag = false;
     bool textFlag = false;
     switch (m_type) {
@@ -1722,11 +1721,9 @@ Annotation::initializeProperties()
             break;
         case AnnotationTypeEnum::POLYGON:
             fillColorFlag = false;
-            polyLineFlag  = true;
             break;
         case AnnotationTypeEnum::POLYLINE:
             fillColorFlag = false;
-            polyLineFlag  = true;
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             scaleBarFlag = true;
