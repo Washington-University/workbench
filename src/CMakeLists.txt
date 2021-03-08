@@ -1,7 +1,12 @@
 #
 # Minimum required version of CMAKE
 #
-CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
+
+#
+# Project name
+#
+PROJECT(Workbench)
 
 SET(WB_VERSION "1.5.0")
 #
