@@ -11,11 +11,6 @@ if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
     include_directories(${Qt5Network_INCLUDE_DIRS})
 endif()
-IF (QT4_FOUND)
-    SET(QT_DONT_USE_QTGUI)
-    SET(QT_USE_QTNETWORK TRUE)
-    INCLUDE(${QT_USE_FILE})
-ENDIF ()
 
 #
 # Create GIFTI Library

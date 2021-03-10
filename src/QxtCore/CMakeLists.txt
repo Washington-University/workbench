@@ -13,9 +13,6 @@ PROJECT (QxtCore)
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
 endif()
-IF (QT4_FOUND)
-    INCLUDE(${QT_USE_FILE})
-ENDIF ()
 
 #
 # With AUTOMOC, do not need to specify files
@@ -32,9 +29,6 @@ ELSE()
     IF(Qt5_FOUND)
         QT5_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
     ENDIF()
-    IF (QT4_FOUND)
-        QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
-    ENDIF ()
 ENDIF()
 
 

@@ -14,11 +14,6 @@ if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
 #    include_directories(${Qt5Network_INCLUDE_DIRS})
 endif()
-IF (QT4_FOUND)
-    SET(QT_USE_QTXML TRUE)
-    SET(QT_USE_QTNETWORK TRUE)
-    INCLUDE(${QT_USE_FILE})
-ENDIF ()
 
 #
 # Name of executable
@@ -32,9 +27,6 @@ SET (RESOURCES_QRC_FILE ../Resources/General/general_resources.qrc)
 IF (Qt5_FOUND)
     QT5_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
 ELSE (Qt5_FOUND)
-    IF (QT4_FOUND)
-        QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
-    ENDIF()
 ENDIF (Qt5_FOUND)
 
 #

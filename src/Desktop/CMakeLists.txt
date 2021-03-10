@@ -19,13 +19,6 @@ if(Qt5_FOUND)
     endif()
     include_directories(${Qt5Widgets_INCLUDE_DIRS})
 endif()
-IF (QT4_FOUND)
-    SET(QT_USE_QTXML TRUE)
-    SET(QT_USE_QTOPENGL TRUE)
-    SET(QT_USE_QTNETWORK TRUE)
-    INCLUDE(${QT_USE_FILE})
-ENDIF ()
-
 
 #
 # Added by JWH to eliminate OpenGL linking errors in Ubuntu Linux
@@ -51,9 +44,6 @@ ENDIF (WORKBENCH_INCLUDE_HELP_HTML_RESOURCES)
 IF (Qt5_FOUND)
     QT5_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
 ELSE (Qt5_FOUND)
-    IF (QT4_FOUND)
-        QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
-    ENDIF()
 ENDIF (Qt5_FOUND)
 
 #

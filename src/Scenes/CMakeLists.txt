@@ -25,10 +25,6 @@ if(Qt5_FOUND)
     include_directories(${Qt5Xml_INCLUDE_DIRS})
     SET(CARET_QT_LINK_MODULES "Qt5::Core")
 endif()
-IF (QT4_FOUND)
-    SET(QT_DONT_USE_QTGUI TRUE)
-    INCLUDE(${QT_USE_FILE})
-ENDIF ()
 
 #
 # Create a Library

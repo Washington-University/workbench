@@ -18,9 +18,6 @@ if(Qt5_FOUND)
     include_directories(${Qt5Network_INCLUDE_DIRS})
     include_directories(${Qt5Xml_INCLUDE_DIRS})
 endif()
-IF (QT4_FOUND)
-    INCLUDE(${QT_USE_FILE})
-ENDIF ()
 #message("QT VERSION: " ${QT_VERSION_MAJOR} ${QT_VERSION_MINOR} ${QT_VERSION_PATCH})
 
 #
@@ -38,9 +35,6 @@ ELSE()
     IF(Qt5_FOUND)
         QT5_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
     ENDIF()
-    IF (QT4_FOUND)
-        QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
-    ENDIF ()
 ENDIF()
 
 #

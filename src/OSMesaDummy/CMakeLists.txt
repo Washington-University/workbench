@@ -6,10 +6,8 @@ PROJECT(OSMesaDummy)
 
 #
 # Need Qt for reading from resource file.
+# Might need Qt includes here if OSMesa not found
 #
-IF (QT4_FOUND)
-    INCLUDE(${QT_USE_FILE})
-ENDIF ()
 
 #
 # Create a library

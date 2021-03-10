@@ -19,11 +19,6 @@ if(Qt5_FOUND)
         include_directories(${Qt5WebView_INCLUDE_DIRS})
     endif(HAVE_QT_WEBKIT)
 endif()
-IF (QT4_FOUND)
-    SET(QT_USE_QTNETWORK TRUE)
-    SET(QT_USE_QTOPENGL TRUE)
-    INCLUDE(${QT_USE_FILE})
-ENDIF ()
 
 #
 # Let CMake find files for moc and uic.
@@ -285,10 +280,6 @@ ELSE()
         QT5_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
         QT5_WRAP_UI(FORMS_HEADERS ${FORMS})
     ENDIF()
-    IF (QT4_FOUND)
-        QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
-        QT4_WRAP_UI(FORMS_HEADERS ${FORMS})
-    ENDIF ()
 ENDIF()
 
 #

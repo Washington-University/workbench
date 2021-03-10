@@ -37,8 +37,10 @@ set (WORKBENCH_USE_CMAKE_AUTOMOC FALSE CACHE BOOL
      "If TRUE, use CMAKE_AUTOMOC command for generating 'moc' files")
 set (WORKBENCH_INCLUDE_HELP_HTML_RESOURCES TRUE CACHE BOOL
      "If TRUE, help (html) pages in src/Resources/Help are available in wb_view")
+set (WORKBENCH_USE_QT6 FALSE CACHE BOOL
+     "If TRUE, require Qt6.<NEWLINE>Specify as argument to cmake: -DWORKBENCH_USE_QT6=TRUE")
 set (WORKBENCH_USE_QT5 TRUE CACHE BOOL
-     "If TRUE, require Qt5, else Qt4.<NEWLINE>Specify as argument to cmake: -DWORKBENCH_USE_QT5=TRUE")
+     "If TRUE, require Qt5.<NEWLINE>Specify as argument to cmake: -DWORKBENCH_USE_QT5=TRUE")
 set (WORKBENCH_USE_QT5_QOPENGL_WIDGET FALSE CACHE BOOL 
      "With Qt5, QOpenGLWidget instead of deprecated QGLWidget")
 set (WORKBENCH_MESA_DIR "" CACHE PATH 
@@ -189,22 +191,46 @@ ENDIF(OPENSSL_FOUND)
 
 ##########################################################################################
 #
-# Must have QT 4.8 or QT 5, recommended 5.6 or later
+# Must have QT 6 or QT 5, recommended 5.6 or later
 # https://cmake.org/cmake/help/v3.5/manual/cmake-packages.7.html#manual:cmake-packages(7)
 # Modules List: http://doc.qt.io/qt-5/qtmodules.html
 #
 SET(WB_WEBKIT_COMPONENTS "")
 SET(WB_WEBKIT_LIBS "")
 SET(HAVE_QT_WEBKIT False)
-IF (HAVE_QT_WEBKIT)
-    ADD_DEFINITIONS(-DHAVE_WEBKIT)
-    SET (WB_WEBKIT_COMPONENTS "WebEngine WebEngineCore WebEngineWidgets")
-    SET (WB_WEBKIT_LIBS "Qt5::WebEngine Qt5::WebEngineCore Qt5::WebEngineWidgets")
-
-ENDIF (HAVE_QT_WEBKIT)
 SET(QT_RESULT "Not Found")
+
 SET(CARET_QT5_LINK "")
-IF (WORKBENCH_USE_QT5) 
+
+IF (WORKBENCH_USE_QT6)
+    IF (WORKBENCH_USE_QT5)
+        MESSAGE(SEND_ERROR "Both QT5 and QT6 are selected.  Choose only one of them.")
+    ENDIF (WORKBENCH_USE_QT5)
+    
+    #
+    # Minimum required version of CMAKE for Qt 6
+    #
+    CMAKE_MINIMUM_REQUIRED (VERSION 3.19.6)
+    
+    #
+    # Qt 6 requires C++17 compiler
+    #
+    SET(CMAKE_CXX_STANDARD 17)
+    SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+    
+    #
+    # Packages for Qt 6
+    #
+    FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Concurrent Core Core5Compat Gui Network PrintSupport Test Widgets Xml)
+    
+    #
+    # Always use OpenGL Widget (GLWidget not available)
+    #
+    add_definitions(-DWORKBENCH_USE_QT5_QOPENGL_WIDGET)
+
+    SET(QT_RESULT "${Qt6_VERSION}")
+    
+ELSEIF (WORKBENCH_USE_QT5)
     #
     # The OpenGL module is deprecated in Qt5 and 
     # is needed only if QGLWidget is used for
@@ -236,14 +262,15 @@ IF (WORKBENCH_USE_QT5)
     SET(CARET_QT5_LINK "Qt5::Core")
 
     SET(QT_RESULT "${Qt5_VERSION}")
+    
+    IF (HAVE_QT_WEBKIT)
+        ADD_DEFINITIONS(-DHAVE_WEBKIT)
+        SET (WB_WEBKIT_COMPONENTS "WebEngine WebEngineCore WebEngineWidgets")
+        SET (WB_WEBKIT_LIBS "Qt5::WebEngine Qt5::WebEngineCore Qt5::WebEngineWidgets")
+
+    ENDIF (HAVE_QT_WEBKIT)
 ELSE ()
-    FIND_PACKAGE(Qt4 4.8 REQUIRED)
-    IF(QT4_FOUND)
-        INCLUDE(${QT_USE_FILE})
-        SET(QT_RESULT "${QTVERSION}")
-    ELSE(QT4_FOUND)
-        MESSAGE(SEND_ERROR "QT4 not found")
-    ENDIF(QT4_FOUND)
+    MESSAGE(SEND_ERROR "QT5 or QT6 REQUIRED")
 ENDIF ()
 
 ##########################################################################################
