@@ -352,11 +352,7 @@ QVector<QwtInterval> QwtCircleClipper::clipCircle(
         QList<double> angles;
         for ( int i = 0; i < points.size(); i++ )
             angles += toAngle( pos, points[i] );
-#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
         std::sort(angles.begin(), angles.end());
-#else
-        qSort( angles );
-#endif
 
         const int in = d_rect.contains( qwtPolar2Pos( pos, radius,
             angles[0] + ( angles[1] - angles[0] ) / 2 ) );

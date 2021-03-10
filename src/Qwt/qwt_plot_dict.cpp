@@ -23,11 +23,7 @@ public:
                 return;
 
             QList<QwtPlotItem *>::iterator it =
-#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
             std::upper_bound( begin(), end(), item, LessZThan() );
-#else
-            qUpperBound( begin(), end(), item, LessZThan() );
-#endif
             insert( it, item );
         }
 
@@ -37,11 +33,7 @@ public:
                 return;
 
             QList<QwtPlotItem *>::iterator it =
-#ifdef WORKBENCH_REPLACE_QT_DEPRECATED
             std::lower_bound( begin(), end(), item, LessZThan() );
-#else
-            qLowerBound( begin(), end(), item, LessZThan() );
-#endif
 
             for ( ; it != end(); ++it )
             {
