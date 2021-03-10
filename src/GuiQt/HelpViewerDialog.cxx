@@ -32,13 +32,8 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#if QT_VERSION >= 0x050000
 #include <QtPrintSupport/QPrinter>
 #include <QtPrintSupport/QPrintDialog>
-#else // QT_VERSION
-#include <qprinter.h>
-#include <qprintdialog.h>
-#endif // QT_VERSION
 #include <QTextBrowser>
 #include <QSplitter>
 #include <QTabWidget>

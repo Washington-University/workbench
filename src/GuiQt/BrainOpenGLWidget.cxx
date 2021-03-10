@@ -309,14 +309,12 @@ QString
 BrainOpenGLWidget::getOpenGLInformation()
 {
     AString info;
-#if QT_VERSION >= 0x050000
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     info += ("Rendering with Qt5 QOpenGLWidget.\n");
 #else
     info += ("Rendering with Qt5 QGLWidget (deprecated).\n");
 #endif
     info += ("\n");
-#endif
     
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     QSurfaceFormat format = this->format();

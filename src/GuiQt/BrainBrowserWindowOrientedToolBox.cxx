@@ -714,35 +714,6 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
             /* is restored only when floating and visible. */
             geometryClass->setDescendantsRestored(true);
         }
-#if QT_VERSION < 0x050000
-        /*
-         * Do this for Qt4 only.  Qt5 restores size in BrainBrowserWindow.
-         *
-         * From http://stackoverflow.com/questions/2722939/c-resize-a-docked-qt-qdockwidget-programmatically
-         *
-         * Set the minimum and maximum sizes and restore them later.
-         * Trying to restore them immediately does not work.  So, as
-         * explained in the link above, set the minimum and maximum
-         * sizes to that the toolbox is the correct size and then use
-         * a timer to restore the correct values for the minimum and
-         * maximum sizes after a little delay.
-         */
-        const int w = sceneClass->getIntegerValue("toolboxWidth", -1);
-        const int h = sceneClass->getIntegerValue("toolboxHeight", -1);
-        if ((w > 0) && (h > 0)) {
-            m_minimumSizeAfterSceneRestored = minimumSize();
-            m_maximumSizeAfterSceneRestored = maximumSize();
-            
-            setMaximumWidth(w);
-            setMaximumHeight(h);
-            setMinimumWidth(w);
-            setMinimumHeight(h);
-
-            QTimer::singleShot(1000,  // 1000 ms => 1 second
-                               this,
-                               SLOT(restoreMinimumAndMaximumSizesAfterSceneRestored()));
-        }
-#endif
     }
     
     if (m_splitterWidget != NULL) {

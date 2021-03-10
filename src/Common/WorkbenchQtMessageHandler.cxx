@@ -63,15 +63,9 @@ WorkbenchQtMessageHandler::setupHandler(Beeper* beeper)
 {
     s_beeper = beeper;
     
-#if QT_VERSION >= 0x050000
     qInstallMessageHandler(WorkbenchQtMessageHandler::messageHandlerForQt5);//this handler uses CaretLogger and GuiManager, so we must install it after the logger is available and the application is created
-#else // QT_VERSION
-    qInstallMsgHandler(WorkbenchQtMessageHandler::messageHandlerForQt4);//this handler uses CaretLogger and GuiManager, so we must install it after the logger is available and the application is created
-#endif // QT_VERSION
 }
 
-
-#if QT_VERSION >= 0x050000
 /**
  * Setup message handle for Qt 5
  * @param type
@@ -197,102 +191,6 @@ WorkbenchQtMessageHandler::messageHandlerForQt5(QtMsgType type,
         }
     }
 }
-
-#else  //QT_VERSION >= 0x050000
-
-/**
- * Setup message handle for Qt 4
- * @param type
- *    Type of message (Debug, info, warning, etc)
- * @param msg
- *    Message that is displayed.
- */
-void
-WorkbenchQtMessageHandler::messageHandlerForQt4(QtMsgType type,
-                                                const char* msg)
-{
-    const AString backtrace = SystemUtilities::getBackTrace();
-    
-    const AString message = (AString(msg) + "\n" + backtrace);
-    
-    if (CaretLogger::isValid()) {
-        bool abortFlag = false;
-        bool displayedFlag = false;
-        switch (type) {
-            case QtDebugMsg:
-                CaretLogInfo(message);
-                displayedFlag = CaretLogger::getLogger()->isInfo();
-                break;
-            case QtWarningMsg:
-                CaretLogWarning(message);
-                displayedFlag = CaretLogger::getLogger()->isWarning();
-                break;
-            case QtCriticalMsg:
-                CaretLogSevere(message);
-                displayedFlag = CaretLogger::getLogger()->isSevere();
-                break;
-            case QtFatalMsg:
-                cerr << "Qt Fatal: " << message << endl;
-                abortFlag = true;//fatal will cause an abort, so always display it, bypassing logger entirely
-                displayedFlag = true;
-                break;
-        }
-        
-        /*
-         * Beep to alert user about an error!!!
-         */
-        if (displayedFlag && (type != QtDebugMsg))//don't beep for debug
-        {
-            makeBeepSound();
-        }
-#ifndef NDEBUG
-        if (!displayedFlag)
-        {
-            cerr << "DEBUG: Qt ";
-            switch (type)
-            {
-                case QtDebugMsg:
-                    cerr << "Debug ";
-                    break;
-                case QtWarningMsg:
-                    cerr << "Warning ";
-                    break;
-                case QtCriticalMsg:
-                    cerr << "Critical ";
-                    break;
-                case QtFatalMsg:
-                    cerr << "FATAL (?!?) ";//should never happen
-                    break;
-            }
-            cerr << "message hidden" << endl;
-        }
-#endif
-        
-        if (abortFlag) {
-            std::abort();
-        }
-    }
-    else {
-        switch (type) {
-            case QtDebugMsg:
-                std::cerr << "Qt Debug: " << message << std::endl;
-                break;
-            case QtWarningMsg:
-                std::cerr << "Qt Warning: " << message << std::endl;
-                break;
-            case QtCriticalMsg:
-                std::cerr << "Qt Critical: " << message << std::endl;
-                break;
-            case QtFatalMsg:
-                std::cerr << "Qt Fatal: " << message << std::endl;
-                std::abort();
-                break;
-        }
-    }
-    
-}
-
-#endif // QT_VERSION >= 0x050000
 
 /**
  * Make a beeping sound using the 'Beeper' instance, if available

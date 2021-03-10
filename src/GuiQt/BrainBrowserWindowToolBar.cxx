@@ -28,10 +28,6 @@
 #include <QBoxLayout>
 #include <QButtonGroup>
 #include <QCheckBox>
-#if QT_VERSION >= 0x050000
-#else // QT_VERSION
-#include <QCleanlooksStyle>
-#endif // QT_VERSION
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QFrame>
@@ -233,7 +229,6 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
      * The style must remain valid until the destruction
      * of this instance.  It cannot be declared statically.
      */
-#if QT_VERSION >= 0x050000
     /*
      * "Cleanlooks Style" removed in Qt5.  Fusion style
      * seems to have same effect on toolbar so that 
@@ -245,11 +240,6 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
         fusionStyle->setParent(this);
         this->tabBar->setStyle(fusionStyle);
     }
-#else // QT_VERSION
-    QCleanlooksStyle* cleanLooksStyle = new QCleanlooksStyle();
-    cleanLooksStyle->setParent(this);
-    this->tabBar->setStyle(cleanLooksStyle);
-#endif // QT_VERSION
 #endif // Q_OS_MACX
     QObject::connect(this->tabBar, SIGNAL(currentChanged(int)),
                      this, SLOT(selectedTabChanged(int)));
