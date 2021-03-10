@@ -72,6 +72,8 @@
 #include <QMessageBox>
 #include <QPixmap>
 #include <QPushButton>
+#include <QRegularExpression>
+#include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QTimer>
@@ -260,15 +262,23 @@ WuQDialog::setStandardButtonEnabled(QDialogButtonBox::StandardButton button,
 void 
 WuQDialog::slotCaptureImageAfterTimeOut()
 {
-   QImage image = QPixmap::grabWindow(this->winId()).toImage();
-   if (image.isNull() == false) {
-      QClipboard* clipboard = QApplication::clipboard();
-      clipboard->setImage(image);
-      
-      QMessageBox::information(this,
-          "Information",
-          "An image of this dialog has been placed onto the computer's clipboard.");
-   }
+    QPixmap pixmap = this->grab();
+    if ( ! pixmap.isNull()) {
+        QImage image = pixmap.toImage();
+        if ( ! image.isNull()) {
+            QClipboard* clipboard = QApplication::clipboard();
+            clipboard->setImage(image);
+            
+            QMessageBox::information(this,
+                                     "Information",
+                                     "An image of this dialog has been placed onto the computer's clipboard.");
+            return;
+        }
+    }
+    
+    QMessageBox::warning(this,
+                         "Failed",
+                         "Failed to create image of the dialog.");
 }
 
 /**
@@ -542,7 +552,7 @@ WuQDialog::disableAutoDefaultForAllPushButtons()
     /*
      * Disable auto default for all push buttons
      */
-    QList<QPushButton*> allChildPushButtons = findChildren<QPushButton*>(QRegExp(".*"));
+    QList<QPushButton*> allChildPushButtons = findChildren<QPushButton*>(QRegularExpression(".*"));
     QListIterator<QPushButton*> allChildPushButtonsIterator(allChildPushButtons);
     while (allChildPushButtonsIterator.hasNext()) {
         QPushButton* pushButton = allChildPushButtonsIterator.next();

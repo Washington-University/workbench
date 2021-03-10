@@ -48,7 +48,7 @@ namespace caret {
 
     public:
         HelpViewerDialog(QWidget* parent,
-                         Qt::WindowFlags f = 0);
+                         Qt::WindowFlags f = Qt::WindowFlags());
         
         virtual ~HelpViewerDialog();
         

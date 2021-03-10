@@ -43,7 +43,7 @@ namespace caret  {
     protected:
         WuQDialog(const AString& dialogTitle,
                   QWidget* parent,
-                  Qt::WindowFlags f = 0);
+                  Qt::WindowFlags f = Qt::WindowFlags());
         
     public:
         /**

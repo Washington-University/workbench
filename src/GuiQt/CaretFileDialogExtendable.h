@@ -70,7 +70,10 @@ namespace caret {
         
         QFileDialog::AcceptMode acceptMode() const { return m_caretFileDialog->acceptMode(); }
         
-        bool confirmOverwrite() const { return m_caretFileDialog->confirmOverwrite(); } 
+        bool confirmOverwrite() const {
+            //return m_caretFileDialog->confirmOverwrite();
+            return ( ! m_caretFileDialog->testOption(QFileDialog::DontConfirmOverwrite));
+        }
         
         QString defaultSuffix() const { return m_caretFileDialog->defaultSuffix(); }
         
@@ -84,7 +87,10 @@ namespace caret {
         
         QFileIconProvider* iconProvider() const { return m_caretFileDialog->iconProvider(); }
         
-        bool isReadOnly() const { return m_caretFileDialog->isReadOnly(); }
+        bool isReadOnly() const {
+            //return m_caretFileDialog->isReadOnly();
+            return m_caretFileDialog->testOption(QFileDialog::ReadOnly);
+        }
         
         QAbstractItemDelegate* itemDelegate() const { return m_caretFileDialog->itemDelegate(); }
         
@@ -98,7 +104,11 @@ namespace caret {
         
         QAbstractProxyModel* proxyModel() const { return m_caretFileDialog->proxyModel(); }
         
-        bool resolveSymlinks() const { return m_caretFileDialog->resolveSymlinks(); }
+        bool resolveSymlinks() const {
+            //return m_caretFileDialog->resolveSymlinks();
+            return ( ! m_caretFileDialog->testOption(QFileDialog::DontResolveSymlinks));
+
+        }
         
         bool restoreState(const QByteArray& state) { return m_caretFileDialog->restoreState(state); }
         
@@ -114,7 +124,11 @@ namespace caret {
         
         void setAcceptMode(const QFileDialog::AcceptMode mode) { m_caretFileDialog->setAcceptMode(mode); }
         
-        void setConfirmOverwrite(const bool enabled) { m_caretFileDialog->setConfirmOverwrite(enabled); }
+        void setConfirmOverwrite(const bool enabled) {
+            //m_caretFileDialog->setConfirmOverwrite(enabled);
+            m_caretFileDialog->setOption(QFileDialog::DontConfirmOverwrite,
+                                         ( ! enabled));
+        }
         
         void setDefaultSuffix(const QString& suffix) { m_caretFileDialog->setDefaultSuffix(suffix); }
         
@@ -136,7 +150,11 @@ namespace caret {
         
         void setNameFilter(const QString& filter) { m_caretFileDialog->setNameFilter(filter); }
         
-        void setNameFilterDetailsVisible(bool enabled) { m_caretFileDialog->setNameFilterDetailsVisible(enabled); }
+        void setNameFilterDetailsVisible(bool enabled) {
+            //m_caretFileDialog->setNameFilterDetailsVisible(enabled);
+            m_caretFileDialog->setOption(QFileDialog::HideNameFilterDetails,
+                                         ( ! enabled));
+        }
         
         void setNameFilters(const QStringList& filters) { m_caretFileDialog->setNameFilters(filters); }
         
@@ -146,9 +164,17 @@ namespace caret {
         
         void setProxyModel(QAbstractProxyModel* proxyModel) { m_caretFileDialog->setProxyModel(proxyModel); }
         
-        void setReadOnly(const bool enabled) { m_caretFileDialog->setReadOnly(enabled); }
+        void setReadOnly(const bool enabled) {
+            //m_caretFileDialog->setReadOnly(enabled);
+            m_caretFileDialog->setOption(QFileDialog::ReadOnly,
+                                         enabled);
+        }
         
-        void setResolveSymlinks(bool enabled) { m_caretFileDialog->setResolveSymlinks(enabled); }
+        void setResolveSymlinks(bool enabled) {
+            //m_caretFileDialog->setResolveSymlinks(enabled);
+            m_caretFileDialog->setOption(QFileDialog::DontResolveSymlinks,
+                                         ( ! enabled));
+        }
         
         void setSidebarUrls(const QList<QUrl>& urls) { m_caretFileDialog->setSidebarUrls(urls); }
         

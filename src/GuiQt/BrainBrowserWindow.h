@@ -284,7 +284,7 @@ namespace caret {
                            BrowserTabContent* browserTabContent,
                            const CreateDefaultTabsMode createDefaultTabsMode,
                            QWidget* parent = 0,
-                           Qt::WindowFlags flags = 0);
+                           Qt::WindowFlags flags = Qt::WindowFlags());
         
         BrainBrowserWindow(const BrainBrowserWindow&);
         BrainBrowserWindow& operator=(const BrainBrowserWindow&);

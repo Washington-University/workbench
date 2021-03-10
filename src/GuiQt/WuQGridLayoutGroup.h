@@ -43,14 +43,14 @@ namespace caret {
         void addWidget(QWidget* widget,
                        int row,
                        int column,
-                       Qt::Alignment alignment = 0);
+                       Qt::Alignment alignment = Qt::Alignment());
         
         void addWidget(QWidget* widget,
                        int fromRow,
                        int fromColumn,
                        int rowSpan,
                        int columnSpan,
-                       Qt::Alignment alignment = 0);
+                       Qt::Alignment alignment = Qt::Alignment());
         
         int rowCount() const;
         

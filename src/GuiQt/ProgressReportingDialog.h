@@ -38,7 +38,7 @@ namespace caret {
         ProgressReportingDialog(const AString& title,
                                 const AString& initialMessage,
                                 QWidget* parent,
-                                Qt::WindowFlags f = 0);
+                                Qt::WindowFlags f = Qt::WindowFlags());
 
         static void runEvent(Event* event,
                              QWidget* parent,

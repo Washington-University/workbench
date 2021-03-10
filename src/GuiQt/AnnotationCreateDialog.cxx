@@ -504,7 +504,7 @@ m_imageHeight(0)
     if ( ! annotationSpaceValidFlag) {
         coordGroupBox = new QGroupBox("Coordinate Space");
         QVBoxLayout* coordGroupLayout = new QVBoxLayout(coordGroupBox);
-        coordGroupLayout->setMargin(0);
+        coordGroupLayout->setContentsMargins(0, 0, 0, 0);
         
         m_annotationSpaceButtonGroup = new QButtonGroup(this);
         for (std::vector<AnnotationCoordinateSpaceEnum::Enum>::iterator iter = m_newAnnotationInfo.m_validSpaces.begin();

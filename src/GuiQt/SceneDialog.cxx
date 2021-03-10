@@ -2219,7 +2219,7 @@ SceneDialog::createSceneFileWidget()
      */
     QLabel* sceneFileLabel = new QLabel("Scene File");
     m_sceneFileSelectionComboBox = new QComboBox();
-    m_sceneFileSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLength);
+    m_sceneFileSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     m_sceneFileSelectionComboBox->setSizePolicy(QSizePolicy::MinimumExpanding,
                                                 m_sceneFileSelectionComboBox->sizePolicy().verticalPolicy());
     WuQtUtilities::setToolTipAndStatusTip(m_sceneFileSelectionComboBox,
@@ -3230,7 +3230,7 @@ SceneClassInfoWidget::limitToNumberOfLines(AString& textLines,
     const QString lineSeparator("\n");
     
     QStringList descriptionLines = textLines.split(lineSeparator,
-                                                   QString::KeepEmptyParts);
+                                                   Qt::KeepEmptyParts);
     const int32_t numLines = descriptionLines.size();
     const int32_t numLinesToRemove = numLines - maximumNumberOfLines;
     if (numLinesToRemove > 0) {

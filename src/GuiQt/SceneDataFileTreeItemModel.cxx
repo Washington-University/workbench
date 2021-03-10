@@ -139,7 +139,7 @@ SceneDataFileTreeItemModel::addFindDirectoryPath(const AString& absoluteDirName)
         }
         
         QStringList components(nameForSplitting.split("/",
-                                                      QString::SkipEmptyParts));
+                                                      Qt::SkipEmptyParts));
         const int32_t componentCount = components.length();
 
         std::vector<AString> parentDirectoryHierarchy;

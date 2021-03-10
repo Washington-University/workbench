@@ -391,7 +391,7 @@ IdentificationDisplayWidget::createFilteringSettingsWidget()
     QWidget* tabFilterWidget = new QGroupBox("Show Files from Enabled Overlays");
     QVBoxLayout* tabFilterLayout = new QVBoxLayout(tabFilterWidget);
     m_tabFilterButtonGroup = new QButtonGroup(this);
-    QObject::connect(m_tabFilterButtonGroup, QOverload<int>::of(&QButtonGroup::buttonClicked),
+    QObject::connect(m_tabFilterButtonGroup, QOverload<int>::of(&QButtonGroup::idClicked),
                      this, &IdentificationDisplayWidget::tabFilterRadioButtonClicked);
     
     std::vector<IdentificationFilterTabSelectionEnum::Enum> tabFilterEnums;

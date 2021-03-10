@@ -466,7 +466,7 @@ BalsaDatabaseUploadSceneFileDialog::createBalsaDatabaseSelectionWidget()
         m_databaseComboBox->addItem("http://johnsdev.wustl.edu:8080");
         m_databaseComboBox->addItem("https://johnsdev.wustl.edu:8080");
     }
-    QObject::connect(m_databaseComboBox, static_cast<void(QComboBox::*)(const QString&)>(&QComboBox::activated),
+    QObject::connect(m_databaseComboBox, static_cast<void(QComboBox::*)(const QString&)>(&QComboBox::textActivated),
                      this, [=] { this->loginInformationChanged(); });
     QObject::connect(m_databaseComboBox, &QComboBox::editTextChanged,
                      this, [=] { this->loginInformationChanged(); });
@@ -508,7 +508,7 @@ BalsaDatabaseUploadSceneFileDialog::creatZipFileDirectoryWidget()
     buttGroup->addButton(m_zipFileTemporaryDirectoryRadioButton);
     buttGroup->addButton(m_zipFileCustomDirectoryRadioButton);
     m_zipFileTemporaryDirectoryRadioButton->setChecked(true); // do before signal
-    QObject::connect(buttGroup, static_cast<void(QButtonGroup::*)(int)>(&QButtonGroup::buttonClicked),
+    QObject::connect(buttGroup, static_cast<void(QButtonGroup::*)(int)>(&QButtonGroup::idClicked),
                      [=](int id){ this->zipFileDirectoryRadioButtonClicked(id); });
     
     m_zipFileAutomaticDirectoryLineEdit = new QLineEdit();

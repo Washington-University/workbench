@@ -944,7 +944,7 @@ BalsaDatabaseManager::getSceneIDs(const int32_t numberOfSceneIDs,
          * Example: vp5B<br>Z02A<BR>
          */
         QStringList sl = responseContent.split("<br>",
-                                               QString::SkipEmptyParts,
+                                               Qt::SkipEmptyParts,
                                                Qt::CaseInsensitive);
         const int32_t receivedCount = sl.count();
         if (receivedCount != numberOfSceneIDs) {

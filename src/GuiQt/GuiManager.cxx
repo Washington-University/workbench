@@ -30,6 +30,7 @@
 #include <QPainter>
 #include <QPen>
 #include <QPushButton>
+#include <QScreen>
 #include <QToolTip>
 
 #define __GUI_MANAGER_DEFINE__
@@ -1289,8 +1290,8 @@ void GuiManager::processTileWindows()
         return;
     }
     
-    QDesktopWidget* dw = QApplication::desktop();
-    const int32_t numScreens = dw->screenCount();
+    QList<QScreen*> allScreens = QGuiApplication::screens();
+    const int32_t numScreens = allScreens.size();
     const int32_t windowsPerScreen = std::max(numWindows / numScreens,
                                               1);
     
@@ -1317,7 +1318,7 @@ void GuiManager::processTileWindows()
      */
     int32_t windowIndex = 0;
     for (int32_t iScreen = 0; iScreen < numScreens; iScreen++) {
-        const QRect rect = dw->availableGeometry(iScreen);
+        const QRect rect = allScreens[iScreen]->availableGeometry();
         const int screenX = rect.x();
         const int screenY = rect.y();
         const int screenWidth = rect.width();

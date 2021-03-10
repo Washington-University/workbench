@@ -78,7 +78,7 @@ WuQTabWidget::WuQTabWidget(const TabAlignment alignment,
     tabBarLayout->addWidget(m_tabBar,
                             100,
                             tabBarAlignment);
-    tabBarLayout->setMargin(0);
+    tabBarLayout->setContentsMargins(0, 0, 0, 0);
     
     QGroupBox* stackedWidgetGroupBox = new QGroupBox();
     QVBoxLayout* groupBoxLayout = new QVBoxLayout(stackedWidgetGroupBox);

@@ -3235,9 +3235,10 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
                           rowLabel, 0, 1, columnCount, Qt::AlignHCenter);
     }
     
-    int left(1), right(1), bottom(0), top(0);
-    w->getContentsMargins(NULL, &top, NULL, &bottom);
-    w->setContentsMargins(left, top, right, bottom);
+    QMargins m(w->contentsMargins());
+    m.setLeft(0);
+    m.setRight(0);
+    w->setContentsMargins(m);
 
     return w;
 }

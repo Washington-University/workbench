@@ -37,7 +37,7 @@ namespace caret {
 
     public:
         InformationDisplayPropertiesDialog(QWidget* parent,
-                                        Qt::WindowFlags f = 0);
+                                        Qt::WindowFlags f = Qt::WindowFlags());
         
         virtual ~InformationDisplayPropertiesDialog();
         

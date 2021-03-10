@@ -99,7 +99,7 @@ AnnotationChangeCoordinateDialog::createNewCoordinateWidget()
     m_coordinateSelectionWidget->selectCoordinateSpace(m_annotation->getCoordinateSpace());
     QGroupBox* newCoordGroupBox = new QGroupBox("New Coordinate");
     QVBoxLayout* newCoordGroupLayout = new QVBoxLayout(newCoordGroupBox);
-    newCoordGroupLayout->setMargin(0);
+    newCoordGroupLayout->setContentsMargins(0, 0, 0, 0);
     newCoordGroupLayout->addWidget(m_coordinateSelectionWidget);
     
     return newCoordGroupBox;

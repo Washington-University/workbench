@@ -199,7 +199,7 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     /*
      * Disable auto default for all push buttons
      */
-    QList<QPushButton*> allChildPushButtons = findChildren<QPushButton*>(QRegExp(".*"));
+    QList<QPushButton*> allChildPushButtons = findChildren<QPushButton*>(QRegularExpression(".*"));    
     QListIterator<QPushButton*> allChildPushButtonsIterator(allChildPushButtons);
     while (allChildPushButtonsIterator.hasNext()) {
         QPushButton* pushButton = allChildPushButtonsIterator.next();

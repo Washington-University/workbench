@@ -124,7 +124,7 @@ WuQMacroWidgetAction::requestWidget(QWidget* parent)
             for (auto s : m_comboBoxStringListItems) {
                 cb->addItem(s);
             }
-            QObject::connect(cb, QOverload<const QString&>::of(&QComboBox::activated),
+            QObject::connect(cb, QOverload<const QString&>::of(&QComboBox::textActivated),
                              this, [=](const QString& value) { emit valueChanged(value); } );
             w = cb;
         }

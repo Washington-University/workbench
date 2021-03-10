@@ -1020,8 +1020,9 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
      * out of its viewport without releasing the mouse
      * button.
      */
-    const int wheelX = we->x();
-    const int wheelY = this->windowHeight[this->windowIndex] - we->y();
+    const QPointF pos(we->position());
+    const int wheelX = pos.x();
+    const int wheelY = this->windowHeight[this->windowIndex] - pos.y();
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
                                                                                      wheelY);
     if (viewportContent != NULL) {

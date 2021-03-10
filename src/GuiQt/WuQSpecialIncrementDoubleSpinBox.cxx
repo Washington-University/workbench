@@ -98,7 +98,7 @@ WuQSpecialIncrementDoubleSpinBox::stepBy(int steps)
 //        std::cout << qPrintable(msg) << std::endl;
         
         emit valueChanged(newValue);
-        emit valueChanged(text());
+        emit textChanged(text());
     }
 }
 

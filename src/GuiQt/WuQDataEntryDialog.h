@@ -57,12 +57,12 @@ namespace caret {
         WuQDataEntryDialog(const QString& title,
                            QWidget* parent,
                            const bool addScrollBarsFlag = false,
-                           Qt::WindowFlags f = 0);
+                           Qt::WindowFlags f = Qt::WindowFlags());
         
         WuQDataEntryDialog(const QString& title,
                            QWidget* parent,
                            const WuQDialog::ScrollAreaStatus scrollBarStatus,
-                           Qt::WindowFlags f = 0);
+                           Qt::WindowFlags f = Qt::WindowFlags());
         
         void hideCancelButton();
         

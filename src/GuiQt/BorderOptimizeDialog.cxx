@@ -685,6 +685,8 @@ BorderOptimizeDialog::getModifiedBorders(std::vector<Border*>& modifiedBordersOu
 QWidget*
 BorderOptimizeDialog::createBorderSelectionWidget()
 {
+    const QMargins margins2(2, 2, 2, 2);
+    
     m_borderPairCheckBox = new QCheckBox("Border Pair File");
     m_borderPairCheckBox->setChecked(true);
     m_borderPairFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(DataFileTypeEnum::BORDER);
@@ -698,7 +700,7 @@ BorderOptimizeDialog::createBorderSelectionWidget()
     m_borderPairFileSelectionComboBox->getWidget()->setEnabled(m_borderPairCheckBox->isChecked());
     
     m_bordersInsideROIGridLayout = new QGridLayout();
-    m_bordersInsideROIGridLayout->setMargin(2);
+    m_bordersInsideROIGridLayout->setContentsMargins(margins2);
     m_bordersInsideROIGridLayout->setHorizontalSpacing(25);
     m_bordersInsideROIGridLayout->setColumnStretch(100, 1000); // force widgets to left
     
@@ -717,7 +719,7 @@ BorderOptimizeDialog::createBorderSelectionWidget()
     enableAllToolButton->setDefaultAction(enableAllAction);
     
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
-    buttonsLayout->setMargin(2);
+    buttonsLayout->setContentsMargins(margins2);
     buttonsLayout->addWidget(enableAllToolButton);
     buttonsLayout->addWidget(disableAllToolButton);
     buttonsLayout->addStretch();
@@ -725,7 +727,7 @@ BorderOptimizeDialog::createBorderSelectionWidget()
     QGroupBox* widget = new QGroupBox("Borders");
     widget->setSizePolicy(widget->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->setMargin(2);
+    layout->setContentsMargins(margins2);
     layout->addLayout(borderPairLayout);
     layout->addLayout(m_bordersInsideROIGridLayout, STRETCH_NONE);
     layout->addLayout(buttonsLayout, STRETCH_NONE);
@@ -773,6 +775,8 @@ BorderOptimizeDialog::setAllBorderEnabledSelections(const bool status)
 QWidget*
 BorderOptimizeDialog::createDataFilesWidget()
 {
+    QMargins margins2(2, 2, 2, 2);
+    
     QWidget* gridWidget = new QWidget();
     if (DATA_FILES_IN_SCROLL_BARS) {
         gridWidget->setSizePolicy(gridWidget->sizePolicy().horizontalPolicy(),
@@ -783,7 +787,7 @@ BorderOptimizeDialog::createDataFilesWidget()
 //                                  QSizePolicy::Fixed);
     }
     m_borderOptimizeDataFileGridLayout = new QGridLayout(gridWidget);
-    m_borderOptimizeDataFileGridLayout->setMargin(2);
+    m_borderOptimizeDataFileGridLayout->setContentsMargins(margins2);
     
     std::vector<CaretMappableDataFile*> optimizeMapFiles;
     GuiManager::get()->getBrain()->getAllMappableDataFileWithDataFileTypes(m_optimizeDataFileTypes,
@@ -844,7 +848,7 @@ BorderOptimizeDialog::createDataFilesWidget()
     enableAllToolButton->setDefaultAction(enableAllAction);
     
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
-    buttonsLayout->setMargin(2);
+    buttonsLayout->setContentsMargins(margins2);
     buttonsLayout->addWidget(addRowToolButton);
     buttonsLayout->addWidget(enableAllToolButton);
     buttonsLayout->addWidget(disableAllToolButton);
@@ -857,7 +861,7 @@ BorderOptimizeDialog::createDataFilesWidget()
     }
     
     QVBoxLayout* groupBoxLayout = new QVBoxLayout(groupBox);
-    groupBoxLayout->setMargin(2);
+    groupBoxLayout->setContentsMargins(margins2);
     if (DATA_FILES_IN_SCROLL_BARS) {
         groupBox->setMinimumHeight(300);
         groupBoxLayout->addWidget(widget, STRETCH_NONE);
@@ -958,7 +962,7 @@ BorderOptimizeDialog::createVertexAreasMetricWidget()
     QGroupBox* widget = new QGroupBox("Vertex Areas Metric File");
     widget->setSizePolicy(widget->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->setMargin(2);
+    layout->setContentsMargins(2, 2, 2, 2);
 
     layout->addWidget(m_vertexAreasMetricFileComboBox->getWidget());
     
@@ -993,7 +997,7 @@ BorderOptimizeDialog::createOptionsWidget()
     QGroupBox* widget = new QGroupBox("Options");
     widget->setSizePolicy(widget->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->setMargin(2);
+    layout->setContentsMargins(2, 2, 2, 2);
     layout->addWidget(m_keepRegionBorderCheckBox);
     layout->addWidget(m_outputGradientMapCheckBox);
     layout->addLayout(gradientLayout);
@@ -1026,7 +1030,7 @@ BorderOptimizeDialog::createSurfaceSelectionWidget()
     QGroupBox* widget = new QGroupBox("Gradient Computation Surface");
     widget->setSizePolicy(widget->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->setMargin(2);
+    layout->setContentsMargins(2, 2, 2, 2);
     layout->addWidget(m_surfaceSelectionControl->getWidget());
     
     return widget;
@@ -1055,7 +1059,7 @@ BorderOptimizeDialog::createSphericalUpsamplingWidget()
     m_upsamplingGroupBox->setCheckable(true);
     m_upsamplingGroupBox->setChecked(true);
     QGridLayout* layout = new QGridLayout(m_upsamplingGroupBox);
-    layout->setMargin(2);
+    layout->setContentsMargins(2, 2, 2, 2);
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 100);
     int row = 0;
@@ -1076,7 +1080,7 @@ QWidget* BorderOptimizeDialog::createSavingWidget()
     m_savingGroupBox->setChecked(true);
     
     QGridLayout* layout = new QGridLayout(m_savingGroupBox);
-    layout->setMargin(2);
+    layout->setContentsMargins(2, 2, 2, 2);
     layout->setColumnStretch(0, 0);//label
     layout->setColumnStretch(1, 100);//line edit
     layout->setColumnStretch(2, 0);//button or extended line edit

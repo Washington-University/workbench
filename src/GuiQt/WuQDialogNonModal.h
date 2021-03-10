@@ -31,7 +31,7 @@ namespace caret {
     public:
         WuQDialogNonModal(const AString& dialogTitle,
                           QWidget* parent = 0,
-                          Qt::WindowFlags f = 0);
+                          Qt::WindowFlags f = Qt::WindowFlags());
         
         virtual ~WuQDialogNonModal();
         

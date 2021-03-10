@@ -217,7 +217,7 @@ void MovieDialog::on_recordButton_toggled(bool checked)
 
         QString formatString("Movie Files (*.mpg *.mp4)");
 
-        AString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString::null, formatString );
+        AString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString(), formatString );
         AString tempDir = QDir::tempPath();
         if ( !fileName.isEmpty() )
         {
