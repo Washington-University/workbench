@@ -230,8 +230,6 @@ IF (WORKBENCH_USE_QT5)
     IF (WORKBENCH_QT5_DISABLE_DEPRECATED)
         # Causes Qt to remove declarations for deprecated functionality
         add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x060000) 
-        # Enable usage of replacements for Qt deprecated functionality in Workbench source code
-        add_definitions(-DWORKBENCH_REPLACE_QT_DEPRECATED)
     ENDIF (WORKBENCH_QT5_DISABLE_DEPRECATED)
 
     #small hack to get the qt5 compile flag requirements into libraries
