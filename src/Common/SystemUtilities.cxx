@@ -443,9 +443,9 @@ SystemUtilities::relativePath(
 #endif
     
     QStringList otherPath = QDir::cleanPath(otherPathIn).split(QRegExp("[/\\\\]"), 
-                                                               QString::SkipEmptyParts);
+                                                               Qt::SkipEmptyParts);
     QStringList myPath = QDir::cleanPath(myPathIn).split(QRegExp("[/\\\\]"), 
-                                                         QString::SkipEmptyParts);    
+                                                         Qt::SkipEmptyParts);
     
     const unsigned int minLength = std::min(myPath.size(), otherPath.size());
     

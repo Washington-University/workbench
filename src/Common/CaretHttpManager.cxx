@@ -273,7 +273,7 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
                 if (!first) postData += "&";
                 if (request.m_arguments[i].second == "")
                 {
-                    postData += request.m_arguments[i].first;
+                    postData += request.m_arguments[i].first.toUtf8();
                 } else {
                     //postData += request.m_arguments[i].first + "=" + request.m_arguments[i].second;
                     postData += QUrl::toPercentEncoding(request.m_arguments[i].first) + "=" + QUrl::toPercentEncoding(request.m_arguments[i].second);

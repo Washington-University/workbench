@@ -457,7 +457,7 @@ ModelTransform::setFromString(const AString& s)
     QStringList sl;
     if (s.contains(s_separatorInPreferences)) {
         sl = s.split(s_separatorInPreferences,
-                                 QString::KeepEmptyParts);
+                                 Qt::KeepEmptyParts);
         const int numElements = sl.count();
         
         if (numElements == 57) {
@@ -491,7 +491,7 @@ ModelTransform::setFromString(const AString& s)
         }
     }
     else {
-        sl = s.split(",", QString::KeepEmptyParts);
+        sl = s.split(",", Qt::KeepEmptyParts);
         const int numElements = sl.count();
         if (numElements != 21) {
             CaretLogSevere("User view string does not contain 21 elements");
