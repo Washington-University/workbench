@@ -581,7 +581,7 @@ void SurfaceProjectionBarycentric::readBorderFileXML1(QXmlStreamReader& xml)
                     if (haveAreas) throw DataFileException("multiple TriangleAreas elements in one ProjectionBarycentric element");
                     QString text = xml.readElementText();//errors on unexpected element
                     if (xml.hasError()) throw DataFileException("XML parsing error in TriangleAreas: " + xml.errorString());
-                    QStringList areaStrings = text.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+                    QStringList areaStrings = text.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
                     if (areaStrings.size() != 3) throw DataFileException("TriangleAreas element must contain 3 numbers separated by whitespace");
                     bool ok = false;
                     for (int i = 0; i < 3; ++i)
@@ -594,7 +594,7 @@ void SurfaceProjectionBarycentric::readBorderFileXML1(QXmlStreamReader& xml)
                     if (haveNodes) throw DataFileException("multiple TriangleNodes elements in one ProjectionBarycentric element");
                     QString text = xml.readElementText();//errors on unexpected element
                     if (xml.hasError()) throw DataFileException("XML parsing error in TriangleNodes: " + xml.errorString());
-                    QStringList nodeStrings = text.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+                    QStringList nodeStrings = text.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
                     if (nodeStrings.size() != 3) throw DataFileException("TriangleNodes element must contain 3 integers separated by whitespace");
                     bool ok = false;
                     for (int i = 0; i < 3; ++i)

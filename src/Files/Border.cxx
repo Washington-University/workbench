@@ -1721,7 +1721,7 @@ void Border::readXML3(QXmlStreamReader& xml)
                 if (haveVertices) throw DataFileException("multiple Vertices elements in one BorderPart element");
                 QString vertexText = xml.readElementText();//errors on unexpected element
                 if (xml.hasError()) throw DataFileException("XML parsing error in Vertices: " + xml.errorString());
-                QStringList vertexStrings = vertexText.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+                QStringList vertexStrings = vertexText.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
                 int numItems = (int)vertexStrings.size();
                 if (numItems % 3 != 0) throw DataFileException("number of items in Vertices element text is not a multiple of 3");
                 for (int i = 0; i < numItems; ++i)
@@ -1737,7 +1737,7 @@ void Border::readXML3(QXmlStreamReader& xml)
                 if (haveWeights) throw DataFileException("multiple Weights elements in one BorderPart element");
                 QString vertexText = xml.readElementText();//errors on unexpected element
                 if (xml.hasError()) throw DataFileException("XML parsing error in Weights: " + xml.errorString());
-                QStringList vertexStrings = vertexText.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+                QStringList vertexStrings = vertexText.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
                 int numItems = (int)vertexStrings.size();
                 if (numItems % 3 != 0) throw DataFileException("number of items in Weights element text is not a multiple of 3");
                 for (int i = 0; i < numItems; ++i)
