@@ -93,7 +93,7 @@ void OperationCiftiCreateScalarSeries::useParameters(OperationParameters* myPara
     while (inputFile)
     {
         getline(inputFile, inputLine);
-        QStringList tokens = QString(inputLine.c_str()).split(QRegExp("\\s+"), QString::SkipEmptyParts);
+        QStringList tokens = QString(inputLine.c_str()).split(QRegExp("\\s+"), Qt::SkipEmptyParts);
         if (tokens.empty()) break;//in case there are extra newlines on the end
         if (!inFileData.empty() && (int)inFileData.back().size() != tokens.size())
             throw OperationException("input file is not a rectangular matrix, starting at line " + AString::number(inFileData.size() + 2));//1 for 0-indexing, 1 for line not added to matrix yet

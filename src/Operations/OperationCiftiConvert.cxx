@@ -504,9 +504,9 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         QStringList entries;
         if (delim.isEmpty())
         {
-            entries = QString(templine.c_str()).split(QRegExp("\\s+"), QString::SkipEmptyParts);
+            entries = QString(templine.c_str()).split(QRegExp("\\s+"), Qt::SkipEmptyParts);
         } else {
-            entries = QString(templine.c_str()).split(delim, QString::SkipEmptyParts);
+            entries = QString(templine.c_str()).split(delim, Qt::SkipEmptyParts);
         }
         if (numRows < 1) throw OperationException("template cifti file has no data");//this probably throws an exception in CiftiFile, but double check
         int textRowLength = entries.size();
@@ -547,9 +547,9 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             if (!getline(textIn, templine)) throw OperationException("failed to read from input text file (not enough rows)");
             if (delim.isEmpty())
             {
-                entries = QString(templine.c_str()).split(QRegExp("\\s+"), QString::SkipEmptyParts);
+                entries = QString(templine.c_str()).split(QRegExp("\\s+"), Qt::SkipEmptyParts);
             } else {
-                entries = QString(templine.c_str()).split(delim, QString::SkipEmptyParts);
+                entries = QString(templine.c_str()).split(delim, Qt::SkipEmptyParts);
             }
             if (entries.size() != textRowLength) throw OperationException("text file has inconsistent line length");
             for (int i = 0; i < textRowLength; ++i)
