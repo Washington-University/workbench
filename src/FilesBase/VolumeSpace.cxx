@@ -358,7 +358,7 @@ void VolumeSpace::readCiftiXML1(QXmlStreamReader& xml)
     }
     QString accum = xml.readElementText();
     if (xml.hasError()) return;
-    QStringList matrixStrings = accum.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+    QStringList matrixStrings = accum.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
     if (matrixStrings.size() != 16)
     {
         throw CaretException("text content of TransformationMatrixVoxelIndicesIJKtoXYZ must have exactly 16 numbers separated by whitespace");
@@ -437,7 +437,7 @@ void VolumeSpace::readCiftiXML2(QXmlStreamReader& xml)
     float mult = pow(10.0f, exponent + 3);//because our internal units are mm
     QString accum = xml.readElementText();
     if (xml.hasError()) return;
-    QStringList matrixStrings = accum.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+    QStringList matrixStrings = accum.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
     if (matrixStrings.size() != 16)
     {
         throw CaretException("text content of TransformationMatrixVoxelIndicesIJKtoXYZ must have exactly 16 numbers separated by whitespace");
