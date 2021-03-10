@@ -2263,7 +2263,7 @@ m_textDrawingSpace(TextDrawingSpace::VIEWPORT)
                           ? m_annotationText.getTextWithSubstitutionsApplied()
                           : m_annotationText.getText());
     QStringList textList = textString.split('\n',
-                                            QString::KeepEmptyParts);
+                                            Qt::KeepEmptyParts);
     const int32_t textListSize = textList.size();
     
     for (int32_t i = 0; i < textListSize; i++) {
