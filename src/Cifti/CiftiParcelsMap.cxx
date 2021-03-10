@@ -628,7 +628,7 @@ vector<int64_t> CiftiParcelsMap::readIndexArray(QXmlStreamReader& xml)
     vector<int64_t> ret;
     QString text = xml.readElementText();//raises error if it encounters a start element
     if (xml.hasError()) return ret;
-    QStringList separated = text.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+    QStringList separated = text.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
     int64_t numElems = separated.size();
     ret.reserve(numElems);
     for (int64_t i = 0; i < numElems; ++i)

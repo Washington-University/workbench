@@ -443,7 +443,7 @@ void CiftiXMLReader::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelEleme
                 }
                 QString nodeIndices = xml.text().toString();
 
-                QStringList list = nodeIndices.split(QRegExp("\\D+"),QString::SkipEmptyParts);
+                QStringList list = nodeIndices.split(QRegExp("\\D+"),Qt::SkipEmptyParts);
                 bool ok = true;
                 for(int i = 0;i<list.count();i++)
                 {
@@ -471,7 +471,7 @@ void CiftiXMLReader::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelEleme
                 }
                 QString voxelIndicesIJK = xml.text().toString();
 
-                QStringList list = voxelIndicesIJK.split(QRegExp("\\D+"),QString::SkipEmptyParts);
+                QStringList list = voxelIndicesIJK.split(QRegExp("\\D+"),Qt::SkipEmptyParts);
                 if(list.count()%3) xml.raiseError("VoxelIndicesIJK has an incomplete triplet");
                 bool ok = true;
                 for(int i = 0;i<list.count();i++)
@@ -586,7 +586,7 @@ void CiftiXMLReader::parseParcel(QXmlStreamReader& xml, CiftiParcelElement& parc
                 if(xml.tokenType() == QXmlStreamReader::Characters)
                 {
                     QString voxelIndicesIJK = xml.text().toString();
-                    QStringList list = voxelIndicesIJK.split(QRegExp("\\D+"),QString::SkipEmptyParts);
+                    QStringList list = voxelIndicesIJK.split(QRegExp("\\D+"),Qt::SkipEmptyParts);
                     if(list.count()%3) xml.raiseError("VoxelIndicesIJK has an incomplete triplet");
                     bool ok = true;
                     for(int i = 0;i<list.count();i++)
@@ -634,7 +634,7 @@ void CiftiXMLReader::parseParcelNodes(QXmlStreamReader& xml, CiftiParcelNodesEle
     if (xml.isCharacters())
     {
         QString nodeIndices = xml.text().toString();
-        QStringList list = nodeIndices.split(QRegExp("\\D+"),QString::SkipEmptyParts);
+        QStringList list = nodeIndices.split(QRegExp("\\D+"),Qt::SkipEmptyParts);
         bool ok = true;
         for(int i = 0;i<list.count();i++)
         {
@@ -735,7 +735,7 @@ void CiftiXMLReader::parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamRea
         return;
     }
     QString voxelIndicesString = xml.text().toString();
-    QStringList voxelIndices = voxelIndicesString.split(QRegExp("\\s+"),QString::SkipEmptyParts);
+    QStringList voxelIndices = voxelIndicesString.split(QRegExp("\\s+"),Qt::SkipEmptyParts);
     if (voxelIndices.size() == 16)
     {
         for(int i = 0;i<16;i++)

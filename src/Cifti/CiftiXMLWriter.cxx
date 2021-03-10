@@ -146,8 +146,8 @@ void CiftiXMLWriter::writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMat
 
     if(timeStepUnits.length()>0) {
         QString str;
-        xml.writeAttribute("TimeStep",str.sprintf("%.10f",matrixIndicesMap.m_timeStep));
-        if (matrixIndicesMap.m_hasTimeStart) xml.writeAttribute("TimeStart",str.sprintf("%.10f",matrixIndicesMap.m_timeStart));
+        xml.writeAttribute("TimeStep", QString::number(matrixIndicesMap.m_timeStep, 'f', 10));
+        if (matrixIndicesMap.m_hasTimeStart) xml.writeAttribute("TimeStart",QString::number(matrixIndicesMap.m_timeStart,'f',10));
         xml.writeAttribute("TimeStepUnits",timeStepUnits);
     }
     if(matrixIndicesMap.m_appliesToMatrixDimension.size())
@@ -158,11 +158,11 @@ void CiftiXMLWriter::writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMat
         {
             int temp = matrixIndicesMap.m_appliesToMatrixDimension[i];
             if (temp < 2 && m_writingVersion.hasReversedFirstDims()) temp = 1 - temp;//in other words, 0 becomes 1 and 1 becomes 0
-            appliesToMatrixDimension.append(str.sprintf("%d,",temp));
+            appliesToMatrixDimension.append(QString::number(temp));
         }
         int temp = matrixIndicesMap.m_appliesToMatrixDimension[lastElement];
         if (temp < 2 && m_writingVersion.hasReversedFirstDims()) temp = 1 - temp;//in other words, 0 becomes 1 and 1 becomes 0
-        appliesToMatrixDimension.append(str.sprintf("%d",temp));
+        appliesToMatrixDimension.append(QString::number(temp));
         xml.writeAttribute("AppliesToMatrixDimension", appliesToMatrixDimension);
     }
 
