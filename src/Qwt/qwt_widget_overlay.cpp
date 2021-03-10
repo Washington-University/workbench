@@ -219,7 +219,11 @@ void QwtWidgetOverlay::updateMask()
         draw( &painter );
         painter.end();
 
-        mask = qwtAlphaMask( image, hint.rects() );
+        QVector<QRect> rects;
+        for (auto& r : hint) {
+            rects.push_back(r);
+        }
+        mask = qwtAlphaMask( image, rects );
 
         if ( d_data->renderMode == QwtWidgetOverlay::DrawOverlay )
         {
@@ -269,8 +273,13 @@ void QwtWidgetOverlay::paintEvent( QPaintEvent* event )
         const QImage image( d_data->rgbaBuffer, 
             width(), height(), qwtMaskImageFormat() );
 
+        QVector<QRect> clipRegionRects;
+        for (auto& r : clipRegion) {
+            clipRegionRects.push_back(r);
+        }
+        
         QVector<QRect> rects;
-        if ( clipRegion.rects().size() > 2000 )
+        if ( clipRegionRects.size() > 2000 )
         {
             // the region is to complex
             painter.setClipRegion( clipRegion );
@@ -278,7 +287,7 @@ void QwtWidgetOverlay::paintEvent( QPaintEvent* event )
         }
         else
         {
-            rects = clipRegion.rects();
+            rects = clipRegionRects;
         }
 
         for ( int i = 0; i < rects.size(); i++ )

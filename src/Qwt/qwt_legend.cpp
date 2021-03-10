@@ -229,7 +229,9 @@ public:
 
         const QSize visibleSize = viewport()->contentsRect().size();
 
-        const int minW = int( tl->maxItemWidth() ) + 2 * tl->margin();
+        int left, top, right, bottom;
+        tl->getContentsMargins(&left, &top, &right, &bottom);
+        const int minW = int( tl->maxItemWidth() ) + (left + right);
 
         int w = qMax( visibleSize.width(), minW );
         int h = qMax( tl->heightForWidth( w ), visibleSize.height() );
@@ -668,8 +670,11 @@ void QwtLegend::renderLegend( QPainter *painter,
     if ( legendLayout == NULL )
         return;
 
-    int left, right, top, bottom;
-    getContentsMargins( &left, &top, &right, &bottom );
+    QMargins m(contentsMargins());
+    const int left(m.left());
+    const int top(m.top());
+    const int right(m.right());
+    const int bottom(m.bottom());
 
     QRect layoutRect; 
     layoutRect.setLeft( qCeil( rect.left() ) + left );

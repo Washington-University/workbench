@@ -164,12 +164,11 @@ void QwtPlotLayout::LayoutData::init( const QwtPlot *plot, const QRectF &rect )
     }
 
     // canvas
-
-    plot->canvas()->getContentsMargins( 
-        &canvas.contentsMargins[ QwtPlot::yLeft ], 
-        &canvas.contentsMargins[ QwtPlot::xTop ],
-        &canvas.contentsMargins[ QwtPlot::yRight ],
-        &canvas.contentsMargins[ QwtPlot::xBottom ] );
+    const QMargins plotCanvasMargins(plot->canvas()->contentsMargins());
+    canvas.contentsMargins[ QwtPlot::yLeft ] = plotCanvasMargins.left();
+    canvas.contentsMargins[ QwtPlot::xTop ]  = plotCanvasMargins.top();
+    canvas.contentsMargins[ QwtPlot::yRight ] = plotCanvasMargins.right();
+    canvas.contentsMargins[ QwtPlot::xBottom ] = plotCanvasMargins.bottom();
 }
 
 class QwtPlotLayout::PrivateData
@@ -575,8 +574,8 @@ QSize QwtPlotLayout::minimumSizeHint( const QwtPlot *plot ) const
 
     int canvasBorder[QwtPlot::axisCnt];
 
-    int fw;
-    plot->canvas()->getContentsMargins( &fw, NULL, NULL, NULL );
+    QMargins plotMargins(plot->contentsMargins());
+    int fw = plotMargins.left();
 
     int axis;
     for ( axis = 0; axis < QwtPlot::axisCnt; axis++ )
@@ -648,9 +647,8 @@ QSize QwtPlotLayout::minimumSizeHint( const QwtPlot *plot ) const
     }
 
     const QWidget *canvas = plot->canvas();
-
-    int left, top, right, bottom;
-    canvas->getContentsMargins( &left, &top, &right, &bottom );
+    const QMargins m(canvas->contentsMargins());
+    int left = m.left(), top = m.top(), right = m.right(), bottom = m.bottom();
 
     const QSize minCanvasSize = canvas->minimumSize();
 

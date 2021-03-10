@@ -600,14 +600,14 @@ QList<QwtLegendData> QwtPlotItem::legendData() const
     label.setRenderFlags( label.renderFlags() & Qt::AlignLeft );
             
     QVariant titleValue;
-    qVariantSetValue( titleValue, label );
+    titleValue.setValue(label);
     data.setValue( QwtLegendData::TitleRole, titleValue );
         
     const QwtGraphic graphic = legendIcon( 0, legendIconSize() );
     if ( !graphic.isNull() )
     {   
         QVariant iconValue;
-        qVariantSetValue( iconValue, graphic );
+        iconValue.setValue(graphic);
         data.setValue( QwtLegendData::IconRole, iconValue );
     }   
         

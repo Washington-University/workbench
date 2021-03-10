@@ -251,7 +251,7 @@ void QwtPlotRenderer::renderDocument( QwtPlot *plot,
         printer.setOutputFormat( QPrinter::PdfFormat );
         printer.setColorMode( QPrinter::Color );
         printer.setFullPage( true );
-        printer.setPaperSize( sizeMM, QPrinter::Millimeter );
+        printer.setPageSize( QPageSize(sizeMM, QPageSize::Millimeter));
         printer.setDocName( title );
         printer.setOutputFileName( fileName );
         printer.setResolution( resolution );
@@ -441,9 +441,8 @@ void QwtPlotRenderer::render( QwtPlot *plot,
     {
         // subtract the contents margins
 
-        int left, top, right, bottom;
-        plot->getContentsMargins( &left, &top, &right, &bottom );
-        layoutRect.adjust( left, top, -right, -bottom );
+        QMargins m(plot->contentsMargins());
+        layoutRect.adjust( m.left(), m.top(), -m.right(), -m.bottom() );
     }
 
     QwtPlotLayout *layout = plot->plotLayout();

@@ -26,12 +26,6 @@ static bool qwtHasScalablePen( const QPainter *painter )
     if ( pen.style() != Qt::NoPen && pen.brush().style() != Qt::NoBrush )
     {
         scalablePen = !pen.isCosmetic();
-        if ( !scalablePen && pen.widthF() == 0.0 )
-        {
-            const QPainter::RenderHints hints = painter->renderHints();
-            if ( hints.testFlag( QPainter::NonCosmeticDefaultPen ) )
-                scalablePen = true;
-        }
     }
 
     return scalablePen;
@@ -79,12 +73,6 @@ static inline void qwtExecCommand(
                 && painter->transform().isScaling() )
             {
                 bool isCosmetic = painter->pen().isCosmetic();
-                if ( isCosmetic && painter->pen().widthF() == 0.0 )
-                {
-                    QPainter::RenderHints hints = painter->renderHints();
-                    if ( hints.testFlag( QPainter::NonCosmeticDefaultPen ) )
-                        isCosmetic = false;
-                }
 
                 doMap = !isCosmetic;
             }
@@ -179,11 +167,9 @@ static inline void qwtExecCommand(
                 painter->setRenderHint( QPainter::SmoothPixmapTransform,
                     hints.testFlag( QPainter::SmoothPixmapTransform ) );
 
-                painter->setRenderHint( QPainter::HighQualityAntialiasing,
-                    hints.testFlag( QPainter::HighQualityAntialiasing ) );
+                painter->setRenderHint( QPainter::Antialiasing,
+                    hints.testFlag( QPainter::Antialiasing ) );
 
-                painter->setRenderHint( QPainter::NonCosmeticDefaultPen,
-                    hints.testFlag( QPainter::NonCosmeticDefaultPen ) );
             }
 
             if ( data->flags & QPaintEngine::DirtyCompositionMode) 

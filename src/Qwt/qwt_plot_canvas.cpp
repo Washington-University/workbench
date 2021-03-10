@@ -188,7 +188,9 @@ static void qwtDrawBackground( QPainter *painter, QwtPlotCanvas *canvas )
         } 
         else 
         {
-            rects = painter->clipRegion().rects();
+            QVector<QRect> clipRects(painter->clipRegion().begin(),
+                                     painter->clipRegion().end());
+            rects = clipRects;
         }
 
 #if 1
@@ -248,7 +250,9 @@ static void qwtDrawBackground( QPainter *painter, QwtPlotCanvas *canvas )
         painter->setPen( Qt::NoPen );
         painter->setBrush( brush );
 
-        painter->drawRects( painter->clipRegion().rects() );
+        QVector<QRect> clipRects(painter->clipRegion().begin(),
+                                 painter->clipRegion().end());
+        painter->drawRects( clipRects );
 
     }
 
