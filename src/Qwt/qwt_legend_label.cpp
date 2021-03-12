@@ -27,7 +27,7 @@ static const int Margin = 2;
 static QSize buttonShift( const QwtLegendLabel *w )
 {
     QStyleOption option;
-    option.init( w );
+    option.initFrom( w );
 
     const int ph = w->style()->pixelMetric(
         QStyle::PM_ButtonShiftHorizontal, &option, w );

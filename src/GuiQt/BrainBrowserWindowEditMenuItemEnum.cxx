@@ -114,12 +114,12 @@ BrainBrowserWindowEditMenuItemEnum::initialize()
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(COPY,
                                                           "COPY",
                                                           "Copy",
-                                                          (Qt::CTRL + Qt::Key_C)));
+                                                          QKeySequence(Qt::CTRL | Qt::Key_C)));
     
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(CUT,
                                                           "CUT",
                                                           "Cut",
-                                                          (Qt::CTRL + Qt::Key_X)));
+                                                          QKeySequence(Qt::CTRL | Qt::Key_X)));
     
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(DELETER,
                                                           "DELETER",
@@ -129,32 +129,32 @@ BrainBrowserWindowEditMenuItemEnum::initialize()
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(DESELECT_ALL,
                                                           "DESELECT_ALL",
                                                           "Deselect All",
-                                                          (Qt::CTRL + Qt::SHIFT + Qt::Key_A)));
+                                                          QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_A)));
     
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(PASTE,
                                                           "PASTE",
                                                           "Paste",
-                                                          (Qt::CTRL + Qt::Key_V)));
+                                                          QKeySequence(Qt::CTRL | Qt::Key_V)));
     
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(PASTE_SPECIAL,
                                                           "PASTE",
                                                           "Paste Special",
-                                                          (Qt::CTRL + Qt::SHIFT + Qt::Key_V)));
+                                                          QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V)));
     
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(REDO,
                                                           "REDO",
                                                           "Redo",
-                                                          (Qt::CTRL + Qt::Key_Y)));  //(Qt::CTRL + Qt::SHIFT + Qt::Key_Z)));
+                                                          QKeySequence(Qt::CTRL | Qt::Key_Y)));  //(Qt::CTRL + Qt::SHIFT + Qt::Key_Z)));
     
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(SELECT_ALL,
                                                           "SELECT_ALL",
                                                           "Select All",
-                                                          (Qt::CTRL + Qt::Key_A)));
+                                                          QKeySequence(Qt::CTRL | Qt::Key_A)));
     
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(UNDO, 
                                                           "UNDO", 
                                                           "Undo",
-                                                          (Qt::CTRL + Qt::Key_Z)));
+                                                          QKeySequence(Qt::CTRL | Qt::Key_Z)));
 }
 
 /**

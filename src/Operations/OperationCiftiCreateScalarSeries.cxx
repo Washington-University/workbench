@@ -25,6 +25,7 @@
 #include "CiftiFile.h"
 #include "FloatMatrix.h"
 
+#include <QRegularExpression>
 #include <QStringList>
 
 #include <fstream>
@@ -93,7 +94,11 @@ void OperationCiftiCreateScalarSeries::useParameters(OperationParameters* myPara
     while (inputFile)
     {
         getline(inputFile, inputLine);
-        QStringList tokens = QString(inputLine.c_str()).split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+        QStringList tokens = QString(inputLine.c_str()).split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+#else
+        QStringList tokens = QString(inputLine.c_str()).split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
+#endif
         if (tokens.empty()) break;//in case there are extra newlines on the end
         if (!inFileData.empty() && (int)inFileData.back().size() != tokens.size())
             throw OperationException("input file is not a rectangular matrix, starting at line " + AString::number(inFileData.size() + 2));//1 for 0-indexing, 1 for line not added to matrix yet

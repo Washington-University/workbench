@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <QtCore>
+#include <QRegularExpression>
 #include "CaretLogger.h"
 #include "CiftiXMLElements.h"
 #include "CiftiXMLReader.h"
@@ -369,12 +370,12 @@ void CiftiXMLReader::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixInd
                 {
                     xml.raiseError("End element for Surface not found");
                 }
-                if (xml.name() != "Surface")
+                if (xml.name() != QLatin1String("Surface"))
                 {
                     xml.raiseError("Found incorrect end element name: " + xml.name().toString());
                 }
                 xml.readNext();
-            } else if (elementName == "Parcel") {
+            } else if (elementName == QLatin1String("Parcel")) {
                 if (matrixIndicesMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_PARCELS)
                 {
                     xml.raiseError("Parcel element found in incorrect maping type");
@@ -443,7 +444,11 @@ void CiftiXMLReader::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelEleme
                 }
                 QString nodeIndices = xml.text().toString();
 
-                QStringList list = nodeIndices.split(QRegExp("\\D+"),Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+                QStringList list = nodeIndices.split(QRegularExpression("\\D+"),Qt::SkipEmptyParts);
+#else
+                QStringList list = nodeIndices.split(QRegularExpression("\\D+"),QString::SkipEmptyParts);
+#endif
                 bool ok = true;
                 for(int i = 0;i<list.count();i++)
                 {
@@ -471,7 +476,11 @@ void CiftiXMLReader::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelEleme
                 }
                 QString voxelIndicesIJK = xml.text().toString();
 
-                QStringList list = voxelIndicesIJK.split(QRegExp("\\D+"),Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+                QStringList list = voxelIndicesIJK.split(QRegularExpression("\\D+"),Qt::SkipEmptyParts);
+#else
+                QStringList list = voxelIndicesIJK.split(QRegularExpression("\\D+"),QString::SkipEmptyParts);
+#endif
                 if(list.count()%3) xml.raiseError("VoxelIndicesIJK has an incomplete triplet");
                 bool ok = true;
                 for(int i = 0;i<list.count();i++)
@@ -507,11 +516,11 @@ void CiftiXMLReader::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& 
 {
     bool haveName = false, haveLabelTable = false, haveMetaData = false;;
     xml.readNext();
-    while (!xml.hasError() && (!xml.isEndElement() || xml.name() != "NamedMap"))
+    while (!xml.hasError() && (!xml.isEndElement() || xml.name() != QLatin1String("NamedMap")))
     {
         if (xml.isStartElement())
         {
-            if (xml.name() == "MapName")
+            if (xml.name() == QLatin1String("MapName"))
             {
                 if (haveName)
                 {
@@ -520,7 +529,7 @@ void CiftiXMLReader::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& 
                 }
                 namedMap.m_mapName = xml.readElementText();
                 haveName = true;
-            } else if (xml.name() == "LabelTable") {
+            } else if (xml.name() == QLatin1String("LabelTable")) {
                 if (haveLabelTable)
                 {
                     xml.raiseError("LabelTable specified more than once in NamedMap");
@@ -534,7 +543,7 @@ void CiftiXMLReader::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& 
                     namedMap.m_labelTable.grabNew(NULL);
                 }
                 haveLabelTable = true;
-            } else if (xml.name() == "MetaData") {
+            } else if (xml.name() == QLatin1String("MetaData")) {
                 if (haveMetaData)
                 {
                     xml.raiseError("MetaData specified more than once in NamedMap");
@@ -557,7 +566,7 @@ void CiftiXMLReader::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& 
     {
         xml.raiseError("NamedMap element is missing LabelTable element while type is CIFTI_INDEX_TYPE_LABELS");
     }
-    if (!xml.hasError() && (!xml.isEndElement() || xml.name() != "NamedMap"))
+    if (!xml.hasError() && (!xml.isEndElement() || xml.name() != QLatin1String("NamedMap")))
     {
         xml.raiseError("unexpected element in NamedMap: " + xml.name().toString());
     }
@@ -573,20 +582,24 @@ void CiftiXMLReader::parseParcel(QXmlStreamReader& xml, CiftiParcelElement& parc
         xml.raiseError("Required attribute 'Name' missing from Parcel");
     }
     xml.readNext();
-    while (!xml.hasError() && !(xml.isEndElement() && xml.name() == "Parcel"))
+    while (!xml.hasError() && !(xml.isEndElement() && xml.name() == QLatin1String("Parcel")))
     {
         if (xml.isStartElement())
         {
-            if (xml.name() == "Nodes")
+            if (xml.name() == QLatin1String("Nodes"))
             {
                 parcel.m_nodeElements.push_back(CiftiParcelNodesElement());
                 parseParcelNodes(xml, parcel.m_nodeElements.back());
-            } else if (xml.name() == "VoxelIndicesIJK") {
+            } else if (xml.name() == QLatin1String("VoxelIndicesIJK")) {
                 xml.readNext();
                 if(xml.tokenType() == QXmlStreamReader::Characters)
                 {
                     QString voxelIndicesIJK = xml.text().toString();
-                    QStringList list = voxelIndicesIJK.split(QRegExp("\\D+"),Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+                    QStringList list = voxelIndicesIJK.split(QRegularExpression("\\D+"),Qt::SkipEmptyParts);
+#else
+                    QStringList list = voxelIndicesIJK.split(QRegularExpression("\\D+"),QString::SkipEmptyParts);
+#endif
                     if(list.count()%3) xml.raiseError("VoxelIndicesIJK has an incomplete triplet");
                     bool ok = true;
                     for(int i = 0;i<list.count();i++)
@@ -599,7 +612,7 @@ void CiftiXMLReader::parseParcel(QXmlStreamReader& xml, CiftiParcelElement& parc
                         }
                     }
                     xml.readNext();
-                    if (!xml.isEndElement() || xml.name() != "VoxelIndicesIJK")
+                    if (!xml.isEndElement() || xml.name() != QLatin1String("VoxelIndicesIJK"))
                     {
                         xml.raiseError("found something other than characters inside VoxelIndicesIJK");
                     } else {
@@ -634,7 +647,11 @@ void CiftiXMLReader::parseParcelNodes(QXmlStreamReader& xml, CiftiParcelNodesEle
     if (xml.isCharacters())
     {
         QString nodeIndices = xml.text().toString();
-        QStringList list = nodeIndices.split(QRegExp("\\D+"),Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+        QStringList list = nodeIndices.split(QRegularExpression("\\D+"),Qt::SkipEmptyParts);
+#else
+        QStringList list = nodeIndices.split(QRegularExpression("\\D+"),QString::SkipEmptyParts);
+#endif
         bool ok = true;
         for(int i = 0;i<list.count();i++)
         {
@@ -735,7 +752,11 @@ void CiftiXMLReader::parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamRea
         return;
     }
     QString voxelIndicesString = xml.text().toString();
-    QStringList voxelIndices = voxelIndicesString.split(QRegExp("\\s+"),Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+    QStringList voxelIndices = voxelIndicesString.split(QRegularExpression("\\s+"),Qt::SkipEmptyParts);
+#else
+    QStringList voxelIndices = voxelIndicesString.split(QRegularExpression("\\s+"),QString::SkipEmptyParts);
+#endif
     if (voxelIndices.size() == 16)
     {
         for(int i = 0;i<16;i++)

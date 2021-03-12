@@ -243,7 +243,7 @@ AString StringTableModel::getInString() const
         int32_t width = 0;
         
         for (int32_t i = 0; i < m_numberOfRows; i++) {
-            width = std::max(m_stringTable[getOffset(i, j)].length(),
+            width = std::max(static_cast<int32_t>(m_stringTable[getOffset(i, j)].length()),
                              width);
         }
 //        if (width > 0) {

@@ -27,6 +27,7 @@
 #include <cmath>
 #include <vector>
 
+#include <QRegularExpression>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <QString>
@@ -1652,30 +1653,30 @@ void Border::writeXML3(QXmlStreamWriter& xml) const
 void Border::readXML1(QXmlStreamReader& xml)
 {
     clear();
-    CaretAssert(xml.isStartElement() && xml.name() == "Border");
+    CaretAssert(xml.isStartElement() && xml.name() == QLatin1String("Border"));
     bool haveName = false, haveClass = false, haveColorType = false;
     for (xml.readNext(); !xml.atEnd() && !xml.isEndElement(); xml.readNext())
     {
         if (xml.isStartElement())
         {
-            QStringRef name = xml.name();
-            if (name == "Name")
+            auto name = xml.name();
+            if (name == QLatin1String("Name"))
             {
                 if (haveName) throw DataFileException("multiple Name elements in one Border element");
                 m_name = xml.readElementText();//sets error on unexpected child element
                 if (xml.hasError()) throw DataFileException("XML parsing error in Name: " + xml.errorString());
                 haveName = true;
-            } else if (name == "ClassName") {
+            } else if (name == QLatin1String("ClassName")) {
                 if (haveClass) throw DataFileException("multiple ClassName elements in one Border element");
                 m_className = xml.readElementText();//sets error on unexpected child element
                 if (xml.hasError()) throw DataFileException("XML parsing error in ClassName: " + xml.errorString());
                 haveClass = true;
-            } else if (name == "ColorName") {//a gui setting that caret5 wrote into the border file, so ignore it
+            } else if (name == QLatin1String("ColorName")) {//a gui setting that caret5 wrote into the border file, so ignore it
                 if (haveColorType) throw DataFileException("multiple ColorName elements in one Border element");
                 xml.readElementText();//errors on unexpected element
                 if (xml.hasError()) throw DataFileException("XML parsing error in ColorName: " + xml.errorString());
                 haveColorType = true;
-            } else if (name == "SurfaceProjectedItem") {
+            } else if (name == QLatin1String("SurfaceProjectedItem")) {
                 CaretPointer<SurfaceProjectedItem> myItem(new SurfaceProjectedItem());//again, because current interface requires ownership passing of pointer
                 myItem->readBorderFileXML1(xml);
                 addPoint(myItem.releasePointer());
@@ -1685,7 +1686,7 @@ void Border::readXML1(QXmlStreamReader& xml)
         }
     }
     if (xml.hasError()) throw DataFileException("XML parsing error in Border: " + xml.errorString());
-    CaretAssert(xml.isEndElement() && xml.name() == "Border");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("Border"));
     if (getNumberOfPoints() > 1 && (*getPoint(0) == *getPoint(getNumberOfPoints() - 1)))
     {
         m_closed = true;
@@ -1696,14 +1697,14 @@ void Border::readXML1(QXmlStreamReader& xml)
 void Border::readXML3(QXmlStreamReader& xml)
 {
     clear();
-    CaretAssert(xml.isStartElement() && xml.name() == "BorderPart");
+    CaretAssert(xml.isStartElement() && xml.name() == QLatin1String("BorderPart"));
     QXmlStreamAttributes myAttrs = xml.attributes();
     if (!myAttrs.hasAttribute("Closed")) throw DataFileException("BorderPart element missing required attribute Closed");
-    QStringRef closedStr = myAttrs.value("Closed");
-    if (closedStr == "True")
+    auto closedStr = myAttrs.value("Closed");
+    if (closedStr == QLatin1String("True"))
     {
         setClosed(true);
-    } else if (closedStr == "False") {
+    } else if (closedStr == QLatin1String("False")) {
         setClosed(false);
     } else {
         throw DataFileException("unrecognized value for Closed attribute in BorderPart: " + closedStr.toString());
@@ -1715,13 +1716,17 @@ void Border::readXML3(QXmlStreamReader& xml)
     {
         if (xml.isStartElement())
         {
-            QStringRef name = xml.name();
-            if (name == "Vertices")
+            auto name = xml.name();
+            if (name == QLatin1String("Vertices"))
             {
                 if (haveVertices) throw DataFileException("multiple Vertices elements in one BorderPart element");
                 QString vertexText = xml.readElementText();//errors on unexpected element
                 if (xml.hasError()) throw DataFileException("XML parsing error in Vertices: " + xml.errorString());
-                QStringList vertexStrings = vertexText.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+                QStringList vertexStrings = vertexText.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+#else
+                QStringList vertexStrings = vertexText.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
+#endif
                 int numItems = (int)vertexStrings.size();
                 if (numItems % 3 != 0) throw DataFileException("number of items in Vertices element text is not a multiple of 3");
                 for (int i = 0; i < numItems; ++i)
@@ -1733,11 +1738,15 @@ void Border::readXML3(QXmlStreamReader& xml)
                     vertices.push_back(tempVal);
                 }
                 haveVertices = true;
-            } else if (name == "Weights") {
+            } else if (name == QLatin1String("Weights")) {
                 if (haveWeights) throw DataFileException("multiple Weights elements in one BorderPart element");
                 QString vertexText = xml.readElementText();//errors on unexpected element
                 if (xml.hasError()) throw DataFileException("XML parsing error in Weights: " + xml.errorString());
-                QStringList vertexStrings = vertexText.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+                QStringList vertexStrings = vertexText.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+#else
+                QStringList vertexStrings = vertexText.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
+#endif
                 int numItems = (int)vertexStrings.size();
                 if (numItems % 3 != 0) throw DataFileException("number of items in Weights element text is not a multiple of 3");
                 for (int i = 0; i < numItems; ++i)
@@ -1759,7 +1768,7 @@ void Border::readXML3(QXmlStreamReader& xml)
         }
     }
     if (xml.hasError()) throw DataFileException("XML parsing error in BorderPart: " + xml.errorString());
-    CaretAssert(xml.isEndElement() && xml.name() == "BorderPart");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("BorderPart"));
     if (!haveVertices || !haveWeights) throw DataFileException("BorderPart missing required Vertices or Weights element");
     if (vertices.size() != weights.size()) throw DataFileException("Vertices and Weights don't contain the same number of elements");
     int numPoints = (int)vertices.size() / 3;

@@ -148,7 +148,7 @@ SceneFileXmlStreamReader::readFileContent(QXmlStreamReader& xmlReader,
     }
     
     const QXmlStreamAttributes atts = xmlReader.attributes();
-    const QStringRef versionAtt     = atts.value(ATTRIBUTE_SCENE_FILE_VERSION);
+    const auto versionAtt     = atts.value(ATTRIBUTE_SCENE_FILE_VERSION);
     m_fileVersion = 1;
     if ( ! versionAtt.isEmpty()) {
         /*
@@ -177,12 +177,12 @@ SceneFileXmlStreamReader::readFileContent(QXmlStreamReader& xmlReader,
                 }
                 else if (xmlReader.name() == SceneXmlStreamReader::ELEMENT_SCENE) {
                     const QXmlStreamAttributes attributes = xmlReader.attributes();
-                    const QStringRef typeString  = attributes.value(SceneXmlStreamReader::ATTRIBUTE_SCENE_TYPE);
+                    const auto typeString  = attributes.value(SceneXmlStreamReader::ATTRIBUTE_SCENE_TYPE);
                     bool valid(false);
                     SceneTypeEnum::Enum sceneType = SceneTypeEnum::fromName(typeString.toString(),
                                                                             &valid);
                     
-                    const QStringRef indexString = attributes.value(SceneXmlStreamReader::ATTRIBUTE_SCENE_INDEX);
+                    const auto indexString = attributes.value(SceneXmlStreamReader::ATTRIBUTE_SCENE_INDEX);
                     const int32_t sceneIndex = indexString.toInt();
                     
                     Scene* scene = new Scene(sceneType);
@@ -285,7 +285,7 @@ SceneFileXmlStreamReader::readSceneInfoDirectory(QXmlStreamReader& xmlReader,
                 }
                 else if (xmlReader.name() == SceneInfoXmlStreamReader::ELEMENT_SCENE_INFO) {
                     const QXmlStreamAttributes attributes = xmlReader.attributes();
-                    const QStringRef indexAttribute = attributes.value(SceneInfoXmlStreamReader::ATTRIBUTE_SCENE_INDEX);
+                    const auto indexAttribute = attributes.value(SceneInfoXmlStreamReader::ATTRIBUTE_SCENE_INDEX);
                     if ( ! indexAttribute.isEmpty()) {
                         const int32_t sceneIndex = indexAttribute.toInt();
                         SceneInfoXmlStreamReader infoReader;

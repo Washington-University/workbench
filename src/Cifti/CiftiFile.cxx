@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <QRegularExpression>
 #include "CiftiFile.h"
 
 #include "ByteOrderEnum.h"
@@ -560,12 +561,12 @@ namespace
                 CaretAssert(0);//yes, let it fall through to "unknown" in release so that it at least looks for .nii
                 //-fallthrough
             case 3000://unknown
-                if (!filename.contains(QRegExp("\\.[^.]*\\.nii$")))
+                if (!filename.contains(QRegularExpression("\\.[^.]*\\.nii$")))
                 {
                     CaretLogWarning("cifti file of nonstandard mapping combination '" + filename + "' should be saved ending in .<something>.nii, "
                                     + "but not an already used extension (don't use dtseries, dscalar, etc).");
                 }
-                if (filename.contains(QRegExp("\\.(dconn|dtseries|pconn|ptseries|dscalar|dfan|fiberTEMP|dlabel|pscalar|pdconn|dpconn|pconnseries|pconnscalar)\\.nii$")))
+                if (filename.contains(QRegularExpression("\\.(dconn|dtseries|pconn|ptseries|dscalar|dfan|fiberTEMP|dlabel|pscalar|pdconn|dpconn|pconnseries|pconnscalar)\\.nii$")))
                 {
                     CaretLogWarning("cifti file of nonstandard mapping combination '" + filename + "' should NOT be saved using an already-used cifti extension, "
                                     + "please choose a different, reasonable cifti extension of the form .<something>.nii");

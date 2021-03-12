@@ -291,13 +291,21 @@ StudyMetaDataLink::setLinkFromCodedText(const AString& txt)
    //
    // Extract the key/value pairs that are separated by a semi-colon
    //
-   const QStringList sl = txt.split(";", Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+    const QStringList sl = txt.split(";", Qt::SkipEmptyParts);
+#else
+    const QStringList sl = txt.split(";", QString::SkipEmptyParts);
+#endif
    for (int i = 0; i < sl.size(); i++) {
       const AString keyValueString = sl.at(i);
       //
       // Split with "=" into key/value pairs
       //
-      const QStringList keyValueList = keyValueString.split("=", Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+       const QStringList keyValueList = keyValueString.split("=", Qt::SkipEmptyParts);
+#else
+      const QStringList keyValueList = keyValueString.split("=", QString::SkipEmptyParts);
+#endif
       if (keyValueList.size() == 2) {
          const AString key = keyValueList.at(0);
          const AString value = keyValueList.at(1).trimmed();

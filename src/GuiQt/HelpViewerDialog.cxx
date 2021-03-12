@@ -34,6 +34,7 @@
 #include <QListWidget>
 #include <QtPrintSupport/QPrinter>
 #include <QtPrintSupport/QPrintDialog>
+#include <QRegExp>
 #include <QTextBrowser>
 #include <QSplitter>
 #include <QTabWidget>
@@ -384,7 +385,7 @@ HelpViewerDialog::loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
             dirHtmlPageName = htmlFileInfo.absoluteFilePath();
         }
         else {
-            otherHtmlPagesList.append(htmlFileInfo.absoluteFilePath());
+            otherHtmlPagesList.append(QFileInfo(htmlFileInfo.absoluteFilePath()));
         }
     }
     

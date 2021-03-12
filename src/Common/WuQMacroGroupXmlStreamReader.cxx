@@ -23,6 +23,7 @@
 #include "WuQMacroGroupXmlStreamReader.h"
 #undef __WU_Q_MACRO_GROUP_XML_STREAM_READER_DECLARE__
 
+#include <QStringRef>
 #include <QXmlStreamAttributes>
 #include <QXmlStreamReader>
 #include <QTextStream>
@@ -126,8 +127,8 @@ WuQMacroGroupXmlStreamReader::readMacroGroup(QXmlStreamReader& xmlReader,
 {
     if (xmlReader.name() == ELEMENT_MACRO_GROUP) {
         const QXmlStreamAttributes attributes = xmlReader.attributes();
-        const QStringRef name = attributes.value(ATTRIBUTE_NAME);
-        const QStringRef versionText = attributes.value(ATTRIBUTE_VERSION);
+        const auto name = attributes.value(ATTRIBUTE_NAME);
+        const auto versionText = attributes.value(ATTRIBUTE_VERSION);
         QString uniqueIdentifier = attributes.value(ATTRIBUTE_UNIQUE_IDENTIFIER).toString();
         if (uniqueIdentifier.isEmpty()) {
             addToWarnings(xmlReader,
@@ -426,10 +427,10 @@ WuQMacroCommandParameter*
 WuQMacroGroupXmlStreamReader::readMacroCommandParameter(QXmlStreamReader& xmlReader)
 {
     const QXmlStreamAttributes attributes = xmlReader.attributes();
-    const QStringRef dataTypeString    = attributes.value(ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE);
+    const auto dataTypeString    = attributes.value(ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE);
     const QString    parameterName     = attributes.value(ATTRIBUTE_MACRO_COMMAND_PARAMETER_NAME).toString();
     const QString    customDataType      = attributes.value(ATTRIBUTE_MACRO_COMMAND_PARAMETER_CUSTOM_DATA_TYPE).toString();
-    const QStringRef valueString       = attributes.value(ATTRIBUTE_MACRO_COMMAND_PARAMETER_VALUE);
+    const auto valueString       = attributes.value(ATTRIBUTE_MACRO_COMMAND_PARAMETER_VALUE);
 
     QString es;
     if (dataTypeString.isEmpty()) es.append(ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE + " ");
@@ -512,13 +513,13 @@ WuQMacroGroupXmlStreamReader::MacroCommandContent*
 WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne(QXmlStreamReader& xmlReader)
 {
     const QXmlStreamAttributes attributes = xmlReader.attributes();
-    const QStringRef objectName = attributes.value(ATTRIBUTE_NAME);
-    const QStringRef delayString = attributes.value(ATTRIBUTE_DELAY);
-    const QStringRef versionString = attributes.value(ATTRIBUTE_VERSION);
-    const QStringRef descriptiveNameString = attributes.value(ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME);
-    const QStringRef commandTypeString = attributes.value(ATTRIBUTE_COMMAND_TYPE);
-    const QStringRef widgetTypeString = attributes.value(ATTRIBUTE_WIDGET_TYPE);
-    const QStringRef customOperationCommandNameString = attributes.value(ATTRIBUTE_CUSTOM_OPERATION_TYPE_NAME);
+    const auto objectName = attributes.value(ATTRIBUTE_NAME);
+    const auto delayString = attributes.value(ATTRIBUTE_DELAY);
+    const auto versionString = attributes.value(ATTRIBUTE_VERSION);
+    const auto descriptiveNameString = attributes.value(ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME);
+    const auto commandTypeString = attributes.value(ATTRIBUTE_COMMAND_TYPE);
+    const auto widgetTypeString = attributes.value(ATTRIBUTE_WIDGET_TYPE);
+    const auto customOperationCommandNameString = attributes.value(ATTRIBUTE_CUSTOM_OPERATION_TYPE_NAME);
     
     QString es;
     if (objectName.isEmpty()) es.append(ATTRIBUTE_NAME + " ");

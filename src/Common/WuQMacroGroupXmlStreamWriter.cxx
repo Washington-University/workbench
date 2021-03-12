@@ -189,7 +189,7 @@ WuQMacroGroupXmlStreamWriter::writeMacroCommandToXML(const WuQMacroCommand* macr
     }
     
     const QString toolTip = macroCommand->getObjectToolTip();
-    if (toolTip != NULL) {
+    if ( ! toolTip.isEmpty()) {
         m_xmlStreamWriter->writeTextElement(ELEMENT_MACRO_COMMAND_TOOL_TIP,
                                             toolTip);
     }

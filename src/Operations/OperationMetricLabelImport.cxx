@@ -158,7 +158,7 @@ void OperationMetricLabelImport::useParameters(OperationParameters* myParams, Pr
             }
             if (value == GiftiLabel::getInvalidLabelKey())
             {
-                throw OperationException("entry #" + AString::number(labelCount) + ", " + AString(labelName.c_str()) + " specifies unusable key value: " + value);
+                throw OperationException("entry #" + AString::number(labelCount) + ", " + AString(labelName.c_str()) + " specifies unusable key value: " + AString::number(value));
             }
             while (isspace(labelListFile.peek()))
             {

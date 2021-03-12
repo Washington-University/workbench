@@ -746,7 +746,11 @@ FileInformation::getAbsolutePath() const
 
 AString FileInformation::getLastDirectory() const
 {
+#if QT_VERSION >= 0x060000
     QStringList myList = getPathName().split('/', Qt::SkipEmptyParts);//QT always uses /, even on windows
+#else
+    QStringList myList = getPathName().split('/', QString::SkipEmptyParts);//QT always uses /, even on windows
+#endif
     return myList[myList.size() - 1];
 }
 

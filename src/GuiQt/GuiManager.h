@@ -37,7 +37,6 @@ class QAction;
 class QDialog;
 class QMenu;
 class QWidget;
-class MovieDialog;
 class WuQWebView;
 
 namespace caret {    
@@ -153,7 +152,6 @@ namespace caret {
         void processShowGapsAndMarginsDialog(BrainBrowserWindow* browserWindow);
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowMovieRecordingDialog(BrainBrowserWindow* browserWindow);
-        void processShowMovieDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
         void processShowInformationDisplayDialog(const bool forceDisplayOfDialog);
         void processShowTileTabsConfigurationDialog(BrainBrowserWindow* browserWindow);
@@ -301,8 +299,6 @@ namespace caret {
         MovieRecordingDialog* m_movieRecordingDialog;
         
         GapsAndMarginsDialog* m_gapsAndMarginsDialog;
-        
-        MovieDialog* movieDialog;
         
         PreferencesDialog* preferencesDialog;       
         

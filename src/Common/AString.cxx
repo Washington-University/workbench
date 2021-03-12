@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <QList>
 #include <QTextStream>
 
 #include "AString.h"

@@ -174,7 +174,7 @@ void CiftiScalarsMap::readXML1(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                if (xml.name() != "NamedMap")
+                if (xml.name() != QLatin1String("NamedMap"))
                 {
                     throw DataFileException("unexpected element in scalars map: " + xml.name().toString());
                 }
@@ -187,7 +187,7 @@ void CiftiScalarsMap::readXML1(QXmlStreamReader& xml)
                 break;
         }
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "MatrixIndicesMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("MatrixIndicesMap"));
 }
 
 void CiftiScalarsMap::readXML2(QXmlStreamReader& xml)
@@ -199,7 +199,7 @@ void CiftiScalarsMap::readXML2(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                if (xml.name() != "NamedMap")
+                if (xml.name() != QLatin1String("NamedMap"))
                 {
                     throw DataFileException("unexpected element in scalars map: " + xml.name().toString());
                 }
@@ -212,7 +212,7 @@ void CiftiScalarsMap::readXML2(QXmlStreamReader& xml)
                 break;
         }
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "MatrixIndicesMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("MatrixIndicesMap"));
 }
 
 void CiftiScalarsMap::ScalarMap::readXML1(QXmlStreamReader& xml)
@@ -224,8 +224,8 @@ void CiftiScalarsMap::ScalarMap::readXML1(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                QStringRef name = xml.name();
-                if (name == "MetaData")
+                auto name = xml.name();
+                if (name == QLatin1String("MetaData"))
                 {
                     if (haveMetaData)
                     {
@@ -234,7 +234,7 @@ void CiftiScalarsMap::ScalarMap::readXML1(QXmlStreamReader& xml)
                     m_metaData.readCiftiXML1(xml);
                     if (xml.hasError()) return;
                     haveMetaData = true;
-                } else if (name == "MapName") {
+                } else if (name == QLatin1String("MapName")) {
                     if (haveName)
                     {
                         throw DataFileException("MapName specified multiple times in one NamedMap");
@@ -242,7 +242,7 @@ void CiftiScalarsMap::ScalarMap::readXML1(QXmlStreamReader& xml)
                     m_name = xml.readElementText();//raises error if element encountered
                     if (xml.hasError()) return;
                     haveName = true;
-                } else if (name == "LabelTable") {
+                } else if (name == QLatin1String("LabelTable")) {
                     CaretLogWarning("ignoring LabelTable in Cifti-1 Scalars mapping");
                     xml.readElementText(QXmlStreamReader::SkipChildElements);//accept some malformed Cifti-1 files
                     if (xml.hasError()) return;
@@ -259,7 +259,7 @@ void CiftiScalarsMap::ScalarMap::readXML1(QXmlStreamReader& xml)
     {
         throw DataFileException("NamedMap missing required child element MapName");
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "NamedMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("NamedMap"));
 }
 
 void CiftiScalarsMap::ScalarMap::readXML2(QXmlStreamReader& xml)
@@ -271,8 +271,8 @@ void CiftiScalarsMap::ScalarMap::readXML2(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                QStringRef name = xml.name();
-                if (name == "MetaData")
+                auto name = xml.name();
+                if (name == QLatin1String("MetaData"))
                 {
                     if (haveMetaData)
                     {
@@ -281,7 +281,7 @@ void CiftiScalarsMap::ScalarMap::readXML2(QXmlStreamReader& xml)
                     m_metaData.readCiftiXML2(xml);
                     if (xml.hasError()) return;
                     haveMetaData = true;
-                } else if (name == "MapName") {
+                } else if (name == QLatin1String("MapName")) {
                     if (haveName)
                     {
                         throw DataFileException("MapName specified multiple times in one NamedMap");
@@ -302,7 +302,7 @@ void CiftiScalarsMap::ScalarMap::readXML2(QXmlStreamReader& xml)
     {
         throw DataFileException("NamedMap missing required child element MapName");
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "NamedMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("NamedMap"));
 }
 
 void CiftiScalarsMap::writeXML1(QXmlStreamWriter& xml) const

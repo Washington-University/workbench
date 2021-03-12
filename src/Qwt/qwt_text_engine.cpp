@@ -102,7 +102,11 @@ private:
         static const QColor white( Qt::white );
 
         const QFontMetrics fm( font );
+#if QT_VERSION >= 0x060000
         QPixmap pm( fm.horizontalAdvance( dummy ), fm.height() );
+#else
+        QPixmap pm( fm.width( dummy ), fm.height() );
+#endif
         pm.fill( white );
 
         QPainter p( &pm );

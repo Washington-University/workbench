@@ -51,6 +51,8 @@ using namespace caret;
  * (4) Destroy the instance of this class.
  */
 
+#include <QIODevice>
+
 /**
  * Constructor.
  */

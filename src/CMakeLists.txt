@@ -221,7 +221,7 @@ IF (WORKBENCH_USE_QT6)
     #
     # Packages for Qt 6
     #
-    FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Concurrent Core Core5Compat Gui Network PrintSupport Test Widgets Xml)
+    FIND_PACKAGE(Qt6 REQUIRED COMPONENTS Concurrent Core Core5Compat Gui Network OpenGLWidgets PrintSupport Test Widgets Xml)
     
     #
     # Always use OpenGL Widget (GLWidget not available)

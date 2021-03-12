@@ -24,6 +24,7 @@
 #undef __SPEC_FILE_MANAGEMENT_DIALOG_DECLARE__
 
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QBrush>
 #include <QCheckBox>

@@ -20,7 +20,6 @@
 /*LICENSE_END*/
 
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QDialog>
 #include <QDockWidget>
 #include <QWidget>

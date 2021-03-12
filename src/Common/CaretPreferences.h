@@ -39,7 +39,7 @@
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
 
 class QSettings;
-class QStringList;
+//class QStringList;
 
 namespace caret {
 

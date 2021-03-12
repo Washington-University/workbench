@@ -227,7 +227,7 @@ TileTabsLayoutBaseConfiguration::decodeFromXML(const AString& xmlString,
     QXmlStreamReader xml(xmlString);
 
     if (xml.readNextStartElement()) {
-        const QStringRef tagName(xml.name());
+        const auto tagName(xml.name());
         if (tagName == TileTabsLayoutGridConfiguration::s_v1_rootTagName) {
             TileTabsLayoutGridConfiguration* v1 = TileTabsLayoutGridConfiguration::newInstanceCustomGrid();
             v1->decodeFromXMLString(xml,

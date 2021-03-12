@@ -26,6 +26,7 @@
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_SLICE_SELECTION_DECLARE__
 
 #include <QAction>
+#include <QActionGroup>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>

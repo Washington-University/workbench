@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <QActionGroup>
 #include <QApplication>
 #include <QCheckBox>
 #include <QCloseEvent>
@@ -166,6 +167,10 @@ m_browserWindowIndex(browserWindowIndex)
     setWindowTitle(ApplicationInformation().getName()
                          + " "
                          + AString::number(m_browserWindowIndex + 1));
+#if QT_VERSION >= 0x060000
+    setWindowTitle(windowTitle()
+                   + " Qt6");
+#endif
     setObjectName(windowTitle());
     
     BrainOpenGLWidget* shareOpenGLContextWidget = NULL;
@@ -943,7 +948,7 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     m_windowMenuLockWindowAspectRatioAction->setCheckable(true);
     m_windowMenuLockWindowAspectRatioAction->setChecked(m_browserWindowContent->isWindowAspectLocked());
     m_windowMenuLockWindowAspectRatioAction->setText("Lock Window Aspect Ratio");
-    m_windowMenuLockWindowAspectRatioAction->setShortcut(Qt::SHIFT + Qt::CTRL+Qt::Key_K);
+    m_windowMenuLockWindowAspectRatioAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::CTRL | Qt::Key_K));
     QObject::connect(m_windowMenuLockWindowAspectRatioAction, &QAction::triggered,
                      this, &BrainBrowserWindow::processWindowMenuLockWindowAspectRatioTriggered);
 
@@ -951,7 +956,7 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     m_windowMenuLockAllTabAspectRatioAction->setCheckable(true);
     m_windowMenuLockAllTabAspectRatioAction->setChecked(false);
     m_windowMenuLockAllTabAspectRatioAction->setText("Lock All Tab Aspect Ratios");
-    m_windowMenuLockAllTabAspectRatioAction->setShortcut(Qt::CTRL+Qt::Key_K);
+    m_windowMenuLockAllTabAspectRatioAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_K));
     QObject::connect(m_windowMenuLockAllTabAspectRatioAction, &QAction::triggered,
                      this, &BrainBrowserWindow::processWindowMenuLockAllTabAspectRatioTriggered);
     
@@ -1367,7 +1372,7 @@ BrainBrowserWindow::createActions()
     m_newWindowAction =
     WuQtUtilities::createAction("New Window",
                                 "Creates a new window for viewing brain models",
-                                Qt::CTRL+Qt::Key_N,
+                                QKeySequence(Qt::CTRL | Qt::Key_N),
                                 this,
                                 this,
                                 SLOT(processNewWindow()));
@@ -1375,7 +1380,7 @@ BrainBrowserWindow::createActions()
     m_newTabAction =
     WuQtUtilities::createAction("New Tab", 
                                 "Create a new tab (window pane) in the window",
-                                Qt::CTRL + Qt::Key_T,
+                                QKeySequence(Qt::CTRL | Qt::Key_T),
                                 this,
                                 this,
                                 SLOT(processNewTab()));
@@ -1387,7 +1392,7 @@ BrainBrowserWindow::createActions()
     m_duplicateTabAction =
     WuQtUtilities::createAction("Duplicate Tab",
                                 "Create a new tab (window pane) that duplicates the selected tab in the window",
-                                Qt::CTRL + Qt::Key_D,
+                                QKeySequence(Qt::CTRL | Qt::Key_D),
                                 this,
                                 this,
                                 SLOT(processDuplicateTab()));
@@ -1400,7 +1405,7 @@ BrainBrowserWindow::createActions()
     m_reopenLastClosedTabAction =
     WuQtUtilities::createAction("Reopen Last Closed Tab",
                                 "Reopen the last closed tab",
-                                Qt::CTRL + Qt::SHIFT + Qt::Key_T,
+                                QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_T),
                                 this);
     QObject::connect(m_reopenLastClosedTabAction, &QAction::triggered,
                      this, [=] { guiManager->processReopenLastClosedTab(this); });
@@ -1410,7 +1415,7 @@ BrainBrowserWindow::createActions()
     m_openFileAction =
     WuQtUtilities::createAction("Open File...", 
                                 "Open a data file including a spec file located on the computer",
-                                Qt::CTRL+Qt::Key_O,
+                                QKeySequence(Qt::CTRL | Qt::Key_O),
                                 this,
                                 this,
                                 SLOT(processDataFileOpen()));
@@ -1419,7 +1424,7 @@ BrainBrowserWindow::createActions()
     m_openLocationAction = 
     WuQtUtilities::createAction("Open Location...", 
                                 "Open a data file including a spec file located on a web server (http)",
-                                Qt::CTRL+Qt::Key_L,
+                                QKeySequence(Qt::CTRL | Qt::Key_L),
                                 this,
                                 this,
                                 SLOT(processDataFileLocationOpen()));
@@ -1428,7 +1433,7 @@ BrainBrowserWindow::createActions()
     m_openRecentAction =
     WuQtUtilities::createAction("Open Recent...",
                                 "Open a recent file or directory",
-                                Qt::CTRL + Qt::SHIFT + Qt::Key_O,
+                                QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_O),
                                 this,
                                 this,
                                 SLOT(processOpenRecent()));
@@ -1436,7 +1441,7 @@ BrainBrowserWindow::createActions()
     m_manageFilesAction =
     WuQtUtilities::createAction("Save/Manage Files...", 
                                 "Save and Manage Loaded Files",
-                                Qt::CTRL + Qt::Key_S,
+                                QKeySequence(Qt::CTRL | Qt::Key_S),
                                 this,
                                 this,
                                 SLOT(processManageSaveLoadedFiles()));
@@ -1452,7 +1457,7 @@ BrainBrowserWindow::createActions()
     m_closeTabAction =
     WuQtUtilities::createAction("Close Tab",
                                 "Close the active tab (window pane) in the window",
-                                Qt::CTRL + Qt::Key_W,
+                                QKeySequence(Qt::CTRL | Qt::Key_W),
                                 this,
                                 m_toolbar,
                                 SLOT(closeSelectedTabFromFileMenu()));
@@ -1463,7 +1468,7 @@ BrainBrowserWindow::createActions()
     m_closeWindowAction =
     WuQtUtilities::createAction(m_closeWindowActionConfirmTitle,
                                 "Close the window",
-                                Qt::CTRL + Qt::SHIFT + Qt::Key_W,
+                                QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_W),
                                 this,
                                 this,
                                 SLOT(processCloseWindow()));
@@ -1482,14 +1487,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processMovieRecording()));
     
-    m_recordMovieAction =
-    WuQtUtilities::createAction("(obsolete)Animation Control...",
-                                "Animate Brain Surface",
-                                this,
-                                this,
-                                SLOT(processRecordMovie()));
-    
-    m_preferencesAction = 
+    m_preferencesAction =
     WuQtUtilities::createAction("Preferences...",
                                 "Edit the preferences",
                                 this,
@@ -1499,7 +1497,7 @@ BrainBrowserWindow::createActions()
     m_exitProgramAction =
     WuQtUtilities::createAction("Exit", 
                                 "Exit (quit) the program",
-                                Qt::CTRL+Qt::Key_Q, 
+                                QKeySequence(Qt::CTRL | Qt::Key_Q),
                                 this,
                                 this,
                                 SLOT(processExitProgram()));
@@ -1524,7 +1522,7 @@ BrainBrowserWindow::createActions()
 
     m_viewFullScreenAction = WuQtUtilities::createAction("Full Screen",
                                                          "View using all of screen",
-                                                         Qt::CTRL+Qt::Key_F,
+                                                         QKeySequence(Qt::CTRL | Qt::Key_F),
                                                          this);
     QObject::connect(m_viewFullScreenAction, SIGNAL(triggered()),
                      this, SLOT(processViewFullScreenSelected()));
@@ -1540,7 +1538,7 @@ BrainBrowserWindow::createActions()
      */
     m_viewTileTabsAction = WuQtUtilities::createAction("Tile Tabs",
                                                        "View all tabs in a tiled layout",
-                                                       Qt::CTRL+Qt::Key_M,
+                                                       QKeySequence(Qt::CTRL | Qt::Key_M),
                                                        this);
     QObject::connect(m_viewTileTabsAction, SIGNAL(triggered()),
                      this, SLOT(processViewTileTabs()));
@@ -1557,7 +1555,7 @@ BrainBrowserWindow::createActions()
                                                                           this,
                                                                           this,
                                                                           SLOT(processViewTileTabsConfigurationDialog()));
-    m_viewTileTabsConfigurationDialogAction->setShortcut((Qt::CTRL + Qt::SHIFT + Qt::Key_M));
+    m_viewTileTabsConfigurationDialogAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_M));
 
     m_viewAutomaticTileTabsConfigurationAction = new QAction("Automatic",
                                                              this);
@@ -1589,7 +1587,7 @@ BrainBrowserWindow::createActions()
     m_nextTabAction =
     WuQtUtilities::createAction("Next Tab",
                                 "Move to the next tab",
-                                Qt::CTRL + Qt::Key_Right,
+                                QKeySequence(Qt::CTRL | Qt::Key_Right),
                                 this,
                                 m_toolbar,
                                 SLOT(nextTab()));
@@ -1597,7 +1595,7 @@ BrainBrowserWindow::createActions()
     m_previousTabAction =
     WuQtUtilities::createAction("Previous Tab",
                                 "Move to the previous tab",
-                                Qt::CTRL + Qt::Key_Left,
+                                QKeySequence(Qt::CTRL | Qt::Key_Left),
                                 this,
                                 m_toolbar,
                                 SLOT(previousTab()));
@@ -1932,7 +1930,6 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(m_manageFilesAction);
     menu->addAction(m_closeSpecFileAction);
     menu->addSeparator();
-    menu->addAction(m_recordMovieAction);
     menu->addAction(m_captureImageAction);
     menu->addAction(m_movieRecordingAction);
     menu->addSeparator();
@@ -3057,15 +3054,6 @@ void
 BrainBrowserWindow::processGapsAndMargins()
 {
     GuiManager::get()->processShowGapsAndMarginsDialog(this);
-}
-
-/**
- * Called when record movie is selected.
- */
-void 
-BrainBrowserWindow::processRecordMovie()
-{
-    GuiManager::get()->processShowMovieDialog(this);
 }
 
 /**

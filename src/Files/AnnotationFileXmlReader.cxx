@@ -177,7 +177,7 @@ AnnotationFileXmlReader::readFileContentFromXmlStreamReader(const QString& filen
         m_streamHelper->throwDataFileException("Appears to have no XML elements.");
     }
     
-    const QStringRef fileElementName = m_stream->name();
+    const auto fileElementName = m_stream->name();
     if (fileElementName != ELEMENT_ANNOTATION_FILE) {
         m_streamHelper->throwDataFileException("First element is "
                                                + fileElementName.toString()
@@ -186,7 +186,7 @@ AnnotationFileXmlReader::readFileContentFromXmlStreamReader(const QString& filen
     }
     
     QXmlStreamAttributes fileAttributes = m_stream->attributes();
-    const QStringRef versionText = fileAttributes.value(ATTRIBUTE_VERSION);
+    const auto versionText = fileAttributes.value(ATTRIBUTE_VERSION);
     if (versionText.isEmpty()) {
         m_streamHelper->throwDataFileException("Version attribute ("
                                                + ATTRIBUTE_VERSION

@@ -570,7 +570,7 @@ void GiftiMetaData::readCiftiXML1(QXmlStreamReader& xml)
         xml.readNext();
         if (xml.isStartElement())
         {
-            QStringRef name = xml.name();
+            auto name = xml.name();
             if (name == GiftiXmlElements::TAG_METADATA_ENTRY)
             {
                 readEntry(xml);
@@ -612,7 +612,7 @@ void GiftiMetaData::readEntry(QXmlStreamReader& xml)
         xml.readNext();
         if (xml.isStartElement())
         {
-            QStringRef name = xml.name();
+            auto name = xml.name();
             if (name == GiftiXmlElements::TAG_METADATA_NAME)
             {
                 if (haveKey) throw GiftiException("MD element has multiple Name elements");
@@ -651,7 +651,7 @@ void GiftiMetaData::readEntry(QXmlStreamReader& xml)
             break;
         }
     }
-    CaretAssert(xml.hasError() || (xml.isEndElement() && xml.name() == "MD"));
+    CaretAssert(xml.hasError() || (xml.isEndElement() && xml.name() == QLatin1String("MD")));
 }
 
 /**

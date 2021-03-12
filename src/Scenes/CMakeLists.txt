@@ -18,6 +18,13 @@ PROJECT (Scenes)
 # QT include files
 #
 SET(CARET_QT_LINK_MODULES "")
+if(Qt6_FOUND)
+    include_directories(${Qt6Core5Compat_INCLUDE_DIRS})
+    include_directories(${Qt6Core_INCLUDE_DIRS})
+    include_directories(${Qt6Gui_INCLUDE_DIRS})
+    include_directories(${Qt6Xml_INCLUDE_DIRS})
+# do we need this?    SET(CARET_QT_LINK_MODULES "Qt6::Core")
+endif()
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
     include_directories(${Qt5Gui_INCLUDE_DIRS})

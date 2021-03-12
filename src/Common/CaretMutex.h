@@ -53,6 +53,7 @@ namespace caret {
 
 #else
 //if we don't have openmp, fall back to QMutex
+#include <QMutexLocker>
 #include <QMutex>
 
 namespace caret {
@@ -60,12 +61,26 @@ namespace caret {
     class CaretMutex : public QMutex
     {
     public:
+        
+#if QT_VERSION >= 0x060000
+        /*
+         * Default constructor needed for Qt6.
+         * If Recursion was used in any code, it needs replacement with QRecursiveMutex
+         */
+        CaretMutex() : QMutex() { }
+#else
+        /* Recursion mode removed in Qt 6; QRecursiveMutex class was added*/
         CaretMutex(RecursionMode mode = NonRecursive) : QMutex(mode) { }
+#endif
         CaretMutex(const CaretMutex&) : QMutex() { };//allow copy, assign, but make them do nothing other than default construct
         CaretMutex& operator=(const CaretMutex&) { return *this; };
     };
    
+#if QT_VERSION >= 0x060000
+    class CaretMutexLocker : public QMutexLocker<QMutex>
+#else
     class CaretMutexLocker : public QMutexLocker
+#endif
     {
     public:
         CaretMutexLocker(CaretMutex* theMutex) : QMutexLocker(theMutex) { }

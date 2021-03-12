@@ -341,7 +341,7 @@ FilePathNamePrefixCompactor::removeMatchingPathPrefixFromFileNames(const std::ve
         
         QStringList pathComponentsList = path.split('/');
         mininumComponentCount = std::min(mininumComponentCount,
-                                         pathComponentsList.size());
+                                         static_cast<int32_t>(pathComponentsList.size()));
         
         
         std::vector<AString> pathComponents;

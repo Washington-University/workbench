@@ -19,7 +19,7 @@
  */
 /*LICENSE_END*/
 
-#include <QRegExp>
+#include <QRegularExpression>
 
 #define __NUMERIC_TEXT_FORMATTING_DECLARE__
 #include "NumericTextFormatting.h"
@@ -126,7 +126,7 @@ NumericTextFormatting::removeLeadingZeroFromExponent(const NumericFormatModeEnum
     /*
      * Regular expression that matches something like 0.000e+00 (zero !!!)
      */
-    static QRegExp zeroRegExp("^0\\.0+e[\\+-]0+$");
+    static QRegularExpression zeroRegExp("^0\\.0+e[\\+-]0+$");
     
     if (eIndex > 0) {
         if (textValue.indexOf(zeroRegExp) >= 0) {

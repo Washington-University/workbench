@@ -780,7 +780,7 @@ WuQMacroExecutor::runActionGroupCommand(const WuQMacroCommand* macroCommand,
                                   + "\", unable to find action with text \""
                                   + parameterOne->getValue().toString()
                                   + "\" or index="
-                                  + parameterTwo->getValue().toInt());
+                                  + QString::number(parameterTwo->getValue().toInt()));
         }
     }
     else {
@@ -850,7 +850,7 @@ WuQMacroExecutor::runButtonGroupCommand(const WuQMacroCommand* macroCommand,
                                   + "\", unable to find button with text \""
                                   + dataValue.toString()
                                   + "\" or index="
-                                  + dataValueTwo.toInt());
+                                  + QString::number(dataValueTwo.toInt()));
         }
     }
     else {
@@ -949,7 +949,7 @@ WuQMacroExecutor::runComboBoxCommand(const WuQMacroCommand* macroCommand,
                                   + "\", unable to find item with text \""
                                   + dataValue.toString()
                                   + "\" or index="
-                                  + dataValueTwo.toInt());
+                               + QString::number(dataValueTwo.toInt()));
         }
     }
     else {
@@ -1092,7 +1092,7 @@ WuQMacroExecutor::runListWidgetCommand(const WuQMacroCommand* macroCommand,
                                   + "\", unable to find item with text \""
                                   + dataValue.toString()
                                   + "\" or index="
-                                  + dataValueTwo.toInt());
+                               + QString::number(dataValueTwo.toInt()));
         }
     }
     else {
@@ -1196,7 +1196,7 @@ WuQMacroExecutor::runMenuCommand(const WuQMacroCommand* macroCommand,
                                   + "\", unable to find action with text \""
                                   + dataValue.toString()
                                   + "\" or index="
-                                  + dataValueTwo.toInt());
+                               + QString::number(dataValueTwo.toInt()));
         }
     }
     else {

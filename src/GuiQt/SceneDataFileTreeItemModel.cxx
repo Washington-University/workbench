@@ -138,8 +138,13 @@ SceneDataFileTreeItemModel::addFindDirectoryPath(const AString& absoluteDirName)
             rootPrefix = httpsPrefix;
         }
         
+#if QT_VERSION >= 0x060000
         QStringList components(nameForSplitting.split("/",
                                                       Qt::SkipEmptyParts));
+#else
+        QStringList components(nameForSplitting.split("/",
+                                                      QString::SkipEmptyParts));
+#endif
         const int32_t componentCount = components.length();
 
         std::vector<AString> parentDirectoryHierarchy;

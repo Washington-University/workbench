@@ -22,6 +22,7 @@
 
 #include "DataFileException.h"
 
+#include <QRegularExpression>
 #include <QStringList>
 
 #include <algorithm>
@@ -551,8 +552,8 @@ void CiftiBrainModelsMap::readXML1(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                QStringRef name = xml.name();
-                if (name != "BrainModel")
+                auto name = xml.name();
+                if (name != QLatin1String("BrainModel"))
                 {
                     throw DataFileException("unexpected element in brain models map: " + name.toString());
                 }
@@ -596,7 +597,7 @@ void CiftiBrainModelsMap::readXML1(QXmlStreamReader& xml)
         }
     }
     m_ignoreVolSpace = false;//in case there are no voxels, but some will be added later
-    CaretAssert(xml.isEndElement() && xml.name() == "MatrixIndicesMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("MatrixIndicesMap"));
 }
 
 void CiftiBrainModelsMap::readXML2(QXmlStreamReader& xml)
@@ -609,14 +610,14 @@ void CiftiBrainModelsMap::readXML2(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                QStringRef name = xml.name();
-                if (name == "BrainModel")
+                auto name = xml.name();
+                if (name == QLatin1String("BrainModel"))
                 {
                     ParseHelperModel thisModel;
                     thisModel.parseBrainModel2(xml);
                     if (xml.hasError()) break;
                     parsedModels.push_back(thisModel);
-                } else if (name == "Volume") {
+                } else if (name == QLatin1String("Volume")) {
                     if (m_haveVolumeSpace)
                     {
                         throw DataFileException("Volume specified more than once in Brain Models mapping type");
@@ -663,7 +664,7 @@ void CiftiBrainModelsMap::readXML2(QXmlStreamReader& xml)
                            parsedModels[i].m_voxelIndicesIJK);
         }
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "MatrixIndicesMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("MatrixIndicesMap"));
 }
 
 void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel1(QXmlStreamReader& xml)
@@ -673,11 +674,11 @@ void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel1(QXmlStreamReader& x
     {
         throw DataFileException("BrainModel missing required attribute ModelType");
     }
-    QStringRef value = attrs.value("ModelType");
-    if (value == "CIFTI_MODEL_TYPE_SURFACE")
+    auto value = attrs.value("ModelType");
+    if (value == QLatin1String("CIFTI_MODEL_TYPE_SURFACE"))
     {
         m_type = SURFACE;
-    } else if (value == "CIFTI_MODEL_TYPE_VOXELS") {
+    } else if (value == QLatin1String("CIFTI_MODEL_TYPE_VOXELS")) {
         m_type = VOXELS;
     } else {
         throw DataFileException("invalid value for ModelType: " + value.toString());
@@ -733,7 +734,7 @@ void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel1(QXmlStreamReader& x
                 m_nodeIndices[i] = i;
             }
         } else {
-            if (xml.name() != "NodeIndices")
+            if (xml.name() != QLatin1String("NodeIndices"))
             {
                 throw DataFileException("unexpected element in BrainModel of SURFACE type: " + xml.name().toString());
             }
@@ -750,7 +751,7 @@ void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel1(QXmlStreamReader& x
         {
             throw DataFileException("BrainModel requires a child element");
         }
-        if (xml.name() != "VoxelIndicesIJK")
+        if (xml.name() != QLatin1String("VoxelIndicesIJK"))
         {
             throw DataFileException("unexpected element in BrainModel of VOXELS type: " + xml.name().toString());
         }
@@ -776,7 +777,7 @@ void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel1(QXmlStreamReader& x
                 break;
         }
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "BrainModel");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("BrainModel"));
 }
 
 void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel2(QXmlStreamReader& xml)
@@ -786,11 +787,11 @@ void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel2(QXmlStreamReader& x
     {
         throw DataFileException("BrainModel missing required attribute ModelType");
     }
-    QStringRef value = attrs.value("ModelType");
-    if (value == "CIFTI_MODEL_TYPE_SURFACE")
+    auto value = attrs.value("ModelType");
+    if (value == QLatin1String("CIFTI_MODEL_TYPE_SURFACE"))
     {
         m_type = SURFACE;
-    } else if (value == "CIFTI_MODEL_TYPE_VOXELS") {
+    } else if (value == QLatin1String("CIFTI_MODEL_TYPE_VOXELS")) {
         m_type = VOXELS;
     } else {
         throw DataFileException("invalid value for ModelType: " + value.toString());
@@ -842,7 +843,7 @@ void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel2(QXmlStreamReader& x
         {
             throw DataFileException("BrainModel requires a child element");
         }
-        if (xml.name() != "VertexIndices")
+        if (xml.name() != QLatin1String("VertexIndices"))
         {
             throw DataFileException("unexpected element in BrainModel of SURFACE type: " + xml.name().toString());
         }
@@ -858,7 +859,7 @@ void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel2(QXmlStreamReader& x
         {
             throw DataFileException("BrainModel requires a child element");
         }
-        if (xml.name() != "VoxelIndicesIJK")
+        if (xml.name() != QLatin1String("VoxelIndicesIJK"))
         {
             throw DataFileException("unexpected element in BrainModel of VOXELS type: " + xml.name().toString());
         }
@@ -884,7 +885,7 @@ void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel2(QXmlStreamReader& x
                 break;
         }
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "BrainModel");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("BrainModel"));
 }
 
 vector<int64_t> CiftiBrainModelsMap::ParseHelperModel::readIndexArray(QXmlStreamReader& xml)
@@ -892,7 +893,11 @@ vector<int64_t> CiftiBrainModelsMap::ParseHelperModel::readIndexArray(QXmlStream
     vector<int64_t> ret;
     QString text = xml.readElementText();//raises error if it encounters a start element
     if (xml.hasError()) return ret;
-    QStringList separated = text.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+    QStringList separated = text.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+#else
+    QStringList separated = text.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
+#endif
     int64_t numElems = separated.size();
     ret.reserve(numElems);
     for (int64_t i = 0; i < numElems; ++i)

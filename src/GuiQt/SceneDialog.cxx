@@ -3229,8 +3229,13 @@ SceneClassInfoWidget::limitToNumberOfLines(AString& textLines,
     
     const QString lineSeparator("\n");
     
+#if QT_VERSION >= 0x060000
     QStringList descriptionLines = textLines.split(lineSeparator,
                                                    Qt::KeepEmptyParts);
+#else
+    QStringList descriptionLines = textLines.split(lineSeparator,
+                                                   QString::KeepEmptyParts);
+#endif
     const int32_t numLines = descriptionLines.size();
     const int32_t numLinesToRemove = numLines - maximumNumberOfLines;
     if (numLinesToRemove > 0) {

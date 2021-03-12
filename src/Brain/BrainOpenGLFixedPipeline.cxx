@@ -2862,7 +2862,7 @@ BrainOpenGLFixedPipeline::setProjectionModeData(const float screenDepth,
         CaretLogFiner("Projected to surface " 
                       + StructureEnum::toName(structure)
                       + " with depth "
-                      + screenDepth);
+                      + AString::number(screenDepth));
     }
 }
 

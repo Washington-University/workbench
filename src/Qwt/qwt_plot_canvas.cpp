@@ -188,9 +188,13 @@ static void qwtDrawBackground( QPainter *painter, QwtPlotCanvas *canvas )
         } 
         else 
         {
+#if QT_VERSION >= 0x060000
             QVector<QRect> clipRects(painter->clipRegion().begin(),
                                      painter->clipRegion().end());
             rects = clipRects;
+#else
+            rects = painter->clipRegion().rects();
+#endif
         }
 
 #if 1
@@ -250,9 +254,13 @@ static void qwtDrawBackground( QPainter *painter, QwtPlotCanvas *canvas )
         painter->setPen( Qt::NoPen );
         painter->setBrush( brush );
 
+#if QT_VERSION >= 0x060000
         QVector<QRect> clipRects(painter->clipRegion().begin(),
                                  painter->clipRegion().end());
         painter->drawRects( clipRects );
+#else
+        painter->drawRects( painter->clipRegion().rects() );
+#endif
 
     }
 
@@ -943,7 +951,7 @@ void QwtPlotCanvas::drawBorder( QPainter *painter )
 #if QT_VERSION >= 0x040500
         //QStyleOptionFrameV3 opt;
         QStyleOptionFrame opt;  // Note QStyleOptionFrameV3 is typedef to QStyleOptionFrame
-        opt.init(this);
+        opt.initFrom(this);
 
         int frameShape  = frameStyle() & QFrame::Shape_Mask;
         int frameShadow = frameStyle() & QFrame::Shadow_Mask;

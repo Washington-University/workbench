@@ -734,7 +734,7 @@ SceneXmlStreamReader::readSceneObjectMap(QXmlStreamReader& xmlReader)
                         if (keyIndex < 0) {
                             errorString.appendWithNewLine(ATTRIBUTE_OBJECT_MAP_VALUE_KEY
                                                           + "="
-                                                          + keyIndex
+                                                          + AString::number(keyIndex)
                                                           + " is invalid on "
                                                           + ELEMENT_OBJECT_MAP_VALUE);
                         }

@@ -22,6 +22,7 @@
 
 #include <cstdlib>
 
+#include <QRegularExpression>
 #include <QStringList>
 
 #define __BRAIN_OPENGL_DEFINE_H
@@ -658,7 +659,7 @@ BrainOpenGL::getOpenGLMajorMinorVersions(const AString& versionString,
      * Major and minor version are separated by a period.
      * Vendor information may follow and begin with whitespace.
      */
-    const QStringList sl = versionString.split(QRegExp("[\\s|\\.]"));
+    const QStringList sl = versionString.split(QRegularExpression("[\\s|\\.]"));
     
     if (sl.count() >= 2) {
         minorVersionOut = sl.at(1);

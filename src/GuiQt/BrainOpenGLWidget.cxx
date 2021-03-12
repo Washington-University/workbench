@@ -1018,7 +1018,11 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
      * out of its viewport without releasing the mouse
      * button.
      */
+#if QT_VERSION >= 0x060000
     const QPointF pos(we->position());
+#else
+    const QPointF pos(we->pos());
+#endif
     const int wheelX = pos.x();
     const int wheelY = this->windowHeight[this->windowIndex] - pos.y();
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
@@ -1417,7 +1421,11 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
 }
 
 void
+#if QT_VERSION >= 0x060000
+BrainOpenGLWidget::enterEvent(QEnterEvent* /*e*/)
+#else
 BrainOpenGLWidget::enterEvent(QEvent* /*e*/)
+#endif
 {
     m_mousePositionValid = true;
 }

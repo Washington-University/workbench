@@ -777,7 +777,7 @@ GiftiDataArray::readFromText(const AString text,
                      throw GiftiException("Tried to read "
                                          + AString::number((int64_t)numberOfBytesToRead)
                                          + " from "
-                                         + externalFileOffsetForReading
+                                         + AString::number(externalFileOffsetForReading)
                                          + " but failed");
                   }
                   

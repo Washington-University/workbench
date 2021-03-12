@@ -26,6 +26,7 @@
 #undef __ANNOTATION_TEXT_ALIGNMENT_WIDGET_DECLARE__
 
 #include <QAction>
+#include <QActionGroup>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QImage>

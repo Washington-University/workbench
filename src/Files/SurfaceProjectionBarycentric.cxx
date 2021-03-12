@@ -30,6 +30,7 @@
 #include "TopologyHelper.h"
 #include "XmlWriter.h"
 
+#include <QRegularExpression>
 #include <QXmlStreamReader>
 #include <QStringList>
 
@@ -567,7 +568,7 @@ SurfaceProjectionBarycentric::writeAsXML(XmlWriter& xmlWriter)
 void SurfaceProjectionBarycentric::readBorderFileXML1(QXmlStreamReader& xml)
 {
     reset();
-    CaretAssert(xml.isStartElement() && xml.name() == "ProjectionBarycentric");
+    CaretAssert(xml.isStartElement() && xml.name() == QLatin1String("ProjectionBarycentric"));
     bool haveAreas = false, haveNodes = false, haveDist = false;
     for (xml.readNext(); !xml.atEnd() && !xml.isEndElement(); xml.readNext())
     {
@@ -575,13 +576,17 @@ void SurfaceProjectionBarycentric::readBorderFileXML1(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                QStringRef name = xml.name();
-                if (name == "TriangleAreas")
+                auto name = xml.name();
+                if (name == QLatin1String("TriangleAreas"))
                 {
                     if (haveAreas) throw DataFileException("multiple TriangleAreas elements in one ProjectionBarycentric element");
                     QString text = xml.readElementText();//errors on unexpected element
                     if (xml.hasError()) throw DataFileException("XML parsing error in TriangleAreas: " + xml.errorString());
-                    QStringList areaStrings = text.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+                    QStringList areaStrings = text.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+#else
+                    QStringList areaStrings = text.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
+#endif
                     if (areaStrings.size() != 3) throw DataFileException("TriangleAreas element must contain 3 numbers separated by whitespace");
                     bool ok = false;
                     for (int i = 0; i < 3; ++i)
@@ -590,11 +595,15 @@ void SurfaceProjectionBarycentric::readBorderFileXML1(QXmlStreamReader& xml)
                         if (!ok) throw DataFileException("found non-numeric string in TriangleAreas: " + areaStrings[i]);
                     }
                     haveAreas = true;
-                } else if (name == "TriangleNodes") {
+                } else if (name == QLatin1String("TriangleNodes")) {
                     if (haveNodes) throw DataFileException("multiple TriangleNodes elements in one ProjectionBarycentric element");
                     QString text = xml.readElementText();//errors on unexpected element
                     if (xml.hasError()) throw DataFileException("XML parsing error in TriangleNodes: " + xml.errorString());
-                    QStringList nodeStrings = text.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+                    QStringList nodeStrings = text.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+#else
+                    QStringList nodeStrings = text.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
+#endif
                     if (nodeStrings.size() != 3) throw DataFileException("TriangleNodes element must contain 3 integers separated by whitespace");
                     bool ok = false;
                     for (int i = 0; i < 3; ++i)
@@ -603,7 +612,7 @@ void SurfaceProjectionBarycentric::readBorderFileXML1(QXmlStreamReader& xml)
                         if (!ok) throw DataFileException("found non-integer string in TriangleNodes: " + nodeStrings[i]);
                     }
                     haveNodes = true;
-                } else if (name == "SignedDistanceAboveSurface") {
+                } else if (name == QLatin1String("SignedDistanceAboveSurface")) {
                     if (haveDist) throw DataFileException("multiple SignedDistanceAboveSurface elements in one ProjectionBarycentric element");
                     QString text = xml.readElementText();//errors on unexpected element
                     if (xml.hasError()) throw DataFileException("XML parsing error in SignedDistanceAboveSurface: " + xml.errorString());
@@ -621,7 +630,7 @@ void SurfaceProjectionBarycentric::readBorderFileXML1(QXmlStreamReader& xml)
         }
     }
     if (xml.hasError()) throw DataFileException("XML parsing error in ProjectionBarycentric: " + xml.errorString());
-    CaretAssert(xml.isEndElement() && xml.name() == "ProjectionBarycentric");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("ProjectionBarycentric"));
     if (!haveAreas || !haveNodes)//ignore missing distance? should always be zero for BorderFile anyway
     {
         throw DataFileException("SurfaceProjectionBarycentric element missing TriangleNodes and/or TriangleAreas");

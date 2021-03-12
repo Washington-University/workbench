@@ -848,7 +848,7 @@ TileTabsLayoutGridConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStr
         xml.readNext();
         
         if (xml.isStartElement()) {
-            const QStringRef tagName(xml.name());
+            const auto tagName(xml.name());
 
             if (tagName == s_v1_versionTagName) {
                 /* ignore */
@@ -988,7 +988,7 @@ TileTabsLayoutGridConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStr
         xml.readNext();
         
         if (xml.isStartElement()) {
-            const QStringRef tagName(xml.name());
+            const auto tagName(xml.name());
             
             if (tagName == s_nameTagName) {
                 name = xml.readElementText();
@@ -1042,7 +1042,7 @@ TileTabsLayoutGridConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStr
             }
         }
         else if (xml.isEndElement()) {
-            const QStringRef tagName(xml.name());
+            const auto tagName(xml.name());
             
             if (tagName == s_v2_columnsTagName) {
                 readMode = ReadMode::OTHER;

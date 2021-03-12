@@ -537,7 +537,7 @@ SurfaceProjectedItem::writeAsXML(XmlWriter& xmlWriter)
 void SurfaceProjectedItem::readBorderFileXML1(QXmlStreamReader& xml)
 {
     reset();
-    CaretAssert(xml.isStartElement() && xml.name() == "SurfaceProjectedItem");
+    CaretAssert(xml.isStartElement() && xml.name() == QLatin1String("SurfaceProjectedItem"));
     bool haveStructure = false, haveVanEssen = false, haveStereo = false, haveVolume = false;//track the barycentric projection for being specified more than once by its valid flag
     for (xml.readNext(); !xml.atEnd() && !xml.isEndElement(); xml.readNext())
     {
@@ -545,8 +545,8 @@ void SurfaceProjectedItem::readBorderFileXML1(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                QStringRef name = xml.name();
-                if (name == "Structure")
+                auto name = xml.name();
+                if (name == QLatin1String("Structure"))
                 {
                     if (haveStructure) throw DataFileException("multiple Structure elements in one SurfaceProjectedItem element");
                     QString structString = xml.readElementText();//sets error on unexpected child element
@@ -555,22 +555,22 @@ void SurfaceProjectedItem::readBorderFileXML1(QXmlStreamReader& xml)
                     structure = StructureEnum::fromName(structString, &ok);
                     if (!ok) CaretLogWarning("unrecognized string in Structure: " + structString);//HACK: this is what the SAX reader did, don't look at me
                     haveStructure = true;
-                } else if (name == "ProjectionBarycentric") {
+                } else if (name == QLatin1String("ProjectionBarycentric")) {
                     if (barycentricProjection->isValid()) throw DataFileException("multiple ProjectionBarycentric elements in one SurfaceProjectedItem element");
                     barycentricProjection->readBorderFileXML1(xml);
-                } else if (name == "VanEssenProjection") {
+                } else if (name == QLatin1String("VanEssenProjection")) {
                     if (haveVanEssen) throw DataFileException("multiple VanEssenProjection elements in one SurfaceProjectedItem element");
                     CaretLogFine("found Van Essen projection in border file, ignoring");
                     xml.readElementText(QXmlStreamReader::SkipChildElements);//HACK: border files never use this projection type, so don't try to parse it
                     if (xml.hasError()) throw DataFileException("XML parsing error in VanEssenProjection: " + xml.errorString());
                     haveVanEssen = true;
-                } else if (name == "StereotaxicXYZ") {
+                } else if (name == QLatin1String("StereotaxicXYZ")) {
                     if (haveStereo) throw DataFileException("multiple StereotaxicXYZ elements in one SurfaceProjectedItem element");
                     CaretLogFine("found stereotaxic coordinates in border file, ignoring");
                     xml.readElementText(QXmlStreamReader::SkipChildElements);//HACK: ditto
                     if (xml.hasError()) throw DataFileException("XML parsing error in StereotaxicXYZ: " + xml.errorString());
                     haveStereo = true;
-                } else if (name == "VolumeXYZ") {
+                } else if (name == QLatin1String("VolumeXYZ")) {
                     if (haveVolume) throw DataFileException("multiple VolumeXYZ elements in one SurfaceProjectedItem element");
                     CaretLogFine("found volume coordinates in border file, ignoring");
                     xml.readElementText(QXmlStreamReader::SkipChildElements);//HACK: ditto
@@ -586,7 +586,7 @@ void SurfaceProjectedItem::readBorderFileXML1(QXmlStreamReader& xml)
         }
     }
     if (xml.hasError()) throw DataFileException("XML parsing error in SurfaceProjectedItem: " + xml.errorString());
-    CaretAssert(xml.isEndElement() && xml.name() == "SurfaceProjectedItem");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("SurfaceProjectedItem"));
     if (!haveStructure) throw DataFileException("SurfaceProjectedItem is missing Structure element");
 }
 

@@ -25,7 +25,6 @@
 
 #include <QAction>
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QMenu>
 #include <QPainter>
 #include <QPen>
@@ -104,7 +103,6 @@
 #include "ModelChartTwo.h"
 #include "OverlaySettingsEditorDialog.h"
 #include "MacDockMenu.h"
-#include "MovieDialog.h"
 #include "MovieRecordingDialog.h"
 #include "PaletteColorMappingEditorDialog.h"
 #include "PaletteEditorDialog.h"
@@ -186,7 +184,6 @@ GuiManager::initializeGuiManager()
     m_customViewDialog = NULL;
     m_gapsAndMarginsDialog = NULL;
     this->imageCaptureDialog = NULL;
-    this->movieDialog = NULL;
     m_movieRecordingDialog = NULL;
     m_informationDisplayDialog = NULL;
     m_identificationDisplayDialog = NULL;
@@ -2691,26 +2688,6 @@ GuiManager::processShowGapsAndMarginsDialog(BrainBrowserWindow* browserWindow)
     m_gapsAndMarginsDialog->updateDialog();
     m_gapsAndMarginsDialog->showDialog();
 }
-
-/**
- * Show the record movie window.
- * @param browserWindow
- *    Window on which dialog was requested.
- */
-void 
-GuiManager::processShowMovieDialog(BrainBrowserWindow* browserWindow)
-{
-    if (this->movieDialog == NULL) {
-        this->movieDialog = new MovieDialog(browserWindow);
-        this->addNonModalDialog(this->movieDialog);
-    }
-    this->movieDialog->setVisible(true);
-    this->movieDialog->show();
-    this->movieDialog->activateWindow();
-    this->movieDialog->raise();
-}
-
-
 
 /**
  * Show the preferences window.

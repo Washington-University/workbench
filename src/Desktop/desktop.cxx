@@ -26,11 +26,11 @@
 #include "CaretOpenGLInclude.h"
 
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QLabel>
 #ifndef WORKBENCH_USE_QT5_QOPENGL_WIDGET
 #include <QGLPixelBuffer>
 #endif
+#include <QScreen>
 #include <QSplashScreen>
 #include <QStyleFactory>
 #include <QThread>
@@ -49,6 +49,9 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CommandOperationManager.h"
+#if QT_VERSION < 0x060000
+#include <QDesktopWidget>
+#endif
 #include "EventBrowserWindowNew.h"
 #include "EventManager.h"
 #include "FileInformation.h"
@@ -466,10 +469,12 @@ main(int argc, char* argv[])
          * Resolution of screens
          */
         AString screenSizeText = "Screen Sizes: ";
-        QDesktopWidget* dw = QApplication::desktop();
-        const int numScreens = dw->screenCount();
+        QList<QScreen*> screens = QGuiApplication::screens();
+        const int32_t numScreens = screens.size();
         for (int i = 0; i < numScreens; i++) {
-            const QRect rect = dw->screenGeometry(i);
+            CaretAssertVectorIndex(screens, i);
+            CaretAssert(screens[i]);
+            const QRect rect = screens[i]->availableGeometry();
             const int x = rect.x();
             const int y = rect.y();
             const int w = rect.width();
@@ -485,6 +490,12 @@ main(int argc, char* argv[])
                                              + ", h="
                                              + AString::number(h));
         }
+        
+#if QT_VERSION >= 0x060000
+        CaretAssertToDoWarning(); /* Finish converting below code */
+        screenSizeText.appendWithNewLine("NOT FINISHED WITH QT 6");
+#else
+        QDesktopWidget* dw = QApplication::desktop();
         screenSizeText.appendWithNewLine("Primary Screen="
                                          + AString::number(dw->primaryScreen()));
         if (dw->isVirtualDesktop()) {
@@ -518,6 +529,7 @@ main(int argc, char* argv[])
                                          + AString::number(dw->widthMM())
                                          + ", y="
                                          + AString::number(dw->heightMM()));
+#endif
         
         CaretLogConfig(screenSizeText);
         

@@ -7,6 +7,14 @@ PROJECT (GuiQt)
 #
 # QT include files
 #
+if(Qt6_FOUND)
+    include_directories(${Qt6Core_INCLUDE_DIRS})
+    include_directories(${Qt6Core5Compat_INCLUDE_DIRS})
+    include_directories(${Qt6OpenGL_INCLUDE_DIRS})
+    include_directories(${Qt6Network_INCLUDE_DIRS})
+    include_directories(${Qt6OpenGLWidgets_INCLUDE_DIRS})
+    include_directories(${Qt6Widgets_INCLUDE_DIRS})
+endif()
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
     include_directories(${Qt5OpenGL_INCLUDE_DIRS})
@@ -33,10 +41,6 @@ IF(WORKBENCH_USE_CMAKE_AUTOMOC)
     SET(CMAKE_AUTOMOC ON)
     SET(CMAKE_AUTOUIC ON)
 ELSE()
-    SET(FORMS
-        MovieDialog.ui
-       )
-
     SET(MOC_INPUT_HEADER_FILES
         AboutWorkbenchDialog.h
 	AnnotationBackgroundTypeWidget.h
@@ -170,7 +174,6 @@ ELSE()
 	MediaOverlaySetViewController.h
         MetaDataEditorDialog.h
         MetaDataEditorWidget.h
-        MovieDialog.h
 	MovieRecordingDialog.h
         OffScreenOpenGLRenderer.h
         OverlaySetViewController.h
@@ -276,9 +279,11 @@ ELSE()
         ZipSceneFileDialog.h
     )
 
+    IF(Qt6_FOUND)
+        QT6_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF()
     IF(Qt5_FOUND)
         QT5_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
-        QT5_WRAP_UI(FORMS_HEADERS ${FORMS})
     ENDIF()
 ENDIF()
 
@@ -462,7 +467,6 @@ MediaOverlaySetViewController.h
 MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MouseEvent.h
-MovieDialog.h
 MovieRecordingDialog.h
 OffScreenOpenGLRenderer.h
 OverlaySetViewController.h
@@ -777,7 +781,6 @@ MediaOverlaySetViewController.cxx
 MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MouseEvent.cxx
-MovieDialog.cxx
 MovieRecordingDialog.cxx
 OffScreenOpenGLRenderer.cxx
 OverlaySetViewController.cxx
@@ -924,7 +927,6 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}
 # Create the GUI library
 #
 ADD_LIBRARY(GuiQt
-    ${FORMS_HEADERS}
     ${MOC_SOURCE_FILES}
     ${SOURCE_FILES}
 )

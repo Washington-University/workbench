@@ -12,6 +12,13 @@ SET(QT_USE_QTXML TRUE)
 SET(QT_DONT_USE_QTGUI TRUE)
 SET(QT_USE_QTNETWORK TRUE)
 
+if(Qt6_FOUND)
+    include_directories(${Qt6Core_INCLUDE_DIRS})
+    include_directories(${Qt6Core5Compat_INCLUDE_DIRS})
+    include_directories(${Qt6Gui_INCLUDE_DIRS})
+    include_directories(${Qt6Network_INCLUDE_DIRS})
+    include_directories(${Qt6Xml_INCLUDE_DIRS})
+endif()
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
     include_directories(${Qt5Gui_INCLUDE_DIRS})
@@ -32,6 +39,9 @@ ELSE()
         CaretHttpManager.h
     )
 
+    IF(Qt6_FOUND)
+        QT6_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF()
     IF(Qt5_FOUND)
         QT5_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
     ENDIF()
@@ -201,6 +211,7 @@ WuQMacroMouseEventTypeEnum.h
 WuQMacroShortCutKeyEnum.h
 WuQMacroStandardItemTypeEnum.h
 WuQMacroWidgetTypeEnum.h
+WuQStringRefView.h
 YokingGroupEnum.h
 
 ${MOC_SOURCE_FILES}

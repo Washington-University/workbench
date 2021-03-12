@@ -13,6 +13,9 @@ PROJECT (QxtCore)
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
 endif()
+if(Qt6_FOUND)
+    include_directories(${Qt6Core_INCLUDE_DIRS})
+endif()
 
 #
 # With AUTOMOC, do not need to specify files
@@ -26,6 +29,9 @@ ELSE()
         qxtcsvmodel.h
     )
 
+    IF(Qt6_FOUND)
+        QT6_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF()
     IF(Qt5_FOUND)
         QT5_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
     ENDIF()

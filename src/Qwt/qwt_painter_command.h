@@ -16,6 +16,7 @@
 #include <qimage.h>
 #include <qpolygon.h>
 #include <QPainterPath>
+#include <QMatrix4x4>
 
 class QPainterPath;
 
@@ -78,7 +79,7 @@ public:
         QBrush backgroundBrush;
         Qt::BGMode backgroundMode;
         QFont font;
-        QMatrix matrix;
+        QMatrix4x4 matrix;
         QTransform transform;
 
         Qt::ClipOperation clipOperation;

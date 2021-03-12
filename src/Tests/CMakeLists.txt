@@ -6,6 +6,10 @@ PROJECT (Tests)
 #
 # Add QT for includes
 #
+if(Qt6_FOUND)
+    include_directories(${Qt6Core_INCLUDE_DIRS})
+    include_directories(${Qt6Network_INCLUDE_DIRS})
+endif()
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
     include_directories(${Qt5Network_INCLUDE_DIRS})
@@ -75,6 +79,17 @@ ELSE (APPLE)
    )
 ENDIF (APPLE)
 
+if(Qt6_FOUND)
+    set(QT6_LINK_LIBS
+        Qt6::Concurrent
+        Qt6::Core
+        Qt6::Core5Compat
+        Qt6::Gui
+        Qt6::Network
+        Qt6::Test
+        Qt6::Xml)
+endif()
+
 if(Qt5_FOUND)
     set(QT5_LINK_LIBS
         Qt5::Concurrent
@@ -112,6 +127,7 @@ Scenes
 Xml
 Common
 ${QT5_LINK_LIBS}
+${QT6_LINK_LIBS}
 ${QT_LIBRARIES}
 ${GLEW_LIBRARIES}
 ${OSMESA_OFFSCREEN_LIBRARY}

@@ -341,8 +341,8 @@ void CiftiXML::readXML(QXmlStreamReader& xml)
         {
             if (xml.isStartElement())
             {
-                QStringRef name = xml.name();
-                if (name == "CIFTI")
+                auto name = xml.name();
+                if (name == QLatin1String("CIFTI"))
                 {
                     if (haveCifti)
                     {
@@ -374,6 +374,23 @@ void CiftiXML::readXML(QXmlStreamReader& xml)
                     throw DataFileException("unexpected root element in Cifti XML: " + name.toString());
                 }
             }
+#if QT_VERSION >= 0x060000
+            /*
+             * In Qt 6, calling xml.readNext() after reading the CIFTI end element
+             * results in a TokenType of Invalid and hasError() is set to true.
+             * The expection is that atEnd() would get set but that does not
+             * happen.
+             */
+            if (xml.isEndElement())
+            {
+                if ( ! xml.hasError()) {
+                    if (xml.name() == QLatin1String("CIFTI"))
+                    {
+                        break;
+                    }
+                }
+            }
+#endif
         }
         if (!xml.hasError() && !haveCifti)
         {
@@ -393,7 +410,7 @@ void CiftiXML::parseCIFTI1(QXmlStreamReader& xml)
     QXmlStreamAttributes attributes = xml.attributes();
     if (attributes.hasAttribute("NumberOfMatrices"))
     {
-        if (attributes.value("NumberOfMatrices") != "1")
+        if (attributes.value("NumberOfMatrices") != QLatin1String("1"))
         {
             throw DataFileException("attribute NumberOfMatrices in CIFTI is required to be 1 for CIFTI-1");
         }
@@ -406,8 +423,8 @@ void CiftiXML::parseCIFTI1(QXmlStreamReader& xml)
         xml.readNext();
         if (xml.isStartElement())
         {
-            QStringRef name = xml.name();
-            if (name == "Matrix")
+            auto name = xml.name();
+            if (name == QLatin1String("Matrix"))
             {
                 if (haveMatrix)
                 {
@@ -428,7 +445,7 @@ void CiftiXML::parseCIFTI1(QXmlStreamReader& xml)
         throw DataFileException("Matrix element not found in CIFTI");
     }
     if (xml.hasError()) return;
-    CaretAssert(xml.isEndElement() && xml.name() == "CIFTI");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("CIFTI"));
 }
 
 void CiftiXML::parseCIFTI2(QXmlStreamReader& xml)//yes, these will often have largely similar code, but it seems cleaner than having only some functions split, or constantly rechecking the version
@@ -440,8 +457,8 @@ void CiftiXML::parseCIFTI2(QXmlStreamReader& xml)//yes, these will often have la
         if (xml.hasError()) return;
         if (xml.isStartElement())
         {
-            QStringRef name = xml.name();
-            if (name == "Matrix")
+            auto name = xml.name();
+            if (name == QLatin1String("Matrix"))
             {
                 if (haveMatrix)
                 {
@@ -461,7 +478,7 @@ void CiftiXML::parseCIFTI2(QXmlStreamReader& xml)//yes, these will often have la
     {
         throw DataFileException("Matrix element not found in CIFTI");
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "CIFTI");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("CIFTI"));
 }
 
 void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
@@ -474,8 +491,8 @@ void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
         if (xml.hasError()) return;
         if (xml.isStartElement())
         {
-            QStringRef name = xml.name();
-            if (name == "MetaData")
+            auto name = xml.name();
+            if (name == QLatin1String("MetaData"))
             {
                 if (haveMetadata)
                 {
@@ -484,10 +501,10 @@ void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
                 m_fileMetaData.readCiftiXML1(xml);
                 if (xml.hasError()) return;
                 haveMetadata = true;
-            } else if (name == "MatrixIndicesMap") {
+            } else if (name == QLatin1String("MatrixIndicesMap")) {
                 parseMatrixIndicesMap1(xml);
                 if (xml.hasError()) return;
-            } else if (name == "Volume") {
+            } else if (name == QLatin1String("Volume")) {
                 if (haveVolSpace)
                 {
                     throw DataFileException("Volume may only be specified once in Matrix");
@@ -495,7 +512,7 @@ void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
                 fileVolSpace.readCiftiXML1(xml);
                 if (xml.hasError()) return;
                 haveVolSpace = true;
-            } else if (name == "LabelTable") {
+            } else if (name == QLatin1String("LabelTable")) {
                 CaretLogFiner("skipping unused LabelTable element in Matrix in CIFTI-1");
                 xml.readElementText(QXmlStreamReader::SkipChildElements);
             } else {
@@ -547,7 +564,7 @@ void CiftiXML::parseMatrix1(QXmlStreamReader& xml)
                 break;
         }
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "Matrix");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("Matrix"));
 }
 
 void CiftiXML::parseMatrix2(QXmlStreamReader& xml)
@@ -559,8 +576,8 @@ void CiftiXML::parseMatrix2(QXmlStreamReader& xml)
         if (xml.hasError()) return;
         if (xml.isStartElement())
         {
-            QStringRef name = xml.name();
-            if (name == "MetaData")
+            auto name = xml.name();
+            if (name == QLatin1String("MetaData"))
             {
                 if (haveMetadata)
                 {
@@ -569,7 +586,7 @@ void CiftiXML::parseMatrix2(QXmlStreamReader& xml)
                 m_fileMetaData.readCiftiXML2(xml);
                 if (xml.hasError()) return;
                 haveMetadata = true;
-            } else if (name == "MatrixIndicesMap") {
+            } else if (name == QLatin1String("MatrixIndicesMap")) {
                 parseMatrixIndicesMap2(xml);
                 if (xml.hasError()) return;
             } else {
@@ -586,7 +603,7 @@ void CiftiXML::parseMatrix2(QXmlStreamReader& xml)
             throw DataFileException("missing mapping for dimension '" + QString::number(i) + "'");
         }
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "Matrix");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("Matrix"));
 }
 
 void CiftiXML::parseMatrixIndicesMap1(QXmlStreamReader& xml)
@@ -618,17 +635,17 @@ void CiftiXML::parseMatrixIndicesMap1(QXmlStreamReader& xml)
         used.insert(parsed);
     }
     CaretPointer<CiftiMappingType> toRead;
-    QStringRef type = attributes.value("IndicesMapToDataType");
-    if (type == "CIFTI_INDEX_TYPE_BRAIN_MODELS")
+    auto type = attributes.value("IndicesMapToDataType");
+    if (type == QLatin1String("CIFTI_INDEX_TYPE_BRAIN_MODELS"))
     {
         toRead = CaretPointer<CiftiBrainModelsMap>(new CiftiBrainModelsMap());
-    } else if (type == "CIFTI_INDEX_TYPE_TIME_POINTS") {
+    } else if (type == QLatin1String("CIFTI_INDEX_TYPE_TIME_POINTS")) {
         toRead = CaretPointer<CiftiSeriesMap>(new CiftiSeriesMap());
-    } else if (type == "CIFTI_INDEX_TYPE_LABELS") {//this and below are nonstandard
+    } else if (type == QLatin1String("CIFTI_INDEX_TYPE_LABELS")) {//this and below are nonstandard
         toRead = CaretPointer<CiftiLabelsMap>(new CiftiLabelsMap());
-    } else if (type == "CIFTI_INDEX_TYPE_PARCELS") {
+    } else if (type == QLatin1String("CIFTI_INDEX_TYPE_PARCELS")) {
         toRead = CaretPointer<CiftiParcelsMap>(new CiftiParcelsMap());
-    } else if (type == "CIFTI_INDEX_TYPE_SCALARS") {
+    } else if (type == QLatin1String("CIFTI_INDEX_TYPE_SCALARS")) {
         toRead = CaretPointer<CiftiScalarsMap>(new CiftiScalarsMap());
     } else {
         throw DataFileException("invalid value for IndicesMapToDataType in CIFTI-1: " + type.toString());
@@ -647,7 +664,7 @@ void CiftiXML::parseMatrixIndicesMap1(QXmlStreamReader& xml)
             m_indexMaps[*iter] = CaretPointer<CiftiMappingType>(toRead->clone());//make in-memory information independent per-dimension, rather than dealing with deduplication everywhere
         }
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "MatrixIndicesMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("MatrixIndicesMap"));
 }
 
 void CiftiXML::parseMatrixIndicesMap2(QXmlStreamReader& xml)
@@ -678,17 +695,17 @@ void CiftiXML::parseMatrixIndicesMap2(QXmlStreamReader& xml)
         used.insert(parsed);
     }
     CaretPointer<CiftiMappingType> toRead;
-    QStringRef type = attributes.value("IndicesMapToDataType");
-    if (type == "CIFTI_INDEX_TYPE_BRAIN_MODELS")
+    auto type = attributes.value("IndicesMapToDataType");
+    if (type == QLatin1String("CIFTI_INDEX_TYPE_BRAIN_MODELS"))
     {
         toRead = CaretPointer<CiftiBrainModelsMap>(new CiftiBrainModelsMap());
-    } else if (type == "CIFTI_INDEX_TYPE_LABELS") {
+    } else if (type == QLatin1String("CIFTI_INDEX_TYPE_LABELS")) {
         toRead = CaretPointer<CiftiLabelsMap>(new CiftiLabelsMap());
-    } else if (type == "CIFTI_INDEX_TYPE_PARCELS") {
+    } else if (type == QLatin1String("CIFTI_INDEX_TYPE_PARCELS")) {
         toRead = CaretPointer<CiftiParcelsMap>(new CiftiParcelsMap());
-    } else if (type == "CIFTI_INDEX_TYPE_SCALARS") {
+    } else if (type == QLatin1String("CIFTI_INDEX_TYPE_SCALARS")) {
         toRead = CaretPointer<CiftiScalarsMap>(new CiftiScalarsMap());
-    } else if (type == "CIFTI_INDEX_TYPE_SERIES") {
+    } else if (type == QLatin1String("CIFTI_INDEX_TYPE_SERIES")) {
         toRead = CaretPointer<CiftiSeriesMap>(new CiftiSeriesMap());
     } else {
         throw DataFileException("invalid value for IndicesMapToDataType in CIFTI-1: " + type.toString());
@@ -707,7 +724,7 @@ void CiftiXML::parseMatrixIndicesMap2(QXmlStreamReader& xml)
             m_indexMaps[*iter] = CaretPointer<CiftiMappingType>(toRead->clone());//make in-memory information independent per-dimension, rather than dealing with deduplication everywhere
         }
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "MatrixIndicesMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("MatrixIndicesMap"));
 }
 
 QByteArray CiftiXML::writeXMLToQByteArray(const CiftiVersion& writingVersion) const

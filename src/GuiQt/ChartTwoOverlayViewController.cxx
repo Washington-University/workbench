@@ -24,6 +24,7 @@
 #undef __CHART_TWO_OVERLAY_VIEW_CONTROLLER_DECLARE__
 
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QCheckBox>
 #include <QClipboard>
@@ -283,8 +284,8 @@ m_parentObjectName(parentObjectName)
      */
     const int greekMu(0x03bc);
     const int greekSigma(0x03c3);
-    const QString normActionText(QString(greekMu)
-                                 + QString(greekSigma));
+    const QString normActionText(QString(QChar(greekMu))
+                                 + QString(QChar(greekSigma)));
     const QString normActionToolTipText("<html><body>"
                                         "Transform chart data elements"
                                         "</body></html>");

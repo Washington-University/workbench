@@ -148,7 +148,11 @@ void
 StudyMetaDataLinkSet::setLinkSetFromCodedText(const AString& txt)
 {
    clear();
-   const QStringList sl = txt.split(encodedTextLinkSeparator, Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+    const QStringList sl = txt.split(encodedTextLinkSeparator, Qt::SkipEmptyParts);
+#else
+   const QStringList sl = txt.split(encodedTextLinkSeparator, QString::SkipEmptyParts);
+#endif
    
    for (int i = 0; i < sl.count(); i++) {
       StudyMetaDataLink smdl;

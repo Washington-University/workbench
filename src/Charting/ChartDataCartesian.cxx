@@ -25,6 +25,7 @@
 
 #include <limits>
 
+#include <QIODevice>
 #include <QTextStream>
 
 #include "CaretAssert.h"

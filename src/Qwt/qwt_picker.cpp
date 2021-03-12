@@ -1080,8 +1080,13 @@ void QwtPicker::widgetMouseDoubleClickEvent( QMouseEvent *mouseEvent )
 */
 void QwtPicker::widgetWheelEvent( QWheelEvent *wheelEvent )
 {
+#if QT_VERSION >= 0x060000
     if ( pickArea().contains( wheelEvent->position() ) )
         d_data->trackerPosition = wheelEvent->position().toPoint();
+#else
+    if ( pickArea().contains( wheelEvent->pos() ) )
+        d_data->trackerPosition = wheelEvent->pos();
+#endif
     else
         d_data->trackerPosition = QPoint( -1, -1 );
 

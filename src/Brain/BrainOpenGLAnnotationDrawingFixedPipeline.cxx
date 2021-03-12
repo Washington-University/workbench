@@ -5793,9 +5793,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor(const Annotation
                  m_selectionBoxRGBA[2],
                  m_selectionBoxRGBA[3]);
     
+#if QT_VERSION >= 0x060000
+    float hue = 0.0;
+    float saturation = 0.0;
+    float value = 0.0;
+#else
     qreal hue = 0.0;
     qreal saturation = 0.0;
     qreal value = 0.0;
+#endif
     
     color.getHsvF(&hue,
                   &saturation,

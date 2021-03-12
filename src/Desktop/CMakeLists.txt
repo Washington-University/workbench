@@ -11,6 +11,15 @@ set (EXE_NAME wb_view)
 #
 # QT Include directories
 #
+if(Qt6_FOUND)
+    include_directories(${Qt6Core_INCLUDE_DIRS})
+    include_directories(${Qt6Network_INCLUDE_DIRS})
+#    if(Qt5OpenGL_FOUND)
+#        include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+#    endif()
+    include_directories(${Qt6OpenGLWidgets_INCLUDE_DIRS})
+    include_directories(${Qt6Widgets_INCLUDE_DIRS})
+endif()
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
     include_directories(${Qt5Network_INCLUDE_DIRS})
@@ -41,9 +50,11 @@ IF (WORKBENCH_INCLUDE_HELP_HTML_RESOURCES)
           ../Resources/Help/help_resources.qrc)
 ENDIF (WORKBENCH_INCLUDE_HELP_HTML_RESOURCES)
 
+IF (Qt6_FOUND)
+    QT6_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
+ENDIF (Qt6_FOUND)
 IF (Qt5_FOUND)
     QT5_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
-ELSE (Qt5_FOUND)
 ENDIF (Qt5_FOUND)
 
 #
@@ -95,6 +106,19 @@ ENDIF (NOT APPLE)
 if(Qt5OpenGL_FOUND)
     set(QT5_OPENGL_LIB_NAME Qt5::OpenGL)
 endif()
+if(Qt6_FOUND)
+    set(QT6_LINK_LIBS
+        Qt6::Concurrent
+        Qt6::Core
+        Qt6::Core5Compat
+        Qt6::Gui
+        Qt6::Network
+        Qt6::OpenGLWidgets
+        Qt6::PrintSupport
+        Qt6::Test
+        Qt6::Widgets
+        Qt6::Xml)
+endif()
 if(Qt5_FOUND)
     set(QT5_LINK_LIBS
         Qt5::Concurrent
@@ -139,6 +163,7 @@ ${GLEW_LIBRARIES}
 ${QUAZIP_LIBRARIES}
 ${FREETYPE_LIBRARIES}
 ${QT_LIBRARIES}
+${QT6_LINK_LIBS}
 ${QT5_LINK_LIBS}
 ${ZLIB_LIBRARIES}
 #${LIBS}

@@ -30,6 +30,7 @@
 #include <QDateTime>
 #include <QDir>
 #include <QHostInfo>
+#include <QRegularExpression>
 #include <QThread>
 #include <QUuid>
 
@@ -41,6 +42,7 @@
 #include "Windows.h"
 #endif
 
+#include "CaretAssert.h"
 #include "CaretCommandLine.h"
 #include "CaretLogger.h"
 #include "SystemUtilities.h"
@@ -442,10 +444,17 @@ SystemUtilities::relativePath(
     }
 #endif
     
-    QStringList otherPath = QDir::cleanPath(otherPathIn).split(QRegExp("[/\\\\]"), 
+#if QT_VERSION >= 0x060000
+    QStringList otherPath = QDir::cleanPath(otherPathIn).split(QRegularExpression("[/\\\\]"),
                                                                Qt::SkipEmptyParts);
-    QStringList myPath = QDir::cleanPath(myPathIn).split(QRegExp("[/\\\\]"), 
+    QStringList myPath = QDir::cleanPath(myPathIn).split(QRegularExpression("[/\\\\]"),
                                                          Qt::SkipEmptyParts);
+#else
+    QStringList otherPath = QDir::cleanPath(otherPathIn).split(QRegularExpression("[/\\\\]"),
+                                                               QString::SkipEmptyParts);
+    QStringList myPath = QDir::cleanPath(myPathIn).split(QRegularExpression("[/\\\\]"),
+                                                         QString::SkipEmptyParts);
+#endif
     
     const unsigned int minLength = std::min(myPath.size(), otherPath.size());
     
@@ -564,7 +573,10 @@ static void newHandler()
 void
 SystemUtilities::setUnexpectedHandler()
 {
+#if __cplusplus < 201703L
+    /* Removed in C++17 */
     std::set_unexpected(unexpectedHandler);
+#endif
 }
 
 /**

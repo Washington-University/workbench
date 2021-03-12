@@ -11,7 +11,6 @@
 #include "qwt_scale_map.h"
 #include "qwt_painter.h"
 #include <qapplication.h>
-#include <qdesktopwidget.h>
 #include <qpainter.h>
 #include <qpaintengine.h>
 #include <qmath.h>
@@ -372,7 +371,6 @@ static bool qwtUseCache( QwtPlotRasterItem::CachePolicy policy,
         {
             case QPaintEngine::SVG:
             case QPaintEngine::Pdf:
-            case QPaintEngine::PostScript:
             case QPaintEngine::MacPrinter:
             case QPaintEngine::Picture:
                 break;

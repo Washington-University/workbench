@@ -85,8 +85,11 @@ namespace caret {
         
         QStringList history() const { return m_caretFileDialog->history(); }
         
+#if QT_VERSION >= 0x060000
+        QAbstractFileIconProvider* iconProvider() const { return m_caretFileDialog->iconProvider(); }
+#else
         QFileIconProvider* iconProvider() const { return m_caretFileDialog->iconProvider(); }
-        
+#endif
         bool isReadOnly() const {
             //return m_caretFileDialog->isReadOnly();
             return m_caretFileDialog->testOption(QFileDialog::ReadOnly);
@@ -141,8 +144,12 @@ namespace caret {
 //        void setFilter(const QString& filter) { m_caretFileDialog->setNameFilter(filter); }
         
         void setHistory(const QStringList& paths) { m_caretFileDialog->setHistory(paths); }
-        
+
+#if QT_VERSION >= 0x060000
+        void setIconProvider(QAbstractFileIconProvider* provider) { m_caretFileDialog->setIconProvider(provider); }
+#else
         void setIconProvider(QFileIconProvider* provider) { m_caretFileDialog->setIconProvider(provider); }
+#endif
         
         void setItemDelegate(QAbstractItemDelegate* delegate) { m_caretFileDialog->setItemDelegate(delegate); }
         

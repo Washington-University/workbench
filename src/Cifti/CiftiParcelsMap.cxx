@@ -24,7 +24,7 @@
 #include "CaretLogger.h"
 
 #include <QStringList>
-#include <QRegExp>
+#include <QRegularExpression>
 
 using namespace std;
 using namespace caret;
@@ -378,8 +378,8 @@ void CiftiParcelsMap::readXML1(QXmlStreamReader& xml)
     vector<Parcel> myParcels;//because we need to add the surfaces first
     while (xml.readNextStartElement())
     {
-        QStringRef name = xml.name();
-        if (name == "Surface")
+        auto name = xml.name();
+        if (name == QLatin1String("Surface"))
         {
             QXmlStreamAttributes attrs = xml.attributes();
             if (!attrs.hasAttribute("BrainStructure"))
@@ -406,7 +406,7 @@ void CiftiParcelsMap::readXML1(QXmlStreamReader& xml)
             {
                 throw DataFileException("unexpected element inside Surface: " + xml.name().toString());
             }
-        } else if (name == "Parcel") {
+        } else if (name == QLatin1String("Parcel")) {
             myParcels.push_back(readParcel1(xml));
         } else {
             throw DataFileException("unexpected element in parcels map: " + name.toString());
@@ -418,7 +418,7 @@ void CiftiParcelsMap::readXML1(QXmlStreamReader& xml)
         addParcel(myParcels[i]);
     }
     m_ignoreVolSpace = false;//in case there are no voxels, but some will be added later
-    CaretAssert(xml.isEndElement() && xml.name() == "MatrixIndicesMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("MatrixIndicesMap"));
 }
 
 void CiftiParcelsMap::readXML2(QXmlStreamReader& xml)
@@ -427,8 +427,8 @@ void CiftiParcelsMap::readXML2(QXmlStreamReader& xml)
     vector<Parcel> myParcels;//because we need to add the surfaces and volume space first
     while (xml.readNextStartElement())
     {
-        QStringRef name = xml.name();
-        if (name == "Surface")
+        auto name = xml.name();
+        if (name == QLatin1String("Surface"))
         {
             QXmlStreamAttributes attrs = xml.attributes();
             if (!attrs.hasAttribute("BrainStructure"))
@@ -455,10 +455,10 @@ void CiftiParcelsMap::readXML2(QXmlStreamReader& xml)
             {
                 throw DataFileException("unexpected element inside Surface: " + xml.name().toString());
             }
-        } else if (name == "Parcel") {
+        } else if (name == QLatin1String("Parcel")) {
             myParcels.push_back(readParcel2(xml));
             if (xml.hasError()) return;
-        } else if (name == "Volume") {
+        } else if (name == QLatin1String("Volume")) {
             if (m_haveVolumeSpace)
             {
                 throw DataFileException("Volume specified more than once in Parcels mapping type");
@@ -476,7 +476,7 @@ void CiftiParcelsMap::readXML2(QXmlStreamReader& xml)
     {
         addParcel(myParcels[i]);
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "MatrixIndicesMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("MatrixIndicesMap"));
 }
 
 CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel1(QXmlStreamReader& xml)
@@ -491,8 +491,8 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel1(QXmlStreamReader& xml)
     ret.m_name = attrs.value("Name").toString();
     while (xml.readNextStartElement())
     {
-        QStringRef name = xml.name();
-        if (name == "Nodes")
+        auto name = xml.name();
+        if (name == QLatin1String("Nodes"))
         {
             QXmlStreamAttributes attrs1 = xml.attributes();
             if (!attrs1.hasAttribute("BrainStructure"))
@@ -521,7 +521,7 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel1(QXmlStreamReader& xml)
                 }
                 mySet.insert(array[i]);
             }
-        } else if (name == "VoxelIndicesIJK") {
+        } else if (name == QLatin1String("VoxelIndicesIJK")) {
             if (haveVoxels)
             {
                 throw DataFileException("VoxelIndicesIJK may only appear once in a Parcel");
@@ -547,7 +547,7 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel1(QXmlStreamReader& xml)
             throw DataFileException("unexpected element in Parcel: " + name.toString());
         }
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "Parcel");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("Parcel"));
     return ret;
 }
 
@@ -563,8 +563,8 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel2(QXmlStreamReader& xml)
     ret.m_name = attrs.value("Name").toString();
     while (xml.readNextStartElement())
     {
-        QStringRef name = xml.name();
-        if (name == "Vertices")
+        auto name = xml.name();
+        if (name == QLatin1String("Vertices"))
         {
             QXmlStreamAttributes attrs1 = xml.attributes();
             if (!attrs1.hasAttribute("BrainStructure"))
@@ -593,7 +593,7 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel2(QXmlStreamReader& xml)
                 }
                 mySet.insert(array[i]);
             }
-        } else if (name == "VoxelIndicesIJK") {
+        } else if (name == QLatin1String("VoxelIndicesIJK")) {
             if (haveVoxels)
             {
                 throw DataFileException("VoxelIndicesIJK may only appear once in a Parcel");
@@ -619,7 +619,7 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel2(QXmlStreamReader& xml)
             throw DataFileException("unexpected element in Parcel: " + name.toString());
         }
     }
-    CaretAssert(xml.isEndElement() && xml.name() == "Parcel");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("Parcel"));
     return ret;
 }
 
@@ -628,7 +628,11 @@ vector<int64_t> CiftiParcelsMap::readIndexArray(QXmlStreamReader& xml)
     vector<int64_t> ret;
     QString text = xml.readElementText();//raises error if it encounters a start element
     if (xml.hasError()) return ret;
-    QStringList separated = text.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+    QStringList separated = text.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+#else
+    QStringList separated = text.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
+#endif
     int64_t numElems = separated.size();
     ret.reserve(numElems);
     for (int64_t i = 0; i < numElems; ++i)

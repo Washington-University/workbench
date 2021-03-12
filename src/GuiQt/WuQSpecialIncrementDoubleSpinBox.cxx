@@ -98,7 +98,11 @@ WuQSpecialIncrementDoubleSpinBox::stepBy(int steps)
 //        std::cout << qPrintable(msg) << std::endl;
         
         emit valueChanged(newValue);
+#if QT_VERSION >= 0x060000
         emit textChanged(text());
+#else
+        emit valueChanged(text());
+#endif
     }
 }
 

@@ -122,7 +122,7 @@ void CiftiLabelsMap::readXML1(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                if (xml.name() != "NamedMap")
+                if (xml.name() != QLatin1String("NamedMap"))
                 {
                     throw DataFileException("unexpected element in labels map: " + xml.name().toString());
                 }
@@ -147,7 +147,7 @@ void CiftiLabelsMap::readXML2(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                if (xml.name() != "NamedMap")
+                if (xml.name() != QLatin1String("NamedMap"))
                 {
                     throw DataFileException("unexpected element in labels map: " + xml.name().toString());
                 }
@@ -172,8 +172,8 @@ void CiftiLabelsMap::LabelMap::readXML1(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                QStringRef name = xml.name();
-                if (name == "MetaData")
+                auto name = xml.name();
+                if (name == QLatin1String("MetaData"))
                 {
                     if (haveMetaData)
                     {
@@ -182,7 +182,7 @@ void CiftiLabelsMap::LabelMap::readXML1(QXmlStreamReader& xml)
                     m_metaData.readCiftiXML1(xml);
                     if (xml.hasError()) return;
                     haveMetaData = true;
-                } else if (name == "LabelTable") {
+                } else if (name == QLatin1String("LabelTable")) {
                     if (haveTable)
                     {
                         throw DataFileException("LabelTable specified multiple times in one NamedMap");
@@ -190,7 +190,7 @@ void CiftiLabelsMap::LabelMap::readXML1(QXmlStreamReader& xml)
                     m_labelTable.readFromQXmlStreamReader(xml);
                     if (xml.hasError()) return;
                     haveTable = true;
-                } else if (name == "MapName") {
+                } else if (name == QLatin1String("MapName")) {
                     if (haveName)
                     {
                         throw DataFileException("MapName specified multiple times in one NamedMap");
@@ -226,8 +226,8 @@ void CiftiLabelsMap::LabelMap::readXML2(QXmlStreamReader& xml)
         {
             case QXmlStreamReader::StartElement:
             {
-                QStringRef name = xml.name();
-                if (name == "MetaData")
+                auto name = xml.name();
+                if (name == QLatin1String("MetaData"))
                 {
                     if (haveMetaData)
                     {
@@ -236,7 +236,7 @@ void CiftiLabelsMap::LabelMap::readXML2(QXmlStreamReader& xml)
                     m_metaData.readCiftiXML2(xml);
                     if (xml.hasError()) return;
                     haveMetaData = true;
-                } else if (name == "LabelTable") {
+                } else if (name == QLatin1String("LabelTable")) {
                     if (haveTable)
                     {
                         throw DataFileException("LabelTable specified multiple times in one NamedMap");
@@ -244,7 +244,7 @@ void CiftiLabelsMap::LabelMap::readXML2(QXmlStreamReader& xml)
                     m_labelTable.readFromQXmlStreamReader(xml);
                     if (xml.hasError()) return;
                     haveTable = true;
-                } else if (name == "MapName") {
+                } else if (name == QLatin1String("MapName")) {
                     if (haveName)
                     {
                         throw DataFileException("MapName specified multiple times in one NamedMap");

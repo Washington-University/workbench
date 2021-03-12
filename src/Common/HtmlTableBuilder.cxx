@@ -260,7 +260,7 @@ HtmlTableBuilder::getAsHtmlTableV401() const
         
         m_tableText.append("<table> <tbody>\n");
 
-        if (m_title != NULL) {
+        if ( ! m_title.isEmpty()) {
             QString tdTH;
             switch (m_titleStyle) {
                 case BOLD:

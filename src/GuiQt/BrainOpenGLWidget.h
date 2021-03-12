@@ -113,33 +113,37 @@ namespace caret {
         virtual void processMouseEventFromMacro(QMouseEvent* me) override;
         
     protected:
-        virtual void initializeGL();
+        virtual void initializeGL() override;
         
-        virtual void resizeGL(int w, int h);
+        virtual void resizeGL(int w, int h) override;
         
-        virtual void paintGL();
+        virtual void paintGL() override;
         
-        virtual void contextMenuEvent(QContextMenuEvent* contextMenuEvent);
+        virtual void contextMenuEvent(QContextMenuEvent* contextMenuEvent) override;
         
-        virtual bool event(QEvent* event);
+        virtual bool event(QEvent* event) override;
         
-        virtual void keyPressEvent(QKeyEvent* e);
+        virtual void keyPressEvent(QKeyEvent* e) override;
         
-        virtual void keyReleaseEvent(QKeyEvent* e);
+        virtual void keyReleaseEvent(QKeyEvent* e) override;
         
-        virtual void mouseDoubleClickEvent(QMouseEvent* e);
+        virtual void mouseDoubleClickEvent(QMouseEvent* e) override;
         
-        virtual void mouseMoveEvent(QMouseEvent* e);
+        virtual void mouseMoveEvent(QMouseEvent* e) override;
         
-        virtual void mousePressEvent(QMouseEvent* e);
+        virtual void mousePressEvent(QMouseEvent* e) override;
         
-        virtual void mouseReleaseEvent(QMouseEvent* e);
+        virtual void mouseReleaseEvent(QMouseEvent* e) override;
         
-        virtual void wheelEvent(QWheelEvent* e);
+        virtual void wheelEvent(QWheelEvent* e) override;
         
-        virtual void enterEvent(QEvent* e);
+#if QT_VERSION >= 0x060000
+        virtual void enterEvent(QEnterEvent* e) override;
+#else
+        virtual void enterEvent(QEvent* e) override;
+#endif
         
-        virtual void leaveEvent(QEvent* e);
+        virtual void leaveEvent(QEvent* e) override;
         
     private slots:
         void showSelectedChartPointToolTip();

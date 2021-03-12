@@ -177,7 +177,7 @@ DataFileContentInformation::getInformationInString() const
     if (numNamesAndValues > 0) {
         int32_t longestLabelLength = 0;
         for (int32_t i = 0; i < numNamesAndValues; i++) {
-            longestLabelLength = std::max(m_namesAndValues[i].first.length(),
+            longestLabelLength = std::max(static_cast<int32_t>(m_namesAndValues[i].first.length()),
                                           longestLabelLength);
         }
         longestLabelLength += 3;

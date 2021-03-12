@@ -943,15 +943,21 @@ BalsaDatabaseManager::getSceneIDs(const int32_t numberOfSceneIDs,
          * Response from BALSA has Scene IDs separated by '<br>'
          * Example: vp5B<br>Z02A<BR>
          */
+#if QT_VERSION >= 0x060000
         QStringList sl = responseContent.split("<br>",
                                                Qt::SkipEmptyParts,
                                                Qt::CaseInsensitive);
+#else
+        QStringList sl = responseContent.split("<br>",
+                                               QString::SkipEmptyParts,
+                                               Qt::CaseInsensitive);
+#endif
         const int32_t receivedCount = sl.count();
         if (receivedCount != numberOfSceneIDs) {
             errorMessageOut = ("Requested "
                                + AString::number(numberOfSceneIDs)
                                + " but received "
-                               + receivedCount
+                               + AString::number(receivedCount)
                                + " IDs");
             return false;
         }

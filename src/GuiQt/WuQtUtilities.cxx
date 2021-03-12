@@ -25,7 +25,9 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QComboBox>
+#if QT_VERSION < 0x060000
 #include <QDesktopWidget>
+#endif
 #include <QDialog>
 #include <QDir>
 #include <QFile>
@@ -34,6 +36,7 @@
 #include <QHeaderView>
 #include <QIcon>
 #include <QLabel>
+#include <QMenu>
 #include <QPainter>
 #include <QPushButton>
 #include <QScreen>
@@ -306,9 +309,13 @@ WuQtUtilities::moveWindowToOffset(QWidget* parentWindow,
     int x = parentWindow->x() + xOffset;
     int y = parentWindow->y() + yOffset;
     
+#if QT_VERSION >= 0x060000
+    QScreen* screen = parentWindow->screen();
+    const QRect geometry = screen->availableGeometry();
+#else
     QDesktopWidget* dw = QApplication::desktop();
     const QRect geometry = dw->availableGeometry(parentWindow);
-    
+#endif
     const int margin = 20;
     const int maxX = geometry.width()  - margin;
     const int maxY = geometry.height() - margin;
@@ -354,8 +361,14 @@ WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
    // int y = py;
     const int windowWidth = window->width();
 
+#if QT_VERSION >= 0x060000
+    QScreen* screen = window->screen();
+    CaretAssert(screen);
+    const QRect geometry = screen->availableGeometry();
+#else
     QDesktopWidget* dw = QApplication::desktop();
     const QRect geometry = dw->availableGeometry(parent);
+#endif
     const int screenMinX = geometry.x();
     const int screenWidth = geometry.width();
     const int screenMaxX = screenMinX + screenWidth;
@@ -420,15 +433,20 @@ WuQtUtilities::moveAndSizeWindow(QWidget* window,
                                  const int32_t h,
                                  int32_t* xywhOut)
 {
+#if QT_VERSION >= 0x060000
+    QScreen* screen = window->screen();
+    CaretAssert(screen);
+    const QRect availableRect = screen->availableGeometry();
+#else
     QDesktopWidget* dw = QApplication::desktop();
-    
+    const QRect availableRect = dw->availableGeometry(window);
+#endif
     /*
      * Get available geometry where window is to be placed
      * This geometry is all screens together as one large screen
      */
     QPoint pXY(x,
                y);
-    const QRect availableRect = dw->availableGeometry(window);
     const int32_t screenSizeX = availableRect.width();
     const int32_t screenSizeY = availableRect.height();
     
@@ -463,10 +481,15 @@ WuQtUtilities::moveAndSizeWindow(QWidget* window,
      */
     pXY.setX(xPos);
     pXY.setY(yPos);
-    //const int32_t nearestScreen = dw->screenNumber(pXY);
+#if QT_VERSION >= 0x060000
     QScreen* nearestScreen = QGuiApplication::screenAt(pXY);
     if (nearestScreen != NULL) {
         const QRect screenRect = nearestScreen->geometry();
+#else
+    const int32_t nearestScreen = dw->screenNumber(pXY);
+    if (nearestScreen >= 0) {
+        const QRect screenRect = dw->availableGeometry(nearestScreen);
+#endif
         if (xPos < screenRect.x()) {
             xPos = screenRect.x();
         }
@@ -537,9 +560,16 @@ WuQtUtilities::resizeWindow(QWidget* window,
 {
     QPoint pXY(window->x(),
                window->y());
+#if QT_VERSION >= 0x060000
     QScreen* nearestScreen = QGuiApplication::screenAt(pXY);
     if (nearestScreen != NULL) {
         const QRect screenRect = nearestScreen->geometry();
+#else
+    QDesktopWidget* dw = QApplication::desktop();
+    const int32_t nearestScreen = dw->screenNumber(pXY);
+    if (nearestScreen >= 0) {
+        const QRect screenRect = dw->availableGeometry(nearestScreen);
+#endif
         const int32_t screenWidth  = screenRect.width() - 100;
         const int32_t screenHeight = screenRect.height() - 100;
         
@@ -587,9 +617,16 @@ WuQtUtilities::limitWindowSizePercentageOfMaximum(QWidget* window,
     
     QPoint pXY(window->x(),
                window->y());
+#if QT_VERSION >= 0x060000
     QScreen* nearestScreen = QGuiApplication::screenAt(pXY);
     if (nearestScreen != NULL) {
         const QRect screenRect = nearestScreen->geometry();
+#else
+    QDesktopWidget* dw = QApplication::desktop();
+    const int32_t nearestScreen = dw->screenNumber(pXY);
+    if (nearestScreen >= 0) {
+        const QRect screenRect = dw->availableGeometry(nearestScreen);
+#endif
         const int32_t screenWidth  = screenRect.width();
         const int32_t screenHeight = screenRect.height();
     
@@ -677,7 +714,11 @@ WuQtUtilities::estimateTableWidgetSize(QTableWidget* tableWidget)
                     if (text.isEmpty() == false) {
                         QFont font = item->font();
                         QFontMetrics fontMetrics(font);
+#if QT_VERSION >= 0x060000
                         const int textWidth =  fontMetrics.horizontalAdvance(text);
+#else
+                        const int textWidth =  fontMetrics.width(text);
+#endif
                         const int textHeight = fontMetrics.height();
                         
                         itemWidth += textWidth;

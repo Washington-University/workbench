@@ -88,13 +88,13 @@ void CiftiSeriesMap::readXML1(QXmlStreamReader& xml)
     {
         throw DataFileException("timepoints mapping is missing required attribute TimeStepUnits");
     }
-    QStringRef unitString = attrs.value("TimeStepUnits");
-    if (unitString == "NIFTI_UNITS_SEC")
+    auto unitString = attrs.value("TimeStepUnits");
+    if (unitString == QLatin1String("NIFTI_UNITS_SEC"))
     {
         mult = 1.0f;
-    } else if (unitString == "NIFTI_UNITS_MSEC") {
+    } else if (unitString == QLatin1String("NIFTI_UNITS_MSEC")) {
         mult = 0.001f;
-    } else if (unitString == "NIFTI_UNITS_USEC") {
+    } else if (unitString == QLatin1String("NIFTI_UNITS_USEC")) {
         mult = 0.000001f;
     } else {
         throw DataFileException("unrecognized value for TimeStepUnits: " + unitString.toString());
@@ -124,7 +124,7 @@ void CiftiSeriesMap::readXML1(QXmlStreamReader& xml)
     m_start = newStart;
     m_step = newStep;
     m_unit = SECOND;
-    CaretAssert(xml.isEndElement() && xml.name() == "MatrixIndicesMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("MatrixIndicesMap"));
 }
 
 void CiftiSeriesMap::readXML2(QXmlStreamReader& xml)
@@ -138,15 +138,15 @@ void CiftiSeriesMap::readXML2(QXmlStreamReader& xml)
     {
         throw DataFileException("series mapping is missing required attribute SeriesUnit");
     }
-    QStringRef unitString = attrs.value("SeriesUnit");
-    if (unitString == "HERTZ")
+    auto unitString = attrs.value("SeriesUnit");
+    if (unitString == QLatin1String("HERTZ"))
     {
         newUnit = HERTZ;
-    } else if (unitString == "METER") {
+    } else if (unitString == QLatin1String("METER")) {
         newUnit = METER;
-    } else if (unitString == "RADIAN") {
+    } else if (unitString == QLatin1String("RADIAN")) {
         newUnit = RADIAN;
-    } else if (unitString == "SECOND") {
+    } else if (unitString == QLatin1String("SECOND")) {
         newUnit = SECOND;
     } else {
         throw DataFileException("unrecognized value for SeriesUnit: " + unitString.toString());
@@ -200,7 +200,7 @@ void CiftiSeriesMap::readXML2(QXmlStreamReader& xml)
     m_start = newStart;
     m_step = newStep;
     m_unit = newUnit;
-    CaretAssert(xml.isEndElement() && xml.name() == "MatrixIndicesMap");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("MatrixIndicesMap"));
 }
 
 void CiftiSeriesMap::writeXML1(QXmlStreamWriter& xml) const

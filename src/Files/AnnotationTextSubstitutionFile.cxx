@@ -606,7 +606,7 @@ AnnotationTextSubstitutionFile::columnIndexToDefaultSubstitutionName(const int32
         
         CaretAssert((offsetFromCapitalA >= 0)
                     && (offsetFromCapitalA < 26));
-        columnName.append('A' + offsetFromCapitalA);
+        columnName.append(QChar(static_cast<int>('A') + offsetFromCapitalA));
     }
     
     return columnName;

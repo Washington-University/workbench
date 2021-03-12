@@ -4,6 +4,13 @@
 PROJECT (Graphics)
 
 #
+# Add QT for includes
+#
+if(Qt6_FOUND)
+    include_directories(${Qt6Core_INCLUDE_DIRS})
+endif()
+
+#
 # Create a Library
 #
 ADD_LIBRARY(Graphics

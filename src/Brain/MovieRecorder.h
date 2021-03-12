@@ -33,7 +33,6 @@
 #include "MovieRecorderVideoResolutionTypeEnum.h"
 
 class QImage;
-class QStringList;
 
 namespace caret {
     class MovieRecorder : public CaretObject {

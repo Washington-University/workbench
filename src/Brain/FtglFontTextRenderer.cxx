@@ -2262,8 +2262,13 @@ m_textDrawingSpace(TextDrawingSpace::VIEWPORT)
     QString textString = (flags.isDrawSubstitutedText()
                           ? m_annotationText.getTextWithSubstitutionsApplied()
                           : m_annotationText.getText());
+#if QT_VERSION >= 0x060000
     QStringList textList = textString.split('\n',
                                             Qt::KeepEmptyParts);
+#else
+    QStringList textList = textString.split('\n',
+                                            QString::KeepEmptyParts);
+#endif
     const int32_t textListSize = textList.size();
     
     for (int32_t i = 0; i < textListSize; i++) {

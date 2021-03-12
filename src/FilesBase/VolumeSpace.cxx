@@ -25,7 +25,7 @@
 #include "CaretLogger.h"
 #include "FloatMatrix.h"
 
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QStringList>
 
 #include <algorithm>
@@ -337,7 +337,7 @@ void VolumeSpace::readCiftiXML1(QXmlStreamReader& xml)
     {
         throw CaretException("failed to find TransformationMatrixVoxelIndicesIJKtoXYZ element in Volume");
     }
-    if (xml.name() != "TransformationMatrixVoxelIndicesIJKtoXYZ")
+    if (xml.name() != QLatin1String("TransformationMatrixVoxelIndicesIJKtoXYZ"))
     {
         throw CaretException("unexpected element in Volume: " + xml.name().toString());
     }
@@ -347,18 +347,22 @@ void VolumeSpace::readCiftiXML1(QXmlStreamReader& xml)
         throw CaretException("missing UnitsXYZ attribute in TransformationMatrixVoxelIndicesIJKtoXYZ");
     }
     float mult = 0.0f;
-    QStringRef unitstring = transattribs.value("UnitsXYZ");
-    if (unitstring == "NIFTI_UNITS_MM")
+    auto unitstring = transattribs.value("UnitsXYZ");
+    if (unitstring == QLatin1String("NIFTI_UNITS_MM"))
     {
         mult = 1.0f;
-    } else if (unitstring == "NIFTI_UNITS_MICRON") {
+    } else if (unitstring == QLatin1String("NIFTI_UNITS_MICRON")) {
         mult = 0.001f;
     } else {
         throw CaretException("unrecognized value for UnitsXYZ in TransformationMatrixVoxelIndicesIJKtoXYZ: " + unitstring.toString());
     }
     QString accum = xml.readElementText();
     if (xml.hasError()) return;
-    QStringList matrixStrings = accum.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+    QStringList matrixStrings = accum.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+#else
+    QStringList matrixStrings = accum.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
+#endif
     if (matrixStrings.size() != 16)
     {
         throw CaretException("text content of TransformationMatrixVoxelIndicesIJKtoXYZ must have exactly 16 numbers separated by whitespace");
@@ -386,7 +390,7 @@ void VolumeSpace::readCiftiXML1(QXmlStreamReader& xml)
     newsform *= mult;//apply units
     newsform[3][3] = 1.0f;//reset [3][3], since it isn't spatial
     setSpace(newDims, newsform.getMatrix());//use public function so it can deal with invariants, and we can move this code elsewhere if needed
-    CaretAssert(xml.isEndElement() && xml.name() == "Volume");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("Volume"));
 }
 
 void VolumeSpace::readCiftiXML2(QXmlStreamReader& xml)
@@ -419,7 +423,7 @@ void VolumeSpace::readCiftiXML2(QXmlStreamReader& xml)
     {
         throw CaretException("failed to find TransformationMatrixVoxelIndicesIJKtoXYZ element in Volume");
     }
-    if (xml.name() != "TransformationMatrixVoxelIndicesIJKtoXYZ")
+    if (xml.name() != QLatin1String("TransformationMatrixVoxelIndicesIJKtoXYZ"))
     {
         throw CaretException("unexpected element in Volume: " + xml.name().toString());
     }
@@ -428,7 +432,7 @@ void VolumeSpace::readCiftiXML2(QXmlStreamReader& xml)
     {
         throw CaretException("missing MeterExponent attribute in TransformationMatrixVoxelIndicesIJKtoXYZ");
     }
-    QStringRef exponentstring = transattribs.value("MeterExponent");
+    auto exponentstring = transattribs.value("MeterExponent");
     int exponent = exponentstring.toString().toInt(&ok);
     if (!ok)
     {
@@ -437,7 +441,11 @@ void VolumeSpace::readCiftiXML2(QXmlStreamReader& xml)
     float mult = pow(10.0f, exponent + 3);//because our internal units are mm
     QString accum = xml.readElementText();
     if (xml.hasError()) return;
-    QStringList matrixStrings = accum.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+#if QT_VERSION >= 0x060000
+    QStringList matrixStrings = accum.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+#else
+    QStringList matrixStrings = accum.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
+#endif
     if (matrixStrings.size() != 16)
     {
         throw CaretException("text content of TransformationMatrixVoxelIndicesIJKtoXYZ must have exactly 16 numbers separated by whitespace");
@@ -465,7 +473,7 @@ void VolumeSpace::readCiftiXML2(QXmlStreamReader& xml)
     newsform *= mult;//apply units
     newsform[3][3] = 1.0f;//reset [3][3], since it isn't spatial
     setSpace(newDims, newsform.getMatrix());//use public function so it can deal with invariants, and we can move this code elsewhere if needed
-    CaretAssert(xml.isEndElement() && xml.name() == "Volume");
+    CaretAssert(xml.isEndElement() && xml.name() == QLatin1String("Volume"));
 }
 
 void VolumeSpace::writeCiftiXML1(QXmlStreamWriter& xml) const
