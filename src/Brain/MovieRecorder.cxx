@@ -149,9 +149,12 @@ MovieRecorder::addImageToMovie(const QImage* image)
         {
             ImageWriter* iw = new ImageWriter(image, imageFileName);
             m_imageWriters.push_back(iw);
-            CaretAssertToDoFatal(); /* next two lines do not compile Qt6 */
-//            QFuture<bool> f = QtConcurrent::run(iw, &ImageWriter::writeImage);
-//            m_imageWriteResultFutures.push_back(f);
+#if QT_VERSION >= 0x060000
+            QFuture<bool> f = QtConcurrent::run(&ImageWriter::writeImage, iw);
+#else
+            QFuture<bool> f = QtConcurrent::run(iw, &ImageWriter::writeImage);
+#endif
+            m_imageWriteResultFutures.push_back(f);
             m_imageFileNames.push_back(imageFileName);
         }
             break;

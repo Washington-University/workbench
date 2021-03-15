@@ -492,8 +492,45 @@ main(int argc, char* argv[])
         }
         
 #if QT_VERSION >= 0x060000
-        CaretAssertToDoWarning(); /* Finish converting below code */
-        screenSizeText.appendWithNewLine("NOT FINISHED WITH QT 6");
+        QScreen* primaryScreen = QGuiApplication::primaryScreen();
+        if (primaryScreen != NULL) {
+            int32_t primaryIndex = -1;
+            for (int32_t i = 0; i < numScreens; i++) {
+                CaretAssertVectorIndex(screens, i);
+                if (screens[i] == primaryScreen) {
+                    primaryIndex = i;
+                    break;
+                }
+            }
+
+            screenSizeText.appendWithNewLine("Primary Screen="
+                                             + AString::number(primaryIndex));
+            QRect screenWidgetRect = primaryScreen->availableGeometry();
+            screenSizeText.appendWithNewLine("Desktop: x="
+                                             + AString::number(screenWidgetRect.x())
+                                             + ", y="
+                                             + AString::number(screenWidgetRect.y())
+                                             + ", w="
+                                             + AString::number(screenWidgetRect.width())
+                                             + ", h="
+                                             + AString::number(screenWidgetRect.height()));
+            
+            screenSizeText.appendWithNewLine("Logical DPI: x="
+                                             + AString::number(primaryScreen->logicalDotsPerInchX())
+                                             + ", y="
+                                             + AString::number(primaryScreen->logicalDotsPerInchY()));
+            
+            screenSizeText.appendWithNewLine("Physical DPI: x="
+                                             + AString::number(primaryScreen->physicalDotsPerInch())
+                                             + ", y="
+                                             + AString::number(primaryScreen->physicalDotsPerInchY()));
+            
+            const QSizeF physicalSizeMM(primaryScreen->physicalSize());
+            screenSizeText.appendWithNewLine("Width/height (mm): x="
+                                             + AString::number(physicalSizeMM.width())
+                                             + ", y="
+                                             + AString::number(physicalSizeMM.height()));
+        }
 #else
         QDesktopWidget* dw = QApplication::desktop();
         screenSizeText.appendWithNewLine("Primary Screen="
