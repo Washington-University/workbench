@@ -517,6 +517,7 @@ SystemUtilities::relativePath(
     return result;
 }
 
+#if __cplusplus < 201703L
 /**
  * Unexpected handler
  */
@@ -525,17 +526,16 @@ static void unexpectedHandler()
     std::cerr << "While running '" << caret_global_commandLine << "':" << std::endl;
     std::cerr << std::endl;
     std::cerr << "ERROR: unhandled exception." << std::endl;
-    //if (theMainWindow != NULL) {
-        const AString msg("Workbench will be terminating due to an unexpected exception.\n"
-                          "abort() will be called and a core file may be created.");
+    const AString msg("Workbench will be terminating due to an unexpected exception.\n"
+                      "abort() will be called and a core file may be created.");
     std::cerr << msg << std::endl;
-        //QMessageBox::critical(theMainWindow, "ERROR", msg);
-    //}
     
     std::cerr << SystemUtilities::getBackTrace() << std::endl;
     
     abort();
 }
+#endif
+
 
 /**
  * New handler
