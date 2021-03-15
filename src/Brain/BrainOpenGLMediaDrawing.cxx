@@ -174,7 +174,12 @@ BrainOpenGLMediaDrawing::drawModelLayers()
                      */
                     GraphicsPrimitiveV3fT3f* primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
                     if (primitive) {
+                        glPushAttrib(GL_COLOR_BUFFER_BIT);
+                        if ( ! selectImageFlag) {
+                            m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
+                        }
                         GraphicsEngineDataOpenGL::draw(primitive);
+                        glPopAttrib();
                         
                         if (selectImageFlag) {
                             processImageFileSelection(imageFile,

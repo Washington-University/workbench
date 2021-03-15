@@ -101,7 +101,7 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
     
     m_image = new QImage(imageWidth,
                              imageHeight,
-                             QImage::Format_RGB32);
+                             QImage::Format_ARGB32);
     
     bool isOriginAtTop = false;
     switch (imageOrigin) {
@@ -667,7 +667,7 @@ ImageFile::appendImageAtBottom(const ImageFile& img)
     //
     // Create the new image and make it "this" image
     //
-    QImage newImage(newWidth, newHeight, QImage::Format_RGB32);
+    QImage newImage(newWidth, newHeight, QImage::Format_ARGB32);
     //   std::cout << "nw: " << newImage.width() << std::endl;
     //   std::cout << "nh: " << newImage.height() << std::endl;
     setFromQImage(newImage);
@@ -1153,7 +1153,7 @@ ImageFile::getImageBytesRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
                     bytesRGBA[contentOffset] = static_cast<uint8_t>(qRed(rgb));
                     bytesRGBA[contentOffset+1] = static_cast<uint8_t>(qGreen(rgb));
                     bytesRGBA[contentOffset+2] = static_cast<uint8_t>(qBlue(rgb));
-                    bytesRGBA[contentOffset+3] = 255;
+                    bytesRGBA[contentOffset+3] = static_cast<uint8_t>(qAlpha(rgb));
                 }
             }
             return true;
@@ -1208,7 +1208,7 @@ ImageFile::getImagePixelRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
                 pixelRGBAOut[0] = static_cast<uint8_t>(qRed(rgb));
                 pixelRGBAOut[1] = static_cast<uint8_t>(qGreen(rgb));
                 pixelRGBAOut[2] = static_cast<uint8_t>(qBlue(rgb));
-                pixelRGBAOut[3] = 255;
+                pixelRGBAOut[3] = static_cast<uint8_t>(qAlpha(rgb));
                 
                 return true;
             }
@@ -1297,7 +1297,7 @@ ImageFile::getImageResizedBytes(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
             bytesRGBAOut[contentOffset] = static_cast<uint8_t>(qRed(rgb));
             bytesRGBAOut[contentOffset+1] = static_cast<uint8_t>(qGreen(rgb));
             bytesRGBAOut[contentOffset+2] = static_cast<uint8_t>(qBlue(rgb));
-            bytesRGBAOut[contentOffset+3] = 255;
+            bytesRGBAOut[contentOffset+3] = static_cast<uint8_t>(qAlpha(rgb));
         }
     }
     return true;
@@ -1640,8 +1640,8 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
          * getting colors of pixels
          */
         bool validRGBA(false);
-        if (m_image->format() != QImage::Format_RGB32) {
-            QImage image = m_image->convertToFormat(QImage::Format_RGB32);
+        if (m_image->format() != QImage::Format_ARGB32) {
+            QImage image = m_image->convertToFormat(QImage::Format_ARGB32);
             if (! image.isNull()) {
                 ImageFile convImageFile;
                 convImageFile.setFromQImage(image);
