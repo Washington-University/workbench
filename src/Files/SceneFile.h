@@ -78,13 +78,9 @@ namespace caret {
 
         void readFile(const AString& filename);
         
-        void readFileSaxReader(const AString& filename);
-        
         void readFileStreamReader(const AString& filename);
         
         void writeFile(const AString& filename);
-        
-        void writeFileSaxWriter(const AString& filename);
         
         void writeFileStreamWriter(const AString& filename);
         

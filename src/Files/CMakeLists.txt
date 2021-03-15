@@ -125,7 +125,6 @@ RgbaFile.h
 RibbonMappingHelper.h
 SceneDataFileInfo.h
 SceneFile.h
-SceneFileSaxReader.h
 SceneFileXmlStreamBase.h
 SceneFileXmlStreamReader.h
 SceneFileXmlStreamWriter.h
@@ -135,7 +134,6 @@ SpecFile.h
 SpecFileDataFileTypeGroup.h
 SpecFileDataFile.h
 SpecFileSaxReader.h
-SceneFileXmlStreamFormatTester.h
 StudyMetaDataLink.h
 StudyMetaDataLinkSet.h
 StudyMetaDataLinkSetSaxReader.h
@@ -266,9 +264,7 @@ RgbaFile.cxx
 RibbonMappingHelper.cxx
 SceneDataFileInfo.cxx
 SceneFile.cxx
-SceneFileSaxReader.cxx
 SceneFileXmlStreamBase.cxx
-SceneFileXmlStreamFormatTester.cxx
 SceneFileXmlStreamReader.cxx
 SceneFileXmlStreamWriter.cxx
 SignedDistanceHelper.cxx

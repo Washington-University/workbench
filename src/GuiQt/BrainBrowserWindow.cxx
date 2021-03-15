@@ -102,7 +102,6 @@
 #include "SceneClassAssistant.h"
 #include "SceneEnumeratedType.h"
 #include "SceneFile.h"
-#include "SceneFileXmlStreamFormatTester.h"
 #include "SceneWindowGeometry.h"
 #include "SessionManager.h"
 #include "SpacerTabContent.h"
