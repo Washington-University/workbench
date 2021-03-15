@@ -295,8 +295,13 @@ PreferencesDialog::createColorsWidget()
     
     
     
+#if QT_VERSION >= 0x060000
+    QObject::connect(colorSignalMapper, &QSignalMapper::mappedInt,
+                     this, &PreferencesDialog::colorPushButtonClicked);
+#else
     QObject::connect(colorSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(colorPushButtonClicked(int)));
+#endif
     m_allWidgets->add(colorSignalMapper);
     
     QWidget* widget = new QWidget();

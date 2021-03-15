@@ -186,12 +186,22 @@ QWidget*
 GapsAndMarginsDialog::createMarginsWidget()
 {
     m_tabIndexSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_tabIndexSignalMapper, &QSignalMapper::mappedInt,
+                     this, &GapsAndMarginsDialog::tabMarginChanged);
+#else
     QObject::connect(m_tabIndexSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(tabMarginChanged(int)));
+#endif
     
     m_tabMarginMatchPixelsToolButtonSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_tabMarginMatchPixelsToolButtonSignalMapper, &QSignalMapper::mappedInt,
+                     this, &GapsAndMarginsDialog::tabMarginMatchPixelButtonClicked);
+#else
     QObject::connect(m_tabMarginMatchPixelsToolButtonSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(tabMarginMatchPixelButtonClicked(int)));
+#endif
     
     QLabel* tabLabel    = new QLabel("Tab");
     QLabel* leftLabel   = new QLabel("Left");

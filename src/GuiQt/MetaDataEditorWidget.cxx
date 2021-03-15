@@ -63,8 +63,13 @@ MetaDataEditorWidget::MetaDataEditorWidget(QWidget* parent)
     m_metaDataBeingEdited = NULL;
 
     m_deleteActionSignalMapper = new QSignalMapper();
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_deleteActionSignalMapper, &QSignalMapper::mappedInt,
+                     this, &MetaDataEditorWidget::deleteActionTriggered);
+#else
     QObject::connect(m_deleteActionSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(deleteActionTriggered(int)));
+#endif
 
     m_newPushButton = new QPushButton("New...");
     QObject::connect(m_newPushButton, SIGNAL(clicked()),

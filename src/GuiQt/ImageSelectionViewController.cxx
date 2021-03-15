@@ -186,8 +186,13 @@ QWidget*
 ImageSelectionViewController::createSelectionWidget()
 {
     m_imageRadioButtonGroup = new QButtonGroup(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_imageRadioButtonGroup, &QButtonGroup::idClicked,
+                     this, &ImageSelectionViewController::imageRadioButtonClicked);
+#else
     QObject::connect(m_imageRadioButtonGroup, SIGNAL(buttonClicked(int)),
                      this, SLOT(imageRadioButtonClicked(int)));
+#endif
     
     QWidget* imageRadioButtonWidget = new QWidget();
     imageRadioButtonWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);

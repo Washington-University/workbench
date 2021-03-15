@@ -122,16 +122,31 @@ m_objectNamePrefix(parentObjectName
                                          "displayed in this tab");
     
     m_chartDataCheckBoxesSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_chartDataCheckBoxesSignalMapper, &QSignalMapper::mappedInt,
+                     this, &ChartHistoryViewController::chartDataCheckBoxSignalMapped);
+#else
     QObject::connect(m_chartDataCheckBoxesSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(chartDataCheckBoxSignalMapped(int)));
+#endif
     
     m_chartDataColorComboBoxesSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_chartDataColorComboBoxesSignalMapper, &QSignalMapper::mappedInt,
+                     this, &ChartHistoryViewController::chartDataColorComboBoxSignalMapped);
+#else
     QObject::connect(m_chartDataColorComboBoxesSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(chartDataColorComboBoxSignalMapped(int)));
+#endif
     
     m_chartDataColorConstructionButtonSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_chartDataColorConstructionButtonSignalMapper, &QSignalMapper::mappedInt,
+                     this, &ChartHistoryViewController::chartDataConstructionToolButtonSignalMapped);
+#else
     QObject::connect(m_chartDataColorConstructionButtonSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(chartDataConstructionToolButtonSignalMapped(int)));
+#endif
     
     QWidget* chartDataWidget = new QWidget();
     m_chartDataGridLayout = new QGridLayout(chartDataWidget);

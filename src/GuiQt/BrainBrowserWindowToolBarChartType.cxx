@@ -96,8 +96,13 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setLayoutSpacingAndMargins(radioButtonLayout, 4, 5);
     radioButtonLayout->addStretch();
 
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_chartTypeButtonGroup, &QButtonGroup::idClicked,
+                     this, &BrainBrowserWindowToolBarChartType::chartTypeRadioButtonClicked);
+#else
     QObject::connect(m_chartTypeButtonGroup, SIGNAL(buttonClicked(int)),
                      this, SLOT(chartTypeRadioButtonClicked(int)));
+#endif
 }
 
 /**

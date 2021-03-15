@@ -98,20 +98,40 @@ m_objectNamePrefix(parentObjectName
                             titleRow, COLUMN_ORIENTATION_FILE_COMBO_BOX);
     
     m_signalMapperFileEnableCheckBox = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_signalMapperFileEnableCheckBox, &QSignalMapper::mappedInt,
+                     this, &CiftiConnectivityMatrixViewController::enabledCheckBoxClicked);
+#else
     QObject::connect(m_signalMapperFileEnableCheckBox, SIGNAL(mapped(int)),
                      this, SLOT(enabledCheckBoxClicked(int)));
+#endif
     
     m_signalMapperLayerCheckBox = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_signalMapperLayerCheckBox, &QSignalMapper::mappedInt,
+                     this, &CiftiConnectivityMatrixViewController::layerCheckBoxClicked);
+#else
     QObject::connect(m_signalMapperLayerCheckBox, SIGNAL(mapped(int)),
                      this, SLOT(layerCheckBoxClicked(int)));
+#endif
     
     m_signalMapperFileCopyToolButton = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_signalMapperFileCopyToolButton, &QSignalMapper::mappedInt,
+                     this, &CiftiConnectivityMatrixViewController::copyToolButtonClicked);
+#else
     QObject::connect(m_signalMapperFileCopyToolButton, SIGNAL(mapped(int)),
                      this, SLOT(copyToolButtonClicked(int)));
+#endif
     
     m_signalMapperFiberOrientationFileComboBox = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_signalMapperFiberOrientationFileComboBox, &QSignalMapper::mappedInt,
+                     this, &CiftiConnectivityMatrixViewController::fiberOrientationFileComboBoxActivated);
+#else
     QObject::connect(m_signalMapperFiberOrientationFileComboBox, SIGNAL(mapped(int)),
                      this, SLOT(fiberOrientationFileComboBoxActivated(int)));
+#endif
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(m_gridLayout);

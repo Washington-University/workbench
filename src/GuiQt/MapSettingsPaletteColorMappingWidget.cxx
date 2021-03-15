@@ -739,9 +739,13 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdWidgetGroup->add(thresholdShowButtonGroup);
     thresholdShowButtonGroup->addButton(this->thresholdShowInsideRadioButton);
     thresholdShowButtonGroup->addButton(this->thresholdShowOutsideRadioButton);
+#if QT_VERSION >= 0x060000
+    QObject::connect(thresholdShowButtonGroup, &QButtonGroup::idClicked,
+                     this, &MapSettingsPaletteColorMappingWidget::applyAndUpdate);
+#else
     QObject::connect(thresholdShowButtonGroup, SIGNAL(buttonClicked(int)),
                      this, SLOT(applyAndUpdate()));
-    
+#endif
     QHBoxLayout* rangeLayout = new QHBoxLayout();
     rangeLayout->addWidget(thresholdRangeLabel);
     rangeLayout->addWidget(this->thresholdRangeModeComboBox->getWidget());
@@ -1377,9 +1381,13 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     scaleButtonGroup->addButton(this->scaleAutoAbsolutePercentageRadioButton);
     scaleButtonGroup->addButton(this->scaleAutoPercentageRadioButton);
     scaleButtonGroup->addButton(this->scaleFixedRadioButton);
+#if QT_VERSION >= 0x060000
+    QObject::connect(scaleButtonGroup, &QButtonGroup::idClicked,
+                     this, &MapSettingsPaletteColorMappingWidget::applyAndUpdate);
+#else
     QObject::connect(scaleButtonGroup, SIGNAL(buttonClicked(int)),
                      this, SLOT(applyAndUpdate()));
-    
+#endif
     /*
      * Spin box width (fixed may have much larger data values)
      */

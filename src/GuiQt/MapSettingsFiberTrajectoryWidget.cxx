@@ -117,8 +117,13 @@ QWidget*
 MapSettingsFiberTrajectoryWidget::createDisplayModeWidget()
 {
     m_displayModeButtonGroup = new QButtonGroup(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_displayModeButtonGroup, &QButtonGroup::idClicked,
+                     this, &MapSettingsFiberTrajectoryWidget::processAttributesChanges);
+#else
     QObject::connect(m_displayModeButtonGroup, SIGNAL(buttonClicked(int)),
                      this, SLOT(processAttributesChanges()));
+#endif
     
     std::vector<FiberTrajectoryDisplayModeEnum::Enum> displayModes;
     FiberTrajectoryDisplayModeEnum::getAllEnums(displayModes);

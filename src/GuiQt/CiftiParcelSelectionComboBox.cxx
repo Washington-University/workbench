@@ -49,9 +49,14 @@ CiftiParcelSelectionComboBox::CiftiParcelSelectionComboBox(QObject* parent)
 : WuQWidget(parent)
 {
     m_comboBox = new QComboBox();
-    
+
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_comboBox, &QComboBox::textActivated,
+                     this, &CiftiParcelSelectionComboBox::parcelNameSelected);
+#else
     QObject::connect(m_comboBox, SIGNAL(activated(const QString&)),
                      this, SIGNAL(parcelNameSelected(const QString&)));
+#endif
 }
 
 /**

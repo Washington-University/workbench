@@ -97,13 +97,22 @@ m_browserWindowIndex(browserWindowIndex)
                                          Qt::AlignHCenter);
     
     m_signalMapperBrainordinateFileEnableCheckBox = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_signalMapperBrainordinateFileEnableCheckBox, &QSignalMapper::mappedInt,
+                     this, &ChartLinesSelectionViewController::brainordinateSelectionCheckBoxClicked);
+#else
     QObject::connect(m_signalMapperBrainordinateFileEnableCheckBox, SIGNAL(mapped(int)),
                      this, SLOT(brainordinateSelectionCheckBoxClicked(int)));
+#endif
     
     m_signalMapperBrainordinateYokingComboBox = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_signalMapperBrainordinateYokingComboBox, &QSignalMapper::mappedInt,
+                     this, &ChartLinesSelectionViewController::brainordinateYokingComboBoxActivated);
+#else
     QObject::connect(m_signalMapperBrainordinateYokingComboBox, SIGNAL(mapped(int)),
                      this, SLOT(brainordinateYokingComboBoxActivated(int)));
-    
+#endif
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
     QVBoxLayout* layout = new QVBoxLayout(this);

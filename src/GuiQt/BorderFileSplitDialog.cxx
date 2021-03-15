@@ -70,8 +70,13 @@ BorderFileSplitDialog::BorderFileSplitDialog(QWidget* parent)
     m_dialogIsBeingCreatedFlag = true;
     
     m_fileNameToolButtonSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_fileNameToolButtonSignalMapper, &QSignalMapper::mappedInt,
+                     this, &BorderFileSplitDialog::fileNameToolButtonClicked);
+#else
     QObject::connect(m_fileNameToolButtonSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(fileNameToolButtonClicked(int)));
+#endif
     
     m_fileSelectionModel.grabNew(CaretDataFileSelectionModel::newInstanceForMultiStructureBorderFiles());
     

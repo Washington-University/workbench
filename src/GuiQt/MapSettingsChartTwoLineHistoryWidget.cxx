@@ -105,16 +105,31 @@ MapSettingsChartTwoLineHistoryWidget::MapSettingsChartTwoLineHistoryWidget(QWidg
                      this, SLOT(viewedMaximumSpinBoxValueChanged(int)));
     
     m_removeHistoryItemSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_removeHistoryItemSignalMapper, &QSignalMapper::mappedInt,
+                     this, &MapSettingsChartTwoLineHistoryWidget::removeHistoryItemSelected);
+#else
     QObject::connect(m_removeHistoryItemSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(removeHistoryItemSelected(int)));
+#endif
     
     m_colorItemSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_colorItemSignalMapper, &QSignalMapper::mappedInt,
+                     this, &MapSettingsChartTwoLineHistoryWidget::colorItemSelected);
+#else
     QObject::connect(m_colorItemSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(colorItemSelected(int)));
+#endif
     
     m_lineWidthItemSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_lineWidthItemSignalMapper, &QSignalMapper::mappedInt,
+                     this, &MapSettingsChartTwoLineHistoryWidget::lineWidthItemSelected);
+#else
     QObject::connect(m_lineWidthItemSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(lineWidthItemSelected(int)));
+#endif
     
     m_tableWidget = new QTableWidget();
     m_tableWidget->setSelectionBehavior(QTableWidget::SelectItems);

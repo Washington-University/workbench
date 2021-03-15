@@ -211,7 +211,6 @@ WuQMacroMouseEventTypeEnum.h
 WuQMacroShortCutKeyEnum.h
 WuQMacroStandardItemTypeEnum.h
 WuQMacroWidgetTypeEnum.h
-WuQStringRefView.h
 YokingGroupEnum.h
 
 ${MOC_SOURCE_FILES}

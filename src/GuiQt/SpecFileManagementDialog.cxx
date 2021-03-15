@@ -280,16 +280,31 @@ m_specFile(specFile)
      * Signal mappers for buttons
      */
     m_fileReloadOrOpenFileActionSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_fileReloadOrOpenFileActionSignalMapper, &QSignalMapper::mappedInt,
+                     this, &SpecFileManagementDialog::fileReloadOrOpenFileActionSelected);
+#else
     QObject::connect(m_fileReloadOrOpenFileActionSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(fileReloadOrOpenFileActionSelected(int)));
+#endif
     
     m_fileOptionsActionSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_fileOptionsActionSignalMapper, &QSignalMapper::mappedInt,
+                     this, &SpecFileManagementDialog::fileOptionsActionSelected);
+#else
     QObject::connect(m_fileOptionsActionSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(fileOptionsActionSelected(int)));
+#endif
     
     m_fileCloseFileActionSignalMapper = new QSignalMapper(this);
+#if QT_VERSION >= 0x060000
+    QObject::connect(m_fileCloseFileActionSignalMapper, &QSignalMapper::mappedInt,
+                     this, &SpecFileManagementDialog::fileRemoveActionSelected);
+#else
     QObject::connect(m_fileCloseFileActionSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(fileRemoveActionSelected(int)));
+#endif
 
     int tableRowCounter = 0;
     
