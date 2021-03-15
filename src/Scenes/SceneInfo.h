@@ -99,7 +99,6 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
 
         friend class Scene;
-        friend class SceneInfoSaxReader;
         friend class SceneInfoXmlStreamReader;
     };
     

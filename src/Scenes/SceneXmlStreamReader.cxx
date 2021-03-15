@@ -45,7 +45,6 @@
 #include "SceneObjectMapIntegerKey.h"
 #include "ScenePathName.h"
 #include "ScenePathNameArray.h"
-#include "SceneSaxReader.h"
 #include "SceneString.h"
 #include "SceneStringArray.h"
 #include "SceneUnsignedByte.h"

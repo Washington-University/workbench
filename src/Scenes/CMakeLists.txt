@@ -52,7 +52,6 @@ SceneFileBasePathTypeEnum.h
 SceneFloat.h
 SceneFloatArray.h
 SceneInfo.h
-SceneInfoSaxReader.h
 SceneInfoXmlStreamBase.h
 SceneInfoXmlStreamReader.h
 SceneInfoXmlStreamWriter.h
@@ -68,7 +67,6 @@ ScenePathNameArray.h
 ScenePrimitive.h
 ScenePrimitiveArray.h
 SceneRestoreWarningCodesEnum.h
-SceneSaxReader.h
 SceneString.h
 SceneStringArray.h
 SceneTypeEnum.h
@@ -98,7 +96,6 @@ SceneFileBasePathTypeEnum.cxx
 SceneFloat.cxx
 SceneFloatArray.cxx
 SceneInfo.cxx
-SceneInfoSaxReader.cxx
 SceneInfoXmlStreamBase.cxx
 SceneInfoXmlStreamReader.cxx
 SceneInfoXmlStreamWriter.cxx
@@ -114,7 +111,6 @@ ScenePathNameArray.cxx
 ScenePrimitive.cxx
 ScenePrimitiveArray.cxx
 SceneRestoreWarningCodesEnum.cxx
-SceneSaxReader.cxx
 SceneString.cxx
 SceneStringArray.cxx
 SceneTypeEnum.cxx
