@@ -146,7 +146,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                     0, 1, 0,
                     0, -1, 0,
                     1, 0, 0,
-                    -1, 0, 0 };
+                    -1, 0, 0 };//WARNING: ordering of these neighbors is used in checking for singular regression conditions
     vector<vector<float> > volSpace = volIn->getSform();
     Vector3D ivec, jvec, kvec, origin;
     ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];
@@ -199,7 +199,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                                         int64_t kernIndex = volIn->getIndex(ikern, jkern, kkern);
                                         if (roiFrame == NULL || roiFrame[kernIndex] > 0.0f)
                                         {
-                                            dircheck |= 1<<(neighbase / 6);//uses the ordering of the neighbors to map neighbor to direction
+                                            dircheck |= 1<<(2 - (neighbase / 6));//NOTE: uses the ordering of the neighbors to map neighbor to direction
                                             float valdiff = inFrame[kernIndex] - curval;
                                             Vector3D displacement = ivec * stencil[neighbase] + jvec * stencil[neighbase + 1] + kvec * stencil[neighbase + 2];
                                             regress[0][0] += displacement[0] * displacement[0];//note: this is the generic code, built to handle strange volumes, to get more speed, test
@@ -277,6 +277,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                                                     int64_t kernIndex = jindpart + ikern;
                                                     if (jabs + abs(ikern - i) > 1 && (roiFrame == NULL || roiFrame[kernIndex] > 0.0f))//only add non-face neighbors
                                                     {
+                                                        voxelDir[0] = ikern - i;
                                                         if (dirUsed < 3)//check for singularity via base vectors being dependent
                                                         {
                                                             bool newDir = true;
@@ -299,7 +300,6 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                                                                 ++dirUsed;
                                                             }
                                                         }
-                                                        voxelDir[0] = ikern - i;
                                                         Vector3D displacement = ivec * voxelDir[0] + jvec * voxelDir[1] + kvec * voxelDir[2];
                                                         float valdiff = inFrame[kernIndex] - curval;
                                                         regress[0][0] += displacement[0] * displacement[0];
@@ -444,7 +444,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                                     int64_t kernIndex = volIn->getIndex(ikern, jkern, kkern);
                                     if (roiFrame == NULL || roiFrame[kernIndex] > 0.0f)
                                     {
-                                        dircheck |= 1<<(neighbase / 6);//uses the ordering of the neighbors to map neighbor to direction
+                                        dircheck |= 1<<(2 - (neighbase / 6));//NOTE: uses the ordering of the neighbors to map neighbor to direction
                                         float valdiff = inFrame[kernIndex] - curval;
                                         Vector3D displacement = ivec * stencil[neighbase] + jvec * stencil[neighbase + 1] + kvec * stencil[neighbase + 2];
                                         regress[0][0] += displacement[0] * displacement[0];//note: this is the generic code, built to handle strange volumes, to get more speed, test
@@ -522,6 +522,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                                                 int64_t kernIndex = jindpart + ikern;
                                                 if (jabs + abs(ikern - i) > 1 && (roiFrame == NULL || roiFrame[kernIndex] > 0.0f))//only add non-face neighbors
                                                 {
+                                                    voxelDir[0] = ikern - i;
                                                     if (dirUsed < 3)//check for singularity via base vectors being dependent
                                                     {
                                                         bool newDir = true;
@@ -544,7 +545,6 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                                                             ++dirUsed;
                                                         }
                                                     }
-                                                    voxelDir[0] = ikern - i;
                                                     Vector3D displacement = ivec * voxelDir[0] + jvec * voxelDir[1] + kvec * voxelDir[2];
                                                     float valdiff = inFrame[kernIndex] - curval;
                                                     regress[0][0] += displacement[0] * displacement[0];
