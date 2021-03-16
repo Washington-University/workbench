@@ -23,7 +23,6 @@
 #include "WuQMacroGroupXmlStreamReader.h"
 #undef __WU_Q_MACRO_GROUP_XML_STREAM_READER_DECLARE__
 
-#include <QStringRef>
 #include <QXmlStreamAttributes>
 #include <QXmlStreamReader>
 #include <QTextStream>

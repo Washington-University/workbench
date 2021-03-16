@@ -22,8 +22,6 @@
 #include <algorithm>
 #include <deque>
 
-#include <QRegExp>
-
 #define __MEDIA_OVERLAY_SET_DECLARE__
 #include "MediaOverlaySet.h"
 #undef __MEDIA_OVERLAY_SET_DECLARE__

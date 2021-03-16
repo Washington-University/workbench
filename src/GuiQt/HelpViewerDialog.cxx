@@ -34,7 +34,7 @@
 #include <QListWidget>
 #include <QtPrintSupport/QPrinter>
 #include <QtPrintSupport/QPrintDialog>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QTextBrowser>
 #include <QSplitter>
 #include <QTabWidget>
@@ -763,15 +763,18 @@ HelpViewerDialog::topicSearchLineEditStartSearch()
     const QString searchText = m_topicSearchLineEdit->text().trimmed();
     const bool haveSearchTextFlag = ( ! searchText.isEmpty());
     
-    QRegExp regEx;
+    QRegularExpression regularExpression;
     bool haveWildcardSearchFlag = false;
     if (haveSearchTextFlag) {
         if (searchText.contains('*')
             || searchText.contains('?')) {
-            haveWildcardSearchFlag = true;
-            regEx.setPatternSyntax(QRegExp::Wildcard);
-            regEx.setPattern(searchText);
-            regEx.setCaseSensitivity(Qt::CaseInsensitive);
+            QString regSearchText(searchText);
+            regSearchText.replace("*", ".*");
+            regSearchText.replace("?", ".?");
+            regularExpression.setPattern(regSearchText);
+            regularExpression.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
+            
+            haveWildcardSearchFlag = regularExpression.isValid();
         }
     }
     
@@ -788,7 +791,7 @@ HelpViewerDialog::topicSearchLineEditStartSearch()
             showItemFlag = false;
             
             if (haveWildcardSearchFlag) {
-                if (regEx.exactMatch(helpTreeItem->m_helpText)) {
+                if (regularExpression.match(helpTreeItem->m_helpText).hasMatch()) {
                     showItemFlag = true;
                 }
             }

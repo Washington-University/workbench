@@ -27,7 +27,6 @@
 
 #include "CaretObject.h"
 
-class QRegExp;
 class QRegularExpression;
 
 namespace caret {
@@ -99,8 +98,6 @@ namespace caret {
         bool m_favoritesOnly = false;
         
         mutable std::unique_ptr<QRegularExpression> m_regularExpression;
-        
-        mutable std::unique_ptr<QRegExp> m_regExp;
         
         // ADD_NEW_MEMBERS_HERE
 
