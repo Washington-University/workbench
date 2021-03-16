@@ -343,6 +343,12 @@ AnnotationPasteDialog::pasteAnnotationInSpace(AnnotationFile* annotationFile,
                 ac->setXYZ(coordInfo->m_chartSpaceInfo.m_xyz);
                 break;
             case AnnotationCoordinateSpaceEnum::SPACER:
+                if (i == 0) {
+                    pasteValidFlag = true;
+                    annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SPACER);
+                    annotation->setSpacerTabIndex(coordInfo->m_spacerTabSpaceInfo.m_spacerTabIndex);
+                }
+                ac->setXYZ(coordInfo->m_spacerTabSpaceInfo.m_xyz);
                 break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 if (i == 0) {
@@ -511,16 +517,17 @@ AnnotationPasteDialog::adjustTextAnnotationFontHeight(const MouseEvent& mouseEve
     
     BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
     CaretAssert(vpContent);
-    BrowserTabContent* btc = vpContent->getBrowserTabContent();
-    CaretAssert(btc);
     
     int32_t surfaceMontageRowCount = 1;
-    const ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
-    if (msm != NULL) {
-        int32_t columnCount = 1;
-        msm->getSurfaceMontageNumberOfRowsAndColumns(btc->getTabNumber(),
-                                                     surfaceMontageRowCount,
-                                                     columnCount);
+    BrowserTabContent* btc = vpContent->getBrowserTabContent();
+    if (btc != NULL) {
+        const ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
+        if (msm != NULL) {
+            int32_t columnCount = 1;
+            msm->getSurfaceMontageNumberOfRowsAndColumns(btc->getTabNumber(),
+                                                         surfaceMontageRowCount,
+                                                         columnCount);
+        }
     }
     
     const AnnotationCoordinateSpaceEnum::Enum newSpace = annotation->getCoordinateSpace();
