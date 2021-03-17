@@ -19,6 +19,9 @@
 #include <qapplication.h>
 #include <qmath.h>
 #include <QWidget>
+#include <QWindow>
+
+#include "CaretAssert.h"
 
 class QwtTextEngineDict
 {
@@ -479,6 +482,29 @@ bool QwtText::testLayoutAttribute( LayoutAttribute attribute ) const
     return d_data->layoutAttributes | attribute;
 }
 
+/**
+ * @return A paint device for Qwt.  Qwt uses QApplication::desktop() that
+ * has been removed in Qt 6.  So try to return another entity that will serve
+ * the same purpose.
+ */
+QPaintDevice*
+QwtText::getPaintDevice()
+{
+    QPaintDevice* paintDevice(NULL);
+
+#if QT_VERSION >= 0x060000
+    CaretAssert( ! QApplication::topLevelWidgets().empty());
+    CaretAssert(QApplication::topLevelWidgets().at(0));
+    paintDevice = QApplication::topLevelWidgets().at(0);
+#else
+    paintDevice = QApplication::desktop();
+#endif
+    
+    CaretAssert(paintDevice);
+    
+    return paintDevice;
+}
+
 /*!
    Find the height for a given width
 
@@ -492,7 +518,7 @@ double QwtText::heightForWidth( double width, const QFont &defaultFont ) const
     // We want to calculate in screen metrics. So
     // we need a font that uses screen metrics
 
-    const QFont font( usedFont( defaultFont ), QApplication::activeWindow() );
+    const QFont font( usedFont( defaultFont ), QwtText::getPaintDevice());
 
     double h = 0;
 
@@ -536,7 +562,7 @@ QSizeF QwtText::textSize( const QFont &defaultFont ) const
     // We want to calculate in screen metrics. So
     // we need a font that uses screen metrics
 
-    const QFont font( usedFont( defaultFont ), QApplication::activeWindow() );
+    const QFont font( usedFont( defaultFont ), QwtText::getPaintDevice() );
 
     if ( !d_layoutCache->textSize.isValid()
         || d_layoutCache->font != font )
@@ -611,7 +637,7 @@ void QwtText::draw( QPainter *painter, const QRectF &rect ) const
         // We want to calculate in screen metrics. So
         // we need a font that uses screen metrics
 
-        const QFont font( painter->font(), QApplication::activeWindow() );
+        const QFont font( painter->font(), QwtText::getPaintDevice() );
 
         double left, right, top, bottom;
         d_data->textEngine->textMargins(

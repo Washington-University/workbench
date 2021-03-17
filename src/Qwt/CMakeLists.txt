@@ -239,7 +239,10 @@ qwt_widget_overlay.cpp
 #
 # Process the header files with moc producing moc_*.cpp files
 #
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(
+${CMAKE_CURRENT_BINARY_DIR}
+${CMAKE_SOURCE_DIR}/Common
+)
 
 #
 # Create the GUI library

@@ -12,6 +12,7 @@
 #include "qwt_clipper.h"
 #include "qwt_color_map.h"
 #include "qwt_scale_map.h"
+#include "qwt_text.h"
 #include <qwindowdefs.h>
 #include <qwidget.h>
 #include <qframe.h>
@@ -126,7 +127,7 @@ static inline void qwtUnscaleFont( QPainter *painter )
     if ( pd->logicalDpiX() != screenResolution.width() ||
         pd->logicalDpiY() != screenResolution.height() )
     {
-        QFont pixelFont( painter->font(), QApplication::activeWindow() );
+        QFont pixelFont( painter->font(), QwtText::getPaintDevice() );
         pixelFont.setPixelSize( QFontInfo( pixelFont ).pixelSize() );
 
         painter->setFont( pixelFont );
