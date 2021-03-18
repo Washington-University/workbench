@@ -17,7 +17,9 @@
 #include <qbrush.h>
 #include <qpainter.h>
 #include <qapplication.h>
+#if QT_VERSION < 0x060000
 #include <qdesktopwidget.h>
+#endif
 #include <qmath.h>
 #include <QWidget>
 #include <QWindow>
