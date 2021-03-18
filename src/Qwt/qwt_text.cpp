@@ -17,6 +17,7 @@
 #include <qbrush.h>
 #include <qpainter.h>
 #include <qapplication.h>
+#include <qdesktopwidget.h>
 #include <qmath.h>
 #include <QWidget>
 #include <QWindow>
