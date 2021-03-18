@@ -221,6 +221,16 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
 {
     QEventLoop myLoop;
     QNetworkRequest myRequest;
+#if QT_VERSION >= 0x060000
+    /*
+     * Disable automatic redirection.  This typically occurs
+     * when logging into BALSA.  Qt5 did not handle redirection
+     * so code in this class handles the redirection when logging
+     * into BALSA.
+     */
+    myRequest.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                           QNetworkRequest::ManualRedirectPolicy);
+#endif
     myRequest.setSslConfiguration(QSslConfiguration::defaultConfiguration());
     CaretHttpManager* myCaretMgr = getHttpManager();
     AString myServerString = getServerString(request.m_url);
@@ -264,7 +274,8 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
                 if (!first) postData += "&";
                 if (request.m_arguments[i].second == "")
                 {
-                    postData += request.m_arguments[i].first.toUtf8();
+                    //postData += request.m_arguments[i].first;
+                    postData += QUrl::toPercentEncoding(request.m_arguments[i].first);
                 } else {
                     //postData += request.m_arguments[i].first + "=" + request.m_arguments[i].second;
                     postData += QUrl::toPercentEncoding(request.m_arguments[i].first) + "=" + QUrl::toPercentEncoding(request.m_arguments[i].second);
