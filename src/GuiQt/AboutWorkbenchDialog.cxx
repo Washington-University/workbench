@@ -26,6 +26,9 @@
 #include <QApplication>
 #include <QDate>
 #include <QDesktopServices>
+#include <QDir>
+#include <QImageReader>
+#include <QImageWriter>
 #include <QLabel>
 #include <QStyle>
 #include <QUrl>
@@ -197,6 +200,43 @@ AboutWorkbenchDialog::displayMoreInformation()
     informationData.push_back("Qt Readable Movies (QMovie): "
                               + AString::join(movieReadExtensions, ", "));
 
+    /*
+     * Show image formats that support "clipRect" which is supposed
+     * to mean reading only a portion, defined as a rectangle,
+     * of an image.  To test this option, it requires an image file
+     * so very small images are created in the temp directory.
+     */
+    const bool testClipRectSupportFlag(false);
+    if (testClipRectSupportFlag) {
+        std::vector<AString> clipRectExtensions;
+        std::vector<AString> scaledClipRectExtensions;
+        std::vector<AString> imageReadExtensions, imageWriteExtensions;
+        ImageFile::getQtSupportedImageFileExtensions(imageReadExtensions,
+                                                     imageWriteExtensions);
+        for (auto ext : imageWriteExtensions) {
+            if (std::find(imageReadExtensions.begin(),
+                          imageReadExtensions.end(),
+                          ext) != imageReadExtensions.end()) {
+                QImage image(2, 2, QImage::Format_RGB32);
+                QString name(QDir::tempPath() + "/file." + ext);
+                QImageWriter writer(name);
+                writer.write(image);
+                
+                QImageReader reader(name);
+                if (reader.supportsOption(QImageIOHandler::ClipRect)) {
+                    clipRectExtensions.push_back(ext);
+                }
+                if (reader.supportsOption(QImageIOHandler::ScaledClipRect)) {
+                    scaledClipRectExtensions.push_back(ext);
+                }
+            }
+        }
+        
+        informationData.push_back("Qt ClipRect Readable: "
+                                  + AString::join(clipRectExtensions, ", "));
+        informationData.push_back("Qt Scaled ClipRect Readable: "
+                                  + AString::join(scaledClipRectExtensions, ", "));
+    }
     WuQDataEntryDialog ded("More " + appInfo.getName() + " Information",
                            this,
                            true);
