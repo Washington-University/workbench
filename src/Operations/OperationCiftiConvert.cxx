@@ -345,6 +345,11 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         const int64_t SHORTMAX = numeric_limits<short>::max();//less ugly than writing it out every time
         if (outDims[3] > SHORTMAX) throw OperationException("cifti rows are too long for nifti-1, failing");
         int64_t numRows = myCiftiIn->getNumberOfRows();
+        if (numRows > SHORTMAX * SHORTMAX && !(betterDims || smallerDims))
+        {//don't let the default math hit the pathological case of an extra billion elements, behavior change okay because it is likely nobody has hit it yet
+            CaretLogWarning("input has a very large number of rows, and neither -smaller-file or -smaller-dims were specified, using -smaller-file instead");
+            betterDims = true;
+        }
         if (smallerDims)
         {
             outDims[0] = int64_t(ceil(pow(numRows, 1.0f / 3.0f))) - 1;//deliberately start 1 below what floating point says for a cube
