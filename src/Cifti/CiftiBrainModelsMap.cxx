@@ -907,11 +907,11 @@ vector<int64_t> CiftiBrainModelsMap::ParseHelperModel::readIndexArray(QXmlStream
         ret.push_back(elem.toLongLong(&ok));
         if (!ok)
         {
-            throw DataFileException("found noninteger in index array: " + elem);
+            throw DataFileException("found noninteger in index array: " + elem.toString());
         }
         if (ret.back() < 0)
         {
-            throw DataFileException("found negative integer in index array: " + elem);
+            throw DataFileException("found negative integer in index array: " + elem.toString());
         }
     }
     ret.shrink_to_fit();//qt6 can't predict in advance without making QStrings, so try not to have a bunch of unused memory allocated
