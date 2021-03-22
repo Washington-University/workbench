@@ -322,7 +322,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
         } else {//by default, do enough rows to read at least 10MB (assuming float) from each file before moving to the next
             int64_t rowBytes = sizeof(float) * shortestRow;
             chunkRows = ((10<<20) - 1) / rowBytes + 1;
-            int64_t numPasses = numRows / chunkRows;//make sure we never make chunks smaller, so different fenceposting
+            int64_t numPasses = max(int64_t(1), numRows / chunkRows);//make sure we never make chunks smaller, so different fenceposting
             chunkRows = (numRows - 1) / numPasses + 1;
         }
     }

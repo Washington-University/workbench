@@ -136,7 +136,7 @@ void OperationCiftiAverage::useParameters(OperationParameters* myParams, Progres
         } else {//by default, do enough rows to read at least 10MB (assuming float) from each file before moving to the next
             int64_t rowBytes = sizeof(float) * firstdims[0];
             chunkRows = ((10<<20) - 1) / rowBytes + 1;
-            int64_t numPasses = totalRows / chunkRows;//make sure we never make chunks smaller, so different fenceposting
+            int64_t numPasses = max(int64_t(1), totalRows / chunkRows);//make sure we never make chunks smaller, so different fenceposting
             chunkRows = (totalRows - 1) / numPasses + 1;
         }
     }
