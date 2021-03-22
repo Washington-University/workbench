@@ -894,25 +894,27 @@ vector<int64_t> CiftiBrainModelsMap::ParseHelperModel::readIndexArray(QXmlStream
     QString text = xml.readElementText();//raises error if it encounters a start element
     if (xml.hasError()) return ret;
 #if QT_VERSION >= 0x060000
-    QStringList separated = text.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+    auto separated = text.tokenize(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+    //can't do an exact reserve, tokenize is one at a time, there is no splitRef in qt6
 #else
-    QStringList separated = text.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
+    //in QT5, QRegExp is slightly faster
+    auto separated = text.splitRef(QRegExp("\\s+"), QString::SkipEmptyParts);
+    ret.reserve(separated.size());
 #endif
-    int64_t numElems = separated.size();
-    ret.reserve(numElems);
-    for (int64_t i = 0; i < numElems; ++i)
+    for (const auto& elem : separated)
     {
         bool ok = false;
-        ret.push_back(separated[i].toLongLong(&ok));
+        ret.push_back(elem.toLongLong(&ok));
         if (!ok)
         {
-            throw DataFileException("found noninteger in index array: " + separated[i]);
+            throw DataFileException("found noninteger in index array: " + elem);
         }
         if (ret.back() < 0)
         {
-            throw DataFileException("found negative integer in index array: " + separated[i]);
+            throw DataFileException("found negative integer in index array: " + elem);
         }
     }
+    ret.shrink_to_fit();//qt6 can't predict in advance without making QStrings, so try not to have a bunch of unused memory allocated
     return ret;
 }
 
