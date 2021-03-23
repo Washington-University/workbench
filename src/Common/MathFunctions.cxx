@@ -1773,6 +1773,75 @@ MathFunctions::distanceToLine3D(
 }
 
 /**
+ * Find the the point 'pointOnLineOut' nearest to 'point' that  is on the line formed  by p1 and p2.
+ * p1 and p2 are points on the line and the line is assumed to extend infinitely.
+ *
+ * @param p1 - First coordinate in line.
+ * @param p2 - Second coordinate in line.
+ * @param point - coordinate for which distance to line is sought.
+ * @param pointOnLineOut - Point on line nearest to 'point'.
+ * @param p1ToPointOnLineNormalizedDistanceOut - 'Normalized' distance from 'p1' to to 'pointOnLineOut'
+ * @return Distance from point to the line (p1, p2).
+ *
+ */
+void
+MathFunctions::nearestPointOnLine3D(const float p1[3],
+                                    const float p2[3],
+                                    const float point[3],
+                                    float pointOnLineOut[3],
+                                    float& p1ToPointOnLineNormalizedDistanceOut)
+{
+    /*
+     * Distance of 'point' to the line (one leg of triangle)
+     */
+    const float legOneLength(distanceToLine3D(p1, p2, point));
+    
+    /*
+     * Distance of 'point' to 'p1' (the hypotnuse)
+     */
+    const float hypotnuseLength(MathFunctions::distance3D(point, p1));
+    
+    /*
+     * A triangle is formed by 'point', 'p1', and the nearest
+     * point on the line.  The hypotnuse is 'p1' to 'point' and
+     * we know that distance.  We know the distance of the leg
+     * formed by 'point' and 'nearest point on line'.  The other
+     * leg is from 'p1' to 'nearest point on line' and we will
+     * now calculate it.
+     *
+     * hypotnuse = sqrt(legOne*legOne + legTwo*legTwo)
+     */
+    const float squaredLegLength((hypotnuseLength * hypotnuseLength)
+                                 - (legOneLength * legOneLength));
+    const float legTwoLength(squaredLegLength > 0.0
+                             ? std::sqrt(squaredLegLength)
+                             : 0.0f);
+    
+    /*
+     * legTwoLength is distance from p1 to nearest point on line
+     * Use it with length of line to find the normalized distance
+     * from 'p1' to the 'nearest point on the line'
+     */
+    const float lineLength(MathFunctions::distance3D(p1, p2));
+    const float normalizedDistance(legTwoLength / lineLength);
+    
+    /*
+     * Vector 'p1' to 'p2'
+     */
+    float p1ToP2Vector[3];
+    MathFunctions::subtractVectors(p2, p1, p1ToP2Vector);
+    
+    /*
+     * Point on the line !
+     */
+    pointOnLineOut[0] = p1ToP2Vector[0] * normalizedDistance;
+    pointOnLineOut[1] = p1ToP2Vector[1] * normalizedDistance;
+    pointOnLineOut[2] = p1ToP2Vector[2] * normalizedDistance;
+    
+    p1ToPointOnLineNormalizedDistanceOut = normalizedDistance;
+}
+
+/**
  * Determine if two arrays are equal, same number of elements and
  * corresponding elements equal.
  *

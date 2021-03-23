@@ -292,6 +292,12 @@ public:
                     const float p2[3],
                     const float point[3]);
 
+    static void nearestPointOnLine3D(const float p1[3],
+                                     const float p2[3],
+                                     const float point[3],
+                                     float pointOnLineOut[3],
+                                     float& p1ToPointOnLineNormalizedDistanceOut);
+    
     static bool arraysEqual(
                     const float a[],
                     const float b[],
