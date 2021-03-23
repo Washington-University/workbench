@@ -29,6 +29,7 @@
 
 #include "AnnotationClipboard.h"
 #include "AnnotationCoordinate.h"
+#include "AnnotationCoordinateInformation.h"
 #include "AnnotationCreateDialog.h"
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
@@ -234,7 +235,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
                 m_polyLineCoordinateSelected   = annSel->getPolyLineCoordinateIndex();
                 polyLineNumberOfVertices = multiCoordShape->getNumberOfCoordinates();
                 if (m_polyLineCoordinateSelected >= 0) {
-                    polyLineInsertAllowedFlag = (multiCoordShape->getCoordinateSpace() != AnnotationCoordinateSpaceEnum::SURFACE);
+                    polyLineInsertAllowedFlag = true; (multiCoordShape->getCoordinateSpace() != AnnotationCoordinateSpaceEnum::SURFACE);
                     if (sizeHandleSelectedFlag) {
                         polyLineInsertAllowedFlag = false;
                     }
@@ -935,11 +936,43 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinate()
     if (annSel->isValid()) {
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
         std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_mouseEvent.getBrowserWindowIndex());
+        AnnotationMultiCoordinateShape* multiCoordAnn(NULL);
         if ( ! selectedAnnotations.empty()) {
             CaretAssertVectorIndex(selectedAnnotations, 0);
+            multiCoordAnn = selectedAnnotations[0]->castToMultiCoordinateShape();
+        }
+        if (multiCoordAnn != NULL) {
+            int32_t surfaceSpaceVertexIndex(-1);
+            if (multiCoordAnn->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+                AnnotationCoordinateInformation coordInfo;
+                AnnotationCoordinateInformation::createCoordinateInformationFromXY(m_mouseEvent,
+                                                                                   coordInfo);
+                if (coordInfo.m_surfaceSpaceInfo.m_validFlag) {
+                    const AnnotationCoordinate* firstCoord(NULL);
+                    if (multiCoordAnn->getNumberOfCoordinates() > 0) {
+                        firstCoord = multiCoordAnn->getCoordinate(0);
+                        StructureEnum::Enum structure = StructureEnum::INVALID;
+                        int32_t numberOfVertices(-1);
+                        int32_t vertexIndex(-1);
+                        firstCoord->getSurfaceSpace(structure, numberOfVertices, vertexIndex);
+                        if ((coordInfo.m_surfaceSpaceInfo.m_structure == structure)
+                            && (coordInfo.m_surfaceSpaceInfo.m_numberOfNodes == numberOfVertices)) {
+                            surfaceSpaceVertexIndex = coordInfo.m_surfaceSpaceInfo.m_nodeIndex;
+                        }
+                    }
+                }
+                
+                if (surfaceSpaceVertexIndex < 0) {
+                    WuQMessageBox::errorOk(this,
+                                           "No surface vertex found at mouse location");
+                    return;
+                }
+            }
+            
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeMultiCoordAnnInsertCoordinate(annSel->getPolyLineCoordinateIndex(),
                                                               annSel->getNormalizedRangeFromCoordIndexToNextCoordIndex(),
+                                                              surfaceSpaceVertexIndex,
                                                               selectedAnnotations[0]);
             AString errorMessage;
             if ( ! annotationManager->applyCommand(m_userInputModeAnnotations->getUserInputMode(),

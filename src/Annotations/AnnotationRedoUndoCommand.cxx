@@ -1812,12 +1812,15 @@ AnnotationRedoUndoCommand::setModeDuplicateAnnotations(std::vector<std::pair<Ann
  *     Insert the new coordinate after this coordinate
  * @param normalizedDistanceToNextCoordinate
  *     Normalized Distance to next coordinate
+ * @param surfaceSpaceNewVertexIndex
+ *     Vertex index for a surface space annotation
  * @param annotation
  *     Annotation that receives a new vertex
  */
 void
 AnnotationRedoUndoCommand::setModeMultiCoordAnnInsertCoordinate(const int32_t insertAfterCoordinateIndex,
                                                                 const float normalizedDistanceToNextCoordinate,
+                                                                const int32_t surfaceSpaceNewVertexIndex,
                                                                 Annotation* annotation)
 {
     m_mode = AnnotationRedoUndoCommandModeEnum::MULTI_COORD_INSERT_COORDINATE;
@@ -1829,6 +1832,7 @@ AnnotationRedoUndoCommand::setModeMultiCoordAnnInsertCoordinate(const int32_t in
     AnnotationMultiCoordinateShape* multiCoordShape(redoAnnotation->castToMultiCoordinateShape());
     CaretAssert(multiCoordShape);
     multiCoordShape->insertCoordinate(insertAfterCoordinateIndex,
+                                      surfaceSpaceNewVertexIndex,
                                       normalizedDistanceToNextCoordinate);
     
     Annotation* undoAnnotation = annotation->clone();

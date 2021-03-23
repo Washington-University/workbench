@@ -128,6 +128,7 @@ namespace caret {
         
         void setModeMultiCoordAnnInsertCoordinate(const int32_t insertAfterCoordinateIndex,
                                                   const float normalizedDistanceToNextCoordinate,
+                                                  const int32_t surfaceSpaceNewVertexIndex,
                                                   Annotation* annotation);
         
         void setModeMultiCoordAnnRemoveCoordinate(const int32_t coordinateIndex,

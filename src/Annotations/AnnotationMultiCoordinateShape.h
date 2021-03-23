@@ -54,6 +54,7 @@ namespace caret {
         virtual const AnnotationCoordinate* getCoordinate(const int32_t index) const override;
 
         void insertCoordinate(const int32_t insertAfterCoordinateIndex,
+                              const int32_t surfaceSpaceVertexIndex,
                               const float normalizedDistanceToNextCoordinate);
                 
         void removeCoordinateAtIndex(const int32_t index);

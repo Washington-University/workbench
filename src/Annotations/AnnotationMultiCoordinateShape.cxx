@@ -213,14 +213,21 @@ AnnotationMultiCoordinateShape::replaceAllCoordinates(const std::vector<std::uni
  * Insert a new coordinate after the given index. New coordinate is at midpoint to next coordinate.
  * @param insertAfterCoordinateIndex
  *    Insert a coordinate after this coordinate index.
- *    @param normalizedDistanceToNextCoordinate
+ * @param normalizedDistanceToNextCoordinate
  *    Normalized distance to next coordinate for insertion
+ * @param surfaceSpaceVertexIndex
+ *    Vertex index for inserting a vertex in a surface space annotation
  */
 void
 AnnotationMultiCoordinateShape::insertCoordinate(const int32_t insertAfterCoordinateIndex,
+                                                 const int32_t surfaceSpaceVertexIndex,
                                                  const float normalizedDistanceToNextCoordinate)
 {
+    StructureEnum::Enum surfaceStructure = StructureEnum::INVALID;
+    int32_t surfaceNumberOfVertices(-1);
+
     bool validFlag(true);
+    bool surfaceSpaceFlag(false);
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
@@ -229,7 +236,22 @@ AnnotationMultiCoordinateShape::insertCoordinate(const int32_t insertAfterCoordi
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            validFlag = false;
+        {
+            if (getNumberOfCoordinates() > 0) {
+                const AnnotationCoordinate* firstCoord(getCoordinate(0));
+                CaretAssert(firstCoord);
+                int32_t vertexIndex(-1);
+                firstCoord->getSurfaceSpace(surfaceStructure,
+                                            surfaceNumberOfVertices,
+                                            vertexIndex);
+                
+                if ((surfaceSpaceVertexIndex >= 0)
+                    && (surfaceSpaceVertexIndex < surfaceNumberOfVertices)) {
+                    surfaceSpaceFlag = true;
+                    validFlag = true;
+                }
+            }
+        }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             break;
@@ -310,27 +332,35 @@ AnnotationMultiCoordinateShape::insertCoordinate(const int32_t insertAfterCoordi
     CaretAssertVectorIndex(m_coordinates, indexOne);
     CaretAssertVectorIndex(m_coordinates, indexTwo);
 
-    float xyzOne[3];
-    m_coordinates[indexOne]->getXYZ(xyzOne);
-    float xyzTwo[3];
-    m_coordinates[indexTwo]->getXYZ(xyzTwo);
-    
-    float newCoordXYZ[3] {
-        (xyzOne[0] + xyzTwo[0]) / 2.0f,
-        (xyzOne[1] + xyzTwo[1]) / 2.0f,
-        (xyzOne[2] + xyzTwo[2]) / 2.0f
-    };
-    
-    if ((normalizedDistanceToNextCoordinate >= 0.0)
-        && (normalizedDistanceToNextCoordinate <= 1.0)) {
-        float normalXYZ[3];
-        MathFunctions::subtractVectors(xyzTwo, xyzOne, normalXYZ);
-        newCoordXYZ[0] = xyzOne[0] + (normalXYZ[0] * normalizedDistanceToNextCoordinate);
-        newCoordXYZ[1] = xyzOne[1] + (normalXYZ[1] * normalizedDistanceToNextCoordinate);
-        newCoordXYZ[2] = xyzOne[2] + (normalXYZ[2] * normalizedDistanceToNextCoordinate);
-    }
     std::unique_ptr<AnnotationCoordinate> newCoord(new AnnotationCoordinate(m_attributeDefaultType));
-    newCoord->setXYZ(newCoordXYZ);
+
+    if (surfaceSpaceFlag) {
+        newCoord->setSurfaceSpace(surfaceStructure,
+                                  surfaceNumberOfVertices,
+                                  surfaceSpaceVertexIndex);
+    }
+    else {
+        float xyzOne[3];
+        m_coordinates[indexOne]->getXYZ(xyzOne);
+        float xyzTwo[3];
+        m_coordinates[indexTwo]->getXYZ(xyzTwo);
+        
+        float newCoordXYZ[3] {
+            (xyzOne[0] + xyzTwo[0]) / 2.0f,
+            (xyzOne[1] + xyzTwo[1]) / 2.0f,
+            (xyzOne[2] + xyzTwo[2]) / 2.0f
+        };
+        
+        if ((normalizedDistanceToNextCoordinate >= 0.0)
+            && (normalizedDistanceToNextCoordinate <= 1.0)) {
+            float normalXYZ[3];
+            MathFunctions::subtractVectors(xyzTwo, xyzOne, normalXYZ);
+            newCoordXYZ[0] = xyzOne[0] + (normalXYZ[0] * normalizedDistanceToNextCoordinate);
+            newCoordXYZ[1] = xyzOne[1] + (normalXYZ[1] * normalizedDistanceToNextCoordinate);
+            newCoordXYZ[2] = xyzOne[2] + (normalXYZ[2] * normalizedDistanceToNextCoordinate);
+        }
+        newCoord->setXYZ(newCoordXYZ);
+    }
     m_coordinates.insert(m_coordinates.begin() + indexOne + 1,
                          std::move(newCoord));
 }
