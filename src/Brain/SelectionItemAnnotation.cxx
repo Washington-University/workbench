@@ -116,6 +116,17 @@ SelectionItemAnnotation::getPolyLineCoordinateIndex() const
 }
 
 /**
+ * @return Normalized range from 'polyLineCoordinateIndex' to point on line nearest selection coordinate on
+ * the line formed by coord index to the next coord in the line
+ */
+float
+SelectionItemAnnotation::getNormalizedRangeFromCoordIndexToNextCoordIndex() const
+{
+    return m_normalizedRangeFromCoordIndexToNextCoordIndex;
+}
+
+
+/**
  * @return The annotation's coordinates converted to window coordinates
  */
 std::vector<Vector3D>
@@ -136,6 +147,8 @@ SelectionItemAnnotation::getAnnotationCoordsInWindowXYZ() const
  *     Sizing handle that is selected.
  * @param polyLineCoordinateIndex
  *     Index of poly line coordinate
+ * @param normalizedRangeFromCoordIndexToNextCoordIndex
+ *     Normalized range from 'polyLineCoordinateIndex' to point on line nearest selection coordinate
  * @param coordsInWindowXYZ
  *     Coordinates convertex to window XYZ
  */
@@ -144,6 +157,7 @@ SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
                                        Annotation* annotation,
                                        const AnnotationSizingHandleTypeEnum::Enum annotationSizingHandle,
                                        const int32_t polyLineCoordinateIndex,
+                                       const float normalizedRangeFromCoordIndexToNextCoordIndex,
                                        const std::vector<Vector3D>& coordsInWindowXYZ)
 {
     CaretAssert(annotationFile);
@@ -152,6 +166,7 @@ SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
     m_annotation     = annotation;
     m_sizingHandle   = annotationSizingHandle;
     m_polyLineCoordinateIndex = polyLineCoordinateIndex;
+    m_normalizedRangeFromCoordIndexToNextCoordIndex = normalizedRangeFromCoordIndexToNextCoordIndex;
     m_coordsInWindowXYZ       = coordsInWindowXYZ;
     
     if (annotation != NULL) {
@@ -208,16 +223,12 @@ SelectionItemAnnotation::toString() const
     AString text = SelectionItem::toString();
     text += ("Annotation type=" + AnnotationTypeEnum::toGuiName(m_annotation->getType())
              + "   sizeHandleType=" + AnnotationSizingHandleTypeEnum::toGuiName(m_sizingHandle)
-             + "   m_polyLineCoordinateIndex=" + AString::number(m_polyLineCoordinateIndex));
+             + "   m_polyLineCoordinateIndex=" + AString::number(m_polyLineCoordinateIndex)
+             + "   m_normalizedRangeFromCoordIndexToNextCoordIndex=" + AString::number(m_normalizedRangeFromCoordIndexToNextCoordIndex, 'f', 3));
     
     AnnotationText* textAnn = dynamic_cast<AnnotationText*>(m_annotation);
     if (textAnn != NULL) {
         text += ("   text=" + textAnn->getText());
     }
-//    text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
-//    text += ("Border File: " + ((borderFile != NULL) ? borderFile->getFileNameNoPath() : "INVALID") + "\n");
-//    text += ("Border: " + ((border != NULL) ? border->getName() : "INVALID") + "\n");
-//    text += ("Border Index: " + AString::number(borderIndex) + "\n");
-//    text += ("Border Point Index: " + AString::number(borderPointIndex) + "\n");
     return text;
 }

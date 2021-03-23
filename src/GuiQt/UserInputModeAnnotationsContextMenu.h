@@ -88,9 +88,7 @@ namespace caret {
         
         void duplicateAnnotationSelected(QAction*);
                 
-        void insertPolylineCoordinateAfterSelected();
-        
-        void insertPolylineCoordinateBeforeSelected();
+        void insertPolylineCoordinate();
         
         void removePolylineCoordinateSelected();
         
@@ -107,9 +105,6 @@ namespace caret {
         
         void processAnnotationOrderOperation(const AnnotationStackingOrderTypeEnum::Enum orderType);
         
-        void insertPolylineCoordinateAfterIndex(const int32_t index);
-        
-
         UserInputModeAnnotations* m_userInputModeAnnotations;
         
         /*

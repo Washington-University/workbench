@@ -127,6 +127,7 @@ namespace caret {
         void setModeDuplicateAnnotations(std::vector<std::pair<AnnotationFile*, Annotation*>>& fileAndAnnotations);
         
         void setModeMultiCoordAnnInsertCoordinate(const int32_t insertAfterCoordinateIndex,
+                                                  const float normalizedDistanceToNextCoordinate,
                                                   Annotation* annotation);
         
         void setModeMultiCoordAnnRemoveCoordinate(const int32_t coordinateIndex,

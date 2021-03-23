@@ -1002,16 +1002,48 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 
                 if (annotationID->isOtherScreenDepthCloserToViewer(depth)) {
                     
+                    float firstPointToPointOnLineNormalizedDisance(0.0);
+                    if (selectionInfo.m_polyLineCoordinateIndex >= 0) {
+                        const AnnotationMultiCoordinateShape* multiCoordShape = selectionInfo.m_annotation->castToMultiCoordinateShape();
+                        if (multiCoordShape != NULL) {
+                            const int32_t numCoords(multiCoordShape->getNumberOfCoordinates());
+                            const int32_t indexOne(selectionInfo.m_polyLineCoordinateIndex);
+                            const int32_t indexTwo((indexOne >= (numCoords - 1))
+                                                   ? 0
+                                                   : (indexOne + 1));
+                            CaretAssertVectorIndex(selectionInfo.m_coordsInWindowXYZ, indexOne);
+                            CaretAssertVectorIndex(selectionInfo.m_coordsInWindowXYZ, indexTwo);
+                            
+                            GLint viewport[4];
+                            glGetIntegerv(GL_VIEWPORT,
+                                          viewport);
+
+                            const float mouseXYZ[3] {
+                                static_cast<float>(m_brainOpenGLFixedPipeline->mouseX - viewport[0]),
+                                static_cast<float>(m_brainOpenGLFixedPipeline->mouseY - viewport[1]),
+                                0.0
+                            };
+                            
+                            float pointOnLine[3];
+                            MathFunctions::nearestPointOnLine3D(selectionInfo.m_coordsInWindowXYZ[indexOne],
+                                                                selectionInfo.m_coordsInWindowXYZ[indexTwo],
+                                                                mouseXYZ,
+                                                                pointOnLine,
+                                                                firstPointToPointOnLineNormalizedDisance);
+                        }
+                    }
+                    
                     annotationID->setAnnotation(selectionInfo.m_annotationFile,
                                                 selectionInfo.m_annotation,
                                                 selectionInfo.m_sizingHandle,
                                                 selectionInfo.m_polyLineCoordinateIndex,
+                                                firstPointToPointOnLineNormalizedDisance,
                                                 selectionInfo.m_coordsInWindowXYZ);
                     annotationID->setBrain(m_inputs->m_brain);
                     annotationID->setScreenXYZ(selectionInfo.m_windowXYZ);
                     annotationID->setScreenDepth(depth);
                     CaretLogFine("Selected Annotation: " + annotationID->toString());
-                }
+               }
             }
         }
     }
@@ -4860,21 +4892,45 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
     if (drawForegroundFlag) {
         if (m_selectionModeFlag
             && m_inputs->m_annotationUserInputModeFlag) {
-            uint8_t selectionColorRGBA[4];
-            getIdentificationColor(selectionColorRGBA);
-            primitive->replaceAllVertexSolidByteRGBA(selectionColorRGBA);
-            const int32_t invalidPolyLineCoordinateIndex(-1);
-            m_selectionInfo.push_back(SelectionInfo(annotationFile,
-                                                    multiCoordShape,
-                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
-                                                    invalidPolyLineCoordinateIndex,
-                                                    selectionCenterXYZ,
-                                                    windowVertexXYZ));
+            for (int32_t i = 0; i < numCoords; i++) {
+                int32_t nextCoordIndex(i + 1);
+                if (i == (numCoords - 1)) {
+                    nextCoordIndex = 0;
+                    if (polygon == NULL) {
+                        break;
+                    }
+                }
+                
+                uint8_t selectionColorRGBA[4];
+                getIdentificationColor(selectionColorRGBA);
+                std::unique_ptr<GraphicsPrimitiveV3f> idPrim(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
+                                                                                             selectionColorRGBA));
+                GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT;
+                float lineWidth(0.0);
+                idPrim->getLineWidth(lineWidthType, lineWidth);
+                lineWidth += 3.0; /* thicker to help with ID and reduce flashing of cursor */
+                idPrim->setLineWidth(lineWidthType, lineWidth);
+                CaretAssertVectorIndex(windowVertexXYZ, i);
+                idPrim->addVertex(windowVertexXYZ[i]);
+                
+                CaretAssertVectorIndex(windowVertexXYZ, nextCoordIndex);
+                idPrim->addVertex(windowVertexXYZ[nextCoordIndex]);
+                
+                m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                        multiCoordShape,
+                                                        AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                        i,
+                                                        selectionCenterXYZ,
+                                                        windowVertexXYZ));
+                GraphicsEngineDataOpenGL::draw(idPrim.get());
+                drawnFlag = true;
+            }
+        }
+        else {
+            GraphicsEngineDataOpenGL::draw(primitive.get());
+            drawnFlag = true;
         }
         
-        GraphicsEngineDataOpenGL::draw(primitive.get());
-        drawnFlag = true;
-
         if (multiCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)) {
             drawAnnotationMultiCoordShapeSizingHandles(annotationFile,
                                                 multiCoordShape,
@@ -5697,38 +5753,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiCoordShapeSizingHa
          * Symbol for selected vertex is a little bigger
          */
         float symbolSize(cornerSquareSize);
-        if ((selectedVertexIndex >= 0)
-            && (selectedVertexIndex < numberOfVertices)) {
-            const float smallSymbolSize(symbolSize * 0.5);
-            const float selectedSymbolSize(symbolSize * 2.0);
-            const float largeSymbolSize(symbolSize * 3.0);
-            if (i == selectedVertexIndex) {
-                symbolSize = selectedSymbolSize;
-            }
-            else if (i == (selectedVertexIndex - 1)) {
-                symbolSize = smallSymbolSize;
-            }
-            else if (i == (selectedVertexIndex + 1)) {
-                symbolSize = largeSymbolSize;
-            }
-            
-            if (multiCoordShape->castToPolygon() != NULL) {
-                /*
-                 * Polygon is closed so can insert after last vertex or before first vertex
-                 */
-                const int32_t lastVertexIndex = (numberOfVertices - 1);
-                if (i == 0) {
-                    if (selectedVertexIndex == lastVertexIndex) {
-                        symbolSize = largeSymbolSize;
-                    }
-                }
-                if (i == lastVertexIndex) {
-                    if (selectedVertexIndex == 0) {
-                        symbolSize = smallSymbolSize;
-                    }
-                }
-            }
-        }
 
         drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE,
                          annotationFile,

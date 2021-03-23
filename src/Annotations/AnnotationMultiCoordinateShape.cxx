@@ -213,9 +213,12 @@ AnnotationMultiCoordinateShape::replaceAllCoordinates(const std::vector<std::uni
  * Insert a new coordinate after the given index. New coordinate is at midpoint to next coordinate.
  * @param insertAfterCoordinateIndex
  *    Insert a coordinate after this coordinate index.
+ *    @param normalizedDistanceToNextCoordinate
+ *    Normalized distance to next coordinate for insertion
  */
 void
-AnnotationMultiCoordinateShape::insertCoordinate(const int32_t insertAfterCoordinateIndex)
+AnnotationMultiCoordinateShape::insertCoordinate(const int32_t insertAfterCoordinateIndex,
+                                                 const float normalizedDistanceToNextCoordinate)
 {
     bool validFlag(true);
     switch (getCoordinateSpace()) {
@@ -311,14 +314,23 @@ AnnotationMultiCoordinateShape::insertCoordinate(const int32_t insertAfterCoordi
     m_coordinates[indexOne]->getXYZ(xyzOne);
     float xyzTwo[3];
     m_coordinates[indexTwo]->getXYZ(xyzTwo);
-    const float midPointXYZ[3] {
+    
+    float newCoordXYZ[3] {
         (xyzOne[0] + xyzTwo[0]) / 2.0f,
         (xyzOne[1] + xyzTwo[1]) / 2.0f,
         (xyzOne[2] + xyzTwo[2]) / 2.0f
     };
     
+    if ((normalizedDistanceToNextCoordinate >= 0.0)
+        && (normalizedDistanceToNextCoordinate <= 1.0)) {
+        float normalXYZ[3];
+        MathFunctions::subtractVectors(xyzTwo, xyzOne, normalXYZ);
+        newCoordXYZ[0] = xyzOne[0] + (normalXYZ[0] * normalizedDistanceToNextCoordinate);
+        newCoordXYZ[1] = xyzOne[1] + (normalXYZ[1] * normalizedDistanceToNextCoordinate);
+        newCoordXYZ[2] = xyzOne[2] + (normalXYZ[2] * normalizedDistanceToNextCoordinate);
+    }
     std::unique_ptr<AnnotationCoordinate> newCoord(new AnnotationCoordinate(m_attributeDefaultType));
-    newCoord->setXYZ(midPointXYZ);
+    newCoord->setXYZ(newCoordXYZ);
     m_coordinates.insert(m_coordinates.begin() + indexOne + 1,
                          std::move(newCoord));
 }

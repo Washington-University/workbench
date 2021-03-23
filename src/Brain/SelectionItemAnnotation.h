@@ -50,12 +50,15 @@ namespace caret {
         
         int32_t getPolyLineCoordinateIndex() const;
         
+        float getNormalizedRangeFromCoordIndexToNextCoordIndex() const;
+        
         std::vector<Vector3D> getAnnotationCoordsInWindowXYZ() const;
         
         void setAnnotation(AnnotationFile* annotationFile,
                            Annotation* annotation,
                            const AnnotationSizingHandleTypeEnum::Enum annotationSizingHandle,
                            const int32_t polyLineCoordinateIndex,
+                           const float normalizedRangeFromCoordIndexToNextCoordIndex,
                            const std::vector<Vector3D>& coordsInWindowXYZ);
 
         // ADD_NEW_METHODS_HERE
@@ -72,6 +75,8 @@ namespace caret {
         AnnotationSizingHandleTypeEnum::Enum m_sizingHandle;
         
         int32_t m_polyLineCoordinateIndex = -1;
+        
+        float m_normalizedRangeFromCoordIndexToNextCoordIndex;
         
         std::vector<Vector3D> m_coordsInWindowXYZ;
         
