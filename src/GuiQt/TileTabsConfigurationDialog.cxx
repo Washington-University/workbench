@@ -171,6 +171,9 @@ TileTabsConfigurationDialog::receiveEvent(Event* event)
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE) {
         updateTemplateUserConfigurationPushButtons(getSelectedConfigurationSourceType());
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        updateAspectLockingInfo();
+    }
 }
 
 /**
@@ -1169,16 +1172,52 @@ TileTabsConfigurationDialog::createWorkbenchWindowWidget()
     m_browserWindowComboBox->getWidget()->setFixedWidth(60);
     QObject::connect(m_browserWindowComboBox, SIGNAL(browserWindowSelected(BrainBrowserWindow*)),
                      this, SLOT(browserWindowComboBoxValueChanged(BrainBrowserWindow*)));
+
+    m_aspectLockedLabel = new QLabel();
+    QObject::connect(m_aspectLockedLabel, &QLabel::linkActivated,
+                     [=](const QString&) { viewAspectLockedInfoDialog(); });
     
     QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
+    QGridLayout* layout = new QGridLayout(widget);
+    layout->setColumnMinimumWidth(2, 15);
+    layout->setColumnStretch(6, 100);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(windowLabel);
-    layout->addWidget(m_browserWindowComboBox->getWidget());
-    layout->addStretch();
+    layout->addWidget(windowLabel, 0, 0);
+    layout->addWidget(m_browserWindowComboBox->getWidget(), 0, 1);
+    layout->addWidget(m_aspectLockedLabel, 0, 3, Qt::AlignLeft);
     
     return widget;
 }
+
+/**
+ * Display information about problems aspect locking can cause with
+ * tile tabs editing
+ */
+void
+TileTabsConfigurationDialog::viewAspectLockedInfoDialog()
+{
+    AString msg;
+    msg.appendWithNewLine("<html><body>");
+    
+    msg.appendWithNewLine("When window aspect is locked, space in the window may "
+                          "be unavailable for use by the tabs.  The user may notice too "
+                          "much empty space around the edges of the window.");
+    msg.appendWithNewLine("<p>");
+    msg.appendWithNewLine("When tab aspect is locked, space in a tab may "
+                          "be unavailable for use by the models.  The user "
+                          "may notice too much empty space appears between tabs.");
+    msg.appendWithNewLine("<p>");
+    msg.appendWithNewLine("For more information, look for Annotations and Scenes Best Practices in "
+                          "Workbench Help (on Help Menu)");
+    msg.appendWithNewLine("</body></html>");
+    
+    WuQTextEditorDialog::runModal("Aspect Locking Info",
+                                  msg,
+                                  WuQTextEditorDialog::TextMode::HTML,
+                                  WuQTextEditorDialog::WrapMode::YES,
+                                  m_aspectLockedLabel);
+}
+
 
 /**
  * @return The rows/columns stretch layout
@@ -1845,8 +1884,58 @@ TileTabsConfigurationDialog::updateDialogWithSelectedTileTabsFromWindow(BrainBro
     
     m_browserWindowComboBox->updateComboBox();
     m_browserWindowComboBox->setBrowserWindow(brainBrowserWindow);
-    
+
     updateDialog();
+}
+
+/**
+ * Update the aspect locked message
+ */
+void
+TileTabsConfigurationDialog::updateAspectLockingInfo()
+{
+    BrainBrowserWindow* brainBrowserWindow = getBrowserWindow();
+    CaretAssert(brainBrowserWindow);
+    
+    AString lockedText;
+    if (brainBrowserWindow->isWindowAspectRatioLocked()) {
+        lockedText.append("Window ");
+    }
+    std::vector<BrowserTabContent*> allTabs;
+    brainBrowserWindow->getAllTabContent(allTabs);
+    int32_t numAspectLockedTabs(0);
+    for (auto btc : allTabs) {
+        if (btc->isAspectRatioLocked()) {
+            numAspectLockedTabs++;
+        }
+    }
+    AString tabsLockedMessage;
+    if (numAspectLockedTabs > 0) {
+        const int32_t numTabs = static_cast<int32_t>(allTabs.size());
+        if (numAspectLockedTabs == numTabs) {
+            tabsLockedMessage = "All Tabs ";
+        }
+        else {
+            tabsLockedMessage = (QString::number(numAspectLockedTabs)
+                                 + "Tab"
+                                 + ((numAspectLockedTabs > 1) ? "s " : " "));
+        }
+    }
+    
+    if ( ! tabsLockedMessage.isEmpty()) {
+        if ( ! lockedText.isEmpty()) {
+            lockedText.append("/ ");
+        }
+        lockedText.append(tabsLockedMessage);
+    }
+    
+    if ( ! lockedText.isEmpty()) {
+        lockedText.append("Aspect Locked <a href=\"link\">More...</a>");
+        lockedText.insert(0, "<html>");
+        lockedText.append("</html>");
+    }
+    
+    m_aspectLockedLabel->setText(lockedText);
 }
 
 /**
@@ -1923,6 +2012,8 @@ TileTabsConfigurationDialog::updateDialog()
             userConfigurationSelectionListWidgetItemChanged();
             break;
     }
+    
+    updateAspectLockingInfo();
 }
 
 /**

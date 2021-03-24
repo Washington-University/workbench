@@ -123,6 +123,8 @@ namespace caret {
         
         void configurationSourceTabWidgetClicked(int index);
         
+        void viewAspectLockedInfoDialog();
+        
     protected:
         void focusGained();
         
@@ -215,8 +217,12 @@ namespace caret {
         
         bool loadIntoManualConfiguration(const TileTabsLayoutBaseConfiguration* configuration);
         
+        void updateAspectLockingInfo();
+        
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
+        QLabel* m_aspectLockedLabel;
+
         QStackedWidget* m_editConfigurationStackedWidget;
         
         QWidget* m_customGridConfigurationWidget;

@@ -43,6 +43,39 @@ using namespace caret;
  */
 
 /**
+ * Run the dialog in modal (blocking) mode.
+ * Since modal and no way to retrieve text, the
+ * text is not editable.
+ *
+ * @param dialogTitle
+ *    Title for dialog.
+ * @param text
+ *    Text displayed in text editor.
+ * @param textMode
+ *    Text mode (html or plain)
+ * @param wrapMode
+ *    Text wrapping (no, yes)
+ * @param parent
+ *    The parent widget on which dialog is displayed.
+ */
+void
+WuQTextEditorDialog::runModal(const QString& dialogTitle,
+                              const QString& text,
+                              const TextMode textMode,
+                              const WrapMode wrapMode,
+                              QWidget* parent)
+{
+    WuQTextEditorDialog dialog(dialogTitle,
+                               text,
+                               TextReadOnlyMode::YES,
+                               textMode,
+                               wrapMode,
+                               parent);
+
+    dialog.exec();
+}
+
+/**
  * Run the dialog in non-modal (non-blocking) mode.
  * Since non-modal and no way to retrieve text, the
  * text is not editable.

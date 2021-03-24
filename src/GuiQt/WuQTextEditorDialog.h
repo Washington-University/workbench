@@ -51,6 +51,12 @@ namespace caret {
             YES
         };
         
+        static void runModal(const QString& dialogTitle,
+                             const QString& text,
+                             const TextMode textMode,
+                             const WrapMode wrapMode,
+                             QWidget* parent);
+
         static void runNonModal(const QString& dialogTitle,
                                 const QString& text,
                                 const TextMode textMode,
