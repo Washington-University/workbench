@@ -8,7 +8,9 @@
 			<key>CFBundleTypeExtensions</key>
 			<array>
 			<string>scene</string>
+			<string>wb_scene</string>
 			<string>spec</string>
+			<string>wb_spec</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string>spec_file.icns</string>
@@ -23,8 +25,11 @@
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
+			<string>wb_annot</string>
 			<string>border</string>
+			<string>wb_border</string>
 			<string>foci</string>
+			<string>wb_foci</string>
 			<string>gii</string>
 			<string>nii</string>
 			<string>palette</string>
