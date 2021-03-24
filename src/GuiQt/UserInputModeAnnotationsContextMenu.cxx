@@ -235,7 +235,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
                 m_polyLineCoordinateSelected   = annSel->getPolyLineCoordinateIndex();
                 polyLineNumberOfVertices = multiCoordShape->getNumberOfCoordinates();
                 if (m_polyLineCoordinateSelected >= 0) {
-                    polyLineInsertAllowedFlag = true; (multiCoordShape->getCoordinateSpace() != AnnotationCoordinateSpaceEnum::SURFACE);
+                    polyLineInsertAllowedFlag = true;
                     if (sizeHandleSelectedFlag) {
                         polyLineInsertAllowedFlag = false;
                     }
