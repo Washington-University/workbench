@@ -932,24 +932,69 @@ UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected()
 void
 UserInputModeAnnotationsContextMenu::insertPolylineCoordinate()
 {
-    const SelectionItemAnnotation* annSel = m_selectionManager->getAnnotationIdentification();
+    insertPolylineCoordinateAtMouse(m_userInputModeAnnotations,
+                                    m_mouseEvent);    
+}
+
+/**
+ * Insert a coordinate into a polyline at the given mouse event
+ * @param userInputModeAnnotations
+ *    Annotations input mode processor
+ * @param mouseEvent
+ *    The mouse event.
+ */
+void
+UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(UserInputModeAnnotations* userInputModeAnnotations,
+                                                                     const MouseEvent& mouseEvent)
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    CaretAssert(brain);
+    SelectionManager* selectionManager(brain->getSelectionManager());
+    CaretAssert(selectionManager);
+    const SelectionItemAnnotation* annSel = selectionManager->getAnnotationIdentification();
     if (annSel->isValid()) {
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-        std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_mouseEvent.getBrowserWindowIndex());
+        std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(mouseEvent.getBrowserWindowIndex());
         AnnotationMultiCoordinateShape* multiCoordAnn(NULL);
         if ( ! selectedAnnotations.empty()) {
             CaretAssertVectorIndex(selectedAnnotations, 0);
             multiCoordAnn = selectedAnnotations[0]->castToMultiCoordinateShape();
         }
         if (multiCoordAnn != NULL) {
+            const int32_t numAnnCoords = multiCoordAnn->getNumberOfCoordinates();
+            if (numAnnCoords <= 2) {
+                return;
+            }
+            
+            /*
+             * Verify selected coordinate index is valid for shape type
+             */
+            if (multiCoordAnn->castToPolygon() != NULL) {
+                if (annSel->getPolyLineCoordinateIndex() >= numAnnCoords) {
+                    return;
+                }
+            }
+            else if (multiCoordAnn->castToPolyline() != NULL) {
+                if (annSel->getPolyLineCoordinateIndex() >= (numAnnCoords - 1)) {
+                    return;
+                }
+            }
+            else {
+                CaretAssertMessage(0, "Multi coord shape is neither polyline nor polygon.  Has new shape been added?");
+                return;
+            }
             int32_t surfaceSpaceVertexIndex(-1);
             if (multiCoordAnn->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
                 AnnotationCoordinateInformation coordInfo;
-                AnnotationCoordinateInformation::createCoordinateInformationFromXY(m_mouseEvent,
+                AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
                                                                                    coordInfo);
                 if (coordInfo.m_surfaceSpaceInfo.m_validFlag) {
                     const AnnotationCoordinate* firstCoord(NULL);
                     if (multiCoordAnn->getNumberOfCoordinates() > 0) {
+                        /*
+                         * Get structure and number of nodes from first coordinate
+                         * for surface space annotation
+                         */
                         firstCoord = multiCoordAnn->getCoordinate(0);
                         StructureEnum::Enum structure = StructureEnum::INVALID;
                         int32_t numberOfVertices(-1);
@@ -963,7 +1008,7 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinate()
                 }
                 
                 if (surfaceSpaceVertexIndex < 0) {
-                    WuQMessageBox::errorOk(this,
+                    WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
                                            "No surface vertex found at mouse location");
                     return;
                 }
@@ -975,10 +1020,10 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinate()
                                                               surfaceSpaceVertexIndex,
                                                               selectedAnnotations[0]);
             AString errorMessage;
-            if ( ! annotationManager->applyCommand(m_userInputModeAnnotations->getUserInputMode(),
+            if ( ! annotationManager->applyCommand(userInputModeAnnotations->getUserInputMode(),
                                                    undoCommand,
                                                    errorMessage)) {
-                WuQMessageBox::errorOk(this,
+                WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
                                        errorMessage);
             }
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -986,3 +1031,4 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinate()
         }
     }
 }
+

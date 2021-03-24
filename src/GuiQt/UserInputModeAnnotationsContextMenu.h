@@ -53,6 +53,9 @@ namespace caret {
         
         Annotation* getNewAnnotationCreatedByContextMenu();
 
+        static void insertPolylineCoordinateAtMouse(UserInputModeAnnotations* userInputModeAnnotations,
+                                                    const MouseEvent& mouseEvent);
+        
         // ADD_NEW_METHODS_HERE
 
     private slots:

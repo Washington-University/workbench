@@ -376,7 +376,25 @@ UserInputModeAnnotations::getCursor() const
                         cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
                         break;
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+                    {
                         cursor = CursorEnum::CURSOR_FOUR_ARROWS;
+                        
+                        /*
+                         * If over one selected annotation and the annotation
+                         * is a mult-coord shape, show a cursor that indicates
+                         * insertion of a new coordinate
+                         */
+                        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                        const std::vector<Annotation*> selectedAnns = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+                        if (selectedAnns.size() == 1) {
+                            CaretAssertVectorIndex(selectedAnns, 0);
+                            if (m_annotationUnderMouse == selectedAnns[0]) {
+                                if (selectedAnns[0]->castToMultiCoordinateShape() != NULL) {
+                                    cursor = CursorEnum::CURSOR_CROSS;
+                                }
+                            }
+                        }
+                    }
                         break;
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
                         cursor = CursorEnum::CURSOR_ROTATION;
@@ -1202,6 +1220,9 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
             break;
         case MODE_SELECT:
         {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            const std::vector<Annotation*> beforeSelectedAnns = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+            
             /*
              * Single click selects clicked annotation and deselects any that are selected
              */
@@ -1210,6 +1231,23 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
             processMouseSelectAnnotation(mouseEvent,
                                          shiftKeyDown,
                                          singleSelectionModeFlag);
+            
+            const std::vector<Annotation*> afterSelectedAnns = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+            if (afterSelectedAnns.size() == 1) {
+                /*
+                 * If shape clicked was same a previous selection and
+                 * is a multi-coord annotation, insert new coordinate
+                 * at location of mouse.
+                 */
+                if (beforeSelectedAnns == afterSelectedAnns) {
+                    CaretAssertVectorIndex(afterSelectedAnns, 0);
+                    AnnotationMultiCoordinateShape* multiCoordShape = afterSelectedAnns[0]->castToMultiCoordinateShape();
+                    if (multiCoordShape != NULL) {
+                        UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(this,
+                                                                                             mouseEvent);
+                    }
+                }
+            }
         }
             break;
         case MODE_SET_COORDINATE_ONE:
