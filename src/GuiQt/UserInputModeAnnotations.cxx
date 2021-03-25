@@ -1243,8 +1243,14 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
                     CaretAssertVectorIndex(afterSelectedAnns, 0);
                     AnnotationMultiCoordinateShape* multiCoordShape = afterSelectedAnns[0]->castToMultiCoordinateShape();
                     if (multiCoordShape != NULL) {
-                        UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(this,
-                                                                                             mouseEvent);
+                        /*
+                         * Cross cursor indicates insert coordinate mode.
+                         * If not tested, dragging a coordinate would also add a coordinate
+                         */
+                        if (getCursor() == CursorEnum::CURSOR_CROSS) {
+                            UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(this,
+                                                                                                 mouseEvent);
+                        }
                     }
                 }
             }
