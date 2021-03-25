@@ -4907,7 +4907,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
                                                                                              selectionColorRGBA));
                 GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT;
                 float lineWidth(0.0);
-                idPrim->getLineWidth(lineWidthType, lineWidth);
+                primitive->getLineWidth(lineWidthType, lineWidth);
                 lineWidth += 3.0; /* thicker to help with ID and reduce flashing of cursor */
                 idPrim->setLineWidth(lineWidthType, lineWidth);
                 CaretAssertVectorIndex(windowVertexXYZ, i);
@@ -4932,11 +4932,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
         }
         
         if (multiCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)) {
+            GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT;
+            float lineWidth(0.0);
+            primitive->getLineWidth(lineWidthType, lineWidth);
+            float sizeHandleWidthInPixels = lineWidth;
+            switch (lineWidthType) {
+                case GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT:
+                    sizeHandleWidthInPixels = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(lineWidth);
+                    break;
+                case GraphicsPrimitive::LineWidthType::PIXELS:
+                    sizeHandleWidthInPixels = lineWidth;
+                    break;
+            }
             drawAnnotationMultiCoordShapeSizingHandles(annotationFile,
-                                                multiCoordShape,
-                                                windowVertexXYZ,
-                                                primitive.get(),
-                                                s_sizingHandleLineWidthInPixels);
+                                                       multiCoordShape,
+                                                       windowVertexXYZ,
+                                                       primitive.get(),
+                                                       sizeHandleWidthInPixels / 2.0);
         }
     }
     
@@ -5070,24 +5082,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShapeSurfaceTangen
     
     if (m_selectionModeFlag
         && m_inputs->m_annotationUserInputModeFlag) {
-//        uint8_t selectionColorRGBA[4];
-//        getIdentificationColor(selectionColorRGBA);
-//
-//        primitive->replaceAllVertexSolidByteRGBA(selectionColorRGBA);
-//        BoundingBox bb;
-//        primitive->getVertexBounds(bb);
-//        float selectionCenterXYZ[3];
-//        bb.getCenter(selectionCenterXYZ);
-//
-//        const int32_t invalidPolyLineCoordinateIndex(0);
-//        m_selectionInfo.push_back(SelectionInfo(annotationFile,
-//                                                multiCoordShape,
-//                                                AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
-//                                                invalidPolyLineCoordinateIndex,
-//                                                selectionCenterXYZ,
-//                                                windowVertexXYZ));
-        
-
         BoundingBox bb;
         primitive->getVertexBounds(bb);
         float selectionCenterXYZ[3];
@@ -5107,7 +5101,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShapeSurfaceTangen
                                                                                             selectionColorRGBA));
             GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT;
             float lineWidth(0.0);
-            idPrim->getLineWidth(lineWidthType, lineWidth);
+            primitive->getLineWidth(lineWidthType, lineWidth);
             lineWidth += 3.0; /* thicker to help with ID and reduce flashing of cursor */
             idPrim->setLineWidth(lineWidthType, lineWidth);
             CaretAssertVectorIndex(windowVertexXYZ, i);
