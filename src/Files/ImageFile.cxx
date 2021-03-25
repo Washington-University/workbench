@@ -23,6 +23,7 @@
 
 #include <QBuffer>
 #include <QColor>
+#include <QDir>
 #include <QImage>
 #include <QImageReader>
 #include <QImageWriter>
@@ -1793,6 +1794,52 @@ ImageFile::getQtSupportedImageFileExtensions(std::vector<AString>& readableExten
 {
     DataFileTypeEnum::getQtSupportedImageFileExtensions(readableExtensionsOut,
                                                         writableExtensionsOut);
+}
+
+/**
+ * Get all image file extensions supported by Qt that support the 'clipRect' option
+ * to read a portion of the image file.
+ * @param clipRectReadableExtensionsOut
+ *    Output contains all readable image file extensions that support 'clipRect'
+ * @param scaledClipRectReadableExtensionsOut
+ *    Output contains all readable image file extensions that support 'scaledClipRect'
+ */
+void
+ImageFile::getQtSupportedClipRectReadableImageFileExtensions(std::vector<AString>& clipRectReadableExtensionsOut,
+                                                             std::vector<AString>& scaledClipRectReadableExtensionsOut)
+{
+    clipRectReadableExtensionsOut.clear();
+    scaledClipRectReadableExtensionsOut.clear();
+    
+    std::vector<AString> readableExtensions;
+    std::vector<AString> writableExtensions;
+    DataFileTypeEnum::getQtSupportedImageFileExtensions(readableExtensions,
+                                                        writableExtensions);
+    
+    for (auto& ext : writableExtensions) {
+        if (std::find(readableExtensions.begin(),
+                      readableExtensions.end(),
+                      ext) != readableExtensions.end()) {
+            QString name(QDir::tempPath() + "/file." + ext);
+            
+            /*
+             * Image file must exist for testing supported options
+             */
+            QImage image(2, 2, QImage::Format_RGB32);
+            QImageWriter writer(name);
+            if (writer.canWrite()) {
+                writer.write(image);
+                
+                QImageReader reader(name);
+                if (reader.supportsOption(QImageIOHandler::ClipRect)) {
+                    clipRectReadableExtensionsOut.push_back(ext);
+                }
+                if (reader.supportsOption(QImageIOHandler::ScaledClipRect)) {
+                    scaledClipRectReadableExtensionsOut.push_back(ext);
+                }
+            }
+        }
+    }
 }
 
 /**

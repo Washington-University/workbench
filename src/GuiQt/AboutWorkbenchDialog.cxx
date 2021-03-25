@@ -184,6 +184,15 @@ AboutWorkbenchDialog::displayMoreInformation()
     informationData.push_back("Qt Writable Images: "
                               + AString::join(imageWriteExtensions, ", "));
 
+    std::vector<AString> clipRectReadableExtensions;
+    std::vector<AString> scaledClipRectReadableExtensionsOut;
+    ImageFile::getQtSupportedClipRectReadableImageFileExtensions(clipRectReadableExtensions,
+                                                                 scaledClipRectReadableExtensionsOut);
+    informationData.push_back("Qt ClipRect (ROI) Readable Images: "
+                              + AString::join(clipRectReadableExtensions, ", "));
+    informationData.push_back("Qt Scaled ClipRect (ROI) Readable Images: "
+                              + AString::join(scaledClipRectReadableExtensionsOut, ", "));
+
     AString imageWriteDefaultExtension;
     ImageFile::getWorkbenchSupportedImageFileExtensions(imageReadExtensions,
                                                         imageWriteExtensions,
