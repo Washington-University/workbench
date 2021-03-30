@@ -215,8 +215,9 @@ public:
     static void getQtSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
                                                   std::vector<AString>& writableExtensionsOut);
     
-    static void getQtSupportedClipRectReadableImageFileExtensions(std::vector<AString>& clipRectReadableExtensionsOut,
-                                                                  std::vector<AString>& scaledClipRectReadableExtensionsOut);
+    static void getImageFileQtSupportedOptionExtensions(std::vector<AString>& clipRectReadableExtensionsOut,
+                                                        std::vector<AString>& scaledClipRectReadableExtensionsOut,
+                                                        std::vector<AString>& descriptionReadableWritableExtensionsOut);
     
     static void getWorkbenchSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
                                                          std::vector<AString>& writableExtensionsOut,

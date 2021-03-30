@@ -1803,13 +1803,17 @@ ImageFile::getQtSupportedImageFileExtensions(std::vector<AString>& readableExten
  *    Output contains all readable image file extensions that support 'clipRect'
  * @param scaledClipRectReadableExtensionsOut
  *    Output contains all readable image file extensions that support 'scaledClipRect'
+ * @param descriptionReadableWritableExtensionsOut
+ * Output contains all image file extensions that support the 'description' option for reading and writing
  */
 void
-ImageFile::getQtSupportedClipRectReadableImageFileExtensions(std::vector<AString>& clipRectReadableExtensionsOut,
-                                                             std::vector<AString>& scaledClipRectReadableExtensionsOut)
+ImageFile::getImageFileQtSupportedOptionExtensions(std::vector<AString>& clipRectReadableExtensionsOut,
+                                                   std::vector<AString>& scaledClipRectReadableExtensionsOut,
+                                                   std::vector<AString>& descriptionReadableWritableExtensionsOut)
 {
     clipRectReadableExtensionsOut.clear();
     scaledClipRectReadableExtensionsOut.clear();
+    descriptionReadableWritableExtensionsOut.clear();
     
     std::vector<AString> readableExtensions;
     std::vector<AString> writableExtensions;
@@ -1836,6 +1840,10 @@ ImageFile::getQtSupportedClipRectReadableImageFileExtensions(std::vector<AString
                 }
                 if (reader.supportsOption(QImageIOHandler::ScaledClipRect)) {
                     scaledClipRectReadableExtensionsOut.push_back(ext);
+                }
+                if (reader.supportsOption(QImageIOHandler::Description)
+                    && writer.supportsOption(QImageIOHandler::Description)) {
+                    descriptionReadableWritableExtensionsOut.push_back(ext);
                 }
             }
         }
