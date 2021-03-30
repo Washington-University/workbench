@@ -2341,6 +2341,9 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                     if ( ! sceneAnnotationFileFlag) {
                         copyFilePathToClipboardAction = menu.addAction(copyPathText);
                         editMetaDataAction = menu.addAction("Edit Metadata...");
+                        if ( ! caretDataFile->supportsFileMetaData()) {
+                            editMetaDataAction->setEnabled(false);
+                        }
                         setFileNameAction = menu.addAction("Set File Name...");
                         showFileInformationAction = menu.addAction("Show File Information...");
                     }

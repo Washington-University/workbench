@@ -99,6 +99,10 @@ public:
     
     void clear();
     
+    virtual void clearModified() override;
+    
+    virtual bool isModified() const override;
+    
     /**
      * @return Number of frames in the file
      */
@@ -113,6 +117,8 @@ public:
      * @return Get access to unmodifiable file's metadata.
      */
     virtual const GiftiMetaData* getFileMetaData() const override;
+    
+    virtual bool supportsFileMetaData() const override;
     
     virtual bool compareFileForUnitTesting(const DataFile* df,
                                            const float tolerance,
@@ -217,7 +223,7 @@ public:
     
     static void getImageFileQtSupportedOptionExtensions(std::vector<AString>& clipRectReadableExtensionsOut,
                                                         std::vector<AString>& scaledClipRectReadableExtensionsOut,
-                                                        std::vector<AString>& descriptionReadableWritableExtensionsOut);
+                                                        std::vector<AString>& metaDataReadableWritableExtensionsOut);
     
     static void getWorkbenchSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
                                                          std::vector<AString>& writableExtensionsOut,
@@ -237,9 +243,13 @@ private:
                             const int positionX,
                             const int positionY);
     
+    void readFileMetaDataFromQImage();
+    
+    void writeFileMetaDataToQImage() const;
+    
     QImage* m_image;
     
-    CaretPointer<GiftiMetaData> m_fileMetaData;
+    mutable CaretPointer<GiftiMetaData> m_fileMetaData;
     
     CaretPointer<ControlPointFile> m_controlPointFile;
     

@@ -66,6 +66,8 @@ namespace caret {
          */
         virtual const GiftiMetaData* getFileMetaData() const = 0;
         
+        virtual bool supportsFileMetaData() const;
+        
         virtual AString getFileNameNoExtension() const;
         
         virtual AString getFileNameNoPathNoExtension() const;

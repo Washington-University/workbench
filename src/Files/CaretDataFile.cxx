@@ -74,6 +74,18 @@ CaretDataFile::getDataFileType() const
 }
 
 /**
+ * @return True if this file supports file metadata, else false.
+ * Subclasses should override this method if the subclass
+ * DOES NOT support file metadata.
+ */
+bool
+CaretDataFile::supportsFileMetaData() const
+{
+    return true;
+}
+
+
+/**
  * Override the default data type for the file.
  * Use this with extreme caution as using a type invalid
  * with the file may cause disaster.

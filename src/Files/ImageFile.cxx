@@ -60,6 +60,7 @@ ImageFile::ImageFile()
     m_fileMetaData.grabNew(new GiftiMetaData());
     
     m_image   = new QImage();
+    readFileMetaDataFromQImage();
 }
 
 /**
@@ -75,6 +76,7 @@ ImageFile::ImageFile(const QImage& qimage)
     m_fileMetaData.grabNew(new GiftiMetaData());
     
     m_image = new QImage(qimage);
+    readFileMetaDataFromQImage();
 }
 
 /**
@@ -103,6 +105,7 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
     m_image = new QImage(imageWidth,
                              imageHeight,
                              QImage::Format_ARGB32);
+    readFileMetaDataFromQImage();
     
     bool isOriginAtTop = false;
     switch (imageOrigin) {
@@ -163,7 +166,33 @@ ImageFile::clear()
         delete m_image;
     }
     m_image = new QImage();
+    readFileMetaDataFromQImage();
     this->clearModified();
+}
+
+/**
+ * Clear this file's modified status
+ */
+void
+ImageFile::clearModified()
+{
+    MediaFile::clearModified();
+    m_fileMetaData->clearModified();
+}
+
+/**
+ * @return True if this file is modified, else falsel
+ */
+bool
+ImageFile::isModified() const
+{
+    if (MediaFile::isModified()) {
+        return true;
+    }
+    if (m_fileMetaData->isModified()) {
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -212,6 +241,7 @@ ImageFile::isEmpty() const
 const QImage*
 ImageFile::getAsQImage() const
 {
+    writeFileMetaDataToQImage();
     return m_image;
 }
 
@@ -227,6 +257,7 @@ ImageFile::setFromQImage(const QImage& qimage)
         delete m_image;
     }
     m_image = new QImage(qimage);
+    readFileMetaDataFromQImage();
     this->setModified();
 }
 
@@ -367,36 +398,6 @@ ImageFile::addMargin(const int marginSize,
                      const uint8_t backgroundColor[3])
 {
     this->addMargin(marginSize, marginSize, backgroundColor);
-    /*
-     if (marginSize <= 0) {
-     return;
-     }
-     
-     //
-     // Add margin
-     //
-     const int width = image.width();
-     const int height = image.height();
-     const int newWidth = width + marginSize * 2;
-     const int newHeight = height + marginSize * 2;
-     QRgb backgroundColorRGB = qRgba(backgroundColor[0],
-     backgroundColor[1],
-     backgroundColor[2],
-     0);
-     
-     //
-     // Insert image
-     //
-     ImageFile imageFile;
-     imageFile.setImage(QImage(newWidth, newHeight, image.format()));
-     imageFile.getImage()->fill(backgroundColorRGB);
-     try {
-     imageFile.insertImage(image, marginSize, marginSize);
-     image = (*imageFile.getImage());
-     }
-     catch (DataFileException&) {
-     }
-     */
 }
 
 /**
@@ -431,6 +432,8 @@ ImageFile::addMargin(const int marginSizeX,
                                     backgroundColor[2],
                                     0);
     
+    GiftiMetaData fileMetaDataCopy(*m_fileMetaData);
+    
     //
     // Insert image
     //
@@ -440,6 +443,11 @@ ImageFile::addMargin(const int marginSizeX,
     try {
         imageFile.insertImage(*m_image, marginSizeX, marginSizeY);
         this->setFromQImage(*imageFile.getAsQImage());
+        
+        /*
+         * Preserve metadata
+         */
+        *m_fileMetaData = fileMetaDataCopy;
     }
     catch (DataFileException& e) {
         CaretLogWarning(e.whatString());
@@ -484,11 +492,12 @@ ImageFile::cropImageRemoveBackground(const int marginSize,
                                                          leftTopRightBottom[1],
                                                          width,
                                                          height);
-            if (copyImage.isNull() == false) {
+            if ( ! copyImage.isNull()) {
                 if ((copyImage.width() > 0)
                     && (copyImage.height() > 0)) {
-                    
+                    GiftiMetaData fileMetaDataCopy(*m_fileMetaData);
                     this->setFromQImage(copyImage);
+                    *m_fileMetaData = fileMetaDataCopy;
                 }
             }
             
@@ -634,10 +643,11 @@ ImageFile::readFile(const AString& filename)
     
     this->setFileName(filename);
     
-    if (m_image->load(filename) == false) {
+    if ( ! m_image->load(filename)) {
         clear();
         throw DataFileException(filename + "Unable to load file.");
     }
+    readFileMetaDataFromQImage();
     
     this->clearModified();
 }
@@ -657,6 +667,8 @@ ImageFile::appendImageAtBottom(const ImageFile& img)
     const int newWidth = std::max(m_image->width(), otherImage->width());
     const int newHeight = m_image->height() + otherImage->height();
     const int oldHeight = m_image->height();
+    
+    GiftiMetaData fileMetaDataCopy(*m_fileMetaData);
     
     //
     // Copy the current image
@@ -684,6 +696,8 @@ ImageFile::appendImageAtBottom(const ImageFile& img)
     // Insert other image into new image
     //
     insertImage(*otherImage, 0, oldHeight);
+    
+    *m_fileMetaData = fileMetaDataCopy;
     
     this->setModified();
 }
@@ -944,10 +958,10 @@ ImageFile::writeFile(const AString& filename)
         errorMessage = "Image width is zero.";
     }
     if (m_image->height() <= 0) {
-        if (errorMessage.isEmpty() == false) errorMessage += "\n";
+        if ( ! errorMessage.isEmpty()) errorMessage += "\n";
         errorMessage = "Image height is zero.";
     }
-    if (errorMessage.isEmpty() == false) {
+    if ( ! errorMessage.isEmpty()) {
         throw DataFileException(filename + "  " + errorMessage);
     }
     
@@ -972,7 +986,10 @@ ImageFile::writeFile(const AString& filename)
     if (writer.supportsOption(QImageIOHandler::CompressionRatio)) {
         writer.setCompression(1);
     }
-    if (writer.write(*m_image) == false) {
+    
+    writeFileMetaDataToQImage();
+    
+    if ( ! writer.write(*m_image)) {
         throw DataFileException(writer.errorString());
     }
     
@@ -1005,9 +1022,13 @@ ImageFile::getSaveQFileDialogImageFilters(std::vector<AString>& imageFileFilters
 void
 ImageFile::resizeToWidth(const int32_t width)
 {
+    GiftiMetaData fileMetaDataCopy(*m_fileMetaData);
+    
     CaretAssert(m_image);
     *m_image = m_image->scaledToWidth(width,
                                       Qt::SmoothTransformation);
+    
+    *m_fileMetaData = fileMetaDataCopy;
 }
 
 /**
@@ -1020,9 +1041,13 @@ ImageFile::resizeToWidth(const int32_t width)
 void
 ImageFile::resizeToHeight(const int32_t height)
 {
+    GiftiMetaData fileMetaDataCopy(*m_fileMetaData);
+    
     CaretAssert(m_image);
     *m_image = m_image->scaledToHeight(height,
                                        Qt::SmoothTransformation);
+    
+    *m_fileMetaData = fileMetaDataCopy;
 }
 
 /**
@@ -1040,8 +1065,10 @@ ImageFile::resizeToMaximumWidth(const int32_t maximumWidth)
     const int32_t width = m_image->width();
     
     if (width > maximumWidth) {
+        GiftiMetaData fileMetaDataCopy(*m_fileMetaData);
         *m_image = m_image->scaledToWidth(maximumWidth,
                                           Qt::SmoothTransformation);
+        *m_fileMetaData = fileMetaDataCopy;
     }
 }
 
@@ -1060,8 +1087,10 @@ ImageFile::resizeToMaximumHeight(const int32_t maximumHeight)
     const int32_t height = m_image->height();
     
     if (height > maximumHeight) {
+        GiftiMetaData fileMetaDataCopy(*m_fileMetaData);
         *m_image = m_image->scaledToHeight(maximumHeight,
                                           Qt::SmoothTransformation);
+        *m_fileMetaData = fileMetaDataCopy;
     }
 }
 
@@ -1778,6 +1807,12 @@ ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
         dataFileInformation.addNameAndValue("Color Table", (m_image->colorTable().empty()
                                                             ? "No"
                                                             : "Yes"));
+        CaretAssert(m_fileMetaData);
+        const auto& allKeys(m_fileMetaData->getAllMetaDataNames());
+        for (const auto& key : allKeys) {
+            dataFileInformation.addNameAndValue("Metadata Key/Value",
+                                                (key + " / " + m_fileMetaData->get(key)));
+        }
     }
 }
 
@@ -1803,17 +1838,17 @@ ImageFile::getQtSupportedImageFileExtensions(std::vector<AString>& readableExten
  *    Output contains all readable image file extensions that support 'clipRect'
  * @param scaledClipRectReadableExtensionsOut
  *    Output contains all readable image file extensions that support 'scaledClipRect'
- * @param descriptionReadableWritableExtensionsOut
- * Output contains all image file extensions that support the 'description' option for reading and writing
+ * @param metaDataReadableWritableExtensionsOut
+ * Output contains all image file extensions that support  file metadata (the 'description' option) for reading and writing
  */
 void
 ImageFile::getImageFileQtSupportedOptionExtensions(std::vector<AString>& clipRectReadableExtensionsOut,
                                                    std::vector<AString>& scaledClipRectReadableExtensionsOut,
-                                                   std::vector<AString>& descriptionReadableWritableExtensionsOut)
+                                                   std::vector<AString>& metaDataReadableWritableExtensionsOut)
 {
     clipRectReadableExtensionsOut.clear();
     scaledClipRectReadableExtensionsOut.clear();
-    descriptionReadableWritableExtensionsOut.clear();
+    metaDataReadableWritableExtensionsOut.clear();
     
     std::vector<AString> readableExtensions;
     std::vector<AString> writableExtensions;
@@ -1843,7 +1878,7 @@ ImageFile::getImageFileQtSupportedOptionExtensions(std::vector<AString>& clipRec
                 }
                 if (reader.supportsOption(QImageIOHandler::Description)
                     && writer.supportsOption(QImageIOHandler::Description)) {
-                    descriptionReadableWritableExtensionsOut.push_back(ext);
+                    metaDataReadableWritableExtensionsOut.push_back(ext);
                 }
             }
         }
@@ -1869,3 +1904,73 @@ ImageFile::getWorkbenchSupportedImageFileExtensions(std::vector<AString>& readab
                                                                writableExtensionsOut,
                                                                defaultWritableExtension);
 }
+
+/**
+ * Move the QImage metadata to the file metadata
+ */
+void
+ImageFile::readFileMetaDataFromQImage()
+{
+    CaretAssert(m_fileMetaData);
+    m_fileMetaData->clear();
+    
+    if (m_image != NULL) {
+        QStringList allKeys = m_image->textKeys();
+        QStringListIterator iter(allKeys);
+        while (iter.hasNext()) {
+            const AString key(iter.next());
+            const AString value(m_image->text(key));
+            m_fileMetaData->set(key, value);
+        }
+    }
+    
+    m_fileMetaData->clearModified();
+}
+
+/**
+ * Move the file metadata into the QImage
+ */
+void
+ImageFile::writeFileMetaDataToQImage() const
+{
+    if (m_image != NULL) {
+        /*
+         * May clear metadata, but not sure
+         */
+        m_image->setText("", "");
+        
+        const auto allKeys(m_fileMetaData->getAllMetaDataNames());
+        for (const auto& key : allKeys) {
+            const AString value = m_fileMetaData->get(key);
+            m_image->setText(key, value);
+        }
+    }
+}
+
+/**
+ * @return True if this file supports file metadata, else false.
+ * Support of metadata is dependent upon the file's extension.  Only
+ * some image file types support metadata.
+ */
+bool
+ImageFile::supportsFileMetaData() const
+{
+    std::vector<AString> clipRectReadableExtensions;
+    std::vector<AString> scaledClipRectReadableExtensions;
+    std::vector<AString> metaDataReadableWritableExtensions;
+    ImageFile::getImageFileQtSupportedOptionExtensions(clipRectReadableExtensions,
+                                                       scaledClipRectReadableExtensions,
+                                                       metaDataReadableWritableExtensions);
+
+    FileInformation fileInfo(getFileName());
+    const AString ext(fileInfo.getFileExtension());
+    
+    if (std::find(metaDataReadableWritableExtensions.begin(),
+                  metaDataReadableWritableExtensions.end(),
+                  ext) != metaDataReadableWritableExtensions.end()) {
+        return true;
+    }
+    
+    return false;
+}
+
