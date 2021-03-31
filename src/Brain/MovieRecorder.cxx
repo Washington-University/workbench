@@ -518,7 +518,7 @@ MovieRecorder::createMovie(const AString& filename,
                                         + "d");
     
     const AString imagesRegularExpressionMatch(m_temporaryImagesDirectory
-                                               + "/"
+                                               + QDir::separator()
                                                + m_tempImageFileNamePrefix
                                                + sequenceDigitsPattern
                                                + m_tempImageFileNameSuffix);
@@ -532,11 +532,12 @@ MovieRecorder::createMovie(const AString& filename,
 
     const bool qProcessPipeFlag(false);
     const QString textFileName(m_temporaryImagesDirectory
-                               + "/"
+                               + QDir::separator()
                                + "images.txt");
     
     const QString programName(workbenchHomeDir
-                              + "/ffmpeg");
+                              + QDir::separator()
+                              + "ffmpeg");
     FileInformation ffmpegInfo(programName);
     if ( ! ffmpegInfo.exists()) {
         errorMessageOut = ("Invalid path for ffmpeg: "
@@ -554,8 +555,6 @@ MovieRecorder::createMovie(const AString& filename,
         /* list of images in file */
         arguments.append("-f");
         arguments.append("concat");
-//        arguments.append("-safe");
-//        arguments.append("0");
         arguments.append("-i");
         arguments.append(textFileName);
     }
