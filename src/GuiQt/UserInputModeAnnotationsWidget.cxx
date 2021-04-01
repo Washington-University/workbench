@@ -54,12 +54,14 @@
 #include "AnnotationTextOrientationWidget.h"
 #include "AnnotationWidthHeightWidget.h"
 #include "Brain.h"
+#include "BrainBrowserWindowToolBar.h"
 #include "CaretAssert.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventBrainReset.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "TileTabsLayoutConfigurationTypeWidget.h"
 #include "UserInputModeAnnotations.h"
 #include "WuQtUtilities.h"
 
@@ -173,6 +175,14 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
 void
 UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
 {
+    m_layoutTypeWidget           = new TileTabsLayoutConfigurationTypeWidget(TileTabsLayoutConfigurationTypeWidget::ParentType::BROWSER_WINDOW_TOOLBAR);
+    
+    QWidget* layoutTypeWidget = BrainBrowserWindowToolBar::createToolWidget("Layout Type",
+                                                                            m_layoutTypeWidget,
+                                                                            BrainBrowserWindowToolBar::WIDGET_PLACEMENT_NONE,
+                                                                            BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
+                                                                            0);
+
     m_nameWidget                 = new AnnotationNameWidget(m_inputModeAnnotations->getUserInputMode(),
                                                             m_browserWindowIndex);
     
@@ -217,6 +227,8 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(2, 2, 2, 2);
     layout->setSpacing(8);
+    layout->addWidget(layoutTypeWidget);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
     layout->addWidget(m_nameWidget, 0, Qt::AlignTop);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
     layout->addWidget(m_boundsWidget, 0, Qt::AlignTop);
@@ -444,6 +456,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     /*
      * Note: pointers are initialized to NULL in the header file
      */
+    if (m_layoutTypeWidget != NULL) m_layoutTypeWidget->updateContent(m_browserWindowIndex);
     if (m_nameWidget != NULL) m_nameWidget->updateContent(selectedAnnotations);
     if (m_boundsWidget != NULL) m_boundsWidget->updateContent(browserTabAnnotations);
     if (m_coordinateSpaceWidget != NULL) m_coordinateSpaceWidget->updateContent(selectedAnnotations);

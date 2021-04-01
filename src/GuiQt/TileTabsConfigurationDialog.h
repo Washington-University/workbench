@@ -71,6 +71,14 @@ namespace caret {
         
         virtual void receiveEvent(Event* event) override;
         
+        static bool warnIfGridConfigurationTooSmallDialog(const int32_t windowIndex,
+                                                          const TileTabsLayoutGridConfiguration* gridConfiguration,
+                                                          QWidget* parentWidget);
+        
+        static bool loadIntoManualConfiguration(const TileTabsLayoutBaseConfiguration* configuration,
+                                                const int32_t windowIndex,
+                                                QWidget* parentWidget);
+        
     private:
         TileTabsConfigurationDialog(const TileTabsConfigurationDialog&);
 
@@ -195,7 +203,8 @@ namespace caret {
         
         AString getNewConfigurationName(QWidget* dialogParent);
         
-        const BrainOpenGLViewportContent* getViewportContentForTab(const int32_t tabIndex) const;
+        static const BrainOpenGLViewportContent* getViewportContentForTab(const int32_t windowIndex,
+                                                                          const int32_t tabIndex);
 
         TileTabsLayoutManualConfiguration* createManualConfigurationFromCurrentTabs() const;
         
@@ -212,10 +221,6 @@ namespace caret {
         void loadTemplateLayoutConfigurations();
         
         void loadTemplateLayoutConfigurationFromXML(const QString& xml);
-        
-        bool warnIfGridConfigurationTooSmallDialog(const TileTabsLayoutGridConfiguration* gridConfiguration) const;
-        
-        bool loadIntoManualConfiguration(const TileTabsLayoutBaseConfiguration* configuration);
         
         void updateAspectLockingInfo();
         

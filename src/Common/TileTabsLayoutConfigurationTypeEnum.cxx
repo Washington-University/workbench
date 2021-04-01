@@ -74,18 +74,21 @@ using namespace caret;
  *    An enumerated value.
  * @param name
  *    Name of enumerated value.
- *
  * @param guiName
  *    User-friendly name for use in user-interface.
+ * @param guiToolTip
+ *    ToolTip for use in user-interface.
  */
 TileTabsLayoutConfigurationTypeEnum::TileTabsLayoutConfigurationTypeEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+                                                                         const AString& name,
+                                                                         const AString& guiName,
+                                                                         const AString& guiToolTip)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
+    this->guiToolTip = guiToolTip;
 }
 
 /**
@@ -108,15 +111,19 @@ TileTabsLayoutConfigurationTypeEnum::initialize()
 
     enumData.push_back(TileTabsLayoutConfigurationTypeEnum(AUTOMATIC_GRID,
                                                            "AUTOMATIC_GRID",
-                                                           "Automatic Grid"));
+                                                           "Automatic Grid",
+                                                           ("Workbench adjusts the number of rows and columns so "
+                                                            "that all tabs are displayed")));
     
     enumData.push_back(TileTabsLayoutConfigurationTypeEnum(CUSTOM_GRID,
                                                            "CUSTOM_GRID",
-                                                           "Custom Grid"));
+                                                           "Custom Grid",
+                                                           ("User sets the number of row, columns, and stretch factors")));
     
     enumData.push_back(TileTabsLayoutConfigurationTypeEnum(MANUAL,
                                                            "MANUAL",
-                                                           "Manual"));
+                                                           "Manual",
+                                                           ("User sets positions and sizes of all tabs")));
 
 }
 
@@ -222,6 +229,23 @@ TileTabsLayoutConfigurationTypeEnum::toGuiName(Enum enumValue)
     const TileTabsLayoutConfigurationTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
+
+/**
+ * Get a GUI Tooltip for the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     Tooltip enumerated value.
+ */
+AString
+TileTabsLayoutConfigurationTypeEnum::toGuiToolTip(Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    
+    const TileTabsLayoutConfigurationTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->guiToolTip;
+}
+
 
 /**
  * Get an enumerated value corresponding to its GUI name.

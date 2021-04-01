@@ -451,7 +451,9 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             const TileTabsLayoutGridConfiguration* userGridConfig = configuration->castToGridConfiguration();
             CaretAssert(userGridConfig);
             
-            if ( ! warnIfGridConfigurationTooSmallDialog(userGridConfig)) {
+            if ( ! warnIfGridConfigurationTooSmallDialog(getBrowserWindowContent()->getWindowIndex(),
+                                                         userGridConfig,
+                                                         m_customGridConfigurationRadioButton)) {
                 return;
             }
 
@@ -465,7 +467,10 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             const TileTabsLayoutManualConfiguration* userManualConfig = configuration->castToManualConfiguration();
             CaretAssert(userManualConfig);
             
-            loadIntoManualConfiguration(userManualConfig);
+            loadIntoManualConfiguration(userManualConfig,
+                                        m_browserWindowComboBox->getSelectedBrowserWindowIndex(),
+                                        this);
+            updateDialog();
             
             getBrowserWindowContent()->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
         }
@@ -486,12 +491,16 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
  *     True if the configuration was loaded or false if user cancelled
  */
 bool
-TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBaseConfiguration* configuration)
+TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBaseConfiguration* configuration,
+                                                         const int32_t windowIndex,
+                                                         QWidget* parentWidget)
 {
     CaretAssert(configuration);
     
+    BrainBrowserWindow* browserWindow(GuiManager::get()->getBrowserWindowByWindowIndex(windowIndex));
+    CaretAssert(browserWindow);
     std::vector<BrowserTabContent*> allTabContent;
-    getBrowserWindow()->getAllTabContent(allTabContent);
+    browserWindow->getAllTabContent(allTabContent);
     int32_t numBrowserTabs = static_cast<int32_t>(allTabContent.size());
 
     std::vector<int32_t> tabIndices;
@@ -534,7 +543,7 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
     CaretAssert(manualConfiguration);
     const int32_t numberOfConfigurationTabs = manualConfiguration->getNumberOfTabs();
     if (numberOfConfigurationTabs <= 0) {
-        WuQMessageBox::errorOk(m_loadConfigurationPushButton,
+        WuQMessageBox::errorOk(parentWidget,
                                ("User configuration \""
                                 + configuration->getName()
                                 + "\" is invalid (does not have any tabs)"));
@@ -563,7 +572,7 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
         if (numBrowserTabs < numberOfConfigurationTabs) {
             msg.append("Do you want to add tabs to fill layout?:</html>");
             WuQDataEntryDialog dialog("Load Configuration",
-                                      m_loadConfigurationPushButton,
+                                      parentWidget,
                                       WuQDialogNonModal::SCROLL_AREA_NEVER);
             dialog.setTextAtTop(msg, true);
             QRadioButton* yesRadioButton = dialog.addRadioButton("Yes, add tabs to fill layout");
@@ -593,7 +602,7 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
                         EventBrowserTabNewInGUI newTabEvent;
                         EventManager::get()->sendEvent(newTabEvent.getPointer());
                         BrowserTabContent* btc = newTabEvent.getBrowserTab();
-                        updateGraphicsWindow();
+                        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
                         if (btc != NULL) {
                             if (showTabsFlag) {
                                 tabsWithDisplayStatusOn.insert(btc);
@@ -613,7 +622,7 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
             msg.append("Do you want to:</html>");
             
             WuQDataEntryDialog dialog("Load Configuration",
-                                      m_loadConfigurationPushButton,
+                                      parentWidget,
                                       WuQDialogNonModal::SCROLL_AREA_NEVER);
             dialog.setTextAtTop(msg, true);
             QRadioButton* closeTabsRadioButton = dialog.addRadioButton("Close extra tabs");
@@ -628,7 +637,7 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
                         EventBrowserTabDeleteInToolBar deleteTabEvent(allTabContent[deleteIndex],
                                                                       allTabContent[deleteIndex]->getTabNumber());
                         EventManager::get()->sendEvent(deleteTabEvent.getPointer());
-                        updateGraphicsWindow();
+                        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
                         deleteIndex--;
                     }
                 }
@@ -649,11 +658,11 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
      * Get the tabs again since the number of tabs may have changed
      */
     allTabContent.clear();
-    getBrowserWindow()->getAllTabContent(allTabContent);
+    browserWindow->getAllTabContent(allTabContent);
     numBrowserTabs = static_cast<int32_t>(allTabContent.size());
     
     std::vector<const BrainOpenGLViewportContent*> tabViewports;
-    getBrowserWindow()->getAllBrainOpenGLViewportContent(tabViewports);
+    browserWindow->getAllBrainOpenGLViewportContent(tabViewports);
     const int32_t numViewportContent = static_cast<int32_t>(tabViewports.size());
     
     for (int32_t i = 0; i < numBrowserTabs; i++) {
@@ -682,7 +691,8 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
                  * Since no geometry available from the user configuration,
                  * keep this tab in its current window position
                  */
-                const BrainOpenGLViewportContent* tabViewportContent = getViewportContentForTab(allTabContent[i]->getTabNumber());
+                const BrainOpenGLViewportContent* tabViewportContent = getViewportContentForTab(browserWindow->getBrowserWindowIndex(),
+                                                                                                allTabContent[i]->getTabNumber());
                 if (tabViewportContent != NULL) {
                     int32_t tabViewport[4];
                     tabViewportContent->getTabViewportBeforeApplyingMargins(tabViewport);
@@ -710,13 +720,13 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
         }
     }
     
-    getBrowserWindowContent()->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
-    getBrowserWindowContent()->setWindowAnnotationsStackingOrder(manualConfiguration->getWindowAnnotationsStackingOrder());
+    BrowserWindowContent* browserWindowContent = browserWindow->getBrowerWindowContent();
+    browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
+    browserWindowContent->setWindowAnnotationsStackingOrder(manualConfiguration->getWindowAnnotationsStackingOrder());
 
-    updateDialog();
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    updateGraphicsWindow();
-    
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
+
     return true;
 }
 
@@ -724,23 +734,32 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
  * If the given grid configuration contains fewer tabs than the number of tabs in the window,
  * warn the user, with the option to continue.
  *
+ * @param windowIndex
+ *    Index of the browser window
  * @param gridConfiguration
  *     The grid configuration
+ * @param parentWidget
+ *     Parent widget for dialogs
  * @return
  *     True if processing should continue (use the configuration), else false indicating cancel.
  */
 bool
-TileTabsConfigurationDialog::warnIfGridConfigurationTooSmallDialog(const TileTabsLayoutGridConfiguration* gridConfiguration) const
+TileTabsConfigurationDialog::warnIfGridConfigurationTooSmallDialog(const int32_t windowIndex,
+                                                                   const TileTabsLayoutGridConfiguration* gridConfiguration,
+                                                                   QWidget* parentWidget)
 {
     CaretAssert(gridConfiguration);
 
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(windowIndex);
+    CaretAssert(browserWindow);
+    
     std::vector<BrowserTabContent*> allTabContent;
-    getBrowserWindow()->getAllTabContent(allTabContent);
+    browserWindow->getAllTabContent(allTabContent);
     int32_t numBrowserTabs = static_cast<int32_t>(allTabContent.size());
     
     const int32_t numConfigTabs = gridConfiguration->getNumberOfTabs();
     if (numConfigTabs <= 0) {
-        WuQMessageBox::errorOk(m_loadConfigurationPushButton,
+        WuQMessageBox::errorOk(parentWidget,
                                ("User configuration \""
                                 + gridConfiguration->getName()
                                 + "\" is invalid (does not have any tabs)"));
@@ -764,7 +783,7 @@ TileTabsConfigurationDialog::warnIfGridConfigurationTooSmallDialog(const TileTab
                     + " tabs.<p>"
                     "If you continue, not all tabs will be visible but you can edit the configuration to view all tabs."
                     "</html>");
-        return WuQMessageBox::warningOkCancel(m_loadConfigurationPushButton,
+        return WuQMessageBox::warningOkCancel(parentWidget,
                                               msg);
     }
 
@@ -776,10 +795,12 @@ TileTabsConfigurationDialog::warnIfGridConfigurationTooSmallDialog(const TileTab
  * @return the BrainOpenGLViewportContent for the tab with the given index (NULL if not found)
  */
 const BrainOpenGLViewportContent*
-TileTabsConfigurationDialog::getViewportContentForTab(const int32_t tabIndex) const
+TileTabsConfigurationDialog::getViewportContentForTab(const int32_t windowIndex,
+                                                      const int32_t tabIndex)
 {
+    BrainBrowserWindow* browserWindow(GuiManager::get()->getBrowserWindowByWindowIndex(windowIndex));
     std::vector<const BrainOpenGLViewportContent*> tabViewports;
-    getBrowserWindow()->getAllBrainOpenGLViewportContent(tabViewports);
+    browserWindow->getAllBrainOpenGLViewportContent(tabViewports);
     
     for (const auto tv : tabViewports) {
         if (tv->getTabIndex() == tabIndex) {
@@ -1681,7 +1702,11 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuColumnsItemTriggered()
         gridConfig->setNumberOfRows(numberOfRows);
         gridConfig->setNumberOfColumns(numberOfColumns);
         
-        loadIntoManualConfiguration(gridConfig.get());
+        loadIntoManualConfiguration(gridConfig.get(),
+                                    window->getBrowserWindowIndex(),
+                                    this);
+        updateDialog();
+
     }
 }
 
@@ -1695,7 +1720,10 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromAutomaticItemTriggere
     if (browserWindowContent != NULL) {
         TileTabsLayoutGridConfiguration* gridConfiguration = browserWindowContent->getAutomaticGridTileTabsConfiguration();
         CaretAssert(gridConfiguration);
-        loadIntoManualConfiguration(gridConfiguration);
+        loadIntoManualConfiguration(gridConfiguration,
+                                    browserWindowContent->getWindowIndex(),
+                                    this);
+        updateDialog();
     }
 }
 
@@ -1716,7 +1744,10 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromCustomItemTriggered()
         manualConfigurationSetMenuFromAutomaticItemTriggered();
     }
     else {
-        loadIntoManualConfiguration(gridConfiguration);
+        loadIntoManualConfiguration(gridConfiguration,
+                                    m_browserWindowComboBox->getSelectedBrowserWindowIndex(),
+                                    this);
+        updateDialog();
     }
 }
 
@@ -1741,18 +1772,14 @@ TileTabsConfigurationDialog::manualConfigurationWindowAnnotationsDepthSpinBoxVal
 QWidget*
 TileTabsConfigurationDialog::createConfigurationTypeWidget()
 {
-    const AString autoToolTip("Workbench adjusts the number of rows and columns so "
-                              "that all tabs are displayed");
     m_automaticGridConfigurationRadioButton = new QRadioButton("Automatic Configuration");
-    m_automaticGridConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(autoToolTip));
+    m_automaticGridConfigurationRadioButton->setToolTip(TileTabsLayoutConfigurationTypeEnum::toGuiToolTip(TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID));
     
-    const AString customToolTip("User sets the number of row, columns, and stretch factors");
     m_customGridConfigurationRadioButton = new QRadioButton("Custom Configuration");
-    m_customGridConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(customToolTip));
+    m_customGridConfigurationRadioButton->setToolTip(TileTabsLayoutConfigurationTypeEnum::toGuiToolTip(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID));
     
-    const AString manualToolTip("User sets positions and sizes of all tabs");
     m_manualConfigurationRadioButton = new QRadioButton("Manual");
-    m_manualConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(manualToolTip));
+    m_manualConfigurationRadioButton->setToolTip(TileTabsLayoutConfigurationTypeEnum::toGuiToolTip(TileTabsLayoutConfigurationTypeEnum::MANUAL));
     
     QButtonGroup* buttonGroup = new QButtonGroup(this);
     buttonGroup->addButton(m_automaticGridConfigurationRadioButton);
@@ -1850,7 +1877,9 @@ TileTabsConfigurationDialog::automaticCustomButtonClicked(QAbstractButton* butto
     else if (button == m_customGridConfigurationRadioButton) {
         const TileTabsLayoutGridConfiguration* gridConfig = browserWindowContent->getCustomGridTileTabsConfiguration();
         if (gridConfig != NULL) {
-            if ( ! warnIfGridConfigurationTooSmallDialog(gridConfig)) {
+            if ( ! warnIfGridConfigurationTooSmallDialog(browserWindowContent->getWindowIndex(),
+                                                         gridConfig,
+                                                         m_customGridConfigurationRadioButton)) {
                 return;
             }
         }

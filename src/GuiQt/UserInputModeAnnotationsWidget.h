@@ -50,6 +50,7 @@ namespace caret {
     class AnnotationTextEditorWidget;
     class AnnotationTextOrientationWidget;
     class AnnotationWidthHeightWidget;
+    class TileTabsLayoutConfigurationTypeWidget;
     class UserInputModeAnnotations;
     
     class UserInputModeAnnotationsWidget : public QWidget, public EventListenerInterface {
@@ -90,6 +91,8 @@ namespace caret {
         const int32_t m_browserWindowIndex = -1;
         
         UserInputModeAnnotations* m_inputModeAnnotations = NULL;
+        
+        TileTabsLayoutConfigurationTypeWidget* m_layoutTypeWidget = NULL;
         
         AnnotationNameWidget* m_nameWidget = NULL;
         

@@ -52,6 +52,8 @@ public:
     
     static AString toGuiName(Enum enumValue);
     
+    static AString toGuiToolTip(Enum enumValue);
+    
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     
     static int32_t toIntegerCode(Enum enumValue);
@@ -67,7 +69,8 @@ public:
 private:
     TileTabsLayoutConfigurationTypeEnum(const Enum enumValue,
                                         const AString& name,
-                                        const AString& guiName);
+                                        const AString& guiName,
+                                        const AString& guiToolTip);
 
     static const TileTabsLayoutConfigurationTypeEnum* findData(const Enum enumValue);
 
@@ -94,6 +97,9 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** A tooltip for enumerated type */
+    AString guiToolTip;
 };
 
 #ifdef __TILE_TABS_LAYOUT_CONFIGURATION_TYPE_ENUM_DECLARE__
