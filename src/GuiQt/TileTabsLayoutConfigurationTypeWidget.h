@@ -91,6 +91,9 @@ namespace caret {
         void customGridRowsColumnsChanged(const int32_t rows,
                                           const int32_t columns);
         
+        AString getRowsColumnsLabelText(const int32_t numRows,
+                                        const int32_t numCols) const;
+
         QToolButton* createManualConfigurationSetToolButton();
         
         // ADD_NEW_MEMBERS_HERE
@@ -104,6 +107,8 @@ namespace caret {
         std::vector<QRadioButton*> m_layoutTypeRadioButtons;
         
         QLabel* m_automaticGridRowsColumnsLabel = NULL;
+        
+        QLabel* m_customGridRowsColumnsLabel = NULL;
         
         QSpinBox* m_customGridColumnsSpinBox = NULL;
         

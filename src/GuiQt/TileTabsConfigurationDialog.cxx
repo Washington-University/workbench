@@ -65,6 +65,7 @@
 #include "MathFunctions.h"
 #include "SessionManager.h"
 #include "TileTabsBrowserTabGeometry.h"
+#include "TileTabsLayoutConfigurationTypeWidget.h"
 #include "TileTabsLayoutGridConfiguration.h"
 #include "TileTabsLayoutManualConfiguration.h"
 #include "TileTabsManualTabGeometryWidget.h"
@@ -453,7 +454,7 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             
             if ( ! warnIfGridConfigurationTooSmallDialog(getBrowserWindowContent()->getWindowIndex(),
                                                          userGridConfig,
-                                                         m_customGridConfigurationRadioButton)) {
+                                                         m_configurationTypeWidget)) {
                 return;
             }
 
@@ -1599,159 +1600,6 @@ TileTabsConfigurationDialog::addManualGeometryWidget(QGridLayout* gridLayout,
 }
 
 /**
- * @return New instance of the manual configuration tool button
- */
-QToolButton*
-TileTabsConfigurationDialog::createManualConfigurationSetToolButton()
-{
-    m_setManualToAutomaticGridActionText = "Set Bounds of Tabs from Automatic Grid";
-    m_setManualToCustomGridActionText    = "Set Bounds of Tabs from Custom Grid";
-    m_setManualToGridColumnsActionText   = "Set Bounds of Tabs from Grid...";
-
-    const QString toolTipText("<html>"
-                              "Set (replace) the bounds of all tabs using the bounds created by a grid configuration.  After "
-                              "choosing one of the selections, the user may edit individual tab bounds as desired."
-                              "<ul>"
-                              "<li><b>" + m_setManualToAutomaticGridActionText + "</b> - Tab bounds will be identical to the Automatic Grid"
-                              "<li><b>" + m_setManualToCustomGridActionText + "</b> - Tab bounds will be identical to the Custom Grid (note that a "
-                              "custom grid may not display all tabs but all tabs will be in the manual configuration)"
-                              "<li><b>" + m_setManualToGridColumnsActionText + "</b> - Using a dialog, the user is prompted to enter the number of columns in the grid and wb_view will "
-                              "set the number of rows so that the grid contains all tabs.  Tabs bounds are then set using the grid"
-                              "</ul>"
-                              "</html>");
-    QToolButton* toolButton = new QToolButton();
-    toolButton->setText("Set...");
-    toolButton->setToolTip(toolTipText);
-    QObject::connect(toolButton, &QToolButton::clicked,
-                     this, &TileTabsConfigurationDialog::manualConfigurationSetToolButtonClicked);
-    
-    return toolButton;
-}
-
-/**
- * Called when manual configuration set tool button is clicked
- */
-void
-TileTabsConfigurationDialog::manualConfigurationSetToolButtonClicked()
-{
-    QMenu menu(m_manualConfigurationSetButton);
-    QAction* setAutomaticGridAction = menu.addAction(m_setManualToAutomaticGridActionText);
-    QAction* setCustomGridAction    = menu.addAction(m_setManualToCustomGridActionText);
-    QAction* setColumnsAction       = menu.addAction(m_setManualToGridColumnsActionText);
-
-    QAction* selectedAction = menu.exec(m_manualConfigurationSetButton->mapToGlobal(QPoint(0,0)));
-    if (selectedAction == setColumnsAction) {
-        manualConfigurationSetMenuColumnsItemTriggered();
-    }
-    else if (selectedAction == setAutomaticGridAction) {
-        manualConfigurationSetMenuFromAutomaticItemTriggered();
-    }
-    else if (selectedAction == setCustomGridAction) {
-        manualConfigurationSetMenuFromCustomItemTriggered();
-    }
-    else if (selectedAction != NULL) {
-        CaretAssertMessage(0, "Has a new action been added but not processed?");
-    }
-    
-    updateDialog();
-}
-
-/**
- * Called when manual configuration set columns menu item triggered
- */
-void
-TileTabsConfigurationDialog::manualConfigurationSetMenuColumnsItemTriggered()
-{
-    const BrainBrowserWindow* window = getBrowserWindow();
-    CaretAssert(window);
-    
-    std::vector<BrowserTabContent*> allTabContent;
-    window->getAllTabContent(allTabContent);
-    const int32_t numberOfTabs = static_cast<int32_t>(allTabContent.size());
-    
-    int32_t defaultNumberOfRows(1);
-    int32_t defaultNumberOfColumns(1);
-    TileTabsLayoutGridConfiguration::getRowsAndColumnsForNumberOfTabs(numberOfTabs,
-                                                                      defaultNumberOfRows,
-                                                                      defaultNumberOfColumns);
-
-    WuQDataEntryDialog ded("Create Manual Layout from Grid",
-                           m_manualConfigurationSetButton);
-    QSpinBox* rowsSpinBox    = ded.addSpinBox("Rows",
-                                              defaultNumberOfRows);
-    rowsSpinBox->setMinimum(1);
-    rowsSpinBox->setMaximum(100);
-    rowsSpinBox->setSingleStep(1);
-    
-    QSpinBox* columnsSpinBox = ded.addSpinBox("Columns",
-                                              defaultNumberOfColumns);
-    columnsSpinBox->setMinimum(1);
-    columnsSpinBox->setMaximum(100);
-    columnsSpinBox->setSingleStep(1);
-    
-    const bool wrapTextFlag(false);
-    ded.setTextAtTop("Set rows and columns of Grid:",
-                     wrapTextFlag);
-    if (ded.exec() == WuQDataEntryDialog::Accepted) {
-        const int32_t numberOfRows    = rowsSpinBox->value();
-        CaretAssert(numberOfRows >= 1);
-        const int32_t numberOfColumns = columnsSpinBox->value();
-        CaretAssert(numberOfColumns >= 1);
-        
-        std::unique_ptr<TileTabsLayoutGridConfiguration> gridConfig(TileTabsLayoutGridConfiguration::newInstanceCustomGrid());
-        gridConfig->setNumberOfRows(numberOfRows);
-        gridConfig->setNumberOfColumns(numberOfColumns);
-        
-        loadIntoManualConfiguration(gridConfig.get(),
-                                    window->getBrowserWindowIndex(),
-                                    this);
-        updateDialog();
-
-    }
-}
-
-/**
- * Called when manual configuration set from automatic grid menu item is triggered
- */
-void
-TileTabsConfigurationDialog::manualConfigurationSetMenuFromAutomaticItemTriggered()
-{
-    BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    if (browserWindowContent != NULL) {
-        TileTabsLayoutGridConfiguration* gridConfiguration = browserWindowContent->getAutomaticGridTileTabsConfiguration();
-        CaretAssert(gridConfiguration);
-        loadIntoManualConfiguration(gridConfiguration,
-                                    browserWindowContent->getWindowIndex(),
-                                    this);
-        updateDialog();
-    }
-}
-
-/**
- * Called when manual configuration set from custom grid menu item is triggered
- */
-void
-TileTabsConfigurationDialog::manualConfigurationSetMenuFromCustomItemTriggered()
-{
-    TileTabsLayoutGridConfiguration* gridConfiguration = getCustomTileTabsGridConfiguration();
-    CaretAssert(gridConfiguration);
-    if (gridConfiguration->isCustomDefaultFlag()) {
-        /*
-         * If we are here the user has not yet selected the custom grid
-         * and it defaults to the automatic configuration when selected.
-         * So, in this case, use the automatic grid.
-         */
-        manualConfigurationSetMenuFromAutomaticItemTriggered();
-    }
-    else {
-        loadIntoManualConfiguration(gridConfiguration,
-                                    m_browserWindowComboBox->getSelectedBrowserWindowIndex(),
-                                    this);
-        updateDialog();
-    }
-}
-
-/**
  * Called when manual configuration window annotation depth changed
  * @param value
  *    New value for window annotation depth
@@ -1765,46 +1613,30 @@ TileTabsConfigurationDialog::manualConfigurationWindowAnnotationsDepthSpinBoxVal
     updateGraphicsWindow();
 }
 
-
 /**
  * Create the active configuration type widget
  */
 QWidget*
 TileTabsConfigurationDialog::createConfigurationTypeWidget()
 {
-    m_automaticGridConfigurationRadioButton = new QRadioButton("Automatic Configuration");
-    m_automaticGridConfigurationRadioButton->setToolTip(TileTabsLayoutConfigurationTypeEnum::toGuiToolTip(TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID));
-    
-    m_customGridConfigurationRadioButton = new QRadioButton("Custom Configuration");
-    m_customGridConfigurationRadioButton->setToolTip(TileTabsLayoutConfigurationTypeEnum::toGuiToolTip(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID));
-    
-    m_manualConfigurationRadioButton = new QRadioButton("Manual");
-    m_manualConfigurationRadioButton->setToolTip(TileTabsLayoutConfigurationTypeEnum::toGuiToolTip(TileTabsLayoutConfigurationTypeEnum::MANUAL));
-    
-    QButtonGroup* buttonGroup = new QButtonGroup(this);
-    buttonGroup->addButton(m_automaticGridConfigurationRadioButton);
-    buttonGroup->addButton(m_customGridConfigurationRadioButton);
-    buttonGroup->addButton(m_manualConfigurationRadioButton);
-    QObject::connect(buttonGroup, static_cast<void (QButtonGroup::*)(QAbstractButton*)>(&QButtonGroup::buttonClicked),
-                     this, &TileTabsConfigurationDialog::automaticCustomButtonClicked);
-    
-    m_manualConfigurationSetButton = createManualConfigurationSetToolButton();
-    
+    m_configurationTypeWidget = new TileTabsLayoutConfigurationTypeWidget(TileTabsLayoutConfigurationTypeWidget::ParentType::TILE_TABS_DIALOG);
+        
     QGroupBox* layoutTypeGroupBox = new QGroupBox("Active Configuration Type");
-    QGridLayout* buttonTypeLayout = new QGridLayout(layoutTypeGroupBox);
-    buttonTypeLayout->setColumnStretch(0,   0);
-    buttonTypeLayout->setColumnStretch(1,   0);
-    buttonTypeLayout->setColumnStretch(2, 100);
-    buttonTypeLayout->addWidget(m_automaticGridConfigurationRadioButton,
-                                0, 0, 1, 3, Qt::AlignLeft);
-    buttonTypeLayout->addWidget(m_customGridConfigurationRadioButton,
-                                1, 0, 1, 3, Qt::AlignLeft);
-    buttonTypeLayout->addWidget(m_manualConfigurationRadioButton,
-                                2, 0, 1, 1);
-    buttonTypeLayout->addWidget(m_manualConfigurationSetButton,
-                                2, 1, 1, 2, Qt::AlignLeft);
+    QVBoxLayout* buttonTypeLayout = new QVBoxLayout(layoutTypeGroupBox);
+    buttonTypeLayout->addWidget(m_configurationTypeWidget,
+                                0,
+                                Qt::AlignLeft);
     
     return layoutTypeGroupBox;
+    
+    /*
+     * Called when auto/custom/manual button clicked
+     updateConfigurationEditingWidget();
+     updateGridStretchFactors();
+     updateManualGeometryEditorWidget();
+     updateGraphicsWindow();
+
+     */
 }
 
 QWidget*
@@ -1859,43 +1691,6 @@ TileTabsConfigurationDialog::browserWindowComboBoxValueChanged(BrainBrowserWindo
     }
     
     updateDialogWithSelectedTileTabsFromWindow(GuiManager::get()->getBrowserWindowByWindowIndex(windowIndex));
-}
-
-/**
- * Called when automatic/custom configuration radiobutton is clicked
- *
- * @param button
- *     New checked status of checkbox.
- */
-void
-TileTabsConfigurationDialog::automaticCustomButtonClicked(QAbstractButton* button)
-{
-    BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    if (button == m_automaticGridConfigurationRadioButton) {
-        browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID);
-    }
-    else if (button == m_customGridConfigurationRadioButton) {
-        const TileTabsLayoutGridConfiguration* gridConfig = browserWindowContent->getCustomGridTileTabsConfiguration();
-        if (gridConfig != NULL) {
-            if ( ! warnIfGridConfigurationTooSmallDialog(browserWindowContent->getWindowIndex(),
-                                                         gridConfig,
-                                                         m_customGridConfigurationRadioButton)) {
-                return;
-            }
-        }
-        browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID);
-    }
-    else if (button == m_manualConfigurationRadioButton) {
-        browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
-    }
-    else {
-        CaretAssert(0);
-    }
-    
-    updateConfigurationEditingWidget();
-    updateGridStretchFactors();
-    updateManualGeometryEditorWidget();
-    updateGraphicsWindow();
 }
 
 /**
@@ -1991,19 +1786,18 @@ TileTabsConfigurationDialog::updateConfigurationEditingWidget()
         return;
     }
     
+    m_configurationTypeWidget->updateContent(browserWindowContent->getWindowIndex());
+    
     bool editingEnabledFlag(false);
     switch (browserWindowContent->getTileTabsConfigurationMode()) {
         case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
-            m_automaticGridConfigurationRadioButton->setChecked(true);
             m_editConfigurationStackedWidget->setCurrentWidget(m_customGridConfigurationWidget);
             break;
         case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
-            m_customGridConfigurationRadioButton->setChecked(true);
             m_editConfigurationStackedWidget->setCurrentWidget(m_customGridConfigurationWidget);
             editingEnabledFlag = true;
             break;
         case TileTabsLayoutConfigurationTypeEnum::MANUAL:
-            m_manualConfigurationRadioButton->setChecked(true);
             m_editConfigurationStackedWidget->setCurrentWidget(m_manualGeometryWidget);
             editingEnabledFlag = true;
             break;
@@ -2125,11 +1919,6 @@ TileTabsConfigurationDialog::updateTemplateConfigurationListWidget()
 void
 TileTabsConfigurationDialog::updateGridStretchFactors()
 {
-    BrainBrowserWindow* browserWindow = getBrowserWindow();
-    m_automaticGridConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID,
-                                                                                              true));
-    m_customGridConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID,
-                                                                                           true));
     const TileTabsLayoutGridConfiguration* configuration = getCustomTileTabsGridConfiguration();
     if (configuration != NULL) {
         updateRowColumnStretchWidgets(const_cast<TileTabsLayoutGridConfiguration*>(configuration));
@@ -2170,7 +1959,18 @@ TileTabsConfigurationDialog::updateTemplateUserConfigurationPushButtons(const Co
         case USER:
         {
             const bool haveUserConfigurationFlag(getSelectedUserConfiguration() != NULL);
-            if (m_automaticGridConfigurationRadioButton->isChecked()) {
+            BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
+            bool autoModeFlag(false);
+            switch (browserWindowContent->getTileTabsConfigurationMode()) {
+                case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                    autoModeFlag = true;
+                    break;
+                case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                    break;
+                case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                    break;
+            }
+            if (autoModeFlag) {
                 /* Nothing */
             }
             else {

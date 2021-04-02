@@ -93,30 +93,46 @@ m_windowIndex(-1)
             case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
                 layout->addWidget(rb,
                                   layoutRow, 0, 1, 5, Qt::AlignLeft);
-                layoutRow++;
                 m_automaticGridRowsColumnsLabel = new QLabel("(11 Rows, 22 Cols)");
-                layout->addWidget(m_automaticGridRowsColumnsLabel, layoutRow, 1, 1, 4);
+                switch (m_parentType) {
+                    case ParentType::BROWSER_WINDOW_TOOLBAR:
+                        layoutRow++;
+                        layout->addWidget(m_automaticGridRowsColumnsLabel, layoutRow, 1, 1, 4);
+                        break;
+                    case ParentType::TILE_TABS_DIALOG:
+                        layout->addWidget(m_automaticGridRowsColumnsLabel, layoutRow, 5, 1, Qt::AlignLeft);
+                        break;
+                }
                 layoutRow++;
                 break;
             case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
             {
                 layout->addWidget(rb,
                                   layoutRow, 0, 1, 5, Qt::AlignLeft);
-                layoutRow++;
-                m_customGridColumnsSpinBox = new QSpinBox();
-                m_customGridColumnsSpinBox->setRange(1, 99);
-                m_customGridColumnsSpinBox->setToolTip("Number of columns in custom grid");
-                QObject::connect(m_customGridColumnsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-                                 this, &TileTabsLayoutConfigurationTypeWidget::customGridColumnSpinBoxValueChanged);
                 
-                m_customGridRowsSpinBox = new QSpinBox();
-                m_customGridRowsSpinBox->setToolTip("Number of rows in custom grid");
-                m_customGridRowsSpinBox->setRange(1, 99);
-                QObject::connect(m_customGridRowsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-                                 this, &TileTabsLayoutConfigurationTypeWidget::customGridRowSpinBoxValueChanged);
-                
-                layout->addWidget(m_customGridRowsSpinBox, layoutRow, 1, 1, 2);
-                layout->addWidget(m_customGridColumnsSpinBox, layoutRow, 3, 1, 2);
+                switch (m_parentType) {
+                    case ParentType::BROWSER_WINDOW_TOOLBAR:
+                        layoutRow++;
+                        m_customGridColumnsSpinBox = new QSpinBox();
+                        m_customGridColumnsSpinBox->setRange(1, 99);
+                        m_customGridColumnsSpinBox->setToolTip("Number of columns in custom grid");
+                        QObject::connect(m_customGridColumnsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                                         this, &TileTabsLayoutConfigurationTypeWidget::customGridColumnSpinBoxValueChanged);
+                        
+                        m_customGridRowsSpinBox = new QSpinBox();
+                        m_customGridRowsSpinBox->setToolTip("Number of rows in custom grid");
+                        m_customGridRowsSpinBox->setRange(1, 99);
+                        QObject::connect(m_customGridRowsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                                         this, &TileTabsLayoutConfigurationTypeWidget::customGridRowSpinBoxValueChanged);
+                        
+                        layout->addWidget(m_customGridRowsSpinBox, layoutRow, 1, 1, 2);
+                        layout->addWidget(m_customGridColumnsSpinBox, layoutRow, 3, 1, 2);
+                        break;
+                    case ParentType::TILE_TABS_DIALOG:
+                        m_customGridRowsColumnsLabel = new QLabel("(11 Rows, 22 Cols)");
+                        layout->addWidget(m_customGridRowsColumnsLabel, layoutRow, 5, 1, Qt::AlignLeft);
+                        break;
+                }
                 layoutRow++;
             }
                 break;
@@ -133,8 +149,19 @@ m_windowIndex(-1)
         }
     }
     
-    CaretAssert(m_customGridColumnsSpinBox);
-    CaretAssert(m_customGridRowsSpinBox);
+    switch (m_parentType) {
+        case ParentType::BROWSER_WINDOW_TOOLBAR:
+            CaretAssert(m_customGridColumnsSpinBox);
+            CaretAssert(m_customGridRowsSpinBox);
+            break;
+        case ParentType::TILE_TABS_DIALOG:
+            CaretAssert(m_customGridColumnsSpinBox == NULL);
+            CaretAssert(m_customGridRowsSpinBox == NULL);
+            break;
+    }
+    
+    setSizePolicy(QSizePolicy::Fixed,
+                  QSizePolicy::Fixed);
 }
 
 /**
@@ -259,30 +286,71 @@ TileTabsLayoutConfigurationTypeWidget::updateContent(const int32_t windowIndex)
     TileTabsLayoutGridConfiguration::getRowsAndColumnsForNumberOfTabs(windowTabCount,
                                                                       autoRowCount,
                                                                       autoColumnCount);
-    const AString autoLabelText(AString::number(autoRowCount)
-                                + " Rows, "
-                                + AString::number(autoColumnCount)
-                                + " Cols");
-    m_automaticGridRowsColumnsLabel->setText(autoLabelText);
+    m_automaticGridRowsColumnsLabel->setText(getRowsColumnsLabelText(autoRowCount,
+                                                                     autoColumnCount));
     
+    int32_t customConfigRowCount(0), customConfigColCount(0);
     TileTabsLayoutGridConfiguration* customGridConfiguration = bwc->getCustomGridTileTabsConfiguration();
     CaretAssert(customGridConfiguration);
     if (customGridConfiguration != NULL) {
-        QSignalBlocker rowsBlocker(m_customGridRowsSpinBox);
-        QSignalBlocker columnsBlocker(m_customGridColumnsSpinBox);
-        int32_t configRowCount(0), configColCount(0);
         if (customGridConfiguration->isCustomDefaultFlag()) {
             TileTabsLayoutGridConfiguration::getRowsAndColumnsForNumberOfTabs(windowTabCount,
-                                                                              configRowCount,
-                                                                              configColCount);
+                                                                              customConfigRowCount,
+                                                                              customConfigColCount);
         }
         else {
-            configColCount = customGridConfiguration->getNumberOfColumns();
-            configRowCount = customGridConfiguration->getNumberOfRows();
+            customConfigColCount = customGridConfiguration->getNumberOfColumns();
+            customConfigRowCount = customGridConfiguration->getNumberOfRows();
         }
-        m_customGridColumnsSpinBox->setValue(configColCount);
-        m_customGridRowsSpinBox->setValue(configRowCount);
     }
+
+    switch (m_parentType) {
+        case ParentType::BROWSER_WINDOW_TOOLBAR:
+        {
+            QSignalBlocker rowsBlocker(m_customGridRowsSpinBox);
+            QSignalBlocker columnsBlocker(m_customGridColumnsSpinBox);
+            m_customGridColumnsSpinBox->setValue(customConfigColCount);
+            m_customGridRowsSpinBox->setValue(customConfigRowCount);
+        }
+            break;
+        case ParentType::TILE_TABS_DIALOG:
+            CaretAssert(m_customGridRowsColumnsLabel);
+            m_customGridRowsColumnsLabel->setText(getRowsColumnsLabelText(customConfigRowCount,
+                                                                          customConfigColCount));
+            break;
+    }
+}
+
+/**
+ * @return Text for a (rows, columns) label
+ * @param numRows
+ *    Number of rows
+ * @param numCols
+ *    Number of columns
+ */
+AString
+TileTabsLayoutConfigurationTypeWidget::getRowsColumnsLabelText(const int32_t numRows,
+                                                             const int32_t numCols) const
+{
+    AString openParenthesis("");
+    AString closeParenthesis("");
+    switch (m_parentType) {
+        case ParentType::BROWSER_WINDOW_TOOLBAR:
+            break;
+        case ParentType::TILE_TABS_DIALOG:
+            openParenthesis  = "(";
+            closeParenthesis = ")";
+            break;
+    }
+    
+    AString text(openParenthesis
+                 + AString::number(numRows)
+                 + " Rows, "
+                 + AString::number(numCols)
+                 + " Cols"
+                 + closeParenthesis);
+    
+    return text;
 }
 
 /**
@@ -383,12 +451,6 @@ TileTabsLayoutConfigurationTypeWidget::manualConfigurationSetToolButtonClicked()
     else if (selectedAction != NULL) {
         CaretAssertMessage(0, "Has a new action been added but not processed?");
     }
-    
-//    CaretAssertToDoWarning();
-
-//    updateContent();
-//    signalConfigurationChanged();
-//    //    updateDialog();
 }
 
 /**
