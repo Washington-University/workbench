@@ -26,6 +26,7 @@
 #include "AnnotationBrowserTab.h"
 #include "AnnotationManager.h"
 #include "Brain.h"
+#include "BrowserWindowContent.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
@@ -82,6 +83,25 @@ UserInputModeTileTabsManualLayout::showContextMenu(const MouseEvent& mouseEvent,
                                           const QPoint& menuPosition,
                                           BrainOpenGLWidget* openGLWidget)
 {
+    BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    CaretAssert(window);
+    BrowserWindowContent* windowContent = window->getBrowerWindowContent();
+    CaretAssert(windowContent);
+    
+    bool showMenuFlag(false);
+    switch (windowContent->getTileTabsConfigurationMode()) {
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+            showMenuFlag = true;
+            break;
+    }
+    if ( ! showMenuFlag) {
+        return;
+    }
+
     BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
     BrowserTabContent* tabContent = viewportContent->getBrowserTabContent();
     
