@@ -2576,9 +2576,6 @@ BrainBrowserWindowToolBar::modeInputModeRadioButtonClicked(QAbstractButton* butt
         if ( ! browserWindowContent->isTileTabsEnabled()) {
             browserWindowContent->setTileTabsEnabled(true);
         }
-        if (browserWindowContent->getTileTabsConfigurationMode() != TileTabsLayoutConfigurationTypeEnum::MANUAL) {
-            browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
-        }
     }
     else if (button == this->modeInputVolumeEditRadioButton) {
         inputMode = UserInputModeEnum::Enum::VOLUME_EDIT;
