@@ -860,7 +860,7 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
-            inputMode = UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING;
+            inputMode = UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING;
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;

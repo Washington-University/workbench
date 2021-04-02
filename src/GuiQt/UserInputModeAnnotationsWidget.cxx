@@ -93,7 +93,7 @@ m_inputModeAnnotations(inputModeAnnotations)
         case UserInputModeEnum::Enum::ANNOTATIONS:
             createAnnotationWidget();
             break;
-        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             createTileTabsEditingWidget();
             break;
         case UserInputModeEnum::Enum::BORDERS:

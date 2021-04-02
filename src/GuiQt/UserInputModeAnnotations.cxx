@@ -2016,7 +2016,7 @@ UserInputModeAnnotations::processDeselectAllAnnotations()
         case UserInputModeEnum::Enum::IMAGE:
         case UserInputModeEnum::Enum::INVALID:
             break;
-        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             deselectAnnotationsForEditingInAnnotationManager();
             break;
         case UserInputModeEnum::Enum::VIEW:
@@ -2066,7 +2066,7 @@ UserInputModeAnnotations::processSelectAllAnnotations()
         case UserInputModeEnum::Enum::IMAGE:
         case UserInputModeEnum::Enum::INVALID:
             break;
-        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
         {
             deselectAnnotationsForEditingInAnnotationManager();
             BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);

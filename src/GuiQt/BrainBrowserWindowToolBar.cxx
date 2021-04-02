@@ -139,7 +139,7 @@
 #include "UserInputModeFociWidget.h"
 #include "UserInputModeImage.h"
 #include "UserInputModeImageWidget.h"
-#include "UserInputModeTileTabsManualLayout.h"
+#include "UserInputModeTileTabsLayout.h"
 #include "UserInputModeView.h"
 #include "UserInputModeVolumeEdit.h"
 #include "UserInputModeVolumeEditWidget.h"
@@ -450,7 +450,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->userInputFociModeProcessor = new UserInputModeFoci(browserWindowIndex);
     this->userInputImageModeProcessor = new UserInputModeImage(browserWindowIndex);
     this->userInputVolumeEditModeProcessor = new UserInputModeVolumeEdit(browserWindowIndex);
-    this->userInputTileTabsManualLayoutProcessor = new UserInputModeTileTabsManualLayout(browserWindowIndex);
+    this->userInputTileTabsManualLayoutProcessor = new UserInputModeTileTabsLayout(browserWindowIndex);
     this->userInputViewModeProcessor = new UserInputModeView(browserWindowIndex);
     this->selectedUserInputProcessor = this->userInputViewModeProcessor;
     this->selectedUserInputProcessor->initialize();
@@ -2003,7 +2003,7 @@ BrainBrowserWindowToolBar::updateToolBar()
             break;
         case UserInputModeEnum::Enum::INVALID:
             break;
-        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             if (wideFlag) {
                 showViewModeWidgetsFlag = true;
             }
@@ -2568,7 +2568,7 @@ BrainBrowserWindowToolBar::modeInputModeRadioButtonClicked(QAbstractButton* butt
         inputMode = UserInputModeEnum::Enum::IMAGE;
     }
     else if (button == this->modeInputModeTileTabsManualLayoutRadioButton) {
-        inputMode = UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING;
+        inputMode = UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING;
         
         CaretAssert(m_parentBrainBrowserWindow);
         BrowserWindowContent* browserWindowContent = m_parentBrainBrowserWindow->getBrowerWindowContent();
@@ -2631,7 +2631,7 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
                 this->modeInputModeImageRadioButton->setChecked(true);
             }
             break;
-        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             this->modeInputModeTileTabsManualLayoutRadioButton->setChecked(true);
             break;
         case UserInputModeEnum::Enum::VOLUME_EDIT:
@@ -2652,7 +2652,7 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
 {
     switch (this->selectedUserInputProcessor->getUserInputMode()) {
         case UserInputModeEnum::Enum::ANNOTATIONS:
-        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             break;
         case UserInputModeEnum::Enum::BORDERS:
         case UserInputModeEnum::Enum::FOCI:
@@ -3434,7 +3434,7 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
                     case UserInputModeEnum::Enum::IMAGE:
                         newUserInputProcessor = this->userInputImageModeProcessor;
                         break;
-                    case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+                    case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
                         newUserInputProcessor = this->userInputTileTabsManualLayoutProcessor;
                         break;
                     case UserInputModeEnum::Enum::VOLUME_EDIT:

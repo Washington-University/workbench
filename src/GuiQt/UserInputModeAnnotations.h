@@ -271,8 +271,8 @@ namespace caret {
          */
         friend class UserInputModeAnnotationsContextMenu;
         friend class UserInputModeAnnotationsWidget;
-        friend class UserInputModeTileTabsManualLayout;
-        friend class UserInputModeTileTabsManualLayoutContextMenu;
+        friend class UserInputModeTileTabsLayout;
+        friend class UserInputModeTileTabsLayoutContextMenu;
     };
     
 #ifdef __USER_INPUT_MODE_ANNOTATIONS_DECLARE__

@@ -45,7 +45,7 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
-#include "UserInputModeTileTabsManualLayoutContextMenu.h"
+#include "UserInputModeTileTabsLayoutContextMenu.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -80,7 +80,7 @@ m_browserWindowIndex(browserWindowIndex)
         case UserInputModeEnum::Enum::ANNOTATIONS:
             m_menuMode = MenuMode::ANNOTATIONS;
             break;
-        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             m_menuMode = MenuMode::TILE_TABS;
             break;
         case UserInputModeEnum::Enum::BORDERS:
@@ -247,7 +247,7 @@ AnnotationMenuArrange::addTileTabsSelections()
                 addSeparator();
             }
             
-            m_tileTabsShrinkAndExpandToFillAction = addAction(UserInputModeTileTabsManualLayoutContextMenu::getShinkAndExpandTabMenuItemText());
+            m_tileTabsShrinkAndExpandToFillAction = addAction(UserInputModeTileTabsLayoutContextMenu::getShinkAndExpandTabMenuItemText());
         }
             break;
     }

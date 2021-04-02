@@ -94,7 +94,7 @@
 #include "UserInputModeBorders.h"
 #include "UserInputModeFoci.h"
 #include "UserInputModeImage.h"
-#include "UserInputModeTileTabsManualLayout.h"
+#include "UserInputModeTileTabsLayout.h"
 #include "UserInputModeView.h"
 #include "UserInputModeVolumeEdit.h"
 #include "WuQMacroManager.h"
@@ -1586,7 +1586,7 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
     switch (inputMode) {
         case UserInputModeEnum::Enum::ANNOTATIONS:
             break;
-        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             manLayoutFlag = true;
             break;
         case UserInputModeEnum::Enum::BORDERS:

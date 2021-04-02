@@ -126,9 +126,9 @@ UserInputModeEnum::initialize()
                                     "IMAGE", 
                                     "Image"));
     
-    enumData.push_back(UserInputModeEnum(Enum::TILE_TABS_MANUAL_LAYOUT_EDITING,
-                                         "TILE_TABS_MANUAL_LAYOUT_EDITING",
-                                         "Tile Tabs Manual Layout Editing"));
+    enumData.push_back(UserInputModeEnum(Enum::TILE_TABS_LAYOUT_EDITING,
+                                         "TILE_TABS_LAYOUT_EDITING",
+                                         "Tile Tabs Layout Editing"));
     
     enumData.push_back(UserInputModeEnum(Enum::VIEW,
                                     "VIEW", 
@@ -180,7 +180,7 @@ UserInputModeEnum::toName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its name.
- * @param name 
+ * @param nameIn
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -189,9 +189,14 @@ UserInputModeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 UserInputModeEnum::Enum 
-UserInputModeEnum::fromName(const AString& name, bool* isValidOut)
+UserInputModeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+    
+    AString name(nameIn);
+    if (name == "TILE_TABS_MANUAL_LAYOUT_EDITING") {
+        name = "TILE_TABS_LAYOUT_EDITING";
+    }
     
     bool validFlag = false;
     Enum enumValue = UserInputModeEnum::enumData[0].enumValue;

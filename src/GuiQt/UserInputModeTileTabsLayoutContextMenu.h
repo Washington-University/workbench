@@ -1,5 +1,5 @@
-#ifndef __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_CONTEXT_MENU_H__
-#define __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_CONTEXT_MENU_H__
+#ifndef __USER_INPUT_MODE_TILE_TABS_LAYOUT_CONTEXT_MENU_H__
+#define __USER_INPUT_MODE_TILE_TABS_LAYOUT_CONTEXT_MENU_H__
 
 /*LICENSE_START*/
 /*
@@ -33,19 +33,19 @@ namespace caret {
     class AnnotationBrowserTab;
     class BrainOpenGLWidget;
     class BrowserTabContent;
-    class UserInputModeTileTabsManualLayout;
+    class UserInputModeTileTabsLayout;
 
-    class UserInputModeTileTabsManualLayoutContextMenu : public QMenu {
+    class UserInputModeTileTabsLayoutContextMenu : public QMenu {
         
         Q_OBJECT
 
     public:
-        UserInputModeTileTabsManualLayoutContextMenu(UserInputModeTileTabsManualLayout* userInputTileTabsManualLayout,
+        UserInputModeTileTabsLayoutContextMenu(UserInputModeTileTabsLayout* userInputTileTabsManualLayout,
                                             const MouseEvent& mouseEvent,
                                             BrowserTabContent* browserTabContent,
                                             BrainOpenGLWidget* parentOpenGLWidget);
         
-        virtual ~UserInputModeTileTabsManualLayoutContextMenu();
+        virtual ~UserInputModeTileTabsLayoutContextMenu();
         
         static AString getShinkAndExpandTabMenuItemText();
         
@@ -75,15 +75,15 @@ namespace caret {
         void processInsertNewTabMenuItem();
         
     private:
-        UserInputModeTileTabsManualLayoutContextMenu(const UserInputModeTileTabsManualLayoutContextMenu&);
+        UserInputModeTileTabsLayoutContextMenu(const UserInputModeTileTabsLayoutContextMenu&);
 
-        UserInputModeTileTabsManualLayoutContextMenu& operator=(const UserInputModeTileTabsManualLayoutContextMenu&);
+        UserInputModeTileTabsLayoutContextMenu& operator=(const UserInputModeTileTabsLayoutContextMenu&);
         
         void applyGrouping(const AnnotationGroupingModeEnum::Enum grouping);
         
         void processWindowTileTabOperation(const EventBrowserWindowTileTabOperation::Operation operation);
         
-        UserInputModeTileTabsManualLayout* m_userInputTileTabsManualLayout = NULL;
+        UserInputModeTileTabsLayout* m_userInputTileTabsManualLayout = NULL;
         
         /*
          * NOT a reference.  Need to COPY as its source may be deleted.
@@ -100,9 +100,9 @@ namespace caret {
 
     };
     
-#ifdef __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_CONTEXT_MENU_DECLARE__
+#ifdef __USER_INPUT_MODE_TILE_TABS_LAYOUT_CONTEXT_MENU_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_CONTEXT_MENU_DECLARE__
+#endif // __USER_INPUT_MODE_TILE_TABS_LAYOUT_CONTEXT_MENU_DECLARE__
 
 } // namespace
-#endif  //__USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_CONTEXT_MENU_H__
+#endif  //__USER_INPUT_MODE_TILE_TABS_LAYOUT_CONTEXT_MENU_H__

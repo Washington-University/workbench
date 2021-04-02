@@ -83,7 +83,7 @@ namespace caret {
     class UserInputModeBorders;
     class UserInputModeFoci;
     class UserInputModeImage;
-    class UserInputModeTileTabsManualLayout;
+    class UserInputModeTileTabsLayout;
     class UserInputModeView;
     class UserInputModeVolumeEdit;
     class UserInputModeAbstract;
@@ -225,7 +225,7 @@ namespace caret {
         UserInputModeBorders* userInputBordersModeProcessor;
         UserInputModeFoci* userInputFociModeProcessor;
         UserInputModeImage* userInputImageModeProcessor;
-        UserInputModeTileTabsManualLayout* userInputTileTabsManualLayoutProcessor;
+        UserInputModeTileTabsLayout* userInputTileTabsManualLayoutProcessor;
         UserInputModeVolumeEdit* userInputVolumeEditModeProcessor;
         
         /* DO NOT delete these as the corresponding processor is the parent */

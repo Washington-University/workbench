@@ -32,7 +32,7 @@
 #include "AnnotationStackingOrderTypeEnum.h"
 #include "EventBrowserWindowTileTabOperation.h"
 #include "UserInputModeEnum.h"
-#include "UserInputModeTileTabsManualLayoutContextMenu.h"
+#include "UserInputModeTileTabsLayoutContextMenu.h"
 
 namespace caret {
 

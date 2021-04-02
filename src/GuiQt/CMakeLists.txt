@@ -219,7 +219,7 @@ ELSE()
         UserInputModeBordersWidget.h
         UserInputModeFociWidget.h
         UserInputModeImageWidget.h
-	UserInputModeTileTabsManualLayoutContextMenu.h
+	UserInputModeTileTabsLayoutContextMenu.h
         UserInputModeViewContextMenu.h
 	UserInputModeViewContextTileTabsSubMenu.h
         UserInputModeVolumeEditWidget.h
@@ -523,8 +523,8 @@ UserInputModeFociWidget.h
 UserInputModeFoci.h
 UserInputModeImageWidget.h
 UserInputModeImage.h
-UserInputModeTileTabsManualLayout.h
-UserInputModeTileTabsManualLayoutContextMenu.h
+UserInputModeTileTabsLayout.h
+UserInputModeTileTabsLayoutContextMenu.h
 UserInputModeView.h
 UserInputModeViewContextMenu.h
 UserInputModeViewContextTileTabsSubMenu.h
@@ -838,8 +838,8 @@ UserInputModeFoci.cxx
 UserInputModeFociWidget.cxx
 UserInputModeImage.cxx
 UserInputModeImageWidget.cxx
-UserInputModeTileTabsManualLayout.cxx
-UserInputModeTileTabsManualLayoutContextMenu.cxx
+UserInputModeTileTabsLayout.cxx
+UserInputModeTileTabsLayoutContextMenu.cxx
 UserInputModeView.cxx
 UserInputModeViewContextMenu.cxx
 UserInputModeViewContextTileTabsSubMenu.cxx

@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_CONTEXT_MENU_DECLARE__
-#include "UserInputModeTileTabsManualLayoutContextMenu.h"
-#undef __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_CONTEXT_MENU_DECLARE__
+#define __USER_INPUT_MODE_TILE_TABS_LAYOUT_CONTEXT_MENU_DECLARE__
+#include "UserInputModeTileTabsLayoutContextMenu.h"
+#undef __USER_INPUT_MODE_TILE_TABS_LAYOUT_CONTEXT_MENU_DECLARE__
 
 #include <cmath>
 
@@ -43,7 +43,7 @@
 #include "GuiManager.h"
 #include "MathFunctions.h"
 #include "MouseEvent.h"
-#include "UserInputModeTileTabsManualLayout.h"
+#include "UserInputModeTileTabsLayout.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 
@@ -52,7 +52,7 @@ using namespace caret;
 
     
 /**
- * \class caret::UserInputModeTileTabsManualLayoutContextMenu
+ * \class caret::UserInputModeTileTabsLayoutContextMenu
  * \brief Context (pop-up) menu for User Input Manual Tile Tabs Layout.
  * \ingroup GuiQt
  */
@@ -69,7 +69,7 @@ using namespace caret;
  * @param parentOpenGLWidget
  *    Parent OpenGL Widget on which the menu is displayed.
  */
-UserInputModeTileTabsManualLayoutContextMenu::UserInputModeTileTabsManualLayoutContextMenu(UserInputModeTileTabsManualLayout* userInputTileTabsManualLayout,
+UserInputModeTileTabsLayoutContextMenu::UserInputModeTileTabsLayoutContextMenu(UserInputModeTileTabsLayout* userInputTileTabsManualLayout,
                                                                          const MouseEvent& mouseEvent,
                                                                          BrowserTabContent* browserTabContent,
                                                                          BrainOpenGLWidget* parentOpenGLWidget)
@@ -113,16 +113,16 @@ m_parentOpenGLWidget(parentOpenGLWidget)
      */
     QAction* bringToFrontAction = addAction("Bring to Front");
     QObject::connect(bringToFrontAction, &QAction::triggered,
-                     this, &UserInputModeTileTabsManualLayoutContextMenu::applyOrderBringToFront);
+                     this, &UserInputModeTileTabsLayoutContextMenu::applyOrderBringToFront);
     QAction* bringForwardAction = addAction("Bring Forward");
     QObject::connect(bringForwardAction, &QAction::triggered,
-                     this, &UserInputModeTileTabsManualLayoutContextMenu::applyOrderBringForward);
+                     this, &UserInputModeTileTabsLayoutContextMenu::applyOrderBringForward);
     QAction* sendToBackAction = addAction("Send to Back");
     QObject::connect(sendToBackAction, &QAction::triggered,
-                     this, &UserInputModeTileTabsManualLayoutContextMenu::applyOrderSendToBack);
+                     this, &UserInputModeTileTabsLayoutContextMenu::applyOrderSendToBack);
     QAction* sendBackwardAction = addAction("Send Backward");
     QObject::connect(sendBackwardAction, &QAction::triggered,
-                     this, &UserInputModeTileTabsManualLayoutContextMenu::applyOrderSendBackward);
+                     this, &UserInputModeTileTabsLayoutContextMenu::applyOrderSendBackward);
 
     bringToFrontAction->setEnabled(oneTabSelectedFlag);
     bringForwardAction->setEnabled(oneTabSelectedFlag);
@@ -165,7 +165,7 @@ m_parentOpenGLWidget(parentOpenGLWidget)
      */
     QAction* insertNewTabAction = addAction("Insert New Tab");
     QObject::connect(insertNewTabAction, &QAction::triggered,
-                     this, &UserInputModeTileTabsManualLayoutContextMenu::processInsertNewTabMenuItem);
+                     this, &UserInputModeTileTabsLayoutContextMenu::processInsertNewTabMenuItem);
     
     addSeparator();
     
@@ -174,14 +174,14 @@ m_parentOpenGLWidget(parentOpenGLWidget)
      */
     QAction* expendToFillAction = addAction(getShinkAndExpandTabMenuItemText());
     QObject::connect(expendToFillAction, &QAction::triggered,
-                     this, &UserInputModeTileTabsManualLayoutContextMenu::processShrinkAndExpandTabMenuItem);
+                     this, &UserInputModeTileTabsLayoutContextMenu::processShrinkAndExpandTabMenuItem);
     expendToFillAction->setEnabled(oneTabSelectedFlag);
 }
 
 /**
  * Destructor.
  */
-UserInputModeTileTabsManualLayoutContextMenu::~UserInputModeTileTabsManualLayoutContextMenu()
+UserInputModeTileTabsLayoutContextMenu::~UserInputModeTileTabsLayoutContextMenu()
 {
 }
 
@@ -191,7 +191,7 @@ UserInputModeTileTabsManualLayoutContextMenu::~UserInputModeTileTabsManualLayout
  * same text in both menus.
  */
 AString
-UserInputModeTileTabsManualLayoutContextMenu::getShinkAndExpandTabMenuItemText()
+UserInputModeTileTabsLayoutContextMenu::getShinkAndExpandTabMenuItemText()
 {
     return "Move/Resize Tab to Fill Empty Space";
 }
@@ -200,7 +200,7 @@ UserInputModeTileTabsManualLayoutContextMenu::getShinkAndExpandTabMenuItemText()
  * Deselect all annotations in the window.
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::deselectAllAnnotations()
+UserInputModeTileTabsLayoutContextMenu::deselectAllAnnotations()
 {
     m_userInputTileTabsManualLayout->processDeselectAllAnnotations();
 }
@@ -209,7 +209,7 @@ UserInputModeTileTabsManualLayoutContextMenu::deselectAllAnnotations()
  * Select all annotations in the window.
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::selectAllAnnotations()
+UserInputModeTileTabsLayoutContextMenu::selectAllAnnotations()
 {
     m_userInputTileTabsManualLayout->processSelectAllAnnotations();
 }
@@ -218,7 +218,7 @@ UserInputModeTileTabsManualLayoutContextMenu::selectAllAnnotations()
  * Group annotations.
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::applyGroupingGroup()
+UserInputModeTileTabsLayoutContextMenu::applyGroupingGroup()
 {
     applyGrouping(AnnotationGroupingModeEnum::GROUP);
 }
@@ -227,7 +227,7 @@ UserInputModeTileTabsManualLayoutContextMenu::applyGroupingGroup()
  * Ungroup annotations.
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::applyGroupingRegroup()
+UserInputModeTileTabsLayoutContextMenu::applyGroupingRegroup()
 {
     applyGrouping(AnnotationGroupingModeEnum::REGROUP);
 }
@@ -236,7 +236,7 @@ UserInputModeTileTabsManualLayoutContextMenu::applyGroupingRegroup()
  * Regroup annotations.
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::applyGroupingUngroup()
+UserInputModeTileTabsLayoutContextMenu::applyGroupingUngroup()
 {
     applyGrouping(AnnotationGroupingModeEnum::UNGROUP);
 }
@@ -248,7 +248,7 @@ UserInputModeTileTabsManualLayoutContextMenu::applyGroupingUngroup()
  *     Selected grouping.
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::applyGrouping(const AnnotationGroupingModeEnum::Enum grouping)
+UserInputModeTileTabsLayoutContextMenu::applyGrouping(const AnnotationGroupingModeEnum::Enum grouping)
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     
@@ -269,7 +269,7 @@ UserInputModeTileTabsManualLayoutContextMenu::applyGrouping(const AnnotationGrou
  * Called when expand to fill space menu item is selected
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::processShrinkAndExpandTabMenuItem()
+UserInputModeTileTabsLayoutContextMenu::processShrinkAndExpandTabMenuItem()
 {
     const int32_t browserWindowIndex = m_mouseEvent.getBrowserWindowIndex();
     BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
@@ -296,7 +296,7 @@ UserInputModeTileTabsManualLayoutContextMenu::processShrinkAndExpandTabMenuItem(
  * Called when bring to front is selected
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::applyOrderBringToFront()
+UserInputModeTileTabsLayoutContextMenu::applyOrderBringToFront()
 {
     processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_TO_FRONT);
 }
@@ -305,7 +305,7 @@ UserInputModeTileTabsManualLayoutContextMenu::applyOrderBringToFront()
  * Called when bring forward is selected
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::applyOrderBringForward()
+UserInputModeTileTabsLayoutContextMenu::applyOrderBringForward()
 {
     processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_FORWARD);
 }
@@ -314,7 +314,7 @@ UserInputModeTileTabsManualLayoutContextMenu::applyOrderBringForward()
  * Called when send to back is selected
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::applyOrderSendToBack()
+UserInputModeTileTabsLayoutContextMenu::applyOrderSendToBack()
 {
     processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK);
 }
@@ -323,7 +323,7 @@ UserInputModeTileTabsManualLayoutContextMenu::applyOrderSendToBack()
  * Called when send backward is selected
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::applyOrderSendBackward()
+UserInputModeTileTabsLayoutContextMenu::applyOrderSendBackward()
 {
     processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD);
 }
@@ -332,7 +332,7 @@ UserInputModeTileTabsManualLayoutContextMenu::applyOrderSendBackward()
  * Insert a new tab at mouse location
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::processInsertNewTabMenuItem()
+UserInputModeTileTabsLayoutContextMenu::processInsertNewTabMenuItem()
 {
     processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_MANUAL_NEW_TAB);
 }
@@ -345,7 +345,7 @@ UserInputModeTileTabsManualLayoutContextMenu::processInsertNewTabMenuItem()
  *     The operation
  */
 void
-UserInputModeTileTabsManualLayoutContextMenu::processWindowTileTabOperation(const EventBrowserWindowTileTabOperation::Operation operation)
+UserInputModeTileTabsLayoutContextMenu::processWindowTileTabOperation(const EventBrowserWindowTileTabOperation::Operation operation)
 {
     switch (operation) {
         case EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_AFTER:

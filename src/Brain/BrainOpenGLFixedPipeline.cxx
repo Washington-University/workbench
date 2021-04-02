@@ -942,7 +942,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
                                 m_foregroundColorFloat);
         }
         
-        if (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+        if (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING) {
             switch (windowContent->getTileTabsConfigurationMode()) {
                 case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
                 case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
@@ -1024,7 +1024,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
                 int32_t windowViewportBeforeAspectLocking[4];
                 vpContent->getWindowBeforeAspectLockingViewport(windowViewportBeforeAspectLocking);
                 
-                if (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+                if (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING) {
                     drawStippledBackgroundInAreasOutsideWindowAspectLocking(windowViewportBeforeAspectLocking,
                                                                             windowViewportAfterAspectLocking);
                 }
@@ -1171,7 +1171,7 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLV
          * the model annotations.
          */
         const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
-        const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING);
+        const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
         BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                  this->mode,
                                                                  BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
@@ -1251,7 +1251,7 @@ BrainOpenGLFixedPipeline::drawSpacerAnnotations(const BrainOpenGLViewportContent
     spacerTabIndex = spacerTabContent->getSpacerTabIndex();
     
     const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
-    const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING);
+    const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
@@ -1315,7 +1315,7 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
     this->windowTabIndex = this->browserTabContent->getTabNumber();
     
     const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
-    const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING);
+    const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
@@ -1414,7 +1414,7 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
     
     const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
     const bool tileTabsEditModeFlag = (tileTabsEnabledFlag
-                                       && (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING));
+                                       && (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING));
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
@@ -2445,7 +2445,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * the model annotations.
              */
             const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
-            const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING);
+            const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
@@ -2512,7 +2512,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * the model annotations.
              */
             const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
-            const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING);
+            const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,

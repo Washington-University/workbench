@@ -77,7 +77,7 @@ AnnotationArrangerExecutor::~AnnotationArrangerExecutor()
  * Apply alignment modification to selected annotations
  *
  * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param annotationManager
  *     The annotation manager.
  * @param arrangerInputs
@@ -119,7 +119,7 @@ AnnotationArrangerExecutor::alignAnnotations(AnnotationManager* annotationManage
  * Apply distribute modification to selected annotations
  *
  * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param annotationManager
  *     The annotation manager.
  * @param arrangerInputs

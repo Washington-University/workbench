@@ -132,7 +132,7 @@ AnnotationManager::reset()
  * user can undo or redo the command.
  *
  * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param command
  *     Command that will be applied to the selected annotations.
  *     Annotation manager will take ownership of the command and
@@ -157,7 +157,7 @@ AnnotationManager::applyCommand(const UserInputModeEnum::Enum userInputMode,
  * user can undo or redo the command.
  *
  * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param command
  *     Command that will be applied to the selected annotations.
  *     Annotation manager will take ownership of the command and
@@ -554,7 +554,7 @@ AnnotationManager::getAnnotationEditingSelectionInformation(const int32_t window
     
     EventUserInputModeGet modeEvent(windowIndex);
     EventManager::get()->sendEvent(modeEvent.getPointer());
-    const bool tileModeFlag = (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING);
+    const bool tileModeFlag = (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
 
     AnnotationEditingSelectionInformation* asi = m_selectionInformation[windowIndex];
     
@@ -648,7 +648,7 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditing(const int32_t window
 
     EventUserInputModeGet modeEvent(windowIndex);
     EventManager::get()->sendEvent(modeEvent.getPointer());
-    if (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+    if (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING) {
         /* In Tile Editing mode and browser tabs are not in files */
         return;
     }
@@ -692,7 +692,7 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditingIncludingLabels(const
     
     EventUserInputModeGet modeEvent(windowIndex);
     EventManager::get()->sendEvent(modeEvent.getPointer());
-    if (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+    if (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING) {
         /* In Tile Editing mode and browser tabs are not in files */
         return;
     }
@@ -715,7 +715,7 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditingIncludingLabels(const
  * Align annotations.
  * 
  * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param arrangerInputs
  *    Inputs to algorithm that aligns the annotations.
  * @param errorMessageOut
@@ -741,7 +741,7 @@ AnnotationManager::alignAnnotations(const UserInputModeEnum::Enum userInputMode,
  * Align annotations.
  *
  * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param arrangerInputs
  *    Inputs to algorithm that aligns the annotations.
  * @param errorMessageOut
@@ -767,7 +767,7 @@ AnnotationManager::distributeAnnotations(const UserInputModeEnum::Enum userInput
  * Apply given grouping mode valid in the given window.
  *
  * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param windowIndex
  *     Index of the window.
  * @param groupingMode
@@ -1325,7 +1325,7 @@ AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displ
  * @return Pointer to the command redo undo stack
  *
  * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  */
 CaretUndoStack*
 AnnotationManager::getCommandRedoUndoStack(const UserInputModeEnum::Enum userInputMode)
@@ -1335,7 +1335,7 @@ AnnotationManager::getCommandRedoUndoStack(const UserInputModeEnum::Enum userInp
         case UserInputModeEnum::Enum::ANNOTATIONS:
             undoStackOut = m_annotationsExceptBrowserTabsRedoUndoStack;
             break;
-        case UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             undoStackOut = m_browserTabAnnotationsRedoUndoStack;
             break;
         case UserInputModeEnum::Enum::BORDERS:

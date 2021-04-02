@@ -1,5 +1,5 @@
-#ifndef __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_H__
-#define __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_H__
+#ifndef __USER_INPUT_MODE_TILE_TABS_LAYOUT_H__
+#define __USER_INPUT_MODE_TILE_TABS_LAYOUT_H__
 
 /*LICENSE_START*/
 /*
@@ -31,16 +31,16 @@
 
 namespace caret {
 
-    class UserInputModeTileTabsManualLayout : public UserInputModeAnnotations {
+    class UserInputModeTileTabsLayout : public UserInputModeAnnotations {
         
     public:
-        UserInputModeTileTabsManualLayout(const int32_t windowIndex);
+        UserInputModeTileTabsLayout(const int32_t windowIndex);
         
-        virtual ~UserInputModeTileTabsManualLayout();
+        virtual ~UserInputModeTileTabsLayout();
         
-        UserInputModeTileTabsManualLayout(const UserInputModeTileTabsManualLayout&) = delete;
+        UserInputModeTileTabsLayout(const UserInputModeTileTabsLayout&) = delete;
 
-        UserInputModeTileTabsManualLayout& operator=(const UserInputModeTileTabsManualLayout&) = delete;
+        UserInputModeTileTabsLayout& operator=(const UserInputModeTileTabsLayout&) = delete;
         
         virtual void showContextMenu(const MouseEvent& mouseEvent,
                                      const QPoint& menuPosition,
@@ -60,9 +60,9 @@ namespace caret {
 
     };
     
-#ifdef __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_DECLARE__
+#ifdef __USER_INPUT_MODE_TILE_TABS_LAYOUT_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_DECLARE__
+#endif // __USER_INPUT_MODE_TILE_TABS_LAYOUT_DECLARE__
 
 } // namespace
-#endif  //__USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_H__
+#endif  //__USER_INPUT_MODE_TILE_TABS_LAYOUT_H__

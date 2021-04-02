@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_DECLARE__
-#include "UserInputModeTileTabsManualLayout.h"
-#undef __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_DECLARE__
+#define __USER_INPUT_MODE_TILE_TABS_LAYOUT_DECLARE__
+#include "UserInputModeTileTabsLayout.h"
+#undef __USER_INPUT_MODE_TILE_TABS_LAYOUT_DECLARE__
 
 #include "AnnotationBrowserTab.h"
 #include "AnnotationManager.h"
@@ -37,13 +37,13 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
-#include "UserInputModeTileTabsManualLayoutContextMenu.h"
+#include "UserInputModeTileTabsLayoutContextMenu.h"
 #include "WuQMessageBox.h"
 
 using namespace caret;
     
 /**
- * \class caret::UserInputModeTileTabsManualLayout 
+ * \class caret::UserInputModeTileTabsLayout
  * \brief User Input mode for editing manual tile tabs layout
  * \ingroup GuiQt
  */
@@ -54,8 +54,8 @@ using namespace caret;
  * @param windowIndex
  *     Index of window
  */
-UserInputModeTileTabsManualLayout::UserInputModeTileTabsManualLayout(const int32_t windowIndex)
-: UserInputModeAnnotations(UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING,
+UserInputModeTileTabsLayout::UserInputModeTileTabsLayout(const int32_t windowIndex)
+: UserInputModeAnnotations(UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING,
                            windowIndex)
 {
     
@@ -64,7 +64,7 @@ UserInputModeTileTabsManualLayout::UserInputModeTileTabsManualLayout(const int32
 /**
  * Destructor.
  */
-UserInputModeTileTabsManualLayout::~UserInputModeTileTabsManualLayout()
+UserInputModeTileTabsLayout::~UserInputModeTileTabsLayout()
 {
 }
 
@@ -79,7 +79,7 @@ UserInputModeTileTabsManualLayout::~UserInputModeTileTabsManualLayout()
  *     OpenGL widget in which context menu is requested
  */
 void
-UserInputModeTileTabsManualLayout::showContextMenu(const MouseEvent& mouseEvent,
+UserInputModeTileTabsLayout::showContextMenu(const MouseEvent& mouseEvent,
                                           const QPoint& menuPosition,
                                           BrainOpenGLWidget* openGLWidget)
 {
@@ -115,7 +115,7 @@ UserInputModeTileTabsManualLayout::showContextMenu(const MouseEvent& mouseEvent,
                                  false,
                                  singleSelectionModeFlag);
     
-    UserInputModeTileTabsManualLayoutContextMenu contextMenu(this,
+    UserInputModeTileTabsLayoutContextMenu contextMenu(this,
                                                     mouseEvent,
                                                     tabContent,
                                                     openGLWidget);
@@ -128,7 +128,7 @@ UserInputModeTileTabsManualLayout::showContextMenu(const MouseEvent& mouseEvent,
  * Delete all selected tabs
  */
 void
-UserInputModeTileTabsManualLayout::deleteSelectedAnnotations()
+UserInputModeTileTabsLayout::deleteSelectedAnnotations()
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
@@ -183,7 +183,7 @@ UserInputModeTileTabsManualLayout::deleteSelectedAnnotations()
  *     If true, deselect any other annotations so that only the annotation under mouse is selected
  */
 void
-UserInputModeTileTabsManualLayout::processMouseSelectAnnotation(const MouseEvent& mouseEvent,
+UserInputModeTileTabsLayout::processMouseSelectAnnotation(const MouseEvent& mouseEvent,
                                                                 const bool shiftKeyDownFlag,
                                                                 const bool singleSelectionModeFlag)
 {
