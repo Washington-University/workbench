@@ -2170,24 +2170,46 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBrowserTab(AnnotationFile* annota
                                               browserTab->getRotationAngle());
         }
         else if (m_inputs->m_tileTabsManualLayoutUserInputModeFlag) {
-            glPushAttrib(GL_LINE_BIT);
-            glLineStipple(1, 0xf000);
-            glEnable(GL_LINE_STIPPLE);
-            glLineWidth(1);
-            glColor4ubv(foregroundRGBA);
-            glBegin(GL_LINE_LOOP);
-            glVertex3fv(bottomLeft);
-            glVertex3fv(bottomRight);
-            glVertex3fv(topRight);
-            glVertex3fv(topLeft);
-            glEnd();
-            glPopAttrib();
+            drawTabBounds(bottomLeft,
+                          bottomRight,
+                          topRight,
+                          topLeft,
+                          foregroundRGBA);
         }
     }
     
     setDepthTestingStatus(savedDepthTestStatus);
     
     return drawnFlag;
+}
+
+/**
+ * Draw dashed lines around bounds of tab
+ * @param bottomLeft
+ * @param bottomRight
+ * @param topRight
+ * @param topLeft
+ * @param foregroundRGBA
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawTabBounds(const float bottomLeft[3],
+                                                         const float bottomRight[3],
+                                                         const float topRight[3],
+                                                         const float topLeft[3],
+                                                         uint8_t foregroundRGBA[4])
+{
+    glPushAttrib(GL_LINE_BIT);
+    glLineStipple(1, 0xf000);
+    glEnable(GL_LINE_STIPPLE);
+    glLineWidth(1);
+    glColor4ubv(foregroundRGBA);
+    glBegin(GL_LINE_LOOP);
+    glVertex3fv(bottomLeft);
+    glVertex3fv(bottomRight);
+    glVertex3fv(topRight);
+    glVertex3fv(topLeft);
+    glEnd();
+    glPopAttrib();
 }
 
 /**

@@ -120,6 +120,12 @@ namespace caret {
 
         virtual AString toString() const;
         
+        static void drawTabBounds(const float bottomLeft[3],
+                                  const float bottomRight[3],
+                                  const float topRight[3],
+                                  const float topLeft[3],
+                                  uint8_t foregroundRGBA[4]);
+
     private:
         class SelectionInfo {
         public:

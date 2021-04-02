@@ -941,6 +941,54 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
                                 m_tabViewport[3],
                                 m_foregroundColorFloat);
         }
+        
+        if (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+            switch (windowContent->getTileTabsConfigurationMode()) {
+                case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                    if (tabContent != NULL) {
+                        const float tabWidth(static_cast<float>(m_tabViewport[2]));
+                        const float tabHeight(static_cast<float>(m_tabViewport[3]));
+                        /*
+                         * Highlight bounds of tabs
+                         */
+                        const bool depthFlag = glIsEnabled(GL_DEPTH_TEST);
+                        glDisable(GL_DEPTH_TEST);
+                        
+                        glMatrixMode(GL_PROJECTION);
+                        glPushMatrix();
+                        glLoadIdentity();
+                        glOrtho(0.0, tabWidth, 0.0, tabHeight, -100.0, 100.0);
+                        
+                        glMatrixMode(GL_MODELVIEW);
+                        glPushMatrix();
+                        glLoadIdentity();
+                        
+                        const float bottomLeft[3]  { 1.0, 1.0, 0.0 };
+                        const float bottomRight[3] { tabWidth - 1.0f, 1.0, 0.0 };
+                        const float topRight[3]    { tabWidth - 1.0f, tabHeight - 1.0f, 0.0 };
+                        const float topLeft[3]     { 1.0, tabHeight - 1.0f, 0.0 };
+                        BrainOpenGLAnnotationDrawingFixedPipeline::drawTabBounds(bottomLeft,
+                                                                                 bottomRight,
+                                                                                 topRight,
+                                                                                 topLeft,
+                                                                                 m_foregroundColorByte);
+                        glPopMatrix();
+                        glMatrixMode(GL_PROJECTION);
+                        glPopMatrix();
+                        
+                        glMatrixMode(GL_MODELVIEW);
+                        
+                        if (depthFlag) {
+                            glEnable(GL_DEPTH_TEST);
+                        }
+                    }
+                    break;
+                case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                    /* Manual tab highlighting is performed when tabs are drawn as annotations */
+                    break;
+            }
+        }
     }
     
     if ( ! viewportContents.empty()) {
