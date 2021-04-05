@@ -81,6 +81,12 @@ m_windowIndex(-1)
     std::vector<TileTabsLayoutConfigurationTypeEnum::Enum> layoutTypeEnums;
     TileTabsLayoutConfigurationTypeEnum::getAllEnums(layoutTypeEnums);
     
+    /*
+     * Ensures sufficent width in label.
+     * Label text gets updated with correct number of rows/cols.
+     */
+    const QString rowsColumnsLabelText("(11 Rows, 22 Cols)");
+    
     for (const auto layoutType : layoutTypeEnums) {
         QRadioButton* rb = new QRadioButton(TileTabsLayoutConfigurationTypeEnum::toGuiName(layoutType));
         rb->setToolTip(TileTabsLayoutConfigurationTypeEnum::toGuiToolTip(layoutType));
@@ -93,7 +99,7 @@ m_windowIndex(-1)
             case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
                 layout->addWidget(rb,
                                   layoutRow, 0, 1, 5, Qt::AlignLeft);
-                m_automaticGridRowsColumnsLabel = new QLabel("(11 Rows, 22 Cols)");
+                m_automaticGridRowsColumnsLabel = new QLabel(rowsColumnsLabelText);
                 switch (m_parentType) {
                     case ParentType::BROWSER_WINDOW_TOOLBAR:
                         layoutRow++;
@@ -129,7 +135,7 @@ m_windowIndex(-1)
                         layout->addWidget(m_customGridColumnsSpinBox, layoutRow, 3, 1, 2);
                         break;
                     case ParentType::TILE_TABS_DIALOG:
-                        m_customGridRowsColumnsLabel = new QLabel("(11 Rows, 22 Cols)");
+                        m_customGridRowsColumnsLabel = new QLabel(rowsColumnsLabelText);
                         layout->addWidget(m_customGridRowsColumnsLabel, layoutRow, 5, 1, Qt::AlignLeft);
                         break;
                 }
@@ -402,11 +408,28 @@ TileTabsLayoutConfigurationTypeWidget::updateGraphicsAndUserInterface()
 QToolButton*
 TileTabsLayoutConfigurationTypeWidget::createManualConfigurationSetToolButton()
 {
+    m_viewTileTabsConfigurationActionText = "Edit Tile Tabs Configurations...";
+    
+    AString dialogToolTip;
+    switch (m_parentType) {
+        case ParentType::BROWSER_WINDOW_TOOLBAR:
+        {
+            dialogToolTip = ("<b>" + m_viewTileTabsConfigurationActionText + "</b> - Displays the Tile Tabs Configuration dialog "
+                             "for advanced editing of Custom Grid and Manual Layouts.  Also allows Loading from or "
+                             "Saving to User's Configuration Library."
+                             "<p>");
+        }
+            break;
+        case ParentType::TILE_TABS_DIALOG:
+            break;
+    }
+
     m_setManualToAutomaticGridActionText = "Set Bounds of Tabs from Automatic Grid";
     m_setManualToCustomGridActionText    = "Set Bounds of Tabs from Custom Grid";
     m_setManualToGridColumnsActionText   = "Set Bounds of Tabs from Grid...";
     
     const QString toolTipText("<html>"
+                              + dialogToolTip +
                               "Set (replace) the bounds of all tabs using the bounds created by a grid configuration.  After "
                               "choosing one of the selections, the user may edit individual tab bounds as desired."
                               "<ul>"
@@ -418,11 +441,22 @@ TileTabsLayoutConfigurationTypeWidget::createManualConfigurationSetToolButton()
                               "</ul>"
                               "</html>");
     
+    AString setButtonText;
+    switch (m_parentType) {
+        case ParentType::BROWSER_WINDOW_TOOLBAR:
+            setButtonText = "Adv...";
+            break;
+        case ParentType::TILE_TABS_DIALOG:
+            setButtonText = "Set...";
+            break;
+    }
+    CaretAssert( ! setButtonText.isEmpty());
+    
     QToolButton* toolButton = new QToolButton();
-    toolButton->setText("Set...");
+    toolButton->setText(setButtonText);
     toolButton->setToolTip(toolTipText);
     QObject::connect(toolButton, &QToolButton::clicked,
-                     this, &TileTabsLayoutConfigurationTypeWidget::manualConfigurationSetToolButtonClicked);
+                     this, &TileTabsLayoutConfigurationTypeWidget::setToolButtonClicked);
     WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     return toolButton;
 }
@@ -431,13 +465,25 @@ TileTabsLayoutConfigurationTypeWidget::createManualConfigurationSetToolButton()
  * Called when manual configuration set tool button is clicked
  */
 void
-TileTabsLayoutConfigurationTypeWidget::manualConfigurationSetToolButtonClicked()
+TileTabsLayoutConfigurationTypeWidget::setToolButtonClicked()
 {
+    QAction* tileTabsDialogAction(NULL);
     QMenu menu(this);
+    switch (m_parentType) {
+        case ParentType::BROWSER_WINDOW_TOOLBAR:
+            tileTabsDialogAction = menu.addAction(m_viewTileTabsConfigurationActionText);
+            menu.addSeparator();
+            break;
+        case ParentType::TILE_TABS_DIALOG:
+            break;
+    }
     QAction* setAutomaticGridAction = menu.addAction(m_setManualToAutomaticGridActionText);
     QAction* setCustomGridAction    = menu.addAction(m_setManualToCustomGridActionText);
     QAction* setColumnsAction       = menu.addAction(m_setManualToGridColumnsActionText);
     
+    /*
+     * Selected action is NULL if user closed menu without making a selection
+     */
     QAction* selectedAction = menu.exec(m_manualConfigurationSetButton->mapToGlobal(QPoint(0,0)));
     if (selectedAction == setColumnsAction) {
         manualConfigurationSetMenuColumnsItemTriggered();
@@ -447,6 +493,18 @@ TileTabsLayoutConfigurationTypeWidget::manualConfigurationSetToolButtonClicked()
     }
     else if (selectedAction == setCustomGridAction) {
         manualConfigurationSetMenuFromCustomItemTriggered();
+    }
+    else if ((tileTabsDialogAction != NULL)
+             && (selectedAction == tileTabsDialogAction)) {
+        /*
+         * Show tile tabs configuration dialog
+         */
+        BrainBrowserWindow* bbw(getBrowserWindow());
+        CaretAssert(bbw);
+        QAction* dialogAction = bbw->getViewTileTabsConfigurationDialogAction();
+        CaretAssert(dialogAction);
+        dialogAction->trigger();
+        
     }
     else if (selectedAction != NULL) {
         CaretAssertMessage(0, "Has a new action been added but not processed?");

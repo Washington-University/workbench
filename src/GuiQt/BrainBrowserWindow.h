@@ -170,6 +170,8 @@ namespace caret {
         
         void reopenLastClosedTab(EventBrowserTabReopenClosed& reopenTabEvent);
 
+        QAction* getViewTileTabsConfigurationDialogAction();
+
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);

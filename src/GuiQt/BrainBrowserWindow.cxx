@@ -2524,6 +2524,15 @@ BrainBrowserWindow::createMenuView()
 }
 
 /**
+ * @return Action for tile tabs configuration dialog also used in Tile Layout toolbar
+ */
+QAction*
+BrainBrowserWindow::getViewTileTabsConfigurationDialogAction()
+{
+    return m_viewTileTabsConfigurationDialogAction;
+}
+
+/**
  * @return Create and return the overlay toolbox menu.
  */
 QMenu* 

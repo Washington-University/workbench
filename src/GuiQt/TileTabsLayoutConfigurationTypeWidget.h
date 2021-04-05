@@ -71,7 +71,7 @@ namespace caret {
         
         void customGridRowSpinBoxValueChanged(const int rows);
         
-        void manualConfigurationSetToolButtonClicked();
+        void setToolButtonClicked();
         
         void manualConfigurationSetMenuColumnsItemTriggered();
         
@@ -116,6 +116,7 @@ namespace caret {
         
         QToolButton* m_manualConfigurationSetButton;
         
+        QString m_viewTileTabsConfigurationActionText;
         QString m_setManualToAutomaticGridActionText;
         QString m_setManualToCustomGridActionText;
         QString m_setManualToGridColumnsActionText;
