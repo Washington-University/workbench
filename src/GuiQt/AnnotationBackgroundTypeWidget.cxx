@@ -72,15 +72,16 @@ m_userInputMode(userInputMode),
 m_parentWidgetType(parentWidgetType),
 m_browserWindowIndex(browserWindowIndex)
 {
+    QLabel* backgroundLabel(NULL);
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
             break;
         case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
+            backgroundLabel = new QLabel("Background");
             CaretAssert(0);
             break;
     }
     
-    QLabel* backgroundLabel = new QLabel("Background");
     m_TileTabsLayoutBackgroundTypeEnumComboBox = new EnumComboBoxTemplate(this);
     m_TileTabsLayoutBackgroundTypeEnumComboBox->setup<TileTabsLayoutBackgroundTypeEnum,TileTabsLayoutBackgroundTypeEnum::Enum>();
     QObject::connect(m_TileTabsLayoutBackgroundTypeEnumComboBox, SIGNAL(itemActivated()),
@@ -99,9 +100,11 @@ m_browserWindowIndex(browserWindowIndex)
     layout->setColumnStretch(1, 100);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     int32_t row(0);
-    layout->addWidget(backgroundLabel,
-                      row, 0, 1, 2, Qt::AlignHCenter);
-    row++;
+    if (backgroundLabel != NULL) {
+        layout->addWidget(backgroundLabel,
+                          row, 0, 1, 2, Qt::AlignHCenter);
+        row++;
+    }
     layout->addWidget(m_TileTabsLayoutBackgroundTypeEnumComboBox->getWidget(),
                       row, 0, 1, 2);
     row++;

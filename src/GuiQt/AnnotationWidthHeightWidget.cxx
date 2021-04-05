@@ -73,10 +73,32 @@ m_browserWindowIndex(browserWindowIndex)
 {
     QString widthLabelText;
     QString heightLabelText;
+    bool includeSizeLabelFlag(true);
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-            widthLabelText  = " W:";
-            heightLabelText = " H:";
+            switch (userInputMode) {
+                case UserInputModeEnum::Enum::ANNOTATIONS:
+                    widthLabelText  = " W:";
+                    heightLabelText = " H:";
+                    break;
+                case UserInputModeEnum::Enum::BORDERS:
+                    break;
+                case UserInputModeEnum::Enum::FOCI:
+                    break;
+                case UserInputModeEnum::Enum::IMAGE:
+                    break;
+                case UserInputModeEnum::Enum::INVALID:
+                    break;
+                case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+                    widthLabelText  = "Width:";
+                    heightLabelText = "Height:";
+                    includeSizeLabelFlag = false;
+                    break;
+                case UserInputModeEnum::Enum::VIEW:
+                    break;
+                case UserInputModeEnum::Enum::VOLUME_EDIT:
+                    break;
+            }
             break;
         case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
             CaretAssert(0);
@@ -109,12 +131,17 @@ m_browserWindowIndex(browserWindowIndex)
             break;
         case Qt::Vertical:
         {
-            QLabel* sizeLabel = new QLabel("Size");
+            QLabel* sizeLabel(NULL);
+            if (includeSizeLabelFlag) {
+                sizeLabel = new QLabel("Size");
+            }
             QGridLayout* layout = new QGridLayout(this);
             WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
             int32_t row(0);
-            layout->addWidget(sizeLabel, row, 0, 1, 2, Qt::AlignHCenter);
-            row++;
+            if (sizeLabel != NULL) {
+                layout->addWidget(sizeLabel, row, 0, 1, 2, Qt::AlignHCenter);
+                row++;
+            }
             layout->addWidget(widthLabel, row, 0);
             layout->addWidget(m_widthSpinBox, row, 1);
             row++;

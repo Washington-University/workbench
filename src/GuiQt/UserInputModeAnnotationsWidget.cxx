@@ -177,7 +177,7 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
 {
     m_layoutTypeWidget           = new TileTabsLayoutConfigurationTypeWidget(TileTabsLayoutConfigurationTypeWidget::ParentType::BROWSER_WINDOW_TOOLBAR);
     
-    QWidget* layoutTypeWidget = BrainBrowserWindowToolBar::createToolWidget("Layout Type",
+    QWidget* layoutTypeToolBarWidget = BrainBrowserWindowToolBar::createToolWidget("Layout Type",
                                                                             m_layoutTypeWidget,
                                                                             BrainBrowserWindowToolBar::WIDGET_PLACEMENT_NONE,
                                                                             BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
@@ -186,9 +186,21 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
     m_nameWidget                 = new AnnotationNameWidget(m_inputModeAnnotations->getUserInputMode(),
                                                             m_browserWindowIndex);
     
+    QWidget* nameToolBarWidget = BrainBrowserWindowToolBar::createToolWidget("Edit Tab(s)",
+                                                                            m_nameWidget,
+                                                                            BrainBrowserWindowToolBar::WIDGET_PLACEMENT_NONE,
+                                                                            BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
+                                                                            0);
+    
     m_boundsWidget               = new AnnotationBoundsWidget(m_inputModeAnnotations->getUserInputMode(),
                                                               AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                               m_browserWindowIndex);
+    
+    QWidget* boundsToolBarWidget = BrainBrowserWindowToolBar::createToolWidget("Bounds",
+                                                                               m_boundsWidget,
+                                                                               BrainBrowserWindowToolBar::WIDGET_PLACEMENT_NONE,
+                                                                               BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
+                                                                               0);
     
     m_coordinateCenterXYWidget   = new AnnotationCoordinateCenterXYWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                           AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
@@ -204,6 +216,12 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
                                                                       AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                                       m_browserWindowIndex);
     
+    QWidget* backgroundTypeToolBarWidget = BrainBrowserWindowToolBar::createToolWidget("Background",
+                                                                                       m_backgroundTypeWidget,
+                                                                                       BrainBrowserWindowToolBar::WIDGET_PLACEMENT_NONE,
+                                                                                       BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
+                                                                                       0);
+
     m_formatWidget               = new AnnotationFormatWidget(m_inputModeAnnotations->getUserInputMode(),
                                                               m_browserWindowIndex);
     
@@ -211,12 +229,19 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
                                                                 m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
 
-    QVBoxLayout* centerSizeLayout = new QVBoxLayout();
+    QWidget* centerSizeWidget = new QWidget();
+    QVBoxLayout* centerSizeLayout = new QVBoxLayout(centerSizeWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(centerSizeLayout, 2, 0);
-    centerSizeLayout->addWidget(m_coordinateCenterXYWidget);
-    centerSizeLayout->addWidget(m_widthHeightWidget);
+    centerSizeLayout->addWidget(m_coordinateCenterXYWidget, 0, Qt::AlignRight);
+    centerSizeLayout->addSpacing(10);
+    centerSizeLayout->addWidget(m_widthHeightWidget, 0, Qt::AlignRight);
     centerSizeLayout->addStretch();
-    
+    QWidget* centerSizeToolBarWidget = BrainBrowserWindowToolBar::createToolWidget("Center",
+                                                                                   centerSizeWidget,
+                                                                                   BrainBrowserWindowToolBar::WIDGET_PLACEMENT_NONE,
+                                                                                   BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
+                                                                                   0);
+
     QVBoxLayout* formatRedoLayout = new QVBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(formatRedoLayout, 2, 0);
     formatRedoLayout->addWidget(m_formatWidget);
@@ -227,15 +252,15 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(2, 2, 2, 2);
     layout->setSpacing(8);
-    layout->addWidget(layoutTypeWidget);
+    layout->addWidget(layoutTypeToolBarWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_nameWidget, 0, Qt::AlignTop);
+    layout->addWidget(nameToolBarWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_boundsWidget, 0, Qt::AlignTop);
+    layout->addWidget(boundsToolBarWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addLayout(centerSizeLayout);
+    layout->addWidget(centerSizeToolBarWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_backgroundTypeWidget, 0, Qt::AlignTop);
+    layout->addWidget(backgroundTypeToolBarWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
     layout->addLayout(formatRedoLayout);
     layout->addStretch();

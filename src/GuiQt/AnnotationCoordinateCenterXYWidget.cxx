@@ -90,18 +90,19 @@ m_browserWindowIndex(browserWindowIndex)
 {
 
     QString colonString;
+    QLabel* centerLabel(NULL);
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
             colonString = ":";
             break;
         case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
+            centerLabel = new QLabel("Center");
             CaretAssert(0);
             break;
     }
     
-    QLabel* centerLabel = new QLabel("Center");
     const int digitsRightOfDecimal = 1;
-    QLabel* xCoordLabel = new QLabel(" X" + colonString);
+    QLabel* xCoordLabel = new QLabel("X" + colonString);
     m_xCoordSpinBox = new QDoubleSpinBox();
     m_xCoordSpinBox->setMinimum(-100.0);
     m_xCoordSpinBox->setMaximum( 200.0);
@@ -116,7 +117,7 @@ m_browserWindowIndex(browserWindowIndex)
                                          "      0.0% => Left side of tab/window\n"
                                          "      100.0% => Right side of tab/window\n");
     
-    QLabel* yCoordLabel = new QLabel(" Y" + colonString);
+    QLabel* yCoordLabel = new QLabel("Y" + colonString);
     m_yCoordSpinBox = new QDoubleSpinBox();
     m_yCoordSpinBox->setMinimum(-100.0);
     m_yCoordSpinBox->setMaximum( 200.0);
@@ -139,8 +140,10 @@ m_browserWindowIndex(browserWindowIndex)
     QGridLayout* layout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     int32_t row(0);
-    layout->addWidget(centerLabel, row, 0, 1, 2, Qt::AlignHCenter);
-    row++;
+    if (centerLabel != NULL) {
+        layout->addWidget(centerLabel, row, 0, 1, 2, Qt::AlignHCenter);
+        row++;
+    }
     layout->addWidget(xCoordLabel, row, 0);
     layout->addWidget(m_xCoordSpinBox, row, 1);
     row++;
