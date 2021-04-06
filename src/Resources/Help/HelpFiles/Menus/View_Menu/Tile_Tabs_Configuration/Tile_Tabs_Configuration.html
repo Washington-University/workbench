@@ -373,22 +373,27 @@
       </font></p>
     <ul>
     </ul>
-    <h2>Manual Configuration Editing Toolbar in Main Window</h2>
-    <img src="Window_Tile_Editing_Toolbar.png" alt="dialog" width="800"
-      height="197"><br>
+    <h2>Tile Layout Editing Toolbar in Main Window</h2>
+    <img src="Window_Tile_Editing_Toolbar.png" alt="dialog"><br>
     <br>
-    The toolbar is visible when a manual configuration is active and
-    "Tile" mode is selected.<br>
+    The toolbar is visible when "Tile Layout" mode is selected.<br>
     <br>
-    Located in the Mode section of the Toolbar is new mode named
-    “Tile”.&nbsp; When Tile Tabs is enabled and the Active Configuration
-    is a Manual, “Tile” is enabled.&nbsp; When in Tile Mode, controls
-    are added at the bottom of the Toolbar for editing the position and
-    size of the selected tab(s).&nbsp; All numerical values in the
+    Located in the Mode section of the Toolbar is a mode named
+    “Tile Layout”.&nbsp;  When in Tile Layout Mode, controls
+    are added at the bottom of the Toolbar for editing the active tile
+    tabs configuration.&nbsp; For a manual layout, all numerical values in the
     editing controls are in Window Percentages with zero percent at the
-    bottom/left and one-hundred percent at the right/top. <br>
+    bottom/left and one-hundred percent at the right/top.  When the window
+    aspect is locked, some regions of the window are not available in order to
+    maintain the aspec.  These regions are highlighted with a <i>stipple</i>
+    pattern.<br>
     <ul>
-      <li><b>(Tab Number/Name) </b>- If one tab is selected, its number
+      <li><b>Layout Type</b> - Contains controls for selecting the layout
+      type.  For a Custom Grid, controls are available for setting the
+      number of rows and columns in the grid.  The Adv button located on 
+      the right of Manual, permits initialization of the manual layout from
+      a grid or display of the Tile Tabs Configuration dialog.</li>
+      <li><b>Edit Tabs </b> - If one tab is selected, its number
         and name is displayed.&nbsp; If more than one tab is displayed,
         only the tab numbers are displayed.&nbsp; The <b>Draw Content</b>
         checkbox controls drawing on/off of the tab.<br>
@@ -397,10 +402,8 @@
         moving the tab’s sides.&nbsp; Moving one of the bounds will
         change the width or height of the tab.</li>
       <li><b>Center</b> – Controls for setting the position of the tab
-        by moving the center of the tab.&nbsp; Width and height will not
-        change.</li>
-      <li><b>Size</b> – Controls for setting the width or height of the
-        tab.</li>
+        by moving the center of the tab or for adjustment of the tab's
+        width and height.</li>
       <li><b>Background</b> - Controls for changing the background
         between <i>Opaque</i> and <i>Transparent</i>.&nbsp; <b>Order</b>
         controls the drawing of tabs from back to front.&nbsp; It is a
