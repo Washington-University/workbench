@@ -5789,15 +5789,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiCoordShapeSizingHa
         cornerSquareSize = GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(cornerSquareSize) / 2.0f;
     }
     
-    int32_t selectedVertexIndex(-1);
-    const SelectionItemAnnotation* selItemAnn(m_brainOpenGLFixedPipeline->m_brain->getSelectionManager()->getAnnotationIdentification());
-    const Annotation* selectedAnnotation(selItemAnn->getAnnotation());
-    if (selectedAnnotation != NULL) {
-        if (selectedAnnotation == multiCoordShape) {
-            selectedVertexIndex = selItemAnn->getPolyLineCoordinateIndex();
-        }
-    }
-    
     const float rotationAngle(0.0);
     
     const int32_t numberOfVertices = primitive->getNumberOfVertices();
