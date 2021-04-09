@@ -204,6 +204,7 @@
 #include "OperationSetMapNames.h"
 #include "OperationSetStructure.h"
 #include "OperationShowScene.h"
+#include "OperationShowSceneTwo.h"
 #include "OperationSpecFileMerge.h"
 #include "OperationSpecFileRelocate.h"
 #include "OperationSurfaceClosestVertex.h"
@@ -463,6 +464,9 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
     if (OperationShowScene::isShowSceneCommandAvailable()) {
         this->commandOperations.push_back(new CommandParser(new AutoOperationShowScene()));
+    }
+    if (OperationShowSceneTwo::isShowSceneCommandAvailable()) {
+        this->commandOperations.push_back(new CommandParser(new AutoOperationShowSceneTwo()));
     }
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileRelocate()));

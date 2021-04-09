@@ -83,6 +83,7 @@ OperationSetMapName.h
 OperationSetMapNames.h
 OperationSetStructure.h
 OperationShowScene.h
+OperationShowSceneTwo.h
 OperationSpecFileMerge.h
 OperationSpecFileRelocate.h
 OperationSurfaceClosestVertex.h
@@ -175,6 +176,7 @@ OperationSetMapName.cxx
 OperationSetMapNames.cxx
 OperationSetStructure.cxx
 OperationShowScene.cxx
+OperationShowSceneTwo.cxx
 OperationSpecFileMerge.cxx
 OperationSpecFileRelocate.cxx
 OperationSurfaceClosestVertex.cxx
