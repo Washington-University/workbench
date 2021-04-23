@@ -24,6 +24,7 @@
 #undef __IMAGE_CAPTURE_SETTINGS_DECLARE__
 
 #include "CaretAssert.h"
+#include "DataFileContentInformation.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -173,17 +174,71 @@ ImageCaptureSettings::copyHelperImageDimensionsModel(const ImageCaptureSettings&
 }
 
 /**
- * Get a description of this object's content.
- * @return String describing this object's content.
+ * Get the settings in a string for display to user
+ * @param windowIndices
+ *    Indices of the windows
+ * @param windowWidths
+ *    Widths of windows from scene
+ * @param windowHeights
+ *    Heights of windows from scene
  */
-AString 
-ImageCaptureSettings::toString() const
+AString
+ImageCaptureSettings::getSettingsAsText(const std::vector<int32_t>& windowIndices,
+                                        const std::vector<int32_t>& windowWidths,
+                                        const std::vector<int32_t>& windowHeights) const
 {
-    return "ImageCaptureSettings";
+    CaretAssert(windowIndices.size() == windowWidths.size());
+    CaretAssert(windowWidths.size()  == windowHeights.size());
+    
+    DataFileContentInformation info;
+    
+    const int32_t numWindows(windowIndices.size());
+    for (int32_t i = 0; i < numWindows; i++) {
+        QString name(QString("Window %1 ").arg(windowIndices[i] + 1));
+        info.addNameAndValue(name + "Width", windowWidths[i]);
+        info.addNameAndValue(name + "Height", windowHeights[i]);
+    }
+    
+    info.addNameAndValue("Dimensions", ImageCaptureDimensionsModeEnum::toGuiName(m_dimensionsMode));
+    switch (m_dimensionsMode) {
+        case ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_CUSTOM:
+        {
+            info.addNameAndValue("Pixel Width", getPixelWidth());
+            info.addNameAndValue("Pixel Height", getPixelHeight());
+            
+            const AString imageSpatialUnitsName(" " + ImageSpatialUnitsEnum::toGuiName(getSpatialUnits()));
+            
+            info.addNameAndValue("Image Width", AString::number(getSpatialWidth(), 'f', 2) + imageSpatialUnitsName);
+            info.addNameAndValue("Image Height", AString::number(getSpatialHeight(), 'f', 2) + imageSpatialUnitsName);
+            
+            const AString resolutionUnitsName(" " + ImageResolutionUnitsEnum::toGuiName(getImageResolutionUnits()));
+            info.addNameAndValue("Resolution", AString::number(getImageResolutionInSelectedUnits(), 'f', 2) + resolutionUnitsName);
+        }
+            break;
+        case ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_WINDOW_SIZE:
+            break;
+    }
+    
+    info.addNameAndValue("Crop to Tab/Window Lock Aspect Region", isCropToTabWindowLockAspectRegionEnabled());
+    info.addNameAndValue("Crop Image with Margin", isCroppingEnabled());
+    info.addNameAndValue("Crop Image Margin", getCroppingMargin());
+    
+    return info.getInformationInString();
 }
 
 /**
- * @return The width in pixels.
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString
+ImageCaptureSettings::toString() const
+{
+    std::vector<int32_t> emptyVector;
+    return getSettingsAsText(emptyVector, emptyVector, emptyVector);
+}
+
+/**
+ * @return The custom width in pixels.
  */
 int32_t
 ImageCaptureSettings::getPixelWidth() const
@@ -196,7 +251,7 @@ ImageCaptureSettings::getPixelWidth() const
 }
 
 /**
- * @return The height in pixels.
+ * @return The custom height in pixels.
  */
 int32_t
 ImageCaptureSettings::getPixelHeight() const

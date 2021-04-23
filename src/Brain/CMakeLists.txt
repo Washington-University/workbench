@@ -152,6 +152,8 @@ MovieRecorderCaptureRegionTypeEnum.h
 MovieRecorderModeEnum.h
 MovieRecorderVideoFormatTypeEnum.h
 MovieRecorderVideoResolutionTypeEnum.h
+OffScreenSceneRendererBase.h
+OffScreenSceneRendererOSMesa.h
 Overlay.h
 OverlaySet.h
 OverlaySetArray.h
@@ -333,6 +335,8 @@ MovieRecorderCaptureRegionTypeEnum.cxx
 MovieRecorderModeEnum.cxx
 MovieRecorderVideoFormatTypeEnum.cxx
 MovieRecorderVideoResolutionTypeEnum.cxx
+OffScreenSceneRendererBase.cxx
+OffScreenSceneRendererOSMesa.cxx
 Overlay.cxx
 OverlaySet.cxx
 OverlaySetArray.cxx
@@ -423,3 +427,12 @@ INCLUDE_DIRECTORIES(
    ${FREETYPE_INCLUDE_DIR_freetype2}
 )
 ENDIF (FREETYPE_FOUND)
+
+#
+# Mesa Library used by Mesa Offscreen Renderer
+#
+IF (OSMESA_FOUND)
+    ADD_DEFINITIONS(${OSMESA_DEFINITION})
+    INCLUDE_DIRECTORIES(${OSMESA_INCLUDE_DIRECTORY})
+ENDIF (OSMESA_FOUND)
+

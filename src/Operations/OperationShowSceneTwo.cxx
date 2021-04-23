@@ -27,7 +27,6 @@
 #include <QImage>
 #include <QColor>
 
-
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLViewportContent.h"
@@ -44,8 +43,10 @@
 #include "FileInformation.h"
 #include "DummyFontTextRenderer.h"
 #include "FtglFontTextRenderer.h"
+#include "ImageCaptureSettings.h"
 #include "ImageFile.h"
 #include "MapYokingGroupEnum.h"
+#include "OffScreenSceneRendererOSMesa.h"
 #include "OperationException.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
@@ -87,6 +88,20 @@ OperationShowSceneTwo::getShortDescription()
     return ("OFFSCREEN RENDERING OF SCENE TO AN IMAGE FILE VERSION TWO");
 }
 
+enum ParamKeys : int32_t {
+    PARAM_KEY_SCENE_FILE,
+    PARAM_KEY_SCENE_NAME_NUMBER,
+    PARAM_KEY_IMAGE_FILE_NAME,
+    PARAM_KEY_IMAGE_WIDTH,
+    PARAM_KEY_IMAGE_HEIGHT,
+    PARAM_KEY_USE_WINDOW_SIZE,
+    PARAM_KEY_NO_SCENE_COLORS,
+    PARAM_KEY_SET_MAP_YOKING,
+    PARAM_KEY_CONN_DB_LOGIN,
+    PARAM_KEY_SHOW_CAPTURE_SETTINGS,
+    PARAM_KEY_RENDERER
+};
+
 /**
  * @return Parameters for operation
  */
@@ -95,29 +110,67 @@ OperationShowSceneTwo::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
-    ret->addStringParameter(1, "scene-file", "scene file");
+    ret->addStringParameter(PARAM_KEY_SCENE_FILE,
+                            "scene-file",
+                            "scene file");
     
-    ret->addStringParameter(2, "scene-name-or-number", "name or number (starting at one) of the scene in the scene file");
+    ret->addStringParameter(PARAM_KEY_SCENE_NAME_NUMBER,
+                            "scene-name-or-number",
+                            "name or number (starting at one) of the scene in the scene file");
     
-    ret->addStringParameter(3, "image-file-name", "output image file name");
+    ret->addStringParameter(PARAM_KEY_IMAGE_FILE_NAME,
+                            "image-file-name",
+                            "output image file name");
     
-    ret->addIntegerParameter(4, "image-width", "width of output image(s), in pixels");
+    ret->addIntegerParameter(PARAM_KEY_IMAGE_WIDTH,
+                             "image-width",
+                             "width of output image(s), in pixels");
     
-    ret->addIntegerParameter(5, "image-height", "height of output image(s), in pixels");
+    ret->addIntegerParameter(PARAM_KEY_IMAGE_HEIGHT,
+                             "image-height",
+                             "height of output image(s), in pixels");
     
     const QString windowSizeSwitch("-use-window-size");
-    ret->createOptionalParameter(6, windowSizeSwitch, "Override image size with window size");
+    ret->createOptionalParameter(PARAM_KEY_USE_WINDOW_SIZE,
+                                 windowSizeSwitch,
+                                 "Override image size with window size");
     
-    ret->createOptionalParameter(7, "-no-scene-colors", "Do not use background and foreground colors in scene");
+    ret->createOptionalParameter(static_cast<int32_t>(PARAM_KEY_NO_SCENE_COLORS),
+                                 "-no-scene-colors",
+                                 "Do not use background and foreground colors in scene");
     
-    OptionalParameter* mapYokeOpt = ret->createOptionalParameter(8, "-set-map-yoke", "Override selected map index for a map yoking group.");
-    mapYokeOpt->addStringParameter(1, "Map Yoking Roman Numeral", "Roman numeral identifying the map yoking group (I, II, III, IV, V, VI, VII, VIII, IX, X)");
-    mapYokeOpt->addIntegerParameter(2, "Map Index", "Map index for yoking group.  Indices start at 1 (one)");
+    OptionalParameter* mapYokeOpt = ret->createOptionalParameter(PARAM_KEY_SET_MAP_YOKING,
+                                                                 "-set-map-yoke",
+                                                                 "Override selected map index for a map yoking group.");
+    mapYokeOpt->addStringParameter(1,
+                                   "Map Yoking Roman Numeral",
+                                   "Roman numeral identifying the map yoking group (I, II, III, IV, V, VI, VII, VIII, IX, X)");
+    mapYokeOpt->addIntegerParameter(2,
+                                    "Map Index",
+                                    "Map index for yoking group.  Indices start at 1 (one)");
     
-    OptionalParameter* connDbOpt = ret->createOptionalParameter(9, "-conn-db-login", "Login for scenes with files in Connectome Database");
-    connDbOpt->addStringParameter(1, "Username", "Connectome DB Username");
-    connDbOpt->addStringParameter(2, "Password", "Connectome DB Password");
+    OptionalParameter* connDbOpt = ret->createOptionalParameter(PARAM_KEY_CONN_DB_LOGIN,
+                                                                "-conn-db-login",
+                                                                "Login for scenes with files in Connectome Database");
+    connDbOpt->addStringParameter(1,
+                                  "Username",
+                                  "Connectome DB Username");
+    connDbOpt->addStringParameter(2,
+                                  "Password",
+                                  "Connectome DB Password");
     
+    const QString showCaptureSettingsSwitch("-show-capture-settings");
+    ret->createOptionalParameter(PARAM_KEY_SHOW_CAPTURE_SETTINGS,
+                                 showCaptureSettingsSwitch,
+                                 "Print settings from Capture Dialog only, DO NOT create image file");
+
+    const QString rendererSwitch("-renderer");
+    OptionalParameter* rendererOpt = ret->createOptionalParameter(PARAM_KEY_RENDERER,
+                                                                  rendererSwitch,
+                                                                  "Select renderer for drawing image");
+    rendererOpt->addStringParameter(1, "Renderer", "Name of renderer to use for drawing image");
+    
+
     AString helpText("Render content of browser windows displayed in a scene "
                      "into image file(s).  The image file name should be "
                      "similar to \"capture.png\".  If there is only one image "
@@ -135,6 +188,9 @@ OperationShowSceneTwo::getParameters()
                      "The image format is determined by the image file extension.\n"
                      "The available image formats may vary by operating system.\n"
                      "Image formats available on this system are:\n"
+                     "\n"
+                     "To view settings from Image Capture Dialog \n"
+                     "use the " + showCaptureSettingsSwitch + " option (no image file is created).\n"
                      );
     std::vector<AString> readImageFileExtensions, writeImageFileExtensions;
     AString defaultExtension;
@@ -165,45 +221,57 @@ OperationShowSceneTwo::getParameters()
                  "      output image.\n"
                  );
     
+    std::vector<std::unique_ptr<OffScreenSceneRendererBase>> allOffScreenRenderers(getOffScreenRenderers());
+    if (allOffScreenRenderers.empty()) {
+        helpText += ("\n"
+                     "No off screen renderers are available on this system.  Command WILL FAIL.");
+    }
+    else {
+        helpText += ("\n"
+                     "Renderers available on this computer are (first is default):\n");
+        for (const auto& osr : allOffScreenRenderers) {
+            helpText += ("   " + osr->getSwitchName() + + " - " + osr->getDescriptiveName() + "\n");
+        }
+        helpText += ("\n");
+        helpText += ("To use a renderer other than the default, use the \""
+                     + rendererSwitch
+                     + "\" option.");
+    }
     
     ret->setHelpText(helpText);
     
     return ret;
 }
 
-/**
- * Use Parameters and perform operation
- */
-#ifndef HAVE_OSMESA
-void
-OperationShowSceneTwo::useParameters(OperationParameters* /*myParams*/,
-                                  ProgressObject* /*myProgObj*/)
-{
-    throw OperationException("Show scene command not available due to this software version "
-                             "not being built with the Mesa OffScreen Library");
-}
-#else // HAVE_OSMESA
 void
 OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                   ProgressObject* myProgObj)
 {
-    GraphicsSystem graphicsSystem = GraphicsSystem::MESA;
-    
+    /*
+     * Default to the first renderer
+     */
+    std::vector<std::unique_ptr<OffScreenSceneRendererBase>> allOffScreenRenderers(getOffScreenRenderers());
+    if (allOffScreenRenderers.empty()) {
+        throw OperationException("No offscreen renderers are available");
+    }
+    CaretAssertVectorIndex(allOffScreenRenderers, 0);
+    OffScreenSceneRendererBase* offscreenRenderer(allOffScreenRenderers[0].get());
+
     LevelProgress myProgress(myProgObj);
-    AString sceneFileName = FileInformation(myParams->getString(1)).getAbsoluteFilePath();
-    AString sceneNameOrNumber = myParams->getString(2);
-    AString imageFileName = FileInformation(myParams->getString(3)).getAbsoluteFilePath();
-    const int32_t userImageWidth  = myParams->getInteger(4);
-    const int32_t userImageHeight = myParams->getInteger(5);
+    AString sceneFileName = FileInformation(myParams->getString(PARAM_KEY_SCENE_FILE)).getAbsoluteFilePath();
+    AString sceneNameOrNumber = myParams->getString(PARAM_KEY_SCENE_NAME_NUMBER);
+    AString imageFileName = FileInformation(myParams->getString(PARAM_KEY_IMAGE_FILE_NAME)).getAbsoluteFilePath();
+    const int32_t userImageWidth  = myParams->getInteger(PARAM_KEY_IMAGE_WIDTH);
+    const int32_t userImageHeight = myParams->getInteger(PARAM_KEY_IMAGE_HEIGHT);
     
-    OptionalParameter* useWindowSizeParam = myParams->getOptionalParameter(6);
+    OptionalParameter* useWindowSizeParam = myParams->getOptionalParameter(PARAM_KEY_USE_WINDOW_SIZE);
     const bool useWindowSizeForImageSizeFlag = useWindowSizeParam->m_present;
     
-    const bool doNotUseSceneColorsFlag = myParams->getOptionalParameter(7)->m_present;
+    const bool doNotUseSceneColorsFlag = myParams->getOptionalParameter(PARAM_KEY_NO_SCENE_COLORS)->m_present;
     
     MapYokingGroupEnum::Enum mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     int32_t mapYokingMapIndex = -1;
-    OptionalParameter* mapYokeOpt = myParams->getOptionalParameter(8);
+    OptionalParameter* mapYokeOpt = myParams->getOptionalParameter(PARAM_KEY_SET_MAP_YOKING);
     if (mapYokeOpt->m_present) {
         const AString romanNumeral = mapYokeOpt->getString(1);
         bool validFlag = false;
@@ -236,15 +304,34 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
      */
     AString username;
     AString password;
-    OptionalParameter* connDbOpt = myParams->getOptionalParameter(9);
+    OptionalParameter* connDbOpt = myParams->getOptionalParameter(PARAM_KEY_CONN_DB_LOGIN);
     if (connDbOpt->m_present) {
         username = connDbOpt->getString(1);
         password = connDbOpt->getString(2);
     }
     setRemoteLoginAndPassword(username,
                               password);
-    
 
+    OptionalParameter* showSettingsOpt = myParams->getOptionalParameter(PARAM_KEY_SHOW_CAPTURE_SETTINGS);
+
+    OptionalParameter* rendererOpt = myParams->getOptionalParameter(PARAM_KEY_RENDERER);
+    if (rendererOpt->m_present) {
+        const AString rendererName(rendererOpt->getString(1).toLower());
+        
+        bool foundFlag(false);
+        for (auto& osr : allOffScreenRenderers) {
+            if (rendererName == osr->getSwitchName().toLower()) {
+                offscreenRenderer = osr.get();
+                foundFlag = true;
+            }
+        }
+        if ( ! foundFlag) {
+            throw OperationException("Selected renderer with name \""
+                                     + rendererName
+                                     + " is not the name of a valid renderer on this system.");
+        }
+    }
+    
     AString sceneErrorMessage;
     loadSceneFileAndRestoreScene(sceneFileName,
                                  sceneNameOrNumber,
@@ -266,9 +353,43 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
     }
     const int32_t numberOfWindows = static_cast<int32_t>(allBrowserWindowContent.size());
     if (numberOfWindows <= 0) {
-        throw OperationException("No BrowserWindowContent was found for showing as scene");
+        throw OperationException("No BrowserWindowContent was found for showing as scene.  "
+                                 "This may occur with very old scene files.  Loading, Showing, and "
+                                 "Saving the scenes in Workbench will fix this problem.");
     }
     
+    /*
+     * Showing the settings must be done after the scene has been loaded since
+     * it uses information from the scene
+     */
+    if (showSettingsOpt->m_present) {
+        std::vector<int32_t> windowIndices;
+        std::vector<int32_t> windowWidths;
+        std::vector<int32_t> windowHeights;
+        for (int32_t iWindow = 0; iWindow < numberOfWindows; iWindow++) {
+            CaretAssertVectorIndex(allBrowserWindowContent, iWindow);
+            auto bwc = allBrowserWindowContent[iWindow];
+            windowIndices.push_back(bwc->getWindowIndex());
+            windowWidths.push_back(bwc->getSceneGraphicsWidth());
+            windowHeights.push_back(bwc->getSceneGraphicsHeight());
+        }
+        CaretAssert(windowWidths.size() == windowHeights.size());
+        
+        const ImageCaptureSettings* captureSettigns(SessionManager::get()->getImageCaptureDialogSettings());
+        std::cout << captureSettigns->getSettingsAsText(windowIndices,
+                                                        windowWidths,
+                                                        windowHeights) << std::endl;
+
+        return;
+    }
+    
+    if ( ! offscreenRenderer) {
+        throw OperationException("No offscreen renderer is selected");
+    }
+    if ( ! offscreenRenderer->isAvailable()) {
+        throw OperationException(offscreenRenderer->getSwitchName() + " is not available on this system.");
+    }
+
     /*
      * Restore windows
      */
@@ -279,7 +400,7 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         const int32_t outputImageIndex = ((numberOfWindows > 1)
                                           ? iWindow
                                           : -1);
-        Inputs inputs(graphicsSystem,
+        Inputs inputs(offscreenRenderer,
                       bwc,
                       imageFileName,
                       outputImageIndex,
@@ -517,23 +638,14 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
                                  + " failed.");
     }
     
-#ifdef HAVE_OSMESA
-    OSMesaContext mesaContext = 0;
-#endif // HAVE_OSMESA
-    switch (inputs.m_graphicsSystem) {
-        case GraphicsSystem::MESA:
-#ifdef HAVE_OSMESA
-            mesaContext = initializeMesa(imageBuffer,
-                                         imageWidth,
-                                         imageHeight);
-#else  // HAVE_OSMESA
-            CaretAssert(0);
-#endif // HAVE_OSMESA
-            break;
-        case GraphicsSystem::OPEN_GL:
-            CaretAssert(0);
-            break;
+    std::unique_ptr<BrainOpenGL> brainOpenGL;
+    
+    if ( ! inputs.m_offscreenRenderer->initialize(imageWidth,
+                                                  imageHeight)) {
+        throw OperationException(inputs.m_offscreenRenderer->getErrorMessage());
     }
+    
+    brainOpenGL.reset(createBrainOpenGL());
     
     int windowViewport[4] = { 0, 0, imageWidth, imageHeight };
     const int windowBeforeAspectLockingViewport[4] = { 0, 0, imageWidth, imageHeight };
@@ -545,7 +657,7 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
      * If tile tabs was saved to the scene, restore it as the scenes tile tabs configuration
      */
     if (restoreToTabTiles) {
-        CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
+//        CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
         
         TileTabsLayoutGridConfiguration* gridConfig = NULL;
         bool manualFlag(false);
@@ -615,15 +727,12 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
                 brainOpenGL->drawModels(windowIndex,
                                         UserInputModeEnum::Enum::VIEW,
                                         brain,
-                                        mesaContext,
+                                        inputs.m_offscreenRenderer->getDrawingContext(),
                                         constViewports);
-                
-                
-                writeImage(inputs.m_imageFileName,
-                           inputs.m_outputImageIndex,
-                           imageBuffer,
-                           imageWidth,
-                           imageHeight);
+
+                writeImageFile(inputs.m_imageFileName,
+                               inputs.m_outputImageIndex,
+                               inputs.m_offscreenRenderer->getImageFile());
                 
                 for (std::vector<BrainOpenGLViewportContent*>::iterator vpIter = viewports.begin();
                      vpIter != viewports.end();
@@ -638,8 +747,6 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
         }
     }
     else {
-        CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
-        
         const int32_t selectedTabIndex = bwc->getSceneSelectedTabIndex();
         
         EventBrowserTabGet getTabContent(selectedTabIndex);
@@ -667,30 +774,13 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
         brainOpenGL->drawModels(windowIndex,
                                 UserInputModeEnum::Enum::VIEW,
                                 brain,
-                                mesaContext,
+                                inputs.m_offscreenRenderer->getDrawingContext(),
                                 viewportContents);
-        
-        writeImage(inputs.m_imageFileName,
-                   inputs.m_outputImageIndex,
-                   imageBuffer,
-                   imageWidth,
-                   imageHeight);
+
+        writeImageFile(inputs.m_imageFileName,
+                       inputs.m_outputImageIndex,
+                       inputs.m_offscreenRenderer->getImageFile());
     }
-    
-    switch (inputs.m_graphicsSystem) {
-        case GraphicsSystem::MESA:
-#ifdef HAVE_OSMESA
-            finishMesa(mesaContext);
-#endif // HAVE_OSMESA
-            break;
-        case GraphicsSystem::OPEN_GL:
-            CaretAssert(0);
-            break;
-    }
-    /*
-     * Free image memory and Mesa context
-     */
-    delete[] imageBuffer;
 }
 
 
@@ -877,8 +967,6 @@ OperationShowSceneTwo::createBrainOpenGL()
     return brainOpenGL;
 }
 
-#endif // HAVE_OSMESA
-
 /**
  * Write the image data to a Image File.
  *
@@ -886,20 +974,16 @@ OperationShowSceneTwo::createBrainOpenGL()
  *     Name of image file.
  * @param imageIndex
  *     Index of image.
- * @param imageContent
- *     content of image.
- * @param imageWidth
- *     width of image.
- * @param imageHeight
- *     height of image.
+ * @param imageFile
+ *     Image file for writing.
  */
 void
-OperationShowSceneTwo::writeImage(const AString& imageFileName,
-                               const int32_t imageIndex,
-                               const unsigned char* imageContent,
-                               const int32_t imageWidth,
-                               const int32_t imageHeight)
+OperationShowSceneTwo::writeImageFile(const AString& imageFileName,
+                                      const int32_t imageIndex,
+                                      const ImageFile* imageFile)
 {
+    CaretAssert(imageFile);
+    
     /*
      * Create name of image
      */
@@ -921,74 +1005,35 @@ OperationShowSceneTwo::writeImage(const AString& imageFileName,
     }
     
     try {
-        ImageFile imageFile(imageContent,
-                            imageWidth,
-                            imageHeight,
-                            ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM);
-        imageFile.writeFile(outputName);
+        const QImage* qImage = imageFile->getAsQImage();
+        if (qImage == NULL) {
+            throw OperationException("QImage in ImageFile is missing (NULL)");
+        }
+        if (qImage->isNull()) {
+            throw OperationException("QImage in ImageFile created by offscreen renderer is NULL");
+        }
+        const_cast<ImageFile*>(imageFile)->writeFile(outputName);
     }
     catch (const DataFileException& dfe) {
         throw OperationException(dfe);
     }
 }
 
-#ifdef HAVE_OSMESA
 /**
- * Initialize the mesa graphics system
- * @param imageBuffer
- *    Buffer for image data
- * @param imageWidth
- *    Width of output image
- * @param imageHeight
- *    Height of output image
- * @return
- *    The mesa context
+ * @return Instances of all available renderers
  */
-OSMesaContext
-OperationShowSceneTwo::initializeMesa(unsigned char* imageBuffer,
-                                      const int32_t imageWidth,
-                                      const int32_t imageHeight)
+std::vector<std::unique_ptr<OffScreenSceneRendererBase>>
+OperationShowSceneTwo::getOffScreenRenderers()
 {
-    //
-    // Create the Mesa Context
-    //
-    const int depthBits = 16;
-    const int stencilBits = 0;
-    const int accumBits = 0;
-    OSMesaContext mesaContext = OSMesaCreateContextExt(OSMESA_RGBA,
-                                                       depthBits,
-                                                       stencilBits,
-                                                       accumBits,
-                                                       NULL);
-    if (mesaContext == 0) {
-        throw ("Creating Mesa Context failed.");
+    std::vector<std::unique_ptr<OffScreenSceneRendererBase>> renderers;
+    
+    std::unique_ptr<OffScreenSceneRendererBase> mesaRenderer(new OffScreenSceneRendererOSMesa());
+    if (mesaRenderer->isAvailable()) {
+        renderers.push_back(std::move(mesaRenderer));
     }
     
-    //
-    // Assign buffer to Mesa Context and make current
-    //
-    if (OSMesaMakeCurrent(mesaContext,
-                          imageBuffer,
-                          GL_UNSIGNED_BYTE,
-                          imageWidth,
-                          imageHeight) == 0) {
-        throw OperationException("Assigning buffer to context and make current failed.");
-    }
-    
-    return mesaContext;
+    return renderers;
 }
-
-/**
- * Finish (end) the OSMesa
- * @param mesaContext
- *     The mesa context
- */
-void
-OperationShowSceneTwo::finishMesa(OSMesaContext mesaContext)
-{
-    OSMesaDestroyContext(mesaContext);
-}
-#endif // HAVE_OSMESA
 
 /**
  * Is the show scene command available?
@@ -996,11 +1041,9 @@ OperationShowSceneTwo::finishMesa(OSMesaContext mesaContext)
 bool
 OperationShowSceneTwo::isShowSceneCommandAvailable()
 {
-#ifdef HAVE_OSMESA
-    return true;
-#else  // HAVE_OSMESA
-    return false;
-#endif  // HAVE_OSMESA
-    
+    /*
+     * True if at least one renderer is available
+     */
+    return ( ! getOffScreenRenderers().empty());
 }
 

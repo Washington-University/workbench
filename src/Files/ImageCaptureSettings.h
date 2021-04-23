@@ -44,6 +44,10 @@ namespace caret {
 
         ImageCaptureSettings& operator=(const ImageCaptureSettings& obj);
         
+        AString getSettingsAsText(const std::vector<int32_t>& windowIndices,
+                                  const std::vector<int32_t>& windowWidths,
+                                  const std::vector<int32_t>& windowHeights) const;
+        
         int32_t getPixelWidth() const;
         
         int32_t getPixelHeight() const;

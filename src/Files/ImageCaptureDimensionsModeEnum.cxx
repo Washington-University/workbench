@@ -110,11 +110,11 @@ ImageCaptureDimensionsModeEnum::initialize()
 
     enumData.push_back(ImageCaptureDimensionsModeEnum(IMAGE_CAPTURE_DIMENSIONS_MODE_CUSTOM, 
                                     "IMAGE_CAPTURE_DIMENSIONS_MODE_CUSTOM", 
-                                    ""));
+                                    "Custom Size"));
     
     enumData.push_back(ImageCaptureDimensionsModeEnum(IMAGE_CAPTURE_DIMENSIONS_MODE_WINDOW_SIZE, 
                                     "IMAGE_CAPTURE_DIMENSIONS_MODE_WINDOW_SIZE", 
-                                    ""));
+                                    "Window Size"));
     
 }
 

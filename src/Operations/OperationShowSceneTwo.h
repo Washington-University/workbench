@@ -36,6 +36,8 @@ namespace caret {
 
     class BrainOpenGLFixedPipeline;
     class BrowserWindowContent;
+    class ImageFile;
+    class OffScreenSceneRendererBase;
     class SceneClass;
     
     class OperationShowSceneTwo : public AbstractOperation {
@@ -53,14 +55,9 @@ namespace caret {
         static bool isShowSceneCommandAvailable();
         
     private:
-        enum class GraphicsSystem {
-            MESA, 
-            OPEN_GL
-        };
-        
         class Inputs {
         public:
-            Inputs(const GraphicsSystem graphicsSystem,
+            Inputs(OffScreenSceneRendererBase* offscreenRenderer,
                    BrowserWindowContent* browserWindowContent,
                    const QString imageFileName,
                    const int32_t outputImageIndex,
@@ -68,7 +65,7 @@ namespace caret {
                    const int32_t imageHeight,
                    const bool useWindowSizeForImageSizeFlag,
                    const bool doNotUseSceneColorsFlag)
-            : m_graphicsSystem(graphicsSystem),
+            : m_offscreenRenderer(offscreenRenderer),
             m_browserWindowContent(browserWindowContent),
             m_imageFileName(imageFileName),
             m_outputImageIndex(outputImageIndex),
@@ -78,7 +75,7 @@ namespace caret {
             m_doNotUseSceneColorsFlag(doNotUseSceneColorsFlag)
             { }
             
-            const GraphicsSystem m_graphicsSystem;
+            OffScreenSceneRendererBase* m_offscreenRenderer;
             BrowserWindowContent* m_browserWindowContent;
             const QString m_imageFileName;
             const int32_t m_outputImageIndex;
@@ -107,12 +104,10 @@ namespace caret {
         
         static void renderWindowToImage(Inputs& inputs);
         
-        static void writeImage(const AString& imageFileName,
-                                  const int32_t imageIndex,
-                                  const unsigned char* imageContent,
-                                  const int32_t imageWidth,
-                                  const int32_t imageHeight);
-        
+        static void writeImageFile(const AString& imageFileName,
+                                   const int32_t imageIndex,
+                                   const ImageFile* imageFile);
+
         static void estimateGraphicsSize(const SceneClass* windowSceneClass,
                                          float& estimatedWidthOut,
                                          float& estimatedHeightOut);
@@ -123,13 +118,7 @@ namespace caret {
                                    float& overlayToolBoxHeightOut,
                                    QString& overlayToolBoxOrientationOut);
         
-#ifdef HAVE_OSMESA
-        static OSMesaContext initializeMesa(unsigned char* imageBuffer,
-                                            const int32_t imageWidth,
-                                            const int32_t imageHeight);
-        
-        static void finishMesa(OSMesaContext mesaContext);        
-#endif // HAVE_OSMESA
+        static std::vector<std::unique_ptr<OffScreenSceneRendererBase>> getOffScreenRenderers();
     };
 
     typedef TemplateAutoOperation<OperationShowSceneTwo> AutoOperationShowSceneTwo;
