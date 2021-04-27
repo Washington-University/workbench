@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #ifdef HAVE_GLEW
 #include <GL/glew.h>
 #endif
