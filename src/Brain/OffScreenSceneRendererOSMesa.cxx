@@ -53,9 +53,11 @@ OffScreenSceneRendererOSMesa::OffScreenSceneRendererOSMesa()
  */
 OffScreenSceneRendererOSMesa::~OffScreenSceneRendererOSMesa()
 {
+#ifdef HAVE_OSMESA
     if (m_mesaContext != 0) {
         OSMesaDestroyContext(m_mesaContext);
     }
+#endif
 }
 
 /**
