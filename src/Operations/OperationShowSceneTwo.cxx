@@ -92,14 +92,16 @@ enum ParamKeys : int32_t {
     PARAM_KEY_SCENE_FILE,
     PARAM_KEY_SCENE_NAME_NUMBER,
     PARAM_KEY_IMAGE_FILE_NAME,
-    PARAM_KEY_IMAGE_WIDTH,
-    PARAM_KEY_IMAGE_HEIGHT,
-    PARAM_KEY_USE_WINDOW_SIZE,
-    PARAM_KEY_NO_SCENE_COLORS,
-    PARAM_KEY_SET_MAP_YOKING,
-    PARAM_KEY_CONN_DB_LOGIN,
+    PARAM_KEY_SIZE_IMAGE_WIDTH,
+    PARAM_KEY_SIZE_IMAGE_HEIGHT,
+    PARAM_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT,
+    PARAM_KEY_SIZE_CAPTURE_DIALOG,
+    PARAM_KEY_SIZE_WINDOW,
+    PARAM_KEY_OPTION_NO_SCENE_COLORS,
+    PARAM_KEY_OPTION_SET_MAP_YOKING,
+    PARAM_KEY_OPTION_CONN_DB_LOGIN,
     PARAM_KEY_SHOW_CAPTURE_SETTINGS,
-    PARAM_KEY_RENDERER
+    PARAM_KEY_OPTION_RENDERER
 };
 
 /**
@@ -122,41 +124,63 @@ OperationShowSceneTwo::getParameters()
                             "image-file-name",
                             "output image file name");
     
-    ret->addIntegerParameter(PARAM_KEY_IMAGE_WIDTH,
-                             "image-width",
-                             "width of output image(s), in pixels");
-    
-    ret->addIntegerParameter(PARAM_KEY_IMAGE_HEIGHT,
-                             "image-height",
-                             "height of output image(s), in pixels");
-    
-    const QString windowSizeSwitch("-use-window-size");
-    ret->createOptionalParameter(PARAM_KEY_USE_WINDOW_SIZE,
+    const QString windowSizeSwitch("-size-window");
+    ret->createOptionalParameter(PARAM_KEY_SIZE_WINDOW,
                                  windowSizeSwitch,
-                                 "Override image size with window size");
+                                 "Output image is size of window's graphics region from when scene was created");
     
-    ret->createOptionalParameter(static_cast<int32_t>(PARAM_KEY_NO_SCENE_COLORS),
+    const QString captureDialogSizeSwitch("-size-capture");
+    ret->createOptionalParameter(PARAM_KEY_SIZE_CAPTURE_DIALOG,
+                                 captureDialogSizeSwitch,
+                                 "Output image uses size from Capture Dialog when scene was created");
+    
+    OptionalParameter* imageWidthAndHeightOpt = ret->createOptionalParameter(PARAM_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT,
+                                                                    "-size-width-height",
+                                                                    "Width and height for output image");
+    imageWidthAndHeightOpt->addDoubleParameter(1,
+                                      "width",
+                                      "Width for output image");
+    imageWidthAndHeightOpt->addDoubleParameter(2,
+                                               "height",
+                                               "Height for output image");
+
+    const QString aspectMsg(" is computed using the aspect ratio from the window's width and height saved in the scene.");
+    OptionalParameter* imageWidthOpt = ret->createOptionalParameter(PARAM_KEY_SIZE_IMAGE_WIDTH,
+                                                                    "-size-width",
+                                                                    "Width for output image.  Height" + aspectMsg);
+    imageWidthOpt->addDoubleParameter(1,
+                                      "width",
+                                       "Width for output image");
+    
+    OptionalParameter* imageHeightOpt = ret->createOptionalParameter(PARAM_KEY_SIZE_IMAGE_HEIGHT,
+                                                                     "-size-height",
+                                                                     "Height for output image.  Width" + aspectMsg);
+    imageHeightOpt->addDoubleParameter(1,
+                                        "height",
+                                        "Height for output image");
+
+    ret->createOptionalParameter(static_cast<int32_t>(PARAM_KEY_OPTION_NO_SCENE_COLORS),
                                  "-no-scene-colors",
                                  "Do not use background and foreground colors in scene");
     
-    OptionalParameter* mapYokeOpt = ret->createOptionalParameter(PARAM_KEY_SET_MAP_YOKING,
+    OptionalParameter* mapYokeOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_SET_MAP_YOKING,
                                                                  "-set-map-yoke",
                                                                  "Override selected map index for a map yoking group.");
     mapYokeOpt->addStringParameter(1,
-                                   "Map Yoking Roman Numeral",
+                                   "map yoking roman numeral",
                                    "Roman numeral identifying the map yoking group (I, II, III, IV, V, VI, VII, VIII, IX, X)");
     mapYokeOpt->addIntegerParameter(2,
-                                    "Map Index",
+                                    "map undex",
                                     "Map index for yoking group.  Indices start at 1 (one)");
     
-    OptionalParameter* connDbOpt = ret->createOptionalParameter(PARAM_KEY_CONN_DB_LOGIN,
+    OptionalParameter* connDbOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_CONN_DB_LOGIN,
                                                                 "-conn-db-login",
                                                                 "Login for scenes with files in Connectome Database");
     connDbOpt->addStringParameter(1,
-                                  "Username",
+                                  "username",
                                   "Connectome DB Username");
     connDbOpt->addStringParameter(2,
-                                  "Password",
+                                  "password",
                                   "Connectome DB Password");
     
     const QString showCaptureSettingsSwitch("-show-capture-settings");
@@ -165,7 +189,7 @@ OperationShowSceneTwo::getParameters()
                                  "Print settings from Capture Dialog only, DO NOT create image file");
 
     const QString rendererSwitch("-renderer");
-    OptionalParameter* rendererOpt = ret->createOptionalParameter(PARAM_KEY_RENDERER,
+    OptionalParameter* rendererOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_RENDERER,
                                                                   rendererSwitch,
                                                                   "Select renderer for drawing image");
     rendererOpt->addStringParameter(1, "Renderer", "Name of renderer to use for drawing image");
@@ -261,17 +285,98 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
     AString sceneFileName = FileInformation(myParams->getString(PARAM_KEY_SCENE_FILE)).getAbsoluteFilePath();
     AString sceneNameOrNumber = myParams->getString(PARAM_KEY_SCENE_NAME_NUMBER);
     AString imageFileName = FileInformation(myParams->getString(PARAM_KEY_IMAGE_FILE_NAME)).getAbsoluteFilePath();
-    const int32_t userImageWidth  = myParams->getInteger(PARAM_KEY_IMAGE_WIDTH);
-    const int32_t userImageHeight = myParams->getInteger(PARAM_KEY_IMAGE_HEIGHT);
     
-    OptionalParameter* useWindowSizeParam = myParams->getOptionalParameter(PARAM_KEY_USE_WINDOW_SIZE);
-    const bool useWindowSizeForImageSizeFlag = useWindowSizeParam->m_present;
+    const QString moreThanOneSizeOptionMsg("More than one \"-size\" option is specified; must specify one and only one \"size\" option.");
+    enum class ImageSizeMode {
+        MODE_INVALID,
+        MODE_CAPTURE_DIALOG,
+        MODE_WINDOW,
+        MODE_HEIGHT_FROM_WIDTH,
+        MODE_WIDTH_FROM_HEIGHT,
+        MODE_WIDTH_AND_HEIGHT
+    };
+    ImageSizeMode imageSizeMode = ImageSizeMode::MODE_INVALID;
     
-    const bool doNotUseSceneColorsFlag = myParams->getOptionalParameter(PARAM_KEY_NO_SCENE_COLORS)->m_present;
+    OptionalParameter* imageCaptureDialogSizeOption = myParams->getOptionalParameter(PARAM_KEY_SIZE_CAPTURE_DIALOG);
+    OptionalParameter* imageWindowSizeOption = myParams->getOptionalParameter(PARAM_KEY_SIZE_WINDOW);
+    OptionalParameter* imageWidthAndHeightOption = myParams->getOptionalParameter(PARAM_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT);
+    OptionalParameter* imageWidthOption  = myParams->getOptionalParameter(PARAM_KEY_SIZE_IMAGE_WIDTH);
+    OptionalParameter* imageHeightOption = myParams->getOptionalParameter(PARAM_KEY_SIZE_IMAGE_HEIGHT);
+    if (imageCaptureDialogSizeOption->m_present) {
+        if (imageSizeMode != ImageSizeMode::MODE_INVALID) {
+            throw (moreThanOneSizeOptionMsg);
+        }
+        imageSizeMode = ImageSizeMode::MODE_CAPTURE_DIALOG;
+    }
+    if (imageWindowSizeOption->m_present) {
+        if (imageSizeMode != ImageSizeMode::MODE_INVALID) {
+            throw (moreThanOneSizeOptionMsg);
+        }
+        imageSizeMode = ImageSizeMode::MODE_WINDOW;
+    }
+    if (imageWidthAndHeightOption->m_present) {
+        if (imageSizeMode != ImageSizeMode::MODE_INVALID) {
+            throw (moreThanOneSizeOptionMsg);
+        }
+        imageSizeMode = ImageSizeMode::MODE_WIDTH_AND_HEIGHT;
+    }
+    if (imageWidthOption->m_present) {
+        if (imageSizeMode != ImageSizeMode::MODE_INVALID) {
+            throw (moreThanOneSizeOptionMsg);
+        }
+        imageSizeMode = ImageSizeMode::MODE_HEIGHT_FROM_WIDTH;
+    }
+    if (imageHeightOption->m_present) {
+        if (imageSizeMode != ImageSizeMode::MODE_INVALID) {
+            throw (moreThanOneSizeOptionMsg);
+        }
+        imageSizeMode = ImageSizeMode::MODE_WIDTH_FROM_HEIGHT;
+    }
+
+    float floatImageWidth(-1.0f);
+    float floatImageHeight(-1.0f);
+    switch (imageSizeMode) {
+        case ImageSizeMode::MODE_INVALID:
+            throw OperationException("Must specify one and only one of the size options");
+            break;
+        case ImageSizeMode::MODE_CAPTURE_DIALOG:
+            CaretAssert(imageCaptureDialogSizeOption->m_present);
+            break;
+        case ImageSizeMode::MODE_HEIGHT_FROM_WIDTH:
+            CaretAssert(imageWidthOption->m_present);
+            floatImageWidth = imageWidthOption->getDouble(1);
+            if (floatImageWidth <= 0.0f) {
+                throw OperationException("Image width is invalid (zero or less)");
+            }
+            break;
+        case ImageSizeMode::MODE_WIDTH_AND_HEIGHT:
+            CaretAssert(imageWidthAndHeightOption->m_present);
+            floatImageWidth = imageWidthAndHeightOption->getDouble(1);
+            if (floatImageWidth <= 0.0f) {
+                throw OperationException("Image width is invalid (zero or less)");
+            }
+            floatImageHeight = imageWidthAndHeightOption->getDouble(2);
+            if (floatImageHeight <= 0.0f) {
+                throw OperationException("Image height is invalid (zero or less)");
+            }
+            break;
+        case ImageSizeMode::MODE_WIDTH_FROM_HEIGHT:
+            CaretAssert(imageHeightOption->m_present);
+            floatImageHeight = imageHeightOption->getDouble(1);
+            if (floatImageHeight <= 0.0f) {
+                throw OperationException("Image height is invalid (zero or less)");
+            }
+            break;
+        case ImageSizeMode::MODE_WINDOW:
+            CaretAssert(imageWindowSizeOption->m_present);
+            break;
+    }
+
+    const bool doNotUseSceneColorsFlag = myParams->getOptionalParameter(PARAM_KEY_OPTION_NO_SCENE_COLORS)->m_present;
     
     MapYokingGroupEnum::Enum mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     int32_t mapYokingMapIndex = -1;
-    OptionalParameter* mapYokeOpt = myParams->getOptionalParameter(PARAM_KEY_SET_MAP_YOKING);
+    OptionalParameter* mapYokeOpt = myParams->getOptionalParameter(PARAM_KEY_OPTION_SET_MAP_YOKING);
     if (mapYokeOpt->m_present) {
         const AString romanNumeral = mapYokeOpt->getString(1);
         bool validFlag = false;
@@ -290,21 +395,13 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
          */
         mapYokingMapIndex--;
     }
-    
-    if ( ! useWindowSizeForImageSizeFlag) {
-        if (userImageWidth <= 0) {
-            throw OperationException("Invalid image size width="
-                                     + QString::number(userImageWidth));
-        }
-    }
-
-    
+        
     /*
      * Need to set username/password for files in ConnectomeDB
      */
     AString username;
     AString password;
-    OptionalParameter* connDbOpt = myParams->getOptionalParameter(PARAM_KEY_CONN_DB_LOGIN);
+    OptionalParameter* connDbOpt = myParams->getOptionalParameter(PARAM_KEY_OPTION_CONN_DB_LOGIN);
     if (connDbOpt->m_present) {
         username = connDbOpt->getString(1);
         password = connDbOpt->getString(2);
@@ -314,7 +411,7 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
 
     OptionalParameter* showSettingsOpt = myParams->getOptionalParameter(PARAM_KEY_SHOW_CAPTURE_SETTINGS);
 
-    OptionalParameter* rendererOpt = myParams->getOptionalParameter(PARAM_KEY_RENDERER);
+    OptionalParameter* rendererOpt = myParams->getOptionalParameter(PARAM_KEY_OPTION_RENDERER);
     if (rendererOpt->m_present) {
         const AString rendererName(rendererOpt->getString(1).toLower());
         
@@ -358,6 +455,8 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                  "Saving the scenes in Workbench will fix this problem.");
     }
     
+    const ImageCaptureSettings* sceneCaptureSettings(SessionManager::get()->getImageCaptureDialogSettings());
+    
     /*
      * Showing the settings must be done after the scene has been loaded since
      * it uses information from the scene
@@ -375,11 +474,9 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         }
         CaretAssert(windowWidths.size() == windowHeights.size());
         
-        const ImageCaptureSettings* captureSettigns(SessionManager::get()->getImageCaptureDialogSettings());
-        std::cout << captureSettigns->getSettingsAsText(windowIndices,
+        std::cout << sceneCaptureSettings->getSettingsAsText(windowIndices,
                                                         windowWidths,
                                                         windowHeights) << std::endl;
-
         return;
     }
     
@@ -397,6 +494,82 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         CaretAssertVectorIndex(allBrowserWindowContent, iWindow);
         auto bwc = allBrowserWindowContent[iWindow];
         
+        std::unique_ptr<ImageCaptureSettings> imageSettings;
+        
+        int32_t imageWidth(-1);
+        int32_t imageHeight(-1);
+        
+        const float windowWidth = bwc->getSceneGraphicsWidth();
+        const float windowHeight = bwc->getSceneGraphicsHeight();
+        const float aspectRatio((windowWidth > 0.0)
+                                ? (windowHeight / windowWidth)
+                                : 0.0);
+        switch (imageSizeMode) {
+            case ImageSizeMode::MODE_INVALID:
+                CaretAssert(0);
+                break;
+            case ImageSizeMode::MODE_CAPTURE_DIALOG:
+                CaretAssertToDoFatal();
+                break;
+            case ImageSizeMode::MODE_HEIGHT_FROM_WIDTH:
+                if (aspectRatio <= 0.0) {
+                    throw OperationException("Width and/or height of window from scene is invalid or missing (old scene)"
+                                             "width=" + QString::number(imageWidth)
+                                             + "height=" + QString::number(imageHeight)
+                                             + ".  Both width and height options must be specified");
+                }
+                imageHeight = static_cast<int32_t>(aspectRatio * floatImageWidth);
+                if (imageHeight <= 0.0) {
+                    throw OperationException("Failed to compute height from width.  Width and/or height of window from scene may be invalid"
+                                             "width=" + QString::number(imageWidth)
+                                             + "height=" + QString::number(imageHeight)
+                                             + ".  Both width and height options must be specified");
+                }
+                imageWidth = static_cast<int32_t>(floatImageWidth);
+                break;
+            case ImageSizeMode::MODE_WIDTH_AND_HEIGHT:
+                imageWidth  = static_cast<int32_t>(floatImageWidth);
+                imageHeight = static_cast<int32_t>(floatImageHeight);
+                break;
+            case ImageSizeMode::MODE_WIDTH_FROM_HEIGHT:
+                break;
+                if (aspectRatio <= 0.0) {
+                    throw OperationException("Width and/or height of window from scene is invalid or missing (old scene)"
+                                             "width=" + QString::number(imageWidth)
+                                             + "height=" + QString::number(imageHeight)
+                                             + ".  Both width and height options must be specified");
+                }
+                imageWidth = static_cast<int32_t>(floatImageWidth / aspectRatio);
+                if (imageWidth <= 0.0) {
+                    throw OperationException("Failed to compute width from height.  Width and/or height of window from scene may be invalid"
+                                             "width=" + QString::number(imageWidth)
+                                             + "height=" + QString::number(imageHeight)
+                                             + ".  Both width and height options must be specified");
+                }
+                imageHeight = static_cast<int32_t>(floatImageHeight);
+            case ImageSizeMode::MODE_WINDOW:
+                imageWidth  = static_cast<int32_t>(windowWidth);
+                imageHeight = static_cast<int32_t>(windowHeight);
+                if ((imageWidth <= 0)
+                    || (imageHeight <= 0)) {
+                    throw OperationException("Width and/or height of window from scene is invalid or missing (old scene)"
+                                             "width=" + QString::number(imageWidth)
+                                             + "height=" + QString::number(imageHeight)
+                                             + ".  Both  width and height options must be specified");
+                }
+                break;
+        }
+
+        if ((imageWidth < 0)
+            || (imageHeight < 0)) {
+            throw OperationException("Image width="
+                                     + QString::number(imageWidth)
+                                     + " and/or height="
+                                     + QString::number(imageHeight)
+                                     + " is invalid.");
+        }
+        
+        
         const int32_t outputImageIndex = ((numberOfWindows > 1)
                                           ? iWindow
                                           : -1);
@@ -404,9 +577,8 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                       bwc,
                       imageFileName,
                       outputImageIndex,
-                      userImageWidth,
-                      userImageHeight,
-                      useWindowSizeForImageSizeFlag,
+                      imageWidth,
+                      imageHeight,
                       doNotUseSceneColorsFlag);
         
         renderWindowToImage(inputs);
@@ -544,64 +716,64 @@ OperationShowSceneTwo::setRemoteLoginAndPassword(const AString& username,
 }
 
 
-/*
- * Get width and height for image
- * @param inputs
- *     Inputs for processing
- * @param widthOut
- *     Output image width
- * @param heightOut
- *     Output image height
- */
-void
-OperationShowSceneTwo::getImageWidthAndHeight(const Inputs& inputs,
-                                              int32_t& widthOut,
-                                              int32_t& heightOut)
-{
-    BrowserWindowContent* bwc(inputs.m_browserWindowContent);
-    CaretAssert(bwc);
-    
-    int32_t imageWidth(inputs.m_imageWidth);
-    int32_t imageHeight(inputs.m_imageHeight);
-    
-    const float geomWidth = bwc->getSceneGraphicsWidth();
-    const float geomHeight = bwc->getSceneGraphicsHeight();
-    
-    if (inputs.m_useWindowSizeForImageSizeFlag) {
-        if ((geomWidth > 0)
-            && (geomHeight > 0)) {
-            imageWidth = geomWidth;
-            imageHeight = geomHeight;
-        }
-        else {
-            throw OperationException("Scene is very old and does not contain size of window.  Use option with width/height.");
-        }
-    }
-    else if (imageHeight <= 0) {
-        /*
-         * Use aspect from graphics region to set image height
-         */
-        if ((geomWidth > 0)
-            && (geomHeight > 0)) {
-            const float aspect(static_cast<float>(geomHeight) / static_cast<float>(geomWidth));
-            imageHeight = imageWidth * aspect;
-        }
-        else {
-            throw OperationException("Scene is very old and does not contain size of window.  Must specify height.");
-        }
-    }
-    
-    if ((imageWidth <= 0)
-        || (imageHeight <= 0)) {
-        throw OperationException("Invalid image size width="
-                                 + QString::number(imageWidth)
-                                 + ", height="
-                                 + QString::number(imageHeight));
-    }
-    
-    widthOut  = imageWidth;
-    heightOut = imageHeight;
-}
+///*
+// * Get width and height for image
+// * @param inputs
+// *     Inputs for processing
+// * @param widthOut
+// *     Output image width
+// * @param heightOut
+// *     Output image height
+// */
+//void
+//OperationShowSceneTwo::getImageWidthAndHeight(const Inputs& inputs,
+//                                              int32_t& widthOut,
+//                                              int32_t& heightOut)
+//{
+//    BrowserWindowContent* bwc(inputs.m_browserWindowContent);
+//    CaretAssert(bwc);
+//
+//    int32_t imageWidth(inputs.m_imageWidth);
+//    int32_t imageHeight(inputs.m_imageHeight);
+//
+//    const float geomWidth = bwc->getSceneGraphicsWidth();
+//    const float geomHeight = bwc->getSceneGraphicsHeight();
+//
+//    if (inputs.m_useWindowSizeForImageSizeFlag) {
+//        if ((geomWidth > 0)
+//            && (geomHeight > 0)) {
+//            imageWidth = geomWidth;
+//            imageHeight = geomHeight;
+//        }
+//        else {
+//            throw OperationException("Scene is very old and does not contain size of window.  Use option with width/height.");
+//        }
+//    }
+//    else if (imageHeight <= 0) {
+//        /*
+//         * Use aspect from graphics region to set image height
+//         */
+//        if ((geomWidth > 0)
+//            && (geomHeight > 0)) {
+//            const float aspect(static_cast<float>(geomHeight) / static_cast<float>(geomWidth));
+//            imageHeight = imageWidth * aspect;
+//        }
+//        else {
+//            throw OperationException("Scene is very old and does not contain size of window.  Must specify height.");
+//        }
+//    }
+//
+//    if ((imageWidth <= 0)
+//        || (imageHeight <= 0)) {
+//        throw OperationException("Invalid image size width="
+//                                 + QString::number(imageWidth)
+//                                 + ", height="
+//                                 + QString::number(imageHeight));
+//    }
+//
+//    widthOut  = imageWidth;
+//    heightOut = imageHeight;
+//}
 
 /**
  * Render a window to an image
@@ -619,11 +791,11 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
     const bool restoreToTabTiles = bwc->isTileTabsEnabled();
     const int32_t windowIndex = bwc->getWindowIndex();
     
-    int32_t imageWidth(0);
-    int32_t imageHeight(0);
-    getImageWidthAndHeight(inputs,
-                           imageWidth,
-                           imageHeight);
+    int32_t imageWidth(inputs.m_imageWidth);
+    int32_t imageHeight(inputs.m_imageHeight);
+//    getImageWidthAndHeight(inputs,
+//                           imageWidth,
+//                           imageHeight);
     CaretAssert(imageWidth > 0);
     CaretAssert(imageHeight > 0);
     

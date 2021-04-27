@@ -63,7 +63,6 @@ namespace caret {
                    const int32_t outputImageIndex,
                    const int32_t imageWidth,
                    const int32_t imageHeight,
-                   const bool useWindowSizeForImageSizeFlag,
                    const bool doNotUseSceneColorsFlag)
             : m_offscreenRenderer(offscreenRenderer),
             m_browserWindowContent(browserWindowContent),
@@ -71,7 +70,6 @@ namespace caret {
             m_outputImageIndex(outputImageIndex),
             m_imageWidth(imageWidth),
             m_imageHeight(imageHeight),
-            m_useWindowSizeForImageSizeFlag(useWindowSizeForImageSizeFlag),
             m_doNotUseSceneColorsFlag(doNotUseSceneColorsFlag)
             { }
             
@@ -81,7 +79,6 @@ namespace caret {
             const int32_t m_outputImageIndex;
             const int32_t m_imageWidth;
             const int32_t m_imageHeight;
-            const bool m_useWindowSizeForImageSizeFlag;
             const bool m_doNotUseSceneColorsFlag;
         };
         
@@ -98,9 +95,9 @@ namespace caret {
         static void setRemoteLoginAndPassword(const AString& username,
                                               const AString& password);
         
-        static void getImageWidthAndHeight(const Inputs& inputs,
-                                           int32_t& widthOut,
-                                           int32_t& heightOut);
+//        static void getImageWidthAndHeight(const Inputs& inputs,
+//                                           int32_t& widthOut,
+//                                           int32_t& heightOut);
         
         static void renderWindowToImage(Inputs& inputs);
         
