@@ -110,9 +110,13 @@ ImageResolutionUnitsEnum::initialize()
                                                 "PIXELS_PER_INCH",
                                                 "pixels/inch"));
     
-    enumData.push_back(ImageResolutionUnitsEnum(PIXEL_PER_CENTIMETER,
-                                                "PIXEL_PER_CENTIMETER",
+    enumData.push_back(ImageResolutionUnitsEnum(PIXELS_PER_CENTIMETER,
+                                                "PIXELS_PER_CENTIMETER",
                                                 "pixels/cm"));
+
+    enumData.push_back(ImageResolutionUnitsEnum(PIXELS_PER_METER,
+                                                "PIXELS_PER_METER",
+                                                "pixels/meter"));
 }
 
 /**
@@ -155,7 +159,7 @@ ImageResolutionUnitsEnum::toName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its name.
- * @param name 
+ * @param nameIn
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -164,12 +168,21 @@ ImageResolutionUnitsEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 ImageResolutionUnitsEnum::Enum 
-ImageResolutionUnitsEnum::fromName(const AString& name, bool* isValidOut)
+ImageResolutionUnitsEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = ImageResolutionUnitsEnum::enumData[0].enumValue;
+    
+    AString name(nameIn);
+    
+    /*
+     * Correct for incorred spelling from older version
+     */
+    if (name == "PIXEL_PER_CENTIMETER") {
+        name = "PIXELS_PER_CENTIMETER";
+    }
     
     for (std::vector<ImageResolutionUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

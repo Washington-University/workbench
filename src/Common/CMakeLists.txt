@@ -189,6 +189,7 @@ TileTabsGridRowColumnStretchTypeEnum.h
 ToolBarWidthModeEnum.h
 TracksModificationInterface.h
 TriStateSelectionStatusEnum.h
+UnitsConversion.h
 Vector3D.h
 VectorOperation.h
 VolumeSliceViewAllPlanesLayoutEnum.h
@@ -336,6 +337,7 @@ TileTabsGridRowColumnElement.cxx
 TileTabsGridRowColumnStretchTypeEnum.cxx
 ToolBarWidthModeEnum.cxx
 TriStateSelectionStatusEnum.cxx
+UnitsConversion.cxx
 Vector3D.cxx
 VectorOperation.cxx
 VolumeSliceViewAllPlanesLayoutEnum.cxx

@@ -106,7 +106,7 @@ GroupAndNameHierarchyItem.h
 GroupAndNameHierarchyModel.h
 GroupAndNameHierarchyName.h
 ImageCaptureDimensionsModeEnum.h
-ImageCaptureSettings.h
+ImageCaptureDialogSettings.h
 ImageFile.h
 ImageResolutionUnitsEnum.h
 ImageSpatialUnitsEnum.h
@@ -245,7 +245,7 @@ GroupAndNameHierarchyItem.cxx
 GroupAndNameHierarchyModel.cxx
 GroupAndNameHierarchyName.cxx
 ImageCaptureDimensionsModeEnum.cxx
-ImageCaptureSettings.cxx
+ImageCaptureDialogSettings.cxx
 ImageFile.cxx
 ImageResolutionUnitsEnum.cxx
 ImageSpatialUnitsEnum.cxx

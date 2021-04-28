@@ -99,6 +99,7 @@ EventDataFileReload.h
 EventDataFileReloadAll.h
 EventGetBrainOpenGLTextRenderer.h
 EventIdentificationHighlightLocation.h
+EventImageCapture.h
 EventModelAdd.h
 EventModelDelete.h
 EventModelGetAll.h
@@ -283,6 +284,7 @@ EventDataFileReload.cxx
 EventDataFileReloadAll.cxx
 EventGetBrainOpenGLTextRenderer.cxx
 EventIdentificationHighlightLocation.cxx
+EventImageCapture.cxx
 EventModelAdd.cxx
 EventModelDelete.cxx
 EventModelGetAll.cxx

@@ -1,5 +1,5 @@
-#ifndef __IMAGE_CAPTURE_SETTINGS_H__
-#define __IMAGE_CAPTURE_SETTINGS_H__
+#ifndef __IMAGE_CAPTURE_DIALOG_SETTINGS_H__
+#define __IMAGE_CAPTURE_DIALOG_SETTINGS_H__
 
 /*LICENSE_START*/
 /*
@@ -33,16 +33,16 @@
 namespace caret {
     class SceneClassAssistant;
 
-    class ImageCaptureSettings : public CaretObject, public SceneableInterface {
+    class ImageCaptureDialogSettings : public CaretObject, public SceneableInterface {
         
     public:
-        ImageCaptureSettings();
+        ImageCaptureDialogSettings();
         
-        virtual ~ImageCaptureSettings();
+        virtual ~ImageCaptureDialogSettings();
         
-        ImageCaptureSettings(const ImageCaptureSettings& obj);
+        ImageCaptureDialogSettings(const ImageCaptureDialogSettings& obj);
 
-        ImageCaptureSettings& operator=(const ImageCaptureSettings& obj);
+        ImageCaptureDialogSettings& operator=(const ImageCaptureDialogSettings& obj);
         
         AString getSettingsAsText(const std::vector<int32_t>& windowIndices,
                                   const std::vector<int32_t>& windowWidths,
@@ -76,9 +76,9 @@ namespace caret {
         void updateForAspectRatio(const float width,
                                   const float height);
 
-        int32_t getCroppingMargin() const;
+        int32_t getMargin() const;
         
-        void setCroppingMargin(const int32_t croppingMargin);
+        void setMargin(const int32_t margin);
         
         bool isCroppingEnabled() const;
         
@@ -138,7 +138,7 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        void copyHelperImageDimensionsModel(const ImageCaptureSettings& obj);
+        void copyHelperImageDimensionsModel(const ImageCaptureDialogSettings& obj);
 
         SceneClassAssistant* m_sceneAssistant;
 
@@ -168,7 +168,7 @@ namespace caret {
         
         bool m_scaleProportionatelyEnabled;
         
-        int32_t m_croppingMargin;
+        int32_t m_margin;
         
         bool m_croppingEnabled;
         
@@ -187,14 +187,16 @@ namespace caret {
         ImageSpatialUnitsEnum::Enum m_spatialUnits;
         
         static const float CENTIMETERS_PER_INCH;
+        static const float CENTIMETERS_PER_METER;
         static const float MILLIMETERS_PER_CENTIMETER;
 
     };
     
-#ifdef __IMAGE_CAPTURE_SETTINGS_DECLARE__
-    const float ImageCaptureSettings::CENTIMETERS_PER_INCH = 2.54;
-    const float ImageCaptureSettings::MILLIMETERS_PER_CENTIMETER = 10.0;
-#endif // __IMAGE_CAPTURE_SETTINGS_DECLARE__
+#ifdef __IMAGE_CAPTURE_DIALOG_SETTINGS_DECLARE__
+    const float ImageCaptureDialogSettings::CENTIMETERS_PER_INCH = 2.54;
+    const float ImageCaptureDialogSettings::MILLIMETERS_PER_CENTIMETER = 10.0;
+    const float ImageCaptureDialogSettings::CENTIMETERS_PER_METER = 100.0;
+#endif // __IMAGE_CAPTURE_DIALOG_SETTINGS_DECLARE__
 
 } // namespace
-#endif  //__IMAGE_CAPTURE_SETTINGS_H__
+#endif  //__IMAGE_CAPTURE_DIALOG_SETTINGS_H__

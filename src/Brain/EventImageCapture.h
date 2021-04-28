@@ -21,9 +21,12 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include <QImage>
 
 #include "Event.h"
+#include "ImageResolutionUnitsEnum.h"
 
 namespace caret {
 
@@ -44,9 +47,13 @@ namespace caret {
         
         int32_t getBrowserWindowIndex() const;
         
-        int32_t getOutputWidth() const;
+        int32_t getOutputWidthIncludingMargin() const;
         
-        int32_t getOutputHeight() const;
+        int32_t getOutputHeightIncludingMargin() const;
+        
+        int32_t getOutputWidthExcludingMargin() const;
+        
+        int32_t getOutputHeightExcludingMargin() const;
         
         int32_t getCaptureOffsetX() const;
         
@@ -56,13 +63,22 @@ namespace caret {
         
         int32_t getCaptureHeight() const;
         
-        QImage getImage() const;
+        QImage getCapturedImage() const;
         
-        void setImage(const QImage& image);
+        void setCapturedImage(const QImage& image);
         
         void getBackgroundColor(uint8_t backgroundColor[3]) const;
         
         void setBackgroundColor(const uint8_t backgroundColor[3]);
+        
+        int32_t getMargin() const;
+        
+        void setMargin(const int32_t margin);
+        
+        float getPixelsPerResolutionUnitValue(const ImageResolutionUnitsEnum::Enum resolutionUnits) const;
+        
+        void setPixelsPerResolutionUnitValue(const ImageResolutionUnitsEnum::Enum resolutionUnits,
+                                             const float resolutionValue);
         
     private:
         EventImageCapture(const EventImageCapture&);
@@ -92,6 +108,10 @@ namespace caret {
         
         uint8_t m_backgroundColor[3];
         
+        int32_t m_margin = 0;
+        
+        float m_resolutionPixelsPerInch = 300.0f;
+
         QImage m_image;
     };
     

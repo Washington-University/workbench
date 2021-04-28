@@ -42,8 +42,9 @@
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "DummyFontTextRenderer.h"
+#include "EventImageCapture.h"
 #include "FtglFontTextRenderer.h"
-#include "ImageCaptureSettings.h"
+#include "ImageCaptureDialogSettings.h"
 #include "ImageFile.h"
 #include "MapYokingGroupEnum.h"
 #include "OffScreenSceneRendererOSMesa.h"
@@ -97,6 +98,7 @@ enum ParamKeys : int32_t {
     PARAM_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT,
     PARAM_KEY_SIZE_CAPTURE_DIALOG,
     PARAM_KEY_SIZE_WINDOW,
+    PARAM_KEY_OPTION_MARGIN,
     PARAM_KEY_OPTION_NO_SCENE_COLORS,
     PARAM_KEY_OPTION_SET_MAP_YOKING,
     PARAM_KEY_OPTION_CONN_DB_LOGIN,
@@ -159,6 +161,13 @@ OperationShowSceneTwo::getParameters()
                                         "height",
                                         "Height for output image");
 
+    OptionalParameter* marginOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_MARGIN,
+                                                                "margin",
+                                                                "Add a margin around the image using the window's background color.");
+    marginOpt->addIntegerParameter(1,
+                                   "size",
+                                   "size of margin added to all sides of output image");
+    
     ret->createOptionalParameter(static_cast<int32_t>(PARAM_KEY_OPTION_NO_SCENE_COLORS),
                                  "-no-scene-colors",
                                  "Do not use background and foreground colors in scene");
@@ -373,6 +382,16 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
     }
 
     const bool doNotUseSceneColorsFlag = myParams->getOptionalParameter(PARAM_KEY_OPTION_NO_SCENE_COLORS)->m_present;
+    int32_t marginValue(0);
+    OptionalParameter* marginOption = myParams->getOptionalParameter(PARAM_KEY_OPTION_MARGIN);
+    if (marginOption->m_present) {
+        marginValue = marginOption->getInteger(1);
+        if (marginValue < 1) {
+            throw OperationException("Margin="
+                                     + QString::number(marginValue)
+                                     + " is invalid.");
+        }
+    }
     
     MapYokingGroupEnum::Enum mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     int32_t mapYokingMapIndex = -1;
@@ -455,7 +474,7 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                  "Saving the scenes in Workbench will fix this problem.");
     }
     
-    const ImageCaptureSettings* sceneCaptureSettings(SessionManager::get()->getImageCaptureDialogSettings());
+    const ImageCaptureDialogSettings* sceneCaptureSettings(SessionManager::get()->getImageCaptureDialogSettings());
     
     /*
      * Showing the settings must be done after the scene has been loaded since
@@ -494,7 +513,7 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         CaretAssertVectorIndex(allBrowserWindowContent, iWindow);
         auto bwc = allBrowserWindowContent[iWindow];
         
-        std::unique_ptr<ImageCaptureSettings> imageSettings;
+        std::unique_ptr<ImageCaptureDialogSettings> imageSettings;
         
         int32_t imageWidth(-1);
         int32_t imageHeight(-1);
@@ -569,16 +588,27 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                      + " is invalid.");
         }
         
+        /*
+         * Setup capture event instance with image parameters
+         * (event is not sent, just its instance is used)
+         */
+        EventImageCapture captureEvent(bwc->getWindowIndex(),
+                                       0,
+                                       0,
+                                       imageWidth,
+                                       imageHeight,
+                                       imageWidth,
+                                       imageHeight);
+        captureEvent.setMargin(marginValue);
         
         const int32_t outputImageIndex = ((numberOfWindows > 1)
                                           ? iWindow
                                           : -1);
         Inputs inputs(offscreenRenderer,
                       bwc,
+                      &captureEvent,
                       imageFileName,
                       outputImageIndex,
-                      imageWidth,
-                      imageHeight,
                       doNotUseSceneColorsFlag);
         
         renderWindowToImage(inputs);
@@ -791,8 +821,8 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
     const bool restoreToTabTiles = bwc->isTileTabsEnabled();
     const int32_t windowIndex = bwc->getWindowIndex();
     
-    int32_t imageWidth(inputs.m_imageWidth);
-    int32_t imageHeight(inputs.m_imageHeight);
+    int32_t imageWidth(inputs.m_imageCaptureEvent->getOutputWidthExcludingMargin());
+    int32_t imageHeight(inputs.m_imageCaptureEvent->getOutputHeightExcludingMargin());
 //    getImageWidthAndHeight(inputs,
 //                           imageWidth,
 //                           imageHeight);
@@ -902,9 +932,20 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
                                         inputs.m_offscreenRenderer->getDrawingContext(),
                                         constViewports);
 
+                /*
+                 * Image capture event will set resolution and add margin
+                 */
+                inputs.m_imageCaptureEvent->setCapturedImage(*(inputs.m_offscreenRenderer->getImageFile()->getAsQImage()));
+                QImage outputImage = inputs.m_imageCaptureEvent->getCapturedImage();
+                ImageFile outputImageFile;
+                outputImageFile.setFromQImage(outputImage);
+                
+                /*
+                 * Write the image file
+                 */
                 writeImageFile(inputs.m_imageFileName,
                                inputs.m_outputImageIndex,
-                               inputs.m_offscreenRenderer->getImageFile());
+                               &outputImageFile);
                 
                 for (std::vector<BrainOpenGLViewportContent*>::iterator vpIter = viewports.begin();
                      vpIter != viewports.end();

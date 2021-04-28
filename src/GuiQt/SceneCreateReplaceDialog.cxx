@@ -381,7 +381,7 @@ SceneCreateReplaceDialog::addImageToScene(Scene* scene,
                 errorMessageOut.appendWithNewLine(imageCaptureEvent.getErrorMessage());
             }
             else {
-                imageFiles.push_back(new ImageFile(imageCaptureEvent.getImage()));
+                imageFiles.push_back(new ImageFile(imageCaptureEvent.getCapturedImage()));
                 if ( ! backgroundColorValid) {
                     imageCaptureEvent.getBackgroundColor(backgroundColor);
                     backgroundColorValid = true;
@@ -478,7 +478,7 @@ SceneCreateReplaceDialog::createSceneImage(QImage& imageOut,
                 errorMessageOut.appendWithNewLine(imageCaptureEvent.getErrorMessage());
             }
             else {
-                imageFiles.push_back(new ImageFile(imageCaptureEvent.getImage()));
+                imageFiles.push_back(new ImageFile(imageCaptureEvent.getCapturedImage()));
                 if ( ! backgroundColorValid) {
                     imageCaptureEvent.getBackgroundColor(backgroundColor);
                     backgroundColorValid = true;

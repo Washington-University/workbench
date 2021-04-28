@@ -36,7 +36,7 @@ namespace caret {
     
     class BrainBrowserWindow;
     class EnumComboBoxTemplate;
-    class ImageCaptureSettings;
+    class ImageCaptureDialogSettings;
     class WuQWidgetObjectGroup;
     
     class ImageCaptureDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -83,7 +83,7 @@ namespace caret {
         
         void imageCroppingCheckBoxClicked(bool);
         
-        void imageCroppingMarginValueChanged(int);
+        void imageMarginValueChanged(int);
         
         void copyImageToClipboardCheckBoxClicked(bool);
         
@@ -139,7 +139,7 @@ namespace caret {
         QLabel* m_imageNumberOfBytesLabel;
         
         QCheckBox* m_imageAutoCropCheckBox;
-        QSpinBox*  m_imageAutoCropMarginSpinBox;
+        QSpinBox*  m_imageMarginSpinBox;
         
         QSpinBox* m_windowSelectionSpinBox;
         QCheckBox* m_windowCropToLockAspectRegionCheckBox;

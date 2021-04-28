@@ -2192,7 +2192,7 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                                     CaretLogSevere("Failed to capture image of graphics for movie recording");
                                 }
                                 else {
-                                    image = captureEvent.getImage();
+                                    image = captureEvent.getCapturedImage();
                                     imageValid = true;
                                     if (adjustImageSizeFlag) {
                                         QImage scaledImage = ImageFile::scaleToSizeWithPadding(image,
@@ -2332,8 +2332,8 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
     int captureOffsetY    = imageCaptureEvent->getCaptureOffsetY();
     int captureWidth      = imageCaptureEvent->getCaptureWidth();
     int captureHeight     = imageCaptureEvent->getCaptureHeight();
-    int outputImageWidth  = imageCaptureEvent->getOutputWidth();
-    int outputImageHeight = imageCaptureEvent->getOutputHeight();
+    int outputImageWidth  = imageCaptureEvent->getOutputWidthExcludingMargin();
+    int outputImageHeight = imageCaptureEvent->getOutputHeightExcludingMargin();
     
     if ((outputImageWidth <= 0)
         || (outputImageHeight <= 0)) {
@@ -2437,7 +2437,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
         imageCaptureEvent->setErrorMessage("Image capture appears to have failed (invalid size).");
     }
     else {
-        imageCaptureEvent->setImage(image);
+        imageCaptureEvent->setCapturedImage(image);
         
         uint8_t backgroundColor[3];
         s_singletonOpenGL->getBackgroundColor(backgroundColor);

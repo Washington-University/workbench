@@ -63,7 +63,7 @@
 #include "EventProgressUpdate.h"
 #include "EventRecentFilesSystemAccessMode.h"
 #include "EventSpacerTabGet.h"
-#include "ImageCaptureSettings.h"
+#include "ImageCaptureDialogSettings.h"
 #include "LogManager.h"
 #include "MapYokingGroupEnum.h"
 #include "ModelWholeBrain.h"
@@ -88,7 +88,7 @@ SessionManager::SessionManager()
 {
     m_caretPreferences = new CaretPreferences();
     
-    m_imageCaptureDialogSettings = new ImageCaptureSettings();
+    m_imageCaptureDialogSettings = new ImageCaptureDialogSettings();
 
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
     m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
@@ -1327,7 +1327,7 @@ SessionManager::getDataToolTipsManager() const
 /**
  * @return Image capture settings for image capture dialog.
  */
-ImageCaptureSettings*
+ImageCaptureDialogSettings*
 SessionManager::getImageCaptureDialogSettings()
 {
     return m_imageCaptureDialogSettings;
@@ -1336,7 +1336,7 @@ SessionManager::getImageCaptureDialogSettings()
 /**
  * @return Image capture settings for image capture dialog (const method)
  */
-const ImageCaptureSettings*
+const ImageCaptureDialogSettings*
 SessionManager::getImageCaptureDialogSettings() const
 {
     return m_imageCaptureDialogSettings;

@@ -54,7 +54,7 @@
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
-#include "ImageCaptureSettings.h"
+#include "ImageCaptureDialogSettings.h"
 #include "SessionManager.h"
 #include "CaretFileDialog.h"
 #include "WuQFactory.h"
@@ -187,21 +187,27 @@ ImageCaptureDialog::createImageSourceSection()
 QWidget*
 ImageCaptureDialog::createImageOptionsSection()
 {
+    const AString cropToolTip("Using the Window's background color, crop the image to "
+                              "the content of the graphics region");
     m_imageAutoCropCheckBox = new QCheckBox("Automatically Crop Image");
     QObject::connect(m_imageAutoCropCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(imageCroppingCheckBoxClicked(bool)));
-    QLabel* imageAutoCropMarginLabel = new QLabel("   Margin");
-    m_imageAutoCropMarginSpinBox = new QSpinBox();
-    QObject::connect(m_imageAutoCropMarginSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(imageCroppingMarginValueChanged(int)));
-    m_imageAutoCropMarginSpinBox->setMinimum(0);
-    m_imageAutoCropMarginSpinBox->setMaximum(100000);
-    m_imageAutoCropMarginSpinBox->setSingleStep(1);
-    m_imageAutoCropMarginSpinBox->setMaximumWidth(100);
+    m_imageAutoCropCheckBox->setToolTip(cropToolTip);
+
+    const AString marginToolTip("Add a margin in the window's background color "
+                                "around the captured region.");
+    QLabel* imageMarginLabel = new QLabel("Margin");
+    m_imageMarginSpinBox = new QSpinBox();
+    QObject::connect(m_imageMarginSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(imageMarginValueChanged(int)));
+    m_imageMarginSpinBox->setMinimum(0);
+    m_imageMarginSpinBox->setMaximum(100000);
+    m_imageMarginSpinBox->setSingleStep(1);
+    m_imageMarginSpinBox->setMaximumWidth(100);
     
     QHBoxLayout* cropMarginLayout = new QHBoxLayout();
-    cropMarginLayout->addWidget(imageAutoCropMarginLabel);
-    cropMarginLayout->addWidget(m_imageAutoCropMarginSpinBox);
+    cropMarginLayout->addWidget(imageMarginLabel);
+    cropMarginLayout->addWidget(m_imageMarginSpinBox);
     cropMarginLayout->addStretch();
     
     QGroupBox* groupBox = new QGroupBox("Image Options");
@@ -390,7 +396,7 @@ ImageCaptureDialog::createImageDimensionsSection()
 void
 ImageCaptureDialog::sizeRadioButtonClicked(QAbstractButton* /*button*/)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     if (m_imageSizeCustomRadioButton->isChecked()) {
         imageCaptureSettings->setImageCaptureDimensionsMode(ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_CUSTOM);
     }
@@ -407,7 +413,7 @@ ImageCaptureDialog::sizeRadioButtonClicked(QAbstractButton* /*button*/)
 void
 ImageCaptureDialog::imageResolutionUnitsEnumComboBoxItemActivated()
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setImageResolutionUnits(m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImageResolutionUnitsEnum, ImageResolutionUnitsEnum::Enum>());
     updateDimensionsSection();
 }
@@ -418,7 +424,7 @@ ImageCaptureDialog::imageResolutionUnitsEnumComboBoxItemActivated()
 void
 ImageCaptureDialog::imageSizeUnitsEnumComboBoxItemActivated()
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setSpatialUnits(m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum, ImageSpatialUnitsEnum::Enum>());
     updateDimensionsSection();
 }
@@ -432,7 +438,7 @@ ImageCaptureDialog::imageSizeUnitsEnumComboBoxItemActivated()
 void
 ImageCaptureDialog::cropToTabWindowLockAspectRegionClicked(bool checked)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setCropToTabWindowLockAspectRegionEnabled(checked);
     updateBrowserWindowWidthAndHeightLabel();
 }
@@ -444,7 +450,7 @@ ImageCaptureDialog::cropToTabWindowLockAspectRegionClicked(bool checked)
 void
 ImageCaptureDialog::updateDialog()
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     m_windowCropToLockAspectRegionCheckBox->setChecked(imageCaptureSettings->isCropToTabWindowLockAspectRegionEnabled());
     
     updateBrowserWindowWidthAndHeightLabel();
@@ -460,7 +466,7 @@ ImageCaptureDialog::updateDialog()
 void
 ImageCaptureDialog::updateDimensionsSection()
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     
     CaretAssert(imageCaptureSettings);
     
@@ -541,13 +547,13 @@ ImageCaptureDialog::updateDimensionsSection()
 void
 ImageCaptureDialog::updateImageOptionsSection()
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     CaretAssert(imageCaptureSettings);
     
     m_imageAutoCropCheckBox->setChecked(imageCaptureSettings->isCroppingEnabled());
-    m_imageAutoCropMarginSpinBox->blockSignals(true);
-    m_imageAutoCropMarginSpinBox->setValue(imageCaptureSettings->getCroppingMargin());
-    m_imageAutoCropMarginSpinBox->blockSignals(false);
+    m_imageMarginSpinBox->blockSignals(true);
+    m_imageMarginSpinBox->setValue(imageCaptureSettings->getMargin());
+    m_imageMarginSpinBox->blockSignals(false);
 }
 
 /**
@@ -556,7 +562,7 @@ ImageCaptureDialog::updateImageOptionsSection()
 void
 ImageCaptureDialog::updateDestinationSection()
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     CaretAssert(imageCaptureSettings);
     
     m_copyImageToClipboardCheckBox->setChecked(imageCaptureSettings->isCopyToClipboardEnabled());
@@ -606,7 +612,7 @@ ImageCaptureDialog::updateImageNumberOfBytesLabel()
 void
 ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     AString windowSizeText = "Size of Window";
     
     int32_t width;
@@ -651,7 +657,7 @@ ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
 void
 ImageCaptureDialog::pixelWidthValueChanged(int value)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setPixelWidth(value);
     updateDimensionsSection();
 }
@@ -665,7 +671,7 @@ ImageCaptureDialog::pixelWidthValueChanged(int value)
 void
 ImageCaptureDialog::pixelHeightValueChanged(int value)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setPixelHeight(value);
     updateDimensionsSection();
 }
@@ -679,7 +685,7 @@ ImageCaptureDialog::pixelHeightValueChanged(int value)
 void
 ImageCaptureDialog::imageWidthValueChanged(double value)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setSpatialWidth(value);
 
     updateDimensionsSection();
@@ -694,7 +700,7 @@ ImageCaptureDialog::imageWidthValueChanged(double value)
 void
 ImageCaptureDialog::imageHeightValueChanged(double value)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setSpatialHeight(value);
     
     updateDimensionsSection();
@@ -709,7 +715,7 @@ ImageCaptureDialog::imageHeightValueChanged(double value)
 void
 ImageCaptureDialog::imageResolutionValueChanged(double value)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setImageResolutionInSelectedUnits(value);
     
     updateDimensionsSection();
@@ -725,7 +731,7 @@ ImageCaptureDialog::imageResolutionValueChanged(double value)
 void
 ImageCaptureDialog::scaleProportionallyCheckBoxClicked(bool checked)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setScaleProportionately(checked);
     
     if (checked) {
@@ -752,10 +758,10 @@ ImageCaptureDialog::scaleProportionallyCheckBoxClicked(bool checked)
  *     New value for cropping margin.
  */
 void
-ImageCaptureDialog::imageCroppingMarginValueChanged(int value)
+ImageCaptureDialog::imageMarginValueChanged(int value)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
-    imageCaptureSettings->setCroppingMargin(value);
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setMargin(value);
 }
 
 /**
@@ -767,7 +773,7 @@ ImageCaptureDialog::imageCroppingMarginValueChanged(int value)
 void
 ImageCaptureDialog::imageCroppingCheckBoxClicked(bool checked)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setCroppingEnabled(checked);
 }
 
@@ -780,7 +786,7 @@ ImageCaptureDialog::imageCroppingCheckBoxClicked(bool checked)
 void
 ImageCaptureDialog::copyImageToClipboardCheckBoxClicked(bool checked)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setCopyToClipboardEnabled(checked);
 }
 
@@ -793,7 +799,7 @@ ImageCaptureDialog::copyImageToClipboardCheckBoxClicked(bool checked)
 void
 ImageCaptureDialog::saveImageToFileCheckBoxClicked(bool checked)
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setSaveToFileEnabled(checked);
 }
 
@@ -992,7 +998,7 @@ ImageCaptureDialog::selectImagePushButtonPressed()
     if (name.isEmpty() == false) {
         name = DataFileTypeEnum::addFileExtensionIfMissing(name,
                                                            DataFileTypeEnum::IMAGE);
-        ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+        ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
         imageCaptureSettings->setImageFileName(name);
         updateDestinationSection();
     }
@@ -1004,7 +1010,7 @@ ImageCaptureDialog::selectImagePushButtonPressed()
 void
 ImageCaptureDialog::imageFileNameValueChanged()
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setImageFileName(m_imageFileNameLineEdit->text().trimmed());
 }
 
@@ -1015,7 +1021,7 @@ ImageCaptureDialog::imageFileNameValueChanged()
 void
 ImageCaptureDialog::applyButtonClicked()
 {
-    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     const int browserWindowIndex = m_windowSelectionSpinBox->value() - 1;
     
     int32_t windowX;
@@ -1067,6 +1073,9 @@ ImageCaptureDialog::applyButtonClicked()
         }
     }
     
+    const float pixelsPerCentimeter = imageCaptureSettings->getImageResolutionInCentimeters();
+    const float pixelsPerMeter = pixelsPerCentimeter * 100;
+    
     EventImageCapture imageCaptureEvent(browserWindowIndex,
                                         windowX,
                                         windowY,
@@ -1074,6 +1083,10 @@ ImageCaptureDialog::applyButtonClicked()
                                         windowHeight,
                                         imageWidth,
                                         imageHeight);
+    imageCaptureEvent.setPixelsPerResolutionUnitValue(ImageResolutionUnitsEnum::PIXELS_PER_CENTIMETER,
+                                                      imageCaptureSettings->getImageResolutionInCentimeters());
+    imageCaptureEvent.setMargin(imageCaptureSettings->getMargin());
+
     EventManager::get()->sendEvent(imageCaptureEvent.getPointer());
     bool errorFlag = false;
     if (imageCaptureEvent.getEventProcessCount() <= 0) {
@@ -1091,19 +1104,17 @@ ImageCaptureDialog::applyButtonClicked()
         uint8_t backgroundColor[3];
         imageCaptureEvent.getBackgroundColor(backgroundColor);
         ImageFile imageFile;
-        imageFile.setFromQImage(imageCaptureEvent.getImage());
-        
-        const float pixelsPerCentimeter = imageCaptureSettings->getImageResolutionInCentimeters();
-        const float pixelsPerMeter = pixelsPerCentimeter * 100;
-        
+        imageFile.setFromQImage(imageCaptureEvent.getCapturedImage());
+                
         imageFile.setDotsPerMeter(pixelsPerMeter,
                                   pixelsPerMeter);
         
         
         if (imageCaptureSettings->isCroppingEnabled()) {
-            const int32_t marginSize = imageCaptureSettings->getCroppingMargin();
-            imageFile.cropImageRemoveBackground(marginSize,
-                                                backgroundColor);
+            CaretAssertToDoWarning();
+//            const int32_t marginSize = imageCaptureSettings->getCroppingMargin();
+//            imageFile.cropImageRemoveBackground(marginSize,
+//                                                backgroundColor);
         }
         
         if (m_copyImageToClipboardCheckBox->isChecked()) {

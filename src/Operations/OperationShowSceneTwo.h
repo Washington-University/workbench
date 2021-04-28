@@ -38,6 +38,7 @@ namespace caret {
 
     class BrainOpenGLFixedPipeline;
     class BrowserWindowContent;
+    class EventImageCapture;
     class ImageFile;
     class OffScreenSceneRendererBase;
     class SceneClass;
@@ -61,26 +62,23 @@ namespace caret {
         public:
             Inputs(OffScreenSceneRendererBase* offscreenRenderer,
                    BrowserWindowContent* browserWindowContent,
+                   EventImageCapture* imageCaptureEvent,
                    const QString imageFileName,
                    const int32_t outputImageIndex,
-                   const int32_t imageWidth,
-                   const int32_t imageHeight,
                    const bool doNotUseSceneColorsFlag)
             : m_offscreenRenderer(offscreenRenderer),
             m_browserWindowContent(browserWindowContent),
+            m_imageCaptureEvent(imageCaptureEvent),
             m_imageFileName(imageFileName),
             m_outputImageIndex(outputImageIndex),
-            m_imageWidth(imageWidth),
-            m_imageHeight(imageHeight),
             m_doNotUseSceneColorsFlag(doNotUseSceneColorsFlag)
             { }
             
             OffScreenSceneRendererBase* m_offscreenRenderer;
             BrowserWindowContent* m_browserWindowContent;
+            EventImageCapture* m_imageCaptureEvent;
             const QString m_imageFileName;
             const int32_t m_outputImageIndex;
-            const int32_t m_imageWidth;
-            const int32_t m_imageHeight;
             const bool m_doNotUseSceneColorsFlag;
         };
         

@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __IMAGE_CAPTURE_SETTINGS_DECLARE__
-#include "ImageCaptureSettings.h"
-#undef __IMAGE_CAPTURE_SETTINGS_DECLARE__
+#define __IMAGE_CAPTURE_DIALOG_SETTINGS_DECLARE__
+#include "ImageCaptureDialogSettings.h"
+#undef __IMAGE_CAPTURE_DIALOG_SETTINGS_DECLARE__
 
 #include "CaretAssert.h"
 #include "DataFileContentInformation.h"
@@ -33,7 +33,7 @@ using namespace caret;
 
     
 /**
- * \class caret::ImageCaptureSettings 
+ * \class caret::ImageCaptureDialogSettings 
  * \brief Image capture properties
  * \ingroup Files
  *
@@ -44,7 +44,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-ImageCaptureSettings::ImageCaptureSettings()
+ImageCaptureDialogSettings::ImageCaptureDialogSettings()
 : CaretObject(),
 SceneableInterface()
 {
@@ -52,7 +52,7 @@ SceneableInterface()
     m_pixelsPerCentimeter = 72.0 / CENTIMETERS_PER_INCH;
     
     m_croppingEnabled = false;
-    m_croppingMargin  = 10;
+    m_margin  = 0;
     m_copyToClipboardEnabled = true;
     m_saveToFileEnabled      = false;
     m_scaleProportionatelyEnabled = true;
@@ -88,11 +88,10 @@ SceneableInterface()
                           &m_pixelsPerCentimeter);
     m_sceneAssistant->add("m_aspectRatio",
                           &m_aspectRatio);
-
+    m_sceneAssistant->add("m_margin",
+                          &m_margin);
     m_sceneAssistant->add("m_croppingEnabled",
                           &m_croppingEnabled);
-    m_sceneAssistant->add("m_croppingMargin",
-                          &m_croppingMargin);
     m_sceneAssistant->add("m_copyToClipboardEnabled",
                           &m_copyToClipboardEnabled);
     m_sceneAssistant->add("m_saveToFileEnabled",
@@ -114,7 +113,7 @@ SceneableInterface()
 /**
  * Destructor.
  */
-ImageCaptureSettings::~ImageCaptureSettings()
+ImageCaptureDialogSettings::~ImageCaptureDialogSettings()
 {
     delete m_sceneAssistant;
 }
@@ -124,7 +123,7 @@ ImageCaptureSettings::~ImageCaptureSettings()
  * @param obj
  *    Object that is copied.
  */
-ImageCaptureSettings::ImageCaptureSettings(const ImageCaptureSettings& obj)
+ImageCaptureDialogSettings::ImageCaptureDialogSettings(const ImageCaptureDialogSettings& obj)
 : CaretObject(obj),
 SceneableInterface(obj)
 {
@@ -138,8 +137,8 @@ SceneableInterface(obj)
  * @return 
  *    Reference to this object.
  */
-ImageCaptureSettings&
-ImageCaptureSettings::operator=(const ImageCaptureSettings& obj)
+ImageCaptureDialogSettings&
+ImageCaptureDialogSettings::operator=(const ImageCaptureDialogSettings& obj)
 {
     if (this != &obj) {
         CaretObject::operator=(obj);
@@ -154,7 +153,7 @@ ImageCaptureSettings::operator=(const ImageCaptureSettings& obj)
  *    Object that is copied.
  */
 void 
-ImageCaptureSettings::copyHelperImageDimensionsModel(const ImageCaptureSettings& obj)
+ImageCaptureDialogSettings::copyHelperImageDimensionsModel(const ImageCaptureDialogSettings& obj)
 {
     m_pixelWidth                  = obj.m_pixelWidth;
     m_pixelHeight                 = obj.m_pixelHeight;
@@ -163,7 +162,7 @@ ImageCaptureSettings::copyHelperImageDimensionsModel(const ImageCaptureSettings&
     m_pixelsPerCentimeter         = obj.m_pixelsPerCentimeter;
     m_aspectRatio                 = obj.m_aspectRatio;
     m_scaleProportionatelyEnabled = obj.m_scaleProportionatelyEnabled;
-    m_croppingMargin              = obj.m_croppingMargin;
+    m_margin                      = obj.m_margin;
     m_croppingEnabled             = obj.m_croppingEnabled;
     m_copyToClipboardEnabled      = obj.m_copyToClipboardEnabled;
     m_saveToFileEnabled           = obj.m_saveToFileEnabled;
@@ -183,7 +182,7 @@ ImageCaptureSettings::copyHelperImageDimensionsModel(const ImageCaptureSettings&
  *    Heights of windows from scene
  */
 AString
-ImageCaptureSettings::getSettingsAsText(const std::vector<int32_t>& windowIndices,
+ImageCaptureDialogSettings::getSettingsAsText(const std::vector<int32_t>& windowIndices,
                                         const std::vector<int32_t>& windowWidths,
                                         const std::vector<int32_t>& windowHeights) const
 {
@@ -221,7 +220,7 @@ ImageCaptureSettings::getSettingsAsText(const std::vector<int32_t>& windowIndice
     
     info.addNameAndValue("Crop to Tab/Window Lock Aspect Region", isCropToTabWindowLockAspectRegionEnabled());
     info.addNameAndValue("Crop Image with Margin", isCroppingEnabled());
-    info.addNameAndValue("Crop Image Margin", getCroppingMargin());
+    info.addNameAndValue("Image Margin", getMargin());
     
     return info.getInformationInString();
 }
@@ -231,7 +230,7 @@ ImageCaptureSettings::getSettingsAsText(const std::vector<int32_t>& windowIndice
  * @return String describing this object's content.
  */
 AString
-ImageCaptureSettings::toString() const
+ImageCaptureDialogSettings::toString() const
 {
     std::vector<int32_t> emptyVector;
     return getSettingsAsText(emptyVector, emptyVector, emptyVector);
@@ -241,7 +240,7 @@ ImageCaptureSettings::toString() const
  * @return The custom width in pixels.
  */
 int32_t
-ImageCaptureSettings::getPixelWidth() const
+ImageCaptureDialogSettings::getPixelWidth() const
 {
     /*
      * Internally, pixels are float, so round (by adding 0.5)
@@ -254,7 +253,7 @@ ImageCaptureSettings::getPixelWidth() const
  * @return The custom height in pixels.
  */
 int32_t
-ImageCaptureSettings::getPixelHeight() const
+ImageCaptureDialogSettings::getPixelHeight() const
 {
     /*
      * Internally, pixels are float, so round (by adding 0.5)
@@ -270,7 +269,7 @@ ImageCaptureSettings::getPixelHeight() const
  *   Width in spatial units.
  */
 float
-ImageCaptureSettings::getSpatialWidth() const
+ImageCaptureDialogSettings::getSpatialWidth() const
 {
     float width = 1.0;
     
@@ -296,7 +295,7 @@ ImageCaptureSettings::getSpatialWidth() const
  *   Height in spatial units.
  */
 float
-ImageCaptureSettings::getSpatialHeight() const
+ImageCaptureDialogSettings::getSpatialHeight() const
 {
     float height = 1.0;
     
@@ -322,7 +321,7 @@ ImageCaptureSettings::getSpatialHeight() const
  *   Number of pixels per spatial unit.
  */
 float
-ImageCaptureSettings::getImageResolutionInCentimeters() const
+ImageCaptureDialogSettings::getImageResolutionInCentimeters() const
 {
     return m_pixelsPerCentimeter;
 }
@@ -335,16 +334,19 @@ ImageCaptureSettings::getImageResolutionInCentimeters() const
  *   Number of pixels per selected resolution unit.
  */
 float
-ImageCaptureSettings::getImageResolutionInSelectedUnits() const
+ImageCaptureDialogSettings::getImageResolutionInSelectedUnits() const
 {
     float pixelsPerUnit = 1.0;
     
     switch (m_imageResolutionUnits) {
-        case ImageResolutionUnitsEnum::PIXEL_PER_CENTIMETER:
+        case ImageResolutionUnitsEnum::PIXELS_PER_CENTIMETER:
             pixelsPerUnit = m_pixelsPerCentimeter;
             break;
         case ImageResolutionUnitsEnum::PIXELS_PER_INCH:
             pixelsPerUnit = m_pixelsPerCentimeter * CENTIMETERS_PER_INCH;
+            break;
+        case ImageResolutionUnitsEnum::PIXELS_PER_METER:
+            pixelsPerUnit = m_pixelsPerCentimeter / CENTIMETERS_PER_METER;
             break;
     }
     
@@ -360,7 +362,7 @@ ImageCaptureSettings::getImageResolutionInSelectedUnits() const
  *    New pixel height.
  */
 void
-ImageCaptureSettings::setPixelWidthAndHeight(const int32_t pixelWidth,
+ImageCaptureDialogSettings::setPixelWidthAndHeight(const int32_t pixelWidth,
                                              const int32_t pixelHeight)
 {
     CaretAssert(pixelWidth > 0);
@@ -379,7 +381,7 @@ ImageCaptureSettings::setPixelWidthAndHeight(const int32_t pixelWidth,
  *    New pixel width.
  */
 void
-ImageCaptureSettings::setPixelWidth(const int32_t pixelWidth)
+ImageCaptureDialogSettings::setPixelWidth(const int32_t pixelWidth)
 {
     CaretAssert(pixelWidth > 0);
     
@@ -402,7 +404,7 @@ ImageCaptureSettings::setPixelWidth(const int32_t pixelWidth)
  *    New pixel height.
  */
 void
-ImageCaptureSettings::setPixelHeight(const int32_t pixelHeight)
+ImageCaptureDialogSettings::setPixelHeight(const int32_t pixelHeight)
 {
     CaretAssert(pixelHeight > 0);
     
@@ -425,7 +427,7 @@ ImageCaptureSettings::setPixelHeight(const int32_t pixelHeight)
  *    New spatial width.
  */
 void
-ImageCaptureSettings::setSpatialWidth(const float spatialWidth)
+ImageCaptureDialogSettings::setSpatialWidth(const float spatialWidth)
 {
     CaretAssert(spatialWidth > 0);
     
@@ -458,7 +460,7 @@ ImageCaptureSettings::setSpatialWidth(const float spatialWidth)
  *    New spatial height.
  */
 void
-ImageCaptureSettings::setSpatialHeight(const float spatialHeight)
+ImageCaptureDialogSettings::setSpatialHeight(const float spatialHeight)
 {
     CaretAssert(spatialHeight > 0);
     
@@ -490,7 +492,7 @@ ImageCaptureSettings::setSpatialHeight(const float spatialHeight)
  *    New value for number of pixels per selected resolution unit
  */
 void
-ImageCaptureSettings::setImageResolutionInSelectedUnits(const float imageResolutionInSelectedUnits)
+ImageCaptureDialogSettings::setImageResolutionInSelectedUnits(const float imageResolutionInSelectedUnits)
 {
     CaretAssert(imageResolutionInSelectedUnits > 0);
     
@@ -498,8 +500,11 @@ ImageCaptureSettings::setImageResolutionInSelectedUnits(const float imageResolut
         case ImageResolutionUnitsEnum::PIXELS_PER_INCH:
             m_pixelsPerCentimeter = imageResolutionInSelectedUnits / CENTIMETERS_PER_INCH;
             break;
-        case ImageResolutionUnitsEnum::PIXEL_PER_CENTIMETER:
+        case ImageResolutionUnitsEnum::PIXELS_PER_CENTIMETER:
             m_pixelsPerCentimeter = imageResolutionInSelectedUnits;
+            break;
+        case ImageResolutionUnitsEnum::PIXELS_PER_METER:
+            m_pixelsPerCentimeter = imageResolutionInSelectedUnits / CENTIMETERS_PER_METER;
             break;
     }
     
@@ -511,7 +516,7 @@ ImageCaptureSettings::setImageResolutionInSelectedUnits(const float imageResolut
  * and/or height.
  */
 void
-ImageCaptureSettings::updatePixelWidthAndHeightFromSpatialWidthAndHeight()
+ImageCaptureDialogSettings::updatePixelWidthAndHeightFromSpatialWidthAndHeight()
 {
     m_pixelWidth  = m_centimetersWidth  * m_pixelsPerCentimeter;
     m_pixelHeight = m_centimetersHeight * m_pixelsPerCentimeter;
@@ -522,7 +527,7 @@ ImageCaptureSettings::updatePixelWidthAndHeightFromSpatialWidthAndHeight()
  * and/or height.
  */
 void
-ImageCaptureSettings::updateSpatialWidthAndHeightFromPixelWidthAndHeight()
+ImageCaptureDialogSettings::updateSpatialWidthAndHeightFromPixelWidthAndHeight()
 {
     m_centimetersWidth  = m_pixelWidth  / m_pixelsPerCentimeter;
     m_centimetersHeight = m_pixelHeight / m_pixelsPerCentimeter;
@@ -532,7 +537,7 @@ ImageCaptureSettings::updateSpatialWidthAndHeightFromPixelWidthAndHeight()
  * @return the aspect ration (height / width).
  */
 float
-ImageCaptureSettings::getAspectRatio() const
+ImageCaptureDialogSettings::getAspectRatio() const
 {
     return m_aspectRatio;
 }
@@ -549,7 +554,7 @@ ImageCaptureSettings::getAspectRatio() const
  *    Height used in numerator of aspect ratio.
  */
 void
-ImageCaptureSettings::updateForAspectRatio(const float width,
+ImageCaptureDialogSettings::updateForAspectRatio(const float width,
                                            const float height)
 {
     if ((width > 0.0)
@@ -562,31 +567,30 @@ ImageCaptureSettings::updateForAspectRatio(const float width,
 }
 
 /**
- * @return The cropping margin.
+ * @return The  margin.
  */
 int32_t
-ImageCaptureSettings::getCroppingMargin() const
+ImageCaptureDialogSettings::getMargin() const
 {
-    return m_croppingMargin;
+    return m_margin;
 }
 
 /**
- * Set the cropping margin.
- * 
- * @param croppingMargin
- *     New cropping margin.
+ * Set the  margin.
+ * @param margin
+ *     New  margin.
  */
 void
-ImageCaptureSettings::setCroppingMargin(const int32_t croppingMargin)
+ImageCaptureDialogSettings::setMargin(const int32_t margin)
 {
-    m_croppingMargin = croppingMargin;
+    m_margin = margin;
 }
 
 /**
  * @return Is cropping enabled?
  */
 bool
-ImageCaptureSettings::isCroppingEnabled() const
+ImageCaptureDialogSettings::isCroppingEnabled() const
 {
     return m_croppingEnabled;
 }
@@ -598,7 +602,7 @@ ImageCaptureSettings::isCroppingEnabled() const
  *     New enabled status.
  */
 void
-ImageCaptureSettings::setCroppingEnabled(const bool enabled)
+ImageCaptureDialogSettings::setCroppingEnabled(const bool enabled)
 {
     m_croppingEnabled = enabled;
 }
@@ -607,7 +611,7 @@ ImageCaptureSettings::setCroppingEnabled(const bool enabled)
  * @return Is copy to clipboard enabled?
  */
 bool
-ImageCaptureSettings::isCopyToClipboardEnabled() const
+ImageCaptureDialogSettings::isCopyToClipboardEnabled() const
 {
     return m_copyToClipboardEnabled;
 }
@@ -619,7 +623,7 @@ ImageCaptureSettings::isCopyToClipboardEnabled() const
  *     New enabled status.
  */
 void
-ImageCaptureSettings::setCopyToClipboardEnabled(const bool enabled)
+ImageCaptureDialogSettings::setCopyToClipboardEnabled(const bool enabled)
 {
     m_copyToClipboardEnabled = enabled;
 }
@@ -628,7 +632,7 @@ ImageCaptureSettings::setCopyToClipboardEnabled(const bool enabled)
  * @return Is save to file enabled?
  */
 bool
-ImageCaptureSettings::isSaveToFileEnabled() const
+ImageCaptureDialogSettings::isSaveToFileEnabled() const
 {
     return m_saveToFileEnabled;
 }
@@ -640,7 +644,7 @@ ImageCaptureSettings::isSaveToFileEnabled() const
  *     New enabled status.
  */
 void
-ImageCaptureSettings::setSaveToFileEnabled(const bool enabled)
+ImageCaptureDialogSettings::setSaveToFileEnabled(const bool enabled)
 {
     m_saveToFileEnabled = enabled;
 }
@@ -649,7 +653,7 @@ ImageCaptureSettings::setSaveToFileEnabled(const bool enabled)
  * @return Image file name
  */
 AString
-ImageCaptureSettings::getImageFileName() const
+ImageCaptureDialogSettings::getImageFileName() const
 {
     return m_imageFileName;
 }
@@ -658,7 +662,7 @@ ImageCaptureSettings::getImageFileName() const
  * @return Is scale proportionately enabled?
  */
 bool
-ImageCaptureSettings::isScaleProportionately() const
+ImageCaptureDialogSettings::isScaleProportionately() const
 {
     return m_scaleProportionatelyEnabled;
 }
@@ -670,7 +674,7 @@ ImageCaptureSettings::isScaleProportionately() const
  *     New enabled status.
  */
 void
-ImageCaptureSettings::setScaleProportionately(const bool enabled)
+ImageCaptureDialogSettings::setScaleProportionately(const bool enabled)
 {
     m_scaleProportionatelyEnabled = enabled;
 }
@@ -682,7 +686,7 @@ ImageCaptureSettings::setScaleProportionately(const bool enabled)
  *     Name for image file.
  */
 void
-ImageCaptureSettings::setImageFileName(const AString& filename)
+ImageCaptureDialogSettings::setImageFileName(const AString& filename)
 {
     m_imageFileName = filename;
 }
@@ -691,7 +695,7 @@ ImageCaptureSettings::setImageFileName(const AString& filename)
  * @return Image dimensions mode
  */
 ImageCaptureDimensionsModeEnum::Enum
-ImageCaptureSettings::getImageCaptureDimensionsMode() const
+ImageCaptureDialogSettings::getImageCaptureDimensionsMode() const
 {
     return m_dimensionsMode;
 }
@@ -700,7 +704,7 @@ ImageCaptureSettings::getImageCaptureDimensionsMode() const
  * @return Image resolution units
  */
 ImageResolutionUnitsEnum::Enum
-ImageCaptureSettings::getImageResolutionUnits() const
+ImageCaptureDialogSettings::getImageResolutionUnits() const
 {
     return m_imageResolutionUnits;
 }
@@ -712,7 +716,7 @@ ImageCaptureSettings::getImageResolutionUnits() const
  *     New value for image resolution units
  */
 void
-ImageCaptureSettings::setImageResolutionUnits(const ImageResolutionUnitsEnum::Enum imageResolutionUnits)
+ImageCaptureDialogSettings::setImageResolutionUnits(const ImageResolutionUnitsEnum::Enum imageResolutionUnits)
 {
     m_imageResolutionUnits = imageResolutionUnits;
     updateSpatialWidthAndHeightFromPixelWidthAndHeight();
@@ -722,7 +726,7 @@ ImageCaptureSettings::setImageResolutionUnits(const ImageResolutionUnitsEnum::En
  * @return The spatial units.
  */
 ImageSpatialUnitsEnum::Enum
-ImageCaptureSettings::getSpatialUnits() const
+ImageCaptureDialogSettings::getSpatialUnits() const
 {
     return m_spatialUnits;
 }
@@ -734,7 +738,7 @@ ImageCaptureSettings::getSpatialUnits() const
  *     New value for spatial units.
  */
 void
-ImageCaptureSettings::setSpatialUnits(const ImageSpatialUnitsEnum::Enum spatialUnits)
+ImageCaptureDialogSettings::setSpatialUnits(const ImageSpatialUnitsEnum::Enum spatialUnits)
 {
     m_spatialUnits = spatialUnits;
     updatePixelWidthAndHeightFromSpatialWidthAndHeight();
@@ -747,7 +751,7 @@ ImageCaptureSettings::setSpatialUnits(const ImageSpatialUnitsEnum::Enum spatialU
  *     New mode.
  */
 void
-ImageCaptureSettings::setImageCaptureDimensionsMode(const ImageCaptureDimensionsModeEnum::Enum mode)
+ImageCaptureDialogSettings::setImageCaptureDimensionsMode(const ImageCaptureDimensionsModeEnum::Enum mode)
 {
     m_dimensionsMode = mode;
 }
@@ -756,7 +760,7 @@ ImageCaptureSettings::setImageCaptureDimensionsMode(const ImageCaptureDimensions
  * @param Is crop to tab/window lock aspect ratio enabled?
  */
 bool
-ImageCaptureSettings::isCropToTabWindowLockAspectRegionEnabled() const
+ImageCaptureDialogSettings::isCropToTabWindowLockAspectRegionEnabled() const
 {
     return m_cropToTabWindowLockAspectRegionEnabled;
 }
@@ -768,7 +772,7 @@ ImageCaptureSettings::isCropToTabWindowLockAspectRegionEnabled() const
  *    New status.
  */
 void
-ImageCaptureSettings::setCropToTabWindowLockAspectRegionEnabled(const bool enabled)
+ImageCaptureDialogSettings::setCropToTabWindowLockAspectRegionEnabled(const bool enabled)
 {
     m_cropToTabWindowLockAspectRegionEnabled = enabled;
 }
@@ -786,11 +790,11 @@ ImageCaptureSettings::setCropToTabWindowLockAspectRegionEnabled(const bool enabl
  *    Name of instance in the scene.
  */
 SceneClass*
-ImageCaptureSettings::saveToScene(const SceneAttributes* sceneAttributes,
+ImageCaptureDialogSettings::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "ImageCaptureSettings",
+                                            "ImageCaptureDialogSettings",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -817,11 +821,33 @@ ImageCaptureSettings::saveToScene(const SceneAttributes* sceneAttributes,
  *     sceneClass from which model specific information is obtained.
  */
 void
-ImageCaptureSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
+ImageCaptureDialogSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
         return;
+    }
+    
+    /**
+     * Try to restore old cropping value that used variable name "m_croppingMargin".
+     * Name was changed to m_margin on 4/27/2021
+     */
+    const int32_t invalidCroppingMargin(-999999);
+    const int32_t croppingMargin(sceneClass->getIntegerValue("m_croppingMargin",
+                                                             invalidCroppingMargin));
+    if (croppingMargin != invalidCroppingMargin) {
+        /*
+         * 4/27/2021
+         * Older scene before m_croppingMargin was renamed to m_margin.
+         * Only use scene value if cropping is enabled as at time scene was
+         * created, margin was only used if cropping was enabled
+         */
+        if (isCroppingEnabled()) {
+            m_margin = sceneClass->getIntegerValue("m_croppingMargin");
+        }
+        else {
+            m_margin = 0;
+        }
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes,

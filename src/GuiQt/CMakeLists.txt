@@ -415,7 +415,6 @@ EventGraphicsUpdateOneWindow.h
 EventGraphicsWindowShowToolTip.h
 EventHelpViewerDisplay.h
 EventIdentificationRequest.h
-EventImageCapture.h
 EventMovieManualModeRecording.h
 EventOperatingSystemRequestOpenDataFile.h
 EventOverlaySettingsEditorDialogRequest.h
@@ -730,7 +729,6 @@ EventGraphicsUpdateOneWindow.cxx
 EventGraphicsWindowShowToolTip.cxx
 EventHelpViewerDisplay.cxx
 EventIdentificationRequest.cxx
-EventImageCapture.cxx
 EventMovieManualModeRecording.cxx
 EventOperatingSystemRequestOpenDataFile.cxx
 EventOverlaySettingsEditorDialogRequest.cxx

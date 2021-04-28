@@ -46,7 +46,7 @@ namespace caret {
     class DataToolTipsManager;
     class EventBrowserTabClose;
     class EventBrowserTabDelete;
-    class ImageCaptureSettings;
+    class ImageCaptureDialogSettings;
     class Model;
     class MovieRecorder;
     class SpacerTabContent;
@@ -83,9 +83,9 @@ namespace caret {
         
         const DataToolTipsManager* getDataToolTipsManager() const;
         
-        ImageCaptureSettings* getImageCaptureDialogSettings();
+        ImageCaptureDialogSettings* getImageCaptureDialogSettings();
         
-        const ImageCaptureSettings* getImageCaptureDialogSettings() const;
+        const ImageCaptureDialogSettings* getImageCaptureDialogSettings() const;
         
         MovieRecorder* getMovieRecorder();
         
@@ -179,7 +179,7 @@ namespace caret {
         std::unique_ptr<DataToolTipsManager> m_dataToolTipsManager;
         
         /** Settings for image capture dialog */
-        ImageCaptureSettings* m_imageCaptureDialogSettings;
+        ImageCaptureDialogSettings* m_imageCaptureDialogSettings;
         
         /** Map to spacer tabs where key is window index, row index, column index */
         std::map<SpacerTabIndex, SpacerTabContent*> m_spacerTabsMap;

@@ -38,7 +38,7 @@
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "GraphicsUtilitiesOpenGL.h"
-#include "ImageCaptureSettings.h"
+#include "ImageCaptureDialogSettings.h"
 #include "ImageFile.h"
 #include "Matrix4x4.h"
 #include "MathFunctions.h"
