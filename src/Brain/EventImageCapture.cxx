@@ -181,6 +181,13 @@ EventImageCapture::getOutputHeightIncludingMargin() const
 int32_t
 EventImageCapture::getOutputWidthExcludingMargin() const
 {
+    /*
+     * Zero indicates use size of window for image
+     */
+    if (m_outputWidth <= 0) {
+        return 0;
+    }
+    
     float width(m_outputWidth - (m_margin * 2.0f));
     if (width < 10) {
         width = 10;
@@ -194,6 +201,13 @@ EventImageCapture::getOutputWidthExcludingMargin() const
 int32_t
 EventImageCapture::getOutputHeightExcludingMargin() const
 {
+    /*
+     * Zero indicates use size of window for image
+     */
+    if (m_outputHeight <= 0) {
+        return 0;
+    }
+
     float height(m_outputHeight - (m_margin * 2.0f));
     if (height < 10) {
         height = 10;
