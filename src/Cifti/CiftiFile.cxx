@@ -504,7 +504,16 @@ CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename)
         }
     }
     if (whichExt == -1) throw DataFileException("no cifti extension found in file '" + filename + "'");
-    m_xml.readXML(QByteArray(myHeader.m_extensions[whichExt]->m_bytes.data(), myHeader.m_extensions[whichExt]->m_bytes.size()));//CiftiXML should be under 2GB
+    try
+    {
+        m_xml.readXML(QByteArray(myHeader.m_extensions[whichExt]->m_bytes.data(), myHeader.m_extensions[whichExt]->m_bytes.size()));//CiftiXML should be under 2GB
+    } catch (CaretException& e) {
+        throw DataFileException("XML parsing error in cifti file '" + filename + "': " + e.whatString());
+    } catch (exception& e) {//use a different message for std::exception, as this probably isn't from our code
+        throw DataFileException("error while parsing XML in cifti file '" + filename + "': " + e.what());
+    } catch (...) {
+        throw DataFileException("unknown error while parsing XML in cifti file '" + filename + "'");
+    }
     vector<int64_t> dimCheck = m_nifti.getDimensions();
     if (dimCheck.size() < 5)
     {
