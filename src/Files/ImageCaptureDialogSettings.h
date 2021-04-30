@@ -188,14 +188,18 @@ namespace caret {
         
         static const float CENTIMETERS_PER_INCH;
         static const float CENTIMETERS_PER_METER;
+        static const float CENTIMETERS_PER_MILLIMETER;
+        static const float METERS_PER_CENTIMETER;
         static const float MILLIMETERS_PER_CENTIMETER;
 
     };
     
 #ifdef __IMAGE_CAPTURE_DIALOG_SETTINGS_DECLARE__
     const float ImageCaptureDialogSettings::CENTIMETERS_PER_INCH = 2.54;
+    const float ImageCaptureDialogSettings::METERS_PER_CENTIMETER = 0.01;
     const float ImageCaptureDialogSettings::MILLIMETERS_PER_CENTIMETER = 10.0;
     const float ImageCaptureDialogSettings::CENTIMETERS_PER_METER = 100.0;
+    const float ImageCaptureDialogSettings::CENTIMETERS_PER_MILLIMETER = 0.10;
 #endif // __IMAGE_CAPTURE_DIALOG_SETTINGS_DECLARE__
 
 } // namespace

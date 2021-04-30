@@ -39,8 +39,12 @@ public:
         INCHES,
         /** Centimeters */
         CENTIMETERS,
+        /** Meters */
+        METERS,
         /** Millimeters */
-        MILLIMETERS
+        MILLIMETERS,
+        /** Pixels */
+        PIXELS
     };
 
 
@@ -60,6 +64,8 @@ public:
 
     static void getAllEnums(std::vector<Enum>& allEnums);
 
+    static void getAllEnumsExcludingPixels(std::vector<Enum>& allEnums);
+    
     static void getAllNames(std::vector<AString>& allNames, const bool isSorted);
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);

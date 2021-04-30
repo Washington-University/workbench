@@ -63,6 +63,10 @@ UnitsConversion::convertLength(const LengthUnits fromUnits,
                                const LengthUnits toUnits,
                                const float lengthValue)
 {
+    if (fromUnits == toUnits) {
+        return lengthValue;
+    }
+    
     /*
      * Convert length to millimeters
      */

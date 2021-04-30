@@ -40,7 +40,9 @@ public:
         /** Pixels per centimeter */
         PIXELS_PER_CENTIMETER,
         /** PIxels per meter (used by QImage) */
-        PIXELS_PER_METER
+        PIXELS_PER_METER,
+        /** Pixels per millimeter */
+        PIXELS_PER_MILLIMETER
     };
 
 

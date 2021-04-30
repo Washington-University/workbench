@@ -60,8 +60,6 @@
 #include "TileTabsLayoutManualConfiguration.h"
 #include "VolumeFile.h"
 
-//#include "workbench_png.h"
-
 using namespace caret;
 
 /**
@@ -98,12 +96,15 @@ enum ParamKeys : int32_t {
     PARAM_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT,
     PARAM_KEY_SIZE_CAPTURE_DIALOG,
     PARAM_KEY_SIZE_WINDOW,
+    PARAM_KEY_OPTION_CONN_DB_LOGIN,
     PARAM_KEY_OPTION_MARGIN,
     PARAM_KEY_OPTION_NO_SCENE_COLORS,
+    PARAM_KEY_OPTION_PRINT_IMAGE_INFO,
+    PARAM_KEY_OPTION_RENDERER,
+    PARAM_KEY_OPTION_RESOLUTION,
     PARAM_KEY_OPTION_SET_MAP_YOKING,
-    PARAM_KEY_OPTION_CONN_DB_LOGIN,
-    PARAM_KEY_SHOW_CAPTURE_SETTINGS,
-    PARAM_KEY_OPTION_RENDERER
+    PARAM_KEY_OPTION_SIZE_UNITS,
+    PARAM_KEY_SHOW_CAPTURE_SETTINGS
 };
 
 /**
@@ -112,6 +113,30 @@ enum ParamKeys : int32_t {
 OperationParameters*
 OperationShowSceneTwo::getParameters()
 {
+    /*
+     * Get valid image file extenions
+     */
+    std::vector<AString> readImageFileExtensions, writeImageFileExtensions;
+    AString defaultExtension;
+    ImageFile::getWorkbenchSupportedImageFileExtensions(readImageFileExtensions,
+                                                        writeImageFileExtensions,
+                                                        defaultExtension);
+    
+    AString imageExtensionList("The file name must end with a valid extension that identifies the image file format.  "
+                               "Valid extensions on this system are: (");
+    bool firstExtFlag(true);
+    for (auto& ext : writeImageFileExtensions) {
+        if ( ! firstExtFlag) {
+            imageExtensionList += " ";
+        }
+        imageExtensionList += ("." + ext);
+        firstExtFlag = false;
+    }
+    imageExtensionList += (").");
+    
+    /*
+     * Required parameters
+     */
     OperationParameters* ret = new OperationParameters();
     
     ret->addStringParameter(PARAM_KEY_SCENE_FILE,
@@ -124,12 +149,23 @@ OperationShowSceneTwo::getParameters()
     
     ret->addStringParameter(PARAM_KEY_IMAGE_FILE_NAME,
                             "image-file-name",
-                            "output image file name");
+                            ("output image file name.\n"
+                             "   "
+                             + imageExtensionList
+                             + "\n\n   "
+                             "If there is more than one window in the scene, multiple image files are output "
+                             "with the window's number inserted into the name of the image file immediately before "
+                             "the image file's extension."));
     
+    /*
+     * Image size parameters (one and only one must be specified)
+     */
     const QString windowSizeSwitch("-size-window");
     ret->createOptionalParameter(PARAM_KEY_SIZE_WINDOW,
                                  windowSizeSwitch,
-                                 "Output image is size of window's graphics region from when scene was created");
+                                 "Output image is size of window's graphics region from when scene was created.  "
+                                 "This size option will not work with scenes created in Workbench versions 1.2 "
+                                 "and earlier.");
     
     const QString captureDialogSizeSwitch("-size-capture");
     ret->createOptionalParameter(PARAM_KEY_SIZE_CAPTURE_DIALOG,
@@ -161,17 +197,70 @@ OperationShowSceneTwo::getParameters()
                                         "height",
                                         "Height for output image");
 
+    /*
+     * Option to set the units for the image width/height
+     */
+    std::vector<ImageSpatialUnitsEnum::Enum> spatialUnits;
+    ImageSpatialUnitsEnum::getAllEnums(spatialUnits);
+    AString spatialUnitsList("  Valid units are:\n");
+    for (const auto unitEnum : spatialUnits) {
+        
+        spatialUnitsList += ("   " + ImageSpatialUnitsEnum::toName(unitEnum) + "\n");
+    }
+    const AString defaultSpatialUnitsText("      Default is "
+                                          + ImageSpatialUnitsEnum::toName(s_defaultImageWidthHeightUnits));
+    OptionalParameter* sizeUnitsOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_SIZE_UNITS,
+                                                                   "-units",
+                                                                   ("Units for image width/height\n"
+                                                                    + defaultSpatialUnitsText));
+    sizeUnitsOpt->addStringParameter(1,
+                                     "units",
+                                     ("Name of units for image width/height."
+                                      + spatialUnitsList));
+    
+    /*
+     * Option for image resolution
+     */
+    std::vector<ImageResolutionUnitsEnum::Enum> allResolutions;
+    ImageResolutionUnitsEnum::getAllEnums(allResolutions);
+    AString resolutionsList("  Valid resolution unit names are:\n");
+    for (const auto resEnum : allResolutions) {
+        resolutionsList += ("   " + ImageResolutionUnitsEnum::toName(resEnum) + "\n");
+    }
+    const AString defaultResText("      Default is "
+                                 + AString::number(s_defaultResolutionNumberOfPixels, 'f', 0)
+                                 + " "
+                                 + ImageResolutionUnitsEnum::toName(ImageResolutionUnitsEnum::PIXELS_PER_INCH));
+    OptionalParameter* resolutionOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_RESOLUTION,
+                                                                    "-resolution",
+                                                                    ("Image resolution (number pixels per size unit)\n"
+                                                                     + defaultResText));
+    resolutionOpt->addDoubleParameter(1, "Number of pixels", "number of pixels");
+    resolutionOpt->addStringParameter(2,
+                                      "Units Name",
+                                      ("Name of resolution units."
+                                       + resolutionsList));
+    
+    /*
+     * Option to add margin to output image
+     */
     OptionalParameter* marginOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_MARGIN,
-                                                                "margin",
-                                                                "Add a margin around the image using the window's background color.");
+                                                                "-margin",
+                                                                "Add a margin to sides of the image using the window's background color.");
     marginOpt->addIntegerParameter(1,
                                    "size",
-                                   "size of margin added to all sides of output image");
+                                   "size of margin, in pixels, added to all sides of output image");
     
+    /*
+     * Option for not using colors in scene
+     */
     ret->createOptionalParameter(static_cast<int32_t>(PARAM_KEY_OPTION_NO_SCENE_COLORS),
                                  "-no-scene-colors",
                                  "Do not use background and foreground colors in scene");
     
+    /*
+     * Option for setting map yoking
+     */
     OptionalParameter* mapYokeOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_SET_MAP_YOKING,
                                                                  "-set-map-yoke",
                                                                  "Override selected map index for a map yoking group.");
@@ -182,9 +271,14 @@ OperationShowSceneTwo::getParameters()
                                     "map undex",
                                     "Map index for yoking group.  Indices start at 1 (one)");
     
+    /*
+     * Option for connectome DB login
+     */
     OptionalParameter* connDbOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_CONN_DB_LOGIN,
                                                                 "-conn-db-login",
-                                                                "Login for scenes with files in Connectome Database");
+                                                                "Login for scenes with files in Connectome Database.  If "
+                                                                "this option is not specified, the login and password stored "
+                                                                "in the user's preferences is used.");
     connDbOpt->addStringParameter(1,
                                   "username",
                                   "Connectome DB Username");
@@ -192,83 +286,61 @@ OperationShowSceneTwo::getParameters()
                                   "password",
                                   "Connectome DB Password");
     
+    /*
+     * Option to show settings but not output image
+     */
     const QString showCaptureSettingsSwitch("-show-capture-settings");
     ret->createOptionalParameter(PARAM_KEY_SHOW_CAPTURE_SETTINGS,
                                  showCaptureSettingsSwitch,
-                                 "Print settings from Capture Dialog only, DO NOT create image file");
+                                 "Print settings from Capture Dialog only, DO NOT create image file(s)");
 
+    /*
+     * Option to select renderer
+     */
+    std::vector<std::unique_ptr<OffScreenSceneRendererBase>> allOffScreenRenderers(getOffScreenRenderers());
+    AString renderersListText;
+    if ( ! allOffScreenRenderers.empty()) {
+        renderersListText += ("\n   Available renderers are (first is default):\n");
+        for (const auto& osr : allOffScreenRenderers) {
+            renderersListText += (  "   " + osr->getSwitchName() + " - "
+                                  + osr->getDescriptiveName() + "\n");
+        }
+    }
     const QString rendererSwitch("-renderer");
     OptionalParameter* rendererOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_RENDERER,
                                                                   rendererSwitch,
                                                                   "Select renderer for drawing image");
-    rendererOpt->addStringParameter(1, "Renderer", "Name of renderer to use for drawing image");
+    rendererOpt->addStringParameter(1, "Renderer",
+                                    ("Name of renderer to use for drawing image"
+                                     + renderersListText));
     
-
+    ret->createOptionalParameter(PARAM_KEY_OPTION_PRINT_IMAGE_INFO,
+                                 "-print-image-info",
+                                 ("Print the size and other information about output images only and "
+                                  "DO NOT create any output image"));
+    
+    /*
+     * The help text printed when command run with no parameters
+     */
     AString helpText("Render content of browser windows displayed in a scene "
-                     "into image file(s).  The image file name should be "
-                     "similar to \"capture.png\".  If there is only one image "
-                     "to render, the image name will not change.  If there is "
-                     "more than one image to render, an index will be inserted "
-                     "into the image name: \"capture_01.png\", \"capture_02.png\" "
-                     "etc.\n"
+                     "into image file(s).  One of the \"-size\" options MUST BE SPECIFIED."
                      "\n"
-                     "If the scene references files in the Connectome Database,\n"
-                     "the \"-conn-db-login\" option is available for providing the \n"
-                     "username and password.  If this options is not specified, \n"
-                     "the username and password stored in the user's preferences\n"
-                     "is used.\n"
-                     "\n"
-                     "The image format is determined by the image file extension.\n"
-                     "The available image formats may vary by operating system.\n"
-                     "Image formats available on this system are:\n"
-                     "\n"
-                     "To view settings from Image Capture Dialog \n"
-                     "use the " + showCaptureSettingsSwitch + " option (no image file is created).\n"
-                     );
-    std::vector<AString> readImageFileExtensions, writeImageFileExtensions;
-    AString defaultExtension;
-    ImageFile::getWorkbenchSupportedImageFileExtensions(readImageFileExtensions,
-                                                        writeImageFileExtensions,
-                                                        defaultExtension);
-    
-    for (std::vector<AString>::iterator iter = writeImageFileExtensions.begin();
-         iter != writeImageFileExtensions.end();
-         iter++) {
-        const AString ext = *iter;
-        helpText += ("    "
-                     + ext
-                     + "\n");
-    }
+                     "\n");
     
     helpText += ("\n"
-                 "The result of using the \"" + windowSizeSwitch + "\" option\n"
-                 "is dependent upon the version used to create the scene.\n"
-                 "    * Versions 1.2 and newer contain the width and \n"
-                 "      height of the graphics region.  The output image  \n"
-                 "      will be the width and height from the scene and\n"
-                 "      the image width and height specified on the command\n"
-                 "      line is ignored.\n"
-                 "    * If the scene does not contain the width and height\n"
-                 "      of the graphics region, the width and height specified\n"
-                 "      on the command line is used for the size of the \n"
-                 "      output image.\n"
+                 "To view settings from Image Capture Dialog \n"
+                 "use the " + showCaptureSettingsSwitch + " option (no image file is created).\n"
                  );
     
-    std::vector<std::unique_ptr<OffScreenSceneRendererBase>> allOffScreenRenderers(getOffScreenRenderers());
+    helpText += ("Examples: (TO DO)"
+                 "\n"
+                 "\n");
+    
     if (allOffScreenRenderers.empty()) {
         helpText += ("\n"
-                     "No off screen renderers are available on this system.  Command WILL FAIL.");
-    }
-    else {
-        helpText += ("\n"
-                     "Renderers available on this computer are (first is default):\n");
-        for (const auto& osr : allOffScreenRenderers) {
-            helpText += ("   " + osr->getSwitchName() + + " - " + osr->getDescriptiveName() + "\n");
-        }
-        helpText += ("\n");
-        helpText += ("To use a renderer other than the default, use the \""
-                     + rendererSwitch
-                     + "\" option.");
+                     "\n"
+                     "NO OFF SCREEN RENDERERS AVAILABLE ON THIS SYSTEM.  COMMAND WILL FAIL !!!!"
+                     "\n");
     }
     
     ret->setHelpText(helpText);
@@ -290,6 +362,9 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
     CaretAssertVectorIndex(allOffScreenRenderers, 0);
     OffScreenSceneRendererBase* offscreenRenderer(allOffScreenRenderers[0].get());
 
+    /*
+     * Required parameters
+     */
     LevelProgress myProgress(myProgObj);
     AString sceneFileName = FileInformation(myParams->getString(PARAM_KEY_SCENE_FILE)).getAbsoluteFilePath();
     AString sceneNameOrNumber = myParams->getString(PARAM_KEY_SCENE_NAME_NUMBER);
@@ -306,6 +381,9 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
     };
     ImageSizeMode imageSizeMode = ImageSizeMode::MODE_INVALID;
     
+    /*
+     * One size parameter must be specified
+     */
     OptionalParameter* imageCaptureDialogSizeOption = myParams->getOptionalParameter(PARAM_KEY_SIZE_CAPTURE_DIALOG);
     OptionalParameter* imageWindowSizeOption = myParams->getOptionalParameter(PARAM_KEY_SIZE_WINDOW);
     OptionalParameter* imageWidthAndHeightOption = myParams->getOptionalParameter(PARAM_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT);
@@ -342,8 +420,11 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         imageSizeMode = ImageSizeMode::MODE_WIDTH_FROM_HEIGHT;
     }
 
-    float floatImageWidth(-1.0f);
-    float floatImageHeight(-1.0f);
+    /*
+     * Width and height MUST be float since they may be spatial values (eg 2.5 inches)
+     */
+    float inputImageWidth(-1.0f);
+    float inputImageHeight(-1.0f);
     switch (imageSizeMode) {
         case ImageSizeMode::MODE_INVALID:
             throw OperationException("Must specify one and only one of the size options");
@@ -353,26 +434,26 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
             break;
         case ImageSizeMode::MODE_HEIGHT_FROM_WIDTH:
             CaretAssert(imageWidthOption->m_present);
-            floatImageWidth = imageWidthOption->getDouble(1);
-            if (floatImageWidth <= 0.0f) {
+            inputImageWidth = imageWidthOption->getDouble(1);
+            if (inputImageWidth <= 0.0f) {
                 throw OperationException("Image width is invalid (zero or less)");
             }
             break;
         case ImageSizeMode::MODE_WIDTH_AND_HEIGHT:
             CaretAssert(imageWidthAndHeightOption->m_present);
-            floatImageWidth = imageWidthAndHeightOption->getDouble(1);
-            if (floatImageWidth <= 0.0f) {
+            inputImageWidth = imageWidthAndHeightOption->getDouble(1);
+            if (inputImageWidth <= 0.0f) {
                 throw OperationException("Image width is invalid (zero or less)");
             }
-            floatImageHeight = imageWidthAndHeightOption->getDouble(2);
-            if (floatImageHeight <= 0.0f) {
+            inputImageHeight = imageWidthAndHeightOption->getDouble(2);
+            if (inputImageHeight <= 0.0f) {
                 throw OperationException("Image height is invalid (zero or less)");
             }
             break;
         case ImageSizeMode::MODE_WIDTH_FROM_HEIGHT:
             CaretAssert(imageHeightOption->m_present);
-            floatImageHeight = imageHeightOption->getDouble(1);
-            if (floatImageHeight <= 0.0f) {
+            inputImageHeight = imageHeightOption->getDouble(1);
+            if (inputImageHeight <= 0.0f) {
                 throw OperationException("Image height is invalid (zero or less)");
             }
             break;
@@ -381,6 +462,46 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
             break;
     }
 
+    /*
+     * Units for image width/height
+     */
+    ImageSpatialUnitsEnum::Enum imageWidthHeightUnits(s_defaultImageWidthHeightUnits);
+    OptionalParameter* unitsSizeOption = myParams->getOptionalParameter(PARAM_KEY_OPTION_SIZE_UNITS);
+    if (unitsSizeOption->m_present) {
+        const AString unitsName(unitsSizeOption->getString(1).toUpper());
+        bool validFlag(false);
+        imageWidthHeightUnits = ImageSpatialUnitsEnum::fromName(unitsName,
+                                                                &validFlag);
+        if ( ! validFlag) {
+            throw OperationException("\"" + unitsName + "\" is not a valid units for width/height");
+        }
+    }
+
+    /*
+     * Image resolution units and 'pixels per unit'
+     */
+    float imageResolutionNumberOfPixels(s_defaultResolutionNumberOfPixels);
+    ImageResolutionUnitsEnum::Enum imageResolutionUnits = s_defaultResolutionUnits;
+    OptionalParameter* resolutionOption = myParams->getOptionalParameter(PARAM_KEY_OPTION_RESOLUTION);
+    if (resolutionOption->m_present) {
+        imageResolutionNumberOfPixels = resolutionOption->getDouble(1);
+        const AString resName(resolutionOption->getString(2).toUpper());
+        bool validFlag(false);
+        imageResolutionUnits = ImageResolutionUnitsEnum::fromName(resName,
+                                                                  &validFlag);
+        if ( ! validFlag) {
+            throw OperationException("\"" + resName + "\" is not a valid units for resolution");
+        }
+    }
+    if (imageResolutionNumberOfPixels <= 0.0) {
+        throw OperationException("Resolution number of pixels="
+                                 + AString::number(imageResolutionNumberOfPixels, 'f', 6)
+                                 + " must be greater than zero");
+    }
+
+    /*
+     * Option to ignore scene colors
+     */
     const bool doNotUseSceneColorsFlag = myParams->getOptionalParameter(PARAM_KEY_OPTION_NO_SCENE_COLORS)->m_present;
     int32_t marginValue(0);
     OptionalParameter* marginOption = myParams->getOptionalParameter(PARAM_KEY_OPTION_MARGIN);
@@ -393,11 +514,14 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         }
     }
     
+    /*
+     * Option for map yoking
+     */
     MapYokingGroupEnum::Enum mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     int32_t mapYokingMapIndex = -1;
     OptionalParameter* mapYokeOpt = myParams->getOptionalParameter(PARAM_KEY_OPTION_SET_MAP_YOKING);
     if (mapYokeOpt->m_present) {
-        const AString romanNumeral = mapYokeOpt->getString(1);
+        const AString romanNumeral = mapYokeOpt->getString(1).toUpper();
         bool validFlag = false;
         mapYokingGroup = MapYokingGroupEnum::fromGuiName(romanNumeral, &validFlag);
         if ( ! validFlag) {
@@ -416,7 +540,7 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
     }
         
     /*
-     * Need to set username/password for files in ConnectomeDB
+     * Option for connectome db login
      */
     AString username;
     AString password;
@@ -428,8 +552,14 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
     setRemoteLoginAndPassword(username,
                               password);
 
+    /*
+     * ???
+     */
     OptionalParameter* showSettingsOpt = myParams->getOptionalParameter(PARAM_KEY_SHOW_CAPTURE_SETTINGS);
 
+    /*
+     * Option for renderer
+     */
     OptionalParameter* rendererOpt = myParams->getOptionalParameter(PARAM_KEY_OPTION_RENDERER);
     if (rendererOpt->m_present) {
         const AString rendererName(rendererOpt->getString(1).toLower());
@@ -448,15 +578,29 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         }
     }
     
+    /*
+     * Option to print info about output image but DO NOT create images
+     */
+    const bool printImageInfoOnlyFlag(myParams->getOptionalParameter(PARAM_KEY_OPTION_PRINT_IMAGE_INFO)->m_present);
+
+    /*
+     * Restore the scene file
+     */
     AString sceneErrorMessage;
     loadSceneFileAndRestoreScene(sceneFileName,
                                  sceneNameOrNumber,
                                  doNotUseSceneColorsFlag,
                                  sceneErrorMessage);
     
+    /*
+     * Maybe update with map yoking option
+     */
     applyMapYoking(mapYokingGroup,
                    mapYokingMapIndex);
 
+    /*
+     * Get all windows in the scene
+     */
     std::vector<BrowserWindowContent*> allBrowserWindowContent;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
         std::unique_ptr<EventBrowserWindowContent> browserContentEvent = EventBrowserWindowContent::getWindowContent(i);
@@ -474,6 +618,9 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                  "Saving the scenes in Workbench will fix this problem.");
     }
     
+    /*
+     * Get settings of capture dialog from scene
+     */
     const ImageCaptureDialogSettings* sceneCaptureSettings(SessionManager::get()->getImageCaptureDialogSettings());
     
     /*
@@ -499,6 +646,9 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         return;
     }
     
+    /*
+     * Verify that an offscreen renderer is available
+     */
     if ( ! offscreenRenderer) {
         throw OperationException("No offscreen renderer is selected");
     }
@@ -507,7 +657,7 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
     }
 
     /*
-     * Restore windows
+     * Restore each window
      */
     for (int32_t iWindow = 0; iWindow < numberOfWindows; iWindow++) {
         CaretAssertVectorIndex(allBrowserWindowContent, iWindow);
@@ -515,14 +665,22 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         
         std::unique_ptr<ImageCaptureDialogSettings> imageSettings;
         
-        int32_t imageWidth(-1);
-        int32_t imageHeight(-1);
+        float imageWidth(-1.0);
+        float imageHeight(-1.0);
         
         const float windowWidth = bwc->getSceneGraphicsWidth();
         const float windowHeight = bwc->getSceneGraphicsHeight();
         const float aspectRatio((windowWidth > 0.0)
                                 ? (windowHeight / windowWidth)
                                 : 0.0);
+//        std::cout << "Window width=" << windowWidth
+//        << " height=" << windowHeight
+//        << " aspect=" << aspectRatio << std::endl;
+        
+        /*
+         * Depending upon the "-size-" option, may need to determine
+         * a width/height now that we have window width/hight from scene
+         */
         switch (imageSizeMode) {
             case ImageSizeMode::MODE_INVALID:
                 CaretAssert(0);
@@ -537,35 +695,35 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                              + "height=" + QString::number(imageHeight)
                                              + ".  Both width and height options must be specified");
                 }
-                imageHeight = static_cast<int32_t>(aspectRatio * floatImageWidth);
+                imageWidth = inputImageWidth;
+                imageHeight = aspectRatio * imageWidth;
                 if (imageHeight <= 0.0) {
                     throw OperationException("Failed to compute height from width.  Width and/or height of window from scene may be invalid"
                                              "width=" + QString::number(imageWidth)
                                              + "height=" + QString::number(imageHeight)
                                              + ".  Both width and height options must be specified");
                 }
-                imageWidth = static_cast<int32_t>(floatImageWidth);
                 break;
             case ImageSizeMode::MODE_WIDTH_AND_HEIGHT:
-                imageWidth  = static_cast<int32_t>(floatImageWidth);
-                imageHeight = static_cast<int32_t>(floatImageHeight);
+                imageWidth  = inputImageWidth;
+                imageHeight = inputImageHeight;
                 break;
             case ImageSizeMode::MODE_WIDTH_FROM_HEIGHT:
-                break;
                 if (aspectRatio <= 0.0) {
                     throw OperationException("Width and/or height of window from scene is invalid or missing (old scene)"
                                              "width=" + QString::number(imageWidth)
                                              + "height=" + QString::number(imageHeight)
                                              + ".  Both width and height options must be specified");
                 }
-                imageWidth = static_cast<int32_t>(floatImageWidth / aspectRatio);
+                imageHeight = inputImageHeight;
+                imageWidth = imageHeight / aspectRatio;
                 if (imageWidth <= 0.0) {
                     throw OperationException("Failed to compute width from height.  Width and/or height of window from scene may be invalid"
                                              "width=" + QString::number(imageWidth)
                                              + "height=" + QString::number(imageHeight)
                                              + ".  Both width and height options must be specified");
                 }
-                imageHeight = static_cast<int32_t>(floatImageHeight);
+                break;
             case ImageSizeMode::MODE_WINDOW:
                 imageWidth  = static_cast<int32_t>(windowWidth);
                 imageHeight = static_cast<int32_t>(windowHeight);
@@ -598,9 +756,28 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                        imageWidth,
                                        imageHeight,
                                        imageWidth,
-                                       imageHeight);
+                                       imageHeight,
+                                       imageWidthHeightUnits,
+                                       imageResolutionUnits,
+                                       imageResolutionNumberOfPixels);
         captureEvent.setMargin(marginValue);
         
+        /*
+         * Just print the information about the output image
+         * but do not create it?
+         */
+        if (printImageInfoOnlyFlag) {
+            std::cout << captureEvent.toImageInfoText(imageFileName) << std::endl;
+            
+            /*
+             * Do not capture images, print only
+             */
+            continue;
+        }
+        
+        /*
+         * Create the image of the scene
+         */
         const int32_t outputImageIndex = ((numberOfWindows > 1)
                                           ? iWindow
                                           : -1);
@@ -745,66 +922,6 @@ OperationShowSceneTwo::setRemoteLoginAndPassword(const AString& username,
                                                      loginPassword);
 }
 
-
-///*
-// * Get width and height for image
-// * @param inputs
-// *     Inputs for processing
-// * @param widthOut
-// *     Output image width
-// * @param heightOut
-// *     Output image height
-// */
-//void
-//OperationShowSceneTwo::getImageWidthAndHeight(const Inputs& inputs,
-//                                              int32_t& widthOut,
-//                                              int32_t& heightOut)
-//{
-//    BrowserWindowContent* bwc(inputs.m_browserWindowContent);
-//    CaretAssert(bwc);
-//
-//    int32_t imageWidth(inputs.m_imageWidth);
-//    int32_t imageHeight(inputs.m_imageHeight);
-//
-//    const float geomWidth = bwc->getSceneGraphicsWidth();
-//    const float geomHeight = bwc->getSceneGraphicsHeight();
-//
-//    if (inputs.m_useWindowSizeForImageSizeFlag) {
-//        if ((geomWidth > 0)
-//            && (geomHeight > 0)) {
-//            imageWidth = geomWidth;
-//            imageHeight = geomHeight;
-//        }
-//        else {
-//            throw OperationException("Scene is very old and does not contain size of window.  Use option with width/height.");
-//        }
-//    }
-//    else if (imageHeight <= 0) {
-//        /*
-//         * Use aspect from graphics region to set image height
-//         */
-//        if ((geomWidth > 0)
-//            && (geomHeight > 0)) {
-//            const float aspect(static_cast<float>(geomHeight) / static_cast<float>(geomWidth));
-//            imageHeight = imageWidth * aspect;
-//        }
-//        else {
-//            throw OperationException("Scene is very old and does not contain size of window.  Must specify height.");
-//        }
-//    }
-//
-//    if ((imageWidth <= 0)
-//        || (imageHeight <= 0)) {
-//        throw OperationException("Invalid image size width="
-//                                 + QString::number(imageWidth)
-//                                 + ", height="
-//                                 + QString::number(imageHeight));
-//    }
-//
-//    widthOut  = imageWidth;
-//    heightOut = imageHeight;
-//}
-
 /**
  * Render a window to an image
  * @param inputs
@@ -823,15 +940,12 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
     
     int32_t imageWidth(inputs.m_imageCaptureEvent->getOutputWidthExcludingMargin());
     int32_t imageHeight(inputs.m_imageCaptureEvent->getOutputHeightExcludingMargin());
-//    getImageWidthAndHeight(inputs,
-//                           imageWidth,
-//                           imageHeight);
     CaretAssert(imageWidth > 0);
     CaretAssert(imageHeight > 0);
     
-    //
-    // Allocate image buffer
-    //
+    /*
+     * Allocate image buffer
+     */
     const int32_t imageBufferSize = imageWidth * imageHeight * 4 * sizeof(unsigned char);
     unsigned char* imageBuffer = new unsigned char[imageBufferSize];
     if (imageBuffer == 0) {
@@ -994,144 +1108,6 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
                        inputs.m_outputImageIndex,
                        inputs.m_offscreenRenderer->getImageFile());
     }
-}
-
-
-
-/**
- * Estimate the size of the graphics region from scenes that lack
- * an explicit entry for the graphics region size.  Scenes in version
- * 1.2.0-pre1 did not contain graphics window size.
- *
- * @param windowSceneClass
- *     Scene class for the window.
- * @param estimatedWidthOut
- *     Estimated width of graphics region (greater than zero if valid).
- * @param estimatedHeightOut
- *     Estimated height of graphics region (greater than zero if valid).
- */
-void
-OperationShowSceneTwo::estimateGraphicsSize(const SceneClass* windowSceneClass,
-                                         float& estimatedWidthOut,
-                                         float& estimatedHeightOut)
-{
-    estimatedWidthOut  = 0;
-    estimatedHeightOut = 0;
-    
-    float winWidth  = -1.0;
-    float winHeight = -1.0;
-    const SceneClass* winGeometry = windowSceneClass->getClass("geometry");
-    if (winGeometry != NULL) {
-        winWidth  = winGeometry->getIntegerValue("geometryWidth", -1);
-        winHeight = winGeometry->getIntegerValue("geometryHeight", -1);
-    }
-    else {
-        return;
-    }
-    
-    float tbHeight = -1.0;
-    bool tbHeightValid = false;
-    const SceneClass* tb = windowSceneClass->getClass("m_toolbar");
-    if (tb != NULL) {
-        if (tb->getBooleanValue("toolBarVisible")) {
-            tbHeight = 165.0;
-            tbHeightValid = true;
-        }
-    }
-    if ( ! tbHeightValid) {
-        return;
-    }
-    
-    float overlayToolBoxWidth  = 0;
-    float overlayToolBoxHeight = 0;
-    QString overlayToolBoxOrientation;
-    bool overlayToolBoxValid = getToolBoxSize(windowSceneClass->getClass("overlayToolBox"),
-                                              windowSceneClass->getClass("m_overlayActiveToolBox"),
-                                              overlayToolBoxWidth,
-                                              overlayToolBoxHeight,
-                                              overlayToolBoxOrientation);
-    
-    
-    float featureToolBoxWidth  = 0;
-    float featureToolBoxHeight = 0;
-    QString featureToolBoxOrientation;
-    bool featureToolBoxValid = getToolBoxSize(windowSceneClass->getClass("featureToolBox"),
-                                              windowSceneClass->getClass("m_featuresToolBox"),
-                                              featureToolBoxWidth,
-                                              featureToolBoxHeight,
-                                              featureToolBoxOrientation);
-    
-    if (overlayToolBoxValid
-        && featureToolBoxValid) {
-        
-        estimatedWidthOut = winWidth - overlayToolBoxWidth - featureToolBoxWidth;
-        estimatedHeightOut = winHeight - tbHeight - overlayToolBoxHeight - featureToolBoxHeight;
-    }
-}
-
-/**
- * Get the size of a toolbox.
- *
- * @param toolBoxClass
- *    The toolbox scene class.
- * @param overlayToolBoxWidthOut
- *    Output with width of toolbox.
- * @param overlayToolBoxHeightOut
- *    Output with height of toolbox.
- * @param overlayToolBoxOrientationOut
- *    Output with orientation of toolbox.
- * @return
- *    True if the toolbox outputs are valid, else false.
- */
-bool
-OperationShowSceneTwo::getToolBoxSize(const SceneClass* toolBoxClass,
-                                   const SceneClass* activeToolBoxClass,
-                                   float& overlayToolBoxWidthOut,
-                                   float& overlayToolBoxHeightOut,
-                                   QString& overlayToolBoxOrientationOut)
-{
-    if (toolBoxClass == NULL) {
-        return false;
-    }
-    if (activeToolBoxClass == NULL) {
-        return false;
-    }
-    
-    overlayToolBoxWidthOut  = 0;
-    overlayToolBoxHeightOut = 0;
-    
-    bool overlayToolBoxValid = false;
-    if (toolBoxClass != NULL) {
-        overlayToolBoxValid = true;
-        if (toolBoxClass->getBooleanValue("visible")) {
-            overlayToolBoxValid = false;
-            if ( ! toolBoxClass->getBooleanValue("floating")) {
-                overlayToolBoxOrientationOut = toolBoxClass->getStringValue("orientation");
-                overlayToolBoxWidthOut  = activeToolBoxClass->getIntegerValue("toolboxWidth");
-                overlayToolBoxHeightOut = activeToolBoxClass->getIntegerValue("toolboxHeight");
-                if ((overlayToolBoxWidthOut > 0)
-                    && (overlayToolBoxHeightOut > 0)) {
-                    
-                    if (overlayToolBoxOrientationOut == "horizontal") {
-                        /*
-                         * Toolbar is on bottom so only need height
-                         */
-                        overlayToolBoxWidthOut = 0;
-                        overlayToolBoxValid = true;
-                    }
-                    else if (overlayToolBoxOrientationOut == "vertical") {
-                        /*
-                         * Toolbar is on left side so only need width
-                         */
-                        overlayToolBoxHeightOut = 0;
-                        overlayToolBoxValid = true;
-                    }
-                }
-            }
-        }
-    }
-    
-    return overlayToolBoxValid;
 }
 
 /**

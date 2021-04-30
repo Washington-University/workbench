@@ -151,7 +151,22 @@ OffScreenSceneRendererOSMesa::initialize(const int32_t imageWidth,
                           GL_UNSIGNED_BYTE,
                           m_imageWidth,
                           m_imageHeight) == 0) {
-        setErrorMessage("Assigning buffer to context and make current failed.");
+        GLint mesaMaxWidth(0);
+        GLint mesaMaxHeight(0);
+        OSMesaGetIntegerv(OSMESA_MAX_WIDTH,
+                          &mesaMaxWidth);
+        OSMesaGetIntegerv(OSMESA_MAX_HEIGHT,
+                          &mesaMaxHeight);
+        setErrorMessage("Assigning buffer to context and make current failed.  This may occur if the "
+                        "image pixel width="
+                        + AString::number(m_imageWidth)
+                        + " or pixel height="
+                        + AString::number(m_imageHeight)
+                        + " exceeds the Mesa System's maximum width="
+                        + AString::number(mesaMaxWidth)
+                        + " or height="
+                        + AString::number(mesaMaxHeight)
+                        + ".");
         return false;
     }
     return true;

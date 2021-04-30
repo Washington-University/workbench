@@ -27,6 +27,7 @@
 
 #include "Event.h"
 #include "ImageResolutionUnitsEnum.h"
+#include "ImageSpatialUnitsEnum.h"
 
 namespace caret {
 
@@ -43,6 +44,17 @@ namespace caret {
                           const int32_t outputWidth,
                           const int32_t outputHeight);
         
+        EventImageCapture(const int32_t browserWindowIndex,
+                          const int32_t captureOffsetX,
+                          const int32_t captureOffsetY,
+                          const int32_t captureWidth,
+                          const int32_t captureHeight,
+                          const float outputWidth,
+                          const float outputHeight,
+                          const ImageSpatialUnitsEnum::Enum spatialUnits,
+                          const ImageResolutionUnitsEnum::Enum resolutionUnits,
+                          const float pixelsPerResolutionUnit);
+        
         virtual ~EventImageCapture();
         
         int32_t getBrowserWindowIndex() const;
@@ -54,6 +66,16 @@ namespace caret {
         int32_t getOutputWidthExcludingMargin() const;
         
         int32_t getOutputHeightExcludingMargin() const;
+        
+        void setOutputImageWidthAndHeight(const float imageWidth,
+                                          const float imageHeight,
+                                          const ImageSpatialUnitsEnum::Enum spatialUnits,
+                                          const ImageResolutionUnitsEnum::Enum resolutionUnits,
+                                          const float pixelsPerResolutionUnit);
+        
+        float getImageWidthInSpatialUnits(const ImageSpatialUnitsEnum::Enum spatialUnits) const;
+        
+        float getImageHeightInSpatialUnits(const ImageSpatialUnitsEnum::Enum spatialUnits) const;
         
         int32_t getCaptureOffsetX() const;
         
@@ -77,8 +99,7 @@ namespace caret {
         
         float getPixelsPerResolutionUnitValue(const ImageResolutionUnitsEnum::Enum resolutionUnits) const;
         
-        void setPixelsPerResolutionUnitValue(const ImageResolutionUnitsEnum::Enum resolutionUnits,
-                                             const float resolutionValue);
+        AString toImageInfoText(const AString& optionalImageName) const;
         
     private:
         EventImageCapture(const EventImageCapture&);
@@ -90,6 +111,12 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        void setPixelsPerResolutionUnitValue(const ImageResolutionUnitsEnum::Enum resolutionUnits,
+                                             const float resolutionValue);
+        
+        float convertPixelsToSpatialUnits(const ImageSpatialUnitsEnum::Enum spatialUnits,
+                                          const float numberOfPixels) const;
+
         // ADD_NEW_MEMBERS_HERE
         
         const int32_t m_browserWindowIndex;
@@ -102,9 +129,9 @@ namespace caret {
         
         const int32_t m_captureHeight;
         
-        const int32_t m_outputWidth;
+        int32_t m_outputWidth = 500;
         
-        const int32_t m_outputHeight;
+        int32_t m_outputHeight = 500;
         
         uint8_t m_backgroundColor[3];
         

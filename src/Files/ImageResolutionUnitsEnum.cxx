@@ -117,6 +117,10 @@ ImageResolutionUnitsEnum::initialize()
     enumData.push_back(ImageResolutionUnitsEnum(PIXELS_PER_METER,
                                                 "PIXELS_PER_METER",
                                                 "pixels/meter"));
+
+    enumData.push_back(ImageResolutionUnitsEnum(PIXELS_PER_MILLIMETER,
+                                                "PIXELS_PER_MILLIMETER",
+                                                "pixels/mm"));
 }
 
 /**

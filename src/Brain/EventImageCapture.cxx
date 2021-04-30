@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "EventTypeEnum.h"
+#include "DataFileContentInformation.h"
 #include "ImageFile.h"
 #include "UnitsConversion.h"
 
@@ -71,9 +72,9 @@ EventImageCapture::EventImageCapture(const int32_t browserWindowIndex)
  * @param captureHeight
  *    Height for capturing image.
  * @param outputWidth
- *    Width of output image.
+ *    Width of output image in PIXELS
  * @param outputHeight
- *    Height of output image.
+ *    Height of output image in PIXELS
  */
 EventImageCapture::EventImageCapture(const int32_t browserWindowIndex,
                                      const int32_t captureOffsetX,
@@ -102,6 +103,57 @@ m_outputHeight(outputHeight)
                                     300.0f);
     
     setMargin(0);
+}
+
+/**
+ * Constructor for capturing image of window with the given sizing.  If
+ * the X & Y sizes are both zero, the no image resizing is performed.
+ *
+ * @param browserWindowIndex
+ *    The browser window index.
+ * @param captureOffsetX
+ *    X-offset for capturing image.
+ * @param captureOffsetY
+ *    Y-offset for capturing image.
+ * @param captureWidth
+ *    Width for capturing image.
+ * @param captureHeight
+ *    Height for capturing image.
+ * @param outputWidth
+ *    Width of output image in spatial units
+ * @param outputHeight
+ *    Height of output image in spatial units
+ * @param spatialUnits
+ *   Spatial units of imageWidth and imageHeight
+ * @param resolutionUnits
+ *   Resolution units for pixels
+ * @param pixelsPerResolutionUnit
+ *   Number of pixels per resolution unit
+ */
+EventImageCapture::EventImageCapture(const int32_t browserWindowIndex,
+                                     const int32_t captureOffsetX,
+                                     const int32_t captureOffsetY,
+                                     const int32_t captureWidth,
+                                     const int32_t captureHeight,
+                                     const float outputWidth,
+                                     const float outputHeight,
+                                     const ImageSpatialUnitsEnum::Enum spatialUnits,
+                                     const ImageResolutionUnitsEnum::Enum resolutionUnits,
+                                     const float pixelsPerResolutionUnit)
+: Event(EventTypeEnum::EVENT_IMAGE_CAPTURE),
+m_browserWindowIndex(browserWindowIndex),
+m_captureOffsetX(captureOffsetX),
+m_captureOffsetY(captureOffsetY),
+m_captureWidth(captureWidth),
+m_captureHeight(captureHeight),
+m_outputWidth(0),
+m_outputHeight(0)
+{
+    setOutputImageWidthAndHeight(outputWidth,
+                                 outputHeight,
+                                 spatialUnits,
+                                 resolutionUnits,
+                                 pixelsPerResolutionUnit);
 }
 
 
@@ -214,6 +266,71 @@ EventImageCapture::getOutputHeightExcludingMargin() const
     }
     return height;
 }
+
+/**
+ * @return Width of image in the given spatial units
+ * @param spatialUnits
+ *    The spatial units type
+ */
+float
+EventImageCapture::getImageWidthInSpatialUnits(const ImageSpatialUnitsEnum::Enum spatialUnits) const
+{
+    return convertPixelsToSpatialUnits(spatialUnits,
+                                       getOutputWidthIncludingMargin());
+}
+
+/**
+ * @return Height of image in the given spatial units
+ * @param spatialUnits
+ *    The spatial units type
+ */
+float
+EventImageCapture::getImageHeightInSpatialUnits(const ImageSpatialUnitsEnum::Enum spatialUnits) const
+{
+    return convertPixelsToSpatialUnits(spatialUnits,
+                                       getOutputHeightIncludingMargin());
+}
+
+/**
+ * @return Pixel value converted to the given spatial units
+ * @param spatialUnits
+ *    The spatial units type
+ * @param numberOfPixels
+ *    The number of pixelzx
+ */
+float
+EventImageCapture::convertPixelsToSpatialUnits(const ImageSpatialUnitsEnum::Enum spatialUnits,
+                                               const float numberOfPixels) const
+{
+    float valueOut(0.0);
+    
+    float pixelsPerUnit(0.0);
+    switch (spatialUnits) {
+        case ImageSpatialUnitsEnum::CENTIMETERS:
+            pixelsPerUnit = getPixelsPerResolutionUnitValue(ImageResolutionUnitsEnum::PIXELS_PER_CENTIMETER);
+            break;
+        case ImageSpatialUnitsEnum::INCHES:
+            pixelsPerUnit = getPixelsPerResolutionUnitValue(ImageResolutionUnitsEnum::PIXELS_PER_INCH);
+            break;
+        case ImageSpatialUnitsEnum::METERS:
+            pixelsPerUnit = getPixelsPerResolutionUnitValue(ImageResolutionUnitsEnum::PIXELS_PER_METER);
+            break;
+        case ImageSpatialUnitsEnum::MILLIMETERS:
+            pixelsPerUnit = getPixelsPerResolutionUnitValue(ImageResolutionUnitsEnum::PIXELS_PER_MILLIMETER);
+            break;
+        case ImageSpatialUnitsEnum::PIXELS:
+            pixelsPerUnit = 1.0f;
+            break;
+    }
+    
+    if (pixelsPerUnit > 0.0) {
+        valueOut = numberOfPixels / pixelsPerUnit;
+    }
+    
+    return valueOut;
+}
+
+
 /**
  * Get the graphics area's background color.
  *
@@ -314,6 +431,9 @@ EventImageCapture::getPixelsPerResolutionUnitValue(const ImageResolutionUnitsEnu
         case ImageResolutionUnitsEnum::PIXELS_PER_METER:
             fromUnits = UnitsConversion::LengthUnits::METERS;
             break;
+        case ImageResolutionUnitsEnum::PIXELS_PER_MILLIMETER:
+            fromUnits = UnitsConversion::LengthUnits::MILLIMETERS;
+            break;
     }
     
     resolutionOut = UnitsConversion::convertLength(fromUnits,
@@ -348,11 +468,120 @@ EventImageCapture::setPixelsPerResolutionUnitValue(const ImageResolutionUnitsEnu
         case ImageResolutionUnitsEnum::PIXELS_PER_METER:
             toUnits = UnitsConversion::LengthUnits::METERS;
             break;
+        case ImageResolutionUnitsEnum::PIXELS_PER_MILLIMETER:
+            toUnits = UnitsConversion::LengthUnits::MILLIMETERS;
+            break;
     }
     
-    m_resolutionPixelsPerInch= UnitsConversion::convertLength(fromUnits,
-                                                              toUnits,
-                                                              resolutionUnitsValue);
+    m_resolutionPixelsPerInch = UnitsConversion::convertLength(fromUnits,
+                                                               toUnits,
+                                                               resolutionUnitsValue);
 }
+
+/**
+ * Set the output image width and height for the given units
+ * @param imageWidth
+ *   Width for output image
+ * @param imageHeight
+ *   Height for output image
+ * @param spatialUnits
+ *   Spatial units of imageWidth and imageHeight
+ * @param resolutionUnits
+ *   Resolution units for pixels
+ * @param pixelsPerResolutionUnit
+ *   Number of pixels per resolution unit
+ */
+void
+EventImageCapture::setOutputImageWidthAndHeight(const float imageWidth,
+                                                const float imageHeight,
+                                                const ImageSpatialUnitsEnum::Enum spatialUnits,
+                                                const ImageResolutionUnitsEnum::Enum resolutionUnits,
+                                                const float pixelsPerResolutionUnit)
+{
+    /*
+     * Set the resolution with the given resolution units
+     */
+    setPixelsPerResolutionUnitValue(resolutionUnits,
+                                    pixelsPerResolutionUnit);
+
+
+    float pixelWidth(imageWidth);
+    float pixelHeight(imageHeight);
+    
+    if (spatialUnits != ImageSpatialUnitsEnum::PIXELS) {
+        /*
+         * Convert the width/height using the given spatial units to pixels
+         */
+        UnitsConversion::LengthUnits fromUnits = UnitsConversion::LengthUnits::INCHES;
+        switch (spatialUnits) {
+            case ImageSpatialUnitsEnum::CENTIMETERS:
+                fromUnits = UnitsConversion::LengthUnits::CENTIMETERS;
+                break;
+            case ImageSpatialUnitsEnum::INCHES:
+                fromUnits = UnitsConversion::LengthUnits::INCHES;
+                break;
+            case ImageSpatialUnitsEnum::METERS:
+                fromUnits = UnitsConversion::LengthUnits::METERS;
+                break;
+            case ImageSpatialUnitsEnum::MILLIMETERS:
+                fromUnits = UnitsConversion::LengthUnits::MILLIMETERS;
+                break;
+            case ImageSpatialUnitsEnum::PIXELS:
+                break;
+        }
+        
+        const float inchesWidth = UnitsConversion::convertLength(fromUnits,
+                                                                 UnitsConversion::LengthUnits::INCHES,
+                                                                 imageWidth);
+        const float inchesHeight = UnitsConversion::convertLength(fromUnits,
+                                                                  UnitsConversion::LengthUnits::INCHES,
+                                                                  imageHeight);
+
+        const float pixelsPerInch = getPixelsPerResolutionUnitValue(ImageResolutionUnitsEnum::PIXELS_PER_INCH);
+        
+        pixelWidth  = inchesWidth  * pixelsPerInch;
+        pixelHeight = inchesHeight * pixelsPerInch;
+    }
+    
+    m_outputWidth  = static_cast<int32_t>(pixelWidth);
+    m_outputHeight = static_cast<int32_t>(pixelHeight);
+}
+
+AString
+EventImageCapture::toImageInfoText(const AString& optionalImageName) const
+{
+    DataFileContentInformation dataFileInfo;
+    
+    if ( ! optionalImageName.isEmpty()) {
+        const float aspectRatio((m_outputWidth > 0)
+                                ? (static_cast<float>(m_outputHeight)
+                                   / static_cast<float>(m_outputWidth))
+                                : 0.0f);
+        dataFileInfo.addNameAndValue("File Name", optionalImageName);
+        dataFileInfo.addNameAndValue("Width",  getOutputWidthIncludingMargin());
+        dataFileInfo.addNameAndValue("Height", getOutputHeightIncludingMargin());
+        dataFileInfo.addNameAndValue("Aspect (h/w)", aspectRatio);
+
+        std::vector<ImageSpatialUnitsEnum::Enum> allSpatialUnits;
+        ImageSpatialUnitsEnum::getAllEnums(allSpatialUnits);
+        for (const auto spatialUnit : allSpatialUnits) {
+            dataFileInfo.addNameAndValue(QString("Width (%1)").arg(ImageSpatialUnitsEnum::toName(spatialUnit)),
+                                         getImageWidthInSpatialUnits(spatialUnit));
+            dataFileInfo.addNameAndValue(QString("Height (%1)").arg(ImageSpatialUnitsEnum::toName(spatialUnit)),
+                                         getImageHeightInSpatialUnits(spatialUnit));
+        }
+        dataFileInfo.addNameAndValue("Margin", getMargin());
+        
+        std::vector<ImageResolutionUnitsEnum::Enum> allResUnits;
+        ImageResolutionUnitsEnum::getAllEnums(allResUnits);
+        for (const auto resUnit : allResUnits) {
+            dataFileInfo.addNameAndValue(QString("%1").arg(ImageResolutionUnitsEnum::toName(resUnit)),
+                                         getPixelsPerResolutionUnitValue(resUnit));
+        }
+    }
+    
+    return dataFileInfo.getInformationInString();
+}
+
 
 

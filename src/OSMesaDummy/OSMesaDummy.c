@@ -86,5 +86,14 @@ OSMesaMakeCurrent( OSMesaContext ctx, void * buffer, GLenum type,
     return GL_FALSE;
 }
 
+/*GLAPI*/ void /*GLAPIENTRY*/
+OSMesaGetIntegerv( GLint pname, GLint *value )
+{
+    if (pname
+        || value) {
+        
+    }
+    assert(0);
+}
 
     

@@ -280,8 +280,14 @@ ImageCaptureDialogSettings::getSpatialWidth() const
         case ImageSpatialUnitsEnum::INCHES:
             width = m_centimetersWidth / CENTIMETERS_PER_INCH;
             break;
+        case ImageSpatialUnitsEnum::METERS:
+            width = m_centimetersWidth * METERS_PER_CENTIMETER;
+            break;
         case ImageSpatialUnitsEnum::MILLIMETERS:
             width = m_centimetersWidth * MILLIMETERS_PER_CENTIMETER;
+            break;
+        case ImageSpatialUnitsEnum::PIXELS:
+            CaretAssertMessage(0, "Pixels are not used in Capture Image Dialog");
             break;
     }
     
@@ -306,8 +312,14 @@ ImageCaptureDialogSettings::getSpatialHeight() const
         case ImageSpatialUnitsEnum::INCHES:
             height = m_centimetersHeight / CENTIMETERS_PER_INCH;
             break;
+        case ImageSpatialUnitsEnum::METERS:
+            height = m_centimetersHeight * METERS_PER_CENTIMETER;
+            break;
         case ImageSpatialUnitsEnum::MILLIMETERS:
             height = m_centimetersHeight * MILLIMETERS_PER_CENTIMETER;
+            break;
+        case ImageSpatialUnitsEnum::PIXELS:
+            CaretAssertMessage(0, "Pixels are not used in Capture Image Dialog");
             break;
     }
     
@@ -343,10 +355,13 @@ ImageCaptureDialogSettings::getImageResolutionInSelectedUnits() const
             pixelsPerUnit = m_pixelsPerCentimeter;
             break;
         case ImageResolutionUnitsEnum::PIXELS_PER_INCH:
-            pixelsPerUnit = m_pixelsPerCentimeter * CENTIMETERS_PER_INCH;
+            pixelsPerUnit = m_pixelsPerCentimeter / CENTIMETERS_PER_INCH;
             break;
         case ImageResolutionUnitsEnum::PIXELS_PER_METER:
             pixelsPerUnit = m_pixelsPerCentimeter / CENTIMETERS_PER_METER;
+            break;
+        case ImageResolutionUnitsEnum::PIXELS_PER_MILLIMETER:
+            pixelsPerUnit = m_pixelsPerCentimeter / CENTIMETERS_PER_MILLIMETER;
             break;
     }
     
@@ -434,14 +449,20 @@ ImageCaptureDialogSettings::setSpatialWidth(const float spatialWidth)
     const float aspectRatio = getAspectRatio();
     
     switch (m_spatialUnits) {
+        case ImageSpatialUnitsEnum::METERS:
+            m_centimetersWidth = spatialWidth * CENTIMETERS_PER_METER;
+            break;
         case ImageSpatialUnitsEnum::MILLIMETERS:
-            m_centimetersWidth = spatialWidth / MILLIMETERS_PER_CENTIMETER;
+            m_centimetersWidth = spatialWidth * CENTIMETERS_PER_MILLIMETER;
             break;
         case ImageSpatialUnitsEnum::INCHES:
             m_centimetersWidth = spatialWidth * CENTIMETERS_PER_INCH;
             break;
         case ImageSpatialUnitsEnum::CENTIMETERS:
             m_centimetersWidth = spatialWidth;
+            break;
+        case ImageSpatialUnitsEnum::PIXELS:
+            CaretAssertMessage(0, "Pixels are not used in Capture Image Dialog");
             break;
     }
     
@@ -467,6 +488,9 @@ ImageCaptureDialogSettings::setSpatialHeight(const float spatialHeight)
     const float aspectRatio = getAspectRatio();
     
     switch (m_spatialUnits) {
+        case ImageSpatialUnitsEnum::METERS:
+            m_centimetersHeight = spatialHeight / METERS_PER_CENTIMETER;
+            break;
         case ImageSpatialUnitsEnum::MILLIMETERS:
             m_centimetersHeight = spatialHeight / MILLIMETERS_PER_CENTIMETER;
             break;
@@ -475,6 +499,9 @@ ImageCaptureDialogSettings::setSpatialHeight(const float spatialHeight)
             break;
         case ImageSpatialUnitsEnum::CENTIMETERS:
             m_centimetersHeight = spatialHeight;
+            break;
+        case ImageSpatialUnitsEnum::PIXELS:
+            CaretAssertMessage(0, "Pixels are not used in Capture Image Dialog");
             break;
     }
     
@@ -505,6 +532,9 @@ ImageCaptureDialogSettings::setImageResolutionInSelectedUnits(const float imageR
             break;
         case ImageResolutionUnitsEnum::PIXELS_PER_METER:
             m_pixelsPerCentimeter = imageResolutionInSelectedUnits / CENTIMETERS_PER_METER;
+            break;
+        case ImageResolutionUnitsEnum::PIXELS_PER_MILLIMETER:
+            m_pixelsPerCentimeter = imageResolutionInSelectedUnits / CENTIMETERS_PER_MILLIMETER;
             break;
     }
     

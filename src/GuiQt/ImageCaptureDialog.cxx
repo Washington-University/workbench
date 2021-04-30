@@ -281,8 +281,10 @@ ImageCaptureDialog::createImageDimensionsSection()
     QObject::connect(m_imageResolutionSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(imageResolutionValueChanged(double)));
 
+    std::vector<ImageSpatialUnitsEnum::Enum> spatialEnums;
+    ImageSpatialUnitsEnum::getAllEnumsExcludingPixels(spatialEnums);
     m_imageSpatialUnitsEnumComboBox = new EnumComboBoxTemplate(this);
-    m_imageSpatialUnitsEnumComboBox->setup<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
+    m_imageSpatialUnitsEnumComboBox->setupWithItems<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>(spatialEnums);
     QObject::connect(m_imageSpatialUnitsEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(imageSizeUnitsEnumComboBoxItemActivated()));
     
@@ -1083,8 +1085,13 @@ ImageCaptureDialog::applyButtonClicked()
                                         windowHeight,
                                         imageWidth,
                                         imageHeight);
-    imageCaptureEvent.setPixelsPerResolutionUnitValue(ImageResolutionUnitsEnum::PIXELS_PER_CENTIMETER,
-                                                      imageCaptureSettings->getImageResolutionInCentimeters());
+    imageCaptureEvent.setOutputImageWidthAndHeight(imageWidth,
+                                                   imageHeight,
+                                                   ImageSpatialUnitsEnum::PIXELS,
+                                                   ImageResolutionUnitsEnum::PIXELS_PER_CENTIMETER,
+                                                   imageCaptureSettings->getImageResolutionInCentimeters());
+//    imageCaptureEvent.setPixelsPerResolutionUnitValue(ImageResolutionUnitsEnum::PIXELS_PER_CENTIMETER,
+//                                                      imageCaptureSettings->getImageResolutionInCentimeters());
     imageCaptureEvent.setMargin(imageCaptureSettings->getMargin());
 
     EventManager::get()->sendEvent(imageCaptureEvent.getPointer());

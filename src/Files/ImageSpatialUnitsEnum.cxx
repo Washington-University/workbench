@@ -112,11 +112,19 @@ ImageSpatialUnitsEnum::initialize()
     
     enumData.push_back(ImageSpatialUnitsEnum(CENTIMETERS,
                                              "CENTIMETERS",
-                                             "cm"));
+                                             "centimeters"));
     
     enumData.push_back(ImageSpatialUnitsEnum(MILLIMETERS,
                                              "MILLIMETERS",
-                                             "mm"));
+                                             "millimeters"));
+    
+    enumData.push_back(ImageSpatialUnitsEnum(METERS,
+                                             "METERS",
+                                             "meters"));
+    
+    enumData.push_back(ImageSpatialUnitsEnum(PIXELS,
+                                             "PIXELS",
+                                             "pixels"));
 }
 
 /**
@@ -319,6 +327,42 @@ ImageSpatialUnitsEnum::getAllEnums(std::vector<ImageSpatialUnitsEnum::Enum>& all
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
+    }
+}
+
+/**
+ * Get all of the enumerated type values EXCEPT Pixels.  The values can be used
+ * as parameters to toXXX() methods to get associated metadata.
+ *
+ * @param allEnums
+ *     A vector that is OUTPUT containing all of the enumerated values.
+ */
+void
+ImageSpatialUnitsEnum::getAllEnumsExcludingPixels(std::vector<Enum>& allEnums)
+{
+    allEnums.clear();
+    
+    std::vector<ImageSpatialUnitsEnum::Enum> allEnumValues;
+    getAllEnums(allEnumValues);
+    
+    for (auto e : allEnumValues) {
+        bool useItFlag(true);
+        switch (e) {
+            case CENTIMETERS:
+                break;
+            case INCHES:
+                break;
+            case METERS:
+                break;
+            case MILLIMETERS:
+                break;
+            case PIXELS:
+                useItFlag = false;
+                break;
+        }
+        if (useItFlag) {
+            allEnums.push_back(e);
+        }
     }
 }
 

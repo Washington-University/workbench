@@ -32,6 +32,8 @@
 #endif // HAVE_OSMESA
 
 #include "AbstractOperation.h"
+#include "ImageResolutionUnitsEnum.h"
+#include "ImageSpatialUnitsEnum.h"
 #include "MapYokingGroupEnum.h"
 
 namespace caret {
@@ -95,27 +97,19 @@ namespace caret {
         static void setRemoteLoginAndPassword(const AString& username,
                                               const AString& password);
         
-//        static void getImageWidthAndHeight(const Inputs& inputs,
-//                                           int32_t& widthOut,
-//                                           int32_t& heightOut);
-        
         static void renderWindowToImage(Inputs& inputs);
         
         static void writeImageFile(const AString& imageFileName,
                                    const int32_t imageIndex,
                                    const ImageFile* imageFile);
 
-        static void estimateGraphicsSize(const SceneClass* windowSceneClass,
-                                         float& estimatedWidthOut,
-                                         float& estimatedHeightOut);
-        
-        static bool getToolBoxSize(const SceneClass* toolBoxClass,
-                                   const SceneClass* activeToolBoxClass,
-                                   float& overlayToolBoxWidthOut,
-                                   float& overlayToolBoxHeightOut,
-                                   QString& overlayToolBoxOrientationOut);
-        
         static std::vector<std::unique_ptr<OffScreenSceneRendererBase>> getOffScreenRenderers();
+        
+        static const ImageResolutionUnitsEnum::Enum s_defaultResolutionUnits = ImageResolutionUnitsEnum::PIXELS_PER_INCH;
+        
+        static const ImageSpatialUnitsEnum::Enum s_defaultImageWidthHeightUnits = ImageSpatialUnitsEnum::PIXELS;
+        
+        static constexpr float s_defaultResolutionNumberOfPixels = 300.0f;
     };
 
     typedef TemplateAutoOperation<OperationShowSceneTwo> AutoOperationShowSceneTwo;
