@@ -43,6 +43,7 @@
 #include "Matrix4x4.h"
 #include "MathFunctions.h"
 #include "SceneClass.h"
+#include "UnitsConversion.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -1802,8 +1803,28 @@ ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
     MediaFile::addToDataFileContentInformation(dataFileInformation);
     
     if (m_image != NULL) {
-        dataFileInformation.addNameAndValue("Width", m_image->width());
-        dataFileInformation.addNameAndValue("Height", m_image->height());
+        dataFileInformation.addNameAndValue("Width (pixels)", m_image->width());
+        dataFileInformation.addNameAndValue("Height (pixels)", m_image->height());
+        const float dotsPerMeter(m_image->dotsPerMeterX());
+        if (dotsPerMeter > 0.0) {
+            dataFileInformation.addNameAndValue("Width (meters)", m_image->width()   / dotsPerMeter);
+            dataFileInformation.addNameAndValue("Height (meters)", m_image->height() / dotsPerMeter);
+            
+            /*
+             * "To" and "From" units are flipped since conversion is on "per unit"
+             */
+            const float dotsPerInch = UnitsConversion::convertLength(UnitsConversion::LengthUnits::INCHES,
+                                                                     UnitsConversion::LengthUnits::METERS,
+                                                                     dotsPerMeter);
+            dataFileInformation.addNameAndValue("Width (inches)", m_image->width()   / dotsPerInch);
+            dataFileInformation.addNameAndValue("Height (inches)", m_image->height() / dotsPerInch);
+            dataFileInformation.addNameAndValue("Pixels Per Meter", dotsPerMeter);
+            dataFileInformation.addNameAndValue("Pixels Per Inch", dotsPerInch);
+        }
+        else {
+            dataFileInformation.addNameAndValue("Pixels Per Meter", "Unavailable");
+        }
+        
         dataFileInformation.addNameAndValue("Color Table", (m_image->colorTable().empty()
                                                             ? "No"
                                                             : "Yes"));
