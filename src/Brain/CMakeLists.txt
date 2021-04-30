@@ -155,6 +155,7 @@ MovieRecorderVideoFormatTypeEnum.h
 MovieRecorderVideoResolutionTypeEnum.h
 OffScreenSceneRendererBase.h
 OffScreenSceneRendererOSMesa.h
+OffScreenSceneRendererOpenGLWindow.h
 Overlay.h
 OverlaySet.h
 OverlaySetArray.h
@@ -339,6 +340,7 @@ MovieRecorderVideoFormatTypeEnum.cxx
 MovieRecorderVideoResolutionTypeEnum.cxx
 OffScreenSceneRendererBase.cxx
 OffScreenSceneRendererOSMesa.cxx
+OffScreenSceneRendererOpenGLWindow.cxx
 Overlay.cxx
 OverlaySet.cxx
 OverlaySetArray.cxx
