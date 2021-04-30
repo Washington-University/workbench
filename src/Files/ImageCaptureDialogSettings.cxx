@@ -355,13 +355,13 @@ ImageCaptureDialogSettings::getImageResolutionInSelectedUnits() const
             pixelsPerUnit = m_pixelsPerCentimeter;
             break;
         case ImageResolutionUnitsEnum::PIXELS_PER_INCH:
-            pixelsPerUnit = m_pixelsPerCentimeter / CENTIMETERS_PER_INCH;
+            pixelsPerUnit = m_pixelsPerCentimeter * CENTIMETERS_PER_INCH;
             break;
         case ImageResolutionUnitsEnum::PIXELS_PER_METER:
-            pixelsPerUnit = m_pixelsPerCentimeter / CENTIMETERS_PER_METER;
+            pixelsPerUnit = m_pixelsPerCentimeter * CENTIMETERS_PER_METER;
             break;
         case ImageResolutionUnitsEnum::PIXELS_PER_MILLIMETER:
-            pixelsPerUnit = m_pixelsPerCentimeter / CENTIMETERS_PER_MILLIMETER;
+            pixelsPerUnit = m_pixelsPerCentimeter * CENTIMETERS_PER_MILLIMETER;
             break;
     }
     
