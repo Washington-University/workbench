@@ -96,6 +96,7 @@ OperationSurfaceGeodesicROIs.h
 OperationSurfaceInformation.h
 OperationSurfaceNormals.h
 OperationSurfaceSetCoordinates.h
+OperationSurfaceSphereTriangularPatches.h
 OperationSurfaceVertexAreas.h
 OperationVolumeCapturePlane.h
 OperationVolumeCopyExtensions.h
@@ -189,6 +190,7 @@ OperationSurfaceGeodesicROIs.cxx
 OperationSurfaceInformation.cxx
 OperationSurfaceNormals.cxx
 OperationSurfaceSetCoordinates.cxx
+OperationSurfaceSphereTriangularPatches.cxx
 OperationSurfaceVertexAreas.cxx
 OperationVolumeCapturePlane.cxx
 OperationVolumeCopyExtensions.cxx

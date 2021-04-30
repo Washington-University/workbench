@@ -217,6 +217,7 @@
 #include "OperationSurfaceInformation.h"
 #include "OperationSurfaceNormals.h"
 #include "OperationSurfaceSetCoordinates.h"
+#include "OperationSurfaceSphereTriangularPatches.h"
 #include "OperationSurfaceVertexAreas.h"
 #include "OperationVolumeCapturePlane.h"
 #include "OperationVolumeCopyExtensions.h"
@@ -480,6 +481,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceNormals()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceSetCoordinates()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceSphereTriangularPatches()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceVertexAreas()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCapturePlane()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCopyExtensions()));
