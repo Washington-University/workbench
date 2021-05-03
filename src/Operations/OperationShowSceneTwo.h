@@ -103,6 +103,8 @@ namespace caret {
                                    const int32_t imageIndex,
                                    const ImageFile* imageFile);
 
+        static AString getExamplesOfUsage();
+        
         static std::vector<std::unique_ptr<OffScreenSceneRendererBase>> getOffScreenRenderers();
         
         static const ImageResolutionUnitsEnum::Enum s_defaultResolutionUnits = ImageResolutionUnitsEnum::PIXELS_PER_INCH;

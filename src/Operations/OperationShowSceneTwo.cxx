@@ -91,11 +91,11 @@ enum ParamKeys : int32_t {
     PARAM_KEY_SCENE_FILE,
     PARAM_KEY_SCENE_NAME_NUMBER,
     PARAM_KEY_IMAGE_FILE_NAME,
-    PARAM_KEY_SIZE_IMAGE_WIDTH,
-    PARAM_KEY_SIZE_IMAGE_HEIGHT,
-    PARAM_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT,
-    PARAM_KEY_SIZE_CAPTURE_DIALOG,
-    PARAM_KEY_SIZE_WINDOW,
+    PARAM_OPTION_KEY_SIZE_IMAGE_WIDTH,
+    PARAM_OPTION_KEY_SIZE_IMAGE_HEIGHT,
+    PARAM_OPTION_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT,
+    PARAM_OPTION_KEY_SIZE_CAPTURE_DIALOG,
+    PARAM_OPTION_KEY_SIZE_WINDOW,
     PARAM_KEY_OPTION_CONN_DB_LOGIN,
     PARAM_KEY_OPTION_MARGIN,
     PARAM_KEY_OPTION_NO_SCENE_COLORS,
@@ -161,19 +161,18 @@ OperationShowSceneTwo::getParameters()
      * Image size parameters (one and only one must be specified)
      */
     const QString windowSizeSwitch("-size-window");
-    ret->createOptionalParameter(PARAM_KEY_SIZE_WINDOW,
+    ret->createOptionalParameter(PARAM_OPTION_KEY_SIZE_WINDOW,
                                  windowSizeSwitch,
-                                 "Output image is size of window's graphics region from when scene was created.  "
-                                 "This size option will not work with scenes created in Workbench versions 1.2 "
-                                 "and earlier.");
+                                 "Output image is size of window's graphics region from when scene was created.");
     
     const QString captureDialogSizeSwitch("-size-capture");
-    ret->createOptionalParameter(PARAM_KEY_SIZE_CAPTURE_DIALOG,
+    ret->createOptionalParameter(PARAM_OPTION_KEY_SIZE_CAPTURE_DIALOG,
                                  captureDialogSizeSwitch,
                                  "Output image uses size from Capture Dialog when scene was created");
     
-    OptionalParameter* imageWidthAndHeightOpt = ret->createOptionalParameter(PARAM_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT,
-                                                                    "-size-width-height",
+    const QString widthHeightSizeSwitch("-size-width-height");
+    OptionalParameter* imageWidthAndHeightOpt = ret->createOptionalParameter(PARAM_OPTION_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT,
+                                                                    widthHeightSizeSwitch,
                                                                     "Width and height for output image");
     imageWidthAndHeightOpt->addDoubleParameter(1,
                                       "width",
@@ -183,14 +182,14 @@ OperationShowSceneTwo::getParameters()
                                                "Height for output image");
 
     const QString aspectMsg(" is computed using the aspect ratio from the window's width and height saved in the scene.");
-    OptionalParameter* imageWidthOpt = ret->createOptionalParameter(PARAM_KEY_SIZE_IMAGE_WIDTH,
+    OptionalParameter* imageWidthOpt = ret->createOptionalParameter(PARAM_OPTION_KEY_SIZE_IMAGE_WIDTH,
                                                                     "-size-width",
                                                                     "Width for output image.  Height" + aspectMsg);
     imageWidthOpt->addDoubleParameter(1,
                                       "width",
                                        "Width for output image");
     
-    OptionalParameter* imageHeightOpt = ret->createOptionalParameter(PARAM_KEY_SIZE_IMAGE_HEIGHT,
+    OptionalParameter* imageHeightOpt = ret->createOptionalParameter(PARAM_OPTION_KEY_SIZE_IMAGE_HEIGHT,
                                                                      "-size-height",
                                                                      "Height for output image.  Width" + aspectMsg);
     imageHeightOpt->addDoubleParameter(1,
@@ -207,10 +206,11 @@ OperationShowSceneTwo::getParameters()
         
         spatialUnitsList += ("   " + ImageSpatialUnitsEnum::toName(unitEnum) + "\n");
     }
+    const QString unitsSwitchName("-units");
     const AString defaultSpatialUnitsText("      Default is "
                                           + ImageSpatialUnitsEnum::toName(s_defaultImageWidthHeightUnits));
     OptionalParameter* sizeUnitsOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_SIZE_UNITS,
-                                                                   "-units",
+                                                                   unitsSwitchName,
                                                                    ("Units for image width/height\n"
                                                                     + defaultSpatialUnitsText));
     sizeUnitsOpt->addStringParameter(1,
@@ -221,6 +221,7 @@ OperationShowSceneTwo::getParameters()
     /*
      * Option for image resolution
      */
+    const QString resolutionSwitchName("-resolution");
     std::vector<ImageResolutionUnitsEnum::Enum> allResolutions;
     ImageResolutionUnitsEnum::getAllEnums(allResolutions);
     AString resolutionsList("  Valid resolution unit names are:\n");
@@ -232,7 +233,7 @@ OperationShowSceneTwo::getParameters()
                                  + " "
                                  + ImageResolutionUnitsEnum::toName(ImageResolutionUnitsEnum::PIXELS_PER_INCH));
     OptionalParameter* resolutionOpt = ret->createOptionalParameter(PARAM_KEY_OPTION_RESOLUTION,
-                                                                    "-resolution",
+                                                                    resolutionSwitchName,
                                                                     ("Image resolution (number pixels per size unit)\n"
                                                                      + defaultResText));
     resolutionOpt->addDoubleParameter(1, "Number of pixels", "number of pixels");
@@ -317,24 +318,39 @@ OperationShowSceneTwo::getParameters()
     ret->createOptionalParameter(PARAM_KEY_OPTION_PRINT_IMAGE_INFO,
                                  "-print-image-info",
                                  ("Print the size and other information about output images only and "
-                                  "DO NOT create any output image"));
-    
+                                  "DO NOT create any output images"));
+
     /*
      * The help text printed when command run with no parameters
      */
-    AString helpText("Render content of browser windows displayed in a scene "
-                     "into image file(s).  One of the \"-size\" options MUST BE SPECIFIED."
+    AString helpText(QString(70, '-') /* dashes to separate options from help text */
+                     + "\n\n"
+                     "Render content of browser windows displayed in a scene "
+                     "into image file(s)."
                      "\n"
-                     "\n");
+                     "\n"
+                     "If none of the \"-size\" options are specified, the default is \"-size-window\" "
+                     "(Output image is size of the window that was saved in the scene)."
+                     "\n"
+                     "\n"
+                     "For the \"-size\" options that accept a width and/or height, the values default to number of pixels.  "
+                     "To express the width and/or height in physical units (inches, centimeters, etc.), use the "
+                     "\"" + unitsSwitchName + "\" option.  When physical units are used, the pixel width and height "
+                     "are derived using the physical width/height and the image resolution "
+                     "(see the \"" + resolutionSwitchName + "\" option)."
+                     "\n"
+                     "\n"
+                     "Note that scenes created prior to version 1.2 (May 2016) do not contain information "
+                     "about the size of the window.  Therefore, one must use the \"" + widthHeightSizeSwitch  + "\" "
+                     "option.");
     
     helpText += ("\n"
-                 "To view settings from Image Capture Dialog \n"
-                 "use the " + showCaptureSettingsSwitch + " option (no image file is created).\n"
-                 );
-    
-    helpText += ("Examples: (TO DO)"
                  "\n"
-                 "\n");
+                 "Examples:"
+                 "\n"
+                 "\n"
+                  + getExamplesOfUsage()
+                 + "\n");
     
     if (allOffScreenRenderers.empty()) {
         helpText += ("\n"
@@ -384,11 +400,11 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
     /*
      * One size parameter must be specified
      */
-    OptionalParameter* imageCaptureDialogSizeOption = myParams->getOptionalParameter(PARAM_KEY_SIZE_CAPTURE_DIALOG);
-    OptionalParameter* imageWindowSizeOption = myParams->getOptionalParameter(PARAM_KEY_SIZE_WINDOW);
-    OptionalParameter* imageWidthAndHeightOption = myParams->getOptionalParameter(PARAM_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT);
-    OptionalParameter* imageWidthOption  = myParams->getOptionalParameter(PARAM_KEY_SIZE_IMAGE_WIDTH);
-    OptionalParameter* imageHeightOption = myParams->getOptionalParameter(PARAM_KEY_SIZE_IMAGE_HEIGHT);
+    OptionalParameter* imageCaptureDialogSizeOption = myParams->getOptionalParameter(PARAM_OPTION_KEY_SIZE_CAPTURE_DIALOG);
+    OptionalParameter* imageWindowSizeOption = myParams->getOptionalParameter(PARAM_OPTION_KEY_SIZE_WINDOW);
+    OptionalParameter* imageWidthAndHeightOption = myParams->getOptionalParameter(PARAM_OPTION_KEY_SIZE_IMAGE_WIDTH_AND_HEIGHT);
+    OptionalParameter* imageWidthOption  = myParams->getOptionalParameter(PARAM_OPTION_KEY_SIZE_IMAGE_WIDTH);
+    OptionalParameter* imageHeightOption = myParams->getOptionalParameter(PARAM_OPTION_KEY_SIZE_IMAGE_HEIGHT);
     if (imageCaptureDialogSizeOption->m_present) {
         if (imageSizeMode != ImageSizeMode::MODE_INVALID) {
             throw (moreThanOneSizeOptionMsg);
@@ -420,6 +436,15 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         imageSizeMode = ImageSizeMode::MODE_WIDTH_FROM_HEIGHT;
     }
 
+    /*
+     * If no size mode, use window size
+     */
+    bool useWindowSizeDefaultFlag(false);
+    if (imageSizeMode == ImageSizeMode::MODE_INVALID) {
+        imageSizeMode = ImageSizeMode::MODE_WINDOW;
+        useWindowSizeDefaultFlag = true;
+    }
+    
     /*
      * Width and height MUST be float since they may be spatial values (eg 2.5 inches)
      */
@@ -458,7 +483,9 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
             }
             break;
         case ImageSizeMode::MODE_WINDOW:
-            CaretAssert(imageWindowSizeOption->m_present);
+            if ( ! useWindowSizeDefaultFlag) {
+                CaretAssert(imageWindowSizeOption->m_present);
+            }
             break;
     }
 
@@ -746,6 +773,11 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                      + " is invalid.");
         }
         
+        uint8_t backgroundColor[4];
+        const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        const auto foregroundBackgroundColors = prefs->getBackgroundAndForegroundColors();
+        foregroundBackgroundColors->getColorBackgroundWindow(backgroundColor);
+
         /*
          * Setup capture event instance with image parameters
          * (event is not sent, just its instance is used)
@@ -761,6 +793,7 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                        imageResolutionUnits,
                                        imageResolutionNumberOfPixels);
         captureEvent.setMargin(marginValue);
+        captureEvent.setBackgroundColor(backgroundColor);
         
         /*
          * Just print the information about the output image
@@ -1234,5 +1267,50 @@ OperationShowSceneTwo::isShowSceneCommandAvailable()
      * True if at least one renderer is available
      */
     return ( ! getOffScreenRenderers().empty());
+}
+
+/**
+ * Get examples of using command
+ */
+AString
+OperationShowSceneTwo::getExamplesOfUsage()
+{
+    const QString programName("wb_command");
+    AString txt;
+    
+    txt += ("Generate an image of the second scene.  Width and height of image is width and height of window "
+            "saved in the scene.  "
+            "\n"
+            "   " + programName
+            + " -show-scene-two myscene.scene 2 image2.jpg"
+            + "\n"
+            + "\n"
+            "Generate an image of the second scene with a margin around sides of the image. "
+            "Width and height of image is width and height of window saved in the scene.  "
+            "\n"
+            "   " + programName
+            + " -show-scene-two myscene.scene 2 image2.jpg  -margin 10"
+            + "\n"
+            + "\n"
+            "Generate an image of the second scene that is 6 inches width with 300 pixels per inch.  The resulting "
+            "width is 1800 pixels.  The resulting height of the image is a function of the width and the aspect "
+            "ratio (height divided by width) of the window size saved in the scene."
+            "\n"
+            "   " + programName
+            + " -show-scene-two myscene.scene 2 image21.jpg \\ \n"
+            "   -size-width 6 -units INCHES -resolution 300 PIXELS_PER_INCH"
+            + "\n"
+            "\n"
+            "Print information about the size of the output image for the second scene "
+            "(no image file is created) using a width of 4.5 centimeters. "
+            "\n"
+            "   " + programName
+            + " -show-scene-two myscene.scene 2 test.jpg \\ \n"
+            "   -size-width 4.5 -units CENTIMETERS -print-image-info"
+            + "\n"
+            + "\n"
+            );
+
+            return txt;
 }
 

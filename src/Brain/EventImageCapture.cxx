@@ -369,6 +369,12 @@ EventImageCapture::getCapturedImage() const
     imageFileOut.setFromQImage(m_image);
     
     if (m_margin > 0) {
+        /*
+         * While it would be more efficent to create a larger image that includes the margin and drawn
+         * into a sub-viewport in the image, we intentionallly do not do that.  The reason is that there
+         * are limitations on OpenGL rendering width and height and if a large margin is used, that limit
+         * may be hit.  The offscreen Mesa system limits the viewport to 4096 (at least in version we use).
+         */
         imageFileOut.addMargin(m_margin,
                                 m_backgroundColor);
     }

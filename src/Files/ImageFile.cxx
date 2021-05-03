@@ -432,7 +432,7 @@ ImageFile::addMargin(const int marginSizeX,
     QRgb backgroundColorRGB = qRgba(backgroundColor[0],
                                     backgroundColor[1],
                                     backgroundColor[2],
-                                    0);
+                                    255);
     
     GiftiMetaData fileMetaDataCopy(*m_fileMetaData);
     
