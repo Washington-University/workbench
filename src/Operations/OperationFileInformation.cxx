@@ -89,6 +89,13 @@ OperationFileInformation::getParameters()
                      "Only one -only option may be specified.  "
                      "The information listed when no -only option is present is dependent upon the type of data file.");
     
+    helpText += ("\n\nLibrary paths:\n");
+    QStringList libPaths(QCoreApplication::libraryPaths());
+    QStringListIterator libPathsIter(libPaths);
+    while (libPathsIter.hasNext()) {
+        helpText += ("   " + libPathsIter.next() + "\n");
+    }
+
     helpText += ("\n\nFile and extensions for reading and writing:\n");
     std::vector<DataFileTypeEnum::Enum> allDataFileTypes;
     uint32_t dataFileTypeOptions(0);
@@ -120,6 +127,8 @@ OperationFileInformation::getParameters()
                          + "\n");
         }
     }
+    
+    
     ret->setHelpText(helpText);
     
     return ret;
