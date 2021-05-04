@@ -150,6 +150,10 @@ public:
     
     static std::vector<AString> getAllFileExtensions(const Enum enumValue);
     
+    static std::vector<AString> getAllFileExtensionsForReading(const Enum enumValue);
+    
+    static std::vector<AString> getAllFileExtensionsForWriting(const Enum enumValue);
+    
     static std::vector<AString> getFilesExtensionsForEveryFile(const bool includeNonWritableFileTypesFlag = false);
     
     static std::vector<AString> getWildCardMatching(const Enum enumValue);

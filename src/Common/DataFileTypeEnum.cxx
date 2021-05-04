@@ -716,6 +716,32 @@ DataFileTypeEnum::getAllFileExtensions(const Enum enumValue)
 }
 
 /**
+ * @return All valid file extensions for reading the given enum value.
+ * @param enumValue
+ *     Enumerated type for file extensions.
+ */
+std::vector<AString>
+DataFileTypeEnum::getAllFileExtensionsForReading(const Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->readFileExtensions;
+}
+
+/**
+ * @return All valid file extensions for writing the given enum value.
+ * @param enumValue
+ *     Enumerated type for file extensions.
+ */
+std::vector<AString>
+DataFileTypeEnum::getAllFileExtensionsForWriting(const Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->writeFileExtensions;
+}
+
+/**
  * @return All valid file extensions for all file types except UNKNOWN
  * and dynanmic connectivity files
  *

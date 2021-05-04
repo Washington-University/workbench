@@ -89,6 +89,37 @@ OperationFileInformation::getParameters()
                      "Only one -only option may be specified.  "
                      "The information listed when no -only option is present is dependent upon the type of data file.");
     
+    helpText += ("\n\nFile and extensions for reading and writing:\n");
+    std::vector<DataFileTypeEnum::Enum> allDataFileTypes;
+    uint32_t dataFileTypeOptions(0);
+    DataFileTypeEnum::getAllEnums(allDataFileTypes,
+                                  dataFileTypeOptions);
+    for (const auto dft : allDataFileTypes) {
+        const AString typeName("   " + DataFileTypeEnum::toGuiName(dft));
+        
+        const std::vector<AString> allReadExtensions(DataFileTypeEnum::getAllFileExtensionsForReading(dft));
+        const AString readExts(AString::join(allReadExtensions, ", "));
+
+        const std::vector<AString> allWriteExtensions(DataFileTypeEnum::getAllFileExtensionsForWriting(dft));
+        const AString writeExts(AString::join(allWriteExtensions, ", "));
+        
+        if (readExts == writeExts) {
+            helpText += (typeName
+                         + ": "
+                         + readExts
+                         + "\n");
+        }
+        else {
+            helpText += (typeName
+                         + " Read: "
+                         + readExts
+                         + "\n");
+            helpText += (QString(typeName.length(), ' ')
+                         + "Write: "
+                         + writeExts
+                         + "\n");
+        }
+    }
     ret->setHelpText(helpText);
     
     return ret;
