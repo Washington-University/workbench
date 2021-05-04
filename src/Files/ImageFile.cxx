@@ -29,6 +29,7 @@
 #include <QImageWriter>
 #include <QTime>
 
+#include "ApplicationInformation.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ControlPointFile.h"
@@ -647,6 +648,48 @@ ImageFile::readFile(const AString& filename)
     if ( ! m_image->load(filename)) {
         clear();
         throw DataFileException(filename + "Unable to load file.");
+    }
+    
+    if ( ! m_image->isNull()) {
+        switch (ApplicationInformation::getApplicationType()) {
+            case ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE:
+                break;
+            case ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE:
+            {
+                const int32_t width(m_image->width());
+                const int32_t height(m_image->height());
+                const int32_t maxDim(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
+                if ((width > maxDim)
+                    || (height > maxDim)) {
+                    QImage newImage;
+                    if (width > height) {
+                        newImage = m_image->scaledToWidth(maxDim);
+                    }
+                    else {
+                        newImage = m_image->scaledToHeight(maxDim);
+                    }
+                    if ( ! newImage.isNull()) {
+                        delete m_image;
+                        m_image = new QImage(newImage);
+                        CaretLogWarning("Rescaled image "
+                                        + filename
+                                        + " from size ("
+                                        + AString::number(width)
+                                        + ", "
+                                        + AString::number(height)
+                                        + ") to ("
+                                        + AString::number(m_image->width())
+                                        + ", "
+                                        + AString::number(m_image->height())
+                                        + ")");
+                    }
+                }
+            }
+                break;
+            case ApplicationTypeEnum::APPLICATION_TYPE_INVALID:
+                break;
+        }
+
     }
     readFileMetaDataFromQImage();
     
