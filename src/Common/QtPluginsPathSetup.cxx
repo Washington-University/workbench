@@ -35,9 +35,9 @@
 #include "CaretLogger.h"
 
 using namespace caret;
-    
+
 /**
- * \class caret::QtPluginsPathSetup 
+ * \class caret::QtPluginsPathSetup
  * \brief Setup Qt Plugins Path for MacOS
  * \ingroup Common
  */
@@ -63,6 +63,9 @@ QtPluginsPathSetup::~QtPluginsPathSetup()
 void
 QtPluginsPathSetup::setupPluginsPath()
 {
+    CaretAssertMessage(0, "This does not work.  It does update the library path but plugins still do not load.  "
+                       "Use QtPluginsPathSetup::setupPluginsPathEnvironmentVariable() see below.");
+    
 #ifdef CARET_OS_LINUX
 #endif // CARET_OS_LINUX
     
@@ -119,10 +122,13 @@ QtPluginsPathSetup::setupPluginsPath()
 void
 QtPluginsPathSetup::setupPluginsPathEnvironmentVariable(const AString& programPathName)
 {
+#ifdef CARET_OS_MACOSX
+    const AString errorPrefix("Setup Plugins Environment Variable.  ");
+    
+    const bool debugFlag(false);
     /*
      * Note: Cannot use logger as it has not been created
      */
-#ifdef CARET_OS_MACOSX
     const QString pluginPathEnvVar("QT_PLUGIN_PATH");
     
     const QByteArray pathEnvBA = qgetenv(pluginPathEnvVar.toLocal8Bit());
@@ -133,9 +139,9 @@ QtPluginsPathSetup::setupPluginsPathEnvironmentVariable(const AString& programPa
         return;
     }
     
-    std::cout << "PROGRAM PATH NAME: " << programPathName << std::endl;
-    
-    const AString errorPrefix("Setup Plugins for MacOS.  ");
+    if (debugFlag) {
+        std::cout << errorPrefix<< "program path name: " << programPathName << std::endl;
+    }
     
     /*
      * Program name is like <some-path>/wb_view.app/Contents/MacOS/wb_view
@@ -143,7 +149,9 @@ QtPluginsPathSetup::setupPluginsPathEnvironmentVariable(const AString& programPa
      */
     QFileInfo fileInfo(programPathName);
     const QString appPath(fileInfo.canonicalPath());
-    std::cout << "App path: " << appPath << std::endl;
+    if (debugFlag) {
+        std::cout << errorPrefix << "App path: " << appPath << std::endl;
+    }
     QDir appDir(appPath);
     
     /*
@@ -151,11 +159,13 @@ QtPluginsPathSetup::setupPluginsPathEnvironmentVariable(const AString& programPa
      */
     if ( ! appDir.cdUp()) {
         std::cout << AString(errorPrefix
-                       + "Failed to cdUp() from MacOS App Path: "
+                             + "Failed to cdUp() from MacOS App Path: "
                              + appPath) << std::endl;
         return;
     }
-    std::cout << "Contents directory: " << appDir.canonicalPath().toStdString() << std::endl;
+    if (debugFlag) {
+        std::cout << errorPrefix << "Contents directory: " << appDir.canonicalPath().toStdString() << std::endl;
+    }
     
     /*
      * cd into the plugins directory
@@ -163,20 +173,23 @@ QtPluginsPathSetup::setupPluginsPathEnvironmentVariable(const AString& programPa
     const AString pluginsDirName("PlugIns");
     if ( ! appDir.cd(pluginsDirName)) {
         std::cout << AString(errorPrefix
-                       + "Failed to cd into "
-                              + pluginsDirName) << std::endl;
+                             + "Failed to cd into "
+                             + pluginsDirName) << std::endl;
         return;
     }
     const AString pluginsPath(appDir.canonicalPath());
-    std::cout << "Plugins path: " << pluginsPath << std::endl;
+    if (debugFlag) {
+        std::cout << "Plugins path: " << pluginsPath << std::endl;
+    }
     
     /*
      * Set the environment variable
      */
     if ( ! qputenv(pluginPathEnvVar.toLocal8Bit(),
                    pluginsPath.toLocal8Bit())) {
-        std::cout << "Error setting " << pluginPathEnvVar << " to " << pluginsPath << std::endl;
+        std::cout << errorPrefix << "Error setting " << pluginPathEnvVar << " to " << pluginsPath << std::endl;
     }
 #endif
 }
+
 

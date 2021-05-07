@@ -123,7 +123,9 @@ main(int argc, char* argv[])
         SystemUtilities::setUnexpectedHandler();
         
         /*
-         * Set environment variable for plugin loading on some operating systems
+         * Set environment variable QT_PLUGIN_PATH for plugin loading on some operating systems
+         * Neither qt.conf (in app's resource directory) or using QCoreApplication::addLibraryPath()
+         * work for setting plugin paths.
          */
         QtPluginsPathSetup::setupPluginsPathEnvironmentVariable(argv[0]);
         
@@ -168,20 +170,6 @@ main(int argc, char* argv[])
         QApplication app(argc, argv);
 #endif //CARET_OS_MACOSX
 
-//        /*
-//         * Need to setup plugins path on some systems
-//         */
-//        app.processEvents();
-//        QtPluginsPathSetup::setupPluginsPath();
-//        
-//        /*
-//         * Need to reinitialize the data types since
-//         * they were previously initialized as a result
-//         * of creating the session manager
-//         */
-//        app.processEvents();
-//        DataFileTypeEnum::reinitializeDataFileTypeEnums();
-        
         /*
          * Create the GUI Manager.
          * Moved here as part of WB-842.  In OSX Mojave (10.14),
