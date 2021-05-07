@@ -250,6 +250,43 @@ AboutWorkbenchDialog::displayMoreInformation()
         informationData.push_back("Qt Scaled ClipRect Readable: "
                                   + AString::join(scaledClipRectExtensions, ", "));
     }
+    
+    informationData.push_back("Library paths:");
+    QStringList libPaths(QCoreApplication::libraryPaths());
+    QStringListIterator libPathsIter(libPaths);
+    while (libPathsIter.hasNext()) {
+        informationData.push_back("   " + libPathsIter.next());
+    }
+    
+    informationData.push_back("File and extensions for reading and writing:");
+    std::vector<DataFileTypeEnum::Enum> allDataFileTypes;
+    uint32_t dataFileTypeOptions(0);
+    DataFileTypeEnum::getAllEnums(allDataFileTypes,
+                                  dataFileTypeOptions);
+    for (const auto dft : allDataFileTypes) {
+        const AString typeName("   " + DataFileTypeEnum::toGuiName(dft));
+        
+        const std::vector<AString> allReadExtensions(DataFileTypeEnum::getAllFileExtensionsForReading(dft));
+        const AString readExts(AString::join(allReadExtensions, ", "));
+        
+        const std::vector<AString> allWriteExtensions(DataFileTypeEnum::getAllFileExtensionsForWriting(dft));
+        const AString writeExts(AString::join(allWriteExtensions, ", "));
+        
+        if (readExts == writeExts) {
+            informationData.push_back(typeName
+                         + ": "
+                         + readExts);
+        }
+        else {
+            informationData.push_back(typeName
+                         + " Read: "
+                         + readExts);
+            informationData.push_back(QString(typeName.length(), ' ')
+                         + "Write: "
+                         + writeExts);
+        }
+    }
+
     WuQDataEntryDialog ded("More " + appInfo.getName() + " Information",
                            this,
                            true);
