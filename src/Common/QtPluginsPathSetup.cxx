@@ -27,6 +27,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QtGlobal>
 
 #include "AString.h"
 #include "CaretAssert.h"
@@ -102,7 +103,10 @@ QtPluginsPathSetup::setupPluginsPath()
     /*
      * Add the plugins directory to the applications library paths
      */
-    QCoreApplication::addLibraryPath(pluginsPath);
+//    QCoreApplication::addLibraryPath(pluginsPath);
+    
+    qputenv("QT_PLUGIN_PATH",
+            pluginsPath.toLatin1());
 #endif // CARET_OS_MACOSX
     
 #ifdef CARET_OS_WINDOWS

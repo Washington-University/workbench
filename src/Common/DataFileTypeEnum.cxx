@@ -132,6 +132,23 @@ DataFileTypeEnum::~DataFileTypeEnum()
 }
 
 /**
+ * Reinitialize the data file types
+ * These items are initialized when a palette file is creeated during session manager creation.
+ * However, QCoreApplication has not been initialized so the plugin paths are not valid and this
+ * prevents getting image file extensions for image files loaded using plugins.  Calling this method
+ * after QCoreApplication results in the plugin image file extensions availability.
+ */
+void
+DataFileTypeEnum::reinitializeDataFileTypeEnums()
+{
+    initializedFlag      = false;
+    integerCodeGenerator = 0;
+    enumData.clear();
+    initialize();
+}
+
+
+/**
  * Initialize the enumerated metadata.
  */
 void

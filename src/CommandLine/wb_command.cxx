@@ -31,7 +31,6 @@
 #include "CaretLogger.h"
 #include "CommandOperationManager.h"
 #include "ProgramParameters.h"
-#include "QtPluginsPathSetup.h"
 #include "SessionManager.h"
 #include "SystemUtilities.h"
 #include "VolumeFile.h"
@@ -144,11 +143,6 @@ int main(int argc, char* argv[]) {
         VolumeFile::setVoxelColoringEnabled(false);
         
         QCoreApplication myApp(argc, argv);//so that it doesn't need to link against gui
-        
-        /*
-         * Need to setup plugins path on some systems
-         */
-        QtPluginsPathSetup::setupPluginsPath();
         
         result = runCommand(argc, argv);
         

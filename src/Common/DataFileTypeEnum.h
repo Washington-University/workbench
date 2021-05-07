@@ -116,6 +116,8 @@ public:
     
     ~DataFileTypeEnum();
 
+    static void reinitializeDataFileTypeEnums();
+    
     static AString toName(Enum enumValue);
     
     static Enum fromName(const AString& name, bool* isValidOut);

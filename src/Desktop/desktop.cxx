@@ -166,7 +166,14 @@ main(int argc, char* argv[])
         /*
          * Need to setup plugins path on some systems
          */
-        QtPluginsPathSetup::setupPluginsPath();
+//        QtPluginsPathSetup::setupPluginsPath();
+        
+        /*
+         * Need to reinitialize the data types since
+         * they were previously initialized as a result
+         * of creating the session manager
+         */
+        DataFileTypeEnum::reinitializeDataFileTypeEnums();
         
         /*
          * Create the GUI Manager.
