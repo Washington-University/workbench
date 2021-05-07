@@ -58,6 +58,7 @@
 #include "GuiManager.h"
 #include "MacApplication.h"
 #include "ProgramParameters.h"
+#include "QtPluginsPathSetup.h"
 #include "RecentFilesDialog.h"
 #include "RecentFilesSystemAccessModeEnum.h"
 #include "SceneDialog.h"
@@ -162,6 +163,11 @@ main(int argc, char* argv[])
         QApplication app(argc, argv);
 #endif //CARET_OS_MACOSX
 
+        /*
+         * Need to setup plugins path on some systems
+         */
+        QtPluginsPathSetup::setupPluginsPath();
+        
         /*
          * Create the GUI Manager.
          * Moved here as part of WB-842.  In OSX Mojave (10.14),

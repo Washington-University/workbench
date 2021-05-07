@@ -161,6 +161,7 @@ ProgramParameters.h
 ProgramParametersException.h
 ProgressObject.h
 ProgressReportingInterface.h
+QtPluginsPathSetup.h
 RecentFileItem.h
 RecentFileItemSortingKeyEnum.h
 RecentFileItemTypeEnum.h
@@ -310,6 +311,7 @@ Plane.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx
 ProgressObject.cxx
+QtPluginsPathSetup.cxx
 RecentFileItem.cxx
 RecentFileItemSortingKeyEnum.cxx
 RecentFileItemTypeEnum.cxx

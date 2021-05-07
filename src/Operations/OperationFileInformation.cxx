@@ -89,7 +89,7 @@ OperationFileInformation::getParameters()
                      "Only one -only option may be specified.  "
                      "The information listed when no -only option is present is dependent upon the type of data file.");
     
-    const bool showLibPathsAndFileExtsFlag(false);
+    const bool showLibPathsAndFileExtsFlag(true);
     if (showLibPathsAndFileExtsFlag) {
         helpText += ("\n\nLibrary paths:\n");
         QStringList libPaths(QCoreApplication::libraryPaths());
