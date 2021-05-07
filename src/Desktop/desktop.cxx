@@ -123,6 +123,11 @@ main(int argc, char* argv[])
         SystemUtilities::setUnexpectedHandler();
         
         /*
+         * Set environment variable for plugin loading on some operating systems
+         */
+        QtPluginsPathSetup::setupPluginsPathEnvironmentVariable(argv[0]);
+        
+        /*
         * Create the session manager.
         */
         SessionManager::createSessionManager(ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE);
@@ -163,17 +168,19 @@ main(int argc, char* argv[])
         QApplication app(argc, argv);
 #endif //CARET_OS_MACOSX
 
-        /*
-         * Need to setup plugins path on some systems
-         */
+//        /*
+//         * Need to setup plugins path on some systems
+//         */
+//        app.processEvents();
 //        QtPluginsPathSetup::setupPluginsPath();
-        
-        /*
-         * Need to reinitialize the data types since
-         * they were previously initialized as a result
-         * of creating the session manager
-         */
-        DataFileTypeEnum::reinitializeDataFileTypeEnums();
+//        
+//        /*
+//         * Need to reinitialize the data types since
+//         * they were previously initialized as a result
+//         * of creating the session manager
+//         */
+//        app.processEvents();
+//        DataFileTypeEnum::reinitializeDataFileTypeEnums();
         
         /*
          * Create the GUI Manager.

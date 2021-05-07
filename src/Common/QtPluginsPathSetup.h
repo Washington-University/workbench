@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "AString.h"
 
 namespace caret {
 
@@ -32,6 +33,8 @@ namespace caret {
         QtPluginsPathSetup(const QtPluginsPathSetup&) = delete;
 
         QtPluginsPathSetup& operator=(const QtPluginsPathSetup&) = delete;
+        
+        static void setupPluginsPathEnvironmentVariable(const AString& programPathName);
         
         static void setupPluginsPath();
 
