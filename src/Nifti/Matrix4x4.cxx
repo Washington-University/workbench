@@ -243,6 +243,20 @@ Matrix4x4::translate(
  * @param txyz  The translation along the XYZ-Axis.
  */
 void
+Matrix4x4::translate(const float txyz[3])
+{
+    translate(txyz[0], txyz[1], txyz[2]);
+}
+
+/**
+ *
+ * Apply a translation by multiplying the matrix by a matrix
+ * containing the specified translation.  Translates in the
+ * screen' coordinate system.
+ *
+ * @param txyz  The translation along the XYZ-Axis.
+ */
+void
 Matrix4x4::translate(const double txyz[3])
 {
     translate(txyz[0], txyz[1], txyz[2]);

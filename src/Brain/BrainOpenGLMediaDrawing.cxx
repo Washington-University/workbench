@@ -25,11 +25,13 @@
 
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "ImageFile.h"
 #include "ModelMedia.h"
@@ -67,6 +69,8 @@ BrainOpenGLMediaDrawing::~BrainOpenGLMediaDrawing()
 /**
  * @param fixedPipelineDrawing
  *    The fixed pipeline drawing
+ * @param viewportContent
+ *    The viewport content
  * @param browserTabContent
  *    Content of the browser tab
  * @param mediaModel
@@ -76,9 +80,10 @@ BrainOpenGLMediaDrawing::~BrainOpenGLMediaDrawing()
  */
 void
 BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                   BrowserTabContent* browserTabContent,
-                                   ModelMedia* mediaModel,
-                                   const std::array<int32_t, 4>& viewport)
+                              const BrainOpenGLViewportContent* viewportContent,
+                              BrowserTabContent* browserTabContent,
+                              ModelMedia* mediaModel,
+                              const std::array<int32_t, 4>& viewport)
 {
     CaretAssert(fixedPipelineDrawing);
     CaretAssert(browserTabContent);
@@ -119,6 +124,11 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     
     glTranslatef(translation[0], translation[1], 0.0);
     glScalef(scaling, scaling, 1.0);
+    
+    std::array<float, 4> orthoLRBT { -halfWidth, halfWidth, -halfHeight, halfHeight };
+    GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
+    fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
+    viewportContent->setGraphicsObjectToWindowTransform(transform);
     
     drawModelLayers();
 }
@@ -232,7 +242,9 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
         const float drawnImageWidth(bounds.getDifferenceX());
         const float drawnImageHeight(bounds.getDifferenceY());
         if ((drawnImageWidth > 0.0)
-            && (drawnImageHeight > 0.0)) {
+            && (drawnImageHeight > 0.0)
+            && (windowMaxXYZ[0] > windowMinXYZ[0])
+            && (windowMaxXYZ[1] - windowMinXYZ[1])) {
             const float imageWidth(imageFile->getWidth());
             const float imageHeight(imageFile->getHeight());
             
@@ -242,22 +254,26 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
             /*
              * Offset of mouse from bottom left of image in window coordinates
              */
-            const float relativeX = mouseX - windowMinXYZ[0];
-            const float relativeY = mouseY - windowMinXYZ[1];
+            const float relativePixelX = mouseX - windowMinXYZ[0];
+            const float relativePixelY = mouseY - windowMinXYZ[1];
             
             /*
              * Normalized coordinate in image (range is 0 to 1 if inside image)
              */
-            const float normalizedX = relativeX / static_cast<float>(windowMaxXYZ[0] - windowMinXYZ[0]);
-            const float normalizedY = relativeY / static_cast<float>(windowMaxXYZ[1] - windowMinXYZ[1]);
+            const float normalizedPixelX = relativePixelX / static_cast<float>(windowMaxXYZ[0] - windowMinXYZ[0]);
+            const float normalizedPixelY = relativePixelY / static_cast<float>(windowMaxXYZ[1] - windowMinXYZ[1]);
             
             /*
              * Pixel X&Y in image
              */
-            const int32_t pixelX = static_cast<int32_t>(normalizedX *
+            const int32_t pixelX = static_cast<int32_t>(normalizedPixelX *
                                                         static_cast<float>(imageWidth));
-            const int32_t pixelY = static_cast<int32_t>(normalizedY *
+            const int32_t pixelY = static_cast<int32_t>(normalizedPixelY *
                                                         static_cast<float>(imageHeight));
+            
+            float windowXYZ[3] { mouseX, mouseY, 0.0 };
+            float modelXYZ[3] { 0.0, 0.0, 0.0 };
+            xform.inverseTransformPoint(windowXYZ, modelXYZ);
             
             /*
              * Verify clicked location is inside image
@@ -277,6 +293,9 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
                                                  pixelByteRGBA)) {
                     idImage->setImageFile(imageFile);
                     idImage->setPixelRGBA(pixelByteRGBA);
+                    idImage->setModelXYZ(modelXYZ);
+                    idImage->setScreenXYZ(windowXYZ);
+                    idImage->setScreenDepth(0.0);
                 }
             }
         }

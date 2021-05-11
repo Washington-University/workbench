@@ -239,6 +239,19 @@ SelectionItem::setScreenXYZ(const double screenXYZ[3])
 }
 
 /**
+ * Set the screen XYZ of the selected item.
+ * @param screenXYZ
+ *    new XYZ.
+ */
+void
+SelectionItem::setScreenXYZ(const float screenXYZ[3])
+{
+    m_screenXYZ[0] = screenXYZ[0];
+    m_screenXYZ[1] = screenXYZ[1];
+    m_screenXYZ[2] = screenXYZ[2];
+}
+
+/**
  * Get the model XYZ of the selected item.
  * @param modelXYZ
  *    XYZ out.
@@ -258,6 +271,19 @@ SelectionItem::getModelXYZ(double modelXYZ[3]) const
  */
 void 
 SelectionItem::setModelXYZ(const double modelXYZ[3])
+{
+    m_modelXYZ[0] = modelXYZ[0];
+    m_modelXYZ[1] = modelXYZ[1];
+    m_modelXYZ[2] = modelXYZ[2];
+}
+
+/**
+ * Set the model XYZ of the selected item.
+ * @param modelXYZ
+ *    new XYZ.
+ */
+void
+SelectionItem::setModelXYZ(const float modelXYZ[3])
 {
     m_modelXYZ[0] = modelXYZ[0];
     m_modelXYZ[1] = modelXYZ[1];

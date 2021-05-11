@@ -69,6 +69,7 @@ namespace caret {
     class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class EventOpenGLObjectToWindowTransform;
+    class GraphicsObjectToWindowTransform;
     class Model;
     class SurfaceProjectedItem;
     
@@ -325,6 +326,11 @@ namespace caret {
         
         virtual void loadObjectToWindowTransform(EventOpenGLObjectToWindowTransform* transformEvent) = 0;
         
+        virtual void loadObjectToWindowTransform(GraphicsObjectToWindowTransform* transform,
+                                                 const std::array<float, 4>& orthoLeftRightBottomTop,
+                                                 const double centerToEyeDistance,
+                                                 const bool centerToEyeDistanceValidFlag) = 0;
+
         Border* borderBeingDrawn;
         
         bool m_drawHighlightedEndPoints;

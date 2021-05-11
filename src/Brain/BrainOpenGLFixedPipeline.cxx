@@ -106,6 +106,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fN3fC4ub.h"
 #include "GraphicsPrimitiveV3f.h"
@@ -424,6 +425,52 @@ BrainOpenGLFixedPipeline::loadObjectToWindowTransform(EventOpenGLObjectToWindowT
         CaretAssertMessage(0, "Received EventOpenGLObjectToWindowTransform but current context is invalid.");
     }
     
+}
+
+/**
+ * Setup the content of the transform  with current transformation data.
+ *
+ * @param transform
+ *     The transform.
+ * @param orthoLeftRightBottomTop
+ *     The orthographic left, right, bottom, and top
+ * @param centerToEyeDistance
+ *     Center to eye distance
+ * @param centerToEyeDistanceValidFlag
+ *     Validity of center to eye distance.  If not valid, s_gluLookAtCenterFromEyeOffsetDistance is used for the center to eye distnace
+ */
+void
+BrainOpenGLFixedPipeline::loadObjectToWindowTransform(GraphicsObjectToWindowTransform* transform,
+                                                      const std::array<float, 4>& orthoLeftRightBottomTop,
+                                                      const double centerToEyeDistance,
+                                                      const bool centerToEyeDistanceValidFlag)
+{
+    
+    if (getContextSharingGroupPointer() != NULL) {
+        std::array<double, 16> modelviewArray;
+        std::array<double, 16> projectionArray;
+        std::array<double, 2> depthRange;
+        std::array<int32_t, 4> viewport;
+        
+        glGetDoublev(GL_MODELVIEW_MATRIX, modelviewArray.data());
+        glGetDoublev(GL_PROJECTION_MATRIX, projectionArray.data());
+        glGetDoublev(GL_DEPTH_RANGE, depthRange.data());
+        glGetIntegerv(GL_VIEWPORT, viewport.data());
+        
+        const double eyeDist(centerToEyeDistanceValidFlag
+                             ? centerToEyeDistance
+                             : s_gluLookAtCenterFromEyeOffsetDistance);
+        transform->setup(GraphicsObjectToWindowTransform::SpaceType::MODEL,
+                         modelviewArray,
+                         projectionArray,
+                         viewport,
+                         depthRange,
+                         orthoLeftRightBottomTop,
+                         eyeDist);
+    }
+    else {
+        CaretAssertMessage(0, "Received EventOpenGLObjectToWindowTransform but current context is invalid.");
+    }
 }
 
 /**
@@ -1515,7 +1562,8 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                 drawChartTwoData(viewportContent, modelTwoChart, viewport);
             }
             else if (mediaModel != NULL) {
-                drawMediaModel(browserTabContent,
+                drawMediaModel(viewportContent,
+                               browserTabContent,
                                mediaModel,
                                viewport);
             }
@@ -8576,6 +8624,8 @@ BrainOpenGLFixedPipeline::getStateOfOpenGL() const
 /**
  * Draw a medial model
  *
+ * @param viewportContent
+ *   The viewport content
  * @param browserTabContent
  *    Content of the browser tab
  * @param mediaModel
@@ -8584,12 +8634,14 @@ BrainOpenGLFixedPipeline::getStateOfOpenGL() const
  *    The viewport
  */
 void
-BrainOpenGLFixedPipeline::drawMediaModel(BrowserTabContent* browserTabContent,
+BrainOpenGLFixedPipeline::drawMediaModel(const BrainOpenGLViewportContent* viewportContent,
+                                         BrowserTabContent* browserTabContent,
                                          ModelMedia* mediaModel,
                                          const int32_t viewport[4])
 {
     BrainOpenGLMediaDrawing mediaDrawing;
     mediaDrawing.draw(this,
+                      viewportContent,
                       browserTabContent,
                       mediaModel,
                       { viewport[0], viewport[1], viewport[2], viewport[3] });

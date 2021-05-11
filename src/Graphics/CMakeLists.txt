@@ -22,6 +22,7 @@ EventGraphicsOpenGLDeleteTextureName.h
 EventOpenGLObjectToWindowTransform.h
 GraphicsEngineData.h
 GraphicsEngineDataOpenGL.h
+GraphicsObjectToWindowTransform.h
 GraphicsOpenGLBufferObject.h
 GraphicsOpenGLError.h
 GraphicsOpenGLPolylineTriangles.h
@@ -44,6 +45,7 @@ EventGraphicsOpenGLDeleteTextureName.cxx
 EventOpenGLObjectToWindowTransform.cxx
 GraphicsEngineData.cxx
 GraphicsEngineDataOpenGL.cxx
+GraphicsObjectToWindowTransform.cxx
 GraphicsOpenGLBufferObject.cxx
 GraphicsOpenGLError.cxx
 GraphicsOpenGLPolylineTriangles.cxx

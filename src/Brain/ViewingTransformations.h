@@ -27,6 +27,7 @@
 #include "SceneableInterface.h"
 
 namespace caret {
+    class GraphicsObjectToWindowTransform;
     class SceneClassAssistant;
 
     class ViewingTransformations : public CaretObject, public SceneableInterface  {
@@ -54,6 +55,12 @@ namespace caret {
         
         void setScaling(const float scaling);
         
+        void scaleAboutMouse(const GraphicsObjectToWindowTransform* transform,
+                             const int32_t browserWindowIndex,
+                             const int32_t mousePressX,
+                             const int32_t mousePressY,
+                             const int32_t mouseDY);
+
         Matrix4x4 getRotationMatrix() const;
         
         void setRotationMatrix(const Matrix4x4& rotationMatrix);

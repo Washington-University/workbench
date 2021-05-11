@@ -2047,9 +2047,16 @@ IdentificationFormattedTextGenerator::generateImageIdentificationText(HtmlTableB
                                  + AString::number(idImage->getPixelI())
                                  + ","
                                  + AString::number(idImage->getPixelJ())
-                                 + ")"),
-                                idImage->getImageFile()->getFileNameNoPath());
-                                
+                                 + ")"));
+        
+        double modelXYZ[3];
+        idImage->getModelXYZ(modelXYZ);
+        htmlTableBuilder.addRow("",
+                                ("Coord XY ("
+                                 + AString::number(modelXYZ[0], 'f', 6)
+                                 + ","
+                                 + AString::number(modelXYZ[1], 'f', 6)
+                                 + ")"));
     }
 }
 

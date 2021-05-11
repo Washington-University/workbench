@@ -141,6 +141,10 @@ namespace caret {
     protected:
         virtual void loadObjectToWindowTransform(EventOpenGLObjectToWindowTransform* transformEvent) override;
         
+        virtual void loadObjectToWindowTransform(GraphicsObjectToWindowTransform* transform,
+                                                 const std::array<float, 4>& orthoLeftRightBottomTop,
+                                                 const double centerToEyeDistance,
+                                                 const bool centerToEyeDistanceValidFlag) override;
     private:
         class VolumeDrawInfo {
         public:
@@ -267,7 +271,8 @@ namespace caret {
         void drawFiberTrajectories(const Plane* plane,
                                    const StructureEnum::Enum structure);
         
-        void drawMediaModel(BrowserTabContent* browserTabContent,
+        void drawMediaModel(const BrainOpenGLViewportContent* viewportContent,
+                            BrowserTabContent* browserTabContent,
                             ModelMedia* mediaModel,
                             const int32_t viewport[4]);
         

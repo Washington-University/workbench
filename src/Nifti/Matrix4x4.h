@@ -72,6 +72,8 @@ public:
 
     void translate(const double txyz[3]);
     
+    void translate(const float txyz[3]);
+    
     void scale(
             const double sx,
             const double sy,

@@ -3469,8 +3469,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
  */
 void
 BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent,
-                                     const int32_t /*mousePressX*/,
-                                     const int32_t /*mousePressY*/,
+                                     const int32_t mousePressX,
+                                     const int32_t mousePressY,
                                      const float mouseX,
                                      const float mouseY,
                                      const int32_t /*mouseDX*/,
@@ -3511,12 +3511,23 @@ BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent
             Matrix4x4 m1, m2;
             if (viewportContent->getChartDataMatricesAndViewport(m1, m2, viewport)) {
                 overlaySet->applyMouseScaling(viewport,
-                                              mouseX,
-                                              mouseY,
+                                              mousePressX,
+                                              mousePressY,
                                               mouseDY);
             }
         }
     }
+/*
+    else if (isMediaDisplayed()) {
+        std::cout << "Press X=" << mousePressX << " Y=" << mousePressY << " Current X=" << mouseX << " Y=" << mouseY << std::endl;
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getGraphicsObjectToWindowTransform();
+        getViewingTransformation()->scaleAboutMouse(xform,
+                                                    viewportContent->getWindowIndex(),
+                                                    mousePressX,
+                                                    mousePressY,
+                                                    mouseDY);
+    }
+*/
     else {
         float scaling = getViewingTransformation()->getScaling();
         if (mouseDY != 0.0) {

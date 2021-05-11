@@ -406,10 +406,10 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
     int32_t modelViewport[4];
     viewportContent->getModelViewport(modelViewport);
     browserTabContent->applyMouseScaling(viewportContent,
-                                         mouseEvent.getPressedX(),
-                                         mouseEvent.getPressedY(),
                                          mouseEvent.getPressedX() - modelViewport[0],
                                          mouseEvent.getPressedY() - modelViewport[1],
+                                         mouseEvent.getX() - modelViewport[0],
+                                         mouseEvent.getY() - modelViewport[1],
                                          mouseEvent.getDx(),
                                          mouseEvent.getDy());
     updateGraphics(mouseEvent);

@@ -61,9 +61,13 @@ namespace caret {
         
         void setScreenXYZ(const double screenXYZ[3]);
         
+        void setScreenXYZ(const float screenXYZ[3]);
+        
         void getModelXYZ(double modelXYZ[3]) const;
         
         void setModelXYZ(const double modelXYZ[3]);
+        
+        void setModelXYZ(const float modelXYZ[3]);
         
         /**
          * @return  Is the selected item valid?

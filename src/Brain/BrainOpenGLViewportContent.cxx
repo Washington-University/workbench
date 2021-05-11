@@ -37,6 +37,7 @@
 #include "EventManager.h"
 #include "EventSpacerTabGet.h"
 #include "GapsAndMargins.h"
+#include "GraphicsObjectToWindowTransform.h"
 #include "MathFunctions.h"
 #include "ModelSurfaceMontage.h"
 #include "SpacerTabContent.h"
@@ -100,6 +101,9 @@ m_windowBeforeAspectLockingY(windowBeforeAspectLockingViewport[1]),
 m_windowBeforeAspectLockingWidth(windowBeforeAspectLockingViewport[2]),
 m_windowBeforeAspectLockingHeight(windowBeforeAspectLockingViewport[3])
 {
+    /*
+     * Note all members initialized in the header file
+     */
     m_windowX      = windowViewport[0];
     m_windowY      = windowViewport[1];
     m_windowWidth  = windowViewport[2];
@@ -118,14 +122,6 @@ m_windowBeforeAspectLockingHeight(windowBeforeAspectLockingViewport[3])
     m_modelY      = modelViewport[1];
     m_modelWidth  = modelViewport[2];
     m_modelHeight = modelViewport[3];
-    
-    m_chartDataProjectionMatrix.identity();
-    m_chartDataModelViewMatrix.identity();
-    m_chartDataX = 0;
-    m_chartDataY = 0;
-    m_chartDataWidth = 0;
-    m_chartDataHeight = 0;
-    m_chartDataViewportValidFlag = false;
 }
 
 /**
@@ -150,7 +146,9 @@ m_windowBeforeAspectLockingY(obj.m_windowBeforeAspectLockingY),
 m_windowBeforeAspectLockingWidth(obj.m_windowBeforeAspectLockingWidth),
 m_windowBeforeAspectLockingHeight(obj.m_windowBeforeAspectLockingHeight)
 {
-    this->initializeMembersBrainOpenGLViewportContent();
+    /*
+     * Note all members initialized in the header file
+     */
     this->copyHelperBrainOpenGLViewportContent(obj);
 }
 
@@ -169,42 +167,6 @@ BrainOpenGLViewportContent::operator=(const BrainOpenGLViewportContent& obj)
         this->copyHelperBrainOpenGLViewportContent(obj);
     }
     return *this;
-}
-
-/**
- * Initialize members of a new instance.
- */
-void
-BrainOpenGLViewportContent::initializeMembersBrainOpenGLViewportContent()
-{
-    m_chartDataProjectionMatrix.identity();
-    m_chartDataModelViewMatrix.identity();
-    m_chartDataX      = 0;
-    m_chartDataY      = 0;
-    m_chartDataWidth  = 0;
-    m_chartDataHeight = 0;
-    m_chartDataViewportValidFlag = false;
-    m_modelX       = 0;
-    m_modelY       = 0;
-    m_modelWidth   = 0;
-    m_modelHeight  = 0;
-    m_tabX         = 0;
-    m_tabY         = 0;
-    m_tabWidth     = 0;
-    m_tabHeight    = 0;
-    m_windowX      = 0;
-    m_windowY      = 0;
-    m_windowWidth  = 0;
-    m_windowHeight = 0;
-    m_windowBeforeAspectLockingX      = 0;
-    m_windowBeforeAspectLockingY      = 0;
-    m_windowBeforeAspectLockingWidth  = 0;
-    m_windowBeforeAspectLockingHeight = 0;
-    m_browserTabContent = NULL;
-    m_spacerTabContent  = NULL;
-    for (int32_t i = 0; i < 4; i++) {
-        m_tabViewportManualLayoutBeforeAspectLocking[i] = 0;
-    }
 }
 
 /**
@@ -245,6 +207,10 @@ BrainOpenGLViewportContent::copyHelperBrainOpenGLViewportContent(const BrainOpen
 
     m_browserTabContent = obj.m_browserTabContent;
     m_spacerTabContent  = obj.m_spacerTabContent;
+    m_graphicsObjectToWindowTransform.reset();
+    if (obj.m_graphicsObjectToWindowTransform) {
+        m_graphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_graphicsObjectToWindowTransform));
+    }
 }
 
 /**
@@ -1343,6 +1309,24 @@ BrainOpenGLViewportContent::getSurfaceMontageModelViewport(const int32_t montage
             }
         }
     }
+}
+
+/**
+ * Set the object to window transformation.  This instance will take ownership of the given transform and delete when appropriate.
+ */
+void
+BrainOpenGLViewportContent::setGraphicsObjectToWindowTransform(GraphicsObjectToWindowTransform* transform) const
+{
+    m_graphicsObjectToWindowTransform.reset(transform);
+}
+
+/**
+ * @return Object to window transformation (MAY BE NULL !!!)
+ */
+const GraphicsObjectToWindowTransform*
+BrainOpenGLViewportContent::getGraphicsObjectToWindowTransform() const
+{
+    return m_graphicsObjectToWindowTransform.get();
 }
 
 /* =================================================================================================== */

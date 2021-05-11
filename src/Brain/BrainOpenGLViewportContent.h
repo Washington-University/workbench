@@ -31,6 +31,7 @@ namespace caret {
     class BrowserTabContent;
     class BrowserWindowContent;
     class GapsAndMargins;
+    class GraphicsObjectToWindowTransform;
     class SpacerTabContent;
     class TileTabsLayoutGridConfiguration;
     class TileTabsLayoutManualConfiguration;
@@ -75,6 +76,10 @@ namespace caret {
         int32_t getTabIndex() const;
         
         bool isTabHighlighted() const;
+        
+        void setGraphicsObjectToWindowTransform(GraphicsObjectToWindowTransform* transform) const;
+        
+        const GraphicsObjectToWindowTransform* getGraphicsObjectToWindowTransform() const;
         
         static void adjustViewportForAspectRatio(int viewport[4],
                                                  const float aspectRatio);
@@ -150,8 +155,6 @@ namespace caret {
                                    BrowserTabContent* browserTabContent,
                                    SpacerTabContent* spacerTabContent);
         
-        void initializeMembersBrainOpenGLViewportContent();
-        
         void copyHelperBrainOpenGLViewportContent(const BrainOpenGLViewportContent& obj);
 
         static void createModelViewport(const int tabViewport[4],
@@ -184,25 +187,25 @@ namespace caret {
         const bool m_highlightTab;
         
         /** Tab viewport's X-coordinate */
-        int m_tabX;
+        int m_tabX = 0;
         /** Tab viewport's Y-coordinate */
-        int m_tabY;
+        int m_tabY = 0;
         /** Tab viewport's Width */
-        int m_tabWidth;
+        int m_tabWidth = 0;
         /** Tab viewport's Height */
-        int m_tabHeight;
+        int m_tabHeight = 0;
         
         /** Manual layout tab viewport before aspect locking is applied */
-        int m_tabViewportManualLayoutBeforeAspectLocking[4];
+        int m_tabViewportManualLayoutBeforeAspectLocking[4] = { 0, 0, 0, 0 };
         
         /** Chart data viewport's X-coordinate */
-        mutable int m_chartDataX;
+        mutable int m_chartDataX = 0;
         /** Chart data viewport's Y-coordinate */
-        mutable int m_chartDataY;
+        mutable int m_chartDataY = 0;
         /** Chart data viewport's Width */
-        mutable int m_chartDataWidth;
+        mutable int m_chartDataWidth = 0;
         /** Chart data viewport's Height */
-        mutable int m_chartDataHeight;
+        mutable int m_chartDataHeight = 0;
         /** Chart data viewport's validity */
         mutable bool m_chartDataViewportValidFlag = false;
         /** Chart data transformation matrix */
@@ -211,35 +214,37 @@ namespace caret {
         mutable Matrix4x4 m_chartDataProjectionMatrix;
         
         /** Model viewport's X-coordinate */
-        int m_modelX;
+        int m_modelX = 0;
         /** Model viewport's Y-coordinate */
-        int m_modelY;
+        int m_modelY = 0;
         /** Model viewport's Width */
-        int m_modelWidth;
+        int m_modelWidth = 0;
         /** Model viewport's Height */
-        int m_modelHeight;
+        int m_modelHeight = 0;
 
         /** Window viewport's X-coordinate */
-        int m_windowX;
+        int m_windowX = 0;
         /** Window viewport's Y-coordinate */
-        int m_windowY;
+        int m_windowY = 0;
         /** Window viewport's Width */
-        int m_windowWidth;
+        int m_windowWidth = 0;
         /** Window viewport's Height */
-        int m_windowHeight;
+        int m_windowHeight = 0;
         
-        BrowserTabContent* m_browserTabContent;
+        BrowserTabContent* m_browserTabContent = NULL;
         
-        SpacerTabContent* m_spacerTabContent;
+        SpacerTabContent* m_spacerTabContent = NULL;
         
         /** Window viewport's X-coordinate */
-        int m_windowBeforeAspectLockingX;
+        int m_windowBeforeAspectLockingX = 0;
         /** Window viewport's Y-coordinate */
-        int m_windowBeforeAspectLockingY;
+        int m_windowBeforeAspectLockingY = 0;
         /** Window viewport's Width */
-        int m_windowBeforeAspectLockingWidth;
+        int m_windowBeforeAspectLockingWidth = 0;
         /** Window viewport's Height */
-        int m_windowBeforeAspectLockingHeight;
+        int m_windowBeforeAspectLockingHeight = 0;
+        
+        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_graphicsObjectToWindowTransform;
         
     public:
         virtual AString toString() const;

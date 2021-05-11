@@ -23,6 +23,8 @@
 #include "ViewingTransformations.h"
 #undef __VIEWING_TRANSFORMATIONS_DECLARE__
 
+#include "CaretLogger.h"
+#include "GraphicsObjectToWindowTransform.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -202,6 +204,117 @@ void
 ViewingTransformations::setScaling(const float scaling)
 {
     m_scaling = scaling;
+}
+
+/**
+ * Scale about the position of the mouse
+ * @param transform
+ * Graphics object to window transform
+ * @param browserWindowIndex
+ *    Index of the browser window
+ * @param mousePressX
+ *    X-Location of where mouse was pressed
+ * @param mousePressX
+ *    Y-Location of where mouse was pressed
+ * @param mouseDY
+ *    Change in mouse Y
+ */
+void
+ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* transform,
+                                        const int32_t browserWindowIndex,
+                                        const int32_t mousePressX,
+                                        const int32_t mousePressY,
+                                        const int32_t mouseDY)
+{
+    if (mouseDY == 0) {
+        return;
+    }
+    
+    if (transform == NULL) {
+        CaretLogSevere("Object to window transform is NULL");
+        return;
+    }
+    if ( ! transform->isValid()) {
+        CaretLogSevere("Object to window transform is INVALID");
+        return;
+    }
+    //    Will need to store OpenGL matrix (or matrix 4x4) in browsertabcontent when it is drawn and
+    //    then get that transformation for model to window transforms
+    //
+    //    OR perform ID and pass coordinate in
+    
+    const float windowXYZ[3] { static_cast<float>(mousePressX), static_cast<float>(mousePressY), 0.0f };
+    float modelXYZ[3];
+    transform->inverseTransformPoint(windowXYZ,
+                                     modelXYZ);
+    float windowTwoXYZ[3];
+    transform->transformPoint(modelXYZ, windowTwoXYZ);
+    
+    std::cout << "Window X Y: " << windowXYZ[0] << ", " << windowXYZ[1] << std::endl;
+    std::cout << "   Model X Y: " << modelXYZ[0] << ", " << modelXYZ[1] << std::endl;
+    std::cout << "   Window X Y: " << windowTwoXYZ[0] << ", " << windowTwoXYZ[1] << std::endl;
+    
+    
+    {
+        const float newScale((1.0f + (mouseDY * 0.01)));
+        const float oldScale(getScaling());
+        const float totalScale(newScale * oldScale);
+        
+        float oldTrans[3];
+        getTranslation(oldTrans);
+        
+        std::cout << "  Old Tx=" << oldTrans[0] << ", Ty=" << oldTrans[1] << ", S=" << oldScale << std::endl;
+
+        Matrix4x4 m;
+        m.translate(-modelXYZ[0], -modelXYZ[1], 0.0);
+        m.scale(totalScale, totalScale, 1.0);
+        m.translate(modelXYZ[0], modelXYZ[1], 0.0);
+
+//        m.translate(-modelXYZ[0], -modelXYZ[1], 0.0);
+//        m.scale(totalScale, totalScale, 1.0);
+//        m.translate(modelXYZ[0], modelXYZ[1], 0.0);
+        
+        float t[3];
+        m.getTranslation(t);
+        setTranslation(t);
+        
+        double sx(0.0), sy(0.0), sz(0.0);
+        m.getScale(sx, sy, sz);
+        setScaling(sx);
+
+        std::cout << "  New Tx=" << t[0] << ", Ty=" << t[1] << ", S=" << sx << std::endl;
+
+        
+        return;
+    }
+    
+    {
+        /*
+         * This works as long as there is no previous translation/scaling (image at origin)
+         */
+        const float newScale((1.0f + (mouseDY * 0.01)));
+        const float oldScale(getScaling());
+        const float totalScale(newScale * oldScale);
+  
+        float ct[3];
+        getTranslation(ct);
+        
+        Matrix4x4 m;
+        m.translate(-modelXYZ[0], -modelXYZ[1], 0.0);
+        m.scale(totalScale, totalScale, 1.0);
+        m.translate(modelXYZ[0], modelXYZ[1], 0.0);
+
+        float t[3];
+        m.getTranslation(t);
+        setTranslation(t);
+        
+        double sx(0.0), sy(0.0), sz(0.0);
+        m.getScale(sx, sy, sz);
+        setScaling(sx);
+
+        return;
+    }
+    
 }
 
 /**

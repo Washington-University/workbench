@@ -32,6 +32,7 @@
 namespace caret {
 
     class BrainOpenGLFixedPipeline;
+    class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class GraphicsPrimitiveV3fT3f;
     class ImageFile;
@@ -45,6 +46,7 @@ namespace caret {
         virtual ~BrainOpenGLMediaDrawing();
         
         void draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                  const BrainOpenGLViewportContent* viewportContent,
                   BrowserTabContent* browserTabContent,
                   ModelMedia* mediaModel,
                   const std::array<int32_t, 4>& viewport);
