@@ -58,9 +58,17 @@ namespace caret {
 
         Matrix4x4 getMatrix() const;
         
+        Matrix4x4 getModelviewMatrix() const;
+        
         bool isValid() const;
         
         void setValid(const bool validFlag);
+        
+        void modelViewTransformPoint(const float xyz[3],
+                                     float xyzOut[3]) const;
+        
+        bool modelViewInverseTransformPoint(const float xyz[3],
+                                            float xyzOut[3]) const;
         
         bool inverseTransformPoint(const float windowXYZ[3],
                                    float objectXYZOut[3]) const;
@@ -68,6 +76,8 @@ namespace caret {
         bool transformPoint(const float objectXYZ[3],
                             float windowXYZOut[3]) const;
 
+        std::unique_ptr<GraphicsObjectToWindowTransform> cloneWithNewModelViewMatrix(const Matrix4x4& modelviewMatrix) const;
+        
         void setup(const SpaceType spaceType,
                    const std::array<double, 16>& modelviewMatrixArray,
                    const std::array<double, 16>& projectionMatrixArray,
@@ -94,6 +104,8 @@ namespace caret {
         mutable std::unique_ptr<Matrix4x4> m_inverseTransformMatrix;
         
         std::array<double, 16> m_projectionMatrixArray;
+        
+        Matrix4x4 m_modelviewMatrix;
         
         std::array<int32_t, 4> m_viewport;
         

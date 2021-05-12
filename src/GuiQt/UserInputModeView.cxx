@@ -45,6 +45,7 @@
 #include "MouseEvent.h"
 #include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
+#include "SelectionItemImage.h"
 #include "SelectionManager.h"
 #include "UserInputModeViewContextMenu.h"
 #include "WuQDataEntryDialog.h"
@@ -405,13 +406,41 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
     
     int32_t modelViewport[4];
     viewportContent->getModelViewport(modelViewport);
-    browserTabContent->applyMouseScaling(viewportContent,
-                                         mouseEvent.getPressedX() - modelViewport[0],
-                                         mouseEvent.getPressedY() - modelViewport[1],
-                                         mouseEvent.getX() - modelViewport[0],
-                                         mouseEvent.getY() - modelViewport[1],
-                                         mouseEvent.getDx(),
-                                         mouseEvent.getDy());
+    if (browserTabContent->isMediaDisplayed()) {
+        BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+        if (mouseEvent.isFirstDragging()) {
+            m_mediaLeftDragWithCtrlModelXYZValidFlag = false;
+            
+            SelectionManager* idManager = openGLWidget->performIdentification(mouseEvent.getPressedX(),
+                                                                              mouseEvent.getPressedY(),
+                                                                              false);
+            CaretAssert(idManager);
+            SelectionItemImage* imageID = idManager->getImageIdentification();
+            if (imageID->isValid()) {
+                double modelXYZ[3];
+                imageID->getModelXYZ(modelXYZ);
+                
+                m_mediaLeftDragWithCtrlModelXYZ[0] = modelXYZ[0];
+                m_mediaLeftDragWithCtrlModelXYZ[1] = modelXYZ[1];
+                m_mediaLeftDragWithCtrlModelXYZ[2] = modelXYZ[2];
+                m_mediaLeftDragWithCtrlModelXYZValidFlag = true;
+            }
+        }
+        browserTabContent->applyMediaMouseScaling(viewportContent,
+                                                  mouseEvent.getPressedX() - modelViewport[0],
+                                                  mouseEvent.getPressedY() - modelViewport[1],
+                                                  mouseEvent.getDy(),
+                                                  m_mediaLeftDragWithCtrlModelXYZ[0],
+                                                  m_mediaLeftDragWithCtrlModelXYZ[1],
+                                                  m_mediaLeftDragWithCtrlModelXYZValidFlag);
+    }
+    else {
+        browserTabContent->applyMouseScaling(viewportContent,
+                                             mouseEvent.getPressedX() - modelViewport[0],
+                                             mouseEvent.getPressedY() - modelViewport[1],
+                                             mouseEvent.getDx(),
+                                             mouseEvent.getDy());
+    }
     updateGraphics(mouseEvent);
 }
 
@@ -528,8 +557,6 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                     browserTabContent->applyMouseScaling(viewportContent,
                                                          gestureEvent.getStartCenterX(),
                                                          gestureEvent.getStartCenterX(),
-                                                         gestureEvent.getStartCenterX(),
-                                                         gestureEvent.getStartCenterY(),
                                                          0.0f,
                                                          scaleFactor);
                     updateGraphics(viewportContent);

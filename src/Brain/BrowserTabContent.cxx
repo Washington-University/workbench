@@ -3458,10 +3458,48 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
  *    X coordinate of where mouse was pressed.
  * @param mousePressY
  *    X coordinate of where mouse was pressed.
- * @param mouseX
- *    Mouse X coordinate.
- * @param mouseY
- *    Mouse Y coordinate.
+ * @param mouseDY
+ *    Change in mouse Y coordinate.
+ * @param dataX
+ *    X-coordinate of data at mouse press
+ * @param dataY
+ *    Y-coordinate of data at mouse press
+ * @param dataXYValidFlag
+ *    True if mouseDX
+ */
+void
+BrowserTabContent::applyMediaMouseScaling(BrainOpenGLViewportContent* viewportContent,
+                                          const int32_t mousePressX,
+                                          const int32_t mousePressY,
+                                          const int32_t mouseDY,
+                                          const float dataX,
+                                          const float dataY,
+                                          const bool dataXYValidFlag)
+{
+    if (isMediaDisplayed()) {
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getGraphicsObjectToWindowTransform();
+        getViewingTransformation()->scaleAboutMouse(xform,
+                                                    mousePressX,
+                                                    mousePressY,
+                                                    mouseDY,
+                                                    dataX,
+                                                    dataY,
+                                                    dataXYValidFlag);
+    }
+    else {
+        CaretAssertMessage(0, "MEDIA ONLY");
+    }
+}
+
+/**
+ * Apply mouse scaling to the displayed model.
+ *
+ * @param viewportContent
+ *    Content of the viewport
+ * @param mousePressX
+ *    X coordinate of where mouse was pressed.
+ * @param mousePressY
+ *    X coordinate of where mouse was pressed.
  * @param mouseDX
  *    Change in mouse X coordinate.
  * @param mouseDY
@@ -3471,8 +3509,6 @@ void
 BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent,
                                      const int32_t mousePressX,
                                      const int32_t mousePressY,
-                                     const float mouseX,
-                                     const float mouseY,
                                      const int32_t /*mouseDX*/,
                                      const int32_t mouseDY)
 {
@@ -3517,17 +3553,9 @@ BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent
             }
         }
     }
-/*
     else if (isMediaDisplayed()) {
-        std::cout << "Press X=" << mousePressX << " Y=" << mousePressY << " Current X=" << mouseX << " Y=" << mouseY << std::endl;
-        const GraphicsObjectToWindowTransform* xform = viewportContent->getGraphicsObjectToWindowTransform();
-        getViewingTransformation()->scaleAboutMouse(xform,
-                                                    viewportContent->getWindowIndex(),
-                                                    mousePressX,
-                                                    mousePressY,
-                                                    mouseDY);
+        CaretAssertMessage(0, "Use applyMediaMouseScaling() when scaling media data");
     }
-*/
     else {
         float scaling = getViewingTransformation()->getScaling();
         if (mouseDY != 0.0) {

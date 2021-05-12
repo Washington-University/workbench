@@ -308,11 +308,17 @@ namespace caret {
                                 const int32_t mouseDeltaX,
                                 const int32_t mouseDeltaY);
         
+        void applyMediaMouseScaling(BrainOpenGLViewportContent* viewportContent,
+                                    const int32_t mousePressX,
+                                    const int32_t mousePressY,
+                                    const int32_t mouseDY,
+                                    const float dataX,
+                                    const float dataY,
+                                    const bool dataXYValidFlag);
+        
         void applyMouseScaling(BrainOpenGLViewportContent* viewportContent,
                                const int32_t mousePressX,
                                const int32_t mousePressY,
-                               const float mouseX,
-                               const float mouseY,
                                const int32_t mouseDX,
                                const int32_t mouseDY);
         

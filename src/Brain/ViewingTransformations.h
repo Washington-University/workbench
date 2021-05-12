@@ -55,11 +55,13 @@ namespace caret {
         
         void setScaling(const float scaling);
         
-        void scaleAboutMouse(const GraphicsObjectToWindowTransform* transform,
-                             const int32_t browserWindowIndex,
-                             const int32_t mousePressX,
-                             const int32_t mousePressY,
-                             const int32_t mouseDY);
+        virtual void scaleAboutMouse(const GraphicsObjectToWindowTransform* transform,
+                                     const int32_t mousePressX,
+                                     const int32_t mousePressY,
+                                     const int32_t mouseDY,
+                                     const float dataX,
+                                     const float dataY,
+                                     const bool dataXYValidFlag);
 
         Matrix4x4 getRotationMatrix() const;
         

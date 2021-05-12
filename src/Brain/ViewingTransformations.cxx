@@ -209,22 +209,28 @@ ViewingTransformations::setScaling(const float scaling)
 /**
  * Scale about the position of the mouse
  * @param transform
- * Graphics object to window transform
- * @param browserWindowIndex
- *    Index of the browser window
+ *    Graphics object to window transform
  * @param mousePressX
  *    X-Location of where mouse was pressed
  * @param mousePressX
  *    Y-Location of where mouse was pressed
  * @param mouseDY
  *    Change in mouse Y
+ * @param dataX
+ *    X-coordinate of data where mouse was pressed
+ * @param dataY
+ *    Y-coordinate of data where mouse was pressed
+ * @param dataXYValidFlag
+ *    True if dataX and dataY are valid
  */
 void
 ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* transform,
-                                        const int32_t browserWindowIndex,
                                         const int32_t mousePressX,
                                         const int32_t mousePressY,
-                                        const int32_t mouseDY)
+                                        const int32_t mouseDY,
+                                        const float dataX,
+                                        const float dataY,
+                                        const bool dataXYValidFlag)
 {
     if (mouseDY == 0) {
         return;
@@ -238,57 +244,111 @@ ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* t
         CaretLogSevere("Object to window transform is INVALID");
         return;
     }
-    //    Will need to store OpenGL matrix (or matrix 4x4) in browsertabcontent when it is drawn and
-    //    then get that transformation for model to window transforms
-    //
-    //    OR perform ID and pass coordinate in
     
-    const float windowXYZ[3] { static_cast<float>(mousePressX), static_cast<float>(mousePressY), 0.0f };
-    float modelXYZ[3];
-    transform->inverseTransformPoint(windowXYZ,
-                                     modelXYZ);
-    float windowTwoXYZ[3];
-    transform->transformPoint(modelXYZ, windowTwoXYZ);
+    if ( ! dataXYValidFlag) {
+        std::cout << "Data XY not valid; cannot zoom about mouse" << std::endl;
+        return;
+    }
     
-    std::cout << "Window X Y: " << windowXYZ[0] << ", " << windowXYZ[1] << std::endl;
-    std::cout << "   Model X Y: " << modelXYZ[0] << ", " << modelXYZ[1] << std::endl;
-    std::cout << "   Window X Y: " << windowTwoXYZ[0] << ", " << windowTwoXYZ[1] << std::endl;
+    const bool debugFlag(false);
+    const float mousePressXYZ[3] { static_cast<float>(mousePressX), static_cast<float>(mousePressY), 0.0f };
+    if (debugFlag) {
+        std::cout << "Window X Y: " << mousePressXYZ[0] << ", " << mousePressXYZ[1] << std::endl;
+        std::cout << "   Data X Y: " << dataX << ", " << dataY << std::endl;
+    }
     
     
     {
+        /*
+         * Works with scaling and translation
+         */
+        
+        /*
+         * Update the scaling but don't let it get to zero or negative
+         */
+        const float minimumValidScaleValue(0.001);
         const float newScale((1.0f + (mouseDY * 0.01)));
         const float oldScale(getScaling());
-        const float totalScale(newScale * oldScale);
+        const float totalScale(std::max((newScale * oldScale),
+                                        minimumValidScaleValue));
+        setScaling(totalScale);
         
-        float oldTrans[3];
-        getTranslation(oldTrans);
+        /*
+         * Get viewing coordinate at the location of mouse when mouse was first pressed
+         */
+        Matrix4x4 identityMatrix;
+        auto newXform = transform->cloneWithNewModelViewMatrix(identityMatrix);
+        float identityXYZ[3];
+        newXform->inverseTransformPoint(mousePressXYZ, identityXYZ);
+        if (debugFlag) {
+            std::cout << "   Identity X Y: " << identityXYZ[0] << ", " << identityXYZ[1] << std::endl;
+        }
         
-        std::cout << "  Old Tx=" << oldTrans[0] << ", Ty=" << oldTrans[1] << ", S=" << oldScale << std::endl;
-
-        Matrix4x4 m;
-        m.translate(-modelXYZ[0], -modelXYZ[1], 0.0);
-        m.scale(totalScale, totalScale, 1.0);
-        m.translate(modelXYZ[0], modelXYZ[1], 0.0);
-
-//        m.translate(-modelXYZ[0], -modelXYZ[1], 0.0);
-//        m.scale(totalScale, totalScale, 1.0);
-//        m.translate(modelXYZ[0], modelXYZ[1], 0.0);
+        /*
+         * Need to offset model origin from where the mouse was pressed
+         * so that the image pixel under mouse press stays at the same
+         * location on the screen
+         */
+        float tx = -((dataX * totalScale) - identityXYZ[0]);
+        float ty = -((dataY * totalScale) - identityXYZ[1]);
+        if (debugFlag) {
+            std::cout << "   Ident Trans XY: " << tx << ", " << ty << std::endl;
+        }
         
-        float t[3];
-        m.getTranslation(t);
-        setTranslation(t);
-        
-        double sx(0.0), sy(0.0), sz(0.0);
-        m.getScale(sx, sy, sz);
-        setScaling(sx);
-
-        std::cout << "  New Tx=" << t[0] << ", Ty=" << t[1] << ", S=" << sx << std::endl;
-
+        setTranslation(tx, ty, 0.0);
         
         return;
     }
     
     {
+        /*
+         * Works with scaling and translation
+         */
+        const float newScale((1.0f + (mouseDY * 0.01)));
+        const float oldScale(getScaling());
+        const float totalScale(newScale * oldScale);
+        
+        float ct[3];
+        getTranslation(ct);
+        
+        Matrix4x4 m;
+        m.translate(-dataX, -dataY, 0.0);
+        m.scale(totalScale, totalScale, 1.0);
+        m.translate(dataX, dataY, 0.0);
+
+        float t[3];
+        m.getTranslation(t);
+        setTranslation(t);
+        std::cout << "  Trans X Y: " << t[0] << ", " << t[1] << std::endl;
+
+        double sx(0.0), sy(0.0), sz(0.0);
+        m.getScale(sx, sy, sz);
+        setScaling(sx);
+        std::cout << "  Scale: " << sx << std::endl;
+        
+        
+        Matrix4x4 identityMatrix;
+        auto newXform = transform->cloneWithNewModelViewMatrix(identityMatrix);
+        float identityXYZ[3];
+        newXform->inverseTransformPoint(mousePressXYZ, identityXYZ);
+        std::cout << "   Identity X Y: " << identityXYZ[0] << ", " << identityXYZ[1] << std::endl;
+        const float diffXY[2] { identityXYZ[0] - dataX, identityXYZ[1] - dataY };
+        std::cout << "   Diff Model X Y: " << diffXY[0] << ", " << diffXY[1] << std::endl;
+
+        float tx = -((dataX * sx) - identityXYZ[0]);
+        float ty = -((dataY * sy) - identityXYZ[1]);
+        std::cout << "   Ident Trans XY: " << tx << ", " << ty << std::endl;
+        
+        setTranslation(tx, ty, 0.0);
+        
+        return;
+    }
+    
+    {
+        float modelXYZ[3];
+        transform->inverseTransformPoint(mousePressXYZ,
+                                         modelXYZ);
+        //    std::cout << "   Model X Y: " << modelXYZ[0] << ", " << modelXYZ[1] << std::endl;
         /*
          * This works as long as there is no previous translation/scaling (image at origin)
          */

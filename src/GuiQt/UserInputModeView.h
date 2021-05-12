@@ -104,6 +104,10 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
+        float m_mediaLeftDragWithCtrlModelXYZ[3];
+        
+        bool m_mediaLeftDragWithCtrlModelXYZValidFlag = false;
+        
     public:
         virtual AString toString() const;
         

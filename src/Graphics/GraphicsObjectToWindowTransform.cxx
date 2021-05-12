@@ -107,6 +107,14 @@ GraphicsObjectToWindowTransform::getMatrix() const
     return m_transformMatrix;
 }
 
+/**
+ * @return The modelview matrix.
+ */
+Matrix4x4
+GraphicsObjectToWindowTransform::getModelviewMatrix() const
+{
+    return m_modelviewMatrix;
+}
 
 /**
  * @return Is the data for performing transformations valid?
@@ -281,6 +289,55 @@ GraphicsObjectToWindowTransform::replaceModelviewMatrix(const std::array<double,
           m_centerToEyeDistance);
 }
 
+void
+GraphicsObjectToWindowTransform::modelViewTransformPoint(const float xyz[3],
+                                                         float xyzOut[3]) const
+{
+    xyzOut[0] = xyz[0];
+    xyzOut[1] = xyz[1];
+    xyzOut[2] = xyz[2];
+    m_modelviewMatrix.multiplyPoint3(xyzOut);
+}
+
+bool
+GraphicsObjectToWindowTransform::modelViewInverseTransformPoint(const float xyz[3],
+                                                                float xyzOut[3]) const
+{
+    Matrix4x4 m(m_modelviewMatrix);
+    if ( ! m.invert()) {
+        return false;
+    }
+    xyzOut[0] = xyz[0];
+    xyzOut[1] = xyz[1];
+    xyzOut[2] = xyz[2];
+    m.multiplyPoint3(xyzOut);
+    return true;
+}
+
+/**
+ * @return a clone of this instance but replace the modelview matrix
+ * @param modelviewMatrix
+ *   New modelview matrix
+ */
+std::unique_ptr<GraphicsObjectToWindowTransform>
+GraphicsObjectToWindowTransform::cloneWithNewModelViewMatrix(const Matrix4x4& modelviewMatrix) const
+{
+    std::unique_ptr<GraphicsObjectToWindowTransform> ptr(new GraphicsObjectToWindowTransform());
+    
+    std::array<double,16> modelviewMatrixArray;
+    modelviewMatrix.getMatrixForOpenGL(modelviewMatrixArray.data());
+    
+    ptr->setup(m_spaceType,
+               modelviewMatrixArray,
+               m_projectionMatrixArray,
+               m_viewport,
+               m_depthRange,
+               m_orthoLRBT,
+               m_centerToEyeDistance);
+    
+    return ptr;
+}
+
 
 /**
  * Setup the transformation's data.
@@ -315,12 +372,11 @@ GraphicsObjectToWindowTransform::setup(const SpaceType spaceType,
     m_centerToEyeDistance   = centerToEyeDistance;
     m_orthoLRBT             = orthoLRBT;
     
-    Matrix4x4 modelviewMatrix;
-    modelviewMatrix.setMatrixFromOpenGL(modelviewMatrixArray.data());
+    m_modelviewMatrix.setMatrixFromOpenGL(modelviewMatrixArray.data());
     
     m_transformMatrix.setMatrixFromOpenGL(m_projectionMatrixArray.data());
     //m_projectionMatrix.postmultiply(modelviewMatrix);
-    m_transformMatrix.premultiply(modelviewMatrix);
+    m_transformMatrix.premultiply(m_modelviewMatrix);
     
     const bool autoDetectWindowSpaceFlag = false;
     if (autoDetectWindowSpaceFlag) {
