@@ -245,11 +245,6 @@ ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* t
         return;
     }
     
-    if ( ! dataXYValidFlag) {
-        std::cout << "Data XY not valid; cannot zoom about mouse" << std::endl;
-        return;
-    }
-    
     const bool debugFlag(false);
     const float mousePressXYZ[3] { static_cast<float>(mousePressX), static_cast<float>(mousePressY), 0.0f };
     if (debugFlag) {
@@ -258,21 +253,22 @@ ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* t
     }
     
     
-    {
-        /*
-         * Works with scaling and translation
-         */
-        
-        /*
-         * Update the scaling but don't let it get to zero or negative
-         */
-        const float minimumValidScaleValue(0.001);
-        const float newScale((1.0f + (mouseDY * 0.01)));
-        const float oldScale(getScaling());
-        const float totalScale(std::max((newScale * oldScale),
-                                        minimumValidScaleValue));
-        setScaling(totalScale);
-        
+    /*
+     * Update the scaling but don't let it get to zero or negative
+     */
+    const float minimumValidScaleValue(0.001);
+    const float newScale((1.0f + (mouseDY * 0.01)));
+    const float oldScale(getScaling());
+    const float totalScale(std::max((newScale * oldScale),
+                                    minimumValidScaleValue));
+    setScaling(totalScale);
+
+    /*
+     * If mouse is over the image, use the data XY to translate image
+     * so that image pixel under mouse press location on screen remains
+     * at that location on the screen
+     */
+    if (dataXYValidFlag) {
         /*
          * Get viewing coordinate at the location of mouse when mouse was first pressed
          */
@@ -296,85 +292,7 @@ ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* t
         }
         
         setTranslation(tx, ty, 0.0);
-        
-        return;
     }
-    
-    {
-        /*
-         * Works with scaling and translation
-         */
-        const float newScale((1.0f + (mouseDY * 0.01)));
-        const float oldScale(getScaling());
-        const float totalScale(newScale * oldScale);
-        
-        float ct[3];
-        getTranslation(ct);
-        
-        Matrix4x4 m;
-        m.translate(-dataX, -dataY, 0.0);
-        m.scale(totalScale, totalScale, 1.0);
-        m.translate(dataX, dataY, 0.0);
-
-        float t[3];
-        m.getTranslation(t);
-        setTranslation(t);
-        std::cout << "  Trans X Y: " << t[0] << ", " << t[1] << std::endl;
-
-        double sx(0.0), sy(0.0), sz(0.0);
-        m.getScale(sx, sy, sz);
-        setScaling(sx);
-        std::cout << "  Scale: " << sx << std::endl;
-        
-        
-        Matrix4x4 identityMatrix;
-        auto newXform = transform->cloneWithNewModelViewMatrix(identityMatrix);
-        float identityXYZ[3];
-        newXform->inverseTransformPoint(mousePressXYZ, identityXYZ);
-        std::cout << "   Identity X Y: " << identityXYZ[0] << ", " << identityXYZ[1] << std::endl;
-        const float diffXY[2] { identityXYZ[0] - dataX, identityXYZ[1] - dataY };
-        std::cout << "   Diff Model X Y: " << diffXY[0] << ", " << diffXY[1] << std::endl;
-
-        float tx = -((dataX * sx) - identityXYZ[0]);
-        float ty = -((dataY * sy) - identityXYZ[1]);
-        std::cout << "   Ident Trans XY: " << tx << ", " << ty << std::endl;
-        
-        setTranslation(tx, ty, 0.0);
-        
-        return;
-    }
-    
-    {
-        float modelXYZ[3];
-        transform->inverseTransformPoint(mousePressXYZ,
-                                         modelXYZ);
-        //    std::cout << "   Model X Y: " << modelXYZ[0] << ", " << modelXYZ[1] << std::endl;
-        /*
-         * This works as long as there is no previous translation/scaling (image at origin)
-         */
-        const float newScale((1.0f + (mouseDY * 0.01)));
-        const float oldScale(getScaling());
-        const float totalScale(newScale * oldScale);
-  
-        float ct[3];
-        getTranslation(ct);
-        
-        Matrix4x4 m;
-        m.translate(-modelXYZ[0], -modelXYZ[1], 0.0);
-        m.scale(totalScale, totalScale, 1.0);
-        m.translate(modelXYZ[0], modelXYZ[1], 0.0);
-
-        float t[3];
-        m.getTranslation(t);
-        setTranslation(t);
-        
-        double sx(0.0), sy(0.0), sz(0.0);
-        m.getScale(sx, sy, sz);
-        setScaling(sx);
-
-        return;
-    }
-    
 }
 
 /**
