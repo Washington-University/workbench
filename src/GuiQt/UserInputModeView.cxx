@@ -407,15 +407,12 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
     int32_t modelViewport[4];
     viewportContent->getModelViewport(modelViewport);
     if (browserTabContent->isMediaDisplayed()) {
-        const int32_t tabMousePressX = mouseEvent.getPressedX() - modelViewport[0];
-        const int32_t tabMousePressY = mouseEvent.getPressedY() - modelViewport[1];
-        
         if (mouseEvent.isFirstDragging()) {
             m_mediaLeftDragWithCtrlModelXYZValidFlag = false;
             
             BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-            SelectionManager* idManager = openGLWidget->performIdentification(tabMousePressX, //mouseEvent.getPressedX(),
-                                                                              tabMousePressY, //mouseEvent.getPressedY(),
+            SelectionManager* idManager = openGLWidget->performIdentification(mouseEvent.getPressedX(),
+                                                                              mouseEvent.getPressedY(),
                                                                               false);
             CaretAssert(idManager);
             SelectionItemImage* imageID = idManager->getImageIdentification();
@@ -430,8 +427,8 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
             }
         }
         browserTabContent->applyMediaMouseScaling(viewportContent,
-                                                  tabMousePressX,
-                                                  tabMousePressY,
+                                                  mouseEvent.getPressedX(),
+                                                  mouseEvent.getPressedY(),
                                                   mouseEvent.getDy(),
                                                   m_mediaLeftDragWithCtrlModelXYZ[0],
                                                   m_mediaLeftDragWithCtrlModelXYZ[1],
