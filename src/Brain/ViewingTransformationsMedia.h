@@ -39,7 +39,14 @@ namespace caret {
 
         ViewingTransformationsMedia& operator=(const ViewingTransformationsMedia& obj);
         
-
+        virtual void scaleAboutMouse(const GraphicsObjectToWindowTransform* transform,
+                                     const int32_t mousePressX,
+                                     const int32_t mousePressY,
+                                     const int32_t mouseDY,
+                                     const float dataX,
+                                     const float dataY,
+                                     const bool dataXYValidFlag) override;
+        
         virtual void resetView();
         
         // ADD_NEW_METHODS_HERE

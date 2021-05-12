@@ -24,6 +24,9 @@
 #undef __VIEWING_TRANSFORMATIONS_MEDIA_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "GraphicsObjectToWindowTransform.h"
+
 using namespace caret;
 
 /**
@@ -98,4 +101,94 @@ ViewingTransformationsMedia::resetView()
     ViewingTransformations::resetView();
     m_rotationMatrix->identity();
 }
+
+/**
+ * Scale about the position of the mouse
+ * @param transform
+ *    Graphics object to window transform
+ * @param mousePressX
+ *    X-Location of where mouse was pressed
+ * @param mousePressX
+ *    Y-Location of where mouse was pressed
+ * @param mouseDY
+ *    Change in mouse Y
+ * @param dataX
+ *    X-coordinate of data where mouse was pressed
+ * @param dataY
+ *    Y-coordinate of data where mouse was pressed
+ * @param dataXYValidFlag
+ *    True if dataX and dataY are valid
+ */
+void
+ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransform* transform,
+                                             const int32_t mousePressX,
+                                             const int32_t mousePressY,
+                                             const int32_t mouseDY,
+                                             const float dataX,
+                                             const float dataY,
+                                             const bool dataXYValidFlag)
+{
+    if (mouseDY == 0) {
+        return;
+    }
+    
+    if (transform == NULL) {
+        CaretLogSevere("Object to window transform is NULL");
+        return;
+    }
+    if ( ! transform->isValid()) {
+        CaretLogSevere("Object to window transform is INVALID");
+        return;
+    }
+    
+    const bool debugFlag(false);
+    const float mousePressXYZ[3] { static_cast<float>(mousePressX), static_cast<float>(mousePressY), 0.0f };
+    if (debugFlag) {
+        std::cout << "Window X Y: " << mousePressXYZ[0] << ", " << mousePressXYZ[1] << std::endl;
+        std::cout << "   Data X Y: " << dataX << ", " << dataY << std::endl;
+    }
+    
+    
+    /*
+     * Update the scaling but don't let it get to zero or negative
+     */
+    const float minimumValidScaleValue(0.001);
+    const float newScale((1.0f + (mouseDY * 0.01)));
+    const float oldScale(getScaling());
+    const float totalScale(std::max((newScale * oldScale),
+                                    minimumValidScaleValue));
+    setScaling(totalScale);
+    
+    /*
+     * If mouse is over the image, use the data XY to translate image
+     * so that image pixel under mouse press location on screen remains
+     * at that location on the screen
+     */
+    if (dataXYValidFlag) {
+        /*
+         * Get viewing coordinate at the location of mouse when mouse was first pressed
+         */
+        Matrix4x4 identityMatrix;
+        auto newXform = transform->cloneWithNewModelViewMatrix(identityMatrix);
+        float identityXYZ[3];
+        newXform->inverseTransformPoint(mousePressXYZ, identityXYZ);
+        if (debugFlag) {
+            std::cout << "   Identity X Y: " << identityXYZ[0] << ", " << identityXYZ[1] << std::endl;
+        }
+        
+        /*
+         * Need to offset model origin from where the mouse was pressed
+         * so that the image pixel under mouse press stays at the same
+         * location on the screen
+         */
+        float tx = -((dataX * totalScale) - identityXYZ[0]);
+        float ty = -((dataY * totalScale) - identityXYZ[1]);
+        if (debugFlag) {
+            std::cout << "   Ident Trans XY: " << tx << ", " << ty << std::endl;
+        }
+        
+        setTranslation(tx, ty, 0.0);
+    }
+}
+
 
