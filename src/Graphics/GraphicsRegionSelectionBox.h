@@ -50,7 +50,7 @@ namespace caret {
         
         void setStatus(const Status status);
         
-        void getBounds(float& minX,
+        bool getBounds(float& minX,
                        float& minY,
                        float& maxX,
                        float& maxY) const;

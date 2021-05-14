@@ -21,17 +21,22 @@
 #ifndef __IMAGE_FILE_H__
 #define __IMAGE_FILE_H__
 
+#include <array>
+#include <memory>
+
 #include "MediaFile.h"
 #include "CaretPointer.h"
-#include "GraphicsPrimitiveV3fT3f.h"
 
 class QColor;
 class QImage;
 
 namespace caret {
+    class BoundingBox;
     class ControlPointFile;
     class ControlPoint3D;
+    class GraphicsPrimitiveV3fT3f;
     class VolumeFile;
+    class VolumeSpace;
     
 /// File for images
 class ImageFile : public MediaFile {
@@ -206,6 +211,11 @@ public:
     
     const ControlPointFile* getControlPointFile() const;
     
+    bool spaceToIndex(const float x,
+                      const float y,
+                      int64_t& indexOutI,
+                      int64_t& indexOutJ) const;
+    
     virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                      SceneClass* sceneClass) override;
     
@@ -247,7 +257,32 @@ private:
     
     void writeFileMetaDataToQImage() const;
     
+    void updateDefaultSpatialCoordinates();
+    
+    void initializeVolumeSpace(const int32_t imageWidth,
+                               const int32_t imageHeight,
+                               const std::array<float,3> firstPixelXYZ,
+                               const std::array<float,3> pixelStepXYZ);
+    
+    void getSpatialValues(const float numPixels,
+                          const float spatialMinimumValue,
+                          const float spatialMaximumValue,
+                          float& firstPixelSpatialValue,
+                          float& lastPixelSpatialValue,
+                          float& pixelSpatialStepValue) const;
+    
+    void getDefaultSpatialValues(const float numPixels,
+                                 float& minSpatialValueOut,
+                                 float& maxSpatialValueOut,
+                                 float& firstPixelSpatialValue,
+                                 float& lastPixelSpatialValue,
+                                 float& pixelSpatialStepValue) const;
+
     QImage* m_image;
+    
+    std::unique_ptr<VolumeSpace> m_volumeSpace;
+    
+    std::unique_ptr<BoundingBox> m_spatialBoundingBox;
     
     mutable CaretPointer<GiftiMetaData> m_fileMetaData;
     

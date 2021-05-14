@@ -40,6 +40,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GestureEvent.h"
+#include "GraphicsRegionSelectionBox.h"
 #include "GuiManager.h"
 #include "KeyEvent.h"
 #include "MouseEvent.h"
@@ -48,6 +49,7 @@
 #include "SelectionItemImage.h"
 #include "SelectionManager.h"
 #include "UserInputModeViewContextMenu.h"
+#include "ViewingTransformations.h"
 #include "WuQDataEntryDialog.h"
 
 using namespace caret;
@@ -355,6 +357,31 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
             CaretLogSevere("Chart viewport is invalid");
         }
     }
+    else if (browserTabContent->isMediaDisplayed()) {
+
+        BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+        SelectionManager* idManager = openGLWidget->performIdentification(mouseEvent.getX(),
+                                                                          mouseEvent.getY(),
+                                                                          false);
+        CaretAssert(idManager);
+        SelectionItemImage* imageID = idManager->getImageIdentification();
+        if (imageID->isValid()) {
+            double modelXYZ[3];
+            imageID->getModelXYZ(modelXYZ);
+            
+            GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
+            CaretAssert(box);
+            
+            if (mouseEvent.isFirstDragging()) {
+                box->initialize(modelXYZ[0],
+                                modelXYZ[1]);
+            }
+            else {
+                box->update(modelXYZ[0],
+                            modelXYZ[1]);
+            }
+        }
+    }
     else {
         browserTabContent->applyMouseRotation(viewportContent,
                                               mouseEvent.getPressedX(),
@@ -508,6 +535,28 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
         else {
             CaretLogSevere("Chart viewport is invalid");
         }
+    }
+    else if (browserTabContent->isMediaDisplayed()) {
+        GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
+        CaretAssert(box);
+        
+        switch (box->getStatus()) {
+            case GraphicsRegionSelectionBox::Status::INVALID:
+                break;
+            case GraphicsRegionSelectionBox::Status::VALID:
+            {
+                ViewingTransformations* vt = browserTabContent->getViewingTransformation();
+                vt->setViewToBounds(box);
+            }
+                break;
+        }
+        
+        box->setStatus(GraphicsRegionSelectionBox::Status::INVALID);
+
+        /*
+         * Update graphics.
+         */
+        updateGraphics(mouseEvent);
     }
 }
 

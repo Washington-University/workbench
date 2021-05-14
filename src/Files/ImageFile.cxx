@@ -30,6 +30,7 @@
 #include <QTime>
 
 #include "ApplicationInformation.h"
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ControlPointFile.h"
@@ -39,6 +40,7 @@
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "GraphicsUtilitiesOpenGL.h"
+#include "GraphicsPrimitiveV3fT3f.h"
 #include "ImageCaptureDialogSettings.h"
 #include "ImageFile.h"
 #include "Matrix4x4.h"
@@ -46,6 +48,7 @@
 #include "SceneClass.h"
 #include "UnitsConversion.h"
 #include "VolumeFile.h"
+#include "VolumeSpace.h"
 
 using namespace caret;
 
@@ -58,11 +61,13 @@ ImageFile::ImageFile()
 : MediaFile(DataFileTypeEnum::IMAGE)
 {
     m_controlPointFile.grabNew(new ControlPointFile());
-    
     m_fileMetaData.grabNew(new GiftiMetaData());
+    m_spatialBoundingBox.reset(new BoundingBox());
+    m_volumeSpace.reset(new VolumeSpace());
     
     m_image   = new QImage();
     readFileMetaDataFromQImage();
+    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -74,11 +79,13 @@ ImageFile::ImageFile(const QImage& qimage)
 : MediaFile(DataFileTypeEnum::IMAGE)
 {
     m_controlPointFile.grabNew(new ControlPointFile());
-    
     m_fileMetaData.grabNew(new GiftiMetaData());
-    
+    m_spatialBoundingBox.reset(new BoundingBox());
+    m_volumeSpace.reset(new VolumeSpace());
+
     m_image = new QImage(qimage);
     readFileMetaDataFromQImage();
+    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -101,9 +108,10 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
 : MediaFile(DataFileTypeEnum::IMAGE)
 {
     m_controlPointFile.grabNew(new ControlPointFile());
-    
     m_fileMetaData.grabNew(new GiftiMetaData());
-    
+    m_spatialBoundingBox.reset(new BoundingBox());
+    m_volumeSpace.reset(new VolumeSpace());
+
     m_image = new QImage(imageWidth,
                              imageHeight,
                              QImage::Format_ARGB32);
@@ -145,6 +153,8 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
             *pixel = color.rgba();
         }
     }
+    readFileMetaDataFromQImage();
+    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -260,6 +270,7 @@ ImageFile::setFromQImage(const QImage& qimage)
     }
     m_image = new QImage(qimage);
     readFileMetaDataFromQImage();
+    updateDefaultSpatialCoordinates();
     this->setModified();
 }
 
@@ -455,6 +466,7 @@ ImageFile::addMargin(const int marginSizeX,
         CaretLogWarning(e.whatString());
     }
     this->setModified();
+    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -692,6 +704,7 @@ ImageFile::readFile(const AString& filename)
 
     }
     readFileMetaDataFromQImage();
+    updateDefaultSpatialCoordinates();
     
     this->clearModified();
 }
@@ -744,6 +757,8 @@ ImageFile::appendImageAtBottom(const ImageFile& img)
     *m_fileMetaData = fileMetaDataCopy;
     
     this->setModified();
+    
+    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -1073,6 +1088,7 @@ ImageFile::resizeToWidth(const int32_t width)
                                       Qt::SmoothTransformation);
     
     *m_fileMetaData = fileMetaDataCopy;
+    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -1092,6 +1108,7 @@ ImageFile::resizeToHeight(const int32_t height)
                                        Qt::SmoothTransformation);
     
     *m_fileMetaData = fileMetaDataCopy;
+    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -1113,6 +1130,7 @@ ImageFile::resizeToMaximumWidth(const int32_t maximumWidth)
         *m_image = m_image->scaledToWidth(maximumWidth,
                                           Qt::SmoothTransformation);
         *m_fileMetaData = fileMetaDataCopy;
+        updateDefaultSpatialCoordinates();
     }
 }
 
@@ -1135,6 +1153,7 @@ ImageFile::resizeToMaximumHeight(const int32_t maximumHeight)
         *m_image = m_image->scaledToHeight(maximumHeight,
                                           Qt::SmoothTransformation);
         *m_fileMetaData = fileMetaDataCopy;
+        updateDefaultSpatialCoordinates();
     }
 }
 
@@ -1470,6 +1489,7 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
         CaretLogSevere(getFileName()
                        + " Failed to create image from byte array.");
     }
+    updateDefaultSpatialCoordinates();
 
     return successFlag;
 }
@@ -1739,31 +1759,62 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
                                                                                        height,
                                                                                        GraphicsPrimitive::TextureWrappingType::CLAMP,
                                                                                        GraphicsPrimitive::TextureFilteringType::LINEAR);
+            
+            /*
+             * Coordinates at EDGE of the pixels
+             */
+            const float minX = m_spatialBoundingBox->getMinX();
+            const float maxX = m_spatialBoundingBox->getMaxX();
+            const float minY = m_spatialBoundingBox->getMinY();
+            const float maxY = m_spatialBoundingBox->getMaxY();
+            
             /*
              * A Triangle Strip (consisting of two triangles) is used
-             * for drawing the image.  At this time, the XYZ coordinates
-             * do not matter and they will be updated when the annotation
-             * is drawn by a call to ::setVertexBounds().
+             * for drawing the image.
              * The order of the vertices in the triangle strip is
-             * Top Left, Bottom Left, Top Right, Bottom Right.  If this
-             * order changes, ::setVertexBounds must be updated.
-             *
-             * Zeros are used for the X- and Y-coordinates.
-             * The third and fourth parameters are the texture
-             * S and T coordinates.
+             * Top Left, Bottom Left, Top Right, Bottom Right.
              */
-            const float halfWidth(width * 0.5);
-            const float halfHeight(height * 0.5);
-            primitive->addVertex(-halfWidth,  halfHeight, 0, 1);  /* Top Left */
-            primitive->addVertex(-halfWidth, -halfHeight, 0, 0);  /* Bottom Left */
-            primitive->addVertex(halfWidth,   halfHeight, 1, 1);  /* Top Right */
-            primitive->addVertex(halfWidth,  -halfHeight, 1, 0);  /* Bottom Right */
-            
+            const float minTextureST(0.0);
+            const float maxTextureST(1.0);
+            primitive->addVertex(minX, maxY, minTextureST, maxTextureST);  /* Top Left */
+            primitive->addVertex(minX, minY, minTextureST, minTextureST);  /* Bottom Left */
+            primitive->addVertex(maxX, maxY, maxTextureST, maxTextureST);  /* Top Right */
+            primitive->addVertex(maxX, minY, maxTextureST, minTextureST);  /* Bottom Right */
+
             m_graphicsPrimitiveForMediaDrawing.reset(primitive);
         }
     }
     
     return m_graphicsPrimitiveForMediaDrawing.get();
+}
+
+/**
+ * Convert the given spatial coordinates to image pixel indices
+ * @param x
+ *    The x-coordinate
+ * @param y
+ *    The y-coordinate
+ * @param indexOutI
+ *    Output with pixel I
+ * @param indexOutJ
+ *    Output with pixel J
+ * @return
+ *    True if index is a valid index into the image, else false.
+ */
+bool
+ImageFile::spaceToIndex(const float x,
+                        const float y,
+                        int64_t& indexOutI,
+                        int64_t& indexOutJ) const
+{
+    const float dummyZ(0.0);
+    
+    float ijk[3];
+    m_volumeSpace->spaceToIndex(x, y, dummyZ, ijk);
+    indexOutI = ijk[0];
+    indexOutJ = ijk[1];
+    
+    return m_volumeSpace->indexValid(ijk);
 }
 
 /**
@@ -1848,6 +1899,12 @@ ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
     if (m_image != NULL) {
         dataFileInformation.addNameAndValue("Width (pixels)", m_image->width());
         dataFileInformation.addNameAndValue("Height (pixels)", m_image->height());
+        
+        dataFileInformation.addNameAndValue("Min X", m_spatialBoundingBox->getMinX());
+        dataFileInformation.addNameAndValue("Max X", m_spatialBoundingBox->getMaxX());
+        dataFileInformation.addNameAndValue("Min Y", m_spatialBoundingBox->getMinY());
+        dataFileInformation.addNameAndValue("Max Y", m_spatialBoundingBox->getMaxY());
+
         const float dotsPerMeter(m_image->dotsPerMeterX());
         if (dotsPerMeter > 0.0) {
             dataFileInformation.addNameAndValue("Width (meters)", m_image->width()   / dotsPerMeter);
@@ -2036,5 +2093,199 @@ ImageFile::supportsFileMetaData() const
     }
     
     return false;
+}
+
+/**
+ * Update the default spatial coordinates
+ */
+void
+ImageFile::updateDefaultSpatialCoordinates()
+{
+    m_volumeSpace.reset(new VolumeSpace());
+    
+    std::array<float, 3> pixelBottomLeftSpatialXYZ;
+    pixelBottomLeftSpatialXYZ.fill(0.0);
+    
+    std::array<float, 3> pixelTopRightSpatialXYZ;
+    pixelTopRightSpatialXYZ.fill(1.0);
+    
+    std::array<float, 3> pixelStepXYZ;
+    pixelStepXYZ.fill(1.0);
+    
+    int64_t imageWidthInt(0);
+    int64_t imageHeightInt(0);
+    
+    if (m_image != NULL) {
+        if ( ! m_image->isNull()) {
+            imageWidthInt = m_image->width();
+            imageHeightInt = m_image->height();
+            
+            const float imageWidth(m_image->width());
+            const float imageHeight(m_image->height());
+            
+            if ((imageWidth >= 1.0f)
+                && (imageHeight >= 1.0f)) {
+                float minX, maxX;
+                getDefaultSpatialValues(imageWidth,
+                                        minX,
+                                        maxX,
+                                        pixelBottomLeftSpatialXYZ[0],
+                                        pixelTopRightSpatialXYZ[0],
+                                        pixelStepXYZ[0]);
+                
+                float minY, maxY;
+                getDefaultSpatialValues(imageHeight,
+                                        minY,
+                                        maxY,
+                                        pixelBottomLeftSpatialXYZ[1],
+                                        pixelTopRightSpatialXYZ[1],
+                                        pixelStepXYZ[1]);
+              }
+         }
+    }
+    
+    initializeVolumeSpace(imageWidthInt,
+                          imageHeightInt,
+                          pixelBottomLeftSpatialXYZ,
+                          pixelStepXYZ);
+}
+
+/**
+ * Initialize the volume space
+ * @param imageWidth
+ *    Width of the image
+ * @param imageHeight
+ *    Height of the image
+ * @param firstPixelXYZ
+ *    Coordinates of first pixel at center of pixel
+ * @param pixelStepXYZ
+ *    Step to next adjacent pixel
+ */
+void
+ImageFile::initializeVolumeSpace(const int32_t imageWidth,
+                                 const int32_t imageHeight,
+                                 const std::array<float,3> firstPixelXYZ,
+                                 const std::array<float,3> pixelStepXYZ)
+{
+    m_volumeSpace.reset(new VolumeSpace());
+    m_spatialBoundingBox->resetZeros();
+    
+    if ((imageWidth < 2)
+        || (imageHeight < 2)) {
+        return;
+    }
+    
+    std::vector<float> rowOne   { pixelStepXYZ[0], 0.0, 0.0, firstPixelXYZ[0] };
+    std::vector<float> rowTwo   { 0.0, pixelStepXYZ[1], 0.0, firstPixelXYZ[1] };
+    std::vector<float> rowThree { 0.0, 0.0, pixelStepXYZ[2], firstPixelXYZ[2] };
+    std::vector<float> rowFour  { 0.0, 0.0, 0.0, 1.0 };
+    
+    std::vector<std::vector<float>> sform;
+    sform.push_back(rowOne);
+    sform.push_back(rowTwo);
+    sform.push_back(rowThree);
+    sform.push_back(rowFour);
+    
+    const int32_t imageStackSize(1);
+    const int64_t dims[3] { imageWidth, imageHeight, imageStackSize };
+    
+    m_volumeSpace.reset(new VolumeSpace(dims, sform));
+    
+    const float minIJK[3] { -0.5, -0.5, -0.5 };
+    float minX, minY, minZ;
+    m_volumeSpace->indexToSpace(minIJK, minX, minY, minZ);
+    
+    float maxIJK[3] { imageWidth - 0.5f, imageHeight - 0.5f, 0.5f };
+    float maxX, maxY, maxZ;
+    m_volumeSpace->indexToSpace(maxIJK, maxX, maxY, maxZ);
+    
+    m_spatialBoundingBox->set(minX, maxX,
+                              minY, maxY,
+                              minZ, maxZ);
+    
+    const bool testFlag(false);
+    if (testFlag) {
+        float x, y, z;
+        
+        m_volumeSpace->indexToSpace(0, 0, 0, x, y, z);
+        std::cout << "First Pixel XYZ: " << x << ", " << y << ", " << z << std::endl;
+        
+        m_volumeSpace->indexToSpace(imageWidth - 1, imageHeight - 1, imageStackSize - 1, x, y, z);
+        std::cout << "Last Pixel XYZ: " << x << ", " << y << ", " << z << std::endl;
+        
+        std::cout << "Min XYZ: " << minX << ", " << minY << ", " << minZ << std::endl;
+        
+        std::cout << "Max XYZ: " << maxX << ", " << maxY << ", " << maxZ << std::endl;
+        
+        std::cout << std::flush;
+    }
+}
+
+/**
+ * Setup the spatial values for an image
+ *
+ * @param numPixels
+ *    Number of pixels in the dimension
+ * @param spatialMinimumValue
+ *    Spatial value at left/bottom edge of first pixel
+ * @param spatialMaximumValue
+ *    Spatial value at right/top edge of first pixel
+ * @param firstPixelSpatialValue
+ *    Spatial value at middle of first pixel
+ * @param lastPixelSpatialValue
+ *    Spatial value at middle of last pixel
+ * @param pixelSpatialStepValue
+ *    Spatial step to next adjacent pixel
+ */
+void
+ImageFile::getSpatialValues(const float numPixels,
+                            const float spatialMinimumValue,
+                            const float spatialMaximumValue,
+                            float& firstPixelSpatialValue,
+                            float& lastPixelSpatialValue,
+                            float& pixelSpatialStepValue) const
+{
+    CaretAssert(numPixels >= 1.0f);
+    pixelSpatialStepValue  = (spatialMaximumValue - spatialMinimumValue) / numPixels;
+    const float halfStepValue(pixelSpatialStepValue / 2.0);
+    firstPixelSpatialValue = spatialMinimumValue + halfStepValue;
+    lastPixelSpatialValue  = firstPixelSpatialValue + (pixelSpatialStepValue * (numPixels - 1));
+}
+
+/**
+ * Setup the spatial values for an image with no available spatial coordinates.  The origin
+ * will be in the center of the image.  Spatial minimum/maximum will be half the number of pixels.
+ * Example: if image is 400 pixels, min spatial = -200; max spatial = 200
+ *
+ * @param numPixels
+ *    Number of pixels in the dimension
+ * @param minSpatialValueOut
+ *    Spatial value at left/bottom edge of first pixel
+ * @param maxSpatialValueOut
+ *    Spatial value at right/top edge of first pixel
+ * @param firstPixelSpatialValue
+ *    Spatial value at middle of first pixel
+ * @param lastPixelSpatialValue
+ *    Spatial value at middle of last pixel
+ * @param pixelSpatialStepValue
+ *    Spatial step to next adjacent pixel
+ */
+void
+ImageFile::getDefaultSpatialValues(const float numPixels,
+                                   float& minSpatialValueOut,
+                                   float& maxSpatialValueOut,
+                                   float& firstPixelSpatialValue,
+                                   float& lastPixelSpatialValue,
+                                   float& pixelSpatialStepValue) const
+{
+    const float halfValue(numPixels / 2.0);
+    minSpatialValueOut = -halfValue;
+    maxSpatialValueOut =  halfValue;
+    getSpatialValues(numPixels,
+                     minSpatialValueOut,
+                     maxSpatialValueOut,
+                     firstPixelSpatialValue,
+                     lastPixelSpatialValue,
+                     pixelSpatialStepValue);
 }
 

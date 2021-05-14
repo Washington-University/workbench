@@ -167,8 +167,9 @@ GraphicsRegionSelectionBox::setStatus(const Status status)
  *    The maximum x-coordinate
  * @param maxY
  *    The maximum y-coordinate
+ * @return True if the status is valid AND the min and max are NOT cooincident (same values)
  */
-void
+bool
 GraphicsRegionSelectionBox::getBounds(float& minX,
                                       float& minY,
                                       float& maxX,
@@ -190,5 +191,20 @@ GraphicsRegionSelectionBox::getBounds(float& minX,
         minY = m_y1;
         maxY = m_y2;
     }
+    
+    bool validFlag(false);
+    
+    switch (m_status) {
+        case Status::INVALID:
+            break;
+        case Status::VALID:
+            if ((m_x1 != m_x2)
+                && (m_y1 != m_y2)) {
+                validFlag = true;
+            }
+            break;
+    }
+    
+    return validFlag;
 }
 

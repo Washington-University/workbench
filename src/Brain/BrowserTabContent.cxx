@@ -63,6 +63,7 @@
 #include "EventModelGetAll.h"
 #include "EventManager.h"
 #include "FociFile.h"
+#include "GraphicsRegionSelectionBox.h"
 #include "IdentificationManager.h"
 #include "LabelFile.h"
 #include "MathFunctions.h"
@@ -263,6 +264,11 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS);
     
     isExecutingConstructor = false;
+    
+    /*
+     * Media selection box is NOT saved to scenes NOR copie
+     */
+    m_mediaRegionSelectionBox.reset(new GraphicsRegionSelectionBox());
     
     /*
      * Need to be done from here
@@ -5847,5 +5853,23 @@ BrowserTabContent::getOpenBrowserTabs()
     }
     
     return openTabs;
+}
+
+/**
+ * @return Media selection box
+ */
+GraphicsRegionSelectionBox*
+BrowserTabContent::getMediaRegionSelectionBox()
+{
+    return m_mediaRegionSelectionBox.get();
+}
+
+/**
+ * @return Media selection box (const method)
+ */
+const GraphicsRegionSelectionBox*
+BrowserTabContent::getMediaRegionSelectionBox() const
+{
+    return m_mediaRegionSelectionBox.get();
 }
 

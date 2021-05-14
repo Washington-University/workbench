@@ -28,6 +28,7 @@
 
 namespace caret {
     class GraphicsObjectToWindowTransform;
+    class GraphicsRegionSelectionBox;
     class SceneClassAssistant;
 
     class ViewingTransformations : public CaretObject, public SceneableInterface  {
@@ -63,6 +64,8 @@ namespace caret {
                                      const float dataY,
                                      const bool dataXYValidFlag);
 
+        virtual void setViewToBounds(const GraphicsRegionSelectionBox* /*box*/);
+        
         Matrix4x4 getRotationMatrix() const;
         
         void setRotationMatrix(const Matrix4x4& rotationMatrix);

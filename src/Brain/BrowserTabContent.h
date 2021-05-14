@@ -55,6 +55,7 @@ namespace caret {
     class ChartTwoOverlaySet;
     class ClippingPlaneGroup;
     class EventCaretMappableDataFilesAndMapsInDisplayedOverlays;
+    class GraphicsRegionSelectionBox;
     class Matrix4x4;
     class MediaOverlaySet;
     class ModelChart;
@@ -524,6 +525,10 @@ namespace caret {
         
         int32_t getClosedTabWindowIndex() const;
         
+        GraphicsRegionSelectionBox* getMediaRegionSelectionBox();
+
+        const GraphicsRegionSelectionBox* getMediaRegionSelectionBox() const;
+        
     private:
         class ColorBarFileMap {
         public:
@@ -698,6 +703,9 @@ namespace caret {
         
         /** Index of window before tab was closed */
         int32_t m_closedWindowIndex = -1;
+        
+        /** Selection box for meda NOT copied when tab cloned*/
+        std::unique_ptr<GraphicsRegionSelectionBox> m_mediaRegionSelectionBox;
         
         /**
          * NEVER access this directly as it may contain tabs that are closed but available for reopening.

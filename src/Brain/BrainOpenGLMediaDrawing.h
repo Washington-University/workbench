@@ -63,6 +63,8 @@ namespace caret {
     private:
         void drawModelLayers();
         
+        void drawSelectionBox();
+        
         void processImageFileSelection(ImageFile* imageFile,
                                        GraphicsPrimitiveV3fT3f* primitive);
         

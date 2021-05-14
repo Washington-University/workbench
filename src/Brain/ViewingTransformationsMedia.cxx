@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "GraphicsObjectToWindowTransform.h"
+#include "GraphicsRegionSelectionBox.h"
 
 using namespace caret;
 
@@ -189,6 +190,20 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
         
         setTranslation(tx, ty, 0.0);
     }
+}
+
+/**
+ * Set the bounds of the view to the given bounds.
+ * @param box
+ *    Box containing bounds of view
+ */
+void
+ViewingTransformationsMedia::setViewToBounds(const GraphicsRegionSelectionBox* box)
+{
+    float minX, maxX, minY, maxY;
+    box->getBounds(minX, minY, maxX, maxY);
+    
+    std::cout << "   Box BottomLeft: " << minX << minY << " Top Right: " << maxX << ", " << maxY << std::endl;
 }
 
 

@@ -32,6 +32,8 @@
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsObjectToWindowTransform.h"
+#include "GraphicsRegionSelectionBox.h"
+#include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "ImageFile.h"
 #include "ModelMedia.h"
@@ -131,6 +133,8 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     viewportContent->setGraphicsObjectToWindowTransform(transform);
     
     drawModelLayers();
+    
+    drawSelectionBox();
 }
 
 /**
@@ -208,6 +212,42 @@ BrainOpenGLMediaDrawing::drawModelLayers()
 }
 
 /**
+ * Draw the selection box
+ */
+void
+BrainOpenGLMediaDrawing::drawSelectionBox()
+{
+    const GraphicsRegionSelectionBox* selectionBox = m_browserTabContent->getMediaRegionSelectionBox();
+
+    switch (selectionBox->getStatus()) {
+        case GraphicsRegionSelectionBox::Status::INVALID:
+            break;
+        case GraphicsRegionSelectionBox::Status::VALID:
+        {
+            float minX, maxX, minY, maxY;
+            if (selectionBox->getBounds(minX, minY, maxX, maxY)) {
+                auto primitive = GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
+                                                                    m_fixedPipelineDrawing->m_foregroundColorFloat);
+
+                const float z(0.0f);
+                primitive->addVertex(minX, minY, z);
+                primitive->addVertex(maxX, minY, z);
+                primitive->addVertex(maxX, maxY, z);
+                primitive->addVertex(minX, maxY, z);
+                
+                const float lineWidthPercentage(2.0f);
+                primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                        lineWidthPercentage);
+                
+                GraphicsEngineDataOpenGL::draw(primitive);
+            }
+        }
+            break;
+    }
+}
+
+
+/**
  * Process selection in an image file
  * @param imageFile
  *    The image file
@@ -275,6 +315,11 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
             float modelXYZ[3] { 0.0, 0.0, 0.0 };
             xform.inverseTransformPoint(windowXYZ, modelXYZ);
             
+            int64_t indexI, indexJ;
+            const bool validIndexFlag(imageFile->spaceToIndex(modelXYZ[0], modelXYZ[1],
+                                                              indexI, indexJ));
+//            std::cout << "Pixel Index: " << indexI << ", " << indexJ << " valid: " << AString::fromBool(validIndexFlag) << std::endl << std::flush;
+
             /*
              * Verify clicked location is inside image
              */

@@ -206,7 +206,8 @@ ViewingTransformations::setScaling(const float scaling)
 }
 
 /**
- * Scale about the position of the mouse
+ * Scale about the position of the mouse (NOT supported for all views)
+ *
  * @param transform
  *    Graphics object to window transform
  * @param mousePressX
@@ -231,7 +232,20 @@ ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* /
                                         const float /*dataY*/,
                                         const bool /*dataXYValidFlag*/)
 {
-    const QString msg("ViewingTransformations::scaleAboutMouse() is not supported for this model");
+    const QString msg("ViewingTransformations::scaleAboutMouse() is not supported for this view");
+    CaretAssertMessage(0, msg);
+    CaretLogSevere(msg);
+}
+
+/**
+ * Set the bounds of the view to the given bounds.
+ * @param box
+ *    Box containing bounds of view
+ */
+void
+ViewingTransformations::setViewToBounds(const GraphicsRegionSelectionBox* /*box*/)
+{
+    const QString msg("ViewingTransformations::setViewToBounds() is not supported for this view");
     CaretAssertMessage(0, msg);
     CaretLogSevere(msg);
 }
