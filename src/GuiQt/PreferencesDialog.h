@@ -36,6 +36,7 @@ namespace caret {
     
     class CaretPreferences;
     class EnumComboBoxTemplate;
+    class PreferencesDevelopOptionsWidget;
     class PreferencesRecentFilesWidget;
     class WuQTrueFalseComboBox;
     class WuQWidgetObjectGroup;
@@ -112,14 +113,14 @@ namespace caret {
         
         void updateColorWithDialog(const PREF_COLOR prefColor);
 
-        QLabel* addWidgetToLayout(QGridLayout* gridLayout,
-                                  const QString& labelText,
-                                  QWidget* widget);
+        static QLabel* addWidgetToLayout(QGridLayout* gridLayout,
+                                         const QString& labelText,
+                                         QWidget* widget);
         
-        void addWidgetsToLayout(QGridLayout* gridLayout,
-                                QWidget* leftWidget,
-                                QWidget* rightWidget);
-        
+        static void addWidgetsToLayout(QGridLayout* gridLayout,
+                                       QWidget* leftWidget,
+                                       QWidget* rightWidget);
+
         void addColorButtonAndSwatch(QGridLayout* gridLayout,
                                      const PREF_COLOR prefColor,
                                      QSignalMapper* colorSignalMapper);
@@ -171,7 +172,11 @@ namespace caret {
         
         WuQWidgetObjectGroup* m_allWidgets;
         
+        PreferencesDevelopOptionsWidget* m_developOptionsWidget;
+        
         PreferencesRecentFilesWidget* m_recentFilesWidget;
+        
+        friend class PreferencesDevelopOptionsWidget;
     };
     
 #ifdef __PREFERENCES_DIALOG__H__DECLARE__

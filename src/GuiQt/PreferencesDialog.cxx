@@ -40,6 +40,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "PreferencesDevelopOptionsWidget.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -48,6 +49,7 @@
 #include "GuiManager.h"
 #include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
+#include "PreferencesDevelopOptionsWidget.h"
 #include "PreferencesRecentFilesWidget.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
@@ -95,12 +97,16 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     QObject::connect(m_recentFilesWidget, &PreferencesRecentFilesWidget::updateDialog,
                      this, &PreferencesDialog::recentFilesChanged);
     
+    m_developOptionsWidget = new PreferencesDevelopOptionsWidget();
+    
     /*
      * Create the tab widget and all tab content
      */
     QTabWidget* tabWidget = new QTabWidget();
     tabWidget->addTab(createColorsWidget(),
                       "Colors");
+    tabWidget->addTab(m_developOptionsWidget,
+                      "Develop");
     tabWidget->addTab(createIdentificationSymbolWidget(),
                       "ID");
     tabWidget->addTab(createMiscellaneousWidget(),
@@ -504,7 +510,7 @@ PreferencesDialog::createMiscellaneousWidget()
                       "Enable Trackpad Gestures: ",
                       m_guiGesturesEnabledComboBox->getWidget());
     addWidgetToLayout(gridLayout,
-                      "Open File from MacOS Finder",
+                      "Open File from MacOS Finder: ",
                       m_fileOpenFromOpSysTypeComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       "Window ToolBar Width Mode: ",
@@ -909,6 +915,7 @@ PreferencesDialog::updateDialog()
     updateIdentificationWidget(prefs);
     updateOpenGLWidget(prefs);
     updateVolumeWidget(prefs);
+    m_developOptionsWidget->updateContent(prefs);
     m_recentFilesWidget->updateContent(prefs);
     
     m_allWidgets->blockAllSignals(false);

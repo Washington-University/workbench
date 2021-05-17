@@ -51,6 +51,8 @@ public:
     
     static Enum fromName(const AString& name, bool* isValidOut);
     
+    static AString toToolTip(Enum enumValue);
+    
     static AString toGuiName(Enum enumValue);
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);

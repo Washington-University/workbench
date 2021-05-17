@@ -187,6 +187,7 @@ ELSE()
 	PaletteSelectionWidget.h
         PlotMagnifier.h
         PlotPanner.h
+	PreferencesDevelopOptionsWidget.h
         PreferencesDialog.h
 	PreferencesRecentFilesWidget.h
         ProgressReportingDialog.h
@@ -481,6 +482,7 @@ PalettePixmapPainter.h
 PaletteSelectionWidget.h
 PlotMagnifier.h
 PlotPanner.h
+PreferencesDevelopOptionsWidget.h
 PreferencesDialog.h
 PreferencesRecentFilesWidget.h
 ProgressReportingDialog.h
@@ -795,6 +797,7 @@ PalettePixmapPainter.cxx
 PaletteSelectionWidget.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
+PreferencesDevelopOptionsWidget.cxx
 PreferencesDialog.cxx
 PreferencesRecentFilesWidget.cxx
 ProgressReportingDialog.cxx

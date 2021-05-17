@@ -244,7 +244,6 @@ namespace caret {
 
         void processDevelopExportVtkFile();
         void developerMenuAboutToShow();
-        void developerMenuFlagTriggered(QAction*);
         
         void processProjectFoci();
         void processSplitBorderFiles();
@@ -430,7 +429,6 @@ namespace caret {
         QAction* m_helpWorkbenchBugReportAction;
         
         QAction* m_developMenuAction;
-        QActionGroup* m_developerFlagsActionGroup;
         QAction* m_developerGraphicsTimingAction;
         QAction* m_developerGraphicsTimingDurationAction;
         QAction* m_developerExportVtkFileAction;

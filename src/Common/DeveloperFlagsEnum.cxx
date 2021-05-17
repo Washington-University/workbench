@@ -137,7 +137,7 @@ DeveloperFlagsEnum::initialize()
 
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOXEL_CUBES_TEST,
                                                 "DEVELOPER_FLAG_VOXEL_CUBES_TEST",
-                                                "Voxel Cubes Drawing Test",
+                                                "All View Voxel Cubes Outside Faces",
                                                 CheckableEnum::YES,
                                                 true));
     
@@ -242,6 +242,52 @@ DeveloperFlagsEnum::fromName(const AString& name, bool* isValidOut)
         CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type DeveloperFlagsEnum"));
     }
     return enumValue;
+}
+
+AString
+DeveloperFlagsEnum::toToolTip(Enum enumValue)
+{
+    AString toolTip;
+    
+    switch (enumValue) {
+        case DELELOPER_FLAG_VOXEL_SMOOTH:
+            toolTip = ("Smooth texture volume voxels (\""
+                       + toGuiName(DEVELOPER_FLAG_TEXTURE_VOLUME)
+                       + "\" must also be ON)");
+            break;
+        case DEVELOPER_FLAG_BALSA:
+            toolTip = ("Load BALSA web page in Qt's WebKit (for demonstration only");
+            break;
+        case DEVELOPER_FLAG_BLENDING:
+            toolTip = ("Separately blend RGB and Alpha components so Alpha is always 1.0 in frame buffer"
+                       " (fixes coloring problems and colors in some captured image formats)");
+            break;
+        case DEVELOPER_FLAG_CHART_OPENGL_LINES:
+            toolTip = ("Draw chart lines using OpenGL lines instead of polylines "
+                       "(faster but OpenGL lines have limited line width).  This setting "
+                       "DOES NOT affect files currently loaded.  Any files that produce "
+                       "line charts must be reloaded.");
+            break;
+        case DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA:
+            toolTip = ("When Invert Data is selected on Overlay and Map Settings Dialog,  "
+                       "flip the palette instead of flipping the data (not recommended)");
+            break;
+        case DEVELOPER_FLAG_TEXTURE_VOLUME:
+            toolTip = ("Draw volume slices using textures instead of drawing individual voxels "
+                       "(for testing and only works for first volume that is drawn after "
+                       "this option is enabled)");
+            break;
+        case DEVELOPER_FLAG_UNUSED:
+            toolTip = "Unused";
+            break;
+        case DEVELOPER_FLAG_VOXEL_CUBES_TEST:
+            toolTip = ("For voxel cubes in ALL view, only draw \"outside faces\" "
+                       "(faster but causes problem when opacity is less than one so disable "
+                       "in that instance)");
+            break;
+    }
+    
+    return toolTip;
 }
 
 /**
