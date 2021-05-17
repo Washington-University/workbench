@@ -239,11 +239,14 @@ ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* /
 
 /**
  * Set the bounds of the view to the given bounds.
- * @param box
- *    Box containing bounds of view
+ * @param windowBounds
+ *    Box containing window bounds
+ * @param selectionBounds
+ *    The selection bounds
  */
 void
-ViewingTransformations::setViewToBounds(const GraphicsRegionSelectionBox* /*box*/)
+ViewingTransformations::setViewToBounds(const BoundingBox* /*windowBounds*/,
+                                        const GraphicsRegionSelectionBox* /*selectionBounds*/)
 {
     const QString msg("ViewingTransformations::setViewToBounds() is not supported for this view");
     CaretAssertMessage(0, msg);

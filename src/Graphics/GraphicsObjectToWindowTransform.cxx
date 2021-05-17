@@ -181,6 +181,32 @@ GraphicsObjectToWindowTransform::inverseTransformPoint(const float windowXYZ[3],
 }
 
 /**
+ * Transform a window coordinate to an object coordinate.
+ *
+ * @param windowX
+ *     The window X-coordinate.
+ * @param windowY
+ *     The window Y-coordinate.
+ * @param windowZ
+ *     The window Z-coordinate.
+ * @param objectXYZOut
+ *     Output containing the computed object coordinate.
+ * @return
+ *     True if output coordinate is valid, else false.
+ */
+bool
+GraphicsObjectToWindowTransform::inverseTransformPoint(const float windowX,
+                                                       const float windowY,
+                                                       const float windowZ,
+                                                       float objectXYZOut[3]) const
+{
+    const float windowXYZ[3] { windowX, windowY, windowZ };
+    return inverseTransformPoint(windowXYZ,
+                                 objectXYZOut);
+}
+
+
+/**
  * Transform an object coordinate to a window coordinate.
  *
  * @param objectXYZ

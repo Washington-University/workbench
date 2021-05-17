@@ -40,6 +40,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GestureEvent.h"
+#include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsRegionSelectionBox.h"
 #include "GuiManager.h"
 #include "KeyEvent.h"
@@ -537,21 +538,46 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
         }
     }
     else if (browserTabContent->isMediaDisplayed()) {
-        GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
-        CaretAssert(box);
+        GraphicsRegionSelectionBox* selectionBox = browserTabContent->getMediaRegionSelectionBox();
+        CaretAssert(selectionBox);
         
-        switch (box->getStatus()) {
+        int32_t viewport[4];
+        viewportContent->getModelViewport(viewport);
+        const GraphicsObjectToWindowTransform* transform = viewportContent->getGraphicsObjectToWindowTransform();
+        
+        const float vpMinX(viewport[0]);
+        const float vpMaxX(viewport[0] + viewport[2]);
+        const float vpMinY(viewport[1]);
+        const float vpMaxY(viewport[1] + viewport[3]);
+        const float vpZ(0.0);
+        float bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
+        transform->inverseTransformPoint(vpMinX, vpMinY, vpZ, bottomLeft);
+        transform->inverseTransformPoint(vpMaxX, vpMinY, vpZ, bottomRight);
+        transform->inverseTransformPoint(vpMaxX, vpMaxY, vpZ, topRight);
+        transform->inverseTransformPoint(vpMinX, vpMaxY, vpZ, topLeft);
+        
+        BoundingBox windowBounds;
+        windowBounds.set(bottomLeft, bottomRight, topRight, topLeft);
+        
+        std::array<float, 4> orthoBoundsLRBT(transform->getOrthoLRBT());
+        BoundingBox orthoBounds;
+        orthoBounds.set(orthoBoundsLRBT[0], orthoBoundsLRBT[1],
+                        orthoBoundsLRBT[2], orthoBoundsLRBT[3],
+                        vpZ, vpZ);
+        
+        switch (selectionBox->getStatus()) {
             case GraphicsRegionSelectionBox::Status::INVALID:
                 break;
             case GraphicsRegionSelectionBox::Status::VALID:
             {
                 ViewingTransformations* vt = browserTabContent->getViewingTransformation();
-                vt->setViewToBounds(box);
+                vt->setViewToBounds(&orthoBounds,
+                                    selectionBox);
             }
                 break;
         }
         
-        box->setStatus(GraphicsRegionSelectionBox::Status::INVALID);
+        selectionBox->setStatus(GraphicsRegionSelectionBox::Status::INVALID);
 
         /*
          * Update graphics.

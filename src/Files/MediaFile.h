@@ -22,18 +22,84 @@
 /*LICENSE_END*/
 
 
-
+#include <array>
 #include <memory>
 
 #include "CaretDataFile.h"
 #include "NiftiEnums.h"
 #include "SceneClassAssistant.h"
+#include "Vector3D.h"
+#include "VoxelIJK.h"
 
 namespace caret {
+
+    class BoundingBox;
+    class VolumeSpace;
 
     class MediaFile : public CaretDataFile {
         
     public:
+        /**
+         * \class caret::MediaFile::PixelCoordinate
+         * \brief Coordinate for pixel data in media (image) files
+         * \ingroup Files
+         */
+        class PixelCoordinate : public Vector3D {
+        public:
+            PixelCoordinate()
+            : Vector3D(0.0, 0.0, 0.0) { }
+            
+            PixelCoordinate(const std::array<float,2>& xy)
+            : Vector3D(xy[0], xy[1], 0.0) { }
+            
+            PixelCoordinate(const std::array<float,3>& xyz)
+            : Vector3D(xyz[0], xyz[1], xyz[2]) { }
+            
+            PixelCoordinate(const float x,
+                            const float y,
+                            const float z = 0)
+            : Vector3D(x, y, z) { }
+            
+            float getX() { return *this[0]; }
+            
+            float getY() { return *this[1]; }
+            
+            float getZ() { return *this[2]; }
+            
+            void setX(const float x) { *this[0] = x; }
+            
+            void setY(const float y) { *this[1] = y; }
+            
+            void setZ(const float z) { *this[2] = z; }
+        };
+
+        /**
+         * \class caret::MediaFile::PixelIndex
+         * \brief Indexing for pixel data in media (image) files
+         * \ingroup Files
+         */
+        class PixelIndex : public VoxelIJK {
+        public:
+            PixelIndex() : VoxelIJK(0, 0, 0) { }
+            
+            PixelIndex(const int64_t i,
+                       const int64_t j,
+                       const int64_t k = 0)
+            : VoxelIJK(i, j, k) { }
+            
+            PixelIndex(const PixelCoordinate& coordinate)
+            : VoxelIJK(coordinate[0],
+                       coordinate[1],
+                       coordinate[2]) { }
+            
+            int64_t getI() const { return m_ijk[0]; }
+            
+            int64_t getJ() const { return m_ijk[1]; }
+
+            int64_t getK() const { return m_ijk[2]; }
+        };
+        
+        
         virtual ~MediaFile();
         
         MediaFile(const MediaFile&) = delete;
@@ -87,6 +153,15 @@ namespace caret {
         
         const MediaFile* castToMediaFile() const;
         
+        virtual bool indexValid(const PixelIndex& pixelIndex) const;
+        
+        virtual PixelIndex spaceToIndex(const PixelCoordinate& coordinate) const;
+        
+        virtual bool spaceToIndexValid(const PixelCoordinate& coordinate,
+                                       PixelIndex& pixelIndexOut) const;
+        
+        const BoundingBox* getSpatialBoudingBox() const;
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -102,9 +177,20 @@ namespace caret {
         virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                   const SceneClass* sceneClass);
 
+        void initializeMembersMediaFile();
+        
+        void initializeVolumeSpace(const int32_t imageWidth,
+                                   const int32_t imageHeight,
+                                   const std::array<float,3> firstPixelXYZ,
+                                   const std::array<float,3> pixelStepXYZ);
+        
     private:
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
+        std::unique_ptr<VolumeSpace> m_volumeSpace;
+        
+        std::unique_ptr<BoundingBox> m_spatialBoundingBox;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

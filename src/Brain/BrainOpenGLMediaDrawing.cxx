@@ -285,60 +285,65 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
             && (drawnImageHeight > 0.0)
             && (windowMaxXYZ[0] > windowMinXYZ[0])
             && (windowMaxXYZ[1] - windowMinXYZ[1])) {
-            const float imageWidth(imageFile->getWidth());
-            const float imageHeight(imageFile->getHeight());
+//            const float imageWidth(imageFile->getWidth());
+//            const float imageHeight(imageFile->getHeight());
             
             const float mouseX(this->m_fixedPipelineDrawing->mouseX);
             const float mouseY(this->m_fixedPipelineDrawing->mouseY);
             
-            /*
-             * Offset of mouse from bottom left of image in window coordinates
-             */
-            const float relativePixelX = mouseX - windowMinXYZ[0];
-            const float relativePixelY = mouseY - windowMinXYZ[1];
-            
-            /*
-             * Normalized coordinate in image (range is 0 to 1 if inside image)
-             */
-            const float normalizedPixelX = relativePixelX / static_cast<float>(windowMaxXYZ[0] - windowMinXYZ[0]);
-            const float normalizedPixelY = relativePixelY / static_cast<float>(windowMaxXYZ[1] - windowMinXYZ[1]);
-            
-            /*
-             * Pixel X&Y in image
-             */
-            const int32_t pixelX = static_cast<int32_t>(normalizedPixelX *
-                                                        static_cast<float>(imageWidth));
-            const int32_t pixelY = static_cast<int32_t>(normalizedPixelY *
-                                                        static_cast<float>(imageHeight));
+//            /*
+//             * Offset of mouse from bottom left of image in window coordinates
+//             */
+//            const float relativePixelX = mouseX - windowMinXYZ[0];
+//            const float relativePixelY = mouseY - windowMinXYZ[1];
+//            
+//            /*
+//             * Normalized coordinate in image (range is 0 to 1 if inside image)
+//             */
+//            const float normalizedPixelX = relativePixelX / static_cast<float>(windowMaxXYZ[0] - windowMinXYZ[0]);
+//            const float normalizedPixelY = relativePixelY / static_cast<float>(windowMaxXYZ[1] - windowMinXYZ[1]);
+//            
+//            /*
+//             * Pixel X&Y in image
+//             */
+//            const int32_t pixelX = static_cast<int32_t>(normalizedPixelX *
+//                                                        static_cast<float>(imageWidth));
+//            const int32_t pixelY = static_cast<int32_t>(normalizedPixelY *
+//                                                        static_cast<float>(imageHeight));
             
             float windowXYZ[3] { mouseX, mouseY, 0.0 };
-            float modelXYZ[3] { 0.0, 0.0, 0.0 };
-            xform.inverseTransformPoint(windowXYZ, modelXYZ);
+            std::array<float, 3> modelXYZ;
+            xform.inverseTransformPoint(windowXYZ, modelXYZ.data());
             
-            int64_t indexI, indexJ;
-            const bool validIndexFlag(imageFile->spaceToIndex(modelXYZ[0], modelXYZ[1],
-                                                              indexI, indexJ));
-//            std::cout << "Pixel Index: " << indexI << ", " << indexJ << " valid: " << AString::fromBool(validIndexFlag) << std::endl << std::flush;
+            /*
+             * Ensure Z is zero.
+             * In inverseTransformPoint(), setting Z to
+             * "(2.0f * windowXYZ[2]) - 1.0f" may be incorrect.
+             */
+            modelXYZ[2] = 0.0;
+            
+            MediaFile::PixelCoordinate pixelCoordinate(modelXYZ);
+            MediaFile::PixelIndex pixelIndex;
+            const bool validIndexFlag(imageFile->spaceToIndexValid(pixelCoordinate,
+                                                                   pixelIndex));
+//            std::cout << "Pixel XY: " << pixelX << ", " << pixelY << std::endl;
+//            std::cout << "   Pixel Index: " << indexI << ", " << indexJ << " valid: " << AString::fromBool(validIndexFlag) << std::endl << std::flush;
 
             /*
              * Verify clicked location is inside image
              */
-            if ((pixelX    >= 0)
-                && (pixelX <  imageWidth)
-                && (pixelY >= 0)
-                && (pixelY <  imageHeight)) {
+            if (validIndexFlag) {
                 idImage->setImageFile(imageFile);
-                idImage->setPixelI(pixelX);
-                idImage->setPixelJ(pixelY);
+                idImage->setPixelI(pixelIndex.getI());
+                idImage->setPixelJ(pixelIndex.getJ());
                 
                 uint8_t pixelByteRGBA[4];
                 if (imageFile->getImagePixelRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                 pixelX,
-                                                 pixelY,
+                                                 pixelIndex,
                                                  pixelByteRGBA)) {
                     idImage->setImageFile(imageFile);
                     idImage->setPixelRGBA(pixelByteRGBA);
-                    idImage->setModelXYZ(modelXYZ);
+                    idImage->setModelXYZ(modelXYZ.data());
                     idImage->setScreenXYZ(windowXYZ);
                     idImage->setScreenDepth(0.0);
                 }

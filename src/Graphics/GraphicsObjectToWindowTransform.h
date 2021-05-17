@@ -73,6 +73,11 @@ namespace caret {
         bool inverseTransformPoint(const float windowXYZ[3],
                                    float objectXYZOut[3]) const;
         
+        bool inverseTransformPoint(const float windowX,
+                                   const float windowY,
+                                   const float windowZ,
+                                   float objectXYZOut[3]) const;
+
         bool transformPoint(const float objectXYZ[3],
                             float windowXYZOut[3]) const;
 

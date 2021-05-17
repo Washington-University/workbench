@@ -27,6 +27,7 @@
 #include "SceneableInterface.h"
 
 namespace caret {
+    class BoundingBox;
     class GraphicsObjectToWindowTransform;
     class GraphicsRegionSelectionBox;
     class SceneClassAssistant;
@@ -64,7 +65,8 @@ namespace caret {
                                      const float dataY,
                                      const bool dataXYValidFlag);
 
-        virtual void setViewToBounds(const GraphicsRegionSelectionBox* /*box*/);
+        virtual void setViewToBounds(const BoundingBox* windowBounds,
+                                     const GraphicsRegionSelectionBox* selectionBounds);
         
         Matrix4x4 getRotationMatrix() const;
         

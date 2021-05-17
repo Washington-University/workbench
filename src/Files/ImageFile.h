@@ -31,12 +31,10 @@ class QColor;
 class QImage;
 
 namespace caret {
-    class BoundingBox;
     class ControlPointFile;
     class ControlPoint3D;
     class GraphicsPrimitiveV3fT3f;
     class VolumeFile;
-    class VolumeSpace;
     
 /// File for images
 class ImageFile : public MediaFile {
@@ -146,8 +144,7 @@ public:
                               std::vector<uint8_t>& bytesRGBAOut) const;
     
     bool getImagePixelRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
-                           const int32_t pixelI,
-                           const int32_t pixelJ,
+                           const PixelIndex& pixelIndex,
                            uint8_t pixelRGBAOut[4]) const;
     
     int32_t getWidth() const;
@@ -211,11 +208,6 @@ public:
     
     const ControlPointFile* getControlPointFile() const;
     
-    bool spaceToIndex(const float x,
-                      const float y,
-                      int64_t& indexOutI,
-                      int64_t& indexOutJ) const;
-    
     virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                      SceneClass* sceneClass) override;
     
@@ -259,11 +251,6 @@ private:
     
     void updateDefaultSpatialCoordinates();
     
-    void initializeVolumeSpace(const int32_t imageWidth,
-                               const int32_t imageHeight,
-                               const std::array<float,3> firstPixelXYZ,
-                               const std::array<float,3> pixelStepXYZ);
-    
     void getSpatialValues(const float numPixels,
                           const float spatialMinimumValue,
                           const float spatialMaximumValue,
@@ -279,10 +266,6 @@ private:
                                  float& pixelSpatialStepValue) const;
 
     QImage* m_image;
-    
-    std::unique_ptr<VolumeSpace> m_volumeSpace;
-    
-    std::unique_ptr<BoundingBox> m_spatialBoundingBox;
     
     mutable CaretPointer<GiftiMetaData> m_fileMetaData;
     

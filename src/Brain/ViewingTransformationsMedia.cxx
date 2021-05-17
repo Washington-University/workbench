@@ -23,6 +23,9 @@
 #include "ViewingTransformationsMedia.h"
 #undef __VIEWING_TRANSFORMATIONS_MEDIA_DECLARE__
 
+#include <algorithm>
+
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "GraphicsObjectToWindowTransform.h"
@@ -193,17 +196,73 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
 }
 
 /**
- * Set the bounds of the view to the given bounds.
- * @param box
- *    Box containing bounds of view
+ * Set the bounds of the view to the given selection bounds.
+ * @param windowBounds
+ *    Box containing bounds of window
+ * @param selectionBounds
+ *    Box containing bounds of selection
  */
 void
-ViewingTransformationsMedia::setViewToBounds(const GraphicsRegionSelectionBox* box)
+ViewingTransformationsMedia::setViewToBounds(const BoundingBox* windowBounds,
+                                             const GraphicsRegionSelectionBox* selectionBounds)
 {
-    float minX, maxX, minY, maxY;
-    box->getBounds(minX, minY, maxX, maxY);
+    return;  /* disable temporarily */
+    CaretAssert(windowBounds);
+    CaretAssert(selectionBounds);
     
-    std::cout << "   Box BottomLeft: " << minX << minY << " Top Right: " << maxX << ", " << maxY << std::endl;
+    {
+        float bb[6];
+        windowBounds->getBounds(bb);
+        std::cout << "Window BottomLeft: " << bb[0] << ", " << bb[2] << " Top Right: " << bb[1] << ", " << bb[3] << std::endl;
+    }
+    
+    float regionMinX, regionMaxX, regionMinY, regionMaxY;
+    selectionBounds->getBounds(regionMinX, regionMinY, regionMaxX, regionMaxY);
+    std::cout << "   Selection BottomLeft: " << regionMinX << ", " << regionMinY << " Top Right: " << regionMaxX << ", " << regionMaxY << std::endl;
+
+    const float windowWidth(windowBounds->getMaxX() - windowBounds->getMinX());
+    const float windowHeight(windowBounds->getMaxY() - windowBounds->getMinY());
+    const float regionWidth(regionMaxX - regionMinX);
+    const float regionHeight(regionMaxY - regionMinY);
+    std::cout << "   Window Width: " << windowWidth << std::endl;
+    std::cout << "   Region Width: " << regionWidth << std::endl;
+    if ((windowWidth > 0.0)
+        && (regionWidth > 0.0)
+        && (windowHeight > 0.0)
+        && (regionHeight > 0.0)) {
+        float widthScale(windowWidth / regionWidth);
+        float heightScale(windowHeight / regionHeight);
+        
+        /*
+         * Translate to center of region
+         */
+        const float translateX(-(regionMinX + regionMaxX) / 2.0);
+        const float translateY(-(regionMinY + regionMaxY) / 2.0);
+        
+        std::cout << "   Tx = " << translateX << ", Ty = " << translateY
+        << " scale-width = " << widthScale << " scale-height = " << heightScale << std::endl;
+        
+        setTranslation(translateX, translateY, 0.0);
+        
+        const float scale(std::min(widthScale, heightScale));
+        
+        setScaling(scale);
+        
+//        Matrix4x4 m;
+//        m.translate(translateX, translateY, 0.0);
+//        m.scale(scale, scale, 1.0);
+//        m.translate(-translateX, -translateY, 0.0);
+//
+//        float t[3];
+//        m.getTranslation(t);
+//        double sx, sy, sz;
+//        m.getScale(sx, sy, sz);
+        
+//        std::cout << "  Matrix Tx=" << t[0] << " Ty=" << t[1] << " scale=" << sx << std::endl;
+//        setTranslation(t);
+//        setScaling(sx);
+        
+    }
 }
 
 

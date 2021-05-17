@@ -47,7 +47,8 @@ namespace caret {
                                      const float dataY,
                                      const bool dataXYValidFlag) override;
         
-        virtual void setViewToBounds(const GraphicsRegionSelectionBox* box) override;
+        virtual void setViewToBounds(const BoundingBox* windowBounds,
+                                     const GraphicsRegionSelectionBox* selectionBounds) override;
         
         virtual void resetView();
         

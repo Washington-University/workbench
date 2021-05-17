@@ -62,8 +62,6 @@ ImageFile::ImageFile()
 {
     m_controlPointFile.grabNew(new ControlPointFile());
     m_fileMetaData.grabNew(new GiftiMetaData());
-    m_spatialBoundingBox.reset(new BoundingBox());
-    m_volumeSpace.reset(new VolumeSpace());
     
     m_image   = new QImage();
     readFileMetaDataFromQImage();
@@ -80,8 +78,6 @@ ImageFile::ImageFile(const QImage& qimage)
 {
     m_controlPointFile.grabNew(new ControlPointFile());
     m_fileMetaData.grabNew(new GiftiMetaData());
-    m_spatialBoundingBox.reset(new BoundingBox());
-    m_volumeSpace.reset(new VolumeSpace());
 
     m_image = new QImage(qimage);
     readFileMetaDataFromQImage();
@@ -109,8 +105,6 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
 {
     m_controlPointFile.grabNew(new ControlPointFile());
     m_fileMetaData.grabNew(new GiftiMetaData());
-    m_spatialBoundingBox.reset(new BoundingBox());
-    m_volumeSpace.reset(new VolumeSpace());
 
     m_image = new QImage(imageWidth,
                              imageHeight,
@@ -1261,10 +1255,8 @@ ImageFile::getImageBytesRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
  *
  * @param imageOrigin
  *    Location of first pixel in the image data.
- * @param pixelI
- *     Image I index
- * @param pixelJ
- *     Image J index
+ * @param pixelIndex
+ *     Image of pixel
  * @param pixelRGBAOut
  *     RGBA at Pixel I, J
  * @return
@@ -1272,20 +1264,21 @@ ImageFile::getImageBytesRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
  */
 bool
 ImageFile::getImagePixelRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
-                             const int32_t pixelI,
-                             const int32_t pixelJ,
+                             const PixelIndex& pixelIndex,
                              uint8_t pixelRGBAOut[4]) const
 {
     if (m_image != NULL) {
         const int32_t w = m_image->width();
         const int32_t h = m_image->height();
         
+        const int64_t pixelI(pixelIndex.getI());
+        const int64_t pixelJ(pixelIndex.getJ());
         if ((pixelI >= 0)
             && (pixelI < w)
             && (pixelJ >= 0)
             && (pixelJ < h)) {
             
-            int32_t imageJ = pixelJ;
+            int64_t imageJ = pixelJ;
             switch (imageOrigin) {
                 case IMAGE_DATA_ORIGIN_AT_BOTTOM:
                     imageJ = h - pixelJ - 1;
@@ -1763,10 +1756,11 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
             /*
              * Coordinates at EDGE of the pixels
              */
-            const float minX = m_spatialBoundingBox->getMinX();
-            const float maxX = m_spatialBoundingBox->getMaxX();
-            const float minY = m_spatialBoundingBox->getMinY();
-            const float maxY = m_spatialBoundingBox->getMaxY();
+            const BoundingBox* boundingBox(getSpatialBoudingBox());
+            const float minX = boundingBox->getMinX();
+            const float maxX = boundingBox->getMaxX();
+            const float minY = boundingBox->getMinY();
+            const float maxY = boundingBox->getMaxY();
             
             /*
              * A Triangle Strip (consisting of two triangles) is used
@@ -1786,35 +1780,6 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
     }
     
     return m_graphicsPrimitiveForMediaDrawing.get();
-}
-
-/**
- * Convert the given spatial coordinates to image pixel indices
- * @param x
- *    The x-coordinate
- * @param y
- *    The y-coordinate
- * @param indexOutI
- *    Output with pixel I
- * @param indexOutJ
- *    Output with pixel J
- * @return
- *    True if index is a valid index into the image, else false.
- */
-bool
-ImageFile::spaceToIndex(const float x,
-                        const float y,
-                        int64_t& indexOutI,
-                        int64_t& indexOutJ) const
-{
-    const float dummyZ(0.0);
-    
-    float ijk[3];
-    m_volumeSpace->spaceToIndex(x, y, dummyZ, ijk);
-    indexOutI = ijk[0];
-    indexOutJ = ijk[1];
-    
-    return m_volumeSpace->indexValid(ijk);
 }
 
 /**
@@ -1900,10 +1865,11 @@ ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
         dataFileInformation.addNameAndValue("Width (pixels)", m_image->width());
         dataFileInformation.addNameAndValue("Height (pixels)", m_image->height());
         
-        dataFileInformation.addNameAndValue("Min X", m_spatialBoundingBox->getMinX());
-        dataFileInformation.addNameAndValue("Max X", m_spatialBoundingBox->getMaxX());
-        dataFileInformation.addNameAndValue("Min Y", m_spatialBoundingBox->getMinY());
-        dataFileInformation.addNameAndValue("Max Y", m_spatialBoundingBox->getMaxY());
+        const BoundingBox* boundingBox(getSpatialBoudingBox());
+        dataFileInformation.addNameAndValue("Min X", boundingBox->getMinX());
+        dataFileInformation.addNameAndValue("Max X", boundingBox->getMaxX());
+        dataFileInformation.addNameAndValue("Min Y", boundingBox->getMinY());
+        dataFileInformation.addNameAndValue("Max Y", boundingBox->getMaxY());
 
         const float dotsPerMeter(m_image->dotsPerMeterX());
         if (dotsPerMeter > 0.0) {
@@ -2101,8 +2067,6 @@ ImageFile::supportsFileMetaData() const
 void
 ImageFile::updateDefaultSpatialCoordinates()
 {
-    m_volumeSpace.reset(new VolumeSpace());
-    
     std::array<float, 3> pixelBottomLeftSpatialXYZ;
     pixelBottomLeftSpatialXYZ.fill(0.0);
     
@@ -2148,77 +2112,6 @@ ImageFile::updateDefaultSpatialCoordinates()
                           imageHeightInt,
                           pixelBottomLeftSpatialXYZ,
                           pixelStepXYZ);
-}
-
-/**
- * Initialize the volume space
- * @param imageWidth
- *    Width of the image
- * @param imageHeight
- *    Height of the image
- * @param firstPixelXYZ
- *    Coordinates of first pixel at center of pixel
- * @param pixelStepXYZ
- *    Step to next adjacent pixel
- */
-void
-ImageFile::initializeVolumeSpace(const int32_t imageWidth,
-                                 const int32_t imageHeight,
-                                 const std::array<float,3> firstPixelXYZ,
-                                 const std::array<float,3> pixelStepXYZ)
-{
-    m_volumeSpace.reset(new VolumeSpace());
-    m_spatialBoundingBox->resetZeros();
-    
-    if ((imageWidth < 2)
-        || (imageHeight < 2)) {
-        return;
-    }
-    
-    std::vector<float> rowOne   { pixelStepXYZ[0], 0.0, 0.0, firstPixelXYZ[0] };
-    std::vector<float> rowTwo   { 0.0, pixelStepXYZ[1], 0.0, firstPixelXYZ[1] };
-    std::vector<float> rowThree { 0.0, 0.0, pixelStepXYZ[2], firstPixelXYZ[2] };
-    std::vector<float> rowFour  { 0.0, 0.0, 0.0, 1.0 };
-    
-    std::vector<std::vector<float>> sform;
-    sform.push_back(rowOne);
-    sform.push_back(rowTwo);
-    sform.push_back(rowThree);
-    sform.push_back(rowFour);
-    
-    const int32_t imageStackSize(1);
-    const int64_t dims[3] { imageWidth, imageHeight, imageStackSize };
-    
-    m_volumeSpace.reset(new VolumeSpace(dims, sform));
-    
-    const float minIJK[3] { -0.5, -0.5, -0.5 };
-    float minX, minY, minZ;
-    m_volumeSpace->indexToSpace(minIJK, minX, minY, minZ);
-    
-    float maxIJK[3] { imageWidth - 0.5f, imageHeight - 0.5f, 0.5f };
-    float maxX, maxY, maxZ;
-    m_volumeSpace->indexToSpace(maxIJK, maxX, maxY, maxZ);
-    
-    m_spatialBoundingBox->set(minX, maxX,
-                              minY, maxY,
-                              minZ, maxZ);
-    
-    const bool testFlag(false);
-    if (testFlag) {
-        float x, y, z;
-        
-        m_volumeSpace->indexToSpace(0, 0, 0, x, y, z);
-        std::cout << "First Pixel XYZ: " << x << ", " << y << ", " << z << std::endl;
-        
-        m_volumeSpace->indexToSpace(imageWidth - 1, imageHeight - 1, imageStackSize - 1, x, y, z);
-        std::cout << "Last Pixel XYZ: " << x << ", " << y << ", " << z << std::endl;
-        
-        std::cout << "Min XYZ: " << minX << ", " << minY << ", " << minZ << std::endl;
-        
-        std::cout << "Max XYZ: " << maxX << ", " << maxY << ", " << maxZ << std::endl;
-        
-        std::cout << std::flush;
-    }
 }
 
 /**
