@@ -146,14 +146,23 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
     }
     
     const float mousePressXYZ[3] { static_cast<float>(mousePressX), static_cast<float>(mousePressY), 0.0f };
-    
+
     /*
-     * Update the scaling but don't let it get to zero or negative
+     * Scaling equations are set up so that:
+     *   MouseDY =  100 results in "newScale" 2.0 (doubles current scale)
+     *   MouseDY = -100 results in "newScale" 0.5 (halves current scale)
      */
+    const float absMouseDY(mouseDY >= 0
+                           ? mouseDY
+                           : -mouseDY);
     const float minimumValidScaleValue(0.001);
-    const float newScale((1.0f + (mouseDY * 0.01)));
+    const float absDeltaScale((1.0f + (absMouseDY * 0.01)));
+    CaretAssert(absDeltaScale > 0.0);
+    const float deltaScale((mouseDY >= 0)
+                         ? absDeltaScale
+                         : (1.0 / absDeltaScale));
     const float oldScale(getScaling());
-    const float totalScale(std::max((newScale * oldScale),
+    const float totalScale(std::max((deltaScale * oldScale),
                                     minimumValidScaleValue));
     setScaling(totalScale);
     
