@@ -145,13 +145,7 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
         return;
     }
     
-    const bool debugFlag(false);
     const float mousePressXYZ[3] { static_cast<float>(mousePressX), static_cast<float>(mousePressY), 0.0f };
-    if (debugFlag) {
-        std::cout << "Window X Y: " << mousePressXYZ[0] << ", " << mousePressXYZ[1] << std::endl;
-        std::cout << "   Data X Y: " << dataX << ", " << dataY << std::endl;
-    }
-    
     
     /*
      * Update the scaling but don't let it get to zero or negative
@@ -176,9 +170,6 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
         auto newXform = transform->cloneWithNewModelViewMatrix(identityMatrix);
         float identityXYZ[3];
         newXform->inverseTransformPoint(mousePressXYZ, identityXYZ);
-        if (debugFlag) {
-            std::cout << "   Identity X Y: " << identityXYZ[0] << ", " << identityXYZ[1] << std::endl;
-        }
         
         /*
          * Need to offset model origin from where the mouse was pressed
@@ -187,10 +178,6 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
          */
         float tx = -((dataX * totalScale) - identityXYZ[0]);
         float ty = -((dataY * totalScale) - identityXYZ[1]);
-        if (debugFlag) {
-            std::cout << "   Ident Trans XY: " << tx << ", " << ty << std::endl;
-        }
-        
         setTranslation(tx, ty, 0.0);
     }
 }
@@ -206,62 +193,41 @@ void
 ViewingTransformationsMedia::setViewToBounds(const BoundingBox* windowBounds,
                                              const GraphicsRegionSelectionBox* selectionBounds)
 {
-    return;  /* disable temporarily */
     CaretAssert(windowBounds);
     CaretAssert(selectionBounds);
     
-    {
-        float bb[6];
-        windowBounds->getBounds(bb);
-        std::cout << "Window BottomLeft: " << bb[0] << ", " << bb[2] << " Top Right: " << bb[1] << ", " << bb[3] << std::endl;
-    }
-    
     float regionMinX, regionMaxX, regionMinY, regionMaxY;
     selectionBounds->getBounds(regionMinX, regionMinY, regionMaxX, regionMaxY);
-    std::cout << "   Selection BottomLeft: " << regionMinX << ", " << regionMinY << " Top Right: " << regionMaxX << ", " << regionMaxY << std::endl;
-
+    
+    /*
+     * Ensure window and selection region are valid
+     */
     const float windowWidth(windowBounds->getMaxX() - windowBounds->getMinX());
     const float windowHeight(windowBounds->getMaxY() - windowBounds->getMinY());
     const float regionWidth(regionMaxX - regionMinX);
     const float regionHeight(regionMaxY - regionMinY);
-    std::cout << "   Window Width: " << windowWidth << std::endl;
-    std::cout << "   Region Width: " << regionWidth << std::endl;
     if ((windowWidth > 0.0)
         && (regionWidth > 0.0)
         && (windowHeight > 0.0)
         && (regionHeight > 0.0)) {
-        float widthScale(windowWidth / regionWidth);
-        float heightScale(windowHeight / regionHeight);
-        
         /*
-         * Translate to center of region
+         * Scale using width or height to best fit region into window.
          */
-        const float translateX(-(regionMinX + regionMaxX) / 2.0);
-        const float translateY(-(regionMinY + regionMaxY) / 2.0);
-        
-        std::cout << "   Tx = " << translateX << ", Ty = " << translateY
-        << " scale-width = " << widthScale << " scale-height = " << heightScale << std::endl;
-        
-        setTranslation(translateX, translateY, 0.0);
-        
+        const float widthScale(windowWidth / regionWidth);
+        const float heightScale(windowHeight / regionHeight);
         const float scale(std::min(widthScale, heightScale));
-        
         setScaling(scale);
         
-//        Matrix4x4 m;
-//        m.translate(translateX, translateY, 0.0);
-//        m.scale(scale, scale, 1.0);
-//        m.translate(-translateX, -translateY, 0.0);
-//
-//        float t[3];
-//        m.getTranslation(t);
-//        double sx, sy, sz;
-//        m.getScale(sx, sy, sz);
+        float centerXYZ[3] { 0.0, 0.0, 0.0 };
+        selectionBounds->getCenter(centerXYZ[0], centerXYZ[1]);
         
-//        std::cout << "  Matrix Tx=" << t[0] << " Ty=" << t[1] << " scale=" << sx << std::endl;
-//        setTranslation(t);
-//        setScaling(sx);
-        
+        /*
+         * Translate so that center of selection box is moved
+         * to the center of the screen
+         */
+        float tx = -((centerXYZ[0] * scale));
+        float ty = -((centerXYZ[1] * scale));
+        setTranslation(tx, ty, 0.0);
     }
 }
 

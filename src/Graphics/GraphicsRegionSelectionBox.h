@@ -50,6 +50,9 @@ namespace caret {
         
         void setStatus(const Status status);
         
+        bool getCenter(float& centerX,
+                       float& centerY) const;
+        
         bool getBounds(float& minX,
                        float& minY,
                        float& maxX,
@@ -68,6 +71,8 @@ namespace caret {
     private:
         void copyHelperGraphicsRegionSelectionBox(const GraphicsRegionSelectionBox& obj);
 
+        bool isValidCoords() const;
+        
         Status m_status = Status::INVALID;
         
         float m_x1 = 0.0;
