@@ -1007,12 +1007,6 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
     }
 
     /*
-     * If not limited, it is way too fast
-     */
-    const int limitValue(8);
-    deltaDegrees = MathFunctions::limitRange(deltaDegrees, -limitValue, limitValue);
-    
-    /*
      * Use location of mouse press so that the model
      * being manipulated does not change if mouse moves
      * out of its viewport without releasing the mouse
@@ -1028,6 +1022,20 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
                                                                                      wheelY);
     if (viewportContent != NULL) {
+        /*
+         * If not limited, it is way too fast
+         */
+        const BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+        if (browserTabContent != NULL) {
+            int32_t degreesMaximum(15);
+            if (browserTabContent->isMediaDisplayed()) {
+                degreesMaximum = 25;
+            }
+            deltaDegrees = MathFunctions::limitRange(deltaDegrees,
+                                                     -degreesMaximum,
+                                                     degreesMaximum);
+        }
+
         std::vector<MouseEvent::XY> emptyHistoryXY;
         MouseEvent mouseEvent(&m_windowContent,
                               viewportContent,

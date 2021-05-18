@@ -629,11 +629,35 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                     scaleFactor = -2.0;
                 }
                 if (scaleFactor != 0.0) {
-                    browserTabContent->applyMouseScaling(viewportContent,
-                                                         gestureEvent.getStartCenterX(),
-                                                         gestureEvent.getStartCenterX(),
-                                                         0.0f,
-                                                         scaleFactor);
+                    if (browserTabContent->isMediaDisplayed()) {
+                        const bool enableMediaGesturesFlag(false);
+                        if (enableMediaGesturesFlag) {
+                            BrainOpenGLWidget* openGLWidget = gestureEvent.getOpenGLWidget();
+                            SelectionManager* idManager = openGLWidget->performIdentification(gestureEvent.getStartCenterX(),
+                                                                                              gestureEvent.getStartCenterX(),
+                                                                                              false);
+                            CaretAssert(idManager);
+                            SelectionItemImage* imageID = idManager->getImageIdentification();
+                            if (imageID->isValid()) {
+                                double modelXYZ[3];
+                                imageID->getModelXYZ(modelXYZ);
+                                browserTabContent->applyMediaMouseScaling(viewportContent,
+                                                                          gestureEvent.getStartCenterX(),
+                                                                          gestureEvent.getStartCenterX(),
+                                                                          deltaY,
+                                                                          modelXYZ[0],
+                                                                          modelXYZ[1],
+                                                                          true);
+                            }
+                        }
+                    }
+                    else {
+                        browserTabContent->applyMouseScaling(viewportContent,
+                                                             gestureEvent.getStartCenterX(),
+                                                             gestureEvent.getStartCenterX(),
+                                                             0.0f,
+                                                             scaleFactor);
+                    }
                     updateGraphics(viewportContent);
                 }
             }
