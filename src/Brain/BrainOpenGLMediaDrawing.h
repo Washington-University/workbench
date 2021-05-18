@@ -26,7 +26,8 @@
 #include <memory>
 
 #include "CaretObject.h"
-
+#include "GraphicsTextureMagnificationFilterEnum.h"
+#include "GraphicsTextureMinificationFilterEnum.h"
 
 
 namespace caret {
@@ -41,6 +42,14 @@ namespace caret {
     class BrainOpenGLMediaDrawing : public CaretObject {
         
     public:
+        static GraphicsTextureMagnificationFilterEnum::Enum getTextureMagnificationFilter();
+        
+        static GraphicsTextureMinificationFilterEnum::Enum  getTextureMinificationFilter();
+        
+        static void setTextureMagnificationFilter(const GraphicsTextureMagnificationFilterEnum::Enum magFilter);
+        
+        static void setTextureMinificationFilter(const GraphicsTextureMinificationFilterEnum::Enum minFilter);
+        
         BrainOpenGLMediaDrawing();
         
         virtual ~BrainOpenGLMediaDrawing();
@@ -76,12 +85,15 @@ namespace caret {
         
         std::array<int32_t, 4> m_viewport;
         
+        static GraphicsTextureMagnificationFilterEnum::Enum s_textureMagnificationFilter;
+        static GraphicsTextureMinificationFilterEnum::Enum  s_textureMinificationFilter;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __BRAIN_OPEN_G_L_MEDIA_DRAWING_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    GraphicsTextureMagnificationFilterEnum::Enum BrainOpenGLMediaDrawing::s_textureMagnificationFilter = GraphicsTextureMagnificationFilterEnum::LINEAR;
+    GraphicsTextureMinificationFilterEnum::Enum  BrainOpenGLMediaDrawing::s_textureMinificationFilter  = GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR;
 #endif // __BRAIN_OPEN_G_L_MEDIA_DRAWING_DECLARE__
 
 } // namespace

@@ -49,13 +49,19 @@ using namespace caret;
  *     Type of texture wrapping
  * @param textureFilteringType
  *     Type of texture filtering
+ * @param textureMagnificationFilter
+ *    Texture filtering for when screen pixel is smaller than texture  texel
+ * @param textureMinificationFilter
+ *    Texture filtering for when screen pixel is larger than texture texel
  */
 GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveType,
                                                  const uint8_t* imageBytesRGBA,
                                                  const int32_t imageWidth,
                                                  const int32_t imageHeight,
                                                  const TextureWrappingType textureWrappingType,
-                                                 const TextureFilteringType textureFilteringType)
+                                                 const TextureFilteringType textureFilteringType,
+                                                 const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
+                                                 const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter)
 : GraphicsPrimitive(VertexDataType::FLOAT_XYZ,
                     NormalVectorDataType::NONE,
                     ColorDataType::NONE,
@@ -63,6 +69,8 @@ GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveTy
                     TextureDataType::FLOAT_STR,
                     textureWrappingType,
                     textureFilteringType,
+                    textureMagnificationFilter,
+                    textureMinificationFilter,
                     primitiveType)
 {
     setTextureImage(imageBytesRGBA,

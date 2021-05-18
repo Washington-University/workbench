@@ -1915,7 +1915,9 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                                                                                        numberOfColumns,
                                                                                        numberOfRows,
                                                                                        GraphicsPrimitive::TextureWrappingType::CLAMP,
-                                                                                       GraphicsPrimitive::TextureFilteringType::NEAREST);
+                                                                                       GraphicsPrimitive::TextureFilteringType::NEAREST,
+                                                                                       GraphicsTextureMagnificationFilterEnum::NEAREST,
+                                                                                       GraphicsTextureMinificationFilterEnum::NEAREST);
                         matrixTexturePrimitive->addVertex(matrixLeft, matrixTop, 0, 1);  /* Top Left */
                         matrixTexturePrimitive->addVertex(matrixLeft, matrixBottom, 0, 0);  /* Bottom Left */
                         matrixTexturePrimitive->addVertex(matrixRight, matrixTop, 1, 1);  /* Top Right */

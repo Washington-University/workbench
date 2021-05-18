@@ -57,6 +57,8 @@ GraphicsPrimitiveV3fN3f::GraphicsPrimitiveV3fN3f(const PrimitiveType primitiveTy
                     TextureDataType::NONE,
                     TextureWrappingType::CLAMP,
                     TextureFilteringType::LINEAR,
+                    GraphicsTextureMagnificationFilterEnum::LINEAR,
+                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                     primitiveType)
 {
     m_floatSolidRGBA[0] = rgba[0];
@@ -82,6 +84,8 @@ GraphicsPrimitiveV3fN3f::GraphicsPrimitiveV3fN3f(const PrimitiveType primitiveTy
                     TextureDataType::NONE,
                     TextureWrappingType::CLAMP,
                     TextureFilteringType::LINEAR,
+                    GraphicsTextureMagnificationFilterEnum::LINEAR,
+                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                     primitiveType)
 {
     m_unsignedByteSolidRGBA[0] = rgba[0];

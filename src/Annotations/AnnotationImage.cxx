@@ -236,7 +236,9 @@ AnnotationImage::getGraphicsPrimitive() const
                                                                                        m_imageWidth,
                                                                                        m_imageHeight,
                                                                                        GraphicsPrimitive::TextureWrappingType::CLAMP,
-                                                                                       GraphicsPrimitive::TextureFilteringType::LINEAR);
+                                                                                       GraphicsPrimitive::TextureFilteringType::LINEAR,
+                                                                                       GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR);
             /*
              * A Triangle Strip (consisting of two triangles) is used
              * for drawing the image.  At this time, the XYZ coordinates

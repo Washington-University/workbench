@@ -192,6 +192,13 @@ BrainOpenGLMediaDrawing::drawModelLayers()
                         if ( ! selectImageFlag) {
                             m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
                         }
+                        
+                        /*
+                         * Set texture filtering
+                         */
+                        primitive->setTextureMinificationFilter(s_textureMinificationFilter);
+                        primitive->setTextureMagnificationFilter(s_textureMagnificationFilter);
+                        
                         GraphicsEngineDataOpenGL::draw(primitive);
                         glPopAttrib();
                         
@@ -285,31 +292,9 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
             && (drawnImageHeight > 0.0)
             && (windowMaxXYZ[0] > windowMinXYZ[0])
             && (windowMaxXYZ[1] - windowMinXYZ[1])) {
-//            const float imageWidth(imageFile->getWidth());
-//            const float imageHeight(imageFile->getHeight());
             
             const float mouseX(this->m_fixedPipelineDrawing->mouseX);
             const float mouseY(this->m_fixedPipelineDrawing->mouseY);
-            
-//            /*
-//             * Offset of mouse from bottom left of image in window coordinates
-//             */
-//            const float relativePixelX = mouseX - windowMinXYZ[0];
-//            const float relativePixelY = mouseY - windowMinXYZ[1];
-//            
-//            /*
-//             * Normalized coordinate in image (range is 0 to 1 if inside image)
-//             */
-//            const float normalizedPixelX = relativePixelX / static_cast<float>(windowMaxXYZ[0] - windowMinXYZ[0]);
-//            const float normalizedPixelY = relativePixelY / static_cast<float>(windowMaxXYZ[1] - windowMinXYZ[1]);
-//            
-//            /*
-//             * Pixel X&Y in image
-//             */
-//            const int32_t pixelX = static_cast<int32_t>(normalizedPixelX *
-//                                                        static_cast<float>(imageWidth));
-//            const int32_t pixelY = static_cast<int32_t>(normalizedPixelY *
-//                                                        static_cast<float>(imageHeight));
             
             float windowXYZ[3] { mouseX, mouseY, 0.0 };
             std::array<float, 3> modelXYZ;
@@ -326,9 +311,6 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
             MediaFile::PixelIndex pixelIndex;
             const bool validIndexFlag(imageFile->spaceToIndexValid(pixelCoordinate,
                                                                    pixelIndex));
-//            std::cout << "Pixel XY: " << pixelX << ", " << pixelY << std::endl;
-//            std::cout << "   Pixel Index: " << indexI << ", " << indexJ << " valid: " << AString::fromBool(validIndexFlag) << std::endl << std::flush;
-
             /*
              * Verify clicked location is inside image
              */
@@ -362,3 +344,42 @@ BrainOpenGLMediaDrawing::toString() const
     return "BrainOpenGLMediaDrawing";
 }
 
+/**
+ * @return The texture magnification filter for image drawing
+ */
+GraphicsTextureMagnificationFilterEnum::Enum
+BrainOpenGLMediaDrawing::getTextureMagnificationFilter()
+{
+    return s_textureMagnificationFilter;
+}
+
+/**
+ * @return The texture minification filter for image drawing
+ */
+GraphicsTextureMinificationFilterEnum::Enum
+BrainOpenGLMediaDrawing::getTextureMinificationFilter()
+{
+    return s_textureMinificationFilter;
+}
+
+/**
+ * Set the texture magnification filter for image drawing
+ * @param magFilter
+ *    New value for magnification filter
+ */
+void
+BrainOpenGLMediaDrawing::setTextureMagnificationFilter(const GraphicsTextureMagnificationFilterEnum::Enum magFilter)
+{
+    s_textureMagnificationFilter = magFilter;
+}
+
+/**
+ * Set the texture minification filter for image drawing
+ * @param minFilter
+ *    New value for minnification filter
+ */
+void
+BrainOpenGLMediaDrawing::setTextureMinificationFilter(const GraphicsTextureMinificationFilterEnum::Enum minFilter)
+{
+    s_textureMinificationFilter = minFilter;
+}

@@ -32,6 +32,7 @@
 namespace caret {
 
     class CaretPreferences;
+    class EnumComboBoxTemplate;
     class WuQTrueFalseComboBox;
     
     class PreferencesDevelopOptionsWidget : public QWidget {
@@ -55,6 +56,10 @@ namespace caret {
         void developerFlagSelected(const DeveloperFlagsEnum::Enum flag,
                                    const bool status);
         
+        void graphicsTextureMagnificationFilterEnumComboBoxItemActivated();
+        
+        void graphicsTextureMinificationFilterEnumComboBoxItemActivated();
+        
     private:
         void updateGraphicsAndUserInterface();
         
@@ -62,6 +67,10 @@ namespace caret {
         CaretPreferences* m_preferences = NULL;
         
         std::map<WuQTrueFalseComboBox*, DeveloperFlagsEnum::Enum> m_developerFlagsMap;
+        
+        EnumComboBoxTemplate* m_graphicsTextureMagnificationFilterEnumComboBox = NULL;
+        
+        EnumComboBoxTemplate* m_graphicsTextureMinificationFilterEnumComboBox = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

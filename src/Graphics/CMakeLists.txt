@@ -37,6 +37,8 @@ GraphicsPrimitiveV3fN3fC4ub.h
 GraphicsPrimitiveV3fT3f.h
 GraphicsRegionSelectionBox.h
 GraphicsShape.h
+GraphicsTextureMagnificationFilterEnum.h
+GraphicsTextureMinificationFilterEnum.h
 GraphicsUtilitiesOpenGL.h
 
 EventGraphicsOpenGLCreateBufferObject.cxx
@@ -61,6 +63,8 @@ GraphicsPrimitiveV3fN3fC4ub.cxx
 GraphicsPrimitiveV3fT3f.cxx
 GraphicsRegionSelectionBox.cxx
 GraphicsShape.cxx
+GraphicsTextureMagnificationFilterEnum.cxx
+GraphicsTextureMinificationFilterEnum.cxx
 GraphicsUtilitiesOpenGL.cxx
 )
 

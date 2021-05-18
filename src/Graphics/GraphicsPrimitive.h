@@ -28,6 +28,8 @@
 
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
+#include "GraphicsTextureMagnificationFilterEnum.h"
+#include "GraphicsTextureMinificationFilterEnum.h"
 
 namespace caret {
 
@@ -325,6 +327,8 @@ namespace caret {
                           const TextureDataType      textureDataType,
                           const TextureWrappingType  textureWrappingType,
                           const TextureFilteringType textureFilteringType,
+                          const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
+                          const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
                           const PrimitiveType        primitiveType);
         
         GraphicsPrimitive(const GraphicsPrimitive& obj);
@@ -353,7 +357,9 @@ namespace caret {
                                                            const int32_t imageWidth,
                                                            const int32_t imageHeight,
                                                            const TextureWrappingType textureWrappingType,
-                                                           const TextureFilteringType textureFilteringType);
+                                                           const TextureFilteringType textureFilteringType,
+                                                           const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
+                                                           const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter);
         
         virtual ~GraphicsPrimitive();
         
@@ -432,6 +438,30 @@ namespace caret {
          * @return Type of texture filtering
          */
         inline TextureFilteringType getTextureFilteringType() const { return m_textureFilteringType; }
+        
+        /**
+         * @return Type of magnification texture filtering (pixel smaller than texel)
+         */
+        inline GraphicsTextureMagnificationFilterEnum::Enum getTextureMagnificationFilter() const { return m_textureMagnificationFilter; }
+        
+        /**
+         * @return Type of minification texture filtering (pixel bigger than texel)
+         */
+        inline GraphicsTextureMinificationFilterEnum::Enum getTextureMinificationFilter() const { return m_textureMinificationFilter; }
+
+        /**
+         * Set type of magnification filter (pixel smaller than texel)
+         */
+        inline void setTextureMagnificationFilter(const GraphicsTextureMagnificationFilterEnum::Enum magFilter) {
+            m_textureMagnificationFilter = magFilter;
+        }
+        
+        /**
+         * Set type of minification filter (pixel bigger than texel)
+         */
+        inline void setTextureMinificationFilter(const GraphicsTextureMinificationFilterEnum::Enum minFilter) {
+            m_textureMinificationFilter = minFilter;
+        }
         
         /**
          * @return The float coordinates.
@@ -564,6 +594,10 @@ namespace caret {
         
         const TextureFilteringType m_textureFilteringType;
         
+        GraphicsTextureMagnificationFilterEnum::Enum m_textureMagnificationFilter = GraphicsTextureMagnificationFilterEnum::LINEAR;
+        
+        GraphicsTextureMinificationFilterEnum::Enum m_textureMinificationFilter = GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR;
+
         const PrimitiveType m_primitiveType;
 
         ReleaseInstanceDataMode m_releaseInstanceDataMode = ReleaseInstanceDataMode::DISABLED;

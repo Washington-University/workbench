@@ -1291,16 +1291,51 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     if (hasTextureFlag
         && (drawMode == PrivateDrawMode::DRAW_NORMAL)
         && (openglData->m_textureImageDataName->getTextureName() > 0)) {
-            glEnable(GL_TEXTURE_2D);
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            glBindTexture(GL_TEXTURE_2D, openglData->m_textureImageDataName->getTextureName());
-            
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            CaretAssert(glIsBuffer(openglData->m_textureCoordinatesBufferObject->getBufferObjectName()));
-            glBindBuffer(GL_ARRAY_BUFFER, openglData->m_textureCoordinatesBufferObject->getBufferObjectName());
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        glBindTexture(GL_TEXTURE_2D, openglData->m_textureImageDataName->getTextureName());
+        
+        GLenum minFilter = GL_LINEAR;
+        switch (primitive->getTextureMinificationFilter()) {
+            case GraphicsTextureMinificationFilterEnum::LINEAR:
+                minFilter = GL_LINEAR;
+                break;
+            case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR:
+                minFilter = GL_LINEAR_MIPMAP_LINEAR;
+                break;
+            case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_NEAREST:
+                minFilter = GL_LINEAR_MIPMAP_NEAREST;
+                break;
+            case GraphicsTextureMinificationFilterEnum::NEAREST:
+                minFilter = GL_NEAREST;
+                break;
+            case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_LINEAR:
+                minFilter = GL_NEAREST_MIPMAP_LINEAR;
+                break;
+            case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_NEAREST:
+                minFilter = GL_NEAREST_MIPMAP_NEAREST;
+                break;
+        }
+        
+        GLenum magFilter = GL_LINEAR;
+        switch (primitive->getTextureMagnificationFilter()) {
+            case GraphicsTextureMagnificationFilterEnum::LINEAR:
+                magFilter = GL_LINEAR;
+                break;
+            case GraphicsTextureMagnificationFilterEnum::NEAREST:
+                magFilter = GL_NEAREST;
+                break;
+        }
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+        
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        CaretAssert(glIsBuffer(openglData->m_textureCoordinatesBufferObject->getBufferObjectName()));
+        glBindBuffer(GL_ARRAY_BUFFER, openglData->m_textureCoordinatesBufferObject->getBufferObjectName());
         glTexCoordPointer(3, openglData->m_textureCoordinatesDataType, 0, (GLvoid*)0);
     }
-     
+
     /*
      * Unbind buffers
      */

@@ -1751,7 +1751,9 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
                                                                                        width,
                                                                                        height,
                                                                                        GraphicsPrimitive::TextureWrappingType::CLAMP,
-                                                                                       GraphicsPrimitive::TextureFilteringType::LINEAR);
+                                                                                       GraphicsPrimitive::TextureFilteringType::LINEAR,
+                                                                                       GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR);
             
             /*
              * Coordinates at EDGE of the pixels

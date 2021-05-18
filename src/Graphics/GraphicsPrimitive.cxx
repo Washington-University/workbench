@@ -70,6 +70,10 @@ using namespace caret;
  *     Type of texture wrapping
  * @param textureFilteringType
  *     Type of texture filtering
+ * @param textureMagnificationFilter
+ *    Texture filtering for when screen pixel is smaller than texture  texel
+ * @param textureMinificationFilter
+ *    Texture filtering for when screen pixel is larger than texture texel
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
  */
@@ -80,6 +84,8 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType       vertexDataType,
                                      const TextureDataType      textureDataType,
                                      const TextureWrappingType  textureWrappingType,
                                      const TextureFilteringType textureFilteringType,
+                                     const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
+                                     const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
                                      const PrimitiveType        primitiveType)
 : CaretObject(),
  EventListenerInterface(),
@@ -90,6 +96,8 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType       vertexDataType,
  m_textureDataType(textureDataType),
  m_textureWrappingType(textureWrappingType),
  m_textureFilteringType(textureFilteringType),
+ m_textureMagnificationFilter(textureMagnificationFilter),
+ m_textureMinificationFilter(textureMinificationFilter),
  m_primitiveType(primitiveType),
  m_boundingBoxValid(false)
 {
@@ -2359,6 +2367,10 @@ GraphicsPrimitive::newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType pr
  *     Type of texture wrapping
  * @param textureFilteringType
  *     Type of texture filtering
+ * @param textureMagnificationFilter
+ *    Texture filtering for when screen pixel is smaller than texture  texel
+ * @param textureMinificationFilter
+ *    Texture filtering for when screen pixel is larger than texture texel
  */
 GraphicsPrimitiveV3fT3f*
 GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
@@ -2366,14 +2378,18 @@ GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType pri
                                       const int32_t imageWidth,
                                       const int32_t imageHeight,
                                       const TextureWrappingType textureWrappingType,
-                                      const TextureFilteringType textureFilteringType)
+                                      const TextureFilteringType textureFilteringType,
+                                      const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
+                                      const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter)
 {
     GraphicsPrimitiveV3fT3f* primitive = new GraphicsPrimitiveV3fT3f(primitiveType,
                                                                      imageBytesRGBA,
                                                                      imageWidth,
                                                                      imageHeight,
                                                                      textureWrappingType,
-                                                                     textureFilteringType);
+                                                                     textureFilteringType,
+                                                                     textureMagnificationFilter,
+                                                                     textureMinificationFilter);
     return primitive;
 }
 

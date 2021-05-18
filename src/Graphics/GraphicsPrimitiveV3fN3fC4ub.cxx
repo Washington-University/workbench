@@ -48,6 +48,8 @@ GraphicsPrimitiveV3fN3fC4ub::GraphicsPrimitiveV3fN3fC4ub(const PrimitiveType pri
                     TextureDataType::NONE,
                     TextureWrappingType::CLAMP,
                     TextureFilteringType::LINEAR,
+                    GraphicsTextureMagnificationFilterEnum::LINEAR,
+                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                     primitiveType)
 {
     
