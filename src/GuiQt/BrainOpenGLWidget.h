@@ -59,6 +59,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class EventImageCapture;
+    class GraphicsFramesPerSecond;
     class SelectionItemAnnotation;
     class SelectionManager;
     class Model;
@@ -212,6 +213,8 @@ namespace caret {
         bool m_openGLContextSharingValid = false;
         
         void* m_contextShareGroupPointer = NULL;
+        
+        std::unique_ptr<GraphicsFramesPerSecond> m_graphicsFramesPerSecond;
         
         struct SelectedChartPointToolTipInfo {
             QPoint m_position;

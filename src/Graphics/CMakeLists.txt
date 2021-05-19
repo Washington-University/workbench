@@ -22,6 +22,7 @@ EventGraphicsOpenGLDeleteTextureName.h
 EventOpenGLObjectToWindowTransform.h
 GraphicsEngineData.h
 GraphicsEngineDataOpenGL.h
+GraphicsFramesPerSecond.h
 GraphicsObjectToWindowTransform.h
 GraphicsOpenGLBufferObject.h
 GraphicsOpenGLError.h
@@ -48,6 +49,7 @@ EventGraphicsOpenGLDeleteTextureName.cxx
 EventOpenGLObjectToWindowTransform.cxx
 GraphicsEngineData.cxx
 GraphicsEngineDataOpenGL.cxx
+GraphicsFramesPerSecond.cxx
 GraphicsObjectToWindowTransform.cxx
 GraphicsOpenGLBufferObject.cxx
 GraphicsOpenGLError.cxx

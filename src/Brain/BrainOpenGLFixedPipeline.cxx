@@ -38,6 +38,7 @@
 #include "AnnotationBrowserTab.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationManager.h"
+#include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "AnnotationScaleBar.h"
 #include "Border.h"
@@ -313,9 +314,11 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
         drawTabAnnotations(viewportContent);
     }
     
+    const double noGraphicsFramesPerSecond(-1.0);
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
-    drawWindowAnnotations(windowViewport);
+    drawWindowAnnotations(windowViewport,
+                          noGraphicsFramesPerSecond);
     
     m_brain->getSelectionManager()->filterSelections(applySelectionBackgroundFiltering);
     
@@ -744,12 +747,15 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const s
  *    The brain (must be valid!)
  * @param viewportContents
  *    Viewport info for drawing.
+ * @param graphicsFramesPerSecond
+ *    Graphics frames per second that may be displayed
  */
 void 
 BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
                                                    const UserInputModeEnum::Enum windowUserInputMode,
                                                    Brain* brain,
-                                                   const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
+                                                   const std::vector<const BrainOpenGLViewportContent*>& viewportContents,
+                                                   const double graphicsFramesPerSecond)
 {
     m_brain = brain;
     m_windowIndex = windowIndex;
@@ -882,7 +888,8 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
                     int windowViewport[4];
                     viewportContents[0]->getWindowViewport(windowViewport);
                     CaretAssert(m_windowIndex == viewportContents[0]->getWindowIndex());
-                    drawWindowAnnotations(windowViewport);
+                    drawWindowAnnotations(windowViewport,
+                                          graphicsFramesPerSecond);
                     windowAnnotationsDrawnFlag = true;
                 }
                 
@@ -1053,7 +1060,8 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
             int windowViewport[4];
             viewportContents[0]->getWindowViewport(windowViewport);
             CaretAssert(m_windowIndex == viewportContents[0]->getWindowIndex());
-            drawWindowAnnotations(windowViewport);
+            drawWindowAnnotations(windowViewport,
+                                  graphicsFramesPerSecond);
         }
         
         if ( ! viewportContents.empty()) {
@@ -1415,9 +1423,12 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
  *
  * @param windowViewport
  *    Viewport (x, y, w, h).
+ * @param graphicsFramesPerSecond
+ *    Graphics frames per second displayed if greater than zero
  */
 void
-BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
+BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4],
+                                                const double graphicsFramesPerSecond)
 {
     CaretAssertMessage(m_brain, "m_brain must NOT be NULL for drawing window annotations.");
     
@@ -1486,6 +1497,29 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
                                          notInFileAnnotations,
                                          annotationDrawingNullSurface,
                                          annotationDrawingUnusedSurfaceScaling);
+    
+    if (graphicsFramesPerSecond > 0.0) {
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        uint8_t windowForegroundColorRGBA[4];
+        prefs->getBackgroundAndForegroundColors()->getColorForegroundWindow(windowForegroundColorRGBA);
+        windowForegroundColorRGBA[3] = 255;
+        uint8_t windowBackgroundColorRGBA[4];
+        prefs->getBackgroundAndForegroundColors()->getColorBackgroundWindow(windowBackgroundColorRGBA);
+        windowBackgroundColorRGBA[3] = 255;
+
+        AnnotationPercentSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL);
+        text.setHeight(5.0);
+        text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+        text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+        text.setTextColor(CaretColorEnum::CUSTOM);
+        text.setCustomTextColor(windowForegroundColorRGBA);
+        text.setBackgroundColor(CaretColorEnum::CUSTOM);
+        text.setCustomBackgroundColor(windowBackgroundColorRGBA);
+        text.setText(AString::number(graphicsFramesPerSecond, 'f', 2) + " fps");
+        const double textX(windowViewport[0] + windowViewport[2] - 10.0);
+        const double textY(windowViewport[1] + 10.0);
+        drawTextAtViewportCoords(textX, textY, text);
+    }
 
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);

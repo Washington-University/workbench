@@ -234,12 +234,15 @@ BrainOpenGL::receiveEvent(Event* event)
  *    Pointer to the active OpenGL context.
  * @param viewportContents
  *    Viewport info for drawing.
+ * @param graphicsFramesPerSecond
+ *    Frames for second for display in window
  */
 void BrainOpenGL::drawModels(const int32_t windowIndex,
                              const UserInputModeEnum::Enum windowsUserInputMode,
                              Brain* brain,
                              void* contextSharingGroupPointer,
-                             const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
+                             const std::vector<const BrainOpenGLViewportContent*>& viewportContents,
+                             const double graphicsFramesPerSecond)
 {
     m_contextSharingGroupPointer = contextSharingGroupPointer;
     
@@ -253,7 +256,8 @@ void BrainOpenGL::drawModels(const int32_t windowIndex,
     drawModelsImplementation(windowIndex,
                              windowsUserInputMode,
                              brain,
-                             vpContents);
+                             vpContents,
+                             graphicsFramesPerSecond);
     
     deleteUnusedOpenGLNames();
     

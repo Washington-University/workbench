@@ -120,7 +120,8 @@ namespace caret {
         void drawModelsImplementation(const int32_t windowIndex,
                                       const UserInputModeEnum::Enum windowUserInputMode,
                                       Brain* brain,
-                                      const std::vector<const BrainOpenGLViewportContent*>& viewportContents) override;
+                                      const std::vector<const BrainOpenGLViewportContent*>& viewportContents,
+                                      const double graphicsFramesPerSecond) override;
         
         void selectModelImplementation(const int32_t windowIndex,
                                        const UserInputModeEnum::Enum windowUserInputMode,
@@ -466,7 +467,8 @@ namespace caret {
         void drawTextAtModelCoords(const float modelXYZ[3],
                                    const AnnotationText& annotationText);
         
-        void drawWindowAnnotations(const int windowViewport[4]);
+        void drawWindowAnnotations(const int windowViewport[4],
+                                   const double graphicsFramesPerSecond);
         
         void drawSpacerAnnotations(const BrainOpenGLViewportContent* tabContent);
         

@@ -87,6 +87,12 @@ CaretPreferences::CaretPreferences()
                                                             CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                             false));
  
+    m_graphicsFramePerSecondEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                       "graphicsFramePerSecondEnabled",
+                                                                       CaretPreferenceDataValue::DataType::BOOLEAN,
+                                                                       CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                       false));
+    
     m_toolBarWidthModePreference.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                     "toolBarWidthMode",
                                                                     CaretPreferenceDataValue::DataType::STRING,
@@ -1521,6 +1527,27 @@ void
 CaretPreferences::setGuiGesturesEnabled(const bool status)
 {
     m_guiGesturesEnabled->setValue(status);
+}
+
+/**
+ * @retrurn Graphics frames per second enabled
+ */
+bool
+CaretPreferences::isGraphicsFramesPerSecondEnabled() const
+{
+    return m_graphicsFramePerSecondEnabled->getValue().toBool();
+}
+
+/**
+ * Set graphics frames per second enabled
+ *
+ *  @param status
+ *   New enabled status
+ */
+void
+CaretPreferences::setGraphicsFramesPerSecondEnabled(const bool status)
+{
+    m_graphicsFramePerSecondEnabled->setValue(status);
 }
 
 /**

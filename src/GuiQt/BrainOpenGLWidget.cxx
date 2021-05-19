@@ -73,6 +73,7 @@
 #include "EventUserInputModeGet.h"
 #include "FtglFontTextRenderer.h"
 #include "GestureEvent.h"
+#include "GraphicsFramesPerSecond.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
 #include "KeyEvent.h"
@@ -218,6 +219,8 @@ windowIndex(windowIndex)
      * Get pinch gesture event
      */
     grabGesture(Qt::PinchGesture);
+    
+    m_graphicsFramesPerSecond.reset(new GraphicsFramesPerSecond());
 }
 
 /**
@@ -465,11 +468,13 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
     getDrawingWindowContent(viewport,
                             windowContent);
     
+    const double noGraphicsTimingValue(-1.0);
     s_singletonOpenGL->drawModels(this->windowIndex,
                                   getSelectedInputMode(),
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
-                                  windowContent.getAllTabViewports());
+                                  windowContent.getAllTabViewports(),
+                                  noGraphicsTimingValue);
     
     if (offscreen.isError()) {
         WuQMessageBox::errorOk(this,
@@ -688,6 +693,14 @@ BrainOpenGLWidget::paintGL()
         CaretAssert(m_contextShareGroupPointer);
     }
 #endif
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    CaretAssert(prefs);
+    if (prefs->isGraphicsFramesPerSecondEnabled()) {
+        m_graphicsFramesPerSecond->startOfDrawing();
+    }
+    else {
+        m_graphicsFramesPerSecond->reinitialize();
+    }
     
     updateCursor();
     
@@ -717,7 +730,8 @@ BrainOpenGLWidget::paintGL()
                                   inputMode,
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
-                                  m_windowContent.getAllTabViewports());
+                                  m_windowContent.getAllTabViewports(),
+                                  m_graphicsFramesPerSecond->getFramesPerSecond());
     
     /*
      * Issue browser window redrawn event
@@ -725,6 +739,10 @@ BrainOpenGLWidget::paintGL()
     BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
     if (bbw != NULL) {
         EventManager::get()->sendEvent(EventBrowserWindowGraphicsRedrawn(bbw).getPointer());
+    }
+    
+    if (prefs->isGraphicsFramesPerSecondEnabled()) {
+        m_graphicsFramesPerSecond->endOfDrawing();
     }
 }
 

@@ -259,6 +259,10 @@ namespace caret {
         
         void setGuiGesturesEnabled(const bool status);
         
+        bool isGraphicsFramesPerSecondEnabled() const;
+        
+        void setGraphicsFramesPerSecondEnabled(const bool status);
+        
         WuQMacroGroup* getMacros();
         
         const WuQMacroGroup* getMacros() const;
@@ -405,6 +409,8 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_recentMaximumNumberOfDirectoriesPreferences;
 
         std::unique_ptr<CaretPreferenceDataValue> m_recentFilesSystemAccessMode;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_graphicsFramePerSecondEnabled;
         
         bool splashScreenEnabled;
         

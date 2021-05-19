@@ -66,6 +66,7 @@ namespace caret {
         void miscFileOpenFromOpSysTypeComboBoxItemActivated();
         void openGLDrawingMethodEnumComboBoxItemActivated();
         void openGLImageCaptureMethodEnumComboBoxItemActivated();
+        void openGLGraphicsTimingComboBoxToggled(bool value);
         
         void volumeAxesCrosshairsComboBoxToggled(bool value);
         void volumeAxesLabelsComboBoxToggled(bool value);
@@ -153,7 +154,8 @@ namespace caret {
         
         EnumComboBoxTemplate* m_openGLDrawingMethodEnumComboBox;
         EnumComboBoxTemplate* m_openGLImageCaptureMethodEnumComboBox;
-
+        WuQTrueFalseComboBox* m_openGLGraphicsTimingEnabledComboBox;
+        
         WuQTrueFalseComboBox* m_dynamicConnectivityComboBox;
         
         EnumComboBoxTemplate* m_volumeAllSlicePlanesLayoutComboBox;

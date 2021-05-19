@@ -693,11 +693,45 @@ PreferencesDialog::createOpenGLWidget()
     vertexBuffersLabel->setHidden(true);
     m_openGLDrawingMethodEnumComboBox->getWidget()->setHidden(true);
     
+    /*
+     * Graphics timing
+     */
+    m_openGLGraphicsTimingEnabledComboBox = new WuQTrueFalseComboBox("On",
+                                                       "Off",
+                                                       this);
+    QObject::connect(m_openGLGraphicsTimingEnabledComboBox, &WuQTrueFalseComboBox::statusChanged,
+                     this, &PreferencesDialog::openGLGraphicsTimingComboBoxToggled);
+    addWidgetToLayout(gridLayout,
+                      "Show Frames Per Second",
+                      m_openGLGraphicsTimingEnabledComboBox->getWidget());
+    m_allWidgets->add(m_openGLGraphicsTimingEnabledComboBox);
+    
+
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addLayout(gridLayout);
     layout->addStretch();
     return widget;
+}
+
+/**
+ * Called when graphics timing combo value changed
+ */
+void
+PreferencesDialog::openGLGraphicsTimingComboBoxToggled(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setGraphicsFramesPerSecondEnabled(value);
+    const bool doRepaintFlag(true);
+    
+    /*
+     * Need to draw a few frames to force creation of frame times so that
+     * the text is dislayed in the window
+     */
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(doRepaintFlag).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(doRepaintFlag).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(doRepaintFlag).getPointer());
 }
 
 /**
@@ -714,6 +748,8 @@ PreferencesDialog::updateOpenGLWidget(CaretPreferences* prefs)
     
     const OpenGLDrawingMethodEnum::Enum drawingMethod = prefs->getOpenDrawingMethod();
     m_openGLDrawingMethodEnumComboBox->setSelectedItem<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>(drawingMethod);
+    
+    m_openGLGraphicsTimingEnabledComboBox->setStatus(prefs->isGraphicsFramesPerSecondEnabled());
 }
 
 /**
