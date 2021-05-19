@@ -127,7 +127,8 @@ QtPluginsPathSetup::setupPluginsPathEnvironmentVariable(const AString& programPa
     
     const bool debugFlag(false);
     /*
-     * Note: Cannot use logger as it has not been created
+     * Note: CANNOT USE LOGGER AS IT HAS NOT BEEN CREATED.
+     *       MUST USE STD OUT/ERROR.
      */
     const QString pluginPathEnvVar("QT_PLUGIN_PATH");
     
@@ -158,7 +159,7 @@ QtPluginsPathSetup::setupPluginsPathEnvironmentVariable(const AString& programPa
      * Move up one directory into "Contents"
      */
     if ( ! appDir.cdUp()) {
-        std::cout << AString(errorPrefix
+        std::cerr << AString(errorPrefix
                              + "Failed to cdUp() from MacOS App Path: "
                              + appPath) << std::endl;
         return;
@@ -172,9 +173,11 @@ QtPluginsPathSetup::setupPluginsPathEnvironmentVariable(const AString& programPa
      */
     const AString pluginsDirName("PlugIns");
     if ( ! appDir.cd(pluginsDirName)) {
-        std::cout << AString(errorPrefix
+        std::cerr << AString(errorPrefix
                              + "Failed to cd into "
-                             + pluginsDirName) << std::endl;
+                             + pluginsDirName
+                             + ".  This may occur if (1) the wb_view.app bundle is missing content; or "
+                             "(2) This is a development build of wb_view.") << std::endl;
         return;
     }
     const AString pluginsPath(appDir.canonicalPath());
@@ -187,7 +190,7 @@ QtPluginsPathSetup::setupPluginsPathEnvironmentVariable(const AString& programPa
      */
     if ( ! qputenv(pluginPathEnvVar.toLocal8Bit(),
                    pluginsPath.toLocal8Bit())) {
-        std::cout << errorPrefix << "Error setting " << pluginPathEnvVar << " to " << pluginsPath << std::endl;
+        std::cerr << errorPrefix << "Error setting " << pluginPathEnvVar << " to " << pluginsPath << std::endl;
     }
 #endif
 }
