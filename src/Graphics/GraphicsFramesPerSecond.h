@@ -44,12 +44,16 @@ namespace caret {
 
         GraphicsFramesPerSecond& operator=(const GraphicsFramesPerSecond&) = delete;
         
-        double getFramesPerSecond() const;
+        double getStartEndFramesPerSecond() const;
         
         void startOfDrawing();
         
         void endOfDrawing();
 
+        void updateSinceLastFramesPerSecond();
+        
+        double getSinceLastFramesPerSecond() const;
+        
         void reinitialize();
         
         // ADD_NEW_METHODS_HERE
@@ -57,13 +61,21 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        double getFPS(const std::vector<double>& frameTimes) const;
+        
         const int32_t m_maximumFrameCount;
         
-        std::unique_ptr<ElapsedTimer> m_timer;
+        std::unique_ptr<ElapsedTimer> m_startEndTimer;
         
-        std::vector<double> m_frameTimes;
+        std::unique_ptr<ElapsedTimer> m_sinceLastTimer;
         
-        int32_t m_frameTimesIndex = 0;
+        std::vector<double> m_startStopFrameTimes;
+        
+        int32_t m_startStopFrameTimesIndex = 0;
+        
+        mutable std::vector<double> m_sinceLastFrameTimes;
+        
+        mutable int32_t m_sinceLastFrameTimesIndex = 0;
         
         // ADD_NEW_MEMBERS_HERE
 

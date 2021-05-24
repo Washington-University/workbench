@@ -69,6 +69,7 @@ namespace caret {
     class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class EventOpenGLObjectToWindowTransform;
+    class GraphicsFramesPerSecond;
     class GraphicsObjectToWindowTransform;
     class Model;
     class SurfaceProjectedItem;
@@ -108,7 +109,7 @@ namespace caret {
                         Brain* brain,
                         void* contextSharingGroupPointer,
                         const std::vector<const BrainOpenGLViewportContent*>& viewportContents,
-                        const double graphicsFramesPerSecond);
+                        const GraphicsFramesPerSecond* graphicsFramesPerSecond);
         
         void selectModel(const int32_t windowIndex,
                          const UserInputModeEnum::Enum windowUserInputMode,
@@ -251,7 +252,7 @@ namespace caret {
                                               const UserInputModeEnum::Enum windowUserInputMode,
                                               Brain* brain,
                                               const std::vector<const BrainOpenGLViewportContent*>& viewportContents,
-                                              const double graphicsFramesPerSecond) = 0;
+                                              const GraphicsFramesPerSecond* graphicsFramesPerSecond) = 0;
         
         /**
          * Selection on a model.

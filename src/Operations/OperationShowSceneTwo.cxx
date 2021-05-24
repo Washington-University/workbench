@@ -1073,13 +1073,13 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
                 
                 std::vector<const BrainOpenGLViewportContent*> constViewports(viewports.begin(),
                                                                               viewports.end());
-                const double noGraphicsFramesPerSecond(-1.0);
+                const GraphicsFramesPerSecond* noGraphicsTiming(NULL);
                 brainOpenGL->drawModels(windowIndex,
                                         UserInputModeEnum::Enum::VIEW,
                                         brain,
                                         inputs.m_offscreenRenderer->getDrawingContext(),
                                         constViewports,
-                                        noGraphicsFramesPerSecond);
+                                        noGraphicsTiming);
 
                 /*
                  * Image capture event will set resolution and add margin
@@ -1133,13 +1133,13 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
         std::vector<const BrainOpenGLViewportContent*> viewportContents;
         viewportContents.push_back(content);
         
-        const double noGraphicsFramesPerSecond(-1.0);
+        const GraphicsFramesPerSecond* noGraphicsTiming(NULL);
         brainOpenGL->drawModels(windowIndex,
                                 UserInputModeEnum::Enum::VIEW,
                                 brain,
                                 inputs.m_offscreenRenderer->getDrawingContext(),
                                 viewportContents,
-                                noGraphicsFramesPerSecond);
+                                noGraphicsTiming);
 
         writeImageFile(inputs.m_imageFileName,
                        inputs.m_outputImageIndex,

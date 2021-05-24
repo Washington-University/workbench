@@ -66,6 +66,8 @@ namespace caret {
         
         void printSeconds(const AString& message);
         
+        bool isStarted() const;
+        
     private:
         ElapsedTimer(const ElapsedTimer&);
 

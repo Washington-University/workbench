@@ -242,7 +242,7 @@ void BrainOpenGL::drawModels(const int32_t windowIndex,
                              Brain* brain,
                              void* contextSharingGroupPointer,
                              const std::vector<const BrainOpenGLViewportContent*>& viewportContents,
-                             const double graphicsFramesPerSecond)
+                             const GraphicsFramesPerSecond* graphicsFramesPerSecond)
 {
     m_contextSharingGroupPointer = contextSharingGroupPointer;
     

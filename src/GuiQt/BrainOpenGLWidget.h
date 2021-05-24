@@ -146,8 +146,14 @@ namespace caret {
         
         virtual void leaveEvent(QEvent* e) override;
         
+        virtual void paintEvent(QPaintEvent* e) override;
+        
     private slots:
         void showSelectedChartPointToolTip();
+        
+        void startGraphicsTiming();
+        
+        void endGraphicsTiming();
         
     private:
         

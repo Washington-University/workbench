@@ -531,13 +531,13 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     
                     std::vector<const BrainOpenGLViewportContent*> constViewports(viewports.begin(),
                                                                                   viewports.end());
-                    const double noGraphicsFramesPerSecond(-1.0);
+                    const GraphicsFramesPerSecond* noGraphicsTiming(NULL);
                     brainOpenGL->drawModels(windowIndex,
                                             UserInputModeEnum::Enum::VIEW,
                                             brain,
                                             mesaContext,
                                             constViewports,
-                                            noGraphicsFramesPerSecond);
+                                            noGraphicsTiming);
                     
                     const int32_t outputImageIndex = ((numberOfWindows > 1)
                                                       ? iWindow
@@ -588,13 +588,13 @@ OperationShowScene::useParameters(OperationParameters* myParams,
             std::vector<const BrainOpenGLViewportContent*> viewportContents;
             viewportContents.push_back(content);
             
-            const double noGraphicsFramesPerSecond(-1.0);
+            const GraphicsFramesPerSecond* noGraphicsTiming(NULL);
             brainOpenGL->drawModels(windowIndex,
                                     UserInputModeEnum::Enum::VIEW,
                                     brain,
                                     mesaContext,
                                     viewportContents,
-                                    noGraphicsFramesPerSecond);
+                                    noGraphicsTiming);
             
             const int32_t outputImageIndex = ((numberOfWindows > 1)
                                               ? iWindow

@@ -107,6 +107,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsFramesPerSecond.h"
 #include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fN3fC4ub.h"
@@ -314,11 +315,11 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
         drawTabAnnotations(viewportContent);
     }
     
-    const double noGraphicsFramesPerSecond(-1.0);
+    const GraphicsFramesPerSecond noGraphicsTiming(NULL);
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
     drawWindowAnnotations(windowViewport,
-                          noGraphicsFramesPerSecond);
+                          &noGraphicsTiming);
     
     m_brain->getSelectionManager()->filterSelections(applySelectionBackgroundFiltering);
     
@@ -755,7 +756,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
                                                    const UserInputModeEnum::Enum windowUserInputMode,
                                                    Brain* brain,
                                                    const std::vector<const BrainOpenGLViewportContent*>& viewportContents,
-                                                   const double graphicsFramesPerSecond)
+                                                   const GraphicsFramesPerSecond* graphicsFramesPerSecond)
 {
     m_brain = brain;
     m_windowIndex = windowIndex;
@@ -1424,11 +1425,11 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
  * @param windowViewport
  *    Viewport (x, y, w, h).
  * @param graphicsFramesPerSecond
- *    Graphics frames per second displayed if greater than zero
+ *    Graphics frames per second instance
  */
 void
 BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4],
-                                                const double graphicsFramesPerSecond)
+                                                const GraphicsFramesPerSecond* graphicsFramesPerSecond)
 {
     CaretAssertMessage(m_brain, "m_brain must NOT be NULL for drawing window annotations.");
     
@@ -1498,7 +1499,7 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4],
                                          annotationDrawingNullSurface,
                                          annotationDrawingUnusedSurfaceScaling);
     
-    if (graphicsFramesPerSecond > 0.0) {
+    if (graphicsFramesPerSecond != NULL) {
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
         uint8_t windowForegroundColorRGBA[4];
         prefs->getBackgroundAndForegroundColors()->getColorForegroundWindow(windowForegroundColorRGBA);
@@ -1506,19 +1507,60 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4],
         uint8_t windowBackgroundColorRGBA[4];
         prefs->getBackgroundAndForegroundColors()->getColorBackgroundWindow(windowBackgroundColorRGBA);
         windowBackgroundColorRGBA[3] = 255;
+        
+        const double averageFpsTextX(windowViewport[0] + windowViewport[2] - 10.0);
+        const double averageFpsTextY(windowViewport[1] + 10.0);
+        double averageFpsTextWidth(0.0), averageFpsTextHeight(0.0);
+        const double averageFPS(graphicsFramesPerSecond->getStartEndFramesPerSecond());
+        if (averageFPS > 0.0) {
+            /*
+             * This timer is enabled in BrainOpenGLWidget::paintEvent().  Note that this timer
+             * only monitors OpenGL drawing and not any other time spent in user-interface
+             * updates, user-interaction, etc.  Thus: INACCURATE !
+             */
+            AnnotationPercentSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL);
+            text.setHeight(5.0);
+            text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+            text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+            text.setTextColor(CaretColorEnum::CUSTOM);
+            text.setCustomTextColor(windowForegroundColorRGBA);
+            text.setBackgroundColor(CaretColorEnum::CUSTOM);
+            text.setCustomBackgroundColor(windowBackgroundColorRGBA);
+            text.setText(AString::number(averageFPS, 'f', 2) + " fps*");
+            drawTextAtViewportCoords(averageFpsTextX, averageFpsTextY, text);
+            if (getTextRenderer()) {
+                getTextRenderer()->getTextWidthHeightInPixels(text,
+                                                              BrainOpenGLTextRenderInterface::DrawingFlags(),
+                                                              windowViewport[2], windowViewport[3],
+                                                              averageFpsTextWidth, averageFpsTextHeight);
+            }
+        }
 
-        AnnotationPercentSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        text.setHeight(5.0);
-        text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-        text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        text.setTextColor(CaretColorEnum::CUSTOM);
-        text.setCustomTextColor(windowForegroundColorRGBA);
-        text.setBackgroundColor(CaretColorEnum::CUSTOM);
-        text.setCustomBackgroundColor(windowBackgroundColorRGBA);
-        text.setText(AString::number(graphicsFramesPerSecond, 'f', 2) + " fps");
-        const double textX(windowViewport[0] + windowViewport[2] - 10.0);
-        const double textY(windowViewport[1] + 10.0);
-        drawTextAtViewportCoords(textX, textY, text);
+        const bool showSinceLastFpsFlag(true);
+        if (showSinceLastFpsFlag) {
+            const double sinceLastFPS = graphicsFramesPerSecond->getSinceLastFramesPerSecond();
+            if (sinceLastFPS > 0.0) {
+                AnnotationPercentSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL);
+                text.setHeight(5.0);
+                text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+                text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                text.setTextColor(CaretColorEnum::CUSTOM);
+                text.setCustomTextColor(windowForegroundColorRGBA);
+                text.setBackgroundColor(CaretColorEnum::CUSTOM);
+                text.setCustomBackgroundColor(windowBackgroundColorRGBA);
+                text.setText(AString::number(sinceLastFPS, 'f', 2) + " fps");
+                double textX(windowViewport[0] + windowViewport[2] - 10.0);
+                double textY(windowViewport[1] + 10.0);
+                if ((averageFpsTextWidth > 0.0)
+                    && (averageFpsTextHeight > 0.0)) {
+                    textX = averageFpsTextX - averageFpsTextWidth;
+                    textY = averageFpsTextY + averageFpsTextHeight;
+                    text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+                }
+                
+                drawTextAtViewportCoords(textX, textY, text);
+            }
+        }
     }
 
     glPopMatrix();

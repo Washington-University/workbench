@@ -135,4 +135,13 @@ ElapsedTimer::printSeconds(const AString& message)
     std::cout << message << " " << getElapsedTimeSeconds() << " seconds" << std::endl;
 }
 
+/**
+ * @return True if the time has been started
+ */
+bool
+ElapsedTimer::isStarted() const
+{
+    return m_started;
+}
+
 

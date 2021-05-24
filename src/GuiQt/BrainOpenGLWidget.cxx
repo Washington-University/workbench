@@ -220,7 +220,8 @@ windowIndex(windowIndex)
      */
     grabGesture(Qt::PinchGesture);
     
-    m_graphicsFramesPerSecond.reset(new GraphicsFramesPerSecond());
+    const int32_t averageOfFrameCount(10);
+    m_graphicsFramesPerSecond.reset(new GraphicsFramesPerSecond(averageOfFrameCount));
 }
 
 /**
@@ -468,13 +469,13 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
     getDrawingWindowContent(viewport,
                             windowContent);
     
-    const double noGraphicsTimingValue(-1.0);
+    const GraphicsFramesPerSecond* noGraphicsTiming(NULL);
     s_singletonOpenGL->drawModels(this->windowIndex,
                                   getSelectedInputMode(),
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   windowContent.getAllTabViewports(),
-                                  noGraphicsTimingValue);
+                                  noGraphicsTiming);
     
     if (offscreen.isError()) {
         WuQMessageBox::errorOk(this,
@@ -682,6 +683,68 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
 }
 
 /**
+ * Start the graphics timing of a frame
+ */
+void
+BrainOpenGLWidget::startGraphicsTiming()
+{
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    CaretAssert(prefs);
+    if (prefs->isGraphicsFramesPerSecondEnabled()) {
+        m_graphicsFramesPerSecond->startOfDrawing();
+    }
+    else {
+        m_graphicsFramesPerSecond->reinitialize();
+    }
+}
+
+/**
+ * End the graphics timing of a frame
+ */
+void
+BrainOpenGLWidget::endGraphicsTiming()
+{
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    CaretAssert(prefs);
+    if (prefs->isGraphicsFramesPerSecondEnabled()) {
+        m_graphicsFramesPerSecond->endOfDrawing();
+    }
+}
+
+/**
+ * Process a paint event
+ * @param e
+ *    The paint event
+ */
+void
+BrainOpenGLWidget::paintEvent(QPaintEvent* e)
+{
+    /*
+     * While the painting can be timed to obtain 'frames-per-second',
+     * this only includes the OpenGL drawing.  It does not include
+     * buffer swapping, user interaction, computation, and other
+     * events.  As a result, the reported FPS is way too fast.
+     */
+    const bool timePaintingFlag(false);
+    if (timePaintingFlag) {
+        startGraphicsTiming();
+    }
+    /*
+     * Note: monitoring 'aboutToCompose()' and 'frameSwapped()' signals
+     * does not bound the graphics drawing
+     */
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    QOpenGLWidget::paintEvent(e);
+#else
+    QGLWidget::paintEvent(e);
+#endif
+
+    if (timePaintingFlag) {
+        endGraphicsTiming();
+    }
+}
+
+/**
  * Paints the graphics.
  */
 void
@@ -693,15 +756,6 @@ BrainOpenGLWidget::paintGL()
         CaretAssert(m_contextShareGroupPointer);
     }
 #endif
-    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    CaretAssert(prefs);
-    if (prefs->isGraphicsFramesPerSecondEnabled()) {
-        m_graphicsFramesPerSecond->startOfDrawing();
-    }
-    else {
-        m_graphicsFramesPerSecond->reinitialize();
-    }
-    
     updateCursor();
     
     this->clearDrawingViewportContents();
@@ -731,7 +785,7 @@ BrainOpenGLWidget::paintGL()
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   m_windowContent.getAllTabViewports(),
-                                  m_graphicsFramesPerSecond->getFramesPerSecond());
+                                  m_graphicsFramesPerSecond.get());
     
     /*
      * Issue browser window redrawn event
@@ -741,9 +795,10 @@ BrainOpenGLWidget::paintGL()
         EventManager::get()->sendEvent(EventBrowserWindowGraphicsRedrawn(bbw).getPointer());
     }
     
-    if (prefs->isGraphicsFramesPerSecondEnabled()) {
-        m_graphicsFramesPerSecond->endOfDrawing();
-    }
+    /*
+     * Time graphics for each frames-per-second display
+     */
+    m_graphicsFramesPerSecond->updateSinceLastFramesPerSecond();
 }
 
 /**
