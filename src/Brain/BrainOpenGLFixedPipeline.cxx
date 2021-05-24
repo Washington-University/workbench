@@ -315,11 +315,11 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
         drawTabAnnotations(viewportContent);
     }
     
-    const GraphicsFramesPerSecond noGraphicsTiming(NULL);
+    const GraphicsFramesPerSecond* noGraphicsTiming(NULL);
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
     drawWindowAnnotations(windowViewport,
-                          &noGraphicsTiming);
+                          noGraphicsTiming);
     
     m_brain->getSelectionManager()->filterSelections(applySelectionBackgroundFiltering);
     
