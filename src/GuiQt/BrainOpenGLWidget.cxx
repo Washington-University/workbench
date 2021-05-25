@@ -1100,6 +1100,7 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
         /*
          * If not limited, it is way too fast
          */
+        bool mediaFlag(false);
         const BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
         if (browserTabContent != NULL) {
             int32_t degreesMaximum(15);
@@ -1109,8 +1110,21 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
             deltaDegrees = MathFunctions::limitRange(deltaDegrees,
                                                      -degreesMaximum,
                                                      degreesMaximum);
+            if (browserTabContent->isMediaDisplayed()) {
+                mediaFlag = true;
+            }
         }
 
+        /*
+         * Wheel (and trackpad) does not report transition from off to on.
+         * For media we need this transition to properly zoom about point on screen.
+         * Doing this actually has "start flag" on always and that is ok for media
+         * (just causes extra ID operations)
+         */
+        bool newMouseDraggingFlag(this->mouseNewDraggingStartedFlag);
+        if (mediaFlag) {
+            newMouseDraggingFlag = true;
+        }
         std::vector<MouseEvent::XY> emptyHistoryXY;
         MouseEvent mouseEvent(&m_windowContent,
                               viewportContent,
@@ -1123,7 +1137,7 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
                               wheelX,
                               wheelY,
                               emptyHistoryXY,
-                              this->mouseNewDraggingStartedFlag);
+                              newMouseDraggingFlag);
         
         UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
         
