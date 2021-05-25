@@ -725,7 +725,9 @@ BrainOpenGLWidget::paintEvent(QPaintEvent* e)
      * buffer swapping, user interaction, computation, and other
      * events.  As a result, the reported FPS is way too fast.
      */
-    const bool timePaintingFlag(false);
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    CaretAssert(prefs);
+    const bool timePaintingFlag(prefs->isGraphicsFramesPerSecondEnabled());
     if (timePaintingFlag) {
         startGraphicsTiming();
     }
@@ -1641,7 +1643,6 @@ BrainOpenGLWidget::performIdentification(const int x,
 #else
     this->repaintGraphics();
 #endif
-    
     return idManager;
 }
 

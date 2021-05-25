@@ -1500,73 +1500,90 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4],
                                          annotationDrawingUnusedSurfaceScaling);
     
     if (graphicsFramesPerSecond != NULL) {
-        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        uint8_t windowForegroundColorRGBA[4];
-        prefs->getBackgroundAndForegroundColors()->getColorForegroundWindow(windowForegroundColorRGBA);
-        windowForegroundColorRGBA[3] = 255;
-        uint8_t windowBackgroundColorRGBA[4];
-        prefs->getBackgroundAndForegroundColors()->getColorBackgroundWindow(windowBackgroundColorRGBA);
-        windowBackgroundColorRGBA[3] = 255;
-        
-        const double averageFpsTextX(windowViewport[0] + windowViewport[2] - 10.0);
-        const double averageFpsTextY(windowViewport[1] + 10.0);
-        double averageFpsTextWidth(0.0), averageFpsTextHeight(0.0);
-        const double averageFPS(graphicsFramesPerSecond->getStartEndFramesPerSecond());
-        if (averageFPS > 0.0) {
-            /*
-             * This timer is enabled in BrainOpenGLWidget::paintEvent().  Note that this timer
-             * only monitors OpenGL drawing and not any other time spent in user-interface
-             * updates, user-interaction, etc.  Thus: INACCURATE !
-             */
-            AnnotationPercentSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL);
-            text.setHeight(5.0);
-            text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-            text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-            text.setTextColor(CaretColorEnum::CUSTOM);
-            text.setCustomTextColor(windowForegroundColorRGBA);
-            text.setBackgroundColor(CaretColorEnum::CUSTOM);
-            text.setCustomBackgroundColor(windowBackgroundColorRGBA);
-            text.setText(AString::number(averageFPS, 'f', 2) + " fps*");
-            drawTextAtViewportCoords(averageFpsTextX, averageFpsTextY, text);
-            if (getTextRenderer()) {
-                getTextRenderer()->getTextWidthHeightInPixels(text,
-                                                              BrainOpenGLTextRenderInterface::DrawingFlags(),
-                                                              windowViewport[2], windowViewport[3],
-                                                              averageFpsTextWidth, averageFpsTextHeight);
-            }
-        }
-
-        const bool showSinceLastFpsFlag(true);
-        if (showSinceLastFpsFlag) {
-            const double sinceLastFPS = graphicsFramesPerSecond->getSinceLastFramesPerSecond();
-            if (sinceLastFPS > 0.0) {
-                AnnotationPercentSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL);
-                text.setHeight(5.0);
-                text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-                text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                text.setTextColor(CaretColorEnum::CUSTOM);
-                text.setCustomTextColor(windowForegroundColorRGBA);
-                text.setBackgroundColor(CaretColorEnum::CUSTOM);
-                text.setCustomBackgroundColor(windowBackgroundColorRGBA);
-                text.setText(AString::number(sinceLastFPS, 'f', 2) + " fps");
-                double textX(windowViewport[0] + windowViewport[2] - 10.0);
-                double textY(windowViewport[1] + 10.0);
-                if ((averageFpsTextWidth > 0.0)
-                    && (averageFpsTextHeight > 0.0)) {
-                    textX = averageFpsTextX - averageFpsTextWidth;
-                    textY = averageFpsTextY + averageFpsTextHeight;
-                    text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-                }
-                
-                drawTextAtViewportCoords(textX, textY, text);
-            }
-        }
+        drawGraphicsTiming(windowViewport,
+                           graphicsFramesPerSecond);
     }
 
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
+}
+
+/**
+ * Draw the window annotations.
+ *
+ * @param windowViewport
+ *    Viewport (x, y, w, h).
+ * @param graphicsFramesPerSecond
+ *    Graphics frames per second instance
+ */
+void
+BrainOpenGLFixedPipeline::drawGraphicsTiming(const int windowViewport[4],
+                                             const GraphicsFramesPerSecond* graphicsFramesPerSecond)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    if ( ! prefs->isGraphicsFramesPerSecondEnabled()) {
+        return;
+    }
+    
+    uint8_t windowForegroundColorRGBA[4];
+    prefs->getBackgroundAndForegroundColors()->getColorForegroundWindow(windowForegroundColorRGBA);
+    windowForegroundColorRGBA[3] = 255;
+    uint8_t windowBackgroundColorRGBA[4];
+    prefs->getBackgroundAndForegroundColors()->getColorBackgroundWindow(windowBackgroundColorRGBA);
+    windowBackgroundColorRGBA[3] = 255;
+    
+    /*
+     * Function to create text annotations for display of timing
+     */
+    auto createTextLambda = [=](const float value,
+                                const AString& suffix,
+                                double& widthOut,
+                                double& heightOut) {
+        AnnotationPercentSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL);
+        if (value > 0.0) {
+            text.setHeight(5.0);
+            text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+            text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+            text.setTextColor(CaretColorEnum::CUSTOM);
+            text.setCustomTextColor(windowForegroundColorRGBA);
+            text.setBackgroundColor(CaretColorEnum::CUSTOM);
+            text.setCustomBackgroundColor(windowBackgroundColorRGBA);
+            text.setText(AString::number(value, 'f', 2) + suffix);
+            if (getTextRenderer()) {
+                getTextRenderer()->getTextWidthHeightInPixels(text,
+                                                              BrainOpenGLTextRenderInterface::DrawingFlags(),
+                                                              windowViewport[2], windowViewport[3],
+                                                              widthOut, heightOut);
+            }
+        }
+        return text;
+    };
+    
+    double fpsTextWidth(0.0), fpsTextHeight(0.0);
+    auto fpsText = createTextLambda(graphicsFramesPerSecond->getStartEndFramesPerSecond(),
+                                    " pnt",
+                                    fpsTextWidth,
+                                    fpsTextHeight);
+    
+    double sinceTextWidth(0.0), sinceTextHeight(0.0);
+    auto sinceText = createTextLambda(graphicsFramesPerSecond->getSinceLastFramesPerSecond(),
+                                      " fps",
+                                      sinceTextWidth,
+                                      sinceTextHeight);
+    
+    const double textWidth(std::max(fpsTextWidth, sinceTextWidth));
+    const double textX(windowViewport[0] + windowViewport[2] - 10.0 - textWidth);
+    double textY(windowViewport[1] + 10.0);
+    
+    if (sinceTextWidth > 0.0) {
+        drawTextAtViewportCoords(textX, textY, sinceText);
+        textY += sinceTextHeight;
+    }
+    if (fpsTextWidth > 0.0) {
+        drawTextAtViewportCoords(textX, textY, fpsText);
+    }
 }
 
 /**
