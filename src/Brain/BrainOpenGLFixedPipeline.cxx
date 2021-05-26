@@ -1540,16 +1540,18 @@ BrainOpenGLFixedPipeline::drawGraphicsTiming(const int windowViewport[4],
     auto createTextLambda = [=](const float value,
                                 const AString& suffix,
                                 double& widthOut,
-                                double& heightOut) {
+                                double& heightOut,
+                                const uint8_t foregroundRGBA[4],
+                                const uint8_t backgroundRGBA[4]) {
         AnnotationPercentSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL);
         if (value > 0.0) {
             text.setHeight(5.0);
             text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
             text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
             text.setTextColor(CaretColorEnum::CUSTOM);
-            text.setCustomTextColor(windowForegroundColorRGBA);
+            text.setCustomTextColor(foregroundRGBA);
             text.setBackgroundColor(CaretColorEnum::CUSTOM);
-            text.setCustomBackgroundColor(windowBackgroundColorRGBA);
+            text.setCustomBackgroundColor(backgroundRGBA);
             text.setText(AString::number(value, 'f', 2) + suffix);
             if (getTextRenderer()) {
                 getTextRenderer()->getTextWidthHeightInPixels(text,
@@ -1565,13 +1567,17 @@ BrainOpenGLFixedPipeline::drawGraphicsTiming(const int windowViewport[4],
     auto fpsText = createTextLambda(graphicsFramesPerSecond->getStartEndFramesPerSecond(),
                                     " pnt",
                                     fpsTextWidth,
-                                    fpsTextHeight);
+                                    fpsTextHeight,
+                                    windowForegroundColorRGBA,
+                                    windowBackgroundColorRGBA);
     
     double sinceTextWidth(0.0), sinceTextHeight(0.0);
     auto sinceText = createTextLambda(graphicsFramesPerSecond->getSinceLastFramesPerSecond(),
                                       " fps",
                                       sinceTextWidth,
-                                      sinceTextHeight);
+                                      sinceTextHeight,
+                                      windowForegroundColorRGBA,
+                                      windowBackgroundColorRGBA);
     
     const double textWidth(std::max(fpsTextWidth, sinceTextWidth));
     const double textX(windowViewport[0] + windowViewport[2] - 10.0 - textWidth);
