@@ -80,6 +80,7 @@ MathFunctionEnum::initialize()
     enumData.push_back(MathFunctionEnum(ASINH, "asinh", "1 argument, the inverse hyperbolic sine of the argument"));
     enumData.push_back(MathFunctionEnum(ACOSH, "acosh", "1 argument, the inverse hyperbolic cosine of the argument"));
     enumData.push_back(MathFunctionEnum(ATANH, "atanh", "1 argument, the inverse hyperbolic tangent of the argument"));
+    enumData.push_back(MathFunctionEnum(SINC, "sinc", "1 argument, sinc(0) = 1, sin(x) / x otherwise"));
     enumData.push_back(MathFunctionEnum(LN, "ln", "1 argument, the natural logarithm of the argument"));
     enumData.push_back(MathFunctionEnum(EXP, "exp", "1 argument, the constant e raised to the power of the argument"));
     enumData.push_back(MathFunctionEnum(LOG, "log", "1 argument, the base 10 logarithm of the argument"));

@@ -54,6 +54,7 @@ public:
             ASINH,
             ACOSH,
             ATANH,
+            SINC,
             LN,
             EXP,
             LOG,

@@ -283,6 +283,18 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                     ret = 0.5 * log((1 + arg) / (1 - arg));
                     break;
                 }
+                case MathFunctionEnum::SINC:
+                {
+                    CaretAssert(m_arguments.size() == 1);
+                    double arg = m_arguments[0]->eval(values);
+                    if (arg == 0.0)//assume sin(x) behaves well for very small x
+                    {
+                        ret = 1.0;
+                    } else {
+                        ret = sin(arg) / arg;
+                    }
+                    break;
+                }
                 case MathFunctionEnum::LN:
                     CaretAssert(m_arguments.size() == 1);
                     ret = log(m_arguments[0]->eval(values));
@@ -855,6 +867,7 @@ CaretPointer<CaretMathExpression::MathNode> CaretMathExpression::funcExpr()
                 case MathFunctionEnum::ASINH:
                 case MathFunctionEnum::ACOSH:
                 case MathFunctionEnum::ATANH:
+                case MathFunctionEnum::SINC:
                 case MathFunctionEnum::LN:
                 case MathFunctionEnum::EXP:
                 case MathFunctionEnum::LOG:
