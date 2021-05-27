@@ -1543,18 +1543,31 @@ BrainOpenGLFixedPipeline::drawGraphicsTiming(const int windowViewport[4],
                                 double& heightOut,
                                 const uint8_t foregroundRGBA[4],
                                 const uint8_t backgroundRGBA[4]) {
-        AnnotationPercentSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL);
+        /*
+         * Use either of percentage text of point size text
+         */
+        const bool pctSizeFlag(true);
+        std::unique_ptr<AnnotationText> text;
+        if (pctSizeFlag) {
+            AnnotationPercentSizeText* pctSizeText = new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+            pctSizeText->setFontPercentViewportSize(5.0);
+            text.reset(pctSizeText);
+        }
+        else {
+            AnnotationPointSizeText* pointSizeText = new AnnotationPointSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+            pointSizeText->setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE20);
+            text.reset(pointSizeText);
+        }
         if (value > 0.0) {
-            text.setHeight(5.0);
-            text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-            text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-            text.setTextColor(CaretColorEnum::CUSTOM);
-            text.setCustomTextColor(foregroundRGBA);
-            text.setBackgroundColor(CaretColorEnum::CUSTOM);
-            text.setCustomBackgroundColor(backgroundRGBA);
-            text.setText(AString::number(value, 'f', 2) + suffix);
+            text->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+            text->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+            text->setTextColor(CaretColorEnum::CUSTOM);
+            text->setCustomTextColor(foregroundRGBA);
+            text->setBackgroundColor(CaretColorEnum::CUSTOM);
+            text->setCustomBackgroundColor(backgroundRGBA);
+            text->setText(AString::number(value, 'f', 2) + suffix);
             if (getTextRenderer()) {
-                getTextRenderer()->getTextWidthHeightInPixels(text,
+                getTextRenderer()->getTextWidthHeightInPixels(*text,
                                                               BrainOpenGLTextRenderInterface::DrawingFlags(),
                                                               windowViewport[2], windowViewport[3],
                                                               widthOut, heightOut);
@@ -1564,31 +1577,62 @@ BrainOpenGLFixedPipeline::drawGraphicsTiming(const int windowViewport[4],
     };
     
     double fpsTextWidth(0.0), fpsTextHeight(0.0);
-    auto fpsText = createTextLambda(graphicsFramesPerSecond->getStartEndFramesPerSecond(),
-                                    " pnt",
+    auto fpsText = createTextLambda(graphicsFramesPerSecond->getFramesPerSecond(),
+                                    " fps",
                                     fpsTextWidth,
                                     fpsTextHeight,
                                     windowForegroundColorRGBA,
                                     windowBackgroundColorRGBA);
     
-    double sinceTextWidth(0.0), sinceTextHeight(0.0);
-    auto sinceText = createTextLambda(graphicsFramesPerSecond->getSinceLastFramesPerSecond(),
-                                      " fps",
-                                      sinceTextWidth,
-                                      sinceTextHeight,
+    double avgFpsTextWidth(0.0), avgFpsTextHeight(0.0);
+    auto avgFpsText = createTextLambda(graphicsFramesPerSecond->getAverageFramesPerSecond(),
+                                    " afps",
+                                    avgFpsTextWidth,
+                                    avgFpsTextHeight,
+                                    windowForegroundColorRGBA,
+                                    windowBackgroundColorRGBA);
+    
+    double intervalTextWidth(0.0), intervalTextHeight(0.0);
+    auto sinceText = createTextLambda(graphicsFramesPerSecond->getAverageIntervalFramesPerSecond(),
+                                      " ifps",
+                                      intervalTextWidth,
+                                      intervalTextHeight,
                                       windowForegroundColorRGBA,
                                       windowBackgroundColorRGBA);
     
-    const double textWidth(std::max(fpsTextWidth, sinceTextWidth));
+    /*
+     * Show / Hide timers
+     */
+    const bool showIntervalTimerFlag(false);
+    if ( ! showIntervalTimerFlag) {
+        intervalTextWidth = 0.0;
+    }
+    const bool showAverageTimerFlag(false);
+    if ( ! showAverageTimerFlag) {
+        avgFpsTextWidth = 0.0;
+    }
+
+    /*
+     * Align all timers on the left side
+     */
+    const double textWidth(std::max(std::max(fpsTextWidth, avgFpsTextWidth), intervalTextWidth));
     const double textX(windowViewport[0] + windowViewport[2] - 10.0 - textWidth);
     double textY(windowViewport[1] + 10.0);
     
-    if (sinceTextWidth > 0.0) {
-        drawTextAtViewportCoords(textX, textY, sinceText);
-        textY += sinceTextHeight;
+    /*
+     * Start at bottom of window and move up
+     */
+    if (intervalTextWidth > 0.0) {
+        drawTextAtViewportCoords(textX, textY, *sinceText);
+        textY += intervalTextHeight;
+    }
+    if (avgFpsTextWidth > 0.0) {
+        drawTextAtViewportCoords(textX, textY, *avgFpsText);
+        textY += avgFpsTextHeight;
     }
     if (fpsTextWidth > 0.0) {
-        drawTextAtViewportCoords(textX, textY, fpsText);
+        drawTextAtViewportCoords(textX, textY, *fpsText);
+        textY += fpsTextHeight;
     }
 }
 

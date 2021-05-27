@@ -796,11 +796,6 @@ BrainOpenGLWidget::paintGL()
     if (bbw != NULL) {
         EventManager::get()->sendEvent(EventBrowserWindowGraphicsRedrawn(bbw).getPointer());
     }
-    
-    /*
-     * Time graphics for each frames-per-second display
-     */
-    m_graphicsFramesPerSecond->updateSinceLastFramesPerSecond();
 }
 
 /**

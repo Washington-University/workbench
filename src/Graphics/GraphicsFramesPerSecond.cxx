@@ -37,25 +37,15 @@ using namespace caret;
  * \brief Assists with timing graphics
  * \ingroup Graphics
  *
- *  There are two frame-per-second timers in an instance of this class.
+ * There are three frame-per-second timers in an instance of this class
  *
- * (1) An elapsed timer that user starts and stops by making calls to
- * 'startOfDrawing()' and 'endOfDrawing()'. By using these functions the
- * user can repeatedly measure a portion of code.  While this can be used
- * to measure all of the graphics drawing (such as calling at start and end
- * of paintGL) it only measures the drawing time and not the time for
- * swapping buffers, performing computations, etc. that are outside of
- * the graphics loop.
+ * (1) A timer that reports the last drawing time (time between calls to startOfDrawing()
+ * and endOfDrawing().
+ * (2) A timer that reports an average drawing time (average of time between calls to
+ * startOfDrawing() and endOfDrawing().  Call getAverageFramesPerSecond().
+ * (3) A timer that reports the average time between calls to endOfDrawing().
+ * Call getAverageIntervalFramesPerSecond().
  *
- * (2) A an elapsed timer that is update once in the graphics loop and read
- * as desired.  By updating in the graphics loop, it measures all time
- * required to produce a frame of graphics including buffer swapping,
- * computation, user-interface updates, etc.  When graphics are being
- * continuously updated, such as user using mouse for pan or rotate,
- * this timer should be fairly accurate during that time.  If there have been
- * no graphics update for a while the frames-per-second may be slower
- * than the true fps.  This timer reports that average of the last 'N' graphics
- * updates.
  */
 
 /**
@@ -68,10 +58,10 @@ GraphicsFramesPerSecond::GraphicsFramesPerSecond(const int32_t maximumFrameCount
 m_maximumFrameCount(maximumFrameCount)
 {
     m_startEndTimer.reset(new ElapsedTimer());
-    m_sinceLastTimer.reset(new ElapsedTimer());
-    m_sinceLastFrameTimes.resize(m_maximumFrameCount);
-    std::fill(m_sinceLastFrameTimes.begin(),
-              m_sinceLastFrameTimes.end(),
+    m_intervalTimer.reset(new ElapsedTimer());
+    m_intervalFrameTimes.resize(m_maximumFrameCount);
+    std::fill(m_intervalFrameTimes.begin(),
+              m_intervalFrameTimes.end(),
               -1.0);
     
     reinitialize();
@@ -82,6 +72,42 @@ m_maximumFrameCount(maximumFrameCount)
  */
 GraphicsFramesPerSecond::~GraphicsFramesPerSecond()
 {
+}
+
+/**
+ * @return The most recent frames per second between calls to 'startOfDrawing()' and
+ * 'endOfDrawing()'.
+ */
+double
+GraphicsFramesPerSecond::getFramesPerSecond() const
+{
+    return m_mostRecentFramesPerSecond;
+}
+
+/**
+ * @return The average frames per second between calls to 'startOfDrawing()' and
+ * 'endOfDrawing()'.
+ */
+double
+GraphicsFramesPerSecond::getAverageFramesPerSecond() const
+{
+    return getFPS(m_startStopFrameTimes);
+}
+
+/**
+ * @return Average of time since between calls to 'endOfDrawing()'.
+ */
+double
+GraphicsFramesPerSecond::getAverageIntervalFramesPerSecond() const
+{
+    double fpsOut(0.0);
+    
+    if (m_intervalTimer->isStarted()) {
+        fpsOut = getFPS(m_intervalFrameTimes);
+        
+    }
+    
+    return fpsOut;
 }
 
 /**
@@ -119,18 +145,6 @@ GraphicsFramesPerSecond::getFPS(const std::vector<double>& frameTimes) const
     return framesPerSecond;
 }
 
-
-/**
- * @return The frames per second between calls to 'startOfDrawing()' and
- * 'endOfDrawing()'.  If these calls are only made in graphics drawing and
- * do not include buffer swapping, the times will be innacturately too fast.
- */
-double
-GraphicsFramesPerSecond::getStartEndFramesPerSecond() const
-{
-    return getFPS(m_startStopFrameTimes);
-}
-
 /**
  * Call at the beginning of drawing to start timing one frame
  */
@@ -150,6 +164,8 @@ GraphicsFramesPerSecond::startOfDrawing()
 void
 GraphicsFramesPerSecond::endOfDrawing()
 {
+    const double elapsedTime(m_startEndTimer->getElapsedTimeMilliseconds());
+    
     /*
      * Save frame time
      */
@@ -157,8 +173,19 @@ GraphicsFramesPerSecond::endOfDrawing()
         m_startStopFrameTimesIndex = 0;
     }
     CaretAssertVectorIndex(m_startStopFrameTimes, m_startStopFrameTimesIndex);
-    m_startStopFrameTimes[m_startStopFrameTimesIndex] = m_startEndTimer->getElapsedTimeMilliseconds();
+    m_startStopFrameTimes[m_startStopFrameTimesIndex] = elapsedTime;
     ++m_startStopFrameTimesIndex;
+    
+    /*
+     * Convert most recent to frames per second
+     */
+    m_mostRecentFramesPerSecond = 0.0;
+    if (elapsedTime > 0.0) {
+        const double seconds = (elapsedTime / 1000.0);
+        m_mostRecentFramesPerSecond = 1.0 / seconds;
+    }
+    
+    updateAverageIntervalFramesPerSecond();
 }
 
 /**
@@ -170,6 +197,7 @@ GraphicsFramesPerSecond::reinitialize()
     m_startStopFrameTimes.resize(m_maximumFrameCount);
     std::fill(m_startStopFrameTimes.begin(), m_startStopFrameTimes.end(), -1.0);
     m_startStopFrameTimesIndex = 0;
+    m_mostRecentFramesPerSecond = 0.0;
 }
 
 /**
@@ -183,13 +211,12 @@ GraphicsFramesPerSecond::toString() const
 }
 
 /**
- * Update average of time since this function was last called.  This should be called
- * once during each time the graphics is being drawn.
+ * Update average of time since this function was last called.
  */
 void
-GraphicsFramesPerSecond::updateSinceLastFramesPerSecond()
+GraphicsFramesPerSecond::updateAverageIntervalFramesPerSecond()
 {
-    if (m_sinceLastTimer->isStarted()) {
+    if (m_intervalTimer->isStarted()) {
         /*
          * Since graphics are updated (as needed), we exclude any
          * long updates that are most likley due to:
@@ -202,36 +229,18 @@ GraphicsFramesPerSecond::updateSinceLastFramesPerSecond()
          * doing nothing would be measured
          */
         const double userDoesNothingMilliseconds(5.0 * 1000.0);
-        const double sinceLastMilliseconds(m_sinceLastTimer->getElapsedTimeMilliseconds());
-        if (sinceLastMilliseconds < userDoesNothingMilliseconds) {
-            if (m_sinceLastFrameTimesIndex >= m_maximumFrameCount) {
-                m_sinceLastFrameTimesIndex = 0;
+        const double intervalMilliseconds(m_intervalTimer->getElapsedTimeMilliseconds());
+        if (intervalMilliseconds < userDoesNothingMilliseconds) {
+            if (m_intervalFrameTimesIndex >= m_maximumFrameCount) {
+                m_intervalFrameTimesIndex = 0;
             }
-            CaretAssertVectorIndex(m_sinceLastFrameTimes, m_sinceLastFrameTimesIndex);
-            m_sinceLastFrameTimes[m_sinceLastFrameTimesIndex] = sinceLastMilliseconds;
-            ++m_sinceLastFrameTimesIndex;
+            CaretAssertVectorIndex(m_intervalFrameTimes, m_intervalFrameTimesIndex);
+            m_intervalFrameTimes[m_intervalFrameTimesIndex] = intervalMilliseconds;
+            ++m_intervalFrameTimesIndex;
         }
     }
 
-    m_sinceLastTimer->reset();
-    m_sinceLastTimer->start();
+    m_intervalTimer->reset();
+    m_intervalTimer->start();
 }
-
-
-/**
- * @return Average of time since between calls to 'updateSinceLastFramesPerSecond()'.
- */
-double
-GraphicsFramesPerSecond::getSinceLastFramesPerSecond() const
-{
-    double fpsOut(0.0);
-    
-    if (m_sinceLastTimer->isStarted()) {
-        fpsOut = getFPS(m_sinceLastFrameTimes);
-
-    }
-
-    return fpsOut;
-}
-
 
