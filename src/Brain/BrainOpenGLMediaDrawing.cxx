@@ -242,7 +242,7 @@ BrainOpenGLMediaDrawing::drawSelectionBox()
                 primitive->addVertex(maxX, maxY, z);
                 primitive->addVertex(minX, maxY, z);
                 
-                const float lineWidthPercentage(2.0f);
+                const float lineWidthPercentage(0.5);
                 primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                         lineWidthPercentage);
                 
