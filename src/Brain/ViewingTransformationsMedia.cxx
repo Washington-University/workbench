@@ -116,6 +116,8 @@ ViewingTransformationsMedia::resetView()
  *    Y-Location of where mouse was pressed
  * @param mouseDY
  *    Change in mouse Y
+ * @param defaultScalingIn
+ *    Any scaling that sets size of object that is not user scaling (zooming)
  * @param dataX
  *    X-coordinate of data where mouse was pressed
  * @param dataY
@@ -128,6 +130,7 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
                                              const int32_t mousePressX,
                                              const int32_t mousePressY,
                                              const int32_t mouseDY,
+                                             const float defaultScalingIn,
                                              const float dataX,
                                              const float dataY,
                                              const bool dataXYValidFlag)
@@ -145,6 +148,10 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
         return;
     }
     
+    const float defaultScaling((defaultScalingIn != 0.0)
+                               ? defaultScalingIn
+                               : 1.0);
+    
     const float mousePressXYZ[3] { static_cast<float>(mousePressX), static_cast<float>(mousePressY), 0.0f };
 
     /*
@@ -161,10 +168,10 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
     const float deltaScale((mouseDY >= 0)
                          ? absDeltaScale
                          : (1.0 / absDeltaScale));
-    const float oldScale(getScaling());
+    const float oldScale(getScaling() * defaultScaling);
     const float totalScale(std::max((deltaScale * oldScale),
                                     minimumValidScaleValue));
-    setScaling(totalScale);
+    setScaling(totalScale / defaultScaling);
     
     /*
      * If mouse is over the image, use the data XY to translate image
@@ -197,13 +204,20 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
  *    Box containing bounds of window
  * @param selectionBounds
  *    Box containing bounds of selection
+ * @param defaultScalingIn
+ *    Any scaling that sets size of object that is not user scaling (zooming)
  */
 void
 ViewingTransformationsMedia::setViewToBounds(const BoundingBox* windowBounds,
-                                             const GraphicsRegionSelectionBox* selectionBounds)
+                                             const GraphicsRegionSelectionBox* selectionBounds,
+                                             const float defaultScalingIn)
 {
     CaretAssert(windowBounds);
     CaretAssert(selectionBounds);
+    
+    const float defaultScaling((defaultScalingIn != 0.0)
+                               ? defaultScalingIn
+                               : 1.0);
     
     float regionMinX, regionMaxX, regionMinY, regionMaxY;
     selectionBounds->getBounds(regionMinX, regionMinY, regionMaxX, regionMaxY);
@@ -225,7 +239,7 @@ ViewingTransformationsMedia::setViewToBounds(const BoundingBox* windowBounds,
         const float widthScale(windowWidth / regionWidth);
         const float heightScale(windowHeight / regionHeight);
         const float scale(std::min(widthScale, heightScale));
-        setScaling(scale);
+        setScaling(scale / defaultScaling);
         
         float centerXYZ[3] { 0.0, 0.0, 0.0 };
         selectionBounds->getCenter(centerXYZ[0], centerXYZ[1]);

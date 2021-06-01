@@ -96,6 +96,16 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     m_mediaModel           = mediaModel;
     m_viewport             = viewport;
     
+    const float drawingHalfHeight(MediaFile::getMediaDrawingOrthographicHalfHeight());
+
+    MediaOverlaySet* mediaOverlaySet = m_mediaModel->getMediaOverlaySet(m_browserTabContent->getTabNumber());
+    CaretAssert(mediaOverlaySet);
+    
+    /*
+     * Default scaling fits image to the viewport in the default view
+     */
+    const float defaultScaling(mediaOverlaySet->getDefaultScaling());
+    
     if ((m_viewport[2] < 1)
         || (m_viewport[3] < 1)) {
         return;
@@ -104,17 +114,15 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                m_viewport[1],
                m_viewport[2],
                m_viewport[3]);
-    
 
-    const float halfHeight(500);
     const float aspectRatio = (static_cast<float>(m_viewport[3])
                                / static_cast<float>(m_viewport[2]));
-    const float halfWidth(halfHeight / aspectRatio);
+    const float halfWidth(drawingHalfHeight / aspectRatio);
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-halfWidth,  halfWidth,
-            -halfHeight, halfHeight,
+            -drawingHalfHeight, drawingHalfHeight,
             -1.0, 1.0);
     
     glMatrixMode(GL_MODELVIEW);
@@ -125,13 +133,15 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     const float scaling = m_browserTabContent->getScaling();
     
     glTranslatef(translation[0], translation[1], 0.0);
+    glScalef(defaultScaling, defaultScaling, 1.0);
     glScalef(scaling, scaling, 1.0);
     
-    std::array<float, 4> orthoLRBT { -halfWidth, halfWidth, -halfHeight, halfHeight };
+    std::array<float, 4> orthoLRBT { -halfWidth, halfWidth, -drawingHalfHeight, drawingHalfHeight };
     GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
     fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
     viewportContent->setGraphicsObjectToWindowTransform(transform);
     
+
     drawModelLayers();
     
     drawSelectionBox();

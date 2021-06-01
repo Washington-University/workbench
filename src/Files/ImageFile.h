@@ -218,6 +218,8 @@ public:
 
     const ImageFile* castToImageFile() const;
     
+    virtual float getDefaultScaling(bool& validFlagOut) const override;
+    
     virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
     
     static void getQtSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
@@ -266,6 +268,8 @@ private:
                                  float& pixelSpatialStepValue) const;
 
     QImage* m_image;
+    
+    mutable float m_defaultScaling = -1.0;
     
     mutable CaretPointer<GiftiMetaData> m_fileMetaData;
     

@@ -44,6 +44,7 @@
 #include "GraphicsRegionSelectionBox.h"
 #include "GuiManager.h"
 #include "KeyEvent.h"
+#include "MediaOverlaySet.h"
 #include "MouseEvent.h"
 #include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
@@ -570,9 +571,12 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
                 break;
             case GraphicsRegionSelectionBox::Status::VALID:
             {
+                const MediaOverlaySet* mediaOverlaySet(browserTabContent->getMediaOverlaySet());
+                CaretAssert(mediaOverlaySet);
                 ViewingTransformations* vt = browserTabContent->getViewingTransformation();
                 vt->setViewToBounds(&orthoBounds,
-                                    selectionBox);
+                                    selectionBox,
+                                    mediaOverlaySet->getDefaultScaling());
             }
                 break;
         }

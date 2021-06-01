@@ -216,6 +216,8 @@ ViewingTransformations::setScaling(const float scaling)
  *    Y-Location of where mouse was pressed
  * @param mouseDY
  *    Change in mouse Y
+ * @param defaultScaling
+ *    Any scaling that sets size of object that is not user scaling (zooming)
  * @param dataX
  *    X-coordinate of data where mouse was pressed
  * @param dataY
@@ -228,6 +230,7 @@ ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* /
                                         const int32_t /*mousePressX*/,
                                         const int32_t /*mousePressY*/,
                                         const int32_t /*mouseDY*/,
+                                        const float /*defaultScaling*/,
                                         const float /*dataX*/,
                                         const float /*dataY*/,
                                         const bool /*dataXYValidFlag*/)
@@ -243,10 +246,13 @@ ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* /
  *    Box containing window bounds
  * @param selectionBounds
  *    The selection bounds
+ * @param defaultScaling
+ *    Any scaling that sets size of object that is not user scaling (zooming)
  */
 void
 ViewingTransformations::setViewToBounds(const BoundingBox* /*windowBounds*/,
-                                        const GraphicsRegionSelectionBox* /*selectionBounds*/)
+                                        const GraphicsRegionSelectionBox* /*selectionBounds*/,
+                                        const float /*defaultScalingIn*/)
 {
     const QString msg("ViewingTransformations::setViewToBounds() is not supported for this view");
     CaretAssertMessage(0, msg);

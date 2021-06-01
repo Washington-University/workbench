@@ -331,3 +331,12 @@ MediaFile::spaceToIndexValid(const PixelCoordinate& coordinate,
     return indexValid(pixelIndexOut);
 }
 
+/**
+ * @return Half of the height for the orthographic  media drawing viewport
+ */
+float
+MediaFile::getMediaDrawingOrthographicHalfHeight()
+{
+    return 500.0;
+}
+

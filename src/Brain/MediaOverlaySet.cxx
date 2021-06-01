@@ -26,10 +26,13 @@
 #include "MediaOverlaySet.h"
 #undef __MEDIA_OVERLAY_SET_DECLARE__
 
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ImageFile.h"
 #include "MediaFile.h"
 #include "EventManager.h"
+#include "GraphicsPrimitiveV3fT3f.h"
 #include "MediaOverlay.h"
 #include "ModelMedia.h"
 #include "PlainTextStringBuilder.h"
@@ -512,4 +515,34 @@ MediaOverlaySet::receiveEvent(Event* /*event*/)
 {
 
 }
+
+float
+MediaOverlaySet::getDefaultScaling() const
+{
+    float defaultScaling(1.0);
+    const int32_t numberOfOverlays(getNumberOfDisplayedOverlays());
+    for (int32_t i = (numberOfOverlays - 1); i >= 0; i--) {
+        const MediaOverlay* overlay = getOverlay(i);
+        CaretAssert(overlay);
+        
+        if (overlay->isEnabled()) {
+            MediaFile* selectedFile(NULL);
+            int32_t selectedIndex(-1);
+            const_cast<MediaOverlay*>(overlay)->getSelectionData(selectedFile,
+                                                                 selectedIndex);
+            
+            if (selectedFile != NULL) {
+                bool validFlag(false);
+                const float fileDefaultScaling(selectedFile->getDefaultScaling(validFlag));
+                if (validFlag) {
+                    defaultScaling = fileDefaultScaling;
+                    break;
+                }
+            }
+        }
+    }
+    
+    return defaultScaling;
+}
+
 

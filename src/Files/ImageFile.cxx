@@ -2184,3 +2184,35 @@ ImageFile::getDefaultSpatialValues(const float numPixels,
                      pixelSpatialStepValue);
 }
 
+/**
+ * @return The default scaling to fit into the orthographic viewport.
+ * @param validFlagOut
+ *   Upon exit, true if the default scaling is valid, else false.
+ */
+float
+ImageFile::getDefaultScaling(bool& validFlagOut) const
+{
+    if (m_defaultScaling <= 0.0) {
+        GraphicsPrimitiveV3fT3f* primitive = getGraphicsPrimitiveForMediaDrawing();
+        if (primitive) {
+            if (primitive->isValid()) {
+                BoundingBox boundingBox;
+                primitive->getVertexBounds(boundingBox);
+                if (boundingBox.isValid2D()) {
+                    const float imageHalfHeight(boundingBox.getDifferenceY() / 2.0);
+                    if (imageHalfHeight > 0.0) {
+                        /*
+                         * Default scaling "fits" the image into the media drawing's orthographic viewport
+                         */
+                        m_defaultScaling = MediaFile::getMediaDrawingOrthographicHalfHeight() / imageHalfHeight;
+                    }
+                }
+            }
+        }
+    }
+    
+    validFlagOut = (m_defaultScaling > 0.0);
+    
+    return m_defaultScaling;
+}
+

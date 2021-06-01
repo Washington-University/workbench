@@ -72,6 +72,8 @@ namespace caret {
         
         void initializeOverlays();
         
+        float getDefaultScaling() const;
+        
         void getSelectedIndicesForFile(const MediaFile* MediaFile,
                                     const bool isLimitToEnabledOverlays,
                                     std::vector<int32_t>& selectedIndicesOut) const;

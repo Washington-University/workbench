@@ -162,6 +162,10 @@ namespace caret {
         
         const BoundingBox* getSpatialBoudingBox() const;
         
+        virtual float getDefaultScaling(bool& validFlagOut) const = 0;
+        
+        static float getMediaDrawingOrthographicHalfHeight();
+        
         // ADD_NEW_METHODS_HERE
 
           

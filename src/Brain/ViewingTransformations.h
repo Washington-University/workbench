@@ -61,12 +61,14 @@ namespace caret {
                                      const int32_t mousePressX,
                                      const int32_t mousePressY,
                                      const int32_t mouseDY,
+                                     const float defaultScaling,
                                      const float dataX,
                                      const float dataY,
                                      const bool dataXYValidFlag);
 
         virtual void setViewToBounds(const BoundingBox* windowBounds,
-                                     const GraphicsRegionSelectionBox* selectionBounds);
+                                     const GraphicsRegionSelectionBox* selectionBounds,
+                                     const float defaultScaling);
         
         Matrix4x4 getRotationMatrix() const;
         
