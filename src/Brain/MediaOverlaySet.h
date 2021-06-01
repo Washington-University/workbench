@@ -80,6 +80,8 @@ namespace caret {
         
         void resetOverlayYokingToOff();
         
+        std::vector<MediaFile*> getDisplayedMediaFiles() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         

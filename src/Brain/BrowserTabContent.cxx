@@ -65,6 +65,7 @@
 #include "FociFile.h"
 #include "GraphicsRegionSelectionBox.h"
 #include "IdentificationManager.h"
+#include "ImageFile.h"
 #include "LabelFile.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -2741,6 +2742,13 @@ BrowserTabContent::resetView()
     getViewingTransformation()->resetView();
     if (isVolumeSlicesDisplayed()) {
         m_obliqueVolumeRotationMatrix->identity();
+    }
+    if (isMediaDisplayed()) {
+        std::vector<MediaFile*> mediaFiles = getMediaOverlaySet()->getDisplayedMediaFiles();
+        for (auto& mf : mediaFiles) {
+            ImageFile* imageFile = mf->castToImageFile();
+            imageFile->resetOldSceneDefaultScaling();
+        }
     }
     updateYokedModelBrowserTabs();
 }

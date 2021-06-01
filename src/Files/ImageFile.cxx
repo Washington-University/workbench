@@ -29,6 +29,10 @@
 #include <QImageWriter>
 #include <QTime>
 
+#define __IMAGE_FILE_DECLARE__
+#include "ImageFile.h"
+#undef __IMAGE_FILE_DECLARE__
+
 #include "ApplicationInformation.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
@@ -42,7 +46,6 @@
 #include "GraphicsUtilitiesOpenGL.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "ImageCaptureDialogSettings.h"
-#include "ImageFile.h"
 #include "Matrix4x4.h"
 #include "MathFunctions.h"
 #include "SceneClass.h"
@@ -51,8 +54,6 @@
 #include "VolumeSpace.h"
 
 using namespace caret;
-
-const float ImageFile::s_defaultWindowDepthPercentage = 990;
 
 /**
  * Constructor.
@@ -1808,6 +1809,11 @@ ImageFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
         sceneClass->addClass(m_controlPointFile->saveToScene(sceneAttributes,
                                                              "m_controlPointFile"));
     }
+    
+    /*
+     * Added 01 June 2021 to assist with scenes created before default scaling
+     */
+    sceneClass->addInteger(ImageFile::SCENE_VERSION_NUMBER, 1);
 }
 
 /**
@@ -1833,6 +1839,19 @@ ImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
     
     m_controlPointFile->restoreFromScene(sceneAttributes,
                                          sceneClass->getClass("m_controlPointFile"));
+    
+    m_defaultScaling = -1.0;
+    
+    const int32_t sceneVersionNumber = sceneClass->getIntegerValue(ImageFile::SCENE_VERSION_NUMBER, 0);
+    
+    /*
+     * Special logic is needed for scenes created prior to
+     * the addition of default scaling
+     */
+    m_sceneCreatedBeforeDefaultScaling = false;
+    if (sceneVersionNumber < 1) {
+        m_sceneCreatedBeforeDefaultScaling = true;
+    }
 }
 
 /**
@@ -2185,6 +2204,18 @@ ImageFile::getDefaultSpatialValues(const float numPixels,
 }
 
 /**
+ * Some older scenes did not have a default scaling.  If the users resets the view
+ * after loading one of these scenes, clear the old scene status so that the
+ * default scaling gets set correctly and the image fills the viewport.
+ */
+void
+ImageFile::resetOldSceneDefaultScaling()
+{
+    m_sceneCreatedBeforeDefaultScaling = false;
+}
+
+
+/**
  * @return The default scaling to fit into the orthographic viewport.
  * @param validFlagOut
  *   Upon exit, true if the default scaling is valid, else false.
@@ -2192,6 +2223,14 @@ ImageFile::getDefaultSpatialValues(const float numPixels,
 float
 ImageFile::getDefaultScaling(bool& validFlagOut) const
 {
+    /*
+     * For scenes created before the addition of default scaling
+     * using 1.0 will restore the scene correctly.
+     */
+    if (m_sceneCreatedBeforeDefaultScaling) {
+        return 1.0;
+    }
+    
     if (m_defaultScaling <= 0.0) {
         GraphicsPrimitiveV3fT3f* primitive = getGraphicsPrimitiveForMediaDrawing();
         if (primitive) {

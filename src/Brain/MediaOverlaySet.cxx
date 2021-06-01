@@ -204,6 +204,30 @@ MediaOverlaySet::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut)
     }
 }
 
+/**
+ * @return All displayed media files
+ */
+std::vector<MediaFile*>
+MediaOverlaySet::getDisplayedMediaFiles() const
+{
+    std::vector<MediaFile*> mediaFilesOut;
+    
+    const int numOverlays = getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numOverlays; i++) {
+        if (getOverlay(i)->isEnabled()) {
+            MediaFile* mf(NULL);
+            int32_t dummyIndex(0);
+            (const_cast<MediaOverlay*>(getOverlay(i)))->getSelectionData(mf,
+                                                                         dummyIndex);
+            if (mf != NULL) {
+                mediaFilesOut.push_back(mf);
+            }
+        }
+    }
+    
+    return mediaFilesOut;
+}
+
 
 /**
  * Add a displayed overlay.  If the maximum

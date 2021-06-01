@@ -220,6 +220,8 @@ public:
     
     virtual float getDefaultScaling(bool& validFlagOut) const override;
     
+    void resetOldSceneDefaultScaling();
+    
     virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
     
     static void getQtSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
@@ -271,14 +273,20 @@ private:
     
     mutable float m_defaultScaling = -1.0;
     
+    mutable bool m_sceneCreatedBeforeDefaultScaling = false;
+    
     mutable CaretPointer<GiftiMetaData> m_fileMetaData;
     
     CaretPointer<ControlPointFile> m_controlPointFile;
     
     mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitiveForMediaDrawing;
-
-    static const float s_defaultWindowDepthPercentage;
+    
+    static const AString SCENE_VERSION_NUMBER;
 };
+
+#ifdef __IMAGE_FILE_DECLARE__
+    const AString ImageFile::SCENE_VERSION_NUMBER = "SCENE_VERSION_NUMBER";
+#endif // __IMAGE_FILE_DECLARE__
 
 } // namespace
 
