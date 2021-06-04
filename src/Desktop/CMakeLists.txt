@@ -158,6 +158,9 @@ QxtCore
 FilesBase
 Scenes
 Xml
+CZICmd
+CZI
+CZIJxrDecode
 Common
 ${GLEW_LIBRARIES}
 ${QUAZIP_LIBRARIES}

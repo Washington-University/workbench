@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <QCoreApplication>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 
@@ -29,6 +31,7 @@
 #include "CiftiMappableDataFile.h"
 #include "CiftiFile.h"
 #include "CiftiXML.h"
+#include "CZIcmd.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
 #include "GiftiMetaData.h"
@@ -181,6 +184,27 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     
     if (countOnlys > 1) throw OperationException("only one -only-* option may be specified");
     
+    if (dataFileName.endsWith(".czi")) {
+        std::vector<std::string> cziParams;
+        cziParams.push_back(QCoreApplication::applicationFilePath().toStdString());
+        cziParams.push_back("--command");
+        cziParams.push_back("PrintInformation");
+        cziParams.push_back("--info-level");
+        /* AllSubBlocks produces lots of printing */
+        cziParams.push_back("AllAttachments,DisplaySettings,PyramidStatistics,Statistics");
+        cziParams.push_back("--source");
+        cziParams.push_back(dataFileName.toStdString());
+        
+        std::vector<char*> argv;
+        for (auto& p : cziParams) {
+            argv.push_back((char*)p.c_str());
+        }
+        
+        czi_main(argv.size(),
+                 &argv[0]);
+        return;
+    }
+
     bool preferOnDisk = (!showMapInformationFlag || countOnlys != 0);
 
     CaretPointer<CaretDataFile> caretDataFile;
