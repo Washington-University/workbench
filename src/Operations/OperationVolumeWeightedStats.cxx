@@ -73,10 +73,10 @@ OperationParameters* OperationVolumeWeightedStats::getParameters()
     ret->createOptionalParameter(9, "-show-map-name", "print map index and name before each output");
     
     ret->setHelpText(
-        AString("For each subvolume of the input, a single number is printed, resulting from the specified operation.  ") +
+        AString("For each subvolume of the input, a line of text is printed, resulting from the specified operation.  ") +
         "If -weight-volume is not specified, each voxel's volume is used.  " +
         "Use -subvolume to only give output for a single subvolume.  " +
-        "Use -roi to consider only the data within a region.  " +
+        "If the -roi option is used without -match-maps, then each line will contain as many numbers as there are maps in the ROI file, separated by tab characters.  " +
         "Exactly one of -mean, -stdev, -percentile or -sum must be specified.\n\n" +
         "Using -sum without -weight-volume is equivalent to integrating with respect to volume."
     );

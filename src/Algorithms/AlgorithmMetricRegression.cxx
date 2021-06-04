@@ -35,7 +35,7 @@ AString AlgorithmMetricRegression::getCommandSwitch()
 
 AString AlgorithmMetricRegression::getShortDescription()
 {
-    return "REGRESS METRICS OUT OF A METRIC FILE";
+    return "REGRESS SPATIAL MAP OUT OF A METRIC FILE";
 }
 
 OperationParameters* AlgorithmMetricRegression::getParameters()

@@ -30,6 +30,8 @@
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
 
+#include <limits>
+
 using namespace caret;
 
 
