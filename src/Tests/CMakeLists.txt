@@ -125,6 +125,9 @@ Charting
 Palette
 Scenes
 Xml
+CZICmd
+CZI
+CZIJxrDecode
 Common
 ${QT5_LINK_LIBS}
 ${QT6_LINK_LIBS}

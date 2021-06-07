@@ -108,6 +108,7 @@ GroupAndNameHierarchyName.h
 ImageCaptureDimensionsModeEnum.h
 ImageCaptureDialogSettings.h
 ImageFile.h
+ImageFileCziHelper.h
 ImageResolutionUnitsEnum.h
 ImageSpatialUnitsEnum.h
 LabelDrawingProperties.h
@@ -247,6 +248,7 @@ GroupAndNameHierarchyName.cxx
 ImageCaptureDimensionsModeEnum.cxx
 ImageCaptureDialogSettings.cxx
 ImageFile.cxx
+ImageFileCziHelper.cxx
 ImageResolutionUnitsEnum.cxx
 ImageSpatialUnitsEnum.cxx
 LabelDrawingProperties.cxx
@@ -313,6 +315,7 @@ TARGET_LINK_LIBRARIES(Files ${CARET_QT5_LINK})
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Annotations
 ${CMAKE_SOURCE_DIR}/Charting
+${CMAKE_SOURCE_DIR}/CZIlib/CZI
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Graphics

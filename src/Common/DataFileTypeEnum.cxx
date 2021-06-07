@@ -1323,6 +1323,14 @@ DataFileTypeEnum::getWorkbenchSupportedImageFileExtensions(std::vector<AString>&
         }
     }
     
+    /*
+     * Add CZI for reading
+     */
+    const AString cziNoDot(DataFileTypeEnum::toCziImageFileExtension().mid(1));
+    readableExtensionsOut.push_back(cziNoDot);
+    std::sort(readableExtensionsOut.begin(),
+              readableExtensionsOut.end());
+    
     AString pngExtension;
     AString jpegExtension;
     AString jpgExtension;

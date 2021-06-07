@@ -46,6 +46,7 @@
 #include "GraphicsUtilitiesOpenGL.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "ImageCaptureDialogSettings.h"
+#include "ImageFileCziHelper.h"
 #include "Matrix4x4.h"
 #include "MathFunctions.h"
 #include "SceneClass.h"
@@ -652,52 +653,75 @@ ImageFile::readFile(const AString& filename)
     
     this->setFileName(filename);
     
-    if ( ! m_image->load(filename)) {
-        clear();
-        throw DataFileException(filename + "Unable to load file.");
+    if (filename.endsWith(DataFileTypeEnum::toCziImageFileExtension())) {
+        if (m_image != NULL) {
+            delete m_image;
+        }
+        AString errorMessage;
+        bool fixedFlag(false);
+        if (fixedFlag) {
+            m_image = ImageFileCziHelper::readFile(filename,
+                                                   errorMessage);
+        }
+        else {
+            m_image = ImageFileCziHelper::readFileScaled(filename,
+                                                         4096,
+                                                         errorMessage);
+        }
+        if (m_image == NULL) {
+            clear();
+            throw DataFileException(errorMessage);
+        }
     }
-    
-    if ( ! m_image->isNull()) {
-        switch (ApplicationInformation::getApplicationType()) {
-            case ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE:
-                break;
-            case ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE:
-            {
-                const int32_t width(m_image->width());
-                const int32_t height(m_image->height());
-                const int32_t maxDim(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
-                if ((width > maxDim)
-                    || (height > maxDim)) {
-                    QImage newImage;
-                    if (width > height) {
-                        newImage = m_image->scaledToWidth(maxDim);
-                    }
-                    else {
-                        newImage = m_image->scaledToHeight(maxDim);
-                    }
-                    if ( ! newImage.isNull()) {
-                        delete m_image;
-                        m_image = new QImage(newImage);
-                        CaretLogWarning("Rescaled image "
-                                        + filename
-                                        + " from size ("
-                                        + AString::number(width)
-                                        + ", "
-                                        + AString::number(height)
-                                        + ") to ("
-                                        + AString::number(m_image->width())
-                                        + ", "
-                                        + AString::number(m_image->height())
-                                        + ")");
+    else {
+        if ( ! m_image->load(filename)) {
+            clear();
+            throw DataFileException(filename + "Unable to load file.");
+        }
+        
+        if ( ! m_image->isNull()) {
+            switch (ApplicationInformation::getApplicationType()) {
+                case ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE:
+                    break;
+                case ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE:
+                {
+                    const int32_t width(m_image->width());
+                    const int32_t height(m_image->height());
+                    const int32_t maxDim(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
+                    if ((width > maxDim)
+                        || (height > maxDim)) {
+                        QImage newImage;
+                        if (width > height) {
+                            newImage = m_image->scaledToWidth(maxDim);
+                        }
+                        else {
+                            newImage = m_image->scaledToHeight(maxDim);
+                        }
+                        if ( ! newImage.isNull()) {
+                            delete m_image;
+                            m_image = new QImage(newImage);
+                            CaretLogWarning("Rescaled image "
+                                            + filename
+                                            + " from size ("
+                                            + AString::number(width)
+                                            + ", "
+                                            + AString::number(height)
+                                            + ") to ("
+                                            + AString::number(m_image->width())
+                                            + ", "
+                                            + AString::number(m_image->height())
+                                            + ")");
+                        }
                     }
                 }
+                    break;
+                case ApplicationTypeEnum::APPLICATION_TYPE_INVALID:
+                    break;
             }
-                break;
-            case ApplicationTypeEnum::APPLICATION_TYPE_INVALID:
-                break;
+            
         }
-
     }
+    
     readFileMetaDataFromQImage();
     updateDefaultSpatialCoordinates();
     

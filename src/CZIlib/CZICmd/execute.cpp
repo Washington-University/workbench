@@ -333,6 +333,14 @@ private:
 			ss << " logical=" << info.logicalRect << " phys.=" << info.physicalSize;
 			ss << " pixeltype=" << Utils::PixelTypeToInformalString(info.pixelType);
 			ss << " comp.mode=" << Utils::CompressionModeToInformalString(info.mode);
+            
+            if (info.coordinate.IsValid(DimensionIndex::Z)) {
+                int coordValue(0);
+                bool result = info.coordinate.TryGetPosition(DimensionIndex::Z, &coordValue);
+                if (result) {
+                    ss << "coord Z=" << coordValue;
+                }
+            }
 			options.GetLog()->WriteStdOut(ss.str());
 			return true;
 		});

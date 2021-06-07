@@ -88,6 +88,10 @@ OperationFileInformation::getParameters()
     
     ret->createOptionalParameter(7, "-only-cifti-xml", "suppress normal output, print the cifti xml if the file type has it");
     
+    ret->createOptionalParameter(8, "-czi-all-sub-blocks", "show all sub-blocks in CZI file (may produce long output)");
+    
+    ret->createOptionalParameter(9, "-czi-xml", "show XML from CZI file");
+    
     AString helpText("List information about the content of a data file.  "
                      "Only one -only option may be specified.  "
                      "The information listed when no -only option is present is dependent upon the type of data file.");
@@ -182,16 +186,29 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     bool onlyCiftiXML = myParams->getOptionalParameter(7)->m_present;
     if (onlyCiftiXML) ++countOnlys;
     
+    OptionalParameter* cziShowAllSubBlocksParam = myParams->getOptionalParameter(8);
+    const bool cziShowAllSubBlocks = cziShowAllSubBlocksParam->m_present;
+    
+    OptionalParameter* cziShowXMLParam = myParams->getOptionalParameter(9);
+    const bool cziShowXML = cziShowXMLParam->m_present;
+    
     if (countOnlys > 1) throw OperationException("only one -only-* option may be specified");
     
-    if (dataFileName.endsWith(".czi")) {
+    if (dataFileName.endsWith(DataFileTypeEnum::toCziImageFileExtension())) {
         std::vector<std::string> cziParams;
         cziParams.push_back(QCoreApplication::applicationFilePath().toStdString());
         cziParams.push_back("--command");
         cziParams.push_back("PrintInformation");
         cziParams.push_back("--info-level");
+        QString infoLevelValues("AllAttachments,DisplaySettings,GeneralInfo,PyramidStatistics,ScalingInfo,Statistics");
+        if (cziShowAllSubBlocks) {
+            infoLevelValues = "AllSubBlocks";
+        }
+        if (cziShowXML) {
+            infoLevelValues = "RawXML";
+        }
         /* AllSubBlocks produces lots of printing */
-        cziParams.push_back("AllAttachments,DisplaySettings,PyramidStatistics,Statistics");
+        cziParams.push_back(infoLevelValues.toStdString());
         cziParams.push_back("--source");
         cziParams.push_back(dataFileName.toStdString());
         
@@ -203,6 +220,16 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
         czi_main(argv.size(),
                  &argv[0]);
         return;
+    }
+    else {
+        if (cziShowAllSubBlocks) {
+            throw OperationException(cziShowAllSubBlocksParam->m_optionSwitch
+                                     + " must be used with a CZI file");
+        }
+        if (cziShowXML) {
+            throw OperationException(cziShowXMLParam->m_optionSwitch
+                                     + " must be used with a CZI file");
+        }
     }
 
     bool preferOnDisk = (!showMapInformationFlag || countOnlys != 0);

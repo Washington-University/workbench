@@ -184,6 +184,8 @@ public:
 
     static void getQtSupportedMovieFileExtensions(std::vector<AString>& readableExtensionsOut);
     
+    static AString toCziImageFileExtension() { return ".czi"; }
+    
 private:
     DataFileTypeEnum(const Enum enumValue, 
                      const AString& name,
