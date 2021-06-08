@@ -560,6 +560,13 @@ ENDIF (WORKBENCH_INCLUDE_HELP_HTML_RESOURCES)
 
 ##########################################################################################
 #
+# Used in CZI library.  Must be defined here so that it propagates to all modules
+# Indicates static building for windows
+#
+ADD_DEFINITIONS(-D_STATICLIBBUILD)
+
+##########################################################################################
+#
 # All subdirectories that will be configured for building
 #
 IF (NOT QUAZIP_FOUND)
