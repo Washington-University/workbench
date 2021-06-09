@@ -218,7 +218,7 @@ public:
 
     const ImageFile* castToImageFile() const;
     
-    virtual float getDefaultScaling(bool& validFlagOut) const override;
+    virtual DefaultViewTransform getDefaultViewTransform() const override;
     
     void resetOldSceneDefaultScaling();
     
@@ -271,7 +271,9 @@ private:
 
     QImage* m_image;
     
-    mutable float m_defaultScaling = -1.0;
+    mutable DefaultViewTransform m_defaultViewTransform;
+    
+    mutable bool m_defaultViewTransformValidFlag = false;
     
     mutable bool m_sceneCreatedBeforeDefaultScaling = false;
     

@@ -57,25 +57,21 @@ ImageFileCziHelper::~ImageFileCziHelper()
 }
 
 /**
- * Read a CZI file.
+ * Read a CZI file
  * @param filename
- * @param errorMessageOut
- * @return Pointer to a QImage containing image that was read of NULL if there was an error.
+ *    Name of file to read
+ * @return ReadResult instance with image or error
  */
-QImage*
-ImageFileCziHelper::readFile(const AString& filename,
-                             AString& errorMessageOut)
+ImageFileCziHelper::ReadResult
+ImageFileCziHelper::readFile(const AString& filename)
 {
-    errorMessageOut.clear();
-    QImage* imageOut(NULL);
+    AString errorMessage;
     
     if (filename.isEmpty()) {
-        errorMessageOut = "Filename is empty";
-        return imageOut;
+        return ReadResult("Filename is empty");
     }
     if ( ! QFile::exists(filename)) {
-        errorMessageOut = (filename + " does not exist");
-        return imageOut;
+        return ReadResult(filename + " does not exist");
     }
     
     try {
@@ -86,13 +82,13 @@ ImageFileCziHelper::readFile(const AString& filename,
         reader->Open(stream);
         auto subBlockStatistics = reader->GetStatistics();
         
-        auto roi = subBlockStatistics.boundingBox;
+        auto originalImageRect = subBlockStatistics.boundingBox;
+        auto roi = originalImageRect;
         if (cziDebugFlag) std::cout << "CZI Bounding Box (x,y,w,h): " << roi.x << " " << roi.y << " " << roi.w << " " << roi.h << std::endl;
         
         if ((roi.w <= 0)
             || (roi.h <= 0)) {
-            errorMessageOut = (filename + " has invalid width/height");
-            return imageOut;
+            return ReadResult(filename + " has invalid width/height");
         }
         
         roi.x += (roi.w / 2);
@@ -116,44 +112,37 @@ ImageFileCziHelper::readFile(const AString& filename,
         auto accessor = reader->CreateSingleChannelTileAccessor();
         auto bitmapData = accessor->Get(roi, &coordinate, &sctaOptions);
         
-        imageOut = createImageData(bitmapData.get(),
-                                   filename,
-                                   errorMessageOut);
+        return createImageData(bitmapData.get(),
+                               originalImageRect, /* all of image */
+                               originalImageRect,
+                               filename);
     }
     catch (const std::exception& e) {
-        errorMessageOut = (filename + QString(e.what()));
+        errorMessage = (filename + QString(e.what()));
     }
     
-    if ( ! errorMessageOut.isEmpty()) {
-        if (imageOut != NULL) {
-            delete imageOut;
-        }
-    }
-    
-    return imageOut;
+    return ReadResult(errorMessage);
 }
 
 /**
- * Read a CZI file.
+ * Read a CZI file scaled region
  * @param filename
- * @param errorMessageOut
- * @return Pointer to a QImage containing image that was read of NULL if there was an error.
+ *    Name of file to read
+ * @param maxWidthHeightInPixels
+ *    Maximum width/height of output image
+ * @return ReadResult instance with image or error
  */
-QImage*
+ImageFileCziHelper::ReadResult
 ImageFileCziHelper::readFileScaled(const AString& filename,
-                                   const int32_t maxWidthHeightInPixels,
-                                   AString& errorMessageOut)
+                                   const int32_t maxWidthHeightInPixels)
 {
-    errorMessageOut.clear();
-    QImage* imageOut(NULL);
+    AString errorMessage;
     
     if (filename.isEmpty()) {
-        errorMessageOut = "Filename is empty";
-        return imageOut;
+        return ReadResult("Filename is empty");
     }
     if ( ! QFile::exists(filename)) {
-        errorMessageOut = (filename + " does not exist");
-        return imageOut;
+        return ReadResult(filename + " does not exist");
     }
     
     try {
@@ -164,13 +153,13 @@ ImageFileCziHelper::readFileScaled(const AString& filename,
         reader->Open(stream);
         auto subBlockStatistics = reader->GetStatistics();
         
-        auto roi = subBlockStatistics.boundingBox;
+        auto originalImageRect = subBlockStatistics.boundingBox;
+        auto roi = originalImageRect;
         if (cziDebugFlag) std::cout << "CZI Bounding Box (x,y,w,h): " << roi.x << " " << roi.y << " " << roi.w << " " << roi.h << std::endl;
         
         if ((roi.w <= 0)
             || (roi.h <= 0)) {
-            errorMessageOut = (filename + " has invalid width/height");
-            return imageOut;
+            return ReadResult(filename + " has invalid width/height");
         }
         
         float zoom(1.0);
@@ -190,41 +179,35 @@ ImageFileCziHelper::readFileScaled(const AString& filename,
         auto accessor = reader->CreateSingleChannelScalingTileAccessor();
         auto bitmapData = accessor->Get(roi, &coordinate, zoom, &scstaOptions);
         
-        imageOut = createImageData(bitmapData.get(),
-                                   filename,
-                                   errorMessageOut);
+        return createImageData(bitmapData.get(),
+                               originalImageRect,
+                               originalImageRect,
+                               filename);
     }
     catch (const std::exception& e) {
-        errorMessageOut = (filename + QString(e.what()));
+        errorMessage = (filename + QString(e.what()));
     }
     
-    if ( ! errorMessageOut.isEmpty()) {
-        if (imageOut != NULL) {
-            delete imageOut;
-        }
-    }
-    
-    return imageOut;
+    return ReadResult(errorMessage);
 }
 
 /**
  * Create image data from the given bit map image data
  * @param bitmapData
  *    The bitmap data containing image pixels
+ * @param roi
+ *    The region of interest
  * @param filename
  *    Name of file.
- * @param errorMessageOut
- *    Output with error information
- * @return Pointer to QImage or NULL if there is an error.
+ * @return ReadResult instance with image or error
  */
-QImage*
+ImageFileCziHelper::ReadResult
 ImageFileCziHelper::createImageData(libCZI::IBitmapData* bitmapData,
-                                    const AString& filename,
-                                    AString& errorMessageOut)
+                                    const libCZI::IntRect& imageRoiRect,
+                                    const libCZI::IntRect& originalImageRect,
+                                    const AString& filename)
 {
     CaretAssert(bitmapData);
-    errorMessageOut.clear();
-    QImage* imageOut(NULL);
     
     const auto width(bitmapData->GetWidth());
     const auto height(bitmapData->GetHeight());
@@ -232,10 +215,10 @@ ImageFileCziHelper::createImageData(libCZI::IBitmapData* bitmapData,
     
     if ((width <= 0)
         || (height <= 0)) {
-        errorMessageOut = (filename
-                           + " data has invalid width or height");
-        return imageOut;
+        return ReadResult(filename
+                          + " data has invalid width or height");
     }
+    
     std::vector<unsigned char> imageData(width * height * 4);
     auto bitMapInfo = bitmapData->Lock();
     if (cziDebugFlag) std::cout << "   Stride: " << bitMapInfo.stride << std::endl;
@@ -259,15 +242,10 @@ ImageFileCziHelper::createImageData(libCZI::IBitmapData* bitmapData,
             colorName = "Bgra32";
             break;
         default:
-            colorName = "Invalid";
-            errorMessageOut = (filename
+            return ReadResult(filename
                                +  " pixeltype "
                                + AString::number((int)bitmapData->GetPixelType())
                                + " not supported/unknown");
-            if (imageOut != NULL) {
-                delete imageOut;
-            }
-            return imageOut;
             break;
     }
     if (cziDebugFlag) std::cout << "   Color: " << colorName << std::endl << std::flush;
@@ -279,7 +257,7 @@ ImageFileCziHelper::createImageData(libCZI::IBitmapData* bitmapData,
      * Documentation for QImage states that setPixel may be very costly
      * and recommends using the scanLine() method to access pixel data.
      */
-    imageOut = new QImage(width,
+    QImage* imageOut = new QImage(width,
                           height,
                           QImage::Format_ARGB32);
     
@@ -359,7 +337,19 @@ ImageFileCziHelper::createImageData(libCZI::IBitmapData* bitmapData,
     }
     bitmapData->Unlock();
 
-    return imageOut;
+    QRect originalRect(originalImageRect.x,
+                       originalImageRect.y,
+                       originalImageRect.w,
+                       originalImageRect.h);
+    
+    QRect imageRect(imageRoiRect.x,
+                    imageRoiRect.y,
+                    imageRoiRect.w,
+                    imageRoiRect.h);
+    
+    return ReadResult(imageOut,
+                      imageRect,
+                      originalRect);
 }
 
 /**

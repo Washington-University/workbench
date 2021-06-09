@@ -3492,12 +3492,11 @@ BrowserTabContent::applyMediaMouseScaling(BrainOpenGLViewportContent* viewportCo
 {
     if (isMediaDisplayed()) {
         const GraphicsObjectToWindowTransform* xform = viewportContent->getGraphicsObjectToWindowTransform();
-        const float defaultScaling = getMediaOverlaySet()->getDefaultScaling();
         getViewingTransformation()->scaleAboutMouse(xform,
                                                     mousePressX,
                                                     mousePressY,
                                                     mouseDY,
-                                                    defaultScaling,
+                                                    getMediaOverlaySet()->getDefaultViewTransform(),
                                                     dataX,
                                                     dataY,
                                                     dataXYValidFlag);

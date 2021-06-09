@@ -104,7 +104,9 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     /*
      * Default scaling fits image to the viewport in the default view
      */
-    const float defaultScaling(mediaOverlaySet->getDefaultScaling());
+    const DefaultViewTransform defaultViewTransform = mediaOverlaySet->getDefaultViewTransform();
+    const std::array<float, 3> defaultTranslation(defaultViewTransform.getTranslation());
+    const float defaultScaling(defaultViewTransform.getScaling());
     
     if ((m_viewport[2] < 1)
         || (m_viewport[3] < 1)) {
@@ -132,6 +134,7 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     m_browserTabContent->getTranslation(translation);
     const float scaling = m_browserTabContent->getScaling();
     
+    glTranslatef(defaultTranslation[0], defaultTranslation[1], 0.0);
     glTranslatef(translation[0], translation[1], 0.0);
     glScalef(defaultScaling, defaultScaling, 1.0);
     glScalef(scaling, scaling, 1.0);

@@ -41,6 +41,7 @@
 #include "ControlPoint3D.h"
 #include "DataFileException.h"
 #include "DataFileContentInformation.h"
+#include "DeveloperFlagsEnum.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "GraphicsUtilitiesOpenGL.h"
@@ -55,6 +56,8 @@
 #include "VolumeSpace.h"
 
 using namespace caret;
+
+static bool imageDebugFlag = false;
 
 /**
  * Constructor.
@@ -658,19 +661,73 @@ ImageFile::readFile(const AString& filename)
             delete m_image;
         }
         AString errorMessage;
+        ImageFileCziHelper::ReadResult result("no-error");
+        
         bool fixedFlag(false);
         if (fixedFlag) {
-            m_image = ImageFileCziHelper::readFile(filename,
-                                                   errorMessage);
+            result = ImageFileCziHelper::readFile(filename);
+            if (result.m_valid) {
+                m_image = result.m_image;
+                CaretAssert(m_image);
+            }
+            else {
+                throw DataFileException(result.m_errorMessage);
+            }
         }
         else {
-            m_image = ImageFileCziHelper::readFileScaled(filename,
-                                                         4096,
-                                                         errorMessage);
+            const int64_t imageDimMax(4096);
+            result = ImageFileCziHelper::readFileScaled(filename,
+                                                        imageDimMax);
+            if (result.m_valid) {
+                m_image = result.m_image;
+                CaretAssert(m_image);
+                
+                if (imageDebugFlag) {
+                    std::cout << "ROI Rect x/y/w/h: "
+                    << result.m_imageRoiRect.x()
+                    << ", " << result.m_imageRoiRect.y()
+                    << ", " << result.m_imageRoiRect.width()
+                    << ", " << result.m_imageRoiRect.height() << std::endl << std::flush;
+                    std::cout << "Full Rect x/y/w/h: "
+                    << result.m_fullImageRect.x()
+                    << ", " << result.m_fullImageRect.y()
+                    << ", " << result.m_fullImageRect.width()
+                    << ", " << result.m_fullImageRect.height() << std::endl << std::flush;
+                }
+            }
+            else {
+                throw DataFileException(result.m_errorMessage);
+            }
         }
-        if (m_image == NULL) {
-            clear();
-            throw DataFileException(errorMessage);
+        
+        CaretAssert(m_image);
+        updateDefaultSpatialCoordinates();
+        
+        updateDefaultSpatialCoordinates();
+
+        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_CZI_IMAGE_FILE_USE_COORDINATES)) {
+            /*
+             * Origin is at top-left in result QRect
+             */
+            std::array<float, 3> bottomLeftPixelXYZ {
+                static_cast<float>(result.m_imageRoiRect.x()),
+                static_cast<float>(result.m_imageRoiRect.y() - result.m_imageRoiRect.height()),
+                0.0
+            };
+            std::array<float, 3> stepPixelXYZ {
+                static_cast<float>(result.m_imageRoiRect.width()) / static_cast<float>(m_image->width()),
+                static_cast<float>(result.m_imageRoiRect.height()) / static_cast<float>(m_image->height()),
+                1.0
+            };
+            
+            initializeVolumeSpace(m_image->width(),
+                                  m_image->height(),
+                                  bottomLeftPixelXYZ,
+                                  stepPixelXYZ);
+            if (imageDebugFlag) {
+                std::cout << "   Origin: " << AString::fromNumbers(bottomLeftPixelXYZ.data(), 3, ", ") << std::endl;
+                std::cout << "   Step: " << AString::fromNumbers(stepPixelXYZ.data(), 3, ", ") << std::endl;
+            }
         }
     }
     else {
@@ -720,10 +777,11 @@ ImageFile::readFile(const AString& filename)
             }
             
         }
+        
+        updateDefaultSpatialCoordinates();
     }
     
     readFileMetaDataFromQImage();
-    updateDefaultSpatialCoordinates();
     
     this->clearModified();
 }
@@ -1550,11 +1608,11 @@ ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
     
     float firstPixel[3] = { 0, 0, 0 };
     transformationMatrix->multiplyPoint3(firstPixel);
-    std::cout << "First pixel coord: " << AString::fromNumbers(firstPixel, 3, ",") << std::endl;
+    if (imageDebugFlag) std::cout << "First pixel coord: " << AString::fromNumbers(firstPixel, 3, ",") << std::endl;
     
     float lastPixel[3] = { (float)(width - 1), (float)(height - 1), 0.0f };
     transformationMatrix->multiplyPoint3(lastPixel);
-    std::cout << "Last pixel coord: " << AString::fromNumbers(lastPixel, 3, ",") << std::endl;
+    if (imageDebugFlag) std::cout << "Last pixel coord: " << AString::fromNumbers(lastPixel, 3, ",") << std::endl;
     
     {
         float bl[3] = { 0.0, 0.0, 0.0 };
@@ -1864,7 +1922,8 @@ ImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
     m_controlPointFile->restoreFromScene(sceneAttributes,
                                          sceneClass->getClass("m_controlPointFile"));
     
-    m_defaultScaling = -1.0;
+    m_defaultViewTransform.reset();
+    m_defaultViewTransformValidFlag = false;
     
     const int32_t sceneVersionNumber = sceneClass->getIntegerValue(ImageFile::SCENE_VERSION_NUMBER, 0);
     
@@ -2240,22 +2299,20 @@ ImageFile::resetOldSceneDefaultScaling()
 
 
 /**
- * @return The default scaling to fit into the orthographic viewport.
- * @param validFlagOut
- *   Upon exit, true if the default scaling is valid, else false.
+ * @return the default view trasform
  */
-float
-ImageFile::getDefaultScaling(bool& validFlagOut) const
+DefaultViewTransform
+ImageFile::getDefaultViewTransform() const
 {
     /*
      * For scenes created before the addition of default scaling
      * using 1.0 will restore the scene correctly.
      */
     if (m_sceneCreatedBeforeDefaultScaling) {
-        return 1.0;
+        return m_defaultViewTransform;
     }
     
-    if (m_defaultScaling <= 0.0) {
+    if ( ! m_defaultViewTransformValidFlag) {
         GraphicsPrimitiveV3fT3f* primitive = getGraphicsPrimitiveForMediaDrawing();
         if (primitive) {
             if (primitive->isValid()) {
@@ -2267,15 +2324,30 @@ ImageFile::getDefaultScaling(bool& validFlagOut) const
                         /*
                          * Default scaling "fits" the image into the media drawing's orthographic viewport
                          */
-                        m_defaultScaling = MediaFile::getMediaDrawingOrthographicHalfHeight() / imageHalfHeight;
+                        float tx(0.0);
+                        float ty(0.0);
+                        float defaultScaling = MediaFile::getMediaDrawingOrthographicHalfHeight() / imageHalfHeight;
+                        if (defaultScaling != 0.0) {
+                            /*
+                             * Need to alter translation with default scaling since viewport is a fixed
+                             * size and has no relation to the image size
+                             */
+                            tx = -boundingBox.getCenterX() * defaultScaling;
+                            ty = -boundingBox.getCenterY() * defaultScaling;
+                        }
+                        
+                        m_defaultViewTransform.setScaling(defaultScaling);
+                        m_defaultViewTransform.setTranslation(tx, ty);
+                        
+                        m_defaultViewTransformValidFlag = true;
+                        
+                        if (imageDebugFlag) std::cout << "Default view transform: " << m_defaultViewTransform.toString() << std::endl;
                     }
                 }
             }
         }
     }
     
-    validFlagOut = (m_defaultScaling > 0.0);
-    
-    return m_defaultScaling;
+    return m_defaultViewTransform;
 }
 

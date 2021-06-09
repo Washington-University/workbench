@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "CaretDataFile.h"
+#include "DefaultViewTransform.h"
 #include "NiftiEnums.h"
 #include "SceneClassAssistant.h"
 #include "Vector3D.h"
@@ -162,7 +163,7 @@ namespace caret {
         
         const BoundingBox* getSpatialBoudingBox() const;
         
-        virtual float getDefaultScaling(bool& validFlagOut) const = 0;
+        virtual DefaultViewTransform getDefaultViewTransform() const = 0;
         
         static float getMediaDrawingOrthographicHalfHeight();
         

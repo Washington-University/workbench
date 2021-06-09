@@ -26,6 +26,9 @@
 
 #include <memory>
 
+#include <QRect>
+
+#include "CaretAssert.h"
 #include "CaretObject.h"
 #include "libCZI.h"
 
@@ -36,6 +39,43 @@ namespace caret {
     class ImageFileCziHelper : public CaretObject {
         
     public:
+    public:
+        class ReadResult {
+        public:
+            ReadResult(QImage* image,
+                       const QRect& imageRoiRect,
+                       const QRect& fullImageRect)
+            : m_image(image),
+            m_imageRoiRect(imageRoiRect),
+            m_fullImageRect(fullImageRect),
+            m_valid(true) {
+                CaretAssert(m_image);
+            }
+            
+            ReadResult(const AString& errorMessage)
+            : m_errorMessage(errorMessage),
+            m_valid(false) {
+                CaretAssert(! m_errorMessage.isEmpty());
+            }
+            
+            QImage* m_image = NULL;
+            
+            /**
+             * Region of interest this image occupies in the original, full image.
+             * This may be different width/height than m_image due to zooming.
+             */
+            QRect m_imageRoiRect;
+            
+            /**
+             * Full image rectangle
+             */
+            QRect m_fullImageRect;
+            
+            AString m_errorMessage;
+            
+            bool m_valid = false;
+        };
+        
         ImageFileCziHelper();
         
         virtual ~ImageFileCziHelper();
@@ -44,22 +84,21 @@ namespace caret {
 
         ImageFileCziHelper& operator=(const ImageFileCziHelper&) = delete;
         
-        static QImage* readFile(const AString& filename,
-                                AString& errorMessageOut);
+        static ReadResult readFile(const AString& filename);
         
-        static QImage* readFileScaled(const AString& filename,
-                                      const int32_t maxWidthHeightInPixels,
-                                      AString& errorMessageOut);
-        
+        static ReadResult readFileScaled(const AString& filename,
+                                         const int32_t maxWidthHeightInPixels);
+
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
         
     private:
-        static QImage* createImageData(libCZI::IBitmapData* bitmapData,
-                                       const AString& filename,
-                                       AString& errorMessageOut);
-        
+        static ReadResult createImageData(libCZI::IBitmapData* bitmapData,
+                                          const libCZI::IntRect& imageRoiRect,
+                                          const libCZI::IntRect& originalImageRect,
+                                          const AString& filename);
+
         // ADD_NEW_MEMBERS_HERE
 
     };

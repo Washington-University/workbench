@@ -28,6 +28,7 @@
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DefaultViewTransform.h"
 #include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsRegionSelectionBox.h"
 
@@ -116,8 +117,8 @@ ViewingTransformationsMedia::resetView()
  *    Y-Location of where mouse was pressed
  * @param mouseDY
  *    Change in mouse Y
- * @param defaultScalingIn
- *    Any scaling that sets size of object that is not user scaling (zooming)
+ * @param defaultViewTransform
+ *    Transform for default view
  * @param dataX
  *    X-coordinate of data where mouse was pressed
  * @param dataY
@@ -130,7 +131,7 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
                                              const int32_t mousePressX,
                                              const int32_t mousePressY,
                                              const int32_t mouseDY,
-                                             const float defaultScalingIn,
+                                             const DefaultViewTransform& defaultViewTransform,
                                              const float dataX,
                                              const float dataY,
                                              const bool dataXYValidFlag)
@@ -148,11 +149,10 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
         return;
     }
     
-    const float defaultScaling((defaultScalingIn != 0.0)
-                               ? defaultScalingIn
-                               : 1.0);
+    const float defaultScaling(defaultViewTransform.getScaling());
+    CaretAssert(defaultScaling > 0.0);
     
-    const float mousePressXYZ[3] { static_cast<float>(mousePressX), static_cast<float>(mousePressY), 0.0f };
+    float mousePressXYZ[3] { static_cast<float>(mousePressX), static_cast<float>(mousePressY), 0.0f };
 
     /*
      * Scaling equations are set up so that:
@@ -194,6 +194,14 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
          */
         float tx = -((dataX * totalScale) - identityXYZ[0]);
         float ty = -((dataY * totalScale) - identityXYZ[1]);
+        
+        /*
+         * Need to remove default view translation
+         */
+        const std::array<float, 3> defViewTranslate(defaultViewTransform.getTranslation());
+        tx -= defViewTranslate[0];
+        ty -= defViewTranslate[1];
+
         setTranslation(tx, ty, 0.0);
     }
 }
@@ -204,20 +212,20 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
  *    Box containing bounds of window
  * @param selectionBounds
  *    Box containing bounds of selection
- * @param defaultScalingIn
- *    Any scaling that sets size of object that is not user scaling (zooming)
+ * @param defaultViewTransform
+ *    Transform for the default view
  */
 void
 ViewingTransformationsMedia::setViewToBounds(const BoundingBox* windowBounds,
                                              const GraphicsRegionSelectionBox* selectionBounds,
-                                             const float defaultScalingIn)
+                                             const DefaultViewTransform& defaultViewTransform)
 {
     CaretAssert(windowBounds);
     CaretAssert(selectionBounds);
     
-    const float defaultScaling((defaultScalingIn != 0.0)
-                               ? defaultScalingIn
-                               : 1.0);
+    
+    const float defaultScaling(defaultViewTransform.getScaling());
+    CaretAssert(defaultScaling > 0.0);
     
     float regionMinX, regionMaxX, regionMinY, regionMaxY;
     selectionBounds->getBounds(regionMinX, regionMinY, regionMaxX, regionMaxY);
@@ -250,6 +258,14 @@ ViewingTransformationsMedia::setViewToBounds(const BoundingBox* windowBounds,
          */
         float tx = -((centerXYZ[0] * scale));
         float ty = -((centerXYZ[1] * scale));
+
+        /*
+         * Need to remove default view translation
+         */
+        const std::array<float, 3> defViewTranslate(defaultViewTransform.getTranslation());
+        tx -= defViewTranslate[0];
+        ty -= defViewTranslate[1];
+
         setTranslation(tx, ty, 0.0);
     }
 }

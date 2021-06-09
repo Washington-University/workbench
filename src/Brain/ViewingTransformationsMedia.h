@@ -43,14 +43,14 @@ namespace caret {
                                      const int32_t mousePressX,
                                      const int32_t mousePressY,
                                      const int32_t mouseDY,
-                                     const float defaultScalingIn,
+                                     const DefaultViewTransform& defaultViewTransform,
                                      const float dataX,
                                      const float dataY,
                                      const bool dataXYValidFlag) override;
         
         virtual void setViewToBounds(const BoundingBox* windowBounds,
                                      const GraphicsRegionSelectionBox* selectionBounds,
-                                     const float defaultScalingIn) override;
+                                     const DefaultViewTransform& defaultViewTransform) override;
         
         virtual void resetView();
         

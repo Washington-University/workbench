@@ -540,10 +540,14 @@ MediaOverlaySet::receiveEvent(Event* /*event*/)
 
 }
 
-float
-MediaOverlaySet::getDefaultScaling() const
+/**
+ * @return The default view transform
+ */
+DefaultViewTransform
+MediaOverlaySet::getDefaultViewTransform() const
 {
-    float defaultScaling(1.0);
+    DefaultViewTransform defaultViewTransform;
+    
     const int32_t numberOfOverlays(getNumberOfDisplayedOverlays());
     for (int32_t i = (numberOfOverlays - 1); i >= 0; i--) {
         const MediaOverlay* overlay = getOverlay(i);
@@ -556,17 +560,13 @@ MediaOverlaySet::getDefaultScaling() const
                                                                  selectedIndex);
             
             if (selectedFile != NULL) {
-                bool validFlag(false);
-                const float fileDefaultScaling(selectedFile->getDefaultScaling(validFlag));
-                if (validFlag) {
-                    defaultScaling = fileDefaultScaling;
-                    break;
-                }
+                defaultViewTransform = selectedFile->getDefaultViewTransform();
+                break;
             }
         }
     }
     
-    return defaultScaling;
+    return defaultViewTransform;
 }
 
 
