@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 #include "CaretObject.h"
 
 
@@ -30,6 +31,8 @@ namespace caret {
     class BackgroundAndForegroundColors : public CaretObject {
         
     public:
+        static std::array<float, 3> toFloatRGB(const uint8_t byteRGB[3]);
+        
         BackgroundAndForegroundColors();
         
         virtual ~BackgroundAndForegroundColors();

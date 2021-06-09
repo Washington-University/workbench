@@ -29,7 +29,11 @@
 #include <QImage>
 
 #include "CaretAssert.h"
+#include "CaretPreferences.h"
 #include "DataFileException.h"
+#include "EventCaretPreferencesGet.h"
+#include "EventManager.h"
+
 using namespace caret;
 
 static bool cziDebugFlag(false);
@@ -175,7 +179,19 @@ ImageFileCziHelper::readFileScaled(const AString& filename,
         scstaOptions.backGroundColor.r = 0.0;
         scstaOptions.backGroundColor.g = 0.0;
         scstaOptions.backGroundColor.b = 0.0;
-
+        
+        EventCaretPreferencesGet prefsEvent;
+        EventManager::get()->sendEvent(prefsEvent.getPointer());
+        CaretPreferences* prefs = prefsEvent.getCaretPreferences();
+        if (prefs != NULL) {
+            uint8_t backgroundColor[3];
+            prefs->getBackgroundAndForegroundColors()->getColorBackgroundMediaView(backgroundColor);
+            std::array<float, 3> rgb(BackgroundAndForegroundColors::toFloatRGB(backgroundColor));
+            scstaOptions.backGroundColor.r = rgb[0];
+            scstaOptions.backGroundColor.g = rgb[1];
+            scstaOptions.backGroundColor.b = rgb[2];
+        }
+        
         auto accessor = reader->CreateSingleChannelScalingTileAccessor();
         auto bitmapData = accessor->Get(roi, &coordinate, zoom, &scstaOptions);
         

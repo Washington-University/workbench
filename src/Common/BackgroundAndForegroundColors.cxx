@@ -647,3 +647,22 @@ BackgroundAndForegroundColors::setColor(uint8_t color[3],
     color[2] = blue;
 }
 
+/**
+ * Convert the  byte RGB values (0 to 255)  to float RGB values (0 to 1)
+ * @param byteRGB
+ *    The byte RGB values
+ * @return
+ *    Float RGB values
+ */
+std::array<float, 3>
+BackgroundAndForegroundColors::toFloatRGB(const uint8_t byteRGB[3])
+{
+    std::array<float, 3> rgb {
+        static_cast<float>(byteRGB[0]) / 255.0f,
+        static_cast<float>(byteRGB[1]) / 255.0f,
+        static_cast<float>(byteRGB[2]) / 255.0f
+    };
+    
+    return rgb;
+}
+
