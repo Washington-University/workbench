@@ -65,7 +65,7 @@ namespace caret {
 
         float m_scaling = 1.0;
         
-        std::array<float, 3> m_translation = { 0.0, 0.0, 0.0 };
+        std::array<float, 3> m_translation;
         
         // ADD_NEW_MEMBERS_HERE
 
