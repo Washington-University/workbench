@@ -21,10 +21,14 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include <QProgressDialog>
 
 #include "AString.h"
 #include "EventListenerInterface.h"
+
+class QMessageBox;
 
 namespace caret {
 
@@ -44,6 +48,10 @@ namespace caret {
                              QWidget* parent,
                              const AString& title);
         
+        static std::unique_ptr<ProgressReportingDialog> showProgressMessage(const AString& title,
+                                                                            const AString& message,
+                                                                            QWidget* parent);
+
         void setEventReceivingEnabled(bool status);
         
     public:

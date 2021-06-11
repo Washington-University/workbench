@@ -151,6 +151,27 @@ ProgressReportingDialog::runEvent(Event* event,
 }
 
 /**
+ * Show a message box until it is destroyed by user or going out of scope
+ */
+std::unique_ptr<ProgressReportingDialog>
+ProgressReportingDialog::showProgressMessage(const AString& title,
+                                             const AString& message,
+                                             QWidget* parent)
+{
+    std::unique_ptr<ProgressReportingDialog> prd(new ProgressReportingDialog(title,
+                                                                             message,
+                                                                             parent));
+    prd->setWindowModality(Qt::WindowModal);
+    prd->setMinimumDuration(0);
+    prd->setValue(1);
+    prd->setMaximum(2);
+    prd->setVisible(true);
+    prd->raise();
+    
+    return prd;
+}
+
+/**
  * Set event receiving enabled.  This method is used to enable
  * and disable the receiving of EventProgressUpdate events.
  * The default is true.
