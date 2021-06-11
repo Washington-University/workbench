@@ -24,8 +24,6 @@
 
 
 
-#include <memory>
-
 #include <QRect>
 
 #include "CaretAssert.h"
@@ -58,7 +56,10 @@ namespace caret {
                 CaretAssert(! m_errorMessage.isEmpty());
             }
             
-            QImage* m_image = NULL;
+            /**
+             * Image is NOT deleted as caller is expected to take ownership of the image
+             */
+            QImage* m_image;
             
             /**
              * Region of interest this image occupies in the original, full image.
@@ -87,7 +88,8 @@ namespace caret {
         static ReadResult readFile(const AString& filename);
         
         static ReadResult readFileScaled(const AString& filename,
-                                         const int32_t maxWidthHeightInPixels);
+                                         const int32_t maxWidthHeightInPixels,
+                                         const QRect& roiRect);
 
         // ADD_NEW_METHODS_HERE
 

@@ -66,6 +66,24 @@ MediaFile::MediaFile(const DataFileTypeEnum::Enum dataFileType)
 }
 
 /**
+ * Copy constructor.
+ * @param mediaFile
+ *    Media file that is copied.
+ */
+MediaFile::MediaFile(const MediaFile& mediaFile)
+: CaretDataFile(mediaFile)
+{
+    initializeMembersMediaFile();
+    
+    if (mediaFile.m_spatialBoundingBox) {
+        m_spatialBoundingBox.reset(new BoundingBox(*mediaFile.m_spatialBoundingBox));
+    }
+    if (mediaFile.m_volumeSpace) {
+        m_volumeSpace.reset(new VolumeSpace(*mediaFile.m_volumeSpace));
+    }
+}
+
+/**
  * Destructor.
  */
 MediaFile::~MediaFile()

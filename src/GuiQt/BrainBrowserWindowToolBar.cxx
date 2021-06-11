@@ -60,6 +60,7 @@
 #include "BrainBrowserWindowToolBarChartTwoOrientedAxes.h"
 #include "BrainBrowserWindowToolBarChartTwoType.h"
 #include "BrainBrowserWindowToolBarChartType.h"
+#include "BrainBrowserWindowToolBarImageResolution.h"
 #include "BrainBrowserWindowToolBarOrientation.h"
 #include "BrainBrowserWindowToolBarSlicePlane.h"
 #include "BrainBrowserWindowToolBarSliceSelection.h"
@@ -444,6 +445,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
+    this->imageResolutionWidget = this->createImageResolutionWidget();
     
     this->userInputAnnotationsModeProcessor = new UserInputModeAnnotations(browserWindowIndex);
     this->userInputBordersModeProcessor = new UserInputModeBorders(browserWindowIndex);
@@ -519,6 +521,8 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->toolbarWidgetLayout->addWidget(this->chartTwoOrientedAxesWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->chartAttributesWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->imageResolutionWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->annotateModeWidget, 0, Qt::AlignLeft);
 
@@ -1918,6 +1922,8 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showChartTwoAttributesWidget = false;
     bool showChartTwoAxesWidget = false;
     
+    bool showImageResolutionWidget = false;
+    
     bool showModeWidget = true;
     bool showViewWidget = true;
     bool showTabMiscWidget = true;
@@ -2028,6 +2034,7 @@ BrainBrowserWindowToolBar::updateToolBar()
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                showImageResolutionWidget = true;
                 showOrientationWidget = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:
@@ -2171,6 +2178,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->chartTwoOrientationWidget->setVisible(showChartTwoOrientationWidget);
     this->chartTwoAttributesWidget->setVisible(showChartTwoAttributesWidget);
     this->chartTwoOrientedAxesWidget->setVisible(showChartTwoAxesWidget);
+    this->imageResolutionWidget->setVisible(showImageResolutionWidget);
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
@@ -2219,6 +2227,7 @@ BrainBrowserWindowToolBar::updateToolBarComponents(BrowserTabContent* browserTab
         this->updateModeWidget(browserTabContent);
         this->updateViewWidget(browserTabContent);
         this->updateTabOptionsWidget(browserTabContent);
+        this->updateImageResolutionWidget(browserTabContent);
     }
 }
 
@@ -2957,6 +2966,44 @@ BrainBrowserWindowToolBar::updateChartTwoOrientedAxesWidget(BrowserTabContent* b
     }
     m_chartTwoOrientedAxesToolBarComponent->updateContent(browserTabContent);
 }
+
+
+/**
+ * Create the image resolution widget.
+ *
+ * @return
+ *    Widget containing the chart options.
+ */
+QWidget*
+BrainBrowserWindowToolBar::createImageResolutionWidget()
+{
+    m_imageResolutionToolBarComponent = new BrainBrowserWindowToolBarImageResolution(this,
+                                                                         m_objectNamePrefix);
+    QWidget* w = this->createToolWidget("Resolution",
+                                        m_imageResolutionToolBarComponent,
+                                        WIDGET_PLACEMENT_LEFT,
+                                        WIDGET_PLACEMENT_TOP,
+                                        100);
+    w->setVisible(false);
+    return w;
+}
+
+/**
+ * Update the image resolution widget.
+ *
+ * @param browserTabContent
+ *   The active model display (may be NULL).
+ */
+void
+BrainBrowserWindowToolBar::updateImageResolutionWidget(BrowserTabContent* browserTabContent)
+{
+    if (this->imageResolutionWidget->isHidden()) {
+        return;
+    }
+    
+    m_imageResolutionToolBarComponent->updateContent(browserTabContent);
+}
+
 
 /**
  * Create the single surface options widget.

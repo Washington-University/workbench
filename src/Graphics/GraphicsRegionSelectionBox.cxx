@@ -100,7 +100,16 @@ GraphicsRegionSelectionBox::copyHelperGraphicsRegionSelectionBox(const GraphicsR
 AString 
 GraphicsRegionSelectionBox::toString() const
 {
-    return "GraphicsRegionSelectionBox";
+    AString statusName;
+    switch (m_status) {
+        case Status::INVALID:
+            statusName = "Invalid";
+            break;
+        case Status::VALID:
+            statusName = "Valid";
+            break;
+    }
+    return QString("x1=%1, x2=%2, y1=%3, y2=%4, valid=%5").arg(m_x1).arg(m_x2).arg(m_y1).arg(m_y2).arg(statusName);
 }
 
 /**

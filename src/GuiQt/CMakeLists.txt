@@ -90,6 +90,7 @@ ELSE()
         BrainBrowserWindowToolBarChartTwoType.h
         BrainBrowserWindowToolBarChartType.h
         BrainBrowserWindowToolBarComponent.h
+	BrainBrowserWindowToolBarImageResolution.h
 	BrainBrowserWindowToolBarOrientation.h
         BrainBrowserWindowToolBarSlicePlane.h
         BrainBrowserWindowToolBarSliceSelection.h
@@ -349,6 +350,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes.h
 BrainBrowserWindowToolBarChartTwoType.h
 BrainBrowserWindowToolBarChartType.h
 BrainBrowserWindowToolBarComponent.h
+BrainBrowserWindowToolBarImageResolution.h
 BrainBrowserWindowToolBarOrientation.h
 BrainBrowserWindowToolBarSlicePlane.h
 BrainBrowserWindowToolBarSliceSelection.h
@@ -665,6 +667,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes.cxx
 BrainBrowserWindowToolBarChartTwoType.cxx
 BrainBrowserWindowToolBarChartType.cxx
 BrainBrowserWindowToolBarComponent.cxx
+BrainBrowserWindowToolBarImageResolution.cxx
 BrainBrowserWindowToolBarOrientation.cxx
 BrainBrowserWindowToolBarSlicePlane.cxx
 BrainBrowserWindowToolBarSliceSelection.cxx
@@ -947,6 +950,7 @@ ${CMAKE_SOURCE_DIR}/Commands
 ${CMAKE_SOURCE_DIR}/Charting
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files
+${CMAKE_SOURCE_DIR}/CZIlib/CZI
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Graphics

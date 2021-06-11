@@ -134,11 +134,14 @@ ImageFileCziHelper::readFile(const AString& filename)
  *    Name of file to read
  * @param maxWidthHeightInPixels
  *    Maximum width/height of output image
+ * @param roiRect
+ *    If rectangle is valid, it selects a region from the file; otherwise entire file is read
  * @return ReadResult instance with image or error
  */
 ImageFileCziHelper::ReadResult
 ImageFileCziHelper::readFileScaled(const AString& filename,
-                                   const int32_t maxWidthHeightInPixels)
+                                   const int32_t maxWidthHeightInPixels,
+                                   const QRect& roiRect)
 {
     AString errorMessage;
     
@@ -159,6 +162,17 @@ ImageFileCziHelper::readFileScaled(const AString& filename,
         
         auto originalImageRect = subBlockStatistics.boundingBox;
         auto roi = originalImageRect;
+        
+        /*
+         * Use the requested ROI rectangle if it is valid
+         */
+        if (roiRect.isValid()) {
+            roi.x = roiRect.x();
+            roi.y = roiRect.y();
+            roi.w = roiRect.width();
+            roi.h = roiRect.height();
+        }
+        
         if (cziDebugFlag) std::cout << "CZI Bounding Box (x,y,w,h): " << roi.x << " " << roi.y << " " << roi.w << " " << roi.h << std::endl;
         
         if ((roi.w <= 0)
@@ -196,7 +210,7 @@ ImageFileCziHelper::readFileScaled(const AString& filename,
         auto bitmapData = accessor->Get(roi, &coordinate, zoom, &scstaOptions);
         
         return createImageData(bitmapData.get(),
-                               originalImageRect,
+                               roi,
                                originalImageRect,
                                filename);
     }

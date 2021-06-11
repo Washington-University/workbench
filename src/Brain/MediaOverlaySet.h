@@ -51,6 +51,8 @@ namespace caret {
         
         MediaOverlay* getUnderlay();
         
+        MediaOverlay* getBottomMostEnabledOverlay();
+        
         MediaOverlay* getOverlay(const int32_t overlayNumber);
         
         const MediaOverlay* getOverlay(const int32_t overlayNumber) const;

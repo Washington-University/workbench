@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 #include <memory>
 
 #include "BrainConstants.h"
@@ -31,7 +32,9 @@
 
 namespace caret {
 
+    class BrowserTabContent;
     class CaretDataFileSelectionModel;
+    class GraphicsRegionSelectionBox;
     class MediaOverlaySet;
     class MediaOverlaySetArray;
     class OverlaySetArray;
@@ -64,6 +67,15 @@ namespace caret {
         
         const CaretDataFileSelectionModel* getFileSelectionModel(const int32_t tabIndex) const;
         
+        bool isHighResolutionSelectionEnabled(const int32_t tabIndex);
+        
+        void setHighResolutionSelectionEnabled(const int32_t tabIndex,
+                                               const bool enabled);
+        
+        bool createHighResolutionImageFromRegion(const GraphicsRegionSelectionBox* selectionBox,
+                                                 BrowserTabContent* browserTab,
+                                                 AString& errorMessageOut);
+        
         virtual void receiveEvent(Event* event) override;
         
         virtual void copyTabContent(const int32_t sourceTabIndex,
@@ -92,6 +104,9 @@ namespace caret {
         MediaOverlaySetArray* m_mediaOverlaySetArray;
         
         std::unique_ptr<CaretDataFileSelectionModel> m_fileSelectionModels[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** enables high-resolution selection for a tab;  NOT saved to scenes */
+        std::array<bool, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_highResolutionSelectedEnabled;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
     };

@@ -47,7 +47,6 @@
 #include "GraphicsUtilitiesOpenGL.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "ImageCaptureDialogSettings.h"
-#include "ImageFileCziHelper.h"
 #include "Matrix4x4.h"
 #include "MathFunctions.h"
 #include "SceneClass.h"
@@ -74,7 +73,32 @@ ImageFile::ImageFile()
 }
 
 /**
- * Constructor
+ * Copy constructor.
+ * @param imageFile
+ *   Image file that is copied.
+ */
+ImageFile::ImageFile(const ImageFile& imageFile)
+: MediaFile(imageFile)
+{
+    m_controlPointFile.grabNew(new ControlPointFile());
+    
+    if (imageFile.m_image != NULL) {
+        m_image = new QImage(*imageFile.m_image);
+    }
+    else {
+        m_image = new QImage();
+    }
+
+    m_fileMetaData.grabNew(new GiftiMetaData(*imageFile.m_fileMetaData));
+    m_defaultViewTransform             = imageFile.m_defaultViewTransform;
+    m_defaultViewTransformValidFlag    = imageFile.m_defaultViewTransformValidFlag;
+    m_sceneCreatedBeforeDefaultScaling = imageFile.m_sceneCreatedBeforeDefaultScaling;
+    m_graphicsPrimitiveForMediaDrawing.reset();
+}
+
+
+/**
+ * Constructor that makes copy of QImage instance
  * @param qimage
  *    QImage that is copied to this image file.
  */
@@ -85,6 +109,22 @@ ImageFile::ImageFile(const QImage& qimage)
     m_fileMetaData.grabNew(new GiftiMetaData());
 
     m_image = new QImage(qimage);
+    readFileMetaDataFromQImage();
+    updateDefaultSpatialCoordinates();
+}
+
+/**
+ * Constructor that takes ownership of a QImage instance
+ * @param qimage
+ *    QImage that is copied to this image file.
+ */
+ImageFile::ImageFile(QImage* qimage)
+: MediaFile(DataFileTypeEnum::IMAGE)
+{
+    m_controlPointFile.grabNew(new ControlPointFile());
+    m_fileMetaData.grabNew(new GiftiMetaData());
+    
+    m_image = qimage;
     readFileMetaDataFromQImage();
     updateDefaultSpatialCoordinates();
 }
@@ -157,6 +197,123 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
 }
 
 /**
+ * @return A new image file that is an ROI of the given image file or NULL if there is an error.
+ * @param imageFile
+ *    Image file from which ROI is extracted
+ * @param roiRect
+ *    The region of interest rectangle in pixels
+ * @param errorMessageOut
+ *    Description if error
+ */
+ImageFile*
+ImageFile::newInstanceROI(const ImageFile& imageFile,
+                          const QRect& roiRect,
+                          AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    ImageFile* imageFileOut(NULL);
+    
+    if (roiRect.right() > imageFile.getWidth()) {
+        errorMessageOut.appendWithNewLine("ROI is too wide (exceeds image width).");
+    }
+    if (roiRect.top() > imageFile.getHeight()) {
+        errorMessageOut.appendWithNewLine("ROI is too tall (exceeds image height).");
+    }
+    if (roiRect.left() < 0) {
+        errorMessageOut.appendWithNewLine("ROI left is negative.");
+    }
+    if (roiRect.bottom() < 0) {
+        errorMessageOut.appendWithNewLine("ROI bottom is negative.");
+    }
+    QRect oldRect(0, 0, imageFile.getWidth(), imageFile.getHeight());
+    if ( ! oldRect.contains(roiRect)) {
+        errorMessageOut.appendWithNewLine("ROI does not fit into image dimensions.");
+    }
+    if ( ! errorMessageOut.isEmpty()) {
+        return NULL;
+    }
+    
+    if (imageDebugFlag) {
+        std::cout << "ROI x/y/width/height: " << roiRect.x()
+        << ", " << roiRect.y()
+        << ", " << roiRect.width()
+        << ", " << roiRect.height()
+        << std::endl;
+    }
+    if (imageFile.getFileName().endsWith(DataFileTypeEnum::toCziImageFileExtension())) {
+        /*
+         * x/y/width/height of region in the CZI image that was extracted
+         * and placed into the qImage of the input image file
+         */
+        const float cziX(imageFile.m_cziFileRegionPixelRect.x());
+        const float cziY(imageFile.m_cziFileRegionPixelRect.y());
+        const float cziWidth(imageFile.m_cziFileRegionPixelRect.width());
+        const float cziHeight(imageFile.m_cziFileRegionPixelRect.height());
+        if ((cziWidth <= 0.0)
+            || (cziHeight <= 0.0)) {
+            errorMessageOut = "CZI width/height from references image is invalid (<=0)";
+            return NULL;
+        }
+        
+        /*
+         * Normalized coordinates of the ROI in the image data (qImage)dimensions
+         * of the input image file
+         */
+        const float floatImageWidth(imageFile.getWidth());
+        const float floatImageHeight(imageFile.getHeight());
+        float roiY(roiRect.y());
+        //roiY = floatImageHeight - roiY;
+        const float normalizedMinX(roiRect.x()   / floatImageWidth);
+        const float normalizedMaxX((roiRect.x() + roiRect.width())  / floatImageWidth);
+        float normalizedMinY(roiY / floatImageHeight);
+        float normalizedMaxY((roiY + roiRect.height())   / floatImageHeight);
+        bool testFlag(true);
+        if (testFlag) {
+            float newMinY(1.0 - normalizedMaxY);
+            float newMaxY(1.0 - normalizedMinY);
+            normalizedMinY = newMinY;
+            normalizedMaxY = newMaxY;
+        }
+        CaretAssert((normalizedMinX >= 0.0) && (normalizedMinX <= 1.0));
+        CaretAssert((normalizedMaxX >= 0.0) && (normalizedMaxX <= 1.0));
+        CaretAssert((normalizedMinY >= 0.0) && (normalizedMinY <= 1.0));
+        CaretAssert((normalizedMaxY >= 0.0) && (normalizedMaxY <= 1.0));
+
+        /*
+         * Left and right in the region of the CZI image in the image file
+         */
+        const float roiLeft(cziX   + normalizedMinX * cziWidth);
+        const float roiBottom(cziY + normalizedMinY * cziHeight);
+        const float roiRight(cziX  + normalizedMaxX * cziWidth);
+        const float roiTop(cziY    + normalizedMaxY * cziHeight);
+        QRect readRegionRect(roiLeft,
+                             roiBottom,
+                             (roiRight - roiLeft),
+                             (roiTop   - roiBottom));
+        
+        /*
+         * Create a new image file containing the region of interest
+         */
+        ImageFileCziHelper::ReadResult result = ImageFileCziHelper::readFileScaled(imageFile.getFileName(),
+                                                                                   getCziFileMaximumDimension(),
+                                                                                   readRegionRect);
+        if (result.m_valid) {
+            imageFileOut = new ImageFile(result.m_image);
+            imageFileOut->finishCziFileInitialization(result);
+            imageFileOut->setFileName(imageFile.getFileName());
+        }
+        else {
+            errorMessageOut = result.m_errorMessage;
+            return NULL;
+        }
+    }
+    else {
+        imageFileOut = new ImageFile(imageFile.m_image->copy(roiRect));
+    }
+    return imageFileOut;
+}
+
+/**
  * Destructor.
  */
 ImageFile::~ImageFile()
@@ -216,6 +373,25 @@ ImageFile::getNumberOfFrames() const
         return 1;
     }
     return 0;
+}
+
+/**
+ * @return Name of frame at given index.
+ * @param frameIndex Index of the frame
+ */
+AString
+ImageFile::getFrameName(const int32_t frameIndex) const
+{
+    AString frameName;
+    if (frameIndex == 0) {
+        frameName = m_frameOneName;
+    }
+    
+    if (frameName.isEmpty()) {
+        frameName = MediaFile::getFrameName(frameIndex);
+    }
+    
+    return frameName;
 }
 
 /**
@@ -656,6 +832,9 @@ ImageFile::readFile(const AString& filename)
     
     this->setFileName(filename);
     
+    /**
+     * Special reading for CZI (Zeiss) image files
+     */
     if (filename.endsWith(DataFileTypeEnum::toCziImageFileExtension())) {
         if (m_image != NULL) {
             delete m_image;
@@ -675,9 +854,9 @@ ImageFile::readFile(const AString& filename)
             }
         }
         else {
-            const int64_t imageDimMax(4096);
             result = ImageFileCziHelper::readFileScaled(filename,
-                                                        imageDimMax);
+                                                        getCziFileMaximumDimension(),
+                                                        QRect());
             if (result.m_valid) {
                 m_image = result.m_image;
                 CaretAssert(m_image);
@@ -700,35 +879,36 @@ ImageFile::readFile(const AString& filename)
             }
         }
         
-        CaretAssert(m_image);
-        updateDefaultSpatialCoordinates();
-        
-        updateDefaultSpatialCoordinates();
+        m_frameOneName = "Full Image";
+        finishCziFileInitialization(result);
 
-        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_CZI_IMAGE_FILE_USE_COORDINATES)) {
-            /*
-             * Origin is at top-left in result QRect
-             */
-            std::array<float, 3> bottomLeftPixelXYZ {
-                static_cast<float>(result.m_imageRoiRect.x()),
-                static_cast<float>(result.m_imageRoiRect.y() - result.m_imageRoiRect.height()),
-                0.0
-            };
-            std::array<float, 3> stepPixelXYZ {
-                static_cast<float>(result.m_imageRoiRect.width()) / static_cast<float>(m_image->width()),
-                static_cast<float>(result.m_imageRoiRect.height()) / static_cast<float>(m_image->height()),
-                1.0
-            };
-            
-            initializeVolumeSpace(m_image->width(),
-                                  m_image->height(),
-                                  bottomLeftPixelXYZ,
-                                  stepPixelXYZ);
-            if (imageDebugFlag) {
-                std::cout << "   Origin: " << AString::fromNumbers(bottomLeftPixelXYZ.data(), 3, ", ") << std::endl;
-                std::cout << "   Step: " << AString::fromNumbers(stepPixelXYZ.data(), 3, ", ") << std::endl;
-            }
-        }
+//        CaretAssert(m_image);
+//        updateDefaultSpatialCoordinates();
+//
+//        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_CZI_IMAGE_FILE_USE_COORDINATES)) {
+//            /*
+//             * Origin is at top-left in result QRect
+//             */
+//            std::array<float, 3> bottomLeftPixelXYZ {
+//                static_cast<float>(result.m_imageRoiRect.x()),
+//                static_cast<float>(result.m_imageRoiRect.y() - result.m_imageRoiRect.height()),
+//                0.0
+//            };
+//            std::array<float, 3> stepPixelXYZ {
+//                static_cast<float>(result.m_imageRoiRect.width()) / static_cast<float>(m_image->width()),
+//                static_cast<float>(result.m_imageRoiRect.height()) / static_cast<float>(m_image->height()),
+//                1.0
+//            };
+//
+//            initializeVolumeSpace(m_image->width(),
+//                                  m_image->height(),
+//                                  bottomLeftPixelXYZ,
+//                                  stepPixelXYZ);
+//            if (imageDebugFlag) {
+//                std::cout << "   Origin: " << AString::fromNumbers(bottomLeftPixelXYZ.data(), 3, ", ") << std::endl;
+//                std::cout << "   Step: " << AString::fromNumbers(stepPixelXYZ.data(), 3, ", ") << std::endl;
+//            }
+//        }
     }
     else {
         if ( ! m_image->load(filename)) {
@@ -784,6 +964,66 @@ ImageFile::readFile(const AString& filename)
     readFileMetaDataFromQImage();
     
     this->clearModified();
+}
+
+/**
+ * Finish initialization of a CZI file
+ * @param cziResult
+ *   The CZI result info
+ */
+void
+ImageFile::finishCziFileInitialization(const ImageFileCziHelper::ReadResult& cziResult)
+{
+    CaretAssert(m_image);
+    
+    updateDefaultSpatialCoordinates();
+    
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_CZI_IMAGE_FILE_USE_COORDINATES)) {
+        /*
+         * Origin is at top-left in result QRect
+         */
+        std::array<float, 3> bottomLeftPixelXYZ {
+            static_cast<float>(cziResult.m_imageRoiRect.x()),
+            static_cast<float>(cziResult.m_imageRoiRect.y() - cziResult.m_imageRoiRect.height()),
+            0.0
+        };
+        std::array<float, 3> stepPixelXYZ {
+            static_cast<float>(cziResult.m_imageRoiRect.width()) / static_cast<float>(m_image->width()),
+            static_cast<float>(cziResult.m_imageRoiRect.height()) / static_cast<float>(m_image->height()),
+            1.0
+        };
+        
+        initializeVolumeSpace(m_image->width(),
+                              m_image->height(),
+                              bottomLeftPixelXYZ,
+                              stepPixelXYZ);
+        if (imageDebugFlag) {
+            std::cout << "   Origin: " << AString::fromNumbers(bottomLeftPixelXYZ.data(), 3, ", ") << std::endl;
+            std::cout << "   Step: " << AString::fromNumbers(stepPixelXYZ.data(), 3, ", ") << std::endl;
+        }
+    }
+    
+    m_cziFileRegionPixelRect = cziResult.m_imageRoiRect;
+    m_cziFileAllPixelsRect   = cziResult.m_fullImageRect;
+    
+    AString name((cziResult.m_imageRoiRect == cziResult.m_fullImageRect)
+                 ? "Full "
+                 : "ROI");
+    QRect rect(cziResult.m_imageRoiRect);
+    m_frameOneName = (name
+                      + " i=" + AString::number(rect.x())
+                      + " j=" + AString::number(rect.y())
+                      + " w=" + AString::number(rect.width())
+                      + " h=" + AString::number(rect.height()));
+}
+
+/**
+ * @return Maximum dimension when reading CZI image file
+ */
+int32_t
+ImageFile::getCziFileMaximumDimension()
+{
+    return 4096;
 }
 
 /**

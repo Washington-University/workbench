@@ -103,7 +103,7 @@ namespace caret {
         
         virtual ~MediaFile();
         
-        MediaFile(const MediaFile&) = delete;
+        MediaFile(const MediaFile& mediaFile);
 
         MediaFile& operator=(const MediaFile&) = delete;
         

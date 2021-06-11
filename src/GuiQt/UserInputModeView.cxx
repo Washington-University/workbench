@@ -45,13 +45,16 @@
 #include "GuiManager.h"
 #include "KeyEvent.h"
 #include "MediaOverlaySet.h"
+#include "ModelMedia.h"
 #include "MouseEvent.h"
+#include "ProgressReportingDialog.h"
 #include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemImage.h"
 #include "SelectionManager.h"
 #include "UserInputModeViewContextMenu.h"
 #include "ViewingTransformations.h"
+#include "WuQMessageBox.h"
 #include "WuQDataEntryDialog.h"
 
 using namespace caret;
@@ -571,13 +574,41 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
                 break;
             case GraphicsRegionSelectionBox::Status::VALID:
             {
-                const MediaOverlaySet* mediaOverlaySet(browserTabContent->getMediaOverlaySet());
-                CaretAssert(mediaOverlaySet);
-                DefaultViewTransform defaultViewTransform = mediaOverlaySet->getDefaultViewTransform();
-                ViewingTransformations* vt = browserTabContent->getViewingTransformation();
-                vt->setViewToBounds(&orthoBounds,
-                                    selectionBox,
-                                    defaultViewTransform);
+                ModelMedia* mediaModel = browserTabContent->getDisplayedMediaModel();
+                if (mediaModel != NULL) {
+                    const int32_t tabIndex(browserTabContent->getTabNumber());
+                    if (mediaModel->isHighResolutionSelectionEnabled(tabIndex)) {
+                        /*
+                         * Create high-resolution image from selection region
+                         */
+                        auto progressDialog(ProgressReportingDialog::showProgressMessage("Loading",
+                                                                                         "Loading image data...",
+                                                                                         mouseEvent.getOpenGLWidget()));
+                        AString errorMessage;
+                        const bool successFlag(mediaModel->createHighResolutionImageFromRegion(selectionBox,
+                                                                                               browserTabContent,
+                                                                                               errorMessage));
+                        ViewingTransformations* vt = browserTabContent->getViewingTransformation();
+                        vt->resetView();
+                        progressDialog->close();
+                        if ( ! successFlag) {
+                            WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
+                                                   errorMessage);
+                        }
+                    }
+                    else {
+                        /*
+                         * Zoom to selection region
+                         */
+                        const MediaOverlaySet* mediaOverlaySet(browserTabContent->getMediaOverlaySet());
+                        CaretAssert(mediaOverlaySet);
+                        DefaultViewTransform defaultViewTransform = mediaOverlaySet->getDefaultViewTransform();
+                        ViewingTransformations* vt = browserTabContent->getViewingTransformation();
+                        vt->setViewToBounds(&orthoBounds,
+                                            selectionBox,
+                                            defaultViewTransform);
+                    }
+                }
             }
                 break;
         }
@@ -588,6 +619,7 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
          * Update graphics.
          */
         updateGraphics(mouseEvent);
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
 }
 

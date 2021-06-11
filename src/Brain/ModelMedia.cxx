@@ -25,9 +25,13 @@
 #include "CaretMappableDataFile.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
+#include "EventDataFileAdd.h"
 #include "EventManager.h"
+#include "GraphicsRegionSelectionBox.h"
+#include "ImageFile.h"
 #include "MapFileDataSelector.h"
 #include "ModelMedia.h"
+#include "MediaOverlay.h"
 #include "MediaOverlaySet.h"
 #include "MediaOverlaySetArray.h"
 #include "OverlaySetArray.h"
@@ -81,6 +85,7 @@ void
 ModelMedia::initializeMedia()
 {
     m_layerOverlaySetArray->initializeOverlaySelections();
+    m_highResolutionSelectedEnabled.fill(false);
 }
 
 /**
@@ -337,3 +342,130 @@ ModelMedia::getOverlaySet(const int tabIndex) const
                           tabIndex);
     return m_layerOverlaySetArray->getOverlaySet(tabIndex);
 }
+
+/**
+ * @return True if high-resolution selection is enabled for the given tab
+ * @param tabIndex
+ *    Index of the tab
+ */
+bool
+ModelMedia::isHighResolutionSelectionEnabled(const int32_t tabIndex)
+{
+    CaretAssertArrayIndex(m_highResolutionSelectedEnabled,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_highResolutionSelectedEnabled[tabIndex];
+}
+
+/**
+ * Set high-resolution selection is enabled for the given tab
+ * @param tabIndex
+ *    Index of the tab
+ * @param enabled
+ *    New enabled status
+ */
+void
+ModelMedia::setHighResolutionSelectionEnabled(const int32_t tabIndex,
+                                              const bool enabled)
+{
+    CaretAssertArrayIndex(m_highResolutionSelectedEnabled,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    m_highResolutionSelectedEnabled[tabIndex] = enabled;
+}
+
+/**
+ * Create a new image file that is a high-resolution image of the given region
+ * @param selectionBox
+ *    The selected region
+ * @param browserTab
+ *    Browser tab in which selection was made
+ * @param errorMessageOut
+ *    Description of error if failure.
+ * @return True if successful, else false.
+ */
+bool
+ModelMedia::createHighResolutionImageFromRegion(const GraphicsRegionSelectionBox* selectionBox,
+                                                BrowserTabContent* browserTab,
+                                                AString& errorMessageOut)
+{
+    CaretAssert(selectionBox);
+    CaretAssert(browserTab);
+    
+    errorMessageOut.clear();
+    
+    const int32_t tabIndex(browserTab->getTabNumber());
+    
+    /*
+     * Turn off since we are not making the high resolution selection
+     */
+    setHighResolutionSelectionEnabled(tabIndex, false);
+    
+    MediaOverlaySet* overlaySet = browserTab->getMediaOverlaySet();
+    CaretAssert(overlaySet);
+    MediaOverlay* underlay = overlaySet->getBottomMostEnabledOverlay();
+    if (underlay == NULL) {
+        errorMessageOut = "No overlays are enabled";
+        return false;
+    }
+
+    MediaFile* mediaFile(NULL);
+    int32_t dummyMapIndex(0);
+    underlay->getSelectionData(mediaFile, dummyMapIndex);
+    if (mediaFile == NULL) {
+        errorMessageOut = "No file is selected in layer";
+        return false;
+    }
+    ImageFile* imageFile = mediaFile->castToImageFile();
+    if (imageFile == NULL) {
+        errorMessageOut = "Selected file is not an image file";
+        return false;
+    }
+
+    float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+    selectionBox->getBounds(minX, minY, maxX, maxY);
+    
+    /*
+     * Convert spatial coordinates to pixel coordinates
+     */
+    ImageFile::PixelCoordinate bottomLeftXYZ(minX, minY, 0.0);
+    ImageFile::PixelCoordinate topRightXYZ(maxX, maxY, 0.0);
+    ImageFile::PixelIndex bottomLeftIJK = imageFile->spaceToIndex(bottomLeftXYZ);
+    ImageFile::PixelIndex topRightIJK = imageFile->spaceToIndex(topRightXYZ);
+    const int32_t pixelWidth(topRightIJK.getI() - bottomLeftIJK.getI());
+    const int32_t pixelHeight(topRightIJK.getJ() - bottomLeftIJK.getJ());
+    if ((pixelWidth <= 0)
+        || (pixelHeight <= 0)) {
+        errorMessageOut = "Selected region has invalid are (width or height <= 0)";
+        return false;
+    }
+    
+    /*
+     * Create the high-resolution region in a new image file
+     */
+    QRect roiRect(bottomLeftIJK.getI(),
+                  bottomLeftIJK.getJ(),
+                  pixelWidth,
+                  pixelHeight);
+    AString roiErrorMessage;
+    ImageFile* roiImageFile = ImageFile::newInstanceROI(*imageFile,
+                                                        roiRect,
+                                                        roiErrorMessage);
+    if (roiImageFile == NULL) {
+        errorMessageOut = roiErrorMessage;
+        return false;
+    }
+    
+    EventDataFileAdd addEvent(roiImageFile);
+    EventManager::get()->sendEvent(addEvent.getPointer());
+    if (addEvent.getEventProcessCount()) {
+        underlay->setSelectionData(roiImageFile, 0);
+    }
+    else {
+        errorMessageOut = "Added image file failed";
+        return false;
+    }
+    
+    return true;
+}
+

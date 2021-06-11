@@ -164,6 +164,26 @@ MediaOverlaySet::getOverlay(const int32_t overlayNumber)
 }
 
 /**
+ * @return The bottom-most overlay that is enabled
+ */
+MediaOverlay*
+MediaOverlaySet::getBottomMostEnabledOverlay()
+{
+    MediaOverlay* overlay(NULL);
+    
+    const int32_t numOverlays(getNumberOfDisplayedOverlays());
+    for (int32_t i = 0; i < numOverlays; i++) {
+        MediaOverlay* ov(getOverlay(i));
+        CaretAssert(ov);
+        if (ov->isEnabled()) {
+            overlay = ov;
+        }
+    }
+    return overlay;
+}
+
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

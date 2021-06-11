@@ -654,7 +654,7 @@ MediaOverlayViewController::updateViewController(MediaOverlay* overlay)
     if (selectedFile != NULL) {
         numberOfFrames = selectedFile->getNumberOfFrames();
         for (int32_t i = 0; i < numberOfFrames; i++) {
-            this->frameNameComboBox->addItem(AString::number(i + 1));
+            this->frameNameComboBox->addItem(selectedFile->getFrameName(i));
         }
         this->frameNameComboBox->setCurrentIndex(selectedFrameIndex);
     }

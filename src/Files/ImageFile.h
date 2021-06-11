@@ -24,6 +24,9 @@
 #include <array>
 #include <memory>
 
+#include <QRect>
+
+#include "ImageFileCziHelper.h"
 #include "MediaFile.h"
 #include "CaretPointer.h"
 
@@ -39,28 +42,6 @@ namespace caret {
 /// File for images
 class ImageFile : public MediaFile {
 public:
-//    class ControlPoint {
-//    public:
-//        ControlPoint(const float i,
-//                     const float j,
-//                     const float k,
-//                     const float x,
-//                     const float y,
-//                     const float z)
-//        : i(i), j(j), k(k), x(x), y(y), z(z) { }
-//        
-//        void getSource(double pt[3]) const { pt[0] = i; pt[1] = j; pt[2] = k; }
-//        
-//        void getTarget(double pt[3]) const { pt[0] = x; pt[1] = y; pt[2] = z; }
-//        
-//        const float i;
-//        const float j;
-//        const float k;
-//        const float x;
-//        const float y;
-//        const float z;
-//    };
-    
     /**
      * Location of origin in image data.
      */
@@ -81,20 +62,22 @@ public:
         CONVERT_TO_VOLUME_COLOR_RGB
     };
     
-//    enum LANDMARK_MODE {
-//        VTK_LANDMARK_AFFINE,
-//        VTK_LANDMARK_RIGIDBODY,
-//        VTK_LANDMARK_SIMILARITY
-//    };
+    static ImageFile* newInstanceROI(const ImageFile& imageFile,
+                                     const QRect& roiRect,
+                                     AString& errorMessageOut);
     
     ImageFile();
+    
+    ImageFile(const ImageFile& imageFile);
     
     ImageFile(const unsigned char* imageDataRGBA,
               const int imageWidth,
               const int imageHeight,
               const IMAGE_DATA_ORIGIN_LOCATION imageOrigin);
     
-    ImageFile(const QImage& img);
+    ImageFile(const QImage& qimage);
+    
+    ImageFile(QImage* qimage);
     
     ~ImageFile();
     
@@ -110,6 +93,12 @@ public:
      * @return Number of frames in the file
      */
     virtual int32_t getNumberOfFrames() const override;
+
+    /**
+     * @return Name of frame at given index.
+     * @param frameIndex Index of the frame
+     */
+    virtual AString getFrameName(const int32_t frameIndex) const override;
 
     /**
      * @return Get access to the file's metadata.
@@ -236,18 +225,20 @@ public:
                                                          AString& defaultWritableExtension);
     
 private:
-    ImageFile(const ImageFile&);
-    
     ImageFile& operator=(const ImageFile&);
     
     void insertImage(const QImage& otherImage,
                      const int x,
                      const int y);
     
+    static int32_t getCziFileMaximumDimension();
+    
     static void insertImage(const QImage& insertThisImage,
                             QImage& intoThisImage,
                             const int positionX,
                             const int positionY);
+    
+    void finishCziFileInitialization(const ImageFileCziHelper::ReadResult& cziResult);
     
     void readFileMetaDataFromQImage();
     
@@ -279,7 +270,15 @@ private:
     
     mutable CaretPointer<GiftiMetaData> m_fileMetaData;
     
+    mutable AString m_frameOneName;
+    
     CaretPointer<ControlPointFile> m_controlPointFile;
+    
+    /** X, Y, Width, Height of pixel region extracted from entire CZI file */
+    QRect m_cziFileRegionPixelRect;
+    
+    /** X, Y, Width, Height of all pixels in CZI file */
+    QRect m_cziFileAllPixelsRect;
     
     mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitiveForMediaDrawing;
     
