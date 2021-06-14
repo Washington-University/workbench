@@ -846,7 +846,8 @@ ImageFile::readFile(const AString& filename)
         if (fixedFlag) {
             result = ImageFileCziHelper::readFile(filename);
             if (result.m_valid) {
-                m_image = result.m_image;
+                m_image = limitImageDimensions(result.m_image,
+                                               filename);
                 CaretAssert(m_image);
             }
             else {
@@ -858,7 +859,8 @@ ImageFile::readFile(const AString& filename)
                                                         getCziFileMaximumDimension(),
                                                         QRect());
             if (result.m_valid) {
-                m_image = result.m_image;
+                m_image = limitImageDimensions(result.m_image,
+                                               filename);
                 CaretAssert(m_image);
                 
                 if (imageDebugFlag) {
@@ -881,34 +883,6 @@ ImageFile::readFile(const AString& filename)
         
         m_frameOneName = "Full Image";
         finishCziFileInitialization(result);
-
-//        CaretAssert(m_image);
-//        updateDefaultSpatialCoordinates();
-//
-//        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_CZI_IMAGE_FILE_USE_COORDINATES)) {
-//            /*
-//             * Origin is at top-left in result QRect
-//             */
-//            std::array<float, 3> bottomLeftPixelXYZ {
-//                static_cast<float>(result.m_imageRoiRect.x()),
-//                static_cast<float>(result.m_imageRoiRect.y() - result.m_imageRoiRect.height()),
-//                0.0
-//            };
-//            std::array<float, 3> stepPixelXYZ {
-//                static_cast<float>(result.m_imageRoiRect.width()) / static_cast<float>(m_image->width()),
-//                static_cast<float>(result.m_imageRoiRect.height()) / static_cast<float>(m_image->height()),
-//                1.0
-//            };
-//
-//            initializeVolumeSpace(m_image->width(),
-//                                  m_image->height(),
-//                                  bottomLeftPixelXYZ,
-//                                  stepPixelXYZ);
-//            if (imageDebugFlag) {
-//                std::cout << "   Origin: " << AString::fromNumbers(bottomLeftPixelXYZ.data(), 3, ", ") << std::endl;
-//                std::cout << "   Step: " << AString::fromNumbers(stepPixelXYZ.data(), 3, ", ") << std::endl;
-//            }
-//        }
     }
     else {
         if ( ! m_image->load(filename)) {
@@ -916,47 +890,8 @@ ImageFile::readFile(const AString& filename)
             throw DataFileException(filename + "Unable to load file.");
         }
         
-        if ( ! m_image->isNull()) {
-            switch (ApplicationInformation::getApplicationType()) {
-                case ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE:
-                    break;
-                case ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE:
-                {
-                    const int32_t width(m_image->width());
-                    const int32_t height(m_image->height());
-                    const int32_t maxDim(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
-                    if ((width > maxDim)
-                        || (height > maxDim)) {
-                        QImage newImage;
-                        if (width > height) {
-                            newImage = m_image->scaledToWidth(maxDim);
-                        }
-                        else {
-                            newImage = m_image->scaledToHeight(maxDim);
-                        }
-                        if ( ! newImage.isNull()) {
-                            delete m_image;
-                            m_image = new QImage(newImage);
-                            CaretLogWarning("Rescaled image "
-                                            + filename
-                                            + " from size ("
-                                            + AString::number(width)
-                                            + ", "
-                                            + AString::number(height)
-                                            + ") to ("
-                                            + AString::number(m_image->width())
-                                            + ", "
-                                            + AString::number(m_image->height())
-                                            + ")");
-                        }
-                    }
-                }
-                    break;
-                case ApplicationTypeEnum::APPLICATION_TYPE_INVALID:
-                    break;
-            }
-            
-        }
+        m_image = limitImageDimensions(m_image,
+                                       filename);
         
         updateDefaultSpatialCoordinates();
     }
@@ -965,6 +900,66 @@ ImageFile::readFile(const AString& filename)
     
     this->clearModified();
 }
+
+/**
+ * Limit the dimensions of an the image
+ * @param image
+ *    Image that is limited in dimensions
+ * @param filename
+ *    Name of image file
+ * @return
+ *    Original image or new image that is resized version of original image
+ */
+QImage*
+ImageFile::limitImageDimensions(QImage* image,
+                                const AString& filename)
+{
+    QImage* imageOut(image);
+    
+    if ( ! image->isNull()) {
+        switch (ApplicationInformation::getApplicationType()) {
+            case ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE:
+                break;
+            case ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE:
+            {
+                const int32_t width(image->width());
+                const int32_t height(image->height());
+                const int32_t maxDim(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
+                if ((width > maxDim)
+                    || (height > maxDim)) {
+                    QImage newImage;
+                    if (width > height) {
+                        newImage = image->scaledToWidth(maxDim);
+                    }
+                    else {
+                        newImage = image->scaledToHeight(maxDim);
+                    }
+                    if ( ! newImage.isNull()) {
+                        delete image;
+                        imageOut = new QImage(newImage);
+                        CaretLogWarning("Rescaled image "
+                                        + filename
+                                        + " from size ("
+                                        + AString::number(width)
+                                        + ", "
+                                        + AString::number(height)
+                                        + ") to ("
+                                        + AString::number(imageOut->width())
+                                        + ", "
+                                        + AString::number(imageOut->height())
+                                        + ")");
+                    }
+                }
+            }
+                break;
+            case ApplicationTypeEnum::APPLICATION_TYPE_INVALID:
+                break;
+        }
+    }
+    
+    return imageOut;
+}
+
 
 /**
  * Finish initialization of a CZI file
@@ -1023,7 +1018,7 @@ ImageFile::finishCziFileInitialization(const ImageFileCziHelper::ReadResult& czi
 int32_t
 ImageFile::getCziFileMaximumDimension()
 {
-    return 4096;
+    return 8192;
 }
 
 /**
@@ -1549,15 +1544,15 @@ ImageFile::getImageBytesRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
              * Documentation for QImage states that setPixel may be very costly
              * and recommends using the scanLine() method to access pixel data.
              */
-            for (int y = 0; y < heightOut; y++) {
-                const int scanLineIndex = (isOriginAtTop
+            for (int64_t y = 0; y < heightOut; y++) {
+                const int64_t scanLineIndex = (isOriginAtTop
                                            ? y
                                            : heightOut -y - 1);
                 const uchar* scanLine = m_image->scanLine(scanLineIndex);
                 QRgb* rgbScanLine = (QRgb*)scanLine;
                 
-                for (int x = 0; x < widthOut; x++) {
-                    const int32_t contentOffset = (((y * widthOut) * 4)
+                for (int64_t x = 0; x < widthOut; x++) {
+                    const int64_t contentOffset = (((y * widthOut) * 4)
                                                    + (x * 4));
                     QRgb& rgb = rgbScanLine[x];
                     bytesRGBA[contentOffset] = static_cast<uint8_t>(qRed(rgb));

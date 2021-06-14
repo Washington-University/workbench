@@ -86,6 +86,11 @@ ImageFileCziHelper::readFile(const AString& filename)
         reader->Open(stream);
         auto subBlockStatistics = reader->GetStatistics();
         
+        auto metadataSegment = reader->ReadMetadataSegment();
+        auto metadata = metadataSegment->CreateMetaFromMetadataSegment();
+        auto docInfo = metadata->GetDocumentInfo();
+        auto displaySettings = docInfo->GetDisplaySettings();
+        
         auto originalImageRect = subBlockStatistics.boundingBox;
         auto roi = originalImageRect;
         if (cziDebugFlag) std::cout << "CZI Bounding Box (x,y,w,h): " << roi.x << " " << roi.y << " " << roi.w << " " << roi.h << std::endl;
@@ -155,13 +160,18 @@ ImageFileCziHelper::readFileScaled(const AString& filename,
     try {
         auto stream = libCZI::CreateStreamFromFile(filename.toStdWString().c_str());
         CaretAssert(stream);
-        auto reader = libCZI::CreateCZIReader();
+        std::shared_ptr<libCZI::ICZIReader> reader = libCZI::CreateCZIReader();
         CaretAssert(reader);
         reader->Open(stream);
-        auto subBlockStatistics = reader->GetStatistics();
+        libCZI::SubBlockStatistics subBlockStatistics = reader->GetStatistics();
         
-        auto originalImageRect = subBlockStatistics.boundingBox;
-        auto roi = originalImageRect;
+        std::shared_ptr<libCZI::IMetadataSegment> metadataSegment = reader->ReadMetadataSegment();
+        std::shared_ptr<libCZI::ICziMetadata> metadata = metadataSegment->CreateMetaFromMetadataSegment();
+        std::shared_ptr<libCZI::ICziMultiDimensionDocumentInfo> docInfo = metadata->GetDocumentInfo();
+        std::shared_ptr<libCZI::IDisplaySettings> displaySettings = docInfo->GetDisplaySettings();
+        
+        libCZI::IntRect originalImageRect = subBlockStatistics.boundingBox;
+        libCZI::IntRect roi = originalImageRect;
         
         /*
          * Use the requested ROI rectangle if it is valid
@@ -206,8 +216,8 @@ ImageFileCziHelper::readFileScaled(const AString& filename,
             scstaOptions.backGroundColor.b = rgb[2];
         }
         
-        auto accessor = reader->CreateSingleChannelScalingTileAccessor();
-        auto bitmapData = accessor->Get(roi, &coordinate, zoom, &scstaOptions);
+        std::shared_ptr<libCZI::ISingleChannelScalingTileAccessor> accessor = reader->CreateSingleChannelScalingTileAccessor();
+        std::shared_ptr<libCZI::IBitmapData> bitmapData = accessor->Get(roi, &coordinate, zoom, &scstaOptions);
         
         return createImageData(bitmapData.get(),
                                roi,
@@ -250,7 +260,7 @@ ImageFileCziHelper::createImageData(libCZI::IBitmapData* bitmapData,
     }
     
     std::vector<unsigned char> imageData(width * height * 4);
-    auto bitMapInfo = bitmapData->Lock();
+    libCZI::BitmapLockInfo bitMapInfo = bitmapData->Lock();
     if (cziDebugFlag) std::cout << "   Stride: " << bitMapInfo.stride << std::endl;
     if (cziDebugFlag) std::cout << "   Size: " << bitMapInfo.size << std::endl;
     

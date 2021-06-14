@@ -240,6 +240,9 @@ private:
     
     void finishCziFileInitialization(const ImageFileCziHelper::ReadResult& cziResult);
     
+    static QImage* limitImageDimensions(QImage* image,
+                                        const AString& filename);
+
     void readFileMetaDataFromQImage();
     
     void writeFileMetaDataToQImage() const;
