@@ -150,6 +150,9 @@ public:
     static bool isValidFileExtension(const AString& filename,
                                      const Enum enumValue);
     
+    static bool isValidWriteFileExtension(const AString& filename,
+                                          const Enum enumValue);
+    
     static std::vector<AString> getAllFileExtensions(const Enum enumValue);
     
     static std::vector<AString> getAllFileExtensionsForReading(const Enum enumValue);

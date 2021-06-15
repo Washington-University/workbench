@@ -32,6 +32,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "FileInformation.h"
 
 using namespace caret;
 
@@ -958,6 +959,32 @@ DataFileTypeEnum::isValidFileExtension(const AString& filename,
         }
     }
     
+    return false;
+}
+
+/***
+ * Does the filename have a valid extension for writing the given file type?
+ *
+ * @param filename
+ *    Name of file that may not have the correct file extension for writing
+ * @param enumValue
+ *    The data file type.
+ * @return
+ *    True if the filename has a valid writing extension, else false.
+ */
+bool
+DataFileTypeEnum::isValidWriteFileExtension(const AString& filename,
+                                            const Enum enumValue)
+{
+    std::vector<AString> extensions = DataFileTypeEnum::getAllFileExtensionsForWriting(enumValue);
+    
+    const AString ext(FileInformation(filename).getFileExtension());
+    if (std::find(extensions.begin(),
+                  extensions.end(),
+                  ext) != extensions.end()) {
+        return true;
+    }
+
     return false;
 }
 

@@ -1320,6 +1320,12 @@ ImageFile::compareFileForUnitTesting(const DataFile* dataFile,
 void
 ImageFile::writeFile(const AString& filename)
 {
+    if ( ! DataFileTypeEnum::isValidWriteFileExtension(filename,
+                                                       DataFileTypeEnum::IMAGE)) {
+        throw DataFileException(filename,
+                                "Filename's extension does not match a image file type that is writable.");
+    }
+    
     checkFileWritability(filename);
     
     this->setFileName(filename);
