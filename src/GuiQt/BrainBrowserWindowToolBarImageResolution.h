@@ -27,6 +27,8 @@ class QAction;
 
 namespace caret {
 
+    class BrowserTabContent;
+    class CaretUndoStack;
     class EnumComboBoxTemplate;
     
     class BrainBrowserWindowToolBarImageResolution : public BrainBrowserWindowToolBarComponent {
@@ -43,6 +45,10 @@ namespace caret {
     private slots:
         void highResolutionActionToggled(bool checked);
         
+        void redoActionTriggered();
+        
+        void undoActionTriggered();
+
     private:
         BrainBrowserWindowToolBarImageResolution(const BrainBrowserWindowToolBarImageResolution&);
 
@@ -53,12 +59,19 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        CaretUndoStack* getUndoStack();
+        
         // ADD_NEW_MEMBERS_HERE
 
         BrainBrowserWindowToolBar* m_parentToolBar;
         
+        BrowserTabContent* m_browserTabContent = NULL;
+        
         QAction* m_highResolutionAction;
         
+        QAction* m_redoAction;
+        
+        QAction* m_undoAction;
     };
     
     

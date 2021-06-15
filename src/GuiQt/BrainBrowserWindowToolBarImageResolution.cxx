@@ -31,8 +31,13 @@
 #include "BrowserTabContent.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "CaretAssert.h"
+#include "CaretUndoStack.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
 #include "ModelMedia.h"
+#include "ViewingTransformationsMedia.h"
 #include "WuQMacroManager.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -52,7 +57,7 @@ using namespace caret;
  *    parent toolbar.
  */
 BrainBrowserWindowToolBarImageResolution::BrainBrowserWindowToolBarImageResolution(BrainBrowserWindowToolBar* parentToolBar,
-                                                                       const QString& parentObjectName)
+                                                                                   const QString& parentObjectName)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
@@ -74,9 +79,30 @@ m_parentToolBar(parentToolBar)
     WuQMacroManager::instance()->addMacroSupportToObject(highResToolButton,
                                                          "Enable high-resolution image selection");
 
+    m_redoAction = WuQtUtilities::createAction("Redo",
+                                               "Redo ToolTip",
+                                               this,
+                                               this,
+                                               SLOT(redoActionTriggered()));
+    QToolButton* redoToolButton = new QToolButton();
+    redoToolButton->setDefaultAction(m_redoAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
+    
+    m_undoAction = WuQtUtilities::createAction("Undo",
+                                               "Undo ToolTip",
+                                               this,
+                                               this,
+                                               SLOT(undoActionTriggered()));
+    QToolButton* undoToolButton = new QToolButton();
+    undoToolButton->setDefaultAction(m_undoAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
     layout->addWidget(highResToolButton);
+    layout->addSpacing(10);
+    layout->addWidget(redoToolButton);
+    layout->addWidget(undoToolButton);
     layout->addStretch();
 }
 
@@ -96,12 +122,44 @@ BrainBrowserWindowToolBarImageResolution::~BrainBrowserWindowToolBarImageResolut
 void
 BrainBrowserWindowToolBarImageResolution::updateContent(BrowserTabContent* browserTabContent)
 {
+    m_browserTabContent = browserTabContent;
+
+    m_redoAction->setEnabled(false);
+    m_undoAction->setEnabled(false);
+    
     if (browserTabContent != NULL) {
         ModelMedia* mediaModel = browserTabContent->getDisplayedMediaModel();
         if (mediaModel != NULL) {
             m_highResolutionAction->setChecked(mediaModel->isHighResolutionSelectionEnabled(browserTabContent->getTabNumber()));
         }
+        
+        CaretUndoStack* undoStack = getUndoStack();
+        if (undoStack != NULL) {
+            m_redoAction->setEnabled(undoStack->canRedo());
+            m_redoAction->setToolTip(undoStack->redoText());
+            
+            m_undoAction->setEnabled(undoStack->canUndo());
+            m_undoAction->setToolTip(undoStack->undoText());
+        }
     }
+}
+
+/**
+ * @return Undo stack for this tab or NULL if not valid
+ */
+CaretUndoStack*
+BrainBrowserWindowToolBarImageResolution::getUndoStack()
+{
+    CaretUndoStack* undoStack(NULL);
+    if (m_browserTabContent != NULL) {
+        if (m_browserTabContent->isMediaDisplayed()) {
+            ViewingTransformationsMedia* mediaTransform = dynamic_cast<ViewingTransformationsMedia*>(m_browserTabContent->getViewingTransformation());
+            if (mediaTransform != NULL) {
+                undoStack = mediaTransform->getRedoUndoStack();
+            }
+        }
+    }
+    return undoStack;
 }
 
 /**
@@ -122,3 +180,36 @@ BrainBrowserWindowToolBarImageResolution::highResolutionActionToggled(bool check
     }
 }
 
+/**
+ * Gets called when the redo action is triggered
+ */
+void
+BrainBrowserWindowToolBarImageResolution::redoActionTriggered()
+{
+    CaretUndoStack* undoStack = getUndoStack();
+    AString errorMessage;
+    if ( ! undoStack->redo(errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    updateContent(m_browserTabContent);
+}
+
+/**
+ * Gets called when the undo action is triggered
+ */
+void
+BrainBrowserWindowToolBarImageResolution::undoActionTriggered()
+{
+    CaretUndoStack* undoStack = getUndoStack();
+    AString errorMessage;
+    if ( ! undoStack->undo(errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    updateContent(m_browserTabContent);
+}

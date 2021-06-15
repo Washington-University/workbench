@@ -24,6 +24,7 @@
 #undef __VIEWING_TRANSFORMATIONS_DECLARE__
 
 #include "CaretLogger.h"
+#include "CaretUndoStack.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -44,6 +45,7 @@ ViewingTransformations::ViewingTransformations()
 : CaretObject()
 {
     m_sceneAssistant = new SceneClassAssistant();
+    m_undoStack.reset(new CaretUndoStack());
     
     m_rotationMatrix = new Matrix4x4();
     m_translation[0] = 0.0;
@@ -110,6 +112,18 @@ ViewingTransformations::operator=(const ViewingTransformations& obj)
 }
 
 /**
+ * Copy the viewing transform from another instance
+ * @param viewingTransform
+ *     Viewing transform whose values are copied to this instance
+ */
+void
+ViewingTransformations::copyFromOther(const ViewingTransformations& viewingTransform)
+{
+    copyHelperViewingTransformations(viewingTransform);
+}
+
+
+/**
  * Helps with copying an object of this type.
  * @param obj
  *    Object that is copied.
@@ -117,6 +131,9 @@ ViewingTransformations::operator=(const ViewingTransformations& obj)
 void
 ViewingTransformations::copyHelperViewingTransformations(const ViewingTransformations& obj)
 {
+    /*
+     * DO NOT copy the UNDO stack !!
+     */
     *m_rotationMatrix = *obj.m_rotationMatrix;
     m_translation[0]  = obj.m_translation[0];
     m_translation[1]  = obj.m_translation[1];
@@ -518,6 +535,15 @@ ViewingTransformations::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_flatRotationMatrix->identity();
     }
     
+}
+
+/**
+ * @return The redo/undo stack
+ */
+CaretUndoStack*
+ViewingTransformations::getRedoUndoStack()
+{
+    return m_undoStack.get();
 }
 
 

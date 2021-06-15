@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 
 #include "CaretObject.h"
 #include "Matrix4x4.h"
@@ -28,6 +29,7 @@
 
 namespace caret {
     class BoundingBox;
+    class CaretUndoStack;
     class DefaultViewTransform;
     class GraphicsObjectToWindowTransform;
     class GraphicsRegionSelectionBox;
@@ -43,6 +45,8 @@ namespace caret {
         ViewingTransformations(const ViewingTransformations& obj);
 
         ViewingTransformations& operator=(const ViewingTransformations& obj);
+        
+        void copyFromOther(const ViewingTransformations& viewingTransform);
         
         const float* getTranslation() const;
         
@@ -113,6 +117,8 @@ namespace caret {
 
         virtual AString toString() const;
 
+        CaretUndoStack* getRedoUndoStack();
+
     protected:
         /** Rotation matrix. */
         Matrix4x4* m_rotationMatrix;
@@ -135,6 +141,9 @@ namespace caret {
         void copyHelperViewingTransformations(const ViewingTransformations& obj);
 
         SceneClassAssistant* m_sceneAssistant;
+        
+        std::unique_ptr<CaretUndoStack> m_undoStack;
+
         // ADD_NEW_MEMBERS_HERE
 
     };

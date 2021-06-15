@@ -28,9 +28,11 @@
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretUndoStack.h"
 #include "DefaultViewTransform.h"
 #include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsRegionSelectionBox.h"
+#include "ViewingTransformationsUndoCommand.h"
 
 using namespace caret;
 
@@ -241,6 +243,9 @@ ViewingTransformationsMedia::setViewToBounds(const BoundingBox* windowBounds,
         && (regionWidth > 0.0)
         && (windowHeight > 0.0)
         && (regionHeight > 0.0)) {
+        ViewingTransformations undoViewTrans;
+        undoViewTrans.copyFromOther(*this);
+        
         /*
          * Scale using width or height to best fit region into window.
          */
@@ -267,6 +272,16 @@ ViewingTransformationsMedia::setViewToBounds(const BoundingBox* windowBounds,
         ty -= defViewTranslate[1];
 
         setTranslation(tx, ty, 0.0);
+        
+        ViewingTransformations redoViewTrans;
+        redoViewTrans.copyFromOther(*this);
+        
+        ViewingTransformationsUndoCommand* undoCommand = new ViewingTransformationsUndoCommand(this);
+        undoCommand->setDescription("Select image region");
+        undoCommand->setRedoUndoValues(redoViewTrans,
+                                       undoViewTrans);
+        CaretUndoStack* undoStack = getRedoUndoStack();
+        undoStack->push(undoCommand);
     }
 }
 

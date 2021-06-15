@@ -204,6 +204,7 @@ UserInputModeEnum.h
 ViewingTransformations.h
 ViewingTransformationsCerebellum.h
 ViewingTransformationsMedia.h
+ViewingTransformationsUndoCommand.h
 ViewingTransformationsVolume.h
 VolumeSliceDrawingTypeEnum.h
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.h
@@ -389,6 +390,7 @@ UserInputModeEnum.cxx
 ViewingTransformations.cxx
 ViewingTransformationsCerebellum.cxx
 ViewingTransformationsMedia.cxx
+ViewingTransformationsUndoCommand.cxx
 ViewingTransformationsVolume.cxx
 VolumeSliceDrawingTypeEnum.cxx
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.cxx
