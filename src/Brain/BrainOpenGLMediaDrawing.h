@@ -35,6 +35,7 @@ namespace caret {
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
+    class CziImageFile;
     class GraphicsPrimitiveV3fT3f;
     class ImageFile;
     class ModelMedia;
@@ -77,6 +78,10 @@ namespace caret {
         void processImageFileSelection(ImageFile* imageFile,
                                        GraphicsPrimitiveV3fT3f* primitive);
         
+        void processCziImageFileSelection(const int32_t tabIndex,
+                                          CziImageFile* cziImageFile,
+                                          GraphicsPrimitiveV3fT3f* primitive);
+
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
         
         BrowserTabContent* m_browserTabContent = NULL;

@@ -69,6 +69,8 @@ public:
         CONNECTIVITY_PARCEL_SERIES,
         /** Connectivity - Scalar Data Series */
         CONNECTIVITY_SCALAR_DATA_SERIES,
+        /** Zeiss CZI Image File */
+        CZI_IMAGE_FILE,
         /** Foci */
         FOCI,
         /** Image */

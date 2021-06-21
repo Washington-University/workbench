@@ -1160,6 +1160,8 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                                         break;
                                     case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                                         break;
+                                    case DataFileTypeEnum::CZI_IMAGE_FILE:
+                                        break;
                                     case DataFileTypeEnum::FOCI:
                                         break;
                                     case DataFileTypeEnum::IMAGE:

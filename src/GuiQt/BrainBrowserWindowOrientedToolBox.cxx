@@ -765,6 +765,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         bool haveAnnSub     = false;
         bool haveBorders    = false;
         bool haveConnFiles  = false;
+        bool haveCziImages  = false;
         bool haveFibers     = false;
         bool haveFoci       = false;
         bool haveImages     = false;
@@ -826,6 +827,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                    break;
+                case DataFileTypeEnum::CZI_IMAGE_FILE:
+                    haveCziImages = true;
                     break;
                 case DataFileTypeEnum::FOCI:
                     haveFoci = true;
@@ -990,7 +994,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         if (m_borderTabIndex >= 0) m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
         if (m_fiberOrientationTabIndex >= 0) m_tabWidget->setTabEnabled(m_fiberOrientationTabIndex, haveFibers);
         if (m_fociTabIndex >= 0) m_tabWidget->setTabEnabled(m_fociTabIndex, haveFoci);
-        if (m_imageTabIndex >= 0) m_tabWidget->setTabEnabled(m_imageTabIndex, haveImages);
+        if (m_imageTabIndex >= 0) m_tabWidget->setTabEnabled(m_imageTabIndex, (haveImages
+                                                                               || haveCziImages));
         if (m_labelTabIndex >= 0) m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
         
         if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, enableLayers);

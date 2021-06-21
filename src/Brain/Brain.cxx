@@ -60,6 +60,7 @@
 #include "CiftiParcelSeriesFile.h"
 #include "CiftiParcelScalarFile.h"
 #include "CiftiScalarDataSeriesFile.h"
+#include "CziImageFile.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "DisplayPropertiesBorders.h"
@@ -597,6 +598,11 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_borderFiles.clear();
     
+    for (auto cif : m_cziImageFiles) {
+        delete cif;
+    }
+    m_cziImageFiles.clear();
+    
     for (std::vector<FociFile*>::iterator ffi = m_fociFiles.begin();
          ffi != m_fociFiles.end();
          ffi++) {
@@ -874,6 +880,8 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                break;
+            case DataFileTypeEnum::CZI_IMAGE_FILE:
                 break;
             case DataFileTypeEnum::FOCI:
                 break;
@@ -2031,6 +2039,84 @@ Brain::addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
     
     
     return bf;
+}
+
+/**
+ * Read a CZI image file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+CziImageFile*
+Brain::addReadOrReloadCziImageFile(const FileModeAddReadReload fileMode,
+                                   CaretDataFile* caretDataFile,
+                                   const AString& filename)
+{
+    CziImageFile* cziImageFile = NULL;
+    if (caretDataFile != NULL) {
+        cziImageFile = dynamic_cast<CziImageFile*>(caretDataFile);
+        CaretAssert(cziImageFile);
+    }
+    else {
+        cziImageFile = new CziImageFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                cziImageFile->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+        }
+        catch (DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete cziImageFile;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_cziImageFiles,
+                                      cziImageFile);
+        m_cziImageFiles.push_back(cziImageFile);
+    }
+    
+    
+    return cziImageFile;
 }
 
 /**
@@ -4552,6 +4638,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     m_connectivityScalarDataSeriesFiles.push_back(file);
                 }
                     break;
+                case DataFileTypeEnum::CZI_IMAGE_FILE:
+                {
+                    CziImageFile* file = dynamic_cast<CziImageFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_cziImageFiles.push_back(file);
+                }
+                    break;
                 case DataFileTypeEnum::FOCI:
                 {
                     FociFile* file = dynamic_cast<FociFile*>(caretDataFile);
@@ -4761,6 +4854,46 @@ Brain::getBorderFile(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_borderFiles, indx);
     return m_borderFiles[indx];
+}
+
+/**
+ * @return All image files.
+ */
+const std::vector<CziImageFile*>
+Brain::getAllCziImageFiles() const
+{
+    return m_cziImageFiles;
+}
+
+/**
+ * @return Number of image files.
+ */
+int32_t
+Brain::getNumberOfCziImageFiles() const
+{
+    return m_cziImageFiles.size();
+}
+
+/**
+ * @return The image file.
+ * @param indx Index of the image file.
+ */
+CziImageFile*
+Brain::getCziImageFile(const int32_t indx)
+{
+    CaretAssertVectorIndex(m_cziImageFiles, indx);
+    return m_cziImageFiles[indx];
+}
+
+/**
+ * @return The image file.
+ * @param indx Index of the image file.
+ */
+const CziImageFile*
+Brain::getCziImageFile(const int32_t indx) const
+{
+    CaretAssertVectorIndex(m_cziImageFiles, indx);
+    return m_cziImageFiles[indx];
 }
 
 /**
@@ -5112,7 +5245,9 @@ void
 Brain::updateMediaModel()
 {
     bool isValid = false;
-    if ((getNumberOfImageFiles() > 0)) {
+    const int32_t numMediaFiles(getNumberOfCziImageFiles()
+                                + getNumberOfImageFiles());
+    if (numMediaFiles > 0) {
         isValid = true;
     }
     
@@ -5343,6 +5478,8 @@ Brain::getReloadableDataFiles() const
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                break;
+            case DataFileTypeEnum::CZI_IMAGE_FILE:
                 break;
             case DataFileTypeEnum::FOCI:
                 break;
@@ -5662,6 +5799,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 caretDataFileRead  = addReadOrReloadConnectivityScalarDataSeriesFile(fileMode,
                                                              caretDataFile,
                                                              dataFileName);
+                break;
+            case DataFileTypeEnum::CZI_IMAGE_FILE:
+                caretDataFileRead = addReadOrReloadCziImageFile(fileMode,
+                                                                caretDataFile,
+                                                                dataFileName);
                 break;
             case DataFileTypeEnum::FOCI:
                 caretDataFileRead  = addReadOrReloadFociFile(fileMode,
@@ -6462,6 +6604,9 @@ Brain::receiveEvent(Event* event)
         EventMediaFilesGet* mediaEvent = dynamic_cast<EventMediaFilesGet*>(event);
         CaretAssert(mediaEvent);
         
+        for (auto f : m_cziImageFiles) {
+            mediaEvent->addMediaFile(f);
+        }
         for (auto f : m_imageFiles) {
             mediaEvent->addMediaFile(f);
         }
@@ -7130,6 +7275,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
             break;
+        case DataFileTypeEnum::CZI_IMAGE_FILE:
+            break;
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::IMAGE:
@@ -7222,6 +7369,8 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            break;
+        case DataFileTypeEnum::CZI_IMAGE_FILE:
             break;
         case DataFileTypeEnum::FOCI:
             break;

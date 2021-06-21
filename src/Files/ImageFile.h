@@ -43,16 +43,6 @@ namespace caret {
 class ImageFile : public MediaFile {
 public:
     /**
-     * Location of origin in image data.
-     */
-    enum IMAGE_DATA_ORIGIN_LOCATION {
-        /** Origin at bottom (OpenGL has origin at bottom) */
-        IMAGE_DATA_ORIGIN_AT_BOTTOM,
-        /** Origin at top (most image formats have origin at top) */
-        IMAGE_DATA_ORIGIN_AT_TOP
-    };
-    
-    /**
      * Convert to volume color mode
      */
     enum CONVERT_TO_VOLUME_COLOR_MODE {
@@ -127,6 +117,12 @@ public:
                            int32_t& widthOut,
                            int32_t& heightOut) const;
     
+    static bool getImageBytesRGBA(const QImage* qImage,
+                                  const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+                                  std::vector<uint8_t>& bytesRGBA,
+                                  int32_t& widthOut,
+                                  int32_t& heightOut);
+
     bool getImageResizedBytes(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
                               const int32_t resizeToWidth,
                               const int32_t resizeToHeight,
@@ -193,6 +189,7 @@ public:
 
     GraphicsPrimitiveV3fT3f* getGraphicsPrimitiveForMediaDrawing() const;
     
+
     ControlPointFile* getControlPointFile();
     
     const ControlPointFile* getControlPointFile() const;
@@ -207,8 +204,12 @@ public:
 
     const ImageFile* castToImageFile() const;
     
-    virtual DefaultViewTransform getDefaultViewTransform() const override;
+    virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const override;
     
+    virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const override;
+    
+    virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const override;
+
     void resetOldSceneDefaultScaling();
     
     virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
@@ -227,6 +228,8 @@ public:
 private:
     ImageFile& operator=(const ImageFile&);
     
+    void initializeMembersImageFile();
+    
     void insertImage(const QImage& otherImage,
                      const int x,
                      const int y);
@@ -240,6 +243,8 @@ private:
     
     void finishCziFileInitialization(const ImageFileCziHelper::ReadResult& cziResult);
     
+    void updateDefaultSpatialCoordinates();
+    
     static QImage* limitImageDimensions(QImage* image,
                                         const AString& filename);
 
@@ -247,22 +252,6 @@ private:
     
     void writeFileMetaDataToQImage() const;
     
-    void updateDefaultSpatialCoordinates();
-    
-    void getSpatialValues(const float numPixels,
-                          const float spatialMinimumValue,
-                          const float spatialMaximumValue,
-                          float& firstPixelSpatialValue,
-                          float& lastPixelSpatialValue,
-                          float& pixelSpatialStepValue) const;
-    
-    void getDefaultSpatialValues(const float numPixels,
-                                 float& minSpatialValueOut,
-                                 float& maxSpatialValueOut,
-                                 float& firstPixelSpatialValue,
-                                 float& lastPixelSpatialValue,
-                                 float& pixelSpatialStepValue) const;
-
     QImage* m_image;
     
     mutable DefaultViewTransform m_defaultViewTransform;
@@ -277,6 +266,16 @@ private:
     
     CaretPointer<ControlPointFile> m_controlPointFile;
     
+    /**
+     * Converts from pixel index to pixel coordinate
+     */
+    std::unique_ptr<VolumeSpace> m_pixelToCoordinateTransform;
+    
+    /**
+     * Bounds of the image
+     */
+    std::unique_ptr<BoundingBox> m_spatialBoundingBox;
+
     /** X, Y, Width, Height of pixel region extracted from entire CZI file */
     QRect m_cziFileRegionPixelRect;
     

@@ -71,6 +71,8 @@ public:
         CHART_TWO_MATRIX,
         /** CIFTI Connectivity Matrix Row or Column */
         CIFTI_CONNECTIVITY_MATRIX_ROW_COLUMN,
+        /* CZI Image */
+        CZI_IMAGE,
         /** Focus on Surface */
         FOCUS_SURFACE,
         /** Focus on Volume */

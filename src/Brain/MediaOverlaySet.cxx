@@ -580,7 +580,7 @@ MediaOverlaySet::getDefaultViewTransform() const
                                                                  selectedIndex);
             
             if (selectedFile != NULL) {
-                defaultViewTransform = selectedFile->getDefaultViewTransform();
+                defaultViewTransform = selectedFile->getDefaultViewTransform(m_tabIndex);
                 break;
             }
         }

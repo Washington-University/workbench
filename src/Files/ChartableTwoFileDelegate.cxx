@@ -153,6 +153,8 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
             break;
+        case DataFileTypeEnum::CZI_IMAGE_FILE:
+            break;
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::IMAGE:

@@ -32,6 +32,8 @@
 #include "Vector3D.h"
 #include "VoxelIJK.h"
 
+class QImage;
+
 namespace caret {
 
     class BoundingBox;
@@ -40,6 +42,16 @@ namespace caret {
     class MediaFile : public CaretDataFile {
         
     public:
+        /**
+         * Location of origin in image data.
+         */
+        enum IMAGE_DATA_ORIGIN_LOCATION {
+            /** Origin at bottom (OpenGL has origin at bottom) */
+            IMAGE_DATA_ORIGIN_AT_BOTTOM,
+            /** Origin at top (most image formats have origin at top) */
+            IMAGE_DATA_ORIGIN_AT_TOP
+        };
+        
         /**
          * \class caret::MediaFile::PixelCoordinate
          * \brief Coordinate for pixel data in media (image) files
@@ -154,16 +166,21 @@ namespace caret {
         
         const MediaFile* castToMediaFile() const;
         
-        virtual bool indexValid(const PixelIndex& pixelIndex) const;
+        virtual bool indexValid(const int32_t tabIndex,
+                                const PixelIndex& pixelIndex) const;
         
-        virtual PixelIndex spaceToIndex(const PixelCoordinate& coordinate) const;
+        virtual PixelIndex spaceToIndex(const int32_t tabIndex,
+                                        const PixelCoordinate& coordinate) const;
         
-        virtual bool spaceToIndexValid(const PixelCoordinate& coordinate,
+        virtual bool spaceToIndexValid(const int32_t tabIndex,
+                                       const PixelCoordinate& coordinate,
                                        PixelIndex& pixelIndexOut) const;
         
-        const BoundingBox* getSpatialBoudingBox() const;
+        virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const = 0;
         
-        virtual DefaultViewTransform getDefaultViewTransform() const = 0;
+        virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const = 0;
+        
+        virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const = 0;
         
         static float getMediaDrawingOrthographicHalfHeight();
         
@@ -176,25 +193,46 @@ namespace caret {
     protected: 
         MediaFile(const DataFileTypeEnum::Enum dataFileType);
         
-        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
 
-        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                   const SceneClass* sceneClass);
 
         void initializeMembersMediaFile();
         
-        void initializeVolumeSpace(const int32_t imageWidth,
-                                   const int32_t imageHeight,
-                                   const std::array<float,3> firstPixelXYZ,
-                                   const std::array<float,3> pixelStepXYZ);
+        static std::pair<VolumeSpace*,BoundingBox*> initializeVolumeSpace(const int32_t imageWidth,
+                                                                          const int32_t imageHeight,
+                                                                          const std::array<float,3> firstPixelXYZ,
+                                                                          const std::array<float,3> pixelStepXYZ);
+
+        enum class SpatialOrigin {
+            BOTTOM_LEFT,
+            CENTER
+        };
+        static std::pair<VolumeSpace*,BoundingBox*> setDefaultSpatialCoordinates(const QImage* qImage,
+                                                                                 const SpatialOrigin spatialOrigin);
         
+        static void getSpatialValues(const float numPixels,
+                                     const float spatialMinimumValue,
+                                     const float spatialMaximumValue,
+                                     float& firstPixelSpatialValue,
+                                     float& lastPixelSpatialValue,
+                                     float& pixelSpatialStepValue);
+        
+        static void getDefaultSpatialValues(const float numPixels,
+                                            float& minSpatialValueOut,
+                                            float& maxSpatialValueOut,
+                                            float& firstPixelSpatialValue,
+                                            float& lastPixelSpatialValue,
+                                            float& pixelSpatialStepValue);
+
     private:
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        std::unique_ptr<VolumeSpace> m_volumeSpace;
-        
-        std::unique_ptr<BoundingBox> m_spatialBoundingBox;
+//        std::unique_ptr<VolumeSpace> m_volumeSpace;
+//
+//        std::unique_ptr<BoundingBox> m_spatialBoundingBox;
         
         // ADD_NEW_MEMBERS_HERE
 

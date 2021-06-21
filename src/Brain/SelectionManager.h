@@ -44,6 +44,7 @@ namespace caret {
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
     class SelectionItemCiftiConnectivityMatrixRowColumn;
+    class SelectionItemCziImage;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
     class SelectionItemImage;
@@ -84,6 +85,10 @@ namespace caret {
         SelectionItemFocusVolume* getVolumeFocusIdentification();
         
         const SelectionItemFocusVolume* getVolumeFocusIdentification() const;
+        
+        SelectionItemCziImage* getCziImageIdentification();
+        
+        const SelectionItemCziImage* getCziImageIdentification() const;
         
         SelectionItemImage* getImageIdentification();
         
@@ -232,6 +237,8 @@ namespace caret {
         SelectionItemFocusVolume* m_volumeFocusIdentification;
         
         SelectionItemImage* m_imageIdentification;
+        
+        std::unique_ptr<SelectionItemCziImage> m_cziImageIdentification;
         
         SelectionItemImageControlPoint* m_imageControlPointIdentification;
         

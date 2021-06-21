@@ -28,6 +28,7 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CziImageFile.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsEngineDataOpenGL.h"
@@ -39,6 +40,7 @@
 #include "ModelMedia.h"
 #include "MediaOverlay.h"
 #include "MediaOverlaySet.h"
+#include "SelectionItemCziImage.h"
 #include "SelectionItemImage.h"
 #include "SelectionManager.h"
 
@@ -133,6 +135,19 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     float translation[3];
     m_browserTabContent->getTranslation(translation);
     const float scaling = m_browserTabContent->getScaling();
+
+//    glPushMatrix();
+//    {
+//        glTranslatef(translation[0], translation[1], 0.0);
+//        glScalef(defaultScaling, defaultScaling, 1.0);
+//        glScalef(scaling, scaling, 1.0);
+//
+//        std::array<float, 4> orthoLRBT { -halfWidth, halfWidth, -drawingHalfHeight, drawingHalfHeight };
+//        GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
+//        fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
+//        viewportContent->setGraphicsObjectToWindowTransform(transform);
+//    }
+//    glPopMatrix();
     
     glTranslatef(defaultTranslation[0], defaultTranslation[1], 0.0);
     glTranslatef(translation[0], translation[1], 0.0);
@@ -193,38 +208,52 @@ BrainOpenGLMediaDrawing::drawModelLayers()
                                       selectedIndex);
             
             if (selectedFile != NULL) {
+                GraphicsPrimitiveV3fT3f* primitive(NULL);
+                CziImageFile* cziImageFile = selectedFile->castToCziImageFile();
                 ImageFile* imageFile = selectedFile->castToImageFile();
                 if (imageFile != NULL) {
                     /*
                      * Image is drawn using a primitive in which
                      * the image is a texture
                      */
-                    GraphicsPrimitiveV3fT3f* primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
-                    if (primitive) {
-                        glPushAttrib(GL_COLOR_BUFFER_BIT);
-                        if ( ! selectImageFlag) {
-                            m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
-                        }
-                        
-                        /*
-                         * Set texture filtering
-                         */
-                        primitive->setTextureMinificationFilter(s_textureMinificationFilter);
-                        primitive->setTextureMagnificationFilter(s_textureMagnificationFilter);
-                        
-                        GraphicsEngineDataOpenGL::draw(primitive);
-                        glPopAttrib();
-                        
-                        if (selectImageFlag) {
-                            processImageFileSelection(imageFile,
-                                                      primitive);
-                        }
-                    }
+                    primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
+                }
+                else  if (cziImageFile != NULL) {
+                    CziImageFile::CziImage* cziImage = cziImageFile->getImageForTab(m_browserTabContent->getTabNumber());
+                    primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
                 }
                 else {
                     CaretAssertMessage(0, ("Unrecogized file type "
                                            + DataFileTypeEnum::toName(selectedFile->getDataFileType())
                                            + " for media drawing."));
+                }
+                
+                if (primitive) {
+                    glPushAttrib(GL_COLOR_BUFFER_BIT);
+                    if ( ! selectImageFlag) {
+                        m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
+                    }
+                    
+                    /*
+                     * Set texture filtering
+                     */
+                    primitive->setTextureMinificationFilter(s_textureMinificationFilter);
+                    primitive->setTextureMagnificationFilter(s_textureMagnificationFilter);
+                    
+                    GraphicsEngineDataOpenGL::draw(primitive);
+                    glPopAttrib();
+                    
+                    if (selectImageFlag) {
+                        if (imageFile != NULL) {
+                            processImageFileSelection(imageFile,
+                                                      primitive);
+                        }
+                        else if (cziImageFile != NULL) {
+                            processCziImageFileSelection(m_browserTabContent->getTabNumber(),
+                                                         cziImageFile,
+                                                         primitive);
+                        }
+                    }
                 }
             }
         }
@@ -304,7 +333,7 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
         if ((drawnImageWidth > 0.0)
             && (drawnImageHeight > 0.0)
             && (windowMaxXYZ[0] > windowMinXYZ[0])
-            && (windowMaxXYZ[1] - windowMinXYZ[1])) {
+            && (windowMaxXYZ[1] > windowMinXYZ[1])) {
             
             const float mouseX(this->m_fixedPipelineDrawing->mouseX);
             const float mouseY(this->m_fixedPipelineDrawing->mouseY);
@@ -322,7 +351,8 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
             
             MediaFile::PixelCoordinate pixelCoordinate(modelXYZ);
             MediaFile::PixelIndex pixelIndex;
-            const bool validIndexFlag(imageFile->spaceToIndexValid(pixelCoordinate,
+            const bool validIndexFlag(imageFile->spaceToIndexValid(m_browserTabContent->getTabNumber(),
+                                                                   pixelCoordinate,
                                                                    pixelIndex));
             /*
              * Verify clicked location is inside image
@@ -341,6 +371,91 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
                     idImage->setModelXYZ(modelXYZ.data());
                     idImage->setScreenXYZ(windowXYZ);
                     idImage->setScreenDepth(0.0);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Process selection in a CZI  image file
+ * @param tabIndex
+ *   Index of the tab
+ * @param cziImageFile
+ *    The CZI  image file
+ * @param primitive
+ *    Primitive that draws image file
+ */
+void
+BrainOpenGLMediaDrawing::processCziImageFileSelection(const int32_t tabIndex,
+                                                      CziImageFile* cziImageFile,
+                                                      GraphicsPrimitiveV3fT3f* primitive)
+{
+    SelectionItemCziImage* idCziImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getCziImageIdentification();
+    EventOpenGLObjectToWindowTransform xform(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
+    EventManager::get()->sendEvent(xform.getPointer());
+    if (xform.isValid()) {
+        BoundingBox bounds;
+        primitive->getVertexBounds(bounds);
+        
+        /*
+         * Transform bottom left and top right coordinates of
+         * primitive containing image to window coordinates
+         */
+        const auto minXYZ = bounds.getMinXYZ();
+        float windowMinXYZ[3];
+        xform.transformPoint(minXYZ.data(),
+                             windowMinXYZ);
+        
+        const auto maxXYZ = bounds.getMaxXYZ();
+        float windowMaxXYZ[3];
+        xform.transformPoint(maxXYZ.data(),
+                             windowMaxXYZ);
+        
+        const float drawnImageWidth(bounds.getDifferenceX());
+        const float drawnImageHeight(bounds.getDifferenceY());
+        if ((drawnImageWidth > 0.0)
+            && (drawnImageHeight > 0.0)
+            && (windowMaxXYZ[0] > windowMinXYZ[0])
+            && (windowMaxXYZ[1] > windowMinXYZ[1])) {
+            
+            const float mouseX(this->m_fixedPipelineDrawing->mouseX);
+            const float mouseY(this->m_fixedPipelineDrawing->mouseY);
+            
+            float windowXYZ[3] { mouseX, mouseY, 0.0 };
+            std::array<float, 3> modelXYZ;
+            xform.inverseTransformPoint(windowXYZ, modelXYZ.data());
+            
+            /*
+             * Ensure Z is zero.
+             * In inverseTransformPoint(), setting Z to
+             * "(2.0f * windowXYZ[2]) - 1.0f" may be incorrect.
+             */
+            modelXYZ[2] = 0.0;
+            
+            MediaFile::PixelCoordinate pixelCoordinate(modelXYZ);
+            MediaFile::PixelIndex pixelIndex;
+            const bool validIndexFlag(cziImageFile->spaceToIndexValid(m_browserTabContent->getTabNumber(),
+                                                                      pixelCoordinate,
+                                                                      pixelIndex));
+            /*
+             * Verify clicked location is inside image
+             */
+            if (validIndexFlag) {
+                idCziImage->setCziImageFile(cziImageFile);
+                idCziImage->setPixelI(pixelIndex.getI());
+                idCziImage->setPixelJ(pixelIndex.getJ());
+                
+                uint8_t pixelByteRGBA[4];
+                if (cziImageFile->getImagePixelRGBA(tabIndex,
+                                                    ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                                 pixelIndex,
+                                                 pixelByteRGBA)) {
+                    idCziImage->setCziImageFile(cziImageFile);
+                    idCziImage->setPixelRGBA(pixelByteRGBA);
+                    idCziImage->setModelXYZ(modelXYZ.data());
+                    idCziImage->setScreenXYZ(windowXYZ);
+                    idCziImage->setScreenDepth(0.0);
                 }
             }
         }

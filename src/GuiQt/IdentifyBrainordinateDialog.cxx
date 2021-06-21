@@ -162,6 +162,8 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
             case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                 ciftiRowFlag = true;
                 break;
+            case DataFileTypeEnum::CZI_IMAGE_FILE:
+                break;
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::LABEL:

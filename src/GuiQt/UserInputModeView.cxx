@@ -50,6 +50,7 @@
 #include "ProgressReportingDialog.h"
 #include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
+#include "SelectionItemCziImage.h"
 #include "SelectionItemImage.h"
 #include "SelectionManager.h"
 #include "UserInputModeViewContextMenu.h"
@@ -386,6 +387,23 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                             modelXYZ[1]);
             }
         }
+        SelectionItemCziImage* cziImageID = idManager->getCziImageIdentification();
+        if (cziImageID->isValid()) {
+            double modelXYZ[3];
+            cziImageID->getModelXYZ(modelXYZ);
+            
+            GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
+            CaretAssert(box);
+            
+            if (mouseEvent.isFirstDragging()) {
+                box->initialize(modelXYZ[0],
+                                modelXYZ[1]);
+            }
+            else {
+                box->update(modelXYZ[0],
+                            modelXYZ[1]);
+            }
+        }
     }
     else {
         browserTabContent->applyMouseRotation(viewportContent,
@@ -451,6 +469,16 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
             if (imageID->isValid()) {
                 double modelXYZ[3];
                 imageID->getModelXYZ(modelXYZ);
+                
+                m_mediaLeftDragWithCtrlModelXYZ[0] = modelXYZ[0];
+                m_mediaLeftDragWithCtrlModelXYZ[1] = modelXYZ[1];
+                m_mediaLeftDragWithCtrlModelXYZ[2] = modelXYZ[2];
+                m_mediaLeftDragWithCtrlModelXYZValidFlag = true;
+            }
+            SelectionItemCziImage* cziImageID = idManager->getCziImageIdentification();
+            if (cziImageID->isValid()) {
+                double modelXYZ[3];
+                cziImageID->getModelXYZ(modelXYZ);
                 
                 m_mediaLeftDragWithCtrlModelXYZ[0] = modelXYZ[0];
                 m_mediaLeftDragWithCtrlModelXYZ[1] = modelXYZ[1];
@@ -678,6 +706,18 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                             if (imageID->isValid()) {
                                 double modelXYZ[3];
                                 imageID->getModelXYZ(modelXYZ);
+                                browserTabContent->applyMediaMouseScaling(viewportContent,
+                                                                          gestureEvent.getStartCenterX(),
+                                                                          gestureEvent.getStartCenterX(),
+                                                                          deltaY,
+                                                                          modelXYZ[0],
+                                                                          modelXYZ[1],
+                                                                          true);
+                            }
+                            SelectionItemCziImage* cziImageID = idManager->getCziImageIdentification();
+                            if (cziImageID->isValid()) {
+                                double modelXYZ[3];
+                                cziImageID->getModelXYZ(modelXYZ);
                                 browserTabContent->applyMediaMouseScaling(viewportContent,
                                                                           gestureEvent.getStartCenterX(),
                                                                           gestureEvent.getStartCenterX(),

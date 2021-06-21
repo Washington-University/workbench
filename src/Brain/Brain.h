@@ -71,6 +71,7 @@ namespace caret {
     class CiftiParcelSeriesFile;
     class CiftiParcelScalarFile;
     class CiftiScalarDataSeriesFile;
+    class CziImageFile;
     class DisplayProperties;
     class DisplayPropertiesAnnotation;
     class DisplayPropertiesAnnotationTextSubstitution;
@@ -150,6 +151,14 @@ namespace caret {
         const AnnotationFile* getSceneAnnotationFile() const;
         
         void getAnnotationTextSubstitutionFiles(std::vector<AnnotationTextSubstitutionFile*>& annSubFilesOut) const;
+        
+        const std::vector<CziImageFile*> getAllCziImageFiles() const;
+        
+        int32_t getNumberOfCziImageFiles() const;
+        
+        CziImageFile* getCziImageFile(const int32_t indx);
+        
+        const CziImageFile* getCziImageFile(const int32_t indx) const;
         
         int32_t getNumberOfFociFiles() const;
         
@@ -722,6 +731,10 @@ namespace caret {
                                                                          CaretDataFile* caretDataFile,
                                                                          const AString& filename);
         
+        CziImageFile* addReadOrReloadCziImageFile(const FileModeAddReadReload fileMode,
+                                                  CaretDataFile* caretDataFile,
+                                                  const AString& filename);
+
         FociFile* addReadOrReloadFociFile(const FileModeAddReadReload fileMode,
                                CaretDataFile* caretDataFile,
                                const AString& filename);
@@ -775,6 +788,8 @@ namespace caret {
         std::vector<AnnotationTextSubstitutionFile*> m_annotationSubstitutionFiles;
         
         std::vector<BorderFile*> m_borderFiles;
+        
+        std::vector<CziImageFile*> m_cziImageFiles;
         
         std::vector<FociFile*> m_fociFiles;
         

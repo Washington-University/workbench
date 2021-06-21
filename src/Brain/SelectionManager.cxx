@@ -46,6 +46,7 @@
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
+#include "SelectionItemCziImage.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemImage.h"
@@ -91,6 +92,7 @@ SelectionManager::SelectionManager()
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
     m_volumeFocusIdentification = new SelectionItemFocusVolume();
     m_imageIdentification = new SelectionItemImage();
+    m_cziImageIdentification.reset(new SelectionItemCziImage());
     m_imageControlPointIdentification = new SelectionItemImageControlPoint();
     m_surfaceNodeIdentification = new SelectionItemSurfaceNode();
     m_surfaceNodeIdentificationSymbol = new SelectionItemSurfaceNodeIdentificationSymbol();
@@ -116,6 +118,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_surfaceNodeIdentification);
     m_allSelectionItems.push_back(m_surfaceNodeIdentificationSymbol);
     m_allSelectionItems.push_back(m_surfaceTriangleIdentification);
+    m_allSelectionItems.push_back(m_cziImageIdentification.get());
     m_allSelectionItems.push_back(m_imageIdentification);
     m_allSelectionItems.push_back(m_imageControlPointIdentification);
     m_allSelectionItems.push_back(m_voxelIdentification);
@@ -512,6 +515,25 @@ const SelectionItemAnnotation*
 SelectionManager::getAnnotationIdentification() const
 {
     return m_annotationIdentification;
+}
+
+/**
+ * @return Identification for image.
+ */
+SelectionItemCziImage*
+SelectionManager::getCziImageIdentification()
+{
+    return m_cziImageIdentification.get();
+}
+
+
+/**
+ * @return Identification for image.
+ */
+const SelectionItemCziImage*
+SelectionManager::getCziImageIdentification() const
+{
+    return m_cziImageIdentification.get();
 }
 
 /**

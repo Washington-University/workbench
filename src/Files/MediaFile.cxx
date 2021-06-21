@@ -23,6 +23,8 @@
 #include "MediaFile.h"
 #undef __MEDIA_FILE_DECLARE__
 
+#include <QImage>
+
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -49,6 +51,7 @@ MediaFile::MediaFile(const DataFileTypeEnum::Enum dataFileType)
 : CaretDataFile(dataFileType)
 {
     switch (dataFileType) {
+        case DataFileTypeEnum::CZI_IMAGE_FILE:
         case DataFileTypeEnum::IMAGE:
             break;
         default:
@@ -75,12 +78,12 @@ MediaFile::MediaFile(const MediaFile& mediaFile)
 {
     initializeMembersMediaFile();
     
-    if (mediaFile.m_spatialBoundingBox) {
-        m_spatialBoundingBox.reset(new BoundingBox(*mediaFile.m_spatialBoundingBox));
-    }
-    if (mediaFile.m_volumeSpace) {
-        m_volumeSpace.reset(new VolumeSpace(*mediaFile.m_volumeSpace));
-    }
+//    if (mediaFile.m_spatialBoundingBox) {
+//        m_spatialBoundingBox.reset(new BoundingBox(*mediaFile.m_spatialBoundingBox));
+//    }
+//    if (mediaFile.m_volumeSpace) {
+//        m_volumeSpace.reset(new VolumeSpace(*mediaFile.m_volumeSpace));
+//    }
 }
 
 /**
@@ -96,8 +99,8 @@ MediaFile::~MediaFile()
 void
 MediaFile::initializeMembersMediaFile()
 {
-    m_spatialBoundingBox.reset(new BoundingBox());
-    m_volumeSpace.reset(new VolumeSpace());
+//    m_spatialBoundingBox.reset(new BoundingBox());
+//    m_volumeSpace.reset(new VolumeSpace());
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
 }
 
@@ -176,9 +179,11 @@ MediaFile::setStructure(const StructureEnum::Enum /*structure */)
  *     be valid (non-NULL).
  */
 void
-MediaFile::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+MediaFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
+    CaretDataFile::saveFileDataToScene(sceneAttributes,
+                                       sceneClass);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
 }
@@ -196,9 +201,11 @@ MediaFile::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
  *     this interface.  Will NEVER be NULL.
  */
 void
-MediaFile::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+MediaFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
+    CaretDataFile::restoreFileDataFromScene(sceneAttributes,
+                                            sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 }
@@ -233,19 +240,23 @@ MediaFile::castToMediaFile() const
  *    Coordinates of first pixel at center of pixel
  * @param pixelStepXYZ
  *    Step to next adjacent pixel
+ *@return
+ *    Pair containing volume space and bounding box.  Caller takes ownership of the returned values.
  */
-void
+std::pair<VolumeSpace*,BoundingBox*>
 MediaFile::initializeVolumeSpace(const int32_t imageWidth,
                                  const int32_t imageHeight,
                                  const std::array<float,3> firstPixelXYZ,
                                  const std::array<float,3> pixelStepXYZ)
 {
-    m_volumeSpace.reset(new VolumeSpace());
-    m_spatialBoundingBox->resetZeros();
+    VolumeSpace* volumeSpace = new VolumeSpace();
+    BoundingBox* boundingBox = new BoundingBox();
+    boundingBox->resetZeros();
     
     if ((imageWidth < 2)
         || (imageHeight < 2)) {
-        return;
+        return std::make_pair(volumeSpace,
+                              boundingBox);
     }
     
     std::vector<float> rowOne   { pixelStepXYZ[0], 0.0, 0.0, firstPixelXYZ[0] };
@@ -262,28 +273,29 @@ MediaFile::initializeVolumeSpace(const int32_t imageWidth,
     const int32_t imageStackSize(1);
     const int64_t dims[3] { imageWidth, imageHeight, imageStackSize };
     
-    m_volumeSpace.reset(new VolumeSpace(dims, sform));
+    delete volumeSpace;
+    volumeSpace = new VolumeSpace(dims, sform);
     
     const float minIJK[3] { -0.5, -0.5, -0.5 };
     float minX, minY, minZ;
-    m_volumeSpace->indexToSpace(minIJK, minX, minY, minZ);
+    volumeSpace->indexToSpace(minIJK, minX, minY, minZ);
     
     float maxIJK[3] { imageWidth - 0.5f, imageHeight - 0.5f, 0.5f };
     float maxX, maxY, maxZ;
-    m_volumeSpace->indexToSpace(maxIJK, maxX, maxY, maxZ);
+    volumeSpace->indexToSpace(maxIJK, maxX, maxY, maxZ);
     
-    m_spatialBoundingBox->set(minX, maxX,
-                              minY, maxY,
-                              minZ, maxZ);
-    
+    boundingBox->set(minX, maxX,
+                     minY, maxY,
+                     minZ, maxZ);
+
     const bool testFlag(false);
     if (testFlag) {
         float x, y, z;
         
-        m_volumeSpace->indexToSpace(0, 0, 0, x, y, z);
+        volumeSpace->indexToSpace(0, 0, 0, x, y, z);
         std::cout << "First Pixel XYZ: " << x << ", " << y << ", " << z << std::endl;
         
-        m_volumeSpace->indexToSpace(imageWidth - 1, imageHeight - 1, imageStackSize - 1, x, y, z);
+        volumeSpace->indexToSpace(imageWidth - 1, imageHeight - 1, imageStackSize - 1, x, y, z);
         std::cout << "Last Pixel XYZ: " << x << ", " << y << ", " << z << std::endl;
         
         std::cout << "Min XYZ: " << minX << ", " << minY << ", " << minZ << std::endl;
@@ -292,42 +304,193 @@ MediaFile::initializeVolumeSpace(const int32_t imageWidth,
         
         std::cout << std::flush;
     }
+    
+    return std::make_pair(volumeSpace,
+                          boundingBox);
 }
 
 /**
- * @return Pointer to spatial bounding box (outer edges of pixels; not center of pixels)
+ * Set the default spatial coordinates
+ * @param qImage
+ *    The QImage instance
+ *@param spatialOrigin
+ *    Origin (0,0) for spatial coordinates
  */
-const BoundingBox*
-MediaFile::getSpatialBoudingBox() const
+std::pair<VolumeSpace*,BoundingBox*>
+MediaFile::setDefaultSpatialCoordinates(const QImage* qImage,
+                                        const SpatialOrigin spatialOrigin)
 {
-    CaretAssert(m_spatialBoundingBox.get());
-    return m_spatialBoundingBox.get();
+    CaretAssert(qImage);
+    std::array<float, 3> pixelBottomLeftSpatialXYZ;
+    pixelBottomLeftSpatialXYZ.fill(0.0);
+    
+    std::array<float, 3> pixelTopRightSpatialXYZ;
+    pixelTopRightSpatialXYZ.fill(1.0);
+    
+    std::array<float, 3> pixelStepXYZ;
+    pixelStepXYZ.fill(1.0);
+    
+    int64_t imageWidthInt(0);
+    int64_t imageHeightInt(0);
+    
+    if (qImage != NULL) {
+        if ( ! qImage->isNull()) {
+            imageWidthInt = qImage->width();
+            imageHeightInt = qImage->height();
+            
+            const float imageWidth(qImage->width());
+            const float imageHeight(qImage->height());
+            
+            if ((imageWidth >= 1.0f)
+                && (imageHeight >= 1.0f)) {
+                switch (spatialOrigin) {
+                    case SpatialOrigin::BOTTOM_LEFT:
+                        /*
+                         * Uses default valuses for bottom left and step
+                         */
+                        break;
+                    case SpatialOrigin::CENTER:
+                    {
+                        float minX(0.0), maxX(0.0);
+                        getDefaultSpatialValues(imageWidth,
+                                                minX,
+                                                maxX,
+                                                pixelBottomLeftSpatialXYZ[0],
+                                                pixelTopRightSpatialXYZ[0],
+                                                pixelStepXYZ[0]);
+                        
+                        float minY, maxY;
+                        getDefaultSpatialValues(imageHeight,
+                                                minY,
+                                                maxY,
+                                                pixelBottomLeftSpatialXYZ[1],
+                                                pixelTopRightSpatialXYZ[1],
+                                                pixelStepXYZ[1]);
+                    }
+                        break;
+                }
+            }
+        }
+    }
+    
+    return initializeVolumeSpace(imageWidthInt,
+                                 imageHeightInt,
+                                 pixelBottomLeftSpatialXYZ,
+                                 pixelStepXYZ);
 }
+
+/**
+ * Setup the spatial values for an image
+ *
+ * @param numPixels
+ *    Number of pixels in the dimension
+ * @param spatialMinimumValue
+ *    Spatial value at left/bottom edge of first pixel
+ * @param spatialMaximumValue
+ *    Spatial value at right/top edge of first pixel
+ * @param firstPixelSpatialValue
+ *    Spatial value at middle of first pixel
+ * @param lastPixelSpatialValue
+ *    Spatial value at middle of last pixel
+ * @param pixelSpatialStepValue
+ *    Spatial step to next adjacent pixel
+ */
+void
+MediaFile::getSpatialValues(const float numPixels,
+                            const float spatialMinimumValue,
+                            const float spatialMaximumValue,
+                            float& firstPixelSpatialValue,
+                            float& lastPixelSpatialValue,
+                            float& pixelSpatialStepValue)
+{
+    CaretAssert(numPixels >= 1.0f);
+    pixelSpatialStepValue  = (spatialMaximumValue - spatialMinimumValue) / numPixels;
+    const float halfStepValue(pixelSpatialStepValue / 2.0);
+    firstPixelSpatialValue = spatialMinimumValue + halfStepValue;
+    lastPixelSpatialValue  = firstPixelSpatialValue + (pixelSpatialStepValue * (numPixels - 1));
+}
+
+/**
+ * Setup the spatial values for an image with no available spatial coordinates.  The origin
+ * will be in the center of the image.  Spatial minimum/maximum will be half the number of pixels.
+ * Example: if image is 400 pixels, min spatial = -200; max spatial = 200
+ *
+ * @param numPixels
+ *    Number of pixels in the dimension
+ * @param minSpatialValueOut
+ *    Spatial value at left/bottom edge of first pixel
+ * @param maxSpatialValueOut
+ *    Spatial value at right/top edge of first pixel
+ * @param firstPixelSpatialValue
+ *    Spatial value at middle of first pixel
+ * @param lastPixelSpatialValue
+ *    Spatial value at middle of last pixel
+ * @param pixelSpatialStepValue
+ *    Spatial step to next adjacent pixel
+ */
+void
+MediaFile::getDefaultSpatialValues(const float numPixels,
+                                   float& minSpatialValueOut,
+                                   float& maxSpatialValueOut,
+                                   float& firstPixelSpatialValue,
+                                   float& lastPixelSpatialValue,
+                                   float& pixelSpatialStepValue)
+{
+    const float halfValue(numPixels / 2.0);
+    minSpatialValueOut = -halfValue;
+    maxSpatialValueOut =  halfValue;
+    MediaFile::getSpatialValues(numPixels,
+                                minSpatialValueOut,
+                                maxSpatialValueOut,
+                                firstPixelSpatialValue,
+                                lastPixelSpatialValue,
+                                pixelSpatialStepValue);
+}
+
+///**
+// * @return Pointer to spatial bounding box (outer edges of pixels; not center of pixels)
+// */
+//const BoundingBox*
+//MediaFile::getSpatialBoudingBox() const
+//{
+//    CaretAssert(m_spatialBoundingBox.get());
+//    return m_spatialBoundingBox.get();
+//}
 
 /**
  * @return True if the given pixel index is valid, else false
+ * @param tabIndex
+ *    Index of the tab.
  * @param pixelIndex
  *    The pixel index
  */
 bool
-MediaFile::indexValid(const PixelIndex& pixelIndex) const
+MediaFile::indexValid(const int32_t tabIndex,
+                      const PixelIndex& pixelIndex) const
 {
-    return m_volumeSpace->indexValid(pixelIndex.m_ijk);
+    const auto xform(getPixelToCoordinateTransform(tabIndex));
+    CaretAssert(xform);
+    return xform->indexValid(pixelIndex.m_ijk);
 }
 
 /**
  * Convert the given spatial coordinates to image pixel indices
+ * @param tabIndex
+ *    Index of the tab.
  * @param coordinate
  *    The coordinate
  * @return
  *    The Pixel Index (may not be a valid index)
  */
 MediaFile::PixelIndex
-MediaFile::spaceToIndex(const PixelCoordinate& coordinate) const
+MediaFile::spaceToIndex(const int32_t tabIndex,
+                        const PixelCoordinate& coordinate) const
 {
     PixelCoordinate indexOut(0,0,0);
-    m_volumeSpace->spaceToIndex(coordinate,
-                                indexOut);
+    const auto xform(getPixelToCoordinateTransform(tabIndex));
+    CaretAssert(xform);
+    xform->spaceToIndex(coordinate,
+                        indexOut);
     
     return PixelIndex(indexOut);
 }
@@ -335,6 +498,8 @@ MediaFile::spaceToIndex(const PixelCoordinate& coordinate) const
 /**
  * Convert the given spatial coordinates to image pixel indices
  * Convert the given spatial coordinates to image pixel indices
+ * @param tabIndex
+ *    Index of the tab.
  * @param coordinate
  *    The coordinate
  * @param pixelIndexOut
@@ -342,11 +507,14 @@ MediaFile::spaceToIndex(const PixelCoordinate& coordinate) const
  * @return True if output index is valid for the image, else false.
  */
 bool
-MediaFile::spaceToIndexValid(const PixelCoordinate& coordinate,
+MediaFile::spaceToIndexValid(const int32_t tabIndex,
+                             const PixelCoordinate& coordinate,
                              PixelIndex& pixelIndexOut) const
 {
-    pixelIndexOut = spaceToIndex(coordinate);
-    return indexValid(pixelIndexOut);
+    pixelIndexOut = spaceToIndex(tabIndex,
+                                 coordinate);
+    return indexValid(tabIndex,
+                      pixelIndexOut);
 }
 
 /**

@@ -64,12 +64,24 @@ static bool imageDebugFlag = false;
 ImageFile::ImageFile()
 : MediaFile(DataFileTypeEnum::IMAGE)
 {
-    m_controlPointFile.grabNew(new ControlPointFile());
-    m_fileMetaData.grabNew(new GiftiMetaData());
-    
-    m_image   = new QImage();
+    initializeMembersImageFile();
+
     readFileMetaDataFromQImage();
     updateDefaultSpatialCoordinates();
+}
+
+/**
+ * Initialize members of media file
+ */
+void
+ImageFile::initializeMembersImageFile()
+{
+    m_controlPointFile.grabNew(new ControlPointFile());
+    m_fileMetaData.grabNew(new GiftiMetaData());
+    m_spatialBoundingBox.reset(new BoundingBox());
+    m_pixelToCoordinateTransform.reset(new VolumeSpace());
+    m_image = new QImage();
+    m_defaultViewTransformValidFlag = false;
 }
 
 /**
@@ -80,8 +92,11 @@ ImageFile::ImageFile()
 ImageFile::ImageFile(const ImageFile& imageFile)
 : MediaFile(imageFile)
 {
-    m_controlPointFile.grabNew(new ControlPointFile());
+    initializeMembersImageFile();
     
+    if (m_image != NULL) {
+        delete m_image;
+    }
     if (imageFile.m_image != NULL) {
         m_image = new QImage(*imageFile.m_image);
     }
@@ -89,6 +104,12 @@ ImageFile::ImageFile(const ImageFile& imageFile)
         m_image = new QImage();
     }
 
+    if (imageFile.m_spatialBoundingBox) {
+        m_spatialBoundingBox.reset(new BoundingBox(*imageFile.m_spatialBoundingBox));
+    }
+    if (imageFile.m_pixelToCoordinateTransform) {
+        m_pixelToCoordinateTransform.reset(new VolumeSpace(*imageFile.m_pixelToCoordinateTransform));
+    }
     m_fileMetaData.grabNew(new GiftiMetaData(*imageFile.m_fileMetaData));
     m_defaultViewTransform             = imageFile.m_defaultViewTransform;
     m_defaultViewTransformValidFlag    = imageFile.m_defaultViewTransformValidFlag;
@@ -105,10 +126,12 @@ ImageFile::ImageFile(const ImageFile& imageFile)
 ImageFile::ImageFile(const QImage& qimage)
 : MediaFile(DataFileTypeEnum::IMAGE)
 {
-    m_controlPointFile.grabNew(new ControlPointFile());
-    m_fileMetaData.grabNew(new GiftiMetaData());
-
+    initializeMembersImageFile();
+    if (m_image != NULL) {
+        delete m_image;
+    }
     m_image = new QImage(qimage);
+
     readFileMetaDataFromQImage();
     updateDefaultSpatialCoordinates();
 }
@@ -121,9 +144,11 @@ ImageFile::ImageFile(const QImage& qimage)
 ImageFile::ImageFile(QImage* qimage)
 : MediaFile(DataFileTypeEnum::IMAGE)
 {
-    m_controlPointFile.grabNew(new ControlPointFile());
-    m_fileMetaData.grabNew(new GiftiMetaData());
+    initializeMembersImageFile();
     
+    if (m_image != NULL) {
+        delete m_image;
+    }
     m_image = qimage;
     readFileMetaDataFromQImage();
     updateDefaultSpatialCoordinates();
@@ -148,9 +173,11 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
                      const IMAGE_DATA_ORIGIN_LOCATION imageOrigin)
 : MediaFile(DataFileTypeEnum::IMAGE)
 {
-    m_controlPointFile.grabNew(new ControlPointFile());
-    m_fileMetaData.grabNew(new GiftiMetaData());
+    initializeMembersImageFile();
 
+    if (m_image != NULL) {
+        delete m_image;
+    }
     m_image = new QImage(imageWidth,
                              imageHeight,
                              QImage::Format_ARGB32);
@@ -333,7 +360,8 @@ ImageFile::clear()
     if (m_image != NULL) {
         delete m_image;
     }
-    m_image = new QImage();
+    initializeMembersImageFile();
+
     readFileMetaDataFromQImage();
     this->clearModified();
 }
@@ -838,6 +866,7 @@ ImageFile::readFile(const AString& filename)
     if (filename.endsWith(DataFileTypeEnum::toCziImageFileExtension())) {
         if (m_image != NULL) {
             delete m_image;
+            m_image = NULL;
         }
         AString errorMessage;
         ImageFileCziHelper::ReadResult result("no-error");
@@ -1018,7 +1047,7 @@ ImageFile::finishCziFileInitialization(const ImageFileCziHelper::ReadResult& czi
 int32_t
 ImageFile::getCziFileMaximumDimension()
 {
-    return 8192;
+    return 4096;
 }
 
 /**
@@ -1575,6 +1604,80 @@ ImageFile::getImageBytesRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
 }
 
 /**
+ * Get the RGBA bytes from the given QImage.
+ *
+ * @parm qImage
+ *    The QImage
+ * @param bytesRGBA
+ *    The RGBA bytes in the image.
+ * @param widthOut
+ *    Width of the image.
+ * @param heightOut
+ *    Height of the image.
+ * @param imageOrigin
+ *     Location of first pixel in the image data.
+ * @return
+ *    True if the bytes, width, and height are valid, else false.
+ */
+bool
+ImageFile::getImageBytesRGBA(const QImage* qImage,
+                              const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+                              std::vector<uint8_t>& bytesRGBA,
+                              int32_t& widthOut,
+                              int32_t& heightOut)
+{
+    CaretAssert(qImage);
+    bytesRGBA.clear();
+    widthOut = 0;
+    heightOut = 0;
+    
+    if (qImage != NULL) {
+        widthOut  = qImage->width();
+        heightOut = qImage->height();
+        if ((widthOut > 0)
+            && (heightOut > 0)) {
+            
+            bytesRGBA.resize(widthOut * heightOut * 4);
+            
+            bool isOriginAtTop = false;
+            switch (imageOrigin) {
+                case IMAGE_DATA_ORIGIN_AT_BOTTOM:
+                    isOriginAtTop = false;
+                    break;
+                case IMAGE_DATA_ORIGIN_AT_TOP:
+                    isOriginAtTop = true;
+                    break;
+            }
+            
+            /*
+             * Documentation for QImage states that setPixel may be very costly
+             * and recommends using the scanLine() method to access pixel data.
+             */
+            for (int64_t y = 0; y < heightOut; y++) {
+                const int64_t scanLineIndex = (isOriginAtTop
+                                               ? y
+                                               : heightOut -y - 1);
+                const uchar* scanLine = qImage->scanLine(scanLineIndex);
+                QRgb* rgbScanLine = (QRgb*)scanLine;
+                
+                for (int64_t x = 0; x < widthOut; x++) {
+                    const int64_t contentOffset = (((y * widthOut) * 4)
+                                                   + (x * 4));
+                    QRgb& rgb = rgbScanLine[x];
+                    bytesRGBA[contentOffset] = static_cast<uint8_t>(qRed(rgb));
+                    bytesRGBA[contentOffset+1] = static_cast<uint8_t>(qGreen(rgb));
+                    bytesRGBA[contentOffset+2] = static_cast<uint8_t>(qBlue(rgb));
+                    bytesRGBA[contentOffset+3] = static_cast<uint8_t>(qAlpha(rgb));
+                }
+            }
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
  * Get the pixel RGBA at the given pixel I and J.
  *
  * @param imageOrigin
@@ -2082,7 +2185,8 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
             /*
              * Coordinates at EDGE of the pixels
              */
-            const BoundingBox* boundingBox(getSpatialBoudingBox());
+            const int32_t tabIndex(0); /* For image file, all tabs are the same */
+            const BoundingBox* boundingBox(getSpatialBoundingBox(tabIndex));
             const float minX = boundingBox->getMinX();
             const float maxX = boundingBox->getMaxX();
             const float minY = boundingBox->getMinY();
@@ -2107,6 +2211,29 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
     
     return m_graphicsPrimitiveForMediaDrawing.get();
 }
+
+/**
+ * @return the spatial bounding box for the given tab index
+ * @param tabIndex
+ *    Index of the tab
+ */
+const BoundingBox*
+ImageFile::getSpatialBoundingBox(const int32_t /*tabIndex*/) const
+{
+    return m_spatialBoundingBox.get();
+}
+
+/**
+ * @return Pixel to coordinate transform
+ * @param tabIndex
+ *    Index of the tab.
+ */
+const VolumeSpace*
+ImageFile::getPixelToCoordinateTransform(const int32_t /*tabIndex*/) const
+{
+    return m_pixelToCoordinateTransform.get();
+}
+
 
 /**
  * Save file data from the scene.  For subclasses that need to
@@ -2210,7 +2337,8 @@ ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
         dataFileInformation.addNameAndValue("Width (pixels)", m_image->width());
         dataFileInformation.addNameAndValue("Height (pixels)", m_image->height());
         
-        const BoundingBox* boundingBox(getSpatialBoudingBox());
+        const int32_t tabIndex(0); /* For image file, all tabs are the same */
+        const BoundingBox* boundingBox(getSpatialBoundingBox(tabIndex));
         dataFileInformation.addNameAndValue("Min X", boundingBox->getMinX());
         dataFileInformation.addNameAndValue("Max X", boundingBox->getMaxX());
         dataFileInformation.addNameAndValue("Min Y", boundingBox->getMinY());
@@ -2412,119 +2540,10 @@ ImageFile::supportsFileMetaData() const
 void
 ImageFile::updateDefaultSpatialCoordinates()
 {
-    std::array<float, 3> pixelBottomLeftSpatialXYZ;
-    pixelBottomLeftSpatialXYZ.fill(0.0);
-    
-    std::array<float, 3> pixelTopRightSpatialXYZ;
-    pixelTopRightSpatialXYZ.fill(1.0);
-    
-    std::array<float, 3> pixelStepXYZ;
-    pixelStepXYZ.fill(1.0);
-    
-    int64_t imageWidthInt(0);
-    int64_t imageHeightInt(0);
-    
-    if (m_image != NULL) {
-        if ( ! m_image->isNull()) {
-            imageWidthInt = m_image->width();
-            imageHeightInt = m_image->height();
-            
-            const float imageWidth(m_image->width());
-            const float imageHeight(m_image->height());
-            
-            if ((imageWidth >= 1.0f)
-                && (imageHeight >= 1.0f)) {
-                float minX, maxX;
-                getDefaultSpatialValues(imageWidth,
-                                        minX,
-                                        maxX,
-                                        pixelBottomLeftSpatialXYZ[0],
-                                        pixelTopRightSpatialXYZ[0],
-                                        pixelStepXYZ[0]);
-                
-                float minY, maxY;
-                getDefaultSpatialValues(imageHeight,
-                                        minY,
-                                        maxY,
-                                        pixelBottomLeftSpatialXYZ[1],
-                                        pixelTopRightSpatialXYZ[1],
-                                        pixelStepXYZ[1]);
-              }
-         }
-    }
-    
-    initializeVolumeSpace(imageWidthInt,
-                          imageHeightInt,
-                          pixelBottomLeftSpatialXYZ,
-                          pixelStepXYZ);
-}
-
-/**
- * Setup the spatial values for an image
- *
- * @param numPixels
- *    Number of pixels in the dimension
- * @param spatialMinimumValue
- *    Spatial value at left/bottom edge of first pixel
- * @param spatialMaximumValue
- *    Spatial value at right/top edge of first pixel
- * @param firstPixelSpatialValue
- *    Spatial value at middle of first pixel
- * @param lastPixelSpatialValue
- *    Spatial value at middle of last pixel
- * @param pixelSpatialStepValue
- *    Spatial step to next adjacent pixel
- */
-void
-ImageFile::getSpatialValues(const float numPixels,
-                            const float spatialMinimumValue,
-                            const float spatialMaximumValue,
-                            float& firstPixelSpatialValue,
-                            float& lastPixelSpatialValue,
-                            float& pixelSpatialStepValue) const
-{
-    CaretAssert(numPixels >= 1.0f);
-    pixelSpatialStepValue  = (spatialMaximumValue - spatialMinimumValue) / numPixels;
-    const float halfStepValue(pixelSpatialStepValue / 2.0);
-    firstPixelSpatialValue = spatialMinimumValue + halfStepValue;
-    lastPixelSpatialValue  = firstPixelSpatialValue + (pixelSpatialStepValue * (numPixels - 1));
-}
-
-/**
- * Setup the spatial values for an image with no available spatial coordinates.  The origin
- * will be in the center of the image.  Spatial minimum/maximum will be half the number of pixels.
- * Example: if image is 400 pixels, min spatial = -200; max spatial = 200
- *
- * @param numPixels
- *    Number of pixels in the dimension
- * @param minSpatialValueOut
- *    Spatial value at left/bottom edge of first pixel
- * @param maxSpatialValueOut
- *    Spatial value at right/top edge of first pixel
- * @param firstPixelSpatialValue
- *    Spatial value at middle of first pixel
- * @param lastPixelSpatialValue
- *    Spatial value at middle of last pixel
- * @param pixelSpatialStepValue
- *    Spatial step to next adjacent pixel
- */
-void
-ImageFile::getDefaultSpatialValues(const float numPixels,
-                                   float& minSpatialValueOut,
-                                   float& maxSpatialValueOut,
-                                   float& firstPixelSpatialValue,
-                                   float& lastPixelSpatialValue,
-                                   float& pixelSpatialStepValue) const
-{
-    const float halfValue(numPixels / 2.0);
-    minSpatialValueOut = -halfValue;
-    maxSpatialValueOut =  halfValue;
-    getSpatialValues(numPixels,
-                     minSpatialValueOut,
-                     maxSpatialValueOut,
-                     firstPixelSpatialValue,
-                     lastPixelSpatialValue,
-                     pixelSpatialStepValue);
+    auto volumeSpaceAndBoundingBox = setDefaultSpatialCoordinates(m_image,
+                                                                  MediaFile::SpatialOrigin::CENTER);
+    m_pixelToCoordinateTransform.reset(volumeSpaceAndBoundingBox.first);
+    m_spatialBoundingBox.reset(volumeSpaceAndBoundingBox.second);
 }
 
 /**
@@ -2541,9 +2560,11 @@ ImageFile::resetOldSceneDefaultScaling()
 
 /**
  * @return the default view trasform
+ * @param tabIndex
+ *    Index of the tab
  */
 DefaultViewTransform
-ImageFile::getDefaultViewTransform() const
+ImageFile::getDefaultViewTransform(const int32_t /*tabIndex*/) const
 {
     /*
      * For scenes created before the addition of default scaling

@@ -280,8 +280,15 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "sdseries.nii"));
     
+    enumData.push_back(DataFileTypeEnum(CZI_IMAGE_FILE,
+                                        "CZI_IMAGE_FILE",
+                                        "CZI Image",
+                                        "CZI IMAGE",
+                                        false,             /* ext below begins with dot */
+                                        DataFileTypeEnum::toCziImageFileExtension().mid(1)));
+    
     enumData.push_back(DataFileTypeEnum(FOCI,
-                                        "FOCI", 
+                                        "FOCI",
                                         "Foci",
                                         "FOCI",
                                         false,
@@ -812,6 +819,8 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
                 break;
             case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                 break;
+            case DataFileTypeEnum::CZI_IMAGE_FILE:
+                break;
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::IMAGE:
@@ -1140,6 +1149,8 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                break;
+            case DataFileTypeEnum::CZI_IMAGE_FILE:
                 break;
             case DataFileTypeEnum::FOCI:
                 break;

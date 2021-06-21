@@ -127,6 +127,10 @@ SelectionItemDataTypeEnum::initialize()
                                                  "CIFTI_CONNECTIVITY_MATRIX_ROW_COLUMN",
                                                  "CIFTI Connectivity Row or Column"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(CZI_IMAGE,
+                                                 "CZI_IMAGE",
+                                                 "CZI Image"));
+    
     enumData.push_back(SelectionItemDataTypeEnum(FOCUS_SURFACE,
                                     "FOCUS_SURFACE", 
                                     "Surface Focus"));

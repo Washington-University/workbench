@@ -175,6 +175,7 @@ SelectionItemChartTwoLineLayerVerticalNearest.h
 SelectionItemChartTwoLineSeries.h
 SelectionItemChartTwoMatrix.h
 SelectionItemCiftiConnectivityMatrixRowColumn.h
+SelectionItemCziImage.h
 SelectionItemFocusSurface.h
 SelectionItemFocusVolume.h
 SelectionItemImage.h
@@ -361,6 +362,7 @@ SelectionItemChartTwoLineLayerVerticalNearest.cxx
 SelectionItemChartTwoLineSeries.cxx
 SelectionItemChartTwoMatrix.cxx
 SelectionItemCiftiConnectivityMatrixRowColumn.cxx
+SelectionItemCziImage.cxx
 SelectionItemFocusSurface.cxx
 SelectionItemFocusVolume.cxx
 SelectionItemImage.cxx

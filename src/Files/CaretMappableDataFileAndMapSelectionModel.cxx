@@ -156,6 +156,8 @@ CaretMappableDataFileAndMapSelectionModel::validateDataFileTypes()
             case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                 isMappableFile = true;
                 break;
+            case DataFileTypeEnum::CZI_IMAGE_FILE:
+                break;
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::IMAGE:

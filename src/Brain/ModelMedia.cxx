@@ -389,83 +389,87 @@ ModelMedia::createHighResolutionImageFromRegion(const GraphicsRegionSelectionBox
                                                 BrowserTabContent* browserTab,
                                                 AString& errorMessageOut)
 {
-    CaretAssert(selectionBox);
-    CaretAssert(browserTab);
+    errorMessageOut = "Functionality disabled for revision of CZI image file";
+    CaretAssertToDoFatal();
+    return false;
     
-    errorMessageOut.clear();
-    
-    const int32_t tabIndex(browserTab->getTabNumber());
-    
-    /*
-     * Turn off since we are not making the high resolution selection
-     */
-    setHighResolutionSelectionEnabled(tabIndex, false);
-    
-    MediaOverlaySet* overlaySet = browserTab->getMediaOverlaySet();
-    CaretAssert(overlaySet);
-    MediaOverlay* underlay = overlaySet->getBottomMostEnabledOverlay();
-    if (underlay == NULL) {
-        errorMessageOut = "No overlays are enabled";
-        return false;
-    }
-
-    MediaFile* mediaFile(NULL);
-    int32_t dummyMapIndex(0);
-    underlay->getSelectionData(mediaFile, dummyMapIndex);
-    if (mediaFile == NULL) {
-        errorMessageOut = "No file is selected in layer";
-        return false;
-    }
-    ImageFile* imageFile = mediaFile->castToImageFile();
-    if (imageFile == NULL) {
-        errorMessageOut = "Selected file is not an image file";
-        return false;
-    }
-
-    float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
-    selectionBox->getBounds(minX, minY, maxX, maxY);
-    
-    /*
-     * Convert spatial coordinates to pixel coordinates
-     */
-    ImageFile::PixelCoordinate bottomLeftXYZ(minX, minY, 0.0);
-    ImageFile::PixelCoordinate topRightXYZ(maxX, maxY, 0.0);
-    ImageFile::PixelIndex bottomLeftIJK = imageFile->spaceToIndex(bottomLeftXYZ);
-    ImageFile::PixelIndex topRightIJK = imageFile->spaceToIndex(topRightXYZ);
-    const int32_t pixelWidth(topRightIJK.getI() - bottomLeftIJK.getI());
-    const int32_t pixelHeight(topRightIJK.getJ() - bottomLeftIJK.getJ());
-    if ((pixelWidth <= 0)
-        || (pixelHeight <= 0)) {
-        errorMessageOut = "Selected region has invalid are (width or height <= 0)";
-        return false;
-    }
-    
-    /*
-     * Create the high-resolution region in a new image file
-     */
-    QRect roiRect(bottomLeftIJK.getI(),
-                  bottomLeftIJK.getJ(),
-                  pixelWidth,
-                  pixelHeight);
-    AString roiErrorMessage;
-    ImageFile* roiImageFile = ImageFile::newInstanceROI(*imageFile,
-                                                        roiRect,
-                                                        roiErrorMessage);
-    if (roiImageFile == NULL) {
-        errorMessageOut = roiErrorMessage;
-        return false;
-    }
-    
-    EventDataFileAdd addEvent(roiImageFile);
-    EventManager::get()->sendEvent(addEvent.getPointer());
-    if (addEvent.getEventProcessCount()) {
-        underlay->setSelectionData(roiImageFile, 0);
-    }
-    else {
-        errorMessageOut = "Added image file failed";
-        return false;
-    }
-    
-    return true;
+//    CaretAssert(selectionBox);
+//    CaretAssert(browserTab);
+//
+//    errorMessageOut.clear();
+//
+//    const int32_t tabIndex(browserTab->getTabNumber());
+//
+//    /*
+//     * Turn off since we are not making the high resolution selection
+//     */
+//    setHighResolutionSelectionEnabled(tabIndex, false);
+//
+//    MediaOverlaySet* overlaySet = browserTab->getMediaOverlaySet();
+//    CaretAssert(overlaySet);
+//    MediaOverlay* underlay = overlaySet->getBottomMostEnabledOverlay();
+//    if (underlay == NULL) {
+//        errorMessageOut = "No overlays are enabled";
+//        return false;
+//    }
+//
+//    MediaFile* mediaFile(NULL);
+//    int32_t dummyMapIndex(0);
+//    underlay->getSelectionData(mediaFile, dummyMapIndex);
+//    if (mediaFile == NULL) {
+//        errorMessageOut = "No file is selected in layer";
+//        return false;
+//    }
+//    CziImageFile* cziImageFile = mediaFile->castToCziImageFile();
+//    if (cziImageFile == NULL) {
+//        errorMessageOut = "Selected file is not an image file";
+//        return false;
+//    }
+//
+//    float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+//    selectionBox->getBounds(minX, minY, maxX, maxY);
+//
+//    /*
+//     * Convert spatial coordinates to pixel coordinates
+//     */
+//    ImageFile::PixelCoordinate bottomLeftXYZ(minX, minY, 0.0);
+//    ImageFile::PixelCoordinate topRightXYZ(maxX, maxY, 0.0);
+//    ImageFile::PixelIndex bottomLeftIJK = cziImageFile->spaceToIndex(bottomLeftXYZ);
+//    ImageFile::PixelIndex topRightIJK = cziImageFile->spaceToIndex(topRightXYZ);
+//    const int32_t pixelWidth(topRightIJK.getI() - bottomLeftIJK.getI());
+//    const int32_t pixelHeight(topRightIJK.getJ() - bottomLeftIJK.getJ());
+//    if ((pixelWidth <= 0)
+//        || (pixelHeight <= 0)) {
+//        errorMessageOut = "Selected region has invalid are (width or height <= 0)";
+//        return false;
+//    }
+//
+//    /*
+//     * Create the high-resolution region in a new image file
+//     */
+//    QRect roiRect(bottomLeftIJK.getI(),
+//                  bottomLeftIJK.getJ(),
+//                  pixelWidth,
+//                  pixelHeight);
+//    AString roiErrorMessage;
+//    ImageFile* roiImageFile = ImageFile::newInstanceROI(*imageFile,
+//                                                        roiRect,
+//                                                        roiErrorMessage);
+//    if (roiImageFile == NULL) {
+//        errorMessageOut = roiErrorMessage;
+//        return false;
+//    }
+//
+//    EventDataFileAdd addEvent(roiImageFile);
+//    EventManager::get()->sendEvent(addEvent.getPointer());
+//    if (addEvent.getEventProcessCount()) {
+//        underlay->setSelectionData(roiImageFile, 0);
+//    }
+//    else {
+//        errorMessageOut = "Added image file failed";
+//        return false;
+//    }
+//
+//    return true;
 }
 

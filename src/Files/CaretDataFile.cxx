@@ -468,6 +468,26 @@ CaretDataFile::getFileNameNoExtension() const
 }
 
 /**
+ * @return File casted to a CZI image file (avoids use of dynamic_cast that can be slow)
+ */
+CziImageFile*
+CaretDataFile::castToCziImageFile()
+{
+    return NULL;
+}
+
+/**
+ * @return File casted to an image file (avoids use of dynamic_cast that can be slow)
+ * Overidden in ImageFile
+ */
+const CziImageFile*
+CaretDataFile::castToCziImageFile() const
+{
+    return NULL;
+}
+
+
+/**
  * @return File casted to an image file (avoids use of dynamic_cast that can be slow)
  */
 ImageFile*

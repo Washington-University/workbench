@@ -29,6 +29,7 @@
 
 namespace caret {
 
+    class CziImageFile;
     class ImageFile;
     class MediaFile;
     class GiftiMetaData;
@@ -88,6 +89,9 @@ namespace caret {
         static AString getFileReadingUsername();
         
         static AString getFileReadingPassword();
+        
+        virtual CziImageFile* castToCziImageFile();
+        virtual const CziImageFile* castToCziImageFile() const;
         
         virtual ImageFile* castToImageFile();
         virtual const ImageFile* castToImageFile() const;

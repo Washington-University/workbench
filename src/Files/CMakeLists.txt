@@ -75,6 +75,8 @@ CiftiParcelScalarFile.h
 CiftiScalarDataSeriesFile.h
 ConnectivityDataLoaded.h
 ControlPointFile.h
+CziImageFile.h
+CziUtilities.h
 EventCaretDataFilesGet.h
 EventCaretMappableDataFileMapsViewedInOverlays.h
 EventCaretMappableDataFilesGet.h
@@ -215,6 +217,8 @@ CiftiParcelScalarFile.cxx
 CiftiScalarDataSeriesFile.cxx
 ConnectivityDataLoaded.cxx
 ControlPointFile.cxx
+CziImageFile.cxx
+CziUtilities.cxx
 EventCaretDataFilesGet.cxx
 EventCaretMappableDataFileMapsViewedInOverlays.cxx
 EventCaretMappableDataFilesGet.cxx

@@ -27,10 +27,11 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "MediaFile.h"
+#include "CziImageFile.h"
 #include "EventManager.h"
 #include "EventMediaFilesGet.h"
 #include "EventOverlayValidate.h"
+#include "MediaFile.h"
 #include "ImageFile.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"

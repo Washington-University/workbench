@@ -41,6 +41,7 @@
 #include "ChartableTwoFileMatrixChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
+#include "CziImageFile.h"
 #include "CaretVolumeExtension.h"
 #include "DataToolTipsManager.h"
 #include "EventBrowserTabGetAll.h"
@@ -74,6 +75,7 @@
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
+#include "SelectionItemCziImage.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemImage.h"
@@ -262,6 +264,9 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     
     this->generateCiftiConnectivityMatrixIdentificationText(*chartHtmlTableBuilder,
                                                             selectionManager->getCiftiConnectivityMatrixRowColumnIdentification());
+    
+    this->generateCziImageIdentificationText(*imageHtmlTableBuilder,
+                                             selectionManager->getCziImageIdentification());
     
     this->generateImageIdentificationText(*imageHtmlTableBuilder,
                                           selectionManager->getImageIdentification());
@@ -813,6 +818,8 @@ IdentificationFormattedTextGenerator::isParcelAndScalarTypeFile(const DataFileTy
             parcelDataFlag = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            break;
+        case DataFileTypeEnum::CZI_IMAGE_FILE:
             break;
         case DataFileTypeEnum::FOCI:
             break;
@@ -2051,6 +2058,43 @@ IdentificationFormattedTextGenerator::generateImageIdentificationText(HtmlTableB
         
         double modelXYZ[3];
         idImage->getModelXYZ(modelXYZ);
+        htmlTableBuilder.addRow("",
+                                ("Coord XY ("
+                                 + AString::number(modelXYZ[0], 'f', 6)
+                                 + ","
+                                 + AString::number(modelXYZ[1], 'f', 6)
+                                 + ")"));
+    }
+}
+
+/**
+ * Generate identification text for image identification.
+ * @param htmlTableBuilder
+ *     HTML table builder for identification text.
+ * @param idImage
+ *     Information for image ID.
+ */
+void
+IdentificationFormattedTextGenerator::generateCziImageIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                                         const SelectionItemCziImage* idCziImage) const
+{
+    if (idCziImage->isValid()) {
+        uint8_t pixelRGBA[4] = { 0, 0, 0, 0 };
+        idCziImage->getPixelRGBA(pixelRGBA);
+        const CziImageFile* cziImageFile = idCziImage->getCziImageFile();
+        if (cziImageFile != NULL) {
+            htmlTableBuilder.addRow("Filename",
+                                    cziImageFile->getFileNameNoPath());
+        }
+        htmlTableBuilder.addRow(("RGBA (" + AString::fromNumbers(pixelRGBA, 4, ",") + ")"),
+                                ("Pixel IJ ("
+                                 + AString::number(idCziImage->getPixelI())
+                                 + ","
+                                 + AString::number(idCziImage->getPixelJ())
+                                 + ")"));
+        
+        double modelXYZ[3];
+        idCziImage->getModelXYZ(modelXYZ);
         htmlTableBuilder.addRow("",
                                 ("Coord XY ("
                                  + AString::number(modelXYZ[0], 'f', 6)
