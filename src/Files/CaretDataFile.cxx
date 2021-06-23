@@ -194,6 +194,17 @@ CaretDataFile::addToDataFileContentInformation(DataFileContentInformation& dataF
         dataFileInformation.addNameAndValue("Structure",
                                             StructureEnum::toGuiName(getStructure()));
     }
+    
+    const GiftiMetaData* fileMetaData = getFileMetaData();
+    const auto namesAndValues(fileMetaData->getAsMap());
+    if ( ! namesAndValues.empty()) {
+        const AString dashes("-----------");
+        dataFileInformation.addNameAndValue("Metadata Start", dashes);
+        for (const auto& nv : namesAndValues) {
+            dataFileInformation.addNameAndValue(nv.first, nv.second);
+        }
+        dataFileInformation.addNameAndValue("Metadata End", dashes);
+    }
 }
 
 /**
