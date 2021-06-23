@@ -174,10 +174,11 @@ void OperationVolumeCapturePlane::useParameters(OperationParameters* myParams, P
             }
             uint8_t intensity = (uint8_t)(normalized * 255 + 0.5f);
             uint8_t* pixel = imageData.data() + (w + h * width) * 4;
-            for (int i = 0; i < 4; ++i)
+            for (int i = 0; i < 3; ++i)
             {
                 pixel[i] = intensity;
             }
+            pixel[3] = 255;//no transparency
         }
     }
     ImageFile outFile(imageData.data(), width, height, ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM);
