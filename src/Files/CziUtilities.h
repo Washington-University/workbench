@@ -21,8 +21,8 @@
  */
 /*LICENSE_END*/
 
-
-#include <QRect>
+#include <QRectF>
+#include <QString>
 
 #include "libCZI_Pixels.h"
 
@@ -38,9 +38,13 @@ namespace caret {
 
         CziUtilities& operator=(const CziUtilities&) = delete;
         
-        static QRect intRectToQRect(const libCZI::IntRect& intRect);
+        static QRectF intRectToQRect(const libCZI::IntRect& intRect);
         
-        static libCZI::IntRect qRectToIntRect(const QRect& qRect);
+        static libCZI::IntRect qRectToIntRect(const QRectF& qRect);
+        
+        static QString intRectToString(const libCZI::IntRect& intRect);
+        
+        static QString qRectToString(const QRectF& qRect);
         
         // ADD_NEW_METHODS_HERE
 

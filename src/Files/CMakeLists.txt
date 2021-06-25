@@ -116,6 +116,7 @@ ImageSpatialUnitsEnum.h
 LabelDrawingProperties.h
 LabelDrawingTypeEnum.h
 LabelFile.h
+LinearEquationTransform.h
 MapYokingGroupEnum.h
 MediaFile.h
 MetricDynamicConnectivityFile.h
@@ -124,6 +125,7 @@ MetricSmoothingObject.h
 NodeAndVoxelColoring.h
 OxfordSparseThreeFile.h
 PaletteFile.h
+RectangleTransform.h
 RgbaFile.h
 RibbonMappingHelper.h
 SceneDataFileInfo.h
@@ -258,6 +260,7 @@ ImageSpatialUnitsEnum.cxx
 LabelDrawingProperties.cxx
 LabelDrawingTypeEnum.cxx
 LabelFile.cxx
+LinearEquationTransform.cxx
 MapYokingGroupEnum.cxx
 MediaFile.cxx
 MetricDynamicConnectivityFile.cxx
@@ -266,6 +269,7 @@ MetricSmoothingObject.cxx
 NodeAndVoxelColoring.cxx
 OxfordSparseThreeFile.cxx
 PaletteFile.cxx
+RectangleTransform.cxx
 RgbaFile.cxx
 RibbonMappingHelper.cxx
 SceneDataFileInfo.cxx

@@ -35,8 +35,6 @@ class QSpinBox;
 class QTransform;
 
 namespace caret {
-
-    class LinearEquationTransform;
     class WuQImageLabel;
     
     class WuQColorEditorWidget : public QWidget {
@@ -83,6 +81,27 @@ namespace caret {
         void revertToOriginalColorToolButtonClicked();
         
     private:
+        class LinearEquationTransform {
+        public:
+            LinearEquationTransform(const float xMin,
+                                    const float xMax,
+                                    const float yMin,
+                                    const float yMax,
+                                    const float x0,
+                                    const float y0);
+            
+            ~LinearEquationTransform();
+            
+            float transformValue(const float value) const;
+            
+            float inverseTransformValue(const float value) const;
+            
+        private:
+            QTransform m_transform;
+            
+            QTransform m_inverseTransform;
+        };
+        
         void updateControls();
         
         void updateSliderAndSpinBox(QSlider* slider,
@@ -159,26 +178,6 @@ namespace caret {
 
     };
     
-    class LinearEquationTransform {
-    public:
-        LinearEquationTransform(const float xMin,
-                                const float xMax,
-                                const float yMin,
-                                const float yMax,
-                                const float x0,
-                                const float y0);
-
-        ~LinearEquationTransform();
-        
-        float transformValue(const float value) const;
-        
-        float inverseTransformValue(const float value) const;
-        
-    private:
-        QTransform m_transform;
-        
-        QTransform m_inverseTransform;
-    };
     
 #ifdef __WU_Q_COLOR_EDITOR_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

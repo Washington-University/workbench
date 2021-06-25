@@ -25,7 +25,7 @@
 
 #include <memory>
 
-#include <QRect>
+#include <QRectF>
 
 #include "MediaFile.h"
 #include "libCZI.h"
@@ -37,26 +37,28 @@ class QImage;
 namespace caret {
 
     class GraphicsPrimitiveV3fT3f;
+    class RectangleTransform;
     class VolumeSpace;
     
     class CziImageFile : public MediaFile {
         
     public:
         /**
-         * Data for an image read from a CZI file
+         * Data for an Region of Interest image read from a CZI file
          */
-        class CziImage {
+        class CziImageROI {
         public:
-            CziImage(const AString& filename,
-                     QImage* image,
-                     VolumeSpace* pixelToCoordinateTransform,
-                     BoundingBox* spatialBoundingBox);
+            CziImageROI(const AString& filename,
+                        QImage* image,
+                        const QRectF& sourceImageRect,
+                        const QRectF& roiRect,
+                        MediaFile::SpatialInfo& spatialInfo);
             
-            ~CziImage();
+            ~CziImageROI();
             
-            CziImage(const CziImage&) = delete;
+            CziImageROI(const CziImageROI&) = delete;
             
-            CziImage& operator=(const CziImage&) = delete;
+            CziImageROI& operator=(const CziImageROI&) = delete;
             
             GraphicsPrimitiveV3fT3f* getGraphicsPrimitiveForMediaDrawing() const;
             
@@ -64,6 +66,24 @@ namespace caret {
             const AString m_filename;
             
             std::unique_ptr<QImage> m_image;
+            
+            /**
+             * This rectangle defines the original, full-resolution source image
+             * Coordinates are in the 'space' from SubBlockStatistics::boundingBox.
+             * For example: boundingBox = (x = -61920, y = 5391, w = 59229, h = 45513).
+             * Do not know where this origin comes from.
+             * The origin is at the top left, X increases to the right, Y increases downward.
+             */
+            const QRectF m_sourceImageRect;
+            
+            /**
+             * This rectangle defines the region from the source image for this image.
+             * Coordinates are in the 'space' from SubBlockStatistics::boundingBox.
+             * For example: boundingBox = (x = -61920, y = 5391, w = 59229, h = 45513).
+             * Do not know where this origin comes from.
+             * The origin is at the top left, X increases to the right, Y increases downward.
+             */
+            const QRectF m_roiRect;
             
             /**
              * Converts from pixel index to pixel coordinate
@@ -75,7 +95,21 @@ namespace caret {
              */
             std::unique_ptr<BoundingBox> m_spatialBoundingBox;
             
-
+            /**
+             * Converts between the region of interest coordinates in the image (m_image) to
+             * pixel coordinates in the image.
+             * The ROI coordinates have the origin in the top left (origin is rarely 0, 0)
+             * The pixel coordinate have the origin (0,0) at the top left and range to the
+             * size of the image (pixel width - 1, pixel height - 1)
+             */
+            std::unique_ptr<RectangleTransform> m_roiCoordsToRoiPixelTopLeftTransform;
+            
+            /**
+             * Converts a pixel index in the ROI Image (m_image) with origin at the top left and size
+             * (width - 1, height - 1) to the pixel index in the full image with origin at the top left
+             */
+            std::unique_ptr<RectangleTransform> m_roiPixelTopLeftToFullImagePixelTopLeftTransform;
+            
             mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitiveForMediaDrawing;
             
             /*
@@ -124,9 +158,9 @@ namespace caret {
 
         virtual bool supportsWriting() const override;
         
-        CziImage* getImageForTab(const int32_t tabIndex);
+        CziImageROI* getImageForTab(const int32_t tabIndex);
         
-        const CziImage* getImageForTab(const int32_t tabIndex) const;
+        const CziImageROI* getImageForTab(const int32_t tabIndex) const;
 
         bool getImagePixelRGBA(const int32_t tabIndex,
                                const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
@@ -154,18 +188,44 @@ namespace caret {
             ERROR
         };
 
-        CziImage* getDefaultImage();
+        class PyramidLayer {
+        public:
+            PyramidLayer(const ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo layerInfo,
+                         const int64_t width,
+                         const int64_t height)
+            : m_layerInfo(layerInfo),
+            m_width(width),
+            m_height(height) { }
+            
+            const ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo m_layerInfo;
+            
+            const int64_t m_width;
+            
+            const int64_t m_height;
+        };
+        CziImageROI* getDefaultImage();
         
-        const CziImage* getDefaultImage() const;
+        const CziImageROI* getDefaultImage() const;
         
         void closeFile();
         
-        CziImage* readFromCziImageFile(const QRect& regionOfInterest,
-                                       const int64_t outputImageWidthHeightMaximum,
-                                       AString& errorMessageOut);
+        CziImageROI* readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
+                                                      AString& errorMessageOut);
+        
+        CziImageROI* readFromCziImageFile(const QRectF& regionOfInterest,
+                                          const int64_t outputImageWidthHeightMaximum,
+                                          AString& errorMessageOut);
         
         QImage* createQImageFromBitmapData(IBitmapData* bitmapData,
                                            AString& errorMessageOut);
+        
+        void addToMetadataIfNotEmpty(const AString& name,
+                                     const AString& text);
+        
+        void readMetaData();
+        
+        void readPyramidInfo(const int64_t imageWidth,
+                             const int64_t imageHeight);
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
@@ -179,19 +239,31 @@ namespace caret {
 
         std::shared_ptr<ISingleChannelScalingTileAccessor> m_scalingTileAccessor;
         
+        std::shared_ptr<ISingleChannelPyramidLayerTileAccessor> m_pyramidLayerTileAccessor;
+        
+        int32_t m_numberOfPyramidLayers = 0;
+        
+        float m_pixelSizeMmX = 1.0f;
+        
+        float m_pixelSizeMmY = 1.0f;
+        
+        float m_pixelSizeMmZ = 1.0f;
+        
         mutable DefaultViewTransform m_defaultViewTransform;
         
         mutable bool m_defaultViewTransformValidFlag = false;
 
         mutable std::unique_ptr<GiftiMetaData> m_fileMetaData;
         
-        std::unique_ptr<CziImage> m_defaultImage;
+        std::unique_ptr<CziImageROI> m_defaultImage;
         
         /*
-         * Bounding box as reported by CZI statistics.
+         * Bounds as reported by CZI statistics.
          * Origin is in the upper left.
          */
-        QRect m_fullBoundingBox;
+        QRectF m_sourceImageRect;
+        
+        std::vector<PyramidLayer> m_pyramidLayers;
         
         // ADD_NEW_MEMBERS_HERE
 

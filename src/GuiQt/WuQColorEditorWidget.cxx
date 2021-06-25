@@ -742,12 +742,12 @@ WuQColorEditorWidget::caretColorActionClicked(QAction* action)
 
 
 /* ======================================================================== */
-LinearEquationTransform::LinearEquationTransform(const float xMin,
-                                                 const float xMax,
-                                                 const float yMin,
-                                                 const float yMax,
-                                                 const float x0,
-                                                 const float y0)
+WuQColorEditorWidget::LinearEquationTransform::LinearEquationTransform(const float xMin,
+                                                                       const float xMax,
+                                                                       const float yMin,
+                                                                       const float yMax,
+                                                                       const float x0,
+                                                                       const float y0)
 {
     const float dy(yMax - yMin);
     const float dx(xMax - xMin);
@@ -766,13 +766,13 @@ LinearEquationTransform::LinearEquationTransform(const float xMin,
     }
 }
 
-LinearEquationTransform::~LinearEquationTransform()
+WuQColorEditorWidget::LinearEquationTransform::~LinearEquationTransform()
 {
     
 }
 
 float
-LinearEquationTransform::transformValue(const float value) const
+WuQColorEditorWidget::LinearEquationTransform::transformValue(const float value) const
 {
     QPointF pIn(0, value);
     QPointF pOut = m_transform.map(QPointF(0.0, value));
@@ -782,7 +782,7 @@ LinearEquationTransform::transformValue(const float value) const
 }
 
 float
-LinearEquationTransform::inverseTransformValue(const float value) const
+WuQColorEditorWidget::LinearEquationTransform::inverseTransformValue(const float value) const
 {
     QPointF pIn(0, value);
     QPointF pOut = m_inverseTransform.map(QPointF(0.0, value));

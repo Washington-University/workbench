@@ -23,7 +23,9 @@
 #include "CziUtilities.h"
 #undef __CZI_UTILITIES_DECLARE__
 
+#include "AString.h"
 #include "CaretAssert.h"
+
 using namespace caret;
 
 
@@ -56,10 +58,10 @@ CziUtilities::~CziUtilities()
  * @return
  *    A Qt QRectt
  */
-QRect
+QRectF
 CziUtilities::intRectToQRect(const libCZI::IntRect& intRect)
 {
-    QRect r;
+    QRectF r;
     
     if (intRect.IsValid()) {
         r.setRect(intRect.x, intRect.y, intRect.w, intRect.h);
@@ -75,7 +77,7 @@ CziUtilities::intRectToQRect(const libCZI::IntRect& intRect)
  *    A libCZI IntRect
  */
 libCZI::IntRect
-CziUtilities::qRectToIntRect(const QRect& qRect)
+CziUtilities::qRectToIntRect(const QRectF& qRect)
 {
     libCZI::IntRect r;
     r.Invalidate();
@@ -89,3 +91,34 @@ CziUtilities::qRectToIntRect(const QRect& qRect)
     
     return r;
 }
+
+/**
+ * @return A string representing the given CZI IntRect instance
+ * @param intRect
+ *    The CZI IntRect
+ */
+QString
+CziUtilities::intRectToString(const libCZI::IntRect& intRect)
+{
+    QString s("Invalid");
+    if (intRect.IsValid()) {
+        s = QString("x=%1, y=%2, width=%3, height=%4").arg(intRect.x).arg(intRect.y).arg(intRect.w).arg(intRect.h);
+    }
+    return s;
+}
+
+/**
+ * @return A string representing the given QRect instance
+ * @param qRect
+ *    The QRect
+ */
+QString
+CziUtilities::qRectToString(const QRectF& qRect)
+{
+    QString s("Invalid");
+    if (qRect.isValid()) {
+        s = QString("x=%1, y=%2, width=%3, height=%4").arg(qRect.x()).arg(qRect.y()).arg(qRect.width()).arg(qRect.height());
+    }
+    return s;
+}
+

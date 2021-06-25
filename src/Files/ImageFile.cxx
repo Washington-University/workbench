@@ -2367,12 +2367,6 @@ ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
         dataFileInformation.addNameAndValue("Color Table", (m_image->colorTable().empty()
                                                             ? "No"
                                                             : "Yes"));
-        CaretAssert(m_fileMetaData);
-        const auto& allKeys(m_fileMetaData->getAllMetaDataNames());
-        for (const auto& key : allKeys) {
-            dataFileInformation.addNameAndValue("Metadata Key/Value",
-                                                (key + " / " + m_fileMetaData->get(key)));
-        }
     }
 }
 
@@ -2540,10 +2534,10 @@ ImageFile::supportsFileMetaData() const
 void
 ImageFile::updateDefaultSpatialCoordinates()
 {
-    auto volumeSpaceAndBoundingBox = setDefaultSpatialCoordinates(m_image,
-                                                                  MediaFile::SpatialOrigin::CENTER);
-    m_pixelToCoordinateTransform.reset(volumeSpaceAndBoundingBox.first);
-    m_spatialBoundingBox.reset(volumeSpaceAndBoundingBox.second);
+    auto spatialInfo = setDefaultSpatialCoordinates(m_image,
+                                                    MediaFile::SpatialCoordinateOrigin::CENTER);
+    m_pixelToCoordinateTransform.reset(spatialInfo.m_volumeSpace);
+    m_spatialBoundingBox.reset(spatialInfo.m_boundingBox);
 }
 
 /**

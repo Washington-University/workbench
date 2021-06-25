@@ -191,6 +191,23 @@ namespace caret {
           
           
     protected: 
+        enum class SpatialCoordinateOrigin {
+            BOTTOM_LEFT,
+            CENTER
+        };
+        
+        class SpatialInfo {
+        public:
+            SpatialInfo(VolumeSpace* volumeSpace,
+                        BoundingBox* boundingBox)
+            : m_volumeSpace(volumeSpace),
+            m_boundingBox(boundingBox)
+            { }
+            
+            VolumeSpace* m_volumeSpace;
+            BoundingBox* m_boundingBox;
+        };
+        
         MediaFile(const DataFileTypeEnum::Enum dataFileType);
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
@@ -201,17 +218,13 @@ namespace caret {
 
         void initializeMembersMediaFile();
         
-        static std::pair<VolumeSpace*,BoundingBox*> initializeVolumeSpace(const int32_t imageWidth,
-                                                                          const int32_t imageHeight,
-                                                                          const std::array<float,3> firstPixelXYZ,
-                                                                          const std::array<float,3> pixelStepXYZ);
+        static SpatialInfo initializeVolumeSpace(const int32_t imageWidth,
+                                                 const int32_t imageHeight,
+                                                 const std::array<float,3> firstPixelXYZ,
+                                                 const std::array<float,3> pixelStepXYZ);
 
-        enum class SpatialOrigin {
-            BOTTOM_LEFT,
-            CENTER
-        };
-        static std::pair<VolumeSpace*,BoundingBox*> setDefaultSpatialCoordinates(const QImage* qImage,
-                                                                                 const SpatialOrigin spatialOrigin);
+        static SpatialInfo setDefaultSpatialCoordinates(const QImage* qImage,
+                                                        const SpatialCoordinateOrigin spatialOrigin);
         
         static void getSpatialValues(const float numPixels,
                                      const float spatialMinimumValue,
@@ -230,10 +243,6 @@ namespace caret {
     private:
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-//        std::unique_ptr<VolumeSpace> m_volumeSpace;
-//
-//        std::unique_ptr<BoundingBox> m_spatialBoundingBox;
-        
         // ADD_NEW_MEMBERS_HERE
 
     };

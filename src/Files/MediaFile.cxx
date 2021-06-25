@@ -77,13 +77,6 @@ MediaFile::MediaFile(const MediaFile& mediaFile)
 : CaretDataFile(mediaFile)
 {
     initializeMembersMediaFile();
-    
-//    if (mediaFile.m_spatialBoundingBox) {
-//        m_spatialBoundingBox.reset(new BoundingBox(*mediaFile.m_spatialBoundingBox));
-//    }
-//    if (mediaFile.m_volumeSpace) {
-//        m_volumeSpace.reset(new VolumeSpace(*mediaFile.m_volumeSpace));
-//    }
 }
 
 /**
@@ -99,8 +92,6 @@ MediaFile::~MediaFile()
 void
 MediaFile::initializeMembersMediaFile()
 {
-//    m_spatialBoundingBox.reset(new BoundingBox());
-//    m_volumeSpace.reset(new VolumeSpace());
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
 }
 
@@ -241,9 +232,9 @@ MediaFile::castToMediaFile() const
  * @param pixelStepXYZ
  *    Step to next adjacent pixel
  *@return
- *    Pair containing volume space and bounding box.  Caller takes ownership of the returned values.
+ *   Spatial information
  */
-std::pair<VolumeSpace*,BoundingBox*>
+MediaFile::SpatialInfo
 MediaFile::initializeVolumeSpace(const int32_t imageWidth,
                                  const int32_t imageHeight,
                                  const std::array<float,3> firstPixelXYZ,
@@ -255,8 +246,8 @@ MediaFile::initializeVolumeSpace(const int32_t imageWidth,
     
     if ((imageWidth < 2)
         || (imageHeight < 2)) {
-        return std::make_pair(volumeSpace,
-                              boundingBox);
+        return SpatialInfo(volumeSpace,
+                           boundingBox);
     }
     
     std::vector<float> rowOne   { pixelStepXYZ[0], 0.0, 0.0, firstPixelXYZ[0] };
@@ -305,8 +296,8 @@ MediaFile::initializeVolumeSpace(const int32_t imageWidth,
         std::cout << std::flush;
     }
     
-    return std::make_pair(volumeSpace,
-                          boundingBox);
+    return SpatialInfo(volumeSpace,
+                       boundingBox);
 }
 
 /**
@@ -314,11 +305,13 @@ MediaFile::initializeVolumeSpace(const int32_t imageWidth,
  * @param qImage
  *    The QImage instance
  *@param spatialOrigin
- *    Origin (0,0) for spatial coordinates
+ *    Location of origin (0,0) for spatial coordinates
+ * @return
+ *    Spatial information
  */
-std::pair<VolumeSpace*,BoundingBox*>
+MediaFile::SpatialInfo
 MediaFile::setDefaultSpatialCoordinates(const QImage* qImage,
-                                        const SpatialOrigin spatialOrigin)
+                                        const SpatialCoordinateOrigin spatialOrigin)
 {
     CaretAssert(qImage);
     std::array<float, 3> pixelBottomLeftSpatialXYZ;
@@ -344,12 +337,12 @@ MediaFile::setDefaultSpatialCoordinates(const QImage* qImage,
             if ((imageWidth >= 1.0f)
                 && (imageHeight >= 1.0f)) {
                 switch (spatialOrigin) {
-                    case SpatialOrigin::BOTTOM_LEFT:
+                    case SpatialCoordinateOrigin::BOTTOM_LEFT:
                         /*
                          * Uses default valuses for bottom left and step
                          */
                         break;
-                    case SpatialOrigin::CENTER:
+                    case SpatialCoordinateOrigin::CENTER:
                     {
                         float minX(0.0), maxX(0.0);
                         getDefaultSpatialValues(imageWidth,
@@ -446,16 +439,6 @@ MediaFile::getDefaultSpatialValues(const float numPixels,
                                 lastPixelSpatialValue,
                                 pixelSpatialStepValue);
 }
-
-///**
-// * @return Pointer to spatial bounding box (outer edges of pixels; not center of pixels)
-// */
-//const BoundingBox*
-//MediaFile::getSpatialBoudingBox() const
-//{
-//    CaretAssert(m_spatialBoundingBox.get());
-//    return m_spatialBoundingBox.get();
-//}
 
 /**
  * @return True if the given pixel index is valid, else false

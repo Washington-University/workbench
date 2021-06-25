@@ -136,19 +136,6 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     m_browserTabContent->getTranslation(translation);
     const float scaling = m_browserTabContent->getScaling();
 
-//    glPushMatrix();
-//    {
-//        glTranslatef(translation[0], translation[1], 0.0);
-//        glScalef(defaultScaling, defaultScaling, 1.0);
-//        glScalef(scaling, scaling, 1.0);
-//
-//        std::array<float, 4> orthoLRBT { -halfWidth, halfWidth, -drawingHalfHeight, drawingHalfHeight };
-//        GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
-//        fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
-//        viewportContent->setGraphicsObjectToWindowTransform(transform);
-//    }
-//    glPopMatrix();
-    
     glTranslatef(defaultTranslation[0], defaultTranslation[1], 0.0);
     glTranslatef(translation[0], translation[1], 0.0);
     glScalef(defaultScaling, defaultScaling, 1.0);
@@ -219,7 +206,7 @@ BrainOpenGLMediaDrawing::drawModelLayers()
                     primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
                 }
                 else  if (cziImageFile != NULL) {
-                    CziImageFile::CziImage* cziImage = cziImageFile->getImageForTab(m_browserTabContent->getTabNumber());
+                    CziImageFile::CziImageROI* cziImage = cziImageFile->getImageForTab(m_browserTabContent->getTabNumber());
                     primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
                 }
                 else {
@@ -449,8 +436,8 @@ BrainOpenGLMediaDrawing::processCziImageFileSelection(const int32_t tabIndex,
                 uint8_t pixelByteRGBA[4];
                 if (cziImageFile->getImagePixelRGBA(tabIndex,
                                                     ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                 pixelIndex,
-                                                 pixelByteRGBA)) {
+                                                    pixelIndex,
+                                                    pixelByteRGBA)) {
                     idCziImage->setCziImageFile(cziImageFile);
                     idCziImage->setPixelRGBA(pixelByteRGBA);
                     idCziImage->setModelXYZ(modelXYZ.data());
