@@ -110,7 +110,6 @@ GroupAndNameHierarchyName.h
 ImageCaptureDimensionsModeEnum.h
 ImageCaptureDialogSettings.h
 ImageFile.h
-ImageFileCziHelper.h
 ImageResolutionUnitsEnum.h
 ImageSpatialUnitsEnum.h
 LabelDrawingProperties.h
@@ -254,7 +253,6 @@ GroupAndNameHierarchyName.cxx
 ImageCaptureDimensionsModeEnum.cxx
 ImageCaptureDialogSettings.cxx
 ImageFile.cxx
-ImageFileCziHelper.cxx
 ImageResolutionUnitsEnum.cxx
 ImageSpatialUnitsEnum.cxx
 LabelDrawingProperties.cxx

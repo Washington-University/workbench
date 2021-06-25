@@ -26,7 +26,6 @@
 
 #include <QRect>
 
-#include "ImageFileCziHelper.h"
 #include "MediaFile.h"
 #include "CaretPointer.h"
 
@@ -51,10 +50,6 @@ public:
         /** Create three component RGB volume */
         CONVERT_TO_VOLUME_COLOR_RGB
     };
-    
-    static ImageFile* newInstanceROI(const ImageFile& imageFile,
-                                     const QRect& roiRect,
-                                     AString& errorMessageOut);
     
     ImageFile();
     
@@ -234,14 +229,10 @@ private:
                      const int x,
                      const int y);
     
-    static int32_t getCziFileMaximumDimension();
-    
     static void insertImage(const QImage& insertThisImage,
                             QImage& intoThisImage,
                             const int positionX,
                             const int positionY);
-    
-    void finishCziFileInitialization(const ImageFileCziHelper::ReadResult& cziResult);
     
     void updateDefaultSpatialCoordinates();
     
@@ -276,12 +267,6 @@ private:
      */
     std::unique_ptr<BoundingBox> m_spatialBoundingBox;
 
-    /** X, Y, Width, Height of pixel region extracted from entire CZI file */
-    QRect m_cziFileRegionPixelRect;
-    
-    /** X, Y, Width, Height of all pixels in CZI file */
-    QRect m_cziFileAllPixelsRect;
-    
     mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitiveForMediaDrawing;
     
     static const AString SCENE_VERSION_NUMBER;

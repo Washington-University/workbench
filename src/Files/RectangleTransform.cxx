@@ -269,13 +269,14 @@ testSourceToTargetHelper(RectangleTransform& transform,
                          const float tx,
                          const float ty)
 {
+    const float tolerance(0.01);
     {
         float x2(0.0), y2(0.0);
         transform.transformSourceToTarget(sx, sy, x2, y2);
         const float dx(std::fabs(x2 - tx));
         const float dy(std::fabs(y2 - ty));
-        if ((dx > 0.001)
-            || (dy > 0.001)) {
+        if ((dx > tolerance)
+            || (dy > tolerance)) {
             std::cout << "WRONG ";
         }
         std::cout << "S -> T  x=" << sx << ", y=" << sy
@@ -288,8 +289,8 @@ testSourceToTargetHelper(RectangleTransform& transform,
         transform.transformTargetToSource(tx, ty, x2, y2);
         const float dx(std::fabs(x2 - sx));
         const float dy(std::fabs(y2 - sy));
-        if ((dx > 0.001)
-            || (dy > 0.001)) {
+        if ((dx > tolerance)
+            || (dy > tolerance)) {
             std::cout << "WRONG ";
         }
         std::cout << "T -> S  x=" << tx << ", y=" << ty
