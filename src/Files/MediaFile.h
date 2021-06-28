@@ -245,6 +245,7 @@ namespace caret {
 
         // ADD_NEW_MEMBERS_HERE
 
+        friend class CziImage;
     };
     
 #ifdef __MEDIA_FILE_DECLARE__

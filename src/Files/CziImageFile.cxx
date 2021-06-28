@@ -30,6 +30,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "CziImage.h"
 #include "CziUtilities.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
@@ -176,7 +177,7 @@ CziImageFile::closeFile()
      */
     m_status = Status::CLOSED;
     
-    m_sourceImageRect = QRectF();
+    m_fullResolutionLogicalRect = QRectF();
 }
 
 /**
@@ -253,7 +254,7 @@ CziImageFile::readFile(const AString& filename)
          * Statistics (bounding box of image)
          */
         libCZI::SubBlockStatistics subBlockStatistics = m_reader->GetStatistics();
-        m_sourceImageRect = CziUtilities::intRectToQRect(subBlockStatistics.boundingBox);
+        m_fullResolutionLogicalRect = CziUtilities::intRectToQRect(subBlockStatistics.boundingBox);
         
         readMetaData();
         
@@ -279,7 +280,7 @@ CziImageFile::readFile(const AString& filename)
             return;
         }
         
-        CziImageROI* defImage(NULL);
+        CziImage* defImage(NULL);
         if (m_numberOfPyramidLayers > 2) {
             defImage = readPyramidLevelFromCziImageFile(m_numberOfPyramidLayers - 2,
                                                         m_errorMessage);
@@ -290,7 +291,7 @@ CziImageFile::readFile(const AString& filename)
         }
         
         if (defImage == NULL) {
-            defImage = readFromCziImageFile(m_sourceImageRect,
+            defImage = readFromCziImageFile(m_fullResolutionLogicalRect,
                                             4096,
                                             m_errorMessage);
         }
@@ -423,7 +424,7 @@ CziImageFile::addToMetadataIfNotEmpty(const AString& name,
  * @return
  *    Pointer to CziImage or NULL if there is an error.
  */
-CziImageFile::CziImageROI*
+CziImage*
 CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
                                    const int64_t outputImageWidthHeightMaximum,
                                    AString& errorMessageOut)
@@ -494,11 +495,11 @@ CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
     
     auto spatialInfo = setDefaultSpatialCoordinates(qImage,
                                                     MediaFile::SpatialCoordinateOrigin::BOTTOM_LEFT);
-    CziImageROI* cziImageOut = new CziImageROI(getFileName(),
-                                               qImage,
-                                               m_sourceImageRect,
-                                               CziUtilities::intRectToQRect(intRectROI),
-                                               spatialInfo);
+    CziImage* cziImageOut = new CziImage(this,
+                                         qImage,
+                                         m_fullResolutionLogicalRect,
+                                         CziUtilities::intRectToQRect(intRectROI),
+                                         spatialInfo);
     return cziImageOut;
 }
 
@@ -509,7 +510,7 @@ CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
  * @return
  *    Pointer to CziImage or NULL if there is an error.
  */
-CziImageFile::CziImageROI*
+CziImage*
 CziImageFile::readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
                                                AString& errorMessageOut)
 {
@@ -558,7 +559,7 @@ CziImageFile::readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
      * Read into 24 bit RGB to avoid conversion from other pixel formats
      */
     const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
-    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(m_sourceImageRect);
+    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(m_fullResolutionLogicalRect);
     CaretAssert(m_pyramidLayerTileAccessor);
     std::shared_ptr<libCZI::IBitmapData> bitmapData = m_pyramidLayerTileAccessor->Get(pixelType,
                                                                                       intRectROI,
@@ -578,11 +579,11 @@ CziImageFile::readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
     
     auto spatialInfo = setDefaultSpatialCoordinates(qImage,
                                                     MediaFile::SpatialCoordinateOrigin::BOTTOM_LEFT);
-    CziImageROI* cziImageOut = new CziImageROI(getFileName(),
-                                               qImage,
-                                               m_sourceImageRect,
-                                               CziUtilities::intRectToQRect(intRectROI),
-                                               spatialInfo);
+    CziImage* cziImageOut = new CziImage(this,
+                                         qImage,
+                                         m_fullResolutionLogicalRect,
+                                         CziUtilities::intRectToQRect(intRectROI),
+                                         spatialInfo);
     return cziImageOut;
 }
 
@@ -705,7 +706,7 @@ DefaultViewTransform
 CziImageFile::getDefaultViewTransform(const int32_t tabIndex) const
 {
     if ( ! m_defaultViewTransformValidFlag) {
-        const CziImageROI* cziImage(getImageForTab(tabIndex));
+        const CziImage* cziImage(getImageForTab(tabIndex));
         CaretAssert(cziImage);
         GraphicsPrimitiveV3fT3f* primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
         if (primitive) {
@@ -795,7 +796,7 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
                                                      + QString::number(pl.m_height)));
             }
             
-            const CziImageROI* cziImage = getDefaultImage();
+            const CziImage* cziImage = getDefaultImage();
             if (cziImage != NULL) {
                 const BoundingBox* boundingBox(cziImage->m_spatialBoundingBox.get());
                 dataFileInformation.addNameAndValue("Min X", boundingBox->getMinX());
@@ -803,10 +804,10 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
                 dataFileInformation.addNameAndValue("Min Y", boundingBox->getMinY());
                 dataFileInformation.addNameAndValue("Max Y", boundingBox->getMaxY());
                 
-                dataFileInformation.addNameAndValue("ROI X", cziImage->m_roiRect.x());
-                dataFileInformation.addNameAndValue("ROI Y", cziImage->m_roiRect.y());
-                dataFileInformation.addNameAndValue("ROI Width", cziImage->m_roiRect.width());
-                dataFileInformation.addNameAndValue("ROI Height", cziImage->m_roiRect.height());
+                dataFileInformation.addNameAndValue("Logical X", cziImage->m_logicalRect.x());
+                dataFileInformation.addNameAndValue("Logical Y", cziImage->m_logicalRect.y());
+                dataFileInformation.addNameAndValue("Logical Width", cziImage->m_logicalRect.width());
+                dataFileInformation.addNameAndValue("Logical Height", cziImage->m_logicalRect.height());
             }
         }
     }
@@ -815,7 +816,7 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
 /**
  * @return The default image.
  */
-CziImageFile::CziImageROI*
+CziImage*
 CziImageFile::getDefaultImage()
 {
     return m_defaultImage.get();
@@ -824,7 +825,7 @@ CziImageFile::getDefaultImage()
 /**
  * @return The default image.
  */
-const CziImageFile::CziImageROI*
+const CziImage*
 CziImageFile::getDefaultImage() const
 {
     return m_defaultImage.get();
@@ -835,7 +836,7 @@ CziImageFile::getDefaultImage() const
  * @param tabIndex
  *    Index of the tab
  */
-CziImageFile::CziImageROI*
+CziImage*
 CziImageFile::getImageForTab(const int32_t tabIndex)
 {
     return getDefaultImage();
@@ -846,7 +847,7 @@ CziImageFile::getImageForTab(const int32_t tabIndex)
  * @param tabIndex
  *    Index of the tab
  */
-const CziImageFile::CziImageROI*
+const CziImage*
 CziImageFile::getImageForTab(const int32_t tabIndex) const
 {
     return getDefaultImage();
@@ -872,7 +873,7 @@ CziImageFile::getImagePixelRGBA(const int32_t tabIndex,
                              const PixelIndex& pixelIndex,
                              uint8_t pixelRGBAOut[4]) const
 {
-    const CziImageROI* cziImage = getImageForTab(tabIndex);
+    const CziImage* cziImage = getImageForTab(tabIndex);
     CaretAssert(cziImage);
     const QImage* image = cziImage->m_image.get();
     
@@ -957,163 +958,4 @@ CziImageFile::restoreSubClassDataFromScene(const SceneAttributes* sceneAttribute
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
-}
-
-
-
-
-/* =========================================================================*/
-/**
- * Constructor
- * @param filename
- *    Name of file
- * @param image
- *    The QImage instance
- * @param sourceImageRect
- *    Rectangle for the full-resolution source image
- * @param roiRect
- *    Region  of source image that was read from the file
- * @param spatialInfo
- *    The spatial information
- */
-CziImageFile::CziImageROI::CziImageROI(const AString& filename,
-                                       QImage* image,
-                                       const QRectF& sourceImageRect,
-                                       const QRectF& roiRect,
-                                       SpatialInfo& spatialInfo)
-: m_filename(filename),
-m_image(image),
-m_roiRect(roiRect),
-m_pixelToCoordinateTransform(spatialInfo.m_volumeSpace),
-m_spatialBoundingBox(spatialInfo.m_boundingBox)
-{
-    CaretAssert(image);
-    CaretAssert(spatialInfo.m_volumeSpace);
-    CaretAssert(spatialInfo.m_boundingBox);
-    
-    QRectF pixelTopLeftRect(0, 0, roiRect.width() - 1, roiRect.height() - 1);
-    m_roiCoordsToRoiPixelTopLeftTransform.reset(new RectangleTransform(roiRect,
-                                                                       RectangleTransform::Origin::TOP_LEFT,
-                                                                       pixelTopLeftRect,
-                                                                       RectangleTransform::Origin::TOP_LEFT));
-    
-    QRectF fullImagePixelTopLeftRect(0, 0, sourceImageRect.width() - 1, sourceImageRect.height() - 1);
-    m_roiPixelTopLeftToFullImagePixelTopLeftTransform.reset(new RectangleTransform(pixelTopLeftRect,
-                                                                                   RectangleTransform::Origin::TOP_LEFT,
-                                                                                   fullImagePixelTopLeftRect,
-                                                                                   RectangleTransform::Origin::TOP_LEFT));
-
-    RectangleTransform::testTransforms(*m_roiCoordsToRoiPixelTopLeftTransform,
-                                       roiRect,
-                                       pixelTopLeftRect);
-    RectangleTransform::testTransforms(*m_roiPixelTopLeftToFullImagePixelTopLeftTransform,
-                                       pixelTopLeftRect,
-                                       fullImagePixelTopLeftRect);
-}
-
-/**
- * Destructor
- */
-CziImageFile::CziImageROI::~CziImageROI()
-{
-    
-}
-
-/**
- * @return The graphics primitive for drawing the image as a texture in media drawing model.
- */
-GraphicsPrimitiveV3fT3f*
-CziImageFile::CziImageROI::getGraphicsPrimitiveForMediaDrawing() const
-{
-    if (m_image == NULL) {
-        return NULL;
-    }
-    
-    if (m_graphicsPrimitiveForMediaDrawing == NULL) {
-        std::vector<uint8_t> bytesRGBA;
-        int32_t width(0);
-        int32_t height(0);
-        
-        /*
-         * If image is too big for OpenGL texture limits, scale image to acceptable size
-         */
-        const int32_t maxTextureWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
-        if (maxTextureWidthHeight > 0) {
-            const int32_t excessWidth(m_image->width() - maxTextureWidthHeight);
-            const int32_t excessHeight(m_image->height() - maxTextureWidthHeight);
-            if ((excessWidth > 0)
-                || (excessHeight > 0)) {
-                if (excessWidth > excessHeight) {
-                    CaretLogWarning(m_filename
-                                    + " is too big for texture.  Maximum width/height is: "
-                                    + AString::number(maxTextureWidthHeight)
-                                    + " Image Width: "
-                                    + AString::number(m_image->width())
-                                    + " Image Height: "
-                                    + AString::number(m_image->height()));
-                }
-            }
-        }
-        
-        /*
-         * Some images may use a color table so convert images
-         * if there are not in preferred format prior to
-         * getting colors of pixels
-         */
-        bool validRGBA(false);
-        if (m_image->format() != QImage::Format_ARGB32) {
-            QImage image = m_image->convertToFormat(QImage::Format_ARGB32);
-            if (! image.isNull()) {
-                ImageFile convImageFile;
-                convImageFile.setFromQImage(image);
-                validRGBA = convImageFile.getImageBytesRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                            bytesRGBA,
-                                                            width,
-                                                            height);
-            }
-        }
-        else {
-            validRGBA = ImageFile::getImageBytesRGBA(m_image.get(),
-                                                     ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                     bytesRGBA,
-                                                     width,
-                                                     height);
-        }
-        
-        if (validRGBA) {
-            GraphicsPrimitiveV3fT3f* primitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                                                                       &bytesRGBA[0],
-                                                                                       width,
-                                                                                       height,
-                                                                                       GraphicsPrimitive::TextureWrappingType::CLAMP,
-                                                                                       GraphicsPrimitive::TextureFilteringType::LINEAR,
-                                                                                       GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR);
-            
-            /*
-             * Coordinates at EDGE of the pixels
-             */
-            const float minX = 0;
-            const float maxX = width - 1;
-            const float minY = 0;
-            const float maxY = height - 1;
-            
-            /*
-             * A Triangle Strip (consisting of two triangles) is used
-             * for drawing the image.
-             * The order of the vertices in the triangle strip is
-             * Top Left, Bottom Left, Top Right, Bottom Right.
-             */
-            const float minTextureST(0.0);
-            const float maxTextureST(1.0);
-            primitive->addVertex(minX, maxY, minTextureST, maxTextureST);  /* Top Left */
-            primitive->addVertex(minX, minY, minTextureST, minTextureST);  /* Bottom Left */
-            primitive->addVertex(maxX, maxY, maxTextureST, maxTextureST);  /* Top Right */
-            primitive->addVertex(maxX, minY, maxTextureST, minTextureST);  /* Bottom Right */
-            
-            m_graphicsPrimitiveForMediaDrawing.reset(primitive);
-        }
-    }
-    
-    return m_graphicsPrimitiveForMediaDrawing.get();
 }

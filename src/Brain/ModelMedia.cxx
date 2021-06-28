@@ -390,7 +390,7 @@ ModelMedia::createHighResolutionImageFromRegion(const GraphicsRegionSelectionBox
                                                 AString& errorMessageOut)
 {
     errorMessageOut = "Functionality disabled for revision of CZI image file";
-    CaretAssertToDoFatal();
+    CaretAssertToDoWarning();
     return false;
     
 //    CaretAssert(selectionBox);

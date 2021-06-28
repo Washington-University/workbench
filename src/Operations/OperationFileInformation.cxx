@@ -88,9 +88,11 @@ OperationFileInformation::getParameters()
     
     ret->createOptionalParameter(7, "-only-cifti-xml", "suppress normal output, print the cifti xml if the file type has it");
     
-    ret->createOptionalParameter(8, "-czi-all-sub-blocks", "show all sub-blocks in CZI file (may produce long output)");
+    ret->createOptionalParameter(8, "-czi", "For a CZI file, show information from the libCZI Info Command instead of the Workbench CZI File");
+
+    ret->createOptionalParameter(9, "-czi-all-sub-blocks", "show all sub-blocks in CZI file (may produce long output)");
     
-    ret->createOptionalParameter(9, "-czi-xml", "show XML from CZI file");
+    ret->createOptionalParameter(10, "-czi-xml", "show XML from CZI file");
     
     AString helpText("List information about the content of a data file.  "
                      "Only one -only option may be specified.  "
@@ -186,15 +188,22 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     bool onlyCiftiXML = myParams->getOptionalParameter(7)->m_present;
     if (onlyCiftiXML) ++countOnlys;
     
-    OptionalParameter* cziShowAllSubBlocksParam = myParams->getOptionalParameter(8);
+    OptionalParameter* cziParam = myParams->getOptionalParameter(8);
+    const bool cziShow = cziParam->m_present;
+    
+    OptionalParameter* cziShowAllSubBlocksParam = myParams->getOptionalParameter(9);
     const bool cziShowAllSubBlocks = cziShowAllSubBlocksParam->m_present;
     
-    OptionalParameter* cziShowXMLParam = myParams->getOptionalParameter(9);
+    OptionalParameter* cziShowXMLParam = myParams->getOptionalParameter(10);
     const bool cziShowXML = cziShowXMLParam->m_present;
     
     if (countOnlys > 1) throw OperationException("only one -only-* option may be specified");
     
-    if (dataFileName.endsWith(DataFileTypeEnum::toCziImageFileExtension())) {
+    const bool cziFlag(cziShow
+                       || cziShowAllSubBlocks
+                       || cziShowXML);
+    if (cziFlag
+        && dataFileName.endsWith(DataFileTypeEnum::toCziImageFileExtension())) {
         std::vector<std::string> cziParams;
         cziParams.push_back(QCoreApplication::applicationFilePath().toStdString());
         cziParams.push_back("--command");
@@ -222,13 +231,8 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
         return;
     }
     else {
-        if (cziShowAllSubBlocks) {
-            throw OperationException(cziShowAllSubBlocksParam->m_optionSwitch
-                                     + " must be used with a CZI file");
-        }
-        if (cziShowXML) {
-            throw OperationException(cziShowXMLParam->m_optionSwitch
-                                     + " must be used with a CZI file");
+        if (cziFlag) {
+            throw OperationException("CZI options must be used with a CZI file");
         }
     }
 

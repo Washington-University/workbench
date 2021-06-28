@@ -28,6 +28,7 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CziImage.h"
 #include "CziImageFile.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
@@ -206,7 +207,7 @@ BrainOpenGLMediaDrawing::drawModelLayers()
                     primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
                 }
                 else  if (cziImageFile != NULL) {
-                    CziImageFile::CziImageROI* cziImage = cziImageFile->getImageForTab(m_browserTabContent->getTabNumber());
+                    CziImage* cziImage = cziImageFile->getImageForTab(m_browserTabContent->getTabNumber());
                     primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
                 }
                 else {

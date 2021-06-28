@@ -75,7 +75,9 @@ CiftiParcelScalarFile.h
 CiftiScalarDataSeriesFile.h
 ConnectivityDataLoaded.h
 ControlPointFile.h
+CziImage.h
 CziImageFile.h
+CziPixelCoordSpaceEnum.h
 CziUtilities.h
 EventCaretDataFilesGet.h
 EventCaretMappableDataFileMapsViewedInOverlays.h
@@ -124,6 +126,7 @@ MetricSmoothingObject.h
 NodeAndVoxelColoring.h
 OxfordSparseThreeFile.h
 PaletteFile.h
+PixelIndex.h
 RectangleTransform.h
 RgbaFile.h
 RibbonMappingHelper.h
@@ -218,7 +221,9 @@ CiftiParcelScalarFile.cxx
 CiftiScalarDataSeriesFile.cxx
 ConnectivityDataLoaded.cxx
 ControlPointFile.cxx
+CziImage.cxx
 CziImageFile.cxx
+CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
 EventCaretDataFilesGet.cxx
 EventCaretMappableDataFileMapsViewedInOverlays.cxx
@@ -267,6 +272,7 @@ MetricSmoothingObject.cxx
 NodeAndVoxelColoring.cxx
 OxfordSparseThreeFile.cxx
 PaletteFile.cxx
+PixelIndex.cxx
 RectangleTransform.cxx
 RgbaFile.cxx
 RibbonMappingHelper.cxx
