@@ -155,7 +155,7 @@ CziImageFile::closeFile()
         case Status::CLOSED:
             return;
             break;
-        case Status::ERROR:
+        case Status::ERRORED:
             return;
             break;
         case Status::OPEN:
@@ -195,7 +195,7 @@ CziImageFile::readFile(const AString& filename)
     switch (m_status) {
         case Status::CLOSED:
             break;
-        case Status::ERROR:
+        case Status::ERRORED:
             return;
             break;
         case Status::OPEN:
@@ -210,14 +210,14 @@ CziImageFile::readFile(const AString& filename)
         m_stream = libCZI::CreateStreamFromFile(filename.toStdWString().c_str());
         if ( ! m_stream) {
             m_errorMessage = "Creating stream for reading CZI file failed.";
-            m_status = Status::ERROR;
+            m_status = Status::ERRORED;
             return;
         }
         
         m_reader = libCZI::CreateCZIReader();
         if ( ! m_reader) {
             m_errorMessage = "Creating reader for reading CZI file failed.";
-            m_status = Status::ERROR;
+            m_status = Status::ERRORED;
             return;
         }
         
@@ -267,7 +267,7 @@ CziImageFile::readFile(const AString& filename)
         m_pyramidLayerTileAccessor = m_reader->CreateSingleChannelPyramidLayerTileAccessor();
         if ( ! m_pyramidLayerTileAccessor) {
             m_errorMessage = "Creating pyramid layer tile accessor for reading CZI file failed.";
-            m_status = Status::ERROR;
+            m_status = Status::ERRORED;
             return;
         }
 
@@ -275,7 +275,7 @@ CziImageFile::readFile(const AString& filename)
         m_scalingTileAccessor = m_reader->CreateSingleChannelScalingTileAccessor();
         if ( ! m_scalingTileAccessor) {
             m_errorMessage = "Creating single channel scaling tile accessor for reading CZI file failed.";
-            m_status = Status::ERROR;
+            m_status = Status::ERRORED;
             return;
         }
         
@@ -295,7 +295,7 @@ CziImageFile::readFile(const AString& filename)
                                             m_errorMessage);
         }
         if (defImage == NULL) {
-            m_status = Status::ERROR;
+            m_status = Status::ERRORED;
             return;
         }
         
@@ -308,7 +308,7 @@ CziImageFile::readFile(const AString& filename)
     }
     catch (const std::exception& e) {
         m_errorMessage = (filename + QString(e.what()));
-        m_status = Status::ERROR;
+        m_status = Status::ERRORED;
     }
 }
 

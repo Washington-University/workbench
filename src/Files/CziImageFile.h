@@ -191,7 +191,7 @@ namespace caret {
         enum class Status {
             CLOSED,
             OPEN,
-            ERROR
+            ERRORED  /* Note: "ERROR" fails to compile on Windows */
         };
 
         class PyramidLayer {

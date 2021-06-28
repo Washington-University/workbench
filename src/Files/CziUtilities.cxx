@@ -53,7 +53,7 @@ CziUtilities::~CziUtilities()
  * Convert a libCZI IntRect to a Qt QRect
  * @param intRect
  *    The libCZI IntRect instance
- * @return
+ * @return-
  *    A Qt QRectt
  */
 QRectF
