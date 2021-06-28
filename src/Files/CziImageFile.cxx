@@ -252,7 +252,7 @@ CziImageFile::readFile(const AString& filename)
         /*
          * Statistics (bounding box of image)
          */
-        SubBlockStatistics subBlockStatistics = m_reader->GetStatistics();
+        libCZI::SubBlockStatistics subBlockStatistics = m_reader->GetStatistics();
         m_sourceImageRect = CziUtilities::intRectToQRect(subBlockStatistics.boundingBox);
         
         readMetaData();
@@ -318,13 +318,13 @@ CziImageFile::readFile(const AString& filename)
 void
 CziImageFile::readMetaData()
 {
-    std::shared_ptr<IMetadataSegment> metadataSegment(m_reader->ReadMetadataSegment());
+    std::shared_ptr<libCZI::IMetadataSegment> metadataSegment(m_reader->ReadMetadataSegment());
     if (metadataSegment) {
-        std::shared_ptr<ICziMetadata> metadata(metadataSegment->CreateMetaFromMetadataSegment());
+        std::shared_ptr<libCZI::ICziMetadata> metadata(metadataSegment->CreateMetaFromMetadataSegment());
         if (metadata) {
-            std::shared_ptr<ICziMultiDimensionDocumentInfo> docInfo(metadata->GetDocumentInfo());
+            std::shared_ptr<libCZI::ICziMultiDimensionDocumentInfo> docInfo(metadata->GetDocumentInfo());
             if (docInfo) {
-                const GeneralDocumentInfo genDocInfo(docInfo->GetGeneralDocumentInfo());
+                const libCZI::GeneralDocumentInfo genDocInfo(docInfo->GetGeneralDocumentInfo());
                 addToMetadataIfNotEmpty("Name", QString::fromStdWString(genDocInfo.name));
                 addToMetadataIfNotEmpty("Title", QString::fromStdWString(genDocInfo.title));
                 addToMetadataIfNotEmpty("Username", QString::fromStdWString(genDocInfo.userName));
@@ -336,7 +336,7 @@ CziImageFile::readMetaData()
                 /*
                  * Scaling is in meters so convert to millimeters
                  */
-                const ScalingInfo scalingInfo(docInfo->GetScalingInfo());
+                const libCZI::ScalingInfo scalingInfo(docInfo->GetScalingInfo());
                 m_pixelSizeMmX = scalingInfo.scaleX * 1000.0;
                 m_pixelSizeMmY = scalingInfo.scaleY * 1000.0;
                 m_pixelSizeMmZ = scalingInfo.scaleZ * 1000.0;
@@ -364,11 +364,11 @@ CziImageFile::readPyramidInfo(const int64_t imageWidth,
     
     int64_t width(imageWidth);
     int64_t height(imageHeight);
-    PyramidStatistics pyramidStatistics = m_reader->GetPyramidStatistics();
+    libCZI::PyramidStatistics pyramidStatistics = m_reader->GetPyramidStatistics();
     for (auto& sceneIter : pyramidStatistics.scenePyramidStatistics) {
-        const std::vector<PyramidStatistics::PyramidLayerStatistics>& pyrStat = sceneIter.second;
+        const std::vector<libCZI::PyramidStatistics::PyramidLayerStatistics>& pyrStat = sceneIter.second;
         for (auto& pls : pyrStat) {
-            const PyramidStatistics::PyramidLayerInfo& ply = pls.layerInfo;
+            const libCZI::PyramidStatistics::PyramidLayerInfo& ply = pls.layerInfo;
             const int64_t minFactor(ply.minificationFactor);
             if (minFactor > 0) {
                 width /= minFactor;
@@ -378,7 +378,7 @@ CziImageFile::readPyramidInfo(const int64_t imageWidth,
             << " Sub-Blocks: " << pls.count
             << " width=" << width << " height=" << height << std::endl;
             
-            ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyramidInfo;
+            libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyramidInfo;
             pyramidInfo.minificationFactor = ply.minificationFactor;
             pyramidInfo.pyramidLayerNo     = ply.pyramidLayerNo;
             
@@ -473,8 +473,8 @@ CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
     /*
      * Read into 24 bit RGB to avoid conversion from other pixel formats
      */
-    const PixelType pixelType(PixelType::Bgr24);
-    const IntRect intRectROI = CziUtilities::qRectToIntRect(regionOfInterest);
+    const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
+    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(regionOfInterest);
     CaretAssert(m_scalingTileAccessor);
     std::shared_ptr<libCZI::IBitmapData> bitmapData = m_scalingTileAccessor->Get(pixelType,
                                                                                  intRectROI,
@@ -530,7 +530,7 @@ CziImageFile::readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
         return NULL;
     }
     CaretAssertVectorIndex(m_pyramidLayers, pyramidLevel);
-    ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyramidInfo = m_pyramidLayers[pyramidLevel].m_layerInfo;
+    libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyramidInfo = m_pyramidLayers[pyramidLevel].m_layerInfo;
     
     libCZI::CDimCoordinate coordinate;
     coordinate.Set(libCZI::DimensionIndex::C, 0);
@@ -557,8 +557,8 @@ CziImageFile::readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
     /*
      * Read into 24 bit RGB to avoid conversion from other pixel formats
      */
-    const PixelType pixelType(PixelType::Bgr24);
-    const IntRect intRectROI = CziUtilities::qRectToIntRect(m_sourceImageRect);
+    const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
+    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(m_sourceImageRect);
     CaretAssert(m_pyramidLayerTileAccessor);
     std::shared_ptr<libCZI::IBitmapData> bitmapData = m_pyramidLayerTileAccessor->Get(pixelType,
                                                                                       intRectROI,
@@ -595,7 +595,7 @@ CziImageFile::readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
  * @return A QImage containing the bitmap data or NULL if not valid
  */
 QImage*
-CziImageFile::createQImageFromBitmapData(IBitmapData* bitmapData,
+CziImageFile::createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
                                          AString& errorMessageOut)
 {
     CaretAssert(bitmapData);
@@ -616,7 +616,7 @@ CziImageFile::createQImageFromBitmapData(IBitmapData* bitmapData,
     if (cziDebugFlag) std::cout << "   Size: " << bitMapInfo.size << std::endl;
     
     AString colorName;
-    if (bitmapData->GetPixelType() != PixelType::Bgr24) {
+    if (bitmapData->GetPixelType() != libCZI::PixelType::Bgr24) {
         errorMessageOut = "Only pixel type Bgr24 is supported";
         return NULL;
     }

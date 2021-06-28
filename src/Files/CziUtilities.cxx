@@ -28,8 +28,6 @@
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::CziUtilities 
  * \brief Utilities for working with CZI files

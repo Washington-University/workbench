@@ -30,9 +30,15 @@
 #include "MediaFile.h"
 #include "libCZI.h"
 
-using namespace libCZI;
-
 class QImage;
+
+/*
+ * Unable to use: "using namespace libCZI;"
+ * Symbols in libCZI namespace clash with Windows symbols.
+ * C:\Program Files (x86)\Windows Kits\8.1\include\\um\objidlbase.h(585): error C2872: 'IStream': ambiguous symbol
+ * C:\Program Files (x86)\Windows Kits\8.1\include\\um\objidlbase.h(143): note: could be 'libCZI::IStream IStream'
+ * C:\Program Files (x86)\Windows Kits\8.1\include\\um\objidlbase.h(143): note: or       'libCZI::IStream'
+ */
 
 namespace caret {
 
@@ -190,14 +196,14 @@ namespace caret {
 
         class PyramidLayer {
         public:
-            PyramidLayer(const ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo layerInfo,
+            PyramidLayer(const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo layerInfo,
                          const int64_t width,
                          const int64_t height)
             : m_layerInfo(layerInfo),
             m_width(width),
             m_height(height) { }
             
-            const ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo m_layerInfo;
+            const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo m_layerInfo;
             
             const int64_t m_width;
             
@@ -216,7 +222,7 @@ namespace caret {
                                           const int64_t outputImageWidthHeightMaximum,
                                           AString& errorMessageOut);
         
-        QImage* createQImageFromBitmapData(IBitmapData* bitmapData,
+        QImage* createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
                                            AString& errorMessageOut);
         
         void addToMetadataIfNotEmpty(const AString& name,
@@ -233,13 +239,13 @@ namespace caret {
         
         AString m_errorMessage;
         
-        std::shared_ptr<IStream> m_stream;
+        std::shared_ptr<libCZI::IStream> m_stream;
         
-        std::shared_ptr<ICZIReader> m_reader;
+        std::shared_ptr<libCZI::ICZIReader> m_reader;
 
-        std::shared_ptr<ISingleChannelScalingTileAccessor> m_scalingTileAccessor;
+        std::shared_ptr<libCZI::ISingleChannelScalingTileAccessor> m_scalingTileAccessor;
         
-        std::shared_ptr<ISingleChannelPyramidLayerTileAccessor> m_pyramidLayerTileAccessor;
+        std::shared_ptr<libCZI::ISingleChannelPyramidLayerTileAccessor> m_pyramidLayerTileAccessor;
         
         int32_t m_numberOfPyramidLayers = 0;
         
