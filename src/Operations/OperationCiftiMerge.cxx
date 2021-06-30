@@ -116,7 +116,8 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
             vector<int64_t> thisDims = ciftiIn->getDimensions();
             const CiftiXML& thisXML = ciftiIn->getCiftiXML();
             if (thisXML.getNumberOfDimensions() != 2) throw OperationException("only 2D cifti are supported");
-            if (!thisXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(baseColMapping)) throw OperationException("file '" + ciftiIn->getFileName() + "' has non-matching mapping along columns");
+            AString explanation;
+            if (!thisXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(baseColMapping, &explanation)) throw OperationException("file '" + ciftiIn->getFileName() + "' has non-matching mapping along columns: " + explanation);
             if (thisXML.getMappingType(CiftiXML::ALONG_ROW) != baseRowMapping.getType()) throw OperationException("file '" + ciftiIn->getFileName() + "' has different mapping type along rows");
             const vector<ParameterComponent*>& columnOpts = myInputs[i]->getRepeatableParameterInstances(2);
             int numColumnOpts = (int)columnOpts.size();
