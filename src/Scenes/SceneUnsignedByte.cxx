@@ -115,6 +115,17 @@ SceneUnsignedByte::integerValue() const
 }
 
 /**
+ * @return The value as a long integer data type.
+ */
+int64_t
+SceneUnsignedByte::longIntegerValue() const
+{
+    m_restoredFlag = true;
+    return m_value;
+}
+
+
+/**
  * @return The value as a string data type.
  */
 AString 

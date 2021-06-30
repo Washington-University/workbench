@@ -57,6 +57,8 @@ SceneInfoXmlStreamReader.h
 SceneInfoXmlStreamWriter.h
 SceneInteger.h
 SceneIntegerArray.h
+SceneLongInteger.h
+SceneLongIntegerArray.h
 SceneObject.h
 SceneObjectArray.h
 SceneObjectContainerTypeEnum.h
@@ -101,6 +103,8 @@ SceneInfoXmlStreamReader.cxx
 SceneInfoXmlStreamWriter.cxx
 SceneInteger.cxx
 SceneIntegerArray.cxx
+SceneLongInteger.cxx
+SceneLongIntegerArray.cxx
 SceneObject.cxx
 SceneObjectArray.cxx
 SceneObjectContainerTypeEnum.cxx

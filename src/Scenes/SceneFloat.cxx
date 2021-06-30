@@ -122,6 +122,24 @@ SceneFloat::integerValue() const
 }
 
 /**
+ * @return The value as a long integer data type.
+ */
+int64_t
+SceneFloat::longIntegerValue() const
+{
+    m_restoredFlag = true;
+    if (m_value > std::numeric_limits<int64_t>::max()) {
+        return std::numeric_limits<int64_t>::max();
+    }
+    else if (m_value < std::numeric_limits<int64_t>::min()) {
+        return std::numeric_limits<int64_t>::min();
+    }
+    
+    const int64_t i = static_cast<int64_t>(m_value);
+    return i;
+}
+
+/**
  * @return The value as a string data type.
  */
 AString 

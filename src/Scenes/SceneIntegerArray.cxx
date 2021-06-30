@@ -167,7 +167,20 @@ SceneIntegerArray::integerValue(const int32_t arrayIndex) const
     return m_values[arrayIndex];
 }
 
-/** 
+/**
+ * Get the values as a long integer.
+ * @param arrayIndex
+ *    Index of element.
+ * @return The value.
+ */
+int64_t
+SceneIntegerArray::longIntegerValue(const int32_t arrayIndex) const
+{
+    CaretAssertVectorIndex(m_values, arrayIndex);
+    return m_values[arrayIndex];
+}
+
+/**
  * Get the values as a string. 
  * @param arrayIndex
  *    Index of element.

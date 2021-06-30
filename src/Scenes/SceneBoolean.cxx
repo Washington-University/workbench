@@ -113,6 +113,17 @@ SceneBoolean::integerValue() const
 }
 
 /**
+ * @return The value as a long integer data type.
+ */
+int64_t
+SceneBoolean::longIntegerValue() const
+{
+    m_restoredFlag = true;
+    const int64_t i = (m_value ? 1 : 0);
+    return i;
+}
+
+/**
  * @return The value as a string data type.
  */
 AString 

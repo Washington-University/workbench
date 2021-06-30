@@ -300,6 +300,77 @@ ScenePrimitiveArray::integerVectorValues(std::vector<int32_t>& valuesOut) const
 }
 
 /**
+ * Load the array with long integer values.
+ * @param valuesOut
+ *    Array into which boolean values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.  If this value is greater
+ *    than the number of elements in the scene, the remaining
+ *    elements will be filled with the default value
+ * @param defaultValue
+ *    Default value used when output array contains more elements
+ *    than are in this instance's array.
+ */
+void
+ScenePrimitiveArray::longIntegerValues(int64_t valuesOut[],
+                                   const int32_t arrayNumberOfElements,
+                                   const int64_t defaultValue) const
+{
+    const int32_t numElem = std::min(arrayNumberOfElements,
+                                     getNumberOfArrayElements());
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = longIntegerValue(i);
+    }
+    
+    for (int32_t i = numElem; i < arrayNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the vector with the long integer values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The vector
+ *     will contain the number of elements that were saved
+ *     to the scene.
+ * @param defaultValue
+ *    Default value used when output vector contains more elements
+ *    than are in this instance's array.
+ */
+void
+ScenePrimitiveArray::longIntegerValues(std::vector<int64_t>& valuesOut,
+                                       const int64_t defaultValue) const
+{
+    const int32_t valuesOutNumberOfElements = static_cast<int32_t>(valuesOut.size());
+    const int32_t numElem = std::min(valuesOutNumberOfElements,
+                                     getNumberOfArrayElements());
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = longIntegerValue(i);
+    }
+    for (int32_t i = numElem; i < valuesOutNumberOfElements; i++) {
+        valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the vector with the long integer values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The size of the vector
+ *     will be resized to the number of elements from the scene array.
+ */
+void
+ScenePrimitiveArray::longIntegerVectorValues(std::vector<int64_t>& valuesOut) const
+{
+    const int32_t numElem = getNumberOfArrayElements();
+    valuesOut.resize(numElem);
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = longIntegerValue(i);
+    }
+}
+
+/**
  * Load the array with string values.
  * @param valuesOut
  *    Array into which boolean values are loaded.

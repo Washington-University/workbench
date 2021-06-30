@@ -180,6 +180,8 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
                 break;
             case SceneObjectDataTypeEnum::SCENE_INTEGER:
                 break;
+            case SceneObjectDataTypeEnum::SCENE_LONG_INTEGER:
+                break;
             case SceneObjectDataTypeEnum::SCENE_INVALID:
                 break;
             case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
@@ -341,6 +343,7 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
                     case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
                     case SceneObjectDataTypeEnum::SCENE_FLOAT:
                     case SceneObjectDataTypeEnum::SCENE_INTEGER:
+                    case SceneObjectDataTypeEnum::SCENE_LONG_INTEGER:
                     case SceneObjectDataTypeEnum::SCENE_UNSIGNED_BYTE:
                     {
                         const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(sceneObject);

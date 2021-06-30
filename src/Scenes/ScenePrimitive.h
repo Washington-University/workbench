@@ -59,6 +59,9 @@ namespace caret {
         /** @return Value as a integer data type */
         virtual int32_t integerValue() const = 0;
         
+        /** @return Value as a long integer data type */
+        virtual int64_t longIntegerValue() const = 0;
+        
         /** @return Value as a string data type */
         virtual AString stringValue() const = 0;
                 

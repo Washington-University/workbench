@@ -132,7 +132,7 @@ void
 PixelIndex::initializeMembers()
 {
     m_sceneAssistant.reset(new SceneClassAssistant());
-    //    m_sceneAssistant->addArray("m_ijk", m_ijk.data(), 3, 0);
+    m_sceneAssistant->addArray("m_ijk", m_pixelIndices.m_ijk, 3, 0);
 }
 
 /**
@@ -179,8 +179,6 @@ SceneClass*
 PixelIndex::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
-    CaretAssertToDoFatal();  // need to add int64_t support for scene assistant
-    
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "PixelIndex",
                                             1);

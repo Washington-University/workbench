@@ -179,7 +179,26 @@ SceneStringArray::integerValue(const int32_t arrayIndex) const
     return i;
 }
 
-/** 
+/**
+ * Get the values as a long integer.
+ * @param arrayIndex
+ *    Index of element.
+ * @return The value.
+ */
+int64_t
+SceneStringArray::longIntegerValue(const int32_t arrayIndex) const
+{
+    m_restoredFlag = true;
+    CaretAssertVectorIndex(m_values, arrayIndex);
+    bool isValid = false;
+    int64_t i = m_values[arrayIndex].toLong(&isValid);
+    if (isValid == false) {
+        i = 0;
+    }
+    return i;
+}
+
+/**
  * Get the values as a string. 
  * @param arrayIndex
  *    Index of element.

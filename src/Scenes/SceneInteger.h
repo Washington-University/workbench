@@ -44,6 +44,8 @@ namespace caret {
         
         virtual int32_t integerValue() const;
         
+        virtual int64_t longIntegerValue() const override;
+
         virtual AString stringValue() const;
         
         virtual uint8_t unsignedByteValue() const;

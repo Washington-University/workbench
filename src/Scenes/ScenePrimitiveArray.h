@@ -72,7 +72,15 @@ namespace caret {
          */
         virtual int32_t integerValue(const int32_t arrayIndex) const = 0;
         
-        /** 
+        /**
+         * Get the values as a  long integer.
+         * @param arrayIndex
+         *    Index of element.
+         * @return The value.
+         */
+        virtual int64_t longIntegerValue(const int32_t arrayIndex) const = 0;
+        
+        /**
          * Get the values as a string. 
          * @param arrayIndex
          *    Index of element.
@@ -114,6 +122,15 @@ namespace caret {
                                  const int32_t defaultValue) const;
         
         virtual void integerVectorValues(std::vector<int32_t>& valuesOut) const;
+        
+        virtual void longIntegerValues(int64_t valuesOut[],
+                                       const int32_t arrayNumberOfElements,
+                                       const int64_t defaultValue) const;
+        
+        virtual void longIntegerValues(std::vector<int64_t>& valuesOut,
+                                       const int64_t defaultValue) const;
+
+        virtual void longIntegerVectorValues(std::vector<int64_t>& valuesOut) const;
         
         virtual void stringValues(AString valuesOut[],
                                    const int32_t arrayNumberOfElements,

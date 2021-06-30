@@ -117,6 +117,29 @@ SceneClassAssistant::add(const AString& name,
 }
 
 /**
+ * Add a long integer member.
+ *
+ * Note: If restoring and the member is not found, the default
+ * value used will be the value at the pointer.
+ *
+ * @param name
+ *    Name of member.
+ * @param integerAddress
+ *    Address of the member.
+ */
+void
+SceneClassAssistant::add(const AString& name,
+                         int64_t* longIntegerAddress)
+{
+    CaretAssert(name.isEmpty() == false);
+    CaretAssert(longIntegerAddress);
+    LongIntegerData* id = new LongIntegerData(name,
+                                              longIntegerAddress,
+                                              *longIntegerAddress);
+    m_dataStorage.push_back(id);
+}
+
+/**
  * Add a boolean member.
  *
  * Note: If restoring and the member is not found, the default
@@ -297,6 +320,35 @@ SceneClassAssistant::addArray(const AString& name,
                                                  defaultValue);
     m_dataStorage.push_back(iad);
 }
+
+/**
+ * Add a long integer array member.
+ * @param name
+ *    Name of member.
+ * @param longIntegerArray
+ *    The array (pointer to first element)
+ * @param numberOfArrayElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used if the member is not found when restoring scene.
+ */
+void
+SceneClassAssistant::addArray(const AString& name,
+                              int64_t* longIntegerArray,
+                              const int32_t numberOfElements,
+                              const int64_t defaultValue)
+{
+    CaretAssert(name.isEmpty() == false);
+    CaretAssert(longIntegerArray);
+    CaretAssert(numberOfElements >= 0);
+    
+    LongIntegerArrayData* iad = new LongIntegerArrayData(name,
+                                                         longIntegerArray,
+                                                         numberOfElements,
+                                                         defaultValue);
+    m_dataStorage.push_back(iad);
+}
+
 
 /**
  * Add an unsigned byte array member.
@@ -559,6 +611,7 @@ SceneClassAssistant::FloatData::save(const SceneAttributes& /*sceneAttributes*/,
     sceneClass.addFloat(m_name, 
                         *m_dataPointer);
 }
+
 /* ========================================================================= */
 /**
  * \class caret::SceneClassAssistant::IntegerData 
@@ -614,6 +667,63 @@ SceneClassAssistant::IntegerData::save(const SceneAttributes& /*sceneAttributes*
 {
     sceneClass.addInteger(m_name, 
                         *m_dataPointer);
+}
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::IntegerData
+ * \brief Integer data added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
+ */
+
+/**
+ * Constructor.
+ * @param name
+ *    Name of data.
+ * @param dataPointer
+ *    Pointer to data.
+ * @param defaultValue
+ *    Default value used when restoring and data with name not found.
+ */
+SceneClassAssistant::LongIntegerData::LongIntegerData(const AString& name,
+                                                      int64_t* dataPointer,
+                                                      const int64_t defaultValue)
+: Data(name),
+m_dataPointer(dataPointer),
+m_defaultValue(defaultValue)
+{
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void
+SceneClassAssistant::LongIntegerData::restore(const SceneAttributes& /*sceneAttributes*/,
+                                              const SceneClass& sceneClass)
+{
+    *m_dataPointer = sceneClass.getLongIntegerValue(m_name,
+                                                    m_defaultValue);
+}
+
+/**
+ * Save the data to the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class to which data is saved.
+ */
+void
+SceneClassAssistant::LongIntegerData::save(const SceneAttributes& /*sceneAttributes*/,
+                                           SceneClass& sceneClass)
+{
+    sceneClass.addLongInteger(m_name,
+                              *m_dataPointer);
 }
 
 /* ========================================================================= */
@@ -1095,6 +1205,62 @@ void SceneClassAssistant::IntegerArrayData::save(const SceneAttributes& /*sceneA
         sceneClass.addIntegerArray(m_name, 
                                    m_integerArray, 
                                    m_numberOfArrayElements);
+    }
+}
+
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::IntegerArrayData
+ * \brief Long integer array added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
+ */
+SceneClassAssistant::LongIntegerArrayData::LongIntegerArrayData(const AString& name,
+                                                                int64_t* integerArray,
+                                                                const int32_t numberOfArrayElements,
+                                                                const int64_t defaultValue)
+: ArrayData(name,
+            numberOfArrayElements),
+m_longIntegerArray(integerArray),
+m_defaultValue(defaultValue)
+{
+    
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void
+SceneClassAssistant::LongIntegerArrayData::restore(const SceneAttributes& /*sceneAttributes*/,
+                                                   const SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.getLongIntegerArrayValue(m_name,
+                                            m_longIntegerArray,
+                                            m_numberOfArrayElements,
+                                            m_defaultValue);
+    }
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void SceneClassAssistant::LongIntegerArrayData::save(const SceneAttributes& /*sceneAttributes*/,
+                                                     SceneClass& sceneClass)
+{
+    if (m_numberOfArrayElements > 0) {
+        sceneClass.addLongIntegerArray(m_name,
+                                       m_longIntegerArray,
+                                       m_numberOfArrayElements);
     }
 }
 

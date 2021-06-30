@@ -47,6 +47,8 @@ public:
         SCENE_FLOAT,
         /** Integer 32-bit */
         SCENE_INTEGER,
+        /** Integer 64-bit */
+        SCENE_LONG_INTEGER,
         /** Pathname (path to file) */
         SCENE_PATH_NAME,
         /** String */

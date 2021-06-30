@@ -128,6 +128,21 @@ SceneString::integerValue() const
 }
 
 /**
+ * @return The value as a long integer data type.
+ */
+int64_t
+SceneString::longIntegerValue() const
+{
+    m_restoredFlag = true;
+    bool isValid = false;
+    int64_t i = m_value.toLong(&isValid);
+    if (isValid == false) {
+        i = 0;
+    }
+    return i;
+}
+
+/**
  * @return The value as a string data type.
  */
 AString 

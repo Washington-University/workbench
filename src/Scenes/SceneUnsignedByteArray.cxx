@@ -167,7 +167,21 @@ SceneUnsignedByteArray::integerValue(const int32_t arrayIndex) const
     return i;
 }
 
-/** 
+/**
+ * Get the values as a long integer.
+ * @param arrayIndex
+ *    Index of element.
+ * @return The value.
+ */
+int64_t
+SceneUnsignedByteArray::longIntegerValue(const int32_t arrayIndex) const
+{
+    CaretAssertVectorIndex(m_values, arrayIndex);
+    const int64_t i = static_cast<int32_t>(m_values[arrayIndex]);
+    return i;
+}
+
+/**
  * Get the values as a string. 
  * @param arrayIndex
  *    Index of element.

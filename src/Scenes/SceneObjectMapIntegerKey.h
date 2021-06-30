@@ -58,6 +58,9 @@ namespace caret {
         void addInteger(const int32_t key,
                         const int32_t value);
         
+        void addLongInteger(const int32_t key,
+                            const int64_t value);
+        
         void addFloat(const int32_t key,
                       const float value);
         
@@ -120,6 +123,8 @@ namespace caret {
         float floatValue(const int32_t key) const;
         
         int32_t integerValue(const int32_t key) const;
+        
+        int64_t longIntegerValue(const int32_t key) const;
         
         AString stringValue(const int32_t key) const;
         

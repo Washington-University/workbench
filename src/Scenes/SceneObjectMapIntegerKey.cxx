@@ -29,6 +29,7 @@
 #include "SceneEnumeratedType.h"
 #include "SceneFloat.h"
 #include "SceneInteger.h"
+#include "SceneLongInteger.h"
 #include "ScenePathName.h"
 #include "ScenePrimitive.h"
 #include "SceneString.h"
@@ -165,6 +166,22 @@ SceneObjectMapIntegerKey::addInteger(const int32_t key,
     CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_INTEGER);
     m_dataMap.insert(std::make_pair(key,
                                     new SceneInteger("i", value)));
+}
+
+/**
+ * Add the given integer value to the map using the given key.
+ * @param key
+ *    The key.
+ * @param value
+ *    The value.
+ */
+void
+SceneObjectMapIntegerKey::addLongInteger(const int32_t key,
+                                         const int64_t value)
+{
+    CaretAssert(getDataType() == SceneObjectDataTypeEnum::SCENE_LONG_INTEGER);
+    m_dataMap.insert(std::make_pair(key,
+                                    new SceneLongInteger("i", value)));
 }
 
 
@@ -329,7 +346,21 @@ SceneObjectMapIntegerKey::integerValue(const int32_t key) const
     return primitive->integerValue();
 }
 
-/** 
+/**
+ * Get the value as a long integer.
+ *
+ * @param key
+ *    key of element.
+ * @return The value with the given key.
+ */
+int64_t
+SceneObjectMapIntegerKey::longIntegerValue(const int32_t key) const
+{
+    const ScenePrimitive* primitive = dynamic_cast<const ScenePrimitive*>(getObject(key));
+    CaretAssert(primitive);
+    return primitive->longIntegerValue();
+}
+/**
  * Get the value as a string. 
  *
  * @param key

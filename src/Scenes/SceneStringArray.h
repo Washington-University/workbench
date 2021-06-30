@@ -52,6 +52,8 @@ namespace caret {
         
         virtual int32_t integerValue(const int32_t arrayIndex) const;
         
+        virtual int64_t longIntegerValue(const int32_t arrayIndex) const override;
+        
         virtual AString stringValue(const int32_t arrayIndex) const;
         
         virtual uint8_t unsignedByteValue(const int32_t arrayIndex) const;

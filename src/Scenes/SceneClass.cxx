@@ -34,6 +34,8 @@
 #include "SceneFloatArray.h"
 #include "SceneInteger.h"
 #include "SceneIntegerArray.h"
+#include "SceneLongInteger.h"
+#include "SceneLongIntegerArray.h"
 #include "SceneObjectMapIntegerKey.h"
 #include "ScenePathName.h"
 #include "ScenePathNameArray.h"
@@ -370,7 +372,22 @@ void SceneClass::addInteger(const AString& name,
                             const int32_t value)
 {
     addChild(new SceneInteger(name,
-                                                 value));
+                              value));
+}
+
+/**
+ * Add a child long integer value to the class.
+ *
+ * @param name
+ *    Name associated with value.
+ * @param value
+ *    The value.
+ */
+void SceneClass::addLongInteger(const AString& name,
+                            const int64_t value)
+{
+    addChild(new SceneLongInteger(name,
+                                  value));
 }
 
 /**
@@ -391,6 +408,26 @@ SceneClass::addIntegerArray(const AString& name,
     addChild(new SceneIntegerArray(name,
                                  values,
                                  arrayNumberOfElements));
+}
+
+/**
+ * Add a child long integer array values to the class.
+ *
+ * @param name
+ *    Name associated with value.
+ * @param values
+ *    The array containing the values.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ */
+void
+SceneClass::addLongIntegerArray(const AString& name,
+                                const int64_t values[],
+                                const int32_t arrayNumberOfElements)
+{
+    addChild(new SceneLongIntegerArray(name,
+                                       values,
+                                       arrayNumberOfElements));
 }
 
 /**
@@ -700,6 +737,29 @@ SceneClass::getIntegerValue(const AString& name,
 }
 
 /**
+ * Find and return the child long integer value with the given name.
+ * If no primitive matches the name, the given default
+ * value is returned.
+ * @param name
+ *    Name of the value.
+ * @param defaultValue
+ *    Value returned if the primitive with the given
+ *    name is not found.
+ * @return
+ *    The integer value.
+ */
+int64_t
+SceneClass::getLongIntegerValue(const AString& name,
+                                const int64_t defaultValue) const
+{
+    const ScenePrimitive* primitive = getPrimitive(name);
+    if (primitive != NULL) {
+        return primitive->longIntegerValue();
+    }
+    return defaultValue;
+}
+
+/**
  * Get the values for the integer array.  If no array is
  * found with the given name, all values are set to the
  * default value.
@@ -728,6 +788,41 @@ SceneClass::getIntegerArrayValue(const AString& name,
         return primitiveArray->getNumberOfArrayElements();
     }
 
+    for (int32_t i = 0; i < arrayNumberOfElements; i++) {
+        values[i] = defaultValue;
+    }
+    return 0;
+}
+
+/**
+ * Get the values for the long integer array.  If no array is
+ * found with the given name, all values are set to the
+ * default value.
+ * @param name
+ *    Name of the value.
+ * @param values
+ *    Output array into which values are loaded.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ * @param defaultValue
+ *    Value used for missing elements.
+ * @return Number of elements actually read form scene class.
+ */
+int32_t
+SceneClass::getLongIntegerArrayValue(const AString& name,
+                                     int64_t values[],
+                                     const int32_t arrayNumberOfElements,
+                                     const int64_t defaultValue) const
+{
+    const ScenePrimitiveArray* primitiveArray = getPrimitiveArray(name);
+    
+    if (primitiveArray != NULL) {
+        primitiveArray->longIntegerValues(values,
+                                          arrayNumberOfElements,
+                                          defaultValue);
+        return primitiveArray->getNumberOfArrayElements();
+    }
+    
     for (int32_t i = 0; i < arrayNumberOfElements; i++) {
         values[i] = defaultValue;
     }

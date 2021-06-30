@@ -192,6 +192,8 @@ SceneXmlStreamWriter::writeSceneObject(const SceneObject* sceneObject)
             break;
         case SceneObjectDataTypeEnum::SCENE_INTEGER:
             break;
+        case SceneObjectDataTypeEnum::SCENE_LONG_INTEGER:
+            break;
         case SceneObjectDataTypeEnum::SCENE_INVALID:
             break;
         case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
@@ -231,6 +233,9 @@ SceneXmlStreamWriter::writeArrayObject(const SceneObjectArray* objectArray)
             writeArrayPrimitiveType(objectArray->castToScenePrimitiveArray());
             break;
         case SceneObjectDataTypeEnum::SCENE_INTEGER:
+            writeArrayPrimitiveType(objectArray->castToScenePrimitiveArray());
+            break;
+        case SceneObjectDataTypeEnum::SCENE_LONG_INTEGER:
             writeArrayPrimitiveType(objectArray->castToScenePrimitiveArray());
             break;
         case SceneObjectDataTypeEnum::SCENE_INVALID:
@@ -319,6 +324,13 @@ SceneXmlStreamWriter::writeMapObject(const SceneObjectMapIntegerKey* objectMap)
                 m_xmlWriter->writeCharacters(value->stringValue());
             }
                 break;
+            case SceneObjectDataTypeEnum::SCENE_LONG_INTEGER:
+            {
+                const ScenePrimitive* value = valueObject->castToScenePrimitive();
+                CaretAssert(value);
+                m_xmlWriter->writeCharacters(value->stringValue());
+            }
+                break;
             case SceneObjectDataTypeEnum::SCENE_PATH_NAME:
             {
                 const ScenePathName* pathName = valueObject->castToScenePathName();
@@ -378,6 +390,9 @@ SceneXmlStreamWriter::writeSingleObject(const SceneObject* sceneObject)
             writePrimitive(sceneObject->castToScenePrimitive());
             break;
         case SceneObjectDataTypeEnum::SCENE_INTEGER:
+            writePrimitive(sceneObject->castToScenePrimitive());
+            break;
+        case SceneObjectDataTypeEnum::SCENE_LONG_INTEGER:
             writePrimitive(sceneObject->castToScenePrimitive());
             break;
         case SceneObjectDataTypeEnum::SCENE_INVALID:

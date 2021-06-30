@@ -175,6 +175,28 @@ SceneFloatArray::integerValue(const int32_t arrayIndex) const
     return i;
 }
 
+/**
+ * Get the values as a long  integer.
+ * @param arrayIndex
+ *    Index of element.
+ * @return The value.
+ */
+int64_t
+SceneFloatArray::longIntegerValue(const int32_t arrayIndex) const
+{
+    CaretAssertVectorIndex(m_values, arrayIndex);
+    const float f = m_values[arrayIndex];
+    if (f > std::numeric_limits<int64_t>::max()) {
+        return std::numeric_limits<int64_t>::max();
+    }
+    else if (f < std::numeric_limits<int64_t>::min()) {
+        return std::numeric_limits<int64_t>::min();
+    }
+    
+    const int64_t i = static_cast<int64_t>(f);
+    return i;
+}
+
 /** 
  * Get the values as a string. 
  * @param arrayIndex
