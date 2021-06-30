@@ -39,7 +39,7 @@
 
 using namespace caret;
 
-
+static bool cziImageDebugFlag(false);
     
 /**
  * \class caret::CziImage 
@@ -79,8 +79,11 @@ m_spatialBoundingBox(spatialInfo.m_boundingBox)
 
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-    m_pixelsRect = QRectF(0, 0, logicalRect.width() - 1, logicalRect.height() - 1);
+    m_fullResolutionPixelsRect = QRectF(0, 0, m_fullResolutionLogicalRect.width() - 1, m_fullResolutionLogicalRect.height() - 1);
 
+    m_pixelsRect = QRectF(0, 0, m_image->width() - 1, m_image->height() - 1);
+    
+    
     QRectF pixelTopLeftRect(0, 0, logicalRect.width() - 1, logicalRect.height() - 1);
     m_roiCoordsToRoiPixelTopLeftTransform.reset(new RectangleTransform(logicalRect,
                                                                        RectangleTransform::Origin::TOP_LEFT,
@@ -93,12 +96,14 @@ m_spatialBoundingBox(spatialInfo.m_boundingBox)
                                                                                    fullImagePixelTopLeftRect,
                                                                                    RectangleTransform::Origin::TOP_LEFT));
     
-    RectangleTransform::testTransforms(*m_roiCoordsToRoiPixelTopLeftTransform,
-                                       logicalRect,
-                                       pixelTopLeftRect);
-    RectangleTransform::testTransforms(*m_roiPixelTopLeftToFullImagePixelTopLeftTransform,
-                                       pixelTopLeftRect,
-                                       fullImagePixelTopLeftRect);
+    if (cziImageDebugFlag) {
+        RectangleTransform::testTransforms(*m_roiCoordsToRoiPixelTopLeftTransform,
+                                           logicalRect,
+                                           pixelTopLeftRect);
+        RectangleTransform::testTransforms(*m_roiPixelTopLeftToFullImagePixelTopLeftTransform,
+                                           pixelTopLeftRect,
+                                           fullImagePixelTopLeftRect);
+    }
 }
 
 /**
@@ -131,7 +136,7 @@ CziImage::toString() const
 PixelIndex
 CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndex,
                                      const CziPixelCoordSpaceEnum::Enum fromPixelCoordSpace,
-                                     const CziPixelCoordSpaceEnum::Enum toPixelCoordSpace)
+                                     const CziPixelCoordSpaceEnum::Enum toPixelCoordSpace) const
 {
     if (fromPixelCoordSpace == toPixelCoordSpace) {
         return pixelIndex;
@@ -140,6 +145,14 @@ CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndex,
     QRectF fromRect;
     RectangleTransform::Origin fromRectOrigin;
     switch (fromPixelCoordSpace) {
+        case CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT:
+            fromRect = m_fullResolutionLogicalRect;
+            fromRectOrigin = RectangleTransform::Origin::TOP_LEFT;
+            break;
+        case CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT:
+            fromRect = m_fullResolutionPixelsRect;
+            fromRectOrigin = RectangleTransform::Origin::TOP_LEFT;
+            break;
         case CziPixelCoordSpaceEnum::LOGICAL_TOP_LEFT:
             fromRect = m_logicalRect;
             fromRectOrigin = RectangleTransform::Origin::TOP_LEFT;
@@ -157,6 +170,14 @@ CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndex,
     QRectF toRect;
     RectangleTransform::Origin toRectOrigin;
     switch (toPixelCoordSpace) {
+        case CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT:
+            toRect = m_fullResolutionLogicalRect;
+            toRectOrigin = RectangleTransform::Origin::TOP_LEFT;
+            break;
+        case CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT:
+            toRect = m_fullResolutionPixelsRect;
+            toRectOrigin = RectangleTransform::Origin::TOP_LEFT;
+            break;
         case CziPixelCoordSpaceEnum::LOGICAL_TOP_LEFT:
             toRect = m_logicalRect;
             toRectOrigin = RectangleTransform::Origin::TOP_LEFT;
@@ -190,6 +211,96 @@ CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndex,
     pixelIndexOut.setJ(static_cast<int64_t>(y));
     
     return pixelIndexOut;
+}
+
+/**
+ * Get the identification text for the pixel at the given pixel index with origin at bottom left.
+ * @param pixelIndex
+ *    Index of the pixel.
+ * @param columnOneTextOut
+ *    Text for column one that is displayed to user.
+ * @param columnTwoTextOut
+ *    Text for column two that is displayed to user.
+ */
+void
+CziImage::getPixelIdentificationText(const PixelIndex& pixelIndex,
+                                std::vector<AString>& columnOneTextOut,
+                                std::vector<AString>& columnTwoTextOut) const
+{
+    /*
+     * NOTE: Do not clear the column text outputs as CziImageFile has
+     * done that.
+     */
+    PixelIndex fullImagePixelIndex = transformPixelIndexToSpace(pixelIndex,
+                                                                CziPixelCoordSpaceEnum::PIXEL_BOTTOM_LEFT,
+                                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT);
+    
+    uint8_t rgba[4];
+    getImagePixelRGBA(pixelIndex,
+                      rgba);
+    columnOneTextOut.push_back(("RGBA (" + AString::fromNumbers(rgba, 4, ",") + ")"));
+    columnTwoTextOut.push_back(("Pixel IJ TL("
+                                + AString::number(fullImagePixelIndex.getI())
+                                + ","
+                                + AString::number(fullImagePixelIndex.getJ())
+                                + ")"));
+    
+    const PixelCoordinate pixelsSize(m_parentCziImageFile->getPixelSizeInMillimeters());
+    const float pixelX(fullImagePixelIndex.getI() * pixelsSize.getX());
+    const float pixelY(fullImagePixelIndex.getJ() * pixelsSize.getY());
+    columnOneTextOut.push_back("");
+    columnTwoTextOut.push_back(("("
+                                + AString::number(pixelX, 'f', 3)
+                                + "mm,"
+                                + AString::number(pixelY, 'f', 3)
+                                + "mm)"));
+}
+
+/**
+ * Get the pixel RGBA at the given pixel I and J.
+ *
+ * @param pixelIndex
+ *     Index of pixel with origin at bottom
+ * @param pixelRGBAOut
+ *     RGBA at Pixel I, J
+ * @return
+ *     True if valid, else false.
+ */
+bool
+CziImage::getImagePixelRGBA(const PixelIndex& pixelIndex,
+                            uint8_t pixelRGBAOut[4]) const
+{
+    pixelRGBAOut[0] = 0;
+    pixelRGBAOut[1] = 0;
+    pixelRGBAOut[2] = 0;
+    pixelRGBAOut[3] = 0;
+    
+    const QImage* image = m_image.get();
+    
+    if (image != NULL) {
+        const int32_t w = image->width();
+        const int32_t h = image->height();
+        
+        const int64_t pixelI(pixelIndex.getI());
+        const int64_t pixelJ(pixelIndex.getJ());
+        if ((pixelI >= 0)
+            && (pixelI < w)
+            && (pixelJ >= 0)
+            && (pixelJ < h)) {
+            const QRgb rgb = image->pixel(pixelI,
+                                          pixelJ);
+            pixelRGBAOut[0] = static_cast<uint8_t>(qRed(rgb));
+            pixelRGBAOut[1] = static_cast<uint8_t>(qGreen(rgb));
+            pixelRGBAOut[2] = static_cast<uint8_t>(qBlue(rgb));
+            pixelRGBAOut[3] = static_cast<uint8_t>(qAlpha(rgb));
+            return true;
+        }
+        else {
+            CaretLogSevere("Invalid image J");
+        }
+    }
+
+    return false;
 }
 
 /**

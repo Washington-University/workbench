@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __PIXEL_INDEX_DECLARE__
-#include "PixelIndex.h"
-#undef __PIXEL_INDEX_DECLARE__
+#define __PIXEL_COORDINATE_DECLARE__
+#include "PixelCoordinate.h"
+#undef __PIXEL_COORDINATE_DECLARE__
 
 #include "CaretAssert.h"
 #include "SceneClass.h"
@@ -32,58 +32,66 @@ using namespace caret;
 
     
 /**
- * \class caret::PixelIndex 
- * \brief A pixel index
+ * \class caret::PixelCoordinate 
+ * \brief Pixel coordinate
  * \ingroup Files
  */
 
 /**
  * Constructor.
  */
-PixelIndex::PixelIndex()
+PixelCoordinate::PixelCoordinate()
 : CaretObject()
 {
     initializeMembers();
-    m_pixelIndices.m_ijk[0] = 0;
-    m_pixelIndices.m_ijk[1] = 0;
-    m_pixelIndices.m_ijk[2] = 0;
 }
 
 /**
- * Constructor with pixel indices
- * @param i
- *    Index i
- * @param j
- *    Index j
- * @param k
- *    Index k
+ * Constructor.
+ * @param xyz
+ *    Coordinates in std::array
  */
-PixelIndex::PixelIndex(const int64_t i,
-                       const int64_t j,
-                       const int64_t k)
-: CaretObject()
+PixelCoordinate::PixelCoordinate(const std::array<float,3>& xyz)
 {
     initializeMembers();
-    m_pixelIndices.m_ijk[0] = i;
-    m_pixelIndices.m_ijk[1] = j;
-    m_pixelIndices.m_ijk[2] = k;
+    m_pixelCoord[0] = xyz[0];
+    m_pixelCoord[1] = xyz[1];
+    m_pixelCoord[2] = xyz[2];
 }
 
-///**
-// * Constructor from a pixel coordinate
-// * @param coordinate
-// *    The pixel coordinate
-// */
-//PixelIndex::PixelIndex(const PixelCoordinate& coordinate)
-//: CaretObject()
-//{
-//    initializeMembers();
-//}
+/**
+ * Constructor.
+ * @param x
+ *    X-coordinate
+ * @param y
+ *    Y-coordinate
+ * @param z
+ *    Z-coordinate
+ */
+PixelCoordinate::PixelCoordinate(const float x,
+                                 const float y,
+                                 const float z)
+{
+    initializeMembers();
+    m_pixelCoord[0] = x;
+    m_pixelCoord[1] = y;
+    m_pixelCoord[2] = z;
+}
+
+/**
+ * Initialize members of this instance
+ */
+void
+PixelCoordinate::initializeMembers()
+{
+    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    m_sceneAssistant->addArray("m_pixelCoord", m_pixelCoord, 3, 0.0);
+}
 
 /**
  * Destructor.
  */
-PixelIndex::~PixelIndex()
+PixelCoordinate::~PixelCoordinate()
 {
 }
 
@@ -92,12 +100,11 @@ PixelIndex::~PixelIndex()
  * @param obj
  *    Object that is copied.
  */
-PixelIndex::PixelIndex(const PixelIndex& obj)
+PixelCoordinate::PixelCoordinate(const PixelCoordinate& obj)
 : CaretObject(obj)
 {
     initializeMembers();
-    
-    this->copyHelperPixelIndex(obj);
+    this->copyHelperPixelCoordinate(obj);
 }
 
 /**
@@ -107,12 +114,12 @@ PixelIndex::PixelIndex(const PixelIndex& obj)
  * @return 
  *    Reference to this object.
  */
-PixelIndex&
-PixelIndex::operator=(const PixelIndex& obj)
+PixelCoordinate&
+PixelCoordinate::operator=(const PixelCoordinate& obj)
 {
     if (this != &obj) {
         CaretObject::operator=(obj);
-        this->copyHelperPixelIndex(obj);
+        this->copyHelperPixelCoordinate(obj);
     }
     return *this;    
 }
@@ -123,16 +130,9 @@ PixelIndex::operator=(const PixelIndex& obj)
  *    Object that is copied.
  */
 void 
-PixelIndex::copyHelperPixelIndex(const PixelIndex& obj)
+PixelCoordinate::copyHelperPixelCoordinate(const PixelCoordinate& obj)
 {
-    m_pixelIndices = obj.m_pixelIndices;
-}
-
-void
-PixelIndex::initializeMembers()
-{
-    m_sceneAssistant.reset(new SceneClassAssistant());
-    //    m_sceneAssistant->addArray("m_ijk", m_ijk.data(), 3, 0);
+    m_pixelCoord = obj.m_pixelCoord;
 }
 
 /**
@@ -143,13 +143,15 @@ PixelIndex::initializeMembers()
  *    True if this instance and 'obj' instance are considered equal.
  */
 bool
-PixelIndex::operator==(const PixelIndex& obj) const
+PixelCoordinate::operator==(const PixelCoordinate& obj) const
 {
     if (this == &obj) {
         return true;    
     }
 
-    return (m_pixelIndices == obj.m_pixelIndices);
+    /* perform equality testing HERE and return true if equal ! */
+
+    return false;    
 }
 
 /**
@@ -157,10 +159,10 @@ PixelIndex::operator==(const PixelIndex& obj) const
  * @return String describing this object's content.
  */
 AString 
-PixelIndex::toString() const
+PixelCoordinate::toString() const
 {
-    return ("PixelIndex = ("
-            + AString::fromNumbers(getIJK(), 3, ", ")
+    return ("PixelCoordinate = ("
+            + AString::fromNumbers(m_pixelCoord, 3, ", ")
             + ")");
 }
 
@@ -176,13 +178,11 @@ PixelIndex::toString() const
  *    Name of instance in the scene.
  */
 SceneClass*
-PixelIndex::saveToScene(const SceneAttributes* sceneAttributes,
+PixelCoordinate::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
-    CaretAssertToDoFatal();  // need to add int64_t support for scene assistant
-    
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "PixelIndex",
+                                            "PixelCoordinate",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -206,7 +206,7 @@ PixelIndex::saveToScene(const SceneAttributes* sceneAttributes,
  *     sceneClass from which model specific information is obtained.
  */
 void
-PixelIndex::restoreFromScene(const SceneAttributes* sceneAttributes,
+PixelCoordinate::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {

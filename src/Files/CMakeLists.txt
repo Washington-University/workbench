@@ -126,6 +126,7 @@ MetricSmoothingObject.h
 NodeAndVoxelColoring.h
 OxfordSparseThreeFile.h
 PaletteFile.h
+PixelCoordinate.h
 PixelIndex.h
 RectangleTransform.h
 RgbaFile.h
@@ -272,6 +273,7 @@ MetricSmoothingObject.cxx
 NodeAndVoxelColoring.cxx
 OxfordSparseThreeFile.cxx
 PaletteFile.cxx
+PixelCoordinate.cxx
 PixelIndex.cxx
 RectangleTransform.cxx
 RgbaFile.cxx

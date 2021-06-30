@@ -49,6 +49,7 @@
 #include "ImageCaptureDialogSettings.h"
 #include "Matrix4x4.h"
 #include "MathFunctions.h"
+#include "RectangleTransform.h"
 #include "SceneClass.h"
 #include "UnitsConversion.h"
 #include "VolumeFile.h"
@@ -2002,6 +2003,38 @@ ImageFile::getPixelToCoordinateTransform(const int32_t /*tabIndex*/) const
     return m_pixelToCoordinateTransform.get();
 }
 
+/**
+ * Transform a pixel index with origin at bottom left to pixel index with origin at top left
+ * @param pixelIndexBottomLeft
+ *    Pixel index with origin at bottom left
+ * @return
+ *    Pixel index with origin at top left
+ */
+PixelIndex
+ImageFile::transformPixelBottomLeftToTopLeft(const PixelIndex& pixelIndexBottomLeft) const
+{
+    PixelIndex pixelTopLeft;
+    
+    if ( ! m_pixelBottomLeftToTopLeftTransform) {
+        QRect rect(0, 0, getWidth() - 1, getHeight() - 1);
+        m_pixelBottomLeftToTopLeftTransform.reset(new RectangleTransform(rect,
+                                                                         RectangleTransform::Origin::BOTTOM_LEFT,
+                                                                         rect,
+                                                                         RectangleTransform::Origin::TOP_LEFT));
+        if ( ! m_pixelBottomLeftToTopLeftTransform->isValid()) {
+            CaretLogSevere("Failed to create rectangle transform for image "
+                           + getFileName()
+                           + " ERROR="
+                           + m_pixelBottomLeftToTopLeftTransform->getErrorMessage());
+        }
+    }
+    
+    if (m_pixelBottomLeftToTopLeftTransform->isValid()) {
+        pixelTopLeft = m_pixelBottomLeftToTopLeftTransform->transformSourceToTarget(pixelIndexBottomLeft);
+    }
+    
+    return pixelTopLeft;
+}
 
 /**
  * Save file data from the scene.  For subclasses that need to
@@ -2375,3 +2408,61 @@ ImageFile::getDefaultViewTransform(const int32_t /*tabIndex*/) const
     return m_defaultViewTransform;
 }
 
+/**
+ * Get the identification text for the pixel at the given pixel index with origin at bottom left.
+ * @param tabIndex
+ *    Index of the tab in which identification took place
+ * @param pixelIndex
+ *    Index of the pixel.
+ * @param columnOneTextOut
+ *    Text for column one that is displayed to user.
+ * @param columnTwoTextOut
+ *    Text for column two that is displayed to user.
+ */
+void
+ImageFile::getPixelIdentificationText(const int32_t tabIndex,
+                                      const PixelIndex& pixelIndex,
+                                      std::vector<AString>& columnOneTextOut,
+                                      std::vector<AString>& columnTwoTextOut) const
+{
+    columnOneTextOut.clear();
+    columnTwoTextOut.clear();
+    if ( ! pixelIndexValid(tabIndex,
+                           pixelIndex)) {
+        return;
+    }
+    
+    uint8_t rgba[4];
+    getImagePixelRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM, pixelIndex, rgba);
+    
+    columnOneTextOut.push_back("Filename");
+    columnTwoTextOut.push_back(getFileNameNoPath());
+    
+    columnOneTextOut.push_back(("RGBA (" + AString::fromNumbers(rgba, 4, ",") + ")"));
+    
+    /*
+     * Input pixel has origin at the bottom left but we report pixel
+     * for origin at top left
+     */
+    const PixelIndex pixelIndexTopLeft(transformPixelBottomLeftToTopLeft(pixelIndex));
+    columnTwoTextOut.push_back(("Pixel IJ ("
+                                + AString::number(pixelIndexTopLeft.getI())
+                                + ","
+                                + AString::number(pixelIndexTopLeft.getJ())
+                                + ")"));
+    const float dotsPerMeter(m_image->dotsPerMeterX());
+    if (dotsPerMeter > 0.0) {
+        /*
+         * Show coordinates in millimeters
+         */
+        const float metersPerDot(1 / dotsPerMeter);
+        const float xMillimeters(pixelIndexTopLeft.getI() * metersPerDot * 100.0);
+        const float yMillimeters(pixelIndexTopLeft.getJ() * metersPerDot * 100.0);
+        columnOneTextOut.push_back("");
+        columnTwoTextOut.push_back("("
+                                   + AString::number(xMillimeters, 'f', 2)
+                                   + "mm, "
+                                   + AString::number(yMillimeters, 'f', 2)
+                                   + "mm)");
+    }
+}

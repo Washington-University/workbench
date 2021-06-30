@@ -347,6 +347,17 @@ CziImageFile::readMetaData()
 }
 
 /**
+ * @return Size of pixel in millimeters for X, Y, and Z dimensions
+ */
+PixelCoordinate
+CziImageFile::getPixelSizeInMillimeters() const
+{
+    return PixelCoordinate(m_pixelSizeMmX,
+                           m_pixelSizeMmY,
+                           m_pixelSizeMmZ);
+}
+
+/**
  * Read pyramid from the file
  * @param imageWidth
  *    Width of image
@@ -375,9 +386,12 @@ CziImageFile::readPyramidInfo(const int64_t imageWidth,
                 width /= minFactor;
                 height /= minFactor;
             }
-            std::cout << "Layer number: " << (int)ply.pyramidLayerNo << " MinFactor: " << (int)ply.minificationFactor
-            << " Sub-Blocks: " << pls.count
-            << " width=" << width << " height=" << height << std::endl;
+            
+            if (cziDebugFlag) {
+                std::cout << "Layer number: " << (int)ply.pyramidLayerNo << " MinFactor: " << (int)ply.minificationFactor
+                << " Sub-Blocks: " << pls.count
+                << " width=" << width << " height=" << height << std::endl;                
+            }
             
             libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyramidInfo;
             pyramidInfo.minificationFactor = ply.minificationFactor;
@@ -747,6 +761,38 @@ CziImageFile::getDefaultViewTransform(const int32_t tabIndex) const
 }
 
 /**
+ * Get the identification text for the pixel at the given pixel index with origin at bottom left.
+ * @param tabIndex
+ *    Index of the tab in which identification took place
+ * @param pixelIndex
+ *    Index of the pixel.
+ * @param columnOneTextOut
+ *    Text for column one that is displayed to user.
+ * @param columnTwoTextOut
+ *    Text for column two that is displayed to user.
+ */
+void
+CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
+                                         const PixelIndex& pixelIndex,
+                                         std::vector<AString>& columnOneTextOut,
+                                         std::vector<AString>& columnTwoTextOut) const
+{
+    columnOneTextOut.clear();
+    columnTwoTextOut.clear();
+    if ( ! pixelIndexValid(tabIndex, pixelIndex)) {
+        return;
+    }
+    
+    const CziImage* cziImage = getImageForTab(tabIndex);
+    if (cziImage != NULL) {
+        cziImage->getPixelIdentificationText(pixelIndex,
+                                             columnOneTextOut,
+                                             columnTwoTextOut);
+    }
+}
+
+
+/**
  * @return the spatial bounding box for the given tab index
  * @param tabIndex
  *    Index of the tab
@@ -869,52 +915,72 @@ CziImageFile::getImageForTab(const int32_t tabIndex) const
  */
 bool
 CziImageFile::getImagePixelRGBA(const int32_t tabIndex,
-                             const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
-                             const PixelIndex& pixelIndex,
-                             uint8_t pixelRGBAOut[4]) const
+                                const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+                                const PixelIndex& pixelIndex,
+                                uint8_t pixelRGBAOut[4]) const
 {
     const CziImage* cziImage = getImageForTab(tabIndex);
     CaretAssert(cziImage);
-    const QImage* image = cziImage->m_image.get();
     
-    if (image != NULL) {
-        const int32_t w = image->width();
-        const int32_t h = image->height();
-        
-        const int64_t pixelI(pixelIndex.getI());
-        const int64_t pixelJ(pixelIndex.getJ());
-        if ((pixelI >= 0)
-            && (pixelI < w)
-            && (pixelJ >= 0)
-            && (pixelJ < h)) {
-            
-            int64_t imageJ = pixelJ;
-            switch (imageOrigin) {
-                case IMAGE_DATA_ORIGIN_AT_BOTTOM:
-                    imageJ = h - pixelJ - 1;
-                    break;
-                case IMAGE_DATA_ORIGIN_AT_TOP:
-                    break;
-            }
-            
-            if ((imageJ >= 0)
-                && (imageJ < h)) {
-                const QRgb rgb = image->pixel(pixelI,
-                                                imageJ);
-                pixelRGBAOut[0] = static_cast<uint8_t>(qRed(rgb));
-                pixelRGBAOut[1] = static_cast<uint8_t>(qGreen(rgb));
-                pixelRGBAOut[2] = static_cast<uint8_t>(qBlue(rgb));
-                pixelRGBAOut[3] = static_cast<uint8_t>(qAlpha(rgb));
-                
-                return true;
-            }
-            else {
-                CaretLogSevere("Invalid image J");
-            }
+    PixelIndex pixelIndexIJ(pixelIndex);
+    switch (imageOrigin) {
+        case IMAGE_DATA_ORIGIN_AT_BOTTOM:
+            break;
+        case IMAGE_DATA_ORIGIN_AT_TOP:
+        {
+            /*
+             * Convert to bottom origin
+             */
+            pixelIndexIJ = cziImage->transformPixelIndexToSpace(pixelIndex,
+                                                              CziPixelCoordSpaceEnum::PIXEL_TOP_LEFT,
+                                                              CziPixelCoordSpaceEnum::PIXEL_BOTTOM_LEFT);
         }
+            break;
     }
     
-    return false;
+    return cziImage->getImagePixelRGBA(pixelIndexIJ,
+                                       pixelRGBAOut);
+
+//    const QImage* image = cziImage->m_image.get();
+//
+//    if (image != NULL) {
+//        const int32_t w = image->width();
+//        const int32_t h = image->height();
+//
+//        const int64_t pixelI(pixelIndex.getI());
+//        const int64_t pixelJ(pixelIndex.getJ());
+//        if ((pixelI >= 0)
+//            && (pixelI < w)
+//            && (pixelJ >= 0)
+//            && (pixelJ < h)) {
+//
+//            int64_t imageJ = pixelJ;
+//            switch (imageOrigin) {
+//                case IMAGE_DATA_ORIGIN_AT_BOTTOM:
+//                    imageJ = h - pixelJ - 1;
+//                    break;
+//                case IMAGE_DATA_ORIGIN_AT_TOP:
+//                    break;
+//            }
+//
+//            if ((imageJ >= 0)
+//                && (imageJ < h)) {
+//                const QRgb rgb = image->pixel(pixelI,
+//                                                imageJ);
+//                pixelRGBAOut[0] = static_cast<uint8_t>(qRed(rgb));
+//                pixelRGBAOut[1] = static_cast<uint8_t>(qGreen(rgb));
+//                pixelRGBAOut[2] = static_cast<uint8_t>(qBlue(rgb));
+//                pixelRGBAOut[3] = static_cast<uint8_t>(qAlpha(rgb));
+//
+//                return true;
+//            }
+//            else {
+//                CaretLogSevere("Invalid image J");
+//            }
+//        }
+//    }
+//
+//    return false;
 }
 
 /**

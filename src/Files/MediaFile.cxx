@@ -441,19 +441,21 @@ MediaFile::getDefaultSpatialValues(const float numPixels,
 }
 
 /**
- * @return True if the given pixel index is valid, else false
+ * @return True if the given pixel index is valid (within the image), else false
  * @param tabIndex
  *    Index of the tab.
  * @param pixelIndex
- *    The pixel index
+ *    The pixel index with origin at bottom left corner
  */
 bool
-MediaFile::indexValid(const int32_t tabIndex,
-                      const PixelIndex& pixelIndex) const
+MediaFile::pixelIndexValid(const int32_t tabIndex,
+                           const PixelIndex& pixelIndex) const
 {
     const auto xform(getPixelToCoordinateTransform(tabIndex));
     CaretAssert(xform);
-    return xform->indexValid(pixelIndex.m_ijk);
+    return xform->indexValid(pixelIndex.getI(),
+                             pixelIndex.getJ(),
+                             pixelIndex.getK());
 }
 
 /**
@@ -463,42 +465,63 @@ MediaFile::indexValid(const int32_t tabIndex,
  * @param coordinate
  *    The coordinate
  * @return
- *    The Pixel Index (may not be a valid index)
+ *    The Pixel Index with origin at the bottom left corner.  Note that the pixel index
+ *    may not be within the bounds of the image.  See indexValid().
  */
-MediaFile::PixelIndex
-MediaFile::spaceToIndex(const int32_t tabIndex,
-                        const PixelCoordinate& coordinate) const
+PixelIndex
+MediaFile::spaceToPixelIndex(const int32_t tabIndex,
+                             const PixelCoordinate& coordinate) const
 {
-    PixelCoordinate indexOut(0,0,0);
     const auto xform(getPixelToCoordinateTransform(tabIndex));
     CaretAssert(xform);
-    xform->spaceToIndex(coordinate,
-                        indexOut);
-    
-    return PixelIndex(indexOut);
+    float xyz[3];
+    xform->spaceToIndex(coordinate.getRefToVector3D(),
+                        xyz);
+    return PixelIndex(xyz[0],
+                      xyz[1],
+                      xyz[2]);
 }
 
 /**
- * Convert the given spatial coordinates to image pixel indices
  * Convert the given spatial coordinates to image pixel indices
  * @param tabIndex
  *    Index of the tab.
  * @param coordinate
  *    The coordinate
  * @param pixelIndexOut
- *    Output containing the pixel index
+ *    Output containing the pixel index with origin at the bottom left.
  * @return True if output index is valid for the image, else false.
  */
 bool
-MediaFile::spaceToIndexValid(const int32_t tabIndex,
-                             const PixelCoordinate& coordinate,
-                             PixelIndex& pixelIndexOut) const
+MediaFile::spaceToPixelIndexValid(const int32_t tabIndex,
+                                  const PixelCoordinate& coordinate,
+                                  PixelIndex& pixelIndexOut) const
 {
-    pixelIndexOut = spaceToIndex(tabIndex,
+    pixelIndexOut = spaceToPixelIndex(tabIndex,
                                  coordinate);
-    return indexValid(tabIndex,
+    return pixelIndexValid(tabIndex,
                       pixelIndexOut);
 }
+
+/**
+ * @return The coordinate of the given pixel index in the given tab
+ * @param tabIndex
+ *     Index of the tab
+ * @param pixelIndex
+ *     The pixel index
+ */
+PixelCoordinate
+MediaFile::pixelIndexToSpace(const int32_t tabIndex,
+                             const PixelIndex& pixelIndex) const
+{
+    const auto xform(getPixelToCoordinateTransform(tabIndex));
+    CaretAssert(xform);
+    std::array<float, 3> xyz;
+    xform->indexToSpace(pixelIndex.getIJK(),
+                        xyz.data());
+    return PixelCoordinate(xyz);
+}
+
 
 /**
  * @return Half of the height for the orthographic  media drawing viewport

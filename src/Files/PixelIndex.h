@@ -23,13 +23,13 @@
 
 
 #include <array>
-#include <cstdint>
-#include <memory>
+//#include <cstdint>
+//#include <memory>
 
 #include "CaretObject.h"
 
 #include "SceneableInterface.h"
-
+#include "VoxelIJK.h"
 
 namespace caret {
     class PixelCoordinate;
@@ -44,7 +44,7 @@ namespace caret {
                    const int64_t j,
                    const int64_t k = 0);
         
-        PixelIndex(const PixelCoordinate& coordinate);
+//        PixelIndex(const PixelCoordinate& coordinate);
         
         virtual ~PixelIndex();
         
@@ -55,44 +55,71 @@ namespace caret {
         bool operator==(const PixelIndex& obj) const;
         
         /** @return The "i" component */
-        inline int64_t getI() const { return m_ijk[0]; }
+        inline int64_t getI() const { return m_pixelIndices.m_ijk[0]; }
         
         /** @return The "j" component */
-        inline int64_t getJ() const { return m_ijk[1]; }
+        inline int64_t getJ() const { return m_pixelIndices.m_ijk[1]; }
         
         /** @return The "k" component */
-        inline int64_t getK() const { return m_ijk[2]; }
+        inline int64_t getK() const { return m_pixelIndices.m_ijk[2]; }
         
         /** @return The "ijk" components */
-        inline std::array<int64_t, 3> getIJK() const { return m_ijk; }
+        inline const int64_t* getIJK() const { return m_pixelIndices.m_ijk; }
 
+        /** @return Reference to the internal VoxelIJK */
+        inline VoxelIJK& getRefToVoxelIJK() { return m_pixelIndices; }
+        
+        /** @return Const reference to the internal VoxelIJK */
+        inline const VoxelIJK& getRefToVoxelIJK() const { return m_pixelIndices; }
+        
         /**
          * Set the "i" component
          * @param i
          *    The "i" component
          */
-        inline void setI(const int64_t i) { m_ijk[0] = i; }
+        inline void setI(const int64_t i) { m_pixelIndices.m_ijk[0] = i; }
         
         /**
          * Set the "j" component
          * @param j
          *    The "j" component
          */
-        inline void setJ(const int64_t j) { m_ijk[1] = j; }
+        inline void setJ(const int64_t j) { m_pixelIndices.m_ijk[1] = j; }
         
         /**
          * Set the "k" component
          * @param k
          *    The "k" component
          */
-        inline void setK(const int64_t k) { m_ijk[2] = k; }
+        inline void setK(const int64_t k) { m_pixelIndices.m_ijk[2] = k; }
         
         /**
          * Set the "ijk" components
          * @param ijk
          *    The "ijk" components
          */
-        inline void setIJK(const std::array<int64_t, 3>& ijk) { m_ijk = ijk; }
+        inline void setIJK(const std::array<int64_t, 3>& ijk) {
+            m_pixelIndices.m_ijk[0] = ijk[0];
+            m_pixelIndices.m_ijk[1] = ijk[1];
+            m_pixelIndices.m_ijk[2] = ijk[2];
+        }
+        
+        /**
+         * Set the "ijk" components
+         * @param i
+         *    The "i" component
+         * @param j
+         *    The "j" component
+         * @param i
+         *    The "k" component
+         */
+        inline void setIJK(const int64_t i,
+                           const int64_t j,
+                           const int64_t k) {
+            m_pixelIndices.m_ijk[0] = i;
+            m_pixelIndices.m_ijk[1] = j;
+            m_pixelIndices.m_ijk[2] = k;
+        }
         
         // ADD_NEW_METHODS_HERE
 
@@ -126,7 +153,7 @@ namespace caret {
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        std::array<int64_t, 3> m_ijk;
+        VoxelIJK m_pixelIndices;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -76,9 +76,10 @@ namespace caret {
         
         virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const override;
 
-        virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const override;
-        
-        virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const override;
+        virtual void getPixelIdentificationText(const int32_t tabIndex,
+                                                const PixelIndex& pixelIndex,
+                                                std::vector<AString>& columnOneTextOut,
+                                                std::vector<AString>& columnTwoTextOut) const;
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
         
@@ -97,6 +98,8 @@ namespace caret {
                                const PixelIndex& pixelIndex,
                                uint8_t pixelRGBAOut[4]) const;
         
+        PixelCoordinate getPixelSizeInMillimeters() const;
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -105,6 +108,10 @@ namespace caret {
           
           
     protected: 
+        virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const override;
+        
+        virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const override;
+        
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
 

@@ -8313,7 +8313,7 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
             idImage->setPixelJ(pixelY);
 
             uint8_t pixelByteRGBA[4];
-            MediaFile::PixelIndex pixelIndex(pixelX, pixelY);
+            PixelIndex pixelIndex(pixelX, pixelY);
             if (imageFile->getImagePixelRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
                                              pixelIndex,
                                              pixelByteRGBA)) {

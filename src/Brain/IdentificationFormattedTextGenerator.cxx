@@ -2042,28 +2042,28 @@ IdentificationFormattedTextGenerator::generateImageIdentificationText(HtmlTableB
                                                              const SelectionItemImage* idImage) const
 {
     if (idImage->isValid()) {
-        uint8_t pixelRGBA[4] = { 0, 0, 0, 0 };
-        idImage->getPixelRGBA(pixelRGBA);
         const ImageFile* imageFile = idImage->getImageFile();
-        if (imageFile != NULL) {
-            htmlTableBuilder.addRow("Filename",
-                                    imageFile->getFileNameNoPath());
+        std::vector<AString> columnOneText, columnTwoText;
+        imageFile->getPixelIdentificationText(idImage->getTabIndex(),
+                                              idImage->getPixelIndex(),
+                                              columnOneText,
+                                              columnTwoText);
+        const int32_t numColOne(columnOneText.size());
+        const int32_t numColTwo(columnTwoText.size());
+        const int32_t maxNum(std::max(numColOne, numColTwo));
+        for (int32_t i = 0; i < maxNum; i++) {
+            AString colOne;
+            AString colTwo;
+            if (i < numColOne) {
+                CaretAssertVectorIndex(columnOneText, i);
+                colOne = columnOneText[i];
+            }
+            if (i < numColTwo) {
+                CaretAssertVectorIndex(columnTwoText, i);
+                colTwo = columnTwoText[i];
+            }
+            htmlTableBuilder.addRow(colOne, colTwo);
         }
-        htmlTableBuilder.addRow(("RGBA (" + AString::fromNumbers(pixelRGBA, 4, ",") + ")"),
-                                ("Pixel IJ ("
-                                 + AString::number(idImage->getPixelI())
-                                 + ","
-                                 + AString::number(idImage->getPixelJ())
-                                 + ")"));
-        
-        double modelXYZ[3];
-        idImage->getModelXYZ(modelXYZ);
-        htmlTableBuilder.addRow("",
-                                ("Coord XY ("
-                                 + AString::number(modelXYZ[0], 'f', 6)
-                                 + ","
-                                 + AString::number(modelXYZ[1], 'f', 6)
-                                 + ")"));
     }
 }
 
@@ -2078,29 +2078,29 @@ void
 IdentificationFormattedTextGenerator::generateCziImageIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                                          const SelectionItemCziImage* idCziImage) const
 {
-    if (idCziImage->isValid()) {
-        uint8_t pixelRGBA[4] = { 0, 0, 0, 0 };
-        idCziImage->getPixelRGBA(pixelRGBA);
-        const CziImageFile* cziImageFile = idCziImage->getCziImageFile();
-        if (cziImageFile != NULL) {
-            htmlTableBuilder.addRow("Filename",
-                                    cziImageFile->getFileNameNoPath());
+    if (idCziImage->isValid()) {        
+        const CziImageFile* cziImageFile(idCziImage->getCziImageFile());
+        std::vector<AString> columnOneText, columnTwoText;
+        cziImageFile->getPixelIdentificationText(idCziImage->getTabIndex(),
+                                                 idCziImage->getPixelIndex(),
+                                                 columnOneText,
+                                                 columnTwoText);
+        const int32_t numColOne(columnOneText.size());
+        const int32_t numColTwo(columnTwoText.size());
+        const int32_t maxNum(std::max(numColOne, numColTwo));
+        for (int32_t i = 0; i < maxNum; i++) {
+            AString colOne;
+            AString colTwo;
+            if (i < numColOne) {
+                CaretAssertVectorIndex(columnOneText, i);
+                colOne = columnOneText[i];
+            }
+            if (i < numColTwo) {
+                CaretAssertVectorIndex(columnTwoText, i);
+                colTwo = columnTwoText[i];
+            }
+            htmlTableBuilder.addRow(colOne, colTwo);
         }
-        htmlTableBuilder.addRow(("RGBA (" + AString::fromNumbers(pixelRGBA, 4, ",") + ")"),
-                                ("Pixel IJ ("
-                                 + AString::number(idCziImage->getPixelI())
-                                 + ","
-                                 + AString::number(idCziImage->getPixelJ())
-                                 + ")"));
-        
-        double modelXYZ[3];
-        idCziImage->getModelXYZ(modelXYZ);
-        htmlTableBuilder.addRow("",
-                                ("Coord XY ("
-                                 + AString::number(modelXYZ[0], 'f', 6)
-                                 + ","
-                                 + AString::number(modelXYZ[1], 'f', 6)
-                                 + ")"));
     }
 }
 

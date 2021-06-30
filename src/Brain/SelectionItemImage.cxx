@@ -40,6 +40,8 @@ SelectionItemImage::SelectionItemImage()
 : SelectionItem(SelectionItemDataTypeEnum::IMAGE)
 {
     m_imageFile = NULL;
+    m_pixelIndex.setIJK(-1, -1, -1);
+    m_tabIndex = -1;
     m_pixelI = -1;
     m_pixelJ = -1;
     m_pixelRGBA[0] = 0;
@@ -53,6 +55,46 @@ SelectionItemImage::SelectionItemImage()
  */
 SelectionItemImage::~SelectionItemImage()
 {
+}
+
+/**
+ * @return The pixel index.
+ */
+PixelIndex
+SelectionItemImage::getPixelIndex() const
+{
+    return m_pixelIndex;
+}
+
+/**
+ * Set the pixel index.
+ * @param pixelIndex
+ *    The pixel index.
+ */
+void
+SelectionItemImage::setPixelIndex(const PixelIndex& pixelIndex)
+{
+    m_pixelIndex = pixelIndex;
+}
+
+/**
+ * @param The tab index.
+ */
+int32_t
+SelectionItemImage::getTabIndex() const
+{
+    return m_tabIndex;
+}
+
+/**
+ * Set the tab index.
+ * @param tabIndex
+ *    Index of the tab.
+ */
+void
+SelectionItemImage::setTabIndex(const int32_t tabIndex)
+{
+    m_tabIndex = tabIndex;
 }
 
 /**
@@ -136,6 +178,8 @@ SelectionItemImage::reset()
 {
     SelectionItem::reset();
     m_imageFile = NULL;
+    m_pixelIndex.setIJK(-1, -1, -1);
+    m_tabIndex = -1;
     m_pixelI = -1;
     m_pixelJ = -1;
     m_pixelRGBA[0] = 0;

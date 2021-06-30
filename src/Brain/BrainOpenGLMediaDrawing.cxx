@@ -233,7 +233,8 @@ BrainOpenGLMediaDrawing::drawModelLayers()
                     
                     if (selectImageFlag) {
                         if (imageFile != NULL) {
-                            processImageFileSelection(imageFile,
+                            processImageFileSelection(m_browserTabContent->getTabNumber(),
+                                                      imageFile,
                                                       primitive);
                         }
                         else if (cziImageFile != NULL) {
@@ -286,13 +287,16 @@ BrainOpenGLMediaDrawing::drawSelectionBox()
 
 /**
  * Process selection in an image file
+ * @param tabIndex
+ *   Index of the tab
  * @param imageFile
  *    The image file
  * @param primitive
  *    Primitive that draws image file
  */
 void
-BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
+BrainOpenGLMediaDrawing::processImageFileSelection(const int32_t tabIndex,
+                                                   ImageFile* imageFile,
                                                    GraphicsPrimitiveV3fT3f* primitive)
 {
     SelectionItemImage* idImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getImageIdentification();
@@ -337,16 +341,18 @@ BrainOpenGLMediaDrawing::processImageFileSelection(ImageFile* imageFile,
              */
             modelXYZ[2] = 0.0;
             
-            MediaFile::PixelCoordinate pixelCoordinate(modelXYZ);
-            MediaFile::PixelIndex pixelIndex;
-            const bool validIndexFlag(imageFile->spaceToIndexValid(m_browserTabContent->getTabNumber(),
-                                                                   pixelCoordinate,
-                                                                   pixelIndex));
+            PixelCoordinate pixelCoordinate(modelXYZ);
+            PixelIndex pixelIndex;
+            const bool validIndexFlag(imageFile->spaceToPixelIndexValid(m_browserTabContent->getTabNumber(),
+                                                                        pixelCoordinate,
+                                                                        pixelIndex));
             /*
              * Verify clicked location is inside image
              */
             if (validIndexFlag) {
                 idImage->setImageFile(imageFile);
+                idImage->setPixelIndex(pixelIndex);
+                idImage->setTabIndex(tabIndex);
                 idImage->setPixelI(pixelIndex.getI());
                 idImage->setPixelJ(pixelIndex.getJ());
                 
@@ -421,16 +427,18 @@ BrainOpenGLMediaDrawing::processCziImageFileSelection(const int32_t tabIndex,
              */
             modelXYZ[2] = 0.0;
             
-            MediaFile::PixelCoordinate pixelCoordinate(modelXYZ);
-            MediaFile::PixelIndex pixelIndex;
-            const bool validIndexFlag(cziImageFile->spaceToIndexValid(m_browserTabContent->getTabNumber(),
-                                                                      pixelCoordinate,
-                                                                      pixelIndex));
+            PixelCoordinate pixelCoordinate(modelXYZ);
+            PixelIndex pixelIndex;
+            const bool validIndexFlag(cziImageFile->spaceToPixelIndexValid(m_browserTabContent->getTabNumber(),
+                                                                           pixelCoordinate,
+                                                                           pixelIndex));
             /*
              * Verify clicked location is inside image
              */
             if (validIndexFlag) {
                 idCziImage->setCziImageFile(cziImageFile);
+                idCziImage->setPixelIndex(pixelIndex);
+                idCziImage->setTabIndex(tabIndex);
                 idCziImage->setPixelI(pixelIndex.getI());
                 idCziImage->setPixelJ(pixelIndex.getJ());
                 

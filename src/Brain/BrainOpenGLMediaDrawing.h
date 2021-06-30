@@ -75,7 +75,8 @@ namespace caret {
         
         void drawSelectionBox();
         
-        void processImageFileSelection(ImageFile* imageFile,
+        void processImageFileSelection(const int32_t tabIndex,
+                                       ImageFile* imageFile,
                                        GraphicsPrimitiveV3fT3f* primitive);
         
         void processCziImageFileSelection(const int32_t tabIndex,

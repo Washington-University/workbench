@@ -30,6 +30,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "LinearEquationTransform.h"
+#include "PixelIndex.h"
 
 using namespace caret;
     
@@ -77,7 +78,7 @@ m_targetRectangleOrigin(targetRectangleOrigin)
         float sx1(m_sourceRectangle.x());
         float sx2(m_sourceRectangle.x() + m_sourceRectangle.width());
         
-        const float sy0(m_sourceRectangle.y());
+        //const float sy0(m_sourceRectangle.y());
         float sy1(m_sourceRectangle.y());
         float sy2(m_sourceRectangle.y() + m_sourceRectangle.height());
         switch (m_sourceRectangleOrigin) {
@@ -88,12 +89,13 @@ m_targetRectangleOrigin(targetRectangleOrigin)
                           sy2);
                 break;
         }
+        const float sy0(sy1);
         
         const float tx0(m_targetRectangle.x());
         float tx1(m_targetRectangle.x());
         float tx2(m_targetRectangle.x() + m_targetRectangle.width());
         
-        const float ty0(m_targetRectangle.y());
+        //const float ty0(m_targetRectangle.y());
         float ty1(m_targetRectangle.y());
         float ty2(m_targetRectangle.y() + m_targetRectangle.height());
         switch (m_targetRectangleOrigin) {
@@ -104,6 +106,7 @@ m_targetRectangleOrigin(targetRectangleOrigin)
                           ty2);
                 break;
         }
+        const float ty0(ty1);
         
         AString errorMessage;
         m_xTransform = LinearEquationTransform::newInstance(sx1, sx2,
@@ -195,6 +198,22 @@ AString
 RectangleTransform::getErrorMessage() const
 {
     return m_errorMessage;
+}
+
+/**
+ * Transform the given pixel index from source to target
+ * @param sourcePixelIndex
+ *    Pixel that is transformed
+ * @return
+ *    Pixel after transformation
+ */
+PixelIndex
+RectangleTransform::transformSourceToTarget(const PixelIndex& sourcePixelIndex) const
+{
+    PixelIndex pixelIndexOut(m_xTransform->transform(sourcePixelIndex.getI()),
+                             m_yTransform->transform(sourcePixelIndex.getJ()),
+                             0);    
+    return pixelIndexOut;
 }
 
 /**

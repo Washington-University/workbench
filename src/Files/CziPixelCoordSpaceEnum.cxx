@@ -107,22 +107,30 @@ CziPixelCoordSpaceEnum::initialize()
     if (initializedFlag) {
         return;
     }
-    initializedFlag = true;
-
+    enumData.push_back(CziPixelCoordSpaceEnum(FULL_RESOLUTION_LOGICAL_TOP_LEFT,
+                                              "FULL_RESOLUTION_LOGICAL_TOP_LEFT",
+                                              "FULL_RESOLUTION_LOGICAL_TOP_LEFT Top Left",
+                                              "Logical Coordinate of full resolution image with origin (x, y) at top left"));
+    
+    enumData.push_back(CziPixelCoordSpaceEnum(FULL_RESOLUTION_PIXEL_TOP_LEFT,
+                                              "FULL_RESOLUTION_PIXEL_TOP_LEFT",
+                                              "Full Resolution Pixel Top Left",
+                                              "Pixel coordinate of full-resolution image with origin (0, 0) at top left"));
+    
     enumData.push_back(CziPixelCoordSpaceEnum(LOGICAL_TOP_LEFT,
                                              "LOGICAL_TOP_LEFT",
                                              "Logical Top Left",
-                                             "Logical Coordinate from libCZI library defining regions in the image"));
+                                             "Logical Coordinate of an image defining logical region from full resolution image"));
     
     enumData.push_back(CziPixelCoordSpaceEnum(PIXEL_BOTTOM_LEFT,
                                              "PIXEL_BOTTOM_LEFT",
                                              "Pixel Bottom Left",
-                                             "Pixel coordinate with origin (0,0) at the bottom left"));
+                                             "Pixel coordinate of image with origin (0,0) at the bottom left"));
     
     enumData.push_back(CziPixelCoordSpaceEnum(PIXEL_TOP_LEFT,
                                              "PIXEL_TOP_LEFT",
                                              "Pixel Top Lefrt",
-                                             "Pixel coordinate with origin (0,0) at the top left"));
+                                             "Pixel coordinate of image with origin (0,0) at the top left"));
 }
 
 /**

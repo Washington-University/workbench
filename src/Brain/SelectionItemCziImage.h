@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "PixelIndex.h"
 #include "SelectionItem.h"
 
 namespace caret {
@@ -42,6 +42,14 @@ namespace caret {
         const CziImageFile* getCziImageFile() const;
 
         void setCziImageFile(CziImageFile* imageFile);
+        
+        PixelIndex getPixelIndex() const;
+        
+        void setPixelIndex(const PixelIndex& pixelIndex);
+        
+        int32_t getTabIndex() const;
+        
+        void setTabIndex(const int32_t tabIndex);
         
         int32_t getPixelI() const;
         
@@ -65,6 +73,10 @@ namespace caret {
         SelectionItemCziImage& operator=(const SelectionItemCziImage&);
 
         CziImageFile* m_imageFile;
+        
+        PixelIndex m_pixelIndex;
+        
+        int32_t m_tabIndex = -1;
         
         int32_t m_pixelI;
         

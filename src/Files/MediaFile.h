@@ -28,6 +28,8 @@
 #include "CaretDataFile.h"
 #include "DefaultViewTransform.h"
 #include "NiftiEnums.h"
+#include "PixelCoordinate.h"
+#include "PixelIndex.h"
 #include "SceneClassAssistant.h"
 #include "Vector3D.h"
 #include "VoxelIJK.h"
@@ -51,67 +53,6 @@ namespace caret {
             /** Origin at top (most image formats have origin at top) */
             IMAGE_DATA_ORIGIN_AT_TOP
         };
-        
-        /**
-         * \class caret::MediaFile::PixelCoordinate
-         * \brief Coordinate for pixel data in media (image) files
-         * \ingroup Files
-         */
-        class PixelCoordinate : public Vector3D {
-        public:
-            PixelCoordinate()
-            : Vector3D(0.0, 0.0, 0.0) { }
-            
-            PixelCoordinate(const std::array<float,2>& xy)
-            : Vector3D(xy[0], xy[1], 0.0) { }
-            
-            PixelCoordinate(const std::array<float,3>& xyz)
-            : Vector3D(xyz[0], xyz[1], xyz[2]) { }
-            
-            PixelCoordinate(const float x,
-                            const float y,
-                            const float z = 0)
-            : Vector3D(x, y, z) { }
-            
-            float getX() { return *this[0]; }
-            
-            float getY() { return *this[1]; }
-            
-            float getZ() { return *this[2]; }
-            
-            void setX(const float x) { *this[0] = x; }
-            
-            void setY(const float y) { *this[1] = y; }
-            
-            void setZ(const float z) { *this[2] = z; }
-        };
-
-        /**
-         * \class caret::MediaFile::PixelIndex
-         * \brief Indexing for pixel data in media (image) files
-         * \ingroup Files
-         */
-        class PixelIndex : public VoxelIJK {
-        public:
-            PixelIndex() : VoxelIJK(0, 0, 0) { }
-            
-            PixelIndex(const int64_t i,
-                       const int64_t j,
-                       const int64_t k = 0)
-            : VoxelIJK(i, j, k) { }
-            
-            PixelIndex(const PixelCoordinate& coordinate)
-            : VoxelIJK(coordinate[0],
-                       coordinate[1],
-                       coordinate[2]) { }
-            
-            int64_t getI() const { return m_ijk[0]; }
-            
-            int64_t getJ() const { return m_ijk[1]; }
-
-            int64_t getK() const { return m_ijk[2]; }
-        };
-        
         
         virtual ~MediaFile();
         
@@ -166,21 +107,36 @@ namespace caret {
         
         const MediaFile* castToMediaFile() const;
         
-        virtual bool indexValid(const int32_t tabIndex,
+        virtual bool pixelIndexValid(const int32_t tabIndex,
                                 const PixelIndex& pixelIndex) const;
         
-        virtual PixelIndex spaceToIndex(const int32_t tabIndex,
+        virtual PixelIndex spaceToPixelIndex(const int32_t tabIndex,
                                         const PixelCoordinate& coordinate) const;
         
-        virtual bool spaceToIndexValid(const int32_t tabIndex,
+        virtual bool spaceToPixelIndexValid(const int32_t tabIndex,
                                        const PixelCoordinate& coordinate,
                                        PixelIndex& pixelIndexOut) const;
         
-        virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const = 0;
-        
-        virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const = 0;
+        virtual PixelCoordinate pixelIndexToSpace(const int32_t tabIndex,
+                                                  const PixelIndex& pixelIndex) const;
         
         virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const = 0;
+        
+        /**
+         * Get the identification text for the pixel at the given pixel index with origin at bottom left.
+         * @param tabIndex
+         *    Index of the tab in which identification took place
+         * @param pixelIndex
+         *    Index of the pixel.
+         * @param columnOneTextOut
+         *    Text for column one that is displayed to user.
+         * @param columnTwoTextOut
+         *    Text for column two that is displayed to user.
+         */
+        virtual void getPixelIdentificationText(const int32_t tabIndex,
+                                                const PixelIndex& pixelIndex,
+                                                std::vector<AString>& columnOneTextOut,
+                                                std::vector<AString>& columnTwoTextOut) const = 0;
         
         static float getMediaDrawingOrthographicHalfHeight();
         
@@ -209,6 +165,10 @@ namespace caret {
         };
         
         MediaFile(const DataFileTypeEnum::Enum dataFileType);
+        
+        virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const = 0;
+        
+        virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const = 0;
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);

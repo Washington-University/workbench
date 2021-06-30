@@ -36,6 +36,7 @@ namespace caret {
     class ControlPointFile;
     class ControlPoint3D;
     class GraphicsPrimitiveV3fT3f;
+    class RectangleTransform;
     class VolumeFile;
     
 /// File for images
@@ -201,10 +202,11 @@ public:
     
     virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const override;
     
-    virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const override;
+    virtual void getPixelIdentificationText(const int32_t tabIndex,
+                                            const PixelIndex& pixelIndex,
+                                            std::vector<AString>& columnOneTextOut,
+                                            std::vector<AString>& columnTwoTextOut) const;
     
-    virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const override;
-
     void resetOldSceneDefaultScaling();
     
     virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
@@ -219,6 +221,11 @@ public:
     static void getWorkbenchSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,
                                                          std::vector<AString>& writableExtensionsOut,
                                                          AString& defaultWritableExtension);
+    
+protected:
+    virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const override;
+    
+    virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const override;
     
 private:
     ImageFile& operator=(const ImageFile&);
@@ -242,6 +249,8 @@ private:
     void readFileMetaDataFromQImage();
     
     void writeFileMetaDataToQImage() const;
+    
+    PixelIndex transformPixelBottomLeftToTopLeft(const PixelIndex& pixelIndexBottomLeft) const;
     
     QImage* m_image;
     
@@ -267,6 +276,8 @@ private:
      */
     std::unique_ptr<BoundingBox> m_spatialBoundingBox;
 
+    mutable std::unique_ptr<RectangleTransform> m_pixelBottomLeftToTopLeftTransform;
+    
     mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitiveForMediaDrawing;
     
     static const AString SCENE_VERSION_NUMBER;

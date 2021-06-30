@@ -40,6 +40,7 @@ SelectionItemCziImage::SelectionItemCziImage()
 : SelectionItem(SelectionItemDataTypeEnum::CZI_IMAGE)
 {
     m_imageFile = NULL;
+    m_pixelIndex.setIJK(-1, -1, -1);
     m_pixelI = -1;
     m_pixelJ = -1;
     m_pixelRGBA[0] = 0;
@@ -53,6 +54,46 @@ SelectionItemCziImage::SelectionItemCziImage()
  */
 SelectionItemCziImage::~SelectionItemCziImage()
 {
+}
+
+/**
+ * @return The pixel index.
+ */
+PixelIndex
+SelectionItemCziImage::getPixelIndex() const
+{
+    return m_pixelIndex;
+}
+
+/**
+ * Set the pixel index.
+ * @param pixelIndex
+ *    The pixel index.
+ */
+void
+SelectionItemCziImage::setPixelIndex(const PixelIndex& pixelIndex)
+{
+    m_pixelIndex = pixelIndex;
+}
+
+/**
+ * @param The tab index.
+ */
+int32_t
+SelectionItemCziImage::getTabIndex() const
+{
+    return m_tabIndex;
+}
+
+/**
+ * Set the tab index.
+ * @param tabIndex
+ *    Index of the tab.
+ */
+void
+SelectionItemCziImage::setTabIndex(const int32_t tabIndex)
+{
+    m_tabIndex = tabIndex;
 }
 
 /**
@@ -136,6 +177,7 @@ SelectionItemCziImage::reset()
 {
     SelectionItem::reset();
     m_imageFile = NULL;
+    m_pixelIndex.setIJK(-1, -1, -1);
     m_pixelI = -1;
     m_pixelJ = -1;
     m_pixelRGBA[0] = 0;

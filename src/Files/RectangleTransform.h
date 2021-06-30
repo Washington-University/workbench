@@ -31,6 +31,7 @@
 namespace caret {
 
     class LinearEquationTransform;
+    class PixelIndex;
     
     class RectangleTransform : public CaretObject {
         
@@ -53,6 +54,8 @@ namespace caret {
         bool isValid() const;
         
         AString getErrorMessage() const;
+        
+        PixelIndex transformSourceToTarget(const PixelIndex& sourcePixelIndex) const;
         
         void transformSourceToTarget(const float sourceX,
                                      const float sourceY,

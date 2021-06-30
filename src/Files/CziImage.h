@@ -61,8 +61,15 @@ namespace caret {
         
         PixelIndex transformPixelIndexToSpace(const PixelIndex& pixelIndex,
                                               const CziPixelCoordSpaceEnum::Enum fromPixelCoordSpace,
-                                              const CziPixelCoordSpaceEnum::Enum toPixelCoordSpace);
+                                              const CziPixelCoordSpaceEnum::Enum toPixelCoordSpace) const;
 
+        void getPixelIdentificationText(const PixelIndex& pixelIndex,
+                                        std::vector<AString>& columnOneTextOut,
+                                        std::vector<AString>& columnTwoTextOut) const;
+
+        bool getImagePixelRGBA(const PixelIndex& pixelIndex,
+                               uint8_t pixelRGBAOut[4]) const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -113,8 +120,13 @@ namespace caret {
          */
         const QRectF m_logicalRect;
         
-        /*
-         * This rectangle defines the pixels of the image
+        /**
+         * This rectangle defines the pixels of the full-resolution image
+         */
+        QRectF m_fullResolutionPixelsRect;
+        
+        /**
+         * This rectangle defines the pixels of this image
          */
         QRectF m_pixelsRect;
         
