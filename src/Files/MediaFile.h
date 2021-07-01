@@ -166,9 +166,10 @@ namespace caret {
         
         MediaFile(const DataFileTypeEnum::Enum dataFileType);
         
-        virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const = 0;
+        virtual bool isPixelIndexValid(const int32_t tabIndex,
+                                       const PixelIndex& pixelIndex) const = 0;
         
-        virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const = 0;
+        virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const = 0;
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);

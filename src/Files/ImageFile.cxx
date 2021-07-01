@@ -1954,13 +1954,11 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
             /*
              * Coordinates at EDGE of the pixels
              */
-            const int32_t tabIndex(0); /* For image file, all tabs are the same */
-            const BoundingBox* boundingBox(getSpatialBoundingBox(tabIndex));
-            const float minX = boundingBox->getMinX();
-            const float maxX = boundingBox->getMaxX();
-            const float minY = boundingBox->getMinY();
-            const float maxY = boundingBox->getMaxY();
-            
+            const float minX = 0;
+            const float maxX = width;
+            const float minY = 0;
+            const float maxY = height;
+
             /*
              * A Triangle Strip (consisting of two triangles) is used
              * for drawing the image.
@@ -1979,17 +1977,6 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
     }
     
     return m_graphicsPrimitiveForMediaDrawing.get();
-}
-
-/**
- * @return the spatial bounding box for the given tab index
- * @param tabIndex
- *    Index of the tab
- */
-const BoundingBox*
-ImageFile::getSpatialBoundingBox(const int32_t /*tabIndex*/) const
-{
-    return m_spatialBoundingBox.get();
 }
 
 /**
@@ -2138,13 +2125,6 @@ ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
         dataFileInformation.addNameAndValue("Width (pixels)", m_image->width());
         dataFileInformation.addNameAndValue("Height (pixels)", m_image->height());
         
-        const int32_t tabIndex(0); /* For image file, all tabs are the same */
-        const BoundingBox* boundingBox(getSpatialBoundingBox(tabIndex));
-        dataFileInformation.addNameAndValue("Min X", boundingBox->getMinX());
-        dataFileInformation.addNameAndValue("Max X", boundingBox->getMaxX());
-        dataFileInformation.addNameAndValue("Min Y", boundingBox->getMinY());
-        dataFileInformation.addNameAndValue("Max Y", boundingBox->getMaxY());
-
         const float dotsPerMeter(m_image->dotsPerMeterX());
         if (dotsPerMeter > 0.0) {
             dataFileInformation.addNameAndValue("Width (meters)", m_image->width()   / dotsPerMeter);
@@ -2407,6 +2387,31 @@ ImageFile::getDefaultViewTransform(const int32_t /*tabIndex*/) const
     
     return m_defaultViewTransform;
 }
+
+/**
+ * @return True if the given pixel index is valid for the image in the given tabf
+ * @param tabIndex
+ *    Index of the tab.
+ * @param pixelIndex
+ *     Image of pixel
+ */
+bool
+ImageFile::isPixelIndexValid(const int32_t tabIndex,
+                                const PixelIndex& pixelIndex) const
+{
+    if (m_image != NULL) {
+        const int32_t i(pixelIndex.getI());
+        const int32_t j(pixelIndex.getJ());
+        if ((i >= 0)
+            && (i < m_image->width())
+            && (j >= 0)
+            && (j < m_image->height())) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 /**
  * Get the identification text for the pixel at the given pixel index with origin at bottom left.

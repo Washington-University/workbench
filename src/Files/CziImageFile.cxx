@@ -791,18 +791,6 @@ CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
     }
 }
 
-
-/**
- * @return the spatial bounding box for the given tab index
- * @param tabIndex
- *    Index of the tab
- */
-const BoundingBox*
-CziImageFile::getSpatialBoundingBox(const int32_t tabIndex) const
-{
-    return getDefaultImage()->m_spatialBoundingBox.get();
-}
-
 /**
  * @return Pixel to coordinate transform
  * @param tabIndex
@@ -844,12 +832,6 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
             
             const CziImage* cziImage = getDefaultImage();
             if (cziImage != NULL) {
-                const BoundingBox* boundingBox(cziImage->m_spatialBoundingBox.get());
-                dataFileInformation.addNameAndValue("Min X", boundingBox->getMinX());
-                dataFileInformation.addNameAndValue("Max X", boundingBox->getMaxX());
-                dataFileInformation.addNameAndValue("Min Y", boundingBox->getMinY());
-                dataFileInformation.addNameAndValue("Max Y", boundingBox->getMaxY());
-                
                 dataFileInformation.addNameAndValue("Logical X", cziImage->m_logicalRect.x());
                 dataFileInformation.addNameAndValue("Logical Y", cziImage->m_logicalRect.y());
                 dataFileInformation.addNameAndValue("Logical Width", cziImage->m_logicalRect.width());
@@ -900,6 +882,25 @@ CziImageFile::getImageForTab(const int32_t tabIndex) const
 }
 
 /**
+ * @return True if the given pixel index is valid for the image in the given tabf
+ * @param tabIndex
+ *    Index of the tab.
+ * @param pixelIndex
+ *     Image of pixel
+ */
+bool
+CziImageFile::isPixelIndexValid(const int32_t tabIndex,
+                                const PixelIndex& pixelIndex) const
+{
+    const CziImage* cziImage = getImageForTab(tabIndex);
+    if (cziImage != NULL) {
+        return cziImage->isPixelIndexValid(pixelIndex);
+    }
+    return false;
+}
+
+
+/**
  * Get the pixel RGBA at the given pixel I and J.
  *
  * @param tabIndex
@@ -940,47 +941,6 @@ CziImageFile::getImagePixelRGBA(const int32_t tabIndex,
     
     return cziImage->getImagePixelRGBA(pixelIndexIJ,
                                        pixelRGBAOut);
-
-//    const QImage* image = cziImage->m_image.get();
-//
-//    if (image != NULL) {
-//        const int32_t w = image->width();
-//        const int32_t h = image->height();
-//
-//        const int64_t pixelI(pixelIndex.getI());
-//        const int64_t pixelJ(pixelIndex.getJ());
-//        if ((pixelI >= 0)
-//            && (pixelI < w)
-//            && (pixelJ >= 0)
-//            && (pixelJ < h)) {
-//
-//            int64_t imageJ = pixelJ;
-//            switch (imageOrigin) {
-//                case IMAGE_DATA_ORIGIN_AT_BOTTOM:
-//                    imageJ = h - pixelJ - 1;
-//                    break;
-//                case IMAGE_DATA_ORIGIN_AT_TOP:
-//                    break;
-//            }
-//
-//            if ((imageJ >= 0)
-//                && (imageJ < h)) {
-//                const QRgb rgb = image->pixel(pixelI,
-//                                                imageJ);
-//                pixelRGBAOut[0] = static_cast<uint8_t>(qRed(rgb));
-//                pixelRGBAOut[1] = static_cast<uint8_t>(qGreen(rgb));
-//                pixelRGBAOut[2] = static_cast<uint8_t>(qBlue(rgb));
-//                pixelRGBAOut[3] = static_cast<uint8_t>(qAlpha(rgb));
-//
-//                return true;
-//            }
-//            else {
-//                CaretLogSevere("Invalid image J");
-//            }
-//        }
-//    }
-//
-//    return false;
 }
 
 /**

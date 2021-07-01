@@ -27,8 +27,8 @@
 
 #include <QRectF>
 
+#include "SingleChannelPyramidLevelTileAccessor.h"
 #include "MediaFile.h"
-#include "libCZI.h"
 
 class QImage;
 
@@ -76,6 +76,9 @@ namespace caret {
         
         virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const override;
 
+        virtual bool isPixelIndexValid(const int32_t tabIndex,
+                                       const PixelIndex& pixelIndex) const override;
+        
         virtual void getPixelIdentificationText(const int32_t tabIndex,
                                                 const PixelIndex& pixelIndex,
                                                 std::vector<AString>& columnOneTextOut,
@@ -108,7 +111,7 @@ namespace caret {
           
           
     protected: 
-        virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const override;
+//        virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const override;
         
         virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const override;
         

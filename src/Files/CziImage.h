@@ -32,8 +32,6 @@
 #include "MediaFile.h"
 #include "PixelIndex.h"
 #include "SceneableInterface.h"
-#include "libCZI.h"
-
 
 namespace caret {
     class CziImageFile;
@@ -66,6 +64,9 @@ namespace caret {
         void getPixelIdentificationText(const PixelIndex& pixelIndex,
                                         std::vector<AString>& columnOneTextOut,
                                         std::vector<AString>& columnTwoTextOut) const;
+
+
+        bool isPixelIndexValid(const PixelIndex& pixelIndex) const;
 
         bool getImagePixelRGBA(const PixelIndex& pixelIndex,
                                uint8_t pixelRGBAOut[4]) const;
@@ -136,11 +137,6 @@ namespace caret {
         std::unique_ptr<VolumeSpace> m_pixelToCoordinateTransform;
         
         /**
-         * Bounds of the image
-         */
-        std::unique_ptr<BoundingBox> m_spatialBoundingBox;
-        
-        /**
          * Converts between the region of interest coordinates in the image (m_image) to
          * pixel coordinates in the image.
          * The ROI coordinates have the origin in the top left (origin is rarely 0, 0)
@@ -157,12 +153,8 @@ namespace caret {
         
         mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitiveForMediaDrawing;
         
-        /*
-         * Maps from pixels
-         */
-        //std::unique_ptr<VolumeSpace> m_pixelsToCziBoundingBox;
-        
         friend class CziImageFile;
+
         // ADD_NEW_MEMBERS_HERE
 
     };

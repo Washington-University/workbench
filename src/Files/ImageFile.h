@@ -202,6 +202,9 @@ public:
     
     virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const override;
     
+    virtual bool isPixelIndexValid(const int32_t tabIndex,
+                                   const PixelIndex& pixelIndex) const override;
+    
     virtual void getPixelIdentificationText(const int32_t tabIndex,
                                             const PixelIndex& pixelIndex,
                                             std::vector<AString>& columnOneTextOut,
@@ -223,8 +226,6 @@ public:
                                                          AString& defaultWritableExtension);
     
 protected:
-    virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const override;
-    
     virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const override;
     
 private:

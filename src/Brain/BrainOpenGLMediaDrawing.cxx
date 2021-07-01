@@ -340,16 +340,15 @@ BrainOpenGLMediaDrawing::processImageFileSelection(const int32_t tabIndex,
              * "(2.0f * windowXYZ[2]) - 1.0f" may be incorrect.
              */
             modelXYZ[2] = 0.0;
-            
-            PixelCoordinate pixelCoordinate(modelXYZ);
-            PixelIndex pixelIndex;
-            const bool validIndexFlag(imageFile->spaceToPixelIndexValid(m_browserTabContent->getTabNumber(),
-                                                                        pixelCoordinate,
-                                                                        pixelIndex));
+            PixelIndex pixelIndex(modelXYZ[0],
+                                  modelXYZ[1],
+                                  modelXYZ[2]);
+
             /*
              * Verify clicked location is inside image
              */
-            if (validIndexFlag) {
+            if (imageFile->isPixelIndexValid(tabIndex,
+                                             pixelIndex)) {
                 idImage->setImageFile(imageFile);
                 idImage->setPixelIndex(pixelIndex);
                 idImage->setTabIndex(tabIndex);
@@ -426,16 +425,15 @@ BrainOpenGLMediaDrawing::processCziImageFileSelection(const int32_t tabIndex,
              * "(2.0f * windowXYZ[2]) - 1.0f" may be incorrect.
              */
             modelXYZ[2] = 0.0;
+            PixelIndex pixelIndex(modelXYZ[0],
+                                  modelXYZ[1],
+                                  modelXYZ[2]);
             
-            PixelCoordinate pixelCoordinate(modelXYZ);
-            PixelIndex pixelIndex;
-            const bool validIndexFlag(cziImageFile->spaceToPixelIndexValid(m_browserTabContent->getTabNumber(),
-                                                                           pixelCoordinate,
-                                                                           pixelIndex));
-            /*
+             /*
              * Verify clicked location is inside image
              */
-            if (validIndexFlag) {
+            if (cziImageFile->isPixelIndexValid(tabIndex,
+                                                pixelIndex)) {
                 idCziImage->setCziImageFile(cziImageFile);
                 idCziImage->setPixelIndex(pixelIndex);
                 idCziImage->setTabIndex(tabIndex);

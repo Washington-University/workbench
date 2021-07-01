@@ -70,8 +70,7 @@ m_parentCziImageFile(parentCziImageFile),
 m_image(image),
 m_fullResolutionLogicalRect(fullResolutionLogicalRect),
 m_logicalRect(logicalRect),
-m_pixelToCoordinateTransform(spatialInfo.m_volumeSpace),
-m_spatialBoundingBox(spatialInfo.m_boundingBox)
+m_pixelToCoordinateTransform(spatialInfo.m_volumeSpace)
 {
     CaretAssert(image);
     CaretAssert(spatialInfo.m_volumeSpace);
@@ -79,18 +78,18 @@ m_spatialBoundingBox(spatialInfo.m_boundingBox)
 
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-    m_fullResolutionPixelsRect = QRectF(0, 0, m_fullResolutionLogicalRect.width() - 1, m_fullResolutionLogicalRect.height() - 1);
+    m_fullResolutionPixelsRect = QRectF(0, 0, m_fullResolutionLogicalRect.width(), m_fullResolutionLogicalRect.height());
 
-    m_pixelsRect = QRectF(0, 0, m_image->width() - 1, m_image->height() - 1);
+    m_pixelsRect = QRectF(0, 0, m_image->width(), m_image->height());
     
     
-    QRectF pixelTopLeftRect(0, 0, logicalRect.width() - 1, logicalRect.height() - 1);
+    QRectF pixelTopLeftRect(0, 0, logicalRect.width(), logicalRect.height());
     m_roiCoordsToRoiPixelTopLeftTransform.reset(new RectangleTransform(logicalRect,
                                                                        RectangleTransform::Origin::TOP_LEFT,
                                                                        pixelTopLeftRect,
                                                                        RectangleTransform::Origin::TOP_LEFT));
     
-    QRectF fullImagePixelTopLeftRect(0, 0, m_fullResolutionLogicalRect.width() - 1, m_fullResolutionLogicalRect.height() - 1);
+    QRectF fullImagePixelTopLeftRect(0, 0, m_fullResolutionLogicalRect.width(), m_fullResolutionLogicalRect.height());
     m_roiPixelTopLeftToFullImagePixelTopLeftTransform.reset(new RectangleTransform(pixelTopLeftRect,
                                                                                    RectangleTransform::Origin::TOP_LEFT,
                                                                                    fullImagePixelTopLeftRect,
@@ -214,6 +213,27 @@ CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndex,
 }
 
 /**
+ * @return True if the given pixel index is valid for the image
+ * @param pixelIndex
+ *     Image of pixel
+ */
+bool
+CziImage::isPixelIndexValid(const PixelIndex& pixelIndex) const
+{
+    if (m_image != NULL) {
+        const int32_t i(pixelIndex.getI());
+        const int32_t j(pixelIndex.getJ());
+        if ((i >= 0)
+            && (i < m_image->width())
+            && (j >= 0)
+            && (j < m_image->height())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Get the identification text for the pixel at the given pixel index with origin at bottom left.
  * @param pixelIndex
  *    Index of the pixel.
@@ -239,7 +259,7 @@ CziImage::getPixelIdentificationText(const PixelIndex& pixelIndex,
     getImagePixelRGBA(pixelIndex,
                       rgba);
     columnOneTextOut.push_back(("RGBA (" + AString::fromNumbers(rgba, 4, ",") + ")"));
-    columnTwoTextOut.push_back(("Pixel IJ TL("
+    columnTwoTextOut.push_back(("Pixel IJ ("
                                 + AString::number(fullImagePixelIndex.getI())
                                 + ","
                                 + AString::number(fullImagePixelIndex.getJ())
@@ -281,8 +301,17 @@ CziImage::getImagePixelRGBA(const PixelIndex& pixelIndex,
         const int32_t w = image->width();
         const int32_t h = image->height();
         
-        const int64_t pixelI(pixelIndex.getI());
-        const int64_t pixelJ(pixelIndex.getJ());
+        /*
+         * Input pixel index has origin at bottom but
+         * QImage has origin at top.
+         */
+        const PixelIndex pixelTopLeft(transformPixelIndexToSpace(pixelIndex,
+                                                                 CziPixelCoordSpaceEnum::PIXEL_BOTTOM_LEFT,
+                                                                 CziPixelCoordSpaceEnum::PIXEL_TOP_LEFT));
+
+        const int64_t pixelI(pixelTopLeft.getI());
+        const int64_t pixelJ(pixelTopLeft.getJ());
+        
         if ((pixelI >= 0)
             && (pixelI < w)
             && (pixelJ >= 0)
@@ -378,9 +407,9 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
              * Coordinates at EDGE of the pixels
              */
             const float minX = 0;
-            const float maxX = width - 1;
+            const float maxX = width;
             const float minY = 0;
-            const float maxY = height - 1;
+            const float maxY = height;
             
             /*
              * A Triangle Strip (consisting of two triangles) is used
