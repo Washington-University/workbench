@@ -25,7 +25,6 @@
 
 #include <QImage>
 
-#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CziImageFile.h"
@@ -35,7 +34,6 @@
 #include "RectangleTransform.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
-#include "VolumeSpace.h"
 
 using namespace caret;
 
@@ -57,24 +55,18 @@ static bool cziImageDebugFlag(false);
  *    Logical Rectangle for the full-resolution source image
  * @param logicalRect
  *    Logical rectangle defining region of source image that was read from the file
- * @param spatialInfo
- *    The spatial information
  */
 CziImage::CziImage(const CziImageFile* parentCziImageFile,
                    QImage* image,
                    const QRectF& fullResolutionLogicalRect,
-                   const QRectF& logicalRect,
-                   MediaFile::SpatialInfo& spatialInfo)
+                   const QRectF& logicalRect)
 : CaretObject(),
 m_parentCziImageFile(parentCziImageFile),
 m_image(image),
 m_fullResolutionLogicalRect(fullResolutionLogicalRect),
-m_logicalRect(logicalRect),
-m_pixelToCoordinateTransform(spatialInfo.m_volumeSpace)
+m_logicalRect(logicalRect)
 {
     CaretAssert(image);
-    CaretAssert(spatialInfo.m_volumeSpace);
-    CaretAssert(spatialInfo.m_boundingBox);
 
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     

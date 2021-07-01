@@ -29,9 +29,10 @@
 
 #include "CaretObject.h"
 #include "CziPixelCoordSpaceEnum.h"
-#include "MediaFile.h"
 #include "PixelIndex.h"
 #include "SceneableInterface.h"
+
+class QImage;
 
 namespace caret {
     class CziImageFile;
@@ -46,8 +47,7 @@ namespace caret {
         CziImage(const CziImageFile* parentCziImageFile,
                  QImage* image,
                  const QRectF& fullResolutionLogicalRect,
-                 const QRectF& logicalRect,
-                 MediaFile::SpatialInfo& spatialInfo);
+                 const QRectF& logicalRect);
         
         virtual ~CziImage();
         
@@ -130,11 +130,6 @@ namespace caret {
          * This rectangle defines the pixels of this image
          */
         QRectF m_pixelsRect;
-        
-        /**
-         * Converts from pixel index to pixel coordinate
-         */
-        std::unique_ptr<VolumeSpace> m_pixelToCoordinateTransform;
         
         /**
          * Converts between the region of interest coordinates in the image (m_image) to

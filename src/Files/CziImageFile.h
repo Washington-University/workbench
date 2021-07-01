@@ -111,10 +111,6 @@ namespace caret {
           
           
     protected: 
-//        virtual const BoundingBox* getSpatialBoundingBox(const int32_t tabIndex) const override;
-        
-        virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const override;
-        
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
 

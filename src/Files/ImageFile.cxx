@@ -68,7 +68,6 @@ ImageFile::ImageFile()
     initializeMembersImageFile();
 
     readFileMetaDataFromQImage();
-    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -79,7 +78,6 @@ ImageFile::initializeMembersImageFile()
 {
     m_controlPointFile.grabNew(new ControlPointFile());
     m_fileMetaData.grabNew(new GiftiMetaData());
-    m_pixelToCoordinateTransform.reset(new VolumeSpace());
     m_image = new QImage();
     m_defaultViewTransformValidFlag = false;
 }
@@ -104,9 +102,6 @@ ImageFile::ImageFile(const ImageFile& imageFile)
         m_image = new QImage();
     }
 
-    if (imageFile.m_pixelToCoordinateTransform) {
-        m_pixelToCoordinateTransform.reset(new VolumeSpace(*imageFile.m_pixelToCoordinateTransform));
-    }
     m_fileMetaData.grabNew(new GiftiMetaData(*imageFile.m_fileMetaData));
     m_defaultViewTransform             = imageFile.m_defaultViewTransform;
     m_defaultViewTransformValidFlag    = imageFile.m_defaultViewTransformValidFlag;
@@ -130,7 +125,6 @@ ImageFile::ImageFile(const QImage& qimage)
     m_image = new QImage(qimage);
 
     readFileMetaDataFromQImage();
-    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -148,7 +142,6 @@ ImageFile::ImageFile(QImage* qimage)
     }
     m_image = qimage;
     readFileMetaDataFromQImage();
-    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -217,7 +210,6 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
         }
     }
     readFileMetaDataFromQImage();
-    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -353,7 +345,6 @@ ImageFile::setFromQImage(const QImage& qimage)
     }
     m_image = new QImage(qimage);
     readFileMetaDataFromQImage();
-    updateDefaultSpatialCoordinates();
     this->setModified();
 }
 
@@ -549,7 +540,6 @@ ImageFile::addMargin(const int marginSizeX,
         CaretLogWarning(e.whatString());
     }
     this->setModified();
-    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -748,8 +738,6 @@ ImageFile::readFile(const AString& filename)
     m_image = limitImageDimensions(m_image,
                                    filename);
     
-    updateDefaultSpatialCoordinates();
-
     readFileMetaDataFromQImage();
     
     this->clearModified();
@@ -863,8 +851,6 @@ ImageFile::appendImageAtBottom(const ImageFile& img)
     *m_fileMetaData = fileMetaDataCopy;
     
     this->setModified();
-    
-    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -1200,7 +1186,6 @@ ImageFile::resizeToWidth(const int32_t width)
                                       Qt::SmoothTransformation);
     
     *m_fileMetaData = fileMetaDataCopy;
-    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -1220,7 +1205,6 @@ ImageFile::resizeToHeight(const int32_t height)
                                        Qt::SmoothTransformation);
     
     *m_fileMetaData = fileMetaDataCopy;
-    updateDefaultSpatialCoordinates();
 }
 
 /**
@@ -1242,7 +1226,6 @@ ImageFile::resizeToMaximumWidth(const int32_t maximumWidth)
         *m_image = m_image->scaledToWidth(maximumWidth,
                                           Qt::SmoothTransformation);
         *m_fileMetaData = fileMetaDataCopy;
-        updateDefaultSpatialCoordinates();
     }
 }
 
@@ -1265,7 +1248,6 @@ ImageFile::resizeToMaximumHeight(const int32_t maximumHeight)
         *m_image = m_image->scaledToHeight(maximumHeight,
                                           Qt::SmoothTransformation);
         *m_fileMetaData = fileMetaDataCopy;
-        updateDefaultSpatialCoordinates();
     }
 }
 
@@ -1674,7 +1656,6 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
         CaretLogSevere(getFileName()
                        + " Failed to create image from byte array.");
     }
-    updateDefaultSpatialCoordinates();
 
     return successFlag;
 }
@@ -1973,17 +1954,6 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
     }
     
     return m_graphicsPrimitiveForMediaDrawing.get();
-}
-
-/**
- * @return Pixel to coordinate transform
- * @param tabIndex
- *    Index of the tab.
- */
-const VolumeSpace*
-ImageFile::getPixelToCoordinateTransform(const int32_t /*tabIndex*/) const
-{
-    return m_pixelToCoordinateTransform.get();
 }
 
 /**
@@ -2306,17 +2276,6 @@ ImageFile::supportsFileMetaData() const
 }
 
 /**
- * Update the default spatial coordinates
- */
-void
-ImageFile::updateDefaultSpatialCoordinates()
-{
-    auto spatialInfo = setDefaultSpatialCoordinates(m_image,
-                                                    MediaFile::SpatialCoordinateOrigin::CENTER);
-    m_pixelToCoordinateTransform.reset(spatialInfo.m_volumeSpace);
-}
-
-/**
  * Some older scenes did not have a default scaling.  If the users resets the view
  * after loading one of these scenes, clear the old scene status so that the
  * default scaling gets set correctly and the image fills the viewport.
@@ -2427,8 +2386,8 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
 {
     columnOneTextOut.clear();
     columnTwoTextOut.clear();
-    if ( ! pixelIndexValid(tabIndex,
-                           pixelIndex)) {
+    if ( ! isPixelIndexValid(tabIndex,
+                             pixelIndex)) {
         return;
     }
     

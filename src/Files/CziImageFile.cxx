@@ -507,13 +507,10 @@ CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
         return NULL;
     }
     
-    auto spatialInfo = setDefaultSpatialCoordinates(qImage,
-                                                    MediaFile::SpatialCoordinateOrigin::BOTTOM_LEFT);
     CziImage* cziImageOut = new CziImage(this,
                                          qImage,
                                          m_fullResolutionLogicalRect,
-                                         CziUtilities::intRectToQRect(intRectROI),
-                                         spatialInfo);
+                                         CziUtilities::intRectToQRect(intRectROI));
     return cziImageOut;
 }
 
@@ -591,13 +588,10 @@ CziImageFile::readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
         return NULL;
     }
     
-    auto spatialInfo = setDefaultSpatialCoordinates(qImage,
-                                                    MediaFile::SpatialCoordinateOrigin::BOTTOM_LEFT);
     CziImage* cziImageOut = new CziImage(this,
                                          qImage,
                                          m_fullResolutionLogicalRect,
-                                         CziUtilities::intRectToQRect(intRectROI),
-                                         spatialInfo);
+                                         CziUtilities::intRectToQRect(intRectROI));
     return cziImageOut;
 }
 
@@ -779,7 +773,7 @@ CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
 {
     columnOneTextOut.clear();
     columnTwoTextOut.clear();
-    if ( ! pixelIndexValid(tabIndex, pixelIndex)) {
+    if ( ! isPixelIndexValid(tabIndex, pixelIndex)) {
         return;
     }
     
@@ -789,17 +783,6 @@ CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
                                              columnOneTextOut,
                                              columnTwoTextOut);
     }
-}
-
-/**
- * @return Pixel to coordinate transform
- * @param tabIndex
- *    Index of the tab.
- */
-const VolumeSpace*
-CziImageFile::getPixelToCoordinateTransform(const int32_t tabIndex) const
-{
-    return getDefaultImage()->m_pixelToCoordinateTransform.get();
 }
 
 /**

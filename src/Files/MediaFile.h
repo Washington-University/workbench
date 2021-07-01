@@ -107,19 +107,6 @@ namespace caret {
         
         const MediaFile* castToMediaFile() const;
         
-        virtual bool pixelIndexValid(const int32_t tabIndex,
-                                const PixelIndex& pixelIndex) const;
-        
-        virtual PixelIndex spaceToPixelIndex(const int32_t tabIndex,
-                                        const PixelCoordinate& coordinate) const;
-        
-        virtual bool spaceToPixelIndexValid(const int32_t tabIndex,
-                                       const PixelCoordinate& coordinate,
-                                       PixelIndex& pixelIndexOut) const;
-        
-        virtual PixelCoordinate pixelIndexToSpace(const int32_t tabIndex,
-                                                  const PixelIndex& pixelIndex) const;
-        
         virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const = 0;
         
         /**
@@ -147,29 +134,10 @@ namespace caret {
           
           
     protected: 
-        enum class SpatialCoordinateOrigin {
-            BOTTOM_LEFT,
-            CENTER
-        };
-        
-        class SpatialInfo {
-        public:
-            SpatialInfo(VolumeSpace* volumeSpace,
-                        BoundingBox* boundingBox)
-            : m_volumeSpace(volumeSpace),
-            m_boundingBox(boundingBox)
-            { }
-            
-            VolumeSpace* m_volumeSpace;
-            BoundingBox* m_boundingBox;
-        };
-        
         MediaFile(const DataFileTypeEnum::Enum dataFileType);
         
         virtual bool isPixelIndexValid(const int32_t tabIndex,
                                        const PixelIndex& pixelIndex) const = 0;
-        
-        virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const = 0;
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
@@ -179,28 +147,6 @@ namespace caret {
 
         void initializeMembersMediaFile();
         
-        static SpatialInfo initializeVolumeSpace(const int32_t imageWidth,
-                                                 const int32_t imageHeight,
-                                                 const std::array<float,3> firstPixelXYZ,
-                                                 const std::array<float,3> pixelStepXYZ);
-
-        static SpatialInfo setDefaultSpatialCoordinates(const QImage* qImage,
-                                                        const SpatialCoordinateOrigin spatialOrigin);
-        
-        static void getSpatialValues(const float numPixels,
-                                     const float spatialMinimumValue,
-                                     const float spatialMaximumValue,
-                                     float& firstPixelSpatialValue,
-                                     float& lastPixelSpatialValue,
-                                     float& pixelSpatialStepValue);
-        
-        static void getDefaultSpatialValues(const float numPixels,
-                                            float& minSpatialValueOut,
-                                            float& maxSpatialValueOut,
-                                            float& firstPixelSpatialValue,
-                                            float& lastPixelSpatialValue,
-                                            float& pixelSpatialStepValue);
-
     private:
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 

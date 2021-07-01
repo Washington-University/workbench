@@ -226,7 +226,6 @@ public:
                                                          AString& defaultWritableExtension);
     
 protected:
-    virtual const VolumeSpace* getPixelToCoordinateTransform(const int32_t tabIndex) const override;
     
 private:
     ImageFile& operator=(const ImageFile&);
@@ -241,8 +240,6 @@ private:
                             QImage& intoThisImage,
                             const int positionX,
                             const int positionY);
-    
-    void updateDefaultSpatialCoordinates();
     
     static QImage* limitImageDimensions(QImage* image,
                                         const AString& filename);
@@ -266,11 +263,6 @@ private:
     mutable AString m_frameOneName;
     
     CaretPointer<ControlPointFile> m_controlPointFile;
-    
-    /**
-     * Converts from pixel index to pixel coordinate
-     */
-    std::unique_ptr<VolumeSpace> m_pixelToCoordinateTransform;
     
     mutable std::unique_ptr<RectangleTransform> m_pixelBottomLeftToTopLeftTransform;
     
