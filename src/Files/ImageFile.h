@@ -272,11 +272,6 @@ private:
      */
     std::unique_ptr<VolumeSpace> m_pixelToCoordinateTransform;
     
-    /**
-     * Bounds of the image
-     */
-    std::unique_ptr<BoundingBox> m_spatialBoundingBox;
-
     mutable std::unique_ptr<RectangleTransform> m_pixelBottomLeftToTopLeftTransform;
     
     mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitiveForMediaDrawing;

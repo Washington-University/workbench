@@ -79,7 +79,6 @@ ImageFile::initializeMembersImageFile()
 {
     m_controlPointFile.grabNew(new ControlPointFile());
     m_fileMetaData.grabNew(new GiftiMetaData());
-    m_spatialBoundingBox.reset(new BoundingBox());
     m_pixelToCoordinateTransform.reset(new VolumeSpace());
     m_image = new QImage();
     m_defaultViewTransformValidFlag = false;
@@ -105,9 +104,6 @@ ImageFile::ImageFile(const ImageFile& imageFile)
         m_image = new QImage();
     }
 
-    if (imageFile.m_spatialBoundingBox) {
-        m_spatialBoundingBox.reset(new BoundingBox(*imageFile.m_spatialBoundingBox));
-    }
     if (imageFile.m_pixelToCoordinateTransform) {
         m_pixelToCoordinateTransform.reset(new VolumeSpace(*imageFile.m_pixelToCoordinateTransform));
     }
@@ -2318,7 +2314,6 @@ ImageFile::updateDefaultSpatialCoordinates()
     auto spatialInfo = setDefaultSpatialCoordinates(m_image,
                                                     MediaFile::SpatialCoordinateOrigin::CENTER);
     m_pixelToCoordinateTransform.reset(spatialInfo.m_volumeSpace);
-    m_spatialBoundingBox.reset(spatialInfo.m_boundingBox);
 }
 
 /**
