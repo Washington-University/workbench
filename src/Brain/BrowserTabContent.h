@@ -24,6 +24,7 @@
 #include <memory>
 #include <set>
 
+#include "BoundingBox.h"
 #include "CaretObject.h"
 #include "ChartTwoAxisOrientationTypeEnum.h"
 #include "ChartTwoAxisScaleRangeModeEnum.h"
@@ -54,6 +55,7 @@ namespace caret {
     class ChartTwoMatrixDisplayProperties;
     class ChartTwoOverlaySet;
     class ClippingPlaneGroup;
+    class DefaultViewTransform;
     class EventCaretMappableDataFilesAndMapsInDisplayedOverlays;
     class GraphicsRegionSelectionBox;
     class Matrix4x4;
@@ -317,6 +319,10 @@ namespace caret {
                                     const float dataY,
                                     const bool dataXYValidFlag);
         
+        void setMediaViewToBounds(const BoundingBox* windowBounds,
+                                  const GraphicsRegionSelectionBox* selectionBounds,
+                                  const DefaultViewTransform& defaultViewTransform);
+        
         void applyMouseScaling(BrainOpenGLViewportContent* viewportContent,
                                const int32_t mousePressX,
                                const int32_t mousePressY,
@@ -463,9 +469,13 @@ namespace caret {
 
         void updateChartModelYokedBrowserTabs();
         
+        void updateMediaModelYokedBrowserTabs();
+        
         bool isBrainModelYoked() const;
         
         bool isChartModelYoked() const;
+        
+        bool isMediaModelYoked() const;
         
         YokingGroupEnum::Enum getBrainModelYokingGroup() const;
         
@@ -474,6 +484,10 @@ namespace caret {
         YokingGroupEnum::Enum getChartModelYokingGroup() const;
         
         void setChartModelYokingGroup(const YokingGroupEnum::Enum chartModelYokingType);
+        
+        YokingGroupEnum::Enum getMediaModelYokingGroup() const;
+        
+        void setMediaModelYokingGroup(const YokingGroupEnum::Enum mediaModelYokingType);
         
         bool isWholeBrainLeftEnabled() const;
         
@@ -621,6 +635,9 @@ namespace caret {
         
         /** Chart Model Yoking group */
         YokingGroupEnum::Enum m_chartModelYokingGroup;
+        
+        /** Media Model Yoking Group */
+        YokingGroupEnum::Enum m_mediaModelYokingGroup;
         
         /** Volume Surface Outlines */
         VolumeSurfaceOutlineSetModel* m_volumeSurfaceOutlineSetModel;

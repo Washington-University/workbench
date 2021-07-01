@@ -258,8 +258,9 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
         m_yokingGroupComboBox->getWidget()->setEnabled(false);
     }
     else if (mediaFlag) {
-        m_yokeToLabel->setEnabled(false);
-        m_yokingGroupComboBox->getWidget()->setEnabled(false);
+        m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getMediaModelYokingGroup());
+        m_yokeToLabel->setEnabled(true);
+        m_yokingGroupComboBox->getWidget()->setEnabled(true);
     }
     else {
         m_yokeToLabel->setEnabled(true);
@@ -317,6 +318,7 @@ BrainBrowserWindowToolBarTab::yokeToGroupComboBoxIndexChanged()
     }
     
     bool chartFlag = false;
+    bool mediaFlag = false;
     switch (browserTabContent->getSelectedModelType()) {
         case ModelTypeEnum::MODEL_TYPE_CHART:
             chartFlag = true;
@@ -327,7 +329,7 @@ BrainBrowserWindowToolBarTab::yokeToGroupComboBoxIndexChanged()
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-            //CaretAssertToDoWarning();
+            mediaFlag = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             break;
@@ -342,6 +344,9 @@ BrainBrowserWindowToolBarTab::yokeToGroupComboBoxIndexChanged()
     YokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>();
     if (chartFlag) {
         browserTabContent->setChartModelYokingGroup(yokingGroup);
+    }
+    else if (mediaFlag) {
+        browserTabContent->setMediaModelYokingGroup(yokingGroup);
     }
     else {
         browserTabContent->setBrainModelYokingGroup(yokingGroup);

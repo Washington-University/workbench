@@ -6186,6 +6186,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
 void
 Brain::sortDataFilesByFileNameNoPath()
 {
+    sortDataFileTypeByFileNameNoPath(m_cziImageFiles);
     sortDataFileTypeByFileNameNoPath(m_imageFiles);
 }
 
@@ -7590,6 +7591,14 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
                                                               caretDataFile);
     if (fociIterator != m_fociFiles.end()) {
         m_fociFiles.erase(fociIterator);
+        return true;
+    }
+    
+    std::vector<CziImageFile*>::iterator cziIterator = std::find(m_cziImageFiles.begin(),
+                                                                 m_cziImageFiles.end(),
+                                                                 caretDataFile);
+    if (cziIterator != m_cziImageFiles.end()) {
+        m_cziImageFiles.erase(cziIterator);
         return true;
     }
     

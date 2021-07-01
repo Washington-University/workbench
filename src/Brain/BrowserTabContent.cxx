@@ -138,6 +138,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
     m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+    m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
     
     m_displayVolumeAxesCrosshairs = prefs->isVolumeAxesCrosshairsDisplayed();
@@ -252,7 +253,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                                                        &m_brainModelYokingGroup);
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_chartModelYokingGroup",
                                                                        &m_chartModelYokingGroup);
-
+    m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_mediaModelYokingGroup",
+                                                                       &m_mediaModelYokingGroup);
+    
     m_sceneClassAssistant->add("m_scaleBar",
                                "AnnotationScaleBar",
                                m_scaleBar.get());
@@ -370,6 +373,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     
     m_brainModelYokingGroup = tabToClone->m_brainModelYokingGroup;
     m_chartModelYokingGroup = tabToClone->m_chartModelYokingGroup;
+    m_mediaModelYokingGroup = tabToClone->m_mediaModelYokingGroup;
     m_aspectRatio = tabToClone->m_aspectRatio;
     m_aspectRatioLocked = tabToClone->m_aspectRatioLocked;
     
@@ -2579,7 +2583,7 @@ void
 BrowserTabContent::setTranslation( const float translation[3])
 {
     getViewingTransformation()->setTranslation(translation);
-    updateBrainModelYokedBrowserTabs();
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -3508,6 +3512,27 @@ BrowserTabContent::applyMediaMouseScaling(BrainOpenGLViewportContent* viewportCo
     else {
         CaretAssertMessage(0, "MEDIA ONLY");
     }
+    updateYokedModelBrowserTabs();
+}
+
+/**
+ * Set the bounds of the view to the given selection bounds.
+ * @param windowBounds
+ *    Box containing bounds of window
+ * @param selectionBounds
+ *    Box containing bounds of selection
+ * @param defaultViewTransform
+ *    Transform for the default view
+ */
+void
+BrowserTabContent::setMediaViewToBounds(const BoundingBox* windowBounds,
+                                        const GraphicsRegionSelectionBox* selectionBounds,
+                                        const DefaultViewTransform& defaultViewTransform)
+{
+    m_mediaViewingTransformation->setViewToBounds(windowBounds,
+                                                  selectionBounds,
+                                                  defaultViewTransform);
+    updateMediaModelYokedBrowserTabs();
 }
 
 /**
@@ -4222,6 +4247,7 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_A;
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+    m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     
     initializeScaleBar();
 
@@ -4969,6 +4995,7 @@ BrowserTabContent::reset()
         m_obliqueVolumeRotationMatrix->identity();
     }
     updateBrainModelYokedBrowserTabs();
+    updateMediaModelYokedBrowserTabs();
 }
 
 /**
@@ -5511,6 +5538,48 @@ BrowserTabContent::setChartModelYokingGroup(const YokingGroupEnum::Enum chartMod
 }
 
 /**
+ * @return Selected yoking group for media
+ */
+YokingGroupEnum::Enum
+BrowserTabContent::getMediaModelYokingGroup() const
+{
+    return m_mediaModelYokingGroup;
+}
+
+/**
+ * Set the selected yoking group for media.
+ *
+ * @param mediaModelYokingType
+ *    New value for yoking group.
+ */
+void
+BrowserTabContent::setMediaModelYokingGroup(const YokingGroupEnum::Enum mediaModelYokingType)
+{
+    m_mediaModelYokingGroup = mediaModelYokingType;
+    
+    if (m_mediaModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    int32_t copyFromTabIndex = -1;
+    
+    /*
+     * Find another browser tab using the same yoking as 'me' and copy
+     * yoked data from the other browser tab.
+     */
+    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+    for (auto btc : activeTabs) {
+        if (btc != this) {
+            if (btc->getMediaModelYokingGroup() == m_mediaModelYokingGroup) {
+                copyFromTabIndex = btc->getTabNumber();
+                *m_mediaViewingTransformation = *btc->m_mediaViewingTransformation;
+                break;
+            }
+        }
+    }
+}
+
+/**
  * @return Selected yoking group for brain models (surface or volumes)
  */
 YokingGroupEnum::Enum
@@ -5591,12 +5660,24 @@ BrowserTabContent::isChartModelYoked() const
 }
 
 /**
+ * @return Is this browser tab media model yoked?
+ */
+bool
+BrowserTabContent::isMediaModelYoked() const
+{
+    const bool yoked = (m_mediaModelYokingGroup != YokingGroupEnum::YOKING_GROUP_OFF);
+    return yoked;
+}
+
+
+/**
  * Update other browser tabs with brain or chart yoked data dependent upon active model
  */
 void
 BrowserTabContent::updateYokedModelBrowserTabs()
 {
     bool chartFlag = false;
+    bool mediaFlag = false;
     
     switch (getSelectedModelType()) {
         case ModelTypeEnum::MODEL_TYPE_CHART:
@@ -5608,6 +5689,7 @@ BrowserTabContent::updateYokedModelBrowserTabs()
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            mediaFlag = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
             break;
@@ -5621,6 +5703,9 @@ BrowserTabContent::updateYokedModelBrowserTabs()
  
     if (chartFlag) {
         updateChartModelYokedBrowserTabs();
+    }
+    else if (mediaFlag) {
+        updateMediaModelYokedBrowserTabs();
     }
     else {
         updateBrainModelYokedBrowserTabs();
@@ -5706,6 +5791,36 @@ BrowserTabContent::updateChartModelYokedBrowserTabs()
             if (btc->getChartModelYokingGroup() == m_chartModelYokingGroup) {
                 *btc->m_chartTwoMatrixViewingTranformation = *m_chartTwoMatrixViewingTranformation;
                 *btc->m_chartTwoMatrixDisplayProperties = *m_chartTwoMatrixDisplayProperties;
+            }
+        }
+    }
+}
+
+/**
+ * Update other browser tabs with media model yoked data.
+ */
+void
+BrowserTabContent::updateMediaModelYokedBrowserTabs()
+{
+    if (isExecutingConstructor) {
+        return;
+    }
+    
+    if (m_mediaModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    /*
+     * Copy yoked data from 'me' to all other yoked browser tabs
+     */
+    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+    for (auto btc : activeTabs) {
+        if (btc != this) {
+            /*
+             * If anything is added, also need to update setYokingGroup()
+             */
+            if (btc->getMediaModelYokingGroup() == m_mediaModelYokingGroup) {
+                *btc->m_mediaViewingTransformation = *m_mediaViewingTransformation;
             }
         }
     }
