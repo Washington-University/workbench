@@ -7040,6 +7040,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_borderFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_cziImageFiles.begin(),
+                           m_cziImageFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_fociFiles.begin(),
                            m_fociFiles.end());
     

@@ -306,6 +306,8 @@ CziImageFile::readFile(const AString& filename)
          * File is now open
          */
         m_status = Status::OPEN;
+        
+        clearModified();
     }
     catch (const std::exception& e) {
         m_errorMessage = (filename + QString(e.what()));
