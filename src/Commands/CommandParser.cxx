@@ -47,11 +47,6 @@
 using namespace caret;
 using namespace std;
 
-const AString CommandParser::PROVENANCE_NAME = "Provenance";
-const AString CommandParser::PARENT_PROVENANCE_NAME = "ParentProvenance";
-const AString CommandParser::PROGRAM_PROVENANCE_NAME = "ProgramProvenance";
-const AString CommandParser::CWD_PROVENANCE_NAME = "WorkingDirectory";
-
 CommandParser::CommandParser(AutoOperationInterface* myAutoOper) :
     CommandOperation(myAutoOper->getCommandSwitch(), myAutoOper->getShortDescription())
 {
@@ -88,8 +83,6 @@ void CommandParser::executeOperation(ProgramParameters& parameters)
     {
         myProvHelp.m_versionProvenance += versionInfo[i] + "\n";
     }
-    myProvHelp.m_provenance = m_provenance;
-    myProvHelp.m_workingDir = m_workingDir;
     myAlgParams->prepareProvenance(&myProvHelp);
     //virtually all commands will NOT do lazy file reading, as it needs to be careful to request all inputs before any outputs
     if (m_autoOper->lazyFileReading())
@@ -105,6 +98,7 @@ void CommandParser::executeOperation(ProgramParameters& parameters)
         CaretLogWarning("developer warning: " + uncheckedWarnings[i]);
     }
     //TODO: close or deallocate input files - give abstract parameter a virtual deallocate method? use CaretPointer and rely on reference counting?
+    //WARNING: myOutAssoc (in fact, the entire parameter tree) is not smart pointers and won't keep the output files allocated
     if (m_doProvenance) provenanceAfterOperation(myOutAssoc, myProvHelp);
     writeOutput(myOutAssoc);
 }

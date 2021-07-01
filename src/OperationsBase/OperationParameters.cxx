@@ -127,7 +127,7 @@ void ProvenanceHelper::outputProvenance(GiftiMetaData* md)
 {
     if (!m_doProvenance || md == NULL) return;
     md->set(PROVENANCE_NAME, m_provenance);
-    md->set(PROGRAM_PROVENANCE_NAME, m_versionProvenance);//cifti is on-disk, so set all provenance now, because we can't later
+    md->set(PROGRAM_PROVENANCE_NAME, m_versionProvenance);
     md->set(CWD_PROVENANCE_NAME, m_workingDir);
     if (m_parentProvenance != "")
     {

@@ -37,11 +37,9 @@ namespace caret {
     class CommandParser : public CommandOperation
     {
         int m_minIndent, m_maxIndent, m_indentIncrement, m_maxWidth;
-        AString m_provenance, m_parentProvenance, m_workingDir;
         bool m_doProvenance, m_ciftiScale, m_volumeScale;
         double m_ciftiMin, m_ciftiMax, m_volumeMin, m_volumeMax;
         int16_t m_ciftiDType, m_volumeDType;
-        const static AString PROVENANCE_NAME, PARENT_PROVENANCE_NAME, PROGRAM_PROVENANCE_NAME, CWD_PROVENANCE_NAME;//TODO: put this elsewhere?
         std::map<AString, const CiftiParameter*> m_inputCiftiOnDiskMap;
         CaretPointer<AutoOperationInterface> m_autoOper;
         struct OutputAssoc
