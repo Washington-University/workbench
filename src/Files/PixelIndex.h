@@ -23,8 +23,7 @@
 
 
 #include <array>
-//#include <cstdint>
-//#include <memory>
+#include <memory>
 
 #include "CaretObject.h"
 
