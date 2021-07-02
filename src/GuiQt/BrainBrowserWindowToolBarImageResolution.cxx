@@ -104,6 +104,9 @@ m_parentToolBar(parentToolBar)
     layout->addWidget(redoToolButton);
     layout->addWidget(undoToolButton);
     layout->addStretch();
+    
+    /* HIDE since it will be replaced soon */
+    highResToolButton->setHidden(true);
 }
 
 /**
