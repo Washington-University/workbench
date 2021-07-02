@@ -264,8 +264,8 @@ BrainOpenGLMediaDrawing::drawSelectionBox()
         {
             float minX, maxX, minY, maxY;
             if (selectionBox->getBounds(minX, minY, maxX, maxY)) {
-                auto primitive = GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
-                                                                    m_fixedPipelineDrawing->m_foregroundColorFloat);
+                std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
+                                                                                                   m_fixedPipelineDrawing->m_foregroundColorFloat));
 
                 const float z(0.0f);
                 primitive->addVertex(minX, minY, z);
@@ -277,7 +277,7 @@ BrainOpenGLMediaDrawing::drawSelectionBox()
                 primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                         lineWidthPercentage);
                 
-                GraphicsEngineDataOpenGL::draw(primitive);
+                GraphicsEngineDataOpenGL::draw(primitive.get());
             }
         }
             break;
