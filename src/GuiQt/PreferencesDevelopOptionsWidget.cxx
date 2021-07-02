@@ -93,6 +93,26 @@ PreferencesDevelopOptionsWidget::PreferencesDevelopOptionsWidget(QWidget* parent
     }
 
     /*
+     * Crop scene images
+     */
+    m_cropSceneImagesComboBox = new WuQTrueFalseComboBox("On",
+                                                         "Off",
+                                                         this);
+    QObject::connect(m_cropSceneImagesComboBox, &WuQTrueFalseComboBox::statusChanged,
+                     this, &PreferencesDevelopOptionsWidget::cropSceneImagesStatusChanged);
+    const AString cropSceneToolTip("Disabling of image cropping may be useful when "
+                                   "debugging scenes where the content occupies a "
+                                   "portion of the viewing region (data may be "
+                                   "panned/zoomed");
+    WuQtUtilities::setWordWrappedToolTip(m_cropSceneImagesComboBox->getWidget(),
+                                         cropSceneToolTip);
+    QLabel* cropSceneImagesLabel = PreferencesDialog::addWidgetToLayout(gridLayout,
+                                                                        "Crop Scene Images",
+                                                                        m_cropSceneImagesComboBox->getWidget());
+    WuQtUtilities::setWordWrappedToolTip(cropSceneImagesLabel,
+                                         cropSceneToolTip);
+
+    /*
      * Image texture magnification filter
      */
     m_graphicsTextureMagnificationFilterEnumComboBox = new EnumComboBoxTemplate(this);
@@ -168,6 +188,17 @@ PreferencesDevelopOptionsWidget::updateGraphicsAndUserInterface()
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Called when crop scene image combo box changec
+ * @param status
+ *    New status
+ */
+void
+PreferencesDevelopOptionsWidget::cropSceneImagesStatusChanged(const bool status)
+{
+    CaretAssert(m_preferences);
+    m_preferences->setCropSceneImagesEnabled(status);
+}
 
 /**
  * Update the widget
@@ -186,6 +217,8 @@ PreferencesDevelopOptionsWidget::updateContent(CaretPreferences* preferences)
         
         comboBox->setStatus(DeveloperFlagsEnum::isFlag(flag));
     }
+    
+    m_cropSceneImagesComboBox->setStatus(m_preferences->isCropSceneImagesEnabled());
     
     const GraphicsTextureMinificationFilterEnum::Enum minFilter  = BrainOpenGLMediaDrawing::getTextureMinificationFilter();
     const GraphicsTextureMagnificationFilterEnum::Enum magFilter = BrainOpenGLMediaDrawing::getTextureMagnificationFilter();

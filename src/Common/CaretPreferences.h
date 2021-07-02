@@ -263,6 +263,10 @@ namespace caret {
         
         void setGraphicsFramesPerSecondEnabled(const bool status);
         
+        bool isCropSceneImagesEnabled() const;
+        
+        void setCropSceneImagesEnabled(const bool status);
+        
         WuQMacroGroup* getMacros();
         
         const WuQMacroGroup* getMacros() const;
@@ -411,6 +415,8 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_recentFilesSystemAccessMode;
         
         std::unique_ptr<CaretPreferenceDataValue> m_graphicsFramePerSecondEnabled;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_cropSceneImagesEnabled;
         
         bool splashScreenEnabled;
         

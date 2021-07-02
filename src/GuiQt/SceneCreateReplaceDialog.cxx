@@ -405,9 +405,11 @@ SceneCreateReplaceDialog::addImageToScene(Scene* scene,
                                                                       backgroundColor);
             
             if (backgroundColorValid) {
-                const int marginSize = 5;
-                compositeImageFile.cropImageRemoveBackground(marginSize,
-                                                             backgroundColor);
+                if (SessionManager::get()->getCaretPreferences()->isCropSceneImagesEnabled()) {
+                    const int marginSize = 5;
+                    compositeImageFile.cropImageRemoveBackground(marginSize,
+                                                                 backgroundColor);
+                }
             }
             
             const int MAXIMUM_IMAGE_WIDTH = 1024;
@@ -502,9 +504,11 @@ SceneCreateReplaceDialog::createSceneImage(QImage& imageOut,
                                                                       backgroundColor);
             
             if (backgroundColorValid) {
-                const int marginSize = 5;
-                compositeImageFile.cropImageRemoveBackground(marginSize,
-                                                             backgroundColor);
+                if (SessionManager::get()->getCaretPreferences()->isCropSceneImagesEnabled()) {
+                    const int marginSize = 5;
+                    compositeImageFile.cropImageRemoveBackground(marginSize,
+                                                                 backgroundColor);
+                }
             }
             
             const int MAXIMUM_IMAGE_WIDTH = 1024;

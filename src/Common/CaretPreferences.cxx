@@ -93,6 +93,12 @@ CaretPreferences::CaretPreferences()
                                                                        CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                        false));
     
+    m_cropSceneImagesEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                "sceneImagesEnabled",
+                                                                CaretPreferenceDataValue::DataType::BOOLEAN,
+                                                                CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                true));
+    
     m_toolBarWidthModePreference.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                     "toolBarWidthMode",
                                                                     CaretPreferenceDataValue::DataType::STRING,
@@ -1548,6 +1554,27 @@ void
 CaretPreferences::setGraphicsFramesPerSecondEnabled(const bool status)
 {
     m_graphicsFramePerSecondEnabled->setValue(status);
+}
+
+/**
+ * @retrurn Crop scene images enabled
+ */
+bool
+CaretPreferences::isCropSceneImagesEnabled() const
+{
+    return m_cropSceneImagesEnabled->getValue().toBool();
+}
+
+/**
+ * Set crop scene images enabled
+ *
+ *  @param status
+ *   New enabled status
+ */
+void
+CaretPreferences::setCropSceneImagesEnabled(const bool status)
+{
+    m_cropSceneImagesEnabled->setValue(status);
 }
 
 /**
