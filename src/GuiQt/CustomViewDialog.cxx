@@ -32,6 +32,7 @@
 #include <QListWidgetItem>
 #include <QPushButton>
 #include <QTextEdit>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "BrainBrowserWindow.h"
@@ -433,6 +434,14 @@ CustomViewDialog::createTransformsWidget()
                      this, SLOT(browserWindowComboBoxValueChanged(BrainBrowserWindow*)));
     
     /*
+     * Reset View button
+     */
+    QToolButton* resetViewToolButton = new QToolButton();
+    resetViewToolButton->setText("Reset View");
+    QObject::connect(resetViewToolButton, &QToolButton::clicked,
+                     this, &CustomViewDialog::resetViewToolButtonClicked);
+    
+    /*
      * Panning
      */
     const double panStep = 1.0;
@@ -630,6 +639,10 @@ CustomViewDialog::createTransformsWidget()
     gridLayout->addWidget(m_browserWindowComboBox->getWidget(),
                           row,
                           COLUMN_X);
+    gridLayout->addWidget(resetViewToolButton,
+                          row,
+                          COLUMN_Y,
+                          1, 2, Qt::AlignHCenter);
     row++;
     
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
@@ -735,6 +748,22 @@ CustomViewDialog::browserWindowComboBoxValueChanged(BrainBrowserWindow* browserW
     }
     
     updateContent(windowIndex);
+}
+
+/**
+ * Called when reset view tool button is clicked
+ */
+void
+CustomViewDialog::resetViewToolButtonClicked()
+{
+    BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
+    if (bbw != NULL) {
+        BrowserTabContent* btc = bbw->getBrowserTabContent();
+        if (btc != NULL) {
+            btc->resetView();
+            updateGraphicsWindow();
+        }
+    }
 }
 
 /**

@@ -75,6 +75,7 @@ namespace caret {
         
         void copyToTransformPushButtonClicked();
         
+        void resetViewToolButtonClicked();
         
     public:
 
