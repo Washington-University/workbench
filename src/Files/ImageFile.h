@@ -210,8 +210,6 @@ public:
                                             std::vector<AString>& columnOneTextOut,
                                             std::vector<AString>& columnTwoTextOut) const;
     
-    void resetOldSceneDefaultScaling();
-    
     virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
     
     static void getQtSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,

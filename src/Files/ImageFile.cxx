@@ -105,7 +105,6 @@ ImageFile::ImageFile(const ImageFile& imageFile)
     m_fileMetaData.grabNew(new GiftiMetaData(*imageFile.m_fileMetaData));
     m_defaultViewTransform             = imageFile.m_defaultViewTransform;
     m_defaultViewTransformValidFlag    = imageFile.m_defaultViewTransformValidFlag;
-    m_sceneCreatedBeforeDefaultScaling = imageFile.m_sceneCreatedBeforeDefaultScaling;
     m_graphicsPrimitiveForMediaDrawing.reset();
 }
 
@@ -2053,15 +2052,6 @@ ImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
     m_defaultViewTransformValidFlag = false;
     
     const int32_t sceneVersionNumber = sceneClass->getIntegerValue(ImageFile::SCENE_VERSION_NUMBER, 0);
-    
-    /*
-     * Special logic is needed for scenes created prior to
-     * the addition of default scaling
-     */
-    m_sceneCreatedBeforeDefaultScaling = false;
-    if (sceneVersionNumber < 1) {
-        m_sceneCreatedBeforeDefaultScaling = true;
-    }
 }
 
 /**
@@ -2281,18 +2271,6 @@ ImageFile::supportsFileMetaData() const
 }
 
 /**
- * Some older scenes did not have a default scaling.  If the users resets the view
- * after loading one of these scenes, clear the old scene status so that the
- * default scaling gets set correctly and the image fills the viewport.
- */
-void
-ImageFile::resetOldSceneDefaultScaling()
-{
-    m_sceneCreatedBeforeDefaultScaling = false;
-}
-
-
-/**
  * @return the default view trasform
  * @param tabIndex
  *    Index of the tab
@@ -2304,9 +2282,9 @@ ImageFile::getDefaultViewTransform(const int32_t /*tabIndex*/) const
      * For scenes created before the addition of default scaling
      * using 1.0 will restore the scene correctly.
      */
-    if (m_sceneCreatedBeforeDefaultScaling) {
-        return m_defaultViewTransform;
-    }
+//    if (m_sceneCreatedBeforeDefaultScaling) {
+//        return m_defaultViewTransform;
+//    }
     
     if ( ! m_defaultViewTransformValidFlag) {
         GraphicsPrimitiveV3fT3f* primitive = getGraphicsPrimitiveForMediaDrawing();

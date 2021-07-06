@@ -2749,15 +2749,6 @@ BrowserTabContent::resetView()
     if (isVolumeSlicesDisplayed()) {
         m_obliqueVolumeRotationMatrix->identity();
     }
-    if (isMediaDisplayed()) {
-        std::vector<MediaFile*> mediaFiles = getMediaOverlaySet()->getDisplayedMediaFiles();
-        for (auto& mf : mediaFiles) {
-            ImageFile* imageFile = mf->castToImageFile();
-            if (imageFile != NULL) {
-                imageFile->resetOldSceneDefaultScaling();
-            }
-        }
-    }
     updateYokedModelBrowserTabs();
 }
 
@@ -4271,7 +4262,8 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrowserTabContent",
-                                            7); // matrices no longer support translation/zooming
+                                            8);   // Default image scaling and CZI added
+                                            //7); // matrices no longer support translation/zooming
                                             //6); // WB-491 Flat Fixes
                                             //5); // WB-576
                                             //4);  // WB-491, 1/28/2015
@@ -4582,7 +4574,33 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
-    
+    if (sceneClass->getVersionNumber() < 8) {
+        if (getDisplayedMediaModel() != NULL) {
+            MediaOverlay* underlay(getMediaOverlaySet()->getBottomMostEnabledOverlay());
+            if (underlay != NULL) {
+                MediaFile* mediaFile(NULL);
+                int32_t frameIndex(-1);
+                underlay->getSelectionData(mediaFile, frameIndex);
+                if (mediaFile != NULL) {
+                    const float imageHeight(mediaFile->getHeight(getTabNumber()));
+                    if (imageHeight > 0.0) {
+                        /*
+                         * Old orthographic projection was +/- 500 vertically
+                         * and there was no default view/transform.  So
+                         * try to make old scenes load correctly.
+                         */
+                        const float oldViewportHeight(500.0);
+                        const float halfImageHeight(imageHeight / 2.0);
+                        const float scaleToFitWindow(halfImageHeight / oldViewportHeight);
+                        const float sceneScale = m_mediaViewingTransformation->getScaling();
+
+                        setMediaScaling(scaleToFitWindow * sceneScale);
+                    }
+                }
+            }
+        }
+    }
+
     testForRestoreSceneWarnings(sceneAttributes,
                                 sceneClass->getVersionNumber());
 }
