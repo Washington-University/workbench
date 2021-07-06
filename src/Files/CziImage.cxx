@@ -115,6 +115,30 @@ CziImage::toString() const
 }
 
 /**
+ * @return Width of image
+ */
+int32_t
+CziImage::getWidth() const
+{
+    if (m_image != NULL) {
+        return m_image->width();
+    }
+    return 0;
+}
+
+/*
+ * @return Height of image
+ */
+int32_t
+CziImage::getHeight() const
+{
+    if (m_image != NULL) {
+        return m_image->height();
+    }
+    return 0;
+}
+
+/**
  * Transform a pixel index to a different pixel space
  * @param pixelIndex
  *    The pixel index

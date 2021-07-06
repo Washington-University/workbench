@@ -3516,6 +3516,74 @@ BrowserTabContent::applyMediaMouseScaling(BrainOpenGLViewportContent* viewportCo
 }
 
 /**
+ * Set the media scaling to the given value
+ */
+void
+BrowserTabContent::setMediaScaling(const float newScaleValue)
+{
+    ModelMedia* mediaModel = getDisplayedMediaModel();
+    if (mediaModel !=NULL) {
+        MediaOverlaySet* overlaySet = getMediaOverlaySet();
+        MediaOverlay* underlay = overlaySet->getBottomMostEnabledOverlay();
+        if (underlay != NULL) {
+            MediaFile* mediaFile(NULL);
+            int32_t frameIndex(-1);
+            underlay->getSelectionData(mediaFile, frameIndex);
+            if (mediaFile != NULL) {
+                const float oldScaleValue = m_mediaViewingTransformation->getScaling();
+                if ((newScaleValue > 0.0)
+                    && (oldScaleValue > 0.0)) {
+                    const int32_t tabIndex(getTabNumber());
+                    const DefaultViewTransform defaultViewTransform = mediaFile->getDefaultViewTransform(tabIndex);
+                    const float defaultScaling(defaultViewTransform.getScaling());
+                    CaretAssert(defaultScaling > 0.0);
+                                        
+                    const float imageWidth(mediaFile->getWidth(tabIndex));
+                    const float imageHeight(mediaFile->getHeight(tabIndex));
+                    
+                    /*
+                     * Width/height of image with previous scaling
+                     */
+                    const float oldImageWidth(imageWidth * oldScaleValue);
+                    const float oldImageHeight(imageHeight * oldScaleValue);
+                    
+                    /*
+                     * Width/height of image with new scaling
+                     */
+                    const float newImageWidth(imageWidth * newScaleValue);
+                    const float newImageHeight(imageHeight * newScaleValue);
+                    
+                    /*
+                     * Need to keep image center in same location.
+                     * Origin is at the bottom left corner.
+                     * So, need to translate using the change in image width/height
+                     * and also take into account the default scaling (scales image
+                     * to fit height of window in default view).
+                     */
+                    float tx(((oldImageWidth - newImageWidth) / 2.0) * defaultScaling);
+                    float ty(((oldImageHeight - newImageHeight) / 2.0) * defaultScaling);
+                    
+                    /*
+                     * Update translation
+                     */
+                    float translation[3];
+                    m_mediaViewingTransformation->getTranslation(translation);
+                    translation[0] += tx;
+                    translation[1] += ty;
+                    m_mediaViewingTransformation->setTranslation(translation);
+                    
+                    /*
+                     * Set new scaling.
+                     */
+                    m_mediaViewingTransformation->setScaling(newScaleValue);
+                }
+            }
+        }
+    }
+}
+
+
+/**
  * Set the bounds of the view to the given selection bounds.
  * @param windowBounds
  *    Box containing bounds of window

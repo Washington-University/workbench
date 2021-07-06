@@ -555,8 +555,8 @@ CustomViewDialog::createTransformsWidget()
     m_zoomDoubleSpinBox->setSingleStep(zoomStep);
     m_zoomDoubleSpinBox->setDecimals(3);
     m_zoomDoubleSpinBox->setFixedWidth(spinBoxWidth);
-    QObject::connect(m_zoomDoubleSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(transformValueChanged()));
+    QObject::connect(m_zoomDoubleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &CustomViewDialog::zoomValueChanged);
     
     /*
      * Flat offset
@@ -736,6 +736,31 @@ CustomViewDialog::browserWindowComboBoxValueChanged(BrainBrowserWindow* browserW
     
     updateContent(windowIndex);
 }
+
+/**
+ * Called when zoom value is changed
+ * @param value
+ *    New zoom value.
+ */
+void
+CustomViewDialog::zoomValueChanged(double value)
+{
+    BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
+    if (bbw != NULL) {
+        BrowserTabContent* btc = bbw->getBrowserTabContent();
+        if (btc != NULL) {
+            ModelMedia* mediaModel = btc->getDisplayedMediaModel();
+            if (mediaModel != NULL) {
+                btc->setMediaScaling(value);
+                updateGraphicsWindow();
+                return;
+            }
+        }
+    }
+    
+    transformValueChanged();
+}
+
 
 /**
  * Called when a transform value is changed.

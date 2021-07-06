@@ -72,6 +72,10 @@ namespace caret {
         
         const GiftiMetaData* getFileMetaData() const override;
         
+        virtual int32_t getWidth(const int32_t tabIndex) const override;
+        
+        virtual int32_t getHeight(const int32_t tabIndex) const override;
+
         virtual int32_t getNumberOfFrames() const override;
         
         virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const override;

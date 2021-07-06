@@ -8061,8 +8061,9 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
 {
     CaretAssert(vpContent);
     
-    const int32_t originalImageWidth  = imageFile->getWidth();
-    const int32_t originalImageHeight = imageFile->getHeight();
+    const int32_t tabIndex(vpContent->getTabIndex());
+    const int32_t originalImageWidth  = imageFile->getWidth(tabIndex);
+    const int32_t originalImageHeight = imageFile->getHeight(tabIndex);
     const int32_t originalNumberOfPixels = originalImageWidth * originalImageHeight;
     if (originalNumberOfPixels <= 0) {
         return;

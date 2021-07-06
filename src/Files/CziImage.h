@@ -71,6 +71,10 @@ namespace caret {
         bool getImagePixelRGBA(const PixelIndex& pixelIndex,
                                uint8_t pixelRGBAOut[4]) const;
         
+        int32_t getWidth() const;
+        
+        int32_t getHeight() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

@@ -1564,10 +1564,12 @@ ImageFile::getImageResizedBytes(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
 }
 
 /**
- * @return width of image (zero if image is invalid)
+ * @return width of media file in the given tab index
+ * @param tabIndex
+ *    Index of tab
  */
 int32_t
-ImageFile::getWidth() const
+ImageFile::getWidth(const int32_t /*tabIndex*/) const
 {
     int32_t w = 0;
     
@@ -1579,10 +1581,12 @@ ImageFile::getWidth() const
 }
 
 /**
- * @return height of image (zero if image is invalid)
+ * @return height of media file in the given tab index
+ * @param tabIndex
+ *    Index of tab
  */
 int32_t
-ImageFile::getHeight() const
+ImageFile::getHeight(const int32_t /*tabIndex*/) const
 {
     int32_t h = 0;
     
@@ -1969,7 +1973,8 @@ ImageFile::transformPixelBottomLeftToTopLeft(const PixelIndex& pixelIndexBottomL
     PixelIndex pixelTopLeft;
     
     if ( ! m_pixelBottomLeftToTopLeftTransform) {
-        QRect rect(0, 0, getWidth() - 1, getHeight() - 1);
+        const int32_t tabIndex(0); /* images are same in all tabs*/
+        QRect rect(0, 0, getWidth(tabIndex) - 1, getHeight(tabIndex) - 1);
         m_pixelBottomLeftToTopLeftTransform.reset(new RectangleTransform(rect,
                                                                          RectangleTransform::Origin::BOTTOM_LEFT,
                                                                          rect,

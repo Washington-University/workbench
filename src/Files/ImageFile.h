@@ -128,10 +128,10 @@ public:
                            const PixelIndex& pixelIndex,
                            uint8_t pixelRGBAOut[4]) const;
     
-    int32_t getWidth() const;
+    virtual int32_t getWidth(const int32_t tabIndex) const override;
     
-    int32_t getHeight() const;
-    
+    virtual int32_t getHeight(const int32_t tabIndex) const override;
+
     virtual void readFile(const AString& filename) override;
     
     virtual void writeFile(const AString& filename) override;

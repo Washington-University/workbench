@@ -57,6 +57,8 @@ namespace caret {
         CustomViewDialog& operator=(const CustomViewDialog&);
         
     private slots:
+        void zoomValueChanged(double value);
+        
         void transformValueChanged();
         
         void newCustomViewPushButtonClicked();
