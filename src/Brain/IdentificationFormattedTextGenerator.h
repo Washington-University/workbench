@@ -105,6 +105,10 @@ namespace caret {
                                   const DataToolTipsManager* dataToolTipsManager,
                                   IdentificationStringBuilder& idText) const;
         
+        void generateMediaToolTip(const SelectionManager* selectionManager,
+                                  const DataToolTipsManager* dataToolTipsManager,
+                                  IdentificationStringBuilder& idText) const;
+
         void generateSurfaceBorderIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
                                                     IdentificationStringBuilder& idText,
                                                     const SelectionItemBorderSurface* idSurfaceBorder,
@@ -137,9 +141,11 @@ namespace caret {
                                                    const SelectionItemSurfaceNode* idSurfaceNode) const;
 
         void generateImageIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                             IdentificationStringBuilder& idText,
                                              const SelectionItemImage* idImage) const;
         
         void generateCziImageIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                IdentificationStringBuilder& idText,
                                                 const SelectionItemCziImage* idCziImage) const;
         
         void generateVolumeVoxelIdentificationText(HtmlTableBuilder& htmlTableBuilder,

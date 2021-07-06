@@ -137,7 +137,8 @@ namespace caret {
         virtual void getPixelIdentificationText(const int32_t tabIndex,
                                                 const PixelIndex& pixelIndex,
                                                 std::vector<AString>& columnOneTextOut,
-                                                std::vector<AString>& columnTwoTextOut) const = 0;
+                                                std::vector<AString>& columnTwoTextOut,
+                                                std::vector<AString>& toolTipTextOut) const = 0;
         
         static float getMediaDrawingOrthographicHalfHeight();
         

@@ -2278,14 +2278,6 @@ ImageFile::supportsFileMetaData() const
 DefaultViewTransform
 ImageFile::getDefaultViewTransform(const int32_t /*tabIndex*/) const
 {
-    /*
-     * For scenes created before the addition of default scaling
-     * using 1.0 will restore the scene correctly.
-     */
-//    if (m_sceneCreatedBeforeDefaultScaling) {
-//        return m_defaultViewTransform;
-//    }
-    
     if ( ! m_defaultViewTransformValidFlag) {
         GraphicsPrimitiveV3fT3f* primitive = getGraphicsPrimitiveForMediaDrawing();
         if (primitive) {
@@ -2365,10 +2357,12 @@ void
 ImageFile::getPixelIdentificationText(const int32_t tabIndex,
                                       const PixelIndex& pixelIndex,
                                       std::vector<AString>& columnOneTextOut,
-                                      std::vector<AString>& columnTwoTextOut) const
+                                      std::vector<AString>& columnTwoTextOut,
+                                      std::vector<AString>& toolTipTextOut) const
 {
     columnOneTextOut.clear();
     columnTwoTextOut.clear();
+    toolTipTextOut.clear();
     if ( ! isPixelIndexValid(tabIndex,
                              pixelIndex)) {
         return;
@@ -2380,18 +2374,23 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
     columnOneTextOut.push_back("Filename");
     columnTwoTextOut.push_back(getFileNameNoPath());
     
-    columnOneTextOut.push_back(("RGBA (" + AString::fromNumbers(rgba, 4, ",") + ")"));
+    const AString rgbaText(("RGBA (" + AString::fromNumbers(rgba, 4, ",") + ")"));
+    columnOneTextOut.push_back(rgbaText);
+    toolTipTextOut.push_back(rgbaText);
     
     /*
      * Input pixel has origin at the bottom left but we report pixel
      * for origin at top left
      */
     const PixelIndex pixelIndexTopLeft(transformPixelBottomLeftToTopLeft(pixelIndex));
-    columnTwoTextOut.push_back(("Pixel IJ ("
-                                + AString::number(pixelIndexTopLeft.getI())
-                                + ","
-                                + AString::number(pixelIndexTopLeft.getJ())
-                                + ")"));
+    const AString pixelText("Pixel IJ ("
+                             + AString::number(pixelIndexTopLeft.getI())
+                             + ","
+                             + AString::number(pixelIndexTopLeft.getJ())
+                             + ")");
+    columnTwoTextOut.push_back(pixelText);
+    toolTipTextOut.push_back(pixelText);
+    
     const float dotsPerMeter(m_image->dotsPerMeterX());
     if (dotsPerMeter > 0.0) {
         /*
@@ -2401,10 +2400,12 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
         const float xMillimeters(pixelIndexTopLeft.getI() * metersPerDot * 100.0);
         const float yMillimeters(pixelIndexTopLeft.getJ() * metersPerDot * 100.0);
         columnOneTextOut.push_back("");
-        columnTwoTextOut.push_back("("
-                                   + AString::number(xMillimeters, 'f', 2)
-                                   + "mm, "
-                                   + AString::number(yMillimeters, 'f', 2)
-                                   + "mm)");
+        const AString mmText("("
+                             + AString::number(xMillimeters, 'f', 2)
+                             + "mm, "
+                             + AString::number(yMillimeters, 'f', 2)
+                             + "mm)");
+        columnTwoTextOut.push_back(mmText);
+        toolTipTextOut.push_back(mmText);
     }
 }

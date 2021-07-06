@@ -146,6 +146,8 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     chartHtmlTableBuilder->setTitleBold("Charts");
     std::unique_ptr<HtmlTableBuilder> geometryHtmlTableBuilder = createHtmlTableBuilder(3);
     geometryHtmlTableBuilder->setTitleBold("Geometry");
+    std::unique_ptr<HtmlTableBuilder> cziImageHtmlTableBuilder = createHtmlTableBuilder(2);
+    cziImageHtmlTableBuilder->setTitlePlain("CZI Image");
     std::unique_ptr<HtmlTableBuilder> imageHtmlTableBuilder = createHtmlTableBuilder(2);
     imageHtmlTableBuilder->setTitlePlain("Image");
     std::unique_ptr<HtmlTableBuilder> labelHtmlTableBuilder = createHtmlTableBuilder(2);
@@ -265,10 +267,12 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     this->generateCiftiConnectivityMatrixIdentificationText(*chartHtmlTableBuilder,
                                                             selectionManager->getCiftiConnectivityMatrixRowColumnIdentification());
     
-    this->generateCziImageIdentificationText(*imageHtmlTableBuilder,
+    this->generateCziImageIdentificationText(*cziImageHtmlTableBuilder,
+                                             idText,
                                              selectionManager->getCziImageIdentification());
     
     this->generateImageIdentificationText(*imageHtmlTableBuilder,
+                                          idText,
                                           selectionManager->getImageIdentification());
     
     AString textOut;
@@ -277,6 +281,7 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     textOut.append(scalarHtmlTableBuilder->getAsHtmlTable());
     textOut.append(layersHtmlTableBuilder->getAsHtmlTable());
     textOut.append(chartHtmlTableBuilder->getAsHtmlTable());
+    textOut.append(cziImageHtmlTableBuilder->getAsHtmlTable());
     textOut.append(imageHtmlTableBuilder->getAsHtmlTable());
     return textOut;
 }
@@ -388,6 +393,8 @@ IdentificationFormattedTextGenerator::createToolTipText(const Brain* brain,
     
     const SelectionItemSurfaceNode* selectedNode = selectionManager->getSurfaceNodeIdentification();
     const SelectionItemVoxel* selectedVoxel = selectionManager->getVoxelIdentification();
+    const SelectionItemImage* selectedImage = selectionManager->getImageIdentification();
+    const SelectionItemCziImage* selectedCziImage = selectionManager->getCziImageIdentification();
     
     IdentificationStringBuilder idText;
     
@@ -403,6 +410,12 @@ IdentificationFormattedTextGenerator::createToolTipText(const Brain* brain,
                               selectionManager,
                               dataToolTipsManager,
                               idText);
+    }
+    else if (selectedImage->isValid()
+             || selectedCziImage->isValid()) {
+        generateMediaToolTip(selectionManager,
+                             dataToolTipsManager,
+                             idText);
     }
     else {
         generateChartToolTip(selectionManager,
@@ -2039,15 +2052,17 @@ IdentificationFormattedTextGenerator::generateVolumeFocusIdentifcationText(HtmlT
  */
 void
 IdentificationFormattedTextGenerator::generateImageIdentificationText(HtmlTableBuilder& htmlTableBuilder,
-                                                             const SelectionItemImage* idImage) const
+                                                                      IdentificationStringBuilder& idText,
+                                                                      const SelectionItemImage* idImage) const
 {
     if (idImage->isValid()) {
         const ImageFile* imageFile = idImage->getImageFile();
-        std::vector<AString> columnOneText, columnTwoText;
+        std::vector<AString> columnOneText, columnTwoText, toolTipText;
         imageFile->getPixelIdentificationText(idImage->getTabIndex(),
                                               idImage->getPixelIndex(),
                                               columnOneText,
-                                              columnTwoText);
+                                              columnTwoText,
+                                              toolTipText);
         const int32_t numColOne(columnOneText.size());
         const int32_t numColTwo(columnTwoText.size());
         const int32_t maxNum(std::max(numColOne, numColTwo));
@@ -2064,6 +2079,15 @@ IdentificationFormattedTextGenerator::generateImageIdentificationText(HtmlTableB
             }
             htmlTableBuilder.addRow(colOne, colTwo);
         }
+        
+        /*
+         * For tooltip
+         */
+        for (const auto& text : toolTipText) {
+            bool indentFlag(false);
+            idText.addLine(indentFlag,
+                           text);
+        }
     }
 }
 
@@ -2076,15 +2100,17 @@ IdentificationFormattedTextGenerator::generateImageIdentificationText(HtmlTableB
  */
 void
 IdentificationFormattedTextGenerator::generateCziImageIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                                         IdentificationStringBuilder& idText,
                                                                          const SelectionItemCziImage* idCziImage) const
 {
     if (idCziImage->isValid()) {        
         const CziImageFile* cziImageFile(idCziImage->getCziImageFile());
-        std::vector<AString> columnOneText, columnTwoText;
+        std::vector<AString> columnOneText, columnTwoText, toolTipText;
         cziImageFile->getPixelIdentificationText(idCziImage->getTabIndex(),
                                                  idCziImage->getPixelIndex(),
                                                  columnOneText,
-                                                 columnTwoText);
+                                                 columnTwoText,
+                                                 toolTipText);
         const int32_t numColOne(columnOneText.size());
         const int32_t numColTwo(columnTwoText.size());
         const int32_t maxNum(std::max(numColOne, numColTwo));
@@ -2100,6 +2126,15 @@ IdentificationFormattedTextGenerator::generateCziImageIdentificationText(HtmlTab
                 colTwo = columnTwoText[i];
             }
             htmlTableBuilder.addRow(colOne, colTwo);
+        }
+
+        /*
+         * For tooltip
+         */
+        for (const auto& text : toolTipText) {
+            bool indentFlag(false);
+            idText.addLine(indentFlag,
+                           text);
         }
     }
 }
@@ -2417,6 +2452,37 @@ IdentificationFormattedTextGenerator::generateChartToolTip(const SelectionManage
     }
 }
 
+/**
+ * Get text for the tooltip for media
+ *
+ * @param selectionManager
+ *     The selection manager.
+ * @param dataToolTipsManager
+ *     The data tooltips manager
+ * @param idText
+ *     String builder for identification text.
+ */
+void
+IdentificationFormattedTextGenerator::generateMediaToolTip(const SelectionManager* selectionManager,
+                                                           const DataToolTipsManager* dataToolTipsManager,
+                                                           IdentificationStringBuilder& idText) const
+{
+    std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder(3);
+    
+    const SelectionItemImage* imageSelection = selectionManager->getImageIdentification();
+    const SelectionItemCziImage* cziImageSelection = selectionManager->getCziImageIdentification();
+    
+    if (imageSelection->isValid()) {
+        generateImageIdentificationText(*htmlTableBuilder,
+                                        idText,
+                                        imageSelection);
+    }
+    else if (cziImageSelection->isValid()) {
+        generateCziImageIdentificationText(*htmlTableBuilder,
+                                           idText,
+                                           cziImageSelection);
+    }
+}
 
 
 /**

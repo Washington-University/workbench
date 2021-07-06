@@ -796,24 +796,30 @@ CziImageFile::getDefaultViewTransform(const int32_t tabIndex) const
  *    Text for column one that is displayed to user.
  * @param columnTwoTextOut
  *    Text for column two that is displayed to user.
- */
+ * @param toolTipTextOut
+ *    Text for tooltip
+*/
 void
 CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
                                          const PixelIndex& pixelIndex,
                                          std::vector<AString>& columnOneTextOut,
-                                         std::vector<AString>& columnTwoTextOut) const
+                                         std::vector<AString>& columnTwoTextOut,
+                                         std::vector<AString>& toolTipTextOut) const
 {
     columnOneTextOut.clear();
     columnTwoTextOut.clear();
+    toolTipTextOut.clear();
     if ( ! isPixelIndexValid(tabIndex, pixelIndex)) {
         return;
     }
     
     const CziImage* cziImage = getImageForTab(tabIndex);
     if (cziImage != NULL) {
-        cziImage->getPixelIdentificationText(pixelIndex,
+        cziImage->getPixelIdentificationText(getFileNameNoPath(),
+                                             pixelIndex,
                                              columnOneTextOut,
-                                             columnTwoTextOut);
+                                             columnTwoTextOut,
+                                             toolTipTextOut);
     }
 }
 

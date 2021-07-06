@@ -61,9 +61,11 @@ namespace caret {
                                               const CziPixelCoordSpaceEnum::Enum fromPixelCoordSpace,
                                               const CziPixelCoordSpaceEnum::Enum toPixelCoordSpace) const;
 
-        void getPixelIdentificationText(const PixelIndex& pixelIndex,
+        void getPixelIdentificationText(const AString& filename,
+                                        const PixelIndex& pixelIndex,
                                         std::vector<AString>& columnOneTextOut,
-                                        std::vector<AString>& columnTwoTextOut) const;
+                                        std::vector<AString>& columnTwoTextOut,
+                                        std::vector<AString>& toolTipTextOut) const;
 
 
         bool isPixelIndexValid(const PixelIndex& pixelIndex) const;

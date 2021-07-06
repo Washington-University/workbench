@@ -251,18 +251,27 @@ CziImage::isPixelIndexValid(const PixelIndex& pixelIndex) const
 
 /**
  * Get the identification text for the pixel at the given pixel index with origin at bottom left.
+ * @param filename
+ *    Name of CZI file
  * @param pixelIndex
  *    Index of the pixel.
  * @param columnOneTextOut
  *    Text for column one that is displayed to user.
  * @param columnTwoTextOut
  *    Text for column two that is displayed to user.
+ * @param toolTipTextOut
+ *    Text for tooltip
  */
 void
-CziImage::getPixelIdentificationText(const PixelIndex& pixelIndex,
-                                std::vector<AString>& columnOneTextOut,
-                                std::vector<AString>& columnTwoTextOut) const
+CziImage::getPixelIdentificationText(const AString& filename,
+                                     const PixelIndex& pixelIndex,
+                                     std::vector<AString>& columnOneTextOut,
+                                     std::vector<AString>& columnTwoTextOut,
+                                     std::vector<AString>& toolTipTextOut) const
 {
+    columnOneTextOut.push_back("Filename");
+    columnTwoTextOut.push_back(filename);
+    
     /*
      * NOTE: Do not clear the column text outputs as CziImageFile has
      * done that.
@@ -274,22 +283,29 @@ CziImage::getPixelIdentificationText(const PixelIndex& pixelIndex,
     uint8_t rgba[4];
     getImagePixelRGBA(pixelIndex,
                       rgba);
-    columnOneTextOut.push_back(("RGBA (" + AString::fromNumbers(rgba, 4, ",") + ")"));
-    columnTwoTextOut.push_back(("Pixel IJ ("
-                                + AString::number(fullImagePixelIndex.getI())
-                                + ","
-                                + AString::number(fullImagePixelIndex.getJ())
-                                + ")"));
+    const AString rgbaText("RGBA (" + AString::fromNumbers(rgba, 4, ",") + ")");
+    columnOneTextOut.push_back(rgbaText);
+    toolTipTextOut.push_back(rgbaText);
+    
+    const AString pixelText("Pixel IJ ("
+                            + AString::number(fullImagePixelIndex.getI())
+                            + ","
+                            + AString::number(fullImagePixelIndex.getJ())
+                            + ")");
+    columnTwoTextOut.push_back(pixelText);
+    toolTipTextOut.push_back(pixelText);
     
     const PixelCoordinate pixelsSize(m_parentCziImageFile->getPixelSizeInMillimeters());
     const float pixelX(fullImagePixelIndex.getI() * pixelsSize.getX());
     const float pixelY(fullImagePixelIndex.getJ() * pixelsSize.getY());
     columnOneTextOut.push_back("");
-    columnTwoTextOut.push_back(("("
-                                + AString::number(pixelX, 'f', 3)
-                                + "mm,"
-                                + AString::number(pixelY, 'f', 3)
-                                + "mm)"));
+    const AString mmText("("
+                         + AString::number(pixelX, 'f', 3)
+                         + "mm,"
+                         + AString::number(pixelY, 'f', 3)
+                         + "mm)");
+    columnTwoTextOut.push_back(mmText);
+    toolTipTextOut.push_back(mmText);
 }
 
 /**
