@@ -302,6 +302,26 @@ DataToolTipsManager::setShowChart(const bool status)
     m_showChartFlag = status;
 }
 
+/**
+ * @return Is show media enabled?
+ */
+bool
+DataToolTipsManager::isShowMedia() const
+{
+    return m_showMediaFlag;
+}
+
+/**
+ * Set status for show media
+ *
+ * @param status
+ *     New status.
+ */
+void
+DataToolTipsManager::setShowMedia(const bool status)
+{
+    m_showMediaFlag = status;
+}
 
 /**
  * Get a description of this object's content.

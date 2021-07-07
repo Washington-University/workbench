@@ -2467,20 +2467,22 @@ IdentificationFormattedTextGenerator::generateMediaToolTip(const SelectionManage
                                                            const DataToolTipsManager* dataToolTipsManager,
                                                            IdentificationStringBuilder& idText) const
 {
-    std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder(3);
-    
-    const SelectionItemImage* imageSelection = selectionManager->getImageIdentification();
-    const SelectionItemCziImage* cziImageSelection = selectionManager->getCziImageIdentification();
-    
-    if (imageSelection->isValid()) {
-        generateImageIdentificationText(*htmlTableBuilder,
-                                        idText,
-                                        imageSelection);
-    }
-    else if (cziImageSelection->isValid()) {
-        generateCziImageIdentificationText(*htmlTableBuilder,
-                                           idText,
-                                           cziImageSelection);
+    if (dataToolTipsManager->isShowMedia()) {
+        std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder(3);
+        
+        const SelectionItemImage* imageSelection = selectionManager->getImageIdentification();
+        const SelectionItemCziImage* cziImageSelection = selectionManager->getCziImageIdentification();
+        
+        if (imageSelection->isValid()) {
+            generateImageIdentificationText(*htmlTableBuilder,
+                                            idText,
+                                            imageSelection);
+        }
+        else if (cziImageSelection->isValid()) {
+            generateCziImageIdentificationText(*htmlTableBuilder,
+                                               idText,
+                                               cziImageSelection);
+        }
     }
 }
 

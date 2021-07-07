@@ -86,6 +86,10 @@ namespace caret {
         
         void setShowChart(const bool status);
         
+        bool isShowMedia() const;
+        
+        void setShowMedia(const bool status);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -131,6 +135,8 @@ namespace caret {
         bool m_showFocusFlag = true;
         
         bool m_showChartFlag = true;
+        
+        bool m_showMediaFlag = true;
         
         // ADD_NEW_MEMBERS_HERE
 
