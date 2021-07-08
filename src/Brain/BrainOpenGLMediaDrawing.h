@@ -36,6 +36,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class CziImageFile;
+    class GraphicsObjectToWindowTransform;
     class GraphicsPrimitiveV3fT3f;
     class ImageFile;
     class ModelMedia;
@@ -71,7 +72,8 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void drawModelLayers();
+        void drawModelLayers(const GraphicsObjectToWindowTransform* transform,
+                             const int32_t tabIndex);
         
         void drawSelectionBox();
         

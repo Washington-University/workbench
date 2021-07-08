@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_IMAGE_RESOLUTION_DECLARE__
-#include "BrainBrowserWindowToolBarImageResolution.h"
-#undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_IMAGE_RESOLUTION_DECLARE__
+#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_IMAGE_DECLARE__
+#include "BrainBrowserWindowToolBarImage.h"
+#undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_IMAGE_DECLARE__
 
 #include <QAction>
 #include <QLabel>
@@ -45,8 +45,8 @@ using namespace caret;
 
     
 /**
- * \class caret::BrainBrowserWindowToolBarImageResolution
- * \brief Image Resolution Component of Brain Browser Window ToolBar
+ * \class caret::BrainBrowserWindowToolBarImage
+ * \brief Image Component of Brain Browser Window ToolBar
  * \ingroup GuiQt
  */
 
@@ -56,7 +56,7 @@ using namespace caret;
  * @param parentToolBar
  *    parent toolbar.
  */
-BrainBrowserWindowToolBarImageResolution::BrainBrowserWindowToolBarImageResolution(BrainBrowserWindowToolBar* parentToolBar,
+BrainBrowserWindowToolBarImage::BrainBrowserWindowToolBarImage(BrainBrowserWindowToolBar* parentToolBar,
                                                                                    const QString& parentObjectName)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
@@ -68,14 +68,14 @@ m_parentToolBar(parentToolBar)
     m_highResolutionAction->setText("High Res");
     WuQtUtilities::setWordWrappedToolTip(m_highResolutionAction, toolTip);
     QObject::connect(m_highResolutionAction, &QAction::toggled,
-                     this, &BrainBrowserWindowToolBarImageResolution::highResolutionActionToggled);
+                     this, &BrainBrowserWindowToolBarImage::highResolutionActionToggled);
 
     QToolButton* highResToolButton = new QToolButton();
     highResToolButton->setDefaultAction(m_highResolutionAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(highResToolButton);
 
     highResToolButton->setObjectName(parentObjectName
-                                     + ":BrainBrowserWindowToolBarImageResolution:HighResToolButton");
+                                     + ":BrainBrowserWindowToolBarImage:HighResToolButton");
     WuQMacroManager::instance()->addMacroSupportToObject(highResToolButton,
                                                          "Enable high-resolution image selection");
 
@@ -112,7 +112,7 @@ m_parentToolBar(parentToolBar)
 /**
  * Destructor.
  */
-BrainBrowserWindowToolBarImageResolution::~BrainBrowserWindowToolBarImageResolution()
+BrainBrowserWindowToolBarImage::~BrainBrowserWindowToolBarImage()
 {
 }
 
@@ -123,7 +123,7 @@ BrainBrowserWindowToolBarImageResolution::~BrainBrowserWindowToolBarImageResolut
  *     Content of the browser tab.
  */
 void
-BrainBrowserWindowToolBarImageResolution::updateContent(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBarImage::updateContent(BrowserTabContent* browserTabContent)
 {
     m_browserTabContent = browserTabContent;
 
@@ -151,7 +151,7 @@ BrainBrowserWindowToolBarImageResolution::updateContent(BrowserTabContent* brows
  * @return Undo stack for this tab or NULL if not valid
  */
 CaretUndoStack*
-BrainBrowserWindowToolBarImageResolution::getUndoStack()
+BrainBrowserWindowToolBarImage::getUndoStack()
 {
     CaretUndoStack* undoStack(NULL);
     if (m_browserTabContent != NULL) {
@@ -171,7 +171,7 @@ BrainBrowserWindowToolBarImageResolution::getUndoStack()
  *    New checked status
  */
 void
-BrainBrowserWindowToolBarImageResolution::highResolutionActionToggled(bool checked)
+BrainBrowserWindowToolBarImage::highResolutionActionToggled(bool checked)
 {
     BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
     if (browserTabContent != NULL) {
@@ -187,7 +187,7 @@ BrainBrowserWindowToolBarImageResolution::highResolutionActionToggled(bool check
  * Gets called when the redo action is triggered
  */
 void
-BrainBrowserWindowToolBarImageResolution::redoActionTriggered()
+BrainBrowserWindowToolBarImage::redoActionTriggered()
 {
     CaretUndoStack* undoStack = getUndoStack();
     AString errorMessage;
@@ -204,7 +204,7 @@ BrainBrowserWindowToolBarImageResolution::redoActionTriggered()
  * Gets called when the undo action is triggered
  */
 void
-BrainBrowserWindowToolBarImageResolution::undoActionTriggered()
+BrainBrowserWindowToolBarImage::undoActionTriggered()
 {
     CaretUndoStack* undoStack = getUndoStack();
     AString errorMessage;

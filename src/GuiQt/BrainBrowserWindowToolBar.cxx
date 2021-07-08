@@ -60,7 +60,8 @@
 #include "BrainBrowserWindowToolBarChartTwoOrientedAxes.h"
 #include "BrainBrowserWindowToolBarChartTwoType.h"
 #include "BrainBrowserWindowToolBarChartType.h"
-#include "BrainBrowserWindowToolBarImageResolution.h"
+#include "BrainBrowserWindowToolBarCziImage.h"
+#include "BrainBrowserWindowToolBarImage.h"
 #include "BrainBrowserWindowToolBarOrientation.h"
 #include "BrainBrowserWindowToolBarSlicePlane.h"
 #include "BrainBrowserWindowToolBarSliceSelection.h"
@@ -445,8 +446,9 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
-    this->imageResolutionWidget = this->createImageResolutionWidget();
-    
+    this->cziImageWidget = this->createCziImageWidget();
+    this->imageWidget = this->createImageWidget();
+
     this->userInputAnnotationsModeProcessor = new UserInputModeAnnotations(browserWindowIndex);
     this->userInputBordersModeProcessor = new UserInputModeBorders(browserWindowIndex);
     this->userInputFociModeProcessor = new UserInputModeFoci(browserWindowIndex);
@@ -522,7 +524,9 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     
     this->toolbarWidgetLayout->addWidget(this->chartAttributesWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->imageResolutionWidget, 0, Qt::AlignLeft);
+    this->toolbarWidgetLayout->addWidget(this->imageWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->cziImageWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->annotateModeWidget, 0, Qt::AlignLeft);
 
@@ -1922,8 +1926,9 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showChartTwoAttributesWidget = false;
     bool showChartTwoAxesWidget = false;
     
-    bool showImageResolutionWidget = false;
-    
+    bool showCziImageWidget = false;
+    bool showImageWidget = false;
+
     bool showModeWidget = true;
     bool showViewWidget = true;
     bool showTabMiscWidget = true;
@@ -2034,7 +2039,8 @@ BrainBrowserWindowToolBar::updateToolBar()
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-                showImageResolutionWidget = true;
+                showCziImageWidget = true;
+                showImageWidget = true;
                 showOrientationWidget = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:
@@ -2178,7 +2184,8 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->chartTwoOrientationWidget->setVisible(showChartTwoOrientationWidget);
     this->chartTwoAttributesWidget->setVisible(showChartTwoAttributesWidget);
     this->chartTwoOrientedAxesWidget->setVisible(showChartTwoAxesWidget);
-    this->imageResolutionWidget->setVisible(showImageResolutionWidget);
+    this->cziImageWidget->setVisible(showCziImageWidget);
+    this->imageWidget->setVisible(showImageWidget);
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
@@ -2227,7 +2234,8 @@ BrainBrowserWindowToolBar::updateToolBarComponents(BrowserTabContent* browserTab
         this->updateModeWidget(browserTabContent);
         this->updateViewWidget(browserTabContent);
         this->updateTabOptionsWidget(browserTabContent);
-        this->updateImageResolutionWidget(browserTabContent);
+        this->updateCziImageWidget(browserTabContent);
+        this->updateImageWidget(browserTabContent);
     }
 }
 
@@ -2972,15 +2980,15 @@ BrainBrowserWindowToolBar::updateChartTwoOrientedAxesWidget(BrowserTabContent* b
  * Create the image resolution widget.
  *
  * @return
- *    Widget containing the chart options.
+ *    Widget containing the image options.
  */
 QWidget*
-BrainBrowserWindowToolBar::createImageResolutionWidget()
+BrainBrowserWindowToolBar::createImageWidget()
 {
-    m_imageResolutionToolBarComponent = new BrainBrowserWindowToolBarImageResolution(this,
-                                                                         m_objectNamePrefix);
-    QWidget* w = this->createToolWidget("Resolution",
-                                        m_imageResolutionToolBarComponent,
+    m_imageToolBarComponent = new BrainBrowserWindowToolBarImage(this,
+                                                                 m_objectNamePrefix);
+    QWidget* w = this->createToolWidget("Image",
+                                        m_imageToolBarComponent,
                                         WIDGET_PLACEMENT_LEFT,
                                         WIDGET_PLACEMENT_TOP,
                                         100);
@@ -2989,19 +2997,55 @@ BrainBrowserWindowToolBar::createImageResolutionWidget()
 }
 
 /**
- * Update the image resolution widget.
+ * Create the czi image resolution widget.
+ *
+ * @return
+ *    Widget containing the czi image options.
+ */
+QWidget*
+BrainBrowserWindowToolBar::createCziImageWidget()
+{
+    m_cziImageToolBarComponent = new BrainBrowserWindowToolBarCziImage(this,
+                                                                       m_objectNamePrefix);
+    QWidget* w = this->createToolWidget("CZI",
+                                        m_cziImageToolBarComponent,
+                                        WIDGET_PLACEMENT_LEFT,
+                                        WIDGET_PLACEMENT_TOP,
+                                        100);
+    w->setVisible(false);
+    return w;
+}
+
+/**
+ * Update the image  widget.
  *
  * @param browserTabContent
  *   The active model display (may be NULL).
  */
 void
-BrainBrowserWindowToolBar::updateImageResolutionWidget(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBar::updateImageWidget(BrowserTabContent* browserTabContent)
 {
-    if (this->imageResolutionWidget->isHidden()) {
+    if (this->imageWidget->isHidden()) {
         return;
     }
     
-    m_imageResolutionToolBarComponent->updateContent(browserTabContent);
+    m_imageToolBarComponent->updateContent(browserTabContent);
+}
+
+/**
+ * Update the CZI image  widget.
+ *
+ * @param browserTabContent
+ *   The active model display (may be NULL).
+ */
+void
+BrainBrowserWindowToolBar::updateCziImageWidget(BrowserTabContent* browserTabContent)
+{
+    if (this->cziImageWidget->isHidden()) {
+        return;
+    }
+    
+    m_cziImageToolBarComponent->updateContent(browserTabContent);
 }
 
 

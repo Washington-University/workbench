@@ -22,11 +22,12 @@
 /*LICENSE_END*/
 
 
-
+#include <array>
 #include <memory>
 
 #include <QRectF>
 
+#include "BrainConstants.h"
 #include "SingleChannelPyramidLevelTileAccessor.h"
 #include "MediaFile.h"
 
@@ -43,6 +44,7 @@ class QImage;
 namespace caret {
 
     class CziImage;
+    class GraphicsObjectToWindowTransform;
     class GraphicsPrimitiveV3fT3f;
     class RectangleTransform;
     class VolumeSpace;
@@ -101,12 +103,27 @@ namespace caret {
         
         const CziImage* getImageForTab(const int32_t tabIndex) const;
 
+        const CziImage* getImageForDrawingInTab(const int32_t tabIndex,
+                                                const GraphicsObjectToWindowTransform* transform);
+        
+        CziImage* loadImageForPyrmaidLayer(const int32_t tabIndex,
+                                           const GraphicsObjectToWindowTransform* transform,
+                                           const int32_t pyramidLayerIndex);
+
         bool getImagePixelRGBA(const int32_t tabIndex,
                                const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
                                const PixelIndex& pixelIndex,
                                uint8_t pixelRGBAOut[4]) const;
         
         PixelCoordinate getPixelSizeInMillimeters() const;
+        
+        void getPyramidLayerRange(int32_t& lowestResolutionPyramidLayerIndexOut,
+                                  int32_t& highestResolutionPyramidLayerIndexOut) const;
+        
+        int32_t getPyramidLayerIndexForTab(const int32_t tabIndex) const;
+        
+        void setPyramidLayerIndexForTab(const int32_t tabIndex,
+                                   const int32_t pyramidLayerIndex);
         
         // ADD_NEW_METHODS_HERE
 
@@ -138,11 +155,11 @@ namespace caret {
             m_width(width),
             m_height(height) { }
             
-            const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo m_layerInfo;
+            libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo m_layerInfo;
             
-            const int64_t m_width;
+            int64_t m_width;
             
-            const int64_t m_height;
+            int64_t m_height;
         };
         CziImage* getDefaultImage();
         
@@ -150,8 +167,9 @@ namespace caret {
         
         void closeFile();
         
-        CziImage* readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
-                                                      AString& errorMessageOut);
+        CziImage* readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
+                                                   const QRectF& logicalRectangleRegionRect,
+                                                   AString& errorMessageOut);
         
         CziImage* readFromCziImageFile(const QRectF& regionOfInterest,
                                           const int64_t outputImageWidthHeightMaximum,
@@ -168,6 +186,8 @@ namespace caret {
         void readPyramidInfo(const int64_t imageWidth,
                              const int64_t imageHeight);
         
+        int32_t getPyramidLayerWithMaximumResolution(const int32_t resolution) const;
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         Status m_status = Status::CLOSED;
@@ -181,6 +201,10 @@ namespace caret {
         std::shared_ptr<libCZI::ISingleChannelScalingTileAccessor> m_scalingTileAccessor;
         
         std::shared_ptr<libCZI::ISingleChannelPyramidLayerTileAccessor> m_pyramidLayerTileAccessor;
+        
+        int32_t m_lowestResolutionPyramidLayerIndex = -1;
+        
+        int32_t m_highestResolutionPyramidLayerIndex = -1;
         
         int32_t m_numberOfPyramidLayers = 0;
         
@@ -198,12 +222,19 @@ namespace caret {
         
         std::unique_ptr<CziImage> m_defaultImage;
         
+        std::array<std::unique_ptr<CziImage>, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_tabCziImages;
+        
+        std::array<bool, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_tabCziImagePyramidLevelChanged;
+        
+
         /*
          * Logical rectangle of full-resolution image
          */
         QRectF m_fullResolutionLogicalRect;
         
         std::vector<PyramidLayer> m_pyramidLayers;
+        
+        std::array<int32_t, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_pyramidLayerIndexInTabs;
         
         // ADD_NEW_MEMBERS_HERE
 

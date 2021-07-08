@@ -75,26 +75,26 @@ m_logicalRect(logicalRect)
     m_pixelsRect = QRectF(0, 0, m_image->width(), m_image->height());
     
     
-    QRectF pixelTopLeftRect(0, 0, logicalRect.width(), logicalRect.height());
-    m_roiCoordsToRoiPixelTopLeftTransform.reset(new RectangleTransform(logicalRect,
-                                                                       RectangleTransform::Origin::TOP_LEFT,
-                                                                       pixelTopLeftRect,
-                                                                       RectangleTransform::Origin::TOP_LEFT));
-    
-    QRectF fullImagePixelTopLeftRect(0, 0, m_fullResolutionLogicalRect.width(), m_fullResolutionLogicalRect.height());
-    m_roiPixelTopLeftToFullImagePixelTopLeftTransform.reset(new RectangleTransform(pixelTopLeftRect,
-                                                                                   RectangleTransform::Origin::TOP_LEFT,
-                                                                                   fullImagePixelTopLeftRect,
-                                                                                   RectangleTransform::Origin::TOP_LEFT));
-    
-    if (cziImageDebugFlag) {
-        RectangleTransform::testTransforms(*m_roiCoordsToRoiPixelTopLeftTransform,
-                                           logicalRect,
-                                           pixelTopLeftRect);
-        RectangleTransform::testTransforms(*m_roiPixelTopLeftToFullImagePixelTopLeftTransform,
-                                           pixelTopLeftRect,
-                                           fullImagePixelTopLeftRect);
-    }
+//    QRectF pixelTopLeftRect(0, 0, logicalRect.width(), logicalRect.height());
+//    m_roiCoordsToRoiPixelTopLeftTransform.reset(new RectangleTransform(logicalRect,
+//                                                                       RectangleTransform::Origin::TOP_LEFT,
+//                                                                       pixelTopLeftRect,
+//                                                                       RectangleTransform::Origin::TOP_LEFT));
+//    
+//    QRectF fullImagePixelTopLeftRect(0, 0, m_fullResolutionLogicalRect.width(), m_fullResolutionLogicalRect.height());
+//    m_roiPixelTopLeftToFullImagePixelTopLeftTransform.reset(new RectangleTransform(pixelTopLeftRect,
+//                                                                                   RectangleTransform::Origin::TOP_LEFT,
+//                                                                                   fullImagePixelTopLeftRect,
+//                                                                                   RectangleTransform::Origin::TOP_LEFT));
+//    
+//    if (cziImageDebugFlag) {
+//        RectangleTransform::testTransforms(*m_roiCoordsToRoiPixelTopLeftTransform,
+//                                           logicalRect,
+//                                           pixelTopLeftRect);
+//        RectangleTransform::testTransforms(*m_roiPixelTopLeftToFullImagePixelTopLeftTransform,
+//                                           pixelTopLeftRect,
+//                                           fullImagePixelTopLeftRect);
+//    }
 }
 
 /**
@@ -434,6 +434,7 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
                                                                                        GraphicsPrimitive::TextureFilteringType::LINEAR,
                                                                                        GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                                                        GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR);
+            
             
             /*
              * Coordinates at EDGE of the pixels

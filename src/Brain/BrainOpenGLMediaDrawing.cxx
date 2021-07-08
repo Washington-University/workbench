@@ -148,16 +148,22 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     viewportContent->setGraphicsObjectToWindowTransform(transform);
     
 
-    drawModelLayers();
+    drawModelLayers(transform,
+                    browserTabContent->getTabNumber());
     
     drawSelectionBox();
 }
 
 /**
  * Draw the media models layers
+ * @param objectToWindowTransform
+ *   Transforms point from object to window space
+ * @param tabIndex
+ *   Index of the tab
  */
 void
-BrainOpenGLMediaDrawing::drawModelLayers()
+BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* transform,
+                                         const int32_t tabIndex)
 {
     SelectionItemImage* idImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getImageIdentification();
     
@@ -207,11 +213,27 @@ BrainOpenGLMediaDrawing::drawModelLayers()
                     primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
                 }
                 else  if (cziImageFile != NULL) {
-                    CziImage* cziImage = cziImageFile->getImageForTab(m_browserTabContent->getTabNumber());
+                    const CziImage* cziImage = cziImageFile->getImageForDrawingInTab(tabIndex,
+                                                                                     transform);
                     primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
+                    
+                    BoundingBox boundingBox;
+                    primitive->getVertexBounds(boundingBox);
+                    
+                    /*
+                     * Get size of image as drawn in pixels.  When the pixel size from
+                     * drawing exceeds the pixel size of the image, it is time to switch
+                     * to a higher resolution image.
+                     */
+                    float minXYZ[3], maxXYZ[3];
+                    transform->transformPoint(boundingBox.getMinXYZ().data(), minXYZ);
+                    transform->transformPoint(boundingBox.getMaxXYZ().data(), maxXYZ);
+                    const float width(maxXYZ[0] - minXYZ[0]);
+                    const float height(maxXYZ[1] - minXYZ[1]);
+//                    std::cout << "Pixel w/h: " << width << ", " << height << std::endl;
                 }
                 else {
-                    CaretAssertMessage(0, ("Unrecogized file type "
+                    CaretAssertMessage(0, ("Unrecognized file type "
                                            + DataFileTypeEnum::toName(selectedFile->getDataFileType())
                                            + " for media drawing."));
                 }

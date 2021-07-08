@@ -37,9 +37,11 @@
 #include "EventCaretPreferencesGet.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
+#include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "GraphicsUtilitiesOpenGL.h"
 #include "ImageFile.h"
+#include "MathFunctions.h"
 #include "RectangleTransform.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -62,7 +64,8 @@ CziImageFile::CziImageFile()
 : MediaFile(DataFileTypeEnum::CZI_IMAGE_FILE)
 {
     m_fileMetaData.reset(new GiftiMetaData());
-    
+    m_pyramidLayerIndexInTabs.fill(0);
+    m_tabCziImagePyramidLevelChanged.fill(false);
 
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
 }
@@ -282,8 +285,24 @@ CziImageFile::readFile(const AString& filename)
         
         CziImage* defImage(NULL);
         if (m_numberOfPyramidLayers > 2) {
-            defImage = readPyramidLevelFromCziImageFile(m_numberOfPyramidLayers - 2,
-                                                        m_errorMessage);
+            const int32_t resolution(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension() / 2);
+            if (cziDebugFlag) {
+                std::cout << "For CZI Image, seeking resolution " << resolution << std::endl;
+            }
+            const int32_t defaultPyramidIndex(getPyramidLayerWithMaximumResolution(resolution));
+            if (defaultPyramidIndex >= 0) {
+                defImage = readPyramidLayerFromCziImageFile(defaultPyramidIndex,
+                                                            m_fullResolutionLogicalRect,
+                                                            m_errorMessage);
+                m_lowestResolutionPyramidLayerIndex  = defaultPyramidIndex;
+                m_highestResolutionPyramidLayerIndex = m_numberOfPyramidLayers - 1;
+                if (cziDebugFlag) {
+                    std::cout << "Pyramid Range: " << m_lowestResolutionPyramidLayerIndex
+                    << ", " << m_highestResolutionPyramidLayerIndex << std::endl;
+                    std::cout << "Default pyramid index: " << defaultPyramidIndex << std::endl;
+                }
+            }
+            m_pyramidLayerIndexInTabs.fill(defaultPyramidIndex);
         }
         if (defImage == NULL) {
             std::cout << "PYRAMID ERROR: " << m_errorMessage << std::endl;
@@ -310,7 +329,11 @@ CziImageFile::readFile(const AString& filename)
         clearModified();
     }
     catch (const std::exception& e) {
-        m_errorMessage = (filename + QString(e.what()));
+        m_errorMessage = ("std::exception " + filename + QString(e.what()));
+        m_status = Status::ERRORED;
+    }
+    catch (const std::out_of_range& e) {
+        m_errorMessage = ("std::out_of_range " + filename + QString(e.what()));
         m_status = Status::ERRORED;
     }
 }
@@ -389,12 +412,6 @@ CziImageFile::readPyramidInfo(const int64_t imageWidth,
                 height /= minFactor;
             }
             
-            if (cziDebugFlag) {
-                std::cout << "Layer number: " << (int)ply.pyramidLayerNo << " MinFactor: " << (int)ply.minificationFactor
-                << " Sub-Blocks: " << pls.count
-                << " width=" << width << " height=" << height << std::endl;                
-            }
-            
             libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyramidInfo;
             pyramidInfo.minificationFactor = ply.minificationFactor;
             pyramidInfo.pyramidLayerNo     = ply.pyramidLayerNo;
@@ -404,9 +421,22 @@ CziImageFile::readPyramidInfo(const int64_t imageWidth,
                                       height);
             m_pyramidLayers.push_back(pyramidLayer);
         }
+        
+        std::sort(m_pyramidLayers.begin(),
+                  m_pyramidLayers.end(),
+                  [=](PyramidLayer a, PyramidLayer b) { return (a.m_layerInfo.pyramidLayerNo > b.m_layerInfo.pyramidLayerNo); } );
     }
     
     m_numberOfPyramidLayers = static_cast<int32_t>(m_pyramidLayers.size());
+    
+    if (cziDebugFlag) {
+        for (int32_t i = 0; i < m_numberOfPyramidLayers; i++) {
+            const auto& pl = m_pyramidLayers[i];
+            std::cout << "Index=" << i << " CZI Pyramid Layer Number: " << (int)pl.m_layerInfo.pyramidLayerNo << " MinFactor: " << (int)pl.m_layerInfo.minificationFactor
+//            << " Sub-Blocks: " << pl.m_layerInfo.count
+            << " width=" << pl.m_width << " height=" << pl.m_height << std::endl;
+        }
+    }
 }
 
 
@@ -517,14 +547,112 @@ CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
 }
 
 /**
- * Read a pyramid level from CZI file
+ * @return The pyramid layer for a tab.
+ * @param tabIndex
+ * Index of the tab
+ */
+int32_t
+CziImageFile::getPyramidLayerIndexForTab(const int32_t tabIndex) const
+{
+    CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
+    return m_pyramidLayerIndexInTabs[tabIndex];
+}
+
+/**
+ * Set the pyramid layer for a tab.
+ * @param tabIndex
+ * Index of the tab
+ * @param pyramidLayerIndex
+ * New pyramid layer
+ */
+void
+CziImageFile::setPyramidLayerIndexForTab(const int32_t tabIndex,
+                                         const int32_t pyramidLayerIndex)
+{
+    CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
+    
+    int32_t minLayerIndex(0), maxLayerIndex(0);
+    getPyramidLayerRange(minLayerIndex, maxLayerIndex);
+    int32_t newPyramidLayerIndex = MathFunctions::limitRange(pyramidLayerIndex,
+                                                             minLayerIndex,
+                                                             maxLayerIndex);
+
+    CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
+    if (newPyramidLayerIndex != m_pyramidLayerIndexInTabs[tabIndex]) {
+        m_pyramidLayerIndexInTabs[tabIndex] = newPyramidLayerIndex;
+        if (newPyramidLayerIndex != m_lowestResolutionPyramidLayerIndex) {
+            /*
+             * Lowest layer is default image, so no longer need
+             * image that is specific to tab
+             */
+            CaretAssertStdArrayIndex(m_tabCziImages, tabIndex);
+            m_tabCziImages[tabIndex].reset();
+        }
+        else {
+            /*
+             * Need image specific to tab
+             */
+            CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
+            m_tabCziImagePyramidLevelChanged[tabIndex] = true;
+        }
+    }
+}
+
+/**
+ * Get the range of available pyramid layers.  If range is invalid, layer indices will be -1.
+ * @param lowestResolutionPyramidLayerIndexOut
+ *    Output with lowest resolution layer index (
+ * @param highestResolutionPyramidLayerIndexOut
+ *    Output with highest resolution layer index
+ */
+void
+CziImageFile::getPyramidLayerRange(int32_t& lowestResolutionPyramidLayerIndexOut,
+                                   int32_t& highestResolutionPyramidLayerIndexOut) const
+{
+    lowestResolutionPyramidLayerIndexOut  = m_lowestResolutionPyramidLayerIndex;
+    highestResolutionPyramidLayerIndexOut = m_highestResolutionPyramidLayerIndex;
+}
+
+/**
+ * Find the pyramid layer that is closest to but less than or equal to the given resolution.
+ * Both width and height must be less than or equal to the resolution.
+ *
+ * @param resolution
+ *    Maximum resolution for pyramid layer
+ * @return
+ *    Index of pyramid layer that is closest but less than or equal to the given resolution.
+ */
+int32_t
+CziImageFile::getPyramidLayerWithMaximumResolution(const int32_t resolution) const
+{
+    int32_t layerIndex = 0;
+    
+    for (int32_t i = 0; i < m_numberOfPyramidLayers; i++) {
+        CaretAssertVectorIndex(m_pyramidLayers, i);
+        const auto& layerInfo = m_pyramidLayers[i];
+        if ((layerInfo.m_width > resolution)
+            || (layerInfo.m_height > resolution)) {
+            break;
+        }
+        layerIndex = i;
+    }
+    
+    return layerIndex;
+}
+/**
+ * Read a pyramid layer from CZI file
+ * @param pyramidLayer
+ *    Index of pyramid layer to read
+ * @param logicalRectangleRegionRect
+ *    Rectangular region to read
  * @param errorMessageOut
  *    Contains information about any errors
  * @return
  *    Pointer to CziImage or NULL if there is an error.
  */
 CziImage*
-CziImageFile::readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
+CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
+                                               const QRectF& logicalRectangleRegionRect,
                                                AString& errorMessageOut)
 {
     errorMessageOut.clear();
@@ -534,17 +662,17 @@ CziImageFile::readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
         errorMessageOut = "There are no pyramid layers for accessing data";
         return NULL;
     }
-    if ((pyramidLevel < 0)
-        || (pyramidLevel >= numPyramidLayers)) {
+    if ((pyramidLayer < 0)
+        || (pyramidLayer >= numPyramidLayers)) {
         errorMessageOut = ("Invalid pyramid level="
-                           + AString::number(pyramidLevel)
+                           + AString::number(pyramidLayer)
                            + " range is [0,"
                            + AString::number(numPyramidLayers - 1)
                            + "]");
         return NULL;
     }
-    CaretAssertVectorIndex(m_pyramidLayers, pyramidLevel);
-    libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyramidInfo = m_pyramidLayers[pyramidLevel].m_layerInfo;
+    CaretAssertVectorIndex(m_pyramidLayers, pyramidLayer);
+    libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyramidInfo = m_pyramidLayers[pyramidLayer].m_layerInfo;
     
     libCZI::CDimCoordinate coordinate;
     coordinate.Set(libCZI::DimensionIndex::C, 0);
@@ -572,7 +700,7 @@ CziImageFile::readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
      * Read into 24 bit RGB to avoid conversion from other pixel formats
      */
     const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
-    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(m_fullResolutionLogicalRect);
+    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(logicalRectangleRegionRect); //m_fullResolutionLogicalRect);
     CaretAssert(m_pyramidLayerTileAccessor);
     std::shared_ptr<libCZI::IBitmapData> bitmapData = m_pyramidLayerTileAccessor->Get(pixelType,
                                                                                       intRectROI,
@@ -592,7 +720,7 @@ CziImageFile::readPyramidLevelFromCziImageFile(const int32_t pyramidLevel,
     
     CziImage* cziImageOut = new CziImage(this,
                                          qImage,
-                                         m_fullResolutionLogicalRect,
+                                         logicalRectangleRegionRect, //m_fullResolutionLogicalRect,
                                          CziUtilities::intRectToQRect(intRectROI));
     return cziImageOut;
 }
@@ -844,11 +972,13 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
             const int32_t numPyramidLayers(m_pyramidLayers.size());
             for (int32_t i = 0; i < numPyramidLayers; i++) {
                 const PyramidLayer& pl(m_pyramidLayers[i]);
-                dataFileInformation.addNameAndValue(("Pyramid Layer "
+                dataFileInformation.addNameAndValue(("Index "
                                                      + QString::number(i)),
                                                     (QString::number(pl.m_width)
                                                      + " x "
-                                                     + QString::number(pl.m_height)));
+                                                     + QString::number(pl.m_height)
+                                                     + " CZI Pyramid Layer Number: "
+                                                     + QString::number(pl.m_layerInfo.pyramidLayerNo)));
             }
             
             const CziImage* cziImage = getDefaultImage();
@@ -888,6 +1018,13 @@ CziImageFile::getDefaultImage() const
 CziImage*
 CziImageFile::getImageForTab(const int32_t tabIndex)
 {
+    CaretAssertVectorIndex(m_pyramidLayerIndexInTabs, tabIndex);
+    if (m_pyramidLayerIndexInTabs[tabIndex] != m_lowestResolutionPyramidLayerIndex) {
+        if (m_tabCziImages[tabIndex]) {
+            return m_tabCziImages[tabIndex].get();
+        }
+    }
+
     return getDefaultImage();
 }
 
@@ -899,7 +1036,119 @@ CziImageFile::getImageForTab(const int32_t tabIndex)
 const CziImage*
 CziImageFile::getImageForTab(const int32_t tabIndex) const
 {
+    CaretAssertVectorIndex(m_pyramidLayerIndexInTabs, tabIndex);
+    if (m_pyramidLayerIndexInTabs[tabIndex] != m_lowestResolutionPyramidLayerIndex) {
+        if (m_tabCziImages[tabIndex]) {
+            return m_tabCziImages[tabIndex].get();
+        }
+    }
+
     return getDefaultImage();
+}
+
+/**
+ * @return CZI image for the given tab for drawing
+ * @param tabIndex
+ *    Index of the tab
+ * @param transform
+ *    Transform for converts from object to window space (and inverse)
+ */
+const CziImage*
+CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
+                                      const GraphicsObjectToWindowTransform* transform)
+{
+    CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
+    const int32_t pyramidLayerIndex = m_pyramidLayerIndexInTabs[tabIndex];
+    
+    /*
+     * Lowest pyramid layer is always the default image
+     */
+    if (pyramidLayerIndex == m_lowestResolutionPyramidLayerIndex) {
+        return getDefaultImage();
+    }
+    
+    /*
+     * If pyramid level has not changed and have valid image in tab use it
+     */
+    CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
+    CaretAssertStdArrayIndex(m_tabCziImages, tabIndex);
+    if (  ! m_tabCziImagePyramidLevelChanged[tabIndex]) {
+        if (m_tabCziImages[tabIndex] != NULL) {
+            return m_tabCziImages[tabIndex].get();
+        }
+    }
+    
+    m_tabCziImages[tabIndex].reset(loadImageForPyrmaidLayer(tabIndex,
+                                                            transform,
+                                                            pyramidLayerIndex));
+    
+    if (m_tabCziImages[tabIndex]) {
+        return m_tabCziImages[tabIndex].get();
+    }
+    return getDefaultImage();
+}
+
+/**
+ * Load a image from the given pyramid layer for the center of the tab region defined by the transform
+ * @param tabIndex
+ *    Index of the tab
+ * @param transform
+ *    Transform from the tab where image is drawn
+ * @param pyramidLayerIndex
+ *    Index of the pyramid layer
+ */
+CziImage*
+CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
+                                       const GraphicsObjectToWindowTransform* transform,
+                                       const int32_t pyramidLayerIndex)
+{
+    CziImage* cziImageOut(NULL);
+    
+    std::array<int32_t,4> viewport(transform->getViewport());
+    const float vpCenterXYZ[3] {
+        viewport[0] + (viewport[2] / 2.0f),
+        viewport[1] + (viewport[3] / 2.0f),
+        0.0
+    };
+    float modelXYZ[3];
+    transform->inverseTransformPoint(vpCenterXYZ, modelXYZ);
+    std::cout << "Model XYZ: " << AString::fromNumbers(modelXYZ, 3, ", ") << std::endl;
+    PixelIndex imagePixelIndex(modelXYZ[0], modelXYZ[1], 0.0f);
+    
+    const CziImage* oldCziImage(getImageForTab(tabIndex));
+    CaretAssert(oldCziImage);
+    PixelIndex fullImagePixelIndex = oldCziImage->transformPixelIndexToSpace(imagePixelIndex,
+                                                                             CziPixelCoordSpaceEnum::PIXEL_BOTTOM_LEFT,
+                                                                             CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT);
+    PixelIndex fullResolutionLogicalPixelIndex = oldCziImage->transformPixelIndexToSpace(imagePixelIndex,
+                                                                                         CziPixelCoordSpaceEnum::PIXEL_BOTTOM_LEFT,
+                                                                                         CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT);
+    std::cout << "   Full Image (TL): " << fullImagePixelIndex.toString() << std::endl;
+    std::cout << "   Full Image Logical (TL): " << fullResolutionLogicalPixelIndex.toString() << std::endl;
+    
+    const int32_t imageWidthHeight(2048);
+    const int32_t halfImageWidthHeight(2048);
+    QRectF imageRegionRect(fullResolutionLogicalPixelIndex.getI() - halfImageWidthHeight,
+                           fullResolutionLogicalPixelIndex.getJ() - halfImageWidthHeight,
+                           imageWidthHeight,
+                           imageWidthHeight);
+    AString errorMessage;
+    cziImageOut = readPyramidLayerFromCziImageFile(pyramidLayerIndex, imageRegionRect, errorMessage);
+    if (cziImageOut == NULL) {
+        CaretLogSevere("Loading Pyramid level="
+                       + AString::number(pyramidLayerIndex)
+                       + " for rectangle="
+                       + CziUtilities::qRectToString(imageRegionRect)
+                       + " for file "
+                       + getFileNameNoPath()
+                       + " error: "
+                       + errorMessage);
+    }
+    
+    CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
+    m_tabCziImagePyramidLevelChanged[tabIndex] = false;
+    
+    return cziImageOut;
 }
 
 /**

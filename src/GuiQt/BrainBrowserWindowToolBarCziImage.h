@@ -1,5 +1,5 @@
-#ifndef __BRAIN_BROWSER_WINDOW_TOOL_BAR_IMAGE_RESOLUTION_H__
-#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_IMAGE_RESOLUTION_H__
+#ifndef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CZI_IMAGE_H__
+#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_CZI_IMAGE_H__
 
 /*LICENSE_START*/
 /*
@@ -24,42 +24,44 @@
 #include "BrainBrowserWindowToolBarComponent.h"
 
 class QAction;
+class QRadioButton;
+class QSpinBox;
 
 namespace caret {
 
+    class BrainOpenGLViewportContent;
     class BrowserTabContent;
-    class CaretUndoStack;
-    class EnumComboBoxTemplate;
+    class CziImageFile;
     
-    class BrainBrowserWindowToolBarImageResolution : public BrainBrowserWindowToolBarComponent {
+    class BrainBrowserWindowToolBarCziImage : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
         
     public:
-        BrainBrowserWindowToolBarImageResolution(BrainBrowserWindowToolBar* parentToolBar,
+        BrainBrowserWindowToolBarCziImage(BrainBrowserWindowToolBar* parentToolBar,
                                            const QString& parentObjectName);
         
-        virtual ~BrainBrowserWindowToolBarImageResolution();
+        virtual ~BrainBrowserWindowToolBarCziImage();
         
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
     private slots:
-        void highResolutionActionToggled(bool checked);
+        void pyramidLayerChanged(int value);
         
-        void redoActionTriggered();
+        void reloadActionTriggered();
         
-        void undoActionTriggered();
-
     private:
-        BrainBrowserWindowToolBarImageResolution(const BrainBrowserWindowToolBarImageResolution&);
+        BrainBrowserWindowToolBarCziImage(const BrainBrowserWindowToolBarCziImage&);
 
-        BrainBrowserWindowToolBarImageResolution& operator=(const BrainBrowserWindowToolBarImageResolution&);
+        BrainBrowserWindowToolBarCziImage& operator=(const BrainBrowserWindowToolBarCziImage&);
         
     public:
 
         // ADD_NEW_METHODS_HERE
 
     private:
-        CaretUndoStack* getUndoStack();
+        CziImageFile* getCziImageFile(BrowserTabContent* browserTabContent);
+        
+        const BrainOpenGLViewportContent* getBrainOpenGLViewportContent();
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -67,17 +69,16 @@ namespace caret {
         
         BrowserTabContent* m_browserTabContent = NULL;
         
-        QAction* m_highResolutionAction;
+        QAction* m_reloadAction;
         
-        QAction* m_redoAction;
+        QSpinBox* m_pyramidLayerSpinBox;
         
-        QAction* m_undoAction;
     };
     
     
-#ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_IMAGE_RESOLUTION_DECLARE__
+#ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CZI_IMAGE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __BRAIN_BROWSER_WINDOW_TOOL_BAR_IMAGE_RESOLUTION_DECLARE__
 
 } // namespace
-#endif  //__BRAIN_BROWSER_WINDOW_TOOL_BAR_IMAGE_RESOLUTION_H__
+#endif  //__BRAIN_BROWSER_WINDOW_TOOL_BAR_CZI_IMAGE_H__

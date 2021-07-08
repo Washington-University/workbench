@@ -137,20 +137,20 @@ namespace caret {
          */
         QRectF m_pixelsRect;
         
-        /**
-         * Converts between the region of interest coordinates in the image (m_image) to
-         * pixel coordinates in the image.
-         * The ROI coordinates have the origin in the top left (origin is rarely 0, 0)
-         * The pixel coordinate have the origin (0,0) at the top left and range to the
-         * size of the image (pixel width - 1, pixel height - 1)
-         */
-        std::unique_ptr<RectangleTransform> m_roiCoordsToRoiPixelTopLeftTransform;
-        
-        /**
-         * Converts a pixel index in the ROI Image (m_image) with origin at the top left and size
-         * (width - 1, height - 1) to the pixel index in the full image with origin at the top left
-         */
-        std::unique_ptr<RectangleTransform> m_roiPixelTopLeftToFullImagePixelTopLeftTransform;
+//        /**
+//         * Converts between the region of interest coordinates in the image (m_image) to
+//         * pixel coordinates in the image.
+//         * The ROI coordinates have the origin in the top left (origin is rarely 0, 0)
+//         * The pixel coordinate have the origin (0,0) at the top left and range to the
+//         * size of the image (pixel width - 1, pixel height - 1)
+//         */
+//        std::unique_ptr<RectangleTransform> m_roiCoordsToRoiPixelTopLeftTransform;
+//        
+//        /**
+//         * Converts a pixel index in the ROI Image (m_image) with origin at the top left and size
+//         * (width - 1, height - 1) to the pixel index in the full image with origin at the top left
+//         */
+//        std::unique_ptr<RectangleTransform> m_roiPixelTopLeftToFullImagePixelTopLeftTransform;
         
         mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitiveForMediaDrawing;
         

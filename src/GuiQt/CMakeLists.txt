@@ -90,7 +90,8 @@ ELSE()
         BrainBrowserWindowToolBarChartTwoType.h
         BrainBrowserWindowToolBarChartType.h
         BrainBrowserWindowToolBarComponent.h
-	BrainBrowserWindowToolBarImageResolution.h
+	BrainBrowserWindowToolBarCziImage.h
+	BrainBrowserWindowToolBarImage.h
 	BrainBrowserWindowToolBarOrientation.h
         BrainBrowserWindowToolBarSlicePlane.h
         BrainBrowserWindowToolBarSliceSelection.h
@@ -350,7 +351,8 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes.h
 BrainBrowserWindowToolBarChartTwoType.h
 BrainBrowserWindowToolBarChartType.h
 BrainBrowserWindowToolBarComponent.h
-BrainBrowserWindowToolBarImageResolution.h
+BrainBrowserWindowToolBarCziImage.h
+BrainBrowserWindowToolBarImage.h
 BrainBrowserWindowToolBarOrientation.h
 BrainBrowserWindowToolBarSlicePlane.h
 BrainBrowserWindowToolBarSliceSelection.h
@@ -667,7 +669,8 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes.cxx
 BrainBrowserWindowToolBarChartTwoType.cxx
 BrainBrowserWindowToolBarChartType.cxx
 BrainBrowserWindowToolBarComponent.cxx
-BrainBrowserWindowToolBarImageResolution.cxx
+BrainBrowserWindowToolBarCziImage.cxx
+BrainBrowserWindowToolBarImage.cxx
 BrainBrowserWindowToolBarOrientation.cxx
 BrainBrowserWindowToolBarSlicePlane.cxx
 BrainBrowserWindowToolBarSliceSelection.cxx
