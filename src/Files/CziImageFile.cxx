@@ -297,6 +297,14 @@ CziImageFile::readFile(const AString& filename)
                                                             m_errorMessage);
                 m_lowestResolutionPyramidLayerIndex  = defaultPyramidIndex;
                 m_highestResolutionPyramidLayerIndex = m_numberOfPyramidLayers - 1;
+                
+                /*
+                 * Selection of highest resolution results in an infinite loop
+                 * in the CZI library.  So, decrement the hightest resolution available.
+                 */
+                --m_highestResolutionPyramidLayerIndex;
+                CaretAssert(m_lowestResolutionPyramidLayerIndex <= m_highestResolutionPyramidLayerIndex);
+                
                 if (cziDebugFlag) {
                     std::cout << "Pyramid Range: " << m_lowestResolutionPyramidLayerIndex
                     << ", " << m_highestResolutionPyramidLayerIndex << std::endl;
