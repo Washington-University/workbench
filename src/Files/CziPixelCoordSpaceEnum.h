@@ -37,10 +37,10 @@ public:
     enum Enum {
         /** Logical Coordinate from the full-resolution image */
         FULL_RESOLUTION_LOGICAL_TOP_LEFT,
+        /** Full-Resolution image with origin (0, 0) at the bottom  left */
+        FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
         /** Full-Resolution image with origin (0, 0) at the top  left */
         FULL_RESOLUTION_PIXEL_TOP_LEFT,
-        /** "Logical Coordinate" from libCZI library defining regions in the image */
-        LOGICAL_TOP_LEFT,
         /** Pixel coordinate with origin (0,0) at the bottom left */
         PIXEL_BOTTOM_LEFT,
         /** Pixel coordinate with origin (0,0) at the top left */

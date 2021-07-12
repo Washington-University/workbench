@@ -184,26 +184,6 @@ BrainBrowserWindowToolBarCziImage::pyramidLayerChanged(int value)
 {
     CziImageFile* cziImageFile = getCziImageFile(m_browserTabContent);
     if (cziImageFile != NULL) {
-        const BrainOpenGLViewportContent* vpc = getBrainOpenGLViewportContent();
-        int32_t viewport[4];
-        vpc->getModelViewport(viewport);
-        const float vpCenterXYZ[] {
-            viewport[0] + (viewport[2] / 2.0f),
-            viewport[1] + (viewport[3] / 2.0f),
-            0.0
-        };
-        
-        CaretAssert(vpc);
-        const GraphicsObjectToWindowTransform* xform = vpc->getGraphicsObjectToWindowTransform();
-        float modelCenterXYZ[3];
-        xform->inverseTransformPoint(vpCenterXYZ,
-                                     modelCenterXYZ);
-        /*
-         * modelCenterXYZ is center for image of new resolution
-         * Need to convert it to CZI Region Coordinates
-         */
-        std::cout << "Pixel Model XYZ: " << AString::fromNumbers(modelCenterXYZ, 3, ", ") << std::endl;
-        
         const int32_t tabIndex = m_browserTabContent->getTabNumber();
         cziImageFile->setPyramidLayerIndexForTab(tabIndex,
                                                  value);

@@ -99,6 +99,10 @@ namespace caret {
 
         virtual bool supportsWriting() const override;
         
+        CziImage* getDefaultImage();
+        
+        const CziImage* getDefaultImage() const;
+        
         CziImage* getImageForTab(const int32_t tabIndex);
         
         const CziImage* getImageForTab(const int32_t tabIndex) const;
@@ -161,14 +165,12 @@ namespace caret {
             
             int64_t m_height;
         };
-        CziImage* getDefaultImage();
-        
-        const CziImage* getDefaultImage() const;
         
         void closeFile();
         
         CziImage* readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
                                                    const QRectF& logicalRectangleRegionRect,
+                                                   const QRectF& rectangleForReadingRect,
                                                    AString& errorMessageOut);
         
         CziImage* readFromCziImageFile(const QRectF& regionOfInterest,
@@ -187,6 +189,12 @@ namespace caret {
                              const int64_t imageHeight);
         
         int32_t getPyramidLayerWithMaximumResolution(const int32_t resolution) const;
+        
+        void pixelSizeToLogicalSize(const int32_t pyramidLayer,
+                                    int32_t& widthInOut,
+                                    int32_t& heightOut) const;
+        
+        static int CalcSizeOfPixelOnLayer0(const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo& pyramidInfo);
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 

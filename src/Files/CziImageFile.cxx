@@ -293,6 +293,7 @@ CziImageFile::readFile(const AString& filename)
             if (defaultPyramidIndex >= 0) {
                 defImage = readPyramidLayerFromCziImageFile(defaultPyramidIndex,
                                                             m_fullResolutionLogicalRect,
+                                                            m_fullResolutionLogicalRect,
                                                             m_errorMessage);
                 m_lowestResolutionPyramidLayerIndex  = defaultPyramidIndex;
                 m_highestResolutionPyramidLayerIndex = m_numberOfPyramidLayers - 1;
@@ -433,7 +434,6 @@ CziImageFile::readPyramidInfo(const int64_t imageWidth,
         for (int32_t i = 0; i < m_numberOfPyramidLayers; i++) {
             const auto& pl = m_pyramidLayers[i];
             std::cout << "Index=" << i << " CZI Pyramid Layer Number: " << (int)pl.m_layerInfo.pyramidLayerNo << " MinFactor: " << (int)pl.m_layerInfo.minificationFactor
-//            << " Sub-Blocks: " << pl.m_layerInfo.count
             << " width=" << pl.m_width << " height=" << pl.m_height << std::endl;
         }
     }
@@ -653,6 +653,7 @@ CziImageFile::getPyramidLayerWithMaximumResolution(const int32_t resolution) con
 CziImage*
 CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
                                                const QRectF& logicalRectangleRegionRect,
+                                               const QRectF& rectangleForReadingRect,
                                                AString& errorMessageOut)
 {
     errorMessageOut.clear();
@@ -700,10 +701,11 @@ CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
      * Read into 24 bit RGB to avoid conversion from other pixel formats
      */
     const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
-    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(logicalRectangleRegionRect); //m_fullResolutionLogicalRect);
+    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(logicalRectangleRegionRect);
     CaretAssert(m_pyramidLayerTileAccessor);
+    const libCZI::IntRect rectToReadROI = CziUtilities::qRectToIntRect(rectangleForReadingRect);
     std::shared_ptr<libCZI::IBitmapData> bitmapData = m_pyramidLayerTileAccessor->Get(pixelType,
-                                                                                      intRectROI,
+                                                                                      rectToReadROI, //intRectROI,
                                                                                       iDimCoord,
                                                                                       pyramidInfo,
                                                                                       &scstaOptions);
@@ -712,6 +714,12 @@ CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
         return NULL;
     }
     
+    CaretLogSevere("Request reading of :"
+                   + CziUtilities::intRectToString(intRectROI)
+                   + " and actually read width="
+                   + QString::number(bitmapData->GetWidth())
+                   + ", height="
+                   + QString::number(bitmapData->GetHeight()));
     QImage* qImage = createQImageFromBitmapData(bitmapData.get(),
                                                 errorMessageOut);
     if (qImage == NULL) {
@@ -720,10 +728,47 @@ CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
     
     CziImage* cziImageOut = new CziImage(this,
                                          qImage,
-                                         logicalRectangleRegionRect, //m_fullResolutionLogicalRect,
-                                         CziUtilities::intRectToQRect(intRectROI));
+                                         m_fullResolutionLogicalRect,
+                                         CziUtilities::intRectToQRect(rectToReadROI)); // CziUtilities::intRectToQRect(intRectROI));
     return cziImageOut;
 }
+
+/**
+ * This function is taken from CSingleChannelPyramidLevelTileAccessor.  It computes how many pixels from the
+ * highest resolution will fit in the pyramid layer.
+ */
+/// <summary>    For the specified pyramid layer (and the pyramid type), calculate the size of a pixel on this
+///             layer as measured by pixels on layer 0. </summary>
+/// <param name="pyramidInfo">    Information describing the pyramid and the requested pyramid-layer. </param>
+/// <returns>    The calculated size of pixel (in units of pixels on pyramid layer 0). </returns>
+/*static*/int
+CziImageFile::CalcSizeOfPixelOnLayer0(const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo& pyramidInfo)
+{
+    int f = 1;
+    for (int i = 0; i < pyramidInfo.pyramidLayerNo; ++i)
+    {
+        f *= pyramidInfo.minificationFactor;
+    }
+    
+    return f;
+}
+
+/**
+ * Convert a pixel size to a logical size for the given layer
+ */
+void
+CziImageFile::pixelSizeToLogicalSize(const int32_t pyramidLayer,
+                                     int32_t& widthInOut,
+                                     int32_t& heightInOut) const
+{
+    CaretAssertVectorIndex(m_pyramidLayers, pyramidLayer);
+    const int32_t pixelScale = CalcSizeOfPixelOnLayer0(m_pyramidLayers[pyramidLayer].m_layerInfo);
+    widthInOut  *= pixelScale;
+    heightInOut *= pixelScale;
+    widthInOut  = std::min(widthInOut, static_cast<int32_t>(m_fullResolutionLogicalRect.width()));
+    heightInOut = std::min(heightInOut, static_cast<int32_t>(m_fullResolutionLogicalRect.height()));
+}
+
 
 /**
  * Create a QImage from the CZI bitmap data
@@ -874,7 +919,7 @@ DefaultViewTransform
 CziImageFile::getDefaultViewTransform(const int32_t tabIndex) const
 {
     if ( ! m_defaultViewTransformValidFlag) {
-        const CziImage* cziImage(getImageForTab(tabIndex));
+        const CziImage* cziImage(getDefaultImage());
         CaretAssert(cziImage);
         GraphicsPrimitiveV3fT3f* primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
         if (primitive) {
@@ -978,7 +1023,9 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
                                                      + " x "
                                                      + QString::number(pl.m_height)
                                                      + " CZI Pyramid Layer Number: "
-                                                     + QString::number(pl.m_layerInfo.pyramidLayerNo)));
+                                                     + QString::number(pl.m_layerInfo.pyramidLayerNo)
+                                                     + " Min Factor: "
+                                                     + QString::number(pl.m_layerInfo.minificationFactor)));
             }
             
             const CziImage* cziImage = getDefaultImage();
@@ -1085,6 +1132,11 @@ CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
     if (m_tabCziImages[tabIndex]) {
         return m_tabCziImages[tabIndex].get();
     }
+    
+    /*
+     * Failed so go back to default image
+     */
+    m_pyramidLayerIndexInTabs[tabIndex] = m_lowestResolutionPyramidLayerIndex;
     return getDefaultImage();
 }
 
@@ -1112,28 +1164,71 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
     };
     float modelXYZ[3];
     transform->inverseTransformPoint(vpCenterXYZ, modelXYZ);
-    std::cout << "Model XYZ: " << AString::fromNumbers(modelXYZ, 3, ", ") << std::endl;
+//    std::cout << "Model XYZ: " << AString::fromNumbers(modelXYZ, 3, ", ") << std::endl;
     PixelIndex imagePixelIndex(modelXYZ[0], modelXYZ[1], 0.0f);
     
     const CziImage* oldCziImage(getImageForTab(tabIndex));
     CaretAssert(oldCziImage);
-    PixelIndex fullImagePixelIndex = oldCziImage->transformPixelIndexToSpace(imagePixelIndex,
-                                                                             CziPixelCoordSpaceEnum::PIXEL_BOTTOM_LEFT,
-                                                                             CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT);
+    PixelIndex fullImagePixelIndex = imagePixelIndex;
     PixelIndex fullResolutionLogicalPixelIndex = oldCziImage->transformPixelIndexToSpace(imagePixelIndex,
-                                                                                         CziPixelCoordSpaceEnum::PIXEL_BOTTOM_LEFT,
+                                                                                         CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
                                                                                          CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT);
-    std::cout << "   Full Image (TL): " << fullImagePixelIndex.toString() << std::endl;
-    std::cout << "   Full Image Logical (TL): " << fullResolutionLogicalPixelIndex.toString() << std::endl;
+//    std::cout << "   Full Image (TL): " << fullImagePixelIndex.toString() << std::endl;
+//    std::cout << "   Full Image Logical (TL): " << fullResolutionLogicalPixelIndex.toString() << std::endl;
     
     const int32_t imageWidthHeight(2048);
-    const int32_t halfImageWidthHeight(2048);
+    const int32_t halfImageWidthHeight(imageWidthHeight / 2);
     QRectF imageRegionRect(fullResolutionLogicalPixelIndex.getI() - halfImageWidthHeight,
                            fullResolutionLogicalPixelIndex.getJ() - halfImageWidthHeight,
                            imageWidthHeight,
                            imageWidthHeight);
+    
+    /*
+     * Limit region for reading to valid area of image
+     */
+    if (m_fullResolutionLogicalRect.intersects(imageRegionRect)) {
+        imageRegionRect = m_fullResolutionLogicalRect.intersected(imageRegionRect);
+    }
+    else {
+        CaretLogSevere("Loading Pyramid level="
+                       + AString::number(pyramidLayerIndex)
+                       + " for rectangle="
+                       + CziUtilities::qRectToString(imageRegionRect)
+                       + " for file "
+                       + getFileNameNoPath()
+                       + " does not overlap the full resolution rectangle="
+                       + CziUtilities::qRectToString(m_fullResolutionLogicalRect));
+        return NULL;
+    }
+
+    /*
+     * When reading, the size is a "logical size" not PIXELS.  So, need to convert
+     * the pixel size to a logical size
+     */
+    const int32_t centerX = imageRegionRect.center().rx();
+    const int32_t centerY = imageRegionRect.center().ry();
+    int32_t roiWidth = imageRegionRect.width();
+    int32_t roiHeight = imageRegionRect.height();
+    pixelSizeToLogicalSize(pyramidLayerIndex, roiWidth, roiHeight);
+    std::cout << "Adjusted width/height: " << roiWidth << ", " << roiHeight << std::endl;
+    QRectF adjustedRect(imageRegionRect);
+    adjustedRect.setX(centerX - (roiWidth / 2));
+    adjustedRect.setY(centerY - (roiHeight / 2));
+    adjustedRect.setWidth(roiWidth);
+    adjustedRect.setHeight(roiHeight);
+    std::cout << "Original ROI: " << CziUtilities::qRectToString(imageRegionRect) << std::endl;
+    std::cout << "   Adjusted for w/h: " << CziUtilities::qRectToString(adjustedRect) << std::endl;
+    std::cout << "   Old Center: " << centerX << ", " << centerY << std::endl;
+    std::cout << "   New Center: " << adjustedRect.center().x() << ", " << adjustedRect.center().y() << std::endl;
+    if (m_fullResolutionLogicalRect.intersects(adjustedRect)) {
+        adjustedRect = m_fullResolutionLogicalRect.intersected(adjustedRect);
+    }
+    
+    
+    
+
     AString errorMessage;
-    cziImageOut = readPyramidLayerFromCziImageFile(pyramidLayerIndex, imageRegionRect, errorMessage);
+    cziImageOut = readPyramidLayerFromCziImageFile(pyramidLayerIndex, imageRegionRect, adjustedRect, errorMessage);
     if (cziImageOut == NULL) {
         CaretLogSevere("Loading Pyramid level="
                        + AString::number(pyramidLayerIndex)
@@ -1152,11 +1247,11 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
 }
 
 /**
- * @return True if the given pixel index is valid for the image in the given tabf
+ * @return True if the given pixel index is valid for the image in the given tab
  * @param tabIndex
  *    Index of the tab.
  * @param pixelIndex
- *     Image of pixel
+ *     Image of pixel in FULL RES image with origin bottom left
  */
 bool
 CziImageFile::isPixelIndexValid(const int32_t tabIndex,
@@ -1178,7 +1273,7 @@ CziImageFile::isPixelIndexValid(const int32_t tabIndex,
  * @param imageOrigin
  *    Location of first pixel in the image data.
  * @param pixelIndex
- *     Image of pixel
+ *     Image of pixel in FULL RES image with origin bottom left
  * @param pixelRGBAOut
  *     RGBA at Pixel I, J
  * @return
@@ -1199,6 +1294,7 @@ CziImageFile::getImagePixelRGBA(const int32_t tabIndex,
             break;
         case IMAGE_DATA_ORIGIN_AT_TOP:
         {
+            CaretAssertMessage(0, "Pixel should always have origin at bottom left");
             /*
              * Convert to bottom origin
              */

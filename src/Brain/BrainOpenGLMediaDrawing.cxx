@@ -262,6 +262,8 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                         else if (cziImageFile != NULL) {
                             processCziImageFileSelection(m_browserTabContent->getTabNumber(),
                                                          cziImageFile,
+                                                         cziImageFile->getImageForDrawingInTab(tabIndex,
+                                                                                               transform),
                                                          primitive);
                         }
                     }
@@ -398,12 +400,15 @@ BrainOpenGLMediaDrawing::processImageFileSelection(const int32_t tabIndex,
  *   Index of the tab
  * @param cziImageFile
  *    The CZI  image file
+ * @param cziImage
+ *    The CZI image that was drawn
  * @param primitive
  *    Primitive that draws image file
  */
 void
 BrainOpenGLMediaDrawing::processCziImageFileSelection(const int32_t tabIndex,
                                                       CziImageFile* cziImageFile,
+                                                      const CziImage* cziImage,
                                                       GraphicsPrimitiveV3fT3f* primitive)
 {
     SelectionItemCziImage* idCziImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getCziImageIdentification();
@@ -447,25 +452,26 @@ BrainOpenGLMediaDrawing::processCziImageFileSelection(const int32_t tabIndex,
              * "(2.0f * windowXYZ[2]) - 1.0f" may be incorrect.
              */
             modelXYZ[2] = 0.0;
-            PixelIndex pixelIndex(modelXYZ[0],
-                                  modelXYZ[1],
-                                  modelXYZ[2]);
-            
+            PixelIndex pixelIndexFullRes(modelXYZ[0],
+                                         modelXYZ[1],
+                                         modelXYZ[2]);
              /*
              * Verify clicked location is inside image
              */
             if (cziImageFile->isPixelIndexValid(tabIndex,
-                                                pixelIndex)) {
+                                                pixelIndexFullRes)) {
                 idCziImage->setCziImageFile(cziImageFile);
-                idCziImage->setPixelIndex(pixelIndex);
+                idCziImage->setPixelIndex(pixelIndexFullRes);
                 idCziImage->setTabIndex(tabIndex);
-                idCziImage->setPixelI(pixelIndex.getI());
-                idCziImage->setPixelJ(pixelIndex.getJ());
+                idCziImage->setPixelI(pixelIndexFullRes.getI());
+                idCziImage->setPixelJ(pixelIndexFullRes.getJ());
+                
+                //std::cout << "Selected Pixel: " << pixelIndexFullRes.toString() << std::endl;
                 
                 uint8_t pixelByteRGBA[4];
                 if (cziImageFile->getImagePixelRGBA(tabIndex,
                                                     ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                    pixelIndex,
+                                                    pixelIndexFullRes,
                                                     pixelByteRGBA)) {
                     idCziImage->setCziImageFile(cziImageFile);
                     idCziImage->setPixelRGBA(pixelByteRGBA);
