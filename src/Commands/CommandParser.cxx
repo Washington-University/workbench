@@ -292,7 +292,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
             if (!success)
             {
-                throw ProgramParametersException("Invalid option \"" + nextArg + "\" while next reqired argument is <" + myComponent->m_outputList[i]->m_shortName +
+                throw ProgramParametersException("Invalid option \"" + nextArg + "\" while next required argument is <" + myComponent->m_outputList[i]->m_shortName +
                 ">, option is either incorrect, or incorrectly placed");
             }
             --i;//options do not set required arguments
