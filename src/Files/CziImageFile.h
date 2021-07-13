@@ -28,6 +28,7 @@
 #include <QRectF>
 
 #include "BrainConstants.h"
+#include "CziImageResolutionChangeModeEnum.h"
 #include "SingleChannelPyramidLevelTileAccessor.h"
 #include "MediaFile.h"
 
@@ -108,7 +109,9 @@ namespace caret {
         const CziImage* getImageForTab(const int32_t tabIndex) const;
 
         const CziImage* getImageForDrawingInTab(const int32_t tabIndex,
-                                                const GraphicsObjectToWindowTransform* transform);
+                                                const GraphicsObjectToWindowTransform* transform,
+                                                const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                const float totalScaling);
         
         CziImage* loadImageForPyrmaidLayer(const int32_t tabIndex,
                                            const GraphicsObjectToWindowTransform* transform,
@@ -168,6 +171,8 @@ namespace caret {
             int64_t m_height = 0;
             
             float m_zoomLevelFromLowestResolutionImage = 1.0;
+            
+            float m_zoomLevelSwitchToHigherResolution = 1.0;
         };
         
         void closeFile();

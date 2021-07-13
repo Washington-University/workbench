@@ -30,6 +30,7 @@
 #include "CaretAssert.h"
 #include "CziImage.h"
 #include "CziImageFile.h"
+#include "DisplayPropertiesCziImages.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsEngineDataOpenGL.h"
@@ -141,6 +142,7 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     glTranslatef(translation[0], translation[1], 0.0);
     glScalef(defaultScaling, defaultScaling, 1.0);
     glScalef(scaling, scaling, 1.0);
+    const float totalScaling(defaultScaling * scaling);
     std::array<float, 4> orthoLRBT { -halfWidth, halfWidth, -drawingHalfHeight, drawingHalfHeight };
     GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
     fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
@@ -148,7 +150,8 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     
 
     drawModelLayers(transform,
-                    browserTabContent->getTabNumber());
+                    browserTabContent->getTabNumber(),
+                    totalScaling);
     
     drawSelectionBox();
 }
@@ -159,10 +162,13 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
  *   Transforms point from object to window space
  * @param tabIndex
  *   Index of the tab
+ * @param totalScaling
+ *   Total of view scaling and default scaling of underlay image
  */
 void
 BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* transform,
-                                         const int32_t tabIndex)
+                                         const int32_t tabIndex,
+                                         const float totalScaling)
 {
     SelectionItemImage* idImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getImageIdentification();
     
@@ -203,6 +209,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
             if (selectedFile != NULL) {
                 GraphicsPrimitiveV3fT3f* primitive(NULL);
                 CziImageFile* cziImageFile = selectedFile->castToCziImageFile();
+                const CziImage* cziImage(NULL);
                 ImageFile* imageFile = selectedFile->castToImageFile();
                 if (imageFile != NULL) {
                     /*
@@ -212,24 +219,15 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                     primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
                 }
                 else  if (cziImageFile != NULL) {
-                    const CziImage* cziImage = cziImageFile->getImageForDrawingInTab(tabIndex,
-                                                                                     transform);
+                    const DisplayPropertiesCziImages* dpc(m_fixedPipelineDrawing->m_brain->getDisplayPropertiesCziImages());
+                    cziImage = cziImageFile->getImageForDrawingInTab(tabIndex,
+                                                                     transform,
+                                                                     dpc->getResolutionChangeMode(tabIndex),
+                                                                     totalScaling);
                     primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
                     
                     BoundingBox boundingBox;
-                    primitive->getVertexBounds(boundingBox);
-                    
-                    /*
-                     * Get size of image as drawn in pixels.  When the pixel size from
-                     * drawing exceeds the pixel size of the image, it is time to switch
-                     * to a higher resolution image.
-                     */
-                    float minXYZ[3], maxXYZ[3];
-                    transform->transformPoint(boundingBox.getMinXYZ().data(), minXYZ);
-                    transform->transformPoint(boundingBox.getMaxXYZ().data(), maxXYZ);
-                    const float width(maxXYZ[0] - minXYZ[0]);
-                    const float height(maxXYZ[1] - minXYZ[1]);
-//                    std::cout << "Pixel w/h: " << width << ", " << height << std::endl;
+                    primitive->getVertexBounds(boundingBox);                    
                 }
                 else {
                     CaretAssertMessage(0, ("Unrecognized file type "
@@ -259,10 +257,10 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                                                       primitive);
                         }
                         else if (cziImageFile != NULL) {
+                            CaretAssert(cziImage);
                             processCziImageFileSelection(m_browserTabContent->getTabNumber(),
                                                          cziImageFile,
-                                                         cziImageFile->getImageForDrawingInTab(tabIndex,
-                                                                                               transform),
+                                                         cziImage,
                                                          primitive);
                         }
                     }
@@ -464,8 +462,6 @@ BrainOpenGLMediaDrawing::processCziImageFileSelection(const int32_t tabIndex,
                 idCziImage->setTabIndex(tabIndex);
                 idCziImage->setPixelI(pixelIndexFullRes.getI());
                 idCziImage->setPixelJ(pixelIndexFullRes.getJ());
-                
-                //std::cout << "Selected Pixel: " << pixelIndexFullRes.toString() << std::endl;
                 
                 uint8_t pixelByteRGBA[4];
                 if (cziImageFile->getImagePixelRGBA(tabIndex,

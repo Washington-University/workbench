@@ -74,7 +74,8 @@ namespace caret {
         
     private:
         void drawModelLayers(const GraphicsObjectToWindowTransform* transform,
-                             const int32_t tabIndex);
+                             const int32_t tabIndex,
+                             const float totalScaling);
         
         void drawSelectionBox();
         

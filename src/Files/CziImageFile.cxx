@@ -317,6 +317,7 @@ CziImageFile::readFile(const AString& filename)
                 
                 /*
                  * Set level of zoom that corresponds to each of the pyramid layers
+                 * and level of zoom for switching to next layer in auto mode
                  */
                 float zoomFromLowRes(1.0);
                 for (int32_t i = m_lowestResolutionPyramidLayerIndex;
@@ -324,6 +325,21 @@ CziImageFile::readFile(const AString& filename)
                      i++) {
                     CaretAssertVectorIndex(m_pyramidLayers, i);
                     m_pyramidLayers[i].m_zoomLevelFromLowestResolutionImage = zoomFromLowRes;
+                    
+                    float zoomSwitchLayer(1.0);
+                    if (i == m_lowestResolutionPyramidLayerIndex) {
+                        zoomSwitchLayer = (zoomFromLowRes / 2.0);
+                    }
+                    else if (i == m_highestResolutionPyramidLayerIndex) {
+                        zoomSwitchLayer = 1000000.0f;
+                    }
+                    else {
+                        CaretAssertVectorIndex(m_pyramidLayers, i - 1);
+                        const float prevZoomFromLowRes(m_pyramidLayers[i - 1].m_zoomLevelFromLowestResolutionImage);
+                        zoomSwitchLayer = (zoomFromLowRes + prevZoomFromLowRes) / 2.0;
+                    }
+                    m_pyramidLayers[i].m_zoomLevelSwitchToHigherResolution = zoomSwitchLayer;
+                    
                     zoomFromLowRes *= (m_pyramidLayers[i+1].m_layerInfo.minificationFactor);
                 }
                 
@@ -610,15 +626,7 @@ CziImageFile::setPyramidLayerIndexForTab(const int32_t tabIndex,
     CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
     if (newPyramidLayerIndex != m_pyramidLayerIndexInTabs[tabIndex]) {
         m_pyramidLayerIndexInTabs[tabIndex] = newPyramidLayerIndex;
-        if (newPyramidLayerIndex == m_lowestResolutionPyramidLayerIndex) {
-            /*
-             * Lowest layer is default image, so no longer need
-             * image that is specific to tab
-             */
-            CaretAssertStdArrayIndex(m_tabCziImages, tabIndex);
-            m_tabCziImages[tabIndex].reset();
-        }
-        else {
+        if (newPyramidLayerIndex != m_lowestResolutionPyramidLayerIndex) {
             /*
              * Need image specific to tab
              */
@@ -752,7 +760,7 @@ CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
     CaretAssert(m_pyramidLayerTileAccessor);
     const libCZI::IntRect rectToReadROI = CziUtilities::qRectToIntRect(rectangleForReadingRect);
     std::shared_ptr<libCZI::IBitmapData> bitmapData = m_pyramidLayerTileAccessor->Get(pixelType,
-                                                                                      rectToReadROI, //intRectROI,
+                                                                                      rectToReadROI,
                                                                                       iDimCoord,
                                                                                       pyramidInfo,
                                                                                       &scstaOptions);
@@ -776,7 +784,7 @@ CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
     CziImage* cziImageOut = new CziImage(this,
                                          qImage,
                                          m_fullResolutionLogicalRect,
-                                         CziUtilities::intRectToQRect(rectToReadROI)); // CziUtilities::intRectToQRect(intRectROI));
+                                         CziUtilities::intRectToQRect(rectToReadROI));
     return cziImageOut;
 }
 
@@ -1078,7 +1086,9 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
                                                      + "; Min Factor: "
                                                      + QString::number(pl.m_layerInfo.minificationFactor)
                                                      + "; Zoom From Low Res: "
-                                                     + QString::number(pl.m_zoomLevelFromLowestResolutionImage, 'f', 2)));
+                                                     + QString::number(pl.m_zoomLevelFromLowestResolutionImage, 'f', 2)
+                                                     + "; Zoom Switch Higher: "
+                                                     + QString::number(pl.m_zoomLevelSwitchToHigherResolution, 'f', 2)));
             }
             
             const CziImage* cziImage = getDefaultImage();
@@ -1152,10 +1162,16 @@ CziImageFile::getImageForTab(const int32_t tabIndex) const
  *    Index of the tab
  * @param transform
  *    Transform for converts from object to window space (and inverse)
+ * @param resolutionChangeMode
+ *    Mode for changing resolutiln (auto/manual)
+ * @param totalScaling
+ *   Total of view scaling and default scaling of underlay image
  */
 const CziImage*
 CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
-                                      const GraphicsObjectToWindowTransform* transform)
+                                      const GraphicsObjectToWindowTransform* transform,
+                                      const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                      const float totalScaling)
 {
     CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
     const int32_t pyramidLayerIndex = m_pyramidLayerIndexInTabs[tabIndex];
@@ -1163,35 +1179,131 @@ CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
     /*
      * Lowest pyramid layer is always the default image
      */
+    CziImage* cziImageOut(NULL);
     if (pyramidLayerIndex == m_lowestResolutionPyramidLayerIndex) {
-        return getDefaultImage();
+        cziImageOut = getDefaultImage();
     }
     
-    /*
-     * If pyramid level has not changed and have valid image in tab use it
-     */
-    CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
-    CaretAssertStdArrayIndex(m_tabCziImages, tabIndex);
-    if (  ! m_tabCziImagePyramidLevelChanged[tabIndex]) {
-        if (m_tabCziImages[tabIndex] != NULL) {
-            return m_tabCziImages[tabIndex].get();
+    if (cziImageOut == NULL) {
+        /*
+         * If pyramid level has not changed and have valid image in tab use it
+         */
+        CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
+        CaretAssertStdArrayIndex(m_tabCziImages, tabIndex);
+        if (  ! m_tabCziImagePyramidLevelChanged[tabIndex]) {
+            if (m_tabCziImages[tabIndex] != NULL) {
+                cziImageOut = m_tabCziImages[tabIndex].get();
+            }
+        }
+        
+        if (cziImageOut == NULL) {
+            m_tabCziImages[tabIndex].reset(loadImageForPyrmaidLayer(tabIndex,
+                                                                    transform,
+                                                                    pyramidLayerIndex));
+            
+            if (m_tabCziImages[tabIndex]) {
+                cziImageOut = m_tabCziImages[tabIndex].get();
+            }
+            
+            if (cziImageOut == NULL) {
+                /*
+                 * Failed so go back to default image
+                 */
+                m_pyramidLayerIndexInTabs[tabIndex] = m_lowestResolutionPyramidLayerIndex;
+                return getDefaultImage();
+            }
         }
     }
-    
-    m_tabCziImages[tabIndex].reset(loadImageForPyrmaidLayer(tabIndex,
-                                                            transform,
-                                                            pyramidLayerIndex));
-    
-    if (m_tabCziImages[tabIndex]) {
-        return m_tabCziImages[tabIndex].get();
+
+    /*
+     * For AUTO mode
+     */
+    switch (resolutionChangeMode) {
+        case CziImageResolutionChangeModeEnum::AUTO:
+        {
+            int32_t pyramidLayerForScaling = m_highestResolutionPyramidLayerIndex;
+            for (int32_t i = m_lowestResolutionPyramidLayerIndex;
+                 i <= m_highestResolutionPyramidLayerIndex;
+                 i++) {
+                if (totalScaling <= m_pyramidLayers[i].m_zoomLevelSwitchToHigherResolution) {
+                    pyramidLayerForScaling = i;
+                    break;
+                }
+            }
+            if (pyramidLayerForScaling != getPyramidLayerIndexForTab(tabIndex)) {
+                setPyramidLayerIndexForTab(tabIndex,
+                                           pyramidLayerForScaling);
+            }
+        }
+            break;
+        case CziImageResolutionChangeModeEnum::MANUAL:
+            break;
     }
     
-    /*
-     * Failed so go back to default image
-     */
-    m_pyramidLayerIndexInTabs[tabIndex] = m_lowestResolutionPyramidLayerIndex;
-    return getDefaultImage();
+    return cziImageOut;
 }
+
+///**
+// * @return CZI image for the given tab for drawing
+// * @param tabIndex
+// *    Index of the tab
+// * @param transform
+// *    Transform for converts from object to window space (and inverse)
+// * @param totalScaling
+// *   Total of view scaling and default scaling of underlay image
+// */
+//const CziImage*
+//CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
+//                                      const GraphicsObjectToWindowTransform* transform,
+//                                      const float totalScaling)
+//{
+//    CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
+//    const int32_t pyramidLayerIndex = m_pyramidLayerIndexInTabs[tabIndex];
+//
+//    /*
+//     * For AUTO mode
+//     */
+//    bool switchToHigherResolutionFlag(false);
+//    if (pyramidLayerIndex < m_highestResolutionPyramidLayerIndex) {
+//        CaretAssertVectorIndex(m_pyramidLayers, pyramidLayerIndex);
+//        if (totalScaling > m_pyramidLayers[pyramidLayerIndex].m_zoomLevelSwitchToHigherResolution) {
+//            switchToHigherResolutionFlag = true;
+//            std::cout << "Switch to next layer" << std::endl;
+//        }
+//    }
+//
+//    /*
+//     * Lowest pyramid layer is always the default image
+//     */
+//    if (pyramidLayerIndex == m_lowestResolutionPyramidLayerIndex) {
+//        return getDefaultImage();
+//    }
+//
+//    /*
+//     * If pyramid level has not changed and have valid image in tab use it
+//     */
+//    CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
+//    CaretAssertStdArrayIndex(m_tabCziImages, tabIndex);
+//    if (  ! m_tabCziImagePyramidLevelChanged[tabIndex]) {
+//        if (m_tabCziImages[tabIndex] != NULL) {
+//            return m_tabCziImages[tabIndex].get();
+//        }
+//    }
+//
+//    m_tabCziImages[tabIndex].reset(loadImageForPyrmaidLayer(tabIndex,
+//                                                            transform,
+//                                                            pyramidLayerIndex));
+//
+//    if (m_tabCziImages[tabIndex]) {
+//        return m_tabCziImages[tabIndex].get();
+//    }
+//
+//    /*
+//     * Failed so go back to default image
+//     */
+//    m_pyramidLayerIndexInTabs[tabIndex] = m_lowestResolutionPyramidLayerIndex;
+//    return getDefaultImage();
+//}
 
 /**
  * Load a image from the given pyramid layer for the center of the tab region defined by the transform
@@ -1217,7 +1329,6 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
     };
     float modelXYZ[3];
     transform->inverseTransformPoint(vpCenterXYZ, modelXYZ);
-//    std::cout << "Model XYZ: " << AString::fromNumbers(modelXYZ, 3, ", ") << std::endl;
     PixelIndex imagePixelIndex(modelXYZ[0], modelXYZ[1], 0.0f);
     
     const CziImage* oldCziImage(getImageForTab(tabIndex));
@@ -1226,9 +1337,6 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
     PixelIndex fullResolutionLogicalPixelIndex = oldCziImage->transformPixelIndexToSpace(imagePixelIndex,
                                                                                          CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
                                                                                          CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT);
-//    std::cout << "   Full Image (TL): " << fullImagePixelIndex.toString() << std::endl;
-//    std::cout << "   Full Image Logical (TL): " << fullResolutionLogicalPixelIndex.toString() << std::endl;
-    
     const int32_t imageWidthHeight(2048);
     const int32_t halfImageWidthHeight(imageWidthHeight / 2);
     QRectF imageRegionRect(fullResolutionLogicalPixelIndex.getI() - halfImageWidthHeight,

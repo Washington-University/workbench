@@ -39,6 +39,7 @@
 #include "CziImageFile.h"
 #include "DisplayPropertiesCziImages.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GraphicsObjectToWindowTransform.h"
@@ -125,6 +126,10 @@ m_parentToolBar(parentToolBar)
     layout->addWidget(m_pyramidLayerSpinBox);
     layout->addWidget(reloadToolButton);
     layout->addStretch();
+    
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
+
 }
 
 /**
@@ -259,3 +264,23 @@ BrainBrowserWindowToolBarCziImage::resolutionModeComboBoxActivated()
     updateContent(m_browserTabContent);
 }
 
+/**
+ * Receive events from the event manager.
+ *
+ * @param event
+ *   Event sent by event manager.
+ */
+void
+BrainBrowserWindowToolBarCziImage::receiveEvent(Event* event)
+{
+    BrainBrowserWindowToolBarComponent::receiveEvent(event);
+    
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN) {
+        EventBrowserWindowGraphicsRedrawn* redrawnEvent =
+        dynamic_cast<EventBrowserWindowGraphicsRedrawn*>(event);
+        CaretAssert(redrawnEvent);
+        redrawnEvent->setEventProcessed();
+        
+        updateContent(m_browserTabContent);
+    }
+}

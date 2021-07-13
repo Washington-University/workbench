@@ -45,6 +45,8 @@ namespace caret {
         
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
+        void receiveEvent(Event* event) override;
+        
     private slots:
         void pyramidLayerChanged(int value);
         
