@@ -299,10 +299,18 @@ CziImageFile::readFile(const AString& filename)
                 m_highestResolutionPyramidLayerIndex = m_numberOfPyramidLayers - 1;
                 
                 /*
-                 * Selection of highest resolution results in an infinite loop
-                 * in the CZI library.  So, decrement the hightest resolution available.
+                 * For the highest resolution pyramid layer, the CZI library has the
+                 * minification factor set to zero.  If one tries to load this pyramid
+                 * layer with minification factor of zero, the CZI library goes into
+                 * an infinite loop in CSingleChannelPyramidLevelTileAccessor::CalcPyramidLayerNo
+                 * at " if (f >= minFactorInt)" because 'f' will be zero and 'minFactorInt' is 2.
+                 *
+                 * So, replacing the minification factor with 2 seems to prevent the infinite loop.
                  */
-                --m_highestResolutionPyramidLayerIndex;
+                CaretAssertVectorIndex(m_pyramidLayers, m_highestResolutionPyramidLayerIndex);
+                if (m_pyramidLayers[m_highestResolutionPyramidLayerIndex].m_layerInfo.minificationFactor == 0) {
+                    m_pyramidLayers[m_highestResolutionPyramidLayerIndex].m_layerInfo.minificationFactor = 2;
+                }
                 CaretAssert(m_lowestResolutionPyramidLayerIndex <= m_highestResolutionPyramidLayerIndex);
                 
                 if (cziDebugFlag) {
@@ -722,7 +730,7 @@ CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
         return NULL;
     }
     
-    CaretLogSevere("Request reading of :"
+    CaretLogInfo("Request reading of :"
                    + CziUtilities::intRectToString(intRectROI)
                    + " and actually read width="
                    + QString::number(bitmapData->GetWidth())
@@ -1218,16 +1226,18 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
     int32_t roiWidth = imageRegionRect.width();
     int32_t roiHeight = imageRegionRect.height();
     pixelSizeToLogicalSize(pyramidLayerIndex, roiWidth, roiHeight);
-    std::cout << "Adjusted width/height: " << roiWidth << ", " << roiHeight << std::endl;
     QRectF adjustedRect(imageRegionRect);
     adjustedRect.setX(centerX - (roiWidth / 2));
     adjustedRect.setY(centerY - (roiHeight / 2));
     adjustedRect.setWidth(roiWidth);
     adjustedRect.setHeight(roiHeight);
-    std::cout << "Original ROI: " << CziUtilities::qRectToString(imageRegionRect) << std::endl;
-    std::cout << "   Adjusted for w/h: " << CziUtilities::qRectToString(adjustedRect) << std::endl;
-    std::cout << "   Old Center: " << centerX << ", " << centerY << std::endl;
-    std::cout << "   New Center: " << adjustedRect.center().x() << ", " << adjustedRect.center().y() << std::endl;
+    if (cziDebugFlag) {
+        std::cout << "Adjusted width/height: " << roiWidth << ", " << roiHeight << std::endl;
+        std::cout << "Original ROI: " << CziUtilities::qRectToString(imageRegionRect) << std::endl;
+        std::cout << "   Adjusted for w/h: " << CziUtilities::qRectToString(adjustedRect) << std::endl;
+        std::cout << "   Old Center: " << centerX << ", " << centerY << std::endl;
+        std::cout << "   New Center: " << adjustedRect.center().x() << ", " << adjustedRect.center().y() << std::endl;
+    }
     if (m_fullResolutionLogicalRect.intersects(adjustedRect)) {
         adjustedRect = m_fullResolutionLogicalRect.intersected(adjustedRect);
     }
