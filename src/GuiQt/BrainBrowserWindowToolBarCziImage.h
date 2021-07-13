@@ -32,7 +32,8 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class CziImageFile;
-    
+    class EnumComboBoxTemplate;
+
     class BrainBrowserWindowToolBarCziImage : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
         
@@ -48,6 +49,8 @@ namespace caret {
         void pyramidLayerChanged(int value);
         
         void reloadActionTriggered();
+        
+        void resolutionModeComboBoxActivated();
         
     private:
         BrainBrowserWindowToolBarCziImage(const BrainBrowserWindowToolBarCziImage&);
@@ -73,6 +76,7 @@ namespace caret {
         
         QSpinBox* m_pyramidLayerSpinBox;
         
+        EnumComboBoxTemplate* m_resolutionModeComboBox;
     };
     
     

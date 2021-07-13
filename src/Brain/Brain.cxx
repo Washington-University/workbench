@@ -64,6 +64,7 @@
 #include "DisplayPropertiesAnnotation.h"
 #include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "DisplayPropertiesBorders.h"
+#include "DisplayPropertiesCziImages.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesImages.h"
@@ -202,6 +203,9 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_displayPropertiesBorders = new DisplayPropertiesBorders();
     m_displayProperties.push_back(m_displayPropertiesBorders);
     
+    m_displayPropertiesCziImages = new DisplayPropertiesCziImages();
+    m_displayProperties.push_back(m_displayPropertiesCziImages);
+    
     m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation(this);
     m_displayProperties.push_back(m_displayPropertiesFiberOrientation);
     
@@ -270,6 +274,10 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_sceneAssistant->add("displayPropertiesBorders", 
                           "DisplayPropertiesBorders", 
                           m_displayPropertiesBorders);
+    
+    m_sceneAssistant->add("displayPropertiesCziImages",
+                          "DisplayPropertiesCziImages",
+                          m_displayPropertiesCziImages);
     
     m_sceneAssistant->add("displayPropertiesFiberOrientation",
                           "DisplayPropertiesFiberOrientation",
@@ -7705,7 +7713,7 @@ Brain::getDisplayPropertiesAnnotationTextSubstitution() const
 /**
  * @return The border display properties.
  */
-DisplayPropertiesBorders* 
+DisplayPropertiesBorders*
 Brain::getDisplayPropertiesBorders()
 {
     return m_displayPropertiesBorders;
@@ -7714,10 +7722,28 @@ Brain::getDisplayPropertiesBorders()
 /**
  * @return The border display properties.
  */
-const DisplayPropertiesBorders* 
+const DisplayPropertiesBorders*
 Brain::getDisplayPropertiesBorders() const
 {
     return m_displayPropertiesBorders;
+}
+
+/**
+ * @return The CZI image display properties.
+ */
+DisplayPropertiesCziImages*
+Brain::getDisplayPropertiesCziImages()
+{
+    return m_displayPropertiesCziImages;
+}
+
+/**
+ * @return The Czi Image display properties.
+ */
+const DisplayPropertiesCziImages*
+Brain::getDisplayPropertiesCziImages() const
+{
+    return m_displayPropertiesCziImages;
 }
 
 /**

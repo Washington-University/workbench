@@ -76,6 +76,7 @@ namespace caret {
     class DisplayPropertiesAnnotation;
     class DisplayPropertiesAnnotationTextSubstitution;
     class DisplayPropertiesBorders;
+    class DisplayPropertiesCziImages;
     class DisplayPropertiesFiberOrientation;
     class DisplayPropertiesFoci;
     class DisplayPropertiesImages;
@@ -409,6 +410,10 @@ namespace caret {
         DisplayPropertiesBorders* getDisplayPropertiesBorders();
         
         const DisplayPropertiesBorders* getDisplayPropertiesBorders() const;
+        
+        DisplayPropertiesCziImages* getDisplayPropertiesCziImages();
+        
+        const DisplayPropertiesCziImages* getDisplayPropertiesCziImages() const;
         
         DisplayPropertiesFiberOrientation* getDisplayPropertiesFiberOrientation();
         
@@ -895,6 +900,12 @@ namespace caret {
          * is also in the displayProperties std::vector.
          */
         DisplayPropertiesBorders* m_displayPropertiesBorders;
+        
+        /**
+         * Display properties for CZI images - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesCziImages* m_displayPropertiesCziImages;
         
         /**
          * Display properties for fiber orientation - DO NOT delete since this

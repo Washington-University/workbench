@@ -129,6 +129,8 @@ namespace caret {
         void setPyramidLayerIndexForTab(const int32_t tabIndex,
                                    const int32_t pyramidLayerIndex);
         
+        void reloadPyramidLayerInTab(const int32_t tabIndex);
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -161,9 +163,11 @@ namespace caret {
             
             libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo m_layerInfo;
             
-            int64_t m_width;
+            int64_t m_width = 0;
             
-            int64_t m_height;
+            int64_t m_height = 0;
+            
+            float m_zoomLevelFromLowestResolutionImage = 1.0;
         };
         
         void closeFile();
@@ -232,6 +236,10 @@ namespace caret {
         
         std::array<std::unique_ptr<CziImage>, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_tabCziImages;
         
+        /*
+         * While we could reset the image to cause a change that may result in failure
+         * to display an image for a frame, so use flag to load new resolution.
+         */
         std::array<bool, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_tabCziImagePyramidLevelChanged;
         
 

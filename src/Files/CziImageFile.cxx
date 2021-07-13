@@ -23,6 +23,8 @@
 #include "CziImageFile.h"
 #undef __CZI_IMAGE_FILE_DECLARE__
 
+#include <limits>
+
 #include <QImage>
 
 #include "BackgroundAndForegroundColors.h"
@@ -313,6 +315,18 @@ CziImageFile::readFile(const AString& filename)
                 }
                 CaretAssert(m_lowestResolutionPyramidLayerIndex <= m_highestResolutionPyramidLayerIndex);
                 
+                /*
+                 * Set level of zoom that corresponds to each of the pyramid layers
+                 */
+                float zoomFromLowRes(1.0);
+                for (int32_t i = m_lowestResolutionPyramidLayerIndex;
+                     i <= m_highestResolutionPyramidLayerIndex;
+                     i++) {
+                    CaretAssertVectorIndex(m_pyramidLayers, i);
+                    m_pyramidLayers[i].m_zoomLevelFromLowestResolutionImage = zoomFromLowRes;
+                    zoomFromLowRes *= (m_pyramidLayers[i+1].m_layerInfo.minificationFactor);
+                }
+                
                 if (cziDebugFlag) {
                     std::cout << "Pyramid Range: " << m_lowestResolutionPyramidLayerIndex
                     << ", " << m_highestResolutionPyramidLayerIndex << std::endl;
@@ -596,7 +610,7 @@ CziImageFile::setPyramidLayerIndexForTab(const int32_t tabIndex,
     CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
     if (newPyramidLayerIndex != m_pyramidLayerIndexInTabs[tabIndex]) {
         m_pyramidLayerIndexInTabs[tabIndex] = newPyramidLayerIndex;
-        if (newPyramidLayerIndex != m_lowestResolutionPyramidLayerIndex) {
+        if (newPyramidLayerIndex == m_lowestResolutionPyramidLayerIndex) {
             /*
              * Lowest layer is default image, so no longer need
              * image that is specific to tab
@@ -611,6 +625,23 @@ CziImageFile::setPyramidLayerIndexForTab(const int32_t tabIndex,
             CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
             m_tabCziImagePyramidLevelChanged[tabIndex] = true;
         }
+    }
+}
+
+/**
+ * Reload the pyramid layer in the given tab.
+ * @param tabIndex
+ *    Index of the tab.
+ */
+void
+CziImageFile::reloadPyramidLayerInTab(const int32_t tabIndex)
+{
+    if (m_pyramidLayerIndexInTabs[tabIndex] != m_lowestResolutionPyramidLayerIndex) {
+        /*
+         * Invalidate image in tab.
+         */
+        CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
+        m_tabCziImagePyramidLevelChanged[tabIndex] = true;
     }
 }
 
@@ -1033,15 +1064,21 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
             const int32_t numPyramidLayers(m_pyramidLayers.size());
             for (int32_t i = 0; i < numPyramidLayers; i++) {
                 const PyramidLayer& pl(m_pyramidLayers[i]);
+                if (i == m_lowestResolutionPyramidLayerIndex) {
+                    dataFileInformation.addNameAndValue("---", QString("--- Lowest Resolution Layer ---"));
+                }
                 dataFileInformation.addNameAndValue(("Index "
                                                      + QString::number(i)),
-                                                    (QString::number(pl.m_width)
+                                                    ("W/H: "
+                                                     + QString::number(pl.m_width)
                                                      + " x "
                                                      + QString::number(pl.m_height)
-                                                     + " CZI Pyramid Layer Number: "
+                                                     + "; CZI Layer: "
                                                      + QString::number(pl.m_layerInfo.pyramidLayerNo)
-                                                     + " Min Factor: "
-                                                     + QString::number(pl.m_layerInfo.minificationFactor)));
+                                                     + "; Min Factor: "
+                                                     + QString::number(pl.m_layerInfo.minificationFactor)
+                                                     + "; Zoom From Low Res: "
+                                                     + QString::number(pl.m_zoomLevelFromLowestResolutionImage, 'f', 2)));
             }
             
             const CziImage* cziImage = getDefaultImage();

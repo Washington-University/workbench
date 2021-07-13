@@ -77,6 +77,7 @@ ConnectivityDataLoaded.h
 ControlPointFile.h
 CziImage.h
 CziImageFile.h
+CziImageResolutionChangeModeEnum.h
 CziPixelCoordSpaceEnum.h
 CziUtilities.h
 EventCaretDataFilesGet.h
@@ -224,6 +225,7 @@ ConnectivityDataLoaded.cxx
 ControlPointFile.cxx
 CziImage.cxx
 CziImageFile.cxx
+CziImageResolutionChangeModeEnum.cxx
 CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
 EventCaretDataFilesGet.cxx

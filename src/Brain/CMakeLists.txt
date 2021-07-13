@@ -71,6 +71,7 @@ DisplayProperties.h
 DisplayPropertiesAnnotation.h
 DisplayPropertiesAnnotationTextSubstitution.h
 DisplayPropertiesBorders.h
+DisplayPropertiesCziImages.h
 DisplayPropertiesFiberOrientation.h
 DisplayPropertiesFoci.h
 DisplayPropertiesImages.h
@@ -260,6 +261,7 @@ DisplayProperties.cxx
 DisplayPropertiesAnnotation.cxx
 DisplayPropertiesAnnotationTextSubstitution.cxx
 DisplayPropertiesBorders.cxx
+DisplayPropertiesCziImages.cxx
 DisplayPropertiesFiberOrientation.cxx
 DisplayPropertiesFoci.cxx
 DisplayPropertiesImages.cxx

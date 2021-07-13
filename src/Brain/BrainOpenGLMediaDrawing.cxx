@@ -141,7 +141,6 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     glTranslatef(translation[0], translation[1], 0.0);
     glScalef(defaultScaling, defaultScaling, 1.0);
     glScalef(scaling, scaling, 1.0);
-    
     std::array<float, 4> orthoLRBT { -halfWidth, halfWidth, -drawingHalfHeight, drawingHalfHeight };
     GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
     fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);

@@ -29,6 +29,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "Brain.h"
 #include "BrowserTabContent.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
@@ -36,9 +37,12 @@
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
 #include "CziImageFile.h"
+#include "DisplayPropertiesCziImages.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GraphicsObjectToWindowTransform.h"
+#include "GuiManager.h"
 #include "MediaOverlay.h"
 #include "MediaOverlaySet.h"
 #include "ModelMedia.h"
@@ -68,6 +72,25 @@ BrainBrowserWindowToolBarCziImage::BrainBrowserWindowToolBarCziImage(BrainBrowse
 m_parentToolBar(parentToolBar)
 {
     QLabel* pyramidLayerLabel = new QLabel("Pyramid Layer");
+    
+    const QString resModeTT("<html><body>"
+                            "<ul>"
+                            "<li>Auto - Workbench automatically selects level of image resolution"
+                            "<li>Manual - User selects level of image resolution"
+                            "</ul>"
+                            "</body></html>");
+    m_resolutionModeComboBox = new EnumComboBoxTemplate(this);
+    m_resolutionModeComboBox->setup<CziImageResolutionChangeModeEnum, CziImageResolutionChangeModeEnum::Enum>();
+    QObject::connect(m_resolutionModeComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &BrainBrowserWindowToolBarCziImage::resolutionModeComboBoxActivated);
+    m_resolutionModeComboBox->getWidget()->setToolTip(resModeTT);
+    m_resolutionModeComboBox->getWidget()->setObjectName(parentObjectName
+                                                         + "BrainBrowserWindowToolBarCziImage::ResolutionModeComboBox");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_resolutionModeComboBox->getWidget(),
+                                                         "Change CZI Resolution Mode");
+    
+    const QString pyrTT("Increase/decrease pyramid layer to show higher/lower resolution image.  "
+                        "Higher resolution images cover a smaller spatial region.");
     m_pyramidLayerSpinBox = new QSpinBox();
     QObject::connect(m_pyramidLayerSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarCziImage::pyramidLayerChanged);
@@ -75,15 +98,21 @@ m_parentToolBar(parentToolBar)
                                             + ":BrainBrowserWindowToolBarCziImage:PyramidLayerSpinBox");
     WuQMacroManager::instance()->addMacroSupportToObject(m_pyramidLayerSpinBox,
                                                          "Select pyramid layer of CZI Image in Tab");
+    WuQtUtilities::setWordWrappedToolTip(m_pyramidLayerSpinBox, pyrTT);
 
+    const QString reloadTT("Reload the current pyramid layer.  This may be useful when user pans the "
+                           "image so that much of the image is off the screen.");
     m_reloadAction = new QAction(this);
     m_reloadAction->setText("Reload");
     QObject::connect(m_reloadAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarCziImage::reloadActionTriggered);
+    WuQtUtilities::setWordWrappedToolTip(m_reloadAction,
+                                         reloadTT);
     m_reloadAction->setObjectName(parentObjectName
                                             + ":BrainBrowserWindowToolBarCziImage:ReloadCziImageAction");
     WuQMacroManager::instance()->addMacroSupportToObject(m_reloadAction,
                                                          "Reload CZI Image");
+    
     
     QToolButton* reloadToolButton = new QToolButton();
     reloadToolButton->setDefaultAction(m_reloadAction);
@@ -92,8 +121,8 @@ m_parentToolBar(parentToolBar)
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
     layout->addWidget(pyramidLayerLabel);
+    layout->addWidget(m_resolutionModeComboBox->getWidget());
     layout->addWidget(m_pyramidLayerSpinBox);
-    layout->addSpacing(10);
     layout->addWidget(reloadToolButton);
     layout->addStretch();
 }
@@ -152,6 +181,13 @@ BrainBrowserWindowToolBarCziImage::updateContent(BrowserTabContent* browserTabCo
         cziImageFile->getPyramidLayerRange(minLayerIndex, maxLayerIndex);
         m_pyramidLayerSpinBox->setRange(minLayerIndex, maxLayerIndex);
         m_pyramidLayerSpinBox->setValue(cziImageFile->getPyramidLayerIndexForTab(tabIndex));
+        
+        const DisplayPropertiesCziImages* dsc = GuiManager::get()->getBrain()->getDisplayPropertiesCziImages();
+        const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode(dsc->getResolutionChangeMode(tabIndex));
+        m_resolutionModeComboBox->setSelectedItem<CziImageResolutionChangeModeEnum, CziImageResolutionChangeModeEnum::Enum>(resolutionChangeMode);
+        const bool manualModeFlag(resolutionChangeMode == CziImageResolutionChangeModeEnum::MANUAL);
+        
+        m_pyramidLayerSpinBox->setEnabled(manualModeFlag);
     }
     
     setEnabled(cziImageFile != NULL);
@@ -199,6 +235,25 @@ BrainBrowserWindowToolBarCziImage::pyramidLayerChanged(int value)
 void
 BrainBrowserWindowToolBarCziImage::reloadActionTriggered()
 {
+    CziImageFile* cziImageFile = getCziImageFile(m_browserTabContent);
+    if (cziImageFile != NULL) {
+        const int32_t tabIndex = m_browserTabContent->getTabNumber();
+        cziImageFile->reloadPyramidLayerInTab(tabIndex);
+    }
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    updateContent(m_browserTabContent);
+}
+
+/**
+ * Called when user changes resolution mode
+ */
+void
+BrainBrowserWindowToolBarCziImage::resolutionModeComboBoxActivated()
+{
+    const int32_t tabIndex = m_browserTabContent->getTabNumber();
+    DisplayPropertiesCziImages* dsc = GuiManager::get()->getBrain()->getDisplayPropertiesCziImages();
+    const CziImageResolutionChangeModeEnum::Enum mode = m_resolutionModeComboBox->getSelectedItem<CziImageResolutionChangeModeEnum, CziImageResolutionChangeModeEnum::Enum>();
+    dsc->setResolutionChangeMode(tabIndex, mode);
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     updateContent(m_browserTabContent);
