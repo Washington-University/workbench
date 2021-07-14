@@ -3507,6 +3507,29 @@ BrowserTabContent::applyMediaMouseScaling(BrainOpenGLViewportContent* viewportCo
 }
 
 /**
+ * Set the scaling for media from GUI
+ * @param viewportContent
+ *    Content of the viewport
+ * @param scaling
+ *    New scaling (zoom) value
+ */
+void
+BrowserTabContent::setMediaScalingFromGui(BrainOpenGLViewportContent* viewportContent,
+                                          const float scaling)
+{
+    if (isMediaDisplayed()) {
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getGraphicsObjectToWindowTransform();
+        getViewingTransformation()->setMediaScaling(xform,
+                                                    getMediaOverlaySet()->getDefaultViewTransform(),
+                                                    scaling);
+    }
+    else {
+        CaretAssertMessage(0, "MEDIA ONLY");
+    }
+    updateYokedModelBrowserTabs();
+}
+
+/**
  * Set the media scaling to the given value
  */
 void

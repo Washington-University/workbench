@@ -246,13 +246,33 @@ void
 ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* /*transform*/,
                                         const int32_t /*mousePressX*/,
                                         const int32_t /*mousePressY*/,
-                                        const int32_t /*mouseDY*/,
+                                        const float /*mouseDY*/,
                                         const DefaultViewTransform& /*defaultViewTransform*/,
                                         const float /*dataX*/,
                                         const float /*dataY*/,
                                         const bool /*dataXYValidFlag*/)
 {
     const QString msg("ViewingTransformations::scaleAboutMouse() is not supported for this view");
+    CaretAssertMessage(0, msg);
+    CaretLogSevere(msg);
+}
+
+/**
+ * Set scaling for media
+ *
+ * @param transform
+ *    Graphics object to window transform
+ * @param defaultViewTransform
+ *    Transform for default view
+ * @param scaling
+ *    New value for scaling
+ */
+void
+ViewingTransformations::setMediaScaling(const GraphicsObjectToWindowTransform* /*/*transform*/,
+                                        const DefaultViewTransform& /*defaultViewTransform*/,
+                                        const float /*scaling*/)
+{
+    const QString msg("ViewingTransformations::setMediaScaling() is not supported for this view");
     CaretAssertMessage(0, msg);
     CaretLogSevere(msg);
 }

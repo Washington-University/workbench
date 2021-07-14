@@ -132,7 +132,7 @@ void
 ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransform* transform,
                                              const int32_t mousePressX,
                                              const int32_t mousePressY,
-                                             const int32_t mouseDY,
+                                             const float mouseDY,
                                              const DefaultViewTransform& defaultViewTransform,
                                              const float dataX,
                                              const float dataY,
@@ -206,6 +206,68 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
 
         setTranslation(tx, ty, 0.0);
     }
+}
+
+/**
+ * Set scaling for media
+ *
+ * @param transform
+ *    Graphics object to window transform
+ * @param defaultViewTransform
+ *    Transform for default view
+ * @param scaling
+ *    New value for scaling
+ */
+void
+ViewingTransformationsMedia::setMediaScaling(const GraphicsObjectToWindowTransform* transform,
+                                             const DefaultViewTransform& defaultViewTransform,
+                                             const float scaling)
+{
+
+    const std::array<int32_t, 4> viewport = transform->getViewport();
+    const float vpCenter[3] {
+        static_cast<float>(viewport[0] + (viewport[2] / 2)),
+        static_cast<float>(viewport[1] + (viewport[3] / 2)),
+        0.0f
+    };
+    
+    if ( ! transform->isValid()) {
+        return;
+    }
+    
+    float dataXYZ[3];
+    transform->inverseTransformPoint(vpCenter, dataXYZ);
+    
+    /*
+     * Scaling equations are set up so that:
+     *   MouseDY =  100 results in "newScale" 2.0 (doubles current scale)
+     *   MouseDY = -100 results in "newScale" 0.5 (halves current scale)
+     */
+    const float oldScale = getScaling();
+    const float diffScale = scaling - oldScale;
+    float mouseDY(0.0);
+    if (diffScale > 0.0) {
+        mouseDY = (diffScale * (100 / 2.0));
+    }
+    else if (diffScale < 0.0) {
+        mouseDY = (diffScale * (100 / 2.0));
+    }
+    else {
+        return;
+    }
+    if (mouseDY == 0) {
+        return;
+    }
+    
+    scaleAboutMouse(transform,
+                    vpCenter[0], vpCenter[1],
+                    mouseDY, defaultViewTransform,
+                    dataXYZ[0], dataXYZ[1], true);
+    
+//    std::cout << "Scaling in=" << scaling << " scale out=" << getScaling() << std::endl;
+//    std::cout << "   Ratio: " << (scaling / getScaling()) << std::endl;
+//    std::cout << "   Def scaling=" << defaultViewTransform.getScaling() << std::endl;
+//    std::cout << "   Def Trans=" << AString::fromNumbers(defaultViewTransform.getTranslation().data(), 3, ", ") << std::endl;
 }
 
 /**

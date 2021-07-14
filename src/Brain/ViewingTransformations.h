@@ -65,12 +65,16 @@ namespace caret {
         virtual void scaleAboutMouse(const GraphicsObjectToWindowTransform* transform,
                                      const int32_t mousePressX,
                                      const int32_t mousePressY,
-                                     const int32_t mouseDY,
+                                     const float mouseDY,
                                      const DefaultViewTransform& defaultViewTransform,
                                      const float dataX,
                                      const float dataY,
                                      const bool dataXYValidFlag);
 
+        virtual void setMediaScaling(const GraphicsObjectToWindowTransform* transform,
+                                     const DefaultViewTransform& defaultViewTransform,
+                                     const float scaling);
+        
         virtual void setViewToBounds(const BoundingBox* windowBounds,
                                      const GraphicsRegionSelectionBox* selectionBounds,
                                      const DefaultViewTransform& defaultViewTransform);

@@ -37,8 +37,10 @@
 
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowComboBox.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -780,8 +782,28 @@ CustomViewDialog::zoomValueChanged(double value)
         if (btc != NULL) {
             ModelMedia* mediaModel = btc->getDisplayedMediaModel();
             if (mediaModel != NULL) {
-                btc->setMediaScaling(value);
-                updateGraphicsWindow();
+                const BrainOpenGLViewportContent* vpContent(NULL);
+                std::vector<const BrainOpenGLViewportContent*> allViewportContent;
+                bbw->getAllBrainOpenGLViewportContent(allViewportContent);
+                for (auto& vpc : allViewportContent) {
+                    if (vpc->getTabIndex() == btc->getTabNumber()) {
+                        vpContent = vpc;
+                        break;
+                    }
+                }
+                if (vpContent != NULL) {
+                    btc->setMediaScalingFromGui(const_cast<BrainOpenGLViewportContent*>(vpContent),
+                                                value);
+                    updateGraphicsWindow();
+                }
+                else {
+                    CaretLogSevere("Unable to find viewport content for tab index="
+                                   + AString::number(btc->getTabNumber()));
+                }
+                
+                /*
+                 * Since media is in tab we DO NOT want to call transformValueChanged() below.
+                 */
                 return;
             }
         }

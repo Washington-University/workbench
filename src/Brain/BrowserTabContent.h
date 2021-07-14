@@ -321,6 +321,9 @@ namespace caret {
                                     const float dataY,
                                     const bool dataXYValidFlag);
         
+        void setMediaScalingFromGui(BrainOpenGLViewportContent* viewportContent,
+                                    const float scaling);
+        
         void setMediaViewToBounds(const BoundingBox* windowBounds,
                                   const GraphicsRegionSelectionBox* selectionBounds,
                                   const DefaultViewTransform& defaultViewTransform);
