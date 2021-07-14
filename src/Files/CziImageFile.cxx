@@ -37,6 +37,9 @@
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
 #include "EventCaretPreferencesGet.h"
+#include "EventBrowserTabClose.h"
+#include "EventBrowserTabDelete.h"
+#include "EventBrowserTabNewClone.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
 #include "GraphicsObjectToWindowTransform.h"
@@ -70,6 +73,11 @@ CziImageFile::CziImageFile()
     m_tabCziImagePyramidLevelChanged.fill(false);
 
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+
+    /* NEED THIS AFTER Tile Tabs have been modified */
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_CLOSE);
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE);
 }
 
 /**
@@ -140,6 +148,53 @@ GiftiMetaData*
 CziImageFile::getFileMetaData()
 {
     return m_fileMetaData.get();
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *    An event for which this instance is listening.
+ */
+void
+CziImageFile::receiveEvent(Event* event)
+{
+    int32_t removeTabIndex(-1);
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_CLOSE) {
+        EventBrowserTabClose* closeEvent = dynamic_cast<EventBrowserTabClose*>(event);
+        CaretAssert(closeEvent);
+        removeTabIndex = closeEvent->getBrowserTabIndex();
+        closeEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE) {
+        EventBrowserTabDelete* deleteEvent = dynamic_cast<EventBrowserTabDelete*>(event);
+        CaretAssert(deleteEvent);
+        removeTabIndex = deleteEvent->getBrowserTabIndex();
+        deleteEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE) {
+        EventBrowserTabNewClone* cloneTabEvent = dynamic_cast<EventBrowserTabNewClone*>(event);
+        CaretAssert(cloneTabEvent);
+
+        const int32_t cloneToTabIndex   = cloneTabEvent->getNewBrowserTabIndex();
+        const int32_t cloneFromTabIndex = cloneTabEvent->getIndexOfBrowserTabThatWasCloned();
+        CaretAssertVectorIndex(m_pyramidLayerIndexInTabs, cloneToTabIndex);
+        CaretAssertVectorIndex(m_pyramidLayerIndexInTabs, cloneFromTabIndex);
+        m_pyramidLayerIndexInTabs[cloneToTabIndex] = m_pyramidLayerIndexInTabs[cloneFromTabIndex];
+        cloneTabEvent->setEventProcessed();
+    }
+//    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED) {
+//        EventBrowserTabReopenClosed* reopenTabEvent = dynamic_cast<EventBrowserTabReopenClosed*>(event);
+//        CaretAssert(reopenTabEvent);
+//        if (s_preserveRestoreDeletedTabFlag) {
+//            restoreAnnotationsInReopendTab(reopenTabEvent->getTabIndex());
+//        }
+//    }
+    
+    if (removeTabIndex >= 0) {
+        CaretAssertVectorIndex(m_tabCziImages, removeTabIndex);
+        m_tabCziImages[removeTabIndex].reset();
+    }
 }
 
 /**

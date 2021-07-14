@@ -29,6 +29,7 @@
 
 #include "BrainConstants.h"
 #include "CziImageResolutionChangeModeEnum.h"
+#include "EventListenerInterface.h"
 #include "SingleChannelPyramidLevelTileAccessor.h"
 #include "MediaFile.h"
 
@@ -50,7 +51,7 @@ namespace caret {
     class RectangleTransform;
     class VolumeSpace;
     
-    class CziImageFile : public MediaFile {
+    class CziImageFile : public MediaFile, public EventListenerInterface {
         
     public:        
         CziImageFile();
@@ -133,6 +134,8 @@ namespace caret {
                                    const int32_t pyramidLayerIndex);
         
         void reloadPyramidLayerInTab(const int32_t tabIndex);
+        
+        virtual void receiveEvent(Event* event) override;
         
         // ADD_NEW_METHODS_HERE
 
