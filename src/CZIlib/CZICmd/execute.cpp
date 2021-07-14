@@ -333,6 +333,7 @@ private:
 			ss << " logical=" << info.logicalRect << " phys.=" << info.physicalSize;
 			ss << " pixeltype=" << Utils::PixelTypeToInformalString(info.pixelType);
 			ss << " comp.mode=" << Utils::CompressionModeToInformalString(info.mode);
+            ss << " zoom=" << info.GetZoom();
             
             if (info.coordinate.IsValid(DimensionIndex::Z)) {
                 int coordValue(0);

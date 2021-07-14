@@ -183,13 +183,6 @@ CziImageFile::receiveEvent(Event* event)
         m_pyramidLayerIndexInTabs[cloneToTabIndex] = m_pyramidLayerIndexInTabs[cloneFromTabIndex];
         cloneTabEvent->setEventProcessed();
     }
-//    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED) {
-//        EventBrowserTabReopenClosed* reopenTabEvent = dynamic_cast<EventBrowserTabReopenClosed*>(event);
-//        CaretAssert(reopenTabEvent);
-//        if (s_preserveRestoreDeletedTabFlag) {
-//            restoreAnnotationsInReopendTab(reopenTabEvent->getTabIndex());
-//        }
-//    }
     
     if (removeTabIndex >= 0) {
         CaretAssertVectorIndex(m_tabCziImages, removeTabIndex);
@@ -238,6 +231,14 @@ CziImageFile::closeFile()
     m_status = Status::CLOSED;
     
     m_fullResolutionLogicalRect = QRectF();
+    
+    /*
+     * Remove all images
+     */
+    for (auto& img : m_tabCziImages) {
+        img.reset();
+    }
+    m_defaultImage.reset();
 }
 
 /**
@@ -342,16 +343,27 @@ CziImageFile::readFile(const AString& filename)
         
         CziImage* defImage(NULL);
         if (m_numberOfPyramidLayers > 2) {
+            /*
+             * Maximum resolution for default image is no more than 1/2 maximum texture dimension
+             */
             const int32_t resolution(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension() / 2);
             if (cziDebugFlag) {
                 std::cout << "For CZI Image, seeking resolution " << resolution << std::endl;
             }
+            
+            /*
+             * Index of pyramid level that is no more than 1/2 maximum texture dimension
+             */
             const int32_t defaultPyramidIndex(getPyramidLayerWithMaximumResolution(resolution));
             if (defaultPyramidIndex >= 0) {
                 defImage = readPyramidLayerFromCziImageFile(defaultPyramidIndex,
                                                             m_fullResolutionLogicalRect,
                                                             m_fullResolutionLogicalRect,
                                                             m_errorMessage);
+                
+                /*
+                 * Range of pyramid layers for low-res to high-res
+                 */
                 m_lowestResolutionPyramidLayerIndex  = defaultPyramidIndex;
                 m_highestResolutionPyramidLayerIndex = m_numberOfPyramidLayers - 1;
                 
@@ -372,7 +384,7 @@ CziImageFile::readFile(const AString& filename)
                 
                 /*
                  * Set level of zoom that corresponds to each of the pyramid layers
-                 * and level of zoom for switching to next layer in auto mode
+                 * and level of zoom used for switching to next layer in auto mode
                  */
                 float zoomFromLowRes(1.0);
                 for (int32_t i = m_lowestResolutionPyramidLayerIndex;
@@ -561,7 +573,7 @@ CziImageFile::addToMetadataIfNotEmpty(const AString& name,
 
 
 /**
- * Read the specified region from the CZI file into an image of the given width and height.
+ * Read the specified SCALED region from the CZI file into an image of the given width and height.
  * @param regionOfInterest
  *    Region of interest to read from file.  Origin is in top left.
  * @param outputImageWidthHeightMaximum
@@ -701,7 +713,8 @@ CziImageFile::reloadPyramidLayerInTab(const int32_t tabIndex)
 {
     if (m_pyramidLayerIndexInTabs[tabIndex] != m_lowestResolutionPyramidLayerIndex) {
         /*
-         * Invalidate image in tab.
+         * Set level changed.  Cannot invalidate current image as it may
+         * get used before new image is loaded.
          */
         CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
         m_tabCziImagePyramidLevelChanged[tabIndex] = true;
@@ -864,15 +877,23 @@ CziImageFile::CalcSizeOfPixelOnLayer0(const libCZI::ISingleChannelPyramidLayerTi
 }
 
 /**
- * Convert a pixel size to a logical size for the given layer
+ * Convert a pixel size to a logical size for the given layer.
+ * Reading images uses "logical width"
+ *
+ * @param pyramidLayerIndex
+ *    Index of pyramid layer
+ * @param widthInOut
+ *    Width (input pixels; output logical)
+ * @param heightInOut
+ *    Height (input pixels; output logical)
  */
 void
-CziImageFile::pixelSizeToLogicalSize(const int32_t pyramidLayer,
+CziImageFile::pixelSizeToLogicalSize(const int32_t pyramidLayerIndex,
                                      int32_t& widthInOut,
                                      int32_t& heightInOut) const
 {
-    CaretAssertVectorIndex(m_pyramidLayers, pyramidLayer);
-    const int32_t pixelScale = CalcSizeOfPixelOnLayer0(m_pyramidLayers[pyramidLayer].m_layerInfo);
+    CaretAssertVectorIndex(m_pyramidLayers, pyramidLayerIndex);
+    const int32_t pixelScale = CalcSizeOfPixelOnLayer0(m_pyramidLayers[pyramidLayerIndex].m_layerInfo);
     widthInOut  *= pixelScale;
     heightInOut *= pixelScale;
     widthInOut  = std::min(widthInOut, static_cast<int32_t>(m_fullResolutionLogicalRect.width()));
@@ -965,6 +986,9 @@ CziImageFile::createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
 void
 CziImageFile::writeFile(const AString& filename)
 {
+    /*
+     * Cannot write CZI file
+     */
     throw DataFileException(filename,
                             "Writing of CZI images files is not supported");
 }
@@ -1026,8 +1050,11 @@ CziImageFile::getNumberOfFrames() const
  *    Index of the tab
  */
 DefaultViewTransform
-CziImageFile::getDefaultViewTransform(const int32_t tabIndex) const
+CziImageFile::getDefaultViewTransform(const int32_t /*tabIndex*/) const
 {
+    /*
+     * Note: Same default transform is used in ALL files
+     */
     if ( ! m_defaultViewTransformValidFlag) {
         const CziImage* cziImage(getDefaultImage());
         CaretAssert(cziImage);
@@ -1297,68 +1324,6 @@ CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
     
     return cziImageOut;
 }
-
-///**
-// * @return CZI image for the given tab for drawing
-// * @param tabIndex
-// *    Index of the tab
-// * @param transform
-// *    Transform for converts from object to window space (and inverse)
-// * @param totalScaling
-// *   Total of view scaling and default scaling of underlay image
-// */
-//const CziImage*
-//CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
-//                                      const GraphicsObjectToWindowTransform* transform,
-//                                      const float totalScaling)
-//{
-//    CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
-//    const int32_t pyramidLayerIndex = m_pyramidLayerIndexInTabs[tabIndex];
-//
-//    /*
-//     * For AUTO mode
-//     */
-//    bool switchToHigherResolutionFlag(false);
-//    if (pyramidLayerIndex < m_highestResolutionPyramidLayerIndex) {
-//        CaretAssertVectorIndex(m_pyramidLayers, pyramidLayerIndex);
-//        if (totalScaling > m_pyramidLayers[pyramidLayerIndex].m_zoomLevelSwitchToHigherResolution) {
-//            switchToHigherResolutionFlag = true;
-//            std::cout << "Switch to next layer" << std::endl;
-//        }
-//    }
-//
-//    /*
-//     * Lowest pyramid layer is always the default image
-//     */
-//    if (pyramidLayerIndex == m_lowestResolutionPyramidLayerIndex) {
-//        return getDefaultImage();
-//    }
-//
-//    /*
-//     * If pyramid level has not changed and have valid image in tab use it
-//     */
-//    CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
-//    CaretAssertStdArrayIndex(m_tabCziImages, tabIndex);
-//    if (  ! m_tabCziImagePyramidLevelChanged[tabIndex]) {
-//        if (m_tabCziImages[tabIndex] != NULL) {
-//            return m_tabCziImages[tabIndex].get();
-//        }
-//    }
-//
-//    m_tabCziImages[tabIndex].reset(loadImageForPyrmaidLayer(tabIndex,
-//                                                            transform,
-//                                                            pyramidLayerIndex));
-//
-//    if (m_tabCziImages[tabIndex]) {
-//        return m_tabCziImages[tabIndex].get();
-//    }
-//
-//    /*
-//     * Failed so go back to default image
-//     */
-//    m_pyramidLayerIndexInTabs[tabIndex] = m_lowestResolutionPyramidLayerIndex;
-//    return getDefaultImage();
-//}
 
 /**
  * Load a image from the given pyramid layer for the center of the tab region defined by the transform

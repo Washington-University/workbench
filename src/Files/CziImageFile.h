@@ -202,7 +202,7 @@ namespace caret {
         
         int32_t getPyramidLayerWithMaximumResolution(const int32_t resolution) const;
         
-        void pixelSizeToLogicalSize(const int32_t pyramidLayer,
+        void pixelSizeToLogicalSize(const int32_t pyramidLayerIndex,
                                     int32_t& widthInOut,
                                     int32_t& heightOut) const;
         
