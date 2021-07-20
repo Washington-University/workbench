@@ -91,9 +91,17 @@ namespace caret {
                    const std::array<float, 4>& orthoLRBT,
                    const double centerToEyeDistance);
         
+        void setup(const SpaceType spaceType,
+                   const std::array<double, 16>& modelviewMatrixArray,
+                   const std::array<double, 16>& projectionMatrixArray,
+                   const std::array<float, 4>& viewport,
+                   const std::array<double, 2>& depthRange,
+                   const std::array<float, 4>& orthoLRBT,
+                   const double centerToEyeDistance);
+        
         void replaceModelviewMatrix(const std::array<double, 16>& modelviewMatrixArray);
         
-        std::array<int32_t, 4> getViewport() const;
+        std::array<float, 4> getViewport() const;
         
         std::array<float, 4> getOrthoLRBT() const;
         
@@ -112,7 +120,7 @@ namespace caret {
         
         Matrix4x4 m_modelviewMatrix;
         
-        std::array<int32_t, 4> m_viewport;
+        std::array<float, 4> m_viewport;
         
         std::array<double, 2> m_depthRange;
         

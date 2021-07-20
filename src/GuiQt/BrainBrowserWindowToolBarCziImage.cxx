@@ -260,7 +260,22 @@ BrainBrowserWindowToolBarCziImage::resolutionModeComboBoxActivated()
     const CziImageResolutionChangeModeEnum::Enum mode = m_resolutionModeComboBox->getSelectedItem<CziImageResolutionChangeModeEnum, CziImageResolutionChangeModeEnum::Enum>();
     dsc->setResolutionChangeMode(tabIndex, mode);
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    switch (mode) {
+        case CziImageResolutionChangeModeEnum::AUTO:
+        {
+            /*
+             * AUTO needs repaint since it may try to load a new image
+             * of a different resolution.
+             */
+            const bool doRepaintFlag(true);
+            EventGraphicsUpdateAllWindows graphicsEvent(doRepaintFlag);
+            EventManager::get()->sendEvent(graphicsEvent.getPointer());
+        }
+            break;
+        case CziImageResolutionChangeModeEnum::MANUAL:
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            break;
+    }
     updateContent(m_browserTabContent);
 }
 

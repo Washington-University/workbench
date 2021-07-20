@@ -213,21 +213,17 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
  *
  * @param transform
  *    Graphics object to window transform
- * @param defaultViewTransform
- *    Transform for default view
  * @param scaling
  *    New value for scaling
  */
 void
 ViewingTransformationsMedia::setMediaScaling(const GraphicsObjectToWindowTransform* transform,
-                                             const DefaultViewTransform& defaultViewTransform,
                                              const float scaling)
 {
-
-    const std::array<int32_t, 4> viewport = transform->getViewport();
+    const std::array<float, 4> viewport = transform->getViewport();
     const float vpCenter[3] {
-        static_cast<float>(viewport[0] + (viewport[2] / 2)),
-        static_cast<float>(viewport[1] + (viewport[3] / 2)),
+        viewport[0] + (viewport[2] / 2.0f),
+        viewport[1] + (viewport[3] / 2.0f),
         0.0f
     };
     
@@ -235,43 +231,39 @@ ViewingTransformationsMedia::setMediaScaling(const GraphicsObjectToWindowTransfo
         return;
     }
     
+    /*
+     * Pixel at center of screen
+     */
     float dataXYZ[3];
     transform->inverseTransformPoint(vpCenter, dataXYZ);
+
+    /*
+     * Center of orthographic projection is at center of screen.
+     */
+    const std::array<float, 4> orthoBounds(transform->getOrthoLRBT());
+    const float orthoCenterXYZ[] {
+        (orthoBounds[0] + orthoBounds[1]) / 2.0f,
+        (orthoBounds[2] + orthoBounds[3]) / 2.0f,
+        0.0
+    };
+    
+    setScaling(scaling);
     
     /*
-     * Scaling equations are set up so that:
-     *   MouseDY =  100 results in "newScale" 2.0 (doubles current scale)
-     *   MouseDY = -100 results in "newScale" 0.5 (halves current scale)
+     * The origin is in the bottom left and scaling causes the image
+     * to expand to the right and top.  Translate the image so that
+     * the pixel at the center of the screen before scaling remains
+     * at the center of the screen after scaling.
      */
-    const float oldScale = getScaling();
-    const float diffScale = scaling - oldScale;
-    float mouseDY(0.0);
-    if (diffScale > 0.0) {
-        mouseDY = (diffScale * (100 / 2.0));
-    }
-    else if (diffScale < 0.0) {
-        mouseDY = (diffScale * (100 / 2.0));
-    }
-    else {
-        return;
-    }
-    if (mouseDY == 0) {
-        return;
-    }
-    
-    scaleAboutMouse(transform,
-                    vpCenter[0], vpCenter[1],
-                    mouseDY, defaultViewTransform,
-                    dataXYZ[0], dataXYZ[1], true);
-    
-//    std::cout << "Scaling in=" << scaling << " scale out=" << getScaling() << std::endl;
-//    std::cout << "   Ratio: " << (scaling / getScaling()) << std::endl;
-//    std::cout << "   Def scaling=" << defaultViewTransform.getScaling() << std::endl;
-//    std::cout << "   Def Trans=" << AString::fromNumbers(defaultViewTransform.getTranslation().data(), 3, ", ") << std::endl;
+    float tx = -((dataXYZ[0] * scaling) - orthoCenterXYZ[0]);
+    float ty = -((dataXYZ[1] * scaling) - orthoCenterXYZ[1]);
+    setTranslation(tx, ty, 0.0);
 }
 
 /**
  * Set the bounds of the view to the given selection bounds.
+ * @param transform
+ *    Graphics object to window transform
  * @param windowBounds
  *    Box containing bounds of window
  * @param selectionBounds
@@ -280,59 +272,55 @@ ViewingTransformationsMedia::setMediaScaling(const GraphicsObjectToWindowTransfo
  *    Transform for the default view
  */
 void
-ViewingTransformationsMedia::setViewToBounds(const BoundingBox* windowBounds,
+ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransform* transform,
+                                             const BoundingBox* windowBounds,
                                              const GraphicsRegionSelectionBox* selectionBounds,
-                                             const DefaultViewTransform& defaultViewTransform)
+                                             const DefaultViewTransform& /*defaultViewTransform*/)
 {
     CaretAssert(windowBounds);
     CaretAssert(selectionBounds);
     
     
-    const float defaultScaling(defaultViewTransform.getScaling());
-    CaretAssert(defaultScaling > 0.0);
-    
-    float regionMinX, regionMaxX, regionMinY, regionMaxY;
-    selectionBounds->getBounds(regionMinX, regionMinY, regionMaxX, regionMaxY);
+    float selectionBoxCenterX(0.0), selectionBoxCenterY(0.0);
+    selectionBounds->getCenter(selectionBoxCenterX,
+                               selectionBoxCenterY);
     
     /*
      * Ensure window and selection region are valid
      */
     const float windowWidth(windowBounds->getMaxX() - windowBounds->getMinX());
     const float windowHeight(windowBounds->getMaxY() - windowBounds->getMinY());
-    const float regionWidth(regionMaxX - regionMinX);
-    const float regionHeight(regionMaxY - regionMinY);
+    const float selectionWidth(selectionBounds->getWidth());
+    const float selectionHeight(selectionBounds->getHeight());
     if ((windowWidth > 0.0)
-        && (regionWidth > 0.0)
+        && (selectionWidth > 0.0)
         && (windowHeight > 0.0)
-        && (regionHeight > 0.0)) {
+        && (selectionHeight > 0.0)) {
         ViewingTransformations undoViewTrans;
         undoViewTrans.copyFromOther(*this);
         
         /*
          * Scale using width or height to best fit region into window.
          */
-        const float widthScale(windowWidth / regionWidth);
-        const float heightScale(windowHeight / regionHeight);
+        const float widthScale(windowWidth / selectionWidth);
+        const float heightScale(windowHeight / selectionHeight);
         const float scale(std::min(widthScale, heightScale));
-        setScaling(scale / defaultScaling);
+        setScaling(scale);
         
-        float centerXYZ[3] { 0.0, 0.0, 0.0 };
-        selectionBounds->getCenter(centerXYZ[0], centerXYZ[1]);
+        const std::array<float, 4> orthoBounds(transform->getOrthoLRBT());
+        const float orthoCenterXYZ[] {
+            (orthoBounds[0] + orthoBounds[1]) / 2.0f,
+            (orthoBounds[2] + orthoBounds[3]) / 2.0f,
+            0.0
+        };
+        
         
         /*
          * Translate so that center of selection box is moved
          * to the center of the screen
          */
-        float tx = -((centerXYZ[0] * scale));
-        float ty = -((centerXYZ[1] * scale));
-
-        /*
-         * Need to remove default view translation
-         */
-        const std::array<float, 3> defViewTranslate(defaultViewTransform.getTranslation());
-        tx -= defViewTranslate[0];
-        ty -= defViewTranslate[1];
-
+        float tx = (orthoCenterXYZ[0] - (selectionBoxCenterX * scale));
+        float ty = (orthoCenterXYZ[1] - (selectionBoxCenterY * scale));
         setTranslation(tx, ty, 0.0);
         
         ViewingTransformations redoViewTrans;

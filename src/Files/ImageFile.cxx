@@ -2051,7 +2051,7 @@ ImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
     m_defaultViewTransform.reset();
     m_defaultViewTransformValidFlag = false;
     
-    const int32_t sceneVersionNumber = sceneClass->getIntegerValue(ImageFile::SCENE_VERSION_NUMBER, 0);
+    //const int32_t sceneVersionNumber = sceneClass->getIntegerValue(ImageFile::SCENE_VERSION_NUMBER, 0);
 }
 
 /**
@@ -2325,7 +2325,7 @@ ImageFile::getDefaultViewTransform(const int32_t /*tabIndex*/) const
  *     Image of pixel
  */
 bool
-ImageFile::isPixelIndexValid(const int32_t tabIndex,
+ImageFile::isPixelIndexValid(const int32_t /*tabIndex*/,
                                 const PixelIndex& pixelIndex) const
 {
     if (m_image != NULL) {

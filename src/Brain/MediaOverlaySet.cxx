@@ -182,6 +182,21 @@ MediaOverlaySet::getBottomMostEnabledOverlay()
     return overlay;
 }
 
+/**
+ * @return Media file in bottom most enabled overlay or NULL if none selected.
+ */
+MediaFile*
+MediaOverlaySet::getBottomMostMediaFile()
+{
+    MediaFile* mediaFile(NULL);
+    int32_t frameIndex(0);
+    MediaOverlay* underlay = getBottomMostEnabledOverlay();
+    if (underlay != NULL) {
+        underlay->getSelectionData(mediaFile, frameIndex);
+    }
+    return mediaFile;
+}
+
 
 /**
  * Get a description of this object's content.
@@ -498,7 +513,6 @@ MediaOverlaySet::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
     
-//    const int32_t numOverlaysToSave = BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS;
     const int32_t numOverlaysToSave = getNumberOfDisplayedOverlays();
     
     std::vector<SceneClass*> overlayClassVector;

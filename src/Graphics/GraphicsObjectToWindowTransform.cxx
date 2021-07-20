@@ -364,7 +364,6 @@ GraphicsObjectToWindowTransform::cloneWithNewModelViewMatrix(const Matrix4x4& mo
     return ptr;
 }
 
-
 /**
  * Setup the transformation's data.
  *
@@ -386,6 +385,44 @@ GraphicsObjectToWindowTransform::setup(const SpaceType spaceType,
                                        const std::array<double, 16>& modelviewMatrixArray,
                                        const std::array<double, 16>& projectionMatrixArray,
                                        const std::array<int32_t, 4>& viewport,
+                                       const std::array<double, 2>& depthRange,
+                                       const std::array<float, 4>& orthoLRBT,
+                                       const double centerToEyeDistance)
+{
+    std::array<float, 4> vpFloat;
+    for (int32_t i = 0; i < 4; i++) {
+        vpFloat[i] = viewport[i];
+    }
+    setup(spaceType,
+          modelviewMatrixArray,
+          projectionMatrixArray,
+          vpFloat,
+          depthRange,
+          orthoLRBT,
+          centerToEyeDistance);
+}
+
+/**
+ * Setup the transformation's data.
+ *
+ * @param modelviewMatrixArray
+ *     The OpenGL modelview matrix as an array.
+ * @param projectionMatrixArray
+ *     The OpenGL projection matrix as an array.
+ * @param viewport
+ *     The OpenGL Viewport (x, y, w, h)
+ * @param depthRange
+ *     The depth range (near, far)
+ * @param orthoLRBT
+ *     Orthographic left, right, bottom, top
+ * @param centerToEyeDistance
+ *     Distance from object space center to the viewer's eye along Z-axis.
+ */
+void
+GraphicsObjectToWindowTransform::setup(const SpaceType spaceType,
+                                       const std::array<double, 16>& modelviewMatrixArray,
+                                       const std::array<double, 16>& projectionMatrixArray,
+                                       const std::array<float, 4>& viewport,
                                        const std::array<double, 2>& depthRange,
                                        const std::array<float, 4>& orthoLRBT,
                                        const double centerToEyeDistance)
@@ -428,7 +465,7 @@ GraphicsObjectToWindowTransform::setup(const SpaceType spaceType,
 /**
  * @return The viewport.
  */
-std::array<int32_t, 4>
+std::array<float, 4>
 GraphicsObjectToWindowTransform::getViewport() const
 {
     return m_viewport;

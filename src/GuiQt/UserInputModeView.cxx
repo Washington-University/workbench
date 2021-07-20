@@ -631,7 +631,8 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
                         const MediaOverlaySet* mediaOverlaySet(browserTabContent->getMediaOverlaySet());
                         CaretAssert(mediaOverlaySet);
                         DefaultViewTransform defaultViewTransform = mediaOverlaySet->getDefaultViewTransform();
-                        browserTabContent->setMediaViewToBounds(&orthoBounds,
+                        browserTabContent->setMediaViewToBounds(viewportContent,
+                                                                &orthoBounds,
                                                                 selectionBox,
                                                                 mediaOverlaySet->getDefaultViewTransform());
                     }

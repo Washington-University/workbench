@@ -53,6 +53,10 @@ namespace caret {
         bool getCenter(float& centerX,
                        float& centerY) const;
         
+        float getWidth() const;
+        
+        float getHeight() const;
+        
         bool getBounds(float& minX,
                        float& minY,
                        float& maxX,

@@ -49,10 +49,10 @@ namespace caret {
                                      const bool dataXYValidFlag) override;
         
         virtual void setMediaScaling(const GraphicsObjectToWindowTransform* transform,
-                                     const DefaultViewTransform& defaultViewTransform,
-                                     const float scaling);
+                                     const float scaling) override;
         
-        virtual void setViewToBounds(const BoundingBox* windowBounds,
+        virtual void setViewToBounds(const GraphicsObjectToWindowTransform* xform,
+                                     const BoundingBox* windowBounds,
                                      const GraphicsRegionSelectionBox* selectionBounds,
                                      const DefaultViewTransform& defaultViewTransform) override;
         

@@ -3520,7 +3520,6 @@ BrowserTabContent::setMediaScalingFromGui(BrainOpenGLViewportContent* viewportCo
     if (isMediaDisplayed()) {
         const GraphicsObjectToWindowTransform* xform = viewportContent->getGraphicsObjectToWindowTransform();
         getViewingTransformation()->setMediaScaling(xform,
-                                                    getMediaOverlaySet()->getDefaultViewTransform(),
                                                     scaling);
     }
     else {
@@ -3599,6 +3598,8 @@ BrowserTabContent::setMediaScaling(const float newScaleValue)
 
 /**
  * Set the bounds of the view to the given selection bounds.
+ * @param viewportContent
+ *    Content of the viewport
  * @param windowBounds
  *    Box containing bounds of window
  * @param selectionBounds
@@ -3607,11 +3608,14 @@ BrowserTabContent::setMediaScaling(const float newScaleValue)
  *    Transform for the default view
  */
 void
-BrowserTabContent::setMediaViewToBounds(const BoundingBox* windowBounds,
+BrowserTabContent::setMediaViewToBounds(const BrainOpenGLViewportContent* viewportContent,
+                                        const BoundingBox* windowBounds,
                                         const GraphicsRegionSelectionBox* selectionBounds,
                                         const DefaultViewTransform& defaultViewTransform)
 {
-    m_mediaViewingTransformation->setViewToBounds(windowBounds,
+    const GraphicsObjectToWindowTransform* xform = viewportContent->getGraphicsObjectToWindowTransform();
+    m_mediaViewingTransformation->setViewToBounds(xform,
+                                                  windowBounds,
                                                   selectionBounds,
                                                   defaultViewTransform);
     updateMediaModelYokedBrowserTabs();

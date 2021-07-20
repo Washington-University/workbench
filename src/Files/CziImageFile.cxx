@@ -85,6 +85,7 @@ CziImageFile::CziImageFile()
  */
 CziImageFile::~CziImageFile()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -392,21 +393,6 @@ CziImageFile::readFile(const AString& filename)
                      i++) {
                     CaretAssertVectorIndex(m_pyramidLayers, i);
                     m_pyramidLayers[i].m_zoomLevelFromLowestResolutionImage = zoomFromLowRes;
-                    
-                    float zoomSwitchLayer(1.0);
-                    if (i == m_lowestResolutionPyramidLayerIndex) {
-                        zoomSwitchLayer = (zoomFromLowRes / 2.0);
-                    }
-                    else if (i == m_highestResolutionPyramidLayerIndex) {
-                        zoomSwitchLayer = 1000000.0f;
-                    }
-                    else {
-                        CaretAssertVectorIndex(m_pyramidLayers, i - 1);
-                        const float prevZoomFromLowRes(m_pyramidLayers[i - 1].m_zoomLevelFromLowestResolutionImage);
-                        zoomSwitchLayer = (zoomFromLowRes + prevZoomFromLowRes) / 2.0;
-                    }
-                    m_pyramidLayers[i].m_zoomLevelSwitchToHigherResolution = zoomSwitchLayer;
-                    
                     zoomFromLowRes *= (m_pyramidLayers[i+1].m_layerInfo.minificationFactor);
                 }
                 
@@ -1084,6 +1070,13 @@ CziImageFile::getDefaultViewTransform(const int32_t /*tabIndex*/) const
                         m_defaultViewTransform.setScaling(defaultScaling);
                         m_defaultViewTransform.setTranslation(tx, ty);
 
+                        
+                        
+                        m_defaultViewTransform.setScaling(1.0);
+                        m_defaultViewTransform.setTranslation(0.0, 0.0);
+                        
+                        
+                        
                         m_defaultViewTransformValidFlag = true;
 
                         if (cziDebugFlag) std::cout << "Default view transform: " << m_defaultViewTransform.toString() << std::endl;
@@ -1168,9 +1161,7 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
                                                      + "; Min Factor: "
                                                      + QString::number(pl.m_layerInfo.minificationFactor)
                                                      + "; Zoom From Low Res: "
-                                                     + QString::number(pl.m_zoomLevelFromLowestResolutionImage, 'f', 2)
-                                                     + "; Zoom Switch Higher: "
-                                                     + QString::number(pl.m_zoomLevelSwitchToHigherResolution, 'f', 2)));
+                                                     + QString::number(pl.m_zoomLevelFromLowestResolutionImage, 'f', 2)));
             }
             
             const CziImage* cziImage = getDefaultImage();
@@ -1246,14 +1237,11 @@ CziImageFile::getImageForTab(const int32_t tabIndex) const
  *    Transform for converts from object to window space (and inverse)
  * @param resolutionChangeMode
  *    Mode for changing resolutiln (auto/manual)
- * @param totalScaling
- *   Total of view scaling and default scaling of underlay image
  */
 const CziImage*
 CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
                                       const GraphicsObjectToWindowTransform* transform,
-                                      const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
-                                      const float totalScaling)
+                                      const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode)
 {
     CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
     const int32_t pyramidLayerIndex = m_pyramidLayerIndexInTabs[tabIndex];
@@ -1297,31 +1285,46 @@ CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
         }
     }
 
-    /*
-     * For AUTO mode
-     */
-    switch (resolutionChangeMode) {
-        case CziImageResolutionChangeModeEnum::AUTO:
-        {
-            int32_t pyramidLayerForScaling = m_highestResolutionPyramidLayerIndex;
-            for (int32_t i = m_lowestResolutionPyramidLayerIndex;
-                 i <= m_highestResolutionPyramidLayerIndex;
-                 i++) {
-                if (totalScaling <= m_pyramidLayers[i].m_zoomLevelSwitchToHigherResolution) {
-                    pyramidLayerForScaling = i;
-                    break;
+    if (cziImageOut != NULL) {
+        /*
+         * For AUTO mode
+         */
+        switch (resolutionChangeMode) {
+            case CziImageResolutionChangeModeEnum::AUTO:
+            {
+                /*
+                 * Compute pixel height of the high-resolution image when drawn in the window.
+                 * The size of the image, in pixels when drawn, determines when to switch to
+                 * lower or higher resolution image.
+                 */
+                const float imageBottomLeftPixel[3] { 0.0, 0.0, 0.0 };
+                const float imageTopLeftPixel[3] { 0.0, static_cast<float>(m_fullResolutionLogicalRect.height()), 0.0 };
+                float imageBottomLeftWindow[3];
+                float imageTopLeftWindow[3];
+                transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
+                transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
+                const float drawnPixelHeight = imageTopLeftWindow[1] - imageBottomLeftWindow[1];
+                
+                int32_t pyramidLayerForScaling = m_highestResolutionPyramidLayerIndex;
+                for (int32_t i = m_lowestResolutionPyramidLayerIndex;
+                     i <= m_highestResolutionPyramidLayerIndex;
+                     i++) {
+                    if (drawnPixelHeight < m_pyramidLayers[i].m_height) {
+                        pyramidLayerForScaling = i;
+                        break;
+                    }
+                }
+                if (pyramidLayerForScaling != getPyramidLayerIndexForTab(tabIndex)) {
+                    setPyramidLayerIndexForTab(tabIndex,
+                                               pyramidLayerForScaling);
                 }
             }
-            if (pyramidLayerForScaling != getPyramidLayerIndexForTab(tabIndex)) {
-                setPyramidLayerIndexForTab(tabIndex,
-                                           pyramidLayerForScaling);
-            }
+                break;
+            case CziImageResolutionChangeModeEnum::MANUAL:
+                break;
         }
-            break;
-        case CziImageResolutionChangeModeEnum::MANUAL:
-            break;
     }
-    
+
     return cziImageOut;
 }
 
@@ -1341,7 +1344,7 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
 {
     CziImage* cziImageOut(NULL);
     
-    std::array<int32_t,4> viewport(transform->getViewport());
+    std::array<float,4> viewport(transform->getViewport());
     const float vpCenterXYZ[3] {
         viewport[0] + (viewport[2] / 2.0f),
         viewport[1] + (viewport[3] / 2.0f),

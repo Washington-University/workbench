@@ -28,6 +28,7 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CziImage.h"
 #include "CziImageFile.h"
 #include "DisplayPropertiesCziImages.h"
@@ -73,6 +74,106 @@ BrainOpenGLMediaDrawing::~BrainOpenGLMediaDrawing()
 }
 
 /**
+ * Setup the orthographic bounds for the underlay media file
+ * @param mediaOverlaySet
+ *    Media overlay set
+ * @param orthoLeftOut
+ *    Output with orthographic left
+ * @param orthoRightOut
+ *    Output with orthographic right
+ * @param orthoBottomOut
+ *    Output with orthographic bottom
+ * @param orthoTopOut
+ *    Output with orthographic top
+ * @return True if othographic bounds are valid, else false.
+ */
+bool
+BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
+                                        const int32_t tabIndex,
+                                        double& orthoLeftOut,
+                                        double& orthoRightOut,
+                                        double& orthoBottomOut,
+                                        double& orthoTopOut)
+{
+    orthoLeftOut   = -1.0;
+    orthoRightOut  =  1.0;
+    orthoBottomOut = -1.0;
+    orthoTopOut    =  1.0;
+    
+    CaretAssert(mediaOverlaySet);
+    MediaFile* underlayMediaFile = mediaOverlaySet->getBottomMostMediaFile();
+    if (underlayMediaFile == NULL) {
+        return false;
+    }
+    
+    GraphicsPrimitiveV3fT3f* primitive(NULL);
+    CziImageFile* cziImageFile = underlayMediaFile->castToCziImageFile();
+    const CziImage* cziImage(NULL);
+    ImageFile* imageFile = underlayMediaFile->castToImageFile();
+    if (imageFile != NULL) {
+        /*
+         * Image is drawn using a primitive in which
+         * the image is a texture
+         */
+        primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
+    }
+    else  if (cziImageFile != NULL) {
+        cziImage = cziImageFile->getDefaultImage();
+        primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
+    }
+    else {
+        CaretAssertMessage(0, ("Unrecognized file type "
+                               + DataFileTypeEnum::toName(underlayMediaFile->getDataFileType())
+                               + " for media drawing."));
+    }
+    if (primitive == NULL) {
+        CaretLogSevere("Media file has invalid primitive for tab "
+                       + AString::number(tabIndex + 1)
+                       + underlayMediaFile->getFileNameNoPath());
+        return false;
+    }
+    
+    BoundingBox boundingBox;
+    primitive->getVertexBounds(boundingBox);
+
+    const double viewportWidth(m_viewport[2]);
+    const double viewportHeight(m_viewport[3]);
+    const double viewportAspectRatio = (viewportHeight
+                                        / viewportWidth);
+    const double imageWidth(boundingBox.getDifferenceX());
+    const double imageHeight(boundingBox.getDifferenceY());
+    if ((imageWidth < 1.0)
+        || (imageHeight < 1.0)) {
+        return false;
+    }
+    const double imageAspectRatio = (imageHeight
+                                     / imageWidth);
+    
+    const double marginPercent(0.02);
+    const double marginSizePixels = imageHeight * marginPercent;
+    if (imageAspectRatio > viewportAspectRatio) {
+        orthoBottomOut = -marginSizePixels;
+        orthoTopOut    = imageHeight + marginSizePixels;
+        const double orthoHeight(orthoTopOut - orthoBottomOut);
+        const double orthoWidth(orthoHeight / viewportAspectRatio);
+        const double leftRightMargin((orthoWidth - imageWidth) / 2.0);
+        orthoLeftOut  = -leftRightMargin;
+        orthoRightOut = imageWidth + leftRightMargin;
+    }
+    else {
+        orthoLeftOut  = -marginSizePixels;
+        orthoRightOut =  imageWidth + marginSizePixels;
+        const double orthoWidth(orthoRightOut - orthoLeftOut);
+        const double orthoHeight(orthoWidth * viewportAspectRatio);
+        const double bottomTopMargin((orthoHeight - imageHeight) / 2.0);
+        orthoBottomOut = -bottomTopMargin;
+        orthoTopOut    = imageHeight + bottomTopMargin;
+    }
+
+    return true;
+}
+
+/**
  * @param fixedPipelineDrawing
  *    The fixed pipeline drawing
  * @param viewportContent
@@ -100,17 +201,26 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     m_mediaModel           = mediaModel;
     m_viewport             = viewport;
     
-    const float drawingHalfHeight(MediaFile::getMediaDrawingOrthographicHalfHeight());
-
     MediaOverlaySet* mediaOverlaySet = m_mediaModel->getMediaOverlaySet(m_browserTabContent->getTabNumber());
     CaretAssert(mediaOverlaySet);
+    const MediaFile* underlayMediaFile = mediaOverlaySet->getBottomMostMediaFile();
+    if (underlayMediaFile == NULL) {
+        return;
+    }
     
+    double orthoLeft(-1.0);
+    double orthoRight(1.0);
+    double orthoBottom(-1.0);
+    double orthoTop(1.0);
+    if ( ! getOrthoBounds(mediaOverlaySet, browserTabContent->getTabNumber(),
+                          orthoLeft, orthoRight, orthoBottom, orthoTop)) {
+        return;
+    }
+
     /*
      * Default scaling fits image to the viewport in the default view
      */
     const DefaultViewTransform defaultViewTransform = mediaOverlaySet->getDefaultViewTransform();
-    const std::array<float, 3> defaultTranslation(defaultViewTransform.getTranslation());
-    const float defaultScaling(defaultViewTransform.getScaling());
     
     if ((m_viewport[2] < 1)
         || (m_viewport[3] < 1)) {
@@ -121,14 +231,10 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                m_viewport[2],
                m_viewport[3]);
 
-    const float aspectRatio = (static_cast<float>(m_viewport[3])
-                               / static_cast<float>(m_viewport[2]));
-    const float halfWidth(drawingHalfHeight / aspectRatio);
-    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-halfWidth,  halfWidth,
-            -drawingHalfHeight, drawingHalfHeight,
+    glOrtho(orthoLeft, orthoRight,
+            orthoBottom, orthoTop,
             -1.0, 1.0);
     
     glMatrixMode(GL_MODELVIEW);
@@ -137,21 +243,21 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     float translation[3];
     m_browserTabContent->getTranslation(translation);
     const float scaling = m_browserTabContent->getScaling();
-
-    glTranslatef(defaultTranslation[0], defaultTranslation[1], 0.0);
     glTranslatef(translation[0], translation[1], 0.0);
-    glScalef(defaultScaling, defaultScaling, 1.0);
     glScalef(scaling, scaling, 1.0);
-    const float totalScaling(defaultScaling * scaling);
-    std::array<float, 4> orthoLRBT { -halfWidth, halfWidth, -drawingHalfHeight, drawingHalfHeight };
+
+    std::array<float, 4> orthoLRBT {
+        static_cast<float>(orthoLeft),
+        static_cast<float>(orthoRight),
+        static_cast<float>(orthoBottom),
+        static_cast<float>(orthoTop)
+    };
     GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
     fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
     viewportContent->setGraphicsObjectToWindowTransform(transform);
     
-
     drawModelLayers(transform,
-                    browserTabContent->getTabNumber(),
-                    totalScaling);
+                    browserTabContent->getTabNumber());
     
     drawSelectionBox();
 }
@@ -162,13 +268,10 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
  *   Transforms point from object to window space
  * @param tabIndex
  *   Index of the tab
- * @param totalScaling
- *   Total of view scaling and default scaling of underlay image
  */
 void
 BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* transform,
-                                         const int32_t tabIndex,
-                                         const float totalScaling)
+                                         const int32_t tabIndex)
 {
     SelectionItemImage* idImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getImageIdentification();
     
@@ -222,8 +325,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                     const DisplayPropertiesCziImages* dpc(m_fixedPipelineDrawing->m_brain->getDisplayPropertiesCziImages());
                     cziImage = cziImageFile->getImageForDrawingInTab(tabIndex,
                                                                      transform,
-                                                                     dpc->getResolutionChangeMode(tabIndex),
-                                                                     totalScaling);
+                                                                     dpc->getResolutionChangeMode(tabIndex));
                     primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
                     
                     BoundingBox boundingBox;
@@ -260,7 +362,6 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                             CaretAssert(cziImage);
                             processCziImageFileSelection(m_browserTabContent->getTabNumber(),
                                                          cziImageFile,
-                                                         cziImage,
                                                          primitive);
                         }
                     }
@@ -397,15 +498,12 @@ BrainOpenGLMediaDrawing::processImageFileSelection(const int32_t tabIndex,
  *   Index of the tab
  * @param cziImageFile
  *    The CZI  image file
- * @param cziImage
- *    The CZI image that was drawn
  * @param primitive
  *    Primitive that draws image file
  */
 void
 BrainOpenGLMediaDrawing::processCziImageFileSelection(const int32_t tabIndex,
                                                       CziImageFile* cziImageFile,
-                                                      const CziImage* cziImage,
                                                       GraphicsPrimitiveV3fT3f* primitive)
 {
     SelectionItemCziImage* idCziImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getCziImageIdentification();

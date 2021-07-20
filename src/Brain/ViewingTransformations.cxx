@@ -269,7 +269,6 @@ ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* /
  */
 void
 ViewingTransformations::setMediaScaling(const GraphicsObjectToWindowTransform* /*/*transform*/,
-                                        const DefaultViewTransform& /*defaultViewTransform*/,
                                         const float /*scaling*/)
 {
     const QString msg("ViewingTransformations::setMediaScaling() is not supported for this view");
@@ -279,6 +278,8 @@ ViewingTransformations::setMediaScaling(const GraphicsObjectToWindowTransform* /
 
 /**
  * Set the bounds of the view to the given bounds.
+ * @param transform
+ *    Graphics object to window transform
  * @param windowBounds
  *    Box containing window bounds
  * @param selectionBounds
@@ -287,7 +288,8 @@ ViewingTransformations::setMediaScaling(const GraphicsObjectToWindowTransform* /
  *    Transform for the default view
  */
 void
-ViewingTransformations::setViewToBounds(const BoundingBox* /*windowBounds*/,
+ViewingTransformations::setViewToBounds(const GraphicsObjectToWindowTransform* /*transform*/,
+                                        const BoundingBox* /*windowBounds*/,
                                         const GraphicsRegionSelectionBox* /*selectionBounds*/,
                                         const DefaultViewTransform& /*defaultViewTransform*/)
 {

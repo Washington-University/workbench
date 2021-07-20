@@ -111,8 +111,7 @@ namespace caret {
 
         const CziImage* getImageForDrawingInTab(const int32_t tabIndex,
                                                 const GraphicsObjectToWindowTransform* transform,
-                                                const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
-                                                const float totalScaling);
+                                                const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode);
         
         CziImage* loadImageForPyrmaidLayer(const int32_t tabIndex,
                                            const GraphicsObjectToWindowTransform* transform,
@@ -174,8 +173,6 @@ namespace caret {
             int64_t m_height = 0;
             
             float m_zoomLevelFromLowestResolutionImage = 1.0;
-            
-            float m_zoomLevelSwitchToHigherResolution = 1.0;
         };
         
         void closeFile();

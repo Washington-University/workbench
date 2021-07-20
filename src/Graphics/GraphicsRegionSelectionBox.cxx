@@ -23,6 +23,8 @@
 #include "GraphicsRegionSelectionBox.h"
 #undef __GRAPHICS_REGION_SELECTION_BOX_DECLARE__
 
+#include <cmath>
+
 #include "CaretAssert.h"
 using namespace caret;
 
@@ -219,6 +221,24 @@ GraphicsRegionSelectionBox::getCenter(float& centerX,
     centerX = (m_x1 + m_x2) / 2.0f;
     centerY = (m_y1 + m_y2) / 2.0f;
     return isValidCoords();
+}
+
+/**
+ * @return Width of the selection box
+ */
+float
+GraphicsRegionSelectionBox::getWidth() const
+{
+    return std::fabs(m_x1 - m_x2);
+}
+
+/**
+ * @return Height of the selection box
+ */
+float
+GraphicsRegionSelectionBox::getHeight() const
+{
+    return std::fabs(m_y1 - m_y2);
 }
 
 /*

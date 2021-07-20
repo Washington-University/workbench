@@ -38,7 +38,6 @@
 
 using namespace caret;
 
-static bool cziImageDebugFlag(false);
 /**
  * \class caret::CziImage 
  * \brief Image read from CZI file

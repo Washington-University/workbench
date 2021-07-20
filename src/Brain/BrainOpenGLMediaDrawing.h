@@ -40,6 +40,7 @@ namespace caret {
     class GraphicsObjectToWindowTransform;
     class GraphicsPrimitiveV3fT3f;
     class ImageFile;
+    class MediaOverlaySet;
     class ModelMedia;
     
     class BrainOpenGLMediaDrawing : public CaretObject {
@@ -74,8 +75,7 @@ namespace caret {
         
     private:
         void drawModelLayers(const GraphicsObjectToWindowTransform* transform,
-                             const int32_t tabIndex,
-                             const float totalScaling);
+                             const int32_t tabIndex);
         
         void drawSelectionBox();
         
@@ -85,8 +85,14 @@ namespace caret {
         
         void processCziImageFileSelection(const int32_t tabIndex,
                                           CziImageFile* cziImageFile,
-                                          const CziImage* cziImage,
                                           GraphicsPrimitiveV3fT3f* primitive);
+
+        bool getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
+                            const int32_t tabIndex,
+                            double& orthoLeftOut,
+                            double& orthoRightOut,
+                            double& orthoBottomOut,
+                            double& orthoTopOut);
 
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
         
