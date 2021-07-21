@@ -87,6 +87,8 @@ namespace caret {
         
         void getAllBrainOpenGLViewportContent(std::vector<const BrainOpenGLViewportContent*>& viewportContentOut) const;
         
+        const BrainOpenGLViewportContent* getViewportContentForSelectedTab() const;
+        
         int32_t getBrowserWindowIndex() const;
 
         bool isTileTabsSelected() const;

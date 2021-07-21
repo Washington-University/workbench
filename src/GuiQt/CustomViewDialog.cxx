@@ -782,15 +782,7 @@ CustomViewDialog::zoomValueChanged(double value)
         if (btc != NULL) {
             ModelMedia* mediaModel = btc->getDisplayedMediaModel();
             if (mediaModel != NULL) {
-                const BrainOpenGLViewportContent* vpContent(NULL);
-                std::vector<const BrainOpenGLViewportContent*> allViewportContent;
-                bbw->getAllBrainOpenGLViewportContent(allViewportContent);
-                for (auto& vpc : allViewportContent) {
-                    if (vpc->getTabIndex() == btc->getTabNumber()) {
-                        vpContent = vpc;
-                        break;
-                    }
-                }
+                const BrainOpenGLViewportContent* vpContent(bbw->getViewportContentForSelectedTab());
                 if (vpContent != NULL) {
                     btc->setMediaScalingFromGui(const_cast<BrainOpenGLViewportContent*>(vpContent),
                                                 value);
@@ -963,6 +955,18 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                                                rightFlatX,
                                                rightFlatY,
                                                rightFlatZoom);
+                
+                const BrainOpenGLViewportContent* vpc(bbw->getViewportContentForSelectedTab());
+                float stepValue(1.0);
+                if (vpc != NULL) {
+                    stepValue = vpc->getTranslationStepValueForCustomViewDialog();
+                    QSignalBlocker xBlocker(m_xPanDoubleSpinBox);
+                    QSignalBlocker yBlocker(m_yPanDoubleSpinBox);
+                    QSignalBlocker zBlocker(m_zPanDoubleSpinBox);
+                    m_xPanDoubleSpinBox->setSingleStep(stepValue);
+                    m_yPanDoubleSpinBox->setSingleStep(stepValue);
+                    m_zPanDoubleSpinBox->setSingleStep(stepValue);
+                }
             }
         }
         

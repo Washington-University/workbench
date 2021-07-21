@@ -39,6 +39,9 @@
 #include "GapsAndMargins.h"
 #include "GraphicsObjectToWindowTransform.h"
 #include "MathFunctions.h"
+#include "MediaFile.h"
+#include "MediaOverlay.h"
+#include "MediaOverlaySet.h"
 #include "ModelSurfaceMontage.h"
 #include "SpacerTabContent.h"
 #include "SurfaceMontageConfigurationAbstract.h"
@@ -1328,6 +1331,74 @@ BrainOpenGLViewportContent::getGraphicsObjectToWindowTransform() const
 {
     return m_graphicsObjectToWindowTransform.get();
 }
+
+/**
+ * @return Step value for custom view dialog that depends upon model in selected tab
+ */
+float
+BrainOpenGLViewportContent::getTranslationStepValueForCustomViewDialog() const
+{
+    float customViewStepValue(1.0);
+    float mousePanningFactor(1.0);
+    getTranslationFactors(customViewStepValue,
+                          mousePanningFactor);
+    return customViewStepValue;
+}
+
+/**
+ * @return Factor for panning with mouse depends upon model in selected tab
+ */
+float
+BrainOpenGLViewportContent::getTranslationFactorForMousePanning() const
+{
+    float customViewStepValue(1.0);
+    float mousePanningFactor(1.0);
+    getTranslationFactors(customViewStepValue,
+                          mousePanningFactor);
+    return mousePanningFactor;
+}
+
+/**
+ * Get factors for translation
+ * @param customViewStepValueOut
+ *    Step value for translation on custom view dialog
+ * @param mousePanningFactor
+ *    Factor for panning with mouse
+ */
+void
+BrainOpenGLViewportContent::getTranslationFactors(float& customViewStepValueOut,
+                                                  float& mousePanningFactorOut) const
+{
+    customViewStepValueOut = 1.0;
+    mousePanningFactorOut  = 1.0;
+    
+    BrowserTabContent* tabContent = getBrowserTabContent();
+    if (tabContent->isMediaDisplayed()) {
+        MediaOverlaySet* overlaySet = tabContent->getMediaOverlaySet();
+        CaretAssert(overlaySet);
+        MediaOverlay* underlay = overlaySet->getBottomMostEnabledOverlay();
+        MediaFile* mediaFile(NULL);
+        int32_t frameIndex(0);
+        underlay->getSelectionData(mediaFile, frameIndex);
+        if (mediaFile != NULL) {
+            const float height(mediaFile->getHeight());
+            if (height > 0.0) {
+                int32_t viewport[4];
+                getModelViewport(viewport);
+                const float viewportHeight(viewport[3]);
+                if (viewportHeight > 0.0) {
+                    const float factor(height / viewportHeight);
+                    mousePanningFactorOut = factor * 0.5;
+                    customViewStepValueOut = factor;
+                }
+            }
+        }
+    }
+}
+
+
+
+
 
 /* =================================================================================================== */
 

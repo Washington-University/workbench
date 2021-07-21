@@ -3551,8 +3551,8 @@ BrowserTabContent::setMediaScaling(const float newScaleValue)
                     const float defaultScaling(defaultViewTransform.getScaling());
                     CaretAssert(defaultScaling > 0.0);
                                         
-                    const float imageWidth(mediaFile->getWidth(tabIndex));
-                    const float imageHeight(mediaFile->getHeight(tabIndex));
+                    const float imageWidth(mediaFile->getWidth());
+                    const float imageHeight(mediaFile->getHeight());
                     
                     /*
                      * Width/height of image with previous scaling
@@ -4609,7 +4609,7 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                 int32_t frameIndex(-1);
                 underlay->getSelectionData(mediaFile, frameIndex);
                 if (mediaFile != NULL) {
-                    const float imageHeight(mediaFile->getHeight(getTabNumber()));
+                    const float imageHeight(mediaFile->getHeight());
                     if (imageHeight > 0.0) {
                         /*
                          * Old orthographic projection was +/- 500 vertically

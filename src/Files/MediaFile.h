@@ -73,18 +73,14 @@ namespace caret {
         virtual void setStructure(const StructureEnum::Enum structure) override;
         
         /**
-         * @return width of media file in the given tab index
-         * @param tabIndex
-         *    Index of tab
+         * @return width of media file
          */
-        virtual int32_t getWidth(const int32_t tabIndex) const = 0;
+        virtual int32_t getWidth() const = 0;
         
         /**
-         * @return height of media file in the given tab index
-         * @param tabIndex
-         *    Index of tab
+         * @return height of media file
          */
-        virtual int32_t getHeight(const int32_t tabIndex) const = 0;
+        virtual int32_t getHeight() const = 0;
         
         /**
          * @return Number of frames in the file

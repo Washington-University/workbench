@@ -989,33 +989,21 @@ CziImageFile::supportsWriting() const
 }
 
 /**
- * @return width of media file in the given tab index
- * @param tabIndex
- *    Index of tab
+ * @return width of media file
  */
 int32_t
-CziImageFile::getWidth(const int32_t tabIndex) const
+CziImageFile::getWidth() const
 {
-    const CziImage* cziImage = getImageForTab(tabIndex);
-    if (cziImage != NULL) {
-        return cziImage->getWidth();
-    }
-    return 0;
+    return m_fullResolutionLogicalRect.width();
 }
 
 /**
- * @return height of media file in the given tab index
- * @param tabIndex
- *    Index of tab
+ * @return height of media file
  */
 int32_t
-CziImageFile::getHeight(const int32_t tabIndex) const
+CziImageFile::getHeight() const
 {
-    const CziImage* cziImage = getImageForTab(tabIndex);
-    if (cziImage != NULL) {
-        return cziImage->getHeight();
-    }
-    return 0;
+    return m_fullResolutionLogicalRect.height();
 }
 
 /**

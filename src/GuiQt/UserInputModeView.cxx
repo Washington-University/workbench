@@ -523,11 +523,12 @@ UserInputModeView::mouseLeftDragWithShift(const MouseEvent& mouseEvent)
         return;
     }
     
+    const float factor(viewportContent->getTranslationFactorForMousePanning());
     browserTabContent->applyMouseTranslation(viewportContent,
                                              mouseEvent.getPressedX(),
                                              mouseEvent.getPressedY(),
-                                             mouseEvent.getDx(),
-                                             mouseEvent.getDy());
+                                             static_cast<int32_t>(mouseEvent.getDx() * factor),
+                                             static_cast<int32_t>(mouseEvent.getDy() * factor));
     updateGraphics(mouseEvent);
 }
 

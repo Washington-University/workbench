@@ -4316,6 +4316,29 @@ BrainBrowserWindow::getAllBrainOpenGLViewportContent(std::vector<const BrainOpen
 }
 
 /**
+ * @return The OpenGL Viewport content for the selected tab
+ */
+const BrainOpenGLViewportContent*
+BrainBrowserWindow::getViewportContentForSelectedTab() const
+{
+    const BrowserTabContent* activeTabContent = getBrowserTabContent();
+    if (activeTabContent == NULL) {
+        return NULL;
+    }
+    
+    std::vector<const BrainOpenGLViewportContent*> viewportContent;
+    getAllBrainOpenGLViewportContent(viewportContent);
+    
+    for (const auto& vpc : viewportContent) {
+        if (vpc->getBrowserTabContent() == activeTabContent) {
+            return vpc;
+        }
+    }
+    return NULL;
+}
+
+
+/**
  * Returns a popup menu for the main window.
  * Overrides that in QMainWindow and prevents the 
  * default context menu from appearing.

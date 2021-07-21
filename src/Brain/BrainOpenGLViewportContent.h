@@ -81,6 +81,10 @@ namespace caret {
         
         const GraphicsObjectToWindowTransform* getGraphicsObjectToWindowTransform() const;
         
+        float getTranslationStepValueForCustomViewDialog() const;
+        
+        float getTranslationFactorForMousePanning() const;
+        
         static void adjustViewportForAspectRatio(int viewport[4],
                                                  const float aspectRatio);
         
@@ -113,6 +117,7 @@ namespace caret {
                                                                                      const int32_t mousePressX,
                                                                                      const int32_t mousePressY,
                                                                                      int sliceViewportOut[4]);
+        
     private:
         /**
          * Assists with creation of the tile tab viewports
@@ -182,6 +187,9 @@ namespace caret {
                                                                                                const int32_t windowIndex,
                                                                                                const int32_t highlightTabIndex);
 
+        void getTranslationFactors(float& customViewStepValueOut,
+                                   float& mousePanningFactorOut) const;
+        
         const int m_windowIndex;
         
         const bool m_highlightTab;
