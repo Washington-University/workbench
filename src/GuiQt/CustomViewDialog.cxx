@@ -43,6 +43,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -764,6 +765,10 @@ CustomViewDialog::resetViewToolButtonClicked()
         if (btc != NULL) {
             btc->resetView();
             updateGraphicsWindow();
+            if (btc->isMediaDisplayed()) {
+                const bool repaintFlag(true);
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(repaintFlag).getPointer());
+            }
         }
     }
 }

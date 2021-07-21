@@ -33,6 +33,8 @@ using namespace caret;
 
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
 #include "Model.h"
 #include "ModelMedia.h"
 #include "ModelSurface.h"
@@ -595,6 +597,10 @@ BrainBrowserWindowToolBarOrientation::orientationResetToolButtonTriggered(bool /
     if (mdc != NULL) {
         getParentToolBar()->updateVolumeIndicesWidget(btc);
         getParentToolBar()->updateGraphicsWindowAndYokedWindows();
+        if (btc->isMediaDisplayed()) {
+            const bool repaintFlag(true);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(repaintFlag).getPointer());
+        }
     }
 }
 
