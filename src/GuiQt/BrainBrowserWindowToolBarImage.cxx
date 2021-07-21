@@ -61,24 +61,6 @@ BrainBrowserWindowToolBarImage::BrainBrowserWindowToolBarImage(BrainBrowserWindo
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
-    QString toolTip("If a rectangular selection is made using the mouse while this is enabled, "
-                    "a new high-resolution image is created containing the selected region.");
-    m_highResolutionAction = new QAction();
-    m_highResolutionAction->setCheckable(true);
-    m_highResolutionAction->setText("High Res");
-    WuQtUtilities::setWordWrappedToolTip(m_highResolutionAction, toolTip);
-    QObject::connect(m_highResolutionAction, &QAction::toggled,
-                     this, &BrainBrowserWindowToolBarImage::highResolutionActionToggled);
-
-    QToolButton* highResToolButton = new QToolButton();
-    highResToolButton->setDefaultAction(m_highResolutionAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(highResToolButton);
-
-    highResToolButton->setObjectName(parentObjectName
-                                     + ":BrainBrowserWindowToolBarImage:HighResToolButton");
-    WuQMacroManager::instance()->addMacroSupportToObject(highResToolButton,
-                                                         "Enable high-resolution image selection");
-
     m_redoAction = WuQtUtilities::createAction("Redo",
                                                "Redo ToolTip",
                                                this,
@@ -87,6 +69,8 @@ m_parentToolBar(parentToolBar)
     QToolButton* redoToolButton = new QToolButton();
     redoToolButton->setDefaultAction(m_redoAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
+    m_redoAction->setObjectName(parentObjectName + ":Redo");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_redoAction, "Redo Image View");
     
     m_undoAction = WuQtUtilities::createAction("Undo",
                                                "Undo ToolTip",
@@ -96,17 +80,14 @@ m_parentToolBar(parentToolBar)
     QToolButton* undoToolButton = new QToolButton();
     undoToolButton->setDefaultAction(m_undoAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
-    
+    m_undoAction->setObjectName(parentObjectName + ":Undo");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_undoAction, "Undo Image View");
+
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
-    layout->addWidget(highResToolButton);
-    layout->addSpacing(10);
     layout->addWidget(redoToolButton);
     layout->addWidget(undoToolButton);
     layout->addStretch();
-    
-    /* HIDE since it will be replaced soon */
-    highResToolButton->setHidden(true);
 }
 
 /**
@@ -131,11 +112,6 @@ BrainBrowserWindowToolBarImage::updateContent(BrowserTabContent* browserTabConte
     m_undoAction->setEnabled(false);
     
     if (browserTabContent != NULL) {
-        ModelMedia* mediaModel = browserTabContent->getDisplayedMediaModel();
-        if (mediaModel != NULL) {
-            m_highResolutionAction->setChecked(mediaModel->isHighResolutionSelectionEnabled(browserTabContent->getTabNumber()));
-        }
-        
         CaretUndoStack* undoStack = getUndoStack();
         if (undoStack != NULL) {
             m_redoAction->setEnabled(undoStack->canRedo());
@@ -163,24 +139,6 @@ BrainBrowserWindowToolBarImage::getUndoStack()
         }
     }
     return undoStack;
-}
-
-/**
- * Called when high resolution action toggled
- * @param checked
- *    New checked status
- */
-void
-BrainBrowserWindowToolBarImage::highResolutionActionToggled(bool checked)
-{
-    BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
-    if (browserTabContent != NULL) {
-        ModelMedia* mediaModel = browserTabContent->getDisplayedMediaModel();
-        if (mediaModel != NULL) {
-            mediaModel->setHighResolutionSelectionEnabled(browserTabContent->getTabNumber(),
-                                                          checked);
-        }
-    }
 }
 
 /**

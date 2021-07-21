@@ -605,38 +605,16 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
             {
                 ModelMedia* mediaModel = browserTabContent->getDisplayedMediaModel();
                 if (mediaModel != NULL) {
-                    const int32_t tabIndex(browserTabContent->getTabNumber());
-                    if (mediaModel->isHighResolutionSelectionEnabled(tabIndex)) {
-                        /*
-                         * Create high-resolution image from selection region
-                         */
-                        auto progressDialog(ProgressReportingDialog::showProgressMessage("Loading",
-                                                                                         "Loading image data...",
-                                                                                         mouseEvent.getOpenGLWidget()));
-                        AString errorMessage;
-                        const bool successFlag(mediaModel->createHighResolutionImageFromRegion(selectionBox,
-                                                                                               browserTabContent,
-                                                                                               errorMessage));
-                        ViewingTransformations* vt = browserTabContent->getViewingTransformation();
-                        vt->resetView();
-                        progressDialog->close();
-                        if ( ! successFlag) {
-                            WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
-                                                   errorMessage);
-                        }
-                    }
-                    else {
-                        /*
-                         * Zoom to selection region
-                         */
-                        const MediaOverlaySet* mediaOverlaySet(browserTabContent->getMediaOverlaySet());
-                        CaretAssert(mediaOverlaySet);
-                        DefaultViewTransform defaultViewTransform = mediaOverlaySet->getDefaultViewTransform();
-                        browserTabContent->setMediaViewToBounds(viewportContent,
-                                                                &orthoBounds,
-                                                                selectionBox,
-                                                                mediaOverlaySet->getDefaultViewTransform());
-                    }
+                    /*
+                     * Zoom to selection region
+                     */
+                    const MediaOverlaySet* mediaOverlaySet(browserTabContent->getMediaOverlaySet());
+                    CaretAssert(mediaOverlaySet);
+                    DefaultViewTransform defaultViewTransform = mediaOverlaySet->getDefaultViewTransform();
+                    browserTabContent->setMediaViewToBounds(viewportContent,
+                                                            &orthoBounds,
+                                                            selectionBox,
+                                                            mediaOverlaySet->getDefaultViewTransform());
                 }
             }
                 break;

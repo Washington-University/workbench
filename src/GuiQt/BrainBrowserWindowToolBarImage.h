@@ -43,8 +43,6 @@ namespace caret {
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
     private slots:
-        void highResolutionActionToggled(bool checked);
-        
         void redoActionTriggered();
         
         void undoActionTriggered();
@@ -66,8 +64,6 @@ namespace caret {
         BrainBrowserWindowToolBar* m_parentToolBar;
         
         BrowserTabContent* m_browserTabContent = NULL;
-        
-        QAction* m_highResolutionAction;
         
         QAction* m_redoAction;
         
