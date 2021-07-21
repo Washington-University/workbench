@@ -26,7 +26,6 @@
 #include <memory>
 
 #include "CaretDataFile.h"
-#include "DefaultViewTransform.h"
 #include "NiftiEnums.h"
 #include "PixelCoordinate.h"
 #include "PixelIndex.h"
@@ -116,8 +115,6 @@ namespace caret {
         MediaFile* castToMediaFile();
         
         const MediaFile* castToMediaFile() const;
-        
-        virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const = 0;
         
         /**
          * Get the identification text for the pixel at the given pixel index with origin at bottom left.

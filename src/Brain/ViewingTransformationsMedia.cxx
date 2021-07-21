@@ -29,7 +29,6 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretUndoStack.h"
-#include "DefaultViewTransform.h"
 #include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsRegionSelectionBox.h"
 #include "ViewingTransformationsUndoCommand.h"
@@ -119,8 +118,6 @@ ViewingTransformationsMedia::resetView()
  *    Y-Location of where mouse was pressed
  * @param mouseDY
  *    Change in mouse Y
- * @param defaultViewTransform
- *    Transform for default view
  * @param dataX
  *    X-coordinate of data where mouse was pressed
  * @param dataY
@@ -133,7 +130,6 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
                                              const int32_t mousePressX,
                                              const int32_t mousePressY,
                                              const float mouseDY,
-                                             const DefaultViewTransform& defaultViewTransform,
                                              const float dataX,
                                              const float dataY,
                                              const bool dataXYValidFlag)
@@ -151,9 +147,6 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
         return;
     }
     
-    const float defaultScaling(defaultViewTransform.getScaling());
-    CaretAssert(defaultScaling > 0.0);
-    
     float mousePressXYZ[3] { static_cast<float>(mousePressX), static_cast<float>(mousePressY), 0.0f };
 
     /*
@@ -170,10 +163,10 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
     const float deltaScale((mouseDY >= 0)
                          ? absDeltaScale
                          : (1.0 / absDeltaScale));
-    const float oldScale(getScaling() * defaultScaling);
+    const float oldScale(getScaling());
     const float totalScale(std::max((deltaScale * oldScale),
                                     minimumValidScaleValue));
-    setScaling(totalScale / defaultScaling);
+    setScaling(totalScale);
     
     /*
      * If mouse is over the image, use the data XY to translate image
@@ -195,15 +188,7 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
          * location on the screen
          */
         float tx = -((dataX * totalScale) - identityXYZ[0]);
-        float ty = -((dataY * totalScale) - identityXYZ[1]);
-        
-        /*
-         * Need to remove default view translation
-         */
-        const std::array<float, 3> defViewTranslate(defaultViewTransform.getTranslation());
-        tx -= defViewTranslate[0];
-        ty -= defViewTranslate[1];
-
+        float ty = -((dataY * totalScale) - identityXYZ[1]);        
         setTranslation(tx, ty, 0.0);
     }
 }
@@ -268,14 +253,11 @@ ViewingTransformationsMedia::setMediaScaling(const GraphicsObjectToWindowTransfo
  *    Box containing bounds of window
  * @param selectionBounds
  *    Box containing bounds of selection
- * @param defaultViewTransform
- *    Transform for the default view
  */
 void
 ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransform* transform,
                                              const BoundingBox* windowBounds,
-                                             const GraphicsRegionSelectionBox* selectionBounds,
-                                             const DefaultViewTransform& /*defaultViewTransform*/)
+                                             const GraphicsRegionSelectionBox* selectionBounds)
 {
     CaretAssert(windowBounds);
     CaretAssert(selectionBounds);

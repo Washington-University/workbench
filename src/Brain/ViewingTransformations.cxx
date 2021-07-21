@@ -233,8 +233,6 @@ ViewingTransformations::setScaling(const float scaling)
  *    Y-Location of where mouse was pressed
  * @param mouseDY
  *    Change in mouse Y
- * @param defaultViewTransform
- *    Transform for default view
  * @param dataX
  *    X-coordinate of data where mouse was pressed
  * @param dataY
@@ -247,7 +245,6 @@ ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* /
                                         const int32_t /*mousePressX*/,
                                         const int32_t /*mousePressY*/,
                                         const float /*mouseDY*/,
-                                        const DefaultViewTransform& /*defaultViewTransform*/,
                                         const float /*dataX*/,
                                         const float /*dataY*/,
                                         const bool /*dataXYValidFlag*/)
@@ -262,8 +259,6 @@ ViewingTransformations::scaleAboutMouse(const GraphicsObjectToWindowTransform* /
  *
  * @param transform
  *    Graphics object to window transform
- * @param defaultViewTransform
- *    Transform for default view
  * @param scaling
  *    New value for scaling
  */
@@ -284,14 +279,11 @@ ViewingTransformations::setMediaScaling(const GraphicsObjectToWindowTransform* /
  *    Box containing window bounds
  * @param selectionBounds
  *    The selection bounds
- * @param defaultViewTransform
- *    Transform for the default view
  */
 void
 ViewingTransformations::setViewToBounds(const GraphicsObjectToWindowTransform* /*transform*/,
                                         const BoundingBox* /*windowBounds*/,
-                                        const GraphicsRegionSelectionBox* /*selectionBounds*/,
-                                        const DefaultViewTransform& /*defaultViewTransform*/)
+                                        const GraphicsRegionSelectionBox* /*selectionBounds*/)
 {
     const QString msg("ViewingTransformations::setViewToBounds() is not supported for this view");
     CaretAssertMessage(0, msg);

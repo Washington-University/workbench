@@ -200,8 +200,6 @@ public:
 
     const ImageFile* castToImageFile() const;
     
-    virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const override;
-    
     virtual bool isPixelIndexValid(const int32_t tabIndex,
                                    const PixelIndex& pixelIndex) const override;
     
@@ -250,10 +248,6 @@ private:
     PixelIndex transformPixelBottomLeftToTopLeft(const PixelIndex& pixelIndexBottomLeft) const;
     
     QImage* m_image;
-    
-    mutable DefaultViewTransform m_defaultViewTransform;
-    
-    mutable bool m_defaultViewTransformValidFlag = false;
     
     mutable bool m_sceneCreatedBeforeDefaultScaling = false;
     

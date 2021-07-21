@@ -608,13 +608,9 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
                     /*
                      * Zoom to selection region
                      */
-                    const MediaOverlaySet* mediaOverlaySet(browserTabContent->getMediaOverlaySet());
-                    CaretAssert(mediaOverlaySet);
-                    DefaultViewTransform defaultViewTransform = mediaOverlaySet->getDefaultViewTransform();
                     browserTabContent->setMediaViewToBounds(viewportContent,
                                                             &orthoBounds,
-                                                            selectionBox,
-                                                            mediaOverlaySet->getDefaultViewTransform());
+                                                            selectionBox);
                 }
             }
                 break;

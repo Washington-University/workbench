@@ -82,8 +82,6 @@ namespace caret {
 
         virtual int32_t getNumberOfFrames() const override;
         
-        virtual DefaultViewTransform getDefaultViewTransform(const int32_t tabIndex) const override;
-
         virtual bool isPixelIndexValid(const int32_t tabIndex,
                                        const PixelIndex& pixelIndex) const override;
         
@@ -231,10 +229,6 @@ namespace caret {
         
         float m_pixelSizeMmZ = 1.0f;
         
-        mutable DefaultViewTransform m_defaultViewTransform;
-        
-        mutable bool m_defaultViewTransformValidFlag = false;
-
         mutable std::unique_ptr<GiftiMetaData> m_fileMetaData;
         
         std::unique_ptr<CziImage> m_defaultImage;

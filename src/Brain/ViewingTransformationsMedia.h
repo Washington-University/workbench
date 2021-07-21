@@ -43,7 +43,6 @@ namespace caret {
                                      const int32_t mousePressX,
                                      const int32_t mousePressY,
                                      const float mouseDY,
-                                     const DefaultViewTransform& defaultViewTransform,
                                      const float dataX,
                                      const float dataY,
                                      const bool dataXYValidFlag) override;
@@ -53,8 +52,7 @@ namespace caret {
         
         virtual void setViewToBounds(const GraphicsObjectToWindowTransform* xform,
                                      const BoundingBox* windowBounds,
-                                     const GraphicsRegionSelectionBox* selectionBounds,
-                                     const DefaultViewTransform& defaultViewTransform) override;
+                                     const GraphicsRegionSelectionBox* selectionBounds) override;
         
         virtual void resetView();
         

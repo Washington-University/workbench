@@ -23,7 +23,6 @@
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
-#include "DefaultViewTransform.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
@@ -74,8 +73,6 @@ namespace caret {
         void moveDisplayedOverlayDown(const int32_t overlayIndex);
         
         void initializeOverlays();
-        
-        DefaultViewTransform getDefaultViewTransform() const;
         
         MediaFile* getBottomMostMediaFile();
         

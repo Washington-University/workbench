@@ -1019,65 +1019,6 @@ CziImageFile::getNumberOfFrames() const
 }
 
 /**
- * @return the default view transform
- * @param tabIndex
- *    Index of the tab
- */
-DefaultViewTransform
-CziImageFile::getDefaultViewTransform(const int32_t /*tabIndex*/) const
-{
-    /*
-     * Note: Same default transform is used in ALL files
-     */
-    if ( ! m_defaultViewTransformValidFlag) {
-        const CziImage* cziImage(getDefaultImage());
-        CaretAssert(cziImage);
-        GraphicsPrimitiveV3fT3f* primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
-        if (primitive) {
-            if (primitive->isValid()) {
-                BoundingBox boundingBox;
-                primitive->getVertexBounds(boundingBox);
-                if (boundingBox.isValid2D()) {
-                    const float imageHalfHeight(boundingBox.getDifferenceY() / 2.0);
-                    if (imageHalfHeight > 0.0) {
-                        /*
-                         * Default scaling "fits" the image into the media drawing's orthographic viewport
-                         */
-                        float tx(0.0);
-                        float ty(0.0);
-                        float defaultScaling = MediaFile::getMediaDrawingOrthographicHalfHeight() / imageHalfHeight;
-                        if (defaultScaling != 0.0) {
-                            /*
-                             * Need to alter translation with default scaling since viewport is a fixed
-                             * size and has no relation to the image size
-                             */
-                            tx = -boundingBox.getCenterX() * defaultScaling;
-                            ty = -boundingBox.getCenterY() * defaultScaling;
-                        }
-
-                        m_defaultViewTransform.setScaling(defaultScaling);
-                        m_defaultViewTransform.setTranslation(tx, ty);
-
-                        
-                        
-                        m_defaultViewTransform.setScaling(1.0);
-                        m_defaultViewTransform.setTranslation(0.0, 0.0);
-                        
-                        
-                        
-                        m_defaultViewTransformValidFlag = true;
-
-                        if (cziDebugFlag) std::cout << "Default view transform: " << m_defaultViewTransform.toString() << std::endl;
-                    }
-                }
-            }
-        }
-    }
-    
-    return m_defaultViewTransform;
-}
-
-/**
  * Get the identification text for the pixel at the given pixel index with origin at bottom left.
  * @param tabIndex
  *    Index of the tab in which identification took place
@@ -1519,9 +1460,6 @@ void
 CziImageFile::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
-    m_defaultViewTransform.reset();
-    m_defaultViewTransformValidFlag = false;
-    
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 }

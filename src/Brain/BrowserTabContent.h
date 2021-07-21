@@ -55,7 +55,6 @@ namespace caret {
     class ChartTwoMatrixDisplayProperties;
     class ChartTwoOverlaySet;
     class ClippingPlaneGroup;
-    class DefaultViewTransform;
     class EventCaretMappableDataFilesAndMapsInDisplayedOverlays;
     class GraphicsRegionSelectionBox;
     class Matrix4x4;
@@ -311,8 +310,6 @@ namespace caret {
                                 const int32_t mouseDeltaX,
                                 const int32_t mouseDeltaY);
         
-        void setMediaScaling(const float newScaleValue);
-        
         void applyMediaMouseScaling(BrainOpenGLViewportContent* viewportContent,
                                     const int32_t mousePressX,
                                     const int32_t mousePressY,
@@ -326,8 +323,7 @@ namespace caret {
         
         void setMediaViewToBounds(const BrainOpenGLViewportContent* viewportContent,
                                   const BoundingBox* windowBounds,
-                                  const GraphicsRegionSelectionBox* selectionBounds,
-                                  const DefaultViewTransform& defaultViewTransform);
+                                  const GraphicsRegionSelectionBox* selectionBounds);
         
         void applyMouseScaling(BrainOpenGLViewportContent* viewportContent,
                                const int32_t mousePressX,
@@ -582,6 +578,8 @@ namespace caret {
         
         void testForRestoreSceneWarnings(const SceneAttributes* sceneAttributes,
                                          const int32_t sceneVersion);
+        
+        void setMediaScaling(const float newScaleValue);
         
         static std::vector<BrowserTabContent*> getOpenBrowserTabs();
         

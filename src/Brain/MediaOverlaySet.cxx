@@ -573,34 +573,3 @@ MediaOverlaySet::receiveEvent(Event* /*event*/)
 {
 
 }
-
-/**
- * @return The default view transform
- */
-DefaultViewTransform
-MediaOverlaySet::getDefaultViewTransform() const
-{
-    DefaultViewTransform defaultViewTransform;
-    
-    const int32_t numberOfOverlays(getNumberOfDisplayedOverlays());
-    for (int32_t i = (numberOfOverlays - 1); i >= 0; i--) {
-        const MediaOverlay* overlay = getOverlay(i);
-        CaretAssert(overlay);
-        
-        if (overlay->isEnabled()) {
-            MediaFile* selectedFile(NULL);
-            int32_t selectedIndex(-1);
-            const_cast<MediaOverlay*>(overlay)->getSelectionData(selectedFile,
-                                                                 selectedIndex);
-            
-            if (selectedFile != NULL) {
-                defaultViewTransform = selectedFile->getDefaultViewTransform(m_tabIndex);
-                break;
-            }
-        }
-    }
-    
-    return defaultViewTransform;
-}
-
-

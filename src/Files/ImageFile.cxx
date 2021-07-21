@@ -79,7 +79,6 @@ ImageFile::initializeMembersImageFile()
     m_controlPointFile.grabNew(new ControlPointFile());
     m_fileMetaData.grabNew(new GiftiMetaData());
     m_image = new QImage();
-    m_defaultViewTransformValidFlag = false;
 }
 
 /**
@@ -103,8 +102,6 @@ ImageFile::ImageFile(const ImageFile& imageFile)
     }
 
     m_fileMetaData.grabNew(new GiftiMetaData(*imageFile.m_fileMetaData));
-    m_defaultViewTransform             = imageFile.m_defaultViewTransform;
-    m_defaultViewTransformValidFlag    = imageFile.m_defaultViewTransformValidFlag;
     m_graphicsPrimitiveForMediaDrawing.reset();
 }
 
@@ -2044,9 +2041,6 @@ ImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
     m_controlPointFile->restoreFromScene(sceneAttributes,
                                          sceneClass->getClass("m_controlPointFile"));
     
-    m_defaultViewTransform.reset();
-    m_defaultViewTransformValidFlag = false;
-    
     //const int32_t sceneVersionNumber = sceneClass->getIntegerValue(ImageFile::SCENE_VERSION_NUMBER, 0);
 }
 
@@ -2264,53 +2258,6 @@ ImageFile::supportsFileMetaData() const
     }
     
     return false;
-}
-
-/**
- * @return the default view trasform
- * @param tabIndex
- *    Index of the tab
- */
-DefaultViewTransform
-ImageFile::getDefaultViewTransform(const int32_t /*tabIndex*/) const
-{
-    if ( ! m_defaultViewTransformValidFlag) {
-        GraphicsPrimitiveV3fT3f* primitive = getGraphicsPrimitiveForMediaDrawing();
-        if (primitive) {
-            if (primitive->isValid()) {
-                BoundingBox boundingBox;
-                primitive->getVertexBounds(boundingBox);
-                if (boundingBox.isValid2D()) {
-                    const float imageHalfHeight(boundingBox.getDifferenceY() / 2.0);
-                    if (imageHalfHeight > 0.0) {
-                        /*
-                         * Default scaling "fits" the image into the media drawing's orthographic viewport
-                         */
-                        float tx(0.0);
-                        float ty(0.0);
-                        float defaultScaling = MediaFile::getMediaDrawingOrthographicHalfHeight() / imageHalfHeight;
-                        if (defaultScaling != 0.0) {
-                            /*
-                             * Need to alter translation with default scaling since viewport is a fixed
-                             * size and has no relation to the image size
-                             */
-                            tx = -boundingBox.getCenterX() * defaultScaling;
-                            ty = -boundingBox.getCenterY() * defaultScaling;
-                        }
-                        
-                        m_defaultViewTransform.setScaling(defaultScaling);
-                        m_defaultViewTransform.setTranslation(tx, ty);
-                        
-                        m_defaultViewTransformValidFlag = true;
-                        
-                        if (imageDebugFlag) std::cout << "Default view transform: " << m_defaultViewTransform.toString() << std::endl;
-                    }
-                }
-            }
-        }
-    }
-    
-    return m_defaultViewTransform;
 }
 
 /**

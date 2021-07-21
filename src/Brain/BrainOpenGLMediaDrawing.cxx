@@ -217,11 +217,6 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
         return;
     }
 
-    /*
-     * Default scaling fits image to the viewport in the default view
-     */
-    const DefaultViewTransform defaultViewTransform = mediaOverlaySet->getDefaultViewTransform();
-    
     if ((m_viewport[2] < 1)
         || (m_viewport[3] < 1)) {
         return;

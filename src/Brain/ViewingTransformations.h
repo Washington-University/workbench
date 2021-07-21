@@ -30,7 +30,6 @@
 namespace caret {
     class BoundingBox;
     class CaretUndoStack;
-    class DefaultViewTransform;
     class GraphicsObjectToWindowTransform;
     class GraphicsRegionSelectionBox;
     class SceneClassAssistant;
@@ -66,7 +65,6 @@ namespace caret {
                                      const int32_t mousePressX,
                                      const int32_t mousePressY,
                                      const float mouseDY,
-                                     const DefaultViewTransform& defaultViewTransform,
                                      const float dataX,
                                      const float dataY,
                                      const bool dataXYValidFlag);
@@ -76,8 +74,7 @@ namespace caret {
         
         virtual void setViewToBounds(const GraphicsObjectToWindowTransform* xform,
                                      const BoundingBox* windowBounds,
-                                     const GraphicsRegionSelectionBox* selectionBounds,
-                                     const DefaultViewTransform& defaultViewTransform);
+                                     const GraphicsRegionSelectionBox* selectionBounds);
         
         Matrix4x4 getRotationMatrix() const;
         
