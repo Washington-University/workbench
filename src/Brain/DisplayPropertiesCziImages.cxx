@@ -44,8 +44,10 @@ DisplayPropertiesCziImages::DisplayPropertiesCziImages()
 : DisplayProperties()
 {
     m_resolutionChangeMode.fill(CziImageResolutionChangeModeEnum::MANUAL);
-    m_sceneAssistant->add<CziImageResolutionChangeModeEnum, CziImageResolutionChangeModeEnum::Enum>("m_resolutionChangeMode",
-                                                                                                    m_resolutionChangeMode.data());
+    m_sceneAssistant->addArray<CziImageResolutionChangeModeEnum,CziImageResolutionChangeModeEnum::Enum>("m_resolutionChangeMode",
+                                                                                                        m_resolutionChangeMode.data(),
+                                                                                                        m_resolutionChangeMode.size(),
+                                                                                                        CziImageResolutionChangeModeEnum::MANUAL);
 }
 
 /**

@@ -142,10 +142,10 @@ namespace caret {
           
           
     protected: 
-        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
 
-        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                   const SceneClass* sceneClass);
 
     private:

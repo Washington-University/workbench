@@ -73,6 +73,10 @@ CziImageFile::CziImageFile()
     m_tabCziImagePyramidLevelChanged.fill(false);
 
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    m_sceneAssistant->addArray("m_pyramidLayerIndexInTabs",
+                               m_pyramidLayerIndexInTabs.data(),
+                               m_pyramidLayerIndexInTabs.size(),
+                               0);
 
     /* NEED THIS AFTER Tile Tabs have been modified */
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_CLOSE);
@@ -1437,9 +1441,11 @@ CziImageFile::getImagePixelRGBA(const int32_t tabIndex,
  *     be valid (non-NULL).
  */
 void
-CziImageFile::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+CziImageFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                             SceneClass* sceneClass)
 {
+    MediaFile::saveFileDataToScene(sceneAttributes,
+                                   sceneClass);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
 }
@@ -1457,9 +1463,11 @@ CziImageFile::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
  *     this interface.  Will NEVER be NULL.
  */
 void
-CziImageFile::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+CziImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
+    MediaFile::restoreFileDataFromScene(sceneAttributes,
+                                        sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 }
