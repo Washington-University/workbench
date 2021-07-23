@@ -184,6 +184,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
             modelXYZ[2] = annotationXYZ[2];
             modelXYZValid = true;
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            modelXYZ[0] = annotationXYZ[0];
+            modelXYZ[1] = annotationXYZ[1];
+            modelXYZ[2] = annotationXYZ[2];
+            modelXYZValid = true;
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             viewportToOpenGLWindowCoordinate(annotationXYZ, drawingSpaceXYZ);
             drawingSpaceXYZValid = true;
@@ -621,6 +627,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     switch (drawingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             haveDisplayGroupFlag = false;
             break;
@@ -737,6 +745,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             
             switch (drawingCoordinateSpace) {
                 case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
+                case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     break;
                 case AnnotationCoordinateSpaceEnum::SPACER:
                     break;
@@ -926,6 +936,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             
             switch (annotationCoordinateSpace) {
                 case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
+                case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                {
+                    const AString annotationMediaFileName(annotation->getCoordinate(0)->getMediaFileName());
+                    if (m_inputs->m_mediaFileNames.find(annotationMediaFileName)
+                        == m_inputs->m_mediaFileNames.end()) {
+                        if (m_inputs->m_mediaFileNamesNoPath.find(annotationMediaFileName)
+                            == m_inputs->m_mediaFileNamesNoPath.end()) {
+                            continue;
+                        }
+                    }
+                }
                     break;
                 case AnnotationCoordinateSpaceEnum::SPACER:
                 {
@@ -5904,9 +5926,14 @@ bool
 BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* annotation,
                                                                    const Surface* surface)
 {
+    bool depthTestFlag = true;
     bool testFlatSurfaceFlag = false;
+    
     switch (annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            depthTestFlag = false;
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;
@@ -5924,8 +5951,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotat
             break;
     }
 
-    bool depthTestFlag = true;
-    
     if (testFlatSurfaceFlag) {
         if (surface != NULL) {
             if (surface->getSurfaceType() == SurfaceTypeEnum::FLAT) {
@@ -5951,8 +5976,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setDepthTestingStatus(const bool newD
     GLboolean savedStatus = GL_FALSE;
     glGetBooleanv(GL_DEPTH_TEST, &savedStatus);
     
-    if (newDepthTestingStatus) glEnable(GL_DEPTH_TEST);
-    else glDisable(GL_DEPTH_TEST);
+    if (newDepthTestingStatus) {
+        glEnable(GL_DEPTH_TEST);
+    }
+    else {
+        glDisable(GL_DEPTH_TEST);
+    }
     
     return (savedStatus == GL_TRUE);
 }

@@ -1910,6 +1910,8 @@ AnnotationRedoUndoCommand::setModeRotationAngle(const float newRotationAngle,
             switch (oneDimAnn->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
+                case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                    break;
                 case AnnotationCoordinateSpaceEnum::SPACER:
                     break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -2410,6 +2412,8 @@ AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercent
             float percentSize = newFontPercentSize;
             switch (redoAnnotation->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
+                case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     break;
                 case AnnotationCoordinateSpaceEnum::SPACER:
                     break;

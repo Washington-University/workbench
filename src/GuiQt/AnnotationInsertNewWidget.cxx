@@ -112,6 +112,8 @@ m_browserWindowIndex(browserWindowIndex)
     m_spaceActionGroup = new QActionGroup(this);
     QToolButton* chartSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::CHART,
                                                               m_spaceActionGroup);
+    QToolButton* mediaSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL,
+                                                              m_spaceActionGroup);
     QToolButton* tabSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::TAB,
                                                             m_spaceActionGroup);
     const bool showSpacerToolButtonFlag(false);
@@ -143,6 +145,7 @@ m_browserWindowIndex(browserWindowIndex)
         shapeTextToolButton->setMaximumSize(mw, mh);
 
         chartSpaceToolButton->setMaximumSize(mw, mh);
+        mediaSpaceToolButton->setMaximumSize(mw, mh);
         if (spacerSpaceToolButton != NULL) {
             spacerSpaceToolButton->setMaximumSize(mw, mh);
         }
@@ -188,6 +191,8 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->addWidget(spaceLabel,
                               1, topColumn++, Qt::AlignLeft);
         gridLayout->addWidget(chartSpaceToolButton,
+                              1, topColumn++);
+        gridLayout->addWidget(mediaSpaceToolButton,
                               1, topColumn++);
         if (spacerSpaceToolButton != NULL) {
             gridLayout->addWidget(spacerSpaceToolButton,
@@ -243,16 +248,18 @@ m_browserWindowIndex(browserWindowIndex)
                               1, 2, Qt::AlignLeft);
         gridLayout->addWidget(chartSpaceToolButton,
                               1, 3);
-        gridLayout->addWidget(spacerSpaceToolButton,
+        gridLayout->addWidget(mediaSpaceToolButton,
                               1, 4);
-        gridLayout->addWidget(stereotaxicSpaceToolButton,
+        gridLayout->addWidget(spacerSpaceToolButton,
                               1, 5);
-        gridLayout->addWidget(surfaceSpaceToolButton,
+        gridLayout->addWidget(stereotaxicSpaceToolButton,
                               1, 6);
-        gridLayout->addWidget(tabSpaceToolButton,
+        gridLayout->addWidget(surfaceSpaceToolButton,
                               1, 7);
-        gridLayout->addWidget(windowSpaceToolButton,
+        gridLayout->addWidget(tabSpaceToolButton,
                               1, 8);
+        gridLayout->addWidget(windowSpaceToolButton,
+                              1, 9);
         
         QSpacerItem* rowSpaceItem = new QSpacerItem(5, 5,
                                                     QSizePolicy::Fixed,
@@ -357,6 +364,7 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
     const bool windowSpaceValidFlag = ( ! allTabContent.empty());
     
     bool chartSpaceValidFlag       = false;
+    bool mediaSpaceValidFlag       = false;
     bool surfaceSpaceValidFlag     = false;
     bool stereotaxicSpaceValidFlag = false;
     
@@ -375,6 +383,7 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                mediaSpaceValidFlag = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:
                 stereotaxicSpaceValidFlag = true;
@@ -409,6 +418,9 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
         switch (annSpace) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 enableSpaceFlag = chartSpaceValidFlag;
+                break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                enableSpaceFlag = mediaSpaceValidFlag;
                 break;
             case AnnotationCoordinateSpaceEnum::SPACER:
                 enableSpaceFlag = spacerSpaceValidFlag;
@@ -938,6 +950,8 @@ AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpace
     switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -1017,6 +1031,8 @@ AnnotationInsertNewWidget::createSpacePixmap(const QWidget* widget,
      */
     switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;

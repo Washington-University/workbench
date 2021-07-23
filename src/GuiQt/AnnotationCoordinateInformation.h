@@ -134,6 +134,12 @@ namespace caret {
             AnnotationSurfaceOffsetVectorTypeEnum::Enum m_nodeVectorOffsetType = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
         };
         
+        class MediaFileNameAndPixelSpaceInfo : public SpaceInfo {
+        public:
+            float m_xyz[3] = { 0.0f, 0.0f, 0.0f };
+            AString m_mediaFileName;
+        };
+        
         ModelSpaceInfo m_modelSpaceInfo;
         
         TabWindowSpaceInfo m_tabSpaceInfo;
@@ -145,6 +151,8 @@ namespace caret {
         ChartSpaceInfo m_chartSpaceInfo;
         
         SurfaceSpaceInfo m_surfaceSpaceInfo;
+        
+        MediaFileNameAndPixelSpaceInfo m_mediaSpaceInfo;
         
     private:
         void copyHelperAnnotationCoordinateInformation(const AnnotationCoordinateInformation& obj);

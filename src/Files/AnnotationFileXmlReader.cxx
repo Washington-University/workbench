@@ -335,14 +335,19 @@ AnnotationFileXmlReader::readVersionTwo(AnnotationFile* annotationFile)
  * Read the next start element which should be a coordinate
  * with the given element name.
  *
- * @param annotation
- *     One-dimensional annotation that has its data read.
+ * @param coordinateElementName
+ *     Element name to read for coordinate
+ * @param coordinate
+ *     Coordinate whose data is set with data read
+ * @param coordinateSpace
+ *     Coordinate space of annotation
  * @throw
  *     DataFileException
  */
 void
 AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
-                                        AnnotationCoordinate* coordinate)
+                                        AnnotationCoordinate* coordinate,
+                                        const AnnotationCoordinateSpaceEnum::Enum coordinateSpace)
 {
     CaretAssert(coordinate);
     
@@ -398,6 +403,8 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
     bool offsetVectorValid = false;
     AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVector = AnnotationSurfaceOffsetVectorTypeEnum::fromName(offsetVectorString,
                                                                                                                &offsetVectorValid);
+   
+    
     if ( ! offsetVectorValid) {
         offsetVector = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
     }
@@ -416,6 +423,37 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
                                + ATTRIBUTE_COORD_SURFACE_STRUCTURE);
     }
     
+    switch (coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+        {
+            if (m_stream->readNextStartElement()) {
+                if (m_stream->name() == ELEMENT_COORDINATE_MEDIA_FILE_NAME) {
+                    const QString mediaFileName = m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
+                    coordinate->setMediaFileName(mediaFileName);
+                }
+                else {
+                    m_streamHelper->throwDataFileException("Expected elment "
+                                                           + ELEMENT_COORDINATE_MEDIA_FILE_NAME
+                                                           + " but read element "
+                                                           + m_stream->name().toString());
+                }
+            }
+            else {
+                m_streamHelper->throwDataFileException("Failed to coordinate child element "
+                                                       + ELEMENT_COORDINATE_MEDIA_FILE_NAME);
+            }
+        }
+            break;
+        case AnnotationCoordinateSpaceEnum::CHART:
+        case AnnotationCoordinateSpaceEnum::SPACER:
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+        case AnnotationCoordinateSpaceEnum::TAB:
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+
     /*
      * No other child elements so move on
      */
@@ -633,9 +671,11 @@ AnnotationFileXmlReader::readTwoCoordinateAnnotation(const QString& annotationEl
     }
     
     readCoordinate(ELEMENT_COORDINATE_ONE,
-                   annotation->getStartCoordinate());
+                   annotation->getStartCoordinate(),
+                   annotation->getCoordinateSpace());
     readCoordinate(ELEMENT_COORDINATE_TWO,
-                   annotation->getEndCoordinate());
+                   annotation->getEndCoordinate(),
+                   annotation->getCoordinateSpace());
 }
 
 /**
@@ -666,7 +706,9 @@ AnnotationFileXmlReader::readMultiCoordinateAnnotation(const QString& annotation
                                                                                              ATTRIBUTE_COORDINATE_LIST_COUNT);
             for (int32_t i = 0; i < numberOfCoordiantes; i++) {
                 AnnotationCoordinate* ac = new AnnotationCoordinate(annotation->m_attributeDefaultType);
-                readCoordinate(ELEMENT_COORDINATE, ac);
+                readCoordinate(ELEMENT_COORDINATE,
+                               ac,
+                               annotation->getCoordinateSpace());
                 annotation->addCoordinate(ac);
             }
             
@@ -756,12 +798,17 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
     
     
     std::vector<Annotation*> annotations;
+    AString mediaFileName;
     while (m_stream->readNextStartElement()) {
         bool skipCurrentElementFlag = true;
         
         const QString elementName = m_stream->name().toString();
         
-        if (elementName == ELEMENT_BOX) {
+        if (elementName == ELEMENT_COORDINATE_MEDIA_FILE_NAME) {
+            mediaFileName = m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
+            skipCurrentElementFlag = false;
+        }
+        else if (elementName == ELEMENT_BOX) {
             CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readOneCoordinateAnnotation(ELEMENT_BOX,
                                          annotation);
@@ -846,6 +893,7 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
                                                             coordSpace,
                                                             tabOrWindowIndex,
                                                             spacerTabIndex,
+                                                            mediaFileName,
                                                             uniqueKey,
                                                             annotations);
     }
@@ -894,7 +942,8 @@ AnnotationFileXmlReader::readOneCoordinateAnnotation(const QString& annotationEl
      * Read the coordinate
      */
     readCoordinate(ELEMENT_COORDINATE_ONE,
-                   annotation->getCoordinate());
+                   annotation->getCoordinate(),
+                   annotation->getCoordinateSpace());
     
     /*
      * Is this an image annotation?

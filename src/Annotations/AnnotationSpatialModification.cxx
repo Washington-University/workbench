@@ -88,6 +88,8 @@ m_startOfDraggingFlag(startOfDraggingFlag)
     m_chartCoordAtPreviousMouseXY.m_chartXYZValid = false;
     m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid  = false;
     m_surfaceCoordinateAtMouseXY.m_surfaceNodeValid = false;
+    m_mediaCoordAtMouseXY.m_mediaXYZValid = false;
+    m_mediaCoordAtPreviousMouseXY.m_mediaXYZValid = false;
 }
 
 /**
@@ -187,6 +189,47 @@ AnnotationSpatialModification::setChartCoordinateAtPreviousMouseXY(const float c
     m_chartCoordAtPreviousMouseXY.m_chartXYZValid  = true;
 }
 
+/**
+ * Set the media coordinate at mouse X/Y
+ *
+ * @param mediaX
+ *     media X-coordinate.
+ * @param mediaY
+ *     media Y-coordinate.
+ * @param mediaZ
+ *     media Z-coordinate.
+ */
+void
+AnnotationSpatialModification::setMediaCoordinateAtMouseXY(const float mediaX,
+                                                           const float mediaY,
+                                                           const float mediaZ)
+{
+    m_mediaCoordAtMouseXY.m_mediaXYZ[0] = mediaX;
+    m_mediaCoordAtMouseXY.m_mediaXYZ[1] = mediaY;
+    m_mediaCoordAtMouseXY.m_mediaXYZ[2] = mediaZ;
+    m_mediaCoordAtMouseXY.m_mediaXYZValid  = true;
+}
+
+/**
+ * Set the media previous coordinate at mouse X/Y
+ *
+ * @param mediaX
+ *     media X-coordinate.
+ * @param mediaY
+ *     media Y-coordinate.
+ * @param mediaZ
+ *     media Z-coordinate.
+ */
+void
+AnnotationSpatialModification::setMediaCoordinateAtPreviousMouseXY(const float mediaX,
+                                                                   const float mediaY,
+                                                                   const float mediaZ)
+{
+    m_mediaCoordAtPreviousMouseXY.m_mediaXYZ[0] = mediaX;
+    m_mediaCoordAtPreviousMouseXY.m_mediaXYZ[1] = mediaY;
+    m_mediaCoordAtPreviousMouseXY.m_mediaXYZ[2] = mediaZ;
+    m_mediaCoordAtPreviousMouseXY.m_mediaXYZValid  = true;
+}
 
 /**
  * Get a description of this object's content.

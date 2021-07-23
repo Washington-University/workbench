@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationFileXmlFormatBase.h"
 #include "CaretPointer.h"
 
@@ -80,7 +80,8 @@ namespace caret {
                                            AnnotationMultiCoordinateShape* annotation);
         
         void readCoordinate(const QString& coordinateElementName,
-                            AnnotationCoordinate* coordinate);
+                            AnnotationCoordinate* coordinate,
+                            const AnnotationCoordinateSpaceEnum::Enum coordinateSpace);
         
         void readAnnotationAttributes(Annotation* annotation,
                                       const QString& annotationElementName,

@@ -56,6 +56,8 @@
 #include "EventOverlaySettingsEditorDialogRequest.h"
 #include "GuiManager.h"
 #include "MathFunctions.h"
+#include "MediaFile.h"
+#include "MediaOverlaySet.h"
 #include "ModelChartTwo.h"
 #include "StructureEnumComboBox.h"
 #include "WuQFactory.h"
@@ -300,6 +302,8 @@ AnnotationCoordinatesWidget::updateContent(Annotation* annotation)
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                break;
             case AnnotationCoordinateSpaceEnum::SPACER:
                 break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -463,6 +467,54 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                                 const float range(yAxisMax - yAxisMin);
                                 int32_t digits = 6 - static_cast<int32_t>(std::round(std::log10(range)));
                                 digitsRightOfDecimalY = MathFunctions::clamp(digits, 3, 6);
+                                yStep = range * 0.001f;
+                            }
+                        }
+                    }
+                }
+            }
+                break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            {
+                xMin = coordinateMinimum;
+                xMax = coordinateMaximum;
+                yMin = coordinateMinimum;
+                yMax = coordinateMaximum;
+                zMin = coordinateMinimum;
+                zMax = coordinateMaximum;
+                digitsRightOfDecimalX = 1;
+                digitsRightOfDecimalY = 1;
+                xStep = 1.0;
+                yStep = 1.0;
+                
+                BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+                CaretAssert(bbw);
+                BrowserTabContent* browserTabContent = bbw->getBrowserTabContent();
+                if (browserTabContent != NULL) {
+                    ModelMedia* modelMedia = browserTabContent->getDisplayedMediaModel();
+                    if (modelMedia != NULL) {
+                        MediaOverlaySet* mediaOverlaySet = browserTabContent->getMediaOverlaySet();
+                                                
+                        if (mediaOverlaySet != NULL) {
+                            float xAxisMin =  std::numeric_limits<float>::max();
+                            float xAxisMax = -std::numeric_limits<float>::max();
+                            float yAxisMin =  std::numeric_limits<float>::max();
+                            float yAxisMax = -std::numeric_limits<float>::max();
+                            
+                            const MediaFile* mediaFile = mediaOverlaySet->getBottomMostMediaFile();
+                            if (mediaFile != NULL) {
+                                xAxisMin = 0;
+                                xAxisMax = mediaFile->getWidth() - 1;
+                                yAxisMin = 0;
+                                yAxisMax = mediaFile->getHeight() - 1;
+                            }
+                            
+                            if (xAxisMax > xAxisMin) {
+                                const float range(xAxisMax - xAxisMin);
+                                xStep = range * 0.001f;
+                            }
+                            if (yAxisMax > yAxisMin) {
+                                const float range(yAxisMax - yAxisMin);
                                 yStep = range * 0.001f;
                             }
                         }
@@ -673,6 +725,8 @@ AnnotationCoordinatesWidget::valueChangedCoordinate(const int32_t coordinateInde
         bool surfaceFlag = false;
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
+                break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 break;
             case AnnotationCoordinateSpaceEnum::SPACER:
                 break;

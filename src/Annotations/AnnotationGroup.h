@@ -44,7 +44,8 @@ namespace caret {
                         const int32_t uniqueKey,
                         const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                         const int32_t tabOrWindowIndex,
-                        const SpacerTabIndex& spacerTabIndex);
+                        const SpacerTabIndex& spacerTabIndex,
+                        const AString& mediaFileName);
         
         virtual ~AnnotationGroup();
 
@@ -65,6 +66,8 @@ namespace caret {
         int32_t getTabOrWindowIndex() const;
         
         SpacerTabIndex getSpacerTabIndex() const;
+        
+        AString getMediaFileName() const;
         
         int32_t getNumberOfAnnotations() const;
         
@@ -192,6 +195,8 @@ namespace caret {
         SpacerTabIndex m_spacerTabIndex;
         
         int32_t m_tabOrWindowIndex;
+        
+        AString m_mediaFileName;
         
         mutable AString m_name;
         

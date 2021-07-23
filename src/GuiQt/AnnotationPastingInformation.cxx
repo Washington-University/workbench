@@ -85,6 +85,11 @@ m_mouseEvent(mouseEvent)
                     m_pasteableSpaces.push_back(space);
                 }
                 break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                if (m_validForPastingInformation->m_mediaSpaceInfo.m_validFlag) {
+                    m_pasteableSpaces.push_back(space);
+                }
+                break;
             case AnnotationCoordinateSpaceEnum::SPACER:
                 if (m_validForPastingInformation->m_spacerTabSpaceInfo.m_validFlag) {
                     m_pasteableSpaces.push_back(space);

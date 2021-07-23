@@ -33,9 +33,13 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CziImageFile.h"
 #include "EventIdentificationRequest.h"
 #include "EventManager.h"
+#include "ImageFile.h"
 #include "MouseEvent.h"
+#include "SelectionItemCziImage.h"
+#include "SelectionItemImage.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -100,6 +104,7 @@ AnnotationCoordinateInformation::copyHelperAnnotationCoordinateInformation(const
     m_chartSpaceInfo     = obj.m_chartSpaceInfo;
     m_surfaceSpaceInfo   = obj.m_surfaceSpaceInfo;
     m_spacerTabSpaceInfo = obj.m_spacerTabSpaceInfo;
+    m_mediaSpaceInfo     = obj.m_mediaSpaceInfo;
 }
 
 
@@ -114,6 +119,7 @@ AnnotationCoordinateInformation::reset() {
     m_chartSpaceInfo   = ChartSpaceInfo();
     m_surfaceSpaceInfo = SurfaceSpaceInfo();
     m_spacerTabSpaceInfo  = SpacerTabSpaceInfo();
+    m_mediaSpaceInfo   = MediaFileNameAndPixelSpaceInfo();
 }
 
 /**
@@ -138,6 +144,9 @@ AnnotationCoordinateInformation::isCoordinateSpaceValid(const AnnotationCoordina
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
             validSpaceFlag = m_chartSpaceInfo.m_validFlag;
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            validSpaceFlag = m_mediaSpaceInfo.m_validFlag;
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             validSpaceFlag = m_spacerTabSpaceInfo.m_spacerTabIndex.isValid();
@@ -201,6 +210,8 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
     std::vector<int32_t> windowIndices;
     std::set<int32_t> windowUniqueIndices;
 
+    std::vector<AString> mediaFileNames;
+    
     for (const auto& aci : annotationCoordInfo) {
         if (aci->m_modelSpaceInfo.m_validFlag) {
             modelSpaceValidFlags.push_back(true);
@@ -227,6 +238,9 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
         if (aci->m_surfaceSpaceInfo.m_validFlag) {
             surfaceNumberOfNodes.push_back(aci->m_surfaceSpaceInfo.m_numberOfNodes);
             surfaceStructures.push_back(aci->m_surfaceSpaceInfo.m_structure);
+        }
+        if (aci->m_mediaSpaceInfo.m_validFlag) {
+            mediaFileNames.push_back(aci->m_mediaSpaceInfo.m_mediaFileName);
         }
     }
     
@@ -293,6 +307,15 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
         }
     }
     
+    if (mediaFileNames.size() == numCoordInfo) {
+        std::set<AString> uniqueFileNames(mediaFileNames.begin(),
+                                          mediaFileNames.end());
+        if (uniqueFileNames.size() == 1) {
+            validForAllCoordInfoOut.m_mediaSpaceInfo.m_validFlag = true;
+            validForAllCoordInfoOut.m_mediaSpaceInfo.m_mediaFileName = *uniqueFileNames.begin();
+        }
+    }
+    
     return validForAllCoordInfoOut;
     
     /*
@@ -344,6 +367,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
                 break;
             case AnnotationCoordinateSpaceEnum::CHART:
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             case AnnotationCoordinateSpaceEnum::SPACER:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -366,6 +390,14 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
                                  * Both coord info's must be in the SAME TAB
                                  */
                                 if (coordInfoOne->m_tabSpaceInfo.m_index != coordInfoTwo->m_tabSpaceInfo.m_index) {
+                                    addItFlag = false;
+                                }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                                /*
+                                 * Must be on same image
+                                 */
+                                if (coordInfoOne->m_mediaSpaceInfo.m_mediaFileName != coordInfoTwo->m_mediaSpaceInfo.m_mediaFileName) {
                                     addItFlag = false;
                                 }
                                 break;
@@ -451,6 +483,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const std::vector<std:
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
                 break;
             case AnnotationCoordinateSpaceEnum::CHART:
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             case AnnotationCoordinateSpaceEnum::SPACER:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -477,6 +510,14 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const std::vector<std:
                                  * Both coord info's must be in the SAME TAB
                                  */
                                 if (firstCoordInfo->m_tabSpaceInfo.m_index != coordInfo->m_tabSpaceInfo.m_index) {
+                                    addItFlag = false;
+                                }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                                /*
+                                 * Must be on same media file
+                                 */
+                                if (firstCoordInfo->m_mediaSpaceInfo.m_mediaFileName != coordInfo->m_mediaSpaceInfo.m_mediaFileName) {
                                     addItFlag = false;
                                 }
                                 break;
@@ -613,6 +654,8 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
     
     SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
     SelectionItemSurfaceNode*  surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();
+    SelectionItemImage* imageID = idManager->getImageIdentification();
+    SelectionItemCziImage* cziImageID = idManager->getCziImageIdentification();
     if (surfaceNodeIdentification->isValid()) {
         surfaceNodeIdentification->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
@@ -630,6 +673,26 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
     }
     else if (voxelID->isValid()) {
         voxelID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
+        coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
+    }
+    else if (imageID->isValid()) {
+        coordInfoOut.m_mediaSpaceInfo.m_xyz[0] = imageID->getPixelI();
+        coordInfoOut.m_mediaSpaceInfo.m_xyz[1] = imageID->getPixelJ();
+        coordInfoOut.m_mediaSpaceInfo.m_xyz[2] = 0.0;
+        coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = imageID->getImageFile()->getFileNameNoPath();
+        coordInfoOut.m_mediaSpaceInfo.m_validFlag = true;
+        
+        imageID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
+        coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
+    }
+    else if (cziImageID->isValid()) {
+        coordInfoOut.m_mediaSpaceInfo.m_xyz[0] = cziImageID->getPixelI();
+        coordInfoOut.m_mediaSpaceInfo.m_xyz[1] = cziImageID->getPixelJ();
+        coordInfoOut.m_mediaSpaceInfo.m_xyz[2] = 0.0;
+        coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = cziImageID->getCziImageFile()->getFileNameNoPath();
+        coordInfoOut.m_mediaSpaceInfo.m_validFlag = true;
+        
+        cziImageID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
     }
     
@@ -820,6 +883,23 @@ AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(Annotati
                     if (coordInfoTwo->m_chartSpaceInfo.m_validFlag) {
                         if (endCoordinate != NULL) {
                             endCoordinate->setXYZ(coordInfoTwo->m_chartSpaceInfo.m_xyz);
+                        }
+                    }
+                }
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            if (coordInfoOne->m_mediaSpaceInfo.m_validFlag) {
+                startCoordinate->setMediaFileNameAndPixelSpace(coordInfoOne->m_mediaSpaceInfo.m_mediaFileName,
+                                                               coordInfoOne->m_mediaSpaceInfo.m_xyz);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
+                validCoordinateFlag = true;
+                
+                if (coordInfoTwo != NULL) {
+                    if (coordInfoTwo->m_mediaSpaceInfo.m_validFlag) {
+                        if (endCoordinate != NULL) {
+                            endCoordinate->setMediaFileNameAndPixelSpace(coordInfoTwo->m_mediaSpaceInfo.m_mediaFileName,
+                                                                         coordInfoTwo->m_mediaSpaceInfo.m_xyz);
                         }
                     }
                 }
@@ -1021,6 +1101,26 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
                             (float)(coordInfoOne->m_chartSpaceInfo.m_xyz[0] + optionalCoordInfoTwo->m_chartSpaceInfo.m_xyz[0]) / 2.0f,
                             (float)(coordInfoOne->m_chartSpaceInfo.m_xyz[1] + optionalCoordInfoTwo->m_chartSpaceInfo.m_xyz[1]) / 2.0f,
                             (float)(coordInfoOne->m_chartSpaceInfo.m_xyz[2] + optionalCoordInfoTwo->m_chartSpaceInfo.m_xyz[2]) / 2.0f
+                        };
+                        coordinate->setXYZ(centerXYZ);
+                        setWidthHeightWithTabCoordsFlag = true;
+                    }
+                }
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            if (coordInfoOne->m_mediaSpaceInfo.m_validFlag) {
+                coordinate->setMediaFileNameAndPixelSpace(coordInfoOne->m_mediaSpaceInfo.m_mediaFileName,
+                                                          coordInfoOne->m_mediaSpaceInfo.m_xyz);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
+                validCoordinateFlag = true;
+                
+                if (optionalCoordInfoTwo != NULL) {
+                    if (optionalCoordInfoTwo->m_mediaSpaceInfo.m_validFlag) {
+                        float centerXYZ[3] = {
+                            (float)(coordInfoOne->m_mediaSpaceInfo.m_xyz[0] + optionalCoordInfoTwo->m_mediaSpaceInfo.m_xyz[0]) / 2.0f,
+                            (float)(coordInfoOne->m_mediaSpaceInfo.m_xyz[1] + optionalCoordInfoTwo->m_mediaSpaceInfo.m_xyz[1]) / 2.0f,
+                            (float)(coordInfoOne->m_mediaSpaceInfo.m_xyz[2] + optionalCoordInfoTwo->m_mediaSpaceInfo.m_xyz[2]) / 2.0f
                         };
                         coordinate->setXYZ(centerXYZ);
                         setWidthHeightWithTabCoordsFlag = true;
@@ -1239,6 +1339,12 @@ AnnotationCoordinateInformation::setMultiDimAnnotationCoordinatesForSpace(Annota
                 validSpaceFlag = true;
             }
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            if (firstCoordInfo->m_mediaSpaceInfo.m_validFlag) {
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
+                validSpaceFlag = true;
+            }
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             if (firstCoordInfo->m_spacerTabSpaceInfo.m_spacerTabIndex.isValid()) {
                 annotation->setSpacerTabIndex(firstCoordInfo->m_spacerTabSpaceInfo.m_spacerTabIndex);
@@ -1292,6 +1398,12 @@ AnnotationCoordinateInformation::setMultiDimAnnotationCoordinatesForSpace(Annota
             case AnnotationCoordinateSpaceEnum::CHART:
                 if (coordInfo->m_chartSpaceInfo.m_validFlag) {
                     ac->setXYZ(coordInfo->m_chartSpaceInfo.m_xyz);
+                }
+                break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                if (coordInfo->m_mediaSpaceInfo.m_validFlag) {
+                    ac->setMediaFileNameAndPixelSpace(coordInfo->m_mediaSpaceInfo.m_mediaFileName,
+                                                      coordInfo->m_mediaSpaceInfo.m_xyz);
                 }
                 break;
             case AnnotationCoordinateSpaceEnum::SPACER:

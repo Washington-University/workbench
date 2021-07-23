@@ -308,6 +308,9 @@ AnnotationMenuArrange::menuAboutToShow()
                     case AnnotationCoordinateSpaceEnum::CHART:
                         oneAnnWithCorrectSpaceFlag = true;
                         break;
+                    case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                        oneAnnWithCorrectSpaceFlag = true;
+                        break;
                     case AnnotationCoordinateSpaceEnum::SPACER:
                         break;
                     case AnnotationCoordinateSpaceEnum::STEREOTAXIC:

@@ -115,6 +115,11 @@ AnnotationCoordinateSpaceEnum::initialize()
                                                      "Chart",
                                                      "Ch"));
     
+    enumData.push_back(AnnotationCoordinateSpaceEnum(MEDIA_FILE_NAME_AND_PIXEL,
+                                                     "MEDIA_FILE_NAME_AND_PIXEL",
+                                                     "Media File Name and Pixel",
+                                                     "M"));
+    
     enumData.push_back(AnnotationCoordinateSpaceEnum(SPACER,
                                                      "SPACER",
                                                      "Spacer",
@@ -311,6 +316,9 @@ AnnotationCoordinateSpaceEnum::toToolTip(Enum enumValue)
     switch (enumValue) {
         case CHART:
             text = "New annotation is drawn at a chart data XYZ coordinate";
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            text = "New annoation is drawn on a named media file and at a Pixel IJ index";
             break;
         case SPACER:
             text = "New annotation is drawn at an XY coordinate in the spacer";

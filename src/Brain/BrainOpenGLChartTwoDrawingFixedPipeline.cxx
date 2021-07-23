@@ -187,6 +187,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
             switch (cb->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
+                case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                    break;
                 case AnnotationCoordinateSpaceEnum::SPACER:
                     break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:

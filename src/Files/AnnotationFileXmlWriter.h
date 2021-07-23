@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationFileXmlFormatBase.h"
 #include "CaretPointer.h"
 
@@ -82,6 +82,7 @@ namespace caret {
         void writeBox(const AnnotationBox* box);
         
         void writeCoordinate(const AnnotationCoordinate* coordinate,
+                             const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                              const QString& coordinateXmlElement);
         
         void writeGroup(const AnnotationGroup* group);

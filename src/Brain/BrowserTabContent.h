@@ -119,6 +119,8 @@ namespace caret {
         
         const MediaOverlaySet* getMediaOverlaySet() const;
         
+        std::set<AString> getDisplayedMediaFiles() const;
+        
         int32_t getTabNumber() const;
         
         ModelTypeEnum::Enum getSelectedModelType() const;

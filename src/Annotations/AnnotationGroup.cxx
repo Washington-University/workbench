@@ -26,6 +26,7 @@
 #undef __ANNOTATION_GROUP_DECLARE__
 
 #include "Annotation.h"
+#include "AnnotationCoordinate.h"
 #include "AnnotationPointSizeText.h"
 #include "BrainConstants.h"
 #include "CaretAssert.h"
@@ -59,13 +60,16 @@ using namespace caret;
  *     Index of tab or window for tab or window space.
  * @param spacerTabIndex
  *     Index of a spacer tab.
+ * @param mediaFileName
+ *     Name of media file
  */
 AnnotationGroup::AnnotationGroup(AnnotationFile* annotationFile,
                                  const AnnotationGroupTypeEnum::Enum groupType,
                                  const int32_t uniqueKey,
                                  const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                  const int32_t tabOrWindowIndex,
-                                 const SpacerTabIndex& spacerTabIndex)
+                                 const SpacerTabIndex& spacerTabIndex,
+                                 const AString& mediaFileName)
 : CaretObjectTracksModification(),
 DisplayGroupAndTabItemInterface(),
 SceneableInterface()
@@ -95,9 +99,13 @@ SceneableInterface()
     m_coordinateSpace  = coordinateSpace;
     m_tabOrWindowIndex = tabOrWindowIndex;
     m_spacerTabIndex   = spacerTabIndex;
+    m_mediaFileName    = mediaFileName;
     
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            CaretAssert( ! m_mediaFileName.isEmpty());
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             CaretAssert(m_spacerTabIndex.isValid());
@@ -178,6 +186,7 @@ AnnotationGroup::copyHelperAnnotationGroup(const AnnotationGroup& obj)
     m_tabOrWindowIndex = obj.m_tabOrWindowIndex;
     m_spacerTabIndex   = obj.m_spacerTabIndex;
     *m_displayGroupAndTabItemHelper = *obj.m_displayGroupAndTabItemHelper;
+    m_mediaFileName    = obj.m_mediaFileName;
     
     CaretAssertMessage(0, "What to do with annotations remove copy constructor/operator=");
 }
@@ -272,6 +281,9 @@ AnnotationGroup::getName() const
         switch (m_coordinateSpace) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                spaceName.append(m_mediaFileName);
+                break;
             case AnnotationCoordinateSpaceEnum::SPACER:
                 spaceName.append(" "
                                  + m_spacerTabIndex.getWindowRowColumnGuiText());
@@ -334,6 +346,15 @@ SpacerTabIndex
 AnnotationGroup::getSpacerTabIndex() const
 {
     return m_spacerTabIndex;
+}
+
+/*
+ * @return Name of media file
+ */
+AString
+AnnotationGroup::getMediaFileName() const
+{
+    return m_mediaFileName;
 }
 
 /**
@@ -446,6 +467,13 @@ AnnotationGroup::validateAddedAnnotation(const Annotation* annotation)
     
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            if (m_mediaFileName != annotation->getCoordinate(0)->getMediaFileName()) {
+                CaretLogSevere("Attempting to add annotation with non-matching media file name");
+                CaretAssert(0);
+                return false;
+            }
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             if (m_spacerTabIndex != annotation->getSpacerTabIndex()) {
@@ -1075,6 +1103,8 @@ AnnotationGroup::copySelections(const int32_t sourceTabIndex,
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             supportedSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;

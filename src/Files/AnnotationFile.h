@@ -194,6 +194,7 @@ namespace caret {
                                                  const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                                  const int32_t tabOrWindowIndex,
                                                  const SpacerTabIndex& spacerTabIndex,
+                                                 const AString& mediaFileName,
                                                  const int32_t uniqueKey,
                                                  const std::vector<Annotation*>& annotations);
         

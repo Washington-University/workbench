@@ -252,8 +252,12 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
     SpacerTabIndex annotationSpacerTabIndex;
     
     int32_t annotationTabOrWindowIndex = -1;
+    AString annotationMediaFileName;
     switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            annotationMediaFileName = annotation->getCoordinate(0)->getMediaFileName();
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             annotationSpacerTabIndex = annotation->getSpacerTabIndex();
@@ -284,6 +288,12 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
                     case AnnotationCoordinateSpaceEnum::SURFACE:
                         return group;
                         break;
+                    case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                        if (annotationMediaFileName == group->getMediaFileName()) {
+                            return group;
+                            break;
+                        }
+                        break;
                     case AnnotationCoordinateSpaceEnum::SPACER:
                         if (annotationSpacerTabIndex == group->getSpacerTabIndex()) {
                             return group;
@@ -312,6 +322,8 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
             CaretAssert((annotationTabOrWindowIndex >= 0)
                         && (annotationTabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
@@ -328,7 +340,8 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
                                                  generateUniqueKey(),
                                                  annotationSpace,
                                                  annotationTabOrWindowIndex,
-                                                 annotationSpacerTabIndex);
+                                                 annotationSpacerTabIndex,
+                                                 annotationMediaFileName);
     group->setItemParent(this);
     m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
     
@@ -703,6 +716,10 @@ AnnotationFile::addAnnotationDuringFileVersionOneReading(Annotation* annotation)
  *     Coordinate space of the group's annotaitons.
  * @param tabOrWindowIndex
  *     Tab or window index for groups in tab or window space.
+ * @param spacerTabIndex
+ *     Index of spacer tab
+ * @param mediaFileName
+ *     Name of media file
  * @param uniqueKey
  *     Unique key for the annotation group.
  * @param annotations
@@ -715,6 +732,7 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
                                                     const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                                     const int32_t tabOrWindowIndex,
                                                     const SpacerTabIndex& spacerTabIndex,
+                                                    const AString& mediaFileName,
                                                     const int32_t uniqueKey,
                                                     const std::vector<Annotation*>& annotations)
 {
@@ -730,6 +748,11 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
     
     switch (coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            if (mediaFileName.isEmpty()) {
+                throw DataFileException("Media file name is empty and not allowed for annotation group while reading annotation file.");
+            }
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             if ( ! spacerTabIndex.isValid()) {
@@ -790,6 +813,15 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
                                                     + AnnotationCoordinateSpaceEnum::toGuiName(coordinateSpace)
                                                     + ".  Only one space group for each space is allowed.");
                             break;
+                        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                            if (mediaFileName == group->getMediaFileName()) {
+                                throw DataFileException("There is more than one annotation space group with space "
+                                                        + AnnotationCoordinateSpaceEnum::toGuiName(coordinateSpace)
+                                                        + " with media file "
+                                                        + mediaFileName
+                                                        + ".  Only one space group for each space is allowed.");
+                            }
+                            break;
                         case AnnotationCoordinateSpaceEnum::SPACER:
                             if (spacerTabIndex == group->getSpacerTabIndex()) {
                                 throw DataFileException("There is more than one annotation space group with space "
@@ -831,7 +863,8 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
                                                  uniqueKey,
                                                  coordinateSpace,
                                                  tabOrWindowIndex,
-                                                 spacerTabIndex);
+                                                 spacerTabIndex,
+                                                 mediaFileName);
     for (std::vector<Annotation*>::const_iterator annIter = annotations.begin();
          annIter != annotations.end();
          annIter++) {
@@ -1001,6 +1034,7 @@ AnnotationFile::cloneAnnotationsFromTabToTab(const int32_t fromTabIndex,
             case AnnotationCoordinateSpaceEnum::SPACER:
                 break;
             case AnnotationCoordinateSpaceEnum::CHART:
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             case AnnotationCoordinateSpaceEnum::SURFACE:
                 group->copySelections(fromTabIndex,
@@ -1298,7 +1332,8 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
                                                  generateUniqueKey(),
                                                  spaceGroup->getCoordinateSpace(),
                                                  spaceGroup->getTabOrWindowIndex(),
-                                                 spaceGroup->getSpacerTabIndex());
+                                                 spaceGroup->getSpacerTabIndex(),
+                                                 spaceGroup->getMediaFileName());
     
     for (std::vector<QSharedPointer<Annotation> >::iterator annPtrIter = movedAnnotations.begin();
          annPtrIter != movedAnnotations.end();
@@ -1451,7 +1486,8 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
                                                          reuseUniqueKeyOrGenerateNewUniqueKey(userGroupUniqueKey),
                                                          spaceGroup->getCoordinateSpace(),
                                                          spaceGroup->getTabOrWindowIndex(),
-                                                         spaceGroup->getSpacerTabIndex());
+                                                         spaceGroup->getSpacerTabIndex(),
+                                                         spaceGroup->getMediaFileName());
             
             bool allValidFlag = true;
             std::vector<QSharedPointer<Annotation> > movedAnnotations;
@@ -1981,7 +2017,8 @@ AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveParameter
                                                 generateUniqueKey(),
                                                 groupToCopy->getCoordinateSpace(),
                                                 groupToCopy->getTabOrWindowIndex(),
-                                                groupToCopy->getSpacerTabIndex());
+                                                groupToCopy->getSpacerTabIndex(),
+                                                groupToCopy->getMediaFileName());
                     group->setItemParent(this);
                     m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
                     break;

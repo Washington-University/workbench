@@ -476,6 +476,8 @@ namespace caret {
         
         void drawChartCoordinateSpaceAnnotations(const BrainOpenGLViewportContent* viewportContent);
         
+        void drawMediaSpaceAnnotations(const BrainOpenGLViewportContent* viewportContent);
+        
         void drawGraphicsTiming(const int windowViewport[4],
                                 const GraphicsFramesPerSecond* graphicsFramesPerSecond);
 

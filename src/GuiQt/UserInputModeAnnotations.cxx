@@ -550,6 +550,9 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     case AnnotationCoordinateSpaceEnum::CHART:
                         changeCoordFlag = true;
                         break;
+                    case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                        changeCoordFlag = true;
+                        break;
                     case AnnotationCoordinateSpaceEnum::SPACER:
                         changeCoordFlag = true;
                         moveOnePixelFlag = true;
@@ -619,6 +622,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             bool surfaceFlag = false;
                             switch (selectedAnnotation->getCoordinateSpace()) {
                                 case AnnotationCoordinateSpaceEnum::CHART:
+                                    break;
+                                case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                                     break;
                                 case AnnotationCoordinateSpaceEnum::SPACER:
                                     break;
@@ -828,6 +833,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
     switch (draggingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -882,6 +889,17 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                     spaceWidth   = chartVP[2];
                     spaceHeight  = chartVP[3];
                 }
+            }
+                break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            {
+                int32_t modelVP[4];
+                vpContent->getModelViewport(modelVP);
+                spaceOriginX = modelVP[0];
+                spaceOriginY = modelVP[1];
+                spaceWidth   = modelVP[2];
+                spaceHeight  = modelVP[3];
+
             }
                 break;
             case AnnotationCoordinateSpaceEnum::SPACER:

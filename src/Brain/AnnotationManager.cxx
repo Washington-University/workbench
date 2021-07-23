@@ -966,6 +966,21 @@ AnnotationManager::getAnnotationsInSameSpace(const Annotation* annotation)
     }
     else {
         switch (annotation->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            {
+                const AString mediaFileName = annotation->getCoordinate(0)->getMediaFileName();
+                for (auto a : allAnns) {
+                    if (a == annotation) {
+                        continue;
+                    }
+                    if (a->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL) {
+                        if (a->getCoordinate(0)->getMediaFileName() == mediaFileName) {
+                            sameSpaceAnns.push_back(a);
+                        }
+                    }
+                }
+            }
+                break;
             case AnnotationCoordinateSpaceEnum::CHART:
             case AnnotationCoordinateSpaceEnum::SPACER:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -1292,6 +1307,9 @@ AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displ
             bool displayedFlag = false;
             switch (ann->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
+                    displayedFlag = true;
+                    break;
+                case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     displayedFlag = true;
                     break;
                 case AnnotationCoordinateSpaceEnum::SPACER:

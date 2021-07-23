@@ -118,6 +118,8 @@ AnnotationChangeCoordinateDialog::createCurrentCoordinateWidget()
     switch (m_annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             spaceText += m_annotation->getSpacerTabIndex().getRowColumnGuiText();
             break;

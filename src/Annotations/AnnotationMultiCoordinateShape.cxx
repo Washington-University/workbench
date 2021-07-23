@@ -231,6 +231,8 @@ AnnotationMultiCoordinateShape::insertCoordinate(const int32_t insertAfterCoordi
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -386,6 +388,8 @@ AnnotationMultiCoordinateShape::getClockwiseAndCounterClockwiseCoordinates(const
     bool validSpaceFlag(true);
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;
@@ -566,6 +570,9 @@ AnnotationMultiCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleTy
     
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            xyPlaneFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             xyPlaneFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
@@ -929,6 +936,90 @@ AnnotationMultiCoordinateShape::applySpatialModificationChartSpace(const Annotat
 }
 
 /**
+ * Apply a spatial modification to an annotation in media space.
+ *
+ * @param spatialModification
+ *     Contains information about the spatial modification.
+ * @return
+ *     True if the annotation was modified, else false.
+ */
+bool
+AnnotationMultiCoordinateShape::applySpatialModificationMediaSpace(const AnnotationSpatialModification& spatialModification)
+{
+    bool validFlag = false;
+    const int32_t numCoords(getNumberOfCoordinates());
+    int32_t startIndex(-1);
+    int32_t endIndex(-1);
+    switch (spatialModification.m_sizingHandleType) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            /*
+             * Moving entire shape (all coordinates change)
+             */
+            startIndex = 0;
+            endIndex   = numCoords - 1;
+            validFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+            /*
+             * Moving one coordinate in the shape
+             */
+            if ((spatialModification.m_polyLineCoordinateIndex >= 0)
+                && (spatialModification.m_polyLineCoordinateIndex < numCoords)) {
+                startIndex = spatialModification.m_polyLineCoordinateIndex;
+                endIndex   = spatialModification.m_polyLineCoordinateIndex;
+                validFlag = true;
+            }
+            break;
+    }
+    if ((validFlag)
+        && (startIndex >= 0)
+        && (endIndex >= 0)) {
+        validFlag = false;
+        
+        if (spatialModification.m_mediaCoordAtMouseXY.m_mediaXYZValid &&
+            spatialModification.m_mediaCoordAtPreviousMouseXY.m_mediaXYZValid) {
+            const float dx = spatialModification.m_mediaCoordAtMouseXY.m_mediaXYZ[0] - spatialModification.m_mediaCoordAtPreviousMouseXY.m_mediaXYZ[0];
+            const float dy = spatialModification.m_mediaCoordAtMouseXY.m_mediaXYZ[1] - spatialModification.m_mediaCoordAtPreviousMouseXY.m_mediaXYZ[1];
+            const float dz = spatialModification.m_mediaCoordAtMouseXY.m_mediaXYZ[2] - spatialModification.m_mediaCoordAtPreviousMouseXY.m_mediaXYZ[2];
+            
+            for (int32_t i = startIndex; i <= endIndex; i++) {
+                AnnotationCoordinate* ac = getCoordinate(i);
+                ac->addToXYZ(dx, dy, dz);
+            }
+            validFlag = true;
+        }
+    }
+    
+    if (validFlag) {
+        setModified();
+    }
+    
+    return validFlag;
+}
+
+/**
  * Apply a spatial modification to an annotation in stereotaxic space.
  *
  * @param spatialModification
@@ -1005,6 +1096,9 @@ AnnotationMultiCoordinateShape::applySpatialModification(const AnnotationSpatial
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             return applySpatialModificationChartSpace(spatialModification);
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            return applySpatialModificationMediaSpace(spatialModification);
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             return applySpatialModificationSpacerTabSpace(spatialModification);

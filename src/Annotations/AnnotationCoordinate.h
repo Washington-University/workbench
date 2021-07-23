@@ -89,11 +89,18 @@ namespace caret {
                              const float surfaceOffsetLength,
                              const AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorType);
         
+        void setMediaFileNameAndPixelSpace(const AString& mediaFileName,
+                                           const float xyz[3]);
+        
         float getSurfaceOffsetLength() const;
         
         StructureEnum::Enum getSurfaceStructure() const;
         
         AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const;
+        
+        AString getMediaFileName() const;
+        
+        void setMediaFileName(const AString& mediaFileName);
         
         // ADD_NEW_METHODS_HERE
 
@@ -145,6 +152,7 @@ namespace caret {
         
         AnnotationSurfaceOffsetVectorTypeEnum::Enum m_surfaceOffsetVectorType;
         
+        AString m_mediaFileName;
         
         static float s_userDefaultSurfaceOffsetLength;
         

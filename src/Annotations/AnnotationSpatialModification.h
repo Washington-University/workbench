@@ -61,6 +61,14 @@ namespace caret {
                                                  const float chartY,
                                                  const float chartZ);
         
+        void setMediaCoordinateAtMouseXY(const float mediaX,
+                                         const float mediaY,
+                                         const float mediaZ);
+
+        void setMediaCoordinateAtPreviousMouseXY(const float mediaX,
+                                                 const float mediaY,
+                                                 const float mediaZ);
+        
         virtual ~AnnotationSpatialModification();
         
 
@@ -101,7 +109,22 @@ namespace caret {
             bool m_chartXYZValid;
         };
         
+        class MediaCoord {
+        public:
+            MediaCoord() {
+                m_mediaXYZ[0] = 0.0;
+                m_mediaXYZ[1] = 0.0;
+                m_mediaXYZ[2] = 0.0;
+                
+                m_mediaXYZValid = false;
+            }
+            
+            float m_mediaXYZ[3];
+            
+            bool m_mediaXYZValid;
+        };
         
+
         class StereotaxicCoord {
         public:
             StereotaxicCoord() {
@@ -146,6 +169,10 @@ namespace caret {
         ChartCoord m_chartCoordAtMouseXY;
         
         ChartCoord m_chartCoordAtPreviousMouseXY;
+        
+        MediaCoord m_mediaCoordAtMouseXY;
+        
+        MediaCoord m_mediaCoordAtPreviousMouseXY;
         
         SurfaceCoord m_surfaceCoordinateAtMouseXY;
         

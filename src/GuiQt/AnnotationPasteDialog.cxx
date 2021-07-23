@@ -342,6 +342,12 @@ AnnotationPasteDialog::pasteAnnotationInSpace(AnnotationFile* annotationFile,
                 }
                 ac->setXYZ(coordInfo->m_chartSpaceInfo.m_xyz);
                 break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                if (i == 0) {
+                    pasteValidFlag = true;
+                    annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
+                }
+                break;
             case AnnotationCoordinateSpaceEnum::SPACER:
                 if (i == 0) {
                     pasteValidFlag = true;

@@ -60,6 +60,7 @@ m_browserWindowIndex(browserWindowIndex)
                              "annotations allowed in Tab or \n"
                              "Window space only.\n"
                              "   Ch : Chart\n"
+                             "   M  : Media\n"
                              "   Sp : Spacer\n"
                              "   St : Stereotaxic\n"
                              "   Sf : Surface\n"
@@ -139,6 +140,8 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
             text = AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(space);
             switch (space) {
                 case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
+                case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     break;
                 case AnnotationCoordinateSpaceEnum::SPACER:
                 {

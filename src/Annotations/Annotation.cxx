@@ -626,6 +626,8 @@ Annotation::initializeAnnotationMembers()
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -850,6 +852,11 @@ Annotation::isInSameCoordinateSpace(const Annotation* annotation) const
         case AnnotationCoordinateSpaceEnum::CHART:
             sameSpaceFlag = true;
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            if (getCoordinate(0)->getMediaFileName() == annotation->getCoordinate(0)->getMediaFileName()) {
+                sameSpaceFlag = true;
+            }
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             if (getSpacerTabIndex() == annotation->getSpacerTabIndex()) {
                 sameSpaceFlag = true;
@@ -936,6 +943,8 @@ Annotation::isInSurfaceSpaceWithTangentOffset() const
     
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;
@@ -2525,6 +2534,8 @@ Annotation::isItemExpanded(const DisplayGroupEnum::Enum displayGroup,
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -2568,6 +2579,8 @@ Annotation::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
 {
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;
@@ -2613,6 +2626,8 @@ Annotation::getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
     if (testProperty(Annotation::Property::DISPLAY_GROUP)) {
         switch (m_coordinateSpace) {
             case AnnotationCoordinateSpaceEnum::CHART:
+                break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 break;
             case AnnotationCoordinateSpaceEnum::SPACER:
                 return m_displayGroupAndTabItemHelper->getSelectedInSpacerTab();
@@ -2665,6 +2680,8 @@ Annotation::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
 {
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             m_displayGroupAndTabItemHelper->setSelectedInSpacerTab(status);
@@ -2883,6 +2900,8 @@ Annotation::matchPixelPositionAndSizeInNewViewport(const int32_t oldViewport[4],
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -3032,6 +3051,8 @@ Annotation::validate(AString& messageOut) const
     
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;

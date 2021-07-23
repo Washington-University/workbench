@@ -106,6 +106,7 @@ AnnotationCoordinate::copyHelperAnnotationCoordinate(const AnnotationCoordinate&
     m_surfaceSpaceNodeIndex     = obj.m_surfaceSpaceNodeIndex;
     m_surfaceOffsetLength       = obj.m_surfaceOffsetLength;
     m_surfaceOffsetVectorType   = obj.m_surfaceOffsetVectorType;
+    m_mediaFileName             = obj.m_mediaFileName;
 }
 
 /**
@@ -456,6 +457,45 @@ AnnotationCoordinate::getSurfaceOffsetVectorType() const
 }
 
 /**
+ * Set the media file name and pixel IJK
+ */
+void
+AnnotationCoordinate::setMediaFileNameAndPixelSpace(const AString& mediaFileName,
+                                                    const float xyz[3])
+{
+    setMediaFileName(mediaFileName);
+    for (int32_t i = 0; i < 3; i++) {
+        if (xyz[i] != m_xyz[i]) {
+            m_xyz[i] = xyz[i];
+            setModified();
+        }
+    }
+}
+
+/**
+ * @return Media file name for
+ */
+AString
+AnnotationCoordinate::getMediaFileName() const
+{
+    return m_mediaFileName;
+}
+
+/**
+ * Set the media file name
+ * @param mediaFileName
+ *    Name of media file.
+ */
+void
+AnnotationCoordinate::setMediaFileName(const AString& mediaFileName)
+{
+    if (mediaFileName != m_mediaFileName) {
+        m_mediaFileName = mediaFileName;
+        setModified();
+    }
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -478,6 +518,11 @@ AnnotationCoordinate::toStringForCoordinateSpace(const AnnotationCoordinateSpace
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
             s.append(AString::fromNumbers(m_xyz, 3, " "));
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            s.append("Media File Name: "
+                     + m_mediaFileName
+                     + AString::fromNumbers(m_xyz, 3, " "));
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             s.append(AString::fromNumbers(m_xyz, 3, " "));

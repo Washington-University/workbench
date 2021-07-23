@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <memory>
+#include <set>
 #include <stdint.h>
 
 #include "AnnotationCoordinateSpaceEnum.h"
@@ -31,6 +32,7 @@
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretObject.h"
 #include "CaretOpenGLInclude.h"
+#include "FileInformation.h"
 #include "Plane.h"
 #include "SpacerTabIndex.h"
 #include "Vector3D.h"
@@ -76,6 +78,7 @@ namespace caret {
                    const int32_t tabIndex,
                    const SpacerTabIndex &spacerTabIndex,
                    const WindowDrawingMode windowDrawingMode,
+                   const std::set<AString>& mediaFileNames,
                    const bool annotationUserInputModeFlag,
                    const bool tileTabsManualLayoutUserInputModeFlag)
             : m_brain(brain),
@@ -85,9 +88,14 @@ namespace caret {
             m_tabIndex(tabIndex),
             m_spacerTabIndex(spacerTabIndex),
             m_windowDrawingMode(windowDrawingMode),
+            m_mediaFileNames(mediaFileNames),
             m_annotationUserInputModeFlag(annotationUserInputModeFlag),
             m_tileTabsManualLayoutUserInputModeFlag(tileTabsManualLayoutUserInputModeFlag)
-            { }
+            {
+                for (const auto& name : m_mediaFileNames) {
+                    m_mediaFileNamesNoPath.insert(FileInformation(name).getFileName());
+                }
+            }
             
             Brain* m_brain;
             const BrainOpenGLFixedPipeline::Mode m_drawingMode;
@@ -96,6 +104,8 @@ namespace caret {
             const int32_t m_tabIndex;
             const SpacerTabIndex m_spacerTabIndex;
             const WindowDrawingMode m_windowDrawingMode;
+            const std::set<AString> m_mediaFileNames;
+            std::set<AString> m_mediaFileNamesNoPath;
             const bool m_annotationUserInputModeFlag;
             const bool m_tileTabsManualLayoutUserInputModeFlag;
         };

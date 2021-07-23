@@ -228,6 +228,23 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
     m_stream->writeAttribute(ATTRIBUTE_UNIQUE_KEY,
                              QString::number(group->getUniqueKey()));
     
+    switch (group->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+        {
+            m_stream->writeTextElement(ELEMENT_COORDINATE_MEDIA_FILE_NAME,
+                                       group->getMediaFileName());
+        }
+            break;
+        case AnnotationCoordinateSpaceEnum::CHART:
+        case AnnotationCoordinateSpaceEnum::SPACER:
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+        case AnnotationCoordinateSpaceEnum::TAB:
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    
     std::vector<Annotation*> annotations;
     group->getAllAnnotations(annotations);
     
@@ -270,7 +287,7 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
                 break;
         }
     }
-    
+        
     m_stream->writeEndElement();
 }
 
@@ -331,6 +348,7 @@ AnnotationFileXmlWriter::writeImage(const AnnotationImage* image)
     m_stream->writeAttributes(attributes);
 
     writeCoordinate(image->getCoordinate(),
+                    image->getCoordinateSpace(),
                     ELEMENT_COORDINATE_ONE);
     
     m_stream->writeStartElement(ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64);
@@ -466,6 +484,7 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     m_stream->writeAttributes(attributes);
     
     writeCoordinate(text->getCoordinate(),
+                    text->getCoordinateSpace(),
                     ELEMENT_COORDINATE_ONE);
     
     /*
@@ -582,6 +601,7 @@ AnnotationFileXmlWriter::writeOneCoordinateShapeAnnotation(const AnnotationOneCo
     m_stream->writeAttributes(attributes);
     
     writeCoordinate(shape->getCoordinate(),
+                    shape->getCoordinateSpace(),
                     ELEMENT_COORDINATE_ONE);
     
     m_stream->writeEndElement();
@@ -619,9 +639,11 @@ AnnotationFileXmlWriter::writeTwoCoordinateShapeAnnotation(const AnnotationTwoCo
     m_stream->writeAttributes(attributes);
     
     writeCoordinate(shape->getStartCoordinate(),
+                    shape->getCoordinateSpace(),
                     ELEMENT_COORDINATE_ONE);
     
     writeCoordinate(shape->getEndCoordinate(),
+                    shape->getCoordinateSpace(),
                     ELEMENT_COORDINATE_TWO);
     
     m_stream->writeEndElement();
@@ -656,7 +678,9 @@ AnnotationFileXmlWriter::writeMultiCoordinateShapeAnnotation(const AnnotationMul
                              AString::number(numCoords));
     for (int32_t i = 0; i < numCoords; i++) {
         const AnnotationCoordinate* ac = shape->getCoordinate(i);
-        writeCoordinate(ac, ELEMENT_COORDINATE);
+        writeCoordinate(ac,
+                        shape->getCoordinateSpace(),
+                        ELEMENT_COORDINATE);
     }
     m_stream->writeEndElement();
     
@@ -668,11 +692,14 @@ AnnotationFileXmlWriter::writeMultiCoordinateShapeAnnotation(const AnnotationMul
  *
  * @param coordinate
  *     The annotation coordinate.
+ * @param coordinateSpace
+ *     Coordinate space of annotation
  * @param coordinateXmlElement
  *     The XML element for the annotation coordinate.
  */
 void
 AnnotationFileXmlWriter::writeCoordinate(const AnnotationCoordinate* coordinate,
+                                         const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                          const QString& coordinateXmlElement)
 {
     CaretAssert(coordinate);
@@ -716,6 +743,21 @@ AnnotationFileXmlWriter::writeCoordinate(const AnnotationCoordinate* coordinate,
     
     m_stream->writeAttribute(ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_VECTOR_TYPE,
                              AnnotationSurfaceOffsetVectorTypeEnum::toName(surfaceOffsetVectorType));
+    
+    switch (coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            m_stream->writeTextElement(ELEMENT_COORDINATE_MEDIA_FILE_NAME,
+                                       coordinate->getMediaFileName());
+            break;
+        case AnnotationCoordinateSpaceEnum::CHART:
+        case AnnotationCoordinateSpaceEnum::SPACER:
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+        case AnnotationCoordinateSpaceEnum::TAB:
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
     
     m_stream->writeEndElement();
 }

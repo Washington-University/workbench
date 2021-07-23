@@ -89,6 +89,8 @@ namespace caret {
         
         bool applySpatialModificationChartSpace(const AnnotationSpatialModification& spatialModification);
         
+        bool applySpatialModificationMediaSpace(const AnnotationSpatialModification& spatialModification);
+        
         bool applySpatialModificationSurfaceSpace(const AnnotationSpatialModification& spatialModification);
         
         bool applySpatialModificationStereotaxicSpace(const AnnotationSpatialModification& spatialModification);

@@ -624,6 +624,9 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
             case AnnotationCoordinateSpaceEnum::CHART:
                 CaretAssert(0);
                 break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                CaretAssert(0);
+                break;
             case AnnotationCoordinateSpaceEnum::SPACER:
                 getSpacerTabViewport(annotation->getSpacerTabIndex(),
                                      annViewport);

@@ -86,6 +86,7 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
 {
     bool enableChartSpaceFlag   = false;
     bool enableModelSpaceFlag   = false;
+    bool enableMediaSpaceFlag   = false;
     bool enableSurfaceSpaceFlag = false;
     bool enableTabSpaceFlag     = true;
     bool enableWindowSpaceFlag  = true;
@@ -93,6 +94,7 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
     switch (m_annotationType) {
         case AnnotationTypeEnum::BOX:
             enableChartSpaceFlag   = true;
+            enableMediaSpaceFlag   = true;
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
@@ -103,26 +105,31 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
             break;
         case AnnotationTypeEnum::IMAGE:
             enableChartSpaceFlag   = true;
+            enableMediaSpaceFlag   = true;
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
         case AnnotationTypeEnum::LINE:
             enableChartSpaceFlag   = true;
+            enableMediaSpaceFlag   = true;
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
         case AnnotationTypeEnum::OVAL:
             enableChartSpaceFlag   = true;
+            enableMediaSpaceFlag   = true;
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
         case AnnotationTypeEnum::POLYGON:
             enableChartSpaceFlag   = true;
+            enableMediaSpaceFlag   = true;
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
         case AnnotationTypeEnum::POLYLINE:
             enableChartSpaceFlag   = true;
+            enableMediaSpaceFlag   = true;
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
@@ -130,6 +137,7 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
             break;
         case AnnotationTypeEnum::TEXT:
             enableChartSpaceFlag   = true;
+            enableMediaSpaceFlag   = true;
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
@@ -236,6 +244,56 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
                                   rowNum, COLUMN_COORD_TWO_Y,
                                   Qt::AlignRight);
             gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_chartSpaceInfo.m_xyz[2], 'f', 1)),
+                                  rowNum, COLUMN_COORD_TWO_Z,
+                                  Qt::AlignRight);
+        }
+    }
+    
+    if (enableMediaSpaceFlag) {
+        if ( ! m_coordInfo.m_mediaSpaceInfo.m_validFlag) {
+            enableMediaSpaceFlag = false;
+        }
+        if (m_optionalSecondCoordInfo != NULL) {
+            if ( ! m_optionalSecondCoordInfo->m_mediaSpaceInfo.m_validFlag) {
+                enableMediaSpaceFlag = false;
+            }
+            /*
+             * Only allow media space for two coordinates in the SAME tab.
+             * If tab space is not enabled, then the two media coordinates are
+             * in different tabs.
+             */
+            if ( ! enableTabSpaceFlag) {
+                enableMediaSpaceFlag = false;
+            }
+        }
+    }
+    
+    if (enableMediaSpaceFlag) {
+        QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
+        m_spaceButtonGroup->addButton(rb,
+                                      AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL));
+        
+        const int rowNum = gridLayout->rowCount();
+        gridLayout->addWidget(rb,
+                              rowNum, COLUMN_RADIO_BUTTON);
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_mediaSpaceInfo.m_xyz[0], 'f', 1)),
+                              rowNum, COLUMN_COORD_X,
+                              Qt::AlignRight);
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_mediaSpaceInfo.m_xyz[1], 'f', 1)),
+                              rowNum, COLUMN_COORD_Y,
+                              Qt::AlignRight);
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_mediaSpaceInfo.m_xyz[2], 'f', 1)),
+                              rowNum, COLUMN_COORD_Z,
+                              Qt::AlignRight);
+        
+        if (m_optionalSecondCoordInfo != NULL) {
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_mediaSpaceInfo.m_xyz[0], 'f', 1)),
+                                  rowNum, COLUMN_COORD_TWO_X,
+                                  Qt::AlignRight);
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_mediaSpaceInfo.m_xyz[1], 'f', 1)),
+                                  rowNum, COLUMN_COORD_TWO_Y,
+                                  Qt::AlignRight);
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_mediaSpaceInfo.m_xyz[2], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_Z,
                                   Qt::AlignRight);
         }
@@ -422,6 +480,7 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
     AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::TAB;
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
         case AnnotationCoordinateSpaceEnum::SPACER:
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -570,6 +629,9 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
         case AnnotationCoordinateSpaceEnum::CHART:
             oldViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            oldViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             oldViewportHeight = m_coordInfo.m_spacerTabSpaceInfo.m_height;
             break;
@@ -608,6 +670,9 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             case AnnotationCoordinateSpaceEnum::CHART:
                 diffXyzValid = true;
                 break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                diffXyzValid = true;
+                break;
             case AnnotationCoordinateSpaceEnum::SPACER:
                 diffXyzValid = true;
                 break;
@@ -640,6 +705,14 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             if (m_coordInfo.m_chartSpaceInfo.m_validFlag) {
                 coordinate->setXYZ(m_coordInfo.m_chartSpaceInfo.m_xyz);
                 redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::CHART);
+                newViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            if (m_coordInfo.m_mediaSpaceInfo.m_validFlag) {
+                coordinate->setMediaFileNameAndPixelSpace(m_coordInfo.m_mediaSpaceInfo.m_mediaFileName,
+                                                          m_coordInfo.m_mediaSpaceInfo.m_xyz);
+                redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
                 newViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             }
             break;
@@ -895,6 +968,10 @@ AnnotationCoordinateSelectionWidget::setWidthAndHeightForImage(AnnotationImage* 
             vpWidth  = m_coordInfo.m_tabSpaceInfo.m_width;
             vpHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            vpWidth  = m_coordInfo.m_tabSpaceInfo.m_width;
+            vpHeight = m_coordInfo.m_tabSpaceInfo.m_height;
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             vpWidth  = m_coordInfo.m_spacerTabSpaceInfo.m_width;
             vpHeight = m_coordInfo.m_spacerTabSpaceInfo.m_height;
@@ -969,6 +1046,8 @@ AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Ann
     
     switch (annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
             break;

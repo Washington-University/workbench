@@ -809,7 +809,11 @@ BrowserTabContent::getDisplayedChartTwoModel() const
 ModelMedia*
 BrowserTabContent::getDisplayedMediaModel()
 {
-    ModelMedia* mm = dynamic_cast<ModelMedia*>(getModelForDisplay());
+    ModelMedia* mm(NULL);
+    Model* model(getModelForDisplay());
+    if (model != NULL) {
+        mm = dynamic_cast<ModelMedia*>(getModelForDisplay());
+    }
     return mm;
 }
 
@@ -1142,6 +1146,39 @@ BrowserTabContent::getMediaOverlaySet() const
     CaretAssert(m_mediaModel);
     return m_mediaModel->getMediaOverlaySet(m_tabNumber);
 }
+
+/**
+ * @return Names of media files displayed in this overlay
+ */
+std::set<AString>
+BrowserTabContent::getDisplayedMediaFiles() const
+{
+    std::set<AString> names;
+    
+    if (isMediaDisplayed()) {
+        const MediaOverlaySet* overlaySet = getMediaOverlaySet();
+        if (overlaySet != NULL) {
+            const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+            for (int32_t i = 0; i < numOverlays; i++) {
+                MediaOverlay* overlay = const_cast<MediaOverlay*>(overlaySet->getOverlay(i));
+                CaretAssert(overlay);
+                if (overlay->isEnabled()) {
+                    MediaFile* mediaFile;
+                    int32_t frameIndex(-1);
+                    overlay->getSelectionData(mediaFile,
+                                              frameIndex);
+                    if (mediaFile != NULL) {
+                        names.insert(mediaFile->getFileName());
+                    }
+                }
+            }
+        }
+
+    }
+    
+    return names;
+}
+
 
 /**
  * Get all axes for chart two models (histogram, lines matrix) that are yoked with the given axes and range mode
