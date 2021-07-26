@@ -969,6 +969,12 @@ template<typename T>
 struct functor_traits<std::not_equal_to<T> >
 { enum { Cost = 1, PacketAccess = false }; };
 
+    /*
+     * Added 26 July to fix compilation on Mac
+     * Copied from: http://eigen.tuxfamily.org/dox-3.2/Functors_8h_source.html
+     */
+#if(__cplusplus < 201103L)
+    // std::binder* are deprecated since c++11 and will be removed in c++17
 template<typename T>
 struct functor_traits<std::binder2nd<T> >
 { enum { Cost = functor_traits<T>::Cost, PacketAccess = false }; };
@@ -976,7 +982,8 @@ struct functor_traits<std::binder2nd<T> >
 template<typename T>
 struct functor_traits<std::binder1st<T> >
 { enum { Cost = functor_traits<T>::Cost, PacketAccess = false }; };
-
+#endif
+    
 template<typename T>
 struct functor_traits<std::unary_negate<T> >
 { enum { Cost = 1 + functor_traits<T>::Cost, PacketAccess = false }; };
