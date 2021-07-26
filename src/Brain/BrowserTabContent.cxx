@@ -681,7 +681,9 @@ BrowserTabContent::getModelForDisplay()
             mdc = m_mediaModel;
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
-            mdc = m_surfaceModelSelector->getSelectedSurfaceModel();
+            if (m_surfaceModelSelector != NULL) {
+                mdc = m_surfaceModelSelector->getSelectedSurfaceModel();
+            }
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
             mdc = m_surfaceMontageModel;
