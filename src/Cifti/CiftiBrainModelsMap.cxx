@@ -893,7 +893,10 @@ vector<int64_t> CiftiBrainModelsMap::ParseHelperModel::readIndexArray(QXmlStream
     vector<int64_t> ret;
     QString text = xml.readElementText();//raises error if it encounters a start element
     if (xml.hasError()) return ret;
-#if QT_VERSION >= 0x060000
+#if QT_VERSION >= 0x060102
+    QStringView textView(text);
+    auto separated = textView.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+#elif QT_VERSION >= 0x060000
     auto separated = text.tokenize(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
     //can't do an exact reserve, tokenize is one at a time, there is no splitRef in qt6
 #else
