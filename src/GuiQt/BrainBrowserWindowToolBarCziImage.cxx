@@ -97,9 +97,9 @@ m_parentToolBar(parentToolBar)
                      this, &BrainBrowserWindowToolBarCziImage::pyramidLayerChanged);
     m_pyramidLayerSpinBox->setObjectName(parentObjectName
                                             + ":BrainBrowserWindowToolBarCziImage:PyramidLayerSpinBox");
+    WuQtUtilities::setWordWrappedToolTip(m_pyramidLayerSpinBox, pyrTT);
     WuQMacroManager::instance()->addMacroSupportToObject(m_pyramidLayerSpinBox,
                                                          "Select pyramid layer of CZI Image in Tab");
-    WuQtUtilities::setWordWrappedToolTip(m_pyramidLayerSpinBox, pyrTT);
 
     const QString reloadTT("Reload the current pyramid layer.  This may be useful when user pans the "
                            "image so that much of the image is off the screen.");

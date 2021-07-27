@@ -1965,8 +1965,7 @@ ImageFile::transformPixelBottomLeftToTopLeft(const PixelIndex& pixelIndexBottomL
     PixelIndex pixelTopLeft;
     
     if ( ! m_pixelBottomLeftToTopLeftTransform) {
-        const int32_t tabIndex(0); /* images are same in all tabs*/
-        QRect rect(0, 0, getWidth(/*tabIndex*/) - 1, getHeight(/*tabIndex*/) - 1);
+        QRect rect(0, 0, getWidth() - 1, getHeight() - 1);
         m_pixelBottomLeftToTopLeftTransform.reset(new RectangleTransform(rect,
                                                                          RectangleTransform::Origin::BOTTOM_LEFT,
                                                                          rect,
@@ -2041,7 +2040,12 @@ ImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
     m_controlPointFile->restoreFromScene(sceneAttributes,
                                          sceneClass->getClass("m_controlPointFile"));
     
-    //const int32_t sceneVersionNumber = sceneClass->getIntegerValue(ImageFile::SCENE_VERSION_NUMBER, 0);
+    
+    /*
+     * If not restored, it will cause a warning
+     *const int32_t sceneVersionNumber =
+     */
+    sceneClass->getIntegerValue(ImageFile::SCENE_VERSION_NUMBER, 0);
 }
 
 /**
