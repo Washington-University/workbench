@@ -39,6 +39,10 @@ namespace caret {
 
         ViewingTransformationsMedia& operator=(const ViewingTransformationsMedia& obj);
         
+        virtual void copyTransformsForYoking(const ViewingTransformationsMedia& otherTransformation,
+                                             const float otherImageWidthHeight[2],
+                                             const float myImageWidthHeight[2]);
+        
         virtual void scaleAboutMouse(const GraphicsObjectToWindowTransform* transform,
                                      const int32_t mousePressX,
                                      const int32_t mousePressY,

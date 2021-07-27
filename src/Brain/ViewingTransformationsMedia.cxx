@@ -99,6 +99,65 @@ ViewingTransformationsMedia::copyHelperViewingTransformationsMedia(const Viewing
 }
 
 /**
+ * Copy the transformations for yoking
+ * @param otherTransformation
+ *    Instance whose transforms are copied to "this"
+ * @param objImageWidthHeight
+ *    Width / height of "obj" underlay image
+ * @param myImageWidthHeight
+ *    Width / height of "my" underlay image
+ */
+void
+ViewingTransformationsMedia::copyTransformsForYoking(const ViewingTransformationsMedia& otherTransformation,
+                                                     const float otherImageWidthHeight[2],
+                                                     const float myImageWidthHeight[2])
+{
+    /*
+     * Note: "This" image and the "other" image may be different sizes.  If we simply
+     * copy the "other" transformation to "this", the translation will be too small/big
+     * when the images are different sizes.  So, convert the translation to a percentage
+     * of the "other" image's width/height and use it.
+     */
+    if (this != &otherTransformation) {
+        /*
+         * Save "my" translation
+         */
+        float oldTranslation[3];
+        getTranslation(oldTranslation);
+        
+        /*
+         * Copy the "other" viewing transformations to "this"
+         */
+        *this = otherTransformation;
+        
+        /*
+         * Get the "other" translation
+         */
+        float otherTranslation[2];
+        otherTransformation.getTranslation(otherTranslation);
+        
+        if ((otherImageWidthHeight[0] > 0)
+            && (otherImageWidthHeight[1] > 0)
+            && (myImageWidthHeight[0] > 0)
+            && (myImageWidthHeight[1] > 0)) {
+            /*
+             * Convert the "other" translation to a percentage of the "other" image size
+             */
+            const float objTransPercentX(otherTranslation[0] / otherImageWidthHeight[0]);
+            const float objTransPercentY(otherTranslation[1] / otherImageWidthHeight[1]);
+            
+            /*
+             * Apply the percentage translation to "this"
+             */
+            float transX(myImageWidthHeight[0] * objTransPercentX);
+            float transY(myImageWidthHeight[1] * objTransPercentY);
+            
+            setTranslation(transX, transY, 0.0);
+        }
+    }
+}
+
+/**
  * Reset the view to the default view for media.
  */
 void

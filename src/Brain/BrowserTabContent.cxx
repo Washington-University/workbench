@@ -5952,6 +5952,14 @@ BrowserTabContent::updateMediaModelYokedBrowserTabs()
         return;
     }
     
+    float myImageWidthHeight[2] { 0.0f, 0.0f };
+    MediaOverlaySet* myOverlaySet(getMediaOverlaySet());
+    if (myOverlaySet != NULL) {
+        const MediaFile* myMediaFile(myOverlaySet->getBottomMostMediaFile());
+        myImageWidthHeight[0] = myMediaFile->getWidth();
+        myImageWidthHeight[1] = myMediaFile->getHeight();
+    }
+    
     /*
      * Copy yoked data from 'me' to all other yoked browser tabs
      */
@@ -5962,7 +5970,18 @@ BrowserTabContent::updateMediaModelYokedBrowserTabs()
              * If anything is added, also need to update setYokingGroup()
              */
             if (btc->getMediaModelYokingGroup() == m_mediaModelYokingGroup) {
-                *btc->m_mediaViewingTransformation = *m_mediaViewingTransformation;
+                float btcImageWidthHeight[2] { 0.0f, 0.0f };
+                MediaOverlaySet* btcOverlaySet(btc->getMediaOverlaySet());
+                if (btcOverlaySet != NULL) {
+                    const MediaFile* btcMediaFile(btcOverlaySet->getBottomMostMediaFile());
+                    btcImageWidthHeight[0] = btcMediaFile->getWidth();
+                    btcImageWidthHeight[1] = btcMediaFile->getHeight();
+                }
+
+                btc->m_mediaViewingTransformation->copyTransformsForYoking(*m_mediaViewingTransformation,
+                                                                           myImageWidthHeight,
+                                                                           btcImageWidthHeight);
+                //*btc->m_mediaViewingTransformation = *m_mediaViewingTransformation;
             }
         }
     }
