@@ -43,7 +43,7 @@ using namespace caret;
 DisplayPropertiesCziImages::DisplayPropertiesCziImages()
 : DisplayProperties()
 {
-    m_resolutionChangeMode.fill(CziImageResolutionChangeModeEnum::MANUAL);
+    m_resolutionChangeMode.fill(CziImageResolutionChangeModeEnum::AUTO);
     m_sceneAssistant->addArray<CziImageResolutionChangeModeEnum,CziImageResolutionChangeModeEnum::Enum>("m_resolutionChangeMode",
                                                                                                         m_resolutionChangeMode.data(),
                                                                                                         m_resolutionChangeMode.size(),

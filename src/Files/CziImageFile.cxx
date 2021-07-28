@@ -1223,35 +1223,14 @@ CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
          * For AUTO mode
          */
         switch (resolutionChangeMode) {
+            case CziImageResolutionChangeModeEnum::AUTO_OLD:
+                autoModeZoomOnlyResolutionChange(tabIndex,
+                                                 transform);
+                break;
             case CziImageResolutionChangeModeEnum::AUTO:
-            {
-                /*
-                 * Compute pixel height of the high-resolution image when drawn in the window.
-                 * The size of the image, in pixels when drawn, determines when to switch to
-                 * lower or higher resolution image.
-                 */
-                const float imageBottomLeftPixel[3] { 0.0, 0.0, 0.0 };
-                const float imageTopLeftPixel[3] { 0.0, static_cast<float>(m_fullResolutionLogicalRect.height()), 0.0 };
-                float imageBottomLeftWindow[3];
-                float imageTopLeftWindow[3];
-                transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
-                transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
-                const float drawnPixelHeight = imageTopLeftWindow[1] - imageBottomLeftWindow[1];
-                
-                int32_t pyramidLayerForScaling = m_highestResolutionPyramidLayerIndex;
-                for (int32_t i = m_lowestResolutionPyramidLayerIndex;
-                     i <= m_highestResolutionPyramidLayerIndex;
-                     i++) {
-                    if (drawnPixelHeight < m_pyramidLayers[i].m_height) {
-                        pyramidLayerForScaling = i;
-                        break;
-                    }
-                }
-                if (pyramidLayerForScaling != getPyramidLayerIndexForTab(tabIndex)) {
-                    setPyramidLayerIndexForTab(tabIndex,
-                                               pyramidLayerForScaling);
-                }
-            }
+                autoModePanZoomResolutionChange(cziImageOut,
+                                                tabIndex,
+                                                transform);
                 break;
             case CziImageResolutionChangeModeEnum::MANUAL:
                 break;
@@ -1259,6 +1238,233 @@ CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
     }
 
     return cziImageOut;
+}
+
+/**
+ * Process change in resoluion for auto mode for zooming and panning
+ * @param cziImage
+ *    Current CZI image
+ * @param tabIndex
+ *    Index of the tab
+ * @param transform
+ *    Transform for converts from object to window space (and inverse)
+ * @return
+ *    Pyramid layer index selected
+ */
+int32_t
+CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
+                                              const int32_t tabIndex,
+                                              const GraphicsObjectToWindowTransform* transform)
+{
+    const int32_t previousPyramidLayerIndex = getPyramidLayerIndexForTab(tabIndex);
+    
+    const int32_t pyramidLayerIndex = autoModeZoomOnlyResolutionChange(tabIndex,
+                                                                       transform);
+    
+    if (pyramidLayerIndex <= m_lowestResolutionPyramidLayerIndex) {
+        /*
+         * Lowest resolution shows entire image
+         */
+        return pyramidLayerIndex;
+    }
+    
+    if (pyramidLayerIndex != previousPyramidLayerIndex) {
+        /*
+         * Resolution has changed which will cause loading of new image data
+         * and the new data may fill the window.
+         */
+        return pyramidLayerIndex;
+    }
+    
+    const std::array<float, 4> viewport(transform->getViewport());
+    
+    /*
+     * Transform viewport rect to full resolution pixels
+     */
+//    const float viewportBottomLeft[3] {
+//        viewport[0],
+//        viewport[1],
+//        0.0f
+//    };
+//    float windowFullResPixelBottomLeft[3];
+//    transform->inverseTransformPoint(viewportBottomLeft,
+//                                     windowFullResPixelBottomLeft);
+    
+//    float windowTopRight[3] {
+//        viewport[0] + viewport[2],
+//        viewport[1] + viewport[3],
+//        0.0f
+//    };
+//    float windowFullResPixelTopRight[3];
+//    transform->inverseTransformPoint(windowTopRight,
+//                                     windowFullResPixelTopRight);
+        
+    /*
+     * Window coordinate at Top Left Corner of Viewport
+     * 'inverseTransformPoint()' transforms from window coordinates to the ortho's pixel index with
+     * origin at bottom left.
+     * 'transformPixelIndexToSpace' transforms pixel index to CZI 'logical coordinates'
+     */
+    float viewportTopLeftWindowCoordinate[3];
+    transform->inverseTransformPoint(viewport[0],
+                                     viewport[1] + viewport[3],
+                                     0.0,
+                                     viewportTopLeftWindowCoordinate);
+    const PixelIndex pixelIndexTopLeft(viewportTopLeftWindowCoordinate);
+    const PixelIndex windowLogicalTopLeft(cziImage->transformPixelIndexToSpace(pixelIndexTopLeft,
+                                                                               CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
+                                                                               CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT));
+
+    /*
+     * Bottom Right Corner of Window
+     * 'inverseTransformPoint()' transforms from window coordinates to the ortho's pixel index with
+     * origin at bottom left.
+     * 'transformPixelIndexToSpace' transforms pixel index to CZI 'logical coordinates'
+     */
+    float viewportBottomRightWindowCoordinate[3];
+    transform->inverseTransformPoint(viewport[0] + viewport[2],
+                                     viewport[1],
+                                     0.0,
+                                     viewportBottomRightWindowCoordinate);
+    const PixelIndex pixelIndexBottomRight(viewportBottomRightWindowCoordinate);
+    const PixelIndex windowLogicalBottomRight(cziImage->transformPixelIndexToSpace(pixelIndexBottomRight,
+                                                                                   CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
+                                                                                   CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT));
+
+    /*
+     * CZI Logical coordinates of viewport (portion of CZI image that fills the viewport)
+     */
+    const QRectF viewportFullResLogicalRect(windowLogicalTopLeft.getI(),
+                                            windowLogicalTopLeft.getJ(),
+                                            windowLogicalBottomRight.getI() - windowLogicalTopLeft.getI(),
+                                            windowLogicalBottomRight.getJ() - windowLogicalTopLeft.getJ());
+    if (cziDebugFlag) {
+        std::cout << "Pixel Index Top Left (origin bottom left): " << pixelIndexTopLeft.toString() << std::endl;
+        std::cout << "Pixel Index Top Left (origin top left): "
+        << cziImage->transformPixelIndexToSpace(pixelIndexTopLeft,
+                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
+                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT).toString() << std::endl;
+        std::cout << "Pixel Index Bottom Right (origin bottom left): " << pixelIndexBottomRight.toString() << std::endl;
+        std::cout << "Pixel Index Bottom Right (origin top left): "
+        << cziImage->transformPixelIndexToSpace(pixelIndexBottomRight,
+                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
+                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT).toString() << std::endl;
+        std::cout << "Window Logical Rect: " << CziUtilities::qRectToString(viewportFullResLogicalRect) << std::endl;
+        std::cout << "Full Res Logical Rect: " << CziUtilities::qRectToString(m_fullResolutionLogicalRect) << std::endl;
+        std::cout << "Image Logical Rect: " << CziUtilities::qRectToString(cziImage->m_logicalRect) << std::endl;
+        
+        const QRectF imageIntersectWindowRect(viewportFullResLogicalRect.intersected(cziImage->m_logicalRect));
+        const float imageInWindowArea(imageIntersectWindowRect.width() * imageIntersectWindowRect.height());
+        const float imageArea(cziImage->m_logicalRect.width()* cziImage->m_logicalRect.height());
+        const float viewedPercentage((imageArea > 0.0f)
+                                     ? (imageInWindowArea / imageArea)
+                                     : imageArea);
+        std::cout << "Image Viewed Percentage: " << viewedPercentage << std::endl;
+    }
+    
+    /*
+     * (1) Find intersection of currently loaded image region with the viewport region
+     * (2) Find amount of viewport that overlaps the current image region
+     */
+    const QRectF viewportIntersectImageRect(cziImage->m_logicalRect.intersected(viewportFullResLogicalRect));
+    const float viewportInImageArea(viewportIntersectImageRect.width() * viewportIntersectImageRect.height());
+    const float viewportArea(viewportFullResLogicalRect.width() * viewportFullResLogicalRect.height());
+    const float viewportRoiPercentage((viewportArea > 0.0f)
+                                 ? (viewportInImageArea / viewportArea)
+                                 : viewportArea);
+    if (cziDebugFlag) {
+        std::cout << "Window Image Percentage: " << viewportRoiPercentage << std::endl;
+    }
+    
+    /*
+     * (1) Find intersection of full resolution image region with the viewport region
+     * (2) Find amount of viewport that overlaps the full image region
+     */
+    const QRectF viewportIntersectFullImageRect(m_fullResolutionLogicalRect.intersected(viewportFullResLogicalRect));
+    const float viewportInFullResImageArea(viewportIntersectFullImageRect.width() * viewportIntersectFullImageRect.height());
+    const float viewportFullResPercentage(viewportArea
+                                        ? (viewportInFullResImageArea / viewportArea)
+                                        : viewportArea);
+    if (cziDebugFlag) {
+        std::cout << "Window Full Res Image Percentage: " << viewportFullResPercentage << std::endl;
+    }
+
+    if (viewportFullResPercentage > 0.0) {
+        /*
+         * Get ratio of current image ROI and viewport full res image
+         * When less that one, the current image has been panned so
+         * that there is a gap on a side (or sides) of the viewport
+         * that can be filled by loading new image data
+         */
+        const float ratio(viewportRoiPercentage / viewportFullResPercentage);
+        if (cziDebugFlag) {
+            std::cout << "Viewed vs Available Percentage: " << ratio << std::endl;
+        }
+        
+        /*
+         * If parts of the viewport do not contain image data but
+         * there is image data available, reload image data to
+         * cover the entire viewport.
+         */
+        const float reloadThreshold(0.99);
+        if (ratio < reloadThreshold) {
+            /*
+             * Cause reloading of image data which should fill the window
+             */
+            if (cziDebugFlag) {
+                std::cout << "...Reloading Image Data" << std::endl;
+            }
+            reloadPyramidLayerInTab(tabIndex);
+        }
+    }
+    if (cziDebugFlag) {
+        std::cout << std::endl;
+    }
+    
+    return pyramidLayerIndex;
+}
+
+/**
+ * Process change in resoluion for auto mode for zooming only
+ * @param tabIndex
+ *    Index of the tab
+ * @param transform
+ *    Transform for converts from object to window space (and inverse)
+ * @return
+ *    Pyramid layer index selected
+ */
+int32_t
+CziImageFile::autoModeZoomOnlyResolutionChange(const int32_t tabIndex,
+                                               const GraphicsObjectToWindowTransform* transform)
+{
+    /*
+     * Compute pixel height of the high-resolution image when drawn in the window.
+     * The size of the image, in pixels when drawn, determines when to switch to
+     * lower or higher resolution image.
+     */
+    const float imageBottomLeftPixel[3] { 0.0, 0.0, 0.0 };
+    const float imageTopLeftPixel[3] { 0.0, static_cast<float>(m_fullResolutionLogicalRect.height()), 0.0 };
+    float imageBottomLeftWindow[3];
+    float imageTopLeftWindow[3];
+    transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
+    transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
+    const float drawnPixelHeight = imageTopLeftWindow[1] - imageBottomLeftWindow[1];
+    
+    int32_t pyramidLayerForScaling = m_highestResolutionPyramidLayerIndex;
+    for (int32_t i = m_lowestResolutionPyramidLayerIndex;
+         i <= m_highestResolutionPyramidLayerIndex;
+         i++) {
+        if (drawnPixelHeight < m_pyramidLayers[i].m_height) {
+            pyramidLayerForScaling = i;
+            break;
+        }
+    }
+    if (pyramidLayerForScaling != getPyramidLayerIndexForTab(tabIndex)) {
+        setPyramidLayerIndexForTab(tabIndex,
+                                   pyramidLayerForScaling);
+    }
+
+    return pyramidLayerForScaling;
 }
 
 /**

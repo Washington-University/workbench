@@ -203,6 +203,13 @@ namespace caret {
         
         static int CalcSizeOfPixelOnLayer0(const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo& pyramidInfo);
         
+        int32_t autoModeZoomOnlyResolutionChange(const int32_t tabIndex,
+                                                 const GraphicsObjectToWindowTransform* transform);
+        
+        int32_t autoModePanZoomResolutionChange(const CziImage* cziImage,
+                                                const int32_t tabIndex,
+                                                const GraphicsObjectToWindowTransform* transform);
+
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         Status m_status = Status::CLOSED;

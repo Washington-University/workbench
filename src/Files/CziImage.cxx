@@ -75,7 +75,7 @@ m_logicalRect(logicalRect)
     
     const PixelIndex logBotLeft(m_logicalRect.x(),
                                 m_logicalRect.y() + m_logicalRect.height(),
-                                0.0);
+                                0.0f);
     const PixelIndex pixelBotLeft = transformPixelIndexToSpace(logBotLeft,
                                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT,
                                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT);

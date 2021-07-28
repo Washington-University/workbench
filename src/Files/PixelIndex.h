@@ -39,6 +39,12 @@ namespace caret {
     public:
         PixelIndex();
         
+        PixelIndex(const float i,
+                   const float j,
+                   const float k = 0);
+        
+        PixelIndex(const float ijk[3]);
+        
         PixelIndex(const int64_t i,
                    const int64_t j,
                    const int64_t k = 0);

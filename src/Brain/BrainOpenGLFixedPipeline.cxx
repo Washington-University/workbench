@@ -8395,9 +8395,9 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
         const float normalizedX = imageX / static_cast<float>(imageWidth);
         const float normalizedY = imageY / static_cast<float>(imageHeight);
         
-        const int32_t pixelX = static_cast<int32_t>(normalizedX *
+        const int64_t pixelX = static_cast<int32_t>(normalizedX *
                                                     static_cast<float>(originalImageWidth));
-        const int32_t pixelY = static_cast<int32_t>(normalizedY *
+        const int64_t pixelY = static_cast<int32_t>(normalizedY *
                                                     static_cast<float>(originalImageHeight));
         
         if ((pixelX    >= 0)
@@ -8409,7 +8409,7 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
             idImage->setPixelJ(pixelY);
 
             uint8_t pixelByteRGBA[4];
-            PixelIndex pixelIndex(pixelX, pixelY);
+            PixelIndex pixelIndex(pixelX, pixelY, 0L);
             if (imageFile->getImagePixelRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
                                              pixelIndex,
                                              pixelByteRGBA)) {

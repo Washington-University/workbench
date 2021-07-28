@@ -50,6 +50,35 @@ PixelIndex::PixelIndex()
 }
 
 /**
+ * Constructor with pixel indices as floats
+ * @param ijk
+ *    Index i, J, K
+ */
+PixelIndex::PixelIndex(const float ijk[3])
+: PixelIndex(ijk[0], ijk[1], ijk[2])
+{
+}
+
+/**
+ * Constructor with pixel indices as floats
+ * @param i
+ *    Index i
+ * @param j
+ *    Index j
+ * @param k
+ *    Index k
+ */
+PixelIndex::PixelIndex(const float i,
+                       const float j,
+                       const float k)
+: PixelIndex(static_cast<int64_t>(i),
+             static_cast<int64_t>(j),
+             static_cast<int64_t>(k))
+{
+}
+
+
+/**
  * Constructor with pixel indices
  * @param i
  *    Index i

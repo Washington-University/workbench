@@ -35,9 +35,11 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Automatic (Old)*/
+        AUTO_OLD,
+        /** Auto  */
         AUTO,
-        /** */
+        /** Manual */
         MANUAL
     };
 

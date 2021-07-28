@@ -74,12 +74,31 @@ m_parentToolBar(parentToolBar)
 {
     QLabel* pyramidLayerLabel = new QLabel("Pyramid Layer");
     
-    const QString resModeTT("<html><body>"
-                            "<ul>"
-                            "<li>Auto - Workbench automatically selects level of image resolution"
-                            "<li>Manual - User selects level of image resolution"
-                            "</ul>"
-                            "</body></html>");
+    std::vector<CziImageResolutionChangeModeEnum::Enum> resModes;
+    CziImageResolutionChangeModeEnum::getAllEnums(resModes);
+    QString resModeTT("<html><body>"
+                      "<ul>");
+    for (const auto& rm : resModes) {
+        resModeTT.append("<li>"
+                         + CziImageResolutionChangeModeEnum::toGuiName(rm)
+                         + " - ");
+        switch (rm) {
+            case CziImageResolutionChangeModeEnum::AUTO_OLD:
+                resModeTT.append("Workbench automatically selects level of image resolution "
+                                 "but only when zoomed");
+                break;
+            case CziImageResolutionChangeModeEnum::AUTO:
+                resModeTT.append("Workbench automatically selects level of image resolution "
+                                 "when zoomed or panned");
+                break;
+            case CziImageResolutionChangeModeEnum::MANUAL:
+                resModeTT.append("User selects level of image resolution");
+                break;
+        }
+    }
+    resModeTT.append("</ul>"
+                     "</body></html>");
+
     m_resolutionModeComboBox = new EnumComboBoxTemplate(this);
     m_resolutionModeComboBox->setup<CziImageResolutionChangeModeEnum, CziImageResolutionChangeModeEnum::Enum>();
     QObject::connect(m_resolutionModeComboBox, &EnumComboBoxTemplate::itemActivated,
@@ -193,6 +212,19 @@ BrainBrowserWindowToolBarCziImage::updateContent(BrowserTabContent* browserTabCo
         const bool manualModeFlag(resolutionChangeMode == CziImageResolutionChangeModeEnum::MANUAL);
         
         m_pyramidLayerSpinBox->setEnabled(manualModeFlag);
+        
+        bool reloadEnabled(false);
+        switch (resolutionChangeMode) {
+            case CziImageResolutionChangeModeEnum::AUTO_OLD:
+                reloadEnabled = true;
+                break;
+            case CziImageResolutionChangeModeEnum::AUTO:
+                break;
+            case CziImageResolutionChangeModeEnum::MANUAL:
+                reloadEnabled = true;
+                break;
+        }
+        m_reloadAction->setEnabled(reloadEnabled);
     }
     
     setEnabled(cziImageFile != NULL);
@@ -261,6 +293,7 @@ BrainBrowserWindowToolBarCziImage::resolutionModeComboBoxActivated()
     dsc->setResolutionChangeMode(tabIndex, mode);
     
     switch (mode) {
+        case CziImageResolutionChangeModeEnum::AUTO_OLD:
         case CziImageResolutionChangeModeEnum::AUTO:
         {
             /*

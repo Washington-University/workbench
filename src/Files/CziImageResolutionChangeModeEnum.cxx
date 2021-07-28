@@ -106,6 +106,10 @@ CziImageResolutionChangeModeEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(CziImageResolutionChangeModeEnum(AUTO_OLD,
+                                                        "AUTO_OLD",
+                                                        "Auto (Old)"));
+    
     enumData.push_back(CziImageResolutionChangeModeEnum(AUTO,
                                                         "AUTO",
                                                         "Auto"));
