@@ -1276,11 +1276,25 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
         return pyramidLayerIndex;
     }
     
+    /*
+     * After getting the viewport enlarge it a little bit.
+     * When the user pans the image, this will cause new image data
+     * to be loaded as the edge of the current image is about to
+     * be panned into the viewport.  
+     *
+     * If we do not enlarge the viewport, new image data is not loaded
+     * until the edge of the image is moved into the viewport and this
+     * results in a small amount of the background becoming visible
+     * (until the new image is loaded).
+     */
     const std::array<float, 4> viewportArray(transform->getViewport());
     QRectF viewport(viewportArray[0],
                     viewportArray[1],
                     viewportArray[2],
                     viewportArray[3]);
+    const float mv(10);
+    const QMarginsF margins(mv, mv, mv, mv);
+    viewport = viewport.marginsAdded(margins);
         
     /*
      * Window coordinate at Top Left Corner of Viewport
