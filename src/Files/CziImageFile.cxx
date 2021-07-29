@@ -1200,9 +1200,19 @@ CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
         }
         
         if (cziImageOut == NULL) {
-            m_tabCziImages[tabIndex].reset(loadImageForPyrmaidLayer(tabIndex,
-                                                                    transform,
-                                                                    pyramidLayerIndex));
+            /*
+             * In some instance, a new image is not loaded and
+             * 'loadImageForPyramidLayer' returns the current (old)
+             * image.  So, do not want to 'reset' with same value
+             * as it will delete the image and likely cause a crash.
+             */
+            CziImage* oldCziImage = m_tabCziImages[tabIndex].get();
+            CziImage* newCziImage = loadImageForPyrmaidLayer(tabIndex,
+                                                             transform,
+                                                             pyramidLayerIndex);
+            if (newCziImage != oldCziImage) {
+                m_tabCziImages[tabIndex].reset(newCziImage);
+            }
             
             if (m_tabCziImages[tabIndex]) {
                 cziImageOut = m_tabCziImages[tabIndex].get();
@@ -1280,7 +1290,7 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
      * After getting the viewport enlarge it a little bit.
      * When the user pans the image, this will cause new image data
      * to be loaded as the edge of the current image is about to
-     * be panned into the viewport.  
+     * be panned into the viewport.
      *
      * If we do not enlarge the viewport, new image data is not loaded
      * until the edge of the image is moved into the viewport and this
@@ -1498,7 +1508,7 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
     transform->inverseTransformPoint(vpCenterXYZ, modelXYZ);
     PixelIndex imagePixelIndex(modelXYZ[0], modelXYZ[1], 0.0f);
     
-    const CziImage* oldCziImage(getImageForTab(tabIndex));
+    CziImage* oldCziImage(getImageForTab(tabIndex));
     CaretAssert(oldCziImage);
     PixelIndex fullImagePixelIndex = imagePixelIndex;
     PixelIndex fullResolutionLogicalPixelIndex = oldCziImage->transformPixelIndexToSpace(imagePixelIndex,
@@ -1583,8 +1593,12 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
         adjustedRect = m_fullResolutionLogicalRect.intersected(adjustedRect);
     }
     
-    
-    
+    /*
+     * If the region has not changed, do not need to load data
+     */
+    if (oldCziImage->m_logicalRect == adjustedRect) {
+        return oldCziImage;
+    }
 
     AString errorMessage;
     cziImageOut = readPyramidLayerFromCziImageFile(pyramidLayerIndex, imageRegionRect, adjustedRect, errorMessage);
