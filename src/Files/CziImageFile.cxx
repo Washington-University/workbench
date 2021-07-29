@@ -1276,28 +1276,11 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
         return pyramidLayerIndex;
     }
     
-    const std::array<float, 4> viewport(transform->getViewport());
-    
-    /*
-     * Transform viewport rect to full resolution pixels
-     */
-//    const float viewportBottomLeft[3] {
-//        viewport[0],
-//        viewport[1],
-//        0.0f
-//    };
-//    float windowFullResPixelBottomLeft[3];
-//    transform->inverseTransformPoint(viewportBottomLeft,
-//                                     windowFullResPixelBottomLeft);
-    
-//    float windowTopRight[3] {
-//        viewport[0] + viewport[2],
-//        viewport[1] + viewport[3],
-//        0.0f
-//    };
-//    float windowFullResPixelTopRight[3];
-//    transform->inverseTransformPoint(windowTopRight,
-//                                     windowFullResPixelTopRight);
+    const std::array<float, 4> viewportArray(transform->getViewport());
+    QRectF viewport(viewportArray[0],
+                    viewportArray[1],
+                    viewportArray[2],
+                    viewportArray[3]);
         
     /*
      * Window coordinate at Top Left Corner of Viewport
@@ -1306,8 +1289,8 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
      * 'transformPixelIndexToSpace' transforms pixel index to CZI 'logical coordinates'
      */
     float viewportTopLeftWindowCoordinate[3];
-    transform->inverseTransformPoint(viewport[0],
-                                     viewport[1] + viewport[3],
+    transform->inverseTransformPoint(viewport.x(),
+                                     viewport.y() + viewport.height(),
                                      0.0,
                                      viewportTopLeftWindowCoordinate);
     const PixelIndex pixelIndexTopLeft(viewportTopLeftWindowCoordinate);
@@ -1322,8 +1305,8 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
      * 'transformPixelIndexToSpace' transforms pixel index to CZI 'logical coordinates'
      */
     float viewportBottomRightWindowCoordinate[3];
-    transform->inverseTransformPoint(viewport[0] + viewport[2],
-                                     viewport[1],
+    transform->inverseTransformPoint(viewport.x() + viewport.width(),
+                                     viewport.y(),
                                      0.0,
                                      viewportBottomRightWindowCoordinate);
     const PixelIndex pixelIndexBottomRight(viewportBottomRightWindowCoordinate);
@@ -1484,6 +1467,14 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
     CziImage* cziImageOut(NULL);
     
     std::array<float,4> viewport(transform->getViewport());
+    if ((viewport[2] <= 0)
+        || (viewport[3] <= 0)) {
+        CaretLogSevere("Viewport is invalid: "
+                       + AString::fromNumbers(viewport.data(), 4, ", ")
+                       + " for pyramid layer "
+                       + AString::number(pyramidLayerIndex));
+        return NULL;
+    }
     const float vpCenterXYZ[3] {
         viewport[0] + (viewport[2] / 2.0f),
         viewport[1] + (viewport[3] / 2.0f),
@@ -1499,12 +1490,41 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
     PixelIndex fullResolutionLogicalPixelIndex = oldCziImage->transformPixelIndexToSpace(imagePixelIndex,
                                                                                          CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
                                                                                          CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT);
-    const int32_t imageWidthHeight(2048);
-    const int32_t halfImageWidthHeight(imageWidthHeight / 2);
-    QRectF imageRegionRect(fullResolutionLogicalPixelIndex.getI() - halfImageWidthHeight,
-                           fullResolutionLogicalPixelIndex.getJ() - halfImageWidthHeight,
-                           imageWidthHeight,
-                           imageWidthHeight);
+    
+    /*
+     * Aspect ratio
+     *  "2"   when height is double width
+     *  "1"   when width equals height
+     *  "0.5" when width is double height
+     *
+     * So, when aspect is:
+     *  "> 1.33"  use a vertical rectangle;
+     *  "< 0.75" use a horizontal rectangle;
+     *  Otherwise, a square;
+     * Note: (1 / 0.75) = 1.33
+     *
+     * Textures should be powers of 2 for performance reasons.
+     *
+     */
+    const float viewportAspectRatio(viewport[3] / viewport[2]);
+    CaretAssert(viewportAspectRatio > 0.0f);
+    int32_t loadImageWidth(2048);
+    int32_t loadImageHeight(2048);
+    if (viewportAspectRatio > 1.333f) {
+        loadImageHeight *= 2;
+    }
+    else if (viewportAspectRatio < 0.75) {
+        loadImageWidth *= 2;
+    }
+    const int32_t halfLoadImageWidth(loadImageWidth / 2);
+    const int32_t halfLoadImageHeight(loadImageHeight / 2);
+    QRectF imageRegionRect(fullResolutionLogicalPixelIndex.getI() - halfLoadImageWidth,
+                           fullResolutionLogicalPixelIndex.getJ() - halfLoadImageHeight,
+                           loadImageWidth,
+                           loadImageHeight);
+    if (cziDebugFlag) {
+        std::cout << "Loading width/height: " << loadImageWidth << ", " << loadImageHeight << " for aspect: " << viewportAspectRatio << std::endl;
+    }
     
     /*
      * Limit region for reading to valid area of image
