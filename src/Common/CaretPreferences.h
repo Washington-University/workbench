@@ -267,6 +267,12 @@ namespace caret {
         
         void setCropSceneImagesEnabled(const bool status);
         
+        int32_t getCziDimension() const;
+        
+        void setCziDimension(const int32_t dimension);
+        
+        static void getSupportedCziDimensions(std::vector<std::pair<int32_t, QString>>& supportedValuesOut);
+        
         WuQMacroGroup* getMacros();
         
         const WuQMacroGroup* getMacros() const;
@@ -418,6 +424,8 @@ namespace caret {
         
         std::unique_ptr<CaretPreferenceDataValue> m_cropSceneImagesEnabled;
         
+        std::unique_ptr<CaretPreferenceDataValue> m_cziDimension;
+        
         bool splashScreenEnabled;
         
         bool developMenuEnabled;
@@ -495,6 +503,10 @@ namespace caret {
         static const AString NAME_TILE_TABS_CONFIGURATIONS_TWO;
         static const AString NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON;
         static const AString NAME_YOKING_DEFAULT_ON;
+        
+        static const int32_t s_defaultCziDimension = 2048;
+        
+
         
     };
     

@@ -99,6 +99,12 @@ CaretPreferences::CaretPreferences()
                                                                 CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                 true));
     
+    m_cziDimension.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                      "cziDimension",
+                                                      CaretPreferenceDataValue::DataType::INTEGER,
+                                                      CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                      s_defaultCziDimension));
+    
     m_toolBarWidthModePreference.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                     "toolBarWidthMode",
                                                                     CaretPreferenceDataValue::DataType::STRING,
@@ -1576,6 +1582,47 @@ CaretPreferences::setCropSceneImagesEnabled(const bool status)
 {
     m_cropSceneImagesEnabled->setValue(status);
 }
+
+/**
+ * @return The CZI Dimension used when loading CZI high resolution images
+ */
+int32_t
+CaretPreferences::getCziDimension() const
+{
+    return m_cziDimension->getValue().toInt();
+}
+
+/**
+ * Set the CZI Dimension used when loading CZI high resolution images
+ * @param dimension
+ */
+void
+CaretPreferences::setCziDimension(const int32_t dimension)
+{
+    m_cziDimension->setValue(dimension);
+}
+
+/**
+ * Get supported dimensions for CZI images as both integers and text
+ * @param supportedValuesOut
+ *    Output with integer values as first element and text as second element in the pairs
+ */
+void
+CaretPreferences::getSupportedCziDimensions(std::vector<std::pair<int32_t, QString>>& supportedValuesOut)
+{
+    supportedValuesOut.clear();
+    
+    const std::vector<int32_t> dimensions { 512, 1024, 2048, 4096, 8192, 16384 };
+    
+    for (auto dim : dimensions) {
+        QString textValue(QString::number(dim));
+        if (dim == s_defaultCziDimension) {
+            textValue.append(" - Recommended");
+        }
+        supportedValuesOut.push_back(std::make_pair(dim, textValue));
+    }
+}
+
 
 /**
  * @return The crosshair gap

@@ -152,13 +152,7 @@ DeveloperFlagsEnum::initialize()
                                                 "Separate RGB / Alpha Opacity",
                                                 CheckableEnum::YES,
                                                 true));
-    
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_CZI_IMAGE_FILE_USE_COORDINATES,
-                                                "DEVELOPER_FLAG_CZI_IMAGE_FILE_USE_COORDINATES",
-                                                "Use Coordinates from CZI Image Files",
-                                                CheckableEnum::YES,
-                                                false));
-    
+
 #ifdef HAVE_WEBKIT
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
                                                 "DEVELOPER_FLAG_BALSA",
@@ -291,11 +285,6 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
             toolTip = ("For voxel cubes in ALL view, only draw \"outside faces\" "
                        "(faster but causes problem when opacity is less than one so disable "
                        "in that instance)");
-            break;
-        case DEVELOPER_FLAG_CZI_IMAGE_FILE_USE_COORDINATES:
-            toolTip = ("Use coordinates from CZI files.  When off, CZI images are drawn "
-                       "in pixel space (origin is in center of image).  Changing this "
-                       "option only affects NEWLY read image files.");
             break;
     }
     

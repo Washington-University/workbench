@@ -49,6 +49,7 @@
 #include "GuiManager.h"
 #include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
+#include "PreferencesCziImagesWidget.h"
 #include "PreferencesDevelopOptionsWidget.h"
 #include "PreferencesRecentFilesWidget.h"
 #include "SessionManager.h"
@@ -99,10 +100,14 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     
     m_developOptionsWidget = new PreferencesDevelopOptionsWidget();
     
+    m_cziOptionsWidget = new PreferencesCziImagesWidget();
+    
     /*
      * Create the tab widget and all tab content
      */
     QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->addTab(m_cziOptionsWidget,
+                      "CZI");
     tabWidget->addTab(createColorsWidget(),
                       "Colors");
     tabWidget->addTab(m_developOptionsWidget,
@@ -951,6 +956,7 @@ PreferencesDialog::updateDialog()
     updateIdentificationWidget(prefs);
     updateOpenGLWidget(prefs);
     updateVolumeWidget(prefs);
+    m_cziOptionsWidget->updateContent(prefs);
     m_developOptionsWidget->updateContent(prefs);
     m_recentFilesWidget->updateContent(prefs);
     

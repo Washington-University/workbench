@@ -1516,6 +1516,18 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
                                                                                          CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT);
     
     /*
+     * Get preferred image size from preferences
+     */
+    EventCaretPreferencesGet prefsEvent;
+    EventManager::get()->sendEvent(prefsEvent.getPointer());
+    CaretPreferences* prefs = prefsEvent.getCaretPreferences();
+    int32_t preferredImageDimension(2048);
+    if (prefs != NULL) {
+        preferredImageDimension = prefs->getCziDimension();
+    }
+    CaretAssert(preferredImageDimension >= 512);
+    
+    /*
      * Aspect ratio
      *  "2"   when height is double width
      *  "1"   when width equals height
@@ -1532,14 +1544,28 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
      */
     const float viewportAspectRatio(viewport[3] / viewport[2]);
     CaretAssert(viewportAspectRatio > 0.0f);
-    int32_t loadImageWidth(2048);
-    int32_t loadImageHeight(2048);
+    int32_t loadImageWidth(preferredImageDimension);
+    int32_t loadImageHeight(preferredImageDimension);
     if (viewportAspectRatio > 1.333f) {
         loadImageHeight *= 2;
     }
     else if (viewportAspectRatio < 0.75) {
         loadImageWidth *= 2;
     }
+    
+    /*
+     * Limit width/height to maximum texture dimension supported
+     * on this computer by OpenGL
+     */
+    const int32_t maximumTextureDimension(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
+    loadImageWidth = std::min(loadImageWidth,
+                              maximumTextureDimension);
+    loadImageHeight = std::min(loadImageHeight,
+                               maximumTextureDimension);
+    
+    /*
+     * Create rectangle in logical coordinates
+     */
     const int32_t halfLoadImageWidth(loadImageWidth / 2);
     const int32_t halfLoadImageHeight(loadImageHeight / 2);
     QRectF imageRegionRect(fullResolutionLogicalPixelIndex.getI() - halfLoadImageWidth,
