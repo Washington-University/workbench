@@ -210,6 +210,8 @@ namespace caret {
                                                 const int32_t tabIndex,
                                                 const GraphicsObjectToWindowTransform* transform);
 
+        QRectF moveAndClipRectangle(const QRectF& rectangleIn);
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         Status m_status = Status::CLOSED;

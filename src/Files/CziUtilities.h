@@ -46,6 +46,8 @@ namespace caret {
         
         static QString qRectToString(const QRectF& qRect);
         
+        static QString qRectToLrbtString(const QRectF& qRect);
+        
         // ADD_NEW_METHODS_HERE
 
     private:

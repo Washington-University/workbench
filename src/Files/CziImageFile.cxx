@@ -817,11 +817,24 @@ CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
     const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(logicalRectangleRegionRect);
     CaretAssert(m_pyramidLayerTileAccessor);
     const libCZI::IntRect rectToReadROI = CziUtilities::qRectToIntRect(rectangleForReadingRect);
-    std::shared_ptr<libCZI::IBitmapData> bitmapData = m_pyramidLayerTileAccessor->Get(pixelType,
-                                                                                      rectToReadROI,
-                                                                                      iDimCoord,
-                                                                                      pyramidInfo,
-                                                                                      &scstaOptions);
+    std::shared_ptr<libCZI::IBitmapData> bitmapData;
+    try {
+        bitmapData = m_pyramidLayerTileAccessor->Get(pixelType,
+                                                     rectToReadROI,
+                                                     iDimCoord,
+                                                     pyramidInfo,
+                                                     &scstaOptions);
+    }
+    catch (std::out_of_range& e) {
+        errorMessageOut = ("Out of range exception: "
+                           + QString(e.exception::what())
+                           + " reading pyramid layer="
+                           + QString::number(pyramidInfo.pyramidLayerNo)
+                           + " for ROI="
+                           + CziUtilities::intRectToString(rectToReadROI));
+        return NULL;
+    }
+    
     if ( ! bitmapData) {
         errorMessageOut = "Failed to read data";
         return NULL;
@@ -1608,6 +1621,11 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
     adjustedRect.setY(centerY - (roiHeight / 2));
     adjustedRect.setWidth(roiWidth);
     adjustedRect.setHeight(roiHeight);
+    
+    /*
+     * May need to move or clip to stay in the logical space
+     */
+    adjustedRect = moveAndClipRectangle(adjustedRect);
     if (cziDebugFlag) {
         std::cout << "Adjusted width/height: " << roiWidth << ", " << roiHeight << std::endl;
         std::cout << "Original ROI: " << CziUtilities::qRectToString(imageRegionRect) << std::endl;
@@ -1615,8 +1633,8 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
         std::cout << "   Old Center: " << centerX << ", " << centerY << std::endl;
         std::cout << "   New Center: " << adjustedRect.center().x() << ", " << adjustedRect.center().y() << std::endl;
     }
-    if (m_fullResolutionLogicalRect.intersects(adjustedRect)) {
-        adjustedRect = m_fullResolutionLogicalRect.intersected(adjustedRect);
+    if ( ! adjustedRect.isValid()) {
+        return NULL;
     }
     
     /*
@@ -1644,6 +1662,64 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
     
     return cziImageOut;
 }
+
+/**
+ * Move and/or clip the rectangle so all of it (or as much as possible) is within
+ * the full resolution logical space.
+ */
+QRectF
+CziImageFile::moveAndClipRectangle(const QRectF& rectangleIn)
+{
+    return rectangleIn;
+    
+    QRectF rectangle(rectangleIn);
+    
+    const bool moveToKeepFullWidthHeightFlag(false);
+    if (moveToKeepFullWidthHeightFlag) {
+        float dx(0.0);
+        if (rectangle.left() < m_fullResolutionLogicalRect.left()) {
+            dx = (m_fullResolutionLogicalRect.left() - rectangle.left());
+        }
+        else if (rectangle.right() > m_fullResolutionLogicalRect.right()) {
+            dx = -(rectangle.right() - m_fullResolutionLogicalRect.right());
+        }
+        
+        /*
+         * With QRect, the origin is at the top left corner.  Thus,
+         * bottom is always GREATER than top.
+         */
+        float dy(0.0);
+        if (rectangle.bottom() > m_fullResolutionLogicalRect.bottom()) {
+            dy = (rectangle.bottom() - m_fullResolutionLogicalRect.bottom());
+        }
+        else if (rectangle.top() < m_fullResolutionLogicalRect.top()) {
+            dy = -(m_fullResolutionLogicalRect.top() - rectangle.top());
+        }
+        
+        if ((dx != 0.0)
+            || (dy != 0.0)) {
+            std::cout << "Translate by " << dx << ", " << dy << std::endl;
+            std::cout << "       Full: " << CziUtilities::qRectToLrbtString(m_fullResolutionLogicalRect) << std::endl;
+            std::cout << "   Rect was: " << CziUtilities::qRectToLrbtString(rectangle) << std::endl;
+            rectangle.translate(dx, dy);
+            std::cout << "        now: " << CziUtilities::qRectToLrbtString(rectangle) << std::endl;
+        }
+    }
+    
+    if (m_fullResolutionLogicalRect.intersects(rectangle)) {
+        rectangle = m_fullResolutionLogicalRect.intersected(rectangle);
+    }
+    else {
+        /*
+         * No intersection with full resolution image, return invalid rectangle
+         */
+        CaretLogWarning("No intersection with full resolution image");
+        return QRect();
+    }
+    
+    return rectangle;
+}
+
 
 /**
  * @return True if the given pixel index is valid for the image in the given tab

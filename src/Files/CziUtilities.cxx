@@ -120,3 +120,17 @@ CziUtilities::qRectToString(const QRectF& qRect)
     return s;
 }
 
+/**
+ * @return A string representing the given QRect instance as Left, Right, Bottom, Top
+ * @param qRect
+ *    The QRect
+ */
+QString
+CziUtilities::qRectToLrbtString(const QRectF& qRect)
+{
+    QString s("Invalid");
+    if (qRect.isValid()) {
+        s = QString("left=%1, right=%2, bottom=%3, top=%4").arg(qRect.left()).arg(qRect.right()).arg(qRect.bottom()).arg(qRect.top());
+    }
+    return s;
+}
