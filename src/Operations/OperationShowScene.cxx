@@ -30,6 +30,7 @@
 #include <GL/osmesa.h>
 #endif // HAVE_OSMESA
 
+#include <QDir>
 #include <QImage>
 #include <QColor>
 
@@ -195,11 +196,15 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                   ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    CaretLogFine("Current Directory: "
+                 + QDir::currentPath());
     CaretLogFine("Scene file name before absolute path: "
                  + myParams->getString(1));
     AString sceneFileName = FileInformation(myParams->getString(1)).getAbsoluteFilePath();
     CaretLogFine("Scene file name absolute path: "
                  + sceneFileName);
+    CaretLogFine("Scene file name absolute path with direct use of QFileInfo: "
+                 + QFileInfo(myParams->getString(1)).absoluteFilePath());
     AString sceneNameOrNumber = myParams->getString(2);
     AString imageFileName = FileInformation(myParams->getString(3)).getAbsoluteFilePath();
     const int32_t userImageWidth  = myParams->getInteger(4);
