@@ -6494,26 +6494,42 @@ AString
 Brain::convertFilePathNameToAbsolutePathName(const AString& filename) const
 {
     /*
-     * If file is on network, is is considered an absolute path
+     * If file is on network, is is considered an absolute file path
      */
     if (DataFile::isFileOnNetwork(filename)) {
         return filename;
     }
     
+    /*
+     * Is file already absolute file path?
+     */
     FileInformation fileInfo(filename);
     if (fileInfo.isAbsolute()) {
         return filename;
     }
 
-    if (m_currentDirectory.isEmpty()) {
-        AString fullPathName = FileInformation(filename).getAbsoluteFilePath();
-        return fullPathName;
+    /*
+     * If path is relative and file exists, convert to and return absolute file path.
+     */
+    if (fileInfo.exists()) {
+        return fileInfo.getAbsoluteFilePath();
+    }
+
+    /*
+     * Perhaps the file is in the "current directory" (directory containing
+     * scene or spec file).
+     */
+    if ( ! m_currentDirectory.isEmpty()) {
+        FileInformation pathFileInfo(m_currentDirectory, filename);
+        if (pathFileInfo.exists()) {
+            return pathFileInfo.getAbsoluteFilePath();
+        }
     }
     
-    FileInformation pathFileInfo(m_currentDirectory, filename);
-    AString fullPathName = pathFileInfo.getAbsoluteFilePath();
-    
-    return fullPathName;
+    /*
+     * Path to file may be invalid since we cannot find it.
+     */
+    return filename;
 }
 
 /**
