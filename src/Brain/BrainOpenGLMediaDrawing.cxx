@@ -294,9 +294,12 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
     CaretAssert(mediaOverlaySet);
     const int32_t numberOfOverlays = mediaOverlaySet->getNumberOfDisplayedOverlays();
     
+    float underlayMediaHeight(-1.0);
     for (int32_t i = (numberOfOverlays - 1); i >= 0; i--) {
         MediaOverlay* overlay = mediaOverlaySet->getOverlay(i);
         CaretAssert(overlay);
+        
+        glPushMatrix();
         
         if (overlay->isEnabled()) {
             MediaFile* selectedFile(NULL);
@@ -309,12 +312,15 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                 CziImageFile* cziImageFile = selectedFile->castToCziImageFile();
                 const CziImage* cziImage(NULL);
                 ImageFile* imageFile = selectedFile->castToImageFile();
+                float mediaHeight(-1.0);
                 if (imageFile != NULL) {
                     /*
                      * Image is drawn using a primitive in which
                      * the image is a texture
                      */
                     primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
+                    
+                    mediaHeight = imageFile->getHeight();
                 }
                 else  if (cziImageFile != NULL) {
                     const DisplayPropertiesCziImages* dpc(m_fixedPipelineDrawing->m_brain->getDisplayPropertiesCziImages());
@@ -324,7 +330,9 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                     primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
                     
                     BoundingBox boundingBox;
-                    primitive->getVertexBounds(boundingBox);                    
+                    primitive->getVertexBounds(boundingBox);
+                    
+                    mediaHeight = cziImageFile->getHeight();
                 }
                 else {
                     CaretAssertMessage(0, ("Unrecognized file type "
@@ -333,6 +341,22 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                 }
                 
                 if (primitive) {
+                    if (mediaHeight > 0.0) {
+                        /*
+                         * OpenGL and media primitives have origin in bottom left
+                         * but we want to align images at top left.  So, for any images
+                         * on top of bottom most layer, translate the image so that
+                         * top left corners align.
+                         */
+                        if (underlayMediaHeight > 0.0) {
+                            const float translateY(underlayMediaHeight - mediaHeight);
+                            glTranslatef(0.0, translateY, 0.0);
+                        }
+                        else {
+                            underlayMediaHeight = mediaHeight;
+                        }
+                    }
+                    
                     glPushAttrib(GL_COLOR_BUFFER_BIT);
                     if ( ! selectImageFlag) {
                         m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
@@ -363,6 +387,8 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                 }
             }
         }
+        
+        glPopMatrix();
     }
 }
 
