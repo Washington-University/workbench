@@ -195,7 +195,11 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                   ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    CaretLogFine("Scene file name before absolute path: "
+                 + myParams->getString(1));
     AString sceneFileName = FileInformation(myParams->getString(1)).getAbsoluteFilePath();
+    CaretLogFine("Scene file name absolute path: "
+                 + sceneFileName);
     AString sceneNameOrNumber = myParams->getString(2);
     AString imageFileName = FileInformation(myParams->getString(3)).getAbsoluteFilePath();
     const int32_t userImageWidth  = myParams->getInteger(4);
