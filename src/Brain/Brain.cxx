@@ -6505,6 +6505,8 @@ Brain::convertFilePathNameToAbsolutePathName(const AString& filename) const
      */
     FileInformation fileInfo(filename);
     if (fileInfo.isAbsolute()) {
+        CaretLogFine(filename
+                     + " is already absolute path.");
         return filename;
     }
 
@@ -6512,6 +6514,9 @@ Brain::convertFilePathNameToAbsolutePathName(const AString& filename) const
      * If path is relative and file exists, convert to and return absolute file path.
      */
     if (fileInfo.exists()) {
+        CaretLogFine(filename
+                     + " to absolute path is "
+                     + fileInfo.getAbsoluteFilePath());
         return fileInfo.getAbsoluteFilePath();
     }
 
@@ -6522,6 +6527,11 @@ Brain::convertFilePathNameToAbsolutePathName(const AString& filename) const
     if ( ! m_currentDirectory.isEmpty()) {
         FileInformation pathFileInfo(m_currentDirectory, filename);
         if (pathFileInfo.exists()) {
+            CaretLogFine(filename
+                         + " to absolute path with relative directory "
+                         + m_currentDirectory
+                         + " is "
+                         + pathFileInfo.getAbsoluteFilePath());
             return pathFileInfo.getAbsoluteFilePath();
         }
     }
