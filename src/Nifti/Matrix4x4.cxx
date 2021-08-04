@@ -44,7 +44,6 @@
  =========================================================================*/
 
 
-
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -87,6 +86,32 @@ Matrix4x4::Matrix4x4()
 Matrix4x4::~Matrix4x4()
 {
 }
+
+/**
+ * Construct matrix from a matrix in vectors
+ * @param matrixRows
+ *    Matrix elements
+ */
+Matrix4x4::Matrix4x4(const std::vector<std::vector<float>>& matrixRows)
+{
+    this->initializeMembersMatrix4x4();
+    
+    int32_t numRows(matrixRows.size());
+    if (numRows > 4) {
+        numRows = 4;
+    }
+    for (int32_t iRow = 0; iRow < numRows; iRow++) {
+        const auto& row(matrixRows[iRow]);
+        int32_t numCols(row.size());
+        if (numCols > 4) {
+            numCols = 4;
+        }
+        for (int32_t jCol = 0; jCol < 4; jCol++) {
+            this->matrix[iRow][jCol] = row[jCol];
+        }
+    }
+}
+
 
 /**
  * Copy Constructor

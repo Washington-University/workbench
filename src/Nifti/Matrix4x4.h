@@ -25,6 +25,7 @@
 #include "CaretObject.h"
 #include "Matrix4x4Interface.h"
 #include <stdint.h>
+#include <vector>
 
 #include <AString.h>
 
@@ -41,7 +42,8 @@ class Matrix4x4 : public Matrix4x4Interface, public CaretObject {
 public:
     Matrix4x4();
 
-public:
+    Matrix4x4(const std::vector<std::vector<float>>& matrixRows);
+    
     Matrix4x4(const Matrix4x4& o);
 
     Matrix4x4& operator=(const Matrix4x4& o);
