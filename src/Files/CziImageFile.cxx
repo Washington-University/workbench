@@ -41,6 +41,7 @@
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNewClone.h"
 #include "EventManager.h"
+#include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsPrimitiveV3fT3f.h"
@@ -50,7 +51,7 @@
 #include "RectangleTransform.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
-#include "VolumeSpace.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -1069,10 +1070,179 @@ CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
                                              columnOneTextOut,
                                              columnTwoTextOut,
                                              toolTipTextOut);
+        
+        if ( ! m_toCoordinateTransform.m_triedToLoadFileFlag) {
+            m_toCoordinateTransform.m_triedToLoadFileFlag = true;
+            loadNiftiTransformFile(m_toCoordinateTransform);
+        }
+        
+        if (m_toCoordinateTransform.m_niftiFile
+            && m_toCoordinateTransform.m_sformMatrix) {
+            
+            std::array<float, 3> xyz;
+            if (pixelIndexToStereotaxicXYZ(pixelIndex, false, xyz)) {
+                columnOneTextOut.push_back("Stereotaxic XYZ:");
+                columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
+            }
+            if (pixelIndexToStereotaxicXYZ(pixelIndex, true, xyz)) {
+                columnOneTextOut.push_back("NIFTI offset XYZ:");
+                columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
+            }
+        }
     }
 }
 
 /**
+ * convert a pixel index to a stereotaxic coordinate
+ * @param pixelIndex
+ *    The pixel index
+ * @param includeNonlinearFlag
+ *    If true, include the non-linear transform when converting
+ * @param xyzOut
+ *    Output with the XYZ coordinate
+ * @return
+ *    True if conversion successful, else false.
+ */
+bool
+CziImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndex,
+                                         const bool includeNonlinearFlag,
+                                         std::array<float, 3>& xyzOut) const
+{
+    if ( ! m_toCoordinateTransform.m_triedToLoadFileFlag) {
+        m_toCoordinateTransform.m_triedToLoadFileFlag = true;
+        loadNiftiTransformFile(m_toCoordinateTransform);
+    }
+    
+    if (m_toCoordinateTransform.m_niftiFile
+        && m_toCoordinateTransform.m_sformMatrix) {
+        
+        std::array<float, 3> pt {
+            pixelIndex.getI() * m_toCoordinateTransform.m_pixelScaleI,
+            (getHeight() - pixelIndex.getJ()) * m_toCoordinateTransform.m_pixelScaleJ,
+            0.0
+        };
+        const int64_t niftiI(pt[0]);
+        const int64_t niftiJ(pt[1]);
+        const int64_t niftiK(pt[2]);
+        
+        m_toCoordinateTransform.m_sformMatrix->multiplyPoint3(pt.data());
+        
+        if (includeNonlinearFlag) {
+            const float dx = m_toCoordinateTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 0);
+            const float dy = m_toCoordinateTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 1);
+            const float dz = m_toCoordinateTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 2);
+            pt[0] += dx;
+            pt[1] += dy;
+            pt[2] += dz;
+        }
+
+        xyzOut = pt;
+        
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Load NIFTI transform file used to transform between pixel indices and stereotaxic coordinates
+ * @param transform
+ *    NIFTI transform that is loaded
+ */
+void
+CziImageFile::loadNiftiTransformFile(NiftiTransform& transform) const
+{
+    
+    FileInformation niftiTransformFileName(FileInformation(getFileName()).getPathName(),
+                                           "hist2mri.nii.gz");
+    
+    if (niftiTransformFileName.exists()) {
+        transform.m_niftiFile.reset(new VolumeFile());
+        try {
+            transform.m_niftiFile->readFile(niftiTransformFileName.getAbsoluteFilePath());
+            
+            std::vector<int64_t> dims;
+            transform.m_niftiFile->getDimensions(dims);
+            if (dims.size() < 5) {
+                throw DataFileException("Dimensions should be 5 but are "
+                                        + AString::number(dims.size()));
+            }
+            if (dims[3] != 3) {
+                throw DataFileException("4th dimension should be 3 but is "
+                                        + AString::number(dims[3]));
+            }
+            if (transform.m_niftiFile->getNumberOfMaps() != 3) {
+                throw DataFileException("Number of maps should be 3 but is "
+                                        + AString::number(transform.m_niftiFile->getNumberOfMaps()));
+            }
+            
+            const int64_t dimI(dims[0]);
+            const int64_t dimJ(dims[1]);
+            
+            int32_t pyramidLayerIndex(-1);
+            int64_t maxDiff(9999999999);
+            const int32_t numResolutions(m_pyramidLayers.size());
+            for (int32_t i = 0; i < numResolutions; i++) {
+                const int64_t diffI(std::abs(m_pyramidLayers[i].m_width - dimI));
+                const int64_t diffJ(std::abs(m_pyramidLayers[i].m_height - dimJ));
+                const int64_t diff(diffI + diffJ);
+                if (diff < maxDiff) {
+                    maxDiff = diff;
+                    pyramidLayerIndex = i;
+                }
+            }
+            
+            if (pyramidLayerIndex >= 0) {
+                CaretAssertVectorIndex(m_pyramidLayers, pyramidLayerIndex);
+                const PyramidLayer& pyramidLayer = m_pyramidLayers[pyramidLayerIndex];
+                transform.m_pixelScaleI = (static_cast<float>(pyramidLayer.m_width)
+                                               / getWidth());
+                transform.m_pixelScaleJ = (static_cast<float>(pyramidLayer.m_height)
+                                               / getHeight());
+                
+                std::vector<std::vector<float>> sform(transform.m_niftiFile->getSform());
+                transform.m_sformMatrix.reset(new Matrix4x4(sform));
+                CaretLogInfo("Best matching pyramid layer index: "
+                             + AString::number(pyramidLayerIndex)
+                             + " CZI Layer: "
+                             + AString::number(pyramidLayer.m_layerInfo.pyramidLayerNo)
+                             + "\nWidth: "
+                             + AString::number(pyramidLayer.m_width)
+                             + " height: "
+                             + AString::number(pyramidLayer.m_height)
+                             + "\nPixel Scale I/J "
+                             + AString::number(transform.m_pixelScaleI)
+                             + ", "
+                             + AString::number(transform.m_pixelScaleJ)
+                             + "\nNIFTI Dimensions: "
+                             + AString::fromNumbers(dims, ", ")
+                             + "\nNIFTI sform: "
+                             + transform.m_sformMatrix->toString());
+            }
+            else {
+                throw DataFileException("Unable to find pyramid layer that best matches width/height: "
+                                        + AString::number(dimI)
+                                        + ", "
+                                        + AString::number(dimJ));
+            }
+            
+            
+            
+        }
+        catch (const DataFileException& dfe) {
+            CaretLogWarning("Failed to read "
+                            + niftiTransformFileName.getFileName()
+                            + " for "
+                            + getFileName()
+                            + " ERROR: "
+                            + dfe.whatString());
+            transform.m_niftiFile.reset();
+        }
+    }
+} 
+
+/**
+ * Add to the data file information.
  * @param dataFileInformation
  *    Item to which information is added.
  */
@@ -1116,6 +1286,14 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
                 dataFileInformation.addNameAndValue("Logical Y", cziImage->m_logicalRect.y());
                 dataFileInformation.addNameAndValue("Logical Width", cziImage->m_logicalRect.width());
                 dataFileInformation.addNameAndValue("Logical Height", cziImage->m_logicalRect.height());
+            }
+            
+            if (m_toCoordinateTransform.m_niftiFile
+                && m_toCoordinateTransform.m_sformMatrix) {
+                dataFileInformation.addNameAndValue("NIFTI Transform File",
+                                                    m_toCoordinateTransform.m_niftiFile->getFileNameNoPath());
+                dataFileInformation.addNameAndValue("NIFTI SFORM",
+                                                    m_toCoordinateTransform.m_sformMatrix->toString());
             }
         }
     }

@@ -353,7 +353,7 @@ CziImage::getPixelIdentificationText(const AString& filename,
     const float pixelX(pixelIndexOriginTopLeft.getI() * pixelsSize.getX());
     const float pixelY(pixelIndexOriginTopLeft.getJ() * pixelsSize.getY());
     columnOneTextOut.push_back("");
-    const AString mmText("("
+    const AString mmText("Pixel XY ("
                          + AString::number(pixelX, 'f', 3)
                          + "mm,"
                          + AString::number(pixelY, 'f', 3)

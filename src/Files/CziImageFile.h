@@ -32,6 +32,7 @@
 #include "EventListenerInterface.h"
 #include "SingleChannelPyramidLevelTileAccessor.h"
 #include "MediaFile.h"
+#include "VolumeFile.h"
 
 class QImage;
 
@@ -48,6 +49,7 @@ namespace caret {
     class CziImage;
     class GraphicsObjectToWindowTransform;
     class GraphicsPrimitiveV3fT3f;
+    class Matrix4x4;
     class RectangleTransform;
     class VolumeSpace;
     
@@ -173,6 +175,22 @@ namespace caret {
             float m_zoomLevelFromLowestResolutionImage = 1.0;
         };
         
+        class NiftiTransform {
+        public:
+            mutable std::unique_ptr<VolumeFile> m_niftiFile;
+            
+            mutable std::unique_ptr<Matrix4x4> m_sformMatrix;
+            
+            mutable bool m_triedToLoadFileFlag = false;
+            
+            /** Scales pixel index from full resolution to layer used by NIFTI transform */
+            mutable float m_pixelScaleI = -1.0f;
+            
+            /** Scales pixel index from full resolution to layer used by NIFTI transform */
+            mutable float m_pixelScaleJ = -1.0f;
+            
+        };
+        
         void closeFile();
         
         CziImage* readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
@@ -211,6 +229,12 @@ namespace caret {
                                                 const GraphicsObjectToWindowTransform* transform);
 
         QRectF moveAndClipRectangle(const QRectF& rectangleIn);
+        
+        void loadNiftiTransformFile(NiftiTransform& transform) const;
+        
+        bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndex,
+                                        const bool includeNonlinearFlag,
+                                        std::array<float, 3>& xyzOut) const;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
@@ -259,6 +283,8 @@ namespace caret {
         std::vector<PyramidLayer> m_pyramidLayers;
         
         std::array<int32_t, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_pyramidLayerIndexInTabs;
+                
+        mutable NiftiTransform m_toCoordinateTransform;
         
         // ADD_NEW_MEMBERS_HERE
 
