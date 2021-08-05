@@ -239,12 +239,42 @@ void ParameterComponent::openAllInputFiles()
     }
 }
 
+void ParameterComponent::closeAllInputFiles()
+{
+    for (size_t i = 0; i < m_paramList.size(); ++i)
+    {
+        //hacky way, delete the whole parameter and let the destructor sort it out - we will only call this when we are done with the inputs
+        delete m_paramList[i];
+    }
+    m_paramList.clear();
+    for (size_t i = 0; i < m_optionList.size(); ++i)
+    {
+        if (m_optionList[i]->m_present)
+        {
+            m_optionList[i]->closeAllInputFiles();
+        }
+    }
+    for (size_t i = 0; i < m_repeatableOptions.size(); ++i)
+    {
+        m_repeatableOptions[i]->closeAllInputFiles();
+    }
+}
+
 void RepeatableOption::openAllInputFiles()
 {
     //don't call it on the template
     for (size_t i = 0; i < m_instances.size(); ++i)
     {
         m_instances[i]->openAllInputFiles();
+    }
+}
+
+void RepeatableOption::closeAllInputFiles()
+{
+    //don't call it on the template
+    for (size_t i = 0; i < m_instances.size(); ++i)
+    {
+        m_instances[i]->closeAllInputFiles();
     }
 }
 

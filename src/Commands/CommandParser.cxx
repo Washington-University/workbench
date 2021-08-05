@@ -97,8 +97,8 @@ void CommandParser::executeOperation(ProgramParameters& parameters)
     {
         CaretLogWarning("developer warning: " + uncheckedWarnings[i]);
     }
-    //TODO: close or deallocate input files - give abstract parameter a virtual deallocate method? use CaretPointer and rely on reference counting?
-    //WARNING: myOutAssoc (in fact, the entire parameter tree) is not smart pointers and won't keep the output files allocated
+    //myOutAssoc (in fact, most of the parameter tree) is not smart pointers and won't keep the output files allocated
+    myAlgParams->closeAllInputFiles();
     if (m_doProvenance) provenanceAfterOperation(myOutAssoc, myProvHelp);
     writeOutput(myOutAssoc);
 }

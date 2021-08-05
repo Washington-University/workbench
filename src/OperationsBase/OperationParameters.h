@@ -94,6 +94,7 @@ namespace caret {
         //helpers for lazy reading, throw rather than return on problem
         void checkInputFilesExist();
         void openAllInputFiles();
+        void closeAllInputFiles();
         
         ///constructor
         ParameterComponent();
@@ -317,6 +318,7 @@ namespace caret {
         void prepareProvenance(ProvenanceHelper* helper);
         void checkInputFilesExist();
         void openAllInputFiles();
+        void closeAllInputFiles();
     };
     
     struct OperationParameters : public ParameterComponent
