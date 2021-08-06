@@ -30,6 +30,7 @@
 class QLabel;
 class QRadioButton;
 class QSpinBox;
+class QStackedWidget;
 
 namespace caret {
 
@@ -41,7 +42,6 @@ namespace caret {
     class CiftiParcelSelectionComboBox;
     class GiftiLabelTableSelectionComboBox;
     class StructureEnumComboBox;
-    class WuQGroupBoxExclusiveWidget;
     
     class IdentifyBrainordinateDialog : public WuQDialogNonModal, public EventListenerInterface {
         
@@ -73,7 +73,7 @@ namespace caret {
         
         void slotLabelFileOrMapSelectionChanged();
         
-        void selectedWidgetChanged();
+        void idTypeRadioButtonClicked(QAbstractButton* button);
         
     private:
         enum Mode {
@@ -97,11 +97,15 @@ namespace caret {
         
         QWidget* createLabelFilesWidget(const std::vector<DataFileTypeEnum::Enum>& supportedFileTypes);
         
-        QWidget* createSurfaceVertexlWidget();
+        QWidget* createSurfaceVertexWidget();
+        
+        QWidget* createImagePixelWidget(const std::vector<DataFileTypeEnum::Enum>& supportedFileTypes);
         
         void processCiftiParcelWidget(AString& errorMessageOut);
         
         void processCiftiRowWidget(AString& errorMessageOut);
+        
+        void processImagePixelSelection(AString& errorMessage);
         
         void processLabelFileWidget(AString& errorMessageOut);
         
@@ -109,7 +113,7 @@ namespace caret {
         
         void flashBrainordinateHighlightingRegionOfInterest(BrainordinateRegionOfInterest* brainROI);
         
-        void updateColoringAndDrawAllWindows();
+        void updateColoringAndDrawAllWindows(const bool doRepaintFlag = false);
 
         ParcelSourceDimension getParcelSourceDimensionFromFile(const CaretMappableDataFile* mapFile);
         
@@ -177,9 +181,27 @@ namespace caret {
         
         CaretMappableDataFileAndMapSelectorObject* m_ciftiParcelFileSelector;
         
-        WuQGroupBoxExclusiveWidget* m_widgetBox;
+        QWidget* m_imagePixelWidget;
+        
+        CaretDataFileSelectionModel* m_imageFileSelectionModel;
+        
+        CaretDataFileSelectionComboBox* m_imageFileSelectionComboBox;
+        
+        QSpinBox* m_imagePixelISpinBox;
+        
+        QSpinBox* m_imagePixelJSpinBox;
+        
+        QStackedWidget* m_stackedWidget;
+        
+        QRadioButton* m_ciftiFileRowRadioButton;
+        QRadioButton* m_ciftiFileParcelRadioButton;
+        QRadioButton* m_imagePixelRadioButton;
+        QRadioButton* m_labelRadioButton;
+        QRadioButton* m_surfaceVertexRadioButton;
         
         std::map<DataFileTypeEnum::Enum, ParcelSourceDimension> m_parcelSourceDimensionMap;
+        std::vector<DataFileTypeEnum::Enum> m_supportedCiftiRowFileTypes;
+        std::vector<DataFileTypeEnum::Enum> m_supportedLabelFileTypes;
     };
     
 #ifdef __IDENTIFY_BRAINORDINATE_DIALOG_DECLARE__

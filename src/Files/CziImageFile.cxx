@@ -1071,22 +1071,23 @@ CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
                                              columnTwoTextOut,
                                              toolTipTextOut);
         
-        if ( ! m_toCoordinateTransform.m_triedToLoadFileFlag) {
-            m_toCoordinateTransform.m_triedToLoadFileFlag = true;
-            loadNiftiTransformFile(m_toCoordinateTransform);
+        std::array<float, 3> xyz;
+        if (pixelIndexToStereotaxicXYZ(pixelIndex, false, xyz)) {
+            columnOneTextOut.push_back("Stereotaxic XYZ");
+            columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
         }
-        
-        if (m_toCoordinateTransform.m_niftiFile
-            && m_toCoordinateTransform.m_sformMatrix) {
+        if (pixelIndexToStereotaxicXYZ(pixelIndex, true, xyz)) {
+            columnOneTextOut.push_back("NIFTI offset XYZ");
+            columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
             
-            std::array<float, 3> xyz;
-            if (pixelIndexToStereotaxicXYZ(pixelIndex, false, xyz)) {
-                columnOneTextOut.push_back("Stereotaxic XYZ:");
-                columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
+            PixelIndex newPixelIndex;
+            if (stereotaxicXyzToPixelIndex(xyz, false, newPixelIndex)) {
+                columnOneTextOut.push_back("Pixel from XYZ Test");
+                columnTwoTextOut.push_back(newPixelIndex.toString());
             }
-            if (pixelIndexToStereotaxicXYZ(pixelIndex, true, xyz)) {
-                columnOneTextOut.push_back("NIFTI offset XYZ:");
-                columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
+            if (stereotaxicXyzToPixelIndex(xyz, true, newPixelIndex)) {
+                columnOneTextOut.push_back("Pixel NIFTI Offset");
+                columnTwoTextOut.push_back(newPixelIndex.toString());
             }
         }
     }
@@ -1095,7 +1096,7 @@ CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
 /**
  * convert a pixel index to a stereotaxic coordinate
  * @param pixelIndex
- *    The pixel index
+ *    The pixel index (full resolution)
  * @param includeNonlinearFlag
  *    If true, include the non-linear transform when converting
  * @param xyzOut
@@ -1108,29 +1109,46 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndex,
                                          const bool includeNonlinearFlag,
                                          std::array<float, 3>& xyzOut) const
 {
-    if ( ! m_toCoordinateTransform.m_triedToLoadFileFlag) {
-        m_toCoordinateTransform.m_triedToLoadFileFlag = true;
-        loadNiftiTransformFile(m_toCoordinateTransform);
+    /*
+     * Load NIFTI transform file if we have not tried to load in previously
+     */
+    if ( ! m_pixelToStereotaxicTransform.m_triedToLoadFileFlag) {
+        m_pixelToStereotaxicTransform.m_triedToLoadFileFlag = true;
+        loadNiftiTransformFile("mri2hist.nii.gz",
+                               m_pixelToStereotaxicTransform);
     }
     
-    if (m_toCoordinateTransform.m_niftiFile
-        && m_toCoordinateTransform.m_sformMatrix) {
+    /*
+     * Are transforms valid?
+     */
+    if (m_pixelToStereotaxicTransform.m_niftiFile
+        && m_pixelToStereotaxicTransform.m_sformMatrix) {
         
+        /*
+         * Scale pixel index from full resolution to resolution
+         * contained in the NIFTI transform file
+         */
         std::array<float, 3> pt {
-            pixelIndex.getI() * m_toCoordinateTransform.m_pixelScaleI,
-            (getHeight() - pixelIndex.getJ()) * m_toCoordinateTransform.m_pixelScaleJ,
+            pixelIndex.getI() * m_pixelToStereotaxicTransform.m_pixelScaleI,
+            (getHeight() - pixelIndex.getJ()) * m_pixelToStereotaxicTransform.m_pixelScaleJ,
             0.0
         };
         const int64_t niftiI(pt[0]);
         const int64_t niftiJ(pt[1]);
         const int64_t niftiK(pt[2]);
         
-        m_toCoordinateTransform.m_sformMatrix->multiplyPoint3(pt.data());
+        /*
+         * Use matrix to convert pixel index to coordinate
+         */
+        m_pixelToStereotaxicTransform.m_sformMatrix->multiplyPoint3(pt.data());
         
         if (includeNonlinearFlag) {
-            const float dx = m_toCoordinateTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 0);
-            const float dy = m_toCoordinateTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 1);
-            const float dz = m_toCoordinateTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 2);
+            /*
+             * Use pixel index to obtain non-linearity from NIFTI data
+             */
+            const float dx = m_pixelToStereotaxicTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 0);
+            const float dy = m_pixelToStereotaxicTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 1);
+            const float dz = m_pixelToStereotaxicTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 2);
             pt[0] += dx;
             pt[1] += dy;
             pt[2] += dz;
@@ -1145,16 +1163,109 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndex,
 }
 
 /**
+ * Convert a stereotaxic xyz coordinate to a pixel index
+ * @param xyz
+ *    The coordinate
+ * @param includeNonlinearFlag
+ *    If true, include the non-linear transform when converting
+ * @param pixelIndexOut
+ *    Output with pixel index in full resolution
+ * @return
+ *    True if successful, else false.
+ */
+bool
+CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+                                         const bool includeNonlinearFlag,
+                                         PixelIndex& pixelIndexOut) const
+{
+    /*
+    * Load NIFTI transform file if we have not tried to load in previously
+        */
+        if ( ! m_stereotaxicToPixelTransform.m_triedToLoadFileFlag) {
+            m_stereotaxicToPixelTransform.m_triedToLoadFileFlag = true;
+            loadNiftiTransformFile("hist2mri.nii.gz",
+                                   m_stereotaxicToPixelTransform);
+            if (m_stereotaxicToPixelTransform.m_sformMatrix) {
+//                float t[3];
+//                m_stereotaxicToPixelTransform.m_sformMatrix->getTranslation(t);
+//                m_stereotaxicToPixelTransform.m_sformMatrix->setTranslation(0.0, 0.0, 0.0);
+                if ( ! m_stereotaxicToPixelTransform.m_sformMatrix->invert()) {
+                    CaretLogSevere("Failed to invert matrix for stereotaxic to pixel conversion for file: "
+                                   + getFileNameNoPath());
+                }
+            }
+        }
+    
+    /*
+     * Are transforms valid?
+     */
+    if (m_stereotaxicToPixelTransform.m_niftiFile
+        && m_stereotaxicToPixelTransform.m_sformMatrix) {
+        
+        /*
+         * Use matrix to convert pixel index to coordinate
+         */
+        std::array<float, 3> pt(xyz);
+        m_stereotaxicToPixelTransform.m_sformMatrix->multiplyPoint3(pt.data());
+        
+        pixelIndexOut.setIJK(pt);
+        
+        CaretAssert((m_stereotaxicToPixelTransform.m_pixelScaleI != 0.0)
+                    && (m_stereotaxicToPixelTransform.m_pixelScaleJ != 0.0));
+        pt[0] /= m_stereotaxicToPixelTransform.m_pixelScaleI;
+        pt[1] /= m_stereotaxicToPixelTransform.m_pixelScaleJ;
+//        /*
+//         * Scale pixel index from full resolution to resolution
+//         * contained in the NIFTI transform file
+//         */
+//        std::array<float, 3> pt {
+//            pixelIndex.getI() * m_stereotaxicToPixelTransform.m_pixelScaleI,
+//            (getHeight() - pixelIndex.getJ()) * m_stereotaxicToPixelTransform.m_pixelScaleJ,
+//            0.0
+//        };
+//        const int64_t niftiI(pt[0]);
+//        const int64_t niftiJ(pt[1]);
+//        const int64_t niftiK(pt[2]);
+//
+//        /*
+//         * Use matrix to convert pixel index to coordinate
+//         */
+//        m_stereotaxicToPixelTransform.m_sformMatrix->multiplyPoint3(pt.data());
+//
+//        if (includeNonlinearFlag) {
+//            /*
+//             * Use pixel index to obtain non-linearity from NIFTI data
+//             */
+//            const float dx = m_stereotaxicToPixelTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 0);
+//            const float dy = m_stereotaxicToPixelTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 1);
+//            const float dz = m_stereotaxicToPixelTransform.m_niftiFile->getValue(niftiI, niftiJ, niftiK, 2);
+//            pt[0] += dx;
+//            pt[1] += dy;
+//            pt[2] += dz;
+//        }
+//
+//        xyzOut = pt;
+        
+        return true;
+    }
+    
+    return false;
+}
+
+/**
  * Load NIFTI transform file used to transform between pixel indices and stereotaxic coordinates
+ * @param filename
+ *    Name of NIFTI file
  * @param transform
  *    NIFTI transform that is loaded
  */
 void
-CziImageFile::loadNiftiTransformFile(NiftiTransform& transform) const
+CziImageFile::loadNiftiTransformFile(const AString& filename,
+                                     NiftiTransform& transform) const
 {
     
     FileInformation niftiTransformFileName(FileInformation(getFileName()).getPathName(),
-                                           "hist2mri.nii.gz");
+                                           filename);
     
     if (niftiTransformFileName.exists()) {
         transform.m_niftiFile.reset(new VolumeFile());
@@ -1225,9 +1336,6 @@ CziImageFile::loadNiftiTransformFile(NiftiTransform& transform) const
                                         + ", "
                                         + AString::number(dimJ));
             }
-            
-            
-            
         }
         catch (const DataFileException& dfe) {
             CaretLogWarning("Failed to read "
@@ -1288,12 +1396,20 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
                 dataFileInformation.addNameAndValue("Logical Height", cziImage->m_logicalRect.height());
             }
             
-            if (m_toCoordinateTransform.m_niftiFile
-                && m_toCoordinateTransform.m_sformMatrix) {
-                dataFileInformation.addNameAndValue("NIFTI Transform File",
-                                                    m_toCoordinateTransform.m_niftiFile->getFileNameNoPath());
-                dataFileInformation.addNameAndValue("NIFTI SFORM",
-                                                    m_toCoordinateTransform.m_sformMatrix->toString());
+            if (m_pixelToStereotaxicTransform.m_niftiFile
+                && m_pixelToStereotaxicTransform.m_sformMatrix) {
+                dataFileInformation.addNameAndValue("NIFTI Pixel To XYZ Transform File",
+                                                    m_pixelToStereotaxicTransform.m_niftiFile->getFileNameNoPath());
+                dataFileInformation.addNameAndValue("NIFTI Pixel To XYZ SFORM",
+                                                    m_pixelToStereotaxicTransform.m_sformMatrix->toString());
+            }
+            
+            if (m_stereotaxicToPixelTransform.m_niftiFile
+                && m_stereotaxicToPixelTransform.m_sformMatrix) {
+                dataFileInformation.addNameAndValue("NIFTI XYZ To Pixel Transform File",
+                                                    m_stereotaxicToPixelTransform.m_niftiFile->getFileNameNoPath());
+                dataFileInformation.addNameAndValue("NIFTI XYZ To Pixel SFORM",
+                                                    m_stereotaxicToPixelTransform.m_sformMatrix->toString());
             }
         }
     }
@@ -1343,10 +1459,12 @@ CziImageFile::getImageForTab(const int32_t tabIndex)
 const CziImage*
 CziImageFile::getImageForTab(const int32_t tabIndex) const
 {
-    CaretAssertVectorIndex(m_pyramidLayerIndexInTabs, tabIndex);
-    if (m_pyramidLayerIndexInTabs[tabIndex] != m_lowestResolutionPyramidLayerIndex) {
-        if (m_tabCziImages[tabIndex]) {
-            return m_tabCziImages[tabIndex].get();
+    if (tabIndex >= 0) {
+        CaretAssertVectorIndex(m_pyramidLayerIndexInTabs, tabIndex);
+        if (m_pyramidLayerIndexInTabs[tabIndex] != m_lowestResolutionPyramidLayerIndex) {
+            if (m_tabCziImages[tabIndex]) {
+                return m_tabCziImages[tabIndex].get();
+            }
         }
     }
 

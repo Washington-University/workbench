@@ -42,6 +42,8 @@ namespace caret {
 
         static std::vector<CaretDataFile*> getAllCaretDataFiles();
         
+        static std::vector<DataFileTypeEnum::Enum> getAllCaretDataFileTyes();
+        
         static std::vector<CaretDataFile*> getCaretDataFilesForType(const DataFileTypeEnum::Enum dataFileType);
 
         static std::vector<CaretDataFile*> getCaretDataFilesForTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);

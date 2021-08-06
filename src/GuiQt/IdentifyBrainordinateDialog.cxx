@@ -28,9 +28,11 @@ using namespace caret;
 #include <QButtonGroup>
 #include <QComboBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QRadioButton>
 #include <QSpinBox>
+#include <QStackedWidget>
 
 #include "Brain.h"
 #include "BrainordinateRegionOfInterest.h"
@@ -51,6 +53,8 @@ using namespace caret;
 #include "CaretMappableDataFileAndMapSelectorObject.h"
 #include "CiftiParcelSelectionComboBox.h"
 #include "CiftiScalarDataSeriesFile.h"
+#include "CziImageFile.h"
+#include "EventCaretDataFilesGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
@@ -61,7 +65,10 @@ using namespace caret;
 #include "GuiManager.h"
 #include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
+#include "ImageFile.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
+#include "SelectionItemCziImage.h"
+#include "SelectionItemImage.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -70,7 +77,6 @@ using namespace caret;
 #include "Surface.h"
 #include "SystemUtilities.h"
 #include "WuQFactory.h"
-#include "WuQGroupBoxExclusiveWidget.h"
 #include "WuQMessageBox.h"
 #include "WuQSpinBox.h"
 #include "WuQtUtilities.h"
@@ -89,11 +95,6 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                     parent)
 {
     /*
-     * Surface Vertex widgets
-     */
-    m_surfaceVertexWidget = createSurfaceVertexlWidget();
-    
-    /*
      * Filter file types for CIFTI type files
      */
     std::vector<DataFileTypeEnum::Enum> allDataFileTypes;
@@ -102,14 +103,14 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                                    | DataFileTypeEnum::OPTIONS_INCLUDE_METRIC_DENSE_DYNAMIC
                                    | DataFileTypeEnum::OPTIONS_INCLUDE_VOLUME_DENSE_DYNAMIC));
     
-    std::vector<DataFileTypeEnum::Enum> supportedCiftiRowFileTypes;
-    std::vector<DataFileTypeEnum::Enum> supportedLabelFileTypes;
     
+    std::vector<DataFileTypeEnum::Enum> imageFileTypes;
     for (std::vector<DataFileTypeEnum::Enum>::iterator dtIter = allDataFileTypes.begin();
          dtIter != allDataFileTypes.end();
          dtIter++) {
         const DataFileTypeEnum::Enum dataFileType = *dtIter;
         bool ciftiRowFlag  = false;
+        bool imageFlag     = false;
         bool labelFileFlag = false;
         ParcelSourceDimension parcelSourceDimension = PARCEL_SOURCE_INVALID_DIMENSION;
         
@@ -163,6 +164,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                 ciftiRowFlag = true;
                 break;
             case DataFileTypeEnum::CZI_IMAGE_FILE:
+                imageFlag = true;
                 break;
             case DataFileTypeEnum::FOCI:
                 break;
@@ -170,6 +172,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                 labelFileFlag = true;
                 break;
             case DataFileTypeEnum::IMAGE:
+                imageFlag = true;
                 break;
             case DataFileTypeEnum::METRIC:
                 break;
@@ -199,42 +202,89 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                                                              parcelSourceDimension));
         }
         if (ciftiRowFlag) {
-            supportedCiftiRowFileTypes.push_back(dataFileType);
+            m_supportedCiftiRowFileTypes.push_back(dataFileType);
         }
         if (labelFileFlag) {
-            supportedLabelFileTypes.push_back(dataFileType);
+            m_supportedLabelFileTypes.push_back(dataFileType);
+        }
+        if (imageFlag) {
+            imageFileTypes.push_back(dataFileType);
         }
     }
     
     /*
+     * Surface Vertex widgets
+     */
+    m_surfaceVertexWidget = createSurfaceVertexWidget();
+    
+    /*
      * CIFTI row widgets
      */
-    m_ciftiRowWidget = createCiftiRowWidget(supportedCiftiRowFileTypes);
+    m_ciftiRowWidget = createCiftiRowWidget(m_supportedCiftiRowFileTypes);
     
     /*
      * Label files widget
      */
-    m_labelFileWidgets.m_widget = createLabelFilesWidget(supportedLabelFileTypes);
+    m_labelFileWidgets.m_widget = createLabelFilesWidget(m_supportedLabelFileTypes);
     
     /*
      * CIFTI Parcel Widgets
      */
     m_ciftiParcelWidget = createCiftiParcelWidget();
     
-    m_widgetBox = new WuQGroupBoxExclusiveWidget();
-    m_widgetBox->addWidget(m_ciftiRowWidget, "Identify from CIFTI File Row");
-    m_widgetBox->addWidget(m_ciftiParcelWidget, "Identify CIFTI File Parcel");
-    m_widgetBox->addWidget(m_labelFileWidgets.m_widget, "Identify Label");
-    m_widgetBox->addWidget(m_surfaceVertexWidget, "Identify Surface Vertex");
-    QObject::connect(m_widgetBox, SIGNAL(currentChanged(int32_t)),
-                     this, SLOT(selectedWidgetChanged()));
+    /*
+     * Image pixel widget
+     */
+    m_imagePixelWidget = createImagePixelWidget(imageFileTypes);
     
-    setCentralWidget(m_widgetBox,
+    m_stackedWidget = new QStackedWidget();
+    m_stackedWidget->addWidget(m_ciftiRowWidget);
+    m_stackedWidget->addWidget(m_ciftiParcelWidget);
+    m_stackedWidget->addWidget(m_imagePixelWidget);
+    m_stackedWidget->addWidget(m_labelFileWidgets.m_widget);
+    m_stackedWidget->addWidget(m_surfaceVertexWidget);
+
+    /*
+     * ID type radio buttons
+     */
+    m_ciftiFileRowRadioButton = new QRadioButton("CIFTI File Row");
+    m_ciftiFileParcelRadioButton = new QRadioButton("CIFTI File Parcel");
+    m_imagePixelRadioButton = new QRadioButton("Image Pixel");
+    m_labelRadioButton = new QRadioButton("Label");
+    m_surfaceVertexRadioButton = new QRadioButton("Surface Vertex");
+    
+    int32_t buttonIndex(0);
+    QButtonGroup* idTypeButtonGroup = new QButtonGroup(this);
+    idTypeButtonGroup->addButton(m_ciftiFileRowRadioButton, buttonIndex++);
+    idTypeButtonGroup->addButton(m_ciftiFileParcelRadioButton, buttonIndex++);
+    idTypeButtonGroup->addButton(m_imagePixelRadioButton, buttonIndex++);
+    idTypeButtonGroup->addButton(m_labelRadioButton, buttonIndex++);
+    idTypeButtonGroup->addButton(m_surfaceVertexRadioButton, buttonIndex++);
+    QObject::connect(idTypeButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
+                     this, &IdentifyBrainordinateDialog::idTypeRadioButtonClicked);
+
+    QGroupBox* radioButtonGroupBox = new QGroupBox("Brainordinate Selection");
+    QVBoxLayout* radioButtonLayout = new QVBoxLayout(radioButtonGroupBox);
+    radioButtonLayout->addWidget(m_ciftiFileRowRadioButton);
+    radioButtonLayout->addWidget(m_ciftiFileParcelRadioButton);
+    radioButtonLayout->addWidget(m_imagePixelRadioButton);
+    radioButtonLayout->addWidget(m_labelRadioButton);
+    radioButtonLayout->addWidget(m_surfaceVertexRadioButton);
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addWidget(radioButtonGroupBox);
+    layout->addWidget(m_stackedWidget, 0, Qt::AlignLeft);
+    layout->addStretch();
+    
+    setCentralWidget(widget,
                      WuQDialog::SCROLL_AREA_NEVER);
     
     updateDialog();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    m_surfaceVertexRadioButton->setChecked(true);
+    idTypeRadioButtonClicked(m_surfaceVertexRadioButton);
 }
 
 /**
@@ -320,7 +370,9 @@ IdentifyBrainordinateDialog::createCiftiParcelWidget()
     ciftiParcelLayout->addWidget(m_ciftiParcelFileMapComboBox, 1, COLUMN_MAP_RIGHT); //, Qt::AlignLeft);
     ciftiParcelLayout->addWidget(m_ciftiParcelFileParcelLabel, 2, COLUMN_LABEL);
     ciftiParcelLayout->addWidget(m_ciftiParcelFileParcelNameComboBox->getWidget(), 2, COLUMN_MAP_LEFT, 1, 2);
-    
+    ciftiParcelLayout->setRowStretch(1000, 1000);
+    ciftiParcelLayout->setColumnStretch(2, 1000);
+
     return widget;
 }
 
@@ -372,7 +424,9 @@ IdentifyBrainordinateDialog::createCiftiRowWidget(const std::vector<DataFileType
     ciftiRowLayout->addWidget(m_ciftiRowFileComboBox->getWidget(), 0, COLUMN_MAP_LEFT, 1, 2);
     ciftiRowLayout->addWidget(m_ciftiRowFileIndexLabel, 1, COLUMN_LABEL);
     ciftiRowLayout->addWidget(m_ciftiRowFileIndexSpinBox, 1, COLUMN_MAP_LEFT);
-    
+    ciftiRowLayout->setRowStretch(1000, 1000);
+    ciftiRowLayout->setColumnStretch(2, 1000);
+
     return widget;
 }
 
@@ -422,7 +476,9 @@ IdentifyBrainordinateDialog::createLabelFilesWidget(const std::vector<DataFileTy
     labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileMapComboBox, 1, COLUMN_MAP_RIGHT); //, Qt::AlignLeft);
     labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileLabellLabel, 2, COLUMN_LABEL);
     labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileLabelComboBox->getWidget(), 2, COLUMN_MAP_LEFT, 1, 2);
-    
+    labelWidgetLayout->setRowStretch(1000, 1000);
+    labelWidgetLayout->setColumnStretch(1000, 1000);
+
     return widget;
 }
 
@@ -440,7 +496,7 @@ IdentifyBrainordinateDialog::slotLabelFileOrMapSelectionChanged()
  * @return Create a Surface Vertex Widget
  */
 QWidget*
-IdentifyBrainordinateDialog::createSurfaceVertexlWidget()
+IdentifyBrainordinateDialog::createSurfaceVertexWidget()
 {
     int columnCount = 0;
     const int COLUMN_LABEL        = columnCount++;
@@ -463,9 +519,45 @@ IdentifyBrainordinateDialog::createSurfaceVertexlWidget()
     surfaceVertexLayout->addWidget(m_vertexStructureComboBox->getWidget(), 0, COLUMN_MAP_LEFT, 1, 2);
     surfaceVertexLayout->addWidget(m_vertexIndexLabel, 1, COLUMN_LABEL);
     surfaceVertexLayout->addWidget(m_vertexIndexSpinBox, 1, COLUMN_MAP_LEFT);
+    surfaceVertexLayout->setRowStretch(1000, 1000);
+    surfaceVertexLayout->setColumnStretch(1000, 1000);
     
     return widget;
 }
+
+/**
+ * @return New image pixel selection widget
+ * @param supportedFileTypes)
+ *    Supported image file types
+ */
+QWidget*
+IdentifyBrainordinateDialog::createImagePixelWidget(const std::vector<DataFileTypeEnum::Enum>& supportedFileTypes)
+{
+    QLabel* imageFileLabel = new QLabel("File");
+    m_imageFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(supportedFileTypes);
+    m_imageFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
+    
+    QLabel* pixelLabel = new QLabel("Pixel");
+    
+    m_imagePixelISpinBox = new QSpinBox();
+    m_imagePixelISpinBox->setRange(0, 99999999);
+    
+    m_imagePixelJSpinBox = new QSpinBox();
+    m_imagePixelJSpinBox->setRange(0, 99999999);
+    
+    QWidget* widget = new QWidget();
+    QGridLayout* layout = new QGridLayout(widget);
+    layout->addWidget(imageFileLabel, 0, 0);
+    layout->addWidget(m_imageFileSelectionComboBox->getWidget(), 0, 1, 1, 3, Qt::AlignLeft);
+    layout->addWidget(pixelLabel, 1, 0);
+    layout->addWidget(m_imagePixelISpinBox, 1, 1);
+    layout->addWidget(m_imagePixelJSpinBox, 1, 2);
+    layout->setRowStretch(1000, 1000);
+    layout->setColumnStretch(3, 1000);
+
+    return widget;
+}
+
 
 /**
  * Called when the user changes the parcel file or map.
@@ -477,11 +569,31 @@ IdentifyBrainordinateDialog::slotParcelFileOrMapSelectionChanged()
 }
 
 /**
- * Called when the selected widget changes.
+ * Called when an ID type radio button is clicked
+ * @param button
+ *    Button that was clicked
  */
 void
-IdentifyBrainordinateDialog::selectedWidgetChanged()
+IdentifyBrainordinateDialog::idTypeRadioButtonClicked(QAbstractButton* button)
 {
+    if (button == m_ciftiFileRowRadioButton) {
+        m_stackedWidget->setCurrentWidget(m_ciftiRowWidget);
+    }
+    else if (button == m_ciftiFileParcelRadioButton) {
+        m_stackedWidget->setCurrentWidget(m_ciftiParcelWidget);
+    }
+    else if (button == m_imagePixelRadioButton) {
+        m_stackedWidget->setCurrentWidget(m_imagePixelWidget);
+    }
+    else if (button == m_labelRadioButton) {
+        m_stackedWidget->setCurrentWidget(m_labelFileWidgets.m_widget);
+    }
+    else if (button == m_surfaceVertexRadioButton) {
+        m_stackedWidget->setCurrentWidget(m_surfaceVertexWidget);
+    }
+    else {
+        CaretAssertMessage(0, "Invalid button");
+    }
     updateDialog();
 }
 
@@ -523,6 +635,7 @@ IdentifyBrainordinateDialog::updateDialog()
         m_ciftiParcelFileParcelNameComboBox->updateComboBox(NULL);
     }
     
+    
     CaretMappableDataFileAndMapSelectionModel* labelFileModel = m_labelFileWidgets.m_fileSelector->getModel();
     m_labelFileWidgets.m_fileSelector->updateFileAndMapSelector(labelFileModel);
     CaretMappableDataFile* labelFile = labelFileModel->getSelectedFile();
@@ -544,6 +657,19 @@ IdentifyBrainordinateDialog::updateDialog()
     m_ciftiRowFileComboBox->updateComboBox(m_ciftiRowFileSelectionModel);
     
     m_vertexStructureComboBox->listOnlyValidStructures();
+    
+    const std::vector<DataFileTypeEnum::Enum> allDataFileTypes(EventCaretDataFilesGet::getAllCaretDataFileTyes());
+    
+    const bool haveSurfacesFlag(std::find(allDataFileTypes.begin(),
+                                          allDataFileTypes.end(),
+                                          DataFileTypeEnum::SURFACE) != allDataFileTypes.end());
+    
+    m_imageFileSelectionComboBox->updateComboBox(m_imageFileSelectionModel);
+    
+    m_ciftiParcelWidget->setEnabled(parcelsMapValidFlag);
+    m_ciftiRowWidget->setEnabled(m_ciftiRowFileSelectionModel->getSelectedFile() != NULL);
+    m_labelFileWidgets.m_widget->setEnabled(labelTableComboBoxValid);
+    m_surfaceVertexWidget->setEnabled(haveSurfacesFlag);
 }
 
 /**
@@ -575,7 +701,7 @@ IdentifyBrainordinateDialog::applyButtonClicked()
 {
     AString errorMessage;
     
-    QWidget* selectedWidget = m_widgetBox->currentWidget();
+    QWidget* selectedWidget = m_stackedWidget->currentWidget();
     if (m_surfaceVertexWidget == selectedWidget) {
         processSurfaceVertexWidget(errorMessage);
     }
@@ -584,6 +710,9 @@ IdentifyBrainordinateDialog::applyButtonClicked()
     }
     else if (m_ciftiRowWidget == selectedWidget) {
         processCiftiRowWidget(errorMessage);
+    }
+    else if (m_imagePixelWidget == selectedWidget) {
+        processImagePixelSelection(errorMessage);
     }
     else if (m_labelFileWidgets.m_widget == selectedWidget) {
         processLabelFileWidget(errorMessage);
@@ -606,10 +735,11 @@ IdentifyBrainordinateDialog::applyButtonClicked()
  * Update coloring and redraw all windows.
  */
 void
-IdentifyBrainordinateDialog::updateColoringAndDrawAllWindows()
+IdentifyBrainordinateDialog::updateColoringAndDrawAllWindows(const bool doRepaintFlag)
 {
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventGraphicsUpdateAllWindows updateGraphicsEvent;
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(doRepaintFlag).getPointer());
 }
 
 /**
@@ -625,10 +755,10 @@ IdentifyBrainordinateDialog::flashBrainordinateHighlightingRegionOfInterest(Brai
     const int32_t flashCount     = 4;
     for (int32_t iFlash = 0; iFlash < flashCount; iFlash++) {
         brainROI->setBrainordinateHighlightingEnabled(true);
-        updateColoringAndDrawAllWindows();
+        updateColoringAndDrawAllWindows(true);
         SystemUtilities::sleepSeconds(flashDelayTime);
         brainROI->setBrainordinateHighlightingEnabled(false);
-        updateColoringAndDrawAllWindows();
+        updateColoringAndDrawAllWindows(true);
         SystemUtilities::sleepSeconds(flashDelayTime);
     }
 }
@@ -656,6 +786,63 @@ IdentifyBrainordinateDialog::processLabelFileWidget(AString& errorMessageOut)
                                             errorMessageOut)) {
             flashBrainordinateHighlightingRegionOfInterest(brainROI);
         }
+    }
+}
+
+/**
+ * Process user's selectons in Image pixel Widget
+ *
+ * @param errorMessageOut
+ *    Output containing error message.
+ */
+void
+IdentifyBrainordinateDialog::processImagePixelSelection(AString& errorMessage)
+{
+    const CaretDataFile* mapFile = m_imageFileSelectionModel->getSelectedFile();
+    if (mapFile != NULL) {
+        SelectionManager* selectionManager = GuiManager::get()->getBrain()->getSelectionManager();
+        const CziImageFile* cziImageFile = mapFile->castToCziImageFile();
+        const ImageFile* imageFile = mapFile->castToImageFile();
+        const int64_t pixelI = m_imagePixelISpinBox->value();
+        const int64_t pixelJ = m_imagePixelJSpinBox->value();
+        SelectionItem* selectionItem(NULL);
+        if (cziImageFile != NULL) {
+            SelectionItemCziImage* imageID = selectionManager->getCziImageIdentification();
+            imageID->reset();
+            imageID->setCziImageFile(const_cast<CziImageFile*>(cziImageFile));
+            imageID->setPixelI(pixelI);
+            imageID->setPixelJ(pixelJ);
+            PixelIndex pixelIndex(pixelI,
+                                  cziImageFile->getHeight() - pixelJ,
+                                  0);
+            imageID->setPixelIndex(pixelIndex);
+            selectionItem = imageID;
+        }
+        else if (imageFile != NULL) {
+            SelectionItemImage* imageID = selectionManager->getImageIdentification();
+            imageID->reset();
+            imageID->setImageFile(const_cast<ImageFile*>(imageFile));
+            imageID->setPixelI(pixelI);
+            imageID->setPixelJ(pixelJ);
+            PixelIndex pixelIndex(pixelI,
+                                  imageFile->getHeight() - pixelJ,
+                                  0);
+            imageID->setPixelIndex(pixelIndex);
+            selectionItem = imageID;
+        }
+        else {
+            errorMessage = ("Unrecognized image file type "
+                            + mapFile->getFileNameNoPath());
+            CaretAssertMessage(0, errorMessage);
+            return;
+        }
+        CaretAssert(selectionItem);
+        GuiManager::get()->processIdentification(-1,
+                                                 selectionManager,
+                                                 this);
+    }
+    else {
+        errorMessage = "No image file is selected";
     }
 }
 

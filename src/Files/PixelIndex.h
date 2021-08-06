@@ -110,6 +110,17 @@ namespace caret {
         }
         
         /**
+         * Set the "ijk" components from floats
+         * @param ijk
+         *    The "ijk" components
+         */
+        inline void setIJK(const std::array<float, 3>& ijk) {
+            m_pixelIndices.m_ijk[0] = static_cast<int64_t>(ijk[0]);
+            m_pixelIndices.m_ijk[1] = static_cast<int64_t>(ijk[1]);
+            m_pixelIndices.m_ijk[2] = static_cast<int64_t>(ijk[2]);
+        }
+        
+        /**
          * Set the "ijk" components
          * @param i
          *    The "i" component

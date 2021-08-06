@@ -230,11 +230,16 @@ namespace caret {
 
         QRectF moveAndClipRectangle(const QRectF& rectangleIn);
         
-        void loadNiftiTransformFile(NiftiTransform& transform) const;
+        void loadNiftiTransformFile(const AString& filename,
+                                    NiftiTransform& transform) const;
         
         bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndex,
                                         const bool includeNonlinearFlag,
                                         std::array<float, 3>& xyzOut) const;
+        
+        bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+                                        const bool includeNonlinearFlag,
+                                        PixelIndex& pixelIndexOut) const;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
@@ -284,7 +289,9 @@ namespace caret {
         
         std::array<int32_t, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_pyramidLayerIndexInTabs;
                 
-        mutable NiftiTransform m_toCoordinateTransform;
+        mutable NiftiTransform m_pixelToStereotaxicTransform;
+        
+        mutable NiftiTransform m_stereotaxicToPixelTransform;
         
         // ADD_NEW_MEMBERS_HERE
 

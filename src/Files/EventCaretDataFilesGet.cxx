@@ -23,6 +23,8 @@
 #include "EventCaretDataFilesGet.h"
 #undef __EVENT_CARET_DATA_FILES_GET_DECLARE__
 
+#include <set>
+
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "EventManager.h"
@@ -62,6 +64,27 @@ EventCaretDataFilesGet::~EventCaretDataFilesGet()
 {
 }
 
+/**
+ * @return Data file types of all loaded data files
+ */
+std::vector<DataFileTypeEnum::Enum>
+EventCaretDataFilesGet::getAllCaretDataFileTyes()
+{
+    std::set<DataFileTypeEnum::Enum> uniqueTypes;
+    
+    std::vector<CaretDataFile*> allFiles(getAllCaretDataFiles());
+    for (const auto& file : allFiles) {
+        uniqueTypes.insert(file->getDataFileType());
+    }
+    
+    std::vector<DataFileTypeEnum::Enum> typesVector(uniqueTypes.begin(),
+                                                    uniqueTypes.end());
+    return typesVector;
+}
+
+/**
+ * @return All loaded caret data files.
+ */
 std::vector<CaretDataFile*>
 EventCaretDataFilesGet::getAllCaretDataFiles()
 {
