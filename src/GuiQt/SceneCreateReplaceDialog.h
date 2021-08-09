@@ -42,6 +42,10 @@ namespace caret {
         static Scene* createNewScene(QWidget* parent,
                                      SceneFile* sceneFile);
         
+        static void editSceneInfo(QWidget* parent,
+                                  SceneFile* sceneFile,
+                                  Scene* scene);
+        
         static Scene* createNewSceneInsertBeforeScene(QWidget* parent,
                                                      SceneFile* sceneFile,
                                                      const Scene* insertBeforeScene);
@@ -61,6 +65,7 @@ namespace caret {
     private:
         enum Mode {
             MODE_ADD_NEW_SCENE,
+            MODE_EDIT_SCENE_INFO,
             MODE_INSERT_NEW_SCENE,
             MODE_REPLACE_SCENE
         };

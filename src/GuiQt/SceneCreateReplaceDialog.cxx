@@ -96,6 +96,9 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     switch (m_mode) {
         case MODE_ADD_NEW_SCENE:
             break;
+        case MODE_EDIT_SCENE_INFO:
+            CaretAssert(sceneToInsertOrReplace);
+            break;
         case MODE_INSERT_NEW_SCENE:
             CaretAssert(sceneToInsertOrReplace);
             break;
@@ -222,6 +225,15 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
             m_sceneWindowDescription = ("Created on " + dataTimeCommitText + "\n");
             m_sceneWindowDescription.appendWithNewLine(windowDescription);
             break;
+        case MODE_EDIT_SCENE_INFO:
+            m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
+            m_descriptionTextEdit->setPlainText(sceneToInsertOrReplace->getDescription());
+            addWindowDescriptionPushButton->setHidden(true);
+            optionsLabel->setHidden(true);
+            optionsWidget->setHidden(true);
+            sceneIDLabel->setHidden(true);
+            m_balsaSceneIDLineEdit->setHidden(true);
+            break;
         case MODE_REPLACE_SCENE:
             m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
             m_balsaSceneIDLineEdit->setText(sceneToInsertOrReplace->getBalsaSceneID());
@@ -274,6 +286,31 @@ SceneCreateReplaceDialog::createNewScene(QWidget* parent,
     
     Scene* scene = dialog.m_sceneThatWasCreated;
     return scene;
+}
+
+/**
+ * Static method that creates a dialog for editing a scene's info
+ *
+ * @param parent
+ *     Parent widget on which dialog is displayed.
+ * @param sceneFile
+ *     Scene file to which new scene is added.
+ * @param scene
+ *     Scene that is edited
+ * @return
+ *     Scene that was created or NULL if user cancelled or there was an error.
+ */
+void
+SceneCreateReplaceDialog::editSceneInfo(QWidget* parent,
+                                        SceneFile* sceneFile,
+                                        Scene* scene)
+{
+    SceneCreateReplaceDialog dialog("Edit Scene",
+                                    parent,
+                                    sceneFile,
+                                    MODE_EDIT_SCENE_INFO,
+                                    scene);
+    dialog.exec();
 }
 
 /**
@@ -626,6 +663,11 @@ SceneCreateReplaceDialog::okButtonClicked()
             switch (m_mode) {
                 case MODE_ADD_NEW_SCENE:
                     break;
+                case MODE_EDIT_SCENE_INFO:
+                    if (m_sceneToInsertOrReplace == sceneWithName) {
+                        nameErrorFlag = false;
+                    }
+                    break;
                 case MODE_INSERT_NEW_SCENE:
                     break;
                 case MODE_REPLACE_SCENE:
@@ -648,7 +690,24 @@ SceneCreateReplaceDialog::okButtonClicked()
                                errorMessage);
         return;
     }
-    
+
+    switch (m_mode) {
+        case MODE_ADD_NEW_SCENE:
+            break;
+        case MODE_EDIT_SCENE_INFO:
+        {
+            m_sceneToInsertOrReplace->setName(newSceneName);
+            m_sceneToInsertOrReplace->setDescription(m_descriptionTextEdit->toPlainText());
+            WuQDialogModal::okButtonClicked();
+            return;
+        }
+            break;
+        case MODE_INSERT_NEW_SCENE:
+            break;
+        case MODE_REPLACE_SCENE:
+            break;
+    }
+
     if ( ! s_previousSelections.m_addModifiedPaletteSettings) {
         if ( ! SceneDialog::checkForModifiedFiles(GuiManager::TEST_FOR_MODIFIED_FILES_PALETTE_ONLY_MODE_FOR_SCENE_ADD,
                                                   this)) {
@@ -720,6 +779,9 @@ SceneCreateReplaceDialog::okButtonClicked()
     switch (m_mode) {
         case MODE_ADD_NEW_SCENE:
             m_sceneFile->addScene(newScene);
+            break;
+        case MODE_EDIT_SCENE_INFO:
+            CaretAssert(0);
             break;
         case MODE_INSERT_NEW_SCENE:
             m_sceneFile->insertScene(newScene,

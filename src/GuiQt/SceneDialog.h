@@ -107,6 +107,8 @@ namespace caret {
         
         void moveSceneDownButtonClicked();
         
+        void editSceneButtonClicked();
+        
         void replaceSceneButtonClicked();
         
         void showSceneButtonClicked();
@@ -234,6 +236,8 @@ namespace caret {
         QPushButton* m_moveSceneUpPushButton;
         
         QPushButton* m_moveSceneDownPushButton;
+        
+        QPushButton* m_editScenePushButton;
         
         QPushButton* m_replaceScenePushButton;
         

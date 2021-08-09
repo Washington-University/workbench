@@ -509,6 +509,7 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
     
     m_addNewScenePushButton->setEnabled(validFile);
     m_deleteScenePushButton->setEnabled(validScene);
+    m_editScenePushButton->setEnabled(validScene);
     if (m_replaceAllScenesPushButton != NULL) {
         m_replaceAllScenesPushButton->setEnabled(haveScenes);
     }
@@ -1867,6 +1868,22 @@ SceneDialog::moveSceneDownButtonClicked()
 }
 
 /**
+ * Edit the scene name and description
+ */
+void
+SceneDialog::editSceneButtonClicked()
+{
+    Scene* scene = getSelectedScene();
+    if (scene != NULL) {
+        SceneCreateReplaceDialog::editSceneInfo(m_editScenePushButton,
+                                                getSelectedSceneFile(),
+                                                getSelectedScene());
+        loadScenesIntoDialog(getSelectedScene());
+        updateSceneFileModifiedStatusLabel();
+    }
+}
+
+/**
  * Called when replace scene button clicked.
  */
 void
@@ -2067,6 +2084,14 @@ SceneDialog::createScenesWidget()
                      this, SLOT(moveSceneDownButtonClicked()));
     
     /*
+     * Edit Scene Button
+     */
+    m_editScenePushButton = new QPushButton("Edit...");
+    m_editScenePushButton->setToolTip("Edit the name and description of the the selected scene");
+    QObject::connect(m_editScenePushButton, &QPushButton::clicked,
+                     this, &SceneDialog::editSceneButtonClicked);
+    
+    /*
      * Insert scene button
      */
     m_insertNewScenePushButton = new QPushButton("Insert...");
@@ -2152,6 +2177,8 @@ SceneDialog::createScenesWidget()
     organizeGroupBox->setSizePolicy(organizeGroupBox->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     QVBoxLayout* organizeGroupLayout = new QVBoxLayout(organizeGroupBox);
     WuQtUtilities::setLayoutSpacingAndMargins(organizeGroupLayout, 2, 2);
+    organizeGroupLayout->addWidget(m_editScenePushButton);
+    organizeGroupLayout->addSpacing(5);
     organizeGroupLayout->addWidget(m_moveSceneUpPushButton);
     organizeGroupLayout->addWidget(m_moveSceneDownPushButton);
     organizeGroupLayout->addSpacing(5);
