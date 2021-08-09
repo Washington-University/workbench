@@ -228,11 +228,10 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
         case MODE_EDIT_SCENE_INFO:
             m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
             m_descriptionTextEdit->setPlainText(sceneToInsertOrReplace->getDescription());
+            m_balsaSceneIDLineEdit->setText(sceneToInsertOrReplace->getBalsaSceneID());
             addWindowDescriptionPushButton->setHidden(true);
             optionsLabel->setHidden(true);
             optionsWidget->setHidden(true);
-            sceneIDLabel->setHidden(true);
-            m_balsaSceneIDLineEdit->setHidden(true);
             break;
         case MODE_REPLACE_SCENE:
             m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
@@ -698,6 +697,7 @@ SceneCreateReplaceDialog::okButtonClicked()
         {
             m_sceneToInsertOrReplace->setName(newSceneName);
             m_sceneToInsertOrReplace->setDescription(m_descriptionTextEdit->toPlainText());
+            m_sceneToInsertOrReplace->setBalsaSceneID(m_balsaSceneIDLineEdit->text().trimmed());
             WuQDialogModal::okButtonClicked();
             return;
         }
