@@ -151,6 +151,18 @@ public:
 
     void setTransformedSpaceName(const AString& name);
 
+    void getColumn(const int32_t columnIndex,
+                   float columnOut[4]) const;
+    
+    void getColumn(const int32_t columnIndex,
+                   double columnOut[4]) const;
+    
+    void setColumn(const int32_t columnIndex,
+                   const float column[4]);
+    
+    void setColumn(const int32_t columnIndex,
+                   const double column[4]);
+    
     double getMatrixElement(
             const int32_t i,
             const int32_t j) const;

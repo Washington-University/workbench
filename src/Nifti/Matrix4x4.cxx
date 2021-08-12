@@ -1681,6 +1681,71 @@ Matrix4x4::setTransformedSpaceName(const AString& name)
 }
 
 /**
+ * Get a column from the matrix.
+ * @param columnIndex
+ *    Index of the column
+ * @param columnOut
+ *    Ouput with column elements.
+ */
+void
+Matrix4x4::getColumn(const int32_t columnIndex,
+                     float columnOut[4]) const
+{
+    for (int iRow = 0; iRow < 4; iRow++) {
+        columnOut[iRow] = this->matrix[iRow][columnIndex];
+    }
+}
+
+/**
+ * Get a column from the matrix.
+ * @param columnIndex
+ *    Index of the column
+ * @param columnOut
+ *    Ouput with column elements.
+ */
+void
+Matrix4x4::getColumn(const int32_t columnIndex,
+                     double columnOut[4]) const
+{
+    for (int iRow = 0; iRow < 4; iRow++) {
+        columnOut[iRow] = this->matrix[iRow][columnIndex];
+    }
+}
+
+/**
+ * Set a column in the matrix.
+ * @param columnIndex
+ *    Index of the column
+ * @param column
+ *    New values for column
+ */
+void
+Matrix4x4::setColumn(const int32_t columnIndex,
+                     const float column[4])
+{
+    for (int iRow = 0; iRow < 4; iRow++) {
+        this->matrix[iRow][columnIndex] = column[iRow];
+    }
+}
+
+/**
+ * Set a column in the matrix.
+ * @param columnIndex
+ *    Index of the column
+ * @param column
+ *    New values for column
+ */
+void
+Matrix4x4::setColumn(const int32_t columnIndex,
+                     const double column[4])
+{
+    for (int iRow = 0; iRow < 4; iRow++) {
+        this->matrix[iRow][columnIndex] = column[iRow];
+    }
+}
+
+
+/**
  * Set a matrix element.
  * @param i   Row
  * @param j   Column
