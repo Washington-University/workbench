@@ -43,23 +43,18 @@ namespace caret {
 
         void setCziImageFile(CziImageFile* imageFile);
         
-        PixelIndex getPixelIndex() const;
+        PixelIndex getPixelIndexOriginAtBottom() const;
         
-        void setPixelIndex(const PixelIndex& pixelIndex);
+        PixelIndex getPixelIndexOriginAtTop() const;
+        
+        void setPixelIndex(const PixelIndex& pixelIndexOriginAtBottom,
+                           const PixelIndex& pixelIndexOriginAtTop);
         
         int32_t getTabIndex() const;
         
         void setTabIndex(const int32_t tabIndex);
         
-        int32_t getPixelI() const;
-        
-        int32_t getPixelJ() const;
-        
-        void setPixelI(const int32_t i);
-        
-        void setPixelJ(const int32_t j);
-        
-        void getPixelRGBA(uint8_t pixelRGBAOut[4]) const;
+        bool getPixelRGBA(uint8_t pixelRGBAOut[4]) const;
         
         void setPixelRGBA(const uint8_t pixelRGBA[4]);
         
@@ -72,17 +67,19 @@ namespace caret {
 
         SelectionItemCziImage& operator=(const SelectionItemCziImage&);
 
+        void resetPrivate();
+        
         CziImageFile* m_imageFile;
         
-        PixelIndex m_pixelIndex;
+        PixelIndex m_pixelIndexOriginAtBottom;
+        
+        PixelIndex m_pixelIndexOriginAtTop;
         
         int32_t m_tabIndex = -1;
         
-        int32_t m_pixelI;
-        
-        int32_t m_pixelJ;
-        
         uint8_t m_pixelRGBA[4];
+        
+        bool m_pixelRGBAValidFlag = false;
         
     };
     

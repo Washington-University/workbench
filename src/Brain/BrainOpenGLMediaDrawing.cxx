@@ -568,30 +568,32 @@ BrainOpenGLMediaDrawing::processCziImageFileSelection(const int32_t tabIndex,
              * "(2.0f * windowXYZ[2]) - 1.0f" may be incorrect.
              */
             modelXYZ[2] = 0.0;
-            PixelIndex pixelIndexFullRes(modelXYZ[0],
-                                         modelXYZ[1],
-                                         modelXYZ[2]);
-             /*
+            PixelIndex pixelIndexFullResOriginAtBottom(modelXYZ[0],
+                                                       modelXYZ[1],
+                                                       modelXYZ[2]);
+
+            /*
              * Verify clicked location is inside image
              */
             if (cziImageFile->isPixelIndexValid(tabIndex,
-                                                pixelIndexFullRes)) {
+                                                pixelIndexFullResOriginAtBottom)) {
                 idCziImage->setCziImageFile(cziImageFile);
-                idCziImage->setPixelIndex(pixelIndexFullRes);
+                PixelIndex pixelIndexOriginAtTop(pixelIndexFullResOriginAtBottom);
+                pixelIndexOriginAtTop.setJ(cziImageFile->getHeight() - pixelIndexOriginAtTop.getJ() - 1);
+                idCziImage->setPixelIndex(pixelIndexFullResOriginAtBottom,
+                                          pixelIndexOriginAtTop);
                 idCziImage->setTabIndex(tabIndex);
-                idCziImage->setPixelI(pixelIndexFullRes.getI());
-                idCziImage->setPixelJ(pixelIndexFullRes.getJ());
                 
-                uint8_t pixelByteRGBA[4];
+                idCziImage->setCziImageFile(cziImageFile);
+                uint8_t pixelByteRGBA[4] = { 0, 0, 0, 0 };
+                idCziImage->setModelXYZ(modelXYZ.data());
+                idCziImage->setScreenXYZ(windowXYZ);
+                idCziImage->setScreenDepth(0.0);
                 if (cziImageFile->getImagePixelRGBA(tabIndex,
                                                     ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                    pixelIndexFullRes,
+                                                    pixelIndexFullResOriginAtBottom,
                                                     pixelByteRGBA)) {
-                    idCziImage->setCziImageFile(cziImageFile);
                     idCziImage->setPixelRGBA(pixelByteRGBA);
-                    idCziImage->setModelXYZ(modelXYZ.data());
-                    idCziImage->setScreenXYZ(windowXYZ);
-                    idCziImage->setScreenDepth(0.0);
                 }
             }
         }

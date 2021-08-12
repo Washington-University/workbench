@@ -810,12 +810,14 @@ IdentifyBrainordinateDialog::processImagePixelSelection(AString& errorMessage)
             SelectionItemCziImage* imageID = selectionManager->getCziImageIdentification();
             imageID->reset();
             imageID->setCziImageFile(const_cast<CziImageFile*>(cziImageFile));
-            imageID->setPixelI(pixelI);
-            imageID->setPixelJ(pixelJ);
-            PixelIndex pixelIndex(pixelI,
-                                  cziImageFile->getHeight() - pixelJ,
-                                  0);
-            imageID->setPixelIndex(pixelIndex);
+            PixelIndex pixelIndexOriginAtTop(pixelI,
+                                             pixelJ,
+                                             0);
+            PixelIndex pixelIndexOriginAtBottom(pixelI,
+                                                cziImageFile->getHeight() - pixelJ - 1,
+                                                0);
+            imageID->setPixelIndex(pixelIndexOriginAtBottom,
+                                   pixelIndexOriginAtTop);
             selectionItem = imageID;
         }
         else if (imageFile != NULL) {

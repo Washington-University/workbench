@@ -83,9 +83,6 @@ m_logicalRect(logicalRect)
                                           pixelBotLeft.getJ(),
                                           m_logicalRect.width(),
                                           m_logicalRect.height());
-//                                          m_image->width(),
-//                                          m_image->height());
-//    std::cout << "Pixels ROI: " << CziUtilities::qRectToString(m_pixelsRegionOfInterestRect) << std::endl;
 }
 
 /**
@@ -309,8 +306,8 @@ CziImage::isPixelIndexValid(const PixelIndex& pixelIndex) const
  * Get the identification text for the pixel at the given pixel index with origin at bottom left.
  * @param filename
  *    Name of CZI file
- * @param pixelIndex
- *     Image of pixel in FULL RES image with origin bottom left
+ * @param pixelIndexOriginAtTop
+ *     Image of pixel in FULL RES image with origin top left
  * @param columnOneTextOut
  *    Text for column one that is displayed to user.
  * @param columnTwoTextOut
@@ -320,7 +317,7 @@ CziImage::isPixelIndexValid(const PixelIndex& pixelIndex) const
  */
 void
 CziImage::getPixelIdentificationText(const AString& filename,
-                                     const PixelIndex& pixelIndex,
+                                     const PixelIndex& pixelIndexOriginAtTop,
                                      std::vector<AString>& columnOneTextOut,
                                      std::vector<AString>& columnTwoTextOut,
                                      std::vector<AString>& toolTipTextOut) const
@@ -329,29 +326,27 @@ CziImage::getPixelIdentificationText(const AString& filename,
     columnTwoTextOut.push_back(filename);
     
     uint8_t rgba[4];
-    getImagePixelRGBA(pixelIndex,
-                      rgba);
-    const AString rgbaText("RGBA (" + AString::fromNumbers(rgba, 4, ",") + ")");
+    const bool rgbaValidFlag = getImagePixelRGBA(pixelIndexOriginAtTop,
+                                                 rgba);
+    const AString rgbaText("RGBA ("
+                           + (rgbaValidFlag
+                              ? AString::fromNumbers(rgba, 4, ",")
+                              : "Unknown")
+                           + ")");
     columnOneTextOut.push_back(rgbaText);
     toolTipTextOut.push_back(rgbaText);
     
-    /*
-     * Report pixel index with origin at TOP LEFT
-     */
-    const PixelIndex pixelIndexOriginTopLeft = transformPixelIndexToSpace(pixelIndex,
-                                                                          CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
-                                                                          CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT);
     const AString pixelText("Pixel IJ ("
-                            + AString::number(pixelIndexOriginTopLeft.getI())
+                            + AString::number(pixelIndexOriginAtTop.getI())
                             + ","
-                            + AString::number(pixelIndexOriginTopLeft.getJ())
+                            + AString::number(pixelIndexOriginAtTop.getJ())
                             + ")");
     columnTwoTextOut.push_back(pixelText);
     toolTipTextOut.push_back(pixelText);
     
     const PixelCoordinate pixelsSize(m_parentCziImageFile->getPixelSizeInMillimeters());
-    const float pixelX(pixelIndexOriginTopLeft.getI() * pixelsSize.getX());
-    const float pixelY(pixelIndexOriginTopLeft.getJ() * pixelsSize.getY());
+    const float pixelX(pixelIndexOriginAtTop.getI() * pixelsSize.getX());
+    const float pixelY(pixelIndexOriginAtTop.getJ() * pixelsSize.getY());
     columnOneTextOut.push_back("");
     const AString mmText("Pixel XY ("
                          + AString::number(pixelX, 'f', 3)
@@ -365,15 +360,15 @@ CziImage::getPixelIdentificationText(const AString& filename,
 /**
  * Get the pixel RGBA at the given pixel I and J.
  *
- * @param pixelIndex
- *     Image of pixel in FULL RES image with origin bottom left
+ * @param pixelIndexOriginAtTop
+ *     Image of pixel in FULL RES image with origin top left
  * @param pixelRGBAOut
  *     RGBA at Pixel I, J
  * @return
  *     True if valid, else false.
  */
 bool
-CziImage::getImagePixelRGBA(const PixelIndex& pixelIndex,
+CziImage::getImagePixelRGBA(const PixelIndex& pixelIndexOriginAtTop,
                             uint8_t pixelRGBAOut[4]) const
 {
     pixelRGBAOut[0] = 0;
@@ -383,21 +378,20 @@ CziImage::getImagePixelRGBA(const PixelIndex& pixelIndex,
     
     /* COULD just read the pixel from the CZI file */
     
-    const PixelIndex imagePixelIndex = transformPixelIndexToSpace(pixelIndex,
-                                                                   CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
-                                                                   CziPixelCoordSpaceEnum::PIXEL_TOP_LEFT);
-//    std::cout << "Full Res RGBA Pixel (Origin = bottom left): " << pixelIndex.toString() << std::endl;
-//    std::cout << "   Image RGBA Pixel (Origin = top left): " << imagePixelIndex.toString() << std::endl;
-//    std::cout << "   Pixels region: " << CziUtilities::qRectToString(m_pixelsRegionOfInterestRect) << std::endl;
-
     const QImage* image = m_image.get();
     
     if (image != NULL) {
+        /*
+         * Transform the full-resolution pixel index to space for this image
+         */
+        const PixelIndex pixelIndex = transformPixelIndexToSpace(pixelIndexOriginAtTop,
+                                                                 CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT,
+                                                                 CziPixelCoordSpaceEnum::PIXEL_TOP_LEFT);
         const int32_t w = image->width();
         const int32_t h = image->height();
         
-        const int64_t pixelI(imagePixelIndex.getI());
-        const int64_t pixelJ(imagePixelIndex.getJ());
+        const int64_t pixelI(pixelIndex.getI());
+        const int64_t pixelJ(pixelIndex.getJ());
         
         if ((pixelI >= 0)
             && (pixelI < w)
@@ -412,7 +406,13 @@ CziImage::getImagePixelRGBA(const PixelIndex& pixelIndex,
             return true;
         }
         else {
-            CaretLogSevere("Invalid image J");
+            const AString msg("Pixel Index: "
+                              + pixelIndex.toString()
+                              + " but valid max I="
+                              + AString::number(w - 1)
+                              + ", max J="
+                              + AString::number(h - 1));
+            CaretLogSevere(msg);
         }
     }
 
@@ -503,10 +503,7 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
             const PixelIndex pixelTopRight = transformPixelIndexToSpace(logicalTopRight,
                                                                         CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT,
                                                                         CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT);
-//            std::cout << "Logical Rect: " << CziUtilities::qRectToString(m_logicalRect) << std::endl;
-//            std::cout << "   Pixel Bottom Left: " << pixelBottomLeft.toString() << std::endl;
-//            std::cout << "   Pixel Top Right:   " << pixelTopRight.toString() << std::endl;
-            
+
             /*
              * Coordinates at EDGE of the pixels
              * in CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT

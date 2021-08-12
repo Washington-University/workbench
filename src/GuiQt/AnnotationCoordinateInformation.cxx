@@ -686,8 +686,9 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
     }
     else if (cziImageID->isValid()) {
-        coordInfoOut.m_mediaSpaceInfo.m_xyz[0] = cziImageID->getPixelI();
-        coordInfoOut.m_mediaSpaceInfo.m_xyz[1] = cziImageID->getPixelJ();
+        const PixelIndex pixelIndex = cziImageID->getPixelIndexOriginAtBottom();
+        coordInfoOut.m_mediaSpaceInfo.m_xyz[0] = pixelIndex.getI();
+        coordInfoOut.m_mediaSpaceInfo.m_xyz[1] = pixelIndex.getJ();
         coordInfoOut.m_mediaSpaceInfo.m_xyz[2] = 0.0;
         coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = cziImageID->getCziImageFile()->getFileNameNoPath();
         coordInfoOut.m_mediaSpaceInfo.m_validFlag = true;

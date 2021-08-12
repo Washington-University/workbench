@@ -39,14 +39,7 @@ using namespace caret;
 SelectionItemCziImage::SelectionItemCziImage()
 : SelectionItem(SelectionItemDataTypeEnum::CZI_IMAGE)
 {
-    m_imageFile = NULL;
-    m_pixelIndex.setIJK(-1, -1, -1);
-    m_pixelI = -1;
-    m_pixelJ = -1;
-    m_pixelRGBA[0] = 0;
-    m_pixelRGBA[1] = 0;
-    m_pixelRGBA[2] = 0;
-    m_pixelRGBA[3] = 0;
+    resetPrivate();
 }
 
 /**
@@ -57,23 +50,38 @@ SelectionItemCziImage::~SelectionItemCziImage()
 }
 
 /**
- * @return The pixel index.
+ * @return The pixel index with origin at bottom of image.
+ * OpenGL typically has origin at bottom left.
  */
 PixelIndex
-SelectionItemCziImage::getPixelIndex() const
+SelectionItemCziImage::getPixelIndexOriginAtBottom() const
 {
-    return m_pixelIndex;
+    return m_pixelIndexOriginAtBottom;
 }
 
 /**
- * Set the pixel index.
- * @param pixelIndex
- *    The pixel index.
+ * @return The pixel index with origin at top of image.
+ * Images typcially have the origin at the top left.
+ */
+PixelIndex
+SelectionItemCziImage::getPixelIndexOriginAtTop() const
+{
+    return m_pixelIndexOriginAtTop;
+}
+
+/**
+ * Set the pixel index
+ * @param pixelIndexOriginAtBottom
+ *    The pixel index with origin at bottom
+ * @param pixelIndexOriginAtTop
+ *    The pixel index with origin at top
  */
 void
-SelectionItemCziImage::setPixelIndex(const PixelIndex& pixelIndex)
+SelectionItemCziImage::setPixelIndex(const PixelIndex& pixelIndexOriginAtBottom,
+                                     const PixelIndex& pixelIndexOriginAtTop)
 {
-    m_pixelIndex = pixelIndex;
+    m_pixelIndexOriginAtBottom = pixelIndexOriginAtBottom;
+    m_pixelIndexOriginAtTop    = pixelIndexOriginAtTop;
 }
 
 /**
@@ -97,60 +105,21 @@ SelectionItemCziImage::setTabIndex(const int32_t tabIndex)
 }
 
 /**
- * @return Pixel I.
- */
-int32_t
-SelectionItemCziImage::getPixelI() const
-{
-    return m_pixelI;
-}
-
-/**
- * @return Pixel J.
- */
-int32_t
-SelectionItemCziImage::getPixelJ() const
-{
-    return m_pixelJ;
-}
-
-/**
- * Set pixel I
- *
- * @param i
- *    Value for I.
- */
-void
-SelectionItemCziImage::setPixelI(const int32_t i)
-{
-    m_pixelI = i;
-}
-
-/**
- * Set pixel J
- *
- * @param j
- *    Value for J.
- */
-void
-SelectionItemCziImage::setPixelJ(const int32_t j)
-{
-    m_pixelJ = j;
-}
-
-/**
  * Get the pixel RGBA value.
  *
  * @param pixelRGBAOut
  *     Output containing pixel RGBA.
+ * @return
+ *     True if the RGBA values are valid
  */
-void
+bool
 SelectionItemCziImage::getPixelRGBA(uint8_t pixelRGBAOut[4]) const
 {
     pixelRGBAOut[0] = m_pixelRGBA[0];
     pixelRGBAOut[1] = m_pixelRGBA[1];
     pixelRGBAOut[2] = m_pixelRGBA[2];
     pixelRGBAOut[3] = m_pixelRGBA[3];
+    return m_pixelRGBAValidFlag;
 }
 
 /**
@@ -166,24 +135,34 @@ SelectionItemCziImage::setPixelRGBA(const uint8_t pixelRGBA[4])
     m_pixelRGBA[1] = pixelRGBA[1];
     m_pixelRGBA[2] = pixelRGBA[2];
     m_pixelRGBA[3] = pixelRGBA[3];
+    m_pixelRGBAValidFlag = true;
 }
 
+/**
+  * Reset this selection item.
+ * This method is virtual so cannot be called from constructor.
+  */
+void
+SelectionItemCziImage::reset()
+{
+    SelectionItem::reset();
+    resetPrivate();
+}
 
 /**
  * Reset this selection item.
  */
 void
-SelectionItemCziImage::reset()
+SelectionItemCziImage::resetPrivate()
 {
-    SelectionItem::reset();
     m_imageFile = NULL;
-    m_pixelIndex.setIJK(-1, -1, -1);
-    m_pixelI = -1;
-    m_pixelJ = -1;
+    m_pixelIndexOriginAtBottom.setIJK(-1, -1, -1);
+    m_pixelIndexOriginAtTop.setIJK(-1, -1, -1);
     m_pixelRGBA[0] = 0;
     m_pixelRGBA[1] = 0;
     m_pixelRGBA[2] = 0;
     m_pixelRGBA[3] = 0;
+    m_pixelRGBAValidFlag = false;
 }
 
 /**

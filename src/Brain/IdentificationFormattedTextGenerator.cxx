@@ -2107,7 +2107,7 @@ IdentificationFormattedTextGenerator::generateCziImageIdentificationText(HtmlTab
         const CziImageFile* cziImageFile(idCziImage->getCziImageFile());
         std::vector<AString> columnOneText, columnTwoText, toolTipText;
         cziImageFile->getPixelIdentificationText(idCziImage->getTabIndex(),
-                                                 idCziImage->getPixelIndex(),
+                                                 idCziImage->getPixelIndexOriginAtTop(),
                                                  columnOneText,
                                                  columnTwoText,
                                                  toolTipText);

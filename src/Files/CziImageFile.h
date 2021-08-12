@@ -88,7 +88,7 @@ namespace caret {
                                        const PixelIndex& pixelIndex) const override;
         
         virtual void getPixelIdentificationText(const int32_t tabIndex,
-                                                const PixelIndex& pixelIndex,
+                                                const PixelIndex& pixelIndexOriginAtTop,
                                                 std::vector<AString>& columnOneTextOut,
                                                 std::vector<AString>& columnTwoTextOut,
                                                 std::vector<AString>& toolTipTextOut) const;
@@ -189,6 +189,11 @@ namespace caret {
             /** Scales pixel index from full resolution to layer used by NIFTI transform */
             mutable float m_pixelScaleJ = -1.0f;
             
+            /** Volume is oriented left-to-right for first axis (same as CZI image) */
+            bool m_xLeftToRightFlag = false;
+            
+            /** Volume is oriented top-to-bottom for second axis (same as CZI image) */
+            bool m_yTopToBottomFlag = false;
         };
         
         void closeFile();
@@ -233,13 +238,15 @@ namespace caret {
         void loadNiftiTransformFile(const AString& filename,
                                     NiftiTransform& transform) const;
         
-        bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndex,
+        bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
                                         const bool includeNonlinearFlag,
-                                        std::array<float, 3>& xyzOut) const;
+                                        std::array<float, 3>& xyzOut,
+                                        std::array<float, 3>& debugPixelIndexOut) const;
         
         bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
                                         const bool includeNonlinearFlag,
-                                        PixelIndex& pixelIndexOut) const;
+                                        PixelIndex& pixelIndexOriginAtTopLeftOut,
+                                        const std::array<float, 3>& debugPixelIndex) const;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
