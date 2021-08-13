@@ -1154,10 +1154,10 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop
          * contained in the NIFTI transform file
          */
         std::array<float, 4> pt {
-            MathFunctions::round(pixelI * m_pixelToStereotaxicTransform.m_pixelScaleI),
-            MathFunctions::round(pixelJ * m_pixelToStereotaxicTransform.m_pixelScaleJ),
-            0.0,
-            1.0
+            static_cast<float>(MathFunctions::round(pixelI * m_pixelToStereotaxicTransform.m_pixelScaleI)),
+            static_cast<float>(MathFunctions::round(pixelJ * m_pixelToStereotaxicTransform.m_pixelScaleJ)),
+            0.0f,
+            1.0f
         };
 
         const int64_t niftiI(pt[0]);
@@ -1375,10 +1375,10 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
          * Note: Keep fractional parts for later convertion to full res pixel indices
          */
         std::array<float, 4> ptRounded {
-            MathFunctions::round(pt[0]),
-            MathFunctions::round(pt[1]),
-            MathFunctions::round(pt[2]),
-            MathFunctions::round(pt[3])
+            static_cast<float>(MathFunctions::round(pt[0])),
+            static_cast<float>(MathFunctions::round(pt[1])),
+            static_cast<float>(MathFunctions::round(pt[2])),
+            static_cast<float>(MathFunctions::round(pt[3]))
         };
 
         CaretLogFine("\n"
