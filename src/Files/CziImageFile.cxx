@@ -1154,8 +1154,8 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop
          * contained in the NIFTI transform file
          */
         std::array<float, 4> pt {
-            ::round(pixelI * m_pixelToStereotaxicTransform.m_pixelScaleI),
-            ::round(pixelJ * m_pixelToStereotaxicTransform.m_pixelScaleJ),
+            MathFunctions::round(pixelI * m_pixelToStereotaxicTransform.m_pixelScaleI),
+            MathFunctions::round(pixelJ * m_pixelToStereotaxicTransform.m_pixelScaleJ),
             0.0,
             1.0
         };
@@ -1327,9 +1327,9 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
          */
         std::array<float, 4> pt { xyz[0], xyz[1], xyz[2], 1.0 };
         m_stereotaxicToPixelTransform.m_sformMatrix->multiplyPoint4(pt.data());
-        pt[0] = ::round(pt[0]);
-        pt[1] = ::round(pt[1]);
-        pt[2] = ::round(pt[2]);
+        pt[0] = MathFunctions::round(pt[0]);
+        pt[1] = MathFunctions::round(pt[1]);
+        pt[2] = MathFunctions::round(pt[2]);
 
         if (includeNonlinearFlag) {
             /*
@@ -1375,10 +1375,10 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
          * Note: Keep fractional parts for later convertion to full res pixel indices
          */
         std::array<float, 4> ptRounded {
-            ::round(pt[0]),
-            ::round(pt[1]),
-            ::round(pt[2]),
-            ::round(pt[3])
+            MathFunctions::round(pt[0]),
+            MathFunctions::round(pt[1]),
+            MathFunctions::round(pt[2]),
+            MathFunctions::round(pt[3])
         };
 
         CaretLogFine("\n"
@@ -1408,9 +1408,9 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
         pt[1] = (m_stereotaxicToPixelTransform.m_yTopToBottomFlag
                  ? pt[1]
                  : (getHeight() - pt[1] - 1));
-        pt[0] = ::round(pt[0]);
-        pt[1] = ::round(pt[1]);
-        pt[2] = ::round(pt[2]);
+        pt[0] = MathFunctions::round(pt[0]);
+        pt[1] = MathFunctions::round(pt[1]);
+        pt[2] = MathFunctions::round(pt[2]);
         
 
         pixelIndexOriginAtTopLeftOut.setIJK(pt[0], pt[1], pt[2]);
