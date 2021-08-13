@@ -66,11 +66,6 @@ namespace caret {
                                       const SceneClass* sceneClass);
         
     protected:
-        virtual void restoreMembers(const SceneAttributes* sceneAttributes,
-                         const SceneClass* sceneClass);
-        
-        virtual void saveMembers(const SceneAttributes* sceneAttributes,
-                         SceneClass* sceneClass);
 
     private:
         void copyHelperIdentifiedItemBase(const IdentifiedItemBase& obj);

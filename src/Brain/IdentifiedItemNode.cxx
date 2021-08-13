@@ -407,13 +407,6 @@ IdentifiedItemNode::saveToScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAssistant->saveMembers(sceneAttributes, sceneClass);
     
-    /*
-     * Save data in parent class.+
-     
-     */
-    saveMembers(sceneAttributes,
-                sceneClass);
-    
     return sceneClass;
 }
 
@@ -441,11 +434,5 @@ IdentifiedItemNode::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
-    
-    /*
-     * Restores data in parent class.
-     */
-    restoreMembers(sceneAttributes,
-                   sceneClass);
 }
 

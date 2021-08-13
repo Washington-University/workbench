@@ -47,9 +47,7 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
-        virtual bool isValid() const;
-        
-//        AString getText() const;
+        virtual bool isValid() const override;
         
         StructureEnum::Enum getStructure() const;
         
@@ -81,13 +79,13 @@ namespace caret {
         
         void setIdentificationSymbolSizeType(const IdentificationSymbolSizeTypeEnum::Enum sizeType);
         
-        virtual AString toString() const;
+        virtual AString toString() const override;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
-                                        const AString& instanceName);
+                                        const AString& instanceName) override;
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
-                                      const SceneClass* sceneClass);
+                                      const SceneClass* sceneClass) override;
         
     private:
         void copyHelperIdentifiedItemNode(const IdentifiedItemNode& obj);

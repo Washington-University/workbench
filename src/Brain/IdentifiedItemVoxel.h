@@ -44,7 +44,7 @@ namespace caret {
 
         IdentifiedItemVoxel& operator=(const IdentifiedItemVoxel& obj);
 
-        virtual bool isValid() const;
+        virtual bool isValid() const override;
         
         void getXYZ(float xyzOut[3]) const;
         
@@ -62,31 +62,16 @@ namespace caret {
         
         void setIdentificationSymbolSizeType(const IdentificationSymbolSizeTypeEnum::Enum sizeType);
         
-        virtual AString toString() const;
+        virtual AString toString() const override;
         
 
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
-                                        const AString& instanceName);
+                                        const AString& instanceName) override;
 
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
-                                      const SceneClass* sceneClass);
-
-          
-          
-          
-          
-          
-// If there will be sub-classes of this class that need to save
-// and restore data from scenes, these pure virtual methods can
-// be uncommented to force their implemetation by sub-classes.
-//    protected: 
-//        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-//                                             SceneClass* sceneClass) = 0;
-//
-//        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-//                                                  const SceneClass* sceneClass) = 0;
+                                      const SceneClass* sceneClass) override;
 
     private:
         void copyHelperIdentifiedItemVoxel(const IdentifiedItemVoxel& obj);

@@ -31,7 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::IdentifiedItemBase
- * \brief Describes an identified item.
+ * \brief Base class for identified items
  */
 
 
@@ -214,7 +214,7 @@ IdentifiedItemBase::saveToScene(const SceneAttributes* sceneAttributes,
                                             "IdentifiedItemBase",
                                             1);
     
-    saveMembers(sceneAttributes, sceneClass);
+    m_sceneAssistant->saveMembers(sceneAttributes, sceneClass);
     
     return sceneClass;
 }
@@ -239,44 +239,7 @@ IdentifiedItemBase::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
-    restoreMembers(sceneAttributes, sceneClass);
-}
-
-/**
- * Restore members (protected function for derived classes).
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    restoring the scene.
- *
- * @param sceneClass
- *     sceneClass for the instance of a class that implements
- *     this interface.
- */
-void
-IdentifiedItemBase::restoreMembers(const SceneAttributes* sceneAttributes,
-                    const SceneClass* sceneClass)
-{
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 }
 
-/**
- * Save members (protected function for derived classes).
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    restoring the scene.
- *
- * @param sceneClass
- *     sceneClass for the instance of a class that implements
- *     this interface.
- */
-void
-IdentifiedItemBase::saveMembers(const SceneAttributes* sceneAttributes,
-                            SceneClass* sceneClass)
-{
-    m_sceneAssistant->saveMembers(sceneAttributes, sceneClass);
-}

@@ -291,16 +291,6 @@ IdentifiedItemVoxel::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    /*
-     * Save data in parent class.
-     */
-    saveMembers(sceneAttributes,
-                sceneClass);
-    
-    // Uncomment if sub-classes must save to scene
-    //saveSubClassDataToScene(sceneAttributes,
-    //                        sceneClass);
-    
     return sceneClass;
 }
 
@@ -326,17 +316,6 @@ IdentifiedItemVoxel::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);    
-    
-    /*
-     * Restores data in parent class.
-     */
-    restoreMembers(sceneAttributes,
-                   sceneClass);
-    
-    //Uncomment if sub-classes must restore from scene
-    //restoreSubClassDataFromScene(sceneAttributes,
-    //                             sceneClass);
-    
+                                     sceneClass);
 }
 
