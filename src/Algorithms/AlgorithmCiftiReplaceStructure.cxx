@@ -219,7 +219,7 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         {
             throw AlgorithmException("unrecognized structure name");
         }
-        if (volSources.find(myStruct) != surfSources.end())
+        if (volSources.find(myStruct) != volSources.end())
         {
             throw AlgorithmException("-volume specified more than once with structure " + structName);//this wasn't previously checked either...
         }
