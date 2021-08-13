@@ -285,9 +285,13 @@ SceneClass*
 IdentifiedItemVoxel::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
-    SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "IdentifiedItemVoxel",
-                                            1);
+//    SceneClass* sceneClass = new SceneClass(instanceName,
+//                                            "IdentifiedItemVoxel",
+//                                            1);
+
+    SceneClass* sceneClass = IdentifiedItemBase::saveToScene(sceneAttributes,
+                                                             instanceName);
+    
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -312,6 +316,9 @@ IdentifiedItemVoxel::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (sceneClass == NULL) {
         return;
     }
+    
+    IdentifiedItemBase::restoreFromScene(sceneAttributes,
+                                          sceneClass);
     
     m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
     

@@ -401,9 +401,12 @@ IdentifiedItemNode::saveToScene(const SceneAttributes* sceneAttributes,
             break;
     }
     
-    SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "IdentifiedItemNode",
-                                            1);
+    SceneClass* sceneClass = IdentifiedItemBase::saveToScene(sceneAttributes,
+                                    instanceName);
+    
+//    SceneClass* sceneClass = new SceneClass(instanceName,
+//                                            "IdentifiedItemNode",
+//                                            1);
     
     m_sceneAssistant->saveMembers(sceneAttributes, sceneClass);
     
@@ -429,6 +432,9 @@ IdentifiedItemNode::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (sceneClass == NULL) {
         return;
     }
+    
+    IdentifiedItemBase::restoreFromScene(sceneAttributes,
+                                         sceneClass);
     
     m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
     
