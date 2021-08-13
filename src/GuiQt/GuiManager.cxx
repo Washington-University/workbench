@@ -3269,7 +3269,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
         updateInformationFlag = true;
     }
     else {
-        IdentifiedItem* identifiedItem = NULL;
+        IdentifiedItemBase* identifiedItem = NULL;
         
         SelectionItemSurfaceNode* idNode = selectionManager->getSurfaceNodeIdentification();
         SelectionItemVoxel* idVoxel = selectionManager->getVoxelIdentification();
@@ -3757,8 +3757,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
         if (identifiedItem == NULL) {
             if ( (! identificationMessage.isEmpty())
                 || ( ! formattedIdentificationMessage.isEmpty())) {
-                identifiedItem = new IdentifiedItem(identificationMessage,
-                                                    formattedIdentificationMessage);
+                identifiedItem = new IdentifiedItemBase(identificationMessage,
+                                                        formattedIdentificationMessage);
             }
         }
         
@@ -3780,8 +3780,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                            ciftiLoadingFormattedMessage);
             }
             else {
-                identifiedItem = new IdentifiedItem(ciftiInfo,
-                                                    ciftiLoadingFormattedMessage);
+                identifiedItem = new IdentifiedItemBase(ciftiInfo,
+                                                        ciftiLoadingFormattedMessage);
             }
         }
         

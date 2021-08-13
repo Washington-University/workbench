@@ -1,5 +1,5 @@
-#ifndef __IDENTIFIED_ITEM_H__
-#define __IDENTIFIED_ITEM_H__
+#ifndef __IDENTIFIED_ITEM_BASE_H__
+#define __IDENTIFIED_ITEM_BASE_H__
 
 /*LICENSE_START*/
 /*
@@ -29,19 +29,19 @@ namespace caret {
 
     class SceneClassAssistant;
     
-    class IdentifiedItem : public CaretObject, public SceneableInterface {
+    class IdentifiedItemBase : public CaretObject, public SceneableInterface {
         
     public:
-        IdentifiedItem();
+        IdentifiedItemBase();
         
-        IdentifiedItem(const AString& simpleText,
+        IdentifiedItemBase(const AString& simpleText,
                        const AString& formattedText);
         
-        virtual ~IdentifiedItem();
+        virtual ~IdentifiedItemBase();
         
-        IdentifiedItem(const IdentifiedItem& obj);
+        IdentifiedItemBase(const IdentifiedItemBase& obj);
 
-        IdentifiedItem& operator=(const IdentifiedItem& obj);
+        IdentifiedItemBase& operator=(const IdentifiedItemBase& obj);
         
 
         // ADD_NEW_METHODS_HERE
@@ -73,7 +73,7 @@ namespace caret {
                          SceneClass* sceneClass);
 
     private:
-        void copyHelperIdentifiedItem(const IdentifiedItem& obj);
+        void copyHelperIdentifiedItemBase(const IdentifiedItemBase& obj);
 
         void initializeMembers();
         
@@ -88,9 +88,9 @@ namespace caret {
         friend class IdentificationManager;
     };
     
-#ifdef __IDENTIFIED_ITEM_DECLARE__
+#ifdef __IDENTIFIED_ITEM_BASE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFIED_ITEM_DECLARE__
+#endif // __IDENTIFIED_ITEM_BASE_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFIED_ITEM_H__
+#endif  //__IDENTIFIED_ITEM_BASE_H__

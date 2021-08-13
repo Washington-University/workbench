@@ -132,7 +132,7 @@ IdentificationSimpleTextGenerator.h
 IdentificationStringBuilder.h
 IdentificationSymbolSizeTypeEnum.h
 IdentificationWithColor.h
-IdentifiedItem.h
+IdentifiedItemBase.h
 IdentifiedItemNode.h
 IdentifiedItemVoxel.h
 ImageDepthPositionEnum.h
@@ -320,7 +320,7 @@ IdentificationSimpleTextGenerator.cxx
 IdentificationStringBuilder.cxx
 IdentificationSymbolSizeTypeEnum.cxx
 IdentificationWithColor.cxx
-IdentifiedItem.cxx
+IdentifiedItemBase.cxx
 IdentifiedItemNode.cxx
 IdentifiedItemVoxel.cxx
 ImageDepthPositionEnum.cxx

@@ -1569,8 +1569,8 @@ UserInputModeViewContextMenu::identifySurfaceBorderSelected()
         tabIndex = this->browserTabContent->getTabNumber();
     }
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
-                                                    this->selectionManager->getFormattedIdentificationText(brain,
+    idManager->addIdentifiedItem(new IdentifiedItemBase(this->selectionManager->getSimpleIdentificationText(brain),
+                                                        this->selectionManager->getFormattedIdentificationText(brain,
                                                                                                            tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
@@ -1681,8 +1681,8 @@ UserInputModeViewContextMenu::identifySurfaceFocusSelected()
         tabIndex = this->browserTabContent->getTabNumber();
     }
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
-                                                    this->selectionManager->getFormattedIdentificationText(brain,
+    idManager->addIdentifiedItem(new IdentifiedItemBase(this->selectionManager->getSimpleIdentificationText(brain),
+                                                        this->selectionManager->getFormattedIdentificationText(brain,
                                                                                                            tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
@@ -1702,8 +1702,8 @@ UserInputModeViewContextMenu::identifyVolumeFocusSelected()
         tabIndex = this->browserTabContent->getTabNumber();
     }
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
-                                                    this->selectionManager->getFormattedIdentificationText(brain,
+    idManager->addIdentifiedItem(new IdentifiedItemBase(this->selectionManager->getSimpleIdentificationText(brain),
+                                                        this->selectionManager->getFormattedIdentificationText(brain,
                                                                                                            tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
@@ -1764,8 +1764,8 @@ UserInputModeViewContextMenu::identifyVoxelSelected()
         tabIndex = this->browserTabContent->getTabNumber();
     }
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
-                                                    this->selectionManager->getFormattedIdentificationText(brain,
+    idManager->addIdentifiedItem(new IdentifiedItemBase(this->selectionManager->getSimpleIdentificationText(brain),
+                                                        this->selectionManager->getFormattedIdentificationText(brain,
                                                                                                            tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }

@@ -23,12 +23,12 @@
 
 
 #include "IdentificationSymbolSizeTypeEnum.h"
-#include "IdentifiedItem.h"
+#include "IdentifiedItemBase.h"
 #include "StructureEnum.h"
 
 namespace caret {
 
-    class IdentifiedItemNode : public IdentifiedItem {
+    class IdentifiedItemNode : public IdentifiedItemBase {
         
     public:
         IdentifiedItemNode();

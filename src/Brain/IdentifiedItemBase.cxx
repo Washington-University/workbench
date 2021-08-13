@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __IDENTIFIED_ITEM_DECLARE__
-#include "IdentifiedItem.h"
-#undef __IDENTIFIED_ITEM_DECLARE__
+#define __IDENTIFIED_ITEM_BASE_DECLARE__
+#include "IdentifiedItemBase.h"
+#undef __IDENTIFIED_ITEM_BASE_DECLARE__
 
 #include "SceneClassAssistant.h"
 
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::IdentifiedItem
+ * \class caret::IdentifiedItemBase
  * \brief Describes an identified item.
  */
 
@@ -39,7 +39,7 @@ using namespace caret;
  * Constructor.
  *
  */
-IdentifiedItem::IdentifiedItem()
+IdentifiedItemBase::IdentifiedItemBase()
 : CaretObject()
 {
     initializeMembers();
@@ -53,7 +53,7 @@ IdentifiedItem::IdentifiedItem()
  * @param formattedText
  *    Formatted text describing the identified item.
  */
-IdentifiedItem::IdentifiedItem(const AString& simpleText,
+IdentifiedItemBase::IdentifiedItemBase(const AString& simpleText,
                                const AString& formattedText)
 : CaretObject()
 {
@@ -65,7 +65,7 @@ IdentifiedItem::IdentifiedItem(const AString& simpleText,
 /**
  * Destructor.
  */
-IdentifiedItem::~IdentifiedItem()
+IdentifiedItemBase::~IdentifiedItemBase()
 {
     delete m_sceneAssistant;
 }
@@ -75,12 +75,12 @@ IdentifiedItem::~IdentifiedItem()
  * @param obj
  *    Object that is copied.
  */
-IdentifiedItem::IdentifiedItem(const IdentifiedItem& obj)
+IdentifiedItemBase::IdentifiedItemBase(const IdentifiedItemBase& obj)
 : CaretObject(obj), SceneableInterface()
 {
     this->initializeMembers();
     
-    this->copyHelperIdentifiedItem(obj);
+    this->copyHelperIdentifiedItemBase(obj);
 }
 
 /**
@@ -90,12 +90,12 @@ IdentifiedItem::IdentifiedItem(const IdentifiedItem& obj)
  * @return 
  *    Reference to this object.
  */
-IdentifiedItem&
-IdentifiedItem::operator=(const IdentifiedItem& obj)
+IdentifiedItemBase&
+IdentifiedItemBase::operator=(const IdentifiedItemBase& obj)
 {
     if (this != &obj) {
         CaretObject::operator=(obj);
-        this->copyHelperIdentifiedItem(obj);
+        this->copyHelperIdentifiedItemBase(obj);
     }
     return *this;    
 }
@@ -104,7 +104,7 @@ IdentifiedItem::operator=(const IdentifiedItem& obj)
  * Initialize a new instance of this class.
  */
 void
-IdentifiedItem::initializeMembers()
+IdentifiedItemBase::initializeMembers()
 {
     m_text.clear();
     
@@ -120,7 +120,7 @@ IdentifiedItem::initializeMembers()
  *    Object that is copied.
  */
 void 
-IdentifiedItem::copyHelperIdentifiedItem(const IdentifiedItem& obj)
+IdentifiedItemBase::copyHelperIdentifiedItemBase(const IdentifiedItemBase& obj)
 {
     m_text = obj.m_text;
 }
@@ -130,7 +130,7 @@ IdentifiedItem::copyHelperIdentifiedItem(const IdentifiedItem& obj)
  * from scene.
  */
 bool
-IdentifiedItem::isValid() const
+IdentifiedItemBase::isValid() const
 {
     if (m_text.isEmpty() == false) {
         return true;
@@ -146,7 +146,7 @@ IdentifiedItem::isValid() const
  *    Formatted text describing the identified item.
  */
 void
-IdentifiedItem::appendText(const AString& simpleText,
+IdentifiedItemBase::appendText(const AString& simpleText,
                            const AString& formattedText)
 {
     m_text += simpleText;
@@ -160,7 +160,7 @@ IdentifiedItem::appendText(const AString& simpleText,
  * Clear the text for this item.
  */
 void
-IdentifiedItem::clearText()
+IdentifiedItemBase::clearText()
 {
     m_text = "";
 }
@@ -169,7 +169,7 @@ IdentifiedItem::clearText()
  * @return The simple text describing the identified item.
  */
 AString
-IdentifiedItem::getSimpleText() const
+IdentifiedItemBase::getSimpleText() const
 {
     return m_text;
 }
@@ -178,7 +178,7 @@ IdentifiedItem::getSimpleText() const
  * @return The formatted text describing the identified item.
  */
 AString
-IdentifiedItem::getFormattedText() const
+IdentifiedItemBase::getFormattedText() const
 {
     return m_formattedText;
 }
@@ -188,7 +188,7 @@ IdentifiedItem::getFormattedText() const
  * @return String describing this object's content.
  */
 AString 
-IdentifiedItem::toString() const
+IdentifiedItemBase::toString() const
 {
     return ("m_text=" + m_text
             + "m_formattedText=" + m_formattedText);
@@ -207,11 +207,11 @@ IdentifiedItem::toString() const
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass*
-IdentifiedItem::saveToScene(const SceneAttributes* sceneAttributes,
+IdentifiedItemBase::saveToScene(const SceneAttributes* sceneAttributes,
                                    const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "IdentifiedItem",
+                                            "IdentifiedItemBase",
                                             1);
     
     saveMembers(sceneAttributes, sceneClass);
@@ -232,7 +232,7 @@ IdentifiedItem::saveToScene(const SceneAttributes* sceneAttributes,
  *     this interface.  May be NULL for some types of scenes.
  */
 void
-IdentifiedItem::restoreFromScene(const SceneAttributes* sceneAttributes,
+IdentifiedItemBase::restoreFromScene(const SceneAttributes* sceneAttributes,
                                         const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
@@ -255,7 +255,7 @@ IdentifiedItem::restoreFromScene(const SceneAttributes* sceneAttributes,
  *     this interface.
  */
 void
-IdentifiedItem::restoreMembers(const SceneAttributes* sceneAttributes,
+IdentifiedItemBase::restoreMembers(const SceneAttributes* sceneAttributes,
                     const SceneClass* sceneClass)
 {
     m_sceneAssistant->restoreMembers(sceneAttributes,
@@ -275,7 +275,7 @@ IdentifiedItem::restoreMembers(const SceneAttributes* sceneAttributes,
  *     this interface.
  */
 void
-IdentifiedItem::saveMembers(const SceneAttributes* sceneAttributes,
+IdentifiedItemBase::saveMembers(const SceneAttributes* sceneAttributes,
                             SceneClass* sceneClass)
 {
     m_sceneAssistant->saveMembers(sceneAttributes, sceneClass);

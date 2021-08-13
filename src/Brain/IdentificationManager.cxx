@@ -138,7 +138,7 @@ IdentificationManager::~IdentificationManager()
  *    structure will be set in the node item.
  */
 void
-IdentificationManager::addIdentifiedItem(IdentifiedItem* item)
+IdentificationManager::addIdentifiedItem(IdentifiedItemBase* item)
 {
     CaretAssert(item);
     
@@ -164,7 +164,7 @@ IdentificationManager::addIdentifiedItem(IdentifiedItem* item)
  *    If true, item is from a scene
  */
 void
-IdentificationManager::addIdentifiedItemPrivate(IdentifiedItem* item,
+IdentificationManager::addIdentifiedItemPrivate(IdentifiedItemBase* item,
                                                 const bool restoringSceneFlag)
 {
     CaretAssert(item);
@@ -187,10 +187,10 @@ IdentificationManager::getIdentificationText() const
 {
     AString text;
     
-    for (std::list<IdentifiedItem*>::const_iterator iter = m_identifiedItems.begin();
+    for (std::list<IdentifiedItemBase*>::const_iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
          iter++) {
-        const IdentifiedItem* item = *iter;
+        const IdentifiedItemBase* item = *iter;
         if (text.isEmpty() == false) {
             text += "<P></P>";
         }
@@ -207,12 +207,12 @@ IdentificationManager::getIdentificationText() const
 void
 IdentificationManager::removeIdentificationText()
 {
-    std::list<IdentifiedItem*> idItemsToKeep;
+    std::list<IdentifiedItemBase*> idItemsToKeep;
     
-    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
          iter++) {
-        IdentifiedItem* item = *iter;
+        IdentifiedItemBase* item = *iter;
         IdentifiedItemNode* nodeItem   = dynamic_cast<IdentifiedItemNode*>(item);
         IdentifiedItemVoxel* voxelItem = dynamic_cast<IdentifiedItemVoxel*>(item);
         if ((nodeItem != NULL)
@@ -246,10 +246,10 @@ IdentificationManager::getNodeIdentifiedItemsForSurface(const StructureEnum::Enu
 {
     std::vector<IdentifiedItemNode> nodeItemsOut;
     
-    for (std::list<IdentifiedItem*>::const_iterator iter = m_identifiedItems.begin();
+    for (std::list<IdentifiedItemBase*>::const_iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
          iter++) {
-        const IdentifiedItem* item = *iter;
+        const IdentifiedItemBase* item = *iter;
         const IdentifiedItemNode* nodeItem = dynamic_cast<const IdentifiedItemNode*>(item);
         if (nodeItem != NULL) {
             if (nodeItem->isValid()) {
@@ -307,10 +307,10 @@ IdentificationManager::getIdentifiedItemsForVolume() const
 {
     std::vector<IdentifiedItemVoxel> itemsOut;
     
-    for (std::list<IdentifiedItem*>::const_iterator iter = m_identifiedItems.begin();
+    for (std::list<IdentifiedItemBase*>::const_iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
          iter++) {
-        const IdentifiedItem* item = *iter;
+        const IdentifiedItemBase* item = *iter;
         const IdentifiedItemVoxel* voxelItem = dynamic_cast<const IdentifiedItemVoxel*>(item);
         if (voxelItem != NULL) {
             if (voxelItem->isValid()) {
@@ -351,10 +351,10 @@ IdentificationManager::removeIdentifiedNodeItem(const StructureEnum::Enum struct
                                                 const int32_t surfaceNumberOfNodes,
                                                 const int32_t nodeIndex)
 {
-    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
          iter++) {
-        IdentifiedItem* item = *iter;
+        IdentifiedItemBase* item = *iter;
         const IdentifiedItemNode* node = dynamic_cast<const IdentifiedItemNode*>(item);
         if (node != NULL) {
             if ((node->getStructure() == structure)
@@ -381,10 +381,10 @@ IdentificationManager::removeIdentifiedVoxelItem(const float xyz[3])
 {
     const float tolerance = 0.01;
     
-    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
          iter++) {
-        IdentifiedItem* item = *iter;
+        IdentifiedItemBase* item = *iter;
         const IdentifiedItemVoxel* voxel = dynamic_cast<const IdentifiedItemVoxel*>(item);
         if (voxel != NULL) {
             if (voxel->isValid()) {
@@ -409,10 +409,10 @@ IdentificationManager::removeIdentifiedVoxelItem(const float xyz[3])
 void
 IdentificationManager::removeAllIdentifiedItems()
 {
-    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
          iter++) {
-        IdentifiedItem* item = *iter;
+        IdentifiedItemBase* item = *iter;
         delete item;
     }
     
@@ -433,23 +433,23 @@ IdentificationManager::removeAllIdentifiedItems()
 void
 IdentificationManager::removeAllIdentifiedSymbols()
 {
-    std::list<IdentifiedItem*> idItemsToKeep;
+    std::list<IdentifiedItemBase*> idItemsToKeep;
     
-    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
          iter++) {
-        IdentifiedItem* item = *iter;
+        IdentifiedItemBase* item = *iter;
         IdentifiedItemNode* nodeItem   = dynamic_cast<IdentifiedItemNode*>(item);
         IdentifiedItemVoxel* voxelItem = dynamic_cast<IdentifiedItemVoxel*>(item);
-        IdentifiedItem* itemToKeep = NULL;
+        IdentifiedItemBase* itemToKeep = NULL;
         if ((nodeItem != NULL)
             || (voxelItem != NULL)) {
             if (m_mostRecentIdentifiedItem == item) {
                 m_mostRecentIdentifiedItem = NULL;
             }
             
-            itemToKeep = new IdentifiedItem(item->getSimpleText(),
-                                            item->getFormattedText());
+            itemToKeep = new IdentifiedItemBase(item->getSimpleText(),
+                                                item->getFormattedText());
             delete item;
         }
         else {
@@ -743,10 +743,10 @@ IdentificationManager::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    for (std::list<IdentifiedItem*>::iterator iter = m_identifiedItems.begin();
+    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
          iter != m_identifiedItems.end();
          iter++) {
-        IdentifiedItem* item = *iter;
+        IdentifiedItemBase* item = *iter;
         sceneClass->addClass(item->saveToScene(sceneAttributes,
                                                "identifiedItem"));
     }
@@ -789,7 +789,7 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             if (sc != NULL) {
                 const AString className = sc->getClassName();
                 if (className == "IdentifiedItem") {
-                    IdentifiedItem* item = new IdentifiedItem();
+                    IdentifiedItemBase* item = new IdentifiedItemBase();
                     item->restoreFromScene(sceneAttributes, sc);
                     if (item->isValid()) {
                         addIdentifiedItemPrivate(item,

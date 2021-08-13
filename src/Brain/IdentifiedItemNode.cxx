@@ -53,7 +53,7 @@ using namespace caret;
  *
  */
 IdentifiedItemNode::IdentifiedItemNode()
-: IdentifiedItem()
+: IdentifiedItemBase()
 {
     initializeMembers();
 }
@@ -80,7 +80,7 @@ IdentifiedItemNode::IdentifiedItemNode(const AString& simpleText,
                                        const StructureEnum::Enum structure,
                                        const int32_t surfaceNumberOfNodes,
                                        const int32_t nodeIndex)
-: IdentifiedItem(simpleText,
+: IdentifiedItemBase(simpleText,
                  formattedText)
 {
     initializeMembers();
@@ -104,7 +104,7 @@ IdentifiedItemNode::~IdentifiedItemNode()
  *    Object that is copied.
  */
 IdentifiedItemNode::IdentifiedItemNode(const IdentifiedItemNode& obj)
-: IdentifiedItem(obj)
+: IdentifiedItemBase(obj)
 {
     initializeMembers();
     this->copyHelperIdentifiedItemNode(obj);
@@ -121,7 +121,7 @@ IdentifiedItemNode&
 IdentifiedItemNode::operator=(const IdentifiedItemNode& obj)
 {
     if (this != &obj) {
-        IdentifiedItem::operator=(obj);
+        IdentifiedItemBase::operator=(obj);
         this->copyHelperIdentifiedItemNode(obj);
     }
     return *this;    
@@ -370,7 +370,7 @@ IdentifiedItemNode::setIdentificationSymbolSizeType(const IdentificationSymbolSi
 AString
 IdentifiedItemNode::toString() const
 {
-    const AString s = (IdentifiedItem::toString()
+    const AString s = (IdentifiedItemBase::toString()
                        + ", m_structure=" + StructureEnum::toName(m_structure)
                        + ", m_contralateralStructure=" + StructureEnum::toName(m_contralateralStructure)
                        + ", m_surfaceNumberOfNodes=" + AString::number(m_surfaceNumberOfNodes)

@@ -34,7 +34,7 @@ namespace caret {
     class CaretPreferences;
     class IdentificationFilter;
     class IdentificationHistoryManager;
-    class IdentifiedItem;
+    class IdentifiedItemBase;
     class IdentifiedItemNode;
     class IdentifiedItemVoxel;
     class SceneClassAssistant;
@@ -46,7 +46,7 @@ namespace caret {
         
         virtual ~IdentificationManager();
         
-        void addIdentifiedItem(IdentifiedItem* item);
+        void addIdentifiedItem(IdentifiedItemBase* item);
         
         AString getIdentificationText() const;
         
@@ -140,18 +140,18 @@ namespace caret {
 
     private:
 
-        void addIdentifiedItemPrivate(IdentifiedItem* item,
+        void addIdentifiedItemPrivate(IdentifiedItemBase* item,
                                       const bool restoringSceneFlag);
         
         // ADD_NEW_MEMBERS_HERE
 
         SceneClassAssistant* m_sceneAssistant;
         
-        std::list<IdentifiedItem*> m_identifiedItems;
+        std::list<IdentifiedItemBase*> m_identifiedItems;
         
         AString m_previousIdentifiedItemsText;
         
-        IdentifiedItem* m_mostRecentIdentifiedItem;
+        IdentifiedItemBase* m_mostRecentIdentifiedItem;
         
         bool m_contralateralIdentificationEnabled;
         

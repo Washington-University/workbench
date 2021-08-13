@@ -23,13 +23,13 @@
 
 
 #include "IdentificationSymbolSizeTypeEnum.h"
-#include "IdentifiedItem.h"
+#include "IdentifiedItemBase.h"
 
 
 namespace caret {
     class SceneClassAssistant;
 
-    class IdentifiedItemVoxel : public IdentifiedItem{
+    class IdentifiedItemVoxel : public IdentifiedItemBase {
         
     public:
         IdentifiedItemVoxel();
