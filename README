@@ -27,7 +27,8 @@ make install
 
 It should be noted that wb_import, provided in the HCP binary releases of Connectome Workbench, is actually part of caret5 (http://brainvis.wustl.edu/wiki/index.php/Caret:Download).
 
-Connectome Workbench itself is licensed under GPLv2 or later, copyright 2014-2021 Washington University School of Medicine, see LICENSE file
+Connectome Workbench source code is licensed under GPLv2 or later, copyright 2014-2021 Washington University School of Medicine, see LICENSE file.
+However, it uses a GPLv3 (or later) library, libCZI, and thus the executables are GPLv3.
 
 Some source files are licensed under an MIT license (Expat), for easier code reuse in non-GPL projects:
 Files/SurfaceResamplingHelper.cxx
@@ -37,6 +38,11 @@ CommandLine/bashcomplete_wb_*
 Copyright (C) 2014-2018 Washington University School of Medicine
 
 Some included code/files are from third party sources, with the following licenses:
+
+CZIlib/*:
+Copyright (C) 2017  Zeiss Microscopy GmbH
+licensed under GPLv3 or later
+some renaming and removal of files
 
 kloewe/*:
 Copyright (c) 2012-2017 Kristian Loewe, Christian Borgelt
@@ -49,7 +55,7 @@ Copyright (C) 1998-2010 Gilles Vollant
 Copyright (C) 2009-2010 Mathias Svensson
 Copyright (C) 2007-2008 Even Rouault
 Copyright (c) 1990-2000 Info-ZIP
-licensed under LGPLv2 and zlib, see Quazip/COPYING, Quazip/quazip.h, Quazip/zip.h and Quazip/unzip.c
+licensed under LGPLv2.1 or later and zlib, see Quazip/COPYING, Quazip/quazip.h, Quazip/zip.h and Quazip/unzip.c
 
 Qwt/*:
 Copyright (C) 1997   Josef Wilgen

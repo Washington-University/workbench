@@ -10,6 +10,10 @@ Files: src/Files/SurfaceResamplingHelper.cxx src/Cifti/examples/* src/CommandLin
 Copyright: 2014-2018 Washington University School of Medicine
 License: Expat
 
+Files: src/CZIlib/*
+Copyright: 2017 Zeiss Microscopy GmbH
+License: GPL-3+
+
 Files: src/kloewe/*
 Copyright: 2012-2017 Kristian Loewe, Christian Borgelt
 License: Expat
