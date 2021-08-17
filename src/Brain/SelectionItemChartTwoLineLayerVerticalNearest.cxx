@@ -23,6 +23,8 @@
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #undef __SELECTION_ITEM_CHART_TWO_LINE_LAYER_VERTICAL_NEAREST_DECLARE__
 
+#include <limits>
+
 #include "CaretAssert.h"
 using namespace caret;
 

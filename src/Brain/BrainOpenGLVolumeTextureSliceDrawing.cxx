@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <cmath>
+#include <limits>
 #include <glm/ext/vector_float4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

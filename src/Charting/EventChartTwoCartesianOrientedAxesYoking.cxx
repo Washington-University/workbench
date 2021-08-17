@@ -23,6 +23,8 @@
 #include "EventChartTwoCartesianOrientedAxesYoking.h"
 #undef __EVENT_CHART_TWO_CARTESIAN_ORIENTED_AXES_YOKING_DECLARE__
 
+#include <limits>
+
 #include "CaretAssert.h"
 #include "ChartTwoCartesianOrientedAxes.h"
 #include "EventManager.h"

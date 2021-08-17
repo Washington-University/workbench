@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <cmath>
+#include <limits>
 
 #define __BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_DECLARE__
 #include "BrainOpenGLVolumeSliceDrawing.h"

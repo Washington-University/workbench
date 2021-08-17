@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <limits>
 #include <set>
 
 #define __CIFTI_MAPPABLE_DATA_FILE_DECLARE__

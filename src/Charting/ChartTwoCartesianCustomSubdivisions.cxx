@@ -23,6 +23,8 @@
 #include "ChartTwoCartesianCustomSubdivisions.h"
 #undef __CHART_TWO_CARTESIAN_CUSTOM_SUBDIVISIONS_DECLARE__
 
+#include <limits>
+
 #include "CaretAssert.h"
 #include "CaretResult.h"
 #include "ChartTwoCartesianCustomSubdivisionsLabel.h"

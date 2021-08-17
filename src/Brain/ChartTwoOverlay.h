@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <array>
+#include <limits>
 #include <memory>
 #include <set>
 
