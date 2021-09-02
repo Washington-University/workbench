@@ -41,6 +41,8 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
         
+        static void setDisableFailureToDeleteWarningMessages(const bool status);
+        
     private:
         EventGraphicsOpenGLDeleteTextureName(const EventGraphicsOpenGLDeleteTextureName&);
 
@@ -48,12 +50,13 @@ namespace caret {
         
         const GraphicsOpenGLTextureName* m_openglTextureName = NULL;
         
+        static bool s_disableFailureToDeleteWarningMessages;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __EVENT_GRAPHICS_OPEN_G_L_DELETE_TEXTURE_NAME_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    bool EventGraphicsOpenGLDeleteTextureName::s_disableFailureToDeleteWarningMessages = false;
 #endif // __EVENT_GRAPHICS_OPEN_G_L_DELETE_TEXTURE_NAME_DECLARE__
 
 } // namespace

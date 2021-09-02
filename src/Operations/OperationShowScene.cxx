@@ -46,6 +46,7 @@
 #include "DataFileException.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserWindowContent.h"
+#include "EventGraphicsOpenGLDeleteTextureName.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventManager.h"
 #include "FileInformation.h"
@@ -195,6 +196,13 @@ void
 OperationShowScene::useParameters(OperationParameters* myParams,
                                   ProgressObject* myProgObj)
 {
+    /*
+     * Kludge to prevent warning message about failure to delete texture.
+     * This is caused by the Mesa Context being deleted prior to a CZI or Image file
+     * being deleted.
+     */
+    EventGraphicsOpenGLDeleteTextureName::setDisableFailureToDeleteWarningMessages(true);
+    
     LevelProgress myProgress(myProgObj);
     AString sceneFileName = FileInformation(myParams->getString(1)).getAbsoluteFilePath();
     AString sceneNameOrNumber = myParams->getString(2);

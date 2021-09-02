@@ -58,6 +58,10 @@ m_openglTextureName(openglTextureName)
  */
 EventGraphicsOpenGLDeleteTextureName::~EventGraphicsOpenGLDeleteTextureName()
 {
+    if (s_disableFailureToDeleteWarningMessages) {
+        return;
+    }
+    
     if (this->getEventProcessCount() <= 0) {
         CaretLogSevere("Deletion of OpenGL Texture Name="
                        + AString::number(m_openglTextureName->getTextureName())
@@ -78,3 +82,14 @@ EventGraphicsOpenGLDeleteTextureName::getOpenGLTextureName() const
     return m_openglTextureName;
 }
 
+/**
+ * Disable the warning messages in the destructor when a texture has not been deleted.
+ * Sort of a kludge.  There is a bug in the -show-scene command that is not easy to fix that will cause this messge.
+ * @param status
+ *    New status for disabling message.
+ */
+void
+EventGraphicsOpenGLDeleteTextureName::setDisableFailureToDeleteWarningMessages(const bool status)
+{
+    s_disableFailureToDeleteWarningMessages = status;
+}
