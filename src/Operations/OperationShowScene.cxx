@@ -458,6 +458,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                      + " failed.");
         }
         
+        
         //
         // Assign buffer to Mesa Context and make current
         //
@@ -474,7 +475,11 @@ OperationShowScene::useParameters(OperationParameters* myParams,
          */
         if (restoreToTabTiles) {
             CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
-            
+            if (iWindow == 0) {
+                CaretLogFine(brainOpenGL->getOpenGLInformation());
+                
+            }
+
             TileTabsLayoutGridConfiguration* gridConfig = NULL; //tileTabsConfiguration->castToGridConfiguration();
             bool manualFlag(false);
             switch (bwc->getTileTabsConfigurationMode()) {
@@ -572,7 +577,11 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         }
         else {
             CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
-            
+            if (iWindow == 0) {
+                CaretLogFine(brainOpenGL->getOpenGLInformation());
+                
+            }
+
             const int32_t selectedTabIndex = bwc->getSceneSelectedTabIndex();
             
             EventBrowserTabGet getTabContent(selectedTabIndex);
