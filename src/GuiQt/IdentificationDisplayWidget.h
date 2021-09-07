@@ -160,9 +160,13 @@ namespace caret {
         
         QWidget* m_symbolsWidget;
         
+        QCheckBox* m_symbolsShowMediaCheckbox;
+        
         QCheckBox* m_symbolsShowSurfaceIdCheckBox;
         
         QCheckBox* m_symbolsShowVolumeIdCheckBox;
+        
+        QCheckBox* m_symbolsShowOtherTypesCheckBox;
         
         CaretColorEnumComboBox* m_symbolsIdColorComboBox;
         
@@ -170,9 +174,13 @@ namespace caret {
         
         EnumComboBoxTemplate* m_symbolSizeTypeComboBox;
         
-        QDoubleSpinBox* m_symbolsIdDiameterSpinBox;
+        QDoubleSpinBox* m_symbolsMillimetersDiameterSpinBox;
         
-        QDoubleSpinBox* m_symbolsMostRecentIdDiameterSpinBox;
+        QDoubleSpinBox* m_symbolsMillimetersMostRecentDiameterSpinBox;
+        
+        QDoubleSpinBox* m_symbolsPercentageDiameterSpinBox;
+        
+        QDoubleSpinBox* m_symbolsPercentageMostRecentDiameterSpinBox;
         
         QCheckBox* m_symbolsSurfaceContralateralVertexCheckBox;
         

@@ -152,6 +152,58 @@ IdentificationWithColor::getItem(const uint8_t rgb[4],
 }
 
 /**
+ * Gets indices associated with an RGB color for any type
+ * @param rgbOut
+ *    Output color components.
+ * @param dataTypeOut
+ *    Type of item found.
+ * @param index1Out
+ *    Set to first index of item.
+ * @param index2
+ *    Set to second index of item.  This paramter
+ *    may be NULL;
+ * @param index3
+ *    Set to third index of item.  This paramter
+ *    may be NULL;
+ */
+void
+IdentificationWithColor::getItemAnyType(const uint8_t rgb[4],
+                                        SelectionItemDataTypeEnum::Enum& dataTypeOut,
+                                        int32_t* index1Out,
+                                        int32_t* index2Out,
+                                        int32_t* index3Out) const
+{
+    dataTypeOut = SelectionItemDataTypeEnum::INVALID;
+    
+    CaretAssert(index1Out);
+    
+    const int32_t integerValue = IdentificationWithColor::decodeIntegerFromRGB(rgb);
+    
+    *index1Out = -1;
+    if (index2Out != NULL) {
+        *index2Out = -1;
+    }
+    if (index3Out != NULL) {
+        *index3Out = -1;
+    }
+    
+    if ((integerValue < 0) ||
+        (integerValue >= this->itemCounter)) {
+        return;
+    }
+    
+    const Item& item = this->items[integerValue];
+    dataTypeOut = item.dataType;
+    *index1Out = item.index1;
+    if (index2Out != NULL) {
+        *index2Out = item.index2;
+    }
+    if (index3Out != NULL) {
+        *index3Out = item.index3;
+    }
+}
+
+/**
  * Reset for a new round of identification.
  * @param estimatedNumberOfItems
  *   The estimated number of items.  Must be non-negative

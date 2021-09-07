@@ -26,6 +26,7 @@
 
 #include "CaretColorEnum.h"
 #include "IdentificationSymbolSizeTypeEnum.h"
+#include "IdentifiedItemUniversalTypeEnum.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
 
@@ -34,11 +35,10 @@ namespace caret {
     class CaretPreferences;
     class IdentificationFilter;
     class IdentificationHistoryManager;
-    class IdentifiedItemBase;
-    class IdentifiedItemNode;
-    class IdentifiedItemVoxel;
+    class IdentifiedItemUniversal;
     class SceneClassAssistant;
-    
+    class SelectionItem;
+
     class IdentificationManager : public SceneableInterface {
         
     public:
@@ -46,7 +46,7 @@ namespace caret {
         
         virtual ~IdentificationManager();
         
-        void addIdentifiedItem(IdentifiedItemBase* item);
+        void addIdentifiedItem(IdentifiedItemUniversal* item);
         
         AString getIdentificationText() const;
         
@@ -58,16 +58,16 @@ namespace caret {
         
         IdentificationHistoryManager* getIdentificationHistoryManager();
         
-        std::vector<IdentifiedItemNode> getNodeIdentifiedItemsForSurface(const StructureEnum::Enum structure,
-                                                                         const int32_t surfaceNumberOfNodes) const;
+        std::vector<const IdentifiedItemUniversal*> getIdentifiedItems() const;
         
-        std::vector<IdentifiedItemVoxel> getIdentifiedItemsForVolume() const;
+        void getIdentifiedItemColorAndSize(const IdentifiedItemUniversal* item,
+                                           const IdentifiedItemUniversalTypeEnum::Enum drawingOnType,
+                                           const float referenceHeight,
+                                           const bool contralateralSurfaceFlag,
+                                           std::array<uint8_t, 4>& rgbaOut,
+                                           float& symbolDiameterOut) const;
         
-        void removeIdentifiedNodeItem(const StructureEnum::Enum structure,
-                                      const int32_t surfaceNumberOfNodes,
-                                      const int32_t nodeIndex);
-        
-        void removeIdentifiedVoxelItem(const float xyz[3]);
+        bool removeIdentifiedItem(const SelectionItem* selectedItem);
         
         void removeIdentificationText();
         
@@ -107,6 +107,10 @@ namespace caret {
         
         void setIdentificationContralateralSymbolColor(const CaretColorEnum::Enum color);
         
+        bool isShowMediaIdentificationSymbols() const;
+        
+        void setShowMediaIdentificationSymbols(const bool showMediaIdenficationSymbols);
+        
         bool isShowSurfaceIdentificationSymbols() const;
         
         void setShowSurfaceIdentificationSymbols(const bool showSurfaceIdentificationSymbols);
@@ -114,6 +118,10 @@ namespace caret {
         bool isShowVolumeIdentificationSymbols() const;
         
         void setShowVolumeIdentificationSymbols(const bool showVolumeIdentificationSymbols);
+        
+        bool isShowOtherTypeIdentificationSymbols() const;
+        
+        void setShowOtherTypeIdentificationSymbols(const bool showOtherTypeIdentificationSymbols);
         
         float getChartLineLayerSymbolSize() const;
         
@@ -140,18 +148,18 @@ namespace caret {
 
     private:
 
-        void addIdentifiedItemPrivate(IdentifiedItemBase* item,
+        void addIdentifiedItemPrivate(IdentifiedItemUniversal* item,
                                       const bool restoringSceneFlag);
         
         // ADD_NEW_MEMBERS_HERE
 
         SceneClassAssistant* m_sceneAssistant;
         
-        std::list<IdentifiedItemBase*> m_identifiedItems;
+        std::list<std::unique_ptr<IdentifiedItemUniversal>> m_identifiedItems;
         
         AString m_previousIdentifiedItemsText;
         
-        IdentifiedItemBase* m_mostRecentIdentifiedItem;
+        IdentifiedItemUniversal* m_mostRecentIdentifiedItem = NULL;
         
         bool m_contralateralIdentificationEnabled;
         
@@ -177,11 +185,17 @@ namespace caret {
         
         std::unique_ptr<IdentificationHistoryManager> m_identificationHistoryManager;
         
+        /** show media identification symbols*/
+        bool m_showMediaIdentificationSymbols;
+
         /** show surface identification symbols*/
         bool m_showSurfaceIdentificationSymbols;
         
         /** show volume identification symbols*/
         bool m_showVolumeIdentificationSymbols;
+        
+        /** show identification symbols from other types (eg: volume symbols on surfaces)*/
+        bool m_showOtherTypeIdentificationSymbols;
     };
     
 #ifdef __IDENTIFICATION_MANAGER_DECLARE__

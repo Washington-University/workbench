@@ -243,6 +243,10 @@ namespace caret {
         
         void setManageFilesViewFileType(const SpecFileDialogViewFilesTypeEnum::Enum manageFilesViewFileType);
         
+        bool isShowMediaIdentificationSymbols() const;
+        
+        void setShowMediaIdentificationSymbols(const bool showSymbols);
+        
         bool isShowSurfaceIdentificationSymbols() const;
         
         void setShowSurfaceIdentificationSymbols(const bool showSymbols);
@@ -434,6 +438,8 @@ namespace caret {
         
         bool volumeIdentificationDefaultedOn;
         
+        bool showMediaIdentificationSymbols;
+        
         bool showSurfaceIdentificationSymbols;
         
         bool showVolumeIdentificationSymbols;
@@ -497,6 +503,7 @@ namespace caret {
         static const AString NAME_REMOTE_FILE_USER_NAME;
         static const AString NAME_REMOTE_FILE_PASSWORD;
         static const AString NAME_REMOTE_FILE_LOGIN_SAVED;
+        static const AString NAME_SHOW_MEDIA_IDENTIFICATION_SYMBOLS;
         static const AString NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS;
         static const AString NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS;
         static const AString NAME_TILE_TABS_CONFIGURATIONS;
@@ -554,6 +561,7 @@ namespace caret {
     const AString CaretPreferences::NAME_REMOTE_FILE_USER_NAME = "remoteFileUserName";
     const AString CaretPreferences::NAME_REMOTE_FILE_PASSWORD = "remoteFilePassword";
     const AString CaretPreferences::NAME_REMOTE_FILE_LOGIN_SAVED = "removeFileLoginSaved";
+    const AString CaretPreferences::NAME_SHOW_MEDIA_IDENTIFICATION_SYMBOLS = "showMediaIdentificationSymbols";
     const AString CaretPreferences::NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS = "showSurfaceIdentificationSymbols";
     const AString CaretPreferences::NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS = "showVolumeIdentificationSymbols";
     const AString CaretPreferences::NAME_TILE_TABS_CONFIGURATIONS = "tileTabsConfigurations";

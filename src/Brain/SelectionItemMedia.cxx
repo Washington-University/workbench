@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __SELECTION_ITEM_CZI_IMAGE_DECLARE__
-#include "SelectionItemCziImage.h"
-#undef __SELECTION_ITEM_CZI_IMAGE_DECLARE__
+#define __SELECTION_ITEM_MEDIA_DECLARE__
+#include "SelectionItemMedia.h"
+#undef __SELECTION_ITEM_MEDIA_DECLARE__
 
 #include "CziImageFile.h"
 
@@ -30,14 +30,14 @@ using namespace caret;
 
     
 /**
- * \class SelectionItemCziImage
- * \brief Contains information about the selected image.
+ * \class SelectionItemMedia
+ * \brief Contains information about the selected media.
  */
 /**
  * Constructor.
  */
-SelectionItemCziImage::SelectionItemCziImage()
-: SelectionItem(SelectionItemDataTypeEnum::CZI_IMAGE)
+SelectionItemMedia::SelectionItemMedia()
+: SelectionItem(SelectionItemDataTypeEnum::MEDIA)
 {
     resetPrivate();
 }
@@ -45,26 +45,26 @@ SelectionItemCziImage::SelectionItemCziImage()
 /**
  * Destructor.
  */
-SelectionItemCziImage::~SelectionItemCziImage()
+SelectionItemMedia::~SelectionItemMedia()
 {
 }
 
 /**
- * @return The pixel index with origin at bottom of image.
+ * @return The pixel index with origin at bottom of media.
  * OpenGL typically has origin at bottom left.
  */
 PixelIndex
-SelectionItemCziImage::getPixelIndexOriginAtBottom() const
+SelectionItemMedia::getPixelIndexOriginAtBottom() const
 {
     return m_pixelIndexOriginAtBottom;
 }
 
 /**
- * @return The pixel index with origin at top of image.
+ * @return The pixel index with origin at top of media.
  * Images typcially have the origin at the top left.
  */
 PixelIndex
-SelectionItemCziImage::getPixelIndexOriginAtTop() const
+SelectionItemMedia::getPixelIndexOriginAtTop() const
 {
     return m_pixelIndexOriginAtTop;
 }
@@ -77,7 +77,7 @@ SelectionItemCziImage::getPixelIndexOriginAtTop() const
  *    The pixel index with origin at top
  */
 void
-SelectionItemCziImage::setPixelIndex(const PixelIndex& pixelIndexOriginAtBottom,
+SelectionItemMedia::setPixelIndex(const PixelIndex& pixelIndexOriginAtBottom,
                                      const PixelIndex& pixelIndexOriginAtTop)
 {
     m_pixelIndexOriginAtBottom = pixelIndexOriginAtBottom;
@@ -88,7 +88,7 @@ SelectionItemCziImage::setPixelIndex(const PixelIndex& pixelIndexOriginAtBottom,
  * @param The tab index.
  */
 int32_t
-SelectionItemCziImage::getTabIndex() const
+SelectionItemMedia::getTabIndex() const
 {
     return m_tabIndex;
 }
@@ -99,7 +99,7 @@ SelectionItemCziImage::getTabIndex() const
  *    Index of the tab.
  */
 void
-SelectionItemCziImage::setTabIndex(const int32_t tabIndex)
+SelectionItemMedia::setTabIndex(const int32_t tabIndex)
 {
     m_tabIndex = tabIndex;
 }
@@ -113,7 +113,7 @@ SelectionItemCziImage::setTabIndex(const int32_t tabIndex)
  *     True if the RGBA values are valid
  */
 bool
-SelectionItemCziImage::getPixelRGBA(uint8_t pixelRGBAOut[4]) const
+SelectionItemMedia::getPixelRGBA(uint8_t pixelRGBAOut[4]) const
 {
     pixelRGBAOut[0] = m_pixelRGBA[0];
     pixelRGBAOut[1] = m_pixelRGBA[1];
@@ -129,7 +129,7 @@ SelectionItemCziImage::getPixelRGBA(uint8_t pixelRGBAOut[4]) const
  *     Pixel RGBA.
  */
 void
-SelectionItemCziImage::setPixelRGBA(const uint8_t pixelRGBA[4])
+SelectionItemMedia::setPixelRGBA(const uint8_t pixelRGBA[4])
 {
     m_pixelRGBA[0] = pixelRGBA[0];
     m_pixelRGBA[1] = pixelRGBA[1];
@@ -139,11 +139,31 @@ SelectionItemCziImage::setPixelRGBA(const uint8_t pixelRGBA[4])
 }
 
 /**
+ * Get the stereotaxic coordinate of the selected pixel
+ * @param stereotaxicXYZOut
+ *   Output containing the coordinate
+ * @return True if output coordinate is valid, else false.
+ */
+bool
+SelectionItemMedia::getStereotaxicXYZ(std::array<float, 3>& stereotaxicXYZOut)
+{
+    const CziImageFile* cziImageFile = m_mediaFile->castToCziImageFile();
+    if (cziImageFile != NULL) {
+        std::array<float, 3> debugPixelIndex;
+        return cziImageFile->pixelIndexToStereotaxicXYZ(m_pixelIndexOriginAtTop,
+                                                        true,
+                                                        stereotaxicXYZOut,
+                                                        debugPixelIndex);
+    }
+    return false;
+}
+
+/**
   * Reset this selection item.
  * This method is virtual so cannot be called from constructor.
   */
 void
-SelectionItemCziImage::reset()
+SelectionItemMedia::reset()
 {
     SelectionItem::reset();
     resetPrivate();
@@ -153,9 +173,9 @@ SelectionItemCziImage::reset()
  * Reset this selection item.
  */
 void
-SelectionItemCziImage::resetPrivate()
+SelectionItemMedia::resetPrivate()
 {
-    m_imageFile = NULL;
+    m_mediaFile = NULL;
     m_pixelIndexOriginAtBottom.setIJK(-1, -1, -1);
     m_pixelIndexOriginAtTop.setIJK(-1, -1, -1);
     m_pixelRGBA[0] = 0;
@@ -169,39 +189,39 @@ SelectionItemCziImage::resetPrivate()
  * @return Is this selected item valid?
  */
 bool 
-SelectionItemCziImage::isValid() const
+SelectionItemMedia::isValid() const
 {
-    return (m_imageFile != NULL);
+    return (m_mediaFile != NULL);
 }
 
 /**
  * @return Image that was selected (NULL if not valid).
  */
-const CziImageFile*
-SelectionItemCziImage::getCziImageFile() const
+const MediaFile*
+SelectionItemMedia::getMediaFile() const
 {
-    return m_imageFile;
+    return m_mediaFile;
 }
 
 /**
  * @return Image that was selected (NULL if not valid).
  */
-CziImageFile*
-SelectionItemCziImage::getCziImageFile()
+MediaFile*
+SelectionItemMedia::getMediaFile()
 {
-    return m_imageFile;
+    return m_mediaFile;
 }
 
 /**
- * Set the image that was selected.
+ * Set the media that was selected.
  *
- * @param imageFile
- *    Pointer to selected image (NULL if not valid).
+ * @param mediaFile
+ *    Pointer to selected media (NULL if not valid).
  */
 void 
-SelectionItemCziImage::setCziImageFile(CziImageFile* imageFile)
+SelectionItemMedia::setMediaFile(MediaFile* mediaFile)
 {
-    m_imageFile = imageFile;
+    m_mediaFile = mediaFile;
 }
 
 
@@ -210,9 +230,9 @@ SelectionItemCziImage::setCziImageFile(CziImageFile* imageFile)
  * @return String describing m_ object's content.
  */
 AString
-SelectionItemCziImage::toString() const
+SelectionItemMedia::toString() const
 {
     AString text = SelectionItem::toString();
-    text += ("CziImageFile: " + ((m_imageFile != NULL) ? m_imageFile->getFileNameNoPath() : "INVALID") + "\n");
+    text += ("Media File: " + ((m_mediaFile != NULL) ? m_mediaFile->getFileNameNoPath() : "INVALID") + "\n");
     return text;
 }

@@ -63,12 +63,10 @@ using namespace caret;
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiLabelTableSelectionComboBox.h"
 #include "GuiManager.h"
-#include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
 #include "ImageFile.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
-#include "SelectionItemCziImage.h"
-#include "SelectionItemImage.h"
+#include "SelectionItemMedia.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -366,8 +364,8 @@ IdentifyBrainordinateDialog::createCiftiParcelWidget()
     ciftiParcelLayout->addWidget(m_ciftiParcelFileLabel, 0, COLUMN_LABEL);
     ciftiParcelLayout->addWidget(m_ciftiParcelFileComboBox, 0, COLUMN_MAP_LEFT, 1, 2);
     ciftiParcelLayout->addWidget(m_ciftiParcelFileMapLabel, 1, COLUMN_LABEL);
-    ciftiParcelLayout->addWidget(m_ciftiParcelFileMapSpinBox, 1, COLUMN_MAP_LEFT); //, Qt::AlignLeft);
-    ciftiParcelLayout->addWidget(m_ciftiParcelFileMapComboBox, 1, COLUMN_MAP_RIGHT); //, Qt::AlignLeft);
+    ciftiParcelLayout->addWidget(m_ciftiParcelFileMapSpinBox, 1, COLUMN_MAP_LEFT);
+    ciftiParcelLayout->addWidget(m_ciftiParcelFileMapComboBox, 1, COLUMN_MAP_RIGHT);
     ciftiParcelLayout->addWidget(m_ciftiParcelFileParcelLabel, 2, COLUMN_LABEL);
     ciftiParcelLayout->addWidget(m_ciftiParcelFileParcelNameComboBox->getWidget(), 2, COLUMN_MAP_LEFT, 1, 2);
     ciftiParcelLayout->setRowStretch(1000, 1000);
@@ -472,8 +470,8 @@ IdentifyBrainordinateDialog::createLabelFilesWidget(const std::vector<DataFileTy
     labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileLabel, 0, COLUMN_LABEL);
     labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileComboBox, 0, COLUMN_MAP_LEFT, 1, 2);
     labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileMapLabel, 1, COLUMN_LABEL);
-    labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileMapSpinBox, 1, COLUMN_MAP_LEFT); //, Qt::AlignLeft);
-    labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileMapComboBox, 1, COLUMN_MAP_RIGHT); //, Qt::AlignLeft);
+    labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileMapSpinBox, 1, COLUMN_MAP_LEFT);
+    labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileMapComboBox, 1, COLUMN_MAP_RIGHT);
     labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileLabellLabel, 2, COLUMN_LABEL);
     labelWidgetLayout->addWidget(m_labelFileWidgets.m_fileLabelComboBox->getWidget(), 2, COLUMN_MAP_LEFT, 1, 2);
     labelWidgetLayout->setRowStretch(1000, 1000);
@@ -801,36 +799,23 @@ IdentifyBrainordinateDialog::processImagePixelSelection(AString& errorMessage)
     const CaretDataFile* mapFile = m_imageFileSelectionModel->getSelectedFile();
     if (mapFile != NULL) {
         SelectionManager* selectionManager = GuiManager::get()->getBrain()->getSelectionManager();
-        const CziImageFile* cziImageFile = mapFile->castToCziImageFile();
-        const ImageFile* imageFile = mapFile->castToImageFile();
+        const MediaFile* mediaFile = mapFile->castToMediaFile();
         const int64_t pixelI = m_imagePixelISpinBox->value();
         const int64_t pixelJ = m_imagePixelJSpinBox->value();
         SelectionItem* selectionItem(NULL);
-        if (cziImageFile != NULL) {
-            SelectionItemCziImage* imageID = selectionManager->getCziImageIdentification();
-            imageID->reset();
-            imageID->setCziImageFile(const_cast<CziImageFile*>(cziImageFile));
+        if (mediaFile != NULL) {
+            SelectionItemMedia* mediaID = selectionManager->getMediaIdentification();
+            mediaID->reset();
+            mediaID->setMediaFile(const_cast<MediaFile*>(mediaFile));
             PixelIndex pixelIndexOriginAtTop(pixelI,
                                              pixelJ,
                                              0);
             PixelIndex pixelIndexOriginAtBottom(pixelI,
-                                                cziImageFile->getHeight() - pixelJ - 1,
+                                                mediaFile->getHeight() - pixelJ - 1,
                                                 0);
-            imageID->setPixelIndex(pixelIndexOriginAtBottom,
+            mediaID->setPixelIndex(pixelIndexOriginAtBottom,
                                    pixelIndexOriginAtTop);
-            selectionItem = imageID;
-        }
-        else if (imageFile != NULL) {
-            SelectionItemImage* imageID = selectionManager->getImageIdentification();
-            imageID->reset();
-            imageID->setImageFile(const_cast<ImageFile*>(imageFile));
-            imageID->setPixelI(pixelI);
-            imageID->setPixelJ(pixelJ);
-            PixelIndex pixelIndex(pixelI,
-                                  imageFile->getHeight() - pixelJ,
-                                  0);
-            imageID->setPixelIndex(pixelIndex);
-            selectionItem = imageID;
+            selectionItem = mediaID;
         }
         else {
             errorMessage = ("Unrecognized image file type "

@@ -120,7 +120,7 @@ namespace caret {
         bool getImagePixelRGBA(const int32_t tabIndex,
                                const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
                                const PixelIndex& pixelIndex,
-                               uint8_t pixelRGBAOut[4]) const;
+                               uint8_t pixelRGBAOut[4]) const override;
         
         PixelCoordinate getPixelSizeInMillimeters() const;
         
@@ -135,6 +135,24 @@ namespace caret {
         void reloadPyramidLayerInTab(const int32_t tabIndex);
         
         virtual void receiveEvent(Event* event) override;
+        
+        virtual bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
+                                        const bool includeNonlinearFlag,
+                                        std::array<float, 3>& xyzOut) const override;
+        
+        virtual bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+                                        const bool includeNonlinearFlag,
+                                        PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
+        
+        bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
+                                        const bool includeNonlinearFlag,
+                                        std::array<float, 3>& xyzOut,
+                                        std::array<float, 3>& debugPixelIndexOut) const;
+        
+        bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+                                        const bool includeNonlinearFlag,
+                                        PixelIndex& pixelIndexOriginAtTopLeftOut,
+                                        const std::array<float, 3>& debugPixelIndex) const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -237,16 +255,6 @@ namespace caret {
         
         void loadNiftiTransformFile(const AString& filename,
                                     NiftiTransform& transform) const;
-        
-        bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
-                                        const bool includeNonlinearFlag,
-                                        std::array<float, 3>& xyzOut,
-                                        std::array<float, 3>& debugPixelIndexOut) const;
-        
-        bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
-                                        const bool includeNonlinearFlag,
-                                        PixelIndex& pixelIndexOriginAtTopLeftOut,
-                                        const std::array<float, 3>& debugPixelIndex) const;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 

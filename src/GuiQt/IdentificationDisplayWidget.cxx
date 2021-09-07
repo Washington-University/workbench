@@ -520,30 +520,22 @@ IdentificationDisplayWidget::updateSymbolsWidget()
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* info = brain->getIdentificationManager();
     
+    m_symbolsShowMediaCheckbox->setChecked(info->isShowMediaIdentificationSymbols());
     m_symbolsShowSurfaceIdCheckBox->setChecked(info->isShowSurfaceIdentificationSymbols());
     m_symbolsShowVolumeIdCheckBox->setChecked(info->isShowVolumeIdentificationSymbols());
+    m_symbolsShowOtherTypesCheckBox->setChecked(info->isShowOtherTypeIdentificationSymbols());
     m_symbolsSurfaceContralateralVertexCheckBox->setChecked(info->isContralateralIdentificationEnabled());
 
     m_symbolsIdColorComboBox->setSelectedColor(info->getIdentificationSymbolColor());
     m_symbolsContralateralIdColorComboBox->setSelectedColor(info->getIdentificationContralateralSymbolColor());
     m_symbolSizeTypeComboBox->setSelectedItem<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>(info->getIdentificationSymbolSizeType());
 
-    QSignalBlocker symbolSizeBlocker(m_symbolsIdDiameterSpinBox);
-    QSignalBlocker recentSymbolSizeBlocker(m_symbolsMostRecentIdDiameterSpinBox);
-    switch (info->getIdentificationSymbolSizeType()) {
-        case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
-            m_symbolsIdDiameterSpinBox->setValue(info->getIdentificationSymbolSize());
-            m_symbolsMostRecentIdDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolSize());
-            m_symbolsIdDiameterSpinBox->setSuffix("mm");
-            m_symbolsMostRecentIdDiameterSpinBox->setSuffix("mm");
-            break;
-        case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
-            m_symbolsIdDiameterSpinBox->setValue(info->getIdentificationSymbolPercentageSize());
-            m_symbolsMostRecentIdDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolPercentageSize());
-            m_symbolsIdDiameterSpinBox->setSuffix("%");
-            m_symbolsMostRecentIdDiameterSpinBox->setSuffix("%");
-            break;
-    }
+    QSignalBlocker symbolSizeBlocker(m_symbolsMillimetersDiameterSpinBox);
+    QSignalBlocker recentSymbolSizeBlocker(m_symbolsMillimetersMostRecentDiameterSpinBox);
+    m_symbolsMillimetersDiameterSpinBox->setValue(info->getIdentificationSymbolSize());
+    m_symbolsMillimetersMostRecentDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolSize());
+    m_symbolsPercentageDiameterSpinBox->setValue(info->getIdentificationSymbolPercentageSize());
+    m_symbolsPercentageMostRecentDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolPercentageSize());
 }
 
 /**
@@ -552,12 +544,19 @@ IdentificationDisplayWidget::updateSymbolsWidget()
 QWidget*
 IdentificationDisplayWidget::createSymbolsWidget()
 {
+    m_symbolsShowMediaCheckbox = new QCheckBox("Show Media ID Symbols");
+    m_symbolsShowMediaCheckbox->setToolTip("<html>Enable display of media identification symbols</html>");
+    
     m_symbolsShowSurfaceIdCheckBox = new QCheckBox("Show Surface ID Symbols");
     m_symbolsShowSurfaceIdCheckBox->setToolTip("<html>Enable display of surface identification symbols</html>");
 
     m_symbolsShowVolumeIdCheckBox = new QCheckBox("Show Volume ID Symbols");
     m_symbolsShowVolumeIdCheckBox->setToolTip("<html>Enable display of volume identification symbols</html>");
 
+    m_symbolsShowOtherTypesCheckBox = new QCheckBox("Show Symbols on Other Types");
+    m_symbolsShowOtherTypesCheckBox->setToolTip("<html>Show symbols on other types of models "
+                                                "(ie: show ID symbols when viewing a surface</html>");
+    
     m_symbolsSurfaceContralateralVertexCheckBox = new QCheckBox("Show Surface Contralateral");
     m_symbolsSurfaceContralateralVertexCheckBox->setToolTip("<html>Enable display of contralateral surface identification symbols</html>");
 
@@ -573,43 +572,77 @@ IdentificationDisplayWidget::createSymbolsWidget()
                                                                                 this);
     m_symbolsContralateralIdColorComboBox->setToolTip("<html>Set color of identification symbol on contralateral surface</html>");
     
-    QLabel* symbolSizeTypeLabel = new QLabel("Diameter Type:");
+    QLabel* symbolSizeTypeLabel = new QLabel("Surf/Vol Diameter:");
     m_symbolSizeTypeComboBox = new EnumComboBoxTemplate(this);
     m_symbolSizeTypeComboBox->setup<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>();
     QObject::connect(m_symbolSizeTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &IdentificationDisplayWidget::symbolSizeTypeComboBoxActivated);
-    m_symbolSizeTypeComboBox->setToolTip(IdentificationSymbolSizeTypeEnum::getToolTip("identification"));
+    QString sizeTypeToolTip(IdentificationSymbolSizeTypeEnum::getToolTip("identification"));
+    const int endHtmlIndex(sizeTypeToolTip.indexOf("</html>"));
+    if (endHtmlIndex >= 0) {
+        sizeTypeToolTip.insert(endHtmlIndex,
+                               "<p>Identification symbols on images always use Percentage.");
+    }
+    m_symbolSizeTypeComboBox->setToolTip(sizeTypeToolTip);
+    
+    const int spinBoxWidth(70);
     
     QLabel* symbolDiameterLabel = new QLabel("Diameter:");
-    m_symbolsIdDiameterSpinBox = new QDoubleSpinBox();
-    m_symbolsIdDiameterSpinBox->setRange(0.1, 1000.0);
-    m_symbolsIdDiameterSpinBox->setSingleStep(0.1);
-    m_symbolsIdDiameterSpinBox->setDecimals(1);
-    m_symbolsIdDiameterSpinBox->setSuffix("mm");
-    m_symbolsIdDiameterSpinBox->setToolTip("<html>Set diameter of identification symbols</html>");
+    m_symbolsMillimetersDiameterSpinBox = new QDoubleSpinBox();
+    m_symbolsMillimetersDiameterSpinBox->setRange(0.1, 1000.0);
+    m_symbolsMillimetersDiameterSpinBox->setSingleStep(0.1);
+    m_symbolsMillimetersDiameterSpinBox->setDecimals(1);
+    m_symbolsMillimetersDiameterSpinBox->setSuffix("mm");
+    m_symbolsMillimetersDiameterSpinBox->setToolTip("<html>Set millimeter diameter of identification symbols</html>");
+    m_symbolsMillimetersDiameterSpinBox->setFixedWidth(spinBoxWidth);
     
+    m_symbolsPercentageDiameterSpinBox = new QDoubleSpinBox();
+    m_symbolsPercentageDiameterSpinBox->setRange(0.1, 100.0);
+    m_symbolsPercentageDiameterSpinBox->setSingleStep(0.1);
+    m_symbolsPercentageDiameterSpinBox->setDecimals(1);
+    m_symbolsPercentageDiameterSpinBox->setSuffix("%");
+    m_symbolsPercentageDiameterSpinBox->setToolTip("<html>Set percentage diameter of identification symbols<br>"
+                                                   "Images symbols are always percentage diameter</html>");
+    m_symbolsPercentageDiameterSpinBox->setFixedWidth(spinBoxWidth);
+
     QLabel* mostRecentSymbolDiameterLabel = new QLabel("Most Recent:");
-    m_symbolsMostRecentIdDiameterSpinBox = new QDoubleSpinBox();
-    m_symbolsMostRecentIdDiameterSpinBox->setRange(0.1, 1000.0);
-    m_symbolsMostRecentIdDiameterSpinBox->setSingleStep(0.1);
-    m_symbolsMostRecentIdDiameterSpinBox->setDecimals(1);
-    m_symbolsMostRecentIdDiameterSpinBox->setSuffix("mm");
-    m_symbolsMostRecentIdDiameterSpinBox->setToolTip("<html>Set diamater of most recent identification symbol</html>");
-    
+    m_symbolsMillimetersMostRecentDiameterSpinBox = new QDoubleSpinBox();
+    m_symbolsMillimetersMostRecentDiameterSpinBox->setRange(0.1, 1000.0);
+    m_symbolsMillimetersMostRecentDiameterSpinBox->setSingleStep(0.1);
+    m_symbolsMillimetersMostRecentDiameterSpinBox->setDecimals(1);
+    m_symbolsMillimetersMostRecentDiameterSpinBox->setSuffix("mm");
+    m_symbolsMillimetersMostRecentDiameterSpinBox->setToolTip("<html>Set millimeter diamater of most recent identification symbol</html>");
+    m_symbolsMillimetersMostRecentDiameterSpinBox->setFixedWidth(spinBoxWidth);
+
+    m_symbolsPercentageMostRecentDiameterSpinBox = new QDoubleSpinBox();
+    m_symbolsPercentageMostRecentDiameterSpinBox->setRange(0.1, 100.0);
+    m_symbolsPercentageMostRecentDiameterSpinBox->setSingleStep(0.1);
+    m_symbolsPercentageMostRecentDiameterSpinBox->setDecimals(1);
+    m_symbolsPercentageMostRecentDiameterSpinBox->setSuffix("%");
+    m_symbolsPercentageMostRecentDiameterSpinBox->setToolTip("<html>Set percentage diamater of most recent identification symbol<br>"
+                                                             "Images symbols are always percentage diameter</html>");
+    m_symbolsPercentageMostRecentDiameterSpinBox->setFixedWidth(spinBoxWidth);
+
     WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);
     QObject::connect(signalWatcher, &WuQValueChangedSignalWatcher::valueChanged,
                      this, &IdentificationDisplayWidget::symbolChanged);
+    signalWatcher->addObject(m_symbolsShowMediaCheckbox);
     signalWatcher->addObject(m_symbolsShowSurfaceIdCheckBox);
     signalWatcher->addObject(m_symbolsShowVolumeIdCheckBox);
+    signalWatcher->addObject(m_symbolsShowOtherTypesCheckBox);
     signalWatcher->addObject(m_symbolsSurfaceContralateralVertexCheckBox);
     signalWatcher->addObject(m_symbolsIdColorComboBox);
     signalWatcher->addObject(m_symbolsContralateralIdColorComboBox);
-    signalWatcher->addObject(m_symbolsIdDiameterSpinBox);
-    signalWatcher->addObject(m_symbolsMostRecentIdDiameterSpinBox);
+    signalWatcher->addObject(m_symbolsMillimetersDiameterSpinBox);
+    signalWatcher->addObject(m_symbolsMillimetersMostRecentDiameterSpinBox);
+    signalWatcher->addObject(m_symbolsPercentageDiameterSpinBox);
+    signalWatcher->addObject(m_symbolsPercentageMostRecentDiameterSpinBox);
 
     QVBoxLayout* showLayout = new QVBoxLayout();
+    showLayout->addWidget(m_symbolsShowMediaCheckbox);
     showLayout->addWidget(m_symbolsShowSurfaceIdCheckBox);
     showLayout->addWidget(m_symbolsShowVolumeIdCheckBox);
+    showLayout->addWidget(m_symbolsShowOtherTypesCheckBox);
     showLayout->addWidget(m_symbolsSurfaceContralateralVertexCheckBox);
     showLayout->addStretch();
 
@@ -618,27 +651,31 @@ IdentificationDisplayWidget::createSymbolsWidget()
     symbolLayout->addWidget(idSymbolColorLabel,
                       row, 0);
     symbolLayout->addWidget(m_symbolsIdColorComboBox->getWidget(),
-                      row, 1);
+                      row, 1, 1, 2);
     row++;
     symbolLayout->addWidget(contralateralIdSymbolColorLabel,
                       row, 0);
     symbolLayout->addWidget(m_symbolsContralateralIdColorComboBox->getWidget(),
-                      row, 1);
+                      row, 1, 1, 2);
     row++;
     symbolLayout->addWidget(symbolSizeTypeLabel,
                             row, 0);
     symbolLayout->addWidget(m_symbolSizeTypeComboBox->getWidget(),
-                            row, 1);
+                            row, 1, 1, 2);
     row++;
     symbolLayout->addWidget(symbolDiameterLabel,
                       row, 0);
-    symbolLayout->addWidget(m_symbolsIdDiameterSpinBox,
+    symbolLayout->addWidget(m_symbolsMillimetersDiameterSpinBox,
                       row, 1);
+    symbolLayout->addWidget(m_symbolsPercentageDiameterSpinBox,
+                            row, 2);
     row++;
     symbolLayout->addWidget(mostRecentSymbolDiameterLabel,
                       row, 0);
-    symbolLayout->addWidget(m_symbolsMostRecentIdDiameterSpinBox,
+    symbolLayout->addWidget(m_symbolsMillimetersMostRecentDiameterSpinBox,
                       row, 1);
+    symbolLayout->addWidget(m_symbolsPercentageMostRecentDiameterSpinBox,
+                            row, 2);
     row++;
     symbolLayout->setRowStretch(row, 100);
 
@@ -679,21 +716,17 @@ IdentificationDisplayWidget::symbolChanged()
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* info = brain->getIdentificationManager();
     
+    info->setShowMediaIdentificationSymbols(m_symbolsShowMediaCheckbox->isChecked());
     info->setShowSurfaceIdentificationSymbols(m_symbolsShowSurfaceIdCheckBox->isChecked());
     info->setShowVolumeIdentificationSymbols(m_symbolsShowVolumeIdCheckBox->isChecked());
+    info->setShowOtherTypeIdentificationSymbols(m_symbolsShowOtherTypesCheckBox->isChecked());
     info->setContralateralIdentificationEnabled(m_symbolsSurfaceContralateralVertexCheckBox->isChecked());
     info->setIdentificationSymbolColor(m_symbolsIdColorComboBox->getSelectedColor());
     info->setIdentificationContralateralSymbolColor(m_symbolsContralateralIdColorComboBox->getSelectedColor());
-    switch (info->getIdentificationSymbolSizeType()) {
-        case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
-            info->setIdentificationSymbolSize(m_symbolsIdDiameterSpinBox->value());
-            info->setMostRecentIdentificationSymbolSize(m_symbolsMostRecentIdDiameterSpinBox->value());
-            break;
-        case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
-            info->setIdentificationSymbolPercentageSize(m_symbolsIdDiameterSpinBox->value());
-            info->setMostRecentIdentificationSymbolPercentageSize(m_symbolsMostRecentIdDiameterSpinBox->value());
-            break;
-    }
+    info->setIdentificationSymbolSize(m_symbolsMillimetersDiameterSpinBox->value());
+    info->setMostRecentIdentificationSymbolSize(m_symbolsMillimetersMostRecentDiameterSpinBox->value());
+    info->setIdentificationSymbolPercentageSize(m_symbolsPercentageDiameterSpinBox->value());
+    info->setMostRecentIdentificationSymbolPercentageSize(m_symbolsPercentageMostRecentDiameterSpinBox->value());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

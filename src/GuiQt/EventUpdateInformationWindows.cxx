@@ -22,7 +22,7 @@
 #include "EventUpdateInformationWindows.h"
 #include "GuiManager.h"
 #include "IdentificationManager.h"
-#include "IdentifiedItemBase.h"
+#include "IdentifiedItemUniversal.h"
 
 using namespace caret;
 /**
@@ -46,8 +46,8 @@ EventUpdateInformationWindows::EventUpdateInformationWindows(const AString& info
     if ( ! informationText.isEmpty()) {
         IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
         CaretAssert(idManager);
-        idManager->addIdentifiedItem(new IdentifiedItemBase(informationText,
-                                                            informationText));
+        idManager->addIdentifiedItem(IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(informationText,
+                                                                                                    informationText));
     }
     
     m_important = true;

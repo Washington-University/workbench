@@ -23,6 +23,7 @@
 
 
 #include "SelectionItem.h"
+#include "StructureEnum.h"
 
 namespace caret {
 
@@ -37,15 +38,17 @@ namespace caret {
         
         virtual bool isValid() const;
         
-        Surface* getSurface();
-        
-        const Surface* getSurface() const;
-        
         void setSurface(Surface* surface);
         
         int32_t getNodeNumber() const;
         
-        void setNodeNumber(const int32_t nodeNumber);
+        int32_t getSurfaceNumberOfNodes() const;
+        
+        StructureEnum::Enum getStructure() const;
+        
+        void set(const StructureEnum::Enum structure,
+                 const int32_t surfaceNumberOfNodes,
+                 const int32_t nodeNumber);
         
         virtual void reset();
         
@@ -57,9 +60,21 @@ namespace caret {
         
     public:
     private:
+        void setSurfaceNumberOfNodes(const int32_t numberOfNodes);
+        
+        void setNodeNumber(const int32_t nodeNumber);
+        
+        Surface* getSurface();
+        
+        const Surface* getSurface() const;
+        
         Surface* surface;
         
         int32_t nodeNumber;
+        
+        int32_t surfaceNumberOfNodes;
+        
+        StructureEnum::Enum structure;
     };
     
 #ifdef __SELECTION_ITEM_SURFACE_NODE_IDENTIFICATION_SYMBOL_DECLARE__

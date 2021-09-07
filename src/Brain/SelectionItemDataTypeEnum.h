@@ -81,6 +81,10 @@ public:
         IMAGE,
         /* Image Control Point */
         IMAGE_CONTROL_POINT,
+        /** Media */
+        MEDIA,
+        /** Media Identification Symbol */
+        MEDIA_IDENTIFICATION_SYMBOL,
         /** Surface Node*/
         SURFACE_NODE,
         /** Surface Node Identification Symbol */

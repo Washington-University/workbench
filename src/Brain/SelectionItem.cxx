@@ -40,6 +40,7 @@ using namespace caret;
 SelectionItem::SelectionItem(const SelectionItemDataTypeEnum::Enum itemDataType)
 : CaretObject()
 {
+    m_identifiedItemUniqueIdentifier = -1;
     m_itemDataType = itemDataType;
     m_enabledForSelection = true;
     m_brain = NULL;
@@ -58,6 +59,26 @@ SelectionItem::SelectionItem(const SelectionItemDataTypeEnum::Enum itemDataType)
 SelectionItem::~SelectionItem()
 {
     
+}
+
+/**
+ * @return The unique identifier.
+ */
+int64_t
+SelectionItem::getIdentifiedItemUniqueIdentifier() const
+{
+    return m_identifiedItemUniqueIdentifier;
+}
+
+/**
+ * Set the unique identifer
+ * @param uniqueIdentifier
+ *    New value for unique identifier
+ */
+void
+SelectionItem::setIdentifiedItemUniqueIdentifier(const int64_t uniqueIdentifier)
+{
+    m_identifiedItemUniqueIdentifier = uniqueIdentifier;
 }
 
 /**

@@ -56,9 +56,9 @@
 using namespace caret;
 
 static bool cziDebugFlag(false);
-    
+
 /**
- * \class caret::CziImageFile 
+ * \class caret::CziImageFile
  * \brief A Zeiss CZI image file
  * \ingroup Files
  */
@@ -72,13 +72,13 @@ CziImageFile::CziImageFile()
     m_fileMetaData.reset(new GiftiMetaData());
     m_pyramidLayerIndexInTabs.fill(0);
     m_tabCziImagePyramidLevelChanged.fill(false);
-
+    
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->addArray("m_pyramidLayerIndexInTabs",
                                m_pyramidLayerIndexInTabs.data(),
                                m_pyramidLayerIndexInTabs.size(),
                                0);
-
+    
     /* NEED THIS AFTER Tile Tabs have been modified */
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_CLOSE);
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
@@ -181,7 +181,7 @@ CziImageFile::receiveEvent(Event* event)
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE) {
         EventBrowserTabNewClone* cloneTabEvent = dynamic_cast<EventBrowserTabNewClone*>(event);
         CaretAssert(cloneTabEvent);
-
+        
         const int32_t cloneToTabIndex   = cloneTabEvent->getNewBrowserTabIndex();
         const int32_t cloneFromTabIndex = cloneTabEvent->getIndexOfBrowserTabThatWasCloned();
         CaretAssertVectorIndex(m_pyramidLayerIndexInTabs, cloneToTabIndex);
@@ -331,15 +331,15 @@ CziImageFile::readFile(const AString& filename)
         readPyramidInfo(subBlockStatistics.boundingBox.w,
                         subBlockStatistics.boundingBox.h);
         
-
+        
         m_pyramidLayerTileAccessor = m_reader->CreateSingleChannelPyramidLayerTileAccessor();
         if ( ! m_pyramidLayerTileAccessor) {
             m_errorMessage = "Creating pyramid layer tile accessor for reading CZI file failed.";
             m_status = Status::ERRORED;
             return;
         }
-
-
+        
+        
         m_scalingTileAccessor = m_reader->CreateSingleChannelScalingTileAccessor();
         if ( ! m_scalingTileAccessor) {
             m_errorMessage = "Creating single channel scaling tile accessor for reading CZI file failed.";
@@ -620,7 +620,7 @@ CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
     if (outputImageWidthHeightMaximum < roiMaxWidthHeight) {
         zoom = static_cast<float>(outputImageWidthHeightMaximum) / static_cast<float>(roiMaxWidthHeight);
     }
-
+    
     /*
      * Read into 24 bit RGB to avoid conversion from other pixel formats
      */
@@ -636,7 +636,7 @@ CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
         errorMessageOut = "Failed to read data";
         return NULL;
     }
-
+    
     QImage* qImage = createQImageFromBitmapData(bitmapData.get(),
                                                 errorMessageOut);
     if (qImage == NULL) {
@@ -680,7 +680,7 @@ CziImageFile::setPyramidLayerIndexForTab(const int32_t tabIndex,
     int32_t newPyramidLayerIndex = MathFunctions::limitRange(pyramidLayerIndex,
                                                              minLayerIndex,
                                                              maxLayerIndex);
-
+    
     CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
     if (newPyramidLayerIndex != m_pyramidLayerIndexInTabs[tabIndex]) {
         m_pyramidLayerIndexInTabs[tabIndex] = newPyramidLayerIndex;
@@ -842,11 +842,11 @@ CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
     }
     
     CaretLogInfo("Request reading of :"
-                   + CziUtilities::intRectToString(intRectROI)
-                   + " and actually read width="
-                   + QString::number(bitmapData->GetWidth())
-                   + ", height="
-                   + QString::number(bitmapData->GetHeight()));
+                 + CziUtilities::intRectToString(intRectROI)
+                 + " and actually read width="
+                 + QString::number(bitmapData->GetWidth())
+                 + ", height="
+                 + QString::number(bitmapData->GetHeight()));
     QImage* qImage = createQImageFromBitmapData(bitmapData.get(),
                                                 errorMessageOut);
     if (qImage == NULL) {
@@ -967,7 +967,7 @@ CziImageFile::createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
                         cziPtr8[pixelOffset + 1],
                         cziPtr8[pixelOffset],
                         255);
-
+            
             QRgb* pixel = &rgbScanLine[x];
             *pixel = rgba.rgba();
         }
@@ -1048,7 +1048,7 @@ CziImageFile::getNumberOfFrames() const
  *    Text for column two that is displayed to user.
  * @param toolTipTextOut
  *    Text for tooltip
-*/
+ */
 void
 CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
                                          const PixelIndex& pixelIndexOriginAtTop,
@@ -1110,6 +1110,30 @@ CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
  * @param xyzOut
  *    Output with the XYZ coordinate
  *    @param
+ * @return
+ *    True if conversion successful, else false.
+ */
+bool
+CziImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
+                                         const bool includeNonlinearFlag,
+                                         std::array<float, 3>& xyzOut) const
+{
+    std::array<float, 3> debugPixelIndex;
+    return pixelIndexToStereotaxicXYZ(pixelIndexOriginAtTop,
+                                      includeNonlinearFlag,
+                                      xyzOut,
+                                      debugPixelIndex);
+}
+
+/**
+ * convert a pixel index to a stereotaxic coordinate
+ * @param pixelIndexOriginAtTop
+ *    The pixel index (full resolution) with origin at top left
+ * @param includeNonlinearFlag
+ *    If true, include the non-linear transform when converting
+ * @param xyzOut
+ *    Output with the XYZ coordinate
+ *    @param
  *@param debugPixelIndexOut
  *    Pixel index for debugging.
  * @return
@@ -1136,8 +1160,7 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop
     /*
      * Are transforms valid?
      */
-    if (m_pixelToStereotaxicTransform.m_niftiFile
-        && m_pixelToStereotaxicTransform.m_sformMatrix) {
+    if (m_pixelToStereotaxicTransform.m_sformMatrix) {
         /*
          * CZI Image has origin at top left so pixels range
          * left-to-right and top-to-bottom.
@@ -1159,7 +1182,7 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop
             0.0f,
             1.0f
         };
-
+        
         const int64_t niftiI(pt[0]);
         const int64_t niftiJ(pt[1]);
         const int64_t niftiK(pt[2]);
@@ -1172,7 +1195,8 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop
          */
         m_pixelToStereotaxicTransform.m_sformMatrix->multiplyPoint4(pt.data());
         
-        if (includeNonlinearFlag) {
+        if (includeNonlinearFlag
+            && m_pixelToStereotaxicTransform.m_niftiFile) {
             if (m_pixelToStereotaxicTransform.m_niftiFile->indexValid(niftiI, niftiJ, niftiK)) {
                 /*
                  * Use pixel index to obtain non-linearity from NIFTI data
@@ -1185,27 +1209,52 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop
                 pt[2] += dz;
             }
             else {
-                CaretLogWarning("("
-                                + AString::number(niftiI)
-                                + ", "
-                                + AString::number(niftiJ)
-                                + ", "
-                                + AString::number(niftiK)
-                                + ") is not a valid pixel index for "
-                                + niftiFileName
-                                + " associated with "
-                                + getFileNameNoPath());
+                CaretLogFine("("
+                             + AString::number(niftiI)
+                             + ", "
+                             + AString::number(niftiJ)
+                             + ", "
+                             + AString::number(niftiK)
+                             + ") is not a valid pixel index for "
+                             + niftiFileName
+                             + " associated with "
+                             + getFileNameNoPath());
             }
         }
-
+        
         xyzOut[0] = pt[0];
         xyzOut[1] = pt[1];
         xyzOut[2] = pt[2];
-
+        
         return true;
     }
     
     return false;
+}
+
+/**
+ * Convert a stereotaxic xyz coordinate to a pixel index
+ * @param xyz
+ *    The coordinate
+ * @param includeNonlinearFlag
+ *    If true, include the non-linear transform when converting
+ * @param pixelIndexOut
+ *    Output with pixel index in full resolution with origin at top left
+ * @param debugPixelIndex
+ *    Pixel index used for debugging
+ * @return
+ *    True if successful, else false.
+ */
+bool
+CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+                                         const bool includeNonlinearFlag,
+                                         PixelIndex& pixelIndexOriginAtTopLeftOut) const
+{
+    std::array<float, 3> debugPixelIndex;
+    return stereotaxicXyzToPixelIndex(xyz,
+                                      includeNonlinearFlag,
+                                      pixelIndexOriginAtTopLeftOut,
+                                      debugPixelIndex);
 }
 
 /**
@@ -1230,98 +1279,97 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
     pixelIndexOriginAtTopLeftOut.setIJK(-1, -1, -1);
     
     /*
-    * Load NIFTI transform file if we have not tried to load in previously
-        */
+     * Load NIFTI transform file if we have not tried to load in previously
+     */
     const AString niftiFileName("hist2mri.nii.gz");
-        if ( ! m_stereotaxicToPixelTransform.m_triedToLoadFileFlag) {
-            m_stereotaxicToPixelTransform.m_triedToLoadFileFlag = true;
-            loadNiftiTransformFile(niftiFileName,
-                                   m_stereotaxicToPixelTransform);
+    if ( ! m_stereotaxicToPixelTransform.m_triedToLoadFileFlag) {
+        m_stereotaxicToPixelTransform.m_triedToLoadFileFlag = true;
+        loadNiftiTransformFile(niftiFileName,
+                               m_stereotaxicToPixelTransform);
+        
+        if (m_stereotaxicToPixelTransform.m_sformMatrix) {
+            const Matrix4x4 originalSformMatrix(*m_stereotaxicToPixelTransform.m_sformMatrix);
             
-            if (m_stereotaxicToPixelTransform.m_sformMatrix) {
-                const Matrix4x4 originalSformMatrix(*m_stereotaxicToPixelTransform.m_sformMatrix);
+            /*
+             * Column one of matrix (x)
+             */
+            double columnOne[4];
+            originalSformMatrix.getColumn(0, columnOne);
+            
+            /*
+             * Column two of matrix (y)
+             */
+            double columnTwo[4];
+            originalSformMatrix.getColumn(1, columnTwo);
+            
+            /*
+             * Cross-product of columns one and two
+             * creates vector orthogonal to XY-plane
+             */
+            double cp[4] { 0.0f, 0.0f, 0.0f, 1.0 };
+            MathFunctions::crossProduct(columnOne, columnTwo, cp);
+            MathFunctions::normalizeVector(cp);
+            
+            /*
+             * Setting the column sets all four elements in the column
+             * but we want to preserve the element in the bottom row
+             */
+            cp[3] = originalSformMatrix.getMatrixElement(3, 2); /* Do no overwrite matrix last element in column*/
+            
+            /*
+             * Create a copy of the original sform and replace the
+             * third column to make the matrix invertible
+             */
+            Matrix4x4 modifiedSformMatrix(originalSformMatrix);
+            modifiedSformMatrix.setColumn(2, cp);
+            
+            if (cziDebugFlag) {
+                std::cout << "Matrix before Inversion after column three replaced: " << modifiedSformMatrix.toString() << std::endl;
+            }
+            
+            /*
+             * Invert the matrix
+             */
+            Matrix4x4 invertedSformMatrix(modifiedSformMatrix);
+            if (invertedSformMatrix.invert()) {
+                if (cziDebugFlag) {
+                    std::cout << "       after Inversion: " << invertedSformMatrix.toString() << std::endl;
+                }
                 
                 /*
-                 * Column one of matrix (x)
+                 * Replace original sform with the inverted sform
                  */
-                double columnOne[4];
-                originalSformMatrix.getColumn(0, columnOne);
+                m_stereotaxicToPixelTransform.m_sformMatrix.reset(new Matrix4x4(invertedSformMatrix));
                 
-                /*
-                 * Column two of matrix (y)
-                 */
-                double columnTwo[4];
-                originalSformMatrix.getColumn(1, columnTwo);
-                
-                /*
-                 * Cross-product of columns one and two
-                 * creates vector orthogonal to XY-plane
-                 */
-                double cp[4] { 0.0f, 0.0f, 0.0f, 1.0 };
-                MathFunctions::crossProduct(columnOne, columnTwo, cp);
-                MathFunctions::normalizeVector(cp);
-                
-                /*
-                 * Setting the column sets all four elements in the column
-                 * but we want to preserve the element in the bottom row
-                 */
-                cp[3] = originalSformMatrix.getMatrixElement(3, 2); /* Do no overwrite matrix last element in column*/
-
-                /*
-                 * Create a copy of the original sform and replace the
-                 * third column to make the matrix invertible
-                 */
-                Matrix4x4 modifiedSformMatrix(originalSformMatrix);
-                modifiedSformMatrix.setColumn(2, cp);
+                CaretLogFine("Original sform:\n"
+                             + originalSformMatrix.toString()
+                             + "\nsform modified so that it can be inverted:\n"
+                             + modifiedSformMatrix.toString()
+                             + "\nInverted sform:\n"
+                             + invertedSformMatrix.toString());
                 
                 if (cziDebugFlag) {
-                    std::cout << "Matrix before Inversion after column three replaced: " << modifiedSformMatrix.toString() << std::endl;
-                }
-                
-                /*
-                 * Invert the matrix
-                 */
-                Matrix4x4 invertedSformMatrix(modifiedSformMatrix);
-                if (invertedSformMatrix.invert()) {
-                    if (cziDebugFlag) {
-                        std::cout << "       after Inversion: " << invertedSformMatrix.toString() << std::endl;
-                    }
-                    
-                    /*
-                     * Replace original sform with the inverted sform
-                     */
-                    m_stereotaxicToPixelTransform.m_sformMatrix.reset(new Matrix4x4(invertedSformMatrix));
-                    
-                    CaretLogFine("Original sform:\n"
-                                 + originalSformMatrix.toString()
-                                 + "\nsform modified so that it can be inverted:\n"
-                                 + modifiedSformMatrix.toString()
-                                 + "\nInverted sform:\n"
-                                 + invertedSformMatrix.toString());
-                    
-                    if (cziDebugFlag) {
-                        std::cout << "Testing: " << std::endl;
-                        float p[3] { 10.0, 20.0, 0.0 };
-                        std::cout << "   Pixel: " << AString::fromNumbers(p, 3, ", ") << std::endl;
-                        originalSformMatrix.multiplyPoint3(p);
-                        std::cout << "   Pixel Multiplied: " << AString::fromNumbers(p, 3, ", ") << std::endl;
-                        invertedSformMatrix.multiplyPoint3(p);
-                        std::cout << "   Coord Inverse Multiplied (Should Match Pixel): " << AString::fromNumbers(p, 3, ", ") << std::endl;
-                    }
-                }
-                else {
-                    std::cout << "Matrix inversion failed." << std::endl;
-                    m_stereotaxicToPixelTransform.m_sformMatrix.reset();
-                    m_stereotaxicToPixelTransform.m_niftiFile.reset();
+                    std::cout << "Testing: " << std::endl;
+                    float p[3] { 10.0, 20.0, 0.0 };
+                    std::cout << "   Pixel: " << AString::fromNumbers(p, 3, ", ") << std::endl;
+                    originalSformMatrix.multiplyPoint3(p);
+                    std::cout << "   Pixel Multiplied: " << AString::fromNumbers(p, 3, ", ") << std::endl;
+                    invertedSformMatrix.multiplyPoint3(p);
+                    std::cout << "   Coord Inverse Multiplied (Should Match Pixel): " << AString::fromNumbers(p, 3, ", ") << std::endl;
                 }
             }
+            else {
+                std::cout << "Matrix inversion failed." << std::endl;
+                m_stereotaxicToPixelTransform.m_sformMatrix.reset();
+                m_stereotaxicToPixelTransform.m_niftiFile.reset();
+            }
         }
+    }
     
     /*
      * Are transforms valid?
      */
-    if (m_stereotaxicToPixelTransform.m_niftiFile
-        && m_stereotaxicToPixelTransform.m_sformMatrix) {
+    if (m_stereotaxicToPixelTransform.m_sformMatrix) {
         /*
          * Use matrix to convert coordinate to 'mri space' pixel index
          */
@@ -1330,8 +1378,9 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
         pt[0] = MathFunctions::round(pt[0]);
         pt[1] = MathFunctions::round(pt[1]);
         pt[2] = MathFunctions::round(pt[2]);
-
-        if (includeNonlinearFlag) {
+        
+        if (includeNonlinearFlag
+            && m_stereotaxicToPixelTransform.m_niftiFile) {
             /*
              * Get warpfield values at the pixel
              */
@@ -1357,19 +1406,19 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
                 m_stereotaxicToPixelTransform.m_sformMatrix->multiplyPoint4(pt.data());
             }
             else {
-                CaretLogWarning("("
-                                + AString::number(niftiI)
-                                + ", "
-                                + AString::number(niftiJ)
-                                + ", "
-                                + AString::number(niftiK)
-                                + ") is not a valid pixel index for "
-                                + niftiFileName
-                                + " associated with "
-                                + getFileNameNoPath());
+                CaretLogFine("("
+                             + AString::number(niftiI)
+                             + ", "
+                             + AString::number(niftiJ)
+                             + ", "
+                             + AString::number(niftiK)
+                             + ") is not a valid index for "
+                             + niftiFileName
+                             + " associated with "
+                             + getFileNameNoPath());
             }
         }
-
+        
         /*
          * Round a copy before printing.
          * Note: Keep fractional parts for later convertion to full res pixel indices
@@ -1380,7 +1429,7 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
             static_cast<float>(MathFunctions::round(pt[2])),
             static_cast<float>(MathFunctions::round(pt[3]))
         };
-
+        
         CaretLogFine("\n"
                      + AString(includeNonlinearFlag ? "With NIFTI warping ": "")
                      + "XYZ to Pixel Index Test: "
@@ -1397,7 +1446,7 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
                     && (m_stereotaxicToPixelTransform.m_pixelScaleJ != 0.0));
         pt[0] /= m_stereotaxicToPixelTransform.m_pixelScaleI;
         pt[1] /= m_stereotaxicToPixelTransform.m_pixelScaleJ;
-
+        
         /*
          * CZI Image has origin at top left so pixels range
          * left-to-right and top-to-bottom
@@ -1412,7 +1461,7 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
         pt[1] = MathFunctions::round(pt[1]);
         pt[2] = MathFunctions::round(pt[2]);
         
-
+        
         pixelIndexOriginAtTopLeftOut.setIJK(pt[0], pt[1], pt[2]);
         
         return true;
@@ -1513,7 +1562,7 @@ CziImageFile::loadNiftiTransformFile(const AString& filename,
             if ( ! orientationErrorMessage.isEmpty()) {
                 throw DataFileException(orientationErrorMessage);
             }
-
+            
             const int64_t dimI(dims[0]);
             const int64_t dimJ(dims[1]);
             
@@ -1534,9 +1583,9 @@ CziImageFile::loadNiftiTransformFile(const AString& filename,
                 CaretAssertVectorIndex(m_pyramidLayers, pyramidLayerIndex);
                 const PyramidLayer& pyramidLayer = m_pyramidLayers[pyramidLayerIndex];
                 transform.m_pixelScaleI = (static_cast<float>(pyramidLayer.m_width)
-                                               / getWidth());
+                                           / getWidth());
                 transform.m_pixelScaleJ = (static_cast<float>(pyramidLayer.m_height)
-                                               / getHeight());
+                                           / getHeight());
                 
                 std::vector<std::vector<float>> sform(transform.m_niftiFile->getSform());
                 transform.m_sformMatrix.reset(new Matrix4x4(sform));
@@ -1596,7 +1645,7 @@ CziImageFile::loadNiftiTransformFile(const AString& filename,
             transform.m_niftiFile.reset();
         }
     }
-} 
+}
 
 /**
  * Add to the data file information.
@@ -1696,7 +1745,7 @@ CziImageFile::getImageForTab(const int32_t tabIndex)
             return m_tabCziImages[tabIndex].get();
         }
     }
-
+    
     return getDefaultImage();
 }
 
@@ -1716,7 +1765,7 @@ CziImageFile::getImageForTab(const int32_t tabIndex) const
             }
         }
     }
-
+    
     return getDefaultImage();
 }
 
@@ -1785,7 +1834,7 @@ CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
             }
         }
     }
-
+    
     if (cziImageOut != NULL) {
         /*
          * For AUTO mode
@@ -1804,7 +1853,7 @@ CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
                 break;
         }
     }
-
+    
     return cziImageOut;
 }
 
@@ -1863,7 +1912,7 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
     const float mv(10);
     const QMarginsF margins(mv, mv, mv, mv);
     viewport = viewport.marginsAdded(margins);
-        
+    
     /*
      * Window coordinate at Top Left Corner of Viewport
      * 'inverseTransformPoint()' transforms from window coordinates to the ortho's pixel index with
@@ -1879,7 +1928,7 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
     const PixelIndex windowLogicalTopLeft(cziImage->transformPixelIndexToSpace(pixelIndexTopLeft,
                                                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
                                                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT));
-
+    
     /*
      * Bottom Right Corner of Window
      * 'inverseTransformPoint()' transforms from window coordinates to the ortho's pixel index with
@@ -1895,7 +1944,7 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
     const PixelIndex windowLogicalBottomRight(cziImage->transformPixelIndexToSpace(pixelIndexBottomRight,
                                                                                    CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
                                                                                    CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT));
-
+    
     /*
      * CZI Logical coordinates of viewport (portion of CZI image that fills the viewport)
      */
@@ -1935,8 +1984,8 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
     const float viewportInImageArea(viewportIntersectImageRect.width() * viewportIntersectImageRect.height());
     const float viewportArea(viewportFullResLogicalRect.width() * viewportFullResLogicalRect.height());
     const float viewportRoiPercentage((viewportArea > 0.0f)
-                                 ? (viewportInImageArea / viewportArea)
-                                 : viewportArea);
+                                      ? (viewportInImageArea / viewportArea)
+                                      : viewportArea);
     if (cziDebugFlag) {
         std::cout << "Window Image Percentage: " << viewportRoiPercentage << std::endl;
     }
@@ -1948,12 +1997,12 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
     const QRectF viewportIntersectFullImageRect(m_fullResolutionLogicalRect.intersected(viewportFullResLogicalRect));
     const float viewportInFullResImageArea(viewportIntersectFullImageRect.width() * viewportIntersectFullImageRect.height());
     const float viewportFullResPercentage(viewportArea
-                                        ? (viewportInFullResImageArea / viewportArea)
-                                        : viewportArea);
+                                          ? (viewportInFullResImageArea / viewportArea)
+                                          : viewportArea);
     if (cziDebugFlag) {
         std::cout << "Window Full Res Image Percentage: " << viewportFullResPercentage << std::endl;
     }
-
+    
     if (viewportFullResPercentage > 0.0) {
         /*
          * Get ratio of current image ROI and viewport full res image
@@ -2028,7 +2077,7 @@ CziImageFile::autoModeZoomOnlyResolutionChange(const int32_t tabIndex,
         setPyramidLayerIndexForTab(tabIndex,
                                    pyramidLayerForScaling);
     }
-
+    
     return pyramidLayerForScaling;
 }
 
@@ -2151,7 +2200,7 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
                        + CziUtilities::qRectToString(m_fullResolutionLogicalRect));
         return NULL;
     }
-
+    
     /*
      * When reading, the size is a "logical size" not PIXELS.  So, need to convert
      * the pixel size to a logical size
@@ -2188,7 +2237,7 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
     if (oldCziImage->m_logicalRect == adjustedRect) {
         return oldCziImage;
     }
-
+    
     AString errorMessage;
     cziImageOut = readPyramidLayerFromCziImageFile(pyramidLayerIndex, imageRegionRect, adjustedRect, errorMessage);
     if (cziImageOut == NULL) {
@@ -2342,7 +2391,7 @@ CziImageFile::getImagePixelRGBA(const int32_t tabIndex,
  */
 void
 CziImageFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
-                                            SceneClass* sceneClass)
+                                  SceneClass* sceneClass)
 {
     MediaFile::saveFileDataToScene(sceneAttributes,
                                    sceneClass);
@@ -2364,10 +2413,11 @@ CziImageFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
  */
 void
 CziImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
-                                                 const SceneClass* sceneClass)
+                                       const SceneClass* sceneClass)
 {
     MediaFile::restoreFileDataFromScene(sceneAttributes,
                                         sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 }
+

@@ -46,7 +46,7 @@ namespace caret {
     class SelectionItemChartTimeSeries;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
-    class SelectionItemImage;
+    class SelectionItemMedia;
     class SelectionItemSurfaceNode;
     class SelectionItemVoxel;
     class SelectionManager;
@@ -106,8 +106,8 @@ namespace caret {
                                                const Brain* brain,
                                                const SelectionItemSurfaceNode* idSurfaceNode) const;
         
-        void generateImageIdentificationText(IdentificationStringBuilder& idText,
-                                             const SelectionItemImage* idImage) const;
+        void generateMediaIdentificationText(IdentificationStringBuilder& idText,
+                                             const SelectionItemMedia* idImage) const;
         
         void generateVolumeIdentificationText(IdentificationStringBuilder& idText,
                                                const Brain* brain,

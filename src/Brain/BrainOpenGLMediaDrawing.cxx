@@ -25,6 +25,7 @@
 
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -43,8 +44,7 @@
 #include "ModelMedia.h"
 #include "MediaOverlay.h"
 #include "MediaOverlaySet.h"
-#include "SelectionItemCziImage.h"
-#include "SelectionItemImage.h"
+#include "SelectionItemMedia.h"
 #include "SelectionManager.h"
 
 using namespace caret;
@@ -252,7 +252,8 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     viewportContent->setGraphicsObjectToWindowTransform(transform);
     
     drawModelLayers(transform,
-                    browserTabContent->getTabNumber());
+                    browserTabContent->getTabNumber(),
+                    viewport[3]);
     
     drawSelectionBox();
 }
@@ -263,12 +264,15 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
  *   Transforms point from object to window space
  * @param tabIndex
  *   Index of the tab
+ * @param viewportHeight
+ *   Height of viewport
  */
 void
 BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* transform,
-                                         const int32_t tabIndex)
+                                         const int32_t tabIndex,
+                                         const float viewportHeight)
 {
-    SelectionItemImage* idImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getImageIdentification();
+    SelectionItemMedia* idMedia = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getMediaIdentification();
     
     /*
      * Check for a 'selection' type mode
@@ -278,7 +282,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (idImage->isEnabledForSelection()) {
+            if (idMedia->isEnabledForSelection()) {
                 selectImageFlag = true;
             }
             else {
@@ -302,16 +306,16 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
         glPushMatrix();
         
         if (overlay->isEnabled()) {
-            MediaFile* selectedFile(NULL);
+            MediaFile* mediaFile(NULL);
             int32_t selectedIndex(-1);
-            overlay->getSelectionData(selectedFile,
+            overlay->getSelectionData(mediaFile,
                                       selectedIndex);
             
-            if (selectedFile != NULL) {
+            if (mediaFile != NULL) {
                 GraphicsPrimitiveV3fT3f* primitive(NULL);
-                CziImageFile* cziImageFile = selectedFile->castToCziImageFile();
+                CziImageFile* cziImageFile = mediaFile->castToCziImageFile();
                 const CziImage* cziImage(NULL);
-                ImageFile* imageFile = selectedFile->castToImageFile();
+                ImageFile* imageFile = mediaFile->castToImageFile();
                 float mediaHeight(-1.0);
                 if (imageFile != NULL) {
                     /*
@@ -336,7 +340,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                 }
                 else {
                     CaretAssertMessage(0, ("Unrecognized file type "
-                                           + DataFileTypeEnum::toName(selectedFile->getDataFileType())
+                                           + DataFileTypeEnum::toName(mediaFile->getDataFileType())
                                            + " for media drawing."));
                 }
                 
@@ -359,7 +363,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                     
                     glPushAttrib(GL_COLOR_BUFFER_BIT);
                     if ( ! selectImageFlag) {
-                        m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
+                       // m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
                     }
                     
                     /*
@@ -372,18 +376,24 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                     glPopAttrib();
                     
                     if (selectImageFlag) {
-                        if (imageFile != NULL) {
-                            processImageFileSelection(m_browserTabContent->getTabNumber(),
-                                                      imageFile,
-                                                      primitive);
-                        }
-                        else if (cziImageFile != NULL) {
-                            CaretAssert(cziImage);
-                            processCziImageFileSelection(m_browserTabContent->getTabNumber(),
-                                                         cziImageFile,
-                                                         primitive);
-                        }
+                        processMediaFileSelection(m_browserTabContent->getTabNumber(),
+                                                  mediaFile,
+                                                  primitive);
                     }
+                    
+                    /*
+                     * Draw volume identification symbols
+                     */
+                    BrainOpenGLIdentificationDrawing idDrawing(m_fixedPipelineDrawing,
+                                                               m_fixedPipelineDrawing->m_brain,
+                                                               m_browserTabContent,
+                                                               m_fixedPipelineDrawing->mode);
+                    const float mediaThickness(2.0f);
+                    Plane plane;
+                    idDrawing.drawMediaFileIdentificationSymbols(mediaFile,
+                                                                 plane,
+                                                                 mediaThickness,
+                                                                 viewportHeight);
                 }
             }
         }
@@ -427,107 +437,21 @@ BrainOpenGLMediaDrawing::drawSelectionBox()
     }
 }
 
-
 /**
- * Process selection in an image file
+ * Process selection in amedia  file
  * @param tabIndex
  *   Index of the tab
- * @param imageFile
- *    The image file
+ * @param mediaFile
+ *    The medai file
  * @param primitive
  *    Primitive that draws image file
  */
 void
-BrainOpenGLMediaDrawing::processImageFileSelection(const int32_t tabIndex,
-                                                   ImageFile* imageFile,
+BrainOpenGLMediaDrawing::processMediaFileSelection(const int32_t tabIndex,
+                                                   MediaFile* mediaFile,
                                                    GraphicsPrimitiveV3fT3f* primitive)
 {
-    SelectionItemImage* idImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getImageIdentification();
-    EventOpenGLObjectToWindowTransform xform(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
-    EventManager::get()->sendEvent(xform.getPointer());
-    if (xform.isValid()) {
-        BoundingBox bounds;
-        primitive->getVertexBounds(bounds);
-        
-        /*
-         * Transform bottom left and top right coordinates of
-         * primitive containing image to window coordinates
-         */
-        const auto minXYZ = bounds.getMinXYZ();
-        float windowMinXYZ[3];
-        xform.transformPoint(minXYZ.data(),
-                             windowMinXYZ);
-        
-        const auto maxXYZ = bounds.getMaxXYZ();
-        float windowMaxXYZ[3];
-        xform.transformPoint(maxXYZ.data(),
-                             windowMaxXYZ);
-        
-        const float drawnImageWidth(bounds.getDifferenceX());
-        const float drawnImageHeight(bounds.getDifferenceY());
-        if ((drawnImageWidth > 0.0)
-            && (drawnImageHeight > 0.0)
-            && (windowMaxXYZ[0] > windowMinXYZ[0])
-            && (windowMaxXYZ[1] > windowMinXYZ[1])) {
-            
-            const float mouseX(this->m_fixedPipelineDrawing->mouseX);
-            const float mouseY(this->m_fixedPipelineDrawing->mouseY);
-            
-            float windowXYZ[3] { mouseX, mouseY, 0.0 };
-            std::array<float, 3> modelXYZ;
-            xform.inverseTransformPoint(windowXYZ, modelXYZ.data());
-            
-            /*
-             * Ensure Z is zero.
-             * In inverseTransformPoint(), setting Z to
-             * "(2.0f * windowXYZ[2]) - 1.0f" may be incorrect.
-             */
-            modelXYZ[2] = 0.0;
-            PixelIndex pixelIndex(modelXYZ[0],
-                                  modelXYZ[1],
-                                  modelXYZ[2]);
-
-            /*
-             * Verify clicked location is inside image
-             */
-            if (imageFile->isPixelIndexValid(tabIndex,
-                                             pixelIndex)) {
-                idImage->setImageFile(imageFile);
-                idImage->setPixelIndex(pixelIndex);
-                idImage->setTabIndex(tabIndex);
-                idImage->setPixelI(pixelIndex.getI());
-                idImage->setPixelJ(pixelIndex.getJ());
-                
-                uint8_t pixelByteRGBA[4];
-                if (imageFile->getImagePixelRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                 pixelIndex,
-                                                 pixelByteRGBA)) {
-                    idImage->setImageFile(imageFile);
-                    idImage->setPixelRGBA(pixelByteRGBA);
-                    idImage->setModelXYZ(modelXYZ.data());
-                    idImage->setScreenXYZ(windowXYZ);
-                    idImage->setScreenDepth(0.0);
-                }
-            }
-        }
-    }
-}
-
-/**
- * Process selection in a CZI  image file
- * @param tabIndex
- *   Index of the tab
- * @param cziImageFile
- *    The CZI  image file
- * @param primitive
- *    Primitive that draws image file
- */
-void
-BrainOpenGLMediaDrawing::processCziImageFileSelection(const int32_t tabIndex,
-                                                      CziImageFile* cziImageFile,
-                                                      GraphicsPrimitiveV3fT3f* primitive)
-{
-    SelectionItemCziImage* idCziImage = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getCziImageIdentification();
+    SelectionItemMedia* idMedia = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getMediaIdentification();
     EventOpenGLObjectToWindowTransform xform(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
     EventManager::get()->sendEvent(xform.getPointer());
     if (xform.isValid()) {
@@ -571,29 +495,29 @@ BrainOpenGLMediaDrawing::processCziImageFileSelection(const int32_t tabIndex,
             PixelIndex pixelIndexFullResOriginAtBottom(modelXYZ[0],
                                                        modelXYZ[1],
                                                        modelXYZ[2]);
-
+            
             /*
              * Verify clicked location is inside image
              */
-            if (cziImageFile->isPixelIndexValid(tabIndex,
+            if (mediaFile->isPixelIndexValid(tabIndex,
                                                 pixelIndexFullResOriginAtBottom)) {
-                idCziImage->setCziImageFile(cziImageFile);
+                idMedia->setMediaFile(mediaFile);
                 PixelIndex pixelIndexOriginAtTop(pixelIndexFullResOriginAtBottom);
-                pixelIndexOriginAtTop.setJ(cziImageFile->getHeight() - pixelIndexOriginAtTop.getJ() - 1);
-                idCziImage->setPixelIndex(pixelIndexFullResOriginAtBottom,
+                pixelIndexOriginAtTop.setJ(mediaFile->getHeight() - pixelIndexOriginAtTop.getJ() - 1);
+                idMedia->setPixelIndex(pixelIndexFullResOriginAtBottom,
                                           pixelIndexOriginAtTop);
-                idCziImage->setTabIndex(tabIndex);
+                idMedia->setTabIndex(tabIndex);
                 
-                idCziImage->setCziImageFile(cziImageFile);
+                idMedia->setMediaFile(mediaFile);
                 uint8_t pixelByteRGBA[4] = { 0, 0, 0, 0 };
-                idCziImage->setModelXYZ(modelXYZ.data());
-                idCziImage->setScreenXYZ(windowXYZ);
-                idCziImage->setScreenDepth(0.0);
-                if (cziImageFile->getImagePixelRGBA(tabIndex,
+                idMedia->setModelXYZ(modelXYZ.data());
+                idMedia->setScreenXYZ(windowXYZ);
+                idMedia->setScreenDepth(0.0);
+                if (mediaFile->getImagePixelRGBA(tabIndex,
                                                     ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
                                                     pixelIndexFullResOriginAtBottom,
                                                     pixelByteRGBA)) {
-                    idCziImage->setPixelRGBA(pixelByteRGBA);
+                    idMedia->setPixelRGBA(pixelByteRGBA);
                 }
             }
         }

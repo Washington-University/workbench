@@ -35,11 +35,9 @@ namespace caret {
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
-    class CziImage;
-    class CziImageFile;
     class GraphicsObjectToWindowTransform;
     class GraphicsPrimitiveV3fT3f;
-    class ImageFile;
+    class MediaFile;
     class MediaOverlaySet;
     class ModelMedia;
     
@@ -75,18 +73,15 @@ namespace caret {
         
     private:
         void drawModelLayers(const GraphicsObjectToWindowTransform* transform,
-                             const int32_t tabIndex);
+                             const int32_t tabIndex,
+                             const float viewportHeight);
         
         void drawSelectionBox();
         
-        void processImageFileSelection(const int32_t tabIndex,
-                                       ImageFile* imageFile,
+        void processMediaFileSelection(const int32_t tabIndex,
+                                       MediaFile* mediaFile,
                                        GraphicsPrimitiveV3fT3f* primitive);
         
-        void processCziImageFileSelection(const int32_t tabIndex,
-                                          CziImageFile* cziImageFile,
-                                          GraphicsPrimitiveV3fT3f* primitive);
-
         bool getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
                             const int32_t tabIndex,
                             double& orthoLeftOut,

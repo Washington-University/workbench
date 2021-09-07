@@ -365,6 +365,12 @@ namespace caret {
                                   float& depthOut,
                                   float rgbaOut[4]);
         
+        void getIndexFromColorSelection(const int32_t x,
+                                        const int32_t y,
+                                        SelectionItemDataTypeEnum::Enum& dataTypeOut,
+                                        int32_t& indexOut,
+                                        float& depthOut);
+        
         void getIndexFromColorSelection(const SelectionItemDataTypeEnum::Enum dataType,
                                            const int32_t x,
                                            const int32_t y,
@@ -673,6 +679,7 @@ namespace caret {
         friend class BrainOpenGLAnnotationDrawingFixedPipeline;
         friend class BrainOpenGLChartDrawingFixedPipeline;
         friend class BrainOpenGLChartTwoDrawingFixedPipeline;
+        friend class BrainOpenGLIdentificationDrawing;
         friend class BrainOpenGLMediaDrawing;
         friend class BrainOpenGLVolumeObliqueSliceDrawing;
         friend class BrainOpenGLVolumeSliceDrawing;

@@ -32,6 +32,7 @@
 #include "BoundingBox.h"
 #include "Brain.h"
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
+#include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainordinateRegionOfInterest.h"
@@ -57,7 +58,6 @@
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
 #include "IdentificationWithColor.h"
-#include "IdentifiedItemVoxel.h"
 #include "LabelDrawingProperties.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -1622,6 +1622,7 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const VolumeMappableInt
 {
     drawIdentificationSymbols(m_fixedPipelineDrawing,
                               m_brain,
+                              m_browserTabContent,
                               volume,
                               plane,
                               sliceThickness);
@@ -1633,6 +1634,8 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const VolumeMappableInt
  *   The fixed pipeline drawing
  * @param brain
  *    The brain
+ * @param browserTabContent
+ *    Tab content containing volume
  * @param volume
  *    The underlay volume
  * @param plane
@@ -1643,6 +1646,7 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const VolumeMappableInt
 void
 BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                          Brain* brain,
+                                                         BrowserTabContent* browserTabContent,
                                                          const VolumeMappableInterface* volume,
                                                          const Plane& plane,
                                                          const float sliceThickness)
@@ -1650,106 +1654,22 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(BrainOpenGLFixedPipelin
     CaretAssert(fixedPipelineDrawing);
     CaretAssert(brain);
     CaretAssert(volume);
-    
-    const float halfSliceThickness(sliceThickness > 0.0
-                                   ? (sliceThickness * 0.55) /* ensure symbol falls within a slice*/
-                                   : 1.0);
-    IdentificationManager* idManager = brain->getIdentificationManager();
-    
-    SelectionItemVoxelIdentificationSymbol* symbolID = brain->getSelectionManager()->getVoxelIdentificationSymbol();
-    
-    const std::vector<IdentifiedItemVoxel> voxelIDs = idManager->getIdentifiedItemsForVolume();
-    
+        
+    BoundingBox boundingBox;
+    volume->getVoxelSpaceBoundingBox(boundingBox);
+    const float maxDimension = boundingBox.getMaximumDifferenceOfXYZ();
+
     /*
-     * Check for a 'selection' type mode
+     * Draw volume identification symbols
      */
-    bool isSelect = false;
-    switch (fixedPipelineDrawing->mode) {
-        case BrainOpenGLFixedPipeline::MODE_DRAWING:
-            break;
-        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (symbolID->isEnabledForSelection()) {
-                isSelect = true;
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            }
-            else {
-                return;
-            }
-            break;
-        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
-            return;
-            break;
-    }
-    
-    if (idManager->isShowVolumeIdentificationSymbols()) {
-        uint8_t rgba[4];
-        const int32_t numVoxelIdSymbols = static_cast<int32_t>(voxelIDs.size());
-        for (int32_t iVoxel = 0; iVoxel < numVoxelIdSymbols; iVoxel++) {
-            CaretAssertVectorIndex(voxelIDs, iVoxel);
-            const IdentifiedItemVoxel& voxel = voxelIDs[iVoxel];
-            
-            float xyz[3];
-            voxel.getXYZ(xyz);
-            
-            float symbolDiameter = voxel.getSymbolSize();
-            
-            const float dist = std::fabs(plane.signedDistanceToPlane(xyz));
-            if (dist < halfSliceThickness) {
-                switch (voxel.getIdentificationSymbolSizeType()) {
-                    case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
-                        break;
-                    case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
-                    {
-                        BoundingBox boundingBox;
-                        volume->getVoxelSpaceBoundingBox(boundingBox);
-                        const float maxDimension = boundingBox.getMaximumDifferenceOfXYZ();
-                        symbolDiameter = maxDimension * (symbolDiameter / 100.0);
-                    }
-                        break;
-                }
-                
-                if (isSelect) {
-                    fixedPipelineDrawing->colorIdentification->addItem(rgba,
-                                                                         SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,
-                                                                         iVoxel);
-                    rgba[3] = 255;
-                }
-                else {
-                    voxel.getSymbolRGBA(rgba);
-                }
-                
-                glPushMatrix();
-                glTranslatef(xyz[0], xyz[1], xyz[2]);
-                fixedPipelineDrawing->drawSphereWithDiameter(rgba,
-                                                               symbolDiameter);
-                glPopMatrix();
-            }
-        }
-    }
-    
-    
-    if (isSelect) {
-        int voxelIdIndex = -1;
-        float depth = -1.0;
-        fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,
-                                                           fixedPipelineDrawing->mouseX,
-                                                           fixedPipelineDrawing->mouseY,
-                                                           voxelIdIndex,
-                                                           depth);
-        if (voxelIdIndex >= 0) {
-            if (symbolID->isOtherScreenDepthCloserToViewer(depth)) {
-                CaretAssertVectorIndex(voxelIDs, voxelIdIndex);
-                const IdentifiedItemVoxel& voxel = voxelIDs[voxelIdIndex];
-                float xyz[3];
-                voxel.getXYZ(xyz);
-                symbolID->setVoxelXYZ(xyz);
-                symbolID->setBrain(brain);
-                symbolID->setScreenDepth(depth);
-                fixedPipelineDrawing->setSelectedItemScreenXYZ(symbolID, xyz);
-                CaretLogFine("Selected Vertex Identification Symbol: " + QString::number(voxelIdIndex));
-            }
-        }
-    }
+    BrainOpenGLIdentificationDrawing idDrawing(fixedPipelineDrawing,
+                                               fixedPipelineDrawing->m_brain,
+                                               browserTabContent,
+                                               fixedPipelineDrawing->mode);
+    idDrawing.drawVolumeIdentificationSymbols(volume,
+                                              plane,
+                                              sliceThickness,
+                                              maxDimension);
 }
 
 /**

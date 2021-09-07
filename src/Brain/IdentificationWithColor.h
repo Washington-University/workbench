@@ -46,6 +46,12 @@ namespace caret {
                      int32_t* index2Out = NULL,
                      int32_t* index3Out = NULL) const;
 
+        void getItemAnyType(const uint8_t rgb[4],
+                            SelectionItemDataTypeEnum::Enum& dataTypeOut,
+                            int32_t* index1Out,
+                            int32_t* index2Out = NULL,
+                            int32_t* index3Out = NULL) const;
+
         void reset(const int32_t estimatedNumberOfItems = -1);
         
         

@@ -47,6 +47,7 @@
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #include "BrainOpenGLChartTwoDrawingFixedPipeline.h"
+#include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLMediaDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLVolumeObliqueSliceDrawing.h"
@@ -115,14 +116,14 @@
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "GraphicsShape.h"
 #include "GroupAndNameHierarchyModel.h"
-#include "IdentifiedItemNode.h"
+#include "IdentifiedItemUniversal.h"
 #include "IdentificationManager.h"
 #include "ImageFile.h"
 #include "Matrix4x4.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
-#include "SelectionItemImage.h"
+#include "SelectionItemMedia.h"
 #include "SelectionItemImageControlPoint.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
@@ -1283,64 +1284,32 @@ BrainOpenGLFixedPipeline::drawMediaSpaceAnnotations(const BrainOpenGLViewportCon
     
     glPushAttrib(GL_VIEWPORT_BIT);
     
-//    Matrix4x4 projectionMatrix;
-//    Matrix4x4 modelviewMatrix;
-//    int viewport[4];
-//    if (viewportContent->getChartDataMatricesAndViewport(projectionMatrix,
-//                                                         modelviewMatrix,
-//                                                         viewport)) {
-//
-//        glViewport(viewport[0],
-//                   viewport[1],
-//                   viewport[2],
-//                   viewport[3]);
-//
-//        glMatrixMode(GL_PROJECTION);
-//        glPushMatrix();
-//        float projectionArray[16];
-//        projectionMatrix.getMatrixForOpenGL(projectionArray);
-//        glLoadMatrixf(projectionArray);
-//
-//        glMatrixMode(GL_MODELVIEW);
-//        glPushMatrix();
-//        float modelviewArray[16];
-//        modelviewMatrix.getMatrixForOpenGL(modelviewArray);
-//        glLoadMatrixf(modelviewArray);
-        
-        /*
-         * Draw annotations for this surface and maybe draw
-         * the model annotations.
-         */
-        const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
-        const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
-        BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
-                                                                 this->mode,
-                                                                 BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-                                                                 m_windowIndex,
-                                                                 this->windowTabIndex,
-                                                                 SpacerTabIndex(),
-                                                                 BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
-                                                                 mediaFileNames,
-                                                                 annotationModeFlag,
-                                                                 tileTabsEditModeFlag);
-        std::vector<AnnotationColorBar*> emptyColorBars;
-        std::vector<AnnotationScaleBar*> emptyScaleBars;
-        std::vector<Annotation*> emptyViewportAnnotations;
-        m_annotationDrawing->drawAnnotations(&inputs,
-                                             AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL,
-                                             emptyColorBars,
-                                             emptyScaleBars,
-                                             emptyViewportAnnotations,
-                                             NULL,
-                                             1.0);
-        
-        
-        
-//        glPopMatrix();
-//        glMatrixMode(GL_PROJECTION);
-//        glPopMatrix();
-//        glMatrixMode(GL_MODELVIEW);
-//    }
+    /*
+     * Draw annotations for this surface and maybe draw
+     * the model annotations.
+     */
+    const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
+    const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
+    BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                             this->mode,
+                                                             BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                             m_windowIndex,
+                                                             this->windowTabIndex,
+                                                             SpacerTabIndex(),
+                                                             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
+                                                             mediaFileNames,
+                                                             annotationModeFlag,
+                                                             tileTabsEditModeFlag);
+    std::vector<AnnotationColorBar*> emptyColorBars;
+    std::vector<AnnotationScaleBar*> emptyScaleBars;
+    std::vector<Annotation*> emptyViewportAnnotations;
+    m_annotationDrawing->drawAnnotations(&inputs,
+                                         AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL,
+                                         emptyColorBars,
+                                         emptyScaleBars,
+                                         emptyViewportAnnotations,
+                                         NULL,
+                                         1.0);
     
     glPopAttrib();
 }
@@ -3394,132 +3363,15 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
     CaretAssert(brainStructure);
     Brain* brain = brainStructure->getBrain();
     CaretAssert(brain);
-    const StructureEnum::Enum structure = surface->getStructure();
-    
-    const int numNodes = surface->getNumberOfNodes();
-    
-    const float* coordinates = surface->getCoordinate(0);
-
-    IdentificationManager* idManager = brain->getIdentificationManager();
-    
-    SelectionItemSurfaceNodeIdentificationSymbol* symbolID =
-        m_brain->getSelectionManager()->getSurfaceNodeIdentificationSymbol();
-    
-    const std::vector<IdentifiedItemNode> identifiedNodes = idManager->getNodeIdentifiedItemsForSurface(structure,
-                                                                                                        numNodes);
-    std::vector<int32_t> identifiedNodeIndices;
-    for (std::vector<IdentifiedItemNode>::const_iterator iter = identifiedNodes.begin();
-         iter != identifiedNodes.end();
-         iter++) {
-        const IdentifiedItemNode& nodeID = *iter;
-        identifiedNodeIndices.push_back(nodeID.getNodeIndex());
-    }
-    
-    EventNodeIdentificationColorsGetFromCharts colorsFromChartsEvent(structure,
-                                                                     this->windowTabIndex,
-                                                                     identifiedNodeIndices);
     
     /*
-     * Check for a 'selection' type mode
+     * Draw surface identification symbols
      */
-    bool isSelect = false;
-    switch (this->mode) {
-        case MODE_DRAWING:
-            EventManager::get()->sendEvent(colorsFromChartsEvent.getPointer());
-            break;
-        case MODE_IDENTIFICATION:
-            if (symbolID->isEnabledForSelection()) {
-                isSelect = true;
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
-            }
-            else {
-                return;
-            }
-            break;
-        case MODE_PROJECTION:
-            return;
-            break;
-    }
-    if (idManager->isShowSurfaceIdentificationSymbols()) {
-        for (std::vector<IdentifiedItemNode>::const_iterator iter = identifiedNodes.begin();
-             iter != identifiedNodes.end();
-             iter++) {
-            const IdentifiedItemNode& nodeID = *iter;
-            const int32_t nodeIndex = nodeID.getNodeIndex();
-            const int32_t i3 = nodeIndex * 3;
-            const float* xyz = &coordinates[i3];
-            
-            if (m_clippingPlaneGroup->isSurfaceSelected()) {
-                if ( ! isCoordinateInsideClippingPlanesForStructure(structure, xyz)) {
-                    continue;
-                }
-            }
-            
-            uint8_t symbolRGBA[4];
-            
-            if (isSelect) {
-                this->colorIdentification->addItem(symbolRGBA,
-                                                   SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL,
-                                                   nodeIndex);
-            }
-            else {
-                if (structure == nodeID.getStructure()) {
-                    nodeID.getSymbolRGBA(symbolRGBA);
-                    
-                    colorsFromChartsEvent.applyChartColorToNode(nodeIndex,
-                                                                symbolRGBA);
-                }
-                else {
-                    nodeID.getContralateralSymbolRGB(symbolRGBA);
-                }
-            }
-            symbolRGBA[3] = 255;
-            
-            float symbolDiameter = nodeID.getSymbolSize();
-            switch (nodeID.getIdentificationSymbolSizeType()) {
-                case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
-                    break;
-                case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
-                {
-                    BoundingBox boundingBox;
-                    surface->getBounds(boundingBox);
-                    const float maxDiff(boundingBox.getMaximumDifferenceOfXYZ());
-                    symbolDiameter = maxDiff * (symbolDiameter / 100.0);
-                }
-                    break;
-            }
-            
-            /*
-             * Need to draw each symbol independently since each symbol
-             * contains a unique size (diameter)
-             */
-            std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
-            idPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, symbolDiameter);
-            idPrimitive->addVertex(xyz,
-                                   symbolRGBA);
-            GraphicsEngineDataOpenGL::draw(idPrimitive.get());
-        }
-    }
-    
-    if (isSelect) {
-        int nodeIndex = -1;
-        float depth = -1.0;
-        this->getIndexFromColorSelection(SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL, 
-                                         this->mouseX, 
-                                         this->mouseY,
-                                         nodeIndex,
-                                         depth);
-        if (nodeIndex >= 0) {
-            if (symbolID->isOtherScreenDepthCloserToViewer(depth)) {
-                symbolID->setBrain(surface->getBrainStructure()->getBrain());
-                symbolID->setSurface(surface);
-                symbolID->setNodeNumber(nodeIndex);
-                symbolID->setScreenDepth(depth);
-                this->setSelectedItemScreenXYZ(symbolID, &coordinates[nodeIndex * 3]);
-                CaretLogFine("Selected Vertex Identification Symbol: " + QString::number(nodeIndex));   
-            }
-        }
-    }
+    BrainOpenGLIdentificationDrawing idDrawing(this,
+                                               m_brain,
+                                               browserTabContent,
+                                               this->mode);
+    idDrawing.drawSurfaceIdentificationSymbols(surface);
 }
 
 /**
@@ -7574,6 +7426,87 @@ BrainOpenGLFixedPipeline::getPixelDepthAndRGBA(const int32_t pixelX,
     return true;
 }
 
+/**
+ * Analyze color information to extract identification data.
+ * @param x
+ *    X-coordinate of identification.
+ * @param y
+ *    X-coordinate of identification.
+ * @param dataTypeOut
+ *    Output with type of data.
+ * @param indexOut
+ *    Index of selected item.
+ * @param depthOut
+ *    Depth of selected item.
+ */
+void
+BrainOpenGLFixedPipeline::getIndexFromColorSelection(const int32_t x,
+                                                     const int32_t y,
+                                                     SelectionItemDataTypeEnum::Enum& dataTypeOut,
+                                                     int32_t& indexOut,
+                                                     float& depthOut)
+{
+    dataTypeOut = SelectionItemDataTypeEnum::INVALID;
+    
+    /*
+     * Saves glPixelStore parameters
+     */
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+    
+    /*
+     * Determine item picked by examination of color in back buffer
+     *
+     * QOpenGLWidget Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation).  This is
+     * probably why calls to glReadBuffer() always cause an
+     * OpenGL error.
+     */
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /* do not call glReadBuffer() */
+#else
+    glReadBuffer(GL_BACK);
+#endif
+    glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    uint8_t pixels[3];
+    glReadPixels((int)x,
+                 (int)y,
+                 1,
+                 1,
+                 GL_RGB,
+                 GL_UNSIGNED_BYTE,
+                 pixels);
+    
+    indexOut = -1;
+    depthOut = -1.0;
+    
+    CaretLogFine("ID color is "
+                 + QString::number(pixels[0]) + ", "
+                 + QString::number(pixels[1]) + ", "
+                 + QString::number(pixels[2]));
+    
+    this->colorIdentification->getItemAnyType(pixels,
+                                              dataTypeOut,
+                                              &indexOut);
+    
+    if (indexOut >= 0) {
+        /*
+         * Get depth from depth buffer
+         */
+        glPixelStorei(GL_PACK_ALIGNMENT, 4);
+        glReadPixels(x,
+                     y,
+                     1,
+                     1,
+                     GL_DEPTH_COMPONENT,
+                     GL_FLOAT,
+                     &depthOut);
+    }
+    this->colorIdentification->reset();
+    
+    glPopClientAttrib();
+}
 
 /**
  * Analyze color information to extract identification data.
@@ -7589,7 +7522,7 @@ BrainOpenGLFixedPipeline::getPixelDepthAndRGBA(const int32_t pixelX,
  *    Depth of selected item.
  */
 void
-BrainOpenGLFixedPipeline::getIndexFromColorSelection(SelectionItemDataTypeEnum::Enum dataType,
+BrainOpenGLFixedPipeline::getIndexFromColorSelection(const SelectionItemDataTypeEnum::Enum dataType,
                                         const int32_t x,
                                         const int32_t y,
                                         int32_t& indexOut,
@@ -8167,7 +8100,7 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
     int viewport[4];
     vpContent->getModelViewport(viewport);
     
-    SelectionItemImage* idImage = m_brain->getSelectionManager()->getImageIdentification();
+    SelectionItemMedia* idMedia = m_brain->getSelectionManager()->getMediaIdentification();
     SelectionItemImageControlPoint* idControlPoint = m_brain->getSelectionManager()->getImageControlPointIdentification();
     
     /*
@@ -8179,7 +8112,7 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (idImage->isEnabledForSelection()) {
+            if (idMedia->isEnabledForSelection()) {
                 isSelectImage = true;
             }
             if (idControlPoint->isEnabledForSelection()) {
@@ -8404,16 +8337,18 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
             && (pixelX <  originalImageWidth)
             && (pixelY >= 0)
             && (pixelY <  originalImageHeight)) {
-            idImage->setImageFile(imageFile);
-            idImage->setPixelI(pixelX);
-            idImage->setPixelJ(pixelY);
+            idMedia->setMediaFile(imageFile);
+            PixelIndex pixelIndex(pixelX, pixelY, 0);
+            PixelIndex pixelIndexOriginTop(pixelX, originalImageHeight - pixelY - 1, 0);
+            idMedia->setPixelIndex(pixelIndex, pixelIndexOriginTop);
 
             uint8_t pixelByteRGBA[4];
-            PixelIndex pixelIndex(pixelX, pixelY, 0L);
-            if (imageFile->getImagePixelRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+            const int32_t tabIndex(0); /* no tabs fof ImageFile */
+            if (imageFile->getImagePixelRGBA(tabIndex,
+                                             ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
                                              pixelIndex,
                                              pixelByteRGBA)) {
-                idImage->setPixelRGBA(pixelByteRGBA);
+                idMedia->setPixelRGBA(pixelByteRGBA);
             }
         }
     }

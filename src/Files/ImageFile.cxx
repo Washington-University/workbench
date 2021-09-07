@@ -1423,6 +1423,8 @@ ImageFile::getImageBytesRGBA(const QImage* qImage,
 /**
  * Get the pixel RGBA at the given pixel I and J.
  *
+ * @param tabIndex
+ *    Index of tab
  * @param imageOrigin
  *    Location of first pixel in the image data.
  * @param pixelIndex
@@ -1433,7 +1435,8 @@ ImageFile::getImageBytesRGBA(const QImage* qImage,
  *     True if valid, else false.
  */
 bool
-ImageFile::getImagePixelRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+ImageFile::getImagePixelRGBA(const int32_t tabIndex,
+                             const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
                              const PixelIndex& pixelIndex,
                              uint8_t pixelRGBAOut[4]) const
 {
@@ -2316,7 +2319,10 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
     }
     
     uint8_t rgba[4];
-    getImagePixelRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM, pixelIndex, rgba);
+    getImagePixelRGBA(tabIndex,
+                      IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                      pixelIndex,
+                      rgba);
     
     columnOneTextOut.push_back("Filename");
     columnTwoTextOut.push_back(getFileNameNoPath());
@@ -2355,4 +2361,45 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
         columnTwoTextOut.push_back(mmText);
         toolTipTextOut.push_back(mmText);
     }
+}
+
+/**
+ * convert a pixel index to a stereotaxic coordinate
+ * @param pixelIndexOriginAtTop
+ *    The pixel index (full resolution) with origin at top left
+ * @param includeNonlinearFlag
+ *    If true, include the non-linear transform when converting
+ * @param xyzOut
+ *    Output with the XYZ coordinate
+ *    @param
+ * @return
+ *    True if conversion successful, else false.
+ */
+bool
+ImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
+                                         const bool includeNonlinearFlag,
+                                         std::array<float, 3>& xyzOut) const
+{
+    return false;
+}
+
+/**
+ * Convert a stereotaxic xyz coordinate to a pixel index
+ * @param xyz
+ *    The coordinate
+ * @param includeNonlinearFlag
+ *    If true, include the non-linear transform when converting
+ * @param pixelIndexOut
+ *    Output with pixel index in full resolution with origin at top left
+ * @param debugPixelIndex
+ *    Pixel index used for debugging
+ * @return
+ *    True if successful, else false.
+ */
+bool
+ImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+                                         const bool includeNonlinearFlag,
+                                         PixelIndex& pixelIndexOriginAtTopLeftOut) const
+{
+    return false;
 }

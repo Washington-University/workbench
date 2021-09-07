@@ -30,6 +30,7 @@
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "ControlPoint3D.h"
 #include "ControlPointFile.h"
 #include "DisplayPropertiesImages.h"
@@ -40,7 +41,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
-#include "SelectionItemImage.h"
+#include "SelectionItemMedia.h"
 #include "SelectionItemImageControlPoint.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -179,14 +180,13 @@ UserInputModeImage::mouseLeftClick(const MouseEvent& mouseEvent)
     }
     
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-    //BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
     SelectionManager* idManager =
     openGLWidget->performIdentification(mouseEvent.getX(),
                                         mouseEvent.getY(),
                                         true);
     
-    SelectionItemImage* idImage = idManager->getImageIdentification();
-    CaretAssert(idImage);
+    SelectionItemMedia* idMedia = idManager->getMediaIdentification();
+    CaretAssert(idMedia);
     
     SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
     CaretAssert(idVoxel);
@@ -198,12 +198,12 @@ UserInputModeImage::mouseLeftClick(const MouseEvent& mouseEvent)
     
     switch (m_editOperation) {
         case EDIT_OPERATION_ADD:
-            if (idImage->isValid()
+            if (idMedia->isValid()
                 && idVoxel->isValid()) {
-                addControlPoint(idImage,
+                addControlPoint(idMedia,
                                 idVoxel);
             }
-            else if (idImage->isValid()) {
+            else if (idMedia->isValid()) {
                 toolTipMessage = "Mouse click is over image but must also be over volume slice";
             }
             else if (idVoxel->isValid()) {
@@ -237,22 +237,29 @@ UserInputModeImage::mouseLeftClick(const MouseEvent& mouseEvent)
 /**
  * Create a control point for the given image and voxel coordinates.
  *
- * @param imageSelection
+ * @param mediaSelection
  *     The image selection.
  * @param voxelSelection
  *     The voxel selection.
  */
 void
-UserInputModeImage::addControlPoint(SelectionItemImage* imageSelection,
+UserInputModeImage::addControlPoint(SelectionItemMedia* mediaSelection,
                                     const SelectionItemVoxel* voxelSelection)
 {
-    ImageFile* imageFile = imageSelection->getImageFile();
-    CaretAssert(imageFile);
+    MediaFile* mediaFile = mediaSelection->getMediaFile();
+    CaretAssert(mediaFile);
+    ImageFile* imageFile = mediaFile->castToImageFile();
+    if (imageFile == NULL) {
+        CaretLogWarning("File for adding control point must be an image file but is: "
+                        + DataFileTypeEnum::toName(mediaFile->getDataFileType()));
+        return;
+    }
     ControlPointFile* controlPointFile = imageFile->getControlPointFile();
     CaretAssert(controlPointFile);
     
-    const float pixelX = imageSelection->getPixelI();
-    const float pixelY = imageSelection->getPixelJ();
+    const PixelIndex pixelIndex(mediaSelection->getPixelIndexOriginAtBottom());
+    const float pixelX = pixelIndex.getI();
+    const float pixelY = pixelIndex.getJ();
     const float pixelZ = 0.0;
     
     double voxelXYZ[3] = { 0.0, 0.0, 0.0 };
@@ -326,7 +333,6 @@ UserInputModeImage::getTabIndex() const
     EventBrowserWindowDrawingContent windowGet(m_windowIndex);
     EventManager::get()->sendEvent(windowGet.getPointer());
     
-    //DisplayPropertiesImages* dpi = GuiManager::get()->getBrain()->getDisplayPropertiesImages();
     BrowserTabContent* tabContent = windowGet.getSelectedBrowserTabContent();
     if (tabContent != NULL) {
         tabIndex = tabContent->getTabNumber();

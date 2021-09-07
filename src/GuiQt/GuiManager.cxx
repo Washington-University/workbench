@@ -91,14 +91,14 @@
 #include "HtmlTableBuilder.h"
 #include "IdentificationDisplayDialog.h"
 #include "IdentificationFilter.h"
-#include "IdentifiedItemNode.h"
-#include "IdentifiedItemVoxel.h"
+#include "IdentifiedItemUniversal.h"
 #include "IdentificationManager.h"
 #include "IdentificationStringBuilder.h"
 #include "IdentifyBrainordinateDialog.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
+#include "MediaFile.h"
 #include "MetricDynamicConnectivityFile.h"
 #include "ModelChartTwo.h"
 #include "OverlaySettingsEditorDialog.h"
@@ -119,6 +119,8 @@
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
+#include "SelectionItemMedia.h"
+#include "SelectionItemMediaIdentificationSymbol.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
@@ -3247,29 +3249,23 @@ GuiManager::processIdentification(const int32_t tabIndex,
     const QString breakAndIndent("<br>&nbsp;&nbsp;&nbsp;&nbsp;");
     SelectionItemSurfaceNodeIdentificationSymbol* nodeIdSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
     SelectionItemVoxelIdentificationSymbol*  voxelIdSymbol = selectionManager->getVoxelIdentificationSymbol();
-    if ((nodeIdSymbol->getSurface() != NULL)
-        && (nodeIdSymbol->getNodeNumber() >= 0)) {
-        const Surface* surface = nodeIdSymbol->getSurface();
-        const int32_t surfaceNumberOfNodes = surface->getNumberOfNodes();
-        const int32_t nodeIndex = nodeIdSymbol->getNodeNumber();
-        const StructureEnum::Enum structure = surface->getStructure();
-        
-        identificationManager->removeIdentifiedNodeItem(structure,
-                                                        surfaceNumberOfNodes,
-                                                        nodeIndex);
+    SelectionItemMediaIdentificationSymbol* mediaIdSymbol = selectionManager->getMediaIdentificationSymbol();
+    if (nodeIdSymbol->isValid()) {
+        identificationManager->removeIdentifiedItem(nodeIdSymbol);
         updateGraphicsFlag = true;
         updateInformationFlag = true;
     }
     else if (voxelIdSymbol->isValid()) {
-        float voxelXYZ[3];
-        voxelIdSymbol->getVoxelXYZ(voxelXYZ);
-        identificationManager->removeIdentifiedVoxelItem(voxelXYZ);
-
+        identificationManager->removeIdentifiedItem(voxelIdSymbol);
         updateGraphicsFlag = true;
         updateInformationFlag = true;
     }
+    else if (mediaIdSymbol->isValid()) {
+        identificationManager->removeIdentifiedItem(mediaIdSymbol);
+        updateGraphicsFlag = true;
+        updateInformationFlag = true;    }
     else {
-        IdentifiedItemBase* identifiedItem = NULL;
+        IdentifiedItemUniversal* identifiedItem(NULL);
         
         SelectionItemSurfaceNode* idNode = selectionManager->getSurfaceNodeIdentification();
         SelectionItemVoxel* idVoxel = selectionManager->getVoxelIdentification();
@@ -3704,11 +3700,15 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 xyz[2] = -10000000.0;
             }
             
-            identifiedItem = new IdentifiedItemNode(identificationMessage,
-                                                    formattedIdentificationMessage,
-                                                    surface->getStructure(),
-                                                    surface->getNumberOfNodes(),
-                                                    nodeIndex);
+            std::array<float, 3> stereotaxicXYZ { xyz[0], xyz[1], xyz[2] };
+            identifiedItem = IdentifiedItemUniversal::newInstanceSurfaceIdentification(identificationMessage,
+                                                                                       formattedIdentificationMessage,
+                                                                                       surface->getFileNameNoPath(),
+                                                                                       surface->getStructure(),
+                                                                                       surface->getNumberOfNodes(),
+                                                                                       nodeIndex,
+                                                                                       stereotaxicXYZ);
+
             /*
              * Only issue identification event for node 
              * if it WAS NOT created from the voxel identification
@@ -3734,9 +3734,17 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 volumeFile->indexToSpace(voxelIJK, xyz);
                 
                 if (identifiedItem == NULL) {
-                    identifiedItem = new IdentifiedItemVoxel(identificationMessage,
-                                                             formattedIdentificationMessage,
-                                                             xyz);
+                    const CaretDataFile* caretDataFile = dynamic_cast<const CaretDataFile*>(volumeFile);
+                    const AString dataFileName((caretDataFile != NULL)
+                                               ? caretDataFile->getFileNameNoPath()
+                                               : "");
+                    std::array<int64_t, 3> voxelIdIJK { voxelIJK[0], voxelIJK[1], voxelIJK[2] };
+                    std::array<float, 3> stereotaxicXYZ { xyz[0], xyz[1], xyz[2] };
+                    identifiedItem = IdentifiedItemUniversal::newInstanceVolumeIdentification(identificationMessage,
+                                                                                              formattedIdentificationMessage,
+                                                                                              dataFileName,
+                                                                                              voxelIdIJK,
+                                                                                              stereotaxicXYZ);
                 }
                 
                 if ( ! issuedIdentificationLocationEvent) {
@@ -3754,11 +3762,33 @@ GuiManager::processIdentification(const int32_t tabIndex,
             }
         }
         
+        SelectionItemMedia* idMedia = selectionManager->getMediaIdentification();
+        if (idMedia != NULL) {
+            if (idMedia->isValid()) {
+                if (identifiedItem == NULL) {
+                    AString dataFileName("Data File Name Missing");
+                    if (idMedia->getMediaFile() != NULL) {
+                        dataFileName = idMedia->getMediaFile()->getFileNameNoPath();
+                    }
+                    const PixelIndex pixelIndex = idMedia->getPixelIndexOriginAtTop();
+                    std::array<float, 3> stereotaxicXYZ;
+                    bool stereotaxicXYZValidFlag = idMedia->getStereotaxicXYZ(stereotaxicXYZ);
+                    identifiedItem = IdentifiedItemUniversal::newInstanceMediaIdentification(identificationMessage,
+                                                                                             formattedIdentificationMessage,
+                                                                                             dataFileName,
+                                                                                             pixelIndex,
+                                                                                             stereotaxicXYZ,
+                                                                                             stereotaxicXYZValidFlag);
+                    //                selectionManager->setLastSelectedItem(identifiedItem);
+                }
+            }
+        }
+        
         if (identifiedItem == NULL) {
             if ( (! identificationMessage.isEmpty())
                 || ( ! formattedIdentificationMessage.isEmpty())) {
-                identifiedItem = new IdentifiedItemBase(identificationMessage,
-                                                        formattedIdentificationMessage);
+                identifiedItem = IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(identificationMessage,
+                                                                                                formattedIdentificationMessage);
             }
         }
         
@@ -3780,14 +3810,15 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                            ciftiLoadingFormattedMessage);
             }
             else {
-                identifiedItem = new IdentifiedItemBase(ciftiInfo,
-                                                        ciftiLoadingFormattedMessage);
+                identifiedItem = IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(ciftiInfo,
+                                                                                                ciftiLoadingFormattedMessage);
             }
         }
         
         if (identifiedItem != NULL) {
             identificationManager->addIdentifiedItem(identifiedItem);
             updateInformationFlag = true;
+            updateGraphicsFlag    = true;
         }
     }
     

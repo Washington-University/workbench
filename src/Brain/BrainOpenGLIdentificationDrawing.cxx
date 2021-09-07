@@ -1,0 +1,552 @@
+
+/*LICENSE_START*/
+/*
+ *  Copyright (C) 2021 Washington University School of Medicine
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+/*LICENSE_END*/
+
+#define __BRAIN_OPEN_G_L_IDENTIFICATION_DRAWING_DECLARE__
+#include "BrainOpenGLIdentificationDrawing.h"
+#undef __BRAIN_OPEN_G_L_IDENTIFICATION_DRAWING_DECLARE__
+
+#include "Brain.h"
+#include "BrainOpenGLFixedPipeline.h"
+#include "BrowserTabContent.h"
+#include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "ClippingPlaneGroup.h"
+#include "CziImageFile.h"
+#include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsPrimitiveV3fC4ub.h"
+#include "IdentificationWithColor.h"
+#include "ImageFile.h"
+#include "IdentifiedItemUniversal.h"
+#include "IdentificationManager.h"
+#include "Plane.h"
+#include "SelectionItemMediaIdentificationSymbol.h"
+#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
+#include "SelectionItemVoxelIdentificationSymbol.h"
+#include "SelectionManager.h"
+#include "Surface.h"
+#include "VolumeMappableInterface.h"
+
+using namespace caret;
+
+
+    
+/**
+ * \class caret::BrainOpenGLIdentificationDrawing 
+ * \brief Draws identification symbols on images, surfaces, volumes
+ * \ingroup Brain
+ */
+
+/**
+ * Constructor.
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing
+ * @param brain
+ *    The brain
+ * @param browserTabContent
+ *    The content of the browser tab
+ * @param drawingMode
+ *    The drawing mode
+ */
+BrainOpenGLIdentificationDrawing::BrainOpenGLIdentificationDrawing(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                                   Brain* brain,
+                                                                   BrowserTabContent* browserTabContent,
+                                                                   const BrainOpenGLFixedPipeline::Mode drawingMode)
+: CaretObject(),
+m_fixedPipelineDrawing(fixedPipelineDrawing),
+m_brain(brain),
+m_browserTabContent(browserTabContent),
+m_drawingMode(drawingMode)
+{
+    CaretAssert(m_brain);
+    CaretAssert(m_browserTabContent);
+    
+    m_clippingPlaneGroup = const_cast<ClippingPlaneGroup*>(m_browserTabContent->getClippingPlaneGroup());
+    CaretAssert(m_clippingPlaneGroup);
+    m_idManager = m_brain->getIdentificationManager();
+    CaretAssert(m_idManager);
+    m_selectionManager = m_brain->getSelectionManager();
+    CaretAssert(m_selectionManager);
+}
+
+/**
+ * Destructor.
+ */
+BrainOpenGLIdentificationDrawing::~BrainOpenGLIdentificationDrawing()
+{
+}
+
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString 
+BrainOpenGLIdentificationDrawing::toString() const
+{
+    return "BrainOpenGLIdentificationDrawing";
+}
+
+/**
+ * Draw identification symbols on media file
+ * @param mediaFile
+ *    Media file on which symbols are drawn
+ * @param plane
+ *    Plane of the media
+ * @param mediaThickness
+ *    Thickness of the media for those that support stereotaxic coordinates
+ */
+void
+BrainOpenGLIdentificationDrawing::drawMediaFileIdentificationSymbols(const MediaFile* mediaFile,
+                                                                     const Plane& plane,
+                                                                     const float mediaThickness,
+                                                                     const float viewportHeight)
+{
+    CaretAssert(mediaFile);
+
+    const Surface* surface(NULL);
+    const VolumeMappableInterface* volume(NULL);
+    
+    drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::MEDIA,
+                              surface,
+                              mediaFile,
+                              volume,
+                              plane,
+                              mediaThickness,
+                              viewportHeight,
+                              m_idManager->isShowOtherTypeIdentificationSymbols());
+}
+
+/**
+ * Draw identification symbols on media file
+ * @param mediaFile
+ *    Media file on which symbols are drawn
+ */
+void
+BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface* surface)
+{
+    CaretAssert(surface);
+
+    const MediaFile* mediaFile(NULL);
+    const VolumeMappableInterface* volume(NULL);
+    Plane plane;
+    const float planeThickness(1.0f);
+    const float viewportHeight(1.0f);
+    
+    drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::SURFACE,
+                              surface,
+                              mediaFile,
+                              volume,
+                              plane,
+                              planeThickness,
+                              viewportHeight,
+                              m_idManager->isShowOtherTypeIdentificationSymbols());
+}
+
+/**
+ * Draw volume identification symbols
+ * @param volume
+ *    The volume on which symbols are drawn
+ * @param plane
+ *    Plane of the volume
+ * @param sliceThickness
+ *    Thickness of the slice
+ * @param viewportHeight
+ *    Height of viewport
+ */
+void
+BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                                  const Plane& plane,
+                                                                  const float sliceThickness,
+                                                                  const float viewportHeight)
+{
+    CaretAssert(volume);
+    
+    const Surface* surface(NULL);
+    const MediaFile* mediaFile(NULL);
+    
+    drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::VOLUME,
+                              surface,
+                              mediaFile,
+                              volume,
+                              plane,
+                              sliceThickness,
+                              viewportHeight,
+                              m_idManager->isShowOtherTypeIdentificationSymbols());
+}
+
+/**
+ * Draw volume identification symbols
+ * @param drawingOnType
+ *    Type of model on which symbol is drawn
+ * @param surface
+ *    surface will be non-NULL when drawing identification symbols on a surface.
+ * @param mediaFile
+ *    mediaFile will be non-NULL when drawing identification symbols on a media file
+ * @param volume
+ *    volume will be non-NULL when drawing identification symbols on a a volume
+ * @param plane
+ *    Plane of the volume
+ * @param planeThickness
+ *    Thickness of the plane for media and volume
+ * @param viewportHeight
+ *    Height of viewport
+ * @param drawOtherTypeIdentificationSymbolsFlag
+ *    If true, draw symbols from other types (ie: draw volume symbols when viewing surface)
+ */
+void
+BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItemUniversalTypeEnum::Enum drawingOnType,
+                                                            const Surface* surface,
+                                                            const MediaFile* mediaFile,
+                                                            const VolumeMappableInterface* volume,
+                                                            const Plane& plane,
+                                                            const float planeThickness,
+                                                            const float viewportHeight,
+                                                            const bool drawOtherTypeIdentificationSymbolsFlag)
+{
+    float mediaHeight(0.0f);
+    StructureEnum::Enum surfaceStructure(StructureEnum::INVALID);
+    int32_t surfaceNumberOfVertices(0);
+    float surfaceMaxDimension(-1.0);
+    
+    bool drawingOnSurfaceFlag(false);
+    bool drawingOnMediaFlag(false);
+    bool drawingOnVolumeFlag(false);
+    
+    switch (drawingOnType) {
+        case IdentifiedItemUniversalTypeEnum::INVALID:
+            CaretAssert(0);
+            return;
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA:
+            CaretAssert(mediaFile);
+            if (mediaFile == NULL) {
+                return;
+            }
+            drawingOnMediaFlag = true;
+            mediaHeight = mediaFile->getHeight();
+            break;
+        case IdentifiedItemUniversalTypeEnum::SURFACE:
+        {
+            CaretAssert(surface);
+            if (surface == NULL) {
+                return;
+            }
+            drawingOnSurfaceFlag = true;
+            surfaceNumberOfVertices = surface->getNumberOfNodes();
+            surfaceStructure = surface->getStructure();
+            BoundingBox boundingBox;
+            surface->getBounds(boundingBox);
+        }
+            break;
+        case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
+            CaretAssert(0);
+            return;
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME:
+            CaretAssert(volume);
+            if (volume == NULL) {
+                return;
+            }
+            drawingOnVolumeFlag = true;
+            break;
+    }
+    
+    const float halfSliceThickness(planeThickness > 0.0
+                                   ? (planeThickness * 0.55) /* ensure symbol falls within a slice*/
+                                   : 1.0);
+
+    SelectionItemMediaIdentificationSymbol* mediaSymbolSelection = m_selectionManager->getMediaIdentificationSymbol();
+    SelectionItemSurfaceNodeIdentificationSymbol* surfaceSymbolSelection(m_selectionManager->getSurfaceNodeIdentificationSymbol());
+    SelectionItemVoxelIdentificationSymbol* volumeSymbolSelection = m_selectionManager->getVoxelIdentificationSymbol();
+
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool selectFlag = false;
+    switch (m_drawingMode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            //EventManager::get()->sendEvent(colorsFromChartsEvent.getPointer());
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (mediaSymbolSelection->isEnabledForSelection()
+                || surfaceSymbolSelection->isEnabledForSelection()
+                || volumeSymbolSelection->isEnabledForSelection()) {
+                selectFlag = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    
+    std::vector<const IdentifiedItemUniversal*> allItems(getIdentifiedItems());
+    int32_t selectionItemIndex(-1);
+    for (const auto& item : allItems) {
+        ++selectionItemIndex;
+        bool drawFlag(false);
+        bool surfaceFlag(false);
+        bool contralateralFlag(false);
+        std::array<float, 3> xyz { 0.0f, 0.0f, 0.0f };
+        switch (item->getType()) {
+            case IdentifiedItemUniversalTypeEnum::INVALID:
+                break;
+            case IdentifiedItemUniversalTypeEnum::MEDIA:
+                if (m_idManager->isShowMediaIdentificationSymbols()) {
+                    if (drawingOnMediaFlag) {
+                        if (mediaFile->getFileNameNoPath() == item->getDataFileName()) {
+                            const PixelIndex pixelIndex(item->getPixelIndex());
+                            xyz[0] = pixelIndex.getI();
+                            xyz[1] = (mediaHeight - pixelIndex.getJ() - 1);  /* Convert to origin at bottom */
+                            xyz[2] = 0.0;
+                            drawFlag = true;
+                        }
+                        else if (item->isStereotaxicXYZValid()) {
+                            xyz = item->getStereotaxicXYZ();
+                            drawFlag = true;
+                        }
+
+                    }
+                    else if (m_idManager->isShowOtherTypeIdentificationSymbols()) {
+                        if (item->isStereotaxicXYZValid()) {
+                            xyz = item->getStereotaxicXYZ();
+                            drawFlag = true;
+                        }
+                    }
+                    /*
+                      STILL NEED TO TEST XYZ AGAINST MEDIA PLANE
+                     */
+                }
+                break;
+            case IdentifiedItemUniversalTypeEnum::SURFACE:
+                if (m_idManager->isShowSurfaceIdentificationSymbols()) {
+                    if (drawingOnSurfaceFlag) {
+                        if ((item->getStructure() == surfaceStructure)
+                            && (item->getSurfaceNumberOfVertices() == surfaceNumberOfVertices)) {
+                            drawFlag = true;
+                            surfaceFlag = true;
+                        }
+                        else if (m_idManager->isContralateralIdentificationEnabled()) {
+                            if ((item->getContralateralStructure() == surfaceStructure)
+                                && (item->getSurfaceNumberOfVertices() == surfaceNumberOfVertices)) {
+                                contralateralFlag = true;
+                                drawFlag = true;
+                                surfaceFlag = true;
+                            }
+                        }
+                        surface->getCoordinate(item->getSurfaceVertexIndex(),
+                                               xyz.data());
+                    }
+                    else if (m_idManager->isShowOtherTypeIdentificationSymbols()) {
+                        if (item->isStereotaxicXYZValid()) {
+                            xyz = item->getStereotaxicXYZ();
+                        }
+                    }
+                }
+                break;
+            case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
+                break;
+            case IdentifiedItemUniversalTypeEnum::VOLUME:
+                if (m_idManager->isShowVolumeIdentificationSymbols()) {
+                    if (drawingOnVolumeFlag) {
+                        if (item->isStereotaxicXYZValid()) {
+                            xyz = item->getStereotaxicXYZ();
+                            drawFlag = true;
+                        }
+                    }
+                    else if (m_idManager->isShowOtherTypeIdentificationSymbols()) {
+                        if (item->isStereotaxicXYZValid()) {
+                            xyz = item->getStereotaxicXYZ();
+                            drawFlag = true;
+                        }
+                    }
+                    
+                    if (plane.isValidPlane()) {
+                        /*
+                         * Is near plane of slice?
+                         */
+                        const float dist = std::fabs(plane.signedDistanceToPlane(xyz.data()));
+                        if (dist > halfSliceThickness) {
+                            drawFlag = false;
+                        }
+                    }
+                }
+                break;
+        }
+        
+        if (drawingOnSurfaceFlag) {
+            if (m_clippingPlaneGroup->isSurfaceSelected()) {
+                if ( ! m_fixedPipelineDrawing->isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                                            xyz.data())) {
+                    drawFlag = false;
+                }
+            }
+        }
+        
+        if (drawFlag) {
+            float height(0.0f);
+            if (drawingOnMediaFlag) {
+                height = mediaFile->getHeight();
+            }
+            else if (drawingOnSurfaceFlag) {
+                height = surfaceMaxDimension;
+            }
+            else if (drawingOnVolumeFlag) {
+                height = viewportHeight;
+            }
+            float symbolDiameter(1.0f);
+            std::array<uint8_t, 4> symbolRGBA;
+            m_idManager->getIdentifiedItemColorAndSize(item,
+                                                       drawingOnType,
+                                                       height,
+                                                       contralateralFlag,
+                                                       symbolRGBA,
+                                                       symbolDiameter);
+            
+            if (selectFlag) {
+                if (drawingOnMediaFlag) {
+                    m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
+                                                                         SelectionItemDataTypeEnum::MEDIA_IDENTIFICATION_SYMBOL,
+                                                                         selectionItemIndex);
+                }
+                else if (drawingOnSurfaceFlag) {
+                    m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
+                                                                         SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL,
+                                                                         selectionItemIndex);
+                }
+                else if (drawingOnVolumeFlag) {
+                    m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
+                                                                         SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,
+                                                                         selectionItemIndex);
+                }
+                else {
+                    CaretAssertMessage(0, "Drawing on unrecognized model type");
+                    selectFlag = false;
+                }
+                
+                /*
+                 * Draw symbol a bit larger so that it is easier to select
+                 */
+                symbolDiameter *= 1.5;
+            }
+            
+            /*
+             * Need to draw each symbol independently since each symbol
+             * contains a unique size (diameter)
+             */
+            std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive;
+            const bool pointSymbolFlag(drawingOnMediaFlag);
+            if (pointSymbolFlag) {
+                idPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS));
+                idPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::MILLIMETERS, symbolDiameter);
+            }
+            else {
+                idPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
+                idPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, symbolDiameter);
+                
+            }
+            idPrimitive->addVertex(xyz.data(),
+                                   symbolRGBA.data());
+            GraphicsEngineDataOpenGL::draw(idPrimitive.get());
+        }
+    }
+    
+    if (selectFlag) {
+        SelectionItemDataTypeEnum::Enum selectionItemType = SelectionItemDataTypeEnum::INVALID;
+        int idIndex = -1;
+        float depth = -1.0;
+        m_fixedPipelineDrawing->getIndexFromColorSelection(m_fixedPipelineDrawing->mouseX,
+                                                           m_fixedPipelineDrawing->mouseY,
+                                                           selectionItemType,
+                                                           idIndex,
+                                                           depth);
+        if (mediaSymbolSelection->isEnabledForSelection()) {
+            if ((idIndex >= 0)
+                && (selectionItemType == SelectionItemDataTypeEnum::MEDIA_IDENTIFICATION_SYMBOL)){
+                if (mediaSymbolSelection->isOtherScreenDepthCloserToViewer(depth)) {
+                    CaretAssertVectorIndex(allItems, idIndex);
+                    const auto& selectedItem = allItems[idIndex];
+                    CaretAssert(selectedItem->getType() == IdentifiedItemUniversalTypeEnum::MEDIA);
+                    const std::array<float, 3> xyz = selectedItem->getStereotaxicXYZ();
+                    mediaSymbolSelection->setIdentifiedItemUniqueIdentifier(selectedItem->getUniqueIdentifier());
+                    mediaSymbolSelection->setPixelXYZ(xyz.data());
+                    mediaSymbolSelection->setBrain(m_brain);
+                    mediaSymbolSelection->setScreenDepth(depth);
+                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(mediaSymbolSelection, xyz.data());
+                    CaretLogFine("Selected Media Identification Symbol: " + QString::number(idIndex));
+                }
+            }
+        }
+        if (surfaceSymbolSelection->isEnabledForSelection()) {
+            if ((idIndex >= 0)
+                && (selectionItemType == SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL)) {
+                if (surfaceSymbolSelection->isOtherScreenDepthCloserToViewer(depth)) {
+                    CaretAssertVectorIndex(allItems, idIndex);
+                    const auto& selectedItem = allItems[idIndex];
+                    CaretAssert(selectedItem->getType() == IdentifiedItemUniversalTypeEnum::SURFACE);
+                    const std::array<float, 3> xyz = selectedItem->getStereotaxicXYZ();
+                    surfaceSymbolSelection->setIdentifiedItemUniqueIdentifier(selectedItem->getUniqueIdentifier());
+                    surfaceSymbolSelection->setBrain(m_brain);
+                    surfaceSymbolSelection->setSurface(const_cast<Surface*>(surface));
+                    surfaceSymbolSelection->set(surface->getStructure(),
+                                                surface->getNumberOfNodes(),
+                                                selectedItem->getSurfaceVertexIndex());
+                    surfaceSymbolSelection->setScreenDepth(depth);
+                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(surfaceSymbolSelection, xyz.data());
+                    CaretLogFine("Selected Vertex Identification Symbol: " + QString::number(selectedItem->getSurfaceVertexIndex()));
+                }
+            }
+        }
+        
+        if (volumeSymbolSelection->isEnabledForSelection()) {
+            if ((idIndex >= 0)
+                && (selectionItemType == SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL)) {
+                if (volumeSymbolSelection->isOtherScreenDepthCloserToViewer(depth)) {
+                    CaretAssertVectorIndex(allItems, idIndex);
+                    const auto& selectedItem = allItems[idIndex];
+                    CaretAssert(selectedItem->getType() == IdentifiedItemUniversalTypeEnum::VOLUME);
+                    const std::array<float, 3> xyz = selectedItem->getStereotaxicXYZ();
+                    volumeSymbolSelection->setVoxelXYZ(xyz.data());
+                    volumeSymbolSelection->setBrain(m_brain);
+                    volumeSymbolSelection->setScreenDepth(depth);
+                    volumeSymbolSelection->setIdentifiedItemUniqueIdentifier(selectedItem->getUniqueIdentifier());
+                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(volumeSymbolSelection, xyz.data());
+                    CaretLogFine("Selected Voxel Identification Symbol: " + QString::number(idIndex));
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Get all of the idenfiied items
+ */
+std::vector<const IdentifiedItemUniversal*>
+BrainOpenGLIdentificationDrawing::getIdentifiedItems()
+{
+    std::vector<const IdentifiedItemUniversal*> items(m_idManager->getIdentifiedItems());
+    
+    return items;
+}
+

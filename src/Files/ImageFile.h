@@ -124,13 +124,22 @@ public:
                               const int32_t resizeToHeight,
                               std::vector<uint8_t>& bytesRGBAOut) const;
     
-    bool getImagePixelRGBA(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+    bool getImagePixelRGBA(const int32_t tabIndex,
+                           const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
                            const PixelIndex& pixelIndex,
-                           uint8_t pixelRGBAOut[4]) const;
+                           uint8_t pixelRGBAOut[4]) const override;
     
     virtual int32_t getWidth() const override;
     
     virtual int32_t getHeight() const override;
+
+    virtual bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
+                                            const bool includeNonlinearFlag,
+                                            std::array<float, 3>& xyzOut) const override;
+    
+    virtual bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+                                            const bool includeNonlinearFlag,
+                                            PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
 
     virtual void readFile(const AString& filename) override;
     

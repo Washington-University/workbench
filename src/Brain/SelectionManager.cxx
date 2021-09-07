@@ -46,11 +46,11 @@
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
-#include "SelectionItemCziImage.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
-#include "SelectionItemImage.h"
 #include "SelectionItemImageControlPoint.h"
+#include "SelectionItemMedia.h"
+#include "SelectionItemMediaIdentificationSymbol.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemSurfaceTriangle.h"
@@ -91,9 +91,10 @@ SelectionManager::SelectionManager()
     m_chartTimeSeriesIdentification = new SelectionItemChartTimeSeries();
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
     m_volumeFocusIdentification = new SelectionItemFocusVolume();
-    m_imageIdentification = new SelectionItemImage();
-    m_cziImageIdentification.reset(new SelectionItemCziImage());
     m_imageControlPointIdentification = new SelectionItemImageControlPoint();
+    m_mediaIdentification.reset(new SelectionItemMedia());
+    m_mediaIdentificationSymbol.reset(new SelectionItemMediaIdentificationSymbol());
+    
     m_surfaceNodeIdentification = new SelectionItemSurfaceNode();
     m_surfaceNodeIdentificationSymbol = new SelectionItemSurfaceNodeIdentificationSymbol();
     m_surfaceTriangleIdentification = new SelectionItemSurfaceTriangle();
@@ -118,9 +119,9 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_surfaceNodeIdentification);
     m_allSelectionItems.push_back(m_surfaceNodeIdentificationSymbol);
     m_allSelectionItems.push_back(m_surfaceTriangleIdentification);
-    m_allSelectionItems.push_back(m_cziImageIdentification.get());
-    m_allSelectionItems.push_back(m_imageIdentification);
     m_allSelectionItems.push_back(m_imageControlPointIdentification);
+    m_allSelectionItems.push_back(m_mediaIdentification.get());
+    m_allSelectionItems.push_back(m_mediaIdentificationSymbol.get());
     m_allSelectionItems.push_back(m_voxelIdentification);
     m_allSelectionItems.push_back(m_voxelIdentificationSymbol);
     m_allSelectionItems.push_back(m_voxelEditingIdentification);
@@ -169,8 +170,6 @@ SelectionManager::~SelectionManager()
     m_ciftiConnectivityMatrixRowColumnIdentfication = NULL;
     delete m_surfaceFocusIdentification;
     m_surfaceFocusIdentification = NULL;
-    delete m_imageIdentification;
-    m_imageIdentification = NULL;
     delete m_imageControlPointIdentification;
     m_imageControlPointIdentification = NULL;
     delete m_surfaceNodeIdentification;
@@ -518,43 +517,6 @@ SelectionManager::getAnnotationIdentification() const
 }
 
 /**
- * @return Identification for image.
- */
-SelectionItemCziImage*
-SelectionManager::getCziImageIdentification()
-{
-    return m_cziImageIdentification.get();
-}
-
-
-/**
- * @return Identification for image.
- */
-const SelectionItemCziImage*
-SelectionManager::getCziImageIdentification() const
-{
-    return m_cziImageIdentification.get();
-}
-
-/**
- * @return Identification for image.
- */
-SelectionItemImage*
-SelectionManager::getImageIdentification()
-{
-    return m_imageIdentification;
-}
-
-/**
- * @return Identification for image.
- */
-const SelectionItemImage*
-SelectionManager::getImageIdentification() const
-{
-    return m_imageIdentification;
-}
-
-/**
  * @return Identification for image control point.
  */
 SelectionItemImageControlPoint*
@@ -570,6 +532,42 @@ const SelectionItemImageControlPoint*
 SelectionManager::getImageControlPointIdentification() const
 {
     return m_imageControlPointIdentification;
+}
+
+/**
+ * @return Identification for media
+ */
+SelectionItemMedia*
+SelectionManager::getMediaIdentification()
+{
+    return m_mediaIdentification.get();
+}
+
+/**
+ * @return Identification for media
+ */
+const SelectionItemMedia*
+SelectionManager::getMediaIdentification() const
+{
+    return m_mediaIdentification.get();
+}
+
+/**
+ * @return Identification for media symbol
+ */
+SelectionItemMediaIdentificationSymbol*
+SelectionManager::getMediaIdentificationSymbol()
+{
+    return m_mediaIdentificationSymbol.get();
+}
+
+/**
+ * @return Identification for media symbol
+ */
+const SelectionItemMediaIdentificationSymbol*
+SelectionManager::getMediaIdentificationSymbol() const
+{
+    return m_mediaIdentificationSymbol.get();
 }
 
 /**

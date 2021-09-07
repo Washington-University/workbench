@@ -28,8 +28,8 @@
 namespace caret {
 
     class ImageFile;
-    class SelectionItemImage;
     class SelectionItemImageControlPoint;
+    class SelectionItemMedia;
     class SelectionItemVoxel;
     class UserInputModeImageWidget;
     
@@ -77,7 +77,7 @@ namespace caret {
         
         void updateAfterControlPointsChanged();
         
-        void addControlPoint(SelectionItemImage* imageSelection,
+        void addControlPoint(SelectionItemMedia* imageSelection,
                              const SelectionItemVoxel* voxelSelection);
         
         void deleteControlPoint(SelectionItemImageControlPoint* idImageControlPoint);

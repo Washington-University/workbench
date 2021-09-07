@@ -59,8 +59,8 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GuiManager.h"
-#include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
+#include "IdentifiedItemUniversal.h"
 #include "LabelFile.h"
 #include "MapFileDataSelector.h"
 #include "Overlay.h"
@@ -1569,9 +1569,8 @@ UserInputModeViewContextMenu::identifySurfaceBorderSelected()
         tabIndex = this->browserTabContent->getTabNumber();
     }
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItemBase(this->selectionManager->getSimpleIdentificationText(brain),
-                                                        this->selectionManager->getFormattedIdentificationText(brain,
-                                                                                                           tabIndex)));
+    idManager->addIdentifiedItem(IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(this->selectionManager->getSimpleIdentificationText(brain),
+                                                                                                this->selectionManager->getFormattedIdentificationText(brain, tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
@@ -1616,11 +1615,16 @@ UserInputModeViewContextMenu::createSurfaceIDSymbolFocusSelected()
     SelectionItemSurfaceNodeIdentificationSymbol* nodeSymbolID =
         this->selectionManager->getSurfaceNodeIdentificationSymbol();
     
-    const Surface* surface = nodeSymbolID->getSurface();
     const int32_t nodeIndex = nodeSymbolID->getNodeNumber();
-    const float* xyz = surface->getCoordinate(nodeIndex);
     
-    const AString focusName = (StructureEnum::toGuiName(surface->getStructure())
+    double modelXYZ[3];
+    nodeSymbolID->getModelXYZ(modelXYZ);
+    const float xyz[3] {
+        static_cast<float>(modelXYZ[0]),
+        static_cast<float>(modelXYZ[1]),
+        static_cast<float>(modelXYZ[2])
+    };
+    const AString focusName = (StructureEnum::toGuiName(nodeSymbolID->getStructure())
                                + " Vertex "
                                + AString::number(nodeIndex));
     
@@ -1681,9 +1685,8 @@ UserInputModeViewContextMenu::identifySurfaceFocusSelected()
         tabIndex = this->browserTabContent->getTabNumber();
     }
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItemBase(this->selectionManager->getSimpleIdentificationText(brain),
-                                                        this->selectionManager->getFormattedIdentificationText(brain,
-                                                                                                           tabIndex)));
+    idManager->addIdentifiedItem(IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(this->selectionManager->getSimpleIdentificationText(brain),
+                                                                                                this->selectionManager->getFormattedIdentificationText(brain, tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
@@ -1702,9 +1705,8 @@ UserInputModeViewContextMenu::identifyVolumeFocusSelected()
         tabIndex = this->browserTabContent->getTabNumber();
     }
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItemBase(this->selectionManager->getSimpleIdentificationText(brain),
-                                                        this->selectionManager->getFormattedIdentificationText(brain,
-                                                                                                           tabIndex)));
+    idManager->addIdentifiedItem(IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(this->selectionManager->getSimpleIdentificationText(brain),
+                                                                                                this->selectionManager->getFormattedIdentificationText(brain, tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
@@ -1764,9 +1766,8 @@ UserInputModeViewContextMenu::identifyVoxelSelected()
         tabIndex = this->browserTabContent->getTabNumber();
     }
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItemBase(this->selectionManager->getSimpleIdentificationText(brain),
-                                                        this->selectionManager->getFormattedIdentificationText(brain,
-                                                                                                           tabIndex)));
+    idManager->addIdentifiedItem(IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(this->selectionManager->getSimpleIdentificationText(brain),
+                                                                                                this->selectionManager->getFormattedIdentificationText(brain, tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
@@ -1789,12 +1790,8 @@ UserInputModeViewContextMenu::removeNodeIdentificationSymbolSelected()
 {
    SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
     if (idSymbol->isValid()) {
-        Surface* surface = idSymbol->getSurface();
-        
         IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
-        idManager->removeIdentifiedNodeItem(surface->getStructure(),
-                                            surface->getNumberOfNodes(),
-                                            idSymbol->getNodeNumber());
+        idManager->removeIdentifiedItem(idSymbol);
 
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }

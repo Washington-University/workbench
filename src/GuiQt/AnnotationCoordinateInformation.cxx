@@ -33,13 +33,11 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "CziImageFile.h"
 #include "EventIdentificationRequest.h"
 #include "EventManager.h"
-#include "ImageFile.h"
+#include "MediaFile.h"
 #include "MouseEvent.h"
-#include "SelectionItemCziImage.h"
-#include "SelectionItemImage.h"
+#include "SelectionItemMedia.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -654,8 +652,8 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
     
     SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
     SelectionItemSurfaceNode*  surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();
-    SelectionItemImage* imageID = idManager->getImageIdentification();
-    SelectionItemCziImage* cziImageID = idManager->getCziImageIdentification();
+    SelectionItemMedia* mediaID = idManager->getMediaIdentification();
+    
     if (surfaceNodeIdentification->isValid()) {
         surfaceNodeIdentification->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
@@ -675,25 +673,15 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         voxelID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
     }
-    else if (imageID->isValid()) {
-        coordInfoOut.m_mediaSpaceInfo.m_xyz[0] = imageID->getPixelI();
-        coordInfoOut.m_mediaSpaceInfo.m_xyz[1] = imageID->getPixelJ();
-        coordInfoOut.m_mediaSpaceInfo.m_xyz[2] = 0.0;
-        coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = imageID->getImageFile()->getFileNameNoPath();
-        coordInfoOut.m_mediaSpaceInfo.m_validFlag = true;
-        
-        imageID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
-        coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
-    }
-    else if (cziImageID->isValid()) {
-        const PixelIndex pixelIndex = cziImageID->getPixelIndexOriginAtBottom();
+    else if (mediaID->isValid()) {
+        const PixelIndex pixelIndex = mediaID->getPixelIndexOriginAtBottom();
         coordInfoOut.m_mediaSpaceInfo.m_xyz[0] = pixelIndex.getI();
         coordInfoOut.m_mediaSpaceInfo.m_xyz[1] = pixelIndex.getJ();
         coordInfoOut.m_mediaSpaceInfo.m_xyz[2] = 0.0;
-        coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = cziImageID->getCziImageFile()->getFileNameNoPath();
+        coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = mediaID->getMediaFile()->getFileNameNoPath();
         coordInfoOut.m_mediaSpaceInfo.m_validFlag = true;
         
-        cziImageID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
+        mediaID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
     }
     

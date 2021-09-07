@@ -40,6 +40,7 @@ BrainOpenGLChartDrawingFixedPipeline.h
 BrainOpenGLChartTwoDrawingFixedPipeline.h
 BrainOpenGLChartTwoDrawingInterface.h
 BrainOpenGLFixedPipeline.h
+BrainOpenGLIdentificationDrawing.h
 BrainOpenGLMediaDrawing.h
 BrainOpenGLPrimitiveDrawing.h
 BrainOpenGLShape.h
@@ -134,6 +135,8 @@ IdentificationSymbolSizeTypeEnum.h
 IdentificationWithColor.h
 IdentifiedItemBase.h
 IdentifiedItemNode.h
+IdentifiedItemUniversal.h
+IdentifiedItemUniversalTypeEnum.h
 IdentifiedItemVoxel.h
 ImageDepthPositionEnum.h
 MediaOverlay.h
@@ -176,11 +179,11 @@ SelectionItemChartTwoLineLayerVerticalNearest.h
 SelectionItemChartTwoLineSeries.h
 SelectionItemChartTwoMatrix.h
 SelectionItemCiftiConnectivityMatrixRowColumn.h
-SelectionItemCziImage.h
 SelectionItemFocusSurface.h
 SelectionItemFocusVolume.h
-SelectionItemImage.h
 SelectionItemImageControlPoint.h
+SelectionItemMedia.h
+SelectionItemMediaIdentificationSymbol.h
 SelectionItemSurfaceNode.h
 SelectionItemSurfaceNodeIdentificationSymbol.h
 SelectionItemSurfaceTriangle.h
@@ -230,6 +233,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline.cxx
 BrainOpenGLChartDrawingFixedPipeline.cxx
 BrainOpenGLChartTwoDrawingFixedPipeline.cxx
 BrainOpenGLFixedPipeline.cxx
+BrainOpenGLIdentificationDrawing.cxx
 BrainOpenGLMediaDrawing.cxx
 BrainOpenGLPrimitiveDrawing.cxx
 BrainOpenGLShape.cxx
@@ -322,6 +326,8 @@ IdentificationSymbolSizeTypeEnum.cxx
 IdentificationWithColor.cxx
 IdentifiedItemBase.cxx
 IdentifiedItemNode.cxx
+IdentifiedItemUniversal.cxx
+IdentifiedItemUniversalTypeEnum.cxx
 IdentifiedItemVoxel.cxx
 ImageDepthPositionEnum.cxx
 MediaOverlay.cxx
@@ -364,11 +370,11 @@ SelectionItemChartTwoLineLayerVerticalNearest.cxx
 SelectionItemChartTwoLineSeries.cxx
 SelectionItemChartTwoMatrix.cxx
 SelectionItemCiftiConnectivityMatrixRowColumn.cxx
-SelectionItemCziImage.cxx
 SelectionItemFocusSurface.cxx
 SelectionItemFocusVolume.cxx
-SelectionItemImage.cxx
 SelectionItemImageControlPoint.cxx
+SelectionItemMedia.cxx
+SelectionItemMediaIdentificationSymbol.cxx
 SelectionItemSurfaceNode.cxx
 SelectionItemSurfaceNodeIdentificationSymbol.cxx
 SelectionItemSurfaceTriangle.cxx

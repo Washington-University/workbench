@@ -567,6 +567,10 @@ PreferencesDialog::createIdentificationSymbolWidget()
     QLabel* infoLabel = new QLabel("These are defaults for Information Properties");
     infoLabel->setWordWrap(true);
     
+    m_mediaIdentificationSymbolComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(m_mediaIdentificationSymbolComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(identificationSymbolToggled()));
+
     m_surfaceIdentificationSymbolComboBox = new WuQTrueFalseComboBox("On", "Off", this);
     QObject::connect(m_surfaceIdentificationSymbolComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(identificationSymbolToggled()));
@@ -593,6 +597,9 @@ PreferencesDialog::createIdentificationSymbolWidget()
     int row = gridLayout->rowCount();
     gridLayout->addWidget(infoLabel,
                           row, 0, 1, 2);
+    addWidgetToLayout(gridLayout,
+                      "Show Media ID Symbols: ",
+                      m_mediaIdentificationSymbolComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       "Show Surface ID Symbols: ",
                       m_surfaceIdentificationSymbolComboBox->getWidget());
@@ -623,6 +630,7 @@ PreferencesDialog::createIdentificationSymbolWidget()
 void
 PreferencesDialog::updateIdentificationWidget(CaretPreferences* prefs)
 {
+    m_mediaIdentificationSymbolComboBox->setStatus(prefs->isShowMediaIdentificationSymbols());
     m_surfaceIdentificationSymbolComboBox->setStatus(prefs->isShowSurfaceIdentificationSymbols());
     m_volumeIdentificationSymbolComboBox->setStatus(prefs->isShowVolumeIdentificationSymbols());
     m_dataToolTipsComboBox->setStatus(prefs->isShowDataToolTipsEnabled());
@@ -636,6 +644,7 @@ void
 PreferencesDialog::identificationSymbolToggled()
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setShowMediaIdentificationSymbols(m_mediaIdentificationSymbolComboBox->isTrue());
     prefs->setShowSurfaceIdentificationSymbols(m_surfaceIdentificationSymbolComboBox->isTrue());
     prefs->setShowVolumeIdentificationSymbols(m_volumeIdentificationSymbolComboBox->isTrue());
     prefs->setShowDataToolTipsEnabled(m_dataToolTipsComboBox->isTrue());

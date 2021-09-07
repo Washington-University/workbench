@@ -52,10 +52,9 @@ namespace caret {
     class SelectionItemChartTwoMatrix;
     class SelectionItemCiftiConnectivityMatrixRowColumn;
     class SelectionItemChartTimeSeries;
-    class SelectionItemCziImage;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
-    class SelectionItemImage;
+    class SelectionItemMedia;
     class SelectionItemSurfaceNode;
     class SelectionItemVoxel;
     class SelectionManager;
@@ -140,13 +139,9 @@ namespace caret {
                                                    const Brain* brain,
                                                    const SelectionItemSurfaceNode* idSurfaceNode) const;
 
-        void generateImageIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+        void generateMediaIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                              IdentificationStringBuilder& idText,
-                                             const SelectionItemImage* idImage) const;
-        
-        void generateCziImageIdentificationText(HtmlTableBuilder& htmlTableBuilder,
-                                                IdentificationStringBuilder& idText,
-                                                const SelectionItemCziImage* idCziImage) const;
+                                             const SelectionItemMedia* idMedia) const;
         
         void generateVolumeVoxelIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                               const Brain* brain,

@@ -147,6 +147,14 @@ SelectionItemDataTypeEnum::initialize()
                                                  "IMAGE_CONTROL_POINT",
                                                  "Image Control Point"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(MEDIA,
+                                                 "MEDIA",
+                                                 "Media"));
+    
+    enumData.push_back(SelectionItemDataTypeEnum(MEDIA_IDENTIFICATION_SYMBOL,
+                                                 "MEDIA_IDENTIFICATION_SYMBOL",
+                                                 "Media Identification Symbol"));
+    
     enumData.push_back(SelectionItemDataTypeEnum(SURFACE_NODE,
                                     "SURFACE_NODE", 
                                     "Surface Vertex"));

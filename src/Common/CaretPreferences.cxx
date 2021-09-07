@@ -1184,6 +1184,33 @@ CaretPreferences::setManageFilesViewFileType(const SpecFileDialogViewFilesTypeEn
 }
 
 /**
+ * @return Show media identification symbols?
+ */
+bool
+CaretPreferences::isShowMediaIdentificationSymbols() const
+{
+    return this->showMediaIdentificationSymbols;
+}
+
+/**
+ * Set show media identification symbols.
+ *
+ * @param showSymbols
+ *     New status.
+ */
+void
+CaretPreferences::setShowMediaIdentificationSymbols(const bool showSymbols)
+{
+    if (this->showMediaIdentificationSymbols == showSymbols) {
+        return;
+    }
+    
+    this->showMediaIdentificationSymbols = showSymbols;
+    this->setBoolean(NAME_SHOW_MEDIA_IDENTIFICATION_SYMBOLS,
+                     this->showMediaIdentificationSymbols);
+}
+
+/**
  * @return Show surface identification symbols?
  */
 bool
@@ -2162,6 +2189,8 @@ CaretPreferences::readPreferences()
     
     this->balsaUserName = this->getString(NAME_BALSA_USER_NAME);
     
+    this->showMediaIdentificationSymbols = this->getBoolean(NAME_SHOW_MEDIA_IDENTIFICATION_SYMBOLS,
+                                                              true);
     this->showSurfaceIdentificationSymbols = this->getBoolean(NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS,
                                                               true);
     this->showVolumeIdentificationSymbols = this->getBoolean(NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS,

@@ -35,7 +35,7 @@ namespace caret {
         IdentifiedItemBase();
         
         IdentifiedItemBase(const AString& simpleText,
-                       const AString& formattedText);
+                           const AString& formattedText);
         
         virtual ~IdentifiedItemBase();
         

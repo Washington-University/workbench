@@ -50,8 +50,7 @@
 #include "ProgressReportingDialog.h"
 #include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
-#include "SelectionItemCziImage.h"
-#include "SelectionItemImage.h"
+#include "SelectionItemMedia.h"
 #include "SelectionManager.h"
 #include "UserInputModeViewContextMenu.h"
 #include "ViewingTransformations.h"
@@ -370,27 +369,10 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                                           mouseEvent.getY(),
                                                                           false);
         CaretAssert(idManager);
-        SelectionItemImage* imageID = idManager->getImageIdentification();
-        if (imageID->isValid()) {
+        SelectionItemMedia* mediaID = idManager->getMediaIdentification();
+        if (mediaID->isValid()) {
             double modelXYZ[3];
-            imageID->getModelXYZ(modelXYZ);
-            
-            GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
-            CaretAssert(box);
-            
-            if (mouseEvent.isFirstDragging()) {
-                box->initialize(modelXYZ[0],
-                                modelXYZ[1]);
-            }
-            else {
-                box->update(modelXYZ[0],
-                            modelXYZ[1]);
-            }
-        }
-        SelectionItemCziImage* cziImageID = idManager->getCziImageIdentification();
-        if (cziImageID->isValid()) {
-            double modelXYZ[3];
-            cziImageID->getModelXYZ(modelXYZ);
+            mediaID->getModelXYZ(modelXYZ);
             
             GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
             CaretAssert(box);
@@ -465,20 +447,10 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
                                                                               mouseEvent.getPressedY(),
                                                                               false);
             CaretAssert(idManager);
-            SelectionItemImage* imageID = idManager->getImageIdentification();
-            if (imageID->isValid()) {
+            SelectionItemMedia* mediaID = idManager->getMediaIdentification();
+            if (mediaID->isValid()) {
                 double modelXYZ[3];
-                imageID->getModelXYZ(modelXYZ);
-                
-                m_mediaLeftDragWithCtrlModelXYZ[0] = modelXYZ[0];
-                m_mediaLeftDragWithCtrlModelXYZ[1] = modelXYZ[1];
-                m_mediaLeftDragWithCtrlModelXYZ[2] = modelXYZ[2];
-                m_mediaLeftDragWithCtrlModelXYZValidFlag = true;
-            }
-            SelectionItemCziImage* cziImageID = idManager->getCziImageIdentification();
-            if (cziImageID->isValid()) {
-                double modelXYZ[3];
-                cziImageID->getModelXYZ(modelXYZ);
+                mediaID->getModelXYZ(modelXYZ);
                 
                 m_mediaLeftDragWithCtrlModelXYZ[0] = modelXYZ[0];
                 m_mediaLeftDragWithCtrlModelXYZ[1] = modelXYZ[1];
@@ -677,22 +649,10 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                                                                                               gestureEvent.getStartCenterX(),
                                                                                               false);
                             CaretAssert(idManager);
-                            SelectionItemImage* imageID = idManager->getImageIdentification();
-                            if (imageID->isValid()) {
+                            SelectionItemMedia* mediaID = idManager->getMediaIdentification();
+                            if (mediaID->isValid()) {
                                 double modelXYZ[3];
-                                imageID->getModelXYZ(modelXYZ);
-                                browserTabContent->applyMediaMouseScaling(viewportContent,
-                                                                          gestureEvent.getStartCenterX(),
-                                                                          gestureEvent.getStartCenterX(),
-                                                                          deltaY,
-                                                                          modelXYZ[0],
-                                                                          modelXYZ[1],
-                                                                          true);
-                            }
-                            SelectionItemCziImage* cziImageID = idManager->getCziImageIdentification();
-                            if (cziImageID->isValid()) {
-                                double modelXYZ[3];
-                                cziImageID->getModelXYZ(modelXYZ);
+                                mediaID->getModelXYZ(modelXYZ);
                                 browserTabContent->applyMediaMouseScaling(viewportContent,
                                                                           gestureEvent.getStartCenterX(),
                                                                           gestureEvent.getStartCenterX(),

@@ -43,6 +43,8 @@ SelectionItemSurfaceNodeIdentificationSymbol::SelectionItemSurfaceNodeIdentifica
 {
     this->surface = NULL;
     this->nodeNumber = -1;
+    this->surfaceNumberOfNodes = -1;
+    this->structure = StructureEnum::INVALID;
 }
 
 /**
@@ -61,6 +63,8 @@ SelectionItemSurfaceNodeIdentificationSymbol::reset()
 {
     SelectionItem::reset();
     this->surface = NULL;
+    this->surfaceNumberOfNodes = -1;
+    this->structure = StructureEnum::INVALID;
     this->nodeNumber = -1;
 }
 
@@ -70,7 +74,9 @@ SelectionItemSurfaceNodeIdentificationSymbol::reset()
 bool 
 SelectionItemSurfaceNodeIdentificationSymbol::isValid() const
 {
-    return (this->nodeNumber >= 0);
+    return ((this->nodeNumber >= 0)
+            && (this->surfaceNumberOfNodes > 0)
+            && (this->structure != StructureEnum::INVALID));
 }
 
 /**
@@ -124,6 +130,55 @@ SelectionItemSurfaceNodeIdentificationSymbol::setNodeNumber(const int32_t nodeNu
 }
 
 /**
+ * @return number of nodes in surface
+ */
+int32_t
+SelectionItemSurfaceNodeIdentificationSymbol::getSurfaceNumberOfNodes() const
+{
+    return this->surfaceNumberOfNodes;
+}
+
+/**
+ * Set the number of nodes in the surface
+ * @param numberOfNodes
+ *    Number of nodes in surface
+ */
+void
+SelectionItemSurfaceNodeIdentificationSymbol::setSurfaceNumberOfNodes(const int32_t numberOfNodes)
+{
+    this->surfaceNumberOfNodes = numberOfNodes;
+}
+
+/**
+ * @return The structure
+ */
+StructureEnum::Enum
+SelectionItemSurfaceNodeIdentificationSymbol::getStructure() const
+{
+    return this->structure;
+}
+
+
+/**
+ * Set the number of nodes in the surface
+ * @param structure
+ *    Ths structure
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in surface
+ * @param nodeNumber
+ *    New value for node.
+ */
+void
+SelectionItemSurfaceNodeIdentificationSymbol::set(const StructureEnum::Enum structure,
+                                                  const int32_t surfaceNumberOfNodes,
+                                                  const int32_t nodeNumber)
+{
+    this->structure = structure;
+    this->surfaceNumberOfNodes = surfaceNumberOfNodes;
+    this->nodeNumber = nodeNumber;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -133,5 +188,6 @@ SelectionItemSurfaceNodeIdentificationSymbol::toString() const
     AString text = SelectionItem::toString();
     text += ("Surface: " + ((surface != NULL) ? surface->getFileNameNoPath() : "INVALID") + "\n");
     text += "Vertex: " + AString::number(this->nodeNumber) + "\n";
+    text += "Number of Vertices: " + AString::number(this->surfaceNumberOfNodes) + "\n";
     return text;
 }

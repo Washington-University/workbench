@@ -116,6 +116,9 @@ namespace caret {
         
         const MediaFile* castToMediaFile() const;
         
+        virtual bool isPixelIndexValid(const int32_t tabIndex,
+                                       const PixelIndex& pixelIndex) const = 0;
+        
         /**
          * Get the identification text for the pixel at the given pixel index with origin at bottom left.
          * @param tabIndex
@@ -133,8 +136,19 @@ namespace caret {
                                                 std::vector<AString>& columnTwoTextOut,
                                                 std::vector<AString>& toolTipTextOut) const = 0;
         
-        static float getMediaDrawingOrthographicHalfHeight();
+        virtual bool getImagePixelRGBA(const int32_t tabIndex,
+                                       const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+                                       const PixelIndex& pixelIndex,
+                                       uint8_t pixelRGBAOut[4]) const = 0;
+
+        virtual bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
+                                                const bool includeNonlinearFlag,
+                                                std::array<float, 3>& xyzOut) const = 0;
         
+        virtual bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+                                                const bool includeNonlinearFlag,
+                                                PixelIndex& pixelIndexOriginAtTopLeftOut) const = 0;
+
         // ADD_NEW_METHODS_HERE
 
           
@@ -143,9 +157,6 @@ namespace caret {
           
     protected: 
         MediaFile(const DataFileTypeEnum::Enum dataFileType);
-        
-        virtual bool isPixelIndexValid(const int32_t tabIndex,
-                                       const PixelIndex& pixelIndex) const = 0;
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);

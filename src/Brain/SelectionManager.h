@@ -44,11 +44,11 @@ namespace caret {
     class SelectionItemChartTwoLineSeries;
     class SelectionItemChartTwoMatrix;
     class SelectionItemCiftiConnectivityMatrixRowColumn;
-    class SelectionItemCziImage;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
-    class SelectionItemImage;
     class SelectionItemImageControlPoint;
+    class SelectionItemMedia;
+    class SelectionItemMediaIdentificationSymbol;
     class SelectionItemSurfaceNode;
     class SelectionItemSurfaceNodeIdentificationSymbol;
     class SelectionItemSurfaceTriangle;
@@ -86,17 +86,17 @@ namespace caret {
         
         const SelectionItemFocusVolume* getVolumeFocusIdentification() const;
         
-        SelectionItemCziImage* getCziImageIdentification();
-        
-        const SelectionItemCziImage* getCziImageIdentification() const;
-        
-        SelectionItemImage* getImageIdentification();
-        
-        const SelectionItemImage* getImageIdentification() const;
-        
         SelectionItemImageControlPoint* getImageControlPointIdentification();
         
         const SelectionItemImageControlPoint* getImageControlPointIdentification() const;
+        
+        SelectionItemMedia* getMediaIdentification();
+        
+        const SelectionItemMedia* getMediaIdentification() const;
+        
+        SelectionItemMediaIdentificationSymbol* getMediaIdentificationSymbol();
+        
+        const SelectionItemMediaIdentificationSymbol* getMediaIdentificationSymbol() const;
         
         SelectionItemSurfaceNode* getSurfaceNodeIdentification();
         
@@ -236,11 +236,11 @@ namespace caret {
         
         SelectionItemFocusVolume* m_volumeFocusIdentification;
         
-        SelectionItemImage* m_imageIdentification;
-        
-        std::unique_ptr<SelectionItemCziImage> m_cziImageIdentification;
-        
         SelectionItemImageControlPoint* m_imageControlPointIdentification;
+        
+        std::unique_ptr<SelectionItemMedia> m_mediaIdentification;
+        
+        std::unique_ptr<SelectionItemMediaIdentificationSymbol> m_mediaIdentificationSymbol;
         
         SelectionItemSurfaceNode* m_surfaceNodeIdentification;
         

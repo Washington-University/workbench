@@ -34,12 +34,15 @@
 #include "IdentificationHistoryManager.h"
 #include "IdentificationHistoryRecord.h"
 #include "IdentifiedItemNode.h"
+#include "IdentifiedItemUniversal.h"
 #include "IdentifiedItemVoxel.h"
 #include "MathFunctions.h"
 #include "SceneClassAssistant.h"
 #include "SceneClass.h"
 #include "ScenePrimitive.h"
+#include "SelectionItem.h"
 #include "SessionManager.h"
+#include "Surface.h"
 
 using namespace caret;
 
@@ -69,8 +72,10 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_identifcationMostRecentSymbolSize = 5.0;
     m_identifcationSymbolPercentageSize = 3.0;
     m_identifcationMostRecentSymbolPercentageSize = 5.0;
+    m_showMediaIdentificationSymbols = caretPreferences->isShowMediaIdentificationSymbols();
     m_showSurfaceIdentificationSymbols = caretPreferences->isShowSurfaceIdentificationSymbols();
     m_showVolumeIdentificationSymbols  = caretPreferences->isShowVolumeIdentificationSymbols();
+    m_showOtherTypeIdentificationSymbols = true;
     m_identificationFilter.reset(new IdentificationFilter());
     m_identificationHistoryManager.reset(new IdentificationHistoryManager());
     
@@ -100,6 +105,8 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationContralateralSymbolColor",
                                                                 &m_identificationContralateralSymbolColor);
 
+    m_sceneAssistant->add("m_showMediaIdentificationSymbols",
+                          &m_showMediaIdentificationSymbols);
     m_sceneAssistant->add("m_showSurfaceIdentificationSymbols",
                           &m_showSurfaceIdentificationSymbols);
     m_sceneAssistant->add("m_showVolumeIdentificationSymbols",
@@ -134,22 +141,12 @@ IdentificationManager::~IdentificationManager()
  * @param item
  *    Identified item that is added.
  *    NOTE: Takes ownership of this item and will delete, at the appropriate time.
- *    If item is a node and contralateral identification is enabled, the contralateral
- *    structure will be set in the node item.
  */
 void
-IdentificationManager::addIdentifiedItem(IdentifiedItemBase* item)
+IdentificationManager::addIdentifiedItem(IdentifiedItemUniversal* item)
 {
     CaretAssert(item);
-    
-    IdentifiedItemNode* nodeItem = dynamic_cast<IdentifiedItemNode*>(item);
-    if (nodeItem != NULL) {
-        if (m_contralateralIdentificationEnabled) {
-            const StructureEnum::Enum contralateralStructure = StructureEnum::getContralateralStructure(nodeItem->getStructure());
-            nodeItem->setContralateralStructure(contralateralStructure);
-        }
-    }
-    
+
     const bool restoringSceneFlag(false);
     addIdentifiedItemPrivate(item,
                              restoringSceneFlag);
@@ -164,13 +161,14 @@ IdentificationManager::addIdentifiedItem(IdentifiedItemBase* item)
  *    If true, item is from a scene
  */
 void
-IdentificationManager::addIdentifiedItemPrivate(IdentifiedItemBase* item,
+IdentificationManager::addIdentifiedItemPrivate(IdentifiedItemUniversal* item,
                                                 const bool restoringSceneFlag)
 {
     CaretAssert(item);
     m_mostRecentIdentifiedItem = item;
     
-    m_identifiedItems.push_back(item);
+    std::unique_ptr<IdentifiedItemUniversal> ptr(item);
+    m_identifiedItems.push_back(std::move(ptr));
     
     if ( ! restoringSceneFlag) {
         IdentificationHistoryRecord* historyRecord = new IdentificationHistoryRecord();
@@ -187,16 +185,13 @@ IdentificationManager::getIdentificationText() const
 {
     AString text;
     
-    for (std::list<IdentifiedItemBase*>::const_iterator iter = m_identifiedItems.begin();
-         iter != m_identifiedItems.end();
-         iter++) {
-        const IdentifiedItemBase* item = *iter;
-        if (text.isEmpty() == false) {
-            text += "<P></P>";
+    for (auto& itemPtr : m_identifiedItems) {
+        if ( ! text.isEmpty()) {
+            text.append("<p></p>");
         }
-        text += item->getSimpleText();
+        text.append(itemPtr->getSimpleText());
     }
-
+    
     return text;
 }
 
@@ -207,200 +202,158 @@ IdentificationManager::getIdentificationText() const
 void
 IdentificationManager::removeIdentificationText()
 {
-    std::list<IdentifiedItemBase*> idItemsToKeep;
-    
-    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
-         iter != m_identifiedItems.end();
-         iter++) {
-        IdentifiedItemBase* item = *iter;
-        IdentifiedItemNode* nodeItem   = dynamic_cast<IdentifiedItemNode*>(item);
-        IdentifiedItemVoxel* voxelItem = dynamic_cast<IdentifiedItemVoxel*>(item);
-        if ((nodeItem != NULL)
-            || (voxelItem != NULL)) {
-            item->clearText();
-            idItemsToKeep.push_back(item);
+    std::vector<IdentifiedItemUniversal*> itemsToKeepNew;
+
+    for (auto& itemPtr : m_identifiedItems) {
+        bool keepFlag(false);
+        switch (itemPtr->getType()) {
+            case IdentifiedItemUniversalTypeEnum::INVALID:
+                break;
+            case IdentifiedItemUniversalTypeEnum::MEDIA:
+                keepFlag = true;
+                break;
+            case IdentifiedItemUniversalTypeEnum::SURFACE:
+                keepFlag = true;
+                break;
+            case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
+                break;
+            case IdentifiedItemUniversalTypeEnum::VOLUME:
+                keepFlag = true;
+                break;
         }
-        else {
-            if (m_mostRecentIdentifiedItem == item) {
-                m_mostRecentIdentifiedItem = NULL;
-            }
-            delete item;
+        
+        if (keepFlag) {
+            /*
+             * Keep the item so symbols remain but clear the text
+             */
+            itemPtr->clearAllText();
+            itemsToKeepNew.push_back(itemPtr.release());
         }
     }
     
-    m_identifiedItems = idItemsToKeep;
+    m_identifiedItems.clear();
+    for (auto& item : itemsToKeepNew) {
+        std::unique_ptr<IdentifiedItemUniversal> ptr(item);
+        m_identifiedItems.push_back(std::move(ptr));
+    }
 }
 
 /**
- * Get identified nodes for the surface with the given structure and
- * number of nodes.
- *
- * @param structure
- *    The structure
- * @param surfaceNumberOfNodes
- *    Number of nodes in surface.
+ * Get the symbol size and color for an identified item
+ * @param item
+ *    The item
+ * @param drawingOnType
+ *    Type of model on which symbol is drawn
+ * @param referenceHeight
+ *    Height for items that are sized as percentage
+ * @param contralateralSurfaceFlag
+ *    True if getting size and color for a contralateral surface
+ * @param rgbaOut
+ *    Output with RGBA components (if [3] == 0, do not draw)
+ * @param symbolSizeOut
+ *    Output with size for symbol
  */
-std::vector<IdentifiedItemNode>
-IdentificationManager::getNodeIdentifiedItemsForSurface(const StructureEnum::Enum structure,
-                                                        const int32_t surfaceNumberOfNodes) const
+void
+IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUniversal* item,
+                                                     const IdentifiedItemUniversalTypeEnum::Enum drawingOnType,
+                                                     const float referenceHeight,
+                                                     const bool contralateralSurfaceFlag,
+                                                     std::array<uint8_t, 4>& rgbaOut,
+                                                     float& symbolDiameterOut) const
 {
-    std::vector<IdentifiedItemNode> nodeItemsOut;
+    CaretAssert(item);
+
+    rgbaOut.fill(0);
+    symbolDiameterOut = 5.0;
     
-    for (std::list<IdentifiedItemBase*>::const_iterator iter = m_identifiedItems.begin();
-         iter != m_identifiedItems.end();
-         iter++) {
-        const IdentifiedItemBase* item = *iter;
-        const IdentifiedItemNode* nodeItem = dynamic_cast<const IdentifiedItemNode*>(item);
-        if (nodeItem != NULL) {
-            if (nodeItem->isValid()) {
-                if (nodeItem->getSurfaceNumberOfNodes() == surfaceNumberOfNodes) {
-                    bool useIt = false;
-                    if (nodeItem->getStructure() == structure) {
-                        useIt = true;
-                    }
-                    else if (nodeItem->getContralateralStructure() == structure) {
-                        useIt = true;
-                    }
-                    if (useIt) {
-                        IdentifiedItemNode nodeID(*nodeItem);
-                        
-                        const float* symbolRGB = CaretColorEnum::toRGB(m_identificationSymbolColor);
-                        nodeID.setSymbolRGB(symbolRGB);
-                        const float* contralateralSymbolRGB = CaretColorEnum::toRGB(m_identificationContralateralSymbolColor);
-                        nodeID.setContralateralSymbolRGB(contralateralSymbolRGB);
-                        nodeID.setIdentificationSymbolSizeType(m_identificationSymbolSizeType);
-                        if (item == m_mostRecentIdentifiedItem) {
-                            switch (m_identificationSymbolSizeType) {
-                                case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
-                                    nodeID.setSymbolSize(m_identifcationMostRecentSymbolSize);
-                                    break;
-                                case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
-                                    nodeID.setSymbolSize(m_identifcationMostRecentSymbolPercentageSize);
-                                    break;
-                            }
-                        }
-                        else {
-                            switch (m_identificationSymbolSizeType) {
-                                case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
-                                    nodeID.setSymbolSize(m_identifcationSymbolSize);
-                                    break;
-                                case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
-                                    nodeID.setSymbolSize(m_identifcationSymbolPercentageSize);
-                                    break;
-                            }
-                        }
-                        nodeItemsOut.push_back(nodeID);
-                    }
-                }
+    IdentificationSymbolSizeTypeEnum::Enum sizeType(getIdentificationSymbolSizeType());
+
+    switch (drawingOnType) {
+        case IdentifiedItemUniversalTypeEnum::INVALID:
+            CaretAssert(0);
+            return;
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA:
+            /*
+             * Media is always percentage
+             */
+            sizeType = IdentificationSymbolSizeTypeEnum::PERCENTAGE;
+            break;
+        case IdentifiedItemUniversalTypeEnum::SURFACE:
+            break;
+        case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
+            CaretAssert(0);
+            return;
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME:
+            break;
+    }
+    
+    switch (sizeType) {
+        case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+            symbolDiameterOut = getIdentificationSymbolSize();
+            if (item == m_mostRecentIdentifiedItem) {
+                symbolDiameterOut = getMostRecentIdentificationSymbolSize();
             }
-        }
+            break;
+        case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+            symbolDiameterOut = getIdentificationSymbolPercentageSize();
+            if (item == m_mostRecentIdentifiedItem) {
+                symbolDiameterOut = getMostRecentIdentificationSymbolPercentageSize();
+            }
+            symbolDiameterOut = referenceHeight * (symbolDiameterOut / 100.0);
+            break;
     }
 
-    return nodeItemsOut;
+    const CaretColorEnum::Enum caretColor = (contralateralSurfaceFlag
+                                             ? getIdentificationContralateralSymbolColor()
+                                             : getIdentificationSymbolColor());
+    CaretColorEnum::toRGBAByte(caretColor, rgbaOut.data());
 }
 
 /**
- * @return All identified voxels.
+ * @return All of the identified items
  */
-std::vector<IdentifiedItemVoxel>
-IdentificationManager::getIdentifiedItemsForVolume() const
+std::vector<const IdentifiedItemUniversal*>
+IdentificationManager::getIdentifiedItems() const
 {
-    std::vector<IdentifiedItemVoxel> itemsOut;
+    std::vector<const IdentifiedItemUniversal*> itemsOut;
     
-    for (std::list<IdentifiedItemBase*>::const_iterator iter = m_identifiedItems.begin();
-         iter != m_identifiedItems.end();
-         iter++) {
-        const IdentifiedItemBase* item = *iter;
-        const IdentifiedItemVoxel* voxelItem = dynamic_cast<const IdentifiedItemVoxel*>(item);
-        if (voxelItem != NULL) {
-            if (voxelItem->isValid()) {
-                IdentifiedItemVoxel voxelID(*voxelItem);
-                const float* symbolRGB = CaretColorEnum::toRGB(m_identificationSymbolColor);
-                voxelID.setSymbolRGB(symbolRGB);
-                voxelID.setIdentificationSymbolSizeType(m_identificationSymbolSizeType);
-                switch (m_identificationSymbolSizeType) {
-                    case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
-                        voxelID.setSymbolSize(m_identifcationSymbolSize);
-                        break;
-                    case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
-                        voxelID.setSymbolSize(m_identifcationSymbolPercentageSize);
-                        break;
-                }
-                itemsOut.push_back(voxelID);
-            }
-        }
+    for (auto& itemPtr : m_identifiedItems) {
+        itemsOut.push_back(itemPtr.get());
     }
     
     return itemsOut;
 }
 
-
 /**
- * Remove any identification for the node in the surface with the given
- * structure and number of nodes.
- *
- * @param structure
- *    The structure
- * @param surfaceNumberOfNodes
- *    Number of nodes in surface.
- * @param nodeIndex
- *    Index of the node.
+ * Remove surface symbol
+ * @param selectedItem
+ *    Info about surface symbol that is to be removed
+ * @return True if identified item was found and removed, else false.
  */
-void
-IdentificationManager::removeIdentifiedNodeItem(const StructureEnum::Enum structure,
-                                                const int32_t surfaceNumberOfNodes,
-                                                const int32_t nodeIndex)
+bool
+IdentificationManager::removeIdentifiedItem(const SelectionItem* selectedItem)
 {
-    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
-         iter != m_identifiedItems.end();
-         iter++) {
-        IdentifiedItemBase* item = *iter;
-        const IdentifiedItemNode* node = dynamic_cast<const IdentifiedItemNode*>(item);
-        if (node != NULL) {
-            if ((node->getStructure() == structure)
-                || (node->getContralateralStructure() == structure)) {
-                if ((node->getSurfaceNumberOfNodes() == surfaceNumberOfNodes)
-                    && (node->getNodeIndex() == nodeIndex)) {
-                    m_identifiedItems.erase(iter);
-                    delete item;
-                    return;
-                }
-            }
-        }
-    }
-}
-
-/**
- * Remove identified voxel at the given coordinate.
- *
- * @param xyz
- *     Coordinates for voxel that is to be removed.
- */
-void
-IdentificationManager::removeIdentifiedVoxelItem(const float xyz[3])
-{
-    const float tolerance = 0.01;
+    CaretAssert(selectedItem);
+    const int64_t uniqueID(selectedItem->getIdentifiedItemUniqueIdentifier());
     
-    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
-         iter != m_identifiedItems.end();
-         iter++) {
-        IdentifiedItemBase* item = *iter;
-        const IdentifiedItemVoxel* voxel = dynamic_cast<const IdentifiedItemVoxel*>(item);
-        if (voxel != NULL) {
-            if (voxel->isValid()) {
-                float voxelXYZ[3];
-                voxel->getXYZ(voxelXYZ);
-                
-                const float distSQ = MathFunctions::distanceSquared3D(xyz,
-                                                                      voxelXYZ);
-                if (distSQ < tolerance) {
-                    m_identifiedItems.erase(iter);
-                    delete item;
-                    return;
-                }
+    if (uniqueID >= 0) {
+        for (auto iter = m_identifiedItems.begin();
+             iter != m_identifiedItems.end();
+             iter++) {
+            auto& item = *iter;
+            if (item->getUniqueIdentifier() == uniqueID) {
+                m_identifiedItems.erase(iter);
+                return true;
             }
         }
     }
+    
+    CaretLogSevere("Failed to remove identified item: "
+                   + selectedItem->toString());
+    
+    return false;
 }
 
 /**
@@ -409,13 +362,6 @@ IdentificationManager::removeIdentifiedVoxelItem(const float xyz[3])
 void
 IdentificationManager::removeAllIdentifiedItems()
 {
-    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
-         iter != m_identifiedItems.end();
-         iter++) {
-        IdentifiedItemBase* item = *iter;
-        delete item;
-    }
-    
     m_identificationHistoryManager->clearHistory();
     
     m_identifiedItems.clear();
@@ -433,42 +379,9 @@ IdentificationManager::removeAllIdentifiedItems()
 void
 IdentificationManager::removeAllIdentifiedSymbols()
 {
-    std::list<IdentifiedItemBase*> idItemsToKeep;
-    
-    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
-         iter != m_identifiedItems.end();
-         iter++) {
-        IdentifiedItemBase* item = *iter;
-        IdentifiedItemNode* nodeItem   = dynamic_cast<IdentifiedItemNode*>(item);
-        IdentifiedItemVoxel* voxelItem = dynamic_cast<IdentifiedItemVoxel*>(item);
-        IdentifiedItemBase* itemToKeep = NULL;
-        if ((nodeItem != NULL)
-            || (voxelItem != NULL)) {
-            if (m_mostRecentIdentifiedItem == item) {
-                m_mostRecentIdentifiedItem = NULL;
-            }
-            
-            itemToKeep = new IdentifiedItemBase(item->getSimpleText(),
-                                                item->getFormattedText());
-            delete item;
-        }
-        else {
-            itemToKeep = item;
-        }
-        
-        if (itemToKeep != NULL) {
-            if (itemToKeep->getSimpleText().isEmpty()
-                && itemToKeep->getFormattedText().isEmpty()) {
-                delete itemToKeep;
-                itemToKeep = NULL;
-            }
-            else {
-                idItemsToKeep.push_back(itemToKeep);
-            }
-        }
+    for (auto& item : m_identifiedItems) {
+        item->setTypeToTextNoSymbol();
     }
-    
-    m_identifiedItems = idItemsToKeep;
 }
 
 /**
@@ -632,6 +545,27 @@ IdentificationManager::setIdentificationContralateralSymbolColor(const CaretColo
 }
 
 /**
+ * @return show media identification symbols
+ */
+bool
+IdentificationManager::isShowMediaIdentificationSymbols() const
+{
+    return m_showMediaIdentificationSymbols;
+}
+
+/**
+ * Set show media identification symbols
+ *
+ * @param showMediaIdentificationSymbols
+ *    New value for show media identification symbols
+ */
+void
+IdentificationManager::setShowMediaIdentificationSymbols(const bool showMediaIdenficationSymbols)
+{
+    m_showMediaIdentificationSymbols = showMediaIdenficationSymbols;
+}
+
+/**
  * @return show surface identification symbols
  */
 bool
@@ -671,6 +605,26 @@ void
 IdentificationManager::setShowVolumeIdentificationSymbols(const bool showVolumeIdentificationSymbols)
 {
     m_showVolumeIdentificationSymbols = showVolumeIdentificationSymbols;
+}
+
+/**
+ * @return show other type identification symbols (eg: volume symbols on surfaces)
+ */
+bool
+IdentificationManager::isShowOtherTypeIdentificationSymbols() const
+{
+    return m_showOtherTypeIdentificationSymbols;
+}
+
+/**
+ * Set show other type identification symbols (eg: volume symbols on surfaces)
+ * @param showOtherTypeIdentificationSymbols
+ *    New value for show other type identification symbols
+ */
+void
+IdentificationManager::setShowOtherTypeIdentificationSymbols(const bool showOtherTypeIdentificationSymbols)
+{
+    m_showOtherTypeIdentificationSymbols = showOtherTypeIdentificationSymbols;
 }
 
 /**
@@ -743,12 +697,10 @@ IdentificationManager::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    for (std::list<IdentifiedItemBase*>::iterator iter = m_identifiedItems.begin();
-         iter != m_identifiedItems.end();
-         iter++) {
-        IdentifiedItemBase* item = *iter;
+    for (auto& itemPtr : m_identifiedItems) {
+        IdentifiedItemUniversal* item(itemPtr.get());
         sceneClass->addClass(item->saveToScene(sceneAttributes,
-                                               "identifiedItem"));
+                                               "identifiedItemUniversal"));
     }
     
     return sceneClass;
@@ -774,6 +726,8 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    std::list<IdentifiedItemBase*> oldIdentifiedItems;
+    
     m_identificationSymbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
     removeAllIdentifiedItems();
     
@@ -784,7 +738,16 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     const int32_t numChildren = sceneClass->getNumberOfObjects();
     for (int32_t i = 0; i < numChildren; i++) {
         const SceneObject* so = sceneClass->getObjectAtIndex(i);
-        if (so->getName() == "identifiedItem") {
+        if (so->getName() == "identifiedItemUniversal") {
+            IdentifiedItemUniversal* item(IdentifiedItemUniversal::newInstanceInvalidIdentification());
+            const SceneClass* sc = dynamic_cast<const SceneClass*>(so);
+            CaretAssert(sc);
+            item->restoreFromScene(sceneAttributes, sc);
+            CaretAssert(item->isValid());
+            addIdentifiedItemPrivate(item,
+                                     restoringSceneFlag);
+        }
+        else if (so->getName() == "identifiedItem") {
             const SceneClass* sc = dynamic_cast<const SceneClass*>(so);
             if (sc != NULL) {
                 const AString className = sc->getClassName();
@@ -792,8 +755,7 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                     IdentifiedItemBase* item = new IdentifiedItemBase();
                     item->restoreFromScene(sceneAttributes, sc);
                     if (item->isValid()) {
-                        addIdentifiedItemPrivate(item,
-                                                 restoringSceneFlag);
+                        oldIdentifiedItems.push_back(item);
                     }
                     else {
                         delete item;
@@ -803,8 +765,7 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                     IdentifiedItemNode* item = new IdentifiedItemNode();
                     item->restoreFromScene(sceneAttributes, sc);
                     if (item->isValid()) {
-                        addIdentifiedItemPrivate(item,
-                                                 restoringSceneFlag);
+                        oldIdentifiedItems.push_back(item);
                     }
                     else {
                         delete item;
@@ -814,8 +775,7 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                     IdentifiedItemVoxel* item = new IdentifiedItemVoxel();
                     item->restoreFromScene(sceneAttributes, sc);
                     if (item->isValid()) {
-                        addIdentifiedItemPrivate(item,
-                                                 restoringSceneFlag);
+                        oldIdentifiedItems.push_back(item);
                     }
                     else {
                         delete item;
@@ -852,6 +812,19 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             BrowserTabContent* btc = *iter;
             btc->setIdentificationUpdatesVolumeSlices(volumeID);
         }
+    }
+    
+    /*
+     * Move all of the old identified items to the new system.
+     * Also delete all old identified items.
+     */
+    for (auto* oldItem : oldIdentifiedItems) {
+        IdentifiedItemUniversal* newItem = IdentifiedItemUniversal::newInstanceFromOldIdentification(oldItem);
+        if (newItem != NULL) {
+            addIdentifiedItemPrivate(newItem,
+                                     restoringSceneFlag);
+        }
+        delete oldItem;
     }
 }
 

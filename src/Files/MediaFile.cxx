@@ -216,13 +216,3 @@ MediaFile::castToMediaFile() const
 {
     return NULL;
 }
-
-/**
- * @return Half of the height for the orthographic  media drawing viewport
- */
-float
-MediaFile::getMediaDrawingOrthographicHalfHeight()
-{
-    return 500.0;
-}
-

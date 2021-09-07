@@ -75,10 +75,9 @@
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
-#include "SelectionItemCziImage.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
-#include "SelectionItemImage.h"
+#include "SelectionItemMedia.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -146,10 +145,8 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     chartHtmlTableBuilder->setTitleBold("Charts");
     std::unique_ptr<HtmlTableBuilder> geometryHtmlTableBuilder = createHtmlTableBuilder(3);
     geometryHtmlTableBuilder->setTitleBold("Geometry");
-    std::unique_ptr<HtmlTableBuilder> cziImageHtmlTableBuilder = createHtmlTableBuilder(2);
-    cziImageHtmlTableBuilder->setTitlePlain("CZI Image");
-    std::unique_ptr<HtmlTableBuilder> imageHtmlTableBuilder = createHtmlTableBuilder(2);
-    imageHtmlTableBuilder->setTitlePlain("Image");
+    std::unique_ptr<HtmlTableBuilder> mediaHtmlTableBuilder = createHtmlTableBuilder(2);
+    mediaHtmlTableBuilder->setTitlePlain("Media Image");
     std::unique_ptr<HtmlTableBuilder> labelHtmlTableBuilder = createHtmlTableBuilder(2);
     labelHtmlTableBuilder->setTitlePlain("Labels");
     std::unique_ptr<HtmlTableBuilder> layersHtmlTableBuilder = createHtmlTableBuilder(3);
@@ -267,13 +264,9 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     this->generateCiftiConnectivityMatrixIdentificationText(*chartHtmlTableBuilder,
                                                             selectionManager->getCiftiConnectivityMatrixRowColumnIdentification());
     
-    this->generateCziImageIdentificationText(*cziImageHtmlTableBuilder,
+    this->generateMediaIdentificationText(*mediaHtmlTableBuilder,
                                              idText,
-                                             selectionManager->getCziImageIdentification());
-    
-    this->generateImageIdentificationText(*imageHtmlTableBuilder,
-                                          idText,
-                                          selectionManager->getImageIdentification());
+                                             selectionManager->getMediaIdentification());
     
     AString textOut;
     textOut.append(geometryHtmlTableBuilder->getAsHtmlTable());
@@ -281,8 +274,7 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     textOut.append(scalarHtmlTableBuilder->getAsHtmlTable());
     textOut.append(layersHtmlTableBuilder->getAsHtmlTable());
     textOut.append(chartHtmlTableBuilder->getAsHtmlTable());
-    textOut.append(cziImageHtmlTableBuilder->getAsHtmlTable());
-    textOut.append(imageHtmlTableBuilder->getAsHtmlTable());
+    textOut.append(mediaHtmlTableBuilder->getAsHtmlTable());
     return textOut;
 }
 
@@ -393,8 +385,7 @@ IdentificationFormattedTextGenerator::createToolTipText(const Brain* brain,
     
     const SelectionItemSurfaceNode* selectedNode = selectionManager->getSurfaceNodeIdentification();
     const SelectionItemVoxel* selectedVoxel = selectionManager->getVoxelIdentification();
-    const SelectionItemImage* selectedImage = selectionManager->getImageIdentification();
-    const SelectionItemCziImage* selectedCziImage = selectionManager->getCziImageIdentification();
+    const SelectionItemMedia* selectedMedia = selectionManager->getMediaIdentification();
     
     IdentificationStringBuilder idText;
     
@@ -411,8 +402,7 @@ IdentificationFormattedTextGenerator::createToolTipText(const Brain* brain,
                               dataToolTipsManager,
                               idText);
     }
-    else if (selectedImage->isValid()
-             || selectedCziImage->isValid()) {
+    else if (selectedMedia->isValid()) {
         generateMediaToolTip(selectionManager,
                              dataToolTipsManager,
                              idText);
@@ -2044,70 +2034,22 @@ IdentificationFormattedTextGenerator::generateVolumeFocusIdentifcationText(HtmlT
 }
 
 /**
- * Generate identification text for image identification.
+ * Generate identification text for media identification.
  * @param htmlTableBuilder
  *     HTML table builder for identification text.
- * @param idImage
- *     Information for image ID.
+ * @param idMedia
+ *     Information for media ID.
  */
 void
-IdentificationFormattedTextGenerator::generateImageIdentificationText(HtmlTableBuilder& htmlTableBuilder,
-                                                                      IdentificationStringBuilder& idText,
-                                                                      const SelectionItemImage* idImage) const
-{
-    if (idImage->isValid()) {
-        const ImageFile* imageFile = idImage->getImageFile();
-        std::vector<AString> columnOneText, columnTwoText, toolTipText;
-        imageFile->getPixelIdentificationText(idImage->getTabIndex(),
-                                              idImage->getPixelIndex(),
-                                              columnOneText,
-                                              columnTwoText,
-                                              toolTipText);
-        const int32_t numColOne(columnOneText.size());
-        const int32_t numColTwo(columnTwoText.size());
-        const int32_t maxNum(std::max(numColOne, numColTwo));
-        for (int32_t i = 0; i < maxNum; i++) {
-            AString colOne;
-            AString colTwo;
-            if (i < numColOne) {
-                CaretAssertVectorIndex(columnOneText, i);
-                colOne = columnOneText[i];
-            }
-            if (i < numColTwo) {
-                CaretAssertVectorIndex(columnTwoText, i);
-                colTwo = columnTwoText[i];
-            }
-            htmlTableBuilder.addRow(colOne, colTwo);
-        }
-        
-        /*
-         * For tooltip
-         */
-        for (const auto& text : toolTipText) {
-            bool indentFlag(false);
-            idText.addLine(indentFlag,
-                           text);
-        }
-    }
-}
-
-/**
- * Generate identification text for image identification.
- * @param htmlTableBuilder
- *     HTML table builder for identification text.
- * @param idImage
- *     Information for image ID.
- */
-void
-IdentificationFormattedTextGenerator::generateCziImageIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+IdentificationFormattedTextGenerator::generateMediaIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                                          IdentificationStringBuilder& idText,
-                                                                         const SelectionItemCziImage* idCziImage) const
+                                                                         const SelectionItemMedia* idMedia) const
 {
-    if (idCziImage->isValid()) {        
-        const CziImageFile* cziImageFile(idCziImage->getCziImageFile());
+    if (idMedia->isValid()) {
+        const MediaFile* mediaFile(idMedia->getMediaFile());
         std::vector<AString> columnOneText, columnTwoText, toolTipText;
-        cziImageFile->getPixelIdentificationText(idCziImage->getTabIndex(),
-                                                 idCziImage->getPixelIndexOriginAtTop(),
+        mediaFile->getPixelIdentificationText(idMedia->getTabIndex(),
+                                              idMedia->getPixelIndexOriginAtTop(),
                                                  columnOneText,
                                                  columnTwoText,
                                                  toolTipText);
@@ -2127,7 +2069,7 @@ IdentificationFormattedTextGenerator::generateCziImageIdentificationText(HtmlTab
             }
             htmlTableBuilder.addRow(colOne, colTwo);
         }
-
+        
         /*
          * For tooltip
          */
@@ -2470,18 +2412,11 @@ IdentificationFormattedTextGenerator::generateMediaToolTip(const SelectionManage
     if (dataToolTipsManager->isShowMedia()) {
         std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder(3);
         
-        const SelectionItemImage* imageSelection = selectionManager->getImageIdentification();
-        const SelectionItemCziImage* cziImageSelection = selectionManager->getCziImageIdentification();
-        
-        if (imageSelection->isValid()) {
-            generateImageIdentificationText(*htmlTableBuilder,
+        const SelectionItemMedia* mediaSelection = selectionManager->getMediaIdentification();
+        if (mediaSelection->isValid()) {
+            generateMediaIdentificationText(*htmlTableBuilder,
                                             idText,
-                                            imageSelection);
-        }
-        else if (cziImageSelection->isValid()) {
-            generateCziImageIdentificationText(*htmlTableBuilder,
-                                               idText,
-                                               cziImageSelection);
+                                            mediaSelection);
         }
     }
 }

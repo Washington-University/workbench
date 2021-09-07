@@ -41,6 +41,10 @@ namespace caret {
     public:
         virtual ~SelectionItem();
         
+        int64_t getIdentifiedItemUniqueIdentifier() const;
+        
+        void setIdentifiedItemUniqueIdentifier(const int64_t uniqueIdentifier);
+        
         SelectionItemDataTypeEnum::Enum getItemDataType() const;
         
         bool isEnabledForSelection() const;
@@ -92,6 +96,8 @@ namespace caret {
         double m_screenXYZ[3];
         
         double m_modelXYZ[3];
+        
+        int64_t m_identifiedItemUniqueIdentifier = -1;
         
     private:
         void copyHelperSelectionItem(const SelectionItem& idItem);

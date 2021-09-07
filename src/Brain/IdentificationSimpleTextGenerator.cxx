@@ -68,7 +68,7 @@
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
-#include "SelectionItemImage.h"
+#include "SelectionItemMedia.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -174,8 +174,8 @@ IdentificationSimpleTextGenerator::createIdentificationText(const SelectionManag
     this->generateChartTwoMatrixIdentificationText(idText,
                                                       idManager->getChartTwoMatrixIdentification());
     
-    this->generateImageIdentificationText(idText,
-                                          idManager->getImageIdentification());
+    this->generateMediaIdentificationText(idText,
+                                          idManager->getMediaIdentification());
     
     return idText.toString();
 }
@@ -1611,27 +1611,28 @@ IdentificationSimpleTextGenerator::generateVolumeFociIdentifcationText(Identific
 }
 
 /**
- * Generate identification text for image identification.
+ * Generate identification text for media identification.
  * @param idText
  *     String builder for identification text.
  * @param idImage
  *     Information for image ID.
  */
 void
-IdentificationSimpleTextGenerator::generateImageIdentificationText(IdentificationStringBuilder& idText,
-                                                             const SelectionItemImage* idImage) const
+IdentificationSimpleTextGenerator::generateMediaIdentificationText(IdentificationStringBuilder& idText,
+                                                             const SelectionItemMedia* idMedia) const
 {
-    if (idImage->isValid()) {
+    if (idMedia->isValid()) {
+        const PixelIndex pixelIndex(idMedia->getPixelIndexOriginAtTop());
         AString text = ("Image "
-                              + idImage->getImageFile()->getFileNameNoPath()
+                              + idMedia->getMediaFile()->getFileNameNoPath()
                               + " Pixel IJ ("
-                              + AString::number(idImage->getPixelI())
+                              + AString::number(pixelIndex.getI())
                               + ","
-                              + AString::number(idImage->getPixelJ())
+                              + AString::number(pixelIndex.getJ())
                               + ")");
         
         uint8_t pixelRGBA[4] = { 0, 0, 0, 0 };
-        idImage->getPixelRGBA(pixelRGBA);
+        idMedia->getPixelRGBA(pixelRGBA);
         text.append(" RGBA (" + AString::fromNumbers(pixelRGBA, 4, ",") + ")");
         
         idText.addLine(false,
