@@ -182,6 +182,17 @@ PixelIndex::operator==(const PixelIndex& obj) const
 }
 
 /**
+ * @return True if the pixel index is valid (all IJK >= 0)
+ */
+bool
+PixelIndex::isValid() const
+{
+    return ((getI() >= 0)
+            && (getJ() >= 0)
+            && (getK() >= 0));
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

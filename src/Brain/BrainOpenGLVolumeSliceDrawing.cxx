@@ -67,7 +67,6 @@
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionItemVoxelEditing.h"
-#include "SelectionItemVoxelIdentificationSymbol.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
 #include "SpacerTabIndex.h"

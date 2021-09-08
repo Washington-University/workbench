@@ -126,7 +126,6 @@
 #include "SelectionItemMedia.h"
 #include "SelectionItemImageControlPoint.h"
 #include "SelectionItemSurfaceNode.h"
-#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemSurfaceTriangle.h"
 #include "SelectionItemVoxel.h"
 #include "SpacerTabContent.h"

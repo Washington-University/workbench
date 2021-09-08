@@ -151,34 +151,25 @@ SelectionItemDataTypeEnum::initialize()
                                                  "MEDIA",
                                                  "Media"));
     
-    enumData.push_back(SelectionItemDataTypeEnum(MEDIA_IDENTIFICATION_SYMBOL,
-                                                 "MEDIA_IDENTIFICATION_SYMBOL",
-                                                 "Media Identification Symbol"));
-    
     enumData.push_back(SelectionItemDataTypeEnum(SURFACE_NODE,
                                     "SURFACE_NODE", 
                                     "Surface Vertex"));
-    
-    enumData.push_back(SelectionItemDataTypeEnum(SURFACE_NODE_IDENTIFICATION_SYMBOL,
-                                                      "SURFACE_NODE_IDENTIFICATION_SYMBOL",
-                                                      "Surface Vertex Identification Symbol"));
     
     enumData.push_back(SelectionItemDataTypeEnum(SURFACE_TRIANGLE,
                                     "SURFACE_TRIANGLE", 
                                     "Surface Triangle"));
     
-    enumData.push_back(SelectionItemDataTypeEnum(VOXEL, 
+    enumData.push_back(SelectionItemDataTypeEnum(UNIVERSAL_IDENTIFICATION_SYMBOL,
+                                                 "UNIVERSAL_IDENTIFICATION_SYMBOL",
+                                                 "Universal Identification Symbol"));
+    
+    enumData.push_back(SelectionItemDataTypeEnum(VOXEL,
                                     "VOXEL", 
                                     "Voxel"));
     
     enumData.push_back(SelectionItemDataTypeEnum(VOXEL_EDITING,
                                                  "VOXEL_EDITING",
-                                                 "Voxel Editing"));
-    
-    enumData.push_back(SelectionItemDataTypeEnum(VOXEL_IDENTIFICATION_SYMBOL,
-                                                 "VOXEL_IDENTIFICATION_SYMBOL",
-                                                 "Voxel Identification Symbol"));
-    
+                                                 "Voxel Editing"));    
 }
 
 /**

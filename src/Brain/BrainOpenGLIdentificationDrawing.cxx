@@ -37,9 +37,7 @@
 #include "IdentifiedItemUniversal.h"
 #include "IdentificationManager.h"
 #include "Plane.h"
-#include "SelectionItemMediaIdentificationSymbol.h"
-#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
-#include "SelectionItemVoxelIdentificationSymbol.h"
+#include "SelectionItemUniversalIdentificationSymbol.h"
 #include "SelectionManager.h"
 #include "Surface.h"
 #include "VolumeMappableInterface.h"
@@ -272,9 +270,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                    ? (planeThickness * 0.55) /* ensure symbol falls within a slice*/
                                    : 1.0);
 
-    SelectionItemMediaIdentificationSymbol* mediaSymbolSelection = m_selectionManager->getMediaIdentificationSymbol();
-    SelectionItemSurfaceNodeIdentificationSymbol* surfaceSymbolSelection(m_selectionManager->getSurfaceNodeIdentificationSymbol());
-    SelectionItemVoxelIdentificationSymbol* volumeSymbolSelection = m_selectionManager->getVoxelIdentificationSymbol();
+    SelectionItemUniversalIdentificationSymbol* universalSymbolSelection(m_selectionManager->getUniversalIdentificationSymbol());
 
     /*
      * Check for a 'selection' type mode
@@ -285,9 +281,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             //EventManager::get()->sendEvent(colorsFromChartsEvent.getPointer());
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (mediaSymbolSelection->isEnabledForSelection()
-                || surfaceSymbolSelection->isEnabledForSelection()
-                || volumeSymbolSelection->isEnabledForSelection()) {
+            if (universalSymbolSelection->isEnabledForSelection()) {
                 selectFlag = true;
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
@@ -427,17 +421,17 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             if (selectFlag) {
                 if (drawingOnMediaFlag) {
                     m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
-                                                                         SelectionItemDataTypeEnum::MEDIA_IDENTIFICATION_SYMBOL,
+                                                                         SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
                                                                          selectionItemIndex);
                 }
                 else if (drawingOnSurfaceFlag) {
                     m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
-                                                                         SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL,
+                                                                         SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
                                                                          selectionItemIndex);
                 }
                 else if (drawingOnVolumeFlag) {
                     m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
-                                                                         SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,
+                                                                         SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
                                                                          selectionItemIndex);
                 }
                 else {
@@ -481,58 +475,33 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                            selectionItemType,
                                                            idIndex,
                                                            depth);
-        if (mediaSymbolSelection->isEnabledForSelection()) {
+                
+        if (universalSymbolSelection->isEnabledForSelection()) {
             if ((idIndex >= 0)
-                && (selectionItemType == SelectionItemDataTypeEnum::MEDIA_IDENTIFICATION_SYMBOL)){
-                if (mediaSymbolSelection->isOtherScreenDepthCloserToViewer(depth)) {
+                && (selectionItemType == SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL)) {
+                if (universalSymbolSelection->isOtherScreenDepthCloserToViewer(depth)) {
                     CaretAssertVectorIndex(allItems, idIndex);
                     const auto& selectedItem = allItems[idIndex];
-                    CaretAssert(selectedItem->getType() == IdentifiedItemUniversalTypeEnum::MEDIA);
+                    switch (selectedItem->getType()) {
+                        case IdentifiedItemUniversalTypeEnum::INVALID:
+                            CaretAssert(0);
+                            break;
+                        case IdentifiedItemUniversalTypeEnum::MEDIA:
+                            break;
+                        case IdentifiedItemUniversalTypeEnum::SURFACE:
+                            break;
+                        case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
+                            CaretAssert(0);
+                            break;
+                        case IdentifiedItemUniversalTypeEnum::VOLUME:
+                            break;
+                    }
+                    universalSymbolSelection->setIdentifiedItemUniqueIdentifier(selectedItem->getUniqueIdentifier());
+                    universalSymbolSelection->setScreenDepth(depth);
+                    universalSymbolSelection->setBrain(m_brain);
                     const std::array<float, 3> xyz = selectedItem->getStereotaxicXYZ();
-                    mediaSymbolSelection->setIdentifiedItemUniqueIdentifier(selectedItem->getUniqueIdentifier());
-                    mediaSymbolSelection->setPixelXYZ(xyz.data());
-                    mediaSymbolSelection->setBrain(m_brain);
-                    mediaSymbolSelection->setScreenDepth(depth);
-                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(mediaSymbolSelection, xyz.data());
-                    CaretLogFine("Selected Media Identification Symbol: " + QString::number(idIndex));
-                }
-            }
-        }
-        if (surfaceSymbolSelection->isEnabledForSelection()) {
-            if ((idIndex >= 0)
-                && (selectionItemType == SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL)) {
-                if (surfaceSymbolSelection->isOtherScreenDepthCloserToViewer(depth)) {
-                    CaretAssertVectorIndex(allItems, idIndex);
-                    const auto& selectedItem = allItems[idIndex];
-                    CaretAssert(selectedItem->getType() == IdentifiedItemUniversalTypeEnum::SURFACE);
-                    const std::array<float, 3> xyz = selectedItem->getStereotaxicXYZ();
-                    surfaceSymbolSelection->setIdentifiedItemUniqueIdentifier(selectedItem->getUniqueIdentifier());
-                    surfaceSymbolSelection->setBrain(m_brain);
-                    surfaceSymbolSelection->setSurface(const_cast<Surface*>(surface));
-                    surfaceSymbolSelection->set(surface->getStructure(),
-                                                surface->getNumberOfNodes(),
-                                                selectedItem->getSurfaceVertexIndex());
-                    surfaceSymbolSelection->setScreenDepth(depth);
-                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(surfaceSymbolSelection, xyz.data());
-                    CaretLogFine("Selected Vertex Identification Symbol: " + QString::number(selectedItem->getSurfaceVertexIndex()));
-                }
-            }
-        }
-        
-        if (volumeSymbolSelection->isEnabledForSelection()) {
-            if ((idIndex >= 0)
-                && (selectionItemType == SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL)) {
-                if (volumeSymbolSelection->isOtherScreenDepthCloserToViewer(depth)) {
-                    CaretAssertVectorIndex(allItems, idIndex);
-                    const auto& selectedItem = allItems[idIndex];
-                    CaretAssert(selectedItem->getType() == IdentifiedItemUniversalTypeEnum::VOLUME);
-                    const std::array<float, 3> xyz = selectedItem->getStereotaxicXYZ();
-                    volumeSymbolSelection->setVoxelXYZ(xyz.data());
-                    volumeSymbolSelection->setBrain(m_brain);
-                    volumeSymbolSelection->setScreenDepth(depth);
-                    volumeSymbolSelection->setIdentifiedItemUniqueIdentifier(selectedItem->getUniqueIdentifier());
-                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(volumeSymbolSelection, xyz.data());
-                    CaretLogFine("Selected Voxel Identification Symbol: " + QString::number(idIndex));
+                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(universalSymbolSelection, xyz.data());
+                    CaretLogFine("Selected Universal Identification Symbol: " + QString::number(idIndex));
                 }
             }
         }

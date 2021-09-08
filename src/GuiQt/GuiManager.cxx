@@ -120,11 +120,9 @@
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemMedia.h"
-#include "SelectionItemMediaIdentificationSymbol.h"
 #include "SelectionItemSurfaceNode.h"
-#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
+#include "SelectionItemUniversalIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
-#include "SelectionItemVoxelIdentificationSymbol.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileManagementDialog.h"
@@ -3247,23 +3245,12 @@ GuiManager::processIdentification(const int32_t tabIndex,
     ciftiLoadingInfoTableBuilder.setTitlePlain("CIFTI Data Loading");
     
     const QString breakAndIndent("<br>&nbsp;&nbsp;&nbsp;&nbsp;");
-    SelectionItemSurfaceNodeIdentificationSymbol* nodeIdSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
-    SelectionItemVoxelIdentificationSymbol*  voxelIdSymbol = selectionManager->getVoxelIdentificationSymbol();
-    SelectionItemMediaIdentificationSymbol* mediaIdSymbol = selectionManager->getMediaIdentificationSymbol();
-    if (nodeIdSymbol->isValid()) {
-        identificationManager->removeIdentifiedItem(nodeIdSymbol);
-        updateGraphicsFlag = true;
+    SelectionItemUniversalIdentificationSymbol* universalIdSymbol = selectionManager->getUniversalIdentificationSymbol();
+    if (universalIdSymbol->isValid()) {
+        identificationManager->removeIdentifiedItem(universalIdSymbol);
+        updateGraphicsFlag    = true;
         updateInformationFlag = true;
     }
-    else if (voxelIdSymbol->isValid()) {
-        identificationManager->removeIdentifiedItem(voxelIdSymbol);
-        updateGraphicsFlag = true;
-        updateInformationFlag = true;
-    }
-    else if (mediaIdSymbol->isValid()) {
-        identificationManager->removeIdentifiedItem(mediaIdSymbol);
-        updateGraphicsFlag = true;
-        updateInformationFlag = true;    }
     else {
         IdentifiedItemUniversal* identifiedItem(NULL);
         
@@ -3779,7 +3766,6 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                                                              pixelIndex,
                                                                                              stereotaxicXYZ,
                                                                                              stereotaxicXYZValidFlag);
-                    //                selectionManager->setLastSelectedItem(identifiedItem);
                 }
             }
         }

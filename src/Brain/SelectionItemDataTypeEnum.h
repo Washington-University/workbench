@@ -83,20 +83,16 @@ public:
         IMAGE_CONTROL_POINT,
         /** Media */
         MEDIA,
-        /** Media Identification Symbol */
-        MEDIA_IDENTIFICATION_SYMBOL,
         /** Surface Node*/
         SURFACE_NODE,
-        /** Surface Node Identification Symbol */
-        SURFACE_NODE_IDENTIFICATION_SYMBOL,
         /** Surface Triangle */
         SURFACE_TRIANGLE,
+        /** Universal identification symbol */
+        UNIVERSAL_IDENTIFICATION_SYMBOL,
         /** Volume Voxel */
         VOXEL,
         /** Voxel Editing */
-        VOXEL_EDITING,
-        /** Voxel identification symbol */
-        VOXEL_IDENTIFICATION_SYMBOL
+        VOXEL_EDITING
     };
 
 

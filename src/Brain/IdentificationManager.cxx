@@ -41,6 +41,7 @@
 #include "SceneClass.h"
 #include "ScenePrimitive.h"
 #include "SelectionItem.h"
+#include "SelectionItemUniversalIdentificationSymbol.h"
 #include "SessionManager.h"
 #include "Surface.h"
 
@@ -324,6 +325,22 @@ IdentificationManager::getIdentifiedItems() const
     }
     
     return itemsOut;
+}
+
+/**
+ * @return Identified item with the given unique identifier or NULL if not found
+ * @param uniqueIdentifier
+ *    Unique identifier of the item
+ */
+const IdentifiedItemUniversal*
+IdentificationManager::getIdentifiedItemWithIdentifier(const int64_t uniqueIdentifier) const
+{
+    for (const auto& ptr : m_identifiedItems) {
+        if (ptr->getUniqueIdentifier() == uniqueIdentifier) {
+            return ptr.get();
+        }
+    }
+    return NULL;
 }
 
 /**
@@ -665,6 +682,44 @@ void
 IdentificationManager::setChartLineLayerToolTipTextSize(const float textSize)
 {
     m_chartLineLayerToolTipTextSize = textSize;
+}
+
+/**
+ * Get surface information for an identification symbol
+ * @param symbol
+ *     The identication symbol
+ * @param structureOut
+ *     Output with structure of surface
+ * @param surfaceNumberOfVerticesOut
+ *     Output with number of vertices in surface
+ * @param surfaceVertexIndexOut
+ *     Output with index of the vertex
+ * @return
+ *     True if the identification is for a surface vertex and the output information is valid
+ */
+bool
+IdentificationManager::getSurfaceInformationForIdentificationSymbol(const SelectionItemUniversalIdentificationSymbol* symbol,
+                                                                    StructureEnum::Enum& structureOut,
+                                                                    int32_t& surfaceNumberOfVerticesOut,
+                                                                    int32_t& surfaceVertexIndexOut) const
+{
+    CaretAssert(symbol);
+    structureOut = StructureEnum::INVALID;
+    surfaceNumberOfVerticesOut = -1;
+    surfaceVertexIndexOut = -1;
+    
+    const int64_t uniqueID(symbol->getIdentifiedItemUniqueIdentifier());
+    const IdentifiedItemUniversal* idItem(getIdentifiedItemWithIdentifier(uniqueID));
+    if (idItem != NULL) {
+        if (idItem->getType() == IdentifiedItemUniversalTypeEnum::SURFACE) {
+            structureOut = idItem->getStructure();
+            surfaceNumberOfVerticesOut = idItem->getSurfaceNumberOfVertices();
+            surfaceVertexIndexOut = idItem->getSurfaceVertexIndex();
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 /**

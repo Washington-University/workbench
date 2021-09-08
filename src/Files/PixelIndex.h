@@ -59,6 +59,8 @@ namespace caret {
         
         bool operator==(const PixelIndex& obj) const;
         
+        bool isValid() const;
+        
         /** @return The "i" component */
         inline int64_t getI() const { return m_pixelIndices.m_ijk[0]; }
         

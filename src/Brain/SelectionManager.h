@@ -48,13 +48,11 @@ namespace caret {
     class SelectionItemFocusVolume;
     class SelectionItemImageControlPoint;
     class SelectionItemMedia;
-    class SelectionItemMediaIdentificationSymbol;
     class SelectionItemSurfaceNode;
-    class SelectionItemSurfaceNodeIdentificationSymbol;
     class SelectionItemSurfaceTriangle;
+    class SelectionItemUniversalIdentificationSymbol;
     class SelectionItemVoxel;
     class SelectionItemVoxelEditing;
-    class SelectionItemVoxelIdentificationSymbol;
     class IdentificationFormattedTextGenerator;
     class IdentificationSimpleTextGenerator;
     class Surface;
@@ -94,17 +92,9 @@ namespace caret {
         
         const SelectionItemMedia* getMediaIdentification() const;
         
-        SelectionItemMediaIdentificationSymbol* getMediaIdentificationSymbol();
-        
-        const SelectionItemMediaIdentificationSymbol* getMediaIdentificationSymbol() const;
-        
         SelectionItemSurfaceNode* getSurfaceNodeIdentification();
         
         const SelectionItemSurfaceNode* getSurfaceNodeIdentification() const;
-        
-        SelectionItemSurfaceNodeIdentificationSymbol* getSurfaceNodeIdentificationSymbol();
-        
-        const SelectionItemSurfaceNodeIdentificationSymbol* getSurfaceNodeIdentificationSymbol() const;
         
         SelectionItemSurfaceTriangle* getSurfaceTriangleIdentification();
         
@@ -114,9 +104,9 @@ namespace caret {
         
         SelectionItemVoxel* getVoxelIdentification();
         
-        SelectionItemVoxelIdentificationSymbol* getVoxelIdentificationSymbol();
-        
-        const SelectionItemVoxelIdentificationSymbol* getVoxelIdentificationSymbol() const;
+        SelectionItemUniversalIdentificationSymbol* getUniversalIdentificationSymbol();
+
+        const SelectionItemUniversalIdentificationSymbol* getUniversalIdentificationSymbol() const;
         
         SelectionItemVoxelEditing* getVoxelEditingIdentification();
         
@@ -240,11 +230,7 @@ namespace caret {
         
         std::unique_ptr<SelectionItemMedia> m_mediaIdentification;
         
-        std::unique_ptr<SelectionItemMediaIdentificationSymbol> m_mediaIdentificationSymbol;
-        
         SelectionItemSurfaceNode* m_surfaceNodeIdentification;
-        
-        SelectionItemSurfaceNodeIdentificationSymbol* m_surfaceNodeIdentificationSymbol;
         
         SelectionItemSurfaceTriangle* m_surfaceTriangleIdentification;
         
@@ -252,9 +238,9 @@ namespace caret {
         
         std::unique_ptr<IdentificationFormattedTextGenerator> m_idFormattedTextGenerator;
         
-        SelectionItemVoxel* m_voxelIdentification;
+        std::unique_ptr<SelectionItemUniversalIdentificationSymbol> m_universalIdentificationSymbol;
         
-        SelectionItemVoxelIdentificationSymbol* m_voxelIdentificationSymbol;
+        SelectionItemVoxel* m_voxelIdentification;
         
         SelectionItemVoxelEditing* m_voxelEditingIdentification;
         

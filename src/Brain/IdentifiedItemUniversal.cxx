@@ -484,17 +484,35 @@ IdentifiedItemUniversal::initializeInstance()
 bool
 IdentifiedItemUniversal::isValid() const
 {
-    if (m_structure == StructureEnum::INVALID) {
-        return false;
-    }
-    if (m_surfaceNumberOfVertices <= 0) {
-        return false;
-    }
-    if (m_surfaceVertexIndex < 0) {
-        return false;
+    switch (m_type) {
+        case IdentifiedItemUniversalTypeEnum::INVALID:
+            CaretAssert(0);
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA:
+            if (m_pixelIndex.isValid()) {
+                return true;
+            }
+            break;
+        case IdentifiedItemUniversalTypeEnum::SURFACE:
+            if ((m_structure != StructureEnum::INVALID)
+                && (m_surfaceVertexIndex >= 0)
+                && (m_surfaceNumberOfVertices >= 0)) {
+                return true;
+            }
+            break;
+        case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
+            return true;
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME:
+            if ((m_voxelIJK[0] >= 0)
+                && (m_voxelIJK[1] >= 0)
+                && (m_voxelIJK[2] >= 0)) {
+                return true;
+            }
+            break;
     }
     
-    return true;
+    return false;
 }
 
 /**

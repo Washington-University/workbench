@@ -145,6 +145,7 @@ SelectionItem::reset()
     m_modelXYZ[0] = 0.0;
     m_modelXYZ[1] = 0.0;
     m_modelXYZ[2] = 0.0;
+    m_identifiedItemUniqueIdentifier = -1;
 }
 
 

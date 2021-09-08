@@ -74,7 +74,7 @@
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemSurfaceNode.h"
-#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
+#include "SelectionItemUniversalIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
@@ -338,8 +338,6 @@ UserInputModeViewContextMenu::createIdentifyMenu()
                                                                     SLOT(identifyVolumeFocusSelected())));
     }
     
-    const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = this->selectionManager->getSurfaceNodeIdentificationSymbol();
-    
     bool showRemoveVertexSymbolsFlag = false;
     if (this->browserTabContent != NULL) {
         switch (this->browserTabContent->getSelectedModelType()) {
@@ -366,22 +364,20 @@ UserInputModeViewContextMenu::createIdentifyMenu()
         }
     }
     if (showRemoveVertexSymbolsFlag) {
-        identificationActions.push_back(WuQtUtilities::createAction("Remove All Vertex Identification Symbols",
+        identificationActions.push_back(WuQtUtilities::createAction("Remove All Identification Symbols",
                                                                     "",
                                                                     this,
                                                                     this,
-                                                                    SLOT(removeAllNodeIdentificationSymbolsSelected())));
+                                                                    SLOT(removeAllIdentificationSymbolsSelected())));
     }
     
+    SelectionItemUniversalIdentificationSymbol* idSymbol = selectionManager->getUniversalIdentificationSymbol();
     if (idSymbol->isValid()) {
-        const AString text = ("Remove Identification of Vertices "
-                              + AString::number(idSymbol->getNodeNumber()));
-        
-        identificationActions.push_back(WuQtUtilities::createAction(text,
+        identificationActions.push_back(WuQtUtilities::createAction("Remove Identification Symbol",
                                                                     "",
                                                                     this,
                                                                     this,
-                                                                    SLOT(removeNodeIdentificationSymbolSelected())));
+                                                                    SLOT(removeIdentificationSymbolSelected())));
     }
     
     QMenu* menu(NULL);
@@ -1015,7 +1011,7 @@ UserInputModeViewContextMenu::createFociMenu()
 {
     QList<QAction*> fociActions;
     
-    const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
+    const SelectionItemUniversalIdentificationSymbol* idSymbol = selectionManager->getUniversalIdentificationSymbol();
     SelectionItemFocusSurface* focusID = this->selectionManager->getSurfaceFocusIdentification();
     SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
     SelectionItemVoxel* idVoxel = this->selectionManager->getVoxelIdentification();
@@ -1026,7 +1022,7 @@ UserInputModeViewContextMenu::createFociMenu()
      * Create focus at surface node or at ID symbol
      */
     if (surfaceID->isValid()
-        && (focusID->isValid() == false)) {
+        && ( ! focusID->isValid())) {
         const int32_t nodeIndex = surfaceID->getNodeNumber();
         const QString text = ("Create Focus at Vertex "
                               + QString::number(nodeIndex)
@@ -1039,17 +1035,26 @@ UserInputModeViewContextMenu::createFociMenu()
                                                             SLOT(createSurfaceFocusSelected())));
     }
     else if (idSymbol->isValid()
-             && (focusID->isValid() == false)) {
-        const int32_t nodeIndex = idSymbol->getNodeNumber();
-        const QString text = ("Create Focus at Selected Vertex "
-                              + QString::number(nodeIndex)
-                              + "...");
-        
-        fociActions.push_back(WuQtUtilities::createAction(text,
-                                                            "",
-                                                            this,
-                                                            this,
-                                                            SLOT(createSurfaceIDSymbolFocusSelected())));
+             && ( ! focusID->isValid())) {
+        IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
+        StructureEnum::Enum structure(StructureEnum::INVALID);
+        int32_t surfaceNumberOfVertices(-1);
+        int32_t surfaceVertexIndex(-1);
+        if (idManager->getSurfaceInformationForIdentificationSymbol(idSymbol,
+                                                                    structure,
+                                                                    surfaceNumberOfVertices,
+                                                                    surfaceVertexIndex)) {
+            
+            const QString text = ("Create Focus at Selected Vertex "
+                                  + QString::number(surfaceVertexIndex)
+                                  + "...");
+            
+            fociActions.push_back(WuQtUtilities::createAction(text,
+                                                              "",
+                                                              this,
+                                                              this,
+                                                              SLOT(createSurfaceIDSymbolFocusSelected())));
+        }
     }
     
     /*
@@ -1612,32 +1617,40 @@ UserInputModeViewContextMenu::createSurfaceFocusSelected()
 void
 UserInputModeViewContextMenu::createSurfaceIDSymbolFocusSelected()
 {
-    SelectionItemSurfaceNodeIdentificationSymbol* nodeSymbolID =
-        this->selectionManager->getSurfaceNodeIdentificationSymbol();
+    SelectionManager* selectionManager(GuiManager::get()->getBrain()->getSelectionManager());
+    const SelectionItemUniversalIdentificationSymbol* idSymbol = selectionManager->getUniversalIdentificationSymbol();
     
-    const int32_t nodeIndex = nodeSymbolID->getNodeNumber();
-    
-    double modelXYZ[3];
-    nodeSymbolID->getModelXYZ(modelXYZ);
-    const float xyz[3] {
-        static_cast<float>(modelXYZ[0]),
-        static_cast<float>(modelXYZ[1]),
-        static_cast<float>(modelXYZ[2])
-    };
-    const AString focusName = (StructureEnum::toGuiName(nodeSymbolID->getStructure())
-                               + " Vertex "
-                               + AString::number(nodeIndex));
-    
-    const AString comment = ("Created from "
-                             + focusName);
-    Focus* focus = new Focus();
-    focus->setName(focusName);
-    focus->getProjection(0)->setStereotaxicXYZ(xyz);
-    focus->setComment(comment);
-    FociPropertiesEditorDialog::createFocus(focus,
-                                            this->browserTabContent,
-                                            this->parentOpenGLWidget);
+    IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
+    StructureEnum::Enum structure(StructureEnum::INVALID);
+    int32_t surfaceNumberOfVertices(-1);
+    int32_t surfaceVertexIndex(-1);
+    if (idManager->getSurfaceInformationForIdentificationSymbol(idSymbol,
+                                                                structure,
+                                                                surfaceNumberOfVertices,
+                                                                surfaceVertexIndex)) {
+        double modelXYZ[3];
+        idSymbol->getModelXYZ(modelXYZ);
+        const float xyz[3] {
+            static_cast<float>(modelXYZ[0]),
+            static_cast<float>(modelXYZ[1]),
+            static_cast<float>(modelXYZ[2])
+        };
+        const AString focusName = (StructureEnum::toGuiName(structure)
+                                   + " Vertex "
+                                   + AString::number(surfaceVertexIndex));
+        
+        const AString comment = ("Created from "
+                                 + focusName);
+        Focus* focus = new Focus();
+        focus->setName(focusName);
+        focus->getProjection(0)->setStereotaxicXYZ(xyz);
+        focus->setComment(comment);
+        FociPropertiesEditorDialog::createFocus(focus,
+                                                this->browserTabContent,
+                                                this->parentOpenGLWidget);
+    }
 }
+
 /**
  * Called to create a focus at a voxel location
  */
@@ -1775,7 +1788,7 @@ UserInputModeViewContextMenu::identifyVoxelSelected()
  * Called to remove all node identification symbols.
  */
 void 
-UserInputModeViewContextMenu::removeAllNodeIdentificationSymbolsSelected()
+UserInputModeViewContextMenu::removeAllIdentificationSymbolsSelected()
 {
     IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
     idManager->removeAllIdentifiedItems();
@@ -1783,16 +1796,16 @@ UserInputModeViewContextMenu::removeAllNodeIdentificationSymbolsSelected()
 }
 
 /**
- * Called to remove node identification symbol from node.
+ * Called to remove identification symbol from node.
  */
 void
-UserInputModeViewContextMenu::removeNodeIdentificationSymbolSelected()
+UserInputModeViewContextMenu::removeIdentificationSymbolSelected()
 {
-   SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
+    SelectionItemUniversalIdentificationSymbol* idSymbol = selectionManager->getUniversalIdentificationSymbol();
     if (idSymbol->isValid()) {
         IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
         idManager->removeIdentifiedItem(idSymbol);
-
+        
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }

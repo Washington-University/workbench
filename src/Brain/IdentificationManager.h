@@ -38,6 +38,7 @@ namespace caret {
     class IdentifiedItemUniversal;
     class SceneClassAssistant;
     class SelectionItem;
+    class SelectionItemUniversalIdentificationSymbol;
 
     class IdentificationManager : public SceneableInterface {
         
@@ -59,6 +60,8 @@ namespace caret {
         IdentificationHistoryManager* getIdentificationHistoryManager();
         
         std::vector<const IdentifiedItemUniversal*> getIdentifiedItems() const;
+        
+        const IdentifiedItemUniversal* getIdentifiedItemWithIdentifier(const int64_t uniqueIdentifier) const;
         
         void getIdentifiedItemColorAndSize(const IdentifiedItemUniversal* item,
                                            const IdentifiedItemUniversalTypeEnum::Enum drawingOnType,
@@ -130,6 +133,11 @@ namespace caret {
         float getChartLineLayerToolTipTextSize() const;
         
         void setChartLineLayerToolTipTextSize(const float textSize);
+
+        bool getSurfaceInformationForIdentificationSymbol(const SelectionItemUniversalIdentificationSymbol* symbol,
+                                                          StructureEnum::Enum& structureOut,
+                                                          int32_t& surfaceNumberOfVerticesOut,
+                                                          int32_t& surfaceVertexIndexOut) const;
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
