@@ -26,6 +26,7 @@
 #include <cmath>
 
 #include <QApplication>
+#include <QScreen>
 #include <QContextMenuEvent>
 #include <QGestureEvent>
 #include <QImage>
@@ -414,8 +415,8 @@ BrainOpenGLWidget::getOpenGLInformation()
 void 
 BrainOpenGLWidget::resizeGL(int w, int h)
 {
-    this->windowWidth[this->windowIndex] = w;
-    this->windowHeight[this->windowIndex] = h;
+    this->windowWidth[this->windowIndex] = w * this->devicePixelRatio();
+    this->windowHeight[this->windowIndex] = h * this->devicePixelRatio();
 }
 
 /**
@@ -907,8 +908,8 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
                 break;
         }
         
-        const int gestureStartX = startPoint.x();
-        const int gestureStartY = height() - startPoint.y();
+        const int gestureStartX = startPoint.x() * this->devicePixelRatio();
+        const int gestureStartY = height() - startPoint.y() * this->devicePixelRatio();
         const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(gestureStartX,
                                                                                          gestureStartY);
         if (viewportContent == NULL) {
@@ -979,8 +980,8 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
 void 
 BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
 {
-    const int mouseX = contextMenuEvent->x();
-    const int mouseY = this->height() - contextMenuEvent->y();
+    const int mouseX = contextMenuEvent->x() * this->devicePixelRatio();
+    const int mouseY = this->height() - contextMenuEvent->y() * this->devicePixelRatio();
     
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                mouseY);
@@ -1087,8 +1088,8 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
 #else
     const QPointF pos(we->pos());
 #endif
-    const int wheelX = pos.x();
-    const int wheelY = this->windowHeight[this->windowIndex] - pos.y();
+    const int wheelX = pos.x() * this->devicePixelRatio();
+    const int wheelY = this->windowHeight[this->windowIndex] - pos.y() * this->devicePixelRatio();
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
                                                                                      wheelY);
     if (viewportContent != NULL) {
@@ -1195,8 +1196,8 @@ BrainOpenGLWidget::keyPressEvent(QKeyEvent* e)
     
     bool mouseValidFlag(false);
     const QPoint mousePos = mapFromGlobal(QCursor::pos());
-    int32_t mouseX = mousePos.x();
-    int32_t mouseY = height() - mousePos.y();
+    int32_t mouseX = mousePos.x() * this->devicePixelRatio();
+    int32_t mouseY = height() - mousePos.y() * this->devicePixelRatio();
     if ((mouseX >= 0)
         && (mouseX < width())
         && (mouseY >= 0)
@@ -1279,8 +1280,8 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
     this->isMousePressedNearToolBox = false;
     
     if (button == Qt::LeftButton) {
-        const int mouseX = me->x();
-        const int mouseY = this->windowHeight[this->windowIndex] - me->y();
+        const int mouseX = me->x() * this->devicePixelRatio();
+        const int mouseY = this->windowHeight[this->windowIndex] - me->y() * this->devicePixelRatio();
 
         this->mousePressX = mouseX;
         this->mousePressY = mouseY;
@@ -1369,8 +1370,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                               false);
     
     if (button == Qt::LeftButton) {
-        const int mouseX = me->x();
-        const int mouseY = this->windowHeight[this->windowIndex] - me->y();
+        const int mouseX = me->x() * this->devicePixelRatio();
+        const int mouseY = this->windowHeight[this->windowIndex] - me->y() * this->devicePixelRatio();
         
         this->mouseMovementMinimumX = std::min(this->mouseMovementMinimumX, mouseX);
         this->mouseMovementMaximumX = std::max(this->mouseMovementMaximumX, mouseX);
@@ -1476,8 +1477,8 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
     
     if (button == Qt::LeftButton) {
         if (keyModifiers == Qt::NoModifier) {
-            const int mouseX = me->x();
-            const int mouseY = this->windowHeight[this->windowIndex] - me->y();
+            const int mouseX = me->x() * this->devicePixelRatio();
+            const int mouseY = this->windowHeight[this->windowIndex] - me->y() * this->devicePixelRatio();
             
             /*
              * Use location of mouse press so that the model
@@ -1879,8 +1880,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                               keyModifiers,
                               true);
     
-    const int mouseX = me->x();
-    const int mouseY = this->windowHeight[this->windowIndex] - me->y();
+    const int mouseX = me->x() * this->devicePixelRatio();
+    const int mouseY = this->windowHeight[this->windowIndex] - me->y() * this->devicePixelRatio();
     
     UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
     
