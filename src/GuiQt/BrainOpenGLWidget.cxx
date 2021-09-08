@@ -26,7 +26,6 @@
 #include <cmath>
 
 #include <QApplication>
-#include <QScreen>
 #include <QContextMenuEvent>
 #include <QGestureEvent>
 #include <QImage>
