@@ -149,6 +149,11 @@ namespace caret {
                                                 const bool includeNonlinearFlag,
                                                 PixelIndex& pixelIndexOriginAtTopLeftOut) const = 0;
 
+        virtual bool findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
+                                                    const bool includeNonLinearFlag,
+                                                    float& signedDistanceToPixelMillimetersOut,
+                                                    PixelIndex& pixelIndexOriginAtTopLeftOut) const = 0;
+        
         // ADD_NEW_METHODS_HERE
 
           

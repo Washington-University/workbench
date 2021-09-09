@@ -141,6 +141,11 @@ public:
                                             const bool includeNonlinearFlag,
                                             PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
 
+    virtual bool findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
+                                                const bool includeNonLinearFlag,
+                                                float& signedDistanceToPixelMillimetersOut,
+                                                PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
+    
     virtual void readFile(const AString& filename) override;
     
     virtual void writeFile(const AString& filename) override;

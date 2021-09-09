@@ -32,6 +32,7 @@
 #include "EventListenerInterface.h"
 #include "SingleChannelPyramidLevelTileAccessor.h"
 #include "MediaFile.h"
+#include "Plane.h"
 #include "VolumeFile.h"
 
 class QImage;
@@ -86,6 +87,8 @@ namespace caret {
         
         virtual bool isPixelIndexValid(const int32_t tabIndex,
                                        const PixelIndex& pixelIndex) const override;
+        
+        bool isPixelIndexFullResolutionValid(const PixelIndex& pixelIndex) const;
         
         virtual void getPixelIdentificationText(const int32_t tabIndex,
                                                 const PixelIndex& pixelIndexOriginAtTop,
@@ -154,6 +157,11 @@ namespace caret {
                                         PixelIndex& pixelIndexOriginAtTopLeftOut,
                                         const std::array<float, 3>& debugPixelIndex) const;
         
+        
+        virtual bool findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
+                                                    const bool includeNonLinearFlag,
+                                                    float& signedDistanceToPixelMillimetersOut,
+                                                    PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
         // ADD_NEW_METHODS_HERE
 
           
@@ -256,6 +264,8 @@ namespace caret {
         void loadNiftiTransformFile(const AString& filename,
                                     NiftiTransform& transform) const;
         
+        const Plane* getImagePlane() const;
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         Status m_status = Status::CLOSED;
@@ -307,6 +317,10 @@ namespace caret {
         mutable NiftiTransform m_pixelToStereotaxicTransform;
         
         mutable NiftiTransform m_stereotaxicToPixelTransform;
+        
+        mutable std::unique_ptr<Plane> m_imagePlane;
+        
+        mutable bool m_imagePlaneInvalid = false;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -48,6 +48,7 @@
 #include "GraphicsUtilitiesOpenGL.h"
 #include "ImageFile.h"
 #include "MathFunctions.h"
+#include "Plane.h"
 #include "RectangleTransform.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -1471,6 +1472,113 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
 }
 
 /**
+ * Find the Pixel nearest the given XYZ coordinate
+ * @param xyz
+ *    The coordinate
+ * @param includeNonlinearFlag
+ *    If true, include the non-linear transform when converting
+ * @param signedDistanceToPixelMillimetersOut
+ *    Output with signed distance to the pixel in millimeters
+ * @param pixelIndexOriginAtTopLeftOut
+ *    Output with pixel index in full resolution with origin at top left
+ * @return
+ *    True if successful, else false.
+ */
+bool
+CziImageFile::findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
+                                             const bool includeNonLinearFlag,
+                                             float& signedDistanceToPixelMillimetersOut,
+                                             PixelIndex& pixelIndexOriginAtTopLeftOut) const
+{
+    const Plane* plane(getImagePlane());
+    if (plane == NULL) {
+        return false;
+    }
+    
+    std::array<float, 3> xyzOnPlane;
+    plane->projectPointToPlane(xyz.data(), xyzOnPlane.data());
+    
+    if (stereotaxicXyzToPixelIndex(xyzOnPlane,
+                                   includeNonLinearFlag,
+                                   pixelIndexOriginAtTopLeftOut)) {
+        if (isPixelIndexFullResolutionValid(pixelIndexOriginAtTopLeftOut)) {
+            signedDistanceToPixelMillimetersOut = plane->absoluteDistanceToPlane(xyz.data());
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @return The plane for this CZI image calculated from the coordinates at the image's corners
+ */
+const Plane*
+CziImageFile::getImagePlane() const
+{
+    /*
+     * Has plane already been created?
+     */
+    if (m_imagePlane) {
+        /*
+         * Plane was previously computed
+         */
+        return m_imagePlane.get();
+    }
+    
+    if (m_imagePlaneInvalid) {
+        /*
+         * Tried to create plane previously but failed
+         */
+        return NULL;
+    }
+    
+    /*
+     * Note: Origin at top left
+     */
+    const int64_t zero(0);
+    const int64_t pixelWidth(getWidth() - 1);
+    const int64_t pixelHeight(getHeight() - 1);
+    const PixelIndex bottomLeftPixel(zero, pixelHeight, zero);
+    const PixelIndex topLeftPixel(zero, zero, zero);
+    const PixelIndex topRightPixel(pixelWidth, zero, zero);
+    
+    /*
+     * Convert pixel indices to XYZ coordinates
+     */
+    std::array<float, 3> bottomLeftXYZ, topLeftXYZ, topRightXYZ;
+    const bool nonLinearFlag(true);
+    if (pixelIndexToStereotaxicXYZ(bottomLeftPixel, nonLinearFlag, bottomLeftXYZ)
+        && pixelIndexToStereotaxicXYZ(topLeftPixel, nonLinearFlag, topLeftXYZ)
+        && pixelIndexToStereotaxicXYZ(topRightPixel, nonLinearFlag, topRightXYZ)) {
+        /*
+         * Create the plane from XYZ coordinates
+         */
+        m_imagePlane.reset(new Plane(bottomLeftXYZ.data(),
+                                     topLeftXYZ.data(),
+                                     topRightXYZ.data()));
+        if (m_imagePlane->isValidPlane()) {
+            return m_imagePlane.get();
+        }
+        else {
+            /*
+             * Plane invalid
+             */
+            m_imagePlane.reset();
+            m_imagePlaneInvalid = true;
+            CaretLogSevere(getFileNameNoPath()
+                           + "Failed to create plane, computation of plane failed.");
+        }
+    }
+    else {
+        CaretLogSevere(getFileNameNoPath()
+                       + "Failed to create plane, pixel to coordinate transform failed.");
+        m_imagePlaneInvalid = true;
+    }
+    
+    return NULL;
+}
+
+/**
  * Load NIFTI transform file used to transform between pixel indices and stereotaxic coordinates
  * @param filename
  *    Name of NIFTI file
@@ -2320,7 +2428,7 @@ CziImageFile::moveAndClipRectangle(const QRectF& rectangleIn)
  * @param tabIndex
  *    Index of the tab.
  * @param pixelIndex
- *     Image of pixel in FULL RES image with origin bottom left
+ *     Image of pixel in FULL RES image
  */
 bool
 CziImageFile::isPixelIndexValid(const int32_t tabIndex,
@@ -2333,6 +2441,22 @@ CziImageFile::isPixelIndexValid(const int32_t tabIndex,
     return false;
 }
 
+/**
+ * @return True if the given pixel index is valid for the image in the given tab
+ * @param pixelIndex
+ *     Image of pixel in FULL RES image
+ */
+bool
+CziImageFile::isPixelIndexFullResolutionValid(const PixelIndex& pixelIndex) const
+{
+    if ((pixelIndex.getI() >= 0)
+        && (pixelIndex.getI() < getWidth())
+        && (pixelIndex.getJ() >= 0)
+        && (pixelIndex.getJ() < getHeight())) {
+        return true;
+    }
+    return false;
+}
 
 /**
  * Get the pixel RGBA at the given pixel I and J.

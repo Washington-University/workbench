@@ -308,6 +308,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                 break;
             case IdentifiedItemUniversalTypeEnum::MEDIA:
                 if (m_idManager->isShowMediaIdentificationSymbols()) {
+                    bool xyzFlag(false);
                     if (drawingOnMediaFlag) {
                         if (mediaFile->getFileNameNoPath() == item->getDataFileName()) {
                             const PixelIndex pixelIndex(item->getPixelIndex());
@@ -318,19 +319,37 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         }
                         else if (item->isStereotaxicXYZValid()) {
                             xyz = item->getStereotaxicXYZ();
-                            drawFlag = true;
+                            xyzFlag = true;
                         }
 
                     }
                     else if (m_idManager->isShowOtherTypeIdentificationSymbols()) {
                         if (item->isStereotaxicXYZValid()) {
                             xyz = item->getStereotaxicXYZ();
-                            drawFlag = true;
+                            xyzFlag = true;
                         }
                     }
-                    /*
-                      STILL NEED TO TEST XYZ AGAINST MEDIA PLANE
-                     */
+                    
+                    if (xyzFlag) {
+                        const bool nonLinearFlag(true);
+                        PixelIndex pixelIndex;
+                        
+                        /*
+                         * Need to see if xyz is close to media file within some tolerance
+                         */
+                        const float maxDistanceMM(10.0);
+                        float distanceToPixelMM(1.0);
+                        if (mediaFile->findPixelNearestStereotaxicXYZ(xyz, nonLinearFlag, distanceToPixelMM, pixelIndex)) {
+                            if (pixelIndex.isValid()) {
+                                if (distanceToPixelMM < maxDistanceMM) {
+                                    xyz[0] = pixelIndex.getI();
+                                    xyz[1] = (mediaHeight - pixelIndex.getJ() - 1);
+                                    xyz[2] = 0.0;
+                                    drawFlag = true;
+                                }
+                            }
+                        }
+                    }
                 }
                 break;
             case IdentifiedItemUniversalTypeEnum::SURFACE:

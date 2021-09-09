@@ -2376,9 +2376,9 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
  *    True if conversion successful, else false.
  */
 bool
-ImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
-                                         const bool includeNonlinearFlag,
-                                         std::array<float, 3>& xyzOut) const
+ImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& /*pixelIndexOriginAtTop*/,
+                                         const bool /*includeNonlinearFlag*/,
+                                         std::array<float, 3>& /*xyzOut*/) const
 {
     return false;
 }
@@ -2389,17 +2389,37 @@ ImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
  *    The coordinate
  * @param includeNonlinearFlag
  *    If true, include the non-linear transform when converting
- * @param pixelIndexOut
+ * @param pixelIndexOriginAtTopLeftOut
  *    Output with pixel index in full resolution with origin at top left
- * @param debugPixelIndex
- *    Pixel index used for debugging
  * @return
  *    True if successful, else false.
  */
 bool
-ImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
-                                         const bool includeNonlinearFlag,
-                                         PixelIndex& pixelIndexOriginAtTopLeftOut) const
+ImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& /*xyz*/,
+                                         const bool /*includeNonlinearFlag*/,
+                                         PixelIndex& /*pixelIndexOriginAtTopLeftOut*/) const
+{
+    return false;
+}
+
+/**
+ * Find the Pixel nearest the given XYZ coordinate
+ * @param xyz
+ *    The coordinate
+ * @param includeNonlinearFlag
+ *    If true, include the non-linear transform when converting
+ * @param signedDistanceToPixelMillimetersOut
+ *    Output with signed distance to the pixel in millimeters
+ * @param pixelIndexOriginAtTopLeftOut
+ *    Output with pixel index in full resolution with origin at top left
+ * @return
+ *    True if successful, else false.
+ */
+bool
+ImageFile::findPixelNearestStereotaxicXYZ(const std::array<float, 3>& /*xyz*/,
+                                          const bool /*includeNonLinearFlag*/,
+                                          float& /*signedDistanceToPixelMillimetersOut*/,
+                                          PixelIndex& /*pixelIndexOriginAtTopLeftOut*/) const
 {
     return false;
 }
