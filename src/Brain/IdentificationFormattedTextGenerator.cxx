@@ -60,6 +60,7 @@
 #include "HtmlTableBuilder.h"
 #include "IdentificationFilter.h"
 #include "IdentificationManager.h"
+#include "IdentifiedItemUniversal.h"
 #include "ImageFile.h"
 #include "MapFileDataSelector.h"
 #include "MetricDynamicConnectivityFile.h"
@@ -79,6 +80,7 @@
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemMedia.h"
 #include "SelectionItemSurfaceNode.h"
+#include "SelectionItemUniversalIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
 #include "IdentificationStringBuilder.h"
@@ -382,14 +384,27 @@ IdentificationFormattedTextGenerator::createToolTipText(const Brain* brain,
     CaretAssert(browserTab);
     CaretAssert(selectionManager);
     CaretAssert(dataToolTipsManager);
-    
+ 
+    const IdentificationManager* idManager = brain->getIdentificationManager();
+
     const SelectionItemSurfaceNode* selectedNode = selectionManager->getSurfaceNodeIdentification();
     const SelectionItemVoxel* selectedVoxel = selectionManager->getVoxelIdentification();
     const SelectionItemMedia* selectedMedia = selectionManager->getMediaIdentification();
+    const SelectionItemUniversalIdentificationSymbol* selectionSymbol = selectionManager->getUniversalIdentificationSymbol();
+    AString selectionToolTip;
+    if (selectionSymbol->isValid()) {
+        const IdentifiedItemUniversal* idItem(idManager->getIdentifiedItemWithIdentifier(selectionSymbol->getIdentifiedItemUniqueIdentifier()));
+        if (idItem != NULL) {
+            selectionToolTip = idItem->getToolTip();
+        }
+    }
     
     IdentificationStringBuilder idText;
     
-    if (selectedNode->isValid()) {
+    if ( ! selectionToolTip.isEmpty()) {
+        idText.append(selectionToolTip);
+    }
+    else if (selectedNode->isValid()) {
         generateSurfaceToolTip(brain,
                                browserTab,
                                selectionManager,

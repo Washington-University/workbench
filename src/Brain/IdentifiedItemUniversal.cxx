@@ -475,7 +475,67 @@ IdentifiedItemUniversal::initializeInstance()
     m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
     m_sceneAssistant->add<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>("m_symbolSizeType",
                                                                                                     &m_symbolSizeType);
+    AString toolTipText;
+    switch (m_type) {
+        case IdentifiedItemUniversalTypeEnum::INVALID:
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA:
+        {
+            toolTipText = ("Media File: "
+                           + m_dataFileName + "<br>"
+                           "Pixel ("
+                           + m_pixelIndex.toString()
+                           + ")<br>"
+                           "XYZ ("
+                           + AString::fromNumbers(m_stereotaxicXYZ.data(), 3, ", ")
+                           + ")");
+        }
+            break;
+        case IdentifiedItemUniversalTypeEnum::SURFACE:
+            toolTipText = ("Surface: "
+                           + m_dataFileName + "<br>"
+                           "Vertex: "
+                           + AString::number(m_surfaceVertexIndex)
+                           + ")<br>"
+                           "XYZ: ("
+                           + AString::fromNumbers(m_stereotaxicXYZ.data(), 3, ", ")
+                           + ")");
+            break;
+        case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME:
+            toolTipText = ("Volume: "
+                           + m_dataFileName + "<br>"
+                           "Index ("
+                           + AString::fromNumbers(m_voxelIJK.data(), 3, ", ")
+                           + ")<br>"
+                           "XYZ: ("
+                           + AString::fromNumbers(m_stereotaxicXYZ.data(), 3, ", ")
+                           + ")");
+            break;
+    }
+    
+    if ( ! toolTipText.isEmpty()) {
+        m_toolTipText = ("Identification Symbol:<br>"
+                         + toolTipText);
+//        m_toolTipText = ("<html><body>"
+//                         + toolTipText
+//                         + "</body></html>");
+    }
+    
+    m_sceneAssistant->add("m_toolTipText",
+                          &m_toolTipText);
 }
+
+/**
+ * @return The tooltip for this instance
+ */
+AString
+IdentifiedItemUniversal::getToolTip() const
+{
+    return m_toolTipText;
+}
+
 
 /**
  * @return Is this item valid?  Typically only used when restoring

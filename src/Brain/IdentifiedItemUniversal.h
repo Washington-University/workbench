@@ -115,6 +115,8 @@ namespace caret {
         
         bool isOldIdentification() const;
         
+        AString getToolTip() const;
+        
         virtual AString toString() const override;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -177,6 +179,8 @@ namespace caret {
         float m_symbolSize = 3.0;
         
         IdentificationSymbolSizeTypeEnum::Enum m_symbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
+        
+        AString m_toolTipText;
         
         /**
          * Unique ID for identified items.

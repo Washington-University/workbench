@@ -374,6 +374,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     else if (m_idManager->isShowOtherTypeIdentificationSymbols()) {
                         if (item->isStereotaxicXYZValid()) {
                             xyz = item->getStereotaxicXYZ();
+                            drawFlag = true;
                         }
                     }
                 }
@@ -413,6 +414,25 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                 if ( ! m_fixedPipelineDrawing->isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
                                                                                             xyz.data())) {
                     drawFlag = false;
+                }
+            }
+        }
+        
+        if (drawingOnVolumeFlag) {
+            if (item->getType() != IdentifiedItemUniversalTypeEnum::VOLUME) {
+                drawFlag = false;
+                
+                if (plane.isValidPlane()) {
+                    /*
+                     * Is near plane of slice?
+                     */
+                    const float dist = std::fabs(plane.signedDistanceToPlane(xyz.data()));
+                    if (dist < halfSliceThickness) {
+                        std::array<float, 3> xyzProjected;
+                        plane.projectPointToPlane(xyz.data(), xyzProjected.data());
+                        xyz = xyzProjected;
+                        drawFlag = true;
+                    }
                 }
             }
         }
