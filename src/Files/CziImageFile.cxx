@@ -2486,11 +2486,11 @@ CziImageFile::getImagePixelRGBA(const int32_t tabIndex,
         case IMAGE_DATA_ORIGIN_AT_BOTTOM:
         {
             /*
-             * Convert to bottom origin
+             * Convert bottom origin to top origin
              */
-            pixelIndexIJ = cziImage->transformPixelIndexToSpace(pixelIndex,
-                                                                CziPixelCoordSpaceEnum::PIXEL_BOTTOM_LEFT,
-                                                                CziPixelCoordSpaceEnum::PIXEL_TOP_LEFT);
+            pixelIndexIJ = cziImage->transformPixelIndexToSpace(pixelIndexIJ,
+                                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
+                                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT);
         }
             break;
         case IMAGE_DATA_ORIGIN_AT_TOP:
