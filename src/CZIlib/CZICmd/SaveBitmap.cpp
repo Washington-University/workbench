@@ -182,7 +182,11 @@ CSaveData::CSaveData(const wchar_t* fileName, SaveDataFormat dataFormat)
 {
 }
 
-void CSaveData::Save(libCZI::IBitmapData* bitmap)
+void CSaveData::Save(libCZI::IBitmapData*
+#ifdef WORKBENCH_CZI_PNG
+                     bitmap
+#endif // WORKBENCH_CZI_PNG
+                     )
 {
 #ifdef WORKBENCH_CZI_PNG
 	switch (bitmap->GetPixelType())

@@ -83,7 +83,7 @@ CSingleChannelScalingTileAccessor::CSingleChannelScalingTileAccessor(std::shared
 	return IntSize{ (uint32_t)(roi.w*zoom),(uint32_t)(roi.h*zoom) };
 }
 
-void CSingleChannelScalingTileAccessor::ScaleBlt(libCZI::IBitmapData* bmDest, float zoom, const libCZI::IntRect&  roi, const SbInfo& sbInfo)
+void CSingleChannelScalingTileAccessor::ScaleBlt(libCZI::IBitmapData* bmDest, float /*zoom*/, const libCZI::IntRect&  roi, const SbInfo& sbInfo)
 {
 	// calculate the intersection of the with the subblock (logical rect) and the destination
 	auto intersect = Utilities::Intersect(sbInfo.logicalRect, roi);

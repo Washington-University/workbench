@@ -33,7 +33,7 @@ CCziMetadata::CCziMetadata(libCZI::IMetadataSegment* pMdSeg)
 
 	const void* ptrData; size_t size;
 	pMdSeg->DangerousGetRawData(IMetadataSegment::MemBlkType::XmlMetadata, ptrData, size);
-	xml_parse_result r = this->doc.load_buffer(ptrData, size, pugi::parse_default, encoding_utf8);
+	/*xml_parse_result r =*/ this->doc.load_buffer(ptrData, size, pugi::parse_default, encoding_utf8);
 }
 
 /*virtual*/std::string CCziMetadata::GetXml()

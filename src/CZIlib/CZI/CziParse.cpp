@@ -434,7 +434,7 @@ using namespace libCZI;
 	}
 }
 
-/*static*/void CCZIParse::AddEntryToSubBlockDirectory(const SubBlockDirectoryEntryDE* subBlkDirDE, CCziSubBlockDirectory& subBlkDir)
+/*static*/void CCZIParse::AddEntryToSubBlockDirectory(const SubBlockDirectoryEntryDE* /*subBlkDirDE*/, CCziSubBlockDirectory& /*subBlkDir*/)
 {
 	// TODO
 	throw std::logic_error("not (yet) implemented");

@@ -80,9 +80,9 @@ CSimpleStreamImpl::~CSimpleStreamImpl()
 /*virtual*/void CSimpleStreamImpl::Read(std::uint64_t offset, void *pv, std::uint64_t size, std::uint64_t* ptrBytesRead)
 {
 #if defined(_WIN32)
-	int r = _fseeki64(this->fp, offset, SEEK_SET);
+	/*int r =*/ _fseeki64(this->fp, offset, SEEK_SET);
 #else
-	int r = fseeko(this->fp, offset, SEEK_SET);
+	/*int r =*/ fseeko(this->fp, offset, SEEK_SET);
 #endif
 
 	std::uint64_t bytesRead = fread(pv, 1, (size_t)size, this->fp);

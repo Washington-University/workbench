@@ -135,7 +135,7 @@ namespace libCZI
 		/// \param offset   The offset (into the stream) at which the I/O-error occured.
 		/// \param size	    The size of data we have attempted to read (when the I/O-error occured).
 		LibCZIIOException(const char* szErrMsg, std::uint64_t offset, std::uint64_t size)
-			: offset(offset), size(size), LibCZIException(szErrMsg) {}
+			: LibCZIException(szErrMsg), offset(offset), size(size)  {}
 
 		/// Gets the offset (in bytes) into the stream at which
 		/// the I/O-error occured.
@@ -198,6 +198,9 @@ namespace libCZI
 			: LibCZIException(szErrMsg), errorCode(code)
 		{
 		}
+        /// Gets error code.
+        /// \return The error code.
+        ErrorCode GetErrorCode() const { return this->errorCode; }
 	private:
 		ErrorCode errorCode;
 	};

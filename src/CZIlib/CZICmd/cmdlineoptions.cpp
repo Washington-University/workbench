@@ -730,9 +730,9 @@ void CCmdLineOptions::ParseDisplaySettings(const std::string& s)
 		throw std::logic_error("Invalid JSON");
 	}
 
-	bool isObj = document.IsObject();
-	bool hasChannels = document.HasMember("channels");
-	bool isChannelsArray = document["channels"].IsArray();
+//	bool isObj = document.IsObject();
+//	bool hasChannels = document.HasMember("channels");
+//	bool isChannelsArray = document["channels"].IsArray();
 	const auto& channels = document["channels"];
 	for (decltype(channels.Size()) i = 0; i < channels.Size(); ++i)
 	{
@@ -766,7 +766,7 @@ std::uint32_t CCmdLineOptions::ParseVerbosityLevel(const wchar_t* s)
 	};
 
 	std::uint32_t levels = 0;
-	static const wchar_t* Delimiters = L",;";
+//	static const wchar_t* Delimiters = L",;";
 
 	for (;;)
 	{
@@ -819,7 +819,7 @@ void CCmdLineOptions::ParseInfoLevel(const wchar_t* s)
 	};
 
 	std::underlying_type<InfoLevel>::type  levels = (std::underlying_type<InfoLevel>::type)InfoLevel::None;
-	static const wchar_t* Delimiters = L",;";
+//	static const wchar_t* Delimiters = L",;";
 
 	for (;;)
 	{

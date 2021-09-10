@@ -231,7 +231,7 @@ private:
 
 		std::map<std::string, int> mapAttchmntName;
 		reader->EnumerateAttachments(
-			[&](int index, const AttachmentInfo& info)->bool
+			[&](int /*index*/, const AttachmentInfo& info)->bool
 		{
 			++mapAttchmntName[info.name];
 			return true;
@@ -386,7 +386,7 @@ private:
 		});
 	}
 
-	static void PrintDisplaySettingsMetadataAsJson(ICZIReader* reader, ICziMetadata* md, const CCmdLineOptions& options)
+	static void PrintDisplaySettingsMetadataAsJson(ICZIReader* /*reader*/, ICziMetadata* md, const CCmdLineOptions& options)
 	{
 		options.GetLog()->WriteStdOut("Display-Settings in CZIcmd-JSON-Format");
 		options.GetLog()->WriteStdOut("--------------------------------------");
@@ -589,7 +589,7 @@ private:
 		{
 			ss << endl;
 			ss << "Bounding-Box for scenes:" << endl;
-			for (const auto sceneBb : sbStatistics.sceneBoundingBoxes)
+			for (const auto& sceneBb : sbStatistics.sceneBoundingBoxes)
 			{
 				ss << " Scene" << sceneBb.first << ":" << endl;
 				ss << "  All:    ";
@@ -1196,7 +1196,7 @@ private:
 		return si;
 	}
 
-	static bool IsSelection(int index, const SubBlockInfo& info, const SelectionInfo& selectionInfo)
+	static bool IsSelection(int index, const SubBlockInfo& /*info*/, const SelectionInfo& selectionInfo)
 	{
 		bool rv = true;
 		if (selectionInfo.indexValid == true)

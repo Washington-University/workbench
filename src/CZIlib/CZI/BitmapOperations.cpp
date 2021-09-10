@@ -251,7 +251,7 @@ using namespace std;
 	}
 }
 
-/*static*/void CBitmapOperations::Fill_Gray8(int w, int h, void* ptr, int stride, std::uint8_t val)
+/*static*/void CBitmapOperations::Fill_Gray8(int /*w*/, int h, void* ptr, int stride, std::uint8_t val)
 {
 	for (int y = 0; y < h; ++y)
 	{

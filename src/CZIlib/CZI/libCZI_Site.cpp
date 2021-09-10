@@ -35,12 +35,12 @@ using namespace std;
 class CSiteImpBase : public ISite
 {
 public:
-	virtual bool IsEnabled(int logLevel)
+	virtual bool IsEnabled(int /*logLevel*/)
 	{
 		return false;
 	}
 
-	virtual void Log(int level, const char* szMsg)
+	virtual void Log(int /*level*/, const char* /*szMsg*/)
 	{
 	}
 
@@ -49,7 +49,7 @@ public:
 		return CStdBitmapData::Create(pixeltype, width, height, stride, extraRows, extraColumns);
 	}
 
-	virtual std::shared_ptr<IDecoder> GetDecoder(ImageDecoderType type, const char* arguments)
+	virtual std::shared_ptr<IDecoder> GetDecoder(ImageDecoderType /*type*/, const char* /*arguments*/)
 	{
 		throw std::runtime_error("must not be called...");
 	}
@@ -81,7 +81,7 @@ private:
 	std::once_flag	jxrDecoderInitialized;
 	std::shared_ptr<IDecoder> decoder;
 public:
-	virtual std::shared_ptr<IDecoder> GetDecoder(ImageDecoderType type, const char* arguments)
+	virtual std::shared_ptr<IDecoder> GetDecoder(ImageDecoderType /*type*/, const char* /*arguments*/)
 	{
 		std::call_once(jxrDecoderInitialized,
 			[this]()

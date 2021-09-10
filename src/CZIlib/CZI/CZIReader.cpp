@@ -151,7 +151,7 @@ CCZIReader::~CCZIReader()
 	{
 		// in this case -> just take the first subblock...
 		this->EnumerateSubBlocks(
-			[&](int index, const SubBlockInfo& sbinfo)->bool
+			[&](int /*index*/, const SubBlockInfo& sbinfo)->bool
 		{
 			info = sbinfo;
 			foundASubBlock = true;
@@ -161,7 +161,7 @@ CCZIReader::~CCZIReader()
 	else
 	{
 		this->EnumerateSubBlocks(
-			[&](int index, const SubBlockInfo& sbinfo)->bool
+			[&](int /*index*/, const SubBlockInfo& sbinfo)->bool
 		{
 			int c;
 			if (sbinfo.coordinate.TryGetPosition(DimensionIndex::C, &c) == true && c == channelIndex)

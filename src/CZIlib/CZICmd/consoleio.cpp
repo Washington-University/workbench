@@ -27,7 +27,7 @@
 
 using namespace std;
 
-const wchar_t LINEFEED[] = L"\r\n";
+//const wchar_t LINEFEED[] = L"\r\n";
 
 /*static*/std::shared_ptr<ILog> CConsoleLog::CreateInstance()
 {

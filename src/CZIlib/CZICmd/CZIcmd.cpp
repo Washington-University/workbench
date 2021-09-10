@@ -59,7 +59,7 @@ public:
 		return this->options.IsLogLevelEnabled(logLevel);
 	}
 
-	void Log(int level, const char* szMsg) override
+	void Log(int /*level*/, const char* szMsg) override
 	{
 		this->options.GetLog()->WriteStdOut(szMsg);
 	}

@@ -127,7 +127,7 @@ public:
 private:
 	static std::uint32_t CalcDefaultPitch(libCZI::PixelType pixeltype, int width)
 	{
-		auto bytesPerPel = CziUtils::GetBytesPerPel(pixeltype);
+		/*auto bytesPerPel =*/ CziUtils::GetBytesPerPel(pixeltype);
 		auto stride = CziUtils::GetBytesPerPel(pixeltype)*width;
 		stride = ((stride + 3) / 4) * 4;
 		return stride;

@@ -38,7 +38,7 @@ inline void CBitmapOperations::CopySamePixelType(const void* srcPtr, int srcStri
 }
 
 template <libCZI::PixelType tSrcPixelType, libCZI::PixelType tDstPixelType, typename tPixelConverter>
-inline void CBitmapOperations::Copy(const tPixelConverter& conv, const void* srcPtr, int srcStride, void* dstPtr, int dstStride, int width, int height, bool drawTileBorder)
+inline void CBitmapOperations::Copy(const tPixelConverter& conv, const void* srcPtr, int srcStride, void* dstPtr, int dstStride, int width, int height, bool /*drawTileBorder*/)
 {
 	// TODO: -implement "drawBorder"
 	for (int y = 0; y < height; ++y)

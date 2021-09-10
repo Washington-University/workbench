@@ -28,7 +28,7 @@ class CFileHeaderSegmentData
 {
 private:
 	int verMajor, verMinor;
-	GUID fileGuid;
+	// GUID fileGuid;
 	std::uint64_t subBlockDirectoryPosition;
 	std::uint64_t attachmentDirectoryPosition;
 	std::uint64_t  metadataPosition;
