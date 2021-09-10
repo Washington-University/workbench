@@ -475,6 +475,12 @@ IdentifiedItemUniversal::initializeInstance()
     m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
     m_sceneAssistant->add<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>("m_symbolSizeType",
                                                                                                     &m_symbolSizeType);
+    
+    const AString xyzText(m_stereotaxicXYZValidFlag
+                          ? ("<br>XYZ ("
+                             + AString::fromNumbers(m_stereotaxicXYZ.data(), 3, ", ")
+                             + ")")
+                          : "");
     AString toolTipText;
     switch (m_type) {
         case IdentifiedItemUniversalTypeEnum::INVALID:
@@ -485,10 +491,8 @@ IdentifiedItemUniversal::initializeInstance()
                            + m_dataFileName + "<br>"
                            "Pixel ("
                            + m_pixelIndex.toString()
-                           + ")<br>"
-                           "XYZ ("
-                           + AString::fromNumbers(m_stereotaxicXYZ.data(), 3, ", ")
-                           + ")");
+                           + ")"
+                           + xyzText);
         }
             break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
@@ -496,10 +500,8 @@ IdentifiedItemUniversal::initializeInstance()
                            + m_dataFileName + "<br>"
                            "Vertex: "
                            + AString::number(m_surfaceVertexIndex)
-                           + ")<br>"
-                           "XYZ: ("
-                           + AString::fromNumbers(m_stereotaxicXYZ.data(), 3, ", ")
-                           + ")");
+                           + ")"
+                           + xyzText);
             break;
         case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
             break;
@@ -508,19 +510,14 @@ IdentifiedItemUniversal::initializeInstance()
                            + m_dataFileName + "<br>"
                            "Index ("
                            + AString::fromNumbers(m_voxelIJK.data(), 3, ", ")
-                           + ")<br>"
-                           "XYZ: ("
-                           + AString::fromNumbers(m_stereotaxicXYZ.data(), 3, ", ")
-                           + ")");
+                           + ")"
+                           + xyzText);
             break;
     }
     
     if ( ! toolTipText.isEmpty()) {
         m_toolTipText = ("Identification Symbol:<br>"
                          + toolTipText);
-//        m_toolTipText = ("<html><body>"
-//                         + toolTipText
-//                         + "</body></html>");
     }
     
     m_sceneAssistant->add("m_toolTipText",

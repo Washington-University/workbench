@@ -531,10 +531,12 @@ IdentificationDisplayWidget::updateSymbolsWidget()
     m_symbolSizeTypeComboBox->setSelectedItem<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>(info->getIdentificationSymbolSizeType());
 
     QSignalBlocker symbolSizeBlocker(m_symbolsMillimetersDiameterSpinBox);
-    QSignalBlocker recentSymbolSizeBlocker(m_symbolsMillimetersMostRecentDiameterSpinBox);
     m_symbolsMillimetersDiameterSpinBox->setValue(info->getIdentificationSymbolSize());
+    QSignalBlocker recentSymbolSizeBlocker(m_symbolsMillimetersMostRecentDiameterSpinBox);
     m_symbolsMillimetersMostRecentDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolSize());
+    QSignalBlocker symbolPercentageSizeBlocker(m_symbolsPercentageDiameterSpinBox);
     m_symbolsPercentageDiameterSpinBox->setValue(info->getIdentificationSymbolPercentageSize());
+    QSignalBlocker symbolPercentageMostRecentSizeBlocker(m_symbolsPercentageMostRecentDiameterSpinBox);
     m_symbolsPercentageMostRecentDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolPercentageSize());
 }
 

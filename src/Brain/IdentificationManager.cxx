@@ -396,9 +396,7 @@ IdentificationManager::removeAllIdentifiedItems()
 void
 IdentificationManager::removeAllIdentifiedSymbols()
 {
-    for (auto& item : m_identifiedItems) {
-        item->setTypeToTextNoSymbol();
-    }
+    m_identifiedItems.clear();
 }
 
 /**
