@@ -74,8 +74,7 @@ namespace caret {
                                        const VolumeMappableInterface* volume,
                                        const Plane& plane,
                                        const float planeThickness,
-                                       const float viewportHeight,
-                                       const bool drawOtherTypeIdentificationSymbolsFlag);
+                                       const float viewportHeight);
         
         // ADD_NEW_METHODS_HERE
 

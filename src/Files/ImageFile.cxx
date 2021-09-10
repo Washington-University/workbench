@@ -1435,7 +1435,7 @@ ImageFile::getImageBytesRGBA(const QImage* qImage,
  *     True if valid, else false.
  */
 bool
-ImageFile::getImagePixelRGBA(const int32_t tabIndex,
+ImageFile::getImagePixelRGBA(const int32_t /*tabIndex*/,
                              const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
                              const PixelIndex& pixelIndex,
                              uint8_t pixelRGBAOut[4]) const

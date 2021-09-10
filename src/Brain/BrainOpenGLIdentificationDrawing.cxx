@@ -127,8 +127,7 @@ BrainOpenGLIdentificationDrawing::drawMediaFileIdentificationSymbols(const Media
                               volume,
                               plane,
                               mediaThickness,
-                              viewportHeight,
-                              m_idManager->isShowOtherTypeIdentificationSymbols());
+                              viewportHeight);
 }
 
 /**
@@ -153,8 +152,7 @@ BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface
                               volume,
                               plane,
                               planeThickness,
-                              viewportHeight,
-                              m_idManager->isShowOtherTypeIdentificationSymbols());
+                              viewportHeight);
 }
 
 /**
@@ -185,8 +183,7 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
                               volume,
                               plane,
                               sliceThickness,
-                              viewportHeight,
-                              m_idManager->isShowOtherTypeIdentificationSymbols());
+                              viewportHeight);
 }
 
 /**
@@ -205,8 +202,6 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
  *    Thickness of the plane for media and volume
  * @param viewportHeight
  *    Height of viewport
- * @param drawOtherTypeIdentificationSymbolsFlag
- *    If true, draw symbols from other types (ie: draw volume symbols when viewing surface)
  */
 void
 BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItemUniversalTypeEnum::Enum drawingOnType,
@@ -215,9 +210,13 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                             const VolumeMappableInterface* volume,
                                                             const Plane& plane,
                                                             const float planeThickness,
-                                                            const float viewportHeight,
-                                                            const bool drawOtherTypeIdentificationSymbolsFlag)
+                                                            const float viewportHeight)
 {
+    /*
+     * Maximum distance for non-media ID shown on media
+     */
+    const float mediaMaxDistanceMM(10.0);
+
     float mediaHeight(0.0f);
     StructureEnum::Enum surfaceStructure(StructureEnum::INVALID);
     int32_t surfaceNumberOfVertices(0);
@@ -320,6 +319,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         else if (item->isStereotaxicXYZValid()) {
                             xyz = item->getStereotaxicXYZ();
                             xyzFlag = true;
+                            drawFlag = true;
                         }
 
                     }
@@ -327,21 +327,23 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         if (item->isStereotaxicXYZValid()) {
                             xyz = item->getStereotaxicXYZ();
                             xyzFlag = true;
+                            drawFlag = true;
                         }
                     }
                     
-                    if (xyzFlag) {
+                    if (xyzFlag
+                        && (mediaFile != NULL)) {
+                        drawFlag = false;
                         const bool nonLinearFlag(true);
                         PixelIndex pixelIndex;
                         
                         /*
                          * Need to see if xyz is close to media file within some tolerance
                          */
-                        const float maxDistanceMM(10.0);
                         float distanceToPixelMM(1.0);
                         if (mediaFile->findPixelNearestStereotaxicXYZ(xyz, nonLinearFlag, distanceToPixelMM, pixelIndex)) {
                             if (pixelIndex.isValid()) {
-                                if (distanceToPixelMM < maxDistanceMM) {
+                                if (distanceToPixelMM < mediaMaxDistanceMM) {
                                     xyz[0] = pixelIndex.getI();
                                     xyz[1] = (mediaHeight - pixelIndex.getJ() - 1);
                                     xyz[2] = 0.0;
@@ -409,29 +411,55 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                 break;
         }
         
-        if (drawingOnSurfaceFlag) {
-            if (m_clippingPlaneGroup->isSurfaceSelected()) {
-                if ( ! m_fixedPipelineDrawing->isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
-                                                                                            xyz.data())) {
-                    drawFlag = false;
+        if (drawFlag) {
+            if (drawingOnSurfaceFlag) {
+                if (m_clippingPlaneGroup->isSurfaceSelected()) {
+                    if ( ! m_fixedPipelineDrawing->isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                                                xyz.data())) {
+                        drawFlag = false;
+                    }
                 }
             }
-        }
-        
-        if (drawingOnVolumeFlag) {
-            if (item->getType() != IdentifiedItemUniversalTypeEnum::VOLUME) {
-                drawFlag = false;
-                
-                if (plane.isValidPlane()) {
-                    /*
-                     * Is near plane of slice?
-                     */
-                    const float dist = std::fabs(plane.signedDistanceToPlane(xyz.data()));
-                    if (dist < halfSliceThickness) {
-                        std::array<float, 3> xyzProjected;
-                        plane.projectPointToPlane(xyz.data(), xyzProjected.data());
-                        xyz = xyzProjected;
-                        drawFlag = true;
+            
+            if (drawingOnVolumeFlag) {
+                if (item->getType() != IdentifiedItemUniversalTypeEnum::VOLUME) {
+                    drawFlag = false;
+                    
+                    if (plane.isValidPlane()) {
+                        /*
+                         * Is near plane of slice?
+                         */
+                        const float dist = std::fabs(plane.signedDistanceToPlane(xyz.data()));
+                        if (dist < halfSliceThickness) {
+                            std::array<float, 3> xyzProjected;
+                            plane.projectPointToPlane(xyz.data(), xyzProjected.data());
+                            xyz = xyzProjected;
+                            drawFlag = true;
+                        }
+                    }
+                }
+            }
+            
+            if (drawingOnMediaFlag) {
+                if (item->getType() != IdentifiedItemUniversalTypeEnum::MEDIA) {
+                    drawFlag = false;
+                    if (mediaFile != NULL) {
+                        /*
+                         * Need to see if xyz is close to media file within some tolerance
+                         */
+                        float distanceToPixelMM(1.0);
+                        const bool nonLinearFlag(true);
+                        PixelIndex pixelIndex;
+                        if (mediaFile->findPixelNearestStereotaxicXYZ(xyz, nonLinearFlag, distanceToPixelMM, pixelIndex)) {
+                            if (pixelIndex.isValid()) {
+                                if (distanceToPixelMM < mediaMaxDistanceMM) {
+                                    xyz[0] = pixelIndex.getI();
+                                    xyz[1] = (mediaHeight - pixelIndex.getJ() - 1);
+                                    xyz[2] = 0.0;
+                                    drawFlag = true;
+                                }
+                            }
+                        }
                     }
                 }
             }
