@@ -242,6 +242,8 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
             s_singletonOpenGL = NULL;
         }
     }
+    
+    doneCurrent();
 }
 
 /**
