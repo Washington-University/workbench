@@ -555,9 +555,9 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolsShowVolumeIdCheckBox = new QCheckBox("Show Volume ID Symbols");
     m_symbolsShowVolumeIdCheckBox->setToolTip("<html>Enable display of volume identification symbols</html>");
 
-    m_symbolsShowOtherTypesCheckBox = new QCheckBox("Show Symbols on Other Types");
-    m_symbolsShowOtherTypesCheckBox->setToolTip("<html>Show symbols on other types of models "
-                                                "(ie: show ID symbols when viewing a surface</html>");
+    m_symbolsShowOtherTypesCheckBox = new QCheckBox("Show Symbols on Other Model Types");
+    m_symbolsShowOtherTypesCheckBox->setToolTip("<html>Show ID symbols from any model "
+                                                "(image / surface / volume) on all models</html>");
     
     m_symbolsSurfaceContralateralVertexCheckBox = new QCheckBox("Show Surface Contralateral");
     m_symbolsSurfaceContralateralVertexCheckBox->setToolTip("<html>Enable display of contralateral surface identification symbols</html>");

@@ -215,7 +215,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
     /*
      * Maximum distance for non-media ID shown on media
      */
-    const float mediaMaxDistanceMM(10.0);
+    const float mediaMaxDistanceMM(3.0);
 
     float mediaHeight(0.0f);
     StructureEnum::Enum surfaceStructure(StructureEnum::INVALID);
@@ -308,7 +308,11 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             case IdentifiedItemUniversalTypeEnum::MEDIA:
                 if (m_idManager->isShowMediaIdentificationSymbols()) {
                     bool xyzFlag(false);
+                    /*
+                     * Drawing a media symbol on media ?
+                     */
                     if (drawingOnMediaFlag) {
+                        CaretAssert(mediaFile);
                         if (mediaFile->getFileNameNoPath() == item->getDataFileName()) {
                             const PixelIndex pixelIndex(item->getPixelIndex());
                             xyz[0] = pixelIndex.getI();
@@ -317,39 +321,37 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                             drawFlag = true;
                         }
                         else if (item->isStereotaxicXYZValid()) {
+                            /*
+                             * Symbol is from a different image
+                             */
                             xyz = item->getStereotaxicXYZ();
-                            xyzFlag = true;
-                            drawFlag = true;
+                            const bool nonLinearFlag(true);
+                            PixelIndex pixelIndex;
+                            
+                            /*
+                             * Need to see if xyz is close to media file within some tolerance
+                             */
+                            float distanceToPixelMM(1.0);
+                            if (mediaFile->findPixelNearestStereotaxicXYZ(xyz, nonLinearFlag, distanceToPixelMM, pixelIndex)) {
+                                if (pixelIndex.isValid()) {
+                                    if (distanceToPixelMM < mediaMaxDistanceMM) {
+                                        xyz[0] = pixelIndex.getI();
+                                        xyz[1] = (mediaHeight - pixelIndex.getJ() - 1);
+                                        xyz[2] = 0.0;
+                                        drawFlag = true;
+                                    }
+                                }
+                            }
                         }
-
                     }
                     else if (m_idManager->isShowOtherTypeIdentificationSymbols()) {
+                        /*
+                         * Drawing media symbol on non-media (surface or volume)
+                         */
                         if (item->isStereotaxicXYZValid()) {
                             xyz = item->getStereotaxicXYZ();
                             xyzFlag = true;
                             drawFlag = true;
-                        }
-                    }
-                    
-                    if (xyzFlag
-                        && (mediaFile != NULL)) {
-                        drawFlag = false;
-                        const bool nonLinearFlag(true);
-                        PixelIndex pixelIndex;
-                        
-                        /*
-                         * Need to see if xyz is close to media file within some tolerance
-                         */
-                        float distanceToPixelMM(1.0);
-                        if (mediaFile->findPixelNearestStereotaxicXYZ(xyz, nonLinearFlag, distanceToPixelMM, pixelIndex)) {
-                            if (pixelIndex.isValid()) {
-                                if (distanceToPixelMM < mediaMaxDistanceMM) {
-                                    xyz[0] = pixelIndex.getI();
-                                    xyz[1] = (mediaHeight - pixelIndex.getJ() - 1);
-                                    xyz[2] = 0.0;
-                                    drawFlag = true;
-                                }
-                            }
                         }
                     }
                 }
@@ -374,6 +376,9 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                xyz.data());
                     }
                     else if (m_idManager->isShowOtherTypeIdentificationSymbols()) {
+                        /*
+                         * Drawing surface symbol on image or volume
+                         */
                         if (item->isStereotaxicXYZValid()) {
                             xyz = item->getStereotaxicXYZ();
                             drawFlag = true;
@@ -397,16 +402,6 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                             drawFlag = true;
                         }
                     }
-                    
-                    if (plane.isValidPlane()) {
-                        /*
-                         * Is near plane of slice?
-                         */
-                        const float dist = std::fabs(plane.signedDistanceToPlane(xyz.data()));
-                        if (dist > halfSliceThickness) {
-                            drawFlag = false;
-                        }
-                    }
                 }
                 break;
         }
@@ -419,28 +414,50 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         drawFlag = false;
                     }
                 }
-            }
-            
-            if (drawingOnVolumeFlag) {
-                if (item->getType() != IdentifiedItemUniversalTypeEnum::VOLUME) {
-                    drawFlag = false;
-                    
-                    if (plane.isValidPlane()) {
-                        /*
-                         * Is near plane of slice?
-                         */
-                        const float dist = std::fabs(plane.signedDistanceToPlane(xyz.data()));
-                        if (dist < halfSliceThickness) {
-                            std::array<float, 3> xyzProjected;
-                            plane.projectPointToPlane(xyz.data(), xyzProjected.data());
-                            xyz = xyzProjected;
-                            drawFlag = true;
+                
+                if (drawFlag) {
+                    if (item->getType() != IdentifiedItemUniversalTypeEnum::SURFACE) {
+                        CaretAssert(surface);
+                        switch (surface->getStructure()) {
+                            case StructureEnum::CORTEX_LEFT:
+                                /* On right side of medial wall */
+                                if (xyz[0] > 5.0) {
+                                    drawFlag = false;
+                                }
+                                break;
+                            case StructureEnum::CORTEX_RIGHT:
+                                /* On left side of medial wall */
+                                if (xyz[0] < -5.0) {
+                                    drawFlag = false;
+                                }
+                                break;
+                            default:
+                                break;
                         }
                     }
                 }
             }
             
+            if (drawingOnVolumeFlag) {
+                drawFlag = false;
+                if (plane.isValidPlane()) {
+                    /*
+                     * Is symbol near plane of slice?
+                     */
+                    const float dist = std::fabs(plane.signedDistanceToPlane(xyz.data()));
+                    if (dist <= halfSliceThickness) {
+                        std::array<float, 3> xyzProjected;
+                        plane.projectPointToPlane(xyz.data(), xyzProjected.data());
+                        xyz = xyzProjected;
+                        drawFlag = true;
+                    }
+                }
+            }
+            
             if (drawingOnMediaFlag) {
+                /*
+                 * Are we drawing a non-media symbol on media?
+                 */
                 if (item->getType() != IdentifiedItemUniversalTypeEnum::MEDIA) {
                     drawFlag = false;
                     if (mediaFile != NULL) {
