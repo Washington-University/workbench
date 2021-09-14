@@ -36,6 +36,8 @@
 #include <QTextEdit>
 
 #include "CaretColorEnumComboBox.h"
+#include "CaretDataFileSelectionComboBox.h"
+#include "CaretDataFileSelectionModel.h"
 #include "StructureEnumComboBox.h"
 #include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
@@ -419,7 +421,27 @@ WuQDataEntryDialog::addComboBox(const QString& labelText,
    
    return comboBox;
 }
-                       
+
+/**
+ * Add file selection combo box for given data file types loaded in wb_view
+ * @param labelText
+ *     Text for label
+ * @param dataFileTypes
+ *     Data file types for selection
+ */
+CaretDataFileSelectionComboBox*
+WuQDataEntryDialog::addFileSelectionComboBox(const QString& labelText,
+                                             const std::vector<DataFileTypeEnum::Enum> dataFileTypes)
+{
+    CaretDataFileSelectionComboBox* comboBox(new CaretDataFileSelectionComboBox(this));
+    comboBox->updateComboBox(CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(dataFileTypes));
+    
+    addWidget(labelText, comboBox->getWidget());
+    
+    return comboBox;
+}
+
+
 /**
  * add line edit.
  */

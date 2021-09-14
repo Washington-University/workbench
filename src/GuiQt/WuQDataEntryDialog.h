@@ -26,6 +26,7 @@
 #include <QVariant>
 
 #include "CaretColorEnum.h"
+#include "DataFileTypeEnum.h"
 #include "StructureEnum.h"
 #include "WuQDialogModal.h"
 
@@ -45,6 +46,7 @@ class QTextEdit;
 namespace caret {
     class BrainStructure;
     class CaretColorEnumComboBox;
+    class CaretDataFileSelectionComboBox;
     class StructureEnumComboBox;
     class SurfaceSelectionViewController;
     
@@ -87,6 +89,10 @@ namespace caret {
         QComboBox* addComboBox(const QString& labelText,
                                const QStringList& comboBoxItems,
                                const QList<QVariant>* comboBoxItemsUserData = NULL);
+        
+        // File selection combo box
+        CaretDataFileSelectionComboBox* addFileSelectionComboBox(const QString& labelText,
+                                                                 const std::vector<DataFileTypeEnum::Enum> dataFileTypes);
         
         // add line edit
         QLineEdit* addLineEditWidget(const QString& labelText,
