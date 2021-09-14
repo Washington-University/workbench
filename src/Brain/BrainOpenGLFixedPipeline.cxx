@@ -8337,8 +8337,9 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
             && (pixelY >= 0)
             && (pixelY <  originalImageHeight)) {
             idMedia->setMediaFile(imageFile);
-            PixelIndex pixelIndex(pixelX, pixelY, 0);
-            PixelIndex pixelIndexOriginTop(pixelX, originalImageHeight - pixelY - 1, 0);
+            const int64_t pixelZ(0);
+            PixelIndex pixelIndex(pixelX, pixelY, pixelZ);
+            PixelIndex pixelIndexOriginTop(pixelX, originalImageHeight - pixelY - 1, pixelZ);
             idMedia->setPixelIndex(pixelIndex, pixelIndexOriginTop);
 
             uint8_t pixelByteRGBA[4];

@@ -212,7 +212,7 @@ RectangleTransform::transformSourceToTarget(const PixelIndex& sourcePixelIndex) 
 {
     PixelIndex pixelIndexOut(m_xTransform->transform(sourcePixelIndex.getI()),
                              m_yTransform->transform(sourcePixelIndex.getJ()),
-                             0);    
+                             0.0f);
     return pixelIndexOut;
 }
 

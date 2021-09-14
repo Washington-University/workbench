@@ -87,6 +87,26 @@ PixelIndex::PixelIndex(const float i,
  * @param k
  *    Index k
  */
+PixelIndex::PixelIndex(const int32_t i,
+                       const int32_t j,
+                       const int32_t k)
+: CaretObject()
+{
+    initializeMembers();
+    m_pixelIndices.m_ijk[0] = i;
+    m_pixelIndices.m_ijk[1] = j;
+    m_pixelIndices.m_ijk[2] = k;
+}
+
+/**
+ * Constructor with pixel indices
+ * @param i
+ *    Index i
+ * @param j
+ *    Index j
+ * @param k
+ *    Index k
+ */
 PixelIndex::PixelIndex(const int64_t i,
                        const int64_t j,
                        const int64_t k)
@@ -97,7 +117,6 @@ PixelIndex::PixelIndex(const int64_t i,
     m_pixelIndices.m_ijk[1] = j;
     m_pixelIndices.m_ijk[2] = k;
 }
-
 ///**
 // * Constructor from a pixel coordinate
 // * @param coordinate

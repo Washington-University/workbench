@@ -807,12 +807,13 @@ IdentifyBrainordinateDialog::processImagePixelSelection(AString& errorMessage)
             SelectionItemMedia* mediaID = selectionManager->getMediaIdentification();
             mediaID->reset();
             mediaID->setMediaFile(const_cast<MediaFile*>(mediaFile));
+            const int64_t pixelK(0);
             PixelIndex pixelIndexOriginAtTop(pixelI,
                                              pixelJ,
-                                             0);
+                                             pixelK);
             PixelIndex pixelIndexOriginAtBottom(pixelI,
                                                 mediaFile->getHeight() - pixelJ - 1,
-                                                0);
+                                                pixelK);
             mediaID->setPixelIndex(pixelIndexOriginAtBottom,
                                    pixelIndexOriginAtTop);
             selectionItem = mediaID;

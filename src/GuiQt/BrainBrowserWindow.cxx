@@ -54,10 +54,12 @@
 #include "BrowserTabContent.h"
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
+#include "CaretDataFileSelectionComboBox.h"
 #include "CaretFileDialog.h"
 #include "CaretFileRemoteDialog.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
+#include "CziImageFile.h"
 #include "DataFileException.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesImages.h"
@@ -1706,6 +1708,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processDevelopExportVtkFile()));
+    
+    m_developerCziFileTransformTestingAction =
+    WuQtUtilities::createAction("Test CZI File Transforms...",
+                                "Test CZI File Transformation IJK -> XYZ -> IJK",
+                                this,
+                                this,
+                                SLOT(processDevelopCziFileTransformTesting()));
 }
 
 /**
@@ -1765,23 +1774,25 @@ BrainBrowserWindow::createMenuDevelop()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(developerMenuAboutToShow()));
     
-    menu->addAction(m_developerGraphicsTimingAction);
-    menu->addAction(m_developerGraphicsTimingDurationAction);
         
     const bool showPaletteEditorFlag(false);
+    if (showPaletteEditorFlag) {
+        menu->addAction(m_dataPaletteEditorDialogAction);
+    }
     const bool showExportToVTKFlag(false);
+    if (showExportToVTKFlag) {
+        menu->addAction(m_developerExportVtkFileAction);
+    }
     
-    if (showPaletteEditorFlag
-        || showExportToVTKFlag) {
+    menu->addAction(m_developerCziFileTransformTestingAction);
+    
+    if ( ! menu->isEmpty()) {
         menu->addSeparator();
     }
     
-    menu->addAction(m_dataPaletteEditorDialogAction);
-    menu->addAction(m_developerExportVtkFileAction);
+    menu->addAction(m_developerGraphicsTimingAction);
+    menu->addAction(m_developerGraphicsTimingDurationAction);
     
-    m_dataPaletteEditorDialogAction->setVisible(showPaletteEditorFlag);
-    m_developerExportVtkFileAction->setVisible(showExportToVTKFlag);
-
     return menu;
 }
 
@@ -2906,6 +2917,49 @@ BrainBrowserWindow::processDevelopExportVtkFile()
             WuQMessageBox::errorOk(this, "Displayed model does not support exporting to VTK File at this time.");
         }
     }
+}
+
+/**
+ * Test CZI file transformations
+ */
+void
+BrainBrowserWindow::processDevelopCziFileTransformTesting()
+{
+    WuQDataEntryDialog ded("Test CZI Transforms",
+                           this);
+    
+    QSpinBox* pixelIndexStepSpinBox = ded.addSpinBox("Pixel Index Step", 5000);
+    pixelIndexStepSpinBox->setRange(1, 1000000);
+    std::vector<DataFileTypeEnum::Enum> fileType { DataFileTypeEnum::CZI_IMAGE_FILE };
+    CaretDataFileSelectionComboBox* comboBox = ded.addFileSelectionComboBox("CZI File", fileType);
+    QCheckBox* nonLinearCheckBox = ded.addCheckBox("Include Non-Linear Part of Transformation");
+    nonLinearCheckBox->setChecked(true);
+    QCheckBox* verboseCheckBox = ded.addCheckBox("Verbose (print each pixel tested)");
+    verboseCheckBox->setChecked(true);
+    
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        const CaretDataFile* dataFile = comboBox->getSelectedFile();
+        if (dataFile == NULL) {
+            WuQMessageBox::errorOk(this, "No CZI File selected");
+            return;
+        }
+        
+        const CziImageFile* cziFile = dataFile->castToCziImageFile();
+        if (cziFile == NULL) {
+            WuQMessageBox::errorOk(this, "Selected file is not a CZI File");
+            return;
+        }
+        
+        AString resultsText;
+        cziFile->testPixelTransforms(pixelIndexStepSpinBox->value(),
+                                     nonLinearCheckBox->isChecked(),
+                                     verboseCheckBox->isChecked(),
+                                     resultsText);
+        
+        std::cout << std::endl << resultsText << std::endl << std::endl;
+    }
+    
+    GuiManager::beep();
 }
 
 /**

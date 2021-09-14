@@ -156,4 +156,17 @@ CaretDataFileSelectionComboBox::getSelectionModel()
     return m_selectionModel;
 }
 
+/**
+ * @return Selected file or NULL if invalid
+ */
+CaretDataFile*
+CaretDataFileSelectionComboBox::getSelectedFile() const
+{
+    if (m_selectionModel != NULL) {
+        return m_selectionModel->getSelectedFile();
+    }
+    return NULL;
+}
+
+
 

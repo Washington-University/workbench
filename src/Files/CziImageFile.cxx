@@ -23,6 +23,7 @@
 #include "CziImageFile.h"
 #undef __CZI_IMAGE_FILE_DECLARE__
 
+#include <cmath>
 #include <limits>
 
 #include <QImage>
@@ -36,6 +37,7 @@
 #include "CziUtilities.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
+#include "DescriptiveStatistics.h"
 #include "EventCaretPreferencesGet.h"
 #include "EventBrowserTabClose.h"
 #include "EventBrowserTabDelete.h"
@@ -52,6 +54,7 @@
 #include "RectangleTransform.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "StringTableModel.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -1469,6 +1472,144 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
     }
     
     return false;
+}
+
+/**
+ * Test the pixel transformations by transforming pixel indices to stereotaxic coordinates
+ * and back to pixel indices.
+ * @param pixelIndexStep
+ *    Step by this amount of pixel indices in both horizontal and vertical directions
+ * @param nonLinearFlag
+ *    Include non-linear portion of transformation
+ * @Param verboseFlag
+ *    Print each point tested
+ * @param resultsMessageOut
+ *    Output with text describing the results.
+ */
+void
+CziImageFile::testPixelTransforms(const int32_t pixelIndexStep,
+                                  const bool nonLinearFlag,
+                                  const bool verboseFlag,
+                                  AString& resultsMessageOut) const
+{
+    resultsMessageOut.clear();
+    resultsMessageOut.append("Filename : "
+                             + getFileNameNoPath());
+
+    const int32_t numRows(getHeight());
+    const int32_t numCols(getWidth());
+    if ((numCols <= 0)
+        || (numRows <= 0)) {
+        resultsMessageOut = "Image has invalid width and/or height";
+        return;
+    }
+    
+    std::vector<TestTransformResult> testResults;
+    std::vector<float> diffsIJK;
+    diffsIJK.reserve(((numRows / pixelIndexStep) + 1)
+                      * ((numCols / pixelIndexStep) + 1));
+    for (int32_t iRow = 0; iRow < numRows; iRow += pixelIndexStep) {
+        for (int32_t iCol = 0; iCol < numCols; iCol += pixelIndexStep) {
+            const PixelIndex pixelIndex(iCol, iRow, 0);
+            std::array<float, 3> xyz;
+            if ( ! pixelIndexToStereotaxicXYZ(pixelIndex,
+                                              nonLinearFlag,
+                                              xyz)) {
+                resultsMessageOut.appendWithNewLine("Failed to convert pixel to xyz.  Pixel="
+                                                    + pixelIndex.toString());
+                continue;
+            }
+            
+            PixelIndex pixelIndexTwo;
+            if ( ! stereotaxicXyzToPixelIndex(xyz,
+                                              nonLinearFlag,
+                                              pixelIndexTwo)) {
+                resultsMessageOut.appendWithNewLine("Failed to convert pixel to xyz.  Pixel="
+                                                    + pixelIndex.toString()
+                                                    + " and XYZ=("
+                                                    + AString::fromNumbers(xyz.data(), 3, ",")
+                                                    + " back to pixel index.");
+                continue;
+                
+            }
+            const float dI(pixelIndexTwo.getI() - pixelIndex.getI());
+            const float dJ(pixelIndexTwo.getJ() - pixelIndex.getJ());
+            const float dK(0); //(pixelIndexTwo.getK() - pixelIndex.getK());
+            const float dIJK(std::sqrt(dI*dI + dJ*dJ + dK*dK));
+            diffsIJK.push_back(dIJK);
+            
+            if (verboseFlag) {
+                testResults.emplace_back(pixelIndex,
+                                         pixelIndexTwo,
+                                         xyz,
+                                         dI,
+                                         dJ,
+                                         dIJK);
+                
+//                std::cout << "Pixel: " << pixelIndex.getI() << ", " << pixelIndex.getJ() << " XYZ: "
+//                << AString::fromNumbers(xyz.data(), 3, ", ") << " Pixel: "
+//                << pixelIndexTwo.getI() << ", " << pixelIndexTwo.getJ() << " Diff Pixel: "
+//                << dist << std::endl;
+            }
+        }
+    }
+    
+    if ( ! testResults.empty()) {
+        const int32_t tableNumberOfRows(testResults.size());
+        const int32_t tableNumberOfColumns(10);
+        const int32_t floatPrecision(3);
+        StringTableModel tableModel(tableNumberOfRows + 1, tableNumberOfColumns, floatPrecision);
+        int32_t col(0);
+        tableModel.setElement(0, col++, "I");
+        tableModel.setElement(0, col++, "J");
+        tableModel.setElement(0, col++, "X");
+        tableModel.setElement(0, col++, "Y");
+        tableModel.setElement(0, col++, "Z");
+        tableModel.setElement(0, col++, "Xform I");
+        tableModel.setElement(0, col++, "Xform J");
+        tableModel.setElement(0, col++, "diff I");
+        tableModel.setElement(0, col++, "diff J");
+        tableModel.setElement(0, col++, "IJ Diff");
+
+        for (int32_t i = 1; i <= tableNumberOfRows; i++) {
+            CaretAssertVectorIndex(testResults, i - 1);
+            const TestTransformResult& trt = testResults[i - 1];
+            int32_t col(0);
+            tableModel.setElement(i, col++, trt.m_pixel.getI());
+            tableModel.setElement(i, col++, trt.m_pixel.getJ());
+            tableModel.setElement(i, col++, trt.m_xyz[0]);
+            tableModel.setElement(i, col++, trt.m_xyz[1]);
+            tableModel.setElement(i, col++, trt.m_xyz[2]);
+            tableModel.setElement(i, col++, trt.m_pixelTwo.getI());
+            tableModel.setElement(i, col++, trt.m_pixelTwo.getJ());
+            tableModel.setElement(i, col++, trt.m_dI);
+            tableModel.setElement(i, col++, trt.m_dJ);
+            tableModel.setElement(i, col++, trt.m_dIJK);
+            CaretAssert(col == tableNumberOfColumns);
+        }
+        
+        CaretAssert((tableNumberOfRows + 1) == tableModel.getNumberOfRows());
+        
+        resultsMessageOut.appendWithNewLine(tableModel.getInString());
+//        std::cout << "Newlines in result " << resultsMessageOut.count("\n") << std::endl;
+    }
+    
+    if ( ! diffsIJK.empty()) {
+        DescriptiveStatistics stats;
+        stats.update(diffsIJK);
+        
+        resultsMessageOut.appendWithNewLine("Pixels Tested: "
+                                            + AString::number(diffsIJK.size()));
+        resultsMessageOut.appendWithNewLine("Mean:          "
+                                            + AString::number(stats.getMean()));
+        resultsMessageOut.appendWithNewLine("Min:           "
+                                            + AString::number(stats.getMinimumValue()));
+        resultsMessageOut.appendWithNewLine("Max:           "
+                                            + AString::number(stats.getMaximumValue()));
+        resultsMessageOut.appendWithNewLine("Std-Dev:       "
+                                            + AString::number(stats.getPopulationStandardDeviation()));
+    }
+    
 }
 
 /**

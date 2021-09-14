@@ -32,6 +32,7 @@
 #include "EventListenerInterface.h"
 #include "SingleChannelPyramidLevelTileAccessor.h"
 #include "MediaFile.h"
+#include "PixelIndex.h"
 #include "Plane.h"
 #include "VolumeFile.h"
 
@@ -162,6 +163,12 @@ namespace caret {
                                                     const bool includeNonLinearFlag,
                                                     float& signedDistanceToPixelMillimetersOut,
                                                     PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
+        
+        void testPixelTransforms(const int32_t pixelIndexStep,
+                                 const bool nonLinearFlag,
+                                 const bool verboseFlag,
+                                 AString& resultsMessageOut) const;
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -220,6 +227,29 @@ namespace caret {
             
             /** Volume is oriented top-to-bottom for second axis (same as CZI image) */
             bool m_yTopToBottomFlag = false;
+        };
+        
+        class TestTransformResult {
+        public:
+            TestTransformResult(const PixelIndex& pixel,
+                                const PixelIndex& pixelTwo,
+                                const std::array<float, 3>& xyz,
+                                const int64_t dI,
+                                const int64_t dJ,
+                                const float dIJK)
+            : m_pixel(pixel),
+            m_pixelTwo(pixelTwo),
+            m_xyz(xyz),
+            m_dI(dI),
+            m_dJ(dJ),
+            m_dIJK(dIJK) { }
+
+            const PixelIndex m_pixel;
+            const PixelIndex m_pixelTwo;
+            const std::array<float, 3> m_xyz;
+            const int64_t m_dI;
+            const int64_t m_dJ;
+            const float m_dIJK;
         };
         
         void closeFile();

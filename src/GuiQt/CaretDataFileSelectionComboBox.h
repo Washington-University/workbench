@@ -46,6 +46,8 @@ namespace caret {
         
         CaretDataFileSelectionModel* getSelectionModel();
         
+        CaretDataFile* getSelectedFile() const;
+        
         virtual QWidget* getWidget();
         
         // ADD_NEW_METHODS_HERE
