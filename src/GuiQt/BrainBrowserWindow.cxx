@@ -32,6 +32,7 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QTabBar>
+#include <QTextEdit>
 #include <QToolButton>
 #include <QUrl>
 #include <QUuid>
@@ -2951,12 +2952,25 @@ BrainBrowserWindow::processDevelopCziFileTransformTesting()
         }
         
         AString resultsText;
+        QImage resultsImage;
         cziFile->testPixelTransforms(pixelIndexStepSpinBox->value(),
                                      nonLinearCheckBox->isChecked(),
                                      verboseCheckBox->isChecked(),
-                                     resultsText);
+                                     resultsText,
+                                     resultsImage);
         
-        std::cout << std::endl << resultsText << std::endl << std::endl;
+        WuQDataEntryDialog resultsDialog("Test Results",
+                                         this);
+        if ( ! resultsImage.isNull()) {
+            if ((resultsImage.width() > 0)
+                && (resultsImage.height() > 0)) {
+                resultsDialog.addImage("", resultsImage);
+            }
+        }
+        QTextEdit* textEdit = resultsDialog.addTextEdit("", resultsText, true);
+        textEdit->setFont(WuQtUtilities::getFixedFont());
+        resultsDialog.setCancelButtonText("");
+        resultsDialog.exec();
     }
     
     GuiManager::beep();

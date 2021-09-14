@@ -167,7 +167,8 @@ namespace caret {
         void testPixelTransforms(const int32_t pixelIndexStep,
                                  const bool nonLinearFlag,
                                  const bool verboseFlag,
-                                 AString& resultsMessageOut) const;
+                                 AString& resultsMessageOut,
+                                 QImage& imageOut) const;
         
         // ADD_NEW_METHODS_HERE
 

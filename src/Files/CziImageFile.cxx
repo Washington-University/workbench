@@ -1490,9 +1490,11 @@ void
 CziImageFile::testPixelTransforms(const int32_t pixelIndexStep,
                                   const bool nonLinearFlag,
                                   const bool verboseFlag,
-                                  AString& resultsMessageOut) const
+                                  AString& resultsMessageOut,
+                                  QImage& imageOut) const
 {
     resultsMessageOut.clear();
+    imageOut = QImage();
     resultsMessageOut.append("Filename : "
                              + getFileNameNoPath());
 
@@ -1504,6 +1506,7 @@ CziImageFile::testPixelTransforms(const int32_t pixelIndexStep,
         return;
     }
     
+    int32_t imageNumberOfColumns(0);
     std::vector<TestTransformResult> testResults;
     std::vector<float> diffsIJK;
     diffsIJK.reserve(((numRows / pixelIndexStep) + 1)
@@ -1545,12 +1548,11 @@ CziImageFile::testPixelTransforms(const int32_t pixelIndexStep,
                                          dI,
                                          dJ,
                                          dIJK);
-                
-//                std::cout << "Pixel: " << pixelIndex.getI() << ", " << pixelIndex.getJ() << " XYZ: "
-//                << AString::fromNumbers(xyz.data(), 3, ", ") << " Pixel: "
-//                << pixelIndexTwo.getI() << ", " << pixelIndexTwo.getJ() << " Diff Pixel: "
-//                << dist << std::endl;
             }
+        }
+        
+        if (iRow == 0) {
+            imageNumberOfColumns = static_cast<int32_t>(testResults.size());
         }
     }
     
@@ -1591,25 +1593,55 @@ CziImageFile::testPixelTransforms(const int32_t pixelIndexStep,
         CaretAssert((tableNumberOfRows + 1) == tableModel.getNumberOfRows());
         
         resultsMessageOut.appendWithNewLine(tableModel.getInString());
-//        std::cout << "Newlines in result " << resultsMessageOut.count("\n") << std::endl;
     }
     
     if ( ! diffsIJK.empty()) {
         DescriptiveStatistics stats;
         stats.update(diffsIJK);
         
-        resultsMessageOut.appendWithNewLine("Pixels Tested: "
-                                            + AString::number(diffsIJK.size()));
-        resultsMessageOut.appendWithNewLine("Mean:          "
-                                            + AString::number(stats.getMean()));
-        resultsMessageOut.appendWithNewLine("Min:           "
-                                            + AString::number(stats.getMinimumValue()));
-        resultsMessageOut.appendWithNewLine("Max:           "
-                                            + AString::number(stats.getMaximumValue()));
-        resultsMessageOut.appendWithNewLine("Std-Dev:       "
-                                            + AString::number(stats.getPopulationStandardDeviation()));
+        AString statsText;
+        statsText.appendWithNewLine("Pixels Tested: "
+                                    + AString::number(diffsIJK.size()));
+        statsText.appendWithNewLine("Mean:          "
+                                    + AString::number(stats.getMean()));
+        statsText.appendWithNewLine("Min:           "
+                                    + AString::number(stats.getMinimumValue()));
+        statsText.appendWithNewLine("Max:           "
+                                    + AString::number(stats.getMaximumValue()));
+        statsText.appendWithNewLine("Std-Dev:       "
+                                    + AString::number(stats.getPopulationStandardDeviation()));
+
+        resultsMessageOut.insert(0, statsText + "\n\n");
+        
+        const int32_t imageNumberOfRows = (testResults.size() / imageNumberOfColumns);        
+        if ((imageNumberOfRows > 0)
+            && (imageNumberOfColumns > 0)) {
+            const float range(stats.getMaximumValue() - stats.getMinimumValue());
+            if (range > 0.0) {
+                const float minValue(stats.getMinimumValue());
+                QImage image(imageNumberOfColumns,
+                             imageNumberOfRows,
+                             QImage::Format_ARGB32);
+                for (int32_t iRow = 0; iRow < imageNumberOfRows; iRow++) {
+                    for (int32_t iCol = 0; iCol < imageNumberOfColumns; iCol++) {
+                        const int32_t index = (iRow * imageNumberOfColumns) + iCol;
+                        CaretAssertVectorIndex(diffsIJK, index);
+                        int value(((diffsIJK[index] - minValue) / range) * 255.0);
+                        if (value > 255) {
+                            value = 255;
+                        }
+                        else if (value < 0) {
+                            value = 0;
+                        }
+                        image.setPixelColor(iCol, iRow, QColor::fromRgb(value, value, value));
+                    }
+                }
+                
+                imageOut = image.scaledToWidth(600,
+                                               Qt::SmoothTransformation);
+            }
+        }
     }
-    
 }
 
 /**
