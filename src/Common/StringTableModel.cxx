@@ -70,6 +70,24 @@ StringTableModel::~StringTableModel()
 }
 
 /**
+ * @return Number of rows in table
+ */
+int32_t
+StringTableModel::getNumberOfRows() const
+{
+    return m_numberOfRows;
+}
+
+/**
+ * @return Number of columns in table
+ */
+int32_t
+StringTableModel::getNumberOfColumns() const
+{
+    return m_numberOfColumns;
+}
+
+/**
  * Set column alignment.
  *
  * @param column

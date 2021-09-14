@@ -69,6 +69,10 @@ namespace caret {
         
         AString getInString() const;
         
+        int32_t getNumberOfRows() const;
+        
+        int32_t getNumberOfColumns() const;
+        
     private:
         StringTableModel(const StringTableModel&);
 
