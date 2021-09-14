@@ -42,6 +42,7 @@
 #include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
+#include "WuQImageLabel.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -617,6 +618,21 @@ WuQDataEntryDialog::addSurfaceSelectionViewController(const QString& labelText,
                     surfaceSelectionViewController->getWidget());
     
     return surfaceSelectionViewController;
+}
+
+/**
+ * Add an image
+ * @param labelText
+ *    Text for label
+ * @param image
+ *    Image for display
+ */
+void
+WuQDataEntryDialog::addImage(const QString labelText,
+                             const QImage& image)
+{
+    WuQImageLabel* imageLabel = new WuQImageLabel(&image, "");
+    addWidget(labelText, imageLabel);
 }
 
 

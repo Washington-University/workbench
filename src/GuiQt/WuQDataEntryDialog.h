@@ -36,6 +36,7 @@ class QComboBox;
 class QDialogButtonBox;
 class QDoubleSpinBox;
 class QGridLayout;
+class QImage;
 class QLabel;
 class QLineEdit;
 class QListWidget;
@@ -140,6 +141,9 @@ namespace caret {
         
         SurfaceSelectionViewController* addSurfaceSelectionViewController(const QString& labelText,
                                                             BrainStructure* brainStructure);
+        
+        void addImage(const QString labelText,
+                      const QImage& image);
         
         // set text at top of dialog 
         void setTextAtTop(const QString& s,

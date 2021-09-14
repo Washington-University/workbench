@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <iosfwd>
 
+#include <QFont>
 #include <QSize>
 #include <QSharedPointer>
 #include <QString>
@@ -239,6 +240,8 @@ namespace caret {
                                              const QString& before,
                                              const QString& after);
         
+        static QFont getFixedFont();
+        
     private:
         static QSharedPointer<QPainter> createPixmapWidgetPainterPrivate(const QWidget* widget,
                                                                          QPixmap& pixmap,
@@ -248,7 +251,14 @@ namespace caret {
         ~WuQtUtilities();
         WuQtUtilities(const WuQtUtilities&);
         WuQtUtilities& operator=(const WuQtUtilities&);
+        
+        static QFont s_fixedFont;
+        static bool s_fixedFontValid;
     };
+#ifdef __WU_QT_UTILITIES_DECLARE__
+    QFont WuQtUtilities::s_fixedFont;
+    bool WuQtUtilities::s_fixedFontValid = false;
+#endif /* __WU_QT_UTILITIES_DECLARE__ */
 }
 
 #endif // __WU_QT_UTILITIES_H__

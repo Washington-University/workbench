@@ -32,6 +32,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QFontDatabase>
 #include <QFrame>
 #include <QHeaderView>
 #include <QIcon>
@@ -47,7 +48,9 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#define __WU_QT_UTILITIES_DECLARE__
 #include "WuQtUtilities.h"
+#undef __WU_QT_UTILITIES_DECLARE__
 
 using namespace caret;
 
@@ -1814,4 +1817,15 @@ WuQtUtilities::replaceComboBoxItemNames(QComboBox* comboBox,
     }
 }
 
-
+/**
+ * @return A fixed font
+ */
+QFont
+WuQtUtilities::getFixedFont()
+{
+    if ( ! s_fixedFontValid) {
+        s_fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+        s_fixedFontValid = true;
+    }
+    return s_fixedFont;
+}
