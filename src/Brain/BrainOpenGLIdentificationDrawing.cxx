@@ -301,7 +301,6 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
     for (const auto& item : allItems) {
         ++selectionItemIndex;
         bool drawFlag(false);
-        bool surfaceFlag(false);
         bool contralateralFlag(false);
         std::array<float, 3> xyz { 0.0f, 0.0f, 0.0f };
         switch (item->getType()) {
@@ -309,7 +308,6 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                 break;
             case IdentifiedItemUniversalTypeEnum::MEDIA:
                 if (m_idManager->isShowMediaIdentificationSymbols()) {
-                    bool xyzFlag(false);
                     /*
                      * Drawing a media symbol on media ?
                      */
@@ -352,7 +350,6 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                          */
                         if (item->isStereotaxicXYZValid()) {
                             xyz = item->getStereotaxicXYZ();
-                            xyzFlag = true;
                             drawFlag = true;
                         }
                     }
@@ -364,14 +361,12 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         if ((item->getStructure() == surfaceStructure)
                             && (item->getSurfaceNumberOfVertices() == surfaceNumberOfVertices)) {
                             drawFlag = true;
-                            surfaceFlag = true;
                         }
                         else if (m_idManager->isContralateralIdentificationEnabled()) {
                             if ((item->getContralateralStructure() == surfaceStructure)
                                 && (item->getSurfaceNumberOfVertices() == surfaceNumberOfVertices)) {
                                 contralateralFlag = true;
                                 drawFlag = true;
-                                surfaceFlag = true;
                             }
                         }
                         if (drawFlag) {
