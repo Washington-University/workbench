@@ -38,6 +38,7 @@
 #include "DataFileException.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserWindowContent.h"
+#include "EventGraphicsOpenGLDeleteTextureName.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventManager.h"
 #include "FileInformation.h"
@@ -368,6 +369,8 @@ void
 OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                   ProgressObject* myProgObj)
 {
+    EventGraphicsOpenGLDeleteTextureName::setDisableFailureToDeleteWarningMessages(true);
+
     /*
      * Default to the first renderer
      */

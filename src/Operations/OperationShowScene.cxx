@@ -476,8 +476,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         if (restoreToTabTiles) {
             CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
             if (iWindow == 0) {
-                CaretLogFine(brainOpenGL->getOpenGLInformation());
-                
+                CaretLogConfig(brainOpenGL->getOpenGLInformation());
             }
 
             TileTabsLayoutGridConfiguration* gridConfig = NULL; //tileTabsConfiguration->castToGridConfiguration();
