@@ -262,6 +262,8 @@ namespace caret {
         void aspectRatioDialogUpdateForTab(const double aspectRatio);
         void aspectRatioDialogUpdateForWindow(const double aspectRatio);
         
+        void processParallelTest();
+        
     private:
         /** Contains status of components such as enter/exit full screen */
         struct WindowComponentStatus {

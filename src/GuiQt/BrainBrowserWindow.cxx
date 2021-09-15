@@ -18,6 +18,8 @@
  */
 /*LICENSE_END*/
 
+#include <utility>
+
 #include <QActionGroup>
 #include <QApplication>
 #include <QCheckBox>
@@ -1785,6 +1787,14 @@ BrainBrowserWindow::createMenuDevelop()
         menu->addAction(m_developerExportVtkFileAction);
     }
     
+    const bool showParallelQtFlag(false);
+    if (showParallelQtFlag) {
+        QAction* qtParallelTestAction = new QAction("Qt Parallel");
+        QObject::connect(qtParallelTestAction, &QAction::triggered,
+                         this, &BrainBrowserWindow::processParallelTest);
+        menu->addAction(qtParallelTestAction);
+    }
+    
     menu->addAction(m_developerCziFileTransformTestingAction);
     
     if ( ! menu->isEmpty()) {
@@ -1795,6 +1805,28 @@ BrainBrowserWindow::createMenuDevelop()
     menu->addAction(m_developerGraphicsTimingDurationAction);
     
     return menu;
+}
+
+/**
+ * Called to test a parallel for loop using Qt
+ */
+void
+BrainBrowserWindow::processParallelTest()
+{
+    WuQMessageBox::errorOk(this, "Parallel test commented out");
+/*
+    Will need #include <QtConcurrent>
+
+    std::cout << "Loop started: " << std::endl;
+    std::vector<int> list;
+    for(int i =0 ; i < 100; i++) list.push_back(i);
+    auto future = QtConcurrent::map(list, [=](const int &i) {
+        std::cout << " " << i << " ";
+    });
+    future.waitForFinished();
+    std::cout << std::endl;
+    std::cout << "Loop done: " << std::endl;
+ */
 }
 
 /**
