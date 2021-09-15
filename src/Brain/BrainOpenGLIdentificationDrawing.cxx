@@ -374,8 +374,10 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                 surfaceFlag = true;
                             }
                         }
-                        surface->getCoordinate(item->getSurfaceVertexIndex(),
-                                               xyz.data());
+                        if (drawFlag) {
+                            surface->getCoordinate(item->getSurfaceVertexIndex(),
+                                                   xyz.data());
+                        }
                     }
                     else if (m_idManager->isShowOtherTypeIdentificationSymbols()) {
                         /*
@@ -422,19 +424,41 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         CaretAssert(surface);
                         switch (surface->getStructure()) {
                             case StructureEnum::CORTEX_LEFT:
-                                /* On right side of medial wall */
-                                if (xyz[0] > 5.0) {
+                                /* On right side of medial wall ? */
+                                if (xyz[0] >= 0.0) {
                                     drawFlag = false;
                                 }
                                 break;
                             case StructureEnum::CORTEX_RIGHT:
-                                /* On left side of medial wall */
-                                if (xyz[0] < -5.0) {
+                                /* On left side of medial wall ? */
+                                if (xyz[0] <= 0.0) {
                                     drawFlag = false;
                                 }
                                 break;
                             default:
                                 break;
+                        }
+                        
+                        if (drawFlag) {
+                            const Surface* anatSurface = m_brain->getPrimaryAnatomicalSurfaceForStructure(surface->getStructure());
+                            if (anatSurface != NULL) {
+                                const int32_t nearestVertexIndex = anatSurface->closestNode(xyz.data(),
+                                                                                            mediaMaxDistanceMM);
+                                if (nearestVertexIndex >= 0) {
+                                    /*
+                                     * Move symbol to nearest vertex
+                                     */
+                                    CaretAssert(surface);
+                                    surface->getCoordinate(nearestVertexIndex,
+                                                           xyz.data());
+                                }
+                                else {
+                                    /*
+                                     * Too far from surface
+                                     */
+                                    drawFlag = false;
+                                }
+                            }
                         }
                     }
                 }
