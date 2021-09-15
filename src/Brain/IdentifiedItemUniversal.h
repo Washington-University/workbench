@@ -166,9 +166,9 @@ namespace caret {
         
         PixelIndex m_pixelIndex;
         
-        std::array<int64_t, 3> m_voxelIJK = { -1, -1, -1 };
+        std::array<int64_t, 3> m_voxelIJK;
         
-        std::array<float, 3> m_stereotaxicXYZ = { 0.0f, 0.0f, 0.0f };
+        std::array<float, 3> m_stereotaxicXYZ;
         
         bool m_stereotaxicXYZValidFlag = false;
 
@@ -179,8 +179,6 @@ namespace caret {
         float m_symbolSize = 3.0;
         
         IdentificationSymbolSizeTypeEnum::Enum m_symbolSizeType = IdentificationSymbolSizeTypeEnum::MILLIMETERS;
-        
-        AString m_toolTipText;
         
         /**
          * Unique ID for identified items.

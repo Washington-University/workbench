@@ -48,6 +48,8 @@ IdentifiedItemUniversal::IdentifiedItemUniversal()
 SceneableInterface()
 {
     initializeInstance();
+    m_voxelIJK.fill(-1);
+    m_stereotaxicXYZ.fill(0.0f);
 }
 
 /**
@@ -475,12 +477,20 @@ IdentifiedItemUniversal::initializeInstance()
     m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
     m_sceneAssistant->add<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>("m_symbolSizeType",
                                                                                                     &m_symbolSizeType);
-    
+}
+
+/**
+ * @return The tooltip for this instance
+ */
+AString
+IdentifiedItemUniversal::getToolTip() const
+{
     const AString xyzText(m_stereotaxicXYZValidFlag
                           ? ("<br>XYZ ("
                              + AString::fromNumbers(m_stereotaxicXYZ.data(), 3, ", ")
                              + ")")
                           : "");
+    
     AString toolTipText;
     switch (m_type) {
         case IdentifiedItemUniversalTypeEnum::INVALID:
@@ -515,22 +525,7 @@ IdentifiedItemUniversal::initializeInstance()
             break;
     }
     
-    if ( ! toolTipText.isEmpty()) {
-        m_toolTipText = ("Identification Symbol:<br>"
-                         + toolTipText);
-    }
-    
-    m_sceneAssistant->add("m_toolTipText",
-                          &m_toolTipText);
-}
-
-/**
- * @return The tooltip for this instance
- */
-AString
-IdentifiedItemUniversal::getToolTip() const
-{
-    return m_toolTipText;
+    return toolTipText;
 }
 
 

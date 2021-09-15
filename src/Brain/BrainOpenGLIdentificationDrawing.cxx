@@ -23,6 +23,8 @@
 #include "BrainOpenGLIdentificationDrawing.h"
 #undef __BRAIN_OPEN_G_L_IDENTIFICATION_DRAWING_DECLARE__
 
+#include <cmath>
+
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrowserTabContent.h"
