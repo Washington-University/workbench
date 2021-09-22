@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "AnnotationAndFile.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationStackingOrderTypeEnum.h"
 #include "AnnotationRedoUndoCommandModeEnum.h"
@@ -121,10 +122,13 @@ namespace caret {
         void setModePasteAnnotation(AnnotationFile* annotationFile,
                                     Annotation* annotation);
         
+        void setModePasteAnnotations(AnnotationFile* annotationFile,
+                                     std::vector<Annotation*> annotations);
+        
         void setModeDuplicateAnnotation(AnnotationFile* annotationFile,
                                         Annotation* annotation);
         
-        void setModeDuplicateAnnotations(std::vector<std::pair<AnnotationFile*, Annotation*>>& fileAndAnnotations);
+        void setModeDuplicateAnnotations(std::vector<AnnotationAndFile>& annotationsAndFile);
         
         void setModeMultiCoordAnnInsertCoordinate(const int32_t insertAfterCoordinateIndex,
                                                   const float normalizedDistanceToNextCoordinate,

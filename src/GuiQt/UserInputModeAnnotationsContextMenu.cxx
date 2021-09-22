@@ -95,7 +95,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
     CaretAssert(selectionManager);
     
     const int32_t browserWindexIndex = m_mouseEvent.getBrowserWindowIndex();
-    std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
+    std::vector<AnnotationAndFile> selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     annotationManager->getAnnotationsAndFilesSelectedForEditingIncludingLabels(browserWindexIndex,
                                                                        selectedAnnotations);
@@ -113,10 +113,10 @@ m_newAnnotationCreatedByContextMenu(NULL)
     int32_t tabIndex(-1);
     m_tabSpaceFileAndAnnotations.clear();
     m_threeDimCoordAnnotations.clear();
-    for (std::vector<std::pair<Annotation*, AnnotationFile*> >::iterator iter = selectedAnnotations.begin();
+    for (std::vector<AnnotationAndFile>::iterator iter = selectedAnnotations.begin();
          iter != selectedAnnotations.end();
          iter++) {
-        Annotation* ann = iter->first;
+        Annotation* ann = iter->getAnnotation();
         CaretAssert(ann);
         
         bool threeDimCoordFlag = false;
@@ -140,7 +140,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
                     tabIndex = ann->getTabIndex();
                 }
                 if (tabIndex == ann->getTabIndex()) {
-                    m_tabSpaceFileAndAnnotations.push_back(std::make_pair(iter->second,
+                    m_tabSpaceFileAndAnnotations.push_back(std::make_pair(iter->getFile(),
                                                                           ann));
                 }
                 break;
@@ -182,8 +182,8 @@ m_newAnnotationCreatedByContextMenu(NULL)
         oneAnnotationSelectedFlag = true;
         
         CaretAssertVectorIndex(selectedAnnotations, 0);
-        m_annotationFile = selectedAnnotations[0].second;
-        m_annotation     = selectedAnnotations[0].first;
+        m_annotationFile = selectedAnnotations[0].getFile();
+        m_annotation     = selectedAnnotations[0].getAnnotation();
         if (m_annotation->testProperty(Annotation::Property::DELETION)) {
             oneDeletableAnnotationSelectedFlag = true;
         }
@@ -288,6 +288,10 @@ m_newAnnotationCreatedByContextMenu(NULL)
                                    this, SLOT(cutAnnnotation()));
     cutAction->setEnabled(oneDeletableAnnotationSelectedFlag
                           && cutCopyValidFlag);
+    cutAction->setEnabled(std::find(editMenuItemsEnabled.begin(),
+                                    editMenuItemsEnabled.end(),
+                                    BrainBrowserWindowEditMenuItemEnum::CUT)
+                          != editMenuItemsEnabled.end());
     
     /*
      * Copy
@@ -296,6 +300,10 @@ m_newAnnotationCreatedByContextMenu(NULL)
                                     this, SLOT(copyAnnotationToAnnotationClipboard()));
     copyAction->setEnabled(oneDeletableAnnotationSelectedFlag
                            && cutCopyValidFlag);
+    copyAction->setEnabled(std::find(editMenuItemsEnabled.begin(),
+                                    editMenuItemsEnabled.end(),
+                                    BrainBrowserWindowEditMenuItemEnum::COPY)
+                           != editMenuItemsEnabled.end());
 
     /*
      * Delete
@@ -303,7 +311,11 @@ m_newAnnotationCreatedByContextMenu(NULL)
     QAction* deleteAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::DELETER),
                                       this, SLOT(deleteAnnotations()));
     deleteAction->setEnabled(allSelectedAnnotationsDeletableFlag);
-    
+    deleteAction->setEnabled(std::find(editMenuItemsEnabled.begin(),
+                                       editMenuItemsEnabled.end(),
+                                       BrainBrowserWindowEditMenuItemEnum::DELETER)
+                             != editMenuItemsEnabled.end());
+
     /*
      * Duplicate tab space annotation
      */
@@ -318,14 +330,14 @@ m_newAnnotationCreatedByContextMenu(NULL)
     const AnnotationClipboard* clipboard(annotationManager->getClipboard());
     QAction* pasteAction = addAction(pasteText,
                                      this, SLOT(pasteAnnotationFromAnnotationClipboard()));
-    pasteAction->setEnabled(clipboard->isAnnotationValid());
+    pasteAction->setEnabled( ! clipboard->isEmpty());
 
     /*
      * Paste Special
      */
     QAction* pasteSpecialAction = addAction(pasteSpecialText,
                                            this, SLOT(pasteSpecialAnnotationFromAnnotationClipboard()));
-    pasteSpecialAction->setEnabled(clipboard->isAnnotationValid());
+    pasteSpecialAction->setEnabled( ! clipboard->isEmpty());
 
     /*
      * Separator
@@ -503,20 +515,21 @@ UserInputModeAnnotationsContextMenu::getNewAnnotationCreatedByContextMenu()
 void
 UserInputModeAnnotationsContextMenu::copyAnnotationToAnnotationClipboard()
 {
-    CaretAssert(m_annotationFile);
-    CaretAssert(m_annotation);
-    
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    
-    std::vector<Vector3D> annotationWindowCoordinates(m_selectionManager->getAnnotationIdentification()->getAnnotationCoordsInWindowXYZ());
-    Vector3D mouseCoordinates(m_mouseEvent.getX(),
-                              m_mouseEvent.getY(),
-                              0.0);
-    AnnotationClipboard* clipboard = annotationManager->getClipboard();
-    clipboard->set(m_annotationFile,
-                   m_annotation,
-                   annotationWindowCoordinates,
-                   mouseCoordinates);
+//    CaretAssert(m_annotationFile);
+//    CaretAssert(m_annotation);
+//
+//    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+//
+//    std::vector<Vector3D> annotationWindowCoordinates(m_selectionManager->getAnnotationIdentification()->getAnnotationCoordsInWindowXYZ());
+//    Vector3D mouseCoordinates(m_mouseEvent.getX(),
+//                              m_mouseEvent.getY(),
+//                              0.0);
+//    AnnotationClipboard* clipboard = annotationManager->getClipboard();
+//    clipboard->setContent(m_annotationFile,
+//                          m_annotation,
+//                          annotationWindowCoordinates,
+//                          mouseCoordinates);
+    m_userInputModeAnnotations->processEditMenuItemSelection(BrainBrowserWindowEditMenuItemEnum::COPY);
 }
 
 /**
@@ -771,7 +784,7 @@ UserInputModeAnnotationsContextMenu::duplicateAnnotationSelected(QAction* action
     
     const int32_t tabIndex = action->data().toInt();
     
-    std::vector<std::pair<AnnotationFile*, Annotation*>> fileAnnCopies;
+    std::vector<AnnotationAndFile> fileAnnCopies;
     for (const auto& tabAnn : m_tabSpaceFileAndAnnotations) {
         Annotation* annCopy = tabAnn.second->clone();
         annCopy->setTabIndex(tabIndex);
@@ -779,10 +792,10 @@ UserInputModeAnnotationsContextMenu::duplicateAnnotationSelected(QAction* action
         DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
         dpa->updateForNewAnnotation(annCopy);
         
-        fileAnnCopies.push_back(std::make_pair(tabAnn.first,
-                                               annCopy));
+        fileAnnCopies.emplace_back(annCopy,
+                                   tabAnn.first,
+                                   tabAnn.second->getAnnotationGroupKey());
     }
-    
 
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
     undoCommand->setModeDuplicateAnnotations(fileAnnCopies);
@@ -801,13 +814,13 @@ UserInputModeAnnotationsContextMenu::duplicateAnnotationSelected(QAction* action
             annotationManager->selectAnnotationForEditing(m_mouseEvent.getBrowserWindowIndex(),
                                                           AnnotationManager::SELECTION_MODE_SINGLE,
                                                           false, /* shift key down */
-                                                          annCopy.second);
+                                                          annCopy.getAnnotation());
         }
         else {
             annotationManager->selectAnnotationForEditing(m_mouseEvent.getBrowserWindowIndex(),
                                                           AnnotationManager::SELECTION_MODE_EXTENDED,
                                                           true, /* shift key down */
-                                                          annCopy.second);
+                                                          annCopy.getAnnotation());
         }
     }
 

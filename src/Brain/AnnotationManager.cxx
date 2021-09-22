@@ -76,9 +76,6 @@ m_brain(brain)
     
     m_clipboard.reset(new AnnotationClipboard(m_brain));
     
-//    m_clipboardAnnotationFile = NULL;
-//    m_clipboardAnnotation.grabNew(NULL);
-    
     m_annotationsExceptBrowserTabsRedoUndoStack.grabNew(new CaretUndoStack());
     m_annotationsExceptBrowserTabsRedoUndoStack->setUndoLimit(500);
     
@@ -642,7 +639,7 @@ AnnotationManager::getAnnotationsSelectedForEditingInSpaces(const int32_t window
  */
 void
 AnnotationManager::getAnnotationsAndFilesSelectedForEditing(const int32_t windowIndex,
-                                          std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const
+                                                            std::vector<AnnotationAndFile>& annotationsAndFileOut) const
 {
     annotationsAndFileOut.clear();
 
@@ -669,7 +666,7 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditing(const int32_t window
              annIter++) {
             Annotation* ann = *annIter;
             if (ann->isSelectedForEditing(windowIndex)) {
-                annotationsAndFileOut.push_back(std::make_pair(ann, file));
+                annotationsAndFileOut.emplace_back(ann, file, ann->getAnnotationGroupKey());
             }
         }
     }
@@ -686,7 +683,7 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditing(const int32_t window
  */
 void
 AnnotationManager::getAnnotationsAndFilesSelectedForEditingIncludingLabels(const int32_t windowIndex,
-                                                     std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const
+                                                                           std::vector<AnnotationAndFile>& annotationsAndFileOut) const
 {
     annotationsAndFileOut.clear();
     
@@ -706,7 +703,7 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditingIncludingLabels(const
     AnnotationFile* nullFile = NULL;
     for (auto cl : chartLabels) {
         if (cl->isSelectedForEditing(windowIndex)) {
-            annotationsAndFileOut.push_back(std::make_pair(cl, nullFile));
+            annotationsAndFileOut.emplace_back(cl, nullFile, cl->getAnnotationGroupKey());
         }
     }
 }
@@ -1163,75 +1160,6 @@ AnnotationManager::getClipboard() const
 {
     return m_clipboard.get();
 }
-
-///**
-// * @return True if there is an annotation on the clipboard.
-// */
-//bool
-//AnnotationManager::isAnnotationOnClipboardValid() const
-//{
-//    return (m_clipboardAnnotation != NULL);
-//}
-
-///**
-// * @return Pointer to annotation file on clipboard.
-// *     If there is not annotation file on the clipboard,
-// *     NULL is returned.
-// */
-//AnnotationFile*
-//AnnotationManager::getAnnotationFileOnClipboard() const
-//{
-//    if (m_clipboardAnnotationFile != NULL) {
-//        /*
-//         * It is possible that the file has been destroyed.
-//         * If so, invalidate the file (set it to NULL).
-//         */
-//        std::vector<AnnotationFile*> allAnnotationFiles;
-//        m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
-//        
-//        if (std::find(allAnnotationFiles.begin(),
-//                      allAnnotationFiles.end(),
-//                      m_clipboardAnnotationFile) == allAnnotationFiles.end()) {
-//            m_clipboardAnnotationFile = NULL;
-//        }
-//    }
-//    
-//    return m_clipboardAnnotationFile;
-//}
-
-///**
-// * @return Pointer to annotation on clipboard.
-// *     If there is not annotation on the clipboard,
-// *     NULL is returned.
-// */
-//const Annotation*
-//AnnotationManager::getAnnotationOnClipboard() const
-//{
-//    return m_clipboardAnnotation;
-//}
-
-///**
-// * @return A copy of the annotation on the clipboard.
-// *     If there is not annotation on the clipboard,
-// *     NULL is returned.
-// */
-//Annotation*
-//AnnotationManager::getCopyOfAnnotationOnClipboard() const
-//{
-//    if (m_clipboardAnnotation != NULL) {
-//        return m_clipboardAnnotation->clone();
-//    }
-//    
-//    return NULL;
-//}
-
-//void
-//AnnotationManager::copyAnnotationToClipboard(const AnnotationFile* annotationFile,
-//                                             const Annotation* annotation)
-//{
-//    m_clipboardAnnotationFile = const_cast<AnnotationFile*>(annotationFile);
-//    m_clipboardAnnotation.grabNew(annotation->clone());
-//}
 
 /**
  * Get the annotation being drawn in window with the given window index.

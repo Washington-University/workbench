@@ -4333,7 +4333,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageSurfaceTangentOffset(Annotat
     bool drawnFlag = false;
     
     std::vector<Vector3D> verticesInWindowXYZ;
-    verticesInWindowXYZ.emplace_back(vertexXYZ[0], vertexXYZ[1], vertexXYZ[2]);
+    verticesInWindowXYZ.emplace_back(vertexXYZ[0], vertexXYZ[1], vertexXYZ[2]);    
     if (drawAnnotationFlag) {
         if (m_selectionModeFlag
             && m_inputs->m_annotationUserInputModeFlag) {

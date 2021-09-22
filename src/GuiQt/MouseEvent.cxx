@@ -103,6 +103,22 @@ MouseEvent::MouseEvent(const BrainOpenGLWindowContent* windowContent,
 }
 
 /**
+ * Offset set XY coordinates by the given values
+ * @param offsetX
+ *    Offset for X
+ * @param offsetY
+ *    Offset for Y
+ */
+void
+MouseEvent::offsetXY(const float offsetX,
+                     const float offsetY)
+{
+    m_x += offsetX;
+    m_y += offsetY;
+}
+
+
+/**
  * Destructor
  */
 MouseEvent::~MouseEvent()

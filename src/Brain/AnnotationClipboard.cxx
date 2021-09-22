@@ -55,6 +55,7 @@ m_brain(brain)
  */
 AnnotationClipboard::~AnnotationClipboard()
 {
+    clear();
 }
 
 /**
@@ -73,41 +74,73 @@ AnnotationClipboard::toString() const
 void
 AnnotationClipboard::clear()
 {
-    m_annotationFile = NULL;
-    m_annotation.reset();
     m_annotationWindowCoordinates.clear();
+    /*
+     * Clipboard owns its annotations
+     */
+    for (auto& element : m_clipboardContent) {
+        delete element.getAnnotation();
+    }
+    m_clipboardContent.clear();
     m_mouseWindowCoordinates = Vector3D();
+    m_allAnnotationsInSameUserGroupFlag = false;
 }
 
 /**
+ * @return True if the clipboard is empty, else false.
+ */
+bool
+AnnotationClipboard::isEmpty() const
+{
+    return m_clipboardContent.empty();
+}
+
+/**
+ * @return Number of annotations on clipboard
+ */
+int32_t
+AnnotationClipboard::getNumberOfAnnotations() const
+{
+    return m_clipboardContent.size();
+}
+
+
+/**
  * @return const pointer to annotation on clipboard (NULL is no annotation on clipboard)
+ * @param index
+ *    Index of annotation
  */
 const Annotation*
-AnnotationClipboard::getAnnotation() const
+AnnotationClipboard::getAnnotation(const int32_t index) const
 {
-    return m_annotation.get();
+    CaretAssertVectorIndex(m_clipboardContent, index);
+    return m_clipboardContent[index].getAnnotation();
 }
 
 /**
  * @return A copy of the annotation on the clipboard (returns NULL if no annotation on clipboard)
+ * @param index
+ *    Index of annotation
  */
 Annotation*
-AnnotationClipboard::getCopyOfAnnotation() const
+AnnotationClipboard::getCopyOfAnnotation(const int32_t index) const
 {
-    Annotation* ann(NULL);
-    if (m_annotation != NULL) {
-        ann = m_annotation->clone();
-    }
-    return ann;
+    CaretAssertVectorIndex(m_clipboardContent, index);
+    return m_clipboardContent[index].getAnnotation()->clone();
 }
 
 /**
  * @return Pointer to annotation file that contained annotation on clipboard.
  * Returned file is a valid file if not NULL.
+ * @param index
+ *    Index of annotation
  */
 AnnotationFile*
-AnnotationClipboard::getAnnotationFile() const
+AnnotationClipboard::getAnnotationFile(const int32_t index) const
 {
+    CaretAssertVectorIndex(m_clipboardContent, index);
+    AnnotationFile* annotationFile(m_clipboardContent[index].getFile());
+    
     /*
      * It is possible that the file has been destroyed.
      * If so, invalidate the file (set it to NULL).
@@ -117,11 +150,23 @@ AnnotationClipboard::getAnnotationFile() const
     
     if (std::find(allAnnotationFiles.begin(),
                   allAnnotationFiles.end(),
-                  m_annotationFile) == allAnnotationFiles.end()) {
-        m_annotationFile = NULL;
+                  annotationFile) == allAnnotationFiles.end()) {
+        annotationFile = NULL;
     }
     
-    return m_annotationFile;
+    return annotationFile;
+}
+
+/**
+ * @return Group key for the annotation at the given index.
+ * @param index
+ *    Index of annotation
+ */
+AnnotationGroupKey
+AnnotationClipboard::getAnnotationGroupKey(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_clipboardContent, index);
+    return m_clipboardContent[index].getGroupKey();
 }
 
 /**
@@ -142,15 +187,6 @@ AnnotationClipboard::getAnnotationWindowCoordinates() const
     return m_annotationWindowCoordinates;
 }
 
-/**
- * @return True if the annotation the clipboard is valid.
- */
-bool
-AnnotationClipboard::isAnnotationValid() const
-{
-    return (m_annotation != NULL);
-}
-
 /*
  * @param annotationFile
  *   The annotation file from which annotation was copied
@@ -162,13 +198,148 @@ AnnotationClipboard::isAnnotationValid() const
  *   Window coordinates of mouse when the annotation was copied to the clipboard
  */
 void
-AnnotationClipboard::set(AnnotationFile* annotationFile,
-                         const Annotation* annotation,
-                         std::vector<Vector3D>& annotationWindowCoordinates,
-                         Vector3D& mouseWindowCoordinates)
+AnnotationClipboard::setContent(AnnotationFile* annotationFile,
+                                const Annotation* annotation,
+                                std::vector<Vector3D>& annotationWindowCoordinates,
+                                Vector3D& mouseWindowCoordinates)
 {
-    m_annotation.reset(annotation->clone());
-    m_annotationFile              = annotationFile;
+    clear();
+    
     m_annotationWindowCoordinates = annotationWindowCoordinates;
     m_mouseWindowCoordinates      = mouseWindowCoordinates;
+
+    m_clipboardContent.emplace_back(annotation->clone(),
+                                    annotationFile,
+                                    annotation->getAnnotationGroupKey());
 }
+
+/*
+ * @param annotationsAndFile
+ *   Annotations/File/Window Coordinates for clipboard
+ * @param annotationWindowCoordinates
+ *   Window coordinates of the annotation when it was placed on the clipboard
+ * @param mouseWindowCoordinates
+ *   Window coordinates of mouse when the annotation was copied to the clipboard
+ */
+bool
+AnnotationClipboard::setContent(const std::vector<AnnotationAndFile>& annotationsAndFile,
+                                std::vector<Vector3D>& annotationWindowCoordinates,
+                                const Vector3D& mouseWindowCoordinates)
+{
+    clear();
+    
+    if ( ! areAnnotationsClipboardEligible(annotationsAndFile)) {
+        return false;
+    }
+    
+    std::set<int32_t> uniqueUserGroupKeys;
+    bool allInUserGroupFlag(true);
+    for (const auto& af : annotationsAndFile) {
+        switch (af.getGroupKey().getGroupType()) {
+            case AnnotationGroupTypeEnum::INVALID:
+                allInUserGroupFlag = false;
+                break;
+            case AnnotationGroupTypeEnum::SPACE:
+                allInUserGroupFlag = false;
+                break;
+            case AnnotationGroupTypeEnum::USER:
+                uniqueUserGroupKeys.insert(af.getGroupKey().getUserGroupUniqueKey());
+                break;
+        }
+        
+        m_clipboardContent.emplace_back(af.getAnnotation()->clone(),
+                                        af.getFile(),
+                                        af.getGroupKey());
+    }
+    
+    m_allAnnotationsInSameUserGroupFlag = ((getNumberOfAnnotations() > 1)
+                                           && allInUserGroupFlag
+                                           && (uniqueUserGroupKeys.size() == 1));
+    
+    m_annotationWindowCoordinates = annotationWindowCoordinates;
+    m_mouseWindowCoordinates = mouseWindowCoordinates;
+    
+    return true;
+}
+
+/**
+ * @return True if all annontations are in the same user group (must be more than one annotation also).
+ */
+bool
+AnnotationClipboard::areAllAnnotationsInSameUserGroup() const
+{
+    return m_allAnnotationsInSameUserGroupFlag;
+}
+
+/**
+ * @return Are the given annotations eligible for placement onto the clipboard?
+ * All Annotations must be in same file and in a limited number of coordinate spaces
+ * @param annotationsAndFile
+ *    The annotations
+ */
+bool
+AnnotationClipboard::areAnnotationsClipboardEligible(const std::vector<AnnotationAndFile>& annotationsAndFile)
+{
+    if (annotationsAndFile.empty()) {
+        return false;
+    }
+
+    const AnnotationFile* firstFile(NULL);
+    const Annotation* firstAnnotation(NULL);
+    const int32_t numAnn(annotationsAndFile.size());
+    for (int32_t i = 0; i < numAnn; i++) {
+        CaretAssertVectorIndex(annotationsAndFile, i);
+        const AnnotationAndFile& annAndFile(annotationsAndFile[i]);
+        const Annotation* ann(annAndFile.getAnnotation());
+        CaretAssert(ann);
+        if ( ! ann->testProperty(Annotation::Property::DELETION)) {
+            return false;
+        }
+        if ( ! ann->testProperty(Annotation::Property::COPY_CUT_PASTE)) {
+            return false;
+        }
+        const AnnotationFile* annFile(annAndFile.getFile());
+        CaretAssert(annFile);
+        if (i == 0) {
+            firstFile = annFile;
+            firstAnnotation = ann;
+            bool validSpaceFlag(false);
+            switch (firstAnnotation->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
+                case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SPACER:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    validSpaceFlag = true;
+                    break;
+                case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    validSpaceFlag = true;
+                    break;
+            }
+            
+            if ( ! validSpaceFlag) {
+                return false;
+            }
+        }
+        else {
+            if (ann->isInSameCoordinateSpace(firstAnnotation)
+                && (annFile == firstFile)) {
+                /* Is in same file space */
+            }
+            else {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+

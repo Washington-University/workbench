@@ -111,6 +111,24 @@ DisplayPropertiesAnnotation::updateForNewAnnotation(const Annotation* annotation
 }
 
 /**
+ * Update the properties for a new/modified annotation.
+ *
+ * @param annotation
+ *     The new/updated annotation.
+ */
+void
+DisplayPropertiesAnnotation::updateForNewAnnotations(const std::vector<Annotation*>& annotations)
+{
+    for (auto& ann : annotations) {
+        CaretAssert(ann);
+        updateForNewAnnotation(ann);
+    }
+    
+    setDisplayAnnotations(true);
+}
+
+
+/**
  * Copy the border display properties from one tab to another.
  * @param sourceTabIndex
  *    Index of tab from which properties are copied.

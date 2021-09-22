@@ -1734,6 +1734,42 @@ AnnotationRedoUndoCommand::setModePasteAnnotation(AnnotationFile* annotationFile
 }
 
 /**
+ * Set the mode to paste annotations and create the undo/redo instances.
+ *
+ * @param annotationFile
+ *     File to which annotation is pasted.
+ * @param annotations
+ *     Annotation that are pasted.
+ */
+void
+AnnotationRedoUndoCommand::setModePasteAnnotations(AnnotationFile* annotationFile,
+                                                   std::vector<Annotation*> annotations)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::PASTE_ANNOTATION;
+    setDescription("Paste Annotation");
+    
+    CaretAssert(annotationFile);
+    
+    /*
+     * NOTE: We only need the pointer since the file containing
+     * the annotation will handle delete/undelete of the
+     * annotation.  If we don't use NULL for the redo and
+     * undo annotations, copies of the annotation would be
+     * needed since the AnnotationMemento will delete
+     * the redo and undo annotations when it is deleted.
+     */
+    for (auto& ann : annotations) {
+        CaretAssert(ann);
+        AnnotationMemento* am = new AnnotationMemento(annotationFile,
+                                                      ann,
+                                                      NULL,
+                                                      NULL);
+        
+        m_annotationMementos.push_back(am);
+    }
+}
+
+/**
  * Set the mode to duplicate annotations and create the undo/redo instances.
  *
  * @param annotationFile
@@ -1770,20 +1806,20 @@ AnnotationRedoUndoCommand::setModeDuplicateAnnotation(AnnotationFile* annotation
 /**
  * Set the mode to duplicate annotations and create the undo/redo instances.
  *
- * @param fileAndAnnotations
+ * @param annotationsAndFile
  *       Pairs with file and annotation
  */
 void
-AnnotationRedoUndoCommand::setModeDuplicateAnnotations(std::vector<std::pair<AnnotationFile*, Annotation*>>& fileAndAnnotations)
+AnnotationRedoUndoCommand::setModeDuplicateAnnotations(std::vector<AnnotationAndFile>& annotationsAndFile)
 {
     m_mode = AnnotationRedoUndoCommandModeEnum::DUPLICATE_ANNOTATIONS;
     setDescription("Duplicate Annotations");
     
-    CaretAssert(fileAndAnnotations.size() > 0);
+    CaretAssert(annotationsAndFile.size() > 0);
     
-    for (auto& fileAnn : fileAndAnnotations) {
-        AnnotationFile* file(fileAnn.first);
-        Annotation*     annotation(fileAnn.second);
+    for (auto& fileAnn : annotationsAndFile) {
+        AnnotationFile* file(fileAnn.getFile());
+        Annotation*     annotation(fileAnn.getAnnotation());
         CaretAssert(file);
         CaretAssert(annotation);
         

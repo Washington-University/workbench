@@ -240,6 +240,8 @@ namespace caret {
 
         void deselectAnnotationsForEditingInAnnotationManager();
         
+        void groupAnnotationsAfterPasting(std::vector<Annotation*>& pastedAnnotations);
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;
@@ -251,8 +253,6 @@ namespace caret {
         AnnotationSizingHandleTypeEnum::Enum m_annotationUnderMouseSizeHandleType;
         
         int32_t m_annotationUnderMousePolyLineCoordinateIndex;
-        
-        Annotation* m_annotationBeingDragged;
         
         AnnotationSizingHandleTypeEnum::Enum m_annotationBeingDraggedHandleType;
         

@@ -24,15 +24,16 @@
 
 #include <memory>
 
+#include "AnnotationAndFile.h"
 #include "CaretObject.h"
 #include "Vector3D.h"
 
 namespace caret {
 
-    class Brain;
     class Annotation;
     class AnnotationFile;
-    
+    class Brain;
+
     class AnnotationClipboard : public CaretObject {
         
     public:
@@ -46,38 +47,49 @@ namespace caret {
 
         void clear();
         
-        const Annotation* getAnnotation() const;
+        bool isEmpty() const;
         
-        Annotation* getCopyOfAnnotation() const;
+        int32_t getNumberOfAnnotations() const;
         
-        AnnotationFile* getAnnotationFile() const;
+        const Annotation* getAnnotation(const int32_t index) const;
+        
+        Annotation* getCopyOfAnnotation(const int32_t index) const;
+        
+        AnnotationFile* getAnnotationFile(const int32_t index) const;
+        
+        AnnotationGroupKey getAnnotationGroupKey(const int32_t index) const;
         
         const Vector3D& getMouseWindowCoordinates() const;
         
         const std::vector<Vector3D>& getAnnotationWindowCoordinates() const;
         
-        bool isAnnotationValid() const;
+        bool areAllAnnotationsInSameUserGroup() const;
         
-        void set(AnnotationFile* annotationFile,
-                 const Annotation* annotation,
-                 std::vector<Vector3D>& annotationWindowCoordinates,
-                 Vector3D& mouseWindowCoordinates);
+        bool setContent(const std::vector<AnnotationAndFile>& annotationsAndFile,
+                        std::vector<Vector3D>& annotationWindowCoordinates,
+                        const Vector3D& mouseWindowCoordinates);
+
+        void setContent(AnnotationFile* annotationFile,
+                        const Annotation* annotation,
+                        std::vector<Vector3D>& annotationWindowCoordinates,
+                        Vector3D& mouseWindowCoordinates);
 
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
         
+        static bool areAnnotationsClipboardEligible(const std::vector<AnnotationAndFile>& annotationsAndFile);
+        
     private:
         Brain* m_brain = NULL;
         
-        std::unique_ptr<Annotation> m_annotation;
-        
-        /** Points to a file so NEVER delete this */
-        mutable AnnotationFile* m_annotationFile = NULL;
-        
         std::vector<Vector3D> m_annotationWindowCoordinates;
         
+        std::vector<AnnotationAndFile> m_clipboardContent;
+        
         Vector3D m_mouseWindowCoordinates;
+        
+        bool m_allAnnotationsInSameUserGroupFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "AnnotationCoordinateInformation.h"
+#include "Vector3D.h"
 #include "WuQDialogModal.h"
 
 class QRadioButton;
@@ -29,6 +30,7 @@ class QRadioButton;
 namespace caret {
 
     class Annotation;
+    class AnnotationClipboard;
     class AnnotationCoordinateInformation;
     class AnnotationFile;
     class AnnotationPastingInformation;
@@ -39,13 +41,13 @@ namespace caret {
         Q_OBJECT
 
     public:
-        static Annotation* pasteAnnotationOnClipboard(const MouseEvent& mouseEvent);
+        static std::vector<Annotation*> pasteAnnotationOnClipboard(const MouseEvent& mouseEvent);
         
-        static Annotation* pasteAnnotationOnClipboardChangeSpace(const MouseEvent& mouseEvent);
+        static std::vector<Annotation*> pasteAnnotationOnClipboardChangeSpace(const MouseEvent& mouseEvent);
         
         virtual ~AnnotationPasteDialog();
         
-        Annotation* getAnnotationThatWasCreated();
+        std::vector<Annotation*> getAnnotationsThatWereCreated();
 
         // ADD_NEW_METHODS_HERE
 
@@ -66,12 +68,21 @@ namespace caret {
                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                            const AnnotationPastingInformation& annotationPastingInformation);
 
+        static std::vector<Annotation*> pasteAnnotationsInSpace(const AnnotationClipboard* clipboard,
+                                                                const AnnotationPastingInformation& annotationPastingInformation);
+        
         virtual void okButtonClicked();
         
         static void adjustTextAnnotationFontHeight(const MouseEvent& mouseEvent,
                                                    const AnnotationCoordinateSpaceEnum::Enum previousSpace,
                                                    Annotation* annotation);
         
+        static void getPastingOffsets(const AnnotationClipboard* clipboard,
+                                      std::vector<Vector3D>& coordOffsetsOut);
+
+        static void offsetAnnotationsCoordinates(Annotation* annotation,
+                                                 const Vector3D& offsetXYZ);
+
         const MouseEvent& m_mouseEvent;
         
         const AnnotationPastingInformation& m_annotationPastingInformation;
@@ -80,7 +91,7 @@ namespace caret {
         
         const Annotation* m_annotation;
         
-        Annotation* m_annotationThatWasCreated;
+        std::vector<Annotation*> m_annotationsThatWereCreated;
         
         std::vector<QRadioButton*> m_spaceRadioButtons;
         

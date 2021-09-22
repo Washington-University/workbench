@@ -24,6 +24,7 @@
 #include <memory>
 
 #include "AnnotationAlignmentEnum.h"
+#include "AnnotationAndFile.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationDistributeEnum.h"
 #include "AnnotationGroupingModeEnum.h"
@@ -112,10 +113,10 @@ namespace caret {
                                                                 const std::vector<AnnotationCoordinateSpaceEnum::Enum>& spaces) const;
         
         void getAnnotationsAndFilesSelectedForEditing(const int32_t windowIndex,
-                                    std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const;
+                                                      std::vector<AnnotationAndFile>& annotationsAndFileOut) const;
         
         void getAnnotationsAndFilesSelectedForEditingIncludingLabels(const int32_t windowIndex,
-                                              std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const;
+                                                                     std::vector<AnnotationAndFile>& annotationsAndFileOut) const;
         
         AnnotationClipboard* getClipboard();
         

@@ -30,6 +30,7 @@ endif()
 ADD_LIBRARY(Annotations
 Annotation.h
 AnnotationAlignmentEnum.h
+AnnotationAndFile.h
 AnnotationAttributesDefaultTypeEnum.h
 AnnotationBox.h
 AnnotationBrowserTab.h
@@ -86,6 +87,7 @@ EventAnnotationValidate.h
 
 Annotation.cxx
 AnnotationAlignmentEnum.cxx
+AnnotationAndFile.cxx
 AnnotationAttributesDefaultTypeEnum.cxx
 AnnotationBox.cxx
 AnnotationBrowserTab.cxx

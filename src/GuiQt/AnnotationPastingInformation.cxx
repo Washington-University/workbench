@@ -54,7 +54,7 @@ m_mouseEvent(mouseEvent)
     m_mouseCoordinateInformation.reset(new AnnotationCoordinateInformation());
     m_validForPastingInformation.reset(new AnnotationCoordinateInformation());
     
-    const Annotation* annotation(clipboard->getAnnotation());
+    const Annotation* annotation(clipboard->getAnnotation(0));
     if (annotation == NULL) {
         m_invalidDescription = "No annotation is on the clipboard.";
         return;
@@ -75,6 +75,17 @@ m_mouseEvent(mouseEvent)
     }
     
     *m_validForPastingInformation = AnnotationCoordinateInformation::getValidCoordInfoForAll(m_allCoordinatesInformation);
+    
+    if (clipboard->getNumberOfAnnotations() >= 2) {
+        /*
+         * Only TAB and WINDOW allow pasting of multiple annotations
+         */
+        m_validForPastingInformation->m_chartSpaceInfo.m_validFlag     = false;
+        m_validForPastingInformation->m_mediaSpaceInfo.m_validFlag     = false;
+        m_validForPastingInformation->m_spacerTabSpaceInfo.m_validFlag = false;
+        m_validForPastingInformation->m_modelSpaceInfo.m_validFlag     = false;
+        m_validForPastingInformation->m_surfaceSpaceInfo.m_validFlag   = false;
+    }
     
     std::vector<AnnotationCoordinateSpaceEnum::Enum> allSpaces;
     AnnotationCoordinateSpaceEnum::getAllEnums(allSpaces);

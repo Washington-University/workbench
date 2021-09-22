@@ -111,8 +111,7 @@ UserInputModeAnnotations::UserInputModeAnnotations(const UserInputModeEnum::Enum
 : UserInputModeView(windowIndex,
                     userInputMode),
 m_browserWindowIndex(windowIndex),
-m_annotationUnderMouse(NULL),
-m_annotationBeingDragged(NULL)
+m_annotationUnderMouse(NULL)
 {
     m_allowMultipleSelectionModeFlag = true;
     m_mode = MODE_SELECT;
@@ -236,7 +235,6 @@ UserInputModeAnnotations::resetAnnotationUnderMouse()
     m_annotationUnderMouse  = NULL;
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
     m_annotationUnderMousePolyLineCoordinateIndex = -1;
-    m_annotationBeingDragged = NULL;
     m_annotationBeingDraggedHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
 }
 
@@ -1443,8 +1441,6 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
             break;
     }
     
-    m_annotationBeingDragged = NULL;
-    
     setAnnotationUnderMouse(mouseEvent,
                             NULL);
 }
@@ -1716,7 +1712,6 @@ UserInputModeAnnotations::selectAnnotation(Annotation* annotation)
 {
     resetAnnotationUnderMouse();
     
-    m_annotationBeingDragged = annotation;
     m_annotationUnderMouse   = annotation;
 }
 
@@ -1739,8 +1734,6 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
     const int mouseX = mouseEvent.getX();
     const int mouseY = mouseEvent.getY();
-    
-    m_annotationBeingDragged = NULL;
     
     /*
      * NOTE: When selecting annotations:
@@ -1781,7 +1774,6 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
                             annotationID);
 
     if (selectedAnnotation != NULL) {
-        m_annotationBeingDragged = selectedAnnotation;
         m_annotationBeingDraggedHandleType = annotationID->getSizingHandle();
         m_annotationUnderMousePolyLineCoordinateIndex = annotationID->getPolyLineCoordinateIndex();
     }
@@ -1880,23 +1872,45 @@ UserInputModeAnnotations::isEditMenuValid() const
 void
 UserInputModeAnnotations::cutAnnotation()
 {
-    std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
+    std::vector<AnnotationAndFile> selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     annotationManager->getAnnotationsAndFilesSelectedForEditing(m_browserWindowIndex,
                                                                 selectedAnnotations);
     
-    if (selectedAnnotations.size() == 1) {
+    if (selectedAnnotations.size() > 1) {
+        Vector3D mouseCoordinates;
+        AnnotationClipboard* clipboard = annotationManager->getClipboard();
+        clipboard->setContent(selectedAnnotations,
+                              m_lastSelectedAnnotationWindowCoordinates,
+                              mouseCoordinates);
+        
+        std::vector<Annotation*> annotationVector;
+        for (auto& annAndFile : selectedAnnotations) {
+             annotationVector.push_back(annAndFile.getAnnotation());
+        }
+        
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeCutAnnotations(annotationVector);
+        AString errorMessage;
+        if ( ! annotationManager->applyCommand(getUserInputMode(),
+                                               undoCommand,
+                                               errorMessage)) {
+            WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                   errorMessage);
+        }
+    }
+    else if (selectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(selectedAnnotations, 0);
-        AnnotationFile* annotationFile = selectedAnnotations[0].second;
-        Annotation* annotation = selectedAnnotations[0].first;
+        AnnotationFile* annotationFile = selectedAnnotations[0].getFile();
+        Annotation* annotation = selectedAnnotations[0].getAnnotation();
         
         Vector3D mouseCoordinates;
         AnnotationClipboard* clipboard = annotationManager->getClipboard();
-        clipboard->set(annotationFile,
-                       annotation,
-                       m_lastSelectedAnnotationWindowCoordinates,
-                       mouseCoordinates);
-        
+        clipboard->setContent(annotationFile,
+                              annotation,
+                              m_lastSelectedAnnotationWindowCoordinates,
+                              mouseCoordinates);
+
         std::vector<Annotation*> annotationVector;
         annotationVector.push_back(annotation);
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
@@ -1934,19 +1948,26 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         case BrainBrowserWindowEditMenuItemEnum::COPY:
         {
             AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-            std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
+            std::vector<AnnotationAndFile> selectedAnnotations;
             annotationManager->getAnnotationsAndFilesSelectedForEditing(m_browserWindowIndex,
-                                                      selectedAnnotations);
+                                                                        selectedAnnotations);
             
-            if (selectedAnnotations.size() == 1) {
+            if (selectedAnnotations.size() > 1) {
+                Vector3D mouseCoordinates;
+                AnnotationClipboard* clipboard = annotationManager->getClipboard();
+                clipboard->setContent(selectedAnnotations,
+                                      m_lastSelectedAnnotationWindowCoordinates,
+                                      mouseCoordinates);
+            }
+            else if (selectedAnnotations.size() == 1) {
                 CaretAssertVectorIndex(selectedAnnotations, 0);
                 
                 Vector3D mouseCoordinates;
                 AnnotationClipboard* clipboard = annotationManager->getClipboard();
-                clipboard->set(selectedAnnotations[0].second,
-                               selectedAnnotations[0].first,
-                               m_lastSelectedAnnotationWindowCoordinates,
-                               mouseCoordinates);
+                clipboard->setContent(selectedAnnotations[0].getFile(),
+                                      selectedAnnotations[0].getAnnotation(),
+                                      m_lastSelectedAnnotationWindowCoordinates,
+                                      mouseCoordinates);
             }
         }
             break;
@@ -2155,8 +2176,10 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
     
     
     if (isEditMenuValid()) {
+        std::vector<AnnotationAndFile> selectedAnnotations;
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-        const std::vector<Annotation*> allSelectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+        annotationManager->getAnnotationsAndFilesSelectedForEditing(m_browserWindowIndex,
+                                                                    selectedAnnotations);
         
         /*
          * Copy, Cut, and Delete disabled if ANY colorbar is selected.
@@ -2164,10 +2187,8 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
         bool allAllowCopyCutPasteFlag = true;
         bool allAllowDeleteFlag       = true;
         bool allAllowSelectFlag       = true;
-        for (std::vector<Annotation*>::const_iterator iter = allSelectedAnnotations.begin();
-             iter != allSelectedAnnotations.end();
-             iter++) {
-            const Annotation* ann = *iter;
+        for (auto& annAndFile : selectedAnnotations) {
+            const Annotation* ann(annAndFile.getAnnotation());
             if ( ! ann->testProperty(Annotation::Property::COPY_CUT_PASTE)) {
                 allAllowCopyCutPasteFlag = false;
             }
@@ -2179,12 +2200,18 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
             }
         }
         
-        const bool anySelectedFlag = ( ! allSelectedAnnotations.empty());
-        const bool oneSelectedFlag = (allSelectedAnnotations.size() == 1);
+        const bool anySelectedFlag = ( ! selectedAnnotations.empty());
+        const bool oneSelectedFlag = (selectedAnnotations.size() == 1);
         if (allAllowCopyCutPasteFlag) {
             if (oneSelectedFlag) {
                 enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::COPY);
                 enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::CUT);
+            }
+            else {
+                if (AnnotationClipboard::areAnnotationsClipboardEligible(selectedAnnotations)) {
+                    enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::COPY);
+                    enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::CUT);
+                }
             }
         }
         
@@ -2202,13 +2229,69 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
         }
         
         const AnnotationClipboard* clipboard(annotationManager->getClipboard());
-        if (clipboard->isAnnotationValid()) {
-            const Annotation* clipBoardAnn = clipboard->getAnnotation();
+        if ( ! clipboard->isEmpty()) {
             enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::PASTE);
             enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL);
             
-            clipBoardAnn->getTextForPasteMenuItems(pasteTextOut,
-                                                   pasteSpecialTextOut);
+            const Annotation* firstAnnotation(clipboard->getAnnotation(0));
+            CaretAssert(firstAnnotation);
+            const AString spaceName = AnnotationCoordinateSpaceEnum::toGuiName(firstAnnotation->getCoordinateSpace());
+            
+            if (clipboard->getNumberOfAnnotations() > 1) {
+                pasteTextOut = ("Paste "
+                                + AString::number(clipboard->getNumberOfAnnotations())
+                                + " Items in "
+                                + spaceName
+                                + " Space");
+                
+                pasteSpecialTextOut = ("Paste "
+                                       + AString::number(clipboard->getNumberOfAnnotations())
+                                       + " Items and Change Space...");
+            }
+            else {
+                AString typeName = AnnotationTypeEnum::toGuiName(firstAnnotation->getType());
+                switch (firstAnnotation->getType()) {
+                    case AnnotationTypeEnum::BOX:
+                        break;
+                    case AnnotationTypeEnum::BROWSER_TAB:
+                        break;
+                    case AnnotationTypeEnum::COLOR_BAR:
+                        break;
+                    case AnnotationTypeEnum::IMAGE:
+                        break;
+                    case AnnotationTypeEnum::LINE:
+                        break;
+                    case AnnotationTypeEnum::OVAL:
+                        break;
+                    case AnnotationTypeEnum::POLYGON:
+                        break;
+                    case AnnotationTypeEnum::POLYLINE:
+                        break;
+                    case AnnotationTypeEnum::SCALE_BAR:
+                        break;
+                    case AnnotationTypeEnum::TEXT:
+                    {
+                        const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(firstAnnotation);
+                        CaretAssertMessage(textAnn,
+                                           "If this fails, it may be due to this method being called from a constructor "
+                                           "and the subclass constructor has not yet executed.");
+                        typeName = ("\""
+                                    + textAnn->getText()
+                                    + "\"");
+                    }
+                        break;
+                }
+                
+                pasteTextOut = ("Paste "
+                                     + typeName
+                                     + " in "
+                                     + spaceName
+                                     + " Space");
+                
+                pasteSpecialTextOut = ("Paste "
+                                            + typeName
+                                            + " and Change Space...");
+            }
         }
         
         CaretUndoStack* undoStack = annotationManager->getCommandRedoUndoStack(getUserInputMode());
@@ -2235,15 +2318,18 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
 void
 UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEvent& mouseEvent)
 {
-    Annotation* newPastedAnnotation = AnnotationPasteDialog::pasteAnnotationOnClipboard(mouseEvent);
-    if (newPastedAnnotation != NULL) {
-        selectAnnotation(newPastedAnnotation);
+    std::vector<Annotation*> newPastedAnnotations = AnnotationPasteDialog::pasteAnnotationOnClipboard(mouseEvent);
+    if ( ! newPastedAnnotations.empty()) {
+        CaretAssertVectorIndex(newPastedAnnotations, 0);
+        selectAnnotation(newPastedAnnotations[0]);
         
         DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
-        dpa->updateForNewAnnotation(newPastedAnnotation);
+        dpa->updateForNewAnnotations(newPastedAnnotations);
     }
     
     setMode(MODE_SELECT);
+    
+    groupAnnotationsAfterPasting(newPastedAnnotations);
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -2259,20 +2345,45 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
 void
 UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboardAndChangeSpace(const MouseEvent& mouseEvent)
 {
-    Annotation* newPastedAnnotation = AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(mouseEvent);
-    if (newPastedAnnotation != NULL) {
-        selectAnnotation(newPastedAnnotation);
+    std::vector<Annotation*> newPastedAnnotations = AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(mouseEvent);
+    if ( ! newPastedAnnotations.empty()) {
+        CaretAssertVectorIndex(newPastedAnnotations, 0);
+        selectAnnotation(newPastedAnnotations[0]);
         
         DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
-        dpa->updateForNewAnnotation(newPastedAnnotation);
+        dpa->updateForNewAnnotations(newPastedAnnotations);
     }
     
     setMode(MODE_SELECT);
+    
+    groupAnnotationsAfterPasting(newPastedAnnotations);
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
+/**
+ * If all annotations on clipboard were in the same user group, place the newly pasted annotations
+ * into a new user group.
+ */
+void
+UserInputModeAnnotations::groupAnnotationsAfterPasting(std::vector<Annotation*>& pastedAnnotations)
+{
+    AnnotationManager* annMan(GuiManager::get()->getBrain()->getAnnotationManager());
+    AnnotationClipboard* clipboard(annMan->getClipboard());
+    
+    if (clipboard->areAllAnnotationsInSameUserGroup()) {
+        EventAnnotationGrouping groupingEvent;
+        groupingEvent.setModeGroupAnnotations(m_browserWindowIndex,
+                                              pastedAnnotations[0]->getAnnotationGroupKey(),
+                                              pastedAnnotations);
+        EventManager::get()->sendEvent(groupingEvent.getPointer());
+        if (groupingEvent.isError()) {
+            CaretLogSevere("Failed to group pasted annotations: "
+                           + groupingEvent.getErrorMessage());
+        }
+    }
+}
 
 /* =============================================================================== */
 

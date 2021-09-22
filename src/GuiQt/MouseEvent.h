@@ -109,6 +109,9 @@ namespace caret {
                          int32_t& outGlobalX,
                          int32_t& outGlobalY) const;
         
+        void offsetXY(const float offsetX,
+                      const float offsetY);
+        
         int32_t getWheelRotation() const;
         
         bool isFirstDragging() const;

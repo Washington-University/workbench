@@ -61,6 +61,8 @@ namespace caret {
         void setDisplayWindowAnnotationsInSingleTabViews(const int32_t windowIndex,
                                                    const bool status);
         
+        void updateForNewAnnotations(const std::vector<Annotation*>& annotations);
+        
         void updateForNewAnnotation(const Annotation* annotation);
         
         virtual void copyDisplayProperties(const int32_t sourceTabIndex,

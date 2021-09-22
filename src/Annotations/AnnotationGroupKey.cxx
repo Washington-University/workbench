@@ -311,6 +311,10 @@ AnnotationGroupKey::setUserGroupUniqueKey(const int32_t userGroupUniqueKey)
 AString 
 AnnotationGroupKey::toString() const
 {
-    return "AnnotationGroupKey";
+    
+    return ("AnnotationGroupKey: "
+            + AnnotationGroupTypeEnum::toName(m_groupType)
+            + " spaceKey=" + AString::number(m_spaceGroupUniqueKey)
+            + " userGroupKey=" + AString::number(m_userGroupUniqueKey));
 }
 

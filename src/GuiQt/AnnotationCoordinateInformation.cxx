@@ -1461,7 +1461,7 @@ AnnotationCoordinateInformation::createCoordinateInformationForPasting(const Mou
     CaretAssert(clipboard);
     coordInfoOut.clear();
     
-    if ( ! clipboard->isAnnotationValid()) {
+    if (clipboard->isEmpty()) {
         errorMessageOut = "No annotation is on the clipboard.";
         return false;
     }
@@ -1480,7 +1480,7 @@ AnnotationCoordinateInformation::createCoordinateInformationForPasting(const Mou
                                       mouseEvent.getY(),
                                       mouseCoordInfoOut);
         
-    CaretAssert(clipboard->getAnnotation());
+    CaretAssert(clipboard->getAnnotation(0));
 
     /*
      * Get the window coordinates for each of the annotation's coordinates
