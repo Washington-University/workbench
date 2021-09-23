@@ -63,13 +63,13 @@ namespace caret {
         
         void newDeviationValueChanged(double value);
         
-        void addToMeanCheckBoxClicked(bool clicked);
-        
-        void addToMeanValueChanged(double value);
-        
         void multiplyDeviationCheckBoxClicked(bool clicked);
         
         void multiplyDeviationValueChanged(double value);
+        
+        void dataOffsetCheckBoxClicked(bool clicked);
+        
+        void dataOffsetValueChanged(double value);
         
     private:
         void updateGraphics();
@@ -90,9 +90,9 @@ namespace caret {
         
         QCheckBox* m_absoluteValueEnabledCheckBox;
         
-        QCheckBox* m_addToMeanCheckBox;
+        QCheckBox* m_dataOffsetCheckBox;
         
-        QDoubleSpinBox* m_addToMeanSpinBox;
+        QDoubleSpinBox* m_dataOffsetSpinBox;
         
         QCheckBox* m_multiplyDeviationCheckBox;
         

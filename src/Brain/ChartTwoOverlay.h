@@ -206,13 +206,13 @@ namespace caret {
         
         void setLineChartNewDeviationValue(const float value);
         
-        bool isLineChartAddToMeanEnabled();
+        bool isLineChartDataOffsetEnabled();
         
-        void setLineChartAddToMeanEnabled(const bool enabled);
+        void setLineChartDataOffsetEnabled(const bool enabled);
         
-        float getLineChartAddToMeanValue() const;
+        float getLineChartDataOffsetValue() const;
         
-        void setLineChartAddToMeanValue(const float value);
+        void setLineChartDataOffsetValue(const float value);
         
         bool isLineChartMultiplyDeviationEnabled() const;
         

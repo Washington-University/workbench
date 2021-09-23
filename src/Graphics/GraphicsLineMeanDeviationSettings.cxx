@@ -97,8 +97,8 @@ GraphicsLineMeanDeviationSettings::copyHelperGraphicsLineMeanDeviationSettings(c
     m_newMeanEnabled            = obj.m_newMeanEnabled;
     m_newDeviationEnabled       = obj.m_newDeviationEnabled;
     m_absoluteValueEnabled      = obj.m_absoluteValueEnabled;
-    m_addToMeanEnabled          = obj.m_addToMeanEnabled;
-    m_addToMeanValue            = obj.m_addToMeanValue;
+    m_dataOffsetEnabled         = obj.m_dataOffsetEnabled;
+    m_dataOffsetValue           = obj.m_dataOffsetValue;
     m_multiplyDeviationEnabled  = obj.m_multiplyDeviationEnabled;
     m_multiplyDeviationValue    = obj.m_multiplyDeviationValue;
 }
@@ -129,8 +129,8 @@ GraphicsLineMeanDeviationSettings::operator==(const GraphicsLineMeanDeviationSet
         && (m_newMeanEnabled            == obj.m_newMeanEnabled)
         && (m_newDeviationEnabled       == obj.m_newDeviationEnabled)
         && (m_absoluteValueEnabled      == obj.m_absoluteValueEnabled)
-        && (m_addToMeanEnabled          == obj.m_addToMeanEnabled)
-        && (m_addToMeanValue            == obj.m_addToMeanValue)
+        && (m_dataOffsetEnabled         == obj.m_dataOffsetEnabled)
+        && (m_dataOffsetValue           == obj.m_dataOffsetValue)
         && (m_multiplyDeviationEnabled  == obj.m_multiplyDeviationEnabled)
         && (m_multiplyDeviationValue    == obj.m_multiplyDeviationValue)) {
         return true;
@@ -148,7 +148,7 @@ GraphicsLineMeanDeviationSettings::anyModificationEnabled() const
     if (m_newMeanEnabled ||
         m_newDeviationEnabled ||
         m_absoluteValueEnabled ||
-        m_addToMeanEnabled ||
+        m_dataOffsetEnabled ||
         m_multiplyDeviationEnabled) {
         return true;
     }
@@ -174,8 +174,8 @@ GraphicsLineMeanDeviationSettings::reset()
     m_newMeanEnabled            = false;
     m_newDeviationEnabled       = false;
     m_absoluteValueEnabled      = false;
-    m_addToMeanEnabled          = false;
-    m_addToMeanValue            = 0.0;
+    m_dataOffsetEnabled         = false;
+    m_dataOffsetValue           = 0.0;
     m_multiplyDeviationEnabled  = false;
     m_multiplyDeviationValue    = 1.0;
 }

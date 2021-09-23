@@ -137,10 +137,10 @@ m_overlayIndex(overlayIndex)
                           &m_lineChartSettings.m_absoluteValueEnabled);
     m_sceneAssistant->add("m_lineChartNewDeviationValue",
                           &m_lineChartSettings.m_newDeviationValue);
-    m_sceneAssistant->add("m_lineChartAddToMeanEnabled",
-                          &m_lineChartSettings.m_addToMeanEnabled);
-    m_sceneAssistant->add("m_lineChartAddToMeanValue",
-                          &m_lineChartSettings.m_addToMeanValue);
+    m_sceneAssistant->add("m_lineChartDataOffsetEnabled",
+                          &m_lineChartSettings.m_dataOffsetEnabled);
+    m_sceneAssistant->add("m_lineChartDataOffsetValue",
+                          &m_lineChartSettings.m_dataOffsetValue);
     m_sceneAssistant->add("m_lineChartMultiplyDeviationEnabled",
                           &m_lineChartSettings.m_multiplyDeviationEnabled);
     m_sceneAssistant->add("m_lineChartMultiplyDeviationValue",
@@ -2007,9 +2007,9 @@ ChartTwoOverlay::setLineChartNewDeviationValue(const float value)
  * @return Line chart add to mean value enabled
  */
 bool
-ChartTwoOverlay::isLineChartAddToMeanEnabled()
+ChartTwoOverlay::isLineChartDataOffsetEnabled()
 {
-    return m_lineChartSettings.m_addToMeanEnabled;
+    return m_lineChartSettings.m_dataOffsetEnabled;
 }
 
 /**
@@ -2018,18 +2018,18 @@ ChartTwoOverlay::isLineChartAddToMeanEnabled()
  *    New status
  */
 void
-ChartTwoOverlay::setLineChartAddToMeanEnabled(const bool enabled)
+ChartTwoOverlay::setLineChartDataOffsetEnabled(const bool enabled)
 {
-    m_lineChartSettings.m_addToMeanEnabled = enabled;
+    m_lineChartSettings.m_dataOffsetEnabled = enabled;
 }
 
 /**
  * @return Line chart add to mean  value
  */
 float
-ChartTwoOverlay::getLineChartAddToMeanValue() const
+ChartTwoOverlay::getLineChartDataOffsetValue() const
 {
-    return m_lineChartSettings.m_addToMeanValue;
+    return m_lineChartSettings.m_dataOffsetValue;
 }
 
 /**
@@ -2038,9 +2038,9 @@ ChartTwoOverlay::getLineChartAddToMeanValue() const
  *    New deviation value
  */
 void
-ChartTwoOverlay::setLineChartAddToMeanValue(const float value)
+ChartTwoOverlay::setLineChartDataOffsetValue(const float value)
 {
-    m_lineChartSettings.m_addToMeanValue = value;
+    m_lineChartSettings.m_dataOffsetValue = value;
 }
 
 

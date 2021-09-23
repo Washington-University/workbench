@@ -91,19 +91,19 @@ ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
                      this, &ChartTwoLineLayerNormalizationWidget::newDeviationValueChanged);
 
     /*
-     * Add to Mean
+     * Data Offset
      */
-    m_addToMeanCheckBox = new QCheckBox("Add to Mean");
-    QObject::connect(m_addToMeanCheckBox, &QCheckBox::clicked,
-                     this, &ChartTwoLineLayerNormalizationWidget::addToMeanCheckBoxClicked);
-    m_addToMeanSpinBox = new QDoubleSpinBox();
-    m_addToMeanSpinBox->setDecimals(4);
-    m_addToMeanSpinBox->setSingleStep(0.1);
-    m_addToMeanSpinBox->setRange(-std::numeric_limits<float>::max(),
+    m_dataOffsetCheckBox = new QCheckBox("Data Offset");
+    QObject::connect(m_dataOffsetCheckBox, &QCheckBox::clicked,
+                     this, &ChartTwoLineLayerNormalizationWidget::dataOffsetCheckBoxClicked);
+    m_dataOffsetSpinBox = new QDoubleSpinBox();
+    m_dataOffsetSpinBox->setDecimals(4);
+    m_dataOffsetSpinBox->setSingleStep(0.1);
+    m_dataOffsetSpinBox->setRange(-std::numeric_limits<float>::max(),
                                     std::numeric_limits<float>::max());
-    m_addToMeanSpinBox->setMaximumWidth(100);
-    QObject::connect(m_addToMeanSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-                     this, &ChartTwoLineLayerNormalizationWidget::addToMeanValueChanged);
+    m_dataOffsetSpinBox->setMaximumWidth(100);
+    QObject::connect(m_dataOffsetSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &ChartTwoLineLayerNormalizationWidget::dataOffsetValueChanged);
     
     /*
      * Multiply Deviation
@@ -144,11 +144,11 @@ ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
     layout->addWidget(m_newDeviationEnabledCheckBox, row, 0);
     layout->addWidget(m_newDeviationSpinBox, row, 1, Qt::AlignLeft);
     row++;
-    layout->addWidget(m_addToMeanCheckBox, row, 0);
-    layout->addWidget(m_addToMeanSpinBox, row, 1, Qt::AlignLeft);
-    row++;
     layout->addWidget(m_multiplyDeviationCheckBox, row, 0);
     layout->addWidget(m_multiplyDeviationSpinBox, row, 1, Qt::AlignLeft);
+    row++;
+    layout->addWidget(m_dataOffsetCheckBox, row, 0);
+    layout->addWidget(m_dataOffsetSpinBox, row, 1, Qt::AlignLeft);
     row++;
     layout->addWidget(m_meanDevLabel, row, 0, 1, 2, Qt::AlignLeft);
     row++;
@@ -194,9 +194,9 @@ ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOve
         QSignalBlocker devBlocker(m_newDeviationSpinBox);
         m_newDeviationSpinBox->setValue(m_chartTwoOverlay->getLineChartNewDeviationValue());
         
-        m_addToMeanCheckBox->setChecked(m_chartTwoOverlay->isLineChartAddToMeanEnabled());
-        QSignalBlocker addMeanBlocker(m_addToMeanSpinBox);
-        m_addToMeanSpinBox->setValue(m_chartTwoOverlay->getLineChartAddToMeanValue());
+        m_dataOffsetCheckBox->setChecked(m_chartTwoOverlay->isLineChartDataOffsetEnabled());
+        QSignalBlocker addMeanBlocker(m_dataOffsetSpinBox);
+        m_dataOffsetSpinBox->setValue(m_chartTwoOverlay->getLineChartDataOffsetValue());
         
         m_multiplyDeviationCheckBox->setChecked(m_chartTwoOverlay->isLineChartMultiplyDeviationEnabled());
         QSignalBlocker multDevBlocker(m_multiplyDeviationSpinBox);
@@ -293,9 +293,9 @@ ChartTwoLineLayerNormalizationWidget::newDeviationValueChanged(double value)
  *    New clicked status
  */
 void
-ChartTwoLineLayerNormalizationWidget::addToMeanCheckBoxClicked(bool clicked)
+ChartTwoLineLayerNormalizationWidget::dataOffsetCheckBoxClicked(bool clicked)
 {
-    m_chartTwoOverlay->setLineChartAddToMeanEnabled(clicked);
+    m_chartTwoOverlay->setLineChartDataOffsetEnabled(clicked);
     updateGraphics();
     updateToolBarChartAxes();
 }
@@ -306,9 +306,9 @@ ChartTwoLineLayerNormalizationWidget::addToMeanCheckBoxClicked(bool clicked)
  *    New value
  */
 void
-ChartTwoLineLayerNormalizationWidget::addToMeanValueChanged(double value)
+ChartTwoLineLayerNormalizationWidget::dataOffsetValueChanged(double value)
 {
-    m_chartTwoOverlay->setLineChartAddToMeanValue(value);
+    m_chartTwoOverlay->setLineChartDataOffsetValue(value);
     updateGraphics();
     updateToolBarChartAxes();
 }

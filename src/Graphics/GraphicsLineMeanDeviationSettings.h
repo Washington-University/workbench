@@ -69,12 +69,12 @@ namespace caret {
         
         float m_newMeanValue = 0.0;
         float m_newDeviationValue = 1.0;
-        bool m_newMeanEnabled = false;
-        bool m_newDeviationEnabled = false;
-        bool m_absoluteValueEnabled = false;
-        bool m_addToMeanEnabled = false;
-        float m_addToMeanValue = 0.0;
-        bool m_multiplyDeviationEnabled = false;
+        bool  m_newMeanEnabled = false;
+        bool  m_newDeviationEnabled = false;
+        bool  m_absoluteValueEnabled = false;
+        bool  m_dataOffsetEnabled = false;
+        float m_dataOffsetValue = 0.0;
+        bool  m_multiplyDeviationEnabled = false;
         float m_multiplyDeviationValue = 1.0;
         
     private:

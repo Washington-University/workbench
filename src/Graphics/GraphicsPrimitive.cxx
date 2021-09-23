@@ -1962,9 +1962,9 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponents(const GraphicsLineMeanD
     haveNanInfFlagOut = false;
     const bool anyModsFlag(settings.m_newMeanEnabled
                            || settings.m_newDeviationEnabled
-                           || settings.m_addToMeanEnabled
                            || settings.m_multiplyDeviationEnabled
-                           || settings.m_absoluteValueEnabled);
+                           || settings.m_absoluteValueEnabled
+                           || settings.m_dataOffsetEnabled);
     if ( ! anyModsFlag) {
         return;
     }
@@ -2031,10 +2031,7 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
      * Compute mean
      */
     const double numValuesDouble(numData);
-    double dataMean(dataSum / numValuesDouble);
-    if (settings.m_addToMeanEnabled) {
-        dataMean += settings.m_addToMeanValue;
-    }
+    const double dataMean(dataSum / numValuesDouble);
 
     /*
      * Subtract mean from data
@@ -2074,16 +2071,31 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
         }
     }
 
+    double totalOffset(0.0);
     if (settings.m_newMeanEnabled) {
-        for (auto& d : data) {
-            d += settings.m_newMeanValue;
-        }
+        totalOffset += settings.m_newMeanValue;
     }
     else {
-        for (auto& d : data) {
-            d += dataMean;
-        }
+        totalOffset += dataMean;
     }
+    if (settings.m_dataOffsetEnabled) {
+        totalOffset += settings.m_dataOffsetValue;
+    }
+    
+    for (auto& d : data) {
+        d += totalOffset;
+    }
+
+//    if (settings.m_newMeanEnabled) {
+//        for (auto& d : data) {
+//            d += settings.m_newMeanValue;
+//        }
+//    }
+//    else {
+//        for (auto& d : data) {
+//            d += dataMean;
+//        }
+//    }
 }
 
 /**
@@ -2115,10 +2127,7 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float
         }
         dataSum += d;
     }
-    double dataMean(dataSum / numValuesDouble);
-    if (settings.m_addToMeanEnabled) {
-        dataMean += settings.m_addToMeanValue;
-    }
+    const double dataMean(dataSum / numValuesDouble);
 
     /*
      * Subtract mean from data
@@ -2156,16 +2165,30 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float
         }
     }
     
+    double totalOffset(0.0);
     if (settings.m_newMeanEnabled) {
-        for (auto& d : data) {
-            d += settings.m_newMeanValue;
-        }
+        totalOffset += settings.m_newMeanValue;
     }
     else {
-        for (auto& d : data) {
-            d += dataMean;
-        }
+        totalOffset += dataMean;
     }
+    if (settings.m_dataOffsetEnabled) {
+        totalOffset += settings.m_dataOffsetValue;
+    }
+
+    for (auto& d : data) {
+        d += totalOffset;
+    }
+//    if (settings.m_newMeanEnabled) {
+//        for (auto& d : data) {
+//            d += settings.m_newMeanValue;
+//        }
+//    }
+//    else {
+//        for (auto& d : data) {
+//            d += dataMean;
+//        }
+//    }
 }
 
 /**
@@ -2181,7 +2204,6 @@ GraphicsPrimitive::getNewMeanDeviationOperationDescriptionInHtml()
     txt.appendWithNewLine("<ol>");
     txt.appendWithNewLine("<li> If <i>Absolute Values</i> is checked, convert data elements to absolute values.");
     txt.appendWithNewLine("<li> Compute Mean of Data.");
-    txt.appendWithNewLine("<li> If <i>Add to Mean</i> is checked, add <i>Add to Mean Value</i> to Data Mean.");
     txt.appendWithNewLine("<li> Subtract <i>Data Mean</i> from data elements.");
     txt.appendWithNewLine("<li> If <i>Multiply Deviation</i> is checked, multiply Data Deviation by"
                           "<i>Multiply Deviation Value</i>.");
@@ -2189,6 +2211,7 @@ GraphicsPrimitive::getNewMeanDeviationOperationDescriptionInHtml()
                           "<i>(New Deviation</i> / <i>Data Deviation</i>).");
     txt.appendWithNewLine("<li> If <i>New Mean</i> is checked, add <i>New Mean</i> to data elements.  "
                           "Otherwise, add <i>Data Mean</i> to data elements.");
+    txt.appendWithNewLine("<li> If <i>Data Offset</i> is checked, add <i>Data Offset Value</i> to Data.");
     txt.appendWithNewLine("</ol>");
     txt.appendWithNewLine("Note: NaNs are ignored in all computations.");
     txt.appendWithNewLine("</html>");
