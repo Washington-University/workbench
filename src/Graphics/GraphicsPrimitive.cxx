@@ -1950,31 +1950,22 @@ GraphicsPrimitive::getMeanAndStandardDeviationForY(float& yMeanOut,
 
 /**
  * Apply a new mean and/or deviation to the Y-components
- * @param applyNewMeanFlag
- *   Apply the new mean
- * @param newMean
- *   Value for new mean
- * @param applyNewDeviationFlag
- *   Apply the new deviation
- * @param newDeviation
- *   Value for new deviation
- * @param applyAbsoluteValueFlag
- *   Make result absolute value
+ * @param settings
+ *   Settings containing how to modify mean and deviation
  * @param haveNanInfFlagOut
  *   Output: True if Not a Number or Infinity found in the data
  */
 void
-GraphicsPrimitive::applyNewMeanAndDeviationToYComponents(const bool applyNewMeanFlag,
-                                                         const float newMean,
-                                                         const bool applyNewDeviationFlag,
-                                                         const float newDeviation,
-                                                         const bool applyAbsoluteValueFlag,
+GraphicsPrimitive::applyNewMeanAndDeviationToYComponents(const GraphicsLineMeanDeviationSettings& settings,
                                                          bool& haveNanInfFlagOut)
 {
     haveNanInfFlagOut = false;
-    if ( ! (applyNewMeanFlag
-            || applyNewDeviationFlag
-            || applyAbsoluteValueFlag)) {
+    const bool anyModsFlag(settings.m_newMeanEnabled
+                           || settings.m_newDeviationEnabled
+                           || settings.m_addToMeanEnabled
+                           || settings.m_multiplyDeviationEnabled
+                           || settings.m_absoluteValueEnabled);
+    if ( ! anyModsFlag) {
         return;
     }
     
@@ -1990,19 +1981,11 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponents(const bool applyNewMean
     
     if (haveNanInfFlagOut) {
         applyNewMeanAndDeviationToYComponentsWithNaNs(data,
-                                                      applyNewMeanFlag,
-                                                      newMean,
-                                                      applyNewDeviationFlag,
-                                                      newDeviation,
-                                                      applyAbsoluteValueFlag);
+                                                      settings);
     }
     else {
         applyNewMeanAndDeviationToYComponentsNoNaNs(data,
-                                                    applyNewMeanFlag,
-                                                    newMean,
-                                                    applyNewDeviationFlag,
-                                                    newDeviation,
-                                                    applyAbsoluteValueFlag);
+                                                    settings);
     }
     
     setFloatYComponents(data);
@@ -2010,24 +1993,14 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponents(const bool applyNewMean
 
 /**
  * Apply a new mean and/or deviation to the Y-components that have NaNs or INFs
- * @param applyNewMeanFlag
- *   Apply the new mean
- * @param newMean
- *   Value for new mean
- * @param applyNewDeviationFlag
- *   Apply the new deviation
- * @param newDeviation
- *   Value for new deviation
- * @param applyAbsoluteValueFlag
- *   Make result absolute value
+ * @param data
+ *    The data for modification
+ * @param settings
+ *    Settings containing how to modify mean and deviation
  */
 void
 GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<float>& data,
-                                                                 const bool applyNewMeanFlag,
-                                                                 const float newMean,
-                                                                 const bool applyNewDeviationFlag,
-                                                                 const float newDeviation,
-                                                                 const bool applyAbsoluteValueFlag)
+                                                                 const GraphicsLineMeanDeviationSettings& settings)
 {
 
     /*
@@ -2037,7 +2010,7 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
     double dataSum(0.0);
     for (auto& d : data) {
         if (MathFunctions::isNumeric(d)) {
-            if (applyAbsoluteValueFlag) {
+            if (settings.m_absoluteValueEnabled) {
                 if (d < 0.0) {
                     d = -d;
                 }
@@ -2058,7 +2031,10 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
      * Compute mean
      */
     const double numValuesDouble(numData);
-    const double dataMean(dataSum / numValuesDouble);
+    double dataMean(dataSum / numValuesDouble);
+    if (settings.m_addToMeanEnabled) {
+        dataMean += settings.m_addToMeanValue;
+    }
 
     /*
      * Subtract mean from data
@@ -2067,7 +2043,7 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
         d -= dataMean;
     }
 
-    if (applyNewDeviationFlag) {
+    if (settings.m_newDeviationEnabled) {
         /*
          * Compute deviation of data.
          * Note: mean has been already been subtracted from data
@@ -2079,25 +2055,28 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
             }
         }
         const double variance(sumSQ / numValuesDouble);
-        const double dataDeviation((variance > 0.0)
-                                   ? (std::sqrt(variance))
-                                   : 0.0);
+        double dataDeviation((variance > 0.0)
+                             ? (std::sqrt(variance))
+                             : 0.0);
+        if (settings.m_multiplyDeviationEnabled) {
+            dataDeviation *= settings.m_multiplyDeviationValue;
+        }
 
         /*
          * Data = (Data / dataDeviation) * newDevation
          *      => Data * (newDeviation / dataDeviation);
          */
         const double deviationRatio((dataDeviation != 0.0)
-                                    ? (newDeviation / dataDeviation)
-                                    : newDeviation);
+                                    ? (settings.m_newDeviationValue / dataDeviation)
+                                    : settings.m_newDeviationValue);
         for (auto& d : data) {
             d *= deviationRatio;
         }
     }
 
-    if (applyNewMeanFlag) {
+    if (settings.m_newMeanEnabled) {
         for (auto& d : data) {
-            d += newMean;
+            d += settings.m_newMeanValue;
         }
     }
     else {
@@ -2109,24 +2088,14 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
 
 /**
  * Apply a new mean and/or deviation to the Y-components that DO NOT have NaNs or INFs
- * @param applyNewMeanFlag
- *   Apply the new mean
- * @param newMean
- *   Value for new mean
- * @param applyNewDeviationFlag
- *   Apply the new deviation
- * @param newDeviation
- *   Value for new deviation
- * @param applyAbsoluteValueFlag
- *   Make result absolute value
+ * @param data
+ *    The data for modification
+ * @param settings
+ *    Settings containing how to modify mean and deviation
  */
 void
 GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float>& data,
-                                                               const bool applyNewMeanFlag,
-                                                               const float newMean,
-                                                               const bool applyNewDeviationFlag,
-                                                               const float newDeviation,
-                                                               const bool applyAbsoluteValueFlag)
+                                                               const GraphicsLineMeanDeviationSettings& settings)
 {
     const int32_t num = static_cast<int32_t>(data.size());
     if (num < 1) {
@@ -2139,15 +2108,18 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float
      */
     double dataSum(0.0);
     for (auto& d : data) {
-        if (applyAbsoluteValueFlag) {
+        if (settings.m_absoluteValueEnabled) {
             if (d < 0.0) {
                 d = -d;
             }
         }
         dataSum += d;
     }
-    const double dataMean(dataSum / numValuesDouble);
-    
+    double dataMean(dataSum / numValuesDouble);
+    if (settings.m_addToMeanEnabled) {
+        dataMean += settings.m_addToMeanValue;
+    }
+
     /*
      * Subtract mean from data
      */
@@ -2155,7 +2127,7 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float
         d -= dataMean;
     }
     
-    if (applyNewDeviationFlag) {
+    if (settings.m_newDeviationEnabled) {
         /*
          * Compute deviation of data.
          * Note: mean has been already been subtracted from data
@@ -2165,25 +2137,28 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float
             sumSQ += (d * d);
         }
         const double variance(sumSQ / numValuesDouble);
-        const double dataDeviation((variance > 0.0)
-                                   ? (std::sqrt(variance))
-                                   : 0.0);
-        
+        double dataDeviation((variance > 0.0)
+                             ? (std::sqrt(variance))
+                             : 0.0);
+        if (settings.m_multiplyDeviationEnabled) {
+            dataDeviation *= settings.m_multiplyDeviationValue;
+        }
+
         /*
          * Data = (Data / dataDeviation) * newDevation
          *      => Data * (newDeviation / dataDeviation);
          */
         const double deviationRatio((dataDeviation != 0.0)
-                                    ? (newDeviation / dataDeviation)
-                                    : newDeviation);
+                                    ? (settings.m_newDeviationValue / dataDeviation)
+                                    : settings.m_newDeviationValue);
         for (auto& d : data) {
             d *= deviationRatio;
         }
     }
     
-    if (applyNewMeanFlag) {
+    if (settings.m_newMeanEnabled) {
         for (auto& d : data) {
-            d += newMean;
+            d += settings.m_newMeanValue;
         }
     }
     else {
@@ -2205,9 +2180,13 @@ GraphicsPrimitive::getNewMeanDeviationOperationDescriptionInHtml()
     txt.appendWithNewLine("Order of data elements transformation");
     txt.appendWithNewLine("<ol>");
     txt.appendWithNewLine("<li> If <i>Absolute Values</i> is checked, convert data elements to absolute values.");
+    txt.appendWithNewLine("<li> Compute Mean of Data.");
+    txt.appendWithNewLine("<li> If <i>Add to Mean</i> is checked, add <i>Add to Mean Value</i> to Data Mean.");
     txt.appendWithNewLine("<li> Subtract <i>Data Mean</i> from data elements.");
+    txt.appendWithNewLine("<li> If <i>Multiply Deviation</i> is checked, multiply Data Deviation by"
+                          "<i>Multiply Deviation Value</i>.");
     txt.appendWithNewLine("<li> if <i>New Deviation</i> is checked, multiply data elements by "
-                          "<i>(New Deviation</i> / <i>Data Deviation></i>).");
+                          "<i>(New Deviation</i> / <i>Data Deviation</i>).");
     txt.appendWithNewLine("<li> If <i>New Mean</i> is checked, add <i>New Mean</i> to data elements.  "
                           "Otherwise, add <i>Data Mean</i> to data elements.");
     txt.appendWithNewLine("</ol>");

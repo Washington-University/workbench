@@ -23,6 +23,7 @@ EventOpenGLObjectToWindowTransform.h
 GraphicsEngineData.h
 GraphicsEngineDataOpenGL.h
 GraphicsFramesPerSecond.h
+GraphicsLineMeanDeviationSettings.h
 GraphicsObjectToWindowTransform.h
 GraphicsOpenGLBufferObject.h
 GraphicsOpenGLError.h
@@ -50,6 +51,7 @@ EventOpenGLObjectToWindowTransform.cxx
 GraphicsEngineData.cxx
 GraphicsEngineDataOpenGL.cxx
 GraphicsFramesPerSecond.cxx
+GraphicsLineMeanDeviationSettings.cxx
 GraphicsObjectToWindowTransform.cxx
 GraphicsOpenGLBufferObject.cxx
 GraphicsOpenGLError.cxx

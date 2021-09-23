@@ -94,16 +94,14 @@ m_overlayIndex(overlayIndex)
     m_selectedHistogramMapIndex = -1;
     m_allHistogramMapsSelectedFlag = false;
 
+    m_lineChartSettings.reset();
+    m_previousLineChartSettings.reset();
+    
     m_selectedLineLayerMapIndex = -1;
     m_lineLayerColor.setCaretColorEnum(generateDefaultColor());
     m_lineLayerLineWidth = ChartTwoDataCartesian::getDefaultLineWidth();
     m_selectedLineChartPointIndex = 0;
     m_lineChartActiveMode = ChartTwoOverlayActiveModeEnum::OFF;
-    m_lineChartNewMeanEnabled = false;
-    m_lineChartNewMeanValue = 0.0;
-    m_lineChartNewDeviationEnabled = false;
-    m_lineChartNormalizationAbsoluteValueEnabled = false;
-    m_lineChartNewDeviationValue = 1.0;
     
     m_selectedLineChartTextOffset = CardinalDirectionEnum::AUTO;
     
@@ -130,15 +128,23 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add<CardinalDirectionEnum, CardinalDirectionEnum::Enum>("m_selectedLineChartTextOffset",
                                                                               &m_selectedLineChartTextOffset);
     m_sceneAssistant->add("m_lineChartNewMeanEnabled",
-                          &m_lineChartNewMeanEnabled);
+                          &m_lineChartSettings.m_newMeanEnabled);
     m_sceneAssistant->add("m_lineChartNewMeanValue",
-                          &m_lineChartNewMeanValue);
+                          &m_lineChartSettings.m_newMeanValue);
     m_sceneAssistant->add("m_lineChartNewDeviationEnabled",
-                          &m_lineChartNewDeviationEnabled);
+                          &m_lineChartSettings.m_newDeviationEnabled);
     m_sceneAssistant->add("m_lineChartNormalizationAbsoluteValueEnabled",
-                          &m_lineChartNormalizationAbsoluteValueEnabled);
+                          &m_lineChartSettings.m_absoluteValueEnabled);
     m_sceneAssistant->add("m_lineChartNewDeviationValue",
-                          &m_lineChartNewDeviationValue);
+                          &m_lineChartSettings.m_newDeviationValue);
+    m_sceneAssistant->add("m_lineChartAddToMeanEnabled",
+                          &m_lineChartSettings.m_addToMeanEnabled);
+    m_sceneAssistant->add("m_lineChartAddToMeanValue",
+                          &m_lineChartSettings.m_addToMeanValue);
+    m_sceneAssistant->add("m_lineChartMultiplyDeviationEnabled",
+                          &m_lineChartSettings.m_multiplyDeviationEnabled);
+    m_sceneAssistant->add("m_lineChartMultiplyDeviationValue",
+                          &m_lineChartSettings.m_multiplyDeviationValue);
 
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CHART_TWO_OVERLAY_VALIDATE);
@@ -410,11 +416,9 @@ ChartTwoOverlay::copyData(const ChartTwoOverlay* overlay)
     m_selectedLineChartPointIndex = overlay->m_selectedLineChartPointIndex;
     m_lineChartActiveMode = overlay->m_lineChartActiveMode;
     m_selectedLineChartTextOffset = overlay->m_selectedLineChartTextOffset;
-    m_lineChartNewMeanEnabled = overlay->m_lineChartNewMeanEnabled;
-    m_lineChartNewMeanValue = overlay->m_lineChartNewMeanValue;
-    m_lineChartNewDeviationEnabled = overlay->m_lineChartNewDeviationEnabled;
-    m_lineChartNormalizationAbsoluteValueEnabled = overlay->m_lineChartNormalizationAbsoluteValueEnabled;
-    m_lineChartNewDeviationValue   = overlay->m_lineChartNewDeviationValue;
+    
+    m_lineChartSettings = overlay->m_lineChartSettings;
+    m_previousLineChartSettings.reset();
 }
 
 /**
@@ -690,33 +694,20 @@ ChartTwoOverlay::getLineLayerChartDisplayedCartesianData()
             ChartTwoDataCartesian* cartesianLineData = layerChart->getChartMapLineForChartTwoOverlay(selectedIndex);
             CaretAssert(cartesianLineData);
             
+            m_lineChartSettings.updateFileSettings(mapFile,
+                                                   selectedIndex,
+                                                   mapFile->getNumberOfMaps(),
+                                                   cartesianLineData,
+                                                   cartesianLineData->getGraphicsPrimitive()->getNumberOfVertices());
             /*
              * Cache the data (not done yet)
              */
-            if ((m_previousLineChartSettings.m_mapFile != mapFile)
-                || (m_previousLineChartSettings.m_mapIndex != selectedIndex)
-                || (m_previousLineChartSettings.m_numberOfMaps != mapFile->getNumberOfMaps())
-                || (m_previousLineChartSettings.m_cartesianLineData != cartesianLineData)
-                || (m_previousLineChartSettings.m_numberOfCartesianVertices != cartesianLineData->getGraphicsPrimitive()->getNumberOfVertices())
-                || (m_previousLineChartSettings.m_newMean != m_lineChartNewMeanValue)
-                || (m_previousLineChartSettings.m_newDeviation != m_lineChartNewDeviationValue)
-                || (m_previousLineChartSettings.m_newMeanEnabled != m_lineChartNewMeanEnabled)
-                || (m_previousLineChartSettings.m_newDeviationEnabled != m_lineChartNewDeviationEnabled)
-                || (m_previousLineChartSettings.m_lineChartNormalizationAbsoluteValueEnabled != m_lineChartNormalizationAbsoluteValueEnabled)) {
+            if ( ! (m_lineChartSettings == m_previousLineChartSettings)) {
                 m_lineChartNormalizedCartesianData.reset();
             }
                 
-            m_previousLineChartSettings.m_mapFile = mapFile;
-            m_previousLineChartSettings.m_mapIndex  = selectedIndex;
-            m_previousLineChartSettings.m_numberOfMaps = mapFile->getNumberOfMaps();
-            m_previousLineChartSettings.m_cartesianLineData = cartesianLineData;
-            m_previousLineChartSettings.m_numberOfCartesianVertices = cartesianLineData->getGraphicsPrimitive()->getNumberOfVertices();
-            m_previousLineChartSettings.m_newMean = m_lineChartNewMeanValue;
-            m_previousLineChartSettings.m_newDeviation = m_lineChartNewDeviationValue;
-            m_previousLineChartSettings.m_newMeanEnabled = m_lineChartNewMeanEnabled;
-            m_previousLineChartSettings.m_newDeviationEnabled = m_lineChartNewDeviationEnabled;
-            m_previousLineChartSettings.m_lineChartNormalizationAbsoluteValueEnabled = m_lineChartNormalizationAbsoluteValueEnabled;
-
+            m_previousLineChartSettings = m_lineChartSettings;
+            
             if ( ! m_lineChartNormalizedCartesianData) {
                 /*
                  * Need to clone the line
@@ -733,19 +724,13 @@ ChartTwoOverlay::getLineLayerChartDisplayedCartesianData()
             }
             
             
-            if (m_lineChartNewMeanEnabled
-                || m_lineChartNewDeviationEnabled
-                || m_lineChartNormalizationAbsoluteValueEnabled) {
+            if (m_lineChartSettings.anyModificationEnabled()) {
                 /*
                  * Apply new mean and deviation to Y-components
                  */
                 bool haveNanInfFlag(false);
                 CaretAssert(m_lineChartNormalizedCartesianData->getGraphicsPrimitive());
-                m_lineChartNormalizedCartesianData->getGraphicsPrimitive()->applyNewMeanAndDeviationToYComponents(m_lineChartNewMeanEnabled,
-                                                                                                                  m_lineChartNewMeanValue,
-                                                                                                                  m_lineChartNewDeviationEnabled,
-                                                                                                                  m_lineChartNewDeviationValue,
-                                                                                                                  m_lineChartNormalizationAbsoluteValueEnabled,
+                m_lineChartNormalizedCartesianData->getGraphicsPrimitive()->applyNewMeanAndDeviationToYComponents(m_lineChartSettings,
                                                                                                                   haveNanInfFlag);
                 
                 if (haveNanInfFlag) {
@@ -1923,7 +1908,7 @@ ChartTwoOverlay::setSelectedLineChartTextOffset(const CardinalDirectionEnum::Enu
 bool
 ChartTwoOverlay::isLineChartNewMeanEnabled() const
 {
-    return m_lineChartNewMeanEnabled;
+    return m_lineChartSettings.m_newMeanEnabled;
 }
 
 /**
@@ -1934,7 +1919,7 @@ ChartTwoOverlay::isLineChartNewMeanEnabled() const
 void
 ChartTwoOverlay::setLineChartNewMeanEnabled(const bool enabled)
 {
-    m_lineChartNewMeanEnabled = enabled;
+    m_lineChartSettings.m_newMeanEnabled = enabled;
 }
 
 /**
@@ -1943,7 +1928,7 @@ ChartTwoOverlay::setLineChartNewMeanEnabled(const bool enabled)
 float
 ChartTwoOverlay::getLineChartNewMeanValue() const
 {
-    return m_lineChartNewMeanValue;
+    return m_lineChartSettings.m_newMeanValue;
 }
 
 /**
@@ -1954,7 +1939,7 @@ ChartTwoOverlay::getLineChartNewMeanValue() const
 void
 ChartTwoOverlay::setLineChartNewMeanValue(const float value)
 {
-    m_lineChartNewMeanValue = value;
+    m_lineChartSettings.m_newMeanValue = value;
 }
 
 /**
@@ -1963,7 +1948,7 @@ ChartTwoOverlay::setLineChartNewMeanValue(const float value)
 bool
 ChartTwoOverlay::isLineChartNewDeviationEnabled() const
 {
-    return m_lineChartNewDeviationEnabled;
+    return m_lineChartSettings.m_newDeviationEnabled;
 }
 
 /**
@@ -1974,7 +1959,7 @@ ChartTwoOverlay::isLineChartNewDeviationEnabled() const
 void
 ChartTwoOverlay::setLineChartNewDeviationEnabled(const bool enabled)
 {
-    m_lineChartNewDeviationEnabled = enabled;
+    m_lineChartSettings.m_newDeviationEnabled = enabled;
 }
 
 /**
@@ -1983,7 +1968,7 @@ ChartTwoOverlay::setLineChartNewDeviationEnabled(const bool enabled)
 bool
 ChartTwoOverlay::isLineChartNormalizationAbsoluteValueEnabled() const
 {
-    return m_lineChartNormalizationAbsoluteValueEnabled;
+    return m_lineChartSettings.m_absoluteValueEnabled;
 }
 
 /**
@@ -1994,7 +1979,7 @@ ChartTwoOverlay::isLineChartNormalizationAbsoluteValueEnabled() const
 void
 ChartTwoOverlay::setLineChartNormalizationAbsoluteValueEnabled(const bool enabled)
 {
-    m_lineChartNormalizationAbsoluteValueEnabled = enabled;
+    m_lineChartSettings.m_absoluteValueEnabled = enabled;
 }
 
 /**
@@ -2003,7 +1988,7 @@ ChartTwoOverlay::setLineChartNormalizationAbsoluteValueEnabled(const bool enable
 float
 ChartTwoOverlay::getLineChartNewDeviationValue() const
 {
-    return m_lineChartNewDeviationValue;
+    return m_lineChartSettings.m_newDeviationValue;
 }
 
 /**
@@ -2014,7 +1999,89 @@ ChartTwoOverlay::getLineChartNewDeviationValue() const
 void
 ChartTwoOverlay::setLineChartNewDeviationValue(const float value)
 {
-    m_lineChartNewDeviationValue = value;
+    m_lineChartSettings.m_newDeviationValue = value;
+}
+
+
+/*
+ * @return Line chart add to mean value enabled
+ */
+bool
+ChartTwoOverlay::isLineChartAddToMeanEnabled()
+{
+    return m_lineChartSettings.m_addToMeanEnabled;
+}
+
+/**
+ * Set line chart add to mean value enabled
+ * @param enable
+ *    New status
+ */
+void
+ChartTwoOverlay::setLineChartAddToMeanEnabled(const bool enabled)
+{
+    m_lineChartSettings.m_addToMeanEnabled = enabled;
+}
+
+/**
+ * @return Line chart add to mean  value
+ */
+float
+ChartTwoOverlay::getLineChartAddToMeanValue() const
+{
+    return m_lineChartSettings.m_addToMeanValue;
+}
+
+/**
+ * Set the line chart add to mean value
+ * @param value
+ *    New deviation value
+ */
+void
+ChartTwoOverlay::setLineChartAddToMeanValue(const float value)
+{
+    m_lineChartSettings.m_addToMeanValue = value;
+}
+
+
+/*
+ * @return Line chart add to mean value enabled
+ */
+bool
+ChartTwoOverlay::isLineChartMultiplyDeviationEnabled() const
+{
+    return m_lineChartSettings.m_multiplyDeviationEnabled;
+}
+
+/**
+ * Set line chart add to mean value enabled
+ * @param enable
+ *    New status
+ */
+void
+ChartTwoOverlay::setLineChartMultiplyDeviationEnabled(const bool enabled)
+{
+    m_lineChartSettings.m_multiplyDeviationEnabled = enabled;
+}
+
+/**
+ * @return Line chart add to mean  value
+ */
+float
+ChartTwoOverlay::getLineChartMultiplyDeviationValue() const
+{
+    return m_lineChartSettings.m_multiplyDeviationValue;
+}
+
+/**
+ * Set the line chart add to mean value
+ * @param value
+ *    New deviation value
+ */
+void
+ChartTwoOverlay::setLineChartMultiplyDeviationValue(const float value)
+{
+    m_lineChartSettings.m_multiplyDeviationValue = value;
 }
 
 /**

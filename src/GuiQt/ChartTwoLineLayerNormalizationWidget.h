@@ -53,8 +53,6 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
     private slots:
-        void valueChanged();
-        
         void newMeanEnabledCheckBoxClicked(bool clicked);
         
         void newDeviationEnabledCheckBoxClicked(bool clicked);
@@ -64,6 +62,14 @@ namespace caret {
         void newMeanValueChanged(double value);
         
         void newDeviationValueChanged(double value);
+        
+        void addToMeanCheckBoxClicked(bool clicked);
+        
+        void addToMeanValueChanged(double value);
+        
+        void multiplyDeviationCheckBoxClicked(bool clicked);
+        
+        void multiplyDeviationValueChanged(double value);
         
     private:
         void updateGraphics();
@@ -83,6 +89,14 @@ namespace caret {
         QLabel* m_meanDevLabel;
         
         QCheckBox* m_absoluteValueEnabledCheckBox;
+        
+        QCheckBox* m_addToMeanCheckBox;
+        
+        QDoubleSpinBox* m_addToMeanSpinBox;
+        
+        QCheckBox* m_multiplyDeviationCheckBox;
+        
+        QDoubleSpinBox* m_multiplyDeviationSpinBox;
         
         bool m_blockUpdatesFlag = false;
         

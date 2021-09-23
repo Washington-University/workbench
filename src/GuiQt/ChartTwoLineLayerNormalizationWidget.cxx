@@ -53,6 +53,16 @@ using namespace caret;
 ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
 : QWidget()
 {
+    /*
+     * Absolute values checkbox
+     */
+    m_absoluteValueEnabledCheckBox = new QCheckBox("Absolute Values");
+    QObject::connect(m_absoluteValueEnabledCheckBox, &QCheckBox::clicked,
+                     this, &ChartTwoLineLayerNormalizationWidget::absoluteValueEnabledCheckBoxClicked);
+    
+    /*
+     * New Mean
+     */
     m_newMeanEnabledCheckBox = new QCheckBox("New Mean");
     QObject::connect(m_newMeanEnabledCheckBox, &QCheckBox::clicked,
                      this, &ChartTwoLineLayerNormalizationWidget::newMeanEnabledCheckBoxClicked);
@@ -65,6 +75,9 @@ ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
     QObject::connect(m_newMeanSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &ChartTwoLineLayerNormalizationWidget::newMeanValueChanged);
 
+    /*
+     * New Deviation
+     */
     m_newDeviationEnabledCheckBox = new QCheckBox("New Deviation");
     QObject::connect(m_newDeviationEnabledCheckBox, &QCheckBox::clicked,
                      this, &ChartTwoLineLayerNormalizationWidget::newDeviationEnabledCheckBoxClicked);
@@ -77,12 +90,44 @@ ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
     QObject::connect(m_newDeviationSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &ChartTwoLineLayerNormalizationWidget::newDeviationValueChanged);
 
-    m_absoluteValueEnabledCheckBox = new QCheckBox("Absolute Values");
-    QObject::connect(m_absoluteValueEnabledCheckBox, &QCheckBox::clicked,
-                     this, &ChartTwoLineLayerNormalizationWidget::absoluteValueEnabledCheckBoxClicked);
+    /*
+     * Add to Mean
+     */
+    m_addToMeanCheckBox = new QCheckBox("Add to Mean");
+    QObject::connect(m_addToMeanCheckBox, &QCheckBox::clicked,
+                     this, &ChartTwoLineLayerNormalizationWidget::addToMeanCheckBoxClicked);
+    m_addToMeanSpinBox = new QDoubleSpinBox();
+    m_addToMeanSpinBox->setDecimals(4);
+    m_addToMeanSpinBox->setSingleStep(0.1);
+    m_addToMeanSpinBox->setRange(-std::numeric_limits<float>::max(),
+                                    std::numeric_limits<float>::max());
+    m_addToMeanSpinBox->setMaximumWidth(100);
+    QObject::connect(m_addToMeanSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &ChartTwoLineLayerNormalizationWidget::addToMeanValueChanged);
+    
+    /*
+     * Multiply Deviation
+     */
+    m_multiplyDeviationCheckBox = new QCheckBox("Multiply Deviation");
+    QObject::connect(m_multiplyDeviationCheckBox, &QCheckBox::clicked,
+                     this, &ChartTwoLineLayerNormalizationWidget::multiplyDeviationCheckBoxClicked);
+    m_multiplyDeviationSpinBox = new QDoubleSpinBox();
+    m_multiplyDeviationSpinBox->setDecimals(4);
+    m_multiplyDeviationSpinBox->setSingleStep(0.1);
+    m_multiplyDeviationSpinBox->setRange(-std::numeric_limits<float>::max(),
+                                         std::numeric_limits<float>::max());
+    m_multiplyDeviationSpinBox->setMaximumWidth(100);
+    QObject::connect(m_multiplyDeviationSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &ChartTwoLineLayerNormalizationWidget::multiplyDeviationValueChanged);
 
+    /*
+     * Label that shows mean and deviation
+     */
     m_meanDevLabel = new QLabel("");
     
+    /*
+     * Label explaining GUI controls
+     */
     QLabel* descripionLabel = new QLabel(GraphicsPrimitive::getNewMeanDeviationOperationDescriptionInHtml());
     descripionLabel->setWordWrap(true);
     descripionLabel->setMaximumWidth(400);
@@ -98,6 +143,12 @@ ChartTwoLineLayerNormalizationWidget::ChartTwoLineLayerNormalizationWidget()
     row++;
     layout->addWidget(m_newDeviationEnabledCheckBox, row, 0);
     layout->addWidget(m_newDeviationSpinBox, row, 1, Qt::AlignLeft);
+    row++;
+    layout->addWidget(m_addToMeanCheckBox, row, 0);
+    layout->addWidget(m_addToMeanSpinBox, row, 1, Qt::AlignLeft);
+    row++;
+    layout->addWidget(m_multiplyDeviationCheckBox, row, 0);
+    layout->addWidget(m_multiplyDeviationSpinBox, row, 1, Qt::AlignLeft);
     row++;
     layout->addWidget(m_meanDevLabel, row, 0, 1, 2, Qt::AlignLeft);
     row++;
@@ -143,6 +194,14 @@ ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOve
         QSignalBlocker devBlocker(m_newDeviationSpinBox);
         m_newDeviationSpinBox->setValue(m_chartTwoOverlay->getLineChartNewDeviationValue());
         
+        m_addToMeanCheckBox->setChecked(m_chartTwoOverlay->isLineChartAddToMeanEnabled());
+        QSignalBlocker addMeanBlocker(m_addToMeanSpinBox);
+        m_addToMeanSpinBox->setValue(m_chartTwoOverlay->getLineChartAddToMeanValue());
+        
+        m_multiplyDeviationCheckBox->setChecked(m_chartTwoOverlay->isLineChartMultiplyDeviationEnabled());
+        QSignalBlocker multDevBlocker(m_multiplyDeviationSpinBox);
+        m_multiplyDeviationSpinBox->setValue(m_chartTwoOverlay->getLineChartMultiplyDeviationValue());
+        
         float mean(0.0), dev(0.0);
         const ChartTwoDataCartesian* cartData = m_chartTwoOverlay->getLineLayerChartMapFileCartesianData();
         CaretAssert(cartData);
@@ -161,22 +220,6 @@ ChartTwoLineLayerNormalizationWidget::updateContent(ChartTwoOverlay* chartTwoOve
     this->setEnabled(validFlag);
 
     m_meanDevLabel->setText(meanDevText);
-}
-
-/**
- * Called when a value is changed
- */
-void
-ChartTwoLineLayerNormalizationWidget::valueChanged()
-{
-    if (m_chartTwoOverlay != NULL) {
-        m_chartTwoOverlay->setLineChartNewMeanEnabled(m_newMeanEnabledCheckBox->isChecked());
-        m_chartTwoOverlay->setLineChartNewMeanValue(m_newMeanSpinBox->value());
-        m_chartTwoOverlay->setLineChartNewDeviationEnabled(m_newDeviationEnabledCheckBox->isChecked());
-        m_chartTwoOverlay->setLineChartNewDeviationValue(m_newDeviationSpinBox->value());
-        
-        updateGraphics();
-    }
 }
 
 /**
@@ -240,6 +283,58 @@ void
 ChartTwoLineLayerNormalizationWidget::newDeviationValueChanged(double value)
 {
     m_chartTwoOverlay->setLineChartNewDeviationValue(value);
+    updateGraphics();
+    updateToolBarChartAxes();
+}
+
+/**
+ * Called when add to mean checkbox is clicked
+ * @param clicked
+ *    New clicked status
+ */
+void
+ChartTwoLineLayerNormalizationWidget::addToMeanCheckBoxClicked(bool clicked)
+{
+    m_chartTwoOverlay->setLineChartAddToMeanEnabled(clicked);
+    updateGraphics();
+    updateToolBarChartAxes();
+}
+
+/**
+ * Called when add to mean value is changed
+ * @param value
+ *    New value
+ */
+void
+ChartTwoLineLayerNormalizationWidget::addToMeanValueChanged(double value)
+{
+    m_chartTwoOverlay->setLineChartAddToMeanValue(value);
+    updateGraphics();
+    updateToolBarChartAxes();
+}
+
+/**
+ * Called when multiply deviation checkbox is clicked
+ * @param clicked
+ *    New clicked status
+ */
+void
+ChartTwoLineLayerNormalizationWidget::multiplyDeviationCheckBoxClicked(bool clicked)
+{
+    m_chartTwoOverlay->setLineChartMultiplyDeviationEnabled(clicked);
+    updateGraphics();
+    updateToolBarChartAxes();
+}
+
+/**
+ * Called when multiply deviation value is changed
+ * @param value
+ *    New value
+ */
+void
+ChartTwoLineLayerNormalizationWidget::multiplyDeviationValueChanged(double value)
+{
+    m_chartTwoOverlay->setLineChartMultiplyDeviationValue(value);
     updateGraphics();
     updateToolBarChartAxes();
 }

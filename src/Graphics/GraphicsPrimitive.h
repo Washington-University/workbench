@@ -28,6 +28,7 @@
 
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
+#include "GraphicsLineMeanDeviationSettings.h"
 #include "GraphicsTextureMagnificationFilterEnum.h"
 #include "GraphicsTextureMinificationFilterEnum.h"
 
@@ -546,11 +547,7 @@ namespace caret {
         void getMeanAndStandardDeviationForY(float& yMeanOut,
                                              float& yStandardDeviationOut) const;
         
-        void applyNewMeanAndDeviationToYComponents(const bool applyNewMeanFlag,
-                                                   const float newMean,
-                                                   const bool applyNewDeviationFlag,
-                                                   const float newDeviation,
-                                                   const bool applyAbsoluteValueFlag,
+        void applyNewMeanAndDeviationToYComponents(const GraphicsLineMeanDeviationSettings& settings,
                                                    bool& haveNanInfFlagOut);
         
         static AString getNewMeanDeviationOperationDescriptionInHtml();
@@ -648,18 +645,10 @@ namespace caret {
         void setOpenGLBuffersHaveBeenLoadedByGraphicsEngine();
         
         void applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float>& data,
-                                                         const bool applyNewMeanFlag,
-                                                         const float newMean,
-                                                         const bool applyNewDeviationFlag,
-                                                         const float newDeviation,
-                                                         const bool applyAbsoluteValueFlag);
+                                                         const GraphicsLineMeanDeviationSettings& settings);
         
         void applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<float>& data,
-                                                           const bool applyNewMeanFlag,
-                                                           const float newMean,
-                                                           const bool applyNewDeviationFlag,
-                                                           const float newDeviation,
-                                                           const bool applyAbsoluteValueFlag);
+                                                           const GraphicsLineMeanDeviationSettings& settings);
 
         std::vector<float> m_xyz;
         
