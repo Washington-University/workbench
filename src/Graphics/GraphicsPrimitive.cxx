@@ -2040,7 +2040,8 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
         d -= dataMean;
     }
 
-    if (settings.m_newDeviationEnabled) {
+    if (settings.m_multiplyDeviationEnabled
+        || settings.m_newDeviationEnabled) {
         /*
          * Compute deviation of data.
          * Note: mean has been already been subtracted from data
@@ -2055,17 +2056,24 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
         double dataDeviation((variance > 0.0)
                              ? (std::sqrt(variance))
                              : 0.0);
+        
+        double deviationRatio(1.0);
         if (settings.m_multiplyDeviationEnabled) {
-            dataDeviation *= settings.m_multiplyDeviationValue;
+            deviationRatio = dataDeviation = settings.m_multiplyDeviationValue;
+        }
+        else if (settings.m_newDeviationEnabled) {
+            /*
+             * Data = (Data / dataDeviation) * newDevation
+             *      => Data * (newDeviation / dataDeviation);
+             */
+            deviationRatio = ((dataDeviation != 0.0)
+                              ? (settings.m_newDeviationValue / dataDeviation)
+                              : settings.m_newDeviationValue);
+        }
+        else {
+            CaretAssert(0);
         }
 
-        /*
-         * Data = (Data / dataDeviation) * newDevation
-         *      => Data * (newDeviation / dataDeviation);
-         */
-        const double deviationRatio((dataDeviation != 0.0)
-                                    ? (settings.m_newDeviationValue / dataDeviation)
-                                    : settings.m_newDeviationValue);
         for (auto& d : data) {
             d *= deviationRatio;
         }
@@ -2085,17 +2093,6 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<flo
     for (auto& d : data) {
         d += totalOffset;
     }
-
-//    if (settings.m_newMeanEnabled) {
-//        for (auto& d : data) {
-//            d += settings.m_newMeanValue;
-//        }
-//    }
-//    else {
-//        for (auto& d : data) {
-//            d += dataMean;
-//        }
-//    }
 }
 
 /**
@@ -2136,7 +2133,8 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float
         d -= dataMean;
     }
     
-    if (settings.m_newDeviationEnabled) {
+    if (settings.m_multiplyDeviationEnabled
+        || settings.m_newDeviationEnabled) {
         /*
          * Compute deviation of data.
          * Note: mean has been already been subtracted from data
@@ -2149,17 +2147,24 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float
         double dataDeviation((variance > 0.0)
                              ? (std::sqrt(variance))
                              : 0.0);
+        
+        double deviationRatio(1.0);
         if (settings.m_multiplyDeviationEnabled) {
-            dataDeviation *= settings.m_multiplyDeviationValue;
+            deviationRatio = dataDeviation = settings.m_multiplyDeviationValue;
         }
-
-        /*
-         * Data = (Data / dataDeviation) * newDevation
-         *      => Data * (newDeviation / dataDeviation);
-         */
-        const double deviationRatio((dataDeviation != 0.0)
-                                    ? (settings.m_newDeviationValue / dataDeviation)
-                                    : settings.m_newDeviationValue);
+        else if (settings.m_newDeviationEnabled) {
+            /*
+             * Data = (Data / dataDeviation) * newDevation
+             *      => Data * (newDeviation / dataDeviation);
+             */
+            deviationRatio = ((dataDeviation != 0.0)
+                              ? (settings.m_newDeviationValue / dataDeviation)
+                              : settings.m_newDeviationValue);
+        }
+        else {
+            CaretAssert(0);
+        }
+        
         for (auto& d : data) {
             d *= deviationRatio;
         }
@@ -2179,16 +2184,6 @@ GraphicsPrimitive::applyNewMeanAndDeviationToYComponentsNoNaNs(std::vector<float
     for (auto& d : data) {
         d += totalOffset;
     }
-//    if (settings.m_newMeanEnabled) {
-//        for (auto& d : data) {
-//            d += settings.m_newMeanValue;
-//        }
-//    }
-//    else {
-//        for (auto& d : data) {
-//            d += dataMean;
-//        }
-//    }
 }
 
 /**
