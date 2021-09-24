@@ -47,6 +47,8 @@ public:
         COLOR_BACKGROUND,
         /** Color - Foreground */
         COLOR_FOREGROUND,
+        /** Coordinate All */
+        COORDINATE_ALL,
         /** Coordinate One */
         COORDINATE_ONE,
         /** Coordinate One And Two */

@@ -539,40 +539,67 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
         case Qt::Key_Left:
         case Qt::Key_Right:
         case Qt::Key_Up:
-        {
-            Annotation* selectedAnnotation = getSingleSelectedAnnotation();
-            if (selectedAnnotation != NULL) {
-                bool changeCoordFlag  = false;
-                bool moveOnePixelFlag = false;
-                switch (selectedAnnotation->getCoordinateSpace()) {
-                    case AnnotationCoordinateSpaceEnum::CHART:
-                        changeCoordFlag = true;
-                        break;
-                    case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
-                        changeCoordFlag = true;
-                        break;
-                    case AnnotationCoordinateSpaceEnum::SPACER:
-                        changeCoordFlag = true;
-                        moveOnePixelFlag = true;
-                        break;
-                    case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                        changeCoordFlag = true;
-                        break;
-                    case AnnotationCoordinateSpaceEnum::SURFACE:
-                        break;
-                    case AnnotationCoordinateSpaceEnum::TAB:
-                        changeCoordFlag  = true;
-                        moveOnePixelFlag = true;
-                        break;
-                    case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                        break;
-                    case AnnotationCoordinateSpaceEnum::WINDOW:
-                        changeCoordFlag  = true;
-                        moveOnePixelFlag = true;
-                        break;
+            if (true) {
+                AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+                std::vector<Annotation*> allSelectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+
+                std::vector<Annotation*> annotations;
+                for (auto& ann : allSelectedAnnotations) {
+                    CaretAssert(ann);
+                    bool moveableFlag(true);
+                    switch (ann->getCoordinateSpace()) {
+                        case AnnotationCoordinateSpaceEnum::CHART:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::SPACER:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::SURFACE:
+                            moveableFlag = false;
+                            break;
+                        case AnnotationCoordinateSpaceEnum::TAB:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                            moveableFlag = false;
+                            break;
+                        case AnnotationCoordinateSpaceEnum::WINDOW:
+                            break;
+                    }
+                    if (moveableFlag) {
+                        annotations.push_back(ann);
+                    }
                 }
+                    
+                std::vector<std::vector<std::unique_ptr<const AnnotationCoordinate>>> coordinates;
                 
-                if (changeCoordFlag) {
+                for (auto ann : annotations) {
+                    bool moveOnePixelFlag = false;
+                    switch (ann->getCoordinateSpace()) {
+                        case AnnotationCoordinateSpaceEnum::CHART:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::SPACER:
+                            moveOnePixelFlag = true;
+                            break;
+                        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::SURFACE:
+                            CaretAssert(0);
+                            break;
+                        case AnnotationCoordinateSpaceEnum::TAB:
+                            moveOnePixelFlag = true;
+                            break;
+                        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                            CaretAssert(0);
+                            break;
+                        case AnnotationCoordinateSpaceEnum::WINDOW:
+                            moveOnePixelFlag = true;
+                            break;
+                    }
+                    
                     keyWasProcessedFlag = true;
                     
                     float distanceX = 1.0;
@@ -612,11 +639,145 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             break;
                     }
                     
-                    AnnotationTwoCoordinateShape* twoCoordShape = selectedAnnotation->castToTwoCoordinateShape();
-                    AnnotationOneCoordinateShape* oneCoordShape = selectedAnnotation->castToOneCoordinateShape();
-                    AnnotationMultiCoordinateShape* multiCoordShape = selectedAnnotation->castToMultiCoordinateShape();
                     
-                    {
+                    switch (ann->getCoordinateSpace()) {
+                        case AnnotationCoordinateSpaceEnum::CHART:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::SPACER:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::SURFACE:
+                            CaretAssert(0);
+                            break;
+                        case AnnotationCoordinateSpaceEnum::TAB:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                            CaretAssert(0);
+                            break;
+                        case AnnotationCoordinateSpaceEnum::WINDOW:
+                            break;
+                    }
+                    
+                    std::vector<std::unique_ptr<AnnotationCoordinate>> allCoords(ann->getCopyOfAllCoordinates());
+                    std::vector<std::unique_ptr<const AnnotationCoordinate>> constCoords;
+                    
+                    for (auto& ac : allCoords) {
+                        float xyz[3];
+                        ac->getXYZ(xyz);
+                        xyz[0] += dx;
+                        xyz[1] += dy;
+                        ac->setXYZ(xyz);
+                        std::unique_ptr<const AnnotationCoordinate> acCopy(new AnnotationCoordinate(*ac.get()));
+                        constCoords.push_back(std::move(acCopy));
+                    }
+                    
+                    coordinates.push_back(std::move(constCoords));
+                }
+                
+                AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+                undoCommand->setModeCoordinateAll(coordinates,
+                                                  annotations);
+                
+                if ( ! keyEvent.isFirstKeyPressFlag()) {
+                    undoCommand->setMergeEnabled(true);
+                }
+                
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                AString errorMessage;
+                if ( ! annMan->applyCommand(getUserInputMode(),
+                                            undoCommand,
+                                            errorMessage)) {
+                    WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                           errorMessage);
+                }
+                
+                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            }
+            else {
+                /*
+                 * Process single selected annotation coordinates
+                 */
+                Annotation* selectedAnnotation = getSingleSelectedAnnotation();
+                if (selectedAnnotation != NULL) {
+                    bool changeCoordFlag  = false;
+                    bool moveOnePixelFlag = false;
+                    switch (selectedAnnotation->getCoordinateSpace()) {
+                        case AnnotationCoordinateSpaceEnum::CHART:
+                            changeCoordFlag = true;
+                            break;
+                        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                            changeCoordFlag = true;
+                            break;
+                        case AnnotationCoordinateSpaceEnum::SPACER:
+                            changeCoordFlag = true;
+                            moveOnePixelFlag = true;
+                            break;
+                        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                            changeCoordFlag = true;
+                            break;
+                        case AnnotationCoordinateSpaceEnum::SURFACE:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::TAB:
+                            changeCoordFlag  = true;
+                            moveOnePixelFlag = true;
+                            break;
+                        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::WINDOW:
+                            changeCoordFlag  = true;
+                            moveOnePixelFlag = true;
+                            break;
+                    }
+                    
+                    if (changeCoordFlag) {
+                        keyWasProcessedFlag = true;
+                        
+                        float distanceX = 1.0;
+                        float distanceY = 1.0;
+                        if (moveOnePixelFlag) {
+                            const float pixelHeight = keyEvent.getOpenGLWidget()->height();
+                            const float pixelWidth  = keyEvent.getOpenGLWidget()->width();
+                            /*
+                             * 100 is "full width/height" in relative coordinates.
+                             */
+                            distanceX = 100.0 / pixelWidth;
+                            distanceY = 100.0 / pixelHeight;
+                        }
+                        if (keyEvent.isShiftKeyDownFlag()) {
+                            const float multiplier = 10;
+                            distanceX *= multiplier;
+                            distanceY *= multiplier;
+                        }
+                        
+                        float dx = 0.0;
+                        float dy = 0.0;
+                        switch (keyCode) {
+                            case Qt::Key_Down:
+                                dy = -distanceY;
+                                break;
+                            case Qt::Key_Left:
+                                dx = -distanceX;
+                                break;
+                            case Qt::Key_Right:
+                                dx = distanceX;
+                                break;
+                            case Qt::Key_Up:
+                                dy = distanceY;
+                                break;
+                            default:
+                                CaretAssert(0);
+                                break;
+                        }
+                        
+                        AnnotationTwoCoordinateShape* twoCoordShape = selectedAnnotation->castToTwoCoordinateShape();
+                        AnnotationOneCoordinateShape* oneCoordShape = selectedAnnotation->castToOneCoordinateShape();
+                        AnnotationMultiCoordinateShape* multiCoordShape = selectedAnnotation->castToMultiCoordinateShape();
+                        
+                        {
                             bool surfaceFlag = false;
                             switch (selectedAnnotation->getCoordinateSpace()) {
                                 case AnnotationCoordinateSpaceEnum::CHART:
@@ -710,9 +871,9 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             }
                             
                         }
+                    }
                 }
             }
-        }
             break;
     }
     

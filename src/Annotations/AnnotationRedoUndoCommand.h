@@ -72,6 +72,9 @@ namespace caret {
         void setBoundsMaxY2D(const float maxY,
                              const std::vector<Annotation*>& annotations);
         
+        void setModeCoordinateAll(const std::vector<std::vector<std::unique_ptr<const AnnotationCoordinate>>>& coordinates,
+                                  const std::vector<Annotation*>& annotations);
+        
         void setModeCoordinateOne(const AnnotationCoordinate& coordinate,
                                   const std::vector<Annotation*>& annotations);
         

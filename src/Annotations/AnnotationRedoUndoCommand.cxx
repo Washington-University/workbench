@@ -159,6 +159,18 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             annotation->setCustomLineColor(rgba);
         }
             break;
+        case AnnotationRedoUndoCommandModeEnum::COORDINATE_ALL:
+        {
+            if ((annotation != NULL)
+                && (annotationValue != NULL)) {
+                std::vector<std::unique_ptr<AnnotationCoordinate>> coords(annotationValue->getCopyOfAllCoordinates());
+                annotation->replaceAllCoordinatesNotConst(coords);
+            }
+            else {
+                CaretAssert(0);
+            }
+        }
+            break;
         case AnnotationRedoUndoCommandModeEnum::COORDINATE_ONE:
         {
             AnnotationTwoCoordinateShape* oneDimShape = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
@@ -1366,6 +1378,41 @@ AnnotationRedoUndoCommand::setModeCoordinateMulti(const std::vector<std::unique_
     }
 }
 
+/**
+ * Set the mode to all coordinates in multiple annotations.
+ *
+ * @param coordinate
+ *     New value of the coordinate.
+ * @param annotations
+ *     Annotations that receive this new coordinate.
+ */
+void
+AnnotationRedoUndoCommand::setModeCoordinateAll(const std::vector<std::vector<std::unique_ptr<const AnnotationCoordinate>>>& coordinates,
+                                                const std::vector<Annotation*>& annotations)
+{
+    CaretAssert(coordinates.size() == annotations.size());
+    
+    if (annotations.empty()) {
+        CaretLogWarning("No annotations for setting coordinates");
+        return;
+    }
+    
+    m_mode        = AnnotationRedoUndoCommandModeEnum::COORDINATE_ALL;
+    setDescription("Set coordinates for all annotations");
+    
+    const int32_t numAnn = static_cast<int32_t>(annotations.size());
+    for (int32_t i = 0; i < numAnn; i++) {
+        Annotation* ann(annotations[i]);
+        CaretAssert(ann);
+        Annotation* redoAnnotation(ann->clone());
+        redoAnnotation->replaceAllCoordinates(coordinates[i]);
+        Annotation* undoAnnotation = ann->clone();
+        AnnotationMemento* am = new AnnotationMemento(ann,
+                                                      redoAnnotation,
+                                                      undoAnnotation);
+        m_annotationMementos.push_back(am);
+    }
+}
 
 /**
  * Set them mode to line arrow start and create the redo/undo instances.
