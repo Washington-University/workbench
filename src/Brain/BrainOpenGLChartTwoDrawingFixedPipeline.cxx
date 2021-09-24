@@ -2076,7 +2076,8 @@ m_tabViewportHeight(tabViewport[3])
     /*
      * Padding values are percentages so convert to pixels.
      */
-    const float numericsTicksPaddingPercentage(m_axis->isShowTickmarks()
+    const float numericsTicksPaddingPercentage((m_axis->isShowTickmarks()
+                                                && m_axis->isNumericsTextDisplayed())
                                                ? 1.0
                                                : 0.0);
     m_labelPaddingSizePixels = 0.0f;
@@ -2233,11 +2234,13 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
                                                                                 float& maxWidthOut,
                                                                                 float& maxHeightOut)
 {
+    /*
+     * Note Even if numerics are off, we still need to set the positions of the labels
+     * since these positions are also used for the ticks that may be displayed.
+     */
+    
     maxWidthOut = 0.0f;
     maxHeightOut = 0.0f;
-    if ( ! showNumericFlag) {
-        return;
-    }
     
     if (m_axis == NULL) {
         return;
@@ -2403,19 +2406,21 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
         text->setHorizontalAlignment(horizontalAlignment);
         text->setVerticalAlignment(verticalAlignment);
 
-        
-        if (showNumericFlag) {
-            text->setText(scaleValuesText[i]);
-        }
-        
         text->getCoordinate()->setXYZ(xyz);
-        
+
         double textWidth = 0.0;
         double textHeight = 0.0;
-        m_textRenderer->getTextWidthHeightInPixels(*text,
-                                                   BrainOpenGLTextRenderInterface::DrawingFlags(),
-                                                   m_tabViewportWidth, m_tabViewportHeight,
-                                                   textWidth, textHeight);
+        if (showNumericFlag) {
+            text->setText(scaleValuesText[i]);
+            m_textRenderer->getTextWidthHeightInPixels(*text,
+                                                       BrainOpenGLTextRenderInterface::DrawingFlags(),
+                                                       m_tabViewportWidth, m_tabViewportHeight,
+                                                       textWidth, textHeight);
+        }
+        else {
+            text->setText("");
+        }
+        
         if (rotateNumericFlag) {
             std::swap(textWidth,
                       textHeight);
