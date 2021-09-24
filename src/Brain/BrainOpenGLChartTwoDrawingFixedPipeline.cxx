@@ -2287,28 +2287,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
                 xyz[0] = scaleValuePositions[i];
                 if (rotateNumericFlag) {
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-//                    if (i == firstIndex) {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-//                    }
-//                    else if (i == lastIndex) {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-//                    }
-//                    else {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
-//                    }
                     verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
                 }
                 else {
                     verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-//                    if (i == firstIndex) {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-//                    }
-//                    else if (i == lastIndex) {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-//                    }
-//                    else {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
-//                    }
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
                 }
                 break;
@@ -2316,28 +2298,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
                 xyz[0] = scaleValuePositions[i];
                 if (rotateNumericFlag) {
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-//                    if (i == firstIndex) {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-//                    }
-//                    else if (i == lastIndex) {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-//                    }
-//                    else {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
-//                    }
                     verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
                 }
                 else {
                     verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-//                    if (i == firstIndex) {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-//                    }
-//                    else if (i == lastIndex) {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-//                    }
-//                    else {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
-//                    }
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
                 }
                 break;
@@ -2345,28 +2309,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
                 xyz[1] = scaleValuePositions[i];
                 if (rotateNumericFlag) {
                     verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-//                    if (i == firstIndex) {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-//                    }
-//                    else if (i == lastIndex) {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-//                    }
-//                    else {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
-//                    }
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
                 }
                 else {
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-//                    if (i == firstIndex) {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-//                    }
-//                    else if (i == lastIndex) {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-//                    }
-//                    else {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
-//                    }
                     verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
                 }
                 
@@ -2376,28 +2322,10 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
                 xyz[1] = scaleValuePositions[i];
                 if (rotateNumericFlag) {
                     verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-//                    if (i == firstIndex) {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-//                    }
-//                    else if (i == lastIndex) {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::RIGHT;
-//                    }
-//                    else {
-//                        horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
-//                    }
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::CENTER;
                 }
                 else {
                     horizontalAlignment = AnnotationTextAlignHorizontalEnum::LEFT;
-//                    if (i == firstIndex) {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::BOTTOM;
-//                    }
-//                    else if (i == lastIndex) {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::TOP;
-//                    }
-//                    else {
-//                        verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
-//                    }
                     verticalAlignment = AnnotationTextAlignVerticalEnum::MIDDLE;
                 }
                 
@@ -2750,7 +2678,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
                     const float halfTextSize(m_axis->isNumericsTextRotated()
                                              ? (textHeight / 2.0)
                                              : (textWidth / 2.0));
-//                    const float halfTextWidth(textWidth / 2.0);
                     const float textRight(textX + halfTextSize);
                     if (textRight > viewportRight) {
                         textX = viewportRight - halfTextSize;
