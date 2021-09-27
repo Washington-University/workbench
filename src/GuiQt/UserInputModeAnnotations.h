@@ -39,6 +39,7 @@ namespace caret {
     class AnnotationFile;
     class AnnotationTwoCoordinateShape;
     class AnnotationOneCoordinateShape;
+    class BrowserTabContent;
     class KeyEvent;
     class MouseEvent;
     class SelectionItemAnnotation;
@@ -242,6 +243,10 @@ namespace caret {
         
         void groupAnnotationsAfterPasting(std::vector<Annotation*>& pastedAnnotations);
         
+        bool getMediaStep(BrowserTabContent* browserTabContent,
+                          float& stepXOut,
+                          float& stepYOut);
+
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;

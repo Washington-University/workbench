@@ -64,6 +64,7 @@
 #include "GuiManager.h"
 #include "IdentificationManager.h"
 #include "KeyEvent.h"
+#include "MediaFile.h"
 #include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
 #include "SelectionItemAnnotation.h"
@@ -539,10 +540,11 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
         case Qt::Key_Left:
         case Qt::Key_Right:
         case Qt::Key_Up:
-            if (true) {
-                AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-                std::vector<Annotation*> allSelectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+        {
+            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+            std::vector<Annotation*> allSelectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
 
+            if (allSelectedAnnotations.size() > 1) {
                 std::vector<Annotation*> annotations;
                 for (auto& ann : allSelectedAnnotations) {
                     CaretAssert(ann);
@@ -576,10 +578,13 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                 
                 for (auto ann : annotations) {
                     bool moveOnePixelFlag = false;
+                    float distanceX = 1.0;
+                    float distanceY = 1.0;
                     switch (ann->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                            getMediaStep(keyEvent.getViewportContent()->getBrowserTabContent(), distanceX, distanceY);
                             break;
                         case AnnotationCoordinateSpaceEnum::SPACER:
                             moveOnePixelFlag = true;
@@ -602,8 +607,6 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     
                     keyWasProcessedFlag = true;
                     
-                    float distanceX = 1.0;
-                    float distanceY = 1.0;
                     if (moveOnePixelFlag) {
                         const float pixelHeight = keyEvent.getOpenGLWidget()->height();
                         const float pixelWidth  = keyEvent.getOpenGLWidget()->width();
@@ -705,11 +708,14 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                 if (selectedAnnotation != NULL) {
                     bool changeCoordFlag  = false;
                     bool moveOnePixelFlag = false;
+                    float distanceX = 1.0;
+                    float distanceY = 1.0;
                     switch (selectedAnnotation->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
                             changeCoordFlag = true;
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                            getMediaStep(keyEvent.getViewportContent()->getBrowserTabContent(), distanceX, distanceY);
                             changeCoordFlag = true;
                             break;
                         case AnnotationCoordinateSpaceEnum::SPACER:
@@ -736,8 +742,6 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     if (changeCoordFlag) {
                         keyWasProcessedFlag = true;
                         
-                        float distanceX = 1.0;
-                        float distanceY = 1.0;
                         if (moveOnePixelFlag) {
                             const float pixelHeight = keyEvent.getOpenGLWidget()->height();
                             const float pixelWidth  = keyEvent.getOpenGLWidget()->width();
@@ -874,11 +878,48 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     }
                 }
             }
+        }
             break;
     }
     
     return keyWasProcessedFlag;
 }
+
+#include "MediaOverlaySet.h"
+/**
+ * Get the step distance for the media displayed in the tab
+ * @param browserTabContent
+ *    Content of browser tab
+ * @param stepXOut
+ *    Output with width
+ * @param heightOut
+ *    Output width height
+ * @return
+ *    True if output width/height are valid
+ */
+bool
+UserInputModeAnnotations::getMediaStep(BrowserTabContent* browserTabContent,
+                                       float& stepXOut,
+                                       float& stepYOut)
+{
+    CaretAssert(browserTabContent);
+    const MediaFile* mediaFile(browserTabContent->getMediaOverlaySet()->getBottomMostMediaFile());
+    if (mediaFile != NULL) {
+        const float width(mediaFile->getWidth());
+        const float height(mediaFile->getHeight());
+        if ((width >= 1.0)
+            && (height >= 1.0)) {
+            const float factor(0.001);
+            stepXOut = std::max(width  * factor, 1.0f);
+            stepYOut = std::max(height * factor, 1.0f);
+            return true;
+        }
+    }
+    
+    return false;
+    
+}
+
 
 /**
  * Initialize user drawing a new annotation.
@@ -1170,6 +1211,11 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                             coordInfo.m_surfaceSpaceInfo.m_nodeIndex);
             }
             
+            if (coordInfo.m_mediaSpaceInfo.m_validFlag) {
+                annSpatialMod.setMediaCoordinateAtMouseXY(coordInfo.m_mediaSpaceInfo.m_xyz[0],
+                                                          coordInfo.m_mediaSpaceInfo.m_xyz[1],
+                                                          coordInfo.m_mediaSpaceInfo.m_xyz[2]);
+            }
             if (coordInfo.m_modelSpaceInfo.m_validFlag) {
                 annSpatialMod.setStereotaxicCoordinateAtMouseXY(coordInfo.m_modelSpaceInfo.m_xyz[0],
                                                                 coordInfo.m_modelSpaceInfo.m_xyz[1],
@@ -1194,6 +1240,11 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                     annSpatialMod.setChartCoordinateAtPreviousMouseXY(previousMouseXYCoordInfo.m_chartSpaceInfo.m_xyz[0],
                                                                       previousMouseXYCoordInfo.m_chartSpaceInfo.m_xyz[1],
                                                                       previousMouseXYCoordInfo.m_chartSpaceInfo.m_xyz[2]);
+                }
+                if (previousMouseXYCoordInfo.m_mediaSpaceInfo.m_validFlag) {
+                    annSpatialMod.setMediaCoordinateAtMouseXY(previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[0],
+                                                              previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[1],
+                                                              previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[2]);
                 }
             }
             
