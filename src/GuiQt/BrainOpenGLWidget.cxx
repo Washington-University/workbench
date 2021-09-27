@@ -392,6 +392,14 @@ BrainOpenGLWidget::getOpenGLInformation()
              + "\n   Minor Version: " + AString::number(format.minorVersion()));
 #endif
     
+    info += ("\n\nHigh DPI:");
+    info += ("\n   Enabled by User in Preferences: " + AString::fromBool(isHighDpiEnabled()));
+    info += ("\n   Device Pixel Ratio: " + AString::number(devicePixelRatio()));
+    info += ("\n   Width: " + AString::number(width()));
+    info += ("\n   Height: " + AString::number(height()));
+    info += ("\n   High DPI Width: " + AString::number(getWidgetWidth()));
+    info += ("\n   High DPI Height: " + AString::number(getWidgetHeight()));
+
     info += ("\n\n" + s_singletonOpenGL->getOpenGLInformation());
     
 #if BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
@@ -411,14 +419,67 @@ BrainOpenGLWidget::getOpenGLInformation()
 }
 
 /**
+ * @return True if High DPI display is enabled
+ */
+bool
+BrainOpenGLWidget::isHighDpiEnabled() const
+{
+    return SessionManager::get()->getCaretPreferences()->isOpenGLHighDpiDisplayEnabled();
+}
+
+/**
+ * Adjust valuefor inclusion of High DPI settings
+ * @param value
+ *    Value converted to High DPI
+ * @return
+ *    Value after conversion for High DPI settings
+ */
+int32_t
+BrainOpenGLWidget::adjustForHighDPI(const int32_t value) const
+{
+    int32_t valueOut(value);
+    if (isHighDpiEnabled()) {
+        valueOut *= devicePixelRatio();
+    }
+    return valueOut;
+}
+
+/**
  * Called when widget is resized.
  */
 void 
 BrainOpenGLWidget::resizeGL(int w, int h)
 {
-    this->windowWidth[this->windowIndex] = w;
-    this->windowHeight[this->windowIndex] = h;
+    this->windowWidth  = w;
+    this->windowHeight = h;
 }
+
+/**
+ * @return Width of widget including High DPI scaling, if enabled
+ */
+int
+BrainOpenGLWidget::getWidgetWidth() const
+{
+    int w(this->windowWidth);
+    if (isHighDpiEnabled()) {
+        w *= devicePixelRatio();
+    }
+    return w;
+}
+
+/**
+ * @return Width of widget including High DPI scaling, if enabled
+ */
+int
+BrainOpenGLWidget::getWidgetHeight() const
+{
+    int h(this->windowHeight);
+    if (isHighDpiEnabled()) {
+        h *= devicePixelRatio();
+    }
+    return h;
+}
+
 
 /**
  * Clear the contents for drawing into the viewports.
@@ -767,8 +828,8 @@ BrainOpenGLWidget::paintGL()
     const int windowViewport[4] = {
         0,
         0,
-        this->windowWidth[this->windowIndex],
-        this->windowHeight[this->windowIndex]
+        getWidgetWidth(),
+        getWidgetHeight()
     };
     
     getDrawingWindowContent(windowViewport,
@@ -909,8 +970,8 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
                 break;
         }
         
-        const int gestureStartX = startPoint.x();
-        const int gestureStartY = height() - startPoint.y();
+        const int gestureStartX = adjustForHighDPI(startPoint.x());
+        const int gestureStartY = getWidgetHeight() - adjustForHighDPI(startPoint.y());
         const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(gestureStartX,
                                                                                          gestureStartY);
         if (viewportContent == NULL) {
@@ -972,7 +1033,6 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
     return false;
 }
 
-
 /**
  * Receive Content Menu events from Qt.
  * @param contextMenuEvent
@@ -981,11 +1041,11 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
 void 
 BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
 {
-    const int mouseX = contextMenuEvent->x();
-    const int mouseY = this->height() - contextMenuEvent->y();
+    const int mouseX = adjustForHighDPI(contextMenuEvent->x());
+    const int mouseY = this->getWidgetHeight() - adjustForHighDPI(contextMenuEvent->y());
     
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
-                                                                               mouseY);
+                                                                                     mouseY);
     std::vector<MouseEvent::XY> emptyHistoryXY;
     MouseEvent mouseEvent(&m_windowContent,
                           viewportContent,
@@ -1089,8 +1149,8 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
 #else
     const QPointF pos(we->pos());
 #endif
-    const int wheelX = pos.x();
-    const int wheelY = this->windowHeight[this->windowIndex] - pos.y();
+    const int wheelX = adjustForHighDPI(pos.x());
+    const int wheelY = getWidgetHeight() - adjustForHighDPI(pos.y());
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
                                                                                      wheelY);
     if (viewportContent != NULL) {
@@ -1197,12 +1257,12 @@ BrainOpenGLWidget::keyPressEvent(QKeyEvent* e)
     
     bool mouseValidFlag(false);
     const QPoint mousePos = mapFromGlobal(QCursor::pos());
-    int32_t mouseX = mousePos.x();
-    int32_t mouseY = height() - mousePos.y();
+    int32_t mouseX = adjustForHighDPI(mousePos.x());
+    int32_t mouseY = getWidgetHeight() - adjustForHighDPI(mousePos.y());
     if ((mouseX >= 0)
-        && (mouseX < width())
+        && (mouseX < getWidgetWidth())
         && (mouseY >= 0)
-        && (mouseY < height())) {
+        && (mouseY < getWidgetHeight())) {
         mouseValidFlag = true;
     }
     
@@ -1281,8 +1341,8 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
     this->isMousePressedNearToolBox = false;
     
     if (button == Qt::LeftButton) {
-        const int mouseX = me->x();
-        const int mouseY = this->windowHeight[this->windowIndex] - me->y();
+        const int mouseX = adjustForHighDPI(me->x());
+        const int mouseY = getWidgetHeight() - adjustForHighDPI(me->y());
 
         this->mousePressX = mouseX;
         this->mousePressY = mouseY;
@@ -1308,9 +1368,9 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
          */
         const int nearToolBoxDistance = 5;
         if ((mouseX < nearToolBoxDistance) 
-            || (mouseX > (this->windowWidth[this->windowIndex] - 5))
+            || (mouseX > (getWidgetWidth() - 5))
             || (mouseY < nearToolBoxDistance) 
-            || (mouseY > (this->windowHeight[this->windowIndex] - 5))) {
+            || (mouseY > (getWidgetHeight() - 5))) {
             this->isMousePressedNearToolBox = true;
         }
 
@@ -1371,8 +1431,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                               false);
     
     if (button == Qt::LeftButton) {
-        const int mouseX = me->x();
-        const int mouseY = this->windowHeight[this->windowIndex] - me->y();
+        const int mouseX = adjustForHighDPI(me->x());
+        const int mouseY = getWidgetHeight() - adjustForHighDPI(me->y());
         
         this->mouseMovementMinimumX = std::min(this->mouseMovementMinimumX, mouseX);
         this->mouseMovementMaximumX = std::max(this->mouseMovementMaximumX, mouseX);
@@ -1478,8 +1538,8 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
     
     if (button == Qt::LeftButton) {
         if (keyModifiers == Qt::NoModifier) {
-            const int mouseX = me->x();
-            const int mouseY = this->windowHeight[this->windowIndex] - me->y();
+            const int mouseX = adjustForHighDPI(me->x());
+            const int mouseY = getWidgetHeight() - adjustForHighDPI(me->y());
             
             /*
              * Use location of mouse press so that the model
@@ -1881,8 +1941,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                               keyModifiers,
                               true);
     
-    const int mouseX = me->x();
-    const int mouseY = this->windowHeight[this->windowIndex] - me->y();
+    const int mouseX = adjustForHighDPI(me->x());
+    const int mouseY = getWidgetHeight() - adjustForHighDPI(me->y());
     
     UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
     
@@ -2414,8 +2474,12 @@ BrainOpenGLWidget::repaintGraphics()
 void
 BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
 {
-    const int oldSizeX = this->windowWidth[this->windowIndex];
-    const int oldSizeY = this->windowHeight[this->windowIndex];
+    /*
+     * Want size reported by Qt.
+     * Do NOT want to use size adjusted for high DPI
+     */
+    const int oldSizeX = width();
+    const int oldSizeY = height();
 
     /*
      * Note that a size of zero indicates capture graphics in its

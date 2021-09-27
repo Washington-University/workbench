@@ -720,7 +720,18 @@ PreferencesDialog::createOpenGLWidget()
                       m_openGLGraphicsTimingEnabledComboBox->getWidget());
     m_allWidgets->add(m_openGLGraphicsTimingEnabledComboBox);
     
-
+    /*
+     * High DPI
+     */
+    m_openGLHighDpiDisplayEnabledComboBox =new WuQTrueFalseComboBox("On",
+                                                                    "Off",
+                                                                    this);
+    QObject::connect(m_openGLHighDpiDisplayEnabledComboBox, &WuQTrueFalseComboBox::statusChanged,
+                     this, &PreferencesDialog::openGLHighDpiComboBoxToggled);
+    addWidgetToLayout(gridLayout,
+                      "Enable High DPI Support",
+                      m_openGLHighDpiDisplayEnabledComboBox->getWidget());
+    m_allWidgets->add(m_openGLHighDpiDisplayEnabledComboBox);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -749,6 +760,23 @@ PreferencesDialog::openGLGraphicsTimingComboBoxToggled(bool value)
 }
 
 /**
+ * Called when OpenGL High DPI combo box toggled
+ */
+void
+PreferencesDialog::openGLHighDpiComboBoxToggled(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setOpenGLHighDpiDisplayEnabled(value);
+    
+    /*
+     * Need to draw a few frames to force creation of frame times so that
+     * the text is dislayed in the window
+     */
+    const bool doRepaintFlag(true);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(doRepaintFlag).getPointer());
+}
+
+/**
  * Update the OpenGL widget's items.
  *
  * @param prefs
@@ -764,6 +792,8 @@ PreferencesDialog::updateOpenGLWidget(CaretPreferences* prefs)
     m_openGLDrawingMethodEnumComboBox->setSelectedItem<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>(drawingMethod);
     
     m_openGLGraphicsTimingEnabledComboBox->setStatus(prefs->isGraphicsFramesPerSecondEnabled());
+    
+    m_openGLHighDpiDisplayEnabledComboBox->setStatus(prefs->isOpenGLHighDpiDisplayEnabled());
 }
 
 /**

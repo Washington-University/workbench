@@ -271,6 +271,10 @@ namespace caret {
         
         void setCropSceneImagesEnabled(const bool status);
         
+        bool isOpenGLHighDpiDisplayEnabled() const;
+        
+        void setOpenGLHighDpiDisplayEnabled(const bool enabled);
+
         int32_t getCziDimension() const;
         
         void setCziDimension(const int32_t dimension);
@@ -415,6 +419,8 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_identificationDisplayModePreference;
         
         std::unique_ptr<CaretPreferenceDataValue> m_fileOpenFromOperatingSystemTypePreference;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_openGLHighDpiDisplayEnabled;
         
         std::vector<CaretPreferenceDataValue*> m_preferenceStoredInSceneDataValues;
         

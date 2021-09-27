@@ -113,6 +113,14 @@ namespace caret {
         
         virtual void processMouseEventFromMacro(QMouseEvent* me) override;
         
+        bool isHighDpiEnabled() const;
+        
+        int32_t getWidgetWidth() const;
+        
+        int32_t getWidgetHeight() const;
+        
+        int32_t adjustForHighDPI(const int32_t value) const;
+        
     protected:
         virtual void initializeGL() override;
         
@@ -189,8 +197,17 @@ namespace caret {
         
         BrainOpenGLWindowContent m_windowContent;
         
-        int32_t windowWidth[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
-        int32_t windowHeight[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        /**
+         * Width sent by Qt to resizeGL - Do not use this directly.
+         * Instead use getWidgetWidth() so that it includes High DPI scaling
+         */
+        int32_t windowWidth = 0;
+        
+        /**
+         * Height sent by Qt to resizeGL - Do not use this directly.
+         * Instead use getWidgetHeight() so that it includes High DPI scaling
+         */
+        int32_t windowHeight = 0;
         
         int32_t mouseMovementMinimumX;
         int32_t mouseMovementMaximumX;

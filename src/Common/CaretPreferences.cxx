@@ -117,6 +117,12 @@ CaretPreferences::CaretPreferences()
                                                                                    CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                                    FileOpenFromOpSysTypeEnum::toName(FileOpenFromOpSysTypeEnum::ASK_USER)));
     
+    m_openGLHighDpiDisplayEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                     "m_openGLHighDpiDisplayEnabled",
+                                                                     CaretPreferenceDataValue::DataType::BOOLEAN,
+                                                                     CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                     false));
+    
     m_identificationDisplayModePreference.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                              "identificationDisplayMode",
                                                                              CaretPreferenceDataValue::DataType::STRING,
@@ -1467,6 +1473,26 @@ CaretPreferences::setFileOpenFromOpSysType(const FileOpenFromOpSysTypeEnum::Enum
 {
     const QString stringValue = FileOpenFromOpSysTypeEnum::toName(openType);
     m_fileOpenFromOperatingSystemTypePreference->setValue(stringValue);
+}
+
+/**
+ * @return Is OpenGL High CPI Display Enabled
+ */
+bool
+CaretPreferences::isOpenGLHighDpiDisplayEnabled() const
+{
+    return m_openGLHighDpiDisplayEnabled->getValue().toBool();
+}
+
+/**
+ * Set OpenGL High CPI Display Enabled
+ * @param enabled
+ *    New status
+ */
+void
+CaretPreferences::setOpenGLHighDpiDisplayEnabled(const bool enabled)
+{
+    m_openGLHighDpiDisplayEnabled->setValue(enabled);
 }
 
 /**
