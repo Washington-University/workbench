@@ -193,6 +193,7 @@ ELSE()
 	PreferencesCziImagesWidget.h
 	PreferencesDevelopOptionsWidget.h
         PreferencesDialog.h
+	PreferencesDisplayWidget.h
 	PreferencesRecentFilesWidget.h
         ProgressReportingDialog.h
         ProgressReportingFromEvent.h
@@ -491,6 +492,7 @@ PlotPanner.h
 PreferencesCziImagesWidget.h
 PreferencesDevelopOptionsWidget.h
 PreferencesDialog.h
+PreferencesDisplayWidget.h
 PreferencesRecentFilesWidget.h
 ProgressReportingDialog.h
 ProgressReportingFromEvent.h
@@ -809,6 +811,7 @@ PlotPanner.cxx
 PreferencesCziImagesWidget.cxx
 PreferencesDevelopOptionsWidget.cxx
 PreferencesDialog.cxx
+PreferencesDisplayWidget.cxx
 PreferencesRecentFilesWidget.cxx
 ProgressReportingDialog.cxx
 ProgressReportingFromEvent.cxx

@@ -117,11 +117,11 @@ CaretPreferences::CaretPreferences()
                                                                                    CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                                    FileOpenFromOpSysTypeEnum::toName(FileOpenFromOpSysTypeEnum::ASK_USER)));
     
-    m_openGLHighDpiDisplayEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
-                                                                     "m_openGLHighDpiDisplayEnabled",
-                                                                     CaretPreferenceDataValue::DataType::BOOLEAN,
-                                                                     CaretPreferenceDataValue::SavedInScene::SAVE_NO,
-                                                                     false));
+    m_displayHighDpiModePreference.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                      "m_displayHighDpiModePreference",
+                                                                      CaretPreferenceDataValue::DataType::STRING,
+                                                                      CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                      DisplayHighDpiModeEnum::toName(DisplayHighDpiModeEnum::getDefaultValue())));
     
     m_identificationDisplayModePreference.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                              "identificationDisplayMode",
@@ -1476,23 +1476,27 @@ CaretPreferences::setFileOpenFromOpSysType(const FileOpenFromOpSysTypeEnum::Enum
 }
 
 /**
- * @return Is OpenGL High CPI Display Enabled
+ * @return The Display High DPI mode
  */
-bool
-CaretPreferences::isOpenGLHighDpiDisplayEnabled() const
+DisplayHighDpiModeEnum::Enum
+CaretPreferences::getDisplayHighDpiMode() const
 {
-    return m_openGLHighDpiDisplayEnabled->getValue().toBool();
+    const QString stringValue(m_displayHighDpiModePreference->getValue().toString());
+    bool validFlag(false);
+    const DisplayHighDpiModeEnum::Enum enumValue = DisplayHighDpiModeEnum::fromName(stringValue, &validFlag);
+    return enumValue;
 }
 
 /**
- * Set OpenGL High CPI Display Enabled
- * @param enabled
- *    New status
+ * Set the display high dpi mode
+ * @param highDpiMode
+ *    New value for high dpi mode
  */
 void
-CaretPreferences::setOpenGLHighDpiDisplayEnabled(const bool enabled)
+CaretPreferences::setDisplayHighDpiMode(const DisplayHighDpiModeEnum::Enum highDpiMode)
 {
-    m_openGLHighDpiDisplayEnabled->setValue(enabled);
+    const QString stringValue = DisplayHighDpiModeEnum::toName(highDpiMode);
+    m_displayHighDpiModePreference->setValue(stringValue);
 }
 
 /**

@@ -106,6 +106,7 @@ DescriptiveStatistics.h
 DeveloperFlagsEnum.h
 DisplayGroupAndTabItemInterface.h 
 DisplayGroupEnum.h
+DisplayHighDpiModeEnum.h
 ElapsedTimer.h
 Event.h
 EventAlertUser.h
@@ -262,6 +263,7 @@ DescriptiveStatistics.cxx
 DeveloperFlagsEnum.cxx
 DisplayGroupAndTabItemInterface.cxx
 DisplayGroupEnum.cxx
+DisplayHighDpiModeEnum.cxx
 ElapsedTimer.cxx
 Event.cxx
 EventAlertUser.cxx

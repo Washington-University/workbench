@@ -28,6 +28,7 @@
 #include "BackgroundAndForegroundColors.h"
 #include "BackgroundAndForegroundColorsModeEnum.h"
 #include "CaretObject.h"
+#include "DisplayHighDpiModeEnum.h"
 #include "FileOpenFromOpSysTypeEnum.h"
 #include "IdentificationDisplayModeEnum.h"
 #include "ImageCaptureMethodEnum.h"
@@ -271,9 +272,9 @@ namespace caret {
         
         void setCropSceneImagesEnabled(const bool status);
         
-        bool isOpenGLHighDpiDisplayEnabled() const;
+        DisplayHighDpiModeEnum::Enum getDisplayHighDpiMode() const;
         
-        void setOpenGLHighDpiDisplayEnabled(const bool enabled);
+        void setDisplayHighDpiMode(const DisplayHighDpiModeEnum::Enum highDpiMode);
 
         int32_t getCziDimension() const;
         
@@ -420,7 +421,7 @@ namespace caret {
         
         std::unique_ptr<CaretPreferenceDataValue> m_fileOpenFromOperatingSystemTypePreference;
         
-        std::unique_ptr<CaretPreferenceDataValue> m_openGLHighDpiDisplayEnabled;
+        std::unique_ptr<CaretPreferenceDataValue> m_displayHighDpiModePreference;
         
         std::vector<CaretPreferenceDataValue*> m_preferenceStoredInSceneDataValues;
         

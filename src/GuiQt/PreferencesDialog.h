@@ -38,6 +38,7 @@ namespace caret {
     class EnumComboBoxTemplate;
     class PreferencesCziImagesWidget;
     class PreferencesDevelopOptionsWidget;
+    class PreferencesDisplayWidget;
     class PreferencesRecentFilesWidget;
     class WuQTrueFalseComboBox;
     class WuQWidgetObjectGroup;
@@ -68,7 +69,6 @@ namespace caret {
         void openGLDrawingMethodEnumComboBoxItemActivated();
         void openGLImageCaptureMethodEnumComboBoxItemActivated();
         void openGLGraphicsTimingComboBoxToggled(bool value);
-        void openGLHighDpiComboBoxToggled(bool value);
         
         void volumeAxesCrosshairsComboBoxToggled(bool value);
         void volumeAxesLabelsComboBoxToggled(bool value);
@@ -157,7 +157,6 @@ namespace caret {
         EnumComboBoxTemplate* m_openGLDrawingMethodEnumComboBox;
         EnumComboBoxTemplate* m_openGLImageCaptureMethodEnumComboBox;
         WuQTrueFalseComboBox* m_openGLGraphicsTimingEnabledComboBox;
-        WuQTrueFalseComboBox* m_openGLHighDpiDisplayEnabledComboBox;
         
         WuQTrueFalseComboBox* m_dynamicConnectivityComboBox;
         
@@ -181,7 +180,7 @@ namespace caret {
         PreferencesCziImagesWidget* m_cziOptionsWidget;
         
         PreferencesDevelopOptionsWidget* m_developOptionsWidget;
-        
+        PreferencesDisplayWidget* m_displayWidget;
         PreferencesRecentFilesWidget* m_recentFilesWidget;
         
         friend class PreferencesCziImagesWidget;

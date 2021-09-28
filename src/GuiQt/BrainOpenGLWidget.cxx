@@ -39,6 +39,7 @@
 #include <QWheelEvent>
 
 #include "AnnotationManager.h"
+#include "ApplicationInformation.h"
 #include "Border.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -424,7 +425,20 @@ BrainOpenGLWidget::getOpenGLInformation()
 bool
 BrainOpenGLWidget::isHighDpiEnabled() const
 {
-    return SessionManager::get()->getCaretPreferences()->isOpenGLHighDpiDisplayEnabled();
+    bool enabledFlag(false);
+    const DisplayHighDpiModeEnum::Enum highDpiMode(SessionManager::get()->getCaretPreferences()->getDisplayHighDpiMode());
+    switch (highDpiMode) {
+        case DisplayHighDpiModeEnum::DPI_AUTO:
+            enabledFlag = DisplayHighDpiModeEnum::isHighDpiEnabledForAutoMode();
+            break;
+        case DisplayHighDpiModeEnum::DPI_OFF:
+            enabledFlag = false;
+            break;
+        case DisplayHighDpiModeEnum::DPI_ON:
+            enabledFlag = true;
+            break;
+    }
+    return enabledFlag;
 }
 
 /**
@@ -460,10 +474,7 @@ BrainOpenGLWidget::resizeGL(int w, int h)
 int
 BrainOpenGLWidget::getWidgetWidth() const
 {
-    int w(this->windowWidth);
-    if (isHighDpiEnabled()) {
-        w *= devicePixelRatio();
-    }
+    int w(adjustForHighDPI(this->windowWidth));
     return w;
 }
 
@@ -473,10 +484,7 @@ BrainOpenGLWidget::getWidgetWidth() const
 int
 BrainOpenGLWidget::getWidgetHeight() const
 {
-    int h(this->windowHeight);
-    if (isHighDpiEnabled()) {
-        h *= devicePixelRatio();
-    }
+    int h(adjustForHighDPI(this->windowHeight));
     return h;
 }
 
