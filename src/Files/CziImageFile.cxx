@@ -437,12 +437,12 @@ CziImageFile::readFile(const AString& filename)
         
         clearModified();
     }
-    catch (const std::exception& e) {
-        m_errorMessage = ("std::exception " + filename + QString(e.what()));
-        m_status = Status::ERRORED;
-    }
     catch (const std::out_of_range& e) {
         m_errorMessage = ("std::out_of_range " + filename + QString(e.what()));
+        m_status = Status::ERRORED;
+    }
+    catch (const std::exception& e) {
+        m_errorMessage = ("std::exception " + filename + QString(e.what()));
         m_status = Status::ERRORED;
     }
 }

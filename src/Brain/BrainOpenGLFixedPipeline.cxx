@@ -3357,12 +3357,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNormalVectors(const Surface* surface)
  */
 void 
 BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
-{
-    BrainStructure* brainStructure = surface->getBrainStructure();
-    CaretAssert(brainStructure);
-    Brain* brain = brainStructure->getBrain();
-    CaretAssert(brain);
-    
+{    
     /*
      * Draw surface identification symbols
      */

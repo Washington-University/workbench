@@ -84,7 +84,6 @@ namespace caret {
                                        const bool useNegativePolygonOffsetFlag);
         
         static void drawIdentificationSymbols(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                              Brain* brain,
                                               BrowserTabContent* browserTabContent,
                                               const VolumeMappableInterface* volume,
                                               const Plane& plane,

@@ -5703,8 +5703,6 @@ BrowserTabContent::setMediaModelYokingGroup(const YokingGroupEnum::Enum mediaMod
         return;
     }
     
-    int32_t copyFromTabIndex = -1;
-    
     /*
      * Find another browser tab using the same yoking as 'me' and copy
      * yoked data from the other browser tab.
@@ -5713,7 +5711,6 @@ BrowserTabContent::setMediaModelYokingGroup(const YokingGroupEnum::Enum mediaMod
     for (auto btc : activeTabs) {
         if (btc != this) {
             if (btc->getMediaModelYokingGroup() == m_mediaModelYokingGroup) {
-                copyFromTabIndex = btc->getTabNumber();
                 *m_mediaViewingTransformation = *btc->m_mediaViewingTransformation;
                 break;
             }

@@ -1620,7 +1620,6 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const VolumeMappableInt
                                                          const float sliceThickness)
 {
     drawIdentificationSymbols(m_fixedPipelineDrawing,
-                              m_brain,
                               m_browserTabContent,
                               volume,
                               plane,
@@ -1631,8 +1630,6 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const VolumeMappableInt
  * Draw identification symbols on volume slice with the given plane.
  * @param fixedPipelineDrawing
  *   The fixed pipeline drawing
- * @param brain
- *    The brain
  * @param browserTabContent
  *    Tab content containing volume
  * @param volume
@@ -1644,14 +1641,12 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const VolumeMappableInt
  */
 void
 BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                                         Brain* brain,
                                                          BrowserTabContent* browserTabContent,
                                                          const VolumeMappableInterface* volume,
                                                          const Plane& plane,
                                                          const float sliceThickness)
 {
     CaretAssert(fixedPipelineDrawing);
-    CaretAssert(brain);
     CaretAssert(volume);
         
     BoundingBox boundingBox;

@@ -855,7 +855,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
         
         CaretAssertVectorIndex(m_volumeDrawInfo, 0);
         BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(m_fixedPipelineDrawing,
-                                                                 this->m_brain,
                                                                  m_browserTabContent,
                                                                  m_volumeDrawInfo[0].volumeFile,
                                                                  slicePlane,
