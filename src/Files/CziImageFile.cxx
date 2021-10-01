@@ -438,12 +438,18 @@ CziImageFile::readFile(const AString& filename)
         clearModified();
     }
     catch (const std::out_of_range& e) {
-        m_errorMessage = ("std::out_of_range " + filename + QString(e.what()));
+        m_errorMessage = ("std::out_of_range " + filename + ": " + QString(e.what()));
         m_status = Status::ERRORED;
+        throw DataFileException(filename,
+                                ("std::out_of_range exception: "
+                                 + QString(e.what())));
     }
     catch (const std::exception& e) {
-        m_errorMessage = ("std::exception " + filename + QString(e.what()));
+        m_errorMessage = ("std::exception " + filename + ": " + QString(e.what()));
         m_status = Status::ERRORED;
+        throw DataFileException(filename,
+                                ("std::exception: "
+                                 + QString(e.what())));
     }
 }
 
@@ -794,7 +800,6 @@ CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
     libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyramidInfo = m_pyramidLayers[pyramidLayer].m_layerInfo;
     
     libCZI::CDimCoordinate coordinate;
-    coordinate.Set(libCZI::DimensionIndex::C, 0);
     libCZI::IDimCoordinate* iDimCoord = &coordinate;
     
     libCZI::ISingleChannelPyramidLayerTileAccessor::Options scstaOptions;

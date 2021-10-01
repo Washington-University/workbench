@@ -119,12 +119,18 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
     }
     else  if (cziImageFile != NULL) {
         cziImage = cziImageFile->getDefaultImage();
+        if (cziImage == NULL) {
+            CaretLogSevere("CZI file has invalid default image: "
+                           + underlayMediaFile->getFileNameNoPath());
+            return false;
+        }
         primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
     }
     else {
         CaretAssertMessage(0, ("Unrecognized file type "
                                + DataFileTypeEnum::toName(underlayMediaFile->getDataFileType())
                                + " for media drawing."));
+        return false;
     }
     if (primitive == NULL) {
         CaretLogSevere("Media file has invalid primitive for tab "
