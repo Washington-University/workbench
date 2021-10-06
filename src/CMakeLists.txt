@@ -14,6 +14,12 @@ SET(WB_VERSION "1.5.0")
 #
 SET(WB_CMAKE_VERBOSE_OUTPUT_FLAG TRUE)
 
+#
+# if this include is not present you will get
+# Unknown CMake command "CHECK_CXX_COMPILER_FLAG"
+#
+include(CheckCXXCompilerFlag)
+
 ##########################################################################################
 #
 # A function to get all user defined variables with a specified prefix
@@ -123,6 +129,13 @@ IF (NOT MSVC)
             ADD_DEFINITIONS(-Wno-narrowing -Wno-unused-local-typedefs)
         endif()
     endif()
+
+    CHECK_CXX_COMPILER_FLAG(-Wno-deprecated-copy HAVE_NO_COPY_DEPRECATED_FLAG)
+    IF (${HAVE_NO_COPY_DEPRECATED_FLAG})
+        # Disable warning "definition of implicit copy constructor is deprecated"
+        # that occurs in many parts of Qt with newer compilers
+        ADD_DEFINITIONS("-Wno-deprecated-copy")
+    ENDIF()
 ENDIF (NOT MSVC)
 
 ##########################################################################################
