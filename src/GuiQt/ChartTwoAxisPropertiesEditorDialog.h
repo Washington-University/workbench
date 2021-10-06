@@ -37,8 +37,6 @@ namespace caret {
     
     class ChartTwoAxisPropertiesEditorDialog : public QDialog {
         
-        Q_OBJECT
-
     public:
         ChartTwoAxisPropertiesEditorDialog(const ChartAxisLocationEnum::Enum axisLocation,
                                            const QString& parentObjectName,
