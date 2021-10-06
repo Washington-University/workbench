@@ -41,7 +41,8 @@ using namespace caret;
  * Constructor.
  */
 PixelCoordinate::PixelCoordinate()
-: CaretObject()
+: CaretObject(),
+SceneableInterface()
 {
     initializeMembers();
 }
@@ -52,6 +53,8 @@ PixelCoordinate::PixelCoordinate()
  *    Coordinates in std::array
  */
 PixelCoordinate::PixelCoordinate(const std::array<float,3>& xyz)
+: CaretObject(),
+SceneableInterface()
 {
     initializeMembers();
     m_pixelCoord[0] = xyz[0];
@@ -71,6 +74,8 @@ PixelCoordinate::PixelCoordinate(const std::array<float,3>& xyz)
 PixelCoordinate::PixelCoordinate(const float x,
                                  const float y,
                                  const float z)
+: CaretObject(),
+SceneableInterface()
 {
     initializeMembers();
     m_pixelCoord[0] = x;
@@ -101,7 +106,8 @@ PixelCoordinate::~PixelCoordinate()
  *    Object that is copied.
  */
 PixelCoordinate::PixelCoordinate(const PixelCoordinate& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     initializeMembers();
     this->copyHelperPixelCoordinate(obj);
