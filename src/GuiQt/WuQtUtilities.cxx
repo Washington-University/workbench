@@ -484,7 +484,7 @@ WuQtUtilities::moveAndSizeWindow(QWidget* window,
      */
     pXY.setX(xPos);
     pXY.setY(yPos);
-#if QT_VERSION >= 0x060000
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     QScreen* nearestScreen = QGuiApplication::screenAt(pXY);
     if (nearestScreen != NULL) {
         const QRect screenRect = nearestScreen->geometry();
@@ -563,7 +563,7 @@ WuQtUtilities::resizeWindow(QWidget* window,
 {
     QPoint pXY(window->x(),
                window->y());
-#if QT_VERSION >= 0x060000
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     QScreen* nearestScreen = QGuiApplication::screenAt(pXY);
     if (nearestScreen != NULL) {
         const QRect screenRect = nearestScreen->geometry();
@@ -620,7 +620,7 @@ WuQtUtilities::limitWindowSizePercentageOfMaximum(QWidget* window,
     
     QPoint pXY(window->x(),
                window->y());
-#if QT_VERSION >= 0x060000
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     QScreen* nearestScreen = QGuiApplication::screenAt(pXY);
     if (nearestScreen != NULL) {
         const QRect screenRect = nearestScreen->geometry();
@@ -717,7 +717,7 @@ WuQtUtilities::estimateTableWidgetSize(QTableWidget* tableWidget)
                     if (text.isEmpty() == false) {
                         QFont font = item->font();
                         QFontMetrics fontMetrics(font);
-#if QT_VERSION >= 0x060000
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
                         const int textWidth =  fontMetrics.horizontalAdvance(text);
 #else
                         const int textWidth =  fontMetrics.width(text);

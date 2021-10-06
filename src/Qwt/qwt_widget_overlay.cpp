@@ -219,7 +219,7 @@ void QwtWidgetOverlay::updateMask()
         draw( &painter );
         painter.end();
 
-#if QT_VERSION >= 0x060000
+#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
         QVector<QRect> rects;
         for (auto& r : hint) {
             rects.push_back(r);
@@ -279,7 +279,7 @@ void QwtWidgetOverlay::paintEvent( QPaintEvent* event )
 
 
         QVector<QRect> clipRegionRects;
-#if QT_VERSION >= 0x060000
+#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
         for (auto& r : clipRegion) {
             clipRegionRects.push_back(r);
         }

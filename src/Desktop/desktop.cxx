@@ -499,7 +499,7 @@ main(int argc, char* argv[])
                                              + AString::number(h));
         }
         
-#if QT_VERSION >= 0x060000
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
         QScreen* primaryScreen = QGuiApplication::primaryScreen();
         if (primaryScreen != NULL) {
             int32_t primaryIndex = -1;
