@@ -29,6 +29,8 @@
 
 #include "DeveloperFlagsEnum.h"
 
+class QDoubleSpinBox;
+
 namespace caret {
 
     class CaretPreferences;
@@ -62,6 +64,10 @@ namespace caret {
         
         void graphicsTextureMinificationFilterEnumComboBoxItemActivated();
         
+        void obliqueVolumeInterpolationTypeComboBoxActivated();
+        
+        void obliqueVoxelScalingSpinBoxValueChanged(double value);
+        
     private:
         void updateGraphicsAndUserInterface();
         
@@ -75,6 +81,10 @@ namespace caret {
         EnumComboBoxTemplate* m_graphicsTextureMagnificationFilterEnumComboBox = NULL;
         
         EnumComboBoxTemplate* m_graphicsTextureMinificationFilterEnumComboBox = NULL;
+        
+        EnumComboBoxTemplate* m_obliqueVolumeInterpolationTypeComboBox = NULL;
+        
+        QDoubleSpinBox* m_obliqueVoxelScalingSpinBox = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

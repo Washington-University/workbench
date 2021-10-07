@@ -23,6 +23,7 @@
 #include "PreferencesDevelopOptionsWidget.h"
 #undef __PREFERENCES_DEVELOP_OPTIONS_WIDGET_DECLARE__
 
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -42,6 +43,7 @@
 #include "GuiManager.h"
 #include "PreferencesDialog.h"
 #include "SessionManager.h"
+#include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #include "WuQTrueFalseComboBox.h"
 #include "WuQtUtilities.h"
 
@@ -142,11 +144,35 @@ PreferencesDevelopOptionsWidget::PreferencesDevelopOptionsWidget(QWidget* parent
     WuQtUtilities::setWordWrappedToolTip(minFilterLabel,
                                          GraphicsTextureMinificationFilterEnum::toToolTip());
 
+    /*
+     * Oblique voxel interpolation type
+     */
+    m_obliqueVolumeInterpolationTypeComboBox = new EnumComboBoxTemplate(this);
+    m_obliqueVolumeInterpolationTypeComboBox->setup<VoxelInterpolationTypeEnum,VoxelInterpolationTypeEnum::Enum>();
+    QObject::connect(m_obliqueVolumeInterpolationTypeComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &PreferencesDevelopOptionsWidget::obliqueVolumeInterpolationTypeComboBoxActivated);
+    WuQtUtilities::setWordWrappedToolTip(m_obliqueVolumeInterpolationTypeComboBox->getWidget(),
+                                         "Voxel Interpolation Type ");
+    PreferencesDialog::addWidgetToLayout(gridLayout,
+                                         "Oblique Interpolation Type",
+                                         m_obliqueVolumeInterpolationTypeComboBox->getWidget());
+
+    /*
+     * Oblique voxel scaling
+     */
+    m_obliqueVoxelScalingSpinBox = new QDoubleSpinBox();
+    m_obliqueVoxelScalingSpinBox->setRange(0.25, 100.0);
+    m_obliqueVoxelScalingSpinBox->setSingleStep(0.25);
+    m_obliqueVoxelScalingSpinBox->setToolTip("Scale oblique voxel size");
+    PreferencesDialog::addWidgetToLayout(gridLayout, "Oblique Voxel Scaling", m_obliqueVoxelScalingSpinBox);
+    QObject::connect(m_obliqueVoxelScalingSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &PreferencesDevelopOptionsWidget::obliqueVoxelScalingSpinBoxValueChanged);
+    
     QLabel* notesLabel = new QLabel("Note: These developer options are NOT saved in the user's preferences.  "
                                     "Therefore, any desired changes to these selections must be made each time "
                                     "wb_view is started.");
     notesLabel->setWordWrap(true);
-    
+
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(gridLayout);
     layout->addStretch(5);
@@ -224,6 +250,10 @@ PreferencesDevelopOptionsWidget::updateContent(CaretPreferences* preferences)
     const GraphicsTextureMagnificationFilterEnum::Enum magFilter = BrainOpenGLMediaDrawing::getTextureMagnificationFilter();
     m_graphicsTextureMagnificationFilterEnumComboBox->setSelectedItem<GraphicsTextureMagnificationFilterEnum,GraphicsTextureMagnificationFilterEnum::Enum>(magFilter);
     m_graphicsTextureMinificationFilterEnumComboBox->setSelectedItem<GraphicsTextureMinificationFilterEnum,GraphicsTextureMinificationFilterEnum::Enum>(minFilter);
+    
+    m_obliqueVolumeInterpolationTypeComboBox->setSelectedItem<VoxelInterpolationTypeEnum,VoxelInterpolationTypeEnum::Enum>(BrainOpenGLVolumeObliqueSliceDrawing::getVoxelInterpolationType());
+    QSignalBlocker voxelScaleBlocker(m_obliqueVoxelScalingSpinBox);
+    m_obliqueVoxelScalingSpinBox->setValue(BrainOpenGLVolumeObliqueSliceDrawing::getVoxelStepScaling());
 }
 
 /**
@@ -246,5 +276,28 @@ PreferencesDevelopOptionsWidget::graphicsTextureMinificationFilterEnumComboBoxIt
 {
     const GraphicsTextureMinificationFilterEnum::Enum minFilter = m_graphicsTextureMinificationFilterEnumComboBox->getSelectedItem<GraphicsTextureMinificationFilterEnum,GraphicsTextureMinificationFilterEnum::Enum>();
     BrainOpenGLMediaDrawing::setTextureMinificationFilter(minFilter);
+    updateGraphicsAndUserInterface();
+}
+
+/**
+ * Called when oblique volume interpolation type changed
+ */
+void
+PreferencesDevelopOptionsWidget::obliqueVolumeInterpolationTypeComboBoxActivated()
+{
+    const VoxelInterpolationTypeEnum::Enum interpType = m_obliqueVolumeInterpolationTypeComboBox->getSelectedItem<VoxelInterpolationTypeEnum,VoxelInterpolationTypeEnum::Enum>();
+    BrainOpenGLVolumeObliqueSliceDrawing::setVoxelInterpolationType(interpType);
+    updateGraphicsAndUserInterface();
+}
+
+/**
+ * Called when oblique voxel scaling value changed
+ * @param value
+ *    New value
+ */
+void
+PreferencesDevelopOptionsWidget::obliqueVoxelScalingSpinBoxValueChanged(double value)
+{
+    BrainOpenGLVolumeObliqueSliceDrawing::setVoxelStepScaling(value);
     updateGraphicsAndUserInterface();
 }

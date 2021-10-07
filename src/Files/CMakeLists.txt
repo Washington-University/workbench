@@ -169,6 +169,7 @@ VolumeMapUndoCommand.h
 VolumePaddingHelper.h
 VolumeSliceProjectionTypeEnum.h
 VolumeSpline.h
+VoxelInterpolationTypeEnum.h
 VtkFileExporter.h
 WarpfieldFile.h
 XmlStreamReaderHelper.h
@@ -317,6 +318,7 @@ VolumeMapUndoCommand.cxx
 VolumePaddingHelper.cxx
 VolumeSliceProjectionTypeEnum.cxx
 VolumeSpline.cxx
+VoxelInterpolationTypeEnum.cxx
 VtkFileExporter.cxx
 WarpfieldFile.cxx
 XmlStreamReaderHelper.cxx

@@ -33,6 +33,7 @@
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
+#include "VoxelInterpolationTypeEnum.h"
 
 namespace caret {
 
@@ -62,6 +63,14 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+        static VoxelInterpolationTypeEnum::Enum getVoxelInterpolationType();
+        
+        static void setVoxelInterpolationType(const VoxelInterpolationTypeEnum::Enum voxelInterpolationType);
+        
+        static float getVoxelStepScaling();
+        
+        static void setVoxelStepScaling(const float voxelStepScaling);
+        
     private:        
         class ObliqueSlice {
         public:
@@ -321,11 +330,17 @@ namespace caret {
         
         static const int32_t IDENTIFICATION_INDICES_PER_VOXEL;
         
+        static VoxelInterpolationTypeEnum::Enum s_voxelInterpolationType;
+        
+        static float s_voxelStepScaling;
+        
         // ADD_NEW_MEMBERS_HERE
     };
     
 #ifdef __BRAIN_OPEN_GL_VOLUME_OBLIQUE_SLICE_DRAWING_DECLARE__
     const int32_t BrainOpenGLVolumeObliqueSliceDrawing::IDENTIFICATION_INDICES_PER_VOXEL = 8;
+    VoxelInterpolationTypeEnum::Enum BrainOpenGLVolumeObliqueSliceDrawing::s_voxelInterpolationType = VoxelInterpolationTypeEnum::CUBIC;
+    float BrainOpenGLVolumeObliqueSliceDrawing::s_voxelStepScaling = 1.0f;
 #endif // __BRAIN_OPEN_GL_VOLUME_OBLIQUE_SLICE_DRAWING_DECLARE__
 
 } // namespace

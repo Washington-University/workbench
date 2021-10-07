@@ -2587,6 +2587,15 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
     float voxelSize = std::min(voxelSpacing[0],
                                std::min(voxelSpacing[1],
                                         voxelSpacing[2]));
+
+    /*
+     * Optionally scale the voxel size that reduces the number
+     * of voxels drawn (lowers resolution) but also reduces
+     * the drawing time.
+     */
+    if (s_voxelStepScaling > 0.0) {
+        voxelSize *= s_voxelStepScaling;
+    }
     
     /*
      * Use a larger voxel size for the 3D view in volume slice viewing
@@ -2686,7 +2695,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         const int64_t numVoxelsToRight = static_cast<int64_t>(MathFunctions::round(maxScreenX + originOffsetX) / voxelSize);
         const int64_t numVoxelsToBottom = static_cast<int64_t>(MathFunctions::round(minScreenY + originOffsetY) / voxelSize);
         const int64_t numVoxelsToTop = static_cast<int64_t>(MathFunctions::round(maxScreenY + originOffsetY)/ voxelSize);
-        
+
         const float halfVoxel = voxelSize / 2.0;
         
         const float firstVoxelCenterX = (numVoxelsToLeft * voxelSize) + originOffsetX;
@@ -2862,7 +2871,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         
         const int32_t numberOfRows = std::round(bottomLeftToTopLeftDistance / voxelSize);
         const int32_t numberOfColumns = std::round(bottomLeftToBottomRightDistance / voxelSize);
-        
         
         float bottomToTopStepXYZ[3] = {
             topLeft[0] - bottomLeft[0],
@@ -3580,11 +3588,23 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
                 {
                     CaretAssert(m_volumeFile);
                     values[0] = m_volumeFile->interpolateValue(voxelCenter,
-                                                             VolumeFile::CUBIC,
+                                                               s_voxelInterpolationType,
                                                              &valueValidFlag,
                                                              m_mapIndex);
                     
-                    if (valueValidFlag
+                    bool allowMaskingFlag(false);
+                    switch (s_voxelInterpolationType) {
+                        case VoxelInterpolationTypeEnum::CUBIC:
+                            allowMaskingFlag = true;
+                            break;
+                        case VoxelInterpolationTypeEnum::TRILINEAR:
+                            break;
+                        case VoxelInterpolationTypeEnum::ENCLOSING_VOXEL:
+                            break;
+                    }
+                    
+                    if (allowMaskingFlag
+                        && valueValidFlag
                         && (values[0] != 0.0f)) {
                         /*
                          * Apply masking to oblique voxels (WB-750).
@@ -4052,5 +4072,46 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::compositeSlicesRGBA(const st
 }
 
 
+/**
+ * @return Type of interpolation used for drawing palette mapping volume files
+ */
+VoxelInterpolationTypeEnum::Enum
+BrainOpenGLVolumeObliqueSliceDrawing::getVoxelInterpolationType()
+{
+    return s_voxelInterpolationType;
+}
+
+/**
+ * Set the type of interpolation used for drawing palette mapping volume files
+ * @param voxelInterpolationType
+ *    New value for interpolation type
+ */
+void
+BrainOpenGLVolumeObliqueSliceDrawing::setVoxelInterpolationType(const VoxelInterpolationTypeEnum::Enum voxelInterpolationType)
+{
+    s_voxelInterpolationType = voxelInterpolationType;
+}
+
+/**
+ * @return Value for scaling the voxel step.
+ * 1.0 is no scaling.
+ * 2.0 doubles the size of the voxel and reduces the number of by 75% (half the voxel in horizontal and vertical).
+ */
+float
+BrainOpenGLVolumeObliqueSliceDrawing::getVoxelStepScaling()
+{
+    return s_voxelStepScaling;
+}
+
+/**
+ * Set the value for scaling the voxel step.
+ * @param voxelStepScaling
+ *    New value.
+ */
+void
+BrainOpenGLVolumeObliqueSliceDrawing::setVoxelStepScaling(const float voxelStepScaling)
+{
+    s_voxelStepScaling = voxelStepScaling;
+}
 
 

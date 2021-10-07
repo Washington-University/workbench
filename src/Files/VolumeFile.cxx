@@ -467,6 +467,33 @@ bool VolumeFile::hasGoodSpatialInformation() const
     return true;
 }
 
+float
+VolumeFile::interpolateValue(const float* coordIn,
+                             const VoxelInterpolationTypeEnum::Enum interpType,
+                             bool* validOut,
+                             const int64_t brickIndex,
+                             const int64_t component) const
+{
+    InterpType interp = CUBIC;
+    switch (interpType) {
+        case VoxelInterpolationTypeEnum::CUBIC:
+            interp = CUBIC;
+            break;
+        case VoxelInterpolationTypeEnum::TRILINEAR:
+            interp = TRILINEAR;
+            break;
+        case VoxelInterpolationTypeEnum::ENCLOSING_VOXEL:
+            interp = ENCLOSING_VOXEL;
+            break;
+    }
+    
+    return interpolateValue(coordIn,
+                            interp,
+                            validOut,
+                            brickIndex,
+                            component);
+}
+
 float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
 {
     return interpolateValue(coordIn[0], coordIn[1], coordIn[2], interp, validOut, brickIndex, component);
