@@ -105,6 +105,12 @@ CaretPreferences::CaretPreferences()
                                                       CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                       s_defaultCziDimension));
     
+    m_identificationStereotaxicDistance.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                                "m_identificationStereotaxicDistance",
+                                                                                CaretPreferenceDataValue::DataType::FLOAT,
+                                                                                CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                                3.0));
+    
     m_toolBarWidthModePreference.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                     "toolBarWidthMode",
                                                                     CaretPreferenceDataValue::DataType::STRING,
@@ -1268,6 +1274,26 @@ CaretPreferences::setShowVolumeIdentificationSymbols(const bool showSymbols)
     this->showVolumeIdentificationSymbols = showSymbols;
     this->setBoolean(NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS,
                      this->showVolumeIdentificationSymbols);
+}
+
+/**
+ * @return Maximum distance a stereotaxic identification symbol may be for display
+ */
+float
+CaretPreferences::getIdentificationStereotaxicDistance() const
+{
+    return m_identificationStereotaxicDistance->getValue().toFloat();
+}
+
+/**
+ * Set the maximum distance a stereotaxic identification symbol may be for display
+ * @param distance
+ *    The maximum distance.
+ */
+void
+CaretPreferences::setIdentificationStereotaxicDistance(const float distance)
+{
+    m_identificationStereotaxicDistance->setValue(distance);
 }
 
 /**

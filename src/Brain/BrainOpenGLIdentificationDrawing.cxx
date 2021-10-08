@@ -30,6 +30,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "ClippingPlaneGroup.h"
 #include "CziImageFile.h"
 #include "GraphicsEngineDataOpenGL.h"
@@ -41,6 +42,7 @@
 #include "Plane.h"
 #include "SelectionItemUniversalIdentificationSymbol.h"
 #include "SelectionManager.h"
+#include "SessionManager.h"
 #include "Surface.h"
 #include "VolumeMappableInterface.h"
 
@@ -217,7 +219,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
     /*
      * Maximum distance for non-media ID shown on media
      */
-    const float mediaMaxDistanceMM(3.0);
+    const CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
+    const float maxDistanceMM(prefs->getIdentificationStereotaxicDistance());
 
     float mediaHeight(0.0f);
     StructureEnum::Enum surfaceStructure(StructureEnum::INVALID);
@@ -334,7 +337,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                             float distanceToPixelMM(1.0);
                             if (mediaFile->findPixelNearestStereotaxicXYZ(xyz, nonLinearFlag, distanceToPixelMM, pixelIndex)) {
                                 if (pixelIndex.isValid()) {
-                                    if (distanceToPixelMM < mediaMaxDistanceMM) {
+                                    if (distanceToPixelMM < maxDistanceMM) {
                                         xyz[0] = pixelIndex.getI();
                                         xyz[1] = (mediaHeight - pixelIndex.getJ() - 1);
                                         xyz[2] = 0.0;
@@ -438,7 +441,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                             const Surface* anatSurface = m_brain->getPrimaryAnatomicalSurfaceForStructure(surface->getStructure());
                             if (anatSurface != NULL) {
                                 const int32_t nearestVertexIndex = anatSurface->closestNode(xyz.data(),
-                                                                                            mediaMaxDistanceMM);
+                                                                                            maxDistanceMM);
                                 if (nearestVertexIndex >= 0) {
                                     /*
                                      * Move symbol to nearest vertex
@@ -490,7 +493,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         PixelIndex pixelIndex;
                         if (mediaFile->findPixelNearestStereotaxicXYZ(xyz, nonLinearFlag, distanceToPixelMM, pixelIndex)) {
                             if (pixelIndex.isValid()) {
-                                if (distanceToPixelMM < mediaMaxDistanceMM) {
+                                if (distanceToPixelMM < maxDistanceMM) {
                                     xyz[0] = pixelIndex.getI();
                                     xyz[1] = (mediaHeight - pixelIndex.getJ() - 1);
                                     xyz[2] = 0.0;

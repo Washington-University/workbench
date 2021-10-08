@@ -81,6 +81,7 @@ namespace caret {
         
         void identificationSymbolToggled();
         void identificationModeEnumComboBoxItemActivated();
+        void identificationStereotaxicDistanceValueChanged(double value);
         
         void recentFilesChanged();
     private:
@@ -174,6 +175,8 @@ namespace caret {
         WuQTrueFalseComboBox* m_volumeIdentificationSymbolComboBox;
         WuQTrueFalseComboBox* m_dataToolTipsComboBox;
         EnumComboBoxTemplate* m_identificationModeComboBox;
+        QDoubleSpinBox* m_identificationStereotaxicDistanceSpinBox = NULL;
+
         
         WuQWidgetObjectGroup* m_allWidgets;
         

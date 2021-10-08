@@ -256,6 +256,10 @@ namespace caret {
         
         void setShowVolumeIdentificationSymbols(const bool showSymbols);
         
+        float getIdentificationStereotaxicDistance() const;
+        
+        void setIdentificationStereotaxicDistance(const float distance);
+        
         bool isDynamicConnectivityDefaultedOn() const;
         
         void setDynamicConnectivityDefaultedOn(const bool defaultedOn);
@@ -436,6 +440,8 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_cropSceneImagesEnabled;
         
         std::unique_ptr<CaretPreferenceDataValue> m_cziDimension;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_identificationStereotaxicDistance;
         
         bool splashScreenEnabled;
         

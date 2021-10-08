@@ -597,7 +597,21 @@ PreferencesDialog::createIdentificationSymbolWidget()
                      this, &PreferencesDialog::identificationModeEnumComboBoxItemActivated);
     m_allWidgets->add(m_identificationModeComboBox->getWidget());
     
+    /*
+     * Max stereotaxic distance for id symbol
+     */
+    const QString mediaSteretotaxicDistanceToolTip("When an identification symbol is from another source "
+                                                   "(eg: showing media symbol on a surface), this value is "
+                                                   "the maximum distance that allows display of the symbol.");
+    m_identificationStereotaxicDistanceSpinBox = new QDoubleSpinBox();
+    m_identificationStereotaxicDistanceSpinBox->setRange(0.0, 100000.0);
+    m_identificationStereotaxicDistanceSpinBox->setSingleStep(1.0);
+    QObject::connect(m_identificationStereotaxicDistanceSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &PreferencesDialog::identificationStereotaxicDistanceValueChanged);
+    WuQtUtilities::setWordWrappedToolTip(m_identificationStereotaxicDistanceSpinBox,
+                                         mediaSteretotaxicDistanceToolTip);
     
+
     QGridLayout* gridLayout = new QGridLayout();
     int row = gridLayout->rowCount();
     gridLayout->addWidget(infoLabel,
@@ -617,7 +631,9 @@ PreferencesDialog::createIdentificationSymbolWidget()
     addWidgetToLayout(gridLayout,
                       "Identification Display: ",
                       m_identificationModeComboBox->getWidget());
-
+    addWidgetToLayout(gridLayout,
+                      "Stereotaxic Distance",
+                      m_identificationStereotaxicDistanceSpinBox);
 
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -640,6 +656,8 @@ PreferencesDialog::updateIdentificationWidget(CaretPreferences* prefs)
     m_volumeIdentificationSymbolComboBox->setStatus(prefs->isShowVolumeIdentificationSymbols());
     m_dataToolTipsComboBox->setStatus(prefs->isShowDataToolTipsEnabled());
     m_identificationModeComboBox->setSelectedItem<IdentificationDisplayModeEnum, IdentificationDisplayModeEnum::Enum>(prefs->getIdentificationDisplayMode());
+    QSignalBlocker distBlocker(m_identificationStereotaxicDistanceSpinBox);
+    m_identificationStereotaxicDistanceSpinBox->setValue(prefs->getIdentificationStereotaxicDistance());
 }
 
 /**
@@ -665,6 +683,17 @@ PreferencesDialog::identificationModeEnumComboBoxItemActivated()
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setIdentificationDisplayMode(idMode);
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+
+/**
+ * Gets called when  maximum stereotaxic distance value is changed
+ */
+void
+PreferencesDialog::identificationStereotaxicDistanceValueChanged(double value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setIdentificationStereotaxicDistance(value);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
