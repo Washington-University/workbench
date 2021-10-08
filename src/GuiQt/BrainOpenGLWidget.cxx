@@ -882,8 +882,9 @@ BrainOpenGLWidget::event(QEvent* event)
             
             QPoint globalXY = helpEvent->globalPos();
             QPoint xyPoint = helpEvent->pos();
-            const int32_t x = xyPoint.x();
-            const int32_t y = this->height() - xyPoint.y();
+            const int32_t x = adjustForHighDPI(xyPoint.x());
+            const int32_t y = getWidgetHeight() - adjustForHighDPI(xyPoint.y());
+
             
             DataToolTipsManager* dttm = SessionManager::get()->getDataToolTipsManager();
             CaretAssert(dttm);
