@@ -56,7 +56,7 @@
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "GraphicsPrimitiveV3fC4f.h"
-#include "GraphicsPrimitiveV3fT3f.h"
+#include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsUtilitiesOpenGL.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "Histogram.h"
@@ -1665,7 +1665,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
     
     GraphicsPrimitive* matrixPrimitive(NULL);
     GraphicsPrimitiveV3fC4f* matrixTrianglePrimitive(NULL);
-    GraphicsPrimitiveV3fT3f* matrixTexturePrimitive(NULL);
+    GraphicsPrimitiveV3fT2f* matrixTexturePrimitive(NULL);
     switch (gridMode) {
         case MatrixGridMode::FILLED_TRIANGLES:
             matrixTrianglePrimitive = m_matrixGraphicsTrianglesPrimitive.get();
@@ -1913,7 +1913,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                         const float matrixRight(matrixLeft + (xAxisStep * (numberOfColumns)));
                         const float matrixBottom(yAxisStart);
                         const float matrixTop(matrixBottom + (yAxisStep * (numberOfRows)));
-                        matrixTexturePrimitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                        matrixTexturePrimitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &matrixTextureRGBA[0],
                                                                                        numberOfColumns,
                                                                                        numberOfRows,

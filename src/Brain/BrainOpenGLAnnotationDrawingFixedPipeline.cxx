@@ -62,7 +62,7 @@
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fN3f.h"
-#include "GraphicsPrimitiveV3fT3f.h"
+#include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsShape.h"
 #include "GraphicsUtilitiesOpenGL.h"
 #include "IdentificationWithColor.h"
@@ -4239,7 +4239,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
                                    bottomRight,
                                    topRight,
                                    topLeft);
-            GraphicsPrimitiveV3fT3f* primitive = image->getGraphicsPrimitive();
+            GraphicsPrimitiveV3fT2f* primitive = image->getGraphicsPrimitive();
             if (primitive != NULL) {
                 if (primitive->isValid()) {
                     GraphicsEngineDataOpenGL::draw(primitive);
@@ -4363,7 +4363,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageSurfaceTangentOffset(Annotat
                                    bottomRight,
                                    topRight,
                                    topLeft);
-            GraphicsPrimitiveV3fT3f* primitive = image->getGraphicsPrimitive();
+            GraphicsPrimitiveV3fT2f* primitive = image->getGraphicsPrimitive();
             if (primitive != NULL) {
                 if (primitive->isValid()) {
                     GraphicsEngineDataOpenGL::draw(primitive);

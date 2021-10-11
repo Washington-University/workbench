@@ -36,6 +36,7 @@ GraphicsPrimitiveV3fC4f.h
 GraphicsPrimitiveV3fC4ub.h
 GraphicsPrimitiveV3fN3f.h
 GraphicsPrimitiveV3fN3fC4ub.h
+GraphicsPrimitiveV3fT2f.h
 GraphicsPrimitiveV3fT3f.h
 GraphicsRegionSelectionBox.h
 GraphicsShape.h
@@ -64,6 +65,7 @@ GraphicsPrimitiveV3fC4f.cxx
 GraphicsPrimitiveV3fC4ub.cxx
 GraphicsPrimitiveV3fN3f.cxx
 GraphicsPrimitiveV3fN3fC4ub.cxx
+GraphicsPrimitiveV3fT2f.cxx
 GraphicsPrimitiveV3fT3f.cxx
 GraphicsRegionSelectionBox.cxx
 GraphicsShape.cxx

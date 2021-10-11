@@ -36,7 +36,7 @@ class QImage;
 
 namespace caret {
     class CziImageFile;
-    class GraphicsPrimitiveV3fT3f;
+    class GraphicsPrimitiveV3fT2f;
     class PixelIndex;
     class RectangleTransform;
     class SceneClassAssistant;
@@ -55,7 +55,7 @@ namespace caret {
 
         CziImage& operator=(const CziImage&) = delete;
         
-        GraphicsPrimitiveV3fT3f* getGraphicsPrimitiveForMediaDrawing() const;
+        GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing() const;
         
         PixelIndex transformPixelIndexToSpace(const PixelIndex& pixelIndex,
                                               const CziPixelCoordSpaceEnum::Enum fromPixelCoordSpace,
@@ -142,7 +142,7 @@ namespace caret {
          */
         QRectF m_pixelsRegionOfInterestRect;
         
-        mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitiveForMediaDrawing;
+        mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForMediaDrawing;
         
         friend class CziImageFile;
 

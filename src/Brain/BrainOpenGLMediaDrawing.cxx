@@ -39,7 +39,7 @@
 #include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsRegionSelectionBox.h"
 #include "GraphicsPrimitiveV3f.h"
-#include "GraphicsPrimitiveV3fT3f.h"
+#include "GraphicsPrimitiveV3fT2f.h"
 #include "ImageFile.h"
 #include "ModelMedia.h"
 #include "MediaOverlay.h"
@@ -106,7 +106,7 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
         return false;
     }
     
-    GraphicsPrimitiveV3fT3f* primitive(NULL);
+    GraphicsPrimitiveV3fT2f* primitive(NULL);
     CziImageFile* cziImageFile = underlayMediaFile->castToCziImageFile();
     const CziImage* cziImage(NULL);
     ImageFile* imageFile = underlayMediaFile->castToImageFile();
@@ -318,7 +318,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                                       selectedIndex);
             
             if (mediaFile != NULL) {
-                GraphicsPrimitiveV3fT3f* primitive(NULL);
+                GraphicsPrimitiveV3fT2f* primitive(NULL);
                 CziImageFile* cziImageFile = mediaFile->castToCziImageFile();
                 const CziImage* cziImage(NULL);
                 ImageFile* imageFile = mediaFile->castToImageFile();
@@ -455,7 +455,7 @@ BrainOpenGLMediaDrawing::drawSelectionBox()
 void
 BrainOpenGLMediaDrawing::processMediaFileSelection(const int32_t tabIndex,
                                                    MediaFile* mediaFile,
-                                                   GraphicsPrimitiveV3fT3f* primitive)
+                                                   GraphicsPrimitiveV3fT2f* primitive)
 {
     SelectionItemMedia* idMedia = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getMediaIdentification();
     EventOpenGLObjectToWindowTransform xform(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);

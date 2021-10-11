@@ -113,7 +113,7 @@
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fN3fC4ub.h"
 #include "GraphicsPrimitiveV3f.h"
-#include "GraphicsPrimitiveV3fT3f.h"
+#include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsShape.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemUniversal.h"
@@ -8633,7 +8633,7 @@ BrainOpenGLFixedPipeline::drawStippledBackgroundInAreasOutsideWindowAspectLockin
             }
         }
     }
-    std::unique_ptr<GraphicsPrimitiveV3fT3f> primitive(GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
+    std::unique_ptr<GraphicsPrimitiveV3fT2f> primitive(GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
                                                                                              &textureRGBA[0],
                                                                                              textureDim,
                                                                                              textureDim,

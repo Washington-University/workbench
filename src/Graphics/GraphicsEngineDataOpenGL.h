@@ -85,6 +85,10 @@ namespace caret {
         
         void loadTextureImageDataBuffer(GraphicsPrimitive* primitive);
         
+        void loadTextureImageDataBuffer2D(GraphicsPrimitive* primitive);
+        
+        void loadTextureImageDataBuffer3D(GraphicsPrimitive* primitive);
+        
         static void drawPrivate(const PrivateDrawMode drawMode,
                                 GraphicsPrimitive* primitive,
                                 GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);

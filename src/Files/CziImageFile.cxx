@@ -46,7 +46,6 @@
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "GraphicsObjectToWindowTransform.h"
-#include "GraphicsPrimitiveV3fT3f.h"
 #include "GraphicsUtilitiesOpenGL.h"
 #include "ImageFile.h"
 #include "MathFunctions.h"

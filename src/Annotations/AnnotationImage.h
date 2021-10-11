@@ -27,7 +27,7 @@
 
 namespace caret {
 
-    class GraphicsPrimitiveV3fT3f;
+    class GraphicsPrimitiveV3fT2f;
     
     class AnnotationImage : public AnnotationOneCoordinateShape {
         
@@ -54,7 +54,7 @@ namespace caret {
         
         const uint8_t* getImageBytesRGBA() const;
 
-        GraphicsPrimitiveV3fT3f* getGraphicsPrimitive() const;
+        GraphicsPrimitiveV3fT2f* getGraphicsPrimitive() const;
         
         void setVertexBounds(const float bottomLeft[3],
                              const float bottomRight[3],
@@ -87,7 +87,7 @@ namespace caret {
         
         int32_t m_imageHeight;
 
-        mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitive;
+        mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitive;
                 
         // ADD_NEW_MEMBERS_HERE
 

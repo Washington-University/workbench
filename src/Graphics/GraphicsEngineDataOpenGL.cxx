@@ -301,23 +301,28 @@ GraphicsEngineDataOpenGL::loadTextureCoordinateBuffer(GraphicsPrimitive* primiti
     GLenum usageHint = getOpenGLBufferUsageHint(primitive->getUsageTypeTextureCoordinates());
     
     switch (primitive->m_textureDataType) {
-        case GraphicsPrimitive::TextureDataType::FLOAT_STR:
+        case GraphicsPrimitive::TextureDataType::FLOAT_STR_2D:
+        case GraphicsPrimitive::TextureDataType::FLOAT_STR_3D:
         {
+            /*
+             * Note both 2D and 3D use 3 coordinates.
+             * For 2D, the "R" component is always 0.
+             */
             EventGraphicsOpenGLCreateBufferObject createEvent;
             EventManager::get()->sendEvent(createEvent.getPointer());
             m_textureCoordinatesBufferObject.reset(createEvent.getOpenGLBufferObject());
             CaretAssert(m_textureCoordinatesBufferObject->getBufferObjectName());
             
             m_textureCoordinatesDataType = GL_FLOAT;
-            const GLuint textureSizeBytes = primitive->m_floatTextureSTR.size() * sizeof(float);
-            CaretAssert(textureSizeBytes > 0);
-            const GLvoid* textureDataPointer = (const GLvoid*)&primitive->m_floatTextureSTR[0];
+            const GLuint textureCoordSizeBytes = primitive->m_floatTextureSTR.size() * sizeof(float);
+            CaretAssert(textureCoordSizeBytes > 0);
+            const GLvoid* textureCoordDataPointer = (const GLvoid*)&primitive->m_floatTextureSTR[0];
             
             glBindBuffer(GL_ARRAY_BUFFER,
                          m_textureCoordinatesBufferObject->getBufferObjectName());
             glBufferData(GL_ARRAY_BUFFER,
-                         textureSizeBytes,
-                         textureDataPointer,
+                         textureCoordSizeBytes,
+                         textureCoordDataPointer,
                          usageHint);
             
         }
@@ -351,7 +356,7 @@ GraphicsEngineDataOpenGL::loadAllBuffers(GraphicsPrimitive* primitive)
  *
  * @param primitive
  *     The graphics primitive that will be drawn.
-*/
+ */
 void
 GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitive)
 {
@@ -360,152 +365,340 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
     }
     
     switch (primitive->m_textureDataType) {
-        case GraphicsPrimitive::TextureDataType::FLOAT_STR:
-        {
-            const int32_t imageWidth  = primitive->m_textureImageWidth;
-            const int32_t imageHeight = primitive->m_textureImageHeight;
-            const int32_t imageNumberOfBytes = imageWidth * imageHeight * 4;
-            if (imageNumberOfBytes <= 0) {
-                CaretLogWarning("Invalid texture (empty data) for drawing primitive with texture");
-                return;
-            }
-            if (imageNumberOfBytes != static_cast<int32_t>(primitive->m_textureImageBytesRGBA.size())) {
-                CaretLogWarning("Image bytes size incorrect for image width/height");
-                return;
-            }
-            
-            glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-            
-            const GLubyte* imageBytesRGBA = &primitive->m_textureImageBytesRGBA[0];
-            EventGraphicsOpenGLCreateTextureName createEvent;
-            EventManager::get()->sendEvent(createEvent.getPointer());
-            m_textureImageDataName = createEvent.getOpenGLTextureName();
-            CaretAssert(m_textureImageDataName);
-            
-            const GLuint openGLTextureName = m_textureImageDataName->getTextureName();
-            
-            glBindTexture(GL_TEXTURE_2D, openGLTextureName);
-            
-            bool useMipMapFlag = true;
-            switch (primitive->getTextureFilteringType()) {
-                case GraphicsPrimitive::TextureFilteringType::LINEAR:
-                    break;
-                case GraphicsPrimitive::TextureFilteringType::NEAREST:
-                    useMipMapFlag = false;
-                    break;
-            }
-            
-            if (useMipMapFlag) {
-                switch (primitive->getTextureWrappingType()) {
-                    case GraphicsPrimitive::TextureWrappingType::CLAMP:
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-                        break;
-                    case GraphicsPrimitive::TextureWrappingType::REPEAT:
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                        break;
-                }
-                
-                switch (primitive->getTextureFilteringType()) {
-                    case GraphicsPrimitive::TextureFilteringType::LINEAR:
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                        break;
-                    case GraphicsPrimitive::TextureFilteringType::NEAREST:
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                        useMipMapFlag = false;
-                        break;
-                }
-                
-                /*
-                 * This code seems to work if OpenGL 3.0 or later and
-                 * replaces gluBuild2DMipmaps()
-                 *
-                 * glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
-                 *            0,                 // level of detail 0=base, n is nth mipmap reduction
-                 *            GL_RGBA,           // number of components
-                 *            imageWidth,        // width of image
-                 *            imageHeight,       // height of image
-                 *            0,                 // border
-                 *            GL_RGBA,           // format of the pixel data
-                 *            GL_UNSIGNED_BYTE,  // data type of pixel data
-                 *            imageBytesRGBA);   // pointer to image data
-                 * glGenerateMipmap(GL_TEXTURE_2D);
-                 */
-                
-                
-                const int errorCode = gluBuild2DMipmaps(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
-                                                        GL_RGBA,           // number of components
-                                                        imageWidth,        // width of image
-                                                        imageHeight,       // height of image
-                                                        GL_RGBA,           // format of the pixel data
-                                                        GL_UNSIGNED_BYTE,  // data type of pixel data
-                                                        imageBytesRGBA);    // pointer to image data
-                if (errorCode != 0) {
-                    useMipMapFlag = false;
-                    
-                    const GLubyte* errorChars = gluErrorString(errorCode);
-                    if (errorChars != NULL) {
-                        const QString errorText = ("ERROR building mipmaps for annotation image: "
-                                                   + AString((char*)errorChars));
-                        CaretLogSevere(errorText);
-                    }
-                }
-            }
-            
-            if ( ! useMipMapFlag) {
-                switch (primitive->getTextureWrappingType()) {
-                    case GraphicsPrimitive::TextureWrappingType::CLAMP:
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-                        break;
-                    case GraphicsPrimitive::TextureWrappingType::REPEAT:
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                        break;
-                }
-                
-                switch (primitive->getTextureFilteringType()) {
-                    case GraphicsPrimitive::TextureFilteringType::LINEAR:
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                        break;
-                    case GraphicsPrimitive::TextureFilteringType::NEAREST:
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                        break;
-                }
-                
-                glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
-                             0,                 // level of detail 0=base, n is nth mipmap reduction
-                             GL_RGBA,           // number of components
-                             imageWidth,        // width of image
-                             imageHeight,       // height of image
-                             0,                 // border
-                             GL_RGBA,           // format of the pixel data
-                             GL_UNSIGNED_BYTE,  // data type of pixel data
-                             imageBytesRGBA);   // pointer to image data
-                
-                const auto errorGL = GraphicsUtilitiesOpenGL::getOpenGLError();
-                if (errorGL) {
-                    CaretLogSevere("OpenGL error after glTexImage2D(), width="
-                                   + AString::number(imageWidth)
-                                   + ", height="
-                                   + AString::number(imageHeight)
-                                   + ": "
-                                   + errorGL->getVerboseDescription());
-                }
-            }
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glPopClientAttrib();
-        }
-            break;
         case GraphicsPrimitive::TextureDataType::NONE:
             break;
+        case GraphicsPrimitive::TextureDataType::FLOAT_STR_2D:
+            loadTextureImageDataBuffer2D(primitive);
+            break;
+        case GraphicsPrimitive::TextureDataType::FLOAT_STR_3D:
+            loadTextureImageDataBuffer3D(primitive);
+            break;
     }
+}
+
+/**
+ * If needed, load the texture buffer for 2D data (image)
+ * Note that the texture buffer may be invalidated when
+ * an image is captures as the image capture wipes out all
+ * textures.
+ *
+ * @param primitive
+ *     The graphics primitive that will be drawn.
+*/
+void
+GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primitive)
+{
+    const int32_t imageWidth  = primitive->m_textureImageWidth;
+    const int32_t imageHeight = primitive->m_textureImageHeight;
+    const int32_t imageNumberOfBytes = imageWidth * imageHeight * 4;
+    if (imageNumberOfBytes <= 0) {
+        CaretLogWarning("Invalid texture (empty data) for drawing primitive with 2D texture");
+        return;
+    }
+    if (imageNumberOfBytes != static_cast<int32_t>(primitive->m_textureImageBytesRGBA.size())) {
+        CaretLogWarning("Texture 2D image bytes size incorrect for image width/height");
+        return;
+    }
+    
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+    
+    const GLubyte* imageBytesRGBA = &primitive->m_textureImageBytesRGBA[0];
+    EventGraphicsOpenGLCreateTextureName createEvent;
+    EventManager::get()->sendEvent(createEvent.getPointer());
+    m_textureImageDataName = createEvent.getOpenGLTextureName();
+    CaretAssert(m_textureImageDataName);
+    
+    const GLuint openGLTextureName = m_textureImageDataName->getTextureName();
+    
+    glBindTexture(GL_TEXTURE_2D, openGLTextureName);
+    
+    bool useMipMapFlag = true;
+    switch (primitive->getTextureFilteringType()) {
+        case GraphicsPrimitive::TextureFilteringType::LINEAR:
+            break;
+        case GraphicsPrimitive::TextureFilteringType::NEAREST:
+            useMipMapFlag = false;
+            break;
+    }
+    
+    if (useMipMapFlag) {
+        switch (primitive->getTextureWrappingType()) {
+            case GraphicsPrimitive::TextureWrappingType::CLAMP:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+                break;
+            case GraphicsPrimitive::TextureWrappingType::REPEAT:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                break;
+        }
+        
+        switch (primitive->getTextureFilteringType()) {
+            case GraphicsPrimitive::TextureFilteringType::LINEAR:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                break;
+            case GraphicsPrimitive::TextureFilteringType::NEAREST:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                useMipMapFlag = false;
+                break;
+        }
+        
+        /*
+         * This code seems to work if OpenGL 3.0 or later and
+         * replaces gluBuild2DMipmaps()
+         *
+         * glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
+         *            0,                 // level of detail 0=base, n is nth mipmap reduction
+         *            GL_RGBA,           // number of components
+         *            imageWidth,        // width of image
+         *            imageHeight,       // height of image
+         *            0,                 // border
+         *            GL_RGBA,           // format of the pixel data
+         *            GL_UNSIGNED_BYTE,  // data type of pixel data
+         *            imageBytesRGBA);   // pointer to image data
+         * glGenerateMipmap(GL_TEXTURE_2D);
+         */
+        
+        
+        const int errorCode = gluBuild2DMipmaps(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
+                                                GL_RGBA,           // number of components
+                                                imageWidth,        // width of image
+                                                imageHeight,       // height of image
+                                                GL_RGBA,           // format of the pixel data
+                                                GL_UNSIGNED_BYTE,  // data type of pixel data
+                                                imageBytesRGBA);    // pointer to image data
+        if (errorCode != 0) {
+            useMipMapFlag = false;
+            
+            const GLubyte* errorChars = gluErrorString(errorCode);
+            if (errorChars != NULL) {
+                const QString errorText = ("ERROR building mipmaps for 2D image: "
+                                           + AString((char*)errorChars));
+                CaretLogSevere(errorText);
+            }
+        }
+    }
+    
+    if ( ! useMipMapFlag) {
+        switch (primitive->getTextureWrappingType()) {
+            case GraphicsPrimitive::TextureWrappingType::CLAMP:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+                break;
+            case GraphicsPrimitive::TextureWrappingType::REPEAT:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                break;
+        }
+        
+        switch (primitive->getTextureFilteringType()) {
+            case GraphicsPrimitive::TextureFilteringType::LINEAR:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                break;
+            case GraphicsPrimitive::TextureFilteringType::NEAREST:
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                break;
+        }
+        
+        glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
+                     0,                 // level of detail 0=base, n is nth mipmap reduction
+                     GL_RGBA,           // number of components
+                     imageWidth,        // width of image
+                     imageHeight,       // height of image
+                     0,                 // border
+                     GL_RGBA,           // format of the pixel data
+                     GL_UNSIGNED_BYTE,  // data type of pixel data
+                     imageBytesRGBA);   // pointer to image data
+        
+        const auto errorGL = GraphicsUtilitiesOpenGL::getOpenGLError();
+        if (errorGL) {
+            CaretLogSevere("OpenGL error after glTexImage2D(), width="
+                           + AString::number(imageWidth)
+                           + ", height="
+                           + AString::number(imageHeight)
+                           + ": "
+                           + errorGL->getVerboseDescription());
+        }
+    }
+    
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glPopClientAttrib();
+}
+
+/**
+ * If needed, load the texture buffer for 3D data (volume)
+ * Note that the texture buffer may be invalidated when
+ * an image is captures as the image capture wipes out all
+ * textures.
+ *
+ * @param primitive
+ *     The graphics primitive that will be drawn.
+ */
+void
+GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primitive)
+{
+    const int32_t imageWidth(primitive->m_textureImageWidth);
+    const int32_t imageHeight(primitive->m_textureImageHeight);
+    const int32_t imageSlices(primitive->m_textureImageSlices);
+    const int32_t imageNumberOfBytes = imageWidth * imageHeight * imageSlices * 4;
+    if (imageNumberOfBytes <= 0) {
+        CaretLogWarning("Invalid texture (empty data) for drawing primitive with 3D texture");
+        return;
+    }
+    if (imageNumberOfBytes != static_cast<int32_t>(primitive->m_textureImageBytesRGBA.size())) {
+        CaretLogWarning("Texture 3D image bytes size incorrect for image width/height/slices");
+        return;
+    }
+    
+    GLint64 maxTextureSize(0);
+    glGetInteger64v(GL_MAX_3D_TEXTURE_SIZE,
+                    &maxTextureSize);
+    AString sizeMsg;
+    if (imageWidth > maxTextureSize) {
+        sizeMsg.appendWithNewLine("Width="
+                                  + AString::number(imageWidth)
+                                  + " is too big for 3D Texture.");
+    }
+    if (imageHeight > maxTextureSize) {
+        sizeMsg.appendWithNewLine("Height="
+                                  + AString::number(imageHeight)
+                                  + " is too big for 3D Texture.");
+    }
+    if (imageSlices > maxTextureSize) {
+        sizeMsg.appendWithNewLine("Height="
+                                  + AString::number(imageSlices)
+                                  + " is too big for 3D Texture.");
+    }
+    if ( ! sizeMsg.isEmpty()) {
+        sizeMsg.appendWithNewLine("Maximum texture dimension="
+                                  + AString::number(maxTextureSize));
+        CaretLogWarning(sizeMsg);
+        return;
+    }
+
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+    
+    glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);
+    glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_IMAGES, 0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 0);
+
+    /*
+     * Always clamp to border.  If no texels (voxels) are available, pixel
+     * maps to area outside of the volume, the border color is used.
+     */
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+
+    const GLubyte* imageBytesRGBA = &primitive->m_textureImageBytesRGBA[0];
+    EventGraphicsOpenGLCreateTextureName createEvent;
+    EventManager::get()->sendEvent(createEvent.getPointer());
+    m_textureImageDataName = createEvent.getOpenGLTextureName();
+    CaretAssert(m_textureImageDataName);
+    
+    const GLuint openGLTextureName = m_textureImageDataName->getTextureName();
+    
+    glBindTexture(GL_TEXTURE_3D, openGLTextureName);
+    
+    bool useMipMapFlag = false;
+    switch (primitive->getTextureFilteringType()) {
+        case GraphicsPrimitive::TextureFilteringType::LINEAR:
+            useMipMapFlag = true;
+            
+            CaretLogSevere("Mipmapping disabled for 3D Textures");
+            useMipMapFlag = false;
+            break;
+        case GraphicsPrimitive::TextureFilteringType::NEAREST:
+            useMipMapFlag = false;
+            break;
+    }
+    
+    if (useMipMapFlag) {
+        switch (primitive->getTextureFilteringType()) {
+            case GraphicsPrimitive::TextureFilteringType::LINEAR:
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                break;
+            case GraphicsPrimitive::TextureFilteringType::NEAREST:
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                useMipMapFlag = false;
+                break;
+        }
+        
+        /*
+         * This code seems to work if OpenGL 3.0 or later and
+         * replaces gluBuild2DMipmaps()
+         *
+         * glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
+         *            0,                 // level of detail 0=base, n is nth mipmap reduction
+         *            GL_RGBA,           // number of components
+         *            imageWidth,        // width of image
+         *            imageHeight,       // height of image
+         *            0,                 // border
+         *            GL_RGBA,           // format of the pixel data
+         *            GL_UNSIGNED_BYTE,  // data type of pixel data
+         *            imageBytesRGBA);   // pointer to image data
+         * glGenerateMipmap(GL_TEXTURE_2D);
+         */
+        
+        /*
+         * Generate mip-maps
+         * However does not improve quality or remove aliasing in oblique views (rotation
+         * around multiple axes)
+         */
+        glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, GL_TRUE);
+    }
+    else {
+        switch (primitive->getTextureFilteringType()) {
+            case GraphicsPrimitive::TextureFilteringType::LINEAR:
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                break;
+            case GraphicsPrimitive::TextureFilteringType::NEAREST:
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                break;
+        }
+    }
+    
+    glTexImage3D(GL_TEXTURE_3D,     // MUST BE GL_TEXTURE_2D
+                 0,                 // level of detail 0=base, n is nth mipmap reduction
+                 GL_RGBA,           // number of components
+                 imageWidth,        // width of volume
+                 imageHeight,       // height of volume
+                 imageSlices,       // slices of volume
+                 0,                 // border
+                 GL_RGBA,           // format of the pixel data
+                 GL_UNSIGNED_BYTE,  // data type of pixel data
+                 imageBytesRGBA);   // pointer to image data
+    
+    const auto errorGL = GraphicsUtilitiesOpenGL::getOpenGLError();
+    if (errorGL) {
+        CaretLogSevere("OpenGL error after glTexImage3D(), width="
+                       + AString::number(imageWidth)
+                       + ", height="
+                       + AString::number(imageHeight)
+                       + ", slices="
+                       + AString::number(imageSlices)
+                       + ": "
+                       + errorGL->getVerboseDescription());
+    }
+
+    glBindTexture(GL_TEXTURE_3D, 0);
+    glPopClientAttrib();
 }
 
 /**
@@ -1276,19 +1469,22 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         }
     }
     
-    bool hasTextureFlag = false;
+    bool hasTexture2dFlag = false;
     switch (primitive->getTextureDataType()) {
         case GraphicsPrimitive::TextureDataType::NONE:
             break;
-        case GraphicsPrimitive::TextureDataType::FLOAT_STR:
-            hasTextureFlag = true;
+        case GraphicsPrimitive::TextureDataType::FLOAT_STR_2D:
+            hasTexture2dFlag = true;
+            break;
+        case GraphicsPrimitive::TextureDataType::FLOAT_STR_3D:
+            CaretAssertToDoFatal();
             break;
     }
     
     /*
      * Setup textures for drawing
      */
-    if (hasTextureFlag
+    if (hasTexture2dFlag
         && (drawMode == PrivateDrawMode::DRAW_NORMAL)
         && (openglData->m_textureImageDataName->getTextureName() > 0)) {
         glEnable(GL_TEXTURE_2D);

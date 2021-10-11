@@ -45,7 +45,7 @@
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "GraphicsUtilitiesOpenGL.h"
-#include "GraphicsPrimitiveV3fT3f.h"
+#include "GraphicsPrimitiveV3fT2f.h"
 #include "ImageCaptureDialogSettings.h"
 #include "Matrix4x4.h"
 #include "MathFunctions.h"
@@ -1860,7 +1860,7 @@ ImageFile::getControlPointFile() const
 /**
  * @return The graphics primitive for drawing the image as a texture in media drawing model.
  */
-GraphicsPrimitiveV3fT3f*
+GraphicsPrimitiveV3fT2f*
 ImageFile::getGraphicsPrimitiveForMediaDrawing() const
 {
     if (m_image == NULL) {
@@ -1918,7 +1918,7 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
         }
         
         if (validRGBA) {
-            GraphicsPrimitiveV3fT3f* primitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+            GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &bytesRGBA[0],
                                                                                        width,
                                                                                        height,

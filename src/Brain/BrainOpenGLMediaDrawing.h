@@ -36,7 +36,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class GraphicsObjectToWindowTransform;
-    class GraphicsPrimitiveV3fT3f;
+    class GraphicsPrimitiveV3fT2f;
     class MediaFile;
     class MediaOverlaySet;
     class ModelMedia;
@@ -80,7 +80,7 @@ namespace caret {
         
         void processMediaFileSelection(const int32_t tabIndex,
                                        MediaFile* mediaFile,
-                                       GraphicsPrimitiveV3fT3f* primitive);
+                                       GraphicsPrimitiveV3fT2f* primitive);
         
         bool getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
                             const int32_t tabIndex,

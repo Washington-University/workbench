@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __GRAPHICS_PRIMITIVE_V3F_T3F_DECLARE__
-#include "GraphicsPrimitiveV3fT3f.h"
-#undef __GRAPHICS_PRIMITIVE_V3F_T3F_DECLARE__
+#define __GRAPHICS_PRIMITIVE_V3F_T2F_DECLARE__
+#include "GraphicsPrimitiveV3fT2f.h"
+#undef __GRAPHICS_PRIMITIVE_V3F_T2F_DECLARE__
 
 #include "CaretAssert.h"
 using namespace caret;
@@ -29,8 +29,8 @@ using namespace caret;
 
     
 /**
- * \class caret::GraphicsPrimitiveV3fT3f 
- * \brief Primitive containing XYZ with and texture coordinates applied to all vertices for 3D images (volumes)
+ * \class caret::GraphicsPrimitiveV3fT2f
+ * \brief Primitive containing XYZ with and texture coordinates applied to all vertices used for 2D images.
  * \ingroup Graphics
  */
 
@@ -45,8 +45,6 @@ using namespace caret;
  *     Width of the actual image.
  * @param imageHeight
  *     Height of the image.
- * @param imageSlices
- *     Slices of the image.
  * @param textureWrappingType
  *     Type of texture wrapping
  * @param textureFilteringType
@@ -56,11 +54,10 @@ using namespace caret;
  * @param textureMinificationFilter
  *    Texture filtering for when screen pixel is larger than texture texel
  */
-GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveType,
+GraphicsPrimitiveV3fT2f::GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveType,
                                                  const uint8_t* imageBytesRGBA,
                                                  const int32_t imageWidth,
                                                  const int32_t imageHeight,
-                                                 const int32_t imageSlices,
                                                  const TextureWrappingType textureWrappingType,
                                                  const TextureFilteringType textureFilteringType,
                                                  const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
@@ -69,13 +66,14 @@ GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveTy
                     NormalVectorDataType::NONE,
                     ColorDataType::NONE,
                     VertexColorType::NONE,
-                    TextureDataType::FLOAT_STR_3D,
+                    TextureDataType::FLOAT_STR_2D,
                     textureWrappingType,
                     textureFilteringType,
                     textureMagnificationFilter,
                     textureMinificationFilter,
                     primitiveType)
 {
+    const int32_t imageSlices(1);
     setTextureImage(imageBytesRGBA,
                     imageWidth,
                     imageHeight,
@@ -85,7 +83,7 @@ GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveTy
 /**
  * Destructor.
  */
-GraphicsPrimitiveV3fT3f::~GraphicsPrimitiveV3fT3f()
+GraphicsPrimitiveV3fT2f::~GraphicsPrimitiveV3fT2f()
 {
 }
 
@@ -94,10 +92,10 @@ GraphicsPrimitiveV3fT3f::~GraphicsPrimitiveV3fT3f()
  * @param obj
  *    Object that is copied.
  */
-GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const GraphicsPrimitiveV3fT3f& obj)
+GraphicsPrimitiveV3fT2f::GraphicsPrimitiveV3fT2f(const GraphicsPrimitiveV3fT2f& obj)
 : GraphicsPrimitive(obj)
 {
-    this->copyHelperGraphicsPrimitiveV3fT3f(obj);
+    this->copyHelperGraphicsPrimitiveV3fT2f(obj);
 }
 
 /**
@@ -106,7 +104,7 @@ GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const GraphicsPrimitiveV3fT3f& 
  *    Object that is copied.
  */
 void 
-GraphicsPrimitiveV3fT3f::copyHelperGraphicsPrimitiveV3fT3f(const GraphicsPrimitiveV3fT3f& /*obj*/)
+GraphicsPrimitiveV3fT2f::copyHelperGraphicsPrimitiveV3fT2f(const GraphicsPrimitiveV3fT2f& /*obj*/)
 {
     
 }
@@ -116,13 +114,14 @@ GraphicsPrimitiveV3fT3f::copyHelperGraphicsPrimitiveV3fT3f(const GraphicsPrimiti
  * 
  * @param xyz
  *     Coordinate of vertex.
- * @parma str
+ * @parma st
  *     Texture coordinates
  */
 void
-GraphicsPrimitiveV3fT3f::addVertex(const float xyz[3],
-                                   const float str[2])
+GraphicsPrimitiveV3fT2f::addVertex(const float xyz[3],
+                                   const float st[2])
 {
+    const float str[] { st[0], st[1], 0.0f } ;
     addVertexProtected(xyz,
                        NULL,
                        NULL,
@@ -143,30 +142,48 @@ GraphicsPrimitiveV3fT3f::addVertex(const float xyz[3],
  *     S-coordinate of texture
  * @param t
  *     T-coordinate of texture
- * @param r
- *     R-coordinate of texture
  */
 void
-GraphicsPrimitiveV3fT3f::addVertex(const float x,
+GraphicsPrimitiveV3fT2f::addVertex(const float x,
                                    const float y,
                                    const float z,
                                    const float s,
-                                   const float t,
-                                   const float r)
+                                   const float t)
 {
     const float xyz[] { x, y, z };
-    const float str[] { s, t, r };
+    const float str[] { s, t, 0.0f };
     addVertex(xyz,
               str);
+}
+
+/**
+ * Add a 2D vertex.  Z will be zero.
+ *
+ * @param x
+ *     X-coordinate of vertex.
+ * @param y
+ *     Y-coordinate of vertex.
+ * @param s
+ *     S-coordinate of texture
+ * @param t
+ *     T-coordinate of texture
+ */
+void
+GraphicsPrimitiveV3fT2f::addVertex(const float x,
+                                   const float y,
+                                   const float s,
+                                   const float t)
+{
+    addVertex(x, y, 0.0f, s, t);
 }
 
 /**
  * Clone this primitive.
  */
 GraphicsPrimitive*
-GraphicsPrimitiveV3fT3f::clone() const
+GraphicsPrimitiveV3fT2f::clone() const
 {
-    GraphicsPrimitiveV3fT3f* obj = new GraphicsPrimitiveV3fT3f(*this);
+    GraphicsPrimitiveV3fT2f* obj = new GraphicsPrimitiveV3fT2f(*this);
     return obj;
 }
 

@@ -1,5 +1,5 @@
-#ifndef __GRAPHICS_PRIMITIVE_V3F_T3F_H__
-#define __GRAPHICS_PRIMITIVE_V3F_T3F_H__
+#ifndef __GRAPHICS_PRIMITIVE_V3F_T2F_H__
+#define __GRAPHICS_PRIMITIVE_V3F_T2F_H__
 
 /*LICENSE_START*/
 /*
@@ -31,49 +31,52 @@
 
 namespace caret {
 
-    class GraphicsPrimitiveV3fT3f : public GraphicsPrimitive {
+    class GraphicsPrimitiveV3fT2f : public GraphicsPrimitive {
         
     public:
-        GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveType,
+        GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveType,
                                 const uint8_t* imageBytesRGBA,
                                 const int32_t imageWidth,
                                 const int32_t imageHeight,
-                                const int32_t imageSlices,
                                 const TextureWrappingType textureWrappingType,
                                 const TextureFilteringType textureFilteringType,
                                 const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
                                 const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter);
         
-        virtual ~GraphicsPrimitiveV3fT3f();
+        virtual ~GraphicsPrimitiveV3fT2f();
         
-        GraphicsPrimitiveV3fT3f(const GraphicsPrimitiveV3fT3f& obj);
+        GraphicsPrimitiveV3fT2f(const GraphicsPrimitiveV3fT2f& obj);
 
         void addVertex(const float xyz[3],
-                       const float str[3]);
+                       const float st[2]);
 
         void addVertex(const float x,
                        const float y,
                        const float z,
                        const float s,
-                       const float t,
-                       const float r);
+                       const float t);
         
+        void addVertex(const float x,
+                       const float y,
+                       const float s,
+                       const float t);
+
         virtual GraphicsPrimitive* clone() const;
         
         // ADD_NEW_METHODS_HERE
 
     private:
-        GraphicsPrimitiveV3fT3f& operator=(const GraphicsPrimitiveV3fT3f& obj);
+        GraphicsPrimitiveV3fT2f& operator=(const GraphicsPrimitiveV3fT2f& obj);
         
-        void copyHelperGraphicsPrimitiveV3fT3f(const GraphicsPrimitiveV3fT3f& obj);
+        void copyHelperGraphicsPrimitiveV3fT2f(const GraphicsPrimitiveV3fT2f& obj);
 
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __GRAPHICS_PRIMITIVE_V3F_T3F_DECLARE__
+#ifdef __GRAPHICS_PRIMITIVE_V3F_T2F_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GRAPHICS_PRIMITIVE_V3F_T3F_DECLARE__
+#endif // __GRAPHICS_PRIMITIVE_V3F_T2F_DECLARE__
 
 } // namespace
-#endif  //__GRAPHICS_PRIMITIVE_V3F_T3F_H__
+#endif  //__GRAPHICS_PRIMITIVE_V3F_T2F_H__

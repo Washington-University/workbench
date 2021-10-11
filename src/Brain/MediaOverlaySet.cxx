@@ -32,7 +32,6 @@
 #include "ImageFile.h"
 #include "MediaFile.h"
 #include "EventManager.h"
-#include "GraphicsPrimitiveV3fT3f.h"
 #include "MediaOverlay.h"
 #include "ModelMedia.h"
 #include "PlainTextStringBuilder.h"

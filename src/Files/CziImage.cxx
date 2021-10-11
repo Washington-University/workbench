@@ -29,7 +29,7 @@
 #include "CaretLogger.h"
 #include "CziImageFile.h"
 #include "CziUtilities.h"
-#include "GraphicsPrimitiveV3fT3f.h"
+#include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsUtilitiesOpenGL.h"
 #include "ImageFile.h"
 #include "RectangleTransform.h"
@@ -422,7 +422,7 @@ CziImage::getImagePixelRGBA(const PixelIndex& pixelIndexOriginAtTop,
 /**
  * @return The graphics primitive for drawing the image as a texture in media drawing model.
  */
-GraphicsPrimitiveV3fT3f*
+GraphicsPrimitiveV3fT2f*
 CziImage::getGraphicsPrimitiveForMediaDrawing() const
 {
     if (m_image == NULL) {
@@ -481,7 +481,7 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
         }
         
         if (validRGBA) {
-            GraphicsPrimitiveV3fT3f* primitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+            GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &bytesRGBA[0],
                                                                                        width,
                                                                                        height,

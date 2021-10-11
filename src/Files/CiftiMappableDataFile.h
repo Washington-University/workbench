@@ -46,7 +46,7 @@ namespace caret {
     class FastStatistics;
     class GraphicsPrimitive;
     class GraphicsPrimitiveV3fC4f;
-    class GraphicsPrimitiveV3fT3f;
+    class GraphicsPrimitiveV3fT2f;
     class GroupAndNameHierarchyModel;
     class Histogram;
     class SparseVolumeIndexer;
@@ -808,7 +808,7 @@ namespace caret {
         mutable std::unique_ptr<GraphicsPrimitiveV3fC4f> m_matrixGraphicsTrianglesPrimitive;
         
         /** Primitive for matrix cells drawn using a texture */
-        mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_matrixGraphicsTexturePrimitive;
+        mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_matrixGraphicsTexturePrimitive;
         
         /** Primitive for grid outline around matrix cells */
         mutable std::unique_ptr<GraphicsPrimitiveV3fC4f> m_matrixGraphicsOutlinePrimitive;

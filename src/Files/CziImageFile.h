@@ -50,7 +50,6 @@ namespace caret {
 
     class CziImage;
     class GraphicsObjectToWindowTransform;
-    class GraphicsPrimitiveV3fT3f;
     class Matrix4x4;
     class RectangleTransform;
     class VolumeSpace;

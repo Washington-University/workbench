@@ -41,6 +41,7 @@ namespace caret {
     class GraphicsPrimitiveV3fC4ub;
     class GraphicsPrimitiveV3fN3f;
     class GraphicsPrimitiveV3fN3fC4ub;
+    class GraphicsPrimitiveV3fT2f;
     class GraphicsPrimitiveV3fT3f;
     class Matrix4x4Interface;
     
@@ -95,8 +96,10 @@ namespace caret {
         enum class TextureDataType {
             /** No texture coordinates */
             NONE,
-            /** Three float values per vertex contains S, T, and R texture coordinates */
-            FLOAT_STR
+            /** User supplie two float values per vertex contain S and T texture coordinates, R is added by code and is always 0.  Used for 2D images */
+            FLOAT_STR_2D,
+            /** Three float values per vertex contain S, T, and R texture coordinates.  Used for 3D images (volumes) */
+            FLOAT_STR_3D
         };
         
         /**
@@ -353,10 +356,20 @@ namespace caret {
         
         static GraphicsPrimitiveV3fC4ub* newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType primitiveType);
         
+        static GraphicsPrimitiveV3fT2f* newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType primitiveType,
+                                                           const uint8_t* imageBytesRGBA,
+                                                           const int32_t imageWidth,
+                                                           const int32_t imageHeight,
+                                                           const TextureWrappingType textureWrappingType,
+                                                           const TextureFilteringType textureFilteringType,
+                                                           const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
+                                                           const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter);
+        
         static GraphicsPrimitiveV3fT3f* newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
                                                            const uint8_t* imageBytesRGBA,
                                                            const int32_t imageWidth,
                                                            const int32_t imageHeight,
+                                                           const int32_t imageSlices,
                                                            const TextureWrappingType textureWrappingType,
                                                            const TextureFilteringType textureFilteringType,
                                                            const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
@@ -557,7 +570,8 @@ namespace caret {
         
         void setTextureImage(const uint8_t* imageBytesRGBA,
                              const int32_t imageWidth,
-                             const int32_t imageHeight);
+                             const int32_t imageHeight,
+                             const int32_t imageSlices);
         
         void addVertexProtected(const float xyz[3],
                                 const float normalVector[3],
@@ -614,6 +628,8 @@ namespace caret {
         int32_t m_textureImageWidth = -1;
         
         int32_t m_textureImageHeight = -1;
+        
+        int32_t m_textureImageSlices = -1;
         
         mutable PointSizeType m_pointSizeType = PointSizeType::PIXELS;
         

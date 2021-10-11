@@ -35,7 +35,7 @@ class QImage;
 namespace caret {
     class ControlPointFile;
     class ControlPoint3D;
-    class GraphicsPrimitiveV3fT3f;
+    class GraphicsPrimitiveV3fT2f;
     class RectangleTransform;
     class VolumeFile;
     
@@ -197,7 +197,7 @@ public:
     VolumeFile* convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
                                     AString& errorMessageOut) const;
 
-    GraphicsPrimitiveV3fT3f* getGraphicsPrimitiveForMediaDrawing() const;
+    GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing() const;
     
 
     ControlPointFile* getControlPointFile();
@@ -273,7 +273,7 @@ private:
     
     mutable std::unique_ptr<RectangleTransform> m_pixelBottomLeftToTopLeftTransform;
     
-    mutable std::unique_ptr<GraphicsPrimitiveV3fT3f> m_graphicsPrimitiveForMediaDrawing;
+    mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForMediaDrawing;
     
     static const AString SCENE_VERSION_NUMBER;
 };
