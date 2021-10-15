@@ -776,6 +776,74 @@ SceneDialog::saveAsSelectedSceneFile()
 }
 
 /**
+ * Move the scene file to a new location
+ */
+void
+SceneDialog::moveSceneFileButtonClicked()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile == NULL) {
+        WuQMessageBox::errorOk(m_saveAsSceneFilePushButton, "There is no selected scene file to move");
+        return;
+    }
+    
+    const AString filename = CaretFileDialog::getSaveFileNameDialog(sceneFile->getDataFileType(),
+                                                                    m_moveSceneFilePushButton,
+                                                                    "Move Scene File to",
+                                                                    sceneFile->getFileName());
+    if (filename.isEmpty()) {
+        return;
+    }
+    
+    const bool modifiedFlag(sceneFile->isModified());
+    const AString oldSceneFileName(sceneFile->getFileName());
+    
+    try {
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
+        
+        sceneFile->setFileName(filename);
+        
+        Brain* brain = GuiManager::get()->getBrain();
+        brain->writeDataFile(sceneFile);
+        
+        const QString backupName(oldSceneFileName
+                                 + ".bak");
+        if (QFile::rename(oldSceneFileName,
+                          backupName)) {
+            const QString msg("Previous scnene file backup up to: "
+                              + backupName);
+            cursor.restoreCursor();
+            WuQMessageBox::informationOk(m_moveSceneFilePushButton,
+                                         msg);
+        }
+        else {
+            QString msg("Backing up of "
+                        + oldSceneFileName
+                        + " to "
+                        + backupName
+                        + " failed.");
+            if (QFile::exists(backupName)) {
+                msg.append("  File not overwritten.");
+            }
+            cursor.restoreCursor();
+            WuQMessageBox::errorOk(m_moveSceneFilePushButton,
+                                   msg);
+        }
+    }
+    catch (const DataFileException& e) {
+        sceneFile->setFileName(oldSceneFileName);
+        if ( ! modifiedFlag) {
+            sceneFile->clearModified();
+        }
+        WuQMessageBox::errorOk(m_moveSceneFilePushButton,
+                               e.whatString());
+    }
+    
+    loadSceneFileComboBox(sceneFile);
+}
+
+/**
  * If the selected scene file is modified, warn the user and
  * suggest saving the file prior to continuing.
  *
@@ -2298,9 +2366,17 @@ SceneDialog::createSceneFileWidget()
      * Save As File button
      */
     m_saveAsSceneFilePushButton = new QPushButton("Save As...");
-    m_saveAsSceneFilePushButton->setToolTip("Display a file selection dialog for saving scene file with a new name");
+    m_saveAsSceneFilePushButton->setToolTip("<html>Display a file selection dialog for saving scene file with a new name</html>");
     QObject::connect(m_saveAsSceneFilePushButton, SIGNAL(clicked()),
                      this, SLOT(saveAsSceneFileButtonClicked()));
+    
+    /*
+     * Move button
+     */
+    m_moveSceneFilePushButton = new QPushButton("Move...");
+    m_moveSceneFilePushButton->setToolTip("<html>Display a file selection dialog for moving the scene file to a new location</html>");
+    QObject::connect(m_moveSceneFilePushButton, &QPushButton::clicked,
+                     this, &SceneDialog::moveSceneFileButtonClicked);
     
     /*
      * Upload button
@@ -2324,6 +2400,7 @@ SceneDialog::createSceneFileWidget()
     m_sceneFileButtonsGroup = new WuQWidgetObjectGroup(this);
     m_sceneFileButtonsGroup->add(m_saveSceneFilePushButton);
     m_sceneFileButtonsGroup->add(m_saveAsSceneFilePushButton);
+    m_sceneFileButtonsGroup->add(m_moveSceneFilePushButton);
     m_sceneFileButtonsGroup->add(m_uploadSceneFilePushButton);
     m_sceneFileButtonsGroup->add(m_zipSceneFilePushButton);
     
@@ -2343,19 +2420,21 @@ SceneDialog::createSceneFileWidget()
     gridLayout->setColumnStretch(3,   0);
     gridLayout->setColumnStretch(4,   0);
     gridLayout->setColumnStretch(5,   0);
+    gridLayout->setColumnStretch(5,   0);
     int row = 0;
     gridLayout->addWidget(sceneFileLabel,                 row, 0, Qt::AlignRight);
-    gridLayout->addWidget(m_sceneFileSelectionComboBox,   row, 1, 1, 2);
-    gridLayout->addWidget(m_newSceneFilePushButton,       row, 3);
-    gridLayout->addWidget(m_saveSceneFilePushButton,      row, 4);
-    gridLayout->addWidget(m_zipSceneFilePushButton,       row, 5);
+    gridLayout->addWidget(m_sceneFileSelectionComboBox,   row, 1, 1, 3);
+    gridLayout->addWidget(m_newSceneFilePushButton,       row, 4);
+    gridLayout->addWidget(m_saveSceneFilePushButton,      row, 5);
+    gridLayout->addWidget(m_zipSceneFilePushButton,       row, 6);
     row++;
     gridLayout->addWidget(modifiedLabel,                  row, 0, Qt::AlignRight);
     gridLayout->addWidget(m_sceneFileModifiedStatusLabel, row, 1, Qt::AlignLeft);
     gridLayout->addWidget(m_showFileStructurePushButton,  row, 2);
-    gridLayout->addWidget(m_openSceneFilePushButton,      row, 3);
-    gridLayout->addWidget(m_saveAsSceneFilePushButton,    row, 4);
-    gridLayout->addWidget(m_uploadSceneFilePushButton,    row, 5);
+    gridLayout->addWidget(m_moveSceneFilePushButton,      row, 3);
+    gridLayout->addWidget(m_openSceneFilePushButton,      row, 4);
+    gridLayout->addWidget(m_saveAsSceneFilePushButton,    row, 5);
+    gridLayout->addWidget(m_uploadSceneFilePushButton,    row, 6);
     row++;
     
     return widget;
@@ -3054,6 +3133,7 @@ SceneDialog::updateSceneFileModifiedStatusLabel()
     
     m_sceneFileModifiedStatusLabel->setText(statusText);
     m_saveSceneFilePushButton->setEnabled(saveButtonEnabledFlag);
+    m_moveSceneFilePushButton->setEnabled( ! saveButtonEnabledFlag);
     
     m_showFileStructurePushButton->setEnabled(haveScenesFlag);
     m_zipSceneFilePushButton->setEnabled(haveScenesFlag);
