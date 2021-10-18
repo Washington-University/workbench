@@ -562,7 +562,12 @@ FileInformation::assembleFileComponents(const AString& pathName,
 {
     AString name;
     if ( ! pathName.isEmpty()) {
-        name += (pathName + "/");
+        if (pathName == "/") {
+            name = "/";
+        }
+        else {
+            name += (pathName + "/");
+        }
     }
     name += fileNameWithoutExtension;
     if ( ! extensionWithoutDot.isEmpty()) {
