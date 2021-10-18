@@ -56,6 +56,7 @@
 #include "CaretFileDialog.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "CaretResultDialog.h"
 #include "CursorDisplayScoped.h"
 #include "CaretPreferences.h"
 #include "DataFileException.h"
@@ -87,6 +88,7 @@
 #include "SceneReplaceAllDialog.h"
 #include "SceneShowOptionsDialog.h"
 #include "SessionManager.h"
+#include "SpecFile.h"
 #include "UsernamePasswordWidget.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDialogNonModal.h"
@@ -675,15 +677,88 @@ SceneDialog::newSceneFileButtonClicked()
         return;
     }
     
-    SceneFile* newSceneFile = new SceneFile();
-    GuiManager::get()->getBrain()->convertDataFilePathNameToAbsolutePathName(newSceneFile);
-    newSceneFile->clearModified();
+    const SceneFile* previousSceneFile(getSelectedSceneFile());
+    AString pathName;
+    const auto result(GuiManager::get()->getBrain()->getBaseDirectoryForLoadedSceneAndSpecFiles(previousSceneFile,
+                                                                                                pathName));
+    
+    /*
+     * Do not use root directory
+     */
+    if ( ! pathName.isEmpty()) {
+        if (QFileInfo(pathName).isRoot()) {
+            pathName = "";
+        }
+    }
+    
+    /*
+     * If path invalid, try path from selected scene file
+     */
+    if (pathName.isEmpty()) {
+        if (previousSceneFile != NULL) {
+            const AString previousSceneFileName(previousSceneFile->getFileName());
+            if ( ! previousSceneFileName.isEmpty()) {
+                QFileInfo fileInfo(previousSceneFileName);
+                pathName = fileInfo.absolutePath();
+            }
+        }
+    }
+    
+    /*
+     * If path invalid, try path from current spec file
+     */
+    if (pathName.isEmpty()) {
+        const SpecFile* specFile = GuiManager::get()->getBrain()->getSpecFile();
+        if (specFile != NULL) {
+            const AString specFileName(specFile->getFileName());
+            if ( ! specFileName.isEmpty()) {
+                QFileInfo fileInfo(specFileName);
+                pathName = fileInfo.absolutePath();
+            }
+        }
+    }
 
+    /*
+     * If path invalid, use current directory
+     */
+    if (pathName.isEmpty()) {
+        pathName = GuiManager::get()->getBrain()->getCurrentDirectory();
+    }
+    
+    SceneFile* newSceneFile = new SceneFile();
+    AString newSceneFileName(newSceneFile->getFileName());
+    if ( ! pathName.isEmpty()) {
+        newSceneFileName = FileInformation::assembleFileComponents(pathName,
+                                                                   newSceneFile->getFileNameNoPathNoExtension(),
+                                                                   DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SCENE));
+    }
+
+    newSceneFile->setFileName(newSceneFileName);
+
+    GuiManager::get()->getBrain()->convertDataFilePathNameToAbsolutePathName(newSceneFile);
+
+    /*
+     * Pop up dialog so that user can change name or path
+     */
+    const AString usersFileName = CaretFileDialog::getSaveFileNameDialog(newSceneFile->getDataFileType(),
+                                                                         m_newSceneFilePushButton,
+                                                                         "New Scene File Name",
+                                                                         newSceneFile->getFileName());
+    if (usersFileName.isEmpty()) {
+        /*
+         * User cancelled, do not create a new scene file
+         */
+        delete newSceneFile;
+        return;
+    }
+    
     /*
      * Note that this dialog receives EventDataFileAdd
      * as a post-processed event and will take care of
      * the dialog updates.
      */
+    newSceneFile->setFileName(usersFileName);
+    newSceneFile->clearModified();
     EventManager::get()->sendEvent(EventDataFileAdd(newSceneFile).getPointer());
 }
 
@@ -3133,7 +3208,8 @@ SceneDialog::updateSceneFileModifiedStatusLabel()
     
     m_sceneFileModifiedStatusLabel->setText(statusText);
     m_saveSceneFilePushButton->setEnabled(saveButtonEnabledFlag);
-    m_moveSceneFilePushButton->setEnabled( ! saveButtonEnabledFlag);
+    m_moveSceneFilePushButton->setEnabled( (! saveButtonEnabledFlag)
+                                          && (getSelectedSceneFile() != NULL));
     
     m_showFileStructurePushButton->setEnabled(haveScenesFlag);
     m_zipSceneFilePushButton->setEnabled(haveScenesFlag);

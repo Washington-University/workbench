@@ -479,6 +479,9 @@ namespace caret {
         
         std::unique_ptr<CaretResult> getBaseDirectoryForLoadedDataFiles(AString& baseDirectoryOut) const;
         
+        std::unique_ptr<CaretResult> getBaseDirectoryForLoadedSceneAndSpecFiles(const SceneFile* sceneFile,
+                                                                                AString& baseDirectoryOut) const;
+        
         const Scene* getActiveScene() const;
         
     private:

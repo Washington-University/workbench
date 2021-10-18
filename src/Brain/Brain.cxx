@@ -8381,6 +8381,61 @@ Brain::getBaseDirectoryForLoadedDataFiles(AString& baseDirectoryOut) const
     return CaretResult::newInstanceError(errorMessage);
 }
 
+/**
+ * @return The base directory for all loaded files, all files in spec file, and all files in the scene file
+ * @param validFlagOut
+ *    On output, it will be true if the returne
+ */
+std::unique_ptr<CaretResult>
+Brain::getBaseDirectoryForLoadedSceneAndSpecFiles(const SceneFile* sceneFile,
+                                                  AString& baseDirectoryOut) const
+{
+    baseDirectoryOut = "";
+    
+    std::vector<CaretDataFile*> allLoadedDataFiles;
+    getAllDataFiles(allLoadedDataFiles);
+    
+    std::set<AString> allFileNames;
+    for (auto& df : allLoadedDataFiles) {
+        allFileNames.insert(df->getFileName());
+    }
+    
+    if (sceneFile != NULL) {
+        const std::set<SceneFile::FileAndSceneIndicesInfo> sceneFileInfo(sceneFile->getAllDataFileNamesFromAllScenes());
+        for (const auto& fsi : sceneFileInfo) {
+            allFileNames.insert(fsi.m_dataFileName);
+        }
+    }
+
+    if (m_specFile != NULL) {
+        std::vector<AString> allSpecFileFileNames(m_specFile->getAllDataFileNames());
+        for (auto& fn : allSpecFileFileNames) {
+            allFileNames.insert(fn);
+        }
+    }
+    
+    std::set<SceneFile::FileAndSceneIndicesInfo> fileInfo;
+    for (const auto& fn : allFileNames) {
+        const float sceneIndex(1);
+        const AString pathName(FileInformation(fn).getAbsoluteFilePath());
+        fileInfo.emplace(pathName,
+                         sceneIndex);
+    }
+
+    std::vector<AString> missingFileNames;
+    AString errorMessage;
+    AString emptySceneFileName;
+    
+    if (SceneFile::findBaseDirectoryForDataFiles(emptySceneFileName,
+                                                 fileInfo,
+                                                 baseDirectoryOut,
+                                                 missingFileNames,
+                                                 errorMessage)) {
+        return CaretResult::newInstanceSuccess();
+    }
+    return CaretResult::newInstanceError(errorMessage);
+}
+
 
 /**
  * Load the default row/column for a matrix charting file.
