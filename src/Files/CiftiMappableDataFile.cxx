@@ -1913,14 +1913,16 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                         const float matrixRight(matrixLeft + (xAxisStep * (numberOfColumns)));
                         const float matrixBottom(yAxisStart);
                         const float matrixTop(matrixBottom + (yAxisStep * (numberOfRows)));
+                        const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
                         matrixTexturePrimitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &matrixTextureRGBA[0],
                                                                                        numberOfColumns,
                                                                                        numberOfRows,
                                                                                        GraphicsPrimitive::TextureWrappingType::CLAMP,
-                                                                                       GraphicsPrimitive::TextureFilteringType::NEAREST,
+                                                                                       GraphicsPrimitive::TextureMipMappingType::DISABLED,
                                                                                        GraphicsTextureMagnificationFilterEnum::NEAREST,
-                                                                                       GraphicsTextureMinificationFilterEnum::NEAREST);
+                                                                                       GraphicsTextureMinificationFilterEnum::NEAREST,
+                                                                                       textureBorderColorRGBA);
                         matrixTexturePrimitive->addVertex(matrixLeft, matrixTop, 0, 1);  /* Top Left */
                         matrixTexturePrimitive->addVertex(matrixLeft, matrixBottom, 0, 0);  /* Bottom Left */
                         matrixTexturePrimitive->addVertex(matrixRight, matrixTop, 1, 1);  /* Top Right */
@@ -4134,6 +4136,30 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
     }
     
     return validVoxelCount;
+}
+
+/**
+ * Get the graphics primitive for drawing this volume using a graphics primitive
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param rgbaOut
+ *    Output containing the rgba values (must have been allocated
+ *    by caller to sufficient count of elements in the slice).
+ * @return
+ *    Graphics primitive or NULL if unable to draw
+ */
+GraphicsPrimitiveV3fT3f*
+CiftiMappableDataFile::getVolumeDrawingPrimitive(const int32_t mapIndex,
+                                                 const DisplayGroupEnum::Enum displayGroup,
+                                                 const int32_t tabIndex) const
+{
+    CaretAssertToDoFatal();
+    return NULL;
 }
 
 /**

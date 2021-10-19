@@ -28,7 +28,8 @@
 namespace caret {
     
     class BoundingBox;
-    
+    class GraphicsPrimitiveV3fT3f;
+
     /**
      * \class caret::VolumeMappableInterface
      * \brief Interface for data that is mapped to volumes
@@ -377,6 +378,10 @@ namespace caret {
                                         const DisplayGroupEnum::Enum displayGroup,
                                         const int32_t tabIndex,
                                         uint8_t rgbaOut[4]) const = 0;
+        
+        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingPrimitive(const int32_t mapIndex,
+                                                                   const DisplayGroupEnum::Enum displayGroup,
+                                                                   const int32_t tabIndex) const = 0;
         
         /**
          * Get the volume space object, so we have access to all functions associated with volume spaces

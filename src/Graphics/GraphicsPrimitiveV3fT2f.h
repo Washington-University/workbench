@@ -39,9 +39,10 @@ namespace caret {
                                 const int32_t imageWidth,
                                 const int32_t imageHeight,
                                 const TextureWrappingType textureWrappingType,
-                                const TextureFilteringType textureFilteringType,
+                                const TextureMipMappingType textureMipMappingType,
                                 const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter);
+                                const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
+                                const std::array<float, 4>& textureBorderColorRGBA);
         
         virtual ~GraphicsPrimitiveV3fT2f();
         

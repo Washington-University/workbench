@@ -22,6 +22,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include "BrainConstants.h"
 #include "VolumeBase.h"
 #include "CaretMappableDataFile.h"
@@ -41,6 +43,7 @@ namespace caret {
     class VolumeDynamicConnectivityFile;
     class VolumeFileEditorDelegate;
     class VolumeFileVoxelColorizer;
+    class VolumeGraphicsPrimitiveManager;
     class VolumeSpline;
     
     class VolumeFile : public VolumeBase, public CaretMappableDataFile, public ChartableLineSeriesBrainordinateInterface
@@ -99,6 +102,8 @@ namespace caret {
         CaretPointer<VolumeFileVoxelColorizer> m_voxelColorizer;
         
         std::unique_ptr<VolumeDynamicConnectivityFile> m_lazyInitializedDynamicConnectivityFile;
+        
+        std::unique_ptr<VolumeGraphicsPrimitiveManager> m_graphicsPrimitiveManager;
         
         /** True if the volume is a single slice, needed by interpolateValue() methods */
         bool m_singleSliceFlag;
@@ -342,6 +347,10 @@ namespace caret {
                                                     const DisplayGroupEnum::Enum displayGroup,
                                                     const int32_t tabIndex,
                                                     uint8_t* rgbaOut) const override;
+        
+        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingPrimitive(const int32_t mapIndex,
+                                                                   const DisplayGroupEnum::Enum displayGroup,
+                                                                   const int32_t tabIndex) const override;
         
         void getVoxelValuesForSliceInMap(const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,

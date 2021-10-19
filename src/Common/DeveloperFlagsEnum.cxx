@@ -129,11 +129,12 @@ DeveloperFlagsEnum::initialize()
                                                 "Texture Volume Drawing",
                                                 CheckableEnum::YES,
                                                 false));
-    checkableItems.push_back(DeveloperFlagsEnum(DELELOPER_FLAG_VOXEL_SMOOTH,
-                                                "DELELOPER_FLAG_VOXEL_SMOOTH",
+    
+    checkableItems.push_back(DeveloperFlagsEnum(DELELOPER_FLAG_TEXTURE_VOLUME_SMOOTH,
+                                                "DELELOPER_FLAG_TEXTURE_VOLUME_SMOOTH",
                                                 "Smooth Texture Volume Voxels",
                                                 CheckableEnum::YES,
-                                                false));
+                                                true));
 
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOXEL_CUBES_TEST,
                                                 "DEVELOPER_FLAG_VOXEL_CUBES_TEST",
@@ -251,8 +252,8 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
     AString toolTip;
     
     switch (enumValue) {
-        case DELELOPER_FLAG_VOXEL_SMOOTH:
-            toolTip = ("Smooth texture volume voxels (\""
+        case DELELOPER_FLAG_TEXTURE_VOLUME_SMOOTH:
+            toolTip = ("Smooth texture volume drawing voxels (\""
                        + toGuiName(DEVELOPER_FLAG_TEXTURE_VOLUME)
                        + "\" must also be ON)");
             break;
@@ -274,9 +275,8 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
                        "flip the palette instead of flipping the data (not recommended)");
             break;
         case DEVELOPER_FLAG_TEXTURE_VOLUME:
-            toolTip = ("Draw volume slices using textures instead of drawing individual voxels "
-                       "(for testing and only works for first volume that is drawn after "
-                       "this option is enabled)");
+            toolTip = ("Draw volume slices, both orthogonal and oblique, using textures instead of drawing individual voxels "
+                       "(much faster)");
             break;
         case DEVELOPER_FLAG_UNUSED:
             toolTip = "Unused";

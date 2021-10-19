@@ -165,6 +165,7 @@ VolumeEditingModeEnum.h
 VolumeFile.h
 VolumeFileEditorDelegate.h
 VolumeFileVoxelColorizer.h
+VolumeGraphicsPrimitiveManager.h
 VolumeMapUndoCommand.h
 VolumePaddingHelper.h
 VolumeSliceProjectionTypeEnum.h
@@ -314,6 +315,7 @@ VolumeEditingModeEnum.cxx
 VolumeFile.cxx
 VolumeFileEditorDelegate.cxx
 VolumeFileVoxelColorizer.cxx
+VolumeGraphicsPrimitiveManager.cxx
 VolumeMapUndoCommand.cxx
 VolumePaddingHelper.cxx
 VolumeSliceProjectionTypeEnum.cxx

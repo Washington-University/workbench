@@ -481,14 +481,16 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
         }
         
         if (validRGBA) {
+            const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
             GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &bytesRGBA[0],
                                                                                        width,
                                                                                        height,
                                                                                        GraphicsPrimitive::TextureWrappingType::CLAMP,
-                                                                                       GraphicsPrimitive::TextureFilteringType::LINEAR,
+                                                                                       GraphicsPrimitive::TextureMipMappingType::ENABLED,
                                                                                        GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR);
+                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                                                       textureBorderColorRGBA);
             
             
             PixelIndex logicalBottomLeft(static_cast<float>(m_logicalRect.x()),

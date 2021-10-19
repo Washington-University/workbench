@@ -47,7 +47,7 @@ GraphicsPrimitiveV3fC4ub::GraphicsPrimitiveV3fC4ub(const PrimitiveType primitive
                     VertexColorType::PER_VERTEX_RGBA,
                     TextureDataType::NONE,
                     TextureWrappingType::CLAMP,
-                    TextureFilteringType::LINEAR,
+                    TextureMipMappingType::DISABLED,
                     GraphicsTextureMagnificationFilterEnum::LINEAR,
                     GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                     primitiveType)

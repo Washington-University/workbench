@@ -56,6 +56,8 @@ namespace caret {
         
         void invalidateColors();
         
+        void invalidateTextureCoordinates();
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -129,6 +131,8 @@ namespace caret {
         bool m_reloadCoordinatesFlag = false;
         
         bool m_reloadColorsFlag = false;
+        
+        bool m_reloadTextureCoordinatesFlag = false;
         
         std::unique_ptr<GraphicsOpenGLBufferObject> m_normalVectorBufferObject;
         

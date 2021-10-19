@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include <array>
 #include <map>
 #include <memory>
 #include <set>
@@ -108,18 +108,21 @@ namespace caret {
         enum class TextureWrappingType {
             /** Clamp so max STR is 1.0 (default) */
             CLAMP,
+            /** Clamp so max STR is 1.0 (default).  If no texels (voxels) are available, if pixel
+                maps to area outside of the volume, the border color is used. */
+            CLAMP_TO_BORDER,
             /** Repeat so max STR is greater than 1.0) */
             REPEAT
         };
         
         /**
-         * Texture filtering type
+         * Texture Mip Mapping Type
          */
-        enum class TextureFilteringType {
-            /* Nearest texel - no interpolation */
-            NEAREST,
-            /* Linear interpolate using nearest texels */
-            LINEAR
+        enum class TextureMipMappingType {
+            /** Mip mapping disabled */
+            DISABLED,
+            /** Mip mapping enabled */
+            ENABLED
         };
         
         /**
@@ -324,16 +327,16 @@ namespace caret {
         };
         
     protected:
-        GraphicsPrimitive(const VertexDataType       vertexDataType,
-                          const NormalVectorDataType normalVectorDataType,
-                          const ColorDataType        colorDataType,
-                          const VertexColorType      vertexColorType,
-                          const TextureDataType      textureDataType,
-                          const TextureWrappingType  textureWrappingType,
-                          const TextureFilteringType textureFilteringType,
+        GraphicsPrimitive(const VertexDataType        vertexDataType,
+                          const NormalVectorDataType  normalVectorDataType,
+                          const ColorDataType         colorDataType,
+                          const VertexColorType       vertexColorType,
+                          const TextureDataType       textureDataType,
+                          const TextureWrappingType   textureWrappingType,
+                          const TextureMipMappingType textureMipMappingType,
                           const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
                           const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                          const PrimitiveType        primitiveType);
+                          const PrimitiveType         primitiveType);
         
         GraphicsPrimitive(const GraphicsPrimitive& obj);
         
@@ -361,9 +364,10 @@ namespace caret {
                                                            const int32_t imageWidth,
                                                            const int32_t imageHeight,
                                                            const TextureWrappingType textureWrappingType,
-                                                           const TextureFilteringType textureFilteringType,
+                                                           const TextureMipMappingType textureMipMappingType,
                                                            const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                                           const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter);
+                                                           const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
+                                                           const std::array<float, 4>& textureBorderColorRGBA);
         
         static GraphicsPrimitiveV3fT3f* newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
                                                            const uint8_t* imageBytesRGBA,
@@ -371,9 +375,11 @@ namespace caret {
                                                            const int32_t imageHeight,
                                                            const int32_t imageSlices,
                                                            const TextureWrappingType textureWrappingType,
-                                                           const TextureFilteringType textureFilteringType,
+                                                           const TextureMipMappingType textureMipMappingType,
                                                            const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                                           const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter);
+                                                           const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
+                                                           const std::array<float, 4>& textureBorderColorRGBA);
+
         
         virtual ~GraphicsPrimitive();
         
@@ -449,10 +455,10 @@ namespace caret {
         inline TextureWrappingType getTextureWrappingType() const { return m_textureWrappingType; }
         
         /**
-         * @return Type of texture filtering
+         * @return Type of texture mip mapping
          */
-        inline TextureFilteringType getTextureFilteringType() const { return m_textureFilteringType; }
-        
+        inline TextureMipMappingType getTextureMipMappingType() const { return m_textureMipMappingType; }
+
         /**
          * @return Type of magnification texture filtering (pixel smaller than texel)
          */
@@ -476,6 +482,23 @@ namespace caret {
         inline void setTextureMinificationFilter(const GraphicsTextureMinificationFilterEnum::Enum minFilter) {
             m_textureMinificationFilter = minFilter;
         }
+        
+        /** @return The texture border color when used when clamp to border */
+        std::array<float, 4> getTextureBorderColorRGBA() const { return m_textureBorderColorRGBA; }
+        
+        /** Set he texture border color when used when clamp to border @param rgba*/
+        void setTextureBorderColorRGBA(const std::array<float, 4>& rgba) {
+            m_textureBorderColorRGBA = rgba;
+        }
+        
+        /** @return Width of texture */
+        int32_t getTextureImageWidth() const { return m_textureImageWidth; }
+        
+        /** @return Height of texture */
+        int32_t getTextureImageHeight() const { return m_textureImageHeight; }
+        
+        /** @return Slices of texture */
+        int32_t getTextureImageSlices() const { return m_textureImageSlices; }
         
         /**
          * @return The float coordinates.
@@ -519,6 +542,9 @@ namespace caret {
         void replaceAllVertexSolidByteRGBA(const uint8_t rgba[4]);
         
         void replaceAllVertexSolidFloatRGBA(const float rgba[4]);
+        
+        void replaceVertexTextureSTR(const int32_t vertexIndex,
+                                     const float str[3]);
         
         bool getVertexBounds(BoundingBox& boundingBoxOut) const;
         
@@ -603,12 +629,14 @@ namespace caret {
         
         const TextureWrappingType m_textureWrappingType;
         
-        const TextureFilteringType m_textureFilteringType;
+        const TextureMipMappingType m_textureMipMappingType;
         
         GraphicsTextureMagnificationFilterEnum::Enum m_textureMagnificationFilter = GraphicsTextureMagnificationFilterEnum::LINEAR;
         
         GraphicsTextureMinificationFilterEnum::Enum m_textureMinificationFilter = GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR;
 
+        std::array<float, 4> m_textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+        
         const PrimitiveType m_primitiveType;
 
         ReleaseInstanceDataMode m_releaseInstanceDataMode = ReleaseInstanceDataMode::DISABLED;

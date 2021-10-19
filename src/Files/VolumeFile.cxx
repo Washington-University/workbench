@@ -37,6 +37,7 @@
 #include "ElapsedTimer.h"
 #include "EventManager.h"
 #include "GiftiLabel.h"
+#include "GraphicsPrimitiveV3fT3f.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
@@ -49,6 +50,7 @@
 #include "VolumeFile.h"
 #include "VolumeFileEditorDelegate.h"
 #include "VolumeFileVoxelColorizer.h"
+#include "VolumeGraphicsPrimitiveManager.h"
 #include "VolumeSpline.h"
 
 #include <limits>
@@ -94,6 +96,7 @@ VolumeFile::VolumeFile(const DataFileTypeEnum::Enum dataFileType)
     m_writingDType = NIFTI_TYPE_FLOAT32;
     m_minScalingVal = -1.0;//unused, but make them consistent
     m_maxScalingVal = 1.0;
+    m_graphicsPrimitiveManager.reset(new VolumeGraphicsPrimitiveManager(this, this));
     validateMembers();
 }
 
@@ -109,6 +112,7 @@ VolumeFile::VolumeFile()
     m_writingDType = NIFTI_TYPE_FLOAT32;
     m_minScalingVal = -1.0;//unused, but make them consistent
     m_maxScalingVal = 1.0;
+    m_graphicsPrimitiveManager.reset(new VolumeGraphicsPrimitiveManager(this, this));
     validateMembers();
 }
 
@@ -125,6 +129,7 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
     m_writingDType = NIFTI_TYPE_FLOAT32;
     m_minScalingVal = -1.0;//unused, but make them consistent
     m_maxScalingVal = 1.0;
+    m_graphicsPrimitiveManager.reset(new VolumeGraphicsPrimitiveManager(this, this));
     validateMembers();
     setType(whatType);
 }
@@ -135,6 +140,7 @@ void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     clear();
     VolumeBase::reinitialize(dimensionsIn, indexToSpace, numComponents);
     if (templateHeader != NULL) m_header.grabNew(templateHeader->clone());
+    m_graphicsPrimitiveManager->clear();
     validateMembers();
     setType(whatType);
 }
@@ -150,6 +156,8 @@ void VolumeFile::reinitialize(const VolumeSpace& volSpaceIn, const int64_t numFr
         dims.push_back(numFrames);
     }
     reinitialize(dims, volSpaceIn.getSform(), numComponents, whatType, templateHeader);
+    m_graphicsPrimitiveManager->clear();
+
 }
 
 void VolumeFile::reinitialize(const VolumeFile* headerTemplate, const int64_t numFrames, const int64_t numComponents)
@@ -233,6 +241,8 @@ VolumeFile::clear()
     m_writingDType = NIFTI_TYPE_FLOAT32;
     m_minScalingVal = -1.0;//unused, but make them consistent
     m_maxScalingVal = 1.0;
+    
+    m_graphicsPrimitiveManager->clear();
 }
 
 void VolumeFile::readFile(const AString& filename)
@@ -1584,6 +1594,8 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex)
     CaretAssert(m_voxelColorizer);
     
     m_voxelColorizer->assignVoxelColorsForMap(mapIndex);
+
+    m_graphicsPrimitiveManager->invalidateColoringForMap(mapIndex);
     
     invalidateHistogramChartColoring();
 }
@@ -1735,6 +1747,30 @@ VolumeFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                                      rgbaOut);
 }
 
+/**
+ * Get the graphics primitive for drawing this volume using a graphics primitive
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param rgbaOut
+ *    Output containing the rgba values (must have been allocated
+ *    by caller to sufficient count of elements in the slice).
+ * @return
+ *    Graphics primitive or NULL if unable to draw
+ */
+GraphicsPrimitiveV3fT3f*
+VolumeFile::getVolumeDrawingPrimitive(const int32_t mapIndex,
+                                      const DisplayGroupEnum::Enum displayGroup,
+                                      const int32_t tabIndex) const
+{
+    return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(mapIndex,
+                                                                       displayGroup,
+                                                                       tabIndex);
+}
 
 /**
  * Get the voxel values for a slice in a map.
@@ -1871,6 +1907,8 @@ VolumeFile::clearVoxelColoringForMap(const int64_t mapIndex)
     if (isMappedWithLabelTable()) {
         m_forceUpdateOfGroupAndNameHierarchy = true;
     }
+    
+    m_graphicsPrimitiveManager->invalidateColoringForMap(mapIndex);
 }
 
 /**

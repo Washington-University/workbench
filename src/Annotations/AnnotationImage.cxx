@@ -231,14 +231,16 @@ AnnotationImage::getGraphicsPrimitive() const
 {
     if (m_graphicsPrimitive == NULL) {
         if ( ! m_imageBytesRGBA.empty()) {
+            std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
             GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &m_imageBytesRGBA[0],
                                                                                        m_imageWidth,
                                                                                        m_imageHeight,
                                                                                        GraphicsPrimitive::TextureWrappingType::CLAMP,
-                                                                                       GraphicsPrimitive::TextureFilteringType::LINEAR,
+                                                                                       GraphicsPrimitive::TextureMipMappingType::ENABLED,
                                                                                        GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR);
+                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                                                       textureBorderColorRGBA);
             /*
              * A Triangle Strip (consisting of two triangles) is used
              * for drawing the image.  At this time, the XYZ coordinates

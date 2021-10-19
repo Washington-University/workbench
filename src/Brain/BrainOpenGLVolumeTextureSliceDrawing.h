@@ -40,11 +40,13 @@ namespace caret {
     class Brain;
     class BrowserTabContent;
     class CiftiMappableDataFile;
+    class GraphicsPrimitiveV3fT3f;
     class Matrix4x4;
     class ModelVolume;
     class ModelWholeBrain;
     class Plane;
     class VolumeMappableInterface;
+    class VolumeSpace;
     
     class BrainOpenGLVolumeTextureSliceDrawing : public CaretObject {
         
@@ -108,9 +110,9 @@ namespace caret {
                               Matrix4x4& transformationMatrix,
                               const Plane& plane);
         
-        void drawObliqueSliceWithOutlines(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                          const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                          Matrix4x4& transformationMatrix);
+        void drawObliqueSliceWithPrimitive(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                           const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                           Matrix4x4& transformationMatrix);
         
         void createSlicePlaneEquation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -155,49 +157,26 @@ namespace caret {
                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);
         
-        bool getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
-                                                float spacingOut[3]);
-        
         void createObliqueTransformationMatrix(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                const float sliceCoordinates[3],
                                                Matrix4x4& obliqueTransformationMatrixOut);
         
-        bool getVolumeDrawingViewDependentCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                  const float selectedSliceCoordinate,
-                                                  const VolumeMappableInterface* volumeFile,
-                                                  int64_t culledFirstVoxelIJKOut[3],
-                                                  int64_t culledLastVoxelIJKOut[3],
-                                                  float voxelDeltaXYZOut[3]);
-        
         glm::mat4 convertMatrix4x4toGlmMat4(const Matrix4x4& matrix) const;
-        
-        void mat4ToOpenGLMatrix(const glm::mat4& matrixIn,
-                                float matrixOut[16]) const;
         
         bool getTextureCoordinates(const VolumeMappableInterface* volumeMappableInterface,
                                    const std::array<float, 3>& xyz,
                                    const std::array<float, 3>& maxStr,
                                    std::array<float, 3>& strOut) const;
         
-        bool createVolumeTexture(const VolumeMappableInterface* volumeFile,
-                                 const DisplayGroupEnum::Enum displayGroup,
-                                 const int32_t tabIndex,
-                                 const bool allowNonPowerOfTwoTextureFlag,
-                                 const bool identificationTextureFlag,
-                                 std::vector<uint8_t>& rgbaColorsOut,
-                                 std::array<int64_t, 3>& textureDimsOut,
-                                 std::array<float, 3>& maxStrOut) const;
-
-        GLuint createTextureName(const VolumeMappableInterface* volumeMappableInterface,
-                                 const bool identificationTextureFlag,
-                                 const DisplayGroupEnum::Enum displayGroup,
-                                 const int32_t tabIndex,
-                                 std::array<float, 3>& maxStrOut) const;
-        
-        void setupTextureFiltering(const CaretMappableDataFile* mapFile,
-                                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType);
-        
-        void processTextureVoxelIdentification(VolumeMappableInterface* volumeMappableInterface);
+        void performIdentification(VolumeMappableInterface* volumeInterface,
+                                   const GraphicsPrimitiveV3fT3f* primitive,
+                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                   const std::array<float, 3> bottomLeft,
+                                   const std::array<float, 3> bottomRight,
+                                   const std::array<float, 3> topRight,
+                                   const std::array<float, 3> topLeft,
+                                   const float mouseX,
+                                   const float mouseY);
         
         struct TextureInfo {
             GLuint m_textureID;

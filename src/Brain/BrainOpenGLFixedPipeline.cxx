@@ -8633,14 +8633,16 @@ BrainOpenGLFixedPipeline::drawStippledBackgroundInAreasOutsideWindowAspectLockin
             }
         }
     }
+    const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
     std::unique_ptr<GraphicsPrimitiveV3fT2f> primitive(GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
                                                                                              &textureRGBA[0],
                                                                                              textureDim,
                                                                                              textureDim,
                                                                                              GraphicsPrimitive::TextureWrappingType::REPEAT,
-                                                                                             GraphicsPrimitive::TextureFilteringType::LINEAR,
+                                                                                             GraphicsPrimitive::TextureMipMappingType::ENABLED,
                                                                                              GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                                                             GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR));
+                                                                                             GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                                                             textureBorderColorRGBA));
     
     if (afterLeft > beforeLeft) {
         /* Left */

@@ -56,7 +56,7 @@ GraphicsPrimitiveV3fN3f::GraphicsPrimitiveV3fN3f(const PrimitiveType primitiveTy
                     VertexColorType::SOLID_RGBA,
                     TextureDataType::NONE,
                     TextureWrappingType::CLAMP,
-                    TextureFilteringType::LINEAR,
+                    TextureMipMappingType::DISABLED,
                     GraphicsTextureMagnificationFilterEnum::LINEAR,
                     GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                     primitiveType)
@@ -83,7 +83,7 @@ GraphicsPrimitiveV3fN3f::GraphicsPrimitiveV3fN3f(const PrimitiveType primitiveTy
                     VertexColorType::SOLID_RGBA,
                     TextureDataType::NONE,
                     TextureWrappingType::CLAMP,
-                    TextureFilteringType::LINEAR,
+                    TextureMipMappingType::DISABLED,
                     GraphicsTextureMagnificationFilterEnum::LINEAR,
                     GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                     primitiveType)

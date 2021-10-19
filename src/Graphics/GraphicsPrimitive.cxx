@@ -69,8 +69,8 @@ using namespace caret;
  *     Data type of texture coordinates.
  * @param textureWrappingType
  *     Type of texture wrapping
- * @param textureFilteringType
- *     Type of texture filtering
+ * @param textureMipMappingType
+ *     Type of texture mip mapping
  * @param textureMagnificationFilter
  *    Texture filtering for when screen pixel is smaller than texture  texel
  * @param textureMinificationFilter
@@ -78,16 +78,16 @@ using namespace caret;
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
  */
-GraphicsPrimitive::GraphicsPrimitive(const VertexDataType       vertexDataType,
-                                     const NormalVectorDataType normalVectorDataType,
-                                     const ColorDataType        colorDataType,
-                                     const VertexColorType      vertexColorType,
-                                     const TextureDataType      textureDataType,
-                                     const TextureWrappingType  textureWrappingType,
-                                     const TextureFilteringType textureFilteringType,
+GraphicsPrimitive::GraphicsPrimitive(const VertexDataType        vertexDataType,
+                                     const NormalVectorDataType  normalVectorDataType,
+                                     const ColorDataType         colorDataType,
+                                     const VertexColorType       vertexColorType,
+                                     const TextureDataType       textureDataType,
+                                     const TextureWrappingType   textureWrappingType,
+                                     const TextureMipMappingType  textureMipMappingType,
                                      const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
                                      const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                                     const PrimitiveType        primitiveType)
+                                     const PrimitiveType         primitiveType)
 : CaretObject(),
  EventListenerInterface(),
  m_vertexDataType(vertexDataType),
@@ -96,13 +96,40 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType       vertexDataType,
  m_vertexColorType(vertexColorType),
  m_textureDataType(textureDataType),
  m_textureWrappingType(textureWrappingType),
- m_textureFilteringType(textureFilteringType),
+ m_textureMipMappingType(textureMipMappingType),
  m_textureMagnificationFilter(textureMagnificationFilter),
  m_textureMinificationFilter(textureMinificationFilter),
  m_primitiveType(primitiveType),
  m_boundingBoxValid(false)
 {
     invalidateVertexMeasurements();
+    
+    switch (textureDataType) {
+        case TextureDataType::NONE:
+            break;
+        case TextureDataType::FLOAT_STR_2D:
+        case TextureDataType::FLOAT_STR_3D:
+            switch (m_textureMipMappingType) {
+                case TextureMipMappingType::DISABLED:
+                    switch (m_textureMinificationFilter) {
+                        case GraphicsTextureMinificationFilterEnum::NEAREST:
+                        case GraphicsTextureMinificationFilterEnum::LINEAR:
+                            break;
+                        case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR:
+                        case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_NEAREST:
+                        case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_LINEAR:
+                        case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_NEAREST:
+                            CaretLogSevere("Mip Mapping is disabled but the minification factor="
+                                           + GraphicsTextureMinificationFilterEnum::toName(m_textureMinificationFilter)
+                                           + " requires mip mapping.  ");
+                            break;
+                    }
+                    break;
+                case TextureMipMappingType::ENABLED:
+                    break;
+            }
+            break;
+    }
 }
 
 /**
@@ -127,7 +154,7 @@ GraphicsPrimitive::GraphicsPrimitive(const GraphicsPrimitive& obj)
  m_vertexColorType(obj.m_vertexColorType),
  m_textureDataType(obj.m_textureDataType),
  m_textureWrappingType(obj.m_textureWrappingType),
- m_textureFilteringType(obj.m_textureFilteringType),
+ m_textureMipMappingType(obj.m_textureMipMappingType),
  m_primitiveType(obj.m_primitiveType),
  m_boundingBoxValid(false)
 {
@@ -160,6 +187,7 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
     m_textureImageWidth           = obj.m_textureImageWidth;
     m_textureImageHeight          = obj.m_textureImageHeight;
     m_textureImageSlices          = obj.m_textureImageSlices;
+    m_textureBorderColorRGBA      = obj.m_textureBorderColorRGBA;
     invalidateVertexMeasurements();
 
 
@@ -405,11 +433,9 @@ GraphicsPrimitive::isValid() const
             case TextureDataType::NONE:
                 break;
             case TextureDataType::FLOAT_STR_2D:
+            case TextureDataType::FLOAT_STR_3D:
                 numTextureSTR = m_floatTextureSTR.size();
                 haveTextureFlag = true;
-                break;
-            case TextureDataType::FLOAT_STR_3D:
-                CaretAssertToDoFatal();
                 break;
         }
         if (haveTextureFlag) {
@@ -690,13 +716,11 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
         case TextureDataType::NONE:
             break;
         case TextureDataType::FLOAT_STR_2D:
+        case TextureDataType::FLOAT_STR_3D:
             s.appendWithNewLine("Texture: " + AString::number(m_floatTextureSTR.size()) + " Float Texture 0.0 to 1.0.  ");
             s.appendWithNewLine("   Width: " + AString::number(m_textureImageWidth)
                                 + " Height: " + AString::number(m_textureImageHeight)
                                 + " Slices: " + AString::number(m_textureImageSlices));
-            break;
-        case TextureDataType::FLOAT_STR_3D:
-            CaretAssertToDoFatal();
             break;
     }
     
@@ -832,14 +856,12 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
                 case TextureDataType::NONE:
                     break;
                 case TextureDataType::FLOAT_STR_2D:
+                case TextureDataType::FLOAT_STR_3D:
                 {
                     CaretAssertVectorIndex(m_floatTextureSTR, i*3 + 2);
                     const float* str = &m_floatTextureSTR[i * 3];
                     s.append(AString("   T:%1, %2, %3").arg(str[0], 7, 'f', 5).arg(str[1], 7, 'f', 5).arg(str[2], 7, 'f', 5));
                 }
-                    break;
-                case TextureDataType::FLOAT_STR_3D:
-                    CaretAssertToDoFatal();
                     break;
             }
             s.append("\n");
@@ -903,13 +925,11 @@ GraphicsPrimitive::addVertexProtected(const float xyz[3],
         case TextureDataType::NONE:
             break;
         case TextureDataType::FLOAT_STR_2D:
+        case TextureDataType::FLOAT_STR_3D:
             CaretAssert(textureSTR);
             m_floatTextureSTR.insert(m_floatTextureSTR.end(),
                                      textureSTR,
                                      textureSTR + 3);
-            break;
-        case TextureDataType::FLOAT_STR_3D:
-            CaretAssertToDoFatal();
             break;
     }
     
@@ -1078,6 +1098,47 @@ GraphicsPrimitive::replaceVertexFloatXYZ(const int32_t vertexIndex,
         m_graphicsEngineDataForOpenGL->invalidateCoordinates();
     }
 }
+
+/**
+ * Replace the STR coordinate at the given index
+ *
+ * @param vertexIndex
+ *     Index of the vertex
+ * @param str
+ *     The new STR texture coordinate
+ */
+void
+GraphicsPrimitive::replaceVertexTextureSTR(const int32_t vertexIndex,
+                                           const float str[3])
+{
+    switch (m_releaseInstanceDataMode) {
+        case ReleaseInstanceDataMode::COMPLETED:
+        {
+            const QString msg("A vertex's STR Data in primitive cannot be replaced.  "
+                              "Instance data was removed to save memory.  "
+                              "setReleaseInstanceDataMode() should not be called for this primitive.");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            return;
+        }
+            break;
+        case ReleaseInstanceDataMode::DISABLED:
+            break;
+        case ReleaseInstanceDataMode::ENABLED:
+            break;
+    }
+    
+    const int32_t offset = vertexIndex * 3;
+    CaretAssertVectorIndex(m_floatTextureSTR, offset + 2);
+    m_floatTextureSTR[offset]     = str[0];
+    m_floatTextureSTR[offset + 1] = str[1];
+    m_floatTextureSTR[offset + 2] = str[2];
+    
+    if (m_graphicsEngineDataForOpenGL != NULL) {
+        m_graphicsEngineDataForOpenGL->invalidateTextureCoordinates();
+    }
+}
+
 
 /**
  * Replace the XYZ vertices in this primitive with vertices from other primitive
@@ -1557,12 +1618,10 @@ GraphicsPrimitive::copyVertex(const int32_t copyFromIndex,
             case TextureDataType::NONE:
                 break;
             case TextureDataType::FLOAT_STR_2D:
+            case TextureDataType::FLOAT_STR_3D:
                 CaretAssertVectorIndex(m_floatTextureSTR, from3 + i);
                 CaretAssertVectorIndex(m_floatTextureSTR, to3 + i);
                 m_floatTextureSTR[to3 + i] = m_floatTextureSTR[from3 + i];
-                break;
-            case TextureDataType::FLOAT_STR_3D:
-                CaretAssertToDoFatal();
                 break;
         }
     }
@@ -1924,12 +1983,10 @@ GraphicsPrimitive::simplfyLines(const int32_t skipVertexCount)
             
             switch (m_textureDataType) {
                 case TextureDataType::FLOAT_STR_2D:
+                case TextureDataType::FLOAT_STR_3D:
                     textureSTR.push_back(m_floatTextureSTR[i3]);
                     textureSTR.push_back(m_floatTextureSTR[i3+1]);
                     textureSTR.push_back(m_floatTextureSTR[i3+2]);
-                    break;
-                case TextureDataType::FLOAT_STR_3D:
-                    CaretAssertToDoFatal();
                     break;
                 case TextureDataType::NONE:
                     break;
@@ -2397,12 +2454,14 @@ GraphicsPrimitive::newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType pr
  *     Height of the image.
  * @param textureWrappingType
  *     Type of texture wrapping
- * @param textureFilteringType
- *     Type of texture filtering
+ * @param textureMipMappingType
+ *     Type of texture mip mapping
  * @param textureMagnificationFilter
  *    Texture filtering for when screen pixel is smaller than texture  texel
  * @param textureMinificationFilter
  *    Texture filtering for when screen pixel is larger than texture texel
+ * @param textureBorderColorRGBA
+ *    Color for texture border when clamp to border is used for wrapping
  */
 GraphicsPrimitiveV3fT2f*
 GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType primitiveType,
@@ -2410,18 +2469,20 @@ GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType pri
                                       const int32_t imageWidth,
                                       const int32_t imageHeight,
                                       const TextureWrappingType textureWrappingType,
-                                      const TextureFilteringType textureFilteringType,
+                                      const TextureMipMappingType textureMipMappingType,
                                       const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                      const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter)
+                                      const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
+                                      const std::array<float, 4>& textureBorderColorRGBA)
 {
     GraphicsPrimitiveV3fT2f* primitive = new GraphicsPrimitiveV3fT2f(primitiveType,
                                                                      imageBytesRGBA,
                                                                      imageWidth,
                                                                      imageHeight,
                                                                      textureWrappingType,
-                                                                     textureFilteringType,
+                                                                     textureMipMappingType,
                                                                      textureMagnificationFilter,
-                                                                     textureMinificationFilter);
+                                                                     textureMinificationFilter,
+                                                                     textureBorderColorRGBA);
     return primitive;
 }
 
@@ -2441,12 +2502,14 @@ GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType pri
  *     Slices of image
  * @param textureWrappingType
  *     Type of texture wrapping
- * @param textureFilteringType
- *     Type of texture filtering
+ * @param textureMipMappingType
+ *     Type of texture mip mapping
  * @param textureMagnificationFilter
  *    Texture filtering for when screen pixel is smaller than texture  texel
  * @param textureMinificationFilter
  *    Texture filtering for when screen pixel is larger than texture texel
+ * @param textureBorderColorRGBA
+ *    Color for texture border when clamp to border is used for wrapping
  */
 GraphicsPrimitiveV3fT3f*
 GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
@@ -2455,9 +2518,10 @@ GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType pri
                                       const int32_t imageHeight,
                                       const int32_t imageSlices,
                                       const TextureWrappingType textureWrappingType,
-                                      const TextureFilteringType textureFilteringType,
+                                      const TextureMipMappingType textureMipMappingType,
                                       const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                      const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter)
+                                      const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
+                                      const std::array<float, 4>& textureBorderColorRGBA)
 {
     GraphicsPrimitiveV3fT3f* primitive = new GraphicsPrimitiveV3fT3f(primitiveType,
                                                                      imageBytesRGBA,
@@ -2465,9 +2529,10 @@ GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType pri
                                                                      imageHeight,
                                                                      imageSlices,
                                                                      textureWrappingType,
-                                                                     textureFilteringType,
+                                                                     textureMipMappingType,
                                                                      textureMagnificationFilter,
-                                                                     textureMinificationFilter);
+                                                                     textureMinificationFilter,
+                                                                     textureBorderColorRGBA);
     return primitive;
 }
 

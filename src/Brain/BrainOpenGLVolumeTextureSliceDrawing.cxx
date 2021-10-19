@@ -49,6 +49,7 @@
 #include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
+#include "EventOpenGLObjectToWindowTransform.h"
 #include "FociFile.h"
 #include "Focus.h"
 #include "GapsAndMargins.h"
@@ -56,8 +57,10 @@
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
+#include "GraphicsPrimitiveV3fT3f.h"
 #include "GraphicsUtilitiesOpenGL.h"
 #include "IdentificationWithColor.h"
 #include "LabelDrawingProperties.h"
@@ -842,7 +845,6 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewProjection(const BrainO
         Matrix4x4 obliqueTransformationMatrix;
         switch (sliceProjectionType) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-//                break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             {
                 /*
@@ -855,9 +857,10 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewProjection(const BrainO
             }
                 break;
         }
-        drawObliqueSliceWithOutlines(sliceViewPlane,
-                                     sliceProjectionType,
-                                     obliqueTransformationMatrix);
+        
+        drawObliqueSliceWithPrimitive(sliceViewPlane,
+                                      sliceProjectionType,
+                                      obliqueTransformationMatrix);
     }
     
     if ( ! m_identificationModeFlag) {
@@ -913,7 +916,6 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewProjection(const BrainO
                                                                                         sliceThickness);
     
     m_fixedPipelineDrawing->disableClippingPlanes();
-    
     
     if (cullFaceOn) {
         glEnable(GL_CULL_FACE);
@@ -981,120 +983,6 @@ BrainOpenGLVolumeTextureSliceDrawing::createSlicePlaneEquation(const VolumeSlice
     m_lookAtCenter[2] = sliceCoordinates[2];
 }
 
-///**
-// * Set the volume slice viewing transformation.  This sets the position and
-// * orientation of the camera.
-// *
-// * @param sliceProjectionType
-// *    Type of projection for the slice drawing (oblique, orthogonal)
-// * @param sliceViewPlane
-// *    View plane that is displayed.
-// * @param plane
-// *    Plane equation of selected slice.
-// * @param sliceCoordinates
-// *    Coordinates of the selected slices.
-// */
-//void
-//BrainOpenGLVolumeTextureSliceDrawing::setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-//                                                                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-//                                                                                      const Plane& plane,
-//                                                                                      const float sliceCoordinates[3])
-//{
-//    /*
-//     * Initialize the modelview matrix to the identity matrix
-//     * This places the camera at the origin, pointing down the
-//     * negative-Z axis with the up vector set to (0,1,0 =>
-//     * positive-Y is up).
-//     */
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
-//
-//    const float* userTranslation = m_browserTabContent->getTranslation();
-//
-//    /*
-//     * Move the camera with the user's translation
-//     */
-//    float viewTranslationX = 0.0;
-//    float viewTranslationY = 0.0;
-//    float viewTranslationZ = 0.0;
-//
-//    switch (sliceViewPlane) {
-//        case VolumeSliceViewPlaneEnum::ALL:
-//        case VolumeSliceViewPlaneEnum::AXIAL:
-//            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
-//            viewTranslationY = sliceCoordinates[1] + userTranslation[1];
-//            break;
-//        case VolumeSliceViewPlaneEnum::CORONAL:
-//            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
-//            viewTranslationY = sliceCoordinates[2] + userTranslation[2];
-//            break;
-//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//            viewTranslationX = -(sliceCoordinates[1] + userTranslation[1]);
-//            viewTranslationY =   sliceCoordinates[2] + userTranslation[2];
-//            break;
-//    }
-//
-//    glTranslatef(viewTranslationX,
-//                 viewTranslationY,
-//                 viewTranslationZ);
-//
-//
-//
-//
-//    glGetDoublev(GL_MODELVIEW_MATRIX,
-//                 m_viewingMatrix);
-//
-//    /*
-//     * Since an orthographic projection is used, the camera only needs
-//     * to be a little bit from the center along the plane's normal vector.
-//     */
-//    double planeNormal[3];
-//    plane.getNormalVector(planeNormal);
-//    double cameraXYZ[3] = {
-//        m_lookAtCenter[0] + planeNormal[0] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-//        m_lookAtCenter[1] + planeNormal[1] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-//        m_lookAtCenter[2] + planeNormal[2] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-//    };
-//
-//    /*
-//     * Set the up vector which indices which way is up (screen Y)
-//     */
-//    float up[3] = { 0.0, 0.0, 0.0 };
-//    switch (sliceViewPlane) {
-//        case VolumeSliceViewPlaneEnum::ALL:
-//        case VolumeSliceViewPlaneEnum::AXIAL:
-//            up[1] = 1.0;
-//            break;
-//        case VolumeSliceViewPlaneEnum::CORONAL:
-//            up[2] = 1.0;
-//            break;
-//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//            up[2] = 1.0;
-//            break;
-//    }
-//
-//    /*
-//     * For oblique viewing, the up vector needs to be rotated by the
-//     * oblique rotation matrix.
-//     */
-//    switch (sliceProjectionType) {
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-//            m_browserTabContent->getObliqueVolumeRotationMatrix().multiplyPoint3(up);
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-//            break;
-//    }
-//
-//    /*
-//     * Now set the camera to look at the selected coordinate (center)
-//     * with the camera offset a little bit from the center.
-//     * This allows the slice's voxels to be drawn in the actual coordinates.
-//     */
-//    gluLookAt(cameraXYZ[0], cameraXYZ[1], cameraXYZ[2],
-//              m_lookAtCenter[0], m_lookAtCenter[1], m_lookAtCenter[2],
-//              up[0], up[1], up[2]);
-//}
-
 /**
  * Convert a Matrix4x4 to a glm::mat4 matrix
  */
@@ -1109,22 +997,6 @@ BrainOpenGLVolumeTextureSliceDrawing::convertMatrix4x4toGlmMat4(const Matrix4x4&
                     m[8], m[9], m[10], m[11],
                     m[12], m[13], m[14], m[15]);
     return out;
-}
-
-/**
- * Convert a glm::mat4 matrix to an OpenGL matrix
- */
-void
-BrainOpenGLVolumeTextureSliceDrawing::mat4ToOpenGLMatrix(const glm::mat4& matrixIn,
-                                                         float matrixOut[16]) const
-{
-    int32_t indx = 0;
-    for (int32_t iRow = 0; iRow < 4; iRow++) {
-        for (int jCol = 0; jCol < 4; jCol++) {
-            matrixOut[indx] = matrixIn[iRow][jCol];
-            indx++;
-        }
-    }
 }
 
 /**
@@ -2426,96 +2298,6 @@ BrainOpenGLVolumeTextureSliceDrawing::setOrthographicProjection(const BrainOpenG
 }
 
 /**
- * Get the maximum bounds that enclose the volumes and the minimum
- * voxel spacing from the volumes.
- *
- * @param boundsOut
- *    Bounds of the volumes.
- * @param spacingOut
- *    Minimum voxel spacing from the volumes.  Always positive values (even if
- *    volumes is oriented right to left).
- *
- */
-bool
-BrainOpenGLVolumeTextureSliceDrawing::getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
-                                                                         float spacingOut[3])
-{
-    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(m_volumeDrawInfo.size());
-    if (numberOfVolumesToDraw <= 0) {
-        return false;
-    }
-    
-    /*
-     * Find maximum extent of all voxels and smallest voxel
-     * size in each dimension.
-     */
-    float minVoxelX = std::numeric_limits<float>::max();
-    float maxVoxelX = -std::numeric_limits<float>::max();
-    float minVoxelY = std::numeric_limits<float>::max();
-    float maxVoxelY = -std::numeric_limits<float>::max();
-    float minVoxelZ = std::numeric_limits<float>::max();
-    float maxVoxelZ = -std::numeric_limits<float>::max();
-    float voxelStepX = std::numeric_limits<float>::max();
-    float voxelStepY = std::numeric_limits<float>::max();
-    float voxelStepZ = std::numeric_limits<float>::max();
-    for (int32_t i = 0; i < numberOfVolumesToDraw; i++) {
-        const VolumeMappableInterface* volumeFile = m_volumeDrawInfo[i].volumeFile;
-        int64_t dimI, dimJ, dimK, numMaps, numComponents;
-        volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-        
-        float originX, originY, originZ;
-        float x1, y1, z1;
-        float lastX, lastY, lastZ;
-        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
-        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
-        volumeFile->indexToSpace(dimI - 1, dimJ - 1, dimK - 1, lastX, lastY, lastZ);
-        const float dx = x1 - originX;
-        const float dy = y1 - originY;
-        const float dz = z1 - originZ;
-        voxelStepX = std::min(voxelStepX, std::fabs(dx));
-        voxelStepY = std::min(voxelStepY, std::fabs(dy));
-        voxelStepZ = std::min(voxelStepZ, std::fabs(dz));
-        
-        minVoxelX = std::min(minVoxelX, std::min(originX, lastX));
-        maxVoxelX = std::max(maxVoxelX, std::max(originX, lastX));
-        minVoxelY = std::min(minVoxelY, std::min(originY, lastY));
-        maxVoxelY = std::max(maxVoxelY, std::max(originY, lastY));
-        minVoxelZ = std::min(minVoxelZ, std::min(originZ, lastZ));
-        maxVoxelZ = std::max(maxVoxelZ, std::max(originZ, lastZ));
-    }
-    
-    boundsOut[0] = minVoxelX;
-    boundsOut[1] = maxVoxelX;
-    boundsOut[2] = minVoxelY;
-    boundsOut[3] = maxVoxelY;
-    boundsOut[4] = minVoxelZ;
-    boundsOut[5] = maxVoxelZ;
-    
-    spacingOut[0] = voxelStepX;
-    spacingOut[1] = voxelStepY;
-    spacingOut[2] = voxelStepZ;
-    
-    /*
-     * Two dimensions: single slice
-     * Three dimensions: multiple slices
-     */
-    int32_t validDimCount = 0;
-    if (maxVoxelX > minVoxelX) validDimCount++;
-    if (maxVoxelY > minVoxelY) validDimCount++;
-    if (maxVoxelZ > minVoxelZ) validDimCount++;
-    
-    bool valid = false;
-    if ((validDimCount >= 2)
-        && (voxelStepX > 0.0)
-        && (voxelStepY > 0.0)
-        && (voxelStepZ > 0.0)) {
-        valid = true;
-    }
-    
-    return valid;
-}
-
-/**
  * Create the oblique transformation matrix.
  *
  * @parm sliceProjectionType
@@ -2587,48 +2369,6 @@ BrainOpenGLVolumeTextureSliceDrawing::getTextureCoordinates(const VolumeMappable
     std::vector<int64_t> dims(5);
     volumeMappableInterface->getDimensions(dims);
     
-//    int64_t smallCornerIJK[3]  = { 0, 0, 0};
-//    float smallCornerXYZ[3] = { 0.0, 0.0, 0.0 };
-//    volumeMappableInterface->indexToSpace(smallCornerIJK, smallCornerXYZ);
-//
-//    int64_t bigCornerIJK[3] = { dims[0] - 1, dims[1] - 1, dims[2] - 1 };
-//    float bigCornerXYZ[3] = { 0.0, 0.0, 0.0 };
-//    volumeMappableInterface->indexToSpace(bigCornerIJK, bigCornerXYZ);
-//
-//    /*
-//     * Coordinates from volume are at CENTER of the voxel
-//     * so increase size of volume so that range is from
-//     * outside edge to outside edge of the volume.
-//     */
-//    float voxelOneXYZ[3];
-//    volumeMappableInterface->indexToSpace(0, 0, 0, voxelOneXYZ);
-//    float voxelTwoXYZ[3];
-//    volumeMappableInterface->indexToSpace(1, 1, 1, voxelTwoXYZ);
-//    const float halfVoxelSizeXYZ[3] {
-//        (voxelTwoXYZ[0] - voxelOneXYZ[0]) / 2.0f,
-//        (voxelTwoXYZ[1] - voxelOneXYZ[1]) / 2.0f,
-//        (voxelTwoXYZ[2] - voxelOneXYZ[2]) / 2.0f,
-//    };
-//    for (int32_t i = 0; i < 3; i++) {
-//        smallCornerXYZ[i] -= halfVoxelSizeXYZ[i];
-//        bigCornerXYZ[i]   += halfVoxelSizeXYZ[i];
-//    }
-//
-//    const float rangeXYZ[3] = {
-//        (bigCornerXYZ[0] - smallCornerXYZ[0]),
-//        (bigCornerXYZ[1] - smallCornerXYZ[1]),
-//        (bigCornerXYZ[2] - smallCornerXYZ[2])
-//    };
-//
-//    const float normalizedOffset[3] = {
-//        (xyz[0] - smallCornerXYZ[0]) / rangeXYZ[0],
-//        (xyz[1] - smallCornerXYZ[1]) / rangeXYZ[1],
-//        (xyz[2] - smallCornerXYZ[2]) / rangeXYZ[2],
-//    };
-//
-//    strOut[0] = normalizedOffset[0] * maxStr[0];
-//    strOut[1] = normalizedOffset[1] * maxStr[1];
-//    strOut[2] = normalizedOffset[2] * maxStr[2];
     
     {
         const VolumeSpace& volumeSpace = volumeMappableInterface->getVolumeSpace();
@@ -2653,295 +2393,6 @@ BrainOpenGLVolumeTextureSliceDrawing::getTextureCoordinates(const VolumeMappable
 }
 
 /**
- * Create RGBA coloring for volume's texture
- *
- * @param volumeMappableInterface
- *     The volume file
- * @param displayGroup
- *     Display group for current tab
- * @param tabIndex
- *     Index of tab
- * @param allowNonPowerOfTwoTextureFlag
- *     Allow non power-of-two texture
- * @param identificationTextureFlag
- *     True if creating texture for voxel identification
- * @param rgbaColorsOut
- *     Output containing RGBA coloring
- * @param textureDimsOut
- *     Output with dimensions for texture
- * @param maxStrOut
- *     Output with maximum Texture str coordinates
- * @return
- *     True if output rgba coloring is valid, else false.
- */
-bool
-BrainOpenGLVolumeTextureSliceDrawing::createVolumeTexture(const VolumeMappableInterface* volumeMappableInterface,
-                                                          const DisplayGroupEnum::Enum displayGroup,
-                                                          const int32_t tabIndex,
-                                                          const bool allowNonPowerOfTwoTextureFlag,
-                                                          const bool identificationTextureFlag,
-                                                          std::vector<uint8_t>& rgbaColorsOut,
-                                                          std::array<int64_t, 3>& textureDimsOut,
-                                                          std::array<float, 3>& maxStrOut) const
-{
-    maxStrOut.fill(0.0);
-    
-    std::vector<int64_t> dims(5);
-    volumeMappableInterface->getDimensions(dims);
-    textureDimsOut.fill(256);
-    const int64_t dimLargest = *std::max_element(dims.begin(), dims.begin() + 3);
-    if (allowNonPowerOfTwoTextureFlag) {
-        
-    }
-    else {
-        if (dimLargest > 512) {
-            const CaretMappableDataFile* mapFile = dynamic_cast<const CaretMappableDataFile*>(volumeMappableInterface);
-            const QString filename((mapFile != NULL)
-                                   ? mapFile->getFileNameNoPath()
-                                   : "no file name available");
-            const QString msg("Dimensions too large for volume texture support.  Dimensions="
-                              + AString::fromNumbers(&dims[0], 3, ",")
-                              + " for volume "
-                              + filename);
-            CaretLogSevere(msg);
-            return false;
-        }
-        else if (dimLargest > 256) {
-            textureDimsOut.fill(512);
-        }
-    }
-    
-    const int64_t mapIndex(0);
-    const int64_t numberOfSlices = dims[2];
-    const int64_t numberOfRows = dims[1];
-    const int64_t numberOfColumns = dims[0];
-    const int64_t numSliceBytes = (numberOfRows * numberOfColumns * 4);
-    
-    if (allowNonPowerOfTwoTextureFlag) {
-        textureDimsOut[0] = numberOfColumns;
-        textureDimsOut[1] = numberOfRows;
-        textureDimsOut[2] = numberOfSlices;
-    }
-    const int64_t textureBytes = (textureDimsOut[0] * textureDimsOut[1] * textureDimsOut[2] * 4);
-    
-    rgbaColorsOut.clear();
-    rgbaColorsOut.resize(textureBytes, 0);
-    
-    if (identificationTextureFlag) {
-        uint32_t offsetID = 0;
-        for (int64_t k = 0; k < numberOfSlices; k++) {
-            for (int32_t j = 0; j < numberOfRows; j++) {
-                for (int32_t i = 0; i < numberOfColumns; i++) {
-                    const int32_t textureOffset = ((k * textureDimsOut[0] * textureDimsOut[1])
-                                                   + (j * textureDimsOut[0]) + i) * 4;
-                    CaretAssertVectorIndex(rgbaColorsOut, (textureOffset + 3));
-                    
-                    /*
-                     * An offset is used and encoded into the R, G, and B bytes.
-                     * While we could use IJK, we cannot if a dimension is
-                     * greater than 255.   With the offset, number of voxels
-                     * must only be less than 255**3.
-                     */
-                    const uint8_t offsetRed   = static_cast<uint8_t>((offsetID >> 16) & 0xff);
-                    const uint8_t offsetGreen = static_cast<uint8_t>((offsetID >> 8) & 0xff);
-                    const uint8_t offsetBlue  = static_cast<uint8_t>((offsetID) & 0xff);
-                    rgbaColorsOut[textureOffset]   = offsetRed;
-                    rgbaColorsOut[textureOffset+1] = offsetGreen;
-                    rgbaColorsOut[textureOffset+2] = offsetBlue;
-                    rgbaColorsOut[textureOffset+3] = 255;
-                    
-                    offsetID++;
-                }
-            }
-        }
-    }
-    else {
-        /*
-         * When non power-of-two textures are NOT allowed (OpenGL < 2.0)
-         * To avoid resampling of the voxel data, the texture has larger dimensions
-         * and the volume's voxels are placed in the bottom left corner of the texture
-         * and extra texture texel's are zeros.
-         */
-        std::vector<uint8_t> rgbaSlice(numSliceBytes);
-        for (int64_t k = 0; k < numberOfSlices; k++) {
-            int64_t firstVoxelIJK[3] = { 0, 0, k };
-            int64_t rowStepIJK[3] = { 0, 1, 0 };
-            int64_t columnStepIJK[3] = { 1, 0, 0 };
-            
-            std::fill(rgbaSlice.begin(), rgbaSlice.end(), 0);
-            volumeMappableInterface->getVoxelColorsForSliceInMap(mapIndex,
-                                                    firstVoxelIJK,
-                                                    rowStepIJK,
-                                                    columnStepIJK,
-                                                    numberOfRows,
-                                                    numberOfColumns,
-                                                    displayGroup,
-                                                    tabIndex,
-                                                    &rgbaSlice[0]);
-            
-            for (int32_t j = 0; j < numberOfRows; j++) {
-                for (int32_t i = 0; i < numberOfColumns; i++) {
-                    const int32_t sliceOffset = ((j * numberOfColumns) + i) * 4;
-                    const int32_t textureOffset = ((k * textureDimsOut[0] * textureDimsOut[1])
-                                                   + (j * textureDimsOut[0]) + i) * 4;
-                    for (int32_t m = 0; m < 4; m++) {
-                        CaretAssertVectorIndex(rgbaColorsOut, (textureOffset + 3));
-                        CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
-                        rgbaColorsOut[textureOffset + m] = rgbaSlice[sliceOffset + m];
-                    }
-                }
-            }
-        }
-    }
-    
-    maxStrOut[0] = static_cast<float>(dims[0]) / static_cast<float>(textureDimsOut[0]);
-    maxStrOut[1] = static_cast<float>(dims[1]) / static_cast<float>(textureDimsOut[1]);
-    maxStrOut[2] = static_cast<float>(dims[2]) / static_cast<float>(textureDimsOut[2]);
-    if (debugFlag) std::cout << "max STR: " << AString::fromNumbers(maxStrOut.data(), 3, ",") << std::endl;
-    
-    return true;
-    
-}
-
-/**
- * Create a volume's texture
- *
- * @param volumeMappableInterface
- *     The volume file
- * @param identificationTextureFlag
- *     True if creating texture for voxel identification
- * @param displayGroup
- *     Display group for current tab
- * @param maxStrOut
- *     Output with maximum Texture str coordinates
- * @return
- *     Valid texture ID (greater than zero) if texture was created, else 0.
- */
-GLuint
-BrainOpenGLVolumeTextureSliceDrawing::createTextureName(const VolumeMappableInterface* volumeMappableInterface,
-                                                        const bool identificationTextureFlag,
-                                                        const DisplayGroupEnum::Enum displayGroup,
-                                                        const int32_t tabIndex,
-                                                        std::array<float, 3>& maxStrOut) const
-{
-    const CaretMappableDataFile* mapFile = dynamic_cast<const CaretMappableDataFile*>(volumeMappableInterface);
-    CaretAssert(mapFile);
-    
-    const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(volumeMappableInterface);
-    const CiftiMappableDataFile* ciftiFile = dynamic_cast<const CiftiMappableDataFile*>(volumeMappableInterface);
-    
-    std::vector<uint8_t> rgbaColors;
-    std::array<int64_t, 3> textureDims;
-    
-    /*
-     * OpenGL 2.0 or later supports non-power-of-two texture dimensions
-     */
-    const bool allowNonPowerOfTwoTextureFlag(true);
-    if (volumeFile != NULL) {
-        if ( ! createVolumeTexture(volumeFile,
-                                   displayGroup,
-                                   tabIndex,
-                                   allowNonPowerOfTwoTextureFlag,
-                                   identificationTextureFlag,
-                                   rgbaColors,
-                                   textureDims,
-                                   maxStrOut)) {
-            return 0;
-        }
-    }
-    else if (ciftiFile != NULL) {
-        if ( ! createVolumeTexture(ciftiFile,
-                                   displayGroup,
-                                   tabIndex,
-                                   allowNonPowerOfTwoTextureFlag,
-                                   identificationTextureFlag,
-                                   rgbaColors,
-                                   textureDims,
-                                   maxStrOut)) {
-            return 0;
-        }
-    }
-    else {
-        CaretAssert(0);
-    }
-    
-    GLint64 maxTextureSize(0);
-    glGetInteger64v(GL_MAX_3D_TEXTURE_SIZE,
-                    &maxTextureSize);
-    if (maxTextureSize > 0) {
-        for (int32_t i = 0; i < static_cast<int32_t>(textureDims.size()); i++) {
-            if (textureDims[i] > maxTextureSize) {
-                CaretLogSevere("Texture maximum dimension is "
-                               + AString::number(maxTextureSize)
-                               + ".  Volume "
-                               + mapFile->getFileNameNoPath()
-                               + " dimensions = ("
-                               + AString::fromNumbers(textureDims.data(), 3, ", ")
-                               + ")");
-                return 0;
-            }
-        }
-    }
-    GLuint  textureName(0);
-    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-    
-    glGenTextures(1, &textureName);
-    glBindTexture(GL_TEXTURE_3D, textureName);
-    
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-    glPixelStorei(GL_UNPACK_SKIP_IMAGES, 0);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    
-    /*
-     * Always clamp to border.  If no texels (voxels) are available, pixel
-     * maps to area outside of the volume, the border color is used.
-     */
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-    
-    const bool enableMipMapsFlag(false);
-    if (enableMipMapsFlag) {
-        /*
-         * Generate mip-maps
-         * However does not improve quality or remove aliasing in oblique views (rotation
-         * around multiple axes)
-         */
-        glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, GL_TRUE);
-    }
-    
-    /*
-     * Compression works but appears lossy for palette mapped data
-     * but may be okay for label mapped data
-     */
-    m_fixedPipelineDrawing->testForOpenGLError("Before glTexImage3D");
-    glTexImage3D(GL_TEXTURE_3D,
-                 0,
-                 GL_RGBA, //GL_COMPRESSED_RGBA, //GL_RGBA,
-                 textureDims[0],
-                 textureDims[1],
-                 textureDims[2],
-                 0,
-                 GL_RGBA,
-                 GL_UNSIGNED_BYTE,
-                 &rgbaColors[0]);
-    m_fixedPipelineDrawing->testForOpenGLError("After glTexImage3D");
-
-    glBindTexture(GL_TEXTURE_3D, 0);
-    glPopClientAttrib();
-    
-    return textureName;
-}
-
-/**
  * Draw an oblique slice with support for outlining labels and thresholded palette data.
  *
  * @param sliceViewPlane
@@ -2952,9 +2403,9 @@ BrainOpenGLVolumeTextureSliceDrawing::createTextureName(const VolumeMappableInte
  *    The for oblique viewing.
  */
 void
-BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                                   Matrix4x4& transformationMatrix)
+BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithPrimitive(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                    const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                                    Matrix4x4& transformationMatrix)
 {
     /*
      * When performing voxel identification for editing voxels,
@@ -2978,31 +2429,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         }
     }
     
-    const bool obliqueSliceModeThreeDimFlag = false;
-    
     const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
-    
-    /*
-     * Get the maximum bounds of the voxels from all slices
-     * and the smallest voxel spacing
-     */
-    float voxelBounds[6];
-    float voxelSpacing[3];
-    if ( ! getVoxelCoordinateBoundsAndSpacing(voxelBounds,
-                                                    voxelSpacing)) {
-        return;
-    }
-    float voxelSize = std::min(voxelSpacing[0],
-                               std::min(voxelSpacing[1],
-                                        voxelSpacing[2]));
-    
-    /*
-     * Use a larger voxel size for the 3D view in volume slice viewing
-     * since it draws all three slices and this takes time
-     */
-    if (obliqueSliceModeThreeDimFlag) {
-        voxelSize *= 3.0;
-    }
     
     /*
      * Look at point is in center of volume
@@ -3115,23 +2542,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
     transformationMatrix.multiplyPoint3(bottomRight.data());
     transformationMatrix.multiplyPoint3(topRight.data());
     transformationMatrix.multiplyPoint3(topLeft.data());
-    
-    if (debugFlag) {
-        const double bottomDist = MathFunctions::distance3D(bottomLeft.data(), bottomRight.data());
-        const double topDist = MathFunctions::distance3D(topLeft.data(), topRight.data());
-        const double bottomVoxels = bottomDist / voxelSize;
-        const double topVoxels = topDist / voxelSize;
-        const AString msg = ("Bottom Dist: "
-                             + AString::number(bottomDist)
-                             + " voxel size: "
-                             + AString::number(bottomVoxels)
-                             + " Top Dist: "
-                             + AString::number(bottomDist)
-                             + " voxel size: "
-                             + AString::number(topVoxels));
-        std::cout << qPrintable(msg) << std::endl;
-    }
-    
+        
     if (debugFlag) {
         m_fixedPipelineDrawing->setLineWidth(3.0);
         glColor3f(1.0, 0.0, 0.0);
@@ -3166,7 +2577,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
     MathFunctions::normalizeVector(bottomRightToTopRightUnitVector);
     const double bottomRightToTopRightDistance = MathFunctions::distance3D(bottomRight.data(),
                                                                            topRight.data());
-
+    
     if ((bottomLeftToTopLeftDistance > 0)
         && (bottomRightToTopRightDistance > 0)) {
         const DisplayPropertiesVolume* dsv = m_brain->getDisplayPropertiesVolume();
@@ -3211,112 +2622,13 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                     }
                 }
-                std::array<float, 3> maxStr = { 1.0, 1.0, 1.0 };
-                GLuint textureID = 0;
                 
-                if (m_identificationModeFlag) {
-                    auto idIter = s_identificationTextureInfo.find(volumeInterface);
-                    if (idIter != s_identificationTextureInfo.end()) {
-                        TextureInfo textureInfo = idIter->second;
-                        textureID = textureInfo.m_textureID;
-                        maxStr = textureInfo.m_maxSTR;
-                    }
-                }
-                else {
-                    auto idIter = s_volumeTextureInfo.find(volumeInterface);
-                    if (idIter != s_volumeTextureInfo.end()) {
-                        TextureInfo textureInfo = idIter->second;
-                        textureID = textureInfo.m_textureID;
-                        maxStr = textureInfo.m_maxSTR;
-                    }
-                }
+                GraphicsPrimitiveV3fT3f* primitive(volumeInterface->getVolumeDrawingPrimitive(vdi.mapIndex,
+                                                                                        DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                                                        m_tabIndex));
                 
-                if (textureID == 0) {
-                    m_fixedPipelineDrawing->testForOpenGLError("Before creating texture");
-                    textureID = createTextureName(volumeInterface,
-                                                  m_identificationModeFlag,
-                                                  m_displayGroup,
-                                                  m_tabIndex,
-                                                  maxStr);
-                    m_fixedPipelineDrawing->testForOpenGLError("After creating texture");
-                    if (textureID != 0) {
-                        TextureInfo textureInfo;
-                        textureInfo.m_textureID = textureID;
-                        textureInfo.m_maxSTR    = maxStr;
-                        
-                        if (m_identificationModeFlag) {
-                            s_identificationTextureInfo.insert(std::make_pair(volumeInterface, textureInfo));
-                        }
-                        else {
-                            s_volumeTextureInfo.insert(std::make_pair(volumeInterface, textureInfo));
-                        }
-                        
-                        /* 1.0 is highest priority texture so that texture is resident */
-                        const GLclampf priority(1.0);
-                        glPrioritizeTextures(1, &textureID, &priority);
-                        
-                        if (debugFlag) std::cout << "Created texture: " << textureID << std::endl;
-
-                        if (debugFlag) {
-                            std::vector<int64_t> dims;
-                            volumeInterface->getDimensions(dims);
-                            if (dims.size() >= 3) {
-                                const int64_t maxI((dims[0] > 1) ? dims[0] - 1 : 0);
-                                const int64_t maxJ((dims[1] > 1) ? dims[1] - 1 : 0);
-                                const int64_t maxK((dims[2] > 1) ? dims[2] - 1 : 0);
-                                int64_t corners[8][3] = {
-                                    {    0,    0,    0 },
-                                    { maxI,    0,    0 },
-                                    { maxI, maxJ,    0 },
-                                    {    0, maxJ,    0},
-                                    {    0,    0, maxK },
-                                    { maxI,    0, maxK },
-                                    { maxI, maxJ, maxK },
-                                    {    0, maxJ, maxK}
-                                };
-                                for (int32_t m = 0; m < 8; m++) {
-                                    const int64_t i(corners[m][0]);
-                                    const int64_t j(corners[m][1]);
-                                    const int64_t k(corners[m][2]);
-                                    if (volumeInterface->indexValid(i, j, k)) {
-                                        float x, y, z;
-                                        volumeInterface->indexToSpace(i, j, k, x, y, z);
-                                        std::cout << ("IJK = ("
-                                                      + AString::number(i)
-                                                      + ","
-                                                      + AString::number(j)
-                                                      + ","
-                                                      + AString::number(k)
-                                                      + ")") << std::endl;
-                                        std::cout << ("   XYZ = ("
-                                                      + AString::number(x)
-                                                      + ", "
-                                                      + AString::number(y)
-                                                      + ", "
-                                                      + AString::number(z)
-                                                      + ")") << std::endl;
-                                        
-                                        std::array<float, 3> str;
-                                        std::array<float, 3> xyz { x, y, z };
-                                        getTextureCoordinates(volumeInterface, xyz, maxStr, str);
-                                        std::cout << ("      STR = ("
-                                                      + AString::number(str[0])
-                                                      + ", "
-                                                      + AString::number(str[1])
-                                                      + ", "
-                                                      + AString::number(str[2])
-                                                      + ")") << std::endl;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        if (debugFlag) std::cout << "Failed to create texture ID" << std::endl;
-                    }
-                }
-                
-                if (textureID > 0) {
+                if (primitive != NULL) {
+                    std::array<float, 3> maxStr = { 1.0, 1.0, 1.0 };
                     std::array<float, 3> textureBottomLeft;
                     getTextureCoordinates(volumeInterface, bottomLeft, maxStr, textureBottomLeft);
                     std::array<float, 3> textureBottomRight;
@@ -3326,286 +2638,209 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                     std::array<float, 3> textureTopRight;
                     getTextureCoordinates(volumeInterface, topRight, maxStr, textureTopRight);
                     
-                    if (debugFlag) {
-                        std::cout << "Bottom Left RST: " << AString::fromNumbers(textureBottomLeft.data(), 3, ", ") << std::endl;
-                        std::cout << "Bottom Right RST: " << AString::fromNumbers(textureBottomRight.data(), 3, ", ") << std::endl;
-                        std::cout << "Top Right RST: " << AString::fromNumbers(textureTopRight.data(), 3, ", ") << std::endl;
-                        std::cout << "Top Left RST: " << AString::fromNumbers(textureTopLeft.data(), 3, ", ") << std::endl;
-                        std::cout << std::endl;
+                    primitive->replaceVertexFloatXYZ(0, bottomLeft.data());
+                    primitive->replaceVertexFloatXYZ(1, bottomRight.data());
+                    primitive->replaceVertexFloatXYZ(2, topLeft.data());
+                    primitive->replaceVertexFloatXYZ(3, topRight.data());
+                    primitive->replaceVertexTextureSTR(0, textureBottomLeft.data());
+                    primitive->replaceVertexTextureSTR(1, textureBottomRight.data());
+                    primitive->replaceVertexTextureSTR(2, textureTopLeft.data());
+                    primitive->replaceVertexTextureSTR(3, textureTopRight.data());
+                    
+                    bool nearestFlag(false);
+                    switch (sliceProjectionType) {
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                            if (vdi.mapFile->isMappedWithLabelTable()
+                                || (vdi.mapFile->isMappedWithRGBA())) {
+                                nearestFlag = true;
+                            }
+                            break;
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                            nearestFlag = true;
+                            break;
                     }
                     
-                    glDisable(GL_CULL_FACE);
-                    m_fixedPipelineDrawing->testForOpenGLError("Before drawing with texture");
-                    glEnable(GL_TEXTURE_3D);
-                    glBindTexture(GL_TEXTURE_3D, textureID);
-                    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-                    CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(volumeInterface);
-                    CaretAssert(mapFile);
-                    
-                    /*
-                     * Setup pixel to texel filtering
-                     */
-                    setupTextureFiltering(mapFile, sliceProjectionType);
-                    
-                    glBegin(GL_QUADS);
-                    glColor4f(0.0, 0.0, 1.0, 0.0);
-                    glTexCoord3fv(textureBottomLeft.data());
-                    glVertex3fv(bottomLeft.data());
-                    glTexCoord3fv(textureBottomRight.data());
-                    glVertex3fv(bottomRight.data());
-                    glTexCoord3fv(textureTopRight.data());
-                    glVertex3fv(topRight.data());
-                    glTexCoord3fv(textureTopLeft.data());
-                    glVertex3fv(topLeft.data());
-                    glEnd();
-
-                    glBindTexture(GL_TEXTURE_3D, 0);
-                    glDisable(GL_TEXTURE_3D);
-                    m_fixedPipelineDrawing->testForOpenGLError("After drawing with texture");
-                    
+                    if (nearestFlag) {
+                        primitive->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::NEAREST);
+                        primitive->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::NEAREST);
+                    }
+                    else {
+                        primitive->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
+                        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DELELOPER_FLAG_TEXTURE_VOLUME_SMOOTH)) {
+                            primitive->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::LINEAR);
+                        }
+                        else {
+                            primitive->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::NEAREST);
+                        }
+                    }
+                    GraphicsEngineDataOpenGL::draw(primitive);
                     
                     if (m_identificationModeFlag) {
-                        processTextureVoxelIdentification(volumeInterface);
-                        
-                        /*
-                         * Exit loop so that only underlay volume is used for identification
-                         */
-                        iVol = numVolumes;
+                        performIdentification(volumeInterface,
+                                              primitive,
+                                              sliceViewPlane,
+                                              bottomLeft,
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              m_fixedPipelineDrawing->mouseX,
+                                              m_fixedPipelineDrawing->mouseY);
                     }
                 }
             }
         }
-        
         glPopAttrib();
     }
 }
 
 /**
- * Process identification from the texture volume
+ * Perform identification procesing
+ * @param volumeInterface
+ *    The volume
+ * @param primitive
+ *    Graphics primitive used to draw volume
+ * @param sliceViewPlane
+ *    The slice view plane
+ * @param bottomLeft
+ *    Bottom left corner of viewport in model coordinates
+ * @param bottomRight
+ *    Bottom right corner of viewport in model coordinates
+ * @param topRight
+ *    Top right corner of viewport in model coordinates
+ * @param topLeft
+ *    Top left corner of viewport in model coordinates
+ * @param mouseX
+ *    X location of mouse click
+ * @param mouseY
+ *    Y location of mouse click
+ * @return
+ *    True if identification is valid, else false.
+*
  */
 void
-BrainOpenGLVolumeTextureSliceDrawing::processTextureVoxelIdentification(VolumeMappableInterface* volumeMappableInterface)
+BrainOpenGLVolumeTextureSliceDrawing::performIdentification(VolumeMappableInterface* volumeInterface,
+                                                            const GraphicsPrimitiveV3fT3f* primitive,
+                                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                            const std::array<float, 3> bottomLeft,
+                                                            const std::array<float, 3> bottomRight,
+                                                            const std::array<float, 3> topRight,
+                                                            const std::array<float, 3> topLeft,
+                                                            const float mouseX,
+                                                            const float mouseY)
 {
-    /*
-     * Saves glPixelStore parameters
-     */
-    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+    CaretAssert(volumeInterface);
+    CaretAssert(primitive);
     
-    /*
-     * Determine item picked by examination of color in back buffer
-     *
-     * QOpenGLWidget Note: The QOpenGLWidget always renders in a
-     * frame buffer object (see its documentation).  This is
-     * probably why calls to glReadBuffer() always cause an
-     * OpenGL error.
-     */
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-    /* do not call glReadBuffer() */
-#else
-    glReadBuffer(GL_BACK);
-#endif
-    glPixelStorei(GL_PACK_SKIP_ROWS, 0);
-    glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    uint8_t pixels[4];
-    glReadPixels((int)m_fixedPipelineDrawing->mouseX,
-                 (int)m_fixedPipelineDrawing->mouseY,
-                 1,
-                 1,
-                 GL_RGBA,
-                 GL_UNSIGNED_BYTE,
-                 pixels);
     
-    CaretLogFine("ID color RGBA "
-                 + QString::number(pixels[0]) + ", "
-                 + QString::number(pixels[1]) + ", "
-                 + QString::number(pixels[2]) + ", "
-                 + QString::number(pixels[3]));
+    int32_t viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    const float vpMinX(viewport[0]);
+    const float vpMaxX(viewport[0] + viewport[2]);
+    const float vpRangeX(vpMaxX - vpMinX);
+    const float vpMinY(viewport[1]);
+    const float vpMaxY(viewport[1] + viewport[3]);
+    const float vpRangeY(vpMaxY - vpMinY);
     
-    if (debugFlag) std::cout << "Pixel ID: " << AString::fromNumbers(pixels, 4, ",") << std::endl;
+    bool swapNormXValueFlag(false);
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            swapNormXValueFlag = true;
+            break;
+    }
+    const float mouseNormX(swapNormXValueFlag
+                           ? (1.0 - ((mouseX - vpMinX) / vpRangeX))
+                           : ((mouseX - vpMinX) / vpRangeX));
+    const float mouseNormY((mouseY - vpMinY) / vpRangeY);
+    if (debugFlag) {
+        std::cout << "Mouse Norm X/Y: " << mouseNormX << ", " << mouseNormY << std::endl << std::flush;
+    }
     
-    uint32_t alphaInt(pixels[3]);
-    if (alphaInt == 255) {
-        uint32_t redInt(pixels[0]);
-        uint32_t greenInt(pixels[1]);
-        uint32_t blueInt(pixels[2]);
-        uint32_t offset = ((redInt << 16)
-                           + (greenInt << 8)
-                           + (blueInt));
-        if (debugFlag) std::cout << "   Offset: " << offset << std::endl;
-        
-        std::vector<int64_t> dims;
-        volumeMappableInterface->getDimensions(dims);
-        const int64_t sliceSize = dims[0] * dims[1];
-        const int64_t sliceK = offset / sliceSize;
-        const int64_t sliceOffset = offset % sliceSize;
-        const int64_t sliceJ = sliceOffset / dims[0];
-        const int64_t sliceI = sliceOffset % dims[0];
-        if (debugFlag) std::cout << "   Voxel IJK: " << sliceI << ", " << sliceJ << ", " << sliceK << std::endl;
-        
-        const int64_t voxelIndices[3] {
-            sliceI,
-            sliceJ,
-            sliceK
+    if ((mouseNormX >= 0.0)
+        && (mouseNormX <= 1.0)
+        && (mouseNormY >= 0.0)
+        && (mouseNormY <= 1.0)) {
+        float deltaTopXYZ[3];
+        MathFunctions::subtractVectors(topRight.data(), topLeft.data(), deltaTopXYZ);
+        const float topXYZ[3] {
+            topLeft[0] + (deltaTopXYZ[0] * mouseNormX),
+            topLeft[1] + (deltaTopXYZ[1] * mouseNormX),
+            topLeft[2] + (deltaTopXYZ[2] * mouseNormX),
         };
         
-        /*
-         * Get depth from depth buffer
-         */
-        glPixelStorei(GL_PACK_ALIGNMENT, 4);
+        float deltaBottomXYZ[3];
+        MathFunctions::subtractVectors(bottomRight.data(), bottomLeft.data(), deltaBottomXYZ);
+        const float bottomXYZ[3] {
+            bottomLeft[0] + (deltaBottomXYZ[0] * mouseNormX),
+            bottomLeft[1] + (deltaBottomXYZ[1] * mouseNormX),
+            bottomLeft[2] + (deltaBottomXYZ[2] * mouseNormX),
+        };
+        
+        const float weightTop(mouseNormY);
+        const float weightBottom(1.0 - weightTop);
+        
+        const float pickXYZ[3] {
+            (topXYZ[0] * weightTop) + (bottomXYZ[0] * weightBottom),
+            (topXYZ[1] * weightTop) + (bottomXYZ[1] * weightBottom),
+            (topXYZ[2] * weightTop) + (bottomXYZ[2] * weightBottom),
+        };
+        
         float depth(0.0);
-        glReadPixels(m_fixedPipelineDrawing->mouseX,
-                     m_fixedPipelineDrawing->mouseY,
-                     1,
-                     1,
-                     GL_DEPTH_COMPONENT,
-                     GL_FLOAT,
-                     &depth);
         
-        SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
-        if (voxelID->isEnabledForSelection()) {
-            if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
-                voxelID->setVoxelIdentification(m_brain,
-                                                volumeMappableInterface,
-                                                voxelIndices,
-                                                depth);
-                
-                float voxelCoordinates[3];
-                volumeMappableInterface->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
-                                 voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
-                
-                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
-                                                                 voxelCoordinates);
-                CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
-            }
-        }
+        int64_t ijk[3];
+        volumeInterface->enclosingVoxel(pickXYZ[0], pickXYZ[1], pickXYZ[2], ijk[0], ijk[1], ijk[2]);
+
         
-        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
-        if (voxelEditID->isEnabledForSelection()) {
-            if (voxelEditID->getVolumeFileForEditing() == volumeMappableInterface) {
-                if (voxelEditID->isOtherScreenDepthCloserToViewer(depth)) {
-                    voxelEditID->setVoxelIdentification(m_brain,
-                                                        volumeMappableInterface,
-                                                        voxelIndices,
+        if (volumeInterface->indexValid(ijk[0], ijk[0], ijk[2])) {
+            SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+            if (voxelID->isEnabledForSelection()) {
+                if ( ! voxelID->isValid()) {
+                    if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+                        voxelID->setVoxelIdentification(m_brain,
+                                                        volumeInterface,
+                                                        ijk,
                                                         depth);
-                    const float floatDiffXYZ[3] = { 1.0, 1.0, 1.0 };
-                    voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
-                    
-                    float voxelCoordinates[3];
-                    volumeMappableInterface->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
-                                     voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
-                    
-                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
-                                                                     voxelCoordinates);
-                    CaretLogFinest("Selected Voxel Editing (3D): Indices ("
-                                   + AString::fromNumbers(voxelIndices, 3, ",")
-                                   + ") Diff XYZ ("
-                                   + AString::fromNumbers(floatDiffXYZ, 3, ",")
-                                   + ")");
+                        
+                        m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
+                                                                         pickXYZ);
+                        CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(ijk, 3, ","));
+                        
+                        if (debugFlag) {
+                            std::cout << "Mouse XYZ: " << AString::fromNumbers(pickXYZ, 3, ", ") << std::endl << std::flush;
+                            std::cout << "      IJK: " << AString::fromNumbers(ijk, 3, ", ") << std::endl << std::flush;
+                        }
+                    }
+                }
+            }
+            
+            SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+            if (voxelEditID->isEnabledForSelection()) {
+                if (voxelEditID->getVolumeFileForEditing() == volumeInterface) {
+                    if ( ! voxelEditID->isValid()) {
+                        if (voxelEditID->isOtherScreenDepthCloserToViewer(depth)) {
+                            voxelEditID->setVoxelIdentification(m_brain,
+                                                                volumeInterface,
+                                                                ijk,
+                                                                depth);
+                            const float floatDiffXYZ[3] = { 1.0, 1.0, 1.0 };
+                            voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
+                            
+                            m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
+                                                                             pickXYZ);
+                            CaretLogFinest("Selected Voxel Editing (3D): Indices ("
+                                           + AString::fromNumbers(ijk, 3, ",")
+                                           + ") Diff XYZ ("
+                                           + AString::fromNumbers(floatDiffXYZ, 3, ",")
+                                           + ")");
+                        }
+                    }
                 }
             }
         }
     }
-    
-    glPopClientAttrib();
-
 }
-
-
-/**
- * Set the texture filtering that controls mapping of texels to pixels
- *
- * @param mapFile
- *     File is is being drawn
- * @param sliceProjectionType
- *     Type of projection
- */
-void
-BrainOpenGLVolumeTextureSliceDrawing::setupTextureFiltering(const CaretMappableDataFile* mapFile,
-                                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType)
-{
-    if (mapFile->isMappedWithPalette()) {
-        
-        switch (sliceProjectionType) {
-            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            {
-                /*
-                 * This combination MIN=Linear, MAG=Nearest
-                 * seems to produce voxel drawing that is
-                 * nearly identical to cubic interpolation when zoomed in so
-                 * that the voxels are large.  The difference is when the slices
-                 * are rotated; In cubic interpolation, the "scan lines" are
-                 * horizontal (left to right on the screen) but with texture,
-                 * the "scan lines" follow the volume rotation.
-                 *
-                 * From the OpenGL documentation (man page)
-                 *
-                 * GL_TEXTURE_MIN_FILTER - The  texture  minifying  function  is used
-                 * whenever the pixel being textured maps to an area greater than one
-                 * texture  element.
-                 *     GL_NEAREST - Returns the value of the texture  element  that  is
-                 *         nearest  (in  Manhattan  distance) to the center of
-                 *         the pixel being textured.
-                 *     GL_LINEAR - Returns the weighted average of  the  four  texture
-                 *         elements  that  are  closest  to  the center of the
-                 *         pixel being textured.
-                 *
-                 * Pixel area is GREATER THAN texel area so ZOOMED OUT
-                 *
-                 * Thus, Pixel contains more than one texel
-                 */
-                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-                /*
-                 * GL_TEXTURE_MAG_FILTER - The  texture  magnification  function
-                 * is used when the pixel being textured maps to an area less than or
-                 * equal to one texture  element.
-                 *     GL_NEAREST - Returns the value of the texture  element  that  is
-                 *         nearest  (in  Manhattan  distance) to the center of
-                 *         the pixel being textured.
-                 *     GL_LINEAR Returns the weighted average of  the  four  texture
-                 *         elements  that  are  closest  to  the center of the
-                 *        pixel being textured.
-                 *
-                 * Pixel area is LESS THAN Texel area so ZOOMED IN
-                 *
-                 * Thus, pixel may be inside a texel
-                 *
-                 * If GL_LINEAR is used the voxel "blockiness" is smoothed out
-                 */
-                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                
-            }
-                break;
-            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            {
-                /*
-                 * No interpolation for orthogonal slice viewing
-                 */
-                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            }
-                break;
-        }
-        
-        /*
-         * Option to smooth voxels that removes all "blocki-ness"
-         */
-        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DELELOPER_FLAG_VOXEL_SMOOTH)) {
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        }
-        
-        GLfloat borderColor[4] = { 0.0, 0.0, 0.0, 0.0 };
-        glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    }
-    else {
-        /*
-         * No interpolation for Label or RGBA data
-         */
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    }
-}
-

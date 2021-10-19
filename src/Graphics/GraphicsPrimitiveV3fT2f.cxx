@@ -47,28 +47,31 @@ using namespace caret;
  *     Height of the image.
  * @param textureWrappingType
  *     Type of texture wrapping
- * @param textureFilteringType
- *     Type of texture filtering
+ * @param textureMipMappingType
+ *     Type of texture mip mapping
  * @param textureMagnificationFilter
  *    Texture filtering for when screen pixel is smaller than texture  texel
  * @param textureMinificationFilter
  *    Texture filtering for when screen pixel is larger than texture texel
+ * @param textureBorderColorRGBA
+ *    Color used when clamp to border is used for warpping
  */
 GraphicsPrimitiveV3fT2f::GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveType,
                                                  const uint8_t* imageBytesRGBA,
                                                  const int32_t imageWidth,
                                                  const int32_t imageHeight,
                                                  const TextureWrappingType textureWrappingType,
-                                                 const TextureFilteringType textureFilteringType,
+                                                 const TextureMipMappingType textureMipMappingType,
                                                  const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                                 const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter)
+                                                 const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
+                                                 const std::array<float, 4>& textureBorderColorRGBA)
 : GraphicsPrimitive(VertexDataType::FLOAT_XYZ,
                     NormalVectorDataType::NONE,
                     ColorDataType::NONE,
                     VertexColorType::NONE,
                     TextureDataType::FLOAT_STR_2D,
                     textureWrappingType,
-                    textureFilteringType,
+                    textureMipMappingType,
                     textureMagnificationFilter,
                     textureMinificationFilter,
                     primitiveType)
@@ -78,6 +81,7 @@ GraphicsPrimitiveV3fT2f::GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveTy
                     imageWidth,
                     imageHeight,
                     imageSlices);
+    setTextureBorderColorRGBA(textureBorderColorRGBA);
 }
 
 /**
