@@ -130,12 +130,18 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 false));
     
-    checkableItems.push_back(DeveloperFlagsEnum(DELELOPER_FLAG_TEXTURE_VOLUME_SMOOTH,
-                                                "DELELOPER_FLAG_TEXTURE_VOLUME_SMOOTH",
-                                                "Smooth Texture Volume Voxels",
+    checkableItems.push_back(DeveloperFlagsEnum(DELELOPER_FLAG_TEXTURE_ANATOMY_VOLUME_SMOOTH,
+                                                "DELELOPER_FLAG_TEXTURE_ANATOMY_VOLUME_SMOOTH",
+                                                "Smooth Texture Anatomy Volume Voxels",
                                                 CheckableEnum::YES,
                                                 true));
 
+    checkableItems.push_back(DeveloperFlagsEnum(DELELOPER_FLAG_TEXTURE_FUNCTIONAL_VOLUME_SMOOTH,
+                                                "DELELOPER_FLAG_TEXTURE_FUNCTIONAL_VOLUME_SMOOTH",
+                                                "Smooth Texture Functional Volume Voxels",
+                                                CheckableEnum::YES,
+                                                false));
+    
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOXEL_CUBES_TEST,
                                                 "DEVELOPER_FLAG_VOXEL_CUBES_TEST",
                                                 "All View Voxel Cubes Outside Faces",
@@ -252,8 +258,13 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
     AString toolTip;
     
     switch (enumValue) {
-        case DELELOPER_FLAG_TEXTURE_VOLUME_SMOOTH:
-            toolTip = ("Smooth texture volume drawing voxels (\""
+        case DELELOPER_FLAG_TEXTURE_ANATOMY_VOLUME_SMOOTH:
+            toolTip = ("Smooth texture anatomy volume drawing voxels (\""
+                       + toGuiName(DEVELOPER_FLAG_TEXTURE_VOLUME)
+                       + "\" must also be ON)");
+            break;
+        case DELELOPER_FLAG_TEXTURE_FUNCTIONAL_VOLUME_SMOOTH:
+            toolTip = ("Smooth texture functional volume drawing voxels (\""
                        + toGuiName(DEVELOPER_FLAG_TEXTURE_VOLUME)
                        + "\" must also be ON)");
             break;

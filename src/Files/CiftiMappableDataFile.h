@@ -50,6 +50,7 @@ namespace caret {
     class GroupAndNameHierarchyModel;
     class Histogram;
     class SparseVolumeIndexer;
+    class VolumeGraphicsPrimitiveManager;
 
     
     class CiftiMappableDataFile :
@@ -807,6 +808,8 @@ namespace caret {
         
         /** Histogram used when statistics computed on all data in file */
         CaretPointer<Histogram> m_fileHistogram;
+        
+        std::unique_ptr<VolumeGraphicsPrimitiveManager> m_graphicsPrimitiveManager;
         
         /** Primitive for matrix cells drawn with triangles*/
         mutable std::unique_ptr<GraphicsPrimitiveV3fC4f> m_matrixGraphicsTrianglesPrimitive;

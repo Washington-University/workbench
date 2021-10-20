@@ -64,6 +64,7 @@
 #include "NodeAndVoxelColoring.h"
 #include "PaletteColorMapping.h"
 #include "SparseVolumeIndexer.h"
+#include "VolumeGraphicsPrimitiveManager.h"
 
 using namespace caret;
 
@@ -277,6 +278,8 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
     
     m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel());
     
+    m_graphicsPrimitiveManager.reset(new VolumeGraphicsPrimitiveManager(this, this));
+
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
 }
 
@@ -483,6 +486,8 @@ CiftiMappableDataFile::clearPrivate()
     
     m_brainordinateMapping.reset();
     m_brainordinateMappingCachedFlag = false;
+    
+    m_graphicsPrimitiveManager->clear();
 }
 
 /**
@@ -1467,6 +1472,7 @@ CiftiMappableDataFile::updateForChangeInMapDataWithMapIndex(const int32_t mapInd
 {
     CaretAssertVectorIndex(m_mapContent, mapIndex);
     m_mapContent[mapIndex]->updateForChangeInMapData();
+    m_graphicsPrimitiveManager->invalidateColoringForMap(mapIndex);
 }
 
 
@@ -1494,6 +1500,8 @@ CiftiMappableDataFile::invalidateColoringInAllMaps()
     m_matrixGraphicsOutlinePrimitive.reset();
     invalidateHistogramChartColoring();
     m_previousMatrixOpacity = -1.0;
+    
+    m_graphicsPrimitiveManager->clear();
 }
 
 /**
@@ -2830,6 +2838,8 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex)
     m_matrixGraphicsTexturePrimitive.reset();
     m_matrixGraphicsOutlinePrimitive.reset();
     m_previousMatrixOpacity = -1.0;
+    
+    m_graphicsPrimitiveManager->invalidateColoringForMap(mapIndex);
 }
 
 /**
@@ -4158,8 +4168,9 @@ CiftiMappableDataFile::getVolumeDrawingPrimitive(const int32_t mapIndex,
                                                  const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex) const
 {
-    CaretAssertToDoFatal();
-    return NULL;
+    return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(mapIndex,
+                                                                       displayGroup,
+                                                                       tabIndex);
 }
 
 /**

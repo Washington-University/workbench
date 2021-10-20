@@ -43,6 +43,7 @@
 #include "CaretOpenGLInclude.h"
 #include "CaretPreferenceDataValue.h"
 #include "CaretPreferences.h"
+#include "CaretVolumeExtension.h"
 #include "CiftiMappableDataFile.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesFoci.h"
@@ -247,17 +248,17 @@ BrainOpenGLVolumeTextureSliceDrawing::drawPrivate(BrainOpenGLFixedPipeline* fixe
      * each Cifti file, get the enter map.  This also, eliminate multiple
      * requests for the same map when drawing an ALL view.
      */
-    const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
-    for (int32_t i = 0; i < numVolumes; i++) {
-        std::vector<float> ciftiMapData;
-        m_ciftiMappableFileData.push_back(ciftiMapData);
-        
-        const CiftiMappableDataFile* ciftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(m_volumeDrawInfo[i].volumeFile);
-        if (ciftiMapFile != NULL) {
-            ciftiMapFile->getMapData(m_volumeDrawInfo[i].mapIndex,
-                                     m_ciftiMappableFileData[i]);
-        }
-    }
+//    const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
+//    for (int32_t i = 0; i < numVolumes; i++) {
+//        std::vector<float> ciftiMapData;
+//        m_ciftiMappableFileData.push_back(ciftiMapData);
+//
+//        const CiftiMappableDataFile* ciftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(m_volumeDrawInfo[i].volumeFile);
+//        if (ciftiMapFile != NULL) {
+//            ciftiMapFile->getMapData(m_volumeDrawInfo[i].mapIndex,
+//                                     m_ciftiMappableFileData[i]);
+//        }
+//    }
     
     if (browserTabContent->getDisplayedVolumeModel() != NULL) {
         drawVolumeSliceViewPlane(sliceDrawingType,
@@ -2647,32 +2648,102 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithPrimitive(const Volume
                     primitive->replaceVertexTextureSTR(2, textureTopLeft.data());
                     primitive->replaceVertexTextureSTR(3, textureTopRight.data());
                     
-                    bool nearestFlag(false);
+                    bool discreteFlag(false);
+                    bool magNearestFlag(false);
+                    bool magSmoothFlag(false);
                     switch (sliceProjectionType) {
                         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                             if (vdi.mapFile->isMappedWithLabelTable()
                                 || (vdi.mapFile->isMappedWithRGBA())) {
-                                nearestFlag = true;
+                                /*
+                                 * Use "discrete" with Labels or RGBA since no interpolation
+                                 */
+                                discreteFlag = true;
+                            }
+                            else if (vdi.mapFile->isMappedWithPalette()) {
+                                bool anatomyFlag(false);
+                                bool functionalFlag(false);
+                                if (DataFileTypeEnum::isConnectivityDataType(vdi.mapFile->getDataFileType())) {
+                                    /*
+                                     * CIFTI is always a functional type
+                                     */
+                                    functionalFlag = true;
+                                }
+                                else {
+                                    /*
+                                     * Must be a volume file
+                                     */
+                                    const VolumeFile* vf(dynamic_cast<VolumeFile*>(vdi.mapFile));
+                                    CaretAssert(vf);
+                                    switch (vf->getType()) {
+                                        case SubvolumeAttributes::ANATOMY:
+                                            anatomyFlag = true;
+                                            break;
+                                        case SubvolumeAttributes::FUNCTIONAL:
+                                            functionalFlag = true;
+                                            break;
+                                        case SubvolumeAttributes::LABEL:
+                                            CaretAssert(0);
+                                            break;
+                                        case SubvolumeAttributes::RGB:
+                                            CaretAssert(0);
+                                            break;
+                                        case SubvolumeAttributes::SEGMENTATION:
+                                            anatomyFlag = true;
+                                            break;
+                                        case SubvolumeAttributes::UNKNOWN:
+                                            anatomyFlag = true;
+                                            break;
+                                        case SubvolumeAttributes::VECTOR:
+                                            CaretAssert(0);
+                                            break;
+                                    }
+                                }
+                                
+                                if (anatomyFlag) {
+                                    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DELELOPER_FLAG_TEXTURE_ANATOMY_VOLUME_SMOOTH)) {
+                                        magSmoothFlag = true;
+                                    }
+                                    else {
+                                        magNearestFlag = true;
+                                    }
+                                }
+                                else if (functionalFlag) {
+                                    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DELELOPER_FLAG_TEXTURE_FUNCTIONAL_VOLUME_SMOOTH)) {
+                                        magSmoothFlag = true;
+                                    }
+                                    else {
+                                        magNearestFlag = true;
+                                    }
+                                }
                             }
                             break;
                         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                            nearestFlag = true;
+                            /*
+                             * Always use NEAREST for orthogonal
+                             */
+                            magNearestFlag = true;
                             break;
                     }
                     
-                    if (nearestFlag) {
+                    if (discreteFlag) {
                         primitive->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::NEAREST);
                         primitive->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::NEAREST);
                     }
-                    else {
+                    else if (magNearestFlag) {
+                        /* Use Linear for Minification, Nearest for Magnification */
                         primitive->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
-                        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DELELOPER_FLAG_TEXTURE_VOLUME_SMOOTH)) {
-                            primitive->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::LINEAR);
-                        }
-                        else {
-                            primitive->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::NEAREST);
-                        }
+                        primitive->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::NEAREST);
                     }
+                    else if (magSmoothFlag) {
+                        /* Use Linear for both Minification and Magnification */
+                        primitive->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
+                        primitive->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::LINEAR);
+                    }
+                    else {
+                        CaretAssert(0);
+                    }
+
                     GraphicsEngineDataOpenGL::draw(primitive);
                     
                     if (m_identificationModeFlag) {
@@ -2689,6 +2760,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithPrimitive(const Volume
                 }
             }
         }
+        
         glPopAttrib();
     }
 }

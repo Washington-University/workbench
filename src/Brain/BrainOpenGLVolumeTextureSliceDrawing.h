@@ -178,17 +178,6 @@ namespace caret {
                                    const float mouseX,
                                    const float mouseY);
         
-        struct TextureInfo {
-            GLuint m_textureID;
-            std::array<float, 3> m_maxSTR;
-        };
-        
-        /*
-         * These items will eventually be moved into the volume and cifti files
-         */
-        static std::map<VolumeMappableInterface*, TextureInfo> s_volumeTextureInfo;
-        static std::map<VolumeMappableInterface*, TextureInfo> s_identificationTextureInfo;
-        
         ModelVolume* m_modelVolume;
         
         ModelWholeBrain* m_modelWholeBrain;
@@ -199,7 +188,7 @@ namespace caret {
         
         Brain* m_brain;
         
-        std::vector<std::vector<float>> m_ciftiMappableFileData;
+//        std::vector<std::vector<float>> m_ciftiMappableFileData;
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing;
         
@@ -225,9 +214,6 @@ namespace caret {
     };
     
 #ifdef __BRAIN_OPEN_GL_VOLUME_TEXTURE_SLICE_DRAWING_DECLARE__
-    std::map<VolumeMappableInterface*, BrainOpenGLVolumeTextureSliceDrawing::TextureInfo> BrainOpenGLVolumeTextureSliceDrawing::s_volumeTextureInfo;
-    std::map<VolumeMappableInterface*, BrainOpenGLVolumeTextureSliceDrawing::TextureInfo> BrainOpenGLVolumeTextureSliceDrawing::s_identificationTextureInfo;
-
 #endif // __BRAIN_OPEN_GL_VOLUME_TEXTURE_SLICE_DRAWING_DECLARE__
 
 } // namespace
