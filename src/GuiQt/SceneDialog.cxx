@@ -2414,10 +2414,31 @@ SceneDialog::createSceneFileWidget()
                      this, &SceneDialog::showFileStructure);
     
     /*
+     * Tooltip
+     */
+    const AString baseToolTip("It is recommended that you save your scene file in the "
+                              "<b>base path</b> or one level down in an appropriate "
+                              "subdirectory.&nbsp;&nbsp;Click the <b>"
+                              + m_showFileStructurePushButton->text()
+                              + "</b> button to see the data file organization.");
+    const AString newToolTip("<html><body>Display a file selection dialog for creating a new scene file.<p>"
+                             + baseToolTip
+                             + "</body></html>");
+    const AString saveToolTip("<html><body>Save the scene file using its current name.<p>"
+                             + baseToolTip
+                             + "</body></html>");
+    const AString saveAsToolTip("<html><body>Display a file selection dialog for saving the scenes to a different file name.<p>"
+                             + baseToolTip
+                             + "</body></html>");
+    const AString moveToolTip("<html><body>Display a file selection dialog for moving the scene file to a new name.<p>"
+                             + baseToolTip
+                             + "</body></html>");
+
+    /*
      * New File button
      */
     m_newSceneFilePushButton = new QPushButton("New");
-    m_newSceneFilePushButton->setToolTip("Create a new scene file");
+    m_newSceneFilePushButton->setToolTip(newToolTip);
     QObject::connect(m_newSceneFilePushButton, SIGNAL(clicked()),
                      this, SLOT(newSceneFileButtonClicked()));
     
@@ -2433,7 +2454,7 @@ SceneDialog::createSceneFileWidget()
      * Save File button
      */
     m_saveSceneFilePushButton = new QPushButton("Save");
-    m_saveSceneFilePushButton->setToolTip("Save the scene file using its current name");
+    m_saveSceneFilePushButton->setToolTip(saveToolTip);
     QObject::connect(m_saveSceneFilePushButton, SIGNAL(clicked()),
                      this, SLOT(saveSceneFileButtonClicked()));
     
@@ -2441,7 +2462,7 @@ SceneDialog::createSceneFileWidget()
      * Save As File button
      */
     m_saveAsSceneFilePushButton = new QPushButton("Save As...");
-    m_saveAsSceneFilePushButton->setToolTip("<html>Display a file selection dialog for saving scene file with a new name</html>");
+    m_saveAsSceneFilePushButton->setToolTip(saveAsToolTip);
     QObject::connect(m_saveAsSceneFilePushButton, SIGNAL(clicked()),
                      this, SLOT(saveAsSceneFileButtonClicked()));
     
@@ -2449,7 +2470,7 @@ SceneDialog::createSceneFileWidget()
      * Move button
      */
     m_moveSceneFilePushButton = new QPushButton("Move...");
-    m_moveSceneFilePushButton->setToolTip("<html>Display a file selection dialog for moving the scene file to a new location</html>");
+    m_moveSceneFilePushButton->setToolTip(moveToolTip);
     QObject::connect(m_moveSceneFilePushButton, &QPushButton::clicked,
                      this, &SceneDialog::moveSceneFileButtonClicked);
     
