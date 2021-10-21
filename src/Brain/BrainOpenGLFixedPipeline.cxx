@@ -114,6 +114,7 @@
 #include "GraphicsPrimitiveV3fN3fC4ub.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fT2f.h"
+#include "GraphicsPrimitiveV3fN3fC4f.h"
 #include "GraphicsShape.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemUniversal.h"
@@ -2519,6 +2520,7 @@ BrainOpenGLFixedPipeline::drawSurfaceModel(BrowserTabContent* browserTabContent,
     setupScaleBarDrawingInformation(browserTabContent);
     
     this->drawSurface(surface,
+                      SurfaceTabType::SINGLE_SURFACE,
                       browserTabContent->getScaling(),
                       nodeColoringRGBA,
                       true);
@@ -2550,6 +2552,8 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
  *
  * @param surface
  *    Surface that is drawn.
+ *    @param surfaceTabType
+ *    Content of tab (single surface, montage, or whole brain)
  * @param surfaceScaling
  *    User scaling of surface.
  * @param nodeColoringRGBA
@@ -2559,6 +2563,7 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
  */
 void 
 BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
+                                      const SurfaceTabType surfaceTabType,
                                       const float surfaceScaling,
                                       const float* nodeColoringRGBA,
                                       const bool drawAnnotationsInModelSpaceFlag)
@@ -2667,8 +2672,27 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                     else {
                         glDisable(GL_CULL_FACE);
                     }
-                    this->drawSurfaceTrianglesWithVertexArrays(surface,
-                                                               nodeColoringRGBA);
+                    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_SURFACE_BUFFER)) {
+                        GraphicsPrimitiveV3fN3fC4f* primitive(NULL);
+                        const int32_t tabIndex(this->browserTabContent->getTabNumber());
+                        switch (surfaceTabType) {
+                            case SurfaceTabType::SINGLE_SURFACE:
+                                primitive = surface->getSurfaceGraphicsPrimitiveForBrowserTab(tabIndex);
+                                break;
+                            case SurfaceTabType::SURFACE_MONTAGE:
+                                primitive = surface->getSurfaceMontageGraphicsPrimitiveForBrowserTab(tabIndex);
+                                break;
+                            case SurfaceTabType::WHOLE_BRAIN:
+                                primitive = surface->getWholeBrainGraphicsPrimitiveForBrowserTab(tabIndex);
+                                break;
+                        }
+                        CaretAssert(primitive);
+                        GraphicsEngineDataOpenGL::draw(primitive);
+                    }
+                    else {
+                        this->drawSurfaceTrianglesWithVertexArrays(surface,
+                                                                   nodeColoringRGBA);
+                    }
                     glPopAttrib();
                     
                     if (borderAboveSurfaceOffset != 0.0) {
@@ -6567,6 +6591,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         }
         
         this->drawSurface(mvp->getSurface(),
+                          SurfaceTabType::SURFACE_MONTAGE,
                           browserTabContent->getScaling(),
                           nodeColoringRGBA,
                           true);
@@ -6923,6 +6948,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
             glPushMatrix();
             glTranslatef(dx, dy, dz);
             this->drawSurface(surface,
+                              SurfaceTabType::WHOLE_BRAIN,
                               browserTabContent->getScaling(),
                               nodeColoringRGBA,
                               drawModelSpaceAnnotationsFlag);

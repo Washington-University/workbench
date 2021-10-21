@@ -37,6 +37,7 @@
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fN3f.h"
+#include "GraphicsPrimitiveV3fN3fC4f.h"
 #include "GraphicsPrimitiveV3fN3fC4ub.h"
 #include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
@@ -2379,6 +2380,20 @@ GraphicsPrimitive::newPrimitiveV3fN3f(const GraphicsPrimitive::PrimitiveType pri
 {
     GraphicsPrimitiveV3fN3f* primitive = new GraphicsPrimitiveV3fN3f(primitiveType,
                                                                      unsignedByteRGBA);
+    return primitive;
+}
+
+/**
+ * @return A new primitive for XYZ with normals and RGBS.  Caller is responsible
+ * for deleting the returned pointer.
+ *
+ * @param primitiveType
+ *     Type of primitive drawn (triangles, lines, etc.)
+ */
+GraphicsPrimitiveV3fN3fC4f*
+GraphicsPrimitive::newPrimitiveV3fN3fC4f(const GraphicsPrimitive::PrimitiveType primitiveType)
+{
+    GraphicsPrimitiveV3fN3fC4f* primitive = new GraphicsPrimitiveV3fN3fC4f(primitiveType);
     return primitive;
 }
 

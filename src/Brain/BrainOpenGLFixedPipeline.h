@@ -183,6 +183,12 @@ namespace caret {
             StructureEnum::Enum structure;
         };
         
+        enum class SurfaceTabType {
+            SINGLE_SURFACE,
+            SURFACE_MONTAGE,
+            WHOLE_BRAIN
+        };
+        
         void setFiberOrientationDisplayInfo(const DisplayPropertiesFiberOrientation* dpfo,
                                             const DisplayGroupEnum::Enum displayGroup,
                                             const int32_t tabIndex,
@@ -209,6 +215,7 @@ namespace caret {
                               const int32_t viewport[4]);
         
         void drawSurface(Surface* surface,
+                         const SurfaceTabType surfaceTabType,
                          const float surfaceScaling,
                          const float* nodeColoringRGBA,
                          const bool drawAnnotationsInModelSpaceFlag);

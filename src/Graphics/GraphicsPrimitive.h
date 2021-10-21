@@ -40,6 +40,7 @@ namespace caret {
     class GraphicsPrimitiveV3fC4f;
     class GraphicsPrimitiveV3fC4ub;
     class GraphicsPrimitiveV3fN3f;
+    class GraphicsPrimitiveV3fN3fC4f;
     class GraphicsPrimitiveV3fN3fC4ub;
     class GraphicsPrimitiveV3fT2f;
     class GraphicsPrimitiveV3fT3f;
@@ -352,6 +353,8 @@ namespace caret {
         
         static GraphicsPrimitiveV3fN3f* newPrimitiveV3fN3f(const GraphicsPrimitive::PrimitiveType primitiveType,
                                                            const uint8_t unsignedByteRGBA[4]);
+        
+        static GraphicsPrimitiveV3fN3fC4f* newPrimitiveV3fN3fC4f(const GraphicsPrimitive::PrimitiveType primitiveType);
         
         static GraphicsPrimitiveV3fN3fC4ub* newPrimitiveV3fN3fC4ub(const GraphicsPrimitive::PrimitiveType primitiveType);
         

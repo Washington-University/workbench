@@ -142,6 +142,12 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 false));
     
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_SURFACE_BUFFER,
+                                                "DEVELOPER_FLAG_SURFACE_BUFFER",
+                                                "Draw Surfaces Using Buffers",
+                                                CheckableEnum::YES,
+                                                false));
+    
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOXEL_CUBES_TEST,
                                                 "DEVELOPER_FLAG_VOXEL_CUBES_TEST",
                                                 "All View Voxel Cubes Outside Faces",
@@ -267,6 +273,9 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
             toolTip = ("Smooth texture functional volume drawing voxels (\""
                        + toGuiName(DEVELOPER_FLAG_TEXTURE_VOLUME)
                        + "\" must also be ON)");
+            break;
+        case DEVELOPER_FLAG_SURFACE_BUFFER:
+            toolTip = ("Draw surface using buffers (improved performance)");
             break;
         case DEVELOPER_FLAG_BALSA:
             toolTip = ("Load BALSA web page in Qt's WebKit (for demonstration only");

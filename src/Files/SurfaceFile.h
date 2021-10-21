@@ -42,6 +42,7 @@ namespace caret {
     class GeodesicHelper;
     class GeodesicHelperBase;
     class GiftiDataArray;
+    class GraphicsPrimitiveV3fN3fC4f;
     class Matrix4x4;
     class PlainTextStringBuilder;
     class SignedDistanceHelper;
@@ -184,6 +185,13 @@ namespace caret {
         void setWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
                                               const float* rgbaNodeColorComponents);
 
+        GraphicsPrimitiveV3fN3fC4f* getSurfaceGraphicsPrimitiveForBrowserTab(const int32_t browserTabIndex);
+        
+        GraphicsPrimitiveV3fN3fC4f* getSurfaceMontageGraphicsPrimitiveForBrowserTab(const int32_t browserTabIndex);
+        
+        GraphicsPrimitiveV3fN3fC4f* getWholeBrainGraphicsPrimitiveForBrowserTab(const int32_t browserTabIndex);
+        
+        
         void invalidateNormals();
         
         void translateToCenterOfMass();
@@ -229,6 +237,12 @@ namespace caret {
         void allocateWholeBrainNodeColoringForBrowserTab(const int32_t browserTabIndex,
                                                          const bool zeroizeColorsFlag);
         
+        GraphicsPrimitiveV3fN3fC4f* createSurfaceGraphicsPrimitive(const float* rgba);
+
+        GraphicsPrimitiveV3fN3fC4f* getGraphicsPrimitive(std::vector<std::unique_ptr<GraphicsPrimitiveV3fN3fC4f>>& primitives,
+                                                         const int32_t browserTabIndex,
+                                                         const float* rgba);
+
         /** Data array containing the coordinates. */
         GiftiDataArray* coordinateDataArray;
         
@@ -255,6 +269,20 @@ namespace caret {
          * for a browser tab with the corresponding index.
          */
         std::vector<float> wholeBrainNodeColoringForBrowserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /**
+         * Graphics primitive for single surface in a tab
+         */
+        std::vector<std::unique_ptr<GraphicsPrimitiveV3fN3fC4f>> m_surfaceGraphicsPrimitives;
+        /**
+         * Graphics primitive for  surface montage int a tab
+         */
+        std::vector<std::unique_ptr<GraphicsPrimitiveV3fN3fC4f>> m_surfaceMontageGraphicsPrimitives;
+        /**
+         * Graphics primitive for whole brain surface int a tab
+         */
+        std::vector<std::unique_ptr<GraphicsPrimitiveV3fN3fC4f>> m_wholeBrainGraphicsPrimitives;
+        
         
         /** Points to memory containing the coordinates. */
         float* coordinatePointer;
