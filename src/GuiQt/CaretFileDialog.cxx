@@ -672,8 +672,6 @@ CaretFileDialog::restoreDialogSettings(const AString& settingsName)
 {
     std::map<AString, PreviousDialogSettings>::iterator iter = s_previousDialogSettingsMap.find(settingsName);
     if (iter != s_previousDialogSettingsMap.end()) {
-        std::cout << "Found and restoring settings for " << qPrintable(settingsName) << std::endl;
-        
         const PreviousDialogSettings previousSettings = iter->second;
         
         FileInformation fileInfo(previousSettings.m_directoryName);
