@@ -638,7 +638,7 @@ namespace caret {
         
         GraphicsTextureMinificationFilterEnum::Enum m_textureMinificationFilter = GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR;
 
-        std::array<float, 4> m_textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+        std::array<float, 4> m_textureBorderColorRGBA;
         
         const PrimitiveType m_primitiveType;
 

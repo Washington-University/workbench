@@ -103,6 +103,8 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType        vertexDataType,
  m_primitiveType(primitiveType),
  m_boundingBoxValid(false)
 {
+    m_textureBorderColorRGBA.fill(0.0);
+    
     invalidateVertexMeasurements();
     
     switch (textureDataType) {

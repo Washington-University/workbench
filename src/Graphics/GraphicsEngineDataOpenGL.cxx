@@ -588,6 +588,10 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
     }
 
     if (useMipMapFlag) {
+#ifdef CARET_OS_WINDOWS_MSVC
+        CaretLogSevere("3D Mipmaps function gluBuild3DMipmaps() not available on system "
+                       "used to compile this version of Workbench.");
+#else
         /*
          * This code seems to work if OpenGL 3.0 or later and
          * replaces gluBuild2DMipmaps()
@@ -623,6 +627,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
                 CaretLogSevere(errorText);
             }
         }
+#endif
     }
 
     /*
