@@ -49,6 +49,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CommandOperationManager.h"
+#include "DeveloperFlagsEnum.h"
 #if QT_VERSION < 0x060000
 #include <QDesktopWidget>
 #endif
@@ -628,6 +629,9 @@ void printHelp(const AString& progName)
     << "    -help" << endl
     << "        display this usage text" << endl
     << endl
+    << "    -enable-perf" << endl
+    << "        Enable graphics performance improvements (surface buffers, volume textures)"
+    << endl
     << "    -graphics-size  <X Y>" << endl
     << "        Set the size of the graphics region." << endl
     << "        If this option is used you WILL NOT be able" << endl
@@ -734,6 +738,9 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                 } else if (thisParam == "-help") {
                     printHelp(progName);
                     exit(0);
+                } else if (thisParam == "-enable-perf") {
+                    DeveloperFlagsEnum::setFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_SURFACE_BUFFER, true);
+                    DeveloperFlagsEnum::setFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_VOLUME, true);
                 } else if (thisParam == "-logging") {
                     if (myParams->hasNext()) {
                         const AString logLevelName = myParams->nextString("Logging Level").toUpper();
