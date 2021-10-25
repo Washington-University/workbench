@@ -467,7 +467,23 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                               GL_UNSIGNED_BYTE,
                               imageWidth,
                               imageHeight) == 0) {
-            throw OperationException("Assigning buffer to context and make current failed.");
+            GLint mesaMaxWidth(0);
+            GLint mesaMaxHeight(0);
+            OSMesaGetIntegerv(OSMESA_MAX_WIDTH,
+                              &mesaMaxWidth);
+            OSMesaGetIntegerv(OSMESA_MAX_HEIGHT,
+                              &mesaMaxHeight);
+            AString msg("Assigning buffer to context and make current failed.  This may occur if the "
+                            "image pixel width="
+                            + AString::number(imageWidth)
+                            + " or pixel height="
+                            + AString::number(imageHeight)
+                            + " exceeds the Mesa System's maximum width="
+                            + AString::number(mesaMaxWidth)
+                            + " or height="
+                            + AString::number(mesaMaxHeight)
+                            + ".");
+            throw OperationException(msg);
         }
         
         /*
