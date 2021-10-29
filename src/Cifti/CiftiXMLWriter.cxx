@@ -158,7 +158,7 @@ void CiftiXMLWriter::writeMatrixIndicesMap(QXmlStreamWriter &xml, const CiftiMat
         {
             int temp = matrixIndicesMap.m_appliesToMatrixDimension[i];
             if (temp < 2 && m_writingVersion.hasReversedFirstDims()) temp = 1 - temp;//in other words, 0 becomes 1 and 1 becomes 0
-            appliesToMatrixDimension.append(QString::number(temp));
+            appliesToMatrixDimension.append(QString::number(temp) + ",");
         }
         int temp = matrixIndicesMap.m_appliesToMatrixDimension[lastElement];
         if (temp < 2 && m_writingVersion.hasReversedFirstDims()) temp = 1 - temp;//in other words, 0 becomes 1 and 1 becomes 0
