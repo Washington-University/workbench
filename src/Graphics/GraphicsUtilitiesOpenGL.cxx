@@ -486,3 +486,41 @@ GraphicsUtilitiesOpenGL::popMatrix()
     }
 }
 
+/**
+ * Transform the given window coordinates to model coordinates.
+ * OpenGL MUST BE "current".
+ * @param windowX
+ *    Window X-coordinate.
+ * @param windowY
+ *    Window Y-coordinate.
+ * @param modelXyzOut
+ *    Output with model coordinates.
+ * @return True if successful, else false.
+ */
+bool
+GraphicsUtilitiesOpenGL::unproject(const float windowX,
+                                   const float windowY,
+                                   float modelXyzOut[3])
+{
+    GLdouble modelviewMatrix[16];
+    GLdouble projectionMatrix[16];
+    GLint viewport[4];
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelviewMatrix);
+    glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    
+    double modelX(0.0), modelY(0.0), modelZ(0.0);
+    float windowZ(0.0);
+    if (gluUnProject(windowX, windowY, windowZ ,
+                     modelviewMatrix, projectionMatrix, viewport,
+                     &modelX, &modelY, &modelZ) == GL_TRUE) {
+        modelXyzOut[0] = modelX;
+        modelXyzOut[1] = modelY;
+        modelXyzOut[2] = modelZ;
+        
+        return true;
+    }
+
+    return false;
+}
+

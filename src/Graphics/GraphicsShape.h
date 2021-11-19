@@ -40,6 +40,11 @@ namespace caret {
     public:
         virtual ~GraphicsShape();
         
+        static GraphicsPrimitiveV3f* newInstanceCircleByteColor(const float radius,
+                                                                const uint8_t rgba[4],
+                                                                const GraphicsPrimitive::LineWidthType lineThicknessType,
+                                                                const double lineThickness);
+
         static void drawBoxOutlineByteColor(const float v1[3],
                                             const float v2[3],
                                             const float v3[3],

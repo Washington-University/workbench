@@ -38,7 +38,11 @@ public:
         /** Draw volume slice with an oblique projection */
         VOLUME_SLICE_PROJECTION_OBLIQUE,
         /** Draw volume slice with an orthogonal projection */
-        VOLUME_SLICE_PROJECTION_ORTHOGONAL
+        VOLUME_SLICE_PROJECTION_ORTHOGONAL,
+        /** Multi-Planar Reconstruction Neurological (Left-on-Left) */
+        VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL,
+        /** Multi-Planar Reconstruction Neurological (Right-on-Left) */
+        VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL
     };
 
 

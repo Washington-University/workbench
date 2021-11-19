@@ -170,6 +170,10 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            CaretAssertToDoFatal();
+            break;
     }
     
     int64_t iHalf = brushSize[0] / 2;
@@ -216,6 +220,10 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                     result = performTurnOnOrOffOrthogonal(editInfo,
                                                        errorMessageOut);
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                    CaretAssertToDoFatal();
                     break;
             }
             break;

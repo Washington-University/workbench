@@ -51,6 +51,7 @@ namespace caret {
     class SelectionItemSurfaceNode;
     class SelectionItemSurfaceTriangle;
     class SelectionItemUniversalIdentificationSymbol;
+    class SelectionItemVolumeMprCrosshair;
     class SelectionItemVoxel;
     class SelectionItemVoxelEditing;
     class IdentificationFormattedTextGenerator;
@@ -107,6 +108,10 @@ namespace caret {
         SelectionItemUniversalIdentificationSymbol* getUniversalIdentificationSymbol();
 
         const SelectionItemUniversalIdentificationSymbol* getUniversalIdentificationSymbol() const;
+        
+        SelectionItemVolumeMprCrosshair* getVolumeMprCrosshairIdentification();
+        
+        const SelectionItemVolumeMprCrosshair* getVolumeMprCrosshairIdentification() const;
         
         SelectionItemVoxelEditing* getVoxelEditingIdentification();
         
@@ -243,6 +248,8 @@ namespace caret {
         SelectionItemVoxel* m_voxelIdentification;
         
         SelectionItemVoxelEditing* m_voxelEditingIdentification;
+        
+        std::unique_ptr<SelectionItemVolumeMprCrosshair> m_volumeMprCrosshairIdentification;
         
         /** Last selected item DOES NOT GET PUT IN m_allSelectionItems */
         SelectionItem* m_lastSelectedItem;

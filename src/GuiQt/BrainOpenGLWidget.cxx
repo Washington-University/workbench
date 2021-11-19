@@ -1522,6 +1522,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
     this->isMousePressedNearToolBox = false;
     
     me->accept();
+    
+    updateCursor();
 }
 
 /**

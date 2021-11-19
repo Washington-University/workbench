@@ -51,6 +51,8 @@ BrainOpenGLShapeRing.h
 BrainOpenGLShapeSphere.h
 BrainOpenGLTextRenderInterface.h
 BrainOpenGLViewportContent.h
+BrainOpenGLVolumeMprThreeDrawing.h
+BrainOpenGLVolumeMprTwoDrawing.h
 BrainOpenGLVolumeObliqueSliceDrawing.h
 BrainOpenGLVolumeSliceDrawing.h
 BrainOpenGLVolumeTextureSliceDrawing.h
@@ -186,6 +188,7 @@ SelectionItemMedia.h
 SelectionItemSurfaceNode.h
 SelectionItemSurfaceTriangle.h
 SelectionItemUniversalIdentificationSymbol.h
+SelectionItemVolumeMprCrosshair.h
 SelectionItemVoxel.h
 SelectionItemVoxelEditing.h
 SelectionManager.h
@@ -242,6 +245,8 @@ BrainOpenGLShapeRing.cxx
 BrainOpenGLShapeSphere.cxx
 BrainOpenGLTextRenderInterface.cxx
 BrainOpenGLViewportContent.cxx
+BrainOpenGLVolumeMprThreeDrawing.cxx
+BrainOpenGLVolumeMprTwoDrawing.cxx
 BrainOpenGLVolumeObliqueSliceDrawing.cxx
 BrainOpenGLVolumeSliceDrawing.cxx
 BrainOpenGLVolumeTextureSliceDrawing.cxx
@@ -375,6 +380,7 @@ SelectionItemMedia.cxx
 SelectionItemSurfaceNode.cxx
 SelectionItemSurfaceTriangle.cxx
 SelectionItemUniversalIdentificationSymbol.cxx
+SelectionItemVolumeMprCrosshair.cxx
 SelectionItemVoxel.cxx
 SelectionItemVoxelEditing.cxx
 SelectionManager.cxx

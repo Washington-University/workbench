@@ -53,6 +53,7 @@
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceTriangle.h"
 #include "SelectionItemUniversalIdentificationSymbol.h"
+#include "SelectionItemVolumeMprCrosshair.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionItemVoxelEditing.h"
 #include "Surface.h"
@@ -98,6 +99,8 @@ SelectionManager::SelectionManager()
     m_voxelIdentification = new SelectionItemVoxel();
     m_voxelEditingIdentification = new SelectionItemVoxelEditing();
     
+    m_volumeMprCrosshairIdentification.reset(new SelectionItemVolumeMprCrosshair());
+    
     m_allSelectionItems.push_back(m_annotationIdentification);
     m_allSelectionItems.push_back(m_surfaceBorderIdentification);
     m_allSelectionItems.push_back(m_chartDataSeriesIdentification);
@@ -117,6 +120,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_imageControlPointIdentification);
     m_allSelectionItems.push_back(m_mediaIdentification.get());
     m_allSelectionItems.push_back(m_universalIdentificationSymbol.get());
+    m_allSelectionItems.push_back(m_volumeMprCrosshairIdentification.get());
     m_allSelectionItems.push_back(m_voxelIdentification);
     m_allSelectionItems.push_back(m_voxelEditingIdentification);
     m_allSelectionItems.push_back(m_volumeFocusIdentification);
@@ -581,6 +585,24 @@ const SelectionItemSurfaceTriangle*
 SelectionManager::getSurfaceTriangleIdentification() const
 {
     return m_surfaceTriangleIdentification;
+}
+
+/**
+ * @return Identification for volume MPR crosshair.
+ */
+const SelectionItemVolumeMprCrosshair*
+SelectionManager::getVolumeMprCrosshairIdentification() const
+{
+    return m_volumeMprCrosshairIdentification.get();
+}
+
+/**
+ * @return Identification for volume MPR crosshair.
+ */
+SelectionItemVolumeMprCrosshair*
+SelectionManager::getVolumeMprCrosshairIdentification()
+{
+    return m_volumeMprCrosshairIdentification.get();
 }
 
 /**

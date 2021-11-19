@@ -163,9 +163,13 @@ SelectionItemDataTypeEnum::initialize()
                                                  "UNIVERSAL_IDENTIFICATION_SYMBOL",
                                                  "Universal Identification Symbol"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(VOLUME_MPR_CROSSHAIR,
+                                                 "VOLUME_MPR_CROSSHAIR",
+                                                 "Volume MPR Crosshair"));
+
     enumData.push_back(SelectionItemDataTypeEnum(VOXEL,
-                                    "VOXEL", 
-                                    "Voxel"));
+                                                 "VOXEL",
+                                                 "Voxel"));
     
     enumData.push_back(SelectionItemDataTypeEnum(VOXEL_EDITING,
                                                  "VOXEL_EDITING",

@@ -115,7 +115,14 @@ VolumeSliceProjectionTypeEnum::initialize()
     enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_ORTHOGONAL, 
                                     "VOLUME_SLICE_PROJECTION_ORTHOGONAL", 
                                     "Orthogonal"));
-    
+
+    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL,
+                                                     "VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL",
+                                                     "MPR (Neuro)"));
+
+    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL,
+                                                     "VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL",
+                                                     "MPR (Radio)"));
 }
 
 /**
@@ -158,7 +165,7 @@ VolumeSliceProjectionTypeEnum::toName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its name.
- * @param name 
+ * @param nameIn
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -167,9 +174,14 @@ VolumeSliceProjectionTypeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 VolumeSliceProjectionTypeEnum::Enum 
-VolumeSliceProjectionTypeEnum::fromName(const AString& name, bool* isValidOut)
+VolumeSliceProjectionTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+    
+    AString name(nameIn);
+    if (name == "VOLUME_SLICE_PROJECTION_MPR") {
+        name = "VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL";
+    }
     
     bool validFlag = false;
     Enum enumValue = VolumeSliceProjectionTypeEnum::enumData[0].enumValue;

@@ -44,6 +44,7 @@ GraphicsShape.h
 GraphicsTextureMagnificationFilterEnum.h
 GraphicsTextureMinificationFilterEnum.h
 GraphicsUtilitiesOpenGL.h
+GraphicsViewport.h
 
 EventGraphicsOpenGLCreateBufferObject.cxx
 EventGraphicsOpenGLCreateTextureName.cxx
@@ -74,6 +75,7 @@ GraphicsShape.cxx
 GraphicsTextureMagnificationFilterEnum.cxx
 GraphicsTextureMinificationFilterEnum.cxx
 GraphicsUtilitiesOpenGL.cxx
+GraphicsViewport.cxx
 )
 
 #

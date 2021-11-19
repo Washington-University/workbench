@@ -365,6 +365,10 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
                         break;
                     case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                         break;
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                        CaretAssert(0);
+                        break;
                 }
             }
         }
@@ -857,6 +861,10 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewProjection(const BrainO
                 
             }
                 break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                CaretAssert(0);
+                break;
         }
         
         drawObliqueSliceWithPrimitive(sliceViewPlane,
@@ -972,6 +980,10 @@ BrainOpenGLVolumeTextureSliceDrawing::createSlicePlaneEquation(const VolumeSlice
         }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            CaretAssert(0);
             break;
     }
     
@@ -1091,6 +1103,10 @@ BrainOpenGLVolumeTextureSliceDrawing::setVolumeSliceViewingAndModelingTransforma
         }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            CaretAssert(0);
             break;
     }
     
@@ -1486,6 +1502,10 @@ BrainOpenGLVolumeTextureSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjec
                                       drawCrosshairLabelsFlag);
             glPopMatrix();
         }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            CaretAssert(0);
             break;
     }
 }
@@ -2335,6 +2355,10 @@ BrainOpenGLVolumeTextureSliceDrawing::createObliqueTransformationMatrix(const Vo
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            CaretAssert(0);
+            break;
     }
     
     /*
@@ -2723,6 +2747,10 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithPrimitive(const Volume
                              * Always use NEAREST for orthogonal
                              */
                             magNearestFlag = true;
+                            break;
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                            CaretAssert(0);
                             break;
                     }
                     

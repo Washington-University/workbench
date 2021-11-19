@@ -68,6 +68,10 @@ namespace caret {
         static void pushMatrix();
         
         static void popMatrix();
+
+        static bool unproject(const float windowX,
+                              const float windowY,
+                              float modelXyzOut[3]);
         
     private:
         GraphicsUtilitiesOpenGL();

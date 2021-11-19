@@ -89,6 +89,8 @@ public:
         SURFACE_TRIANGLE,
         /** Universal identification symbol */
         UNIVERSAL_IDENTIFICATION_SYMBOL,
+        /** Volume MPR Crosshair */
+        VOLUME_MPR_CROSSHAIR,
         /** Volume Voxel */
         VOXEL,
         /** Voxel Editing */

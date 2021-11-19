@@ -50,6 +50,8 @@
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLMediaDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
+#include "BrainOpenGLVolumeMprThreeDrawing.h"
+#include "BrainOpenGLVolumeMprTwoDrawing.h"
 #include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
 #include "BrainOpenGLVolumeTextureSliceDrawing.h"
@@ -116,6 +118,7 @@
 #include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsPrimitiveV3fN3fC4f.h"
 #include "GraphicsShape.h"
+#include "GraphicsViewport.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemUniversal.h"
 #include "IdentificationManager.h"
@@ -232,6 +235,8 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     this->colorIdentification = NULL;
     
     GraphicsShape::deleteAllPrimitives();
+    BrainOpenGLVolumeMprThreeDrawing::deleteStaticMembers();
+    BrainOpenGLVolumeMprTwoDrawing::deleteStaticMembers();
 }
 
 /**
@@ -4457,15 +4462,39 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
      * fix the problem.
      */
     bool useNewDrawingFlag = false;
+    bool useMprThreeDrawingFlag = false;
+    bool useMprTwoDrawingFlag = false;
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             useNewDrawingFlag = true;
             break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+            useMprTwoDrawingFlag = true;
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            useMprTwoDrawingFlag = true;
+            break;
     }
     
-    if (useNewDrawingFlag) {
+    if (useMprThreeDrawingFlag) {
+        GraphicsViewport graphicsViewport(viewport);
+        BrainOpenGLVolumeMprThreeDrawing mprDrawing;
+        mprDrawing.draw(this,
+                        browserTabContent,
+                        volumeDrawInfo,
+                        graphicsViewport);
+    }
+    else if (useMprTwoDrawingFlag) {
+        GraphicsViewport graphicsViewport(viewport);
+        BrainOpenGLVolumeMprTwoDrawing mprDrawing;
+        mprDrawing.draw(this,
+                        browserTabContent,
+                        volumeDrawInfo,
+                        graphicsViewport);
+    }
+    else if (useNewDrawingFlag) {
         if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_VOLUME)) {
             BrainOpenGLVolumeTextureSliceDrawing textureSliceDrawing;
             textureSliceDrawing.draw(this,
@@ -6844,6 +6873,10 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
                                                     sliceProjectionType,
                                                     viewport);
                         }
+                            break;
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                            CaretAssertToDoWarning();
                             break;
                     }
                 }

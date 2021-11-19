@@ -85,6 +85,12 @@ namespace caret {
             SELECT
         };
         
+        enum class VOLUME_MPR_DRAG_MODE {
+            INVALID,
+            ROTATE_SLICE,
+            SELECT_SLICE
+        };
+        
         UserInputModeView(const UserInputModeView&);
 
         UserInputModeView& operator=(const UserInputModeView&);
@@ -107,6 +113,8 @@ namespace caret {
         float m_mediaLeftDragWithCtrlModelXYZ[3];
         
         bool m_mediaLeftDragWithCtrlModelXYZValidFlag = false;
+        
+        VOLUME_MPR_DRAG_MODE m_mprDragMode = VOLUME_MPR_DRAG_MODE::INVALID;
         
     public:
         virtual AString toString() const;

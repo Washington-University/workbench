@@ -65,6 +65,46 @@ GraphicsShape::~GraphicsShape()
 }
 
 /**
+ * @return New primitive for drawing a circle
+ *
+ * @param radius
+ *    Radius of circle
+ * @param rgba
+ *    Color of circle
+ * @param lineThicknessType
+ *    Type of line thickness
+ * @param lineThickness
+ *    Thickness of line
+ * @return
+ *    Primitive for drawing circle
+ */
+GraphicsPrimitiveV3f*
+GraphicsShape::newInstanceCircleByteColor(const float radius,
+                                                       const uint8_t rgba[4],
+                                                       const GraphicsPrimitive::LineWidthType lineThicknessType,
+                                                       const double lineThickness)
+{
+    std::vector<float> ellipseXYZ;
+    const float minorAxis(radius * 2.0);
+    const float majorAxis(minorAxis);
+    createEllipseVertices(majorAxis, minorAxis, ellipseXYZ);
+    
+    GraphicsPrimitiveV3f* primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN,
+                                                                       rgba));
+    const int32_t numVertices = static_cast<int32_t>(ellipseXYZ.size() / 3);
+    primitive->reserveForNumberOfVertices(numVertices);
+    for (int32_t i = 0; i < numVertices; i++) {
+        primitive->addVertex(&ellipseXYZ[i * 3]);
+    }
+    
+    primitive->setLineWidth(lineThicknessType,
+                            lineThickness);
+    primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+
+    return primitive;
+}
+
+/**
  * Delete all primitives.
  */
 void

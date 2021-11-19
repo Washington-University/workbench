@@ -51,6 +51,8 @@
 #include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemMedia.h"
+#include "SelectionItemVolumeMprCrosshair.h"
+#include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
 #include "UserInputModeViewContextMenu.h"
 #include "ViewingTransformations.h"
@@ -185,7 +187,16 @@ UserInputModeView::update()
 CursorEnum::Enum
 UserInputModeView::getCursor() const
 {
-    
+    switch (m_mprDragMode) {
+        case VOLUME_MPR_DRAG_MODE::INVALID:
+            break;
+        case VOLUME_MPR_DRAG_MODE::ROTATE_SLICE:
+            return CursorEnum::CURSOR_ROTATION;
+            break;
+        case VOLUME_MPR_DRAG_MODE::SELECT_SLICE:
+            return CursorEnum::CURSOR_FOUR_ARROWS;
+            break;
+    }
     return CursorEnum::CURSOR_DEFAULT;
 }
 
@@ -327,13 +338,60 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
         return;
     }
 
+    bool allowRotationFlag(true);
     bool scrollVolumeSlicesFlag(false);
+    bool volumeMprDragFlag(false);
     if (browserTabContent->isVolumeSlicesDisplayed()) {
         switch (browserTabContent->getSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                 scrollVolumeSlicesFlag = true;
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                if (browserTabContent->getSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
+                    /*
+                     * Scroll slice if viewing a single slice plane
+                     */
+                    scrollVolumeSlicesFlag = true;
+                }
+                else {
+                    switch (m_mprDragMode) {
+                        case VOLUME_MPR_DRAG_MODE::INVALID:
+                            scrollVolumeSlicesFlag = true;
+                            break;
+                        case VOLUME_MPR_DRAG_MODE::SELECT_SLICE:
+                        {
+                            SelectionManager* selectionManager(GuiManager::get()->getBrain()->getSelectionManager());
+                            selectionManager->setAllSelectionsEnabled(false);
+                            SelectionItemVoxel* voxelID(selectionManager->getVoxelIdentification());
+                            voxelID->setEnabledForSelection(true);
+                            mouseEvent.getOpenGLWidget()->performIdentification(mouseEvent.getX(),
+                                                                                mouseEvent.getY(),
+                                                                                false);
+                            if (voxelID->isValid()) {
+                                double xyzDouble[3] { 0.0, 0.0, 0.0 };
+                                voxelID->getModelXYZ(xyzDouble);
+                                float xyz[3] {
+                                    static_cast<float>(xyzDouble[0]),
+                                    static_cast<float>(xyzDouble[1]),
+                                    static_cast<float>(xyzDouble[2])
+                                };
+                                browserTabContent->selectSlicesAtCoordinate(xyz);
+                            }
+                            allowRotationFlag = false;
+                            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
+                        }
+                            break;
+                        case VOLUME_MPR_DRAG_MODE::ROTATE_SLICE:
+                            /*
+                             * Will fall through to rotation
+                             */
+                            break;
+                    }
+                    volumeMprDragFlag = false; //true;
+                }
                 break;
         }
     }
@@ -343,6 +401,15 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                           mouseEvent.getPressedY(),
                                                           mouseEvent.getDy());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
+    }
+    else if (volumeMprDragFlag) {
+        browserTabContent->applyMouseDragVolumeMPR(viewportContent,
+                                                   mouseEvent.getPressedX(),
+                                                   mouseEvent.getPressedY(),
+                                                   mouseEvent.getX(),
+                                                   mouseEvent.getY(),
+                                                   mouseEvent.getDx(),
+                                                   mouseEvent.getDy());
     }
     else if (browserTabContent->isChartTwoDisplayed()) {
         const int32_t x1(mouseEvent.getPressedX());
@@ -387,7 +454,7 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
             }
         }
     }
-    else {
+    else if (allowRotationFlag) {
         browserTabContent->applyMouseRotation(viewportContent,
                                               mouseEvent.getPressedX(),
                                               mouseEvent.getPressedY(),
@@ -513,6 +580,9 @@ UserInputModeView::mouseLeftDragWithShift(const MouseEvent& mouseEvent)
 void
 UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
 {
+    m_mprDragMode = VOLUME_MPR_DRAG_MODE::INVALID;
+    
+
     BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
     if (viewportContent == NULL) {
         return;
@@ -605,8 +675,48 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
  *     Mouse event information.
  */
 void
-UserInputModeView::mouseLeftPress(const MouseEvent& /*mouseEvent*/)
+UserInputModeView::mouseLeftPress(const MouseEvent& mouseEvent)
 {
+    m_mprDragMode = VOLUME_MPR_DRAG_MODE::INVALID;
+    
+    BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
+    if (viewportContent == NULL) {
+        return;
+    }
+    
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    if (browserTabContent == NULL) {
+        return;
+    }
+
+    if (browserTabContent->isVolumeSlicesDisplayed()) {
+        switch (browserTabContent->getSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            {
+                BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+                SelectionManager* idManager = openGLWidget->performIdentification(mouseEvent.getPressedX(),
+                                                                                  mouseEvent.getPressedY(),
+                                                                                  false);
+                CaretAssert(idManager);
+                
+                SelectionItemVolumeMprCrosshair* crosshairID(idManager->getVolumeMprCrosshairIdentification());
+                if (crosshairID->isValid()) {
+                    if (crosshairID->isRotateAxisSelected()) {
+                        m_mprDragMode = VOLUME_MPR_DRAG_MODE::ROTATE_SLICE;
+                    }
+                    else if (crosshairID->isSliceAxisSelected()) {
+                        m_mprDragMode = VOLUME_MPR_DRAG_MODE::SELECT_SLICE;
+                    }
+                }
+            }
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                break;
+        }
+    }
 }
 
 /**

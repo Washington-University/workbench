@@ -104,10 +104,10 @@ namespace caret {
         
         XY getHistoryAtIndex(const int32_t index) const;
         
-        void getGlobalXY(const int32_t x,
-                         const int32_t y,
-                         int32_t& outGlobalX,
-                         int32_t& outGlobalY) const;
+//        void getGlobalXY(const int32_t x,
+//                         const int32_t y,
+//                         int32_t& outGlobalX,
+//                         int32_t& outGlobalY) const;
         
         void offsetXY(const float offsetX,
                       const float offsetY);

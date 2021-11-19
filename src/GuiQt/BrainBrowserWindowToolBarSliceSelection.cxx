@@ -239,7 +239,7 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_volumeSliceProjectionTypeEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(volumeSliceProjectionTypeEnumComboBoxItemActivated()));
     WuQtUtilities::setToolTipAndStatusTip(m_volumeSliceProjectionTypeEnumComboBox->getWidget(),
-                                          "Chooses viewing orientation (oblique or orthogonal)");
+                                          "Chooses viewing orientation (MPR, oblique, or orthogonal)");
     m_volumeSliceProjectionTypeEnumComboBox->getComboBox()->setObjectName(objectNamePrefix
                                                                           + "Orthogonal/Oblique");
     macroManager->addMacroSupportToObject(m_volumeSliceProjectionTypeEnumComboBox->getComboBox(),
@@ -736,6 +736,26 @@ BrainBrowserWindowToolBarSliceSelection::readVolumeSliceIndicesAndUpdateSliceCoo
                         break;
                 }
                 break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                switch (viewPlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        CaretAssert(0);
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        btc->setSliceIndexAxial(underlayVolumeFile,
+                                                sliceIndex);
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        btc->setSliceIndexCoronal(underlayVolumeFile,
+                                                  sliceIndex);
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        btc->setSliceIndexParasagittal(underlayVolumeFile,
+                                                       sliceIndex);
+                        break;
+                }
+                break;
         }
     }
     
@@ -901,6 +921,10 @@ BrainBrowserWindowToolBarSliceSelection::updateObliqueMaskingButton()
             m_obliqueMaskingAction->setEnabled(true);
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            m_obliqueMaskingAction->setEnabled(false);
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
             m_obliqueMaskingAction->setEnabled(false);
             break;
     }
