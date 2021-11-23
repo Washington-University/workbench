@@ -2006,8 +2006,6 @@ GuiManager::showHideSceneDialog(const bool status,
         }
         
         this->sceneDialog->showDialog();
-        
-        this->sceneDialog->createDefaultSceneFile();
     }
     else {
         this->sceneDialog->close();
