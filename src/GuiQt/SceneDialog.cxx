@@ -3213,10 +3213,29 @@ SceneDialog::updateSceneFileModifiedStatusLabel()
     SceneFile* sceneFile = getSelectedSceneFile();
     if (sceneFile != NULL) {
         if (sceneFile->isModified()) {
+            statusText = "<html><font color=\"red\">YES</font></html>";
+            
             if (sceneFile->exists()) {
                 saveButtonEnabledFlag = true;
             }
-            statusText = "<html><font color=\"red\">YES</font></html>";
+            else {
+                FileInformation fileInfo(sceneFile->getFileName());
+                if (fileInfo.isWritable()) {
+                    saveButtonEnabledFlag = true;
+                }
+                else {
+                    /*
+                     * FileInformation::isWritable() seems to fail if the file
+                     * does not exist.  So if the directory path is writable
+                     * and the filename is not empty, assume file is writable.
+                     */
+                    if (FileInformation(fileInfo.getAbsolutePath()).isWritable()) {
+                        if ( ! sceneFile->getFileNameNoPath().isEmpty()) {
+                            saveButtonEnabledFlag = true;
+                        }
+                    }
+                }
+            }
         }
         else {
             statusText = "NO";
