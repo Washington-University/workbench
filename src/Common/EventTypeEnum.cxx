@@ -186,6 +186,10 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_TAB_SELECT_IN_WINDOW",
                                      "Event for selecting a browser tab in a window"));
     
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_VALIDATE,
+                                     "EVENT_BROWSER_TAB_VALIDATE",
+                                     "Event for validate a browser tab still exists"));
+
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_CONTENT,
                                      "EVENT_BROWSER_WINDOW_CONTENT",
                                      "Event for browser window content"));

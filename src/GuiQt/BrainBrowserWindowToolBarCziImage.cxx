@@ -40,6 +40,7 @@
 #include "DisplayPropertiesCziImages.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
+#include "EventBrowserTabValidate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GraphicsObjectToWindowTransform.h"
@@ -329,6 +330,13 @@ BrainBrowserWindowToolBarCziImage::receiveEvent(Event* event)
         CaretAssert(redrawnEvent);
         redrawnEvent->setEventProcessed();
         
+        EventBrowserTabValidate tabEvent(m_browserTabContent);
+        EventManager::get()->sendEvent(tabEvent.getPointer());
+        
+        if ( ! tabEvent.isValid()) {
+            m_browserTabContent = NULL;
+        }
+
         updateContent(m_browserTabContent);
     }
 }

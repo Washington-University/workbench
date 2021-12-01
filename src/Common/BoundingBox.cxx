@@ -22,6 +22,7 @@
 #include <sstream>
 #include <QtCore>
 #include "BoundingBox.h"
+#include "CaretAssert.h"
 #include "MathFunctions.h"
 
 using namespace caret;
@@ -129,7 +130,7 @@ BoundingBox::isValid2D() const
 void
 BoundingBox::resetZeros()
 {
-    this->set(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    this->setPrivate(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 }
 
 /**
@@ -142,7 +143,7 @@ void
 BoundingBox::resetWithMaximumExtent()
 {
     const float f = std::numeric_limits<float>::max();
-    this->set(-f, f, -f, f, -f, f);
+    this->setPrivate(-f, f, -f, f, -f, f);
 }
 
 /**
@@ -155,7 +156,7 @@ void
 BoundingBox::resetForUpdate()
 {
     const float f = std::numeric_limits<float>::max();
-    this->set(f, -f, f, -f, f, -f);
+    this->setPrivate(f, -f, f, -f, f, -f);
 }
 
 /**
@@ -175,7 +176,7 @@ BoundingBox::set(const float* points3D, const int64_t numPoints)
 }
 
 /**
- * Set a new bounding box.
+ * Set a new bounding box.  If a "min" is greater than a "max", the values are swapped.
  * @param minX  Minimum X-coordinate for bounding box.
  * @param maxX  Maximum X-coordinate for bounding box.
  * @param minY  Minimum Y-coordinate for bounding box.
@@ -184,20 +185,36 @@ BoundingBox::set(const float* points3D, const int64_t numPoints)
  * @param maxZ  Maximum Z-coordinate for bounding box.
  */
 void
-BoundingBox::set(
-                   const float minX,
-                   const float maxX,
-                   const float minY,
-                   const float maxY,
-                   const float minZ,
-                   const float maxZ)
+BoundingBox::set(const float minX,
+                 const float maxX,
+                 const float minY,
+                 const float maxY,
+                 const float minZ,
+                 const float maxZ)
 {
+//    CaretAssert(minX <= maxX);
+//    CaretAssert(minY <= maxY);
+//    CaretAssert(minZ <= maxZ);
+    
     this->boundingBox[0] = minX;
     this->boundingBox[1] = maxX;
     this->boundingBox[2] = minY;
     this->boundingBox[3] = maxY;
     this->boundingBox[4] = minZ;
     this->boundingBox[5] = maxZ;
+    
+    /*
+     * Ensure "min" less than "max"
+     */
+    if (this->boundingBox[0] > this->boundingBox[1]) {
+        std::swap(this->boundingBox[0], this->boundingBox[1]);
+    }
+    if (this->boundingBox[2] > this->boundingBox[3]) {
+        std::swap(this->boundingBox[2], this->boundingBox[3]);
+    }
+    if (this->boundingBox[4] > this->boundingBox[5]) {
+        std::swap(this->boundingBox[4], this->boundingBox[5]);
+    }
 }
 
 /**
@@ -209,12 +226,12 @@ BoundingBox::set(
 void
 BoundingBox::set(const float minMaxXYZ[6])
 {
-    this->boundingBox[0] = minMaxXYZ[0];
-    this->boundingBox[1] = minMaxXYZ[1];
-    this->boundingBox[2] = minMaxXYZ[2];
-    this->boundingBox[3] = minMaxXYZ[3];
-    this->boundingBox[4] = minMaxXYZ[4];
-    this->boundingBox[5] = minMaxXYZ[5];
+    set(minMaxXYZ[0],
+        minMaxXYZ[1],
+        minMaxXYZ[2],
+        minMaxXYZ[3],
+        minMaxXYZ[4],
+        minMaxXYZ[5]);
 }
 
 /**
@@ -242,12 +259,37 @@ BoundingBox::set(const float a[3],
 }
 
 /**
+ * Set a new bounding box.
+ * @param minX  Minimum X-coordinate for bounding box.
+ * @param maxX  Maximum X-coordinate for bounding box.
+ * @param minY  Minimum Y-coordinate for bounding box.
+ * @param maxY  Maximum Y-coordinate for bounding box.
+ * @param minZ  Minimum Z-coordinate for bounding box.
+ * @param maxZ  Maximum Z-coordinate for bounding box.
+ */
+void
+BoundingBox::setPrivate(const float minX,
+                 const float maxX,
+                 const float minY,
+                 const float maxY,
+                 const float minZ,
+                 const float maxZ)
+{
+    this->boundingBox[0] = minX;
+    this->boundingBox[1] = maxX;
+    this->boundingBox[2] = minY;
+    this->boundingBox[3] = maxY;
+    this->boundingBox[4] = minZ;
+    this->boundingBox[5] = maxZ;
+
+}
+
+/**
  * Update the bounding box with the XYZ value passed in.  The bound box
  * must have been created with newInstanceForUpdate() or properly
  * initialized by the user.
  *
  * @param xyz - Three dimensional array containing XYZ.
- * @throws IllegalArgumentException if array does not have three elements.
  *
  */
 void
@@ -271,7 +313,6 @@ BoundingBox::update(const float xyz[3])
  *    Y-coordinate.
  * @param Z
  *    Z-coordinate.
- * @throws IllegalArgumentException if array does not have three elements.
  *
  */
 void
@@ -285,6 +326,20 @@ BoundingBox::update(const float x,
     if (y > this->boundingBox[3]) this->boundingBox[3] = y;
     if (z < this->boundingBox[4]) this->boundingBox[4] = z;
     if (z > this->boundingBox[5]) this->boundingBox[5] = z;
+}
+
+/**
+ * Update the bounding box with the XYZ value passed in.  The bound box
+ * must have been created with newInstanceForUpdate() or properly
+ * initialized by the user.
+ *
+ * @param xyz - Three dimensional array containing XYZ.
+ *
+ */
+void
+BoundingBox::update(const std::array<float, 3>& xyz)
+{
+    update(xyz.data());
 }
 
 /**
@@ -739,6 +794,18 @@ BoundingBox::intersectsXY(const BoundingBox& bb) const
     }
     
     return true;
+}
+
+/**
+ * Add (union) the given bounding box
+ * @param bb
+ *    Bounding box to add
+ */
+void
+BoundingBox::unionOperation(const BoundingBox& bb)
+{
+    this->update(bb.getMinXYZ());
+    this->update(bb.getMaxXYZ());
 }
 
 

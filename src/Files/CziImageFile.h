@@ -92,9 +92,10 @@ namespace caret {
         
         virtual void getPixelIdentificationText(const int32_t tabIndex,
                                                 const PixelIndex& pixelIndexOriginAtTop,
+                                                const std::array<float, 3>& logicalXYZ,
                                                 std::vector<AString>& columnOneTextOut,
                                                 std::vector<AString>& columnTwoTextOut,
-                                                std::vector<AString>& toolTipTextOut) const;
+                                                std::vector<AString>& toolTipTextOut) const override;
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
         
@@ -116,6 +117,8 @@ namespace caret {
                                                 const GraphicsObjectToWindowTransform* transform,
                                                 const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode);
         
+        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex) const override;
+
         CziImage* loadImageForPyrmaidLayer(const int32_t tabIndex,
                                            const GraphicsObjectToWindowTransform* transform,
                                            const int32_t pyramidLayerIndex);
@@ -169,6 +172,11 @@ namespace caret {
                                  AString& resultsMessageOut,
                                  QImage& imageOut) const;
         
+        virtual bool pixelIndexToImageLogicalXYZ(const PixelIndex& pixelIndexOriginAtTop,
+                                                 std::array<float, 3>& logicalXYZOut) const override;
+        
+        virtual bool imageLogicalXYZToPixelIndex(const std::array<float, 3>& logicalXYZ,
+                                          PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
         // ADD_NEW_METHODS_HERE
 
           
@@ -192,12 +200,16 @@ namespace caret {
 
         class PyramidLayer {
         public:
-            PyramidLayer(const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo layerInfo,
+            PyramidLayer(const int32_t sceneIndex,
+                         const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo layerInfo,
                          const int64_t width,
                          const int64_t height)
-            : m_layerInfo(layerInfo),
+            : m_sceneIndex(sceneIndex),
+            m_layerInfo(layerInfo),
             m_width(width),
             m_height(height) { }
+            
+            int32_t m_sceneIndex;
             
             libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo m_layerInfo;
             
@@ -271,8 +283,7 @@ namespace caret {
         
         void readMetaData();
         
-        void readPyramidInfo(const int64_t imageWidth,
-                             const int64_t imageHeight);
+        void readPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatistics);
         
         int32_t getPyramidLayerWithMaximumResolution(const int32_t resolution) const;
         

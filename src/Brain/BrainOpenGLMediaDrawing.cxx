@@ -44,6 +44,7 @@
 #include "ModelMedia.h"
 #include "MediaOverlay.h"
 #include "MediaOverlaySet.h"
+#include "SelectionItemAnnotation.h"
 #include "SelectionItemMedia.h"
 #include "SelectionManager.h"
 
@@ -99,49 +100,54 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
     orthoRightOut  =  1.0;
     orthoBottomOut = -1.0;
     orthoTopOut    =  1.0;
+        
+    BoundingBox boundingBox;
     
     CaretAssert(mediaOverlaySet);
-    MediaFile* underlayMediaFile = mediaOverlaySet->getBottomMostMediaFile();
-    if (underlayMediaFile == NULL) {
+    std::vector<MediaFile*> mediaFiles(mediaOverlaySet->getDisplayedMediaFiles());
+    if (mediaFiles.empty()) {
         return false;
     }
     
-    GraphicsPrimitiveV3fT2f* primitive(NULL);
-    CziImageFile* cziImageFile = underlayMediaFile->castToCziImageFile();
-    const CziImage* cziImage(NULL);
-    ImageFile* imageFile = underlayMediaFile->castToImageFile();
-    if (imageFile != NULL) {
-        /*
-         * Image is drawn using a primitive in which
-         * the image is a texture
-         */
-        primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
-    }
-    else  if (cziImageFile != NULL) {
-        cziImage = cziImageFile->getDefaultImage();
-        if (cziImage == NULL) {
-            CaretLogSevere("CZI file has invalid default image: "
-                           + underlayMediaFile->getFileNameNoPath());
+    for (auto mf : mediaFiles) {
+        GraphicsPrimitiveV3fT2f* primitive(NULL);
+        CziImageFile* cziImageFile = mf->castToCziImageFile();
+        const CziImage* cziImage(NULL);
+        ImageFile* imageFile = mf->castToImageFile();
+        if (imageFile != NULL) {
+            /*
+             * Image is drawn using a primitive in which
+             * the image is a texture
+             */
+            primitive = imageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex);
+        }
+        else  if (cziImageFile != NULL) {
+            cziImage = cziImageFile->getDefaultImage();
+            if (cziImage == NULL) {
+                CaretLogSevere("CZI file has invalid default image: "
+                               + mf->getFileNameNoPath());
+                return false;
+            }
+            primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
+        }
+        else {
+            CaretAssertMessage(0, ("Unrecognized file type "
+                                   + DataFileTypeEnum::toName(mf->getDataFileType())
+                                   + " for media drawing."));
             return false;
         }
-        primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
-    }
-    else {
-        CaretAssertMessage(0, ("Unrecognized file type "
-                               + DataFileTypeEnum::toName(underlayMediaFile->getDataFileType())
-                               + " for media drawing."));
-        return false;
-    }
-    if (primitive == NULL) {
-        CaretLogSevere("Media file has invalid primitive for tab "
-                       + AString::number(tabIndex + 1)
-                       + underlayMediaFile->getFileNameNoPath());
-        return false;
+        if (primitive == NULL) {
+            CaretLogSevere("Media file has invalid primitive for tab "
+                           + AString::number(tabIndex + 1)
+                           + mf->getFileNameNoPath());
+            return false;
+        }
+        
+        BoundingBox primitiveBoundingBox;
+        primitive->getVertexBounds(primitiveBoundingBox);
+        boundingBox.unionOperation(primitiveBoundingBox);
     }
     
-    BoundingBox boundingBox;
-    primitive->getVertexBounds(boundingBox);
-
     const double viewportWidth(m_viewport[2]);
     const double viewportHeight(m_viewport[3]);
     const double viewportAspectRatio = (viewportHeight
@@ -157,6 +163,8 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
     
     const double marginPercent(0.02);
     const double marginSizePixels = imageHeight * marginPercent;
+    double leftMargin(marginSizePixels);
+    double topMargin(marginSizePixels);
     if (imageAspectRatio > viewportAspectRatio) {
         orthoBottomOut = -marginSizePixels;
         orthoTopOut    = imageHeight + marginSizePixels;
@@ -165,6 +173,7 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
         const double leftRightMargin((orthoWidth - imageWidth) / 2.0);
         orthoLeftOut  = -leftRightMargin;
         orthoRightOut = imageWidth + leftRightMargin;
+        leftMargin = leftRightMargin;
     }
     else {
         orthoLeftOut  = -marginSizePixels;
@@ -174,8 +183,20 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
         const double bottomTopMargin((orthoHeight - imageHeight) / 2.0);
         orthoBottomOut = -bottomTopMargin;
         orthoTopOut    = imageHeight + bottomTopMargin;
+        topMargin = bottomTopMargin;
     }
 
+    /*
+     * Change ORTHO to fit image with origin at top left
+     */
+    const float orthoHeight(orthoTopOut - orthoBottomOut);
+    orthoTopOut = boundingBox.getMinY() - topMargin;
+    orthoBottomOut = orthoTopOut + orthoHeight;
+    
+    const float orthoWidth(orthoRightOut - orthoLeftOut);
+    orthoLeftOut = boundingBox.getMinX() - leftMargin;
+    orthoRightOut = orthoLeftOut + orthoWidth;
+    
     return true;
 }
 
@@ -241,10 +262,18 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
+    /*
+     * Note on translation: Origin is at top left so a positive-Y translation
+     * moves the image down.  However, the user may edit the translation values
+     * and from the user's perspective, positive-Y is up.  Also, other models
+     * types have postive-Y up (surface, volume).  So we use the negative
+     * of the Y-translation.
+     */
     float translation[3];
     m_browserTabContent->getTranslation(translation);
+    glTranslatef(translation[0], -translation[1], 0.0);
+    
     const float scaling = m_browserTabContent->getScaling();
-    glTranslatef(translation[0], translation[1], 0.0);
     glScalef(scaling, scaling, 1.0);
 
     std::array<float, 4> orthoLRBT {
@@ -257,7 +286,8 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
     viewportContent->setGraphicsObjectToWindowTransform(transform);
     
-    drawModelLayers(transform,
+    drawModelLayers(viewportContent,
+                    transform,
                     browserTabContent->getTabNumber(),
                     viewport[3]);
     
@@ -266,6 +296,8 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
 
 /**
  * Draw the media models layers
+ * @param viewportContent
+ *    The viewport content
  * @param objectToWindowTransform
  *   Transforms point from object to window space
  * @param tabIndex
@@ -274,11 +306,14 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
  *   Height of viewport
  */
 void
-BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* transform,
+BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewportContent,
+                                         const GraphicsObjectToWindowTransform* transform,
                                          const int32_t tabIndex,
                                          const float viewportHeight)
 {
     SelectionItemMedia* idMedia = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getMediaIdentification();
+    SelectionItemAnnotation* annotationID = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getAnnotationIdentification();
+
     
     /*
      * Check for a 'selection' type mode
@@ -290,6 +325,9 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
             if (idMedia->isEnabledForSelection()) {
                 selectImageFlag = true;
+            }
+            else if (annotationID->isEnabledForSelection()) {
+                /* continue drawing so annotations get selected */
             }
             else {
                 return;
@@ -328,7 +366,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                      * Image is drawn using a primitive in which
                      * the image is a texture
                      */
-                    primitive = imageFile->getGraphicsPrimitiveForMediaDrawing();
+                    primitive = imageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex);
                     
                     mediaHeight = imageFile->getHeight();
                 }
@@ -400,6 +438,9 @@ BrainOpenGLMediaDrawing::drawModelLayers(const GraphicsObjectToWindowTransform* 
                                                                  plane,
                                                                  mediaThickness,
                                                                  viewportHeight);
+                    
+                    m_fixedPipelineDrawing->drawMediaSpaceAnnotations(viewportContent);
+
                 }
             }
         }
@@ -464,64 +505,36 @@ BrainOpenGLMediaDrawing::processMediaFileSelection(const int32_t tabIndex,
         BoundingBox bounds;
         primitive->getVertexBounds(bounds);
         
-        /*
-         * Transform bottom left and top right coordinates of
-         * primitive containing image to window coordinates
-         */
-        const auto minXYZ = bounds.getMinXYZ();
-        float windowMinXYZ[3];
-        xform.transformPoint(minXYZ.data(),
-                             windowMinXYZ);
-        
-        const auto maxXYZ = bounds.getMaxXYZ();
-        float windowMaxXYZ[3];
-        xform.transformPoint(maxXYZ.data(),
-                             windowMaxXYZ);
-        
         const float drawnImageWidth(bounds.getDifferenceX());
         const float drawnImageHeight(bounds.getDifferenceY());
         if ((drawnImageWidth > 0.0)
-            && (drawnImageHeight > 0.0)
-            && (windowMaxXYZ[0] > windowMinXYZ[0])
-            && (windowMaxXYZ[1] > windowMinXYZ[1])) {
+            && (drawnImageHeight > 0.0)) {
             
             const float mouseX(this->m_fixedPipelineDrawing->mouseX);
             const float mouseY(this->m_fixedPipelineDrawing->mouseY);
             
             float windowXYZ[3] { mouseX, mouseY, 0.0 };
-            std::array<float, 3> modelXYZ;
-            xform.inverseTransformPoint(windowXYZ, modelXYZ.data());
+            std::array<float, 3> logicalXYZ;
+            xform.inverseTransformPoint(windowXYZ, logicalXYZ.data());
             
-            /*
-             * Ensure Z is zero.
-             * In inverseTransformPoint(), setting Z to
-             * "(2.0f * windowXYZ[2]) - 1.0f" may be incorrect.
-             */
-            modelXYZ[2] = 0.0;
-            PixelIndex pixelIndexFullResOriginAtBottom(modelXYZ[0],
-                                                       modelXYZ[1],
-                                                       modelXYZ[2]);
-            
-            /*
-             * Verify clicked location is inside image
-             */
-            if (mediaFile->isPixelIndexValid(tabIndex,
-                                                pixelIndexFullResOriginAtBottom)) {
+            PixelIndex pixelIndexOriginAtTop;
+            if (mediaFile->imageLogicalXYZToPixelIndex(logicalXYZ,
+                                                       pixelIndexOriginAtTop)) {
                 idMedia->setMediaFile(mediaFile);
-                PixelIndex pixelIndexOriginAtTop(pixelIndexFullResOriginAtBottom);
-                pixelIndexOriginAtTop.setJ(mediaFile->getHeight() - pixelIndexOriginAtTop.getJ() - 1);
-                idMedia->setPixelIndex(pixelIndexFullResOriginAtBottom,
+                PixelIndex pixelIndexOriginAtBottom(pixelIndexOriginAtTop);
+                pixelIndexOriginAtBottom.setJ(mediaFile->getHeight() - pixelIndexOriginAtTop.getJ() - 1);
+                idMedia->setPixelIndex(pixelIndexOriginAtBottom,
                                           pixelIndexOriginAtTop);
                 idMedia->setTabIndex(tabIndex);
                 
                 idMedia->setMediaFile(mediaFile);
                 uint8_t pixelByteRGBA[4] = { 0, 0, 0, 0 };
-                idMedia->setModelXYZ(modelXYZ.data());
+                idMedia->setModelXYZ(logicalXYZ.data());
                 idMedia->setScreenXYZ(windowXYZ);
                 idMedia->setScreenDepth(0.0);
                 if (mediaFile->getImagePixelRGBA(tabIndex,
-                                                    ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                    pixelIndexFullResOriginAtBottom,
+                                                    ImageFile::IMAGE_DATA_ORIGIN_AT_TOP,
+                                                 pixelIndexOriginAtTop,
                                                     pixelByteRGBA)) {
                     idMedia->setPixelRGBA(pixelByteRGBA);
                 }

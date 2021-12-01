@@ -308,6 +308,8 @@ CziImage::isPixelIndexValid(const PixelIndex& pixelIndex) const
  *    Name of CZI file
  * @param pixelIndexOriginAtTop
  *     Image of pixel in FULL RES image with origin top left
+ * @param logicalXYZ
+ *     Logical coordinates of pixel
  * @param columnOneTextOut
  *    Text for column one that is displayed to user.
  * @param columnTwoTextOut
@@ -318,6 +320,7 @@ CziImage::isPixelIndexValid(const PixelIndex& pixelIndex) const
 void
 CziImage::getPixelIdentificationText(const AString& filename,
                                      const PixelIndex& pixelIndexOriginAtTop,
+                                     const std::array<float, 3>& logicalXYZ,
                                      std::vector<AString>& columnOneTextOut,
                                      std::vector<AString>& columnTwoTextOut,
                                      std::vector<AString>& toolTipTextOut) const
@@ -344,6 +347,14 @@ CziImage::getPixelIdentificationText(const AString& filename,
     columnTwoTextOut.push_back(pixelText);
     toolTipTextOut.push_back(pixelText);
     
+    const AString logicalText("Logical XY ("
+                            + AString::number(logicalXYZ[0], 'f', 3)
+                            + ","
+                            + AString::number(logicalXYZ[1], 'f', 3)
+                            + ")");
+    columnTwoTextOut.push_back(logicalText);
+    toolTipTextOut.push_back(logicalText);
+
     const PixelCoordinate pixelsSize(m_parentCziImageFile->getPixelSizeInMillimeters());
     const float pixelX(pixelIndexOriginAtTop.getI() * pixelsSize.getX());
     const float pixelY(pixelIndexOriginAtTop.getJ() * pixelsSize.getY());
@@ -492,29 +503,15 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
                                                                                        GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                                                        textureBorderColorRGBA);
             
-            
-            PixelIndex logicalBottomLeft(static_cast<float>(m_logicalRect.x()),
-                                         static_cast<float>(m_logicalRect.y() + m_logicalRect.height()),
-                                         0.0f);
-            const PixelIndex pixelBottomLeft = transformPixelIndexToSpace(logicalBottomLeft,
-                                                                          CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT,
-                                                                          CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT);
-            PixelIndex logicalTopRight(static_cast<float>(m_logicalRect.x() + m_logicalRect.width()),
-                                       static_cast<float>(m_logicalRect.y()),
-                                       0.0f);
-            const PixelIndex pixelTopRight = transformPixelIndexToSpace(logicalTopRight,
-                                                                        CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT,
-                                                                        CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT);
-
             /*
              * Coordinates at EDGE of the pixels
              * in CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT
              */
-            const float minX = pixelBottomLeft.getI();
-            const float maxX = pixelTopRight.getI();
-            const float minY = pixelBottomLeft.getJ();
-            const float maxY = pixelTopRight.getJ();
-            
+            const float minX = m_logicalRect.x();
+            const float maxX = m_logicalRect.x() + m_logicalRect.width();
+            const float minY = m_logicalRect.y();
+            const float maxY = m_logicalRect.y() + m_logicalRect.height();
+
             /*
              * A Triangle Strip (consisting of two triangles) is used
              * for drawing the image.
@@ -523,11 +520,11 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
              */
             const float minTextureST(0.0);
             const float maxTextureST(1.0);
-            primitive->addVertex(minX, maxY, minTextureST, maxTextureST);  /* Top Left */
-            primitive->addVertex(minX, minY, minTextureST, minTextureST);  /* Bottom Left */
-            primitive->addVertex(maxX, maxY, maxTextureST, maxTextureST);  /* Top Right */
-            primitive->addVertex(maxX, minY, maxTextureST, minTextureST);  /* Bottom Right */
-            
+            primitive->addVertex(minX, minY, minTextureST, maxTextureST);  /* Top Left */
+            primitive->addVertex(minX, maxY, minTextureST, minTextureST);  /* Bottom Left */
+            primitive->addVertex(maxX, minY, maxTextureST, maxTextureST);  /* Top Right */
+            primitive->addVertex(maxX, maxY, maxTextureST, minTextureST);  /* Bottom Right */
+
             m_graphicsPrimitiveForMediaDrawing.reset(primitive);
         }
     }

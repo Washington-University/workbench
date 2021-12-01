@@ -463,27 +463,28 @@ CustomViewDialog::createTransformsWidget()
     /*
      * Panning
      */
+    const double panMax(100000000.0);
     const double panStep = 1.0;
     QLabel* panLabel = new QLabel("Pan (X,Y):");
     m_xPanDoubleSpinBox = new QDoubleSpinBox;
-    m_xPanDoubleSpinBox->setMinimum(-100000.0);
-    m_xPanDoubleSpinBox->setMaximum( 100000.0);
+    m_xPanDoubleSpinBox->setMinimum(-panMax);
+    m_xPanDoubleSpinBox->setMaximum( panMax);
     m_xPanDoubleSpinBox->setSingleStep(panStep);
     m_xPanDoubleSpinBox->setDecimals(2);
     m_xPanDoubleSpinBox->setFixedWidth(spinBoxWidth);
     QObject::connect(m_xPanDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     m_yPanDoubleSpinBox = new QDoubleSpinBox;
-    m_yPanDoubleSpinBox->setMinimum(-100000.0);
-    m_yPanDoubleSpinBox->setMaximum( 100000.0);
+    m_yPanDoubleSpinBox->setMinimum(-panMax);
+    m_yPanDoubleSpinBox->setMaximum( panMax);
     m_yPanDoubleSpinBox->setSingleStep(panStep);
     m_yPanDoubleSpinBox->setDecimals(2);
     m_yPanDoubleSpinBox->setFixedWidth(spinBoxWidth);
     QObject::connect(m_yPanDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     m_zPanDoubleSpinBox = new QDoubleSpinBox;
-    m_zPanDoubleSpinBox->setMinimum(-100000.0);
-    m_zPanDoubleSpinBox->setMaximum( 100000.0);
+    m_zPanDoubleSpinBox->setMinimum(-panMax);
+    m_zPanDoubleSpinBox->setMaximum( panMax);
     m_zPanDoubleSpinBox->setSingleStep(panStep);
     m_zPanDoubleSpinBox->setDecimals(2);
     m_zPanDoubleSpinBox->setFixedWidth(spinBoxWidth);

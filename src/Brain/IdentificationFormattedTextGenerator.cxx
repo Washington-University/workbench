@@ -2061,10 +2061,13 @@ IdentificationFormattedTextGenerator::generateMediaIdentificationText(HtmlTableB
                                                                          const SelectionItemMedia* idMedia) const
 {
     if (idMedia->isValid()) {
+        std::array<float, 3> modelXYZ;
+        idMedia->getModelXYZ(modelXYZ.data());
         const MediaFile* mediaFile(idMedia->getMediaFile());
         std::vector<AString> columnOneText, columnTwoText, toolTipText;
         mediaFile->getPixelIdentificationText(idMedia->getTabIndex(),
                                               idMedia->getPixelIndexOriginAtTop(),
+                                              modelXYZ,
                                                  columnOneText,
                                                  columnTwoText,
                                                  toolTipText);

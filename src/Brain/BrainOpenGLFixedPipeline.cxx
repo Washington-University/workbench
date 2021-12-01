@@ -8877,7 +8877,6 @@ BrainOpenGLFixedPipeline::drawMediaModel(const BrainOpenGLViewportContent* viewp
                       browserTabContent,
                       mediaModel,
                       { viewport[0], viewport[1], viewport[2], viewport[3] });
-    drawMediaSpaceAnnotations(viewportContent);
 }
 
 /**

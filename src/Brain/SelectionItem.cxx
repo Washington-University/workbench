@@ -287,6 +287,19 @@ SelectionItem::getModelXYZ(double modelXYZ[3]) const
 }
 
 /**
+ * Get the model XYZ of the selected item.
+ * @param modelXYZ
+ *    XYZ out.
+ */
+void
+SelectionItem::getModelXYZ(float modelXYZ[3]) const
+{
+    modelXYZ[0] = m_modelXYZ[0];
+    modelXYZ[1] = m_modelXYZ[1];
+    modelXYZ[2] = m_modelXYZ[2];
+}
+
+/**
  * Set the model XYZ of the selected item.
  * @param modelXYZ
  *    new XYZ.

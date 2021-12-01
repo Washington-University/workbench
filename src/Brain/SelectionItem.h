@@ -69,6 +69,8 @@ namespace caret {
         
         void getModelXYZ(double modelXYZ[3]) const;
         
+        void getModelXYZ(float modelXYZ[3]) const;
+        
         void setModelXYZ(const double modelXYZ[3]);
         
         void setModelXYZ(const float modelXYZ[3]);

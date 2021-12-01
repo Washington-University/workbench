@@ -197,7 +197,7 @@ public:
     VolumeFile* convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
                                     AString& errorMessageOut) const;
 
-    GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing() const;
+    virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex) const override;
     
 
     ControlPointFile* getControlPointFile();
@@ -218,7 +218,8 @@ public:
                                    const PixelIndex& pixelIndex) const override;
     
     virtual void getPixelIdentificationText(const int32_t tabIndex,
-                                            const PixelIndex& pixelIndex,
+                                            const PixelIndex& pixelIndexOriginAtTop,
+                                            const std::array<float, 3>& logicalXYZ,
                                             std::vector<AString>& columnOneTextOut,
                                             std::vector<AString>& columnTwoTextOut,
                                             std::vector<AString>& toolTipTextOut) const;

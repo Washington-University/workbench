@@ -674,14 +674,12 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
     }
     else if (mediaID->isValid()) {
-        const PixelIndex pixelIndex = mediaID->getPixelIndexOriginAtBottom();
-        coordInfoOut.m_mediaSpaceInfo.m_xyz[0] = pixelIndex.getI();
-        coordInfoOut.m_mediaSpaceInfo.m_xyz[1] = pixelIndex.getJ();
-        coordInfoOut.m_mediaSpaceInfo.m_xyz[2] = 0.0;
+        mediaID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
+        mediaID->getModelXYZ(coordInfoOut.m_mediaSpaceInfo.m_xyz);
+
         coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = mediaID->getMediaFile()->getFileNameNoPath();
         coordInfoOut.m_mediaSpaceInfo.m_validFlag = true;
         
-        mediaID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
     }
     

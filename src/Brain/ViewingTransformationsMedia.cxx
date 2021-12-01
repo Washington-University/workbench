@@ -248,7 +248,7 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
          */
         float tx = -((dataX * totalScale) - identityXYZ[0]);
         float ty = -((dataY * totalScale) - identityXYZ[1]);        
-        setTranslation(tx, ty, 0.0);
+        setTranslation(tx, -ty, 0.0);
     }
 }
 
@@ -301,7 +301,7 @@ ViewingTransformationsMedia::setMediaScaling(const GraphicsObjectToWindowTransfo
      */
     float tx = -((dataXYZ[0] * scaling) - orthoCenterXYZ[0]);
     float ty = -((dataXYZ[1] * scaling) - orthoCenterXYZ[1]);
-    setTranslation(tx, ty, 0.0);
+    setTranslation(tx, -ty, 0.0);
 }
 
 /**
@@ -359,9 +359,10 @@ ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransfo
         /*
          * Translate so that center of selection box is moved
          * to the center of the screen
+         * NOTE: Origin is at top so invert Y-translation
          */
-        float tx = (orthoCenterXYZ[0] - (selectionBoxCenterX * scale));
-        float ty = (orthoCenterXYZ[1] - (selectionBoxCenterY * scale));
+        float tx =  (orthoCenterXYZ[0] - (selectionBoxCenterX * scale));
+        float ty = -(orthoCenterXYZ[1] - (selectionBoxCenterY * scale));
         setTranslation(tx, ty, 0.0);
         
         ViewingTransformations redoViewTrans;

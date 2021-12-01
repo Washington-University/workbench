@@ -38,6 +38,7 @@ class QImage;
 namespace caret {
 
     class BoundingBox;
+    class GraphicsPrimitiveV3fT2f;
     class VolumeSpace;
 
     class MediaFile : public CaretDataFile {
@@ -121,8 +122,8 @@ namespace caret {
         
         /**
          * Get the identification text for the pixel at the given pixel index with origin at bottom left.
-         * @param tabIndex
-         *    Index of the tab in which identification took place
+         * @param idMedia
+         *    The media identification
          * @param pixelIndex
          *    Index of the pixel.
          * @param columnOneTextOut
@@ -131,7 +132,8 @@ namespace caret {
          *    Text for column two that is displayed to user.
          */
         virtual void getPixelIdentificationText(const int32_t tabIndex,
-                                                const PixelIndex& pixelIndex,
+                                                const PixelIndex& pixelIndexOriginAtTop,
+                                                const std::array<float, 3>& logicalXYZ,
                                                 std::vector<AString>& columnOneTextOut,
                                                 std::vector<AString>& columnTwoTextOut,
                                                 std::vector<AString>& toolTipTextOut) const = 0;
@@ -153,6 +155,14 @@ namespace caret {
                                                     const bool includeNonLinearFlag,
                                                     float& signedDistanceToPixelMillimetersOut,
                                                     PixelIndex& pixelIndexOriginAtTopLeftOut) const = 0;
+        
+        virtual bool pixelIndexToImageLogicalXYZ(const PixelIndex& pixelIndexOriginAtTop,
+                                                 std::array<float, 3>& logicalXYZOut) const;
+        
+        virtual bool imageLogicalXYZToPixelIndex(const std::array<float, 3>& logicalXYZ,
+                                                 PixelIndex& pixelIndexOriginAtTopLeftOut) const;
+        
+        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex) const = 0;
         
         // ADD_NEW_METHODS_HERE
 

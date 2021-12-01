@@ -4536,7 +4536,8 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrowserTabContent",
-                                            8);   // Default image scaling and CZI added
+                                            9);   // Media image origin moved to top
+                                            //8);   // Default image scaling and CZI added
                                             //7); // matrices no longer support translation/zooming
                                             //6); // WB-491 Flat Fixes
                                             //5); // WB-576
@@ -4869,6 +4870,68 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                         const float sceneScale = m_mediaViewingTransformation->getScaling();
 
                         setMediaScaling(scaleToFitWindow * sceneScale);
+                    }
+                }
+            }
+        }
+    }
+
+    if (sceneClass->getVersionNumber() < 9) {
+        /*
+         * Versions 8 and earlier have origin at bottom.
+         * Version 9 moves origin to top with positive-Y moving down.
+         */
+        if (getDisplayedMediaModel() != NULL) {
+            MediaOverlay* underlay(getMediaOverlaySet()->getBottomMostEnabledOverlay());
+            if (underlay != NULL) {
+                MediaFile* mediaFile(NULL);
+                int32_t frameIndex(-1);
+                underlay->getSelectionData(mediaFile, frameIndex);
+                if (mediaFile != NULL) {
+                    const float scale(m_mediaViewingTransformation->getScaling());
+                    if ((scale < 0.999)
+                        || (scale > 1.001)) {
+                        /*
+                         * Since origin moved to top, need to flip translation
+                         * BUT ONLY if there is scaling.  Note: that since zooming
+                         * may be about a point, translation is added while scaling
+                         * to keep image at position of mouse.
+                         */
+                        float translation[3];
+                        m_mediaViewingTransformation->getTranslation(translation);
+//                        translation[1] = -translation[1];
+                        
+                        PixelIndex pixel00(0, 0);
+                        std::array<float, 3> logicalXYZ;
+                        mediaFile->pixelIndexToImageLogicalXYZ(pixel00,
+                                                               logicalXYZ);
+                        
+                        /*
+                         * Account for origin is now top left logical coordinates.
+                         * Previously origin was bottom left (0, 0)
+                         */
+                        if (logicalXYZ[0] != 0.0) {
+                            const float newTransX(-(translation[0] + logicalXYZ[0]) / scale);
+                            translation[0] = newTransX;
+                        }
+                        
+                        if (logicalXYZ[1] != 0.0) {
+                            const float newTransY(-(translation[1] + logicalXYZ[1]) / scale);
+                            translation[1] = newTransY;
+                            translation[1] += mediaFile->getHeight();
+                        }
+                        else {
+                            /*
+                             * Since origin moved to top, need to flip translation
+                             * BUT ONLY if there is scaling.  Note: that since zooming
+                             * may be about a point, translation is added while scaling
+                             * to keep image at position of mouse.
+                             */
+                            translation[1] = -translation[1];
+                        }
+                        
+                        
+                        m_mediaViewingTransformation->setTranslation(translation);
                     }
                 }
             }

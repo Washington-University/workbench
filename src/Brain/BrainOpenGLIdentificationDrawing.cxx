@@ -319,9 +319,16 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         if (mediaFile->getFileNameNoPath() == item->getDataFileName()) {
                             const PixelIndex pixelIndex(item->getPixelIndex());
                             xyz[0] = pixelIndex.getI();
-                            xyz[1] = (mediaHeight - pixelIndex.getJ() - 1);  /* Convert to origin at bottom */
+                            xyz[1] = pixelIndex.getJ();
                             xyz[2] = 0.0;
                             drawFlag = true;
+
+                            std::array<float, 3> logicalXYZ;
+                            if (mediaFile->pixelIndexToImageLogicalXYZ(pixelIndex,
+                                                                       logicalXYZ)) {
+                                xyz[0] = logicalXYZ[0];
+                                xyz[1] = logicalXYZ[1];
+                            }
                         }
                         else if (item->isStereotaxicXYZValid()) {
                             /*
@@ -494,10 +501,10 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         if (mediaFile->findPixelNearestStereotaxicXYZ(xyz, nonLinearFlag, distanceToPixelMM, pixelIndex)) {
                             if (pixelIndex.isValid()) {
                                 if (distanceToPixelMM < maxDistanceMM) {
-                                    xyz[0] = pixelIndex.getI();
-                                    xyz[1] = (mediaHeight - pixelIndex.getJ() - 1);
-                                    xyz[2] = 0.0;
-                                    drawFlag = true;
+                                    if (mediaFile->pixelIndexToImageLogicalXYZ(pixelIndex,
+                                                                               xyz)) {
+                                        drawFlag = true;
+                                    }
                                 }
                             }
                         }

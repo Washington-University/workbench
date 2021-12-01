@@ -52,6 +52,7 @@
 #include "EventBrowserTabNewClone.h"
 #include "EventBrowserTabReopenAvailable.h"
 #include "EventBrowserTabReopenClosed.h"
+#include "EventBrowserTabValidate.h"
 #include "EventBrowserWindowContent.h"
 #include "EventCaretPreferencesGet.h"
 #include "EventChartTwoCartesianAxisDisplayGroup.h"
@@ -120,6 +121,7 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_AVAILBLE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_VALIDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_PREFERENCES_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CHART_TWO_CARTEISAN_AXIS_DISPLAY_GROUP);
@@ -464,6 +466,22 @@ SessionManager::receiveEvent(Event* event)
             lastTabEvent->setErrorMessage(errorMessage);
         }
         lastTabEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_VALIDATE) {
+        EventBrowserTabValidate* tabEvent = dynamic_cast<EventBrowserTabValidate*>(event);
+        CaretAssert(tabEvent);
+        tabEvent->setEventProcessed();
+        const BrowserTabContent* browserTab(tabEvent->getBrowserTabContent());
+        
+        if (browserTab != NULL) {
+            std::vector<BrowserTabContent*> activeTabs = getActiveBrowserTabs();
+            for (auto bt : activeTabs) {
+                if (bt == browserTab) {
+                    tabEvent->setValid(true);
+                    break;
+                }
+            }
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT) {
         EventBrowserWindowContent* windowEvent =

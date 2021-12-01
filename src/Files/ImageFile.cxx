@@ -1859,9 +1859,11 @@ ImageFile::getControlPointFile() const
 
 /**
  * @return The graphics primitive for drawing the image as a texture in media drawing model.
+ * @param tabIndex
+ *    Index of tab where image is drawn
  */
 GraphicsPrimitiveV3fT2f*
-ImageFile::getGraphicsPrimitiveForMediaDrawing() const
+ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/) const
 {
     if (m_image == NULL) {
         return NULL;
@@ -1942,13 +1944,14 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing() const
              * for drawing the image.
              * The order of the vertices in the triangle strip is
              * Top Left, Bottom Left, Top Right, Bottom Right.
+             * ORIGIN IS AT TOP LEFT
              */
             const float minTextureST(0.0);
             const float maxTextureST(1.0);
-            primitive->addVertex(minX, maxY, minTextureST, maxTextureST);  /* Top Left */
-            primitive->addVertex(minX, minY, minTextureST, minTextureST);  /* Bottom Left */
-            primitive->addVertex(maxX, maxY, maxTextureST, maxTextureST);  /* Top Right */
-            primitive->addVertex(maxX, minY, maxTextureST, minTextureST);  /* Bottom Right */
+            primitive->addVertex(minX, minY, minTextureST, maxTextureST);  /* Top Left */
+            primitive->addVertex(minX, maxY, minTextureST, minTextureST);  /* Bottom Left */
+            primitive->addVertex(maxX, minY, maxTextureST, maxTextureST);  /* Top Right */
+            primitive->addVertex(maxX, maxY, maxTextureST, minTextureST);  /* Bottom Right */
 
             m_graphicsPrimitiveForMediaDrawing.reset(primitive);
         }
@@ -2300,6 +2303,8 @@ ImageFile::isPixelIndexValid(const int32_t /*tabIndex*/,
  *    Index of the tab in which identification took place
  * @param pixelIndex
  *    Index of the pixel.
+ * @param logicalXYZ
+ *    The logical coordinates
  * @param columnOneTextOut
  *    Text for column one that is displayed to user.
  * @param columnTwoTextOut
@@ -2308,6 +2313,7 @@ ImageFile::isPixelIndexValid(const int32_t /*tabIndex*/,
 void
 ImageFile::getPixelIdentificationText(const int32_t tabIndex,
                                       const PixelIndex& pixelIndex,
+                                      const std::array<float, 3>& logicalXYZ,
                                       std::vector<AString>& columnOneTextOut,
                                       std::vector<AString>& columnTwoTextOut,
                                       std::vector<AString>& toolTipTextOut) const
@@ -2322,7 +2328,7 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
     
     uint8_t rgba[4];
     getImagePixelRGBA(tabIndex,
-                      IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                      IMAGE_DATA_ORIGIN_AT_TOP,
                       pixelIndex,
                       rgba);
     
@@ -2333,11 +2339,7 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
     columnOneTextOut.push_back(rgbaText);
     toolTipTextOut.push_back(rgbaText);
     
-    /*
-     * Input pixel has origin at the bottom left but we report pixel
-     * for origin at top left
-     */
-    const PixelIndex pixelIndexTopLeft(transformPixelBottomLeftToTopLeft(pixelIndex));
+    const PixelIndex pixelIndexTopLeft(pixelIndex);
     const AString pixelText("Pixel IJ ("
                              + AString::number(pixelIndexTopLeft.getI())
                              + ","

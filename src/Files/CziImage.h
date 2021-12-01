@@ -63,6 +63,7 @@ namespace caret {
 
         void getPixelIdentificationText(const AString& filename,
                                         const PixelIndex& pixelIndexOriginAtTop,
+                                        const std::array<float, 3>& logicalXYZ,
                                         std::vector<AString>& columnOneTextOut,
                                         std::vector<AString>& columnTwoTextOut,
                                         std::vector<AString>& toolTipTextOut) const;

@@ -65,6 +65,7 @@
 #include "IdentificationManager.h"
 #include "KeyEvent.h"
 #include "MediaFile.h"
+#include "MediaOverlaySet.h"
 #include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
 #include "SelectionItemAnnotation.h"
@@ -885,7 +886,6 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
     return keyWasProcessedFlag;
 }
 
-#include "MediaOverlaySet.h"
 /**
  * Get the step distance for the media displayed in the tab
  * @param browserTabContent

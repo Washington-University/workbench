@@ -331,8 +331,7 @@ CziImageFile::readFile(const AString& filename)
         /*
          * Pyramid Information
          */
-        readPyramidInfo(subBlockStatistics.boundingBox.w,
-                        subBlockStatistics.boundingBox.h);
+        readPyramidInfo(subBlockStatistics);
         
         
         m_pyramidLayerTileAccessor = m_reader->CreateSingleChannelPyramidLayerTileAccessor();
@@ -498,25 +497,29 @@ CziImageFile::getPixelSizeInMillimeters() const
 
 /**
  * Read pyramid from the file
- * @param imageWidth
- *    Width of image
+ * @param subBlockStatistics
+ *    The sub block statistics
  * @param imageHeight
  *    Height of image
  */
 void
-CziImageFile::readPyramidInfo(const int64_t imageWidth,
-                              const int64_t imageHeight)
+CziImageFile::readPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatistics)
 {
     m_numberOfPyramidLayers = 0;
-    if ((imageWidth <= 0)
-        || (imageHeight <= 0)) {
-        return;
-    }
-    
-    int64_t width(imageWidth);
-    int64_t height(imageHeight);
+    auto overallBoundingBox = subBlockStatistics.boundingBox;
+    std::cout << "Overall bounding box: " << CziUtilities::intRectToString(overallBoundingBox) << std::endl;
     libCZI::PyramidStatistics pyramidStatistics = m_reader->GetPyramidStatistics();
     for (auto& sceneIter : pyramidStatistics.scenePyramidStatistics) {
+        const int32_t sceneIndex(sceneIter.first);
+        auto subBlockSceneIter = subBlockStatistics.sceneBoundingBoxes.find(sceneIndex);
+        if (subBlockSceneIter == subBlockStatistics.sceneBoundingBoxes.end()) {
+            throw DataFileException("Unable to fine scene bounding box for scene index="
+                                    + AString::number(sceneIndex));
+        }
+        const libCZI::BoundingBoxes& boundingBoxes = subBlockSceneIter->second;
+        int64_t width(boundingBoxes.boundingBox.w);
+        int64_t height(boundingBoxes.boundingBox.h);
+        std::cout << "Scene " << sceneIndex << " Bounding Box: " << CziUtilities::intRectToString(boundingBoxes.boundingBox) << std::endl;
         const std::vector<libCZI::PyramidStatistics::PyramidLayerStatistics>& pyrStat = sceneIter.second;
         for (auto& pls : pyrStat) {
             const libCZI::PyramidStatistics::PyramidLayerInfo& ply = pls.layerInfo;
@@ -530,20 +533,27 @@ CziImageFile::readPyramidInfo(const int64_t imageWidth,
             pyramidInfo.minificationFactor = ply.minificationFactor;
             pyramidInfo.pyramidLayerNo     = ply.pyramidLayerNo;
             
-            PyramidLayer pyramidLayer(pyramidInfo,
+            PyramidLayer pyramidLayer(sceneIndex,
+                                      pyramidInfo,
                                       width,
                                       height);
             m_pyramidLayers.push_back(pyramidLayer);
+
+            if (true) {
+                auto& pl = pyramidLayer;
+                std::cout << "Scene Index=" << pl.m_sceneIndex << " CZI Pyramid Layer Number: " << (int)pl.m_layerInfo.pyramidLayerNo << " MinFactor: " << (int)pl.m_layerInfo.minificationFactor
+                << " width=" << pl.m_width << " height=" << pl.m_height << std::endl;
+            }
         }
         
         std::sort(m_pyramidLayers.begin(),
                   m_pyramidLayers.end(),
                   [=](PyramidLayer a, PyramidLayer b) { return (a.m_layerInfo.pyramidLayerNo > b.m_layerInfo.pyramidLayerNo); } );
     }
-    
+        
     m_numberOfPyramidLayers = static_cast<int32_t>(m_pyramidLayers.size());
     
-    if (cziDebugFlag) {
+    if (true) {
         for (int32_t i = 0; i < m_numberOfPyramidLayers; i++) {
             const auto& pl = m_pyramidLayers[i];
             std::cout << "Index=" << i << " CZI Pyramid Layer Number: " << (int)pl.m_layerInfo.pyramidLayerNo << " MinFactor: " << (int)pl.m_layerInfo.minificationFactor
@@ -1050,6 +1060,8 @@ CziImageFile::getNumberOfFrames() const
  *    Index of the tab in which identification took place
  * @param pixelIndexOriginAtTop
  *    Index of the pixel with origin at top
+ * @param logicalXYZ
+ *   The logical XYZ coordinates
  * @param columnOneTextOut
  *    Text for column one that is displayed to user.
  * @param columnTwoTextOut
@@ -1060,6 +1072,7 @@ CziImageFile::getNumberOfFrames() const
 void
 CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
                                          const PixelIndex& pixelIndexOriginAtTop,
+                                         const std::array<float, 3>& logicalXYZ,
                                          std::vector<AString>& columnOneTextOut,
                                          std::vector<AString>& columnTwoTextOut,
                                          std::vector<AString>& toolTipTextOut) const
@@ -1075,6 +1088,7 @@ CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
     if (cziImage != NULL) {
         cziImage->getPixelIdentificationText(getFileNameNoPath(),
                                              pixelIndexOriginAtTop,
+                                             logicalXYZ,
                                              columnOneTextOut,
                                              columnTwoTextOut,
                                              toolTipTextOut);
@@ -1541,7 +1555,7 @@ CziImageFile::testPixelTransforms(const int32_t pixelIndexStep,
             }
             const float dI(pixelIndexTwo.getI() - pixelIndex.getI());
             const float dJ(pixelIndexTwo.getJ() - pixelIndex.getJ());
-            const float dK(0); //(pixelIndexTwo.getK() - pixelIndex.getK());
+            const float dK(0);
             const float dIJK(std::sqrt(dI*dI + dJ*dJ + dK*dK));
             diffsIJK.push_back(dIJK);
             
@@ -1957,9 +1971,11 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
                 if (i == m_lowestResolutionPyramidLayerIndex) {
                     dataFileInformation.addNameAndValue("---", QString("--- Lowest Resolution Layer ---"));
                 }
-                dataFileInformation.addNameAndValue(("Index "
+                dataFileInformation.addNameAndValue(("Pyramid Index "
                                                      + QString::number(i)),
-                                                    ("W/H: "
+                                                    ("Scene Index "
+                                                     + QString::number(pl.m_sceneIndex)
+                                                     + " W/H: "
                                                      + QString::number(pl.m_width)
                                                      + " x "
                                                      + QString::number(pl.m_height)
@@ -1996,6 +2012,50 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
             }
         }
     }
+}
+
+/**
+ * Convert pixel index with origin at top left to image coordinate.  For media that does not support
+ * imag coordinates, the XY is the same as the pixel index.
+ * @param pixelIndexOriginAtTop
+ *   Index of pixel.  For images that support multiple resolutions, this pixel index is for the full resolution image.
+ * @param logicalXYZOut
+ *   Output with the XYZ coordinate.  In most instance Z is unused and will be zero.
+ * @return
+ *   True if the pixel is a valid pixel index in the image.  If the pixel index is outside the pixel range of the image,
+ *   the coordinate is still computed.
+ */
+bool
+CziImageFile::pixelIndexToImageLogicalXYZ(const PixelIndex& pixelIndexOriginAtTop,
+                                          std::array<float, 3>& logicalXYZOut) const
+{
+    logicalXYZOut[0] = m_fullResolutionLogicalRect.x() + pixelIndexOriginAtTop.getI();
+    logicalXYZOut[1] = m_fullResolutionLogicalRect.y() + pixelIndexOriginAtTop.getJ();
+    logicalXYZOut[2] = 0;
+
+    return m_fullResolutionLogicalRect.contains(logicalXYZOut[0],
+                                                logicalXYZOut[1]);
+}
+
+/**
+ * Convert an image XYZ (Z is typically 0 and ignored) to a pixel index.
+ * @param logicalXYZ
+ *    The XYZ image coordinate (2D)
+ * @param pixelIndexOriginAtTopLeftOut
+ *    Output with the pixel index
+ * @return True if the output pixel index is within the range of image pixels.  If not in range,
+ *    false is returned but the pixel index is still computed.
+ */
+bool
+CziImageFile::imageLogicalXYZToPixelIndex(const std::array<float, 3>& logicalXYZ,
+                                          PixelIndex& pixelIndexOriginAtTopLeftOut) const
+{
+    pixelIndexOriginAtTopLeftOut.setI(logicalXYZ[0] - m_fullResolutionLogicalRect.x());
+    pixelIndexOriginAtTopLeftOut.setJ(logicalXYZ[1] - m_fullResolutionLogicalRect.y());
+    pixelIndexOriginAtTopLeftOut.setK(0);
+
+    return m_fullResolutionLogicalRect.contains(logicalXYZ[0],
+                                                logicalXYZ[1]);
 }
 
 /**
@@ -2143,6 +2203,19 @@ CziImageFile::getImageForDrawingInTab(const int32_t tabIndex,
 }
 
 /**
+ * @return The graphics primitive for drawing the image as a texture in media drawing model.
+ * @param tabIndex
+ *    Index of tab where image is drawn
+ */
+GraphicsPrimitiveV3fT2f*
+CziImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex) const
+{
+    const CziImage* cziImage(getImageForTab(tabIndex));
+    CaretAssert(cziImage);
+    return cziImage->getGraphicsPrimitiveForMediaDrawing();
+}
+
+/**
  * Process change in resoluion for auto mode for zooming and panning
  * @param cziImage
  *    Current CZI image
@@ -2206,12 +2279,12 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
      */
     float viewportTopLeftWindowCoordinate[3];
     transform->inverseTransformPoint(viewport.x(),
-                                     viewport.y() + viewport.height(),
+                                     viewport.y(),
                                      0.0,
                                      viewportTopLeftWindowCoordinate);
     const PixelIndex pixelIndexTopLeft(viewportTopLeftWindowCoordinate);
     const PixelIndex windowLogicalTopLeft(cziImage->transformPixelIndexToSpace(pixelIndexTopLeft,
-                                                                               CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
+                                                                               CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT,
                                                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT));
     
     /*
@@ -2222,14 +2295,13 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
      */
     float viewportBottomRightWindowCoordinate[3];
     transform->inverseTransformPoint(viewport.x() + viewport.width(),
-                                     viewport.y(),
+                                     viewport.y() + viewport.height(),
                                      0.0,
                                      viewportBottomRightWindowCoordinate);
     const PixelIndex pixelIndexBottomRight(viewportBottomRightWindowCoordinate);
     const PixelIndex windowLogicalBottomRight(cziImage->transformPixelIndexToSpace(pixelIndexBottomRight,
-                                                                                   CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
+                                                                                   CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT,
                                                                                    CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT));
-    
     /*
      * CZI Logical coordinates of viewport (portion of CZI image that fills the viewport)
      */
@@ -2238,7 +2310,7 @@ CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
                                             windowLogicalBottomRight.getI() - windowLogicalTopLeft.getI(),
                                             windowLogicalBottomRight.getJ() - windowLogicalTopLeft.getJ());
     if (cziDebugFlag) {
-        std::cout << "Pixel Index Top Left (origin bottom left): " << pixelIndexTopLeft.toString() << std::endl;
+        std::cout << "Pixel Index Top Left (origin top left): " << pixelIndexTopLeft.toString() << std::endl;
         std::cout << "Pixel Index Top Left (origin top left): "
         << cziImage->transformPixelIndexToSpace(pixelIndexTopLeft,
                                                 CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
@@ -2341,8 +2413,8 @@ CziImageFile::autoModeZoomOnlyResolutionChange(const int32_t tabIndex,
      * The size of the image, in pixels when drawn, determines when to switch to
      * lower or higher resolution image.
      */
-    const float imageBottomLeftPixel[3] { 0.0, 0.0, 0.0 };
-    const float imageTopLeftPixel[3] { 0.0, static_cast<float>(m_fullResolutionLogicalRect.height()), 0.0 };
+    const float imageBottomLeftPixel[3] { 0.0, static_cast<float>(m_fullResolutionLogicalRect.height()), 0.0 };
+    const float imageTopLeftPixel[3] { 0.0, 0.0, 0.0 };
     float imageBottomLeftWindow[3];
     float imageTopLeftWindow[3];
     transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
@@ -2372,14 +2444,32 @@ CziImageFile::autoModeZoomOnlyResolutionChange(const int32_t tabIndex,
  *    Index of the tab
  * @param transform
  *    Transform from the tab where image is drawn
- * @param pyramidLayerIndex
+ * @param pyramidLayerIndexIn
  *    Index of the pyramid layer
  */
 CziImage*
 CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
                                        const GraphicsObjectToWindowTransform* transform,
-                                       const int32_t pyramidLayerIndex)
+                                       const int32_t pyramidLayerIndexIn)
 {
+    if (m_pyramidLayers.empty()) {
+        CaretLogSevere("Attempting to load pyramid layer="
+                       + AString::number(pyramidLayerIndexIn)
+                       + " but no pyramid layers available.");
+    }
+    
+    int32_t pyramidLayerIndex(pyramidLayerIndexIn);
+    if (pyramidLayerIndex < 0) {
+        pyramidLayerIndex = 0;
+        CaretLogSevere("Attempt to load invalid pyramid layer="
+                       + AString::number(pyramidLayerIndexIn));
+    }
+    else if (pyramidLayerIndex >= static_cast<int32_t>(m_pyramidLayers.size())) {
+        pyramidLayerIndex = m_pyramidLayers.size() - 1;
+        CaretLogSevere("Attempt to load invalid pyramid layer="
+                       + AString::number(pyramidLayerIndexIn));
+    }
+    
     CziImage* cziImageOut(NULL);
     
     std::array<float,4> viewport(transform->getViewport());
@@ -2400,12 +2490,15 @@ CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
     transform->inverseTransformPoint(vpCenterXYZ, modelXYZ);
     PixelIndex imagePixelIndex(modelXYZ[0], modelXYZ[1], 0.0f);
     
+    float modelXYZ2[3];
+    GraphicsUtilitiesOpenGL::unproject(vpCenterXYZ[0], vpCenterXYZ[1], modelXYZ2);
+    std::cout << "Model XYZ: " << AString::fromNumbers(modelXYZ, 3, "f") << std::endl;
+    std::cout << "   Model 2 XYZ: " << AString::fromNumbers(modelXYZ2, 3, "f") << std::endl;
+
     CziImage* oldCziImage(getImageForTab(tabIndex));
     CaretAssert(oldCziImage);
     PixelIndex fullImagePixelIndex = imagePixelIndex;
-    PixelIndex fullResolutionLogicalPixelIndex = oldCziImage->transformPixelIndexToSpace(imagePixelIndex,
-                                                                                         CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
-                                                                                         CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT);
+    PixelIndex fullResolutionLogicalPixelIndex = imagePixelIndex;
     
     /*
      * Get preferred image size from preferences

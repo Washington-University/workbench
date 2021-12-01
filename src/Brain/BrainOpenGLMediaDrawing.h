@@ -72,7 +72,8 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void drawModelLayers(const GraphicsObjectToWindowTransform* transform,
+        void drawModelLayers(const BrainOpenGLViewportContent* viewportContent,
+                             const GraphicsObjectToWindowTransform* transform,
                              const int32_t tabIndex,
                              const float viewportHeight);
         

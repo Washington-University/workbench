@@ -92,6 +92,7 @@ EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabGetAllViewed.h
 EventBrowserTabReopenAvailable.h
+EventBrowserTabValidate.h
 EventBrowserWindowContent.h
 EventBrowserWindowGetTabs.h
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h
@@ -285,6 +286,7 @@ EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
 EventBrowserTabGetAllViewed.cxx
 EventBrowserTabReopenAvailable.cxx
+EventBrowserTabValidate.cxx
 EventBrowserWindowContent.cxx
 EventBrowserWindowGetTabs.cxx
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays.cxx
