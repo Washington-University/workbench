@@ -27,6 +27,7 @@
 #include <cmath>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
 #include "GraphicsOpenGLError.h"
 #include "EventManager.h"
@@ -423,5 +424,65 @@ int32_t
 GraphicsUtilitiesOpenGL::getTextureDepthMaximumDimension()
 {
     return s_textureDepthMaximumDimension;
+}
+
+/**
+ * Push the current OpenGL matrix.  This function behaves just like
+ * "glPushMatrix".  With some graphics systems, the projection stack
+ * depth is too small (4 on some nvidia systems) and this may
+ * cause an OpenGL stack overflow error.  A call to this function
+ * MUST be paired with a call to popMatrix().
+ */
+void
+GraphicsUtilitiesOpenGL::pushMatrix()
+{
+    GLint matrixMode(-1);
+    glGetIntegerv(GL_MATRIX_MODE, &matrixMode);
+    if (matrixMode == GL_PROJECTION) {
+        const int32_t stackDepth(s_projectionMatrixStack.size());
+        if (stackDepth > 32) {
+            const QString msg("Projection matrix overflow.");
+            CaretLogSevere(msg);
+            CaretAssertMessage(0, msg);
+        }
+        else {
+            std::array<double, 16> matrix;
+            glGetDoublev(GL_PROJECTION_MATRIX, matrix.data());
+            s_projectionMatrixStack.push(matrix);
+        }
+    }
+    else {
+        const QString msg("Matrix mode not supported for push/pop matrix.");
+        CaretLogSevere(msg);
+        CaretAssertMessage(0, msg);
+    }
+}
+
+/**
+ * Pop the current OpenGL matrix.  MUST be paired with cal to pushMatrix().
+ */
+void
+GraphicsUtilitiesOpenGL::popMatrix()
+{
+    GLint matrixMode(-1);
+    glGetIntegerv(GL_MATRIX_MODE, &matrixMode);
+    if (matrixMode == GL_PROJECTION) {
+        const int32_t stackDepth(s_projectionMatrixStack.size());
+        if (stackDepth < 1) {
+            const QString msg("Projection matrix underflow.");
+            CaretLogSevere(msg);
+            CaretAssertMessage(0, msg);
+        }
+        else {
+            std::array<double, 16> matrix(s_projectionMatrixStack.top());
+            s_projectionMatrixStack.pop();
+            glLoadMatrixd(matrix.data());
+        }
+    }
+    else {
+        const QString msg("Matrix mode not supported for push/pop matrix.");
+        CaretLogSevere(msg);
+        CaretAssertMessage(0, msg);
+    }
 }
 

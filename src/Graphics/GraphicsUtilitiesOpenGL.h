@@ -22,8 +22,9 @@
 /*LICENSE_END*/
 
 
-
+#include <array>
 #include <memory>
+#include <stack>
 
 #include "CaretObject.h"
 
@@ -64,6 +65,10 @@ namespace caret {
         
         static int32_t getTextureDepthMaximumDimension();
         
+        static void pushMatrix();
+        
+        static void popMatrix();
+        
     private:
         GraphicsUtilitiesOpenGL();
         
@@ -87,6 +92,8 @@ namespace caret {
         
         static int32_t s_textureDepthMaximumDimension;
         
+        static std::stack<std::array<double, 16>> s_projectionMatrixStack;
+        
         friend class BrainOpenGL;
     };
     
@@ -99,6 +106,9 @@ namespace caret {
      */
     int32_t GraphicsUtilitiesOpenGL::s_textureWidthHeightMaximumDimension = 16384;
     int32_t GraphicsUtilitiesOpenGL::s_textureDepthMaximumDimension = 2048;
+    
+    std::stack<std::array<double, 16>> GraphicsUtilitiesOpenGL::s_projectionMatrixStack;
+    
 #endif // __GRAPHICS_UTILITIES_OPEN_G_L_DECLARE__
 
 } // namespace

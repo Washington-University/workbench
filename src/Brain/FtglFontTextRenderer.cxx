@@ -1572,7 +1572,7 @@ FtglFontTextRenderer::saveStateOfOpenGL()
     glPushMatrix();
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
+    GraphicsUtilitiesOpenGL::pushMatrix();  /* Projection stack too small (4) on nvidia systems */
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     
@@ -1595,7 +1595,7 @@ FtglFontTextRenderer::restoreStateOfOpenGL()
     glMatrixMode(GL_TEXTURE);
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
+    GraphicsUtilitiesOpenGL::popMatrix();  /* Projection stack too small (4) on nvidia systems */
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
     glPopAttrib();

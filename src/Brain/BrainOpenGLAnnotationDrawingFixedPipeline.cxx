@@ -1155,7 +1155,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::startOpenGLForDrawing(GLint* savedSha
      * All drawing is in window space
      */
     glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
+    GraphicsUtilitiesOpenGL::pushMatrix(); /* Projection stack too small (4) on nvidia systems */
     glLoadIdentity();
     glOrtho(0.0, m_modelSpaceViewport[2],
             0.0, m_modelSpaceViewport[3],
@@ -1197,7 +1197,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::endOpenGLForDrawing(GLint savedShadeM
      * Restore the matrices since we were drawing in window space
      */
     glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
+    GraphicsUtilitiesOpenGL::popMatrix(); /* Projection stack too small (4) on nvidia systems */
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
 }
