@@ -80,6 +80,7 @@ namespace caret {
         CaretPointLocator(const float* coordsIn, const int64_t numCoords);
         ///convenience constructor for vectors
         CaretPointLocator(const std::vector<float> coordsIn) : CaretPointLocator(coordsIn.data(), coordsIn.size() / 3) { }
+        ~CaretPointLocator() { if (m_tree != NULL) { delete m_tree; } }
         ///add a point set, SAVE THE RETURN VALUE because it is how you identify which point set found points belong to
         int32_t addPointSet(const float* coordsIn, const int64_t numCoords);
         int32_t addPointSet(const std::vector<float> coordsIn) { return addPointSet(coordsIn.data(), coordsIn.size() / 3); }
