@@ -191,9 +191,6 @@ static void qwtDrawBackground( QPainter *painter, QwtPlotCanvas *canvas )
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
             rects = QVector<QRect>(painter->clipRegion().begin(),
                                    painter->clipRegion().end());
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
-            rects = QVector<QRect>::fromStdVector(std::vector<QRect>(painter->clipRegion().begin(),
-                                                                     painter->clipRegion().end()));
 #else
             rects = painter->clipRegion().rects();
 #endif
