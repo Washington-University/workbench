@@ -188,10 +188,12 @@ static void qwtDrawBackground( QPainter *painter, QwtPlotCanvas *canvas )
         } 
         else 
         {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
-            QVector<QRect> clipRects(painter->clipRegion().begin(),
-                                     painter->clipRegion().end());
-            rects = clipRects;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+            rects = QVector<QRect>(painter->clipRegion().begin(),
+                                   painter->clipRegion().end());
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
+            rects = QVector<QRect>::fromStdVector(std::vector<QRect>(painter->clipRegion().begin(),
+                                                                     painter->clipRegion().end()));
 #else
             rects = painter->clipRegion().rects();
 #endif
@@ -255,9 +257,10 @@ static void qwtDrawBackground( QPainter *painter, QwtPlotCanvas *canvas )
         painter->setBrush( brush );
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
-        QVector<QRect> clipRects(painter->clipRegion().begin(),
-                                 painter->clipRegion().end());
-        painter->drawRects( clipRects );
+        for (auto rect : painter->clipRegion())
+        {
+            painter->drawRect(rect);
+        }
 #else
         painter->drawRects( painter->clipRegion().rects() );
 #endif
