@@ -1622,7 +1622,7 @@ IdentificationSimpleTextGenerator::generateMediaIdentificationText(Identificatio
                                                              const SelectionItemMedia* idMedia) const
 {
     if (idMedia->isValid()) {
-        const PixelIndex pixelIndex(idMedia->getPixelIndexOriginAtTop());
+        const PixelLogicalIndex pixelIndex(idMedia->getPixelLogicalIndex());
         AString text = ("Image "
                               + idMedia->getMediaFile()->getFileNameNoPath()
                               + " Pixel IJ ("

@@ -50,38 +50,23 @@ SelectionItemMedia::~SelectionItemMedia()
 }
 
 /**
- * @return The pixel index with origin at bottom of media.
- * OpenGL typically has origin at bottom left.
+ * @return The pixel logical index
  */
-PixelIndex
-SelectionItemMedia::getPixelIndexOriginAtBottom() const
+PixelLogicalIndex
+SelectionItemMedia::getPixelLogicalIndex() const
 {
-    return m_pixelIndexOriginAtBottom;
+    return m_pixelLogicalIndex;
 }
 
 /**
- * @return The pixel index with origin at top of media.
- * Images typcially have the origin at the top left.
- */
-PixelIndex
-SelectionItemMedia::getPixelIndexOriginAtTop() const
-{
-    return m_pixelIndexOriginAtTop;
-}
-
-/**
- * Set the pixel index
- * @param pixelIndexOriginAtBottom
- *    The pixel index with origin at bottom
- * @param pixelIndexOriginAtTop
- *    The pixel index with origin at top
+ * Set the pixel logical index
+ * @param pixelLogicalIndex
+ *    The pixel logical index
  */
 void
-SelectionItemMedia::setPixelIndex(const PixelIndex& pixelIndexOriginAtBottom,
-                                     const PixelIndex& pixelIndexOriginAtTop)
+SelectionItemMedia::setPixelLogicalIndex(const PixelLogicalIndex& pixelLogicalIndex)
 {
-    m_pixelIndexOriginAtBottom = pixelIndexOriginAtBottom;
-    m_pixelIndexOriginAtTop    = pixelIndexOriginAtTop;
+    m_pixelLogicalIndex = pixelLogicalIndex;
 }
 
 /**
@@ -102,6 +87,26 @@ void
 SelectionItemMedia::setTabIndex(const int32_t tabIndex)
 {
     m_tabIndex = tabIndex;
+}
+
+/**
+ * @param The overlay index.
+ */
+int32_t
+SelectionItemMedia::getOverlayIndex() const
+{
+    return m_overlayIndex;
+}
+
+/**
+ * Set the overlay index.
+ * @param overlayIndex
+ *    Index of the overlay.
+ */
+void
+SelectionItemMedia::setOverlayIndex(const int32_t overlayIndex)
+{
+    m_overlayIndex = overlayIndex;
 }
 
 /**
@@ -149,11 +154,9 @@ SelectionItemMedia::getStereotaxicXYZ(std::array<float, 3>& stereotaxicXYZOut)
 {
     const CziImageFile* cziImageFile = m_mediaFile->castToCziImageFile();
     if (cziImageFile != NULL) {
-        std::array<float, 3> debugPixelIndex;
-        return cziImageFile->pixelIndexToStereotaxicXYZ(m_pixelIndexOriginAtTop,
+        return cziImageFile->pixelIndexToStereotaxicXYZ(m_pixelLogicalIndex,
                                                         true,
-                                                        stereotaxicXYZOut,
-                                                        debugPixelIndex);
+                                                        stereotaxicXYZOut);
     }
     return false;
 }
@@ -176,13 +179,16 @@ void
 SelectionItemMedia::resetPrivate()
 {
     m_mediaFile = NULL;
-    m_pixelIndexOriginAtBottom.setIJK(-1, -1, -1);
-    m_pixelIndexOriginAtTop.setIJK(-1, -1, -1);
+    m_pixelLogicalIndex.setI(-1000000);
+    m_pixelLogicalIndex.setJ(-1000000);
+    m_pixelLogicalIndex.setK(-1000000);
     m_pixelRGBA[0] = 0;
     m_pixelRGBA[1] = 0;
     m_pixelRGBA[2] = 0;
     m_pixelRGBA[3] = 0;
     m_pixelRGBAValidFlag = false;
+    m_tabIndex = -1;
+    m_overlayIndex = -1;
 }
 
 /**

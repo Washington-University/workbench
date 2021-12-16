@@ -245,7 +245,7 @@ std::vector<MediaFile*>
 MediaOverlaySet::getDisplayedMediaFiles() const
 {
     std::vector<MediaFile*> mediaFilesOut;
-    
+
     const int numOverlays = getNumberOfDisplayedOverlays();
     for (int32_t i = 0; i < numOverlays; i++) {
         if (getOverlay(i)->isEnabled()) {
@@ -260,6 +260,37 @@ MediaOverlaySet::getDisplayedMediaFiles() const
     }
     
     return mediaFilesOut;
+}
+
+/**
+ * Get displayed media files and indices of overlays containing the media files
+ * @param mediaFileOut
+ *    Output containing displayed media files
+ * @param overlayIndicesOut
+ *    Output containing overlay indices of displayed media files
+ */
+void
+MediaOverlaySet::getDisplayedMediaFileAndOverlayIndices(std::vector<MediaFile*>& mediaFilesOut,
+                                                        std::vector<int32_t>& overlayIndicesOut) const
+{
+    mediaFilesOut.clear();
+    overlayIndicesOut.clear();
+    
+    const int numOverlays = getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numOverlays; i++) {
+        if (getOverlay(i)->isEnabled()) {
+            MediaFile* mf(NULL);
+            int32_t dummyIndex(0);
+            (const_cast<MediaOverlay*>(getOverlay(i)))->getSelectionData(mf,
+                                                                         dummyIndex);
+            if (mf != NULL) {
+                mediaFilesOut.push_back(mf);
+                overlayIndicesOut.push_back(i);
+            }
+        }
+    }
+    
+    CaretAssert(mediaFilesOut.size() == overlayIndicesOut.size());
 }
 
 

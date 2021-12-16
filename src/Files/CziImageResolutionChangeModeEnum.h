@@ -35,10 +35,14 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Invalid */
+        INVALID,
         /** Automatic (Old)*/
         AUTO_OLD,
-        /** Auto  */
-        AUTO,
+        /** Auto  reading pyramids was AUTO at one time*/
+        AUTO_PYRAMID,
+        /** Auto2, Cannot use "AUTO" as it is an early, obsolete name that  */
+        AUTO2,
         /** Manual */
         MANUAL
     };

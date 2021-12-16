@@ -52,6 +52,7 @@
 #include "MapYokingGroupComboBox.h"
 #include "MediaFile.h"
 #include "MediaOverlay.h"
+#include "MediaOverlaySettingsMenu.h"
 #include "UsernamePasswordWidget.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
@@ -92,7 +93,8 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
                                              QObject* parent)
 : QObject(parent),
   browserWindowIndex(browserWindowIndex),
-  m_overlayIndex(overlayIndex)
+  m_overlayIndex(overlayIndex),
+  m_parentObjectName(parentObjectName)
 {
     m_mediaOverlay = NULL;
     m_constructionReloadFileAction = NULL;
@@ -138,6 +140,13 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
     this->fileComboBox->setSizeAdjustPolicy(comboSizePolicy);
     macroManager->addMacroSupportToObject(this->fileComboBox,
                                           ("Select file in " + descriptivePrefix));
+    
+    /*
+     * All scenes CZI checkbox
+     */
+    m_cziAllScenesCheckBox = new QCheckBox("");
+    QObject::connect(m_cziAllScenesCheckBox, &QCheckBox::clicked,
+                     this, &MediaOverlayViewController::cziAllScenesCheckBoxClicked);
     
     /*
      * Frame Index Spin Box
@@ -201,8 +210,8 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
     if (settingsIconValid) {
         this->settingsAction->setIcon(settingsIcon);
     }
-    QToolButton* settingsToolButton = new QToolButton();
-    settingsToolButton->setDefaultAction(this->settingsAction);
+    m_settingsToolButton = new QToolButton();
+    m_settingsToolButton->setDefaultAction(this->settingsAction);
     macroManager->addMacroSupportToObject(this->settingsAction,
                                           ("Display " + descriptivePrefix + " palette settings"));
     
@@ -260,7 +269,7 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
         this->gridLayoutGroup->addWidget(this->enabledCheckBox,
                                          row, 0,
                                          Qt::AlignHCenter);
-        this->gridLayoutGroup->addWidget(settingsToolButton,
+        this->gridLayoutGroup->addWidget(m_settingsToolButton,
                                          row, 1,
                                          Qt::AlignHCenter);
         this->gridLayoutGroup->addWidget(m_constructionToolButton,
@@ -272,10 +281,12 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
         this->gridLayoutGroup->addWidget(this->m_frameYokingGroupComboBox->getWidget(),
                                          row, 6,
                                          Qt::AlignHCenter);
-        this->gridLayoutGroup->addWidget(m_frameIndexSpinBox,
+        this->gridLayoutGroup->addWidget(this->m_cziAllScenesCheckBox,
                                          row, 7);
-        this->gridLayoutGroup->addWidget(this->frameNameComboBox,
+        this->gridLayoutGroup->addWidget(m_frameIndexSpinBox,
                                          row, 8);
+        this->gridLayoutGroup->addWidget(this->frameNameComboBox,
+                                         row, 9);
         
     }
     else {
@@ -290,14 +301,14 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox,
                                          row, 0);
-        this->gridLayoutGroup->addWidget(settingsToolButton,
+        this->gridLayoutGroup->addWidget(m_settingsToolButton,
                                          row, 1);
         this->gridLayoutGroup->addWidget(m_constructionToolButton,
                                          row, 3);
         this->gridLayoutGroup->addWidget(fileLabel,
                                          row, 4);
         this->gridLayoutGroup->addWidget(this->fileComboBox,
-                                         row, 5, 1, 2);
+                                         row, 5, 1, 3);
         
         row++;
         this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
@@ -309,10 +320,12 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
                                          1, 2);
         this->gridLayoutGroup->addWidget(frameLabel,
                                          row, 4);
-        this->gridLayoutGroup->addWidget(m_frameIndexSpinBox,
+        this->gridLayoutGroup->addWidget(this->m_cziAllScenesCheckBox,
                                          row, 5);
-        this->gridLayoutGroup->addWidget(this->frameNameComboBox,
+        this->gridLayoutGroup->addWidget(m_frameIndexSpinBox,
                                          row, 6);
+        this->gridLayoutGroup->addWidget(this->frameNameComboBox,
+                                         row, 7);
         
         row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget,
@@ -542,6 +555,24 @@ MediaOverlayViewController::opacityDoubleSpinBoxValueChanged(double value)
 }
 
 /**
+ * Called when CZI all scenes check box is clicked
+ * @param checked
+ *    New checked
+ */
+void
+MediaOverlayViewController::cziAllScenesCheckBoxClicked(bool checked)
+{
+    if (m_mediaOverlay == NULL) {
+        return;
+    }
+    
+    m_mediaOverlay->setCziAllScenesSelected(checked);
+    
+    this->updateGraphicsWindow();
+}
+
+
+/**
  * Validate yoking when there are changes made to the overlay.
  */
 void
@@ -585,6 +616,9 @@ MediaOverlayViewController::settingsActionTriggered()
     m_mediaOverlay->getSelectionData(mediaFile,
                                      frameIndex);
     if (mediaFile != NULL) {
+        MediaOverlaySettingsMenu menu(m_mediaOverlay,
+                                      m_parentObjectName);
+        menu.exec(m_settingsToolButton->mapToGlobal(QPoint(0,0)));
 //        EventOverlaySettingsEditorDialogRequest pcme(EventOverlaySettingsEditorDialogRequest::MODE_SHOW_EDITOR,
 //                                                     this->browserWindowIndex,
 //                                                     m_mediaOverlay,
@@ -670,6 +704,11 @@ MediaOverlayViewController::updateViewController(MediaOverlay* overlay)
     }
     m_frameIndexSpinBox->blockSignals(false);
 
+    /*
+     * All CZI check box
+     */
+    m_cziAllScenesCheckBox->setChecked(m_mediaOverlay->isAllCziScenesSelected());
+    
     /*
      * Update enable check box
      */

@@ -432,11 +432,9 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
     else if (browserTabContent->isMediaDisplayed()) {
 
         BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-        SelectionManager* idManager = openGLWidget->performIdentification(mouseEvent.getX(),
-                                                                          mouseEvent.getY(),
-                                                                          false);
-        CaretAssert(idManager);
-        SelectionItemMedia* mediaID = idManager->getMediaIdentification();
+        SelectionItemMedia* mediaID = openGLWidget->performIdentificationMedia(mouseEvent.getX(),
+                                                                               mouseEvent.getY());
+        CaretAssert(mediaID);
         if (mediaID->isValid()) {
             double modelXYZ[3];
             mediaID->getModelXYZ(modelXYZ);
@@ -510,11 +508,9 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
             m_mediaLeftDragWithCtrlModelXYZValidFlag = false;
             
             BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-            SelectionManager* idManager = openGLWidget->performIdentification(mouseEvent.getPressedX(),
-                                                                              mouseEvent.getPressedY(),
-                                                                              false);
-            CaretAssert(idManager);
-            SelectionItemMedia* mediaID = idManager->getMediaIdentification();
+            SelectionItemMedia* mediaID = openGLWidget->performIdentificationMedia(mouseEvent.getPressedX(),
+                                                                                   mouseEvent.getPressedY());
+            CaretAssert(mediaID);
             if (mediaID->isValid()) {
                 double modelXYZ[3];
                 mediaID->getModelXYZ(modelXYZ);
@@ -755,11 +751,9 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                         const bool enableMediaGesturesFlag(false);
                         if (enableMediaGesturesFlag) {
                             BrainOpenGLWidget* openGLWidget = gestureEvent.getOpenGLWidget();
-                            SelectionManager* idManager = openGLWidget->performIdentification(gestureEvent.getStartCenterX(),
-                                                                                              gestureEvent.getStartCenterX(),
-                                                                                              false);
-                            CaretAssert(idManager);
-                            SelectionItemMedia* mediaID = idManager->getMediaIdentification();
+                            SelectionItemMedia* mediaID = openGLWidget->performIdentificationMedia(gestureEvent.getStartCenterX(),
+                                                                                                   gestureEvent.getStartCenterX());
+                            CaretAssert(mediaID);
                             if (mediaID->isValid()) {
                                 double modelXYZ[3];
                                 mediaID->getModelXYZ(modelXYZ);

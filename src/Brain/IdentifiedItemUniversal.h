@@ -28,7 +28,7 @@
 #include "IdentifiedItemBase.h"
 #include "IdentificationSymbolSizeTypeEnum.h"
 #include "IdentifiedItemUniversalTypeEnum.h"
-#include "PixelIndex.h"
+#include "PixelLogicalIndex.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
 
@@ -46,7 +46,7 @@ namespace caret {
         static IdentifiedItemUniversal* newInstanceMediaIdentification(const AString& simpleText,
                                                                        const AString& formattedText,
                                                                        const AString& dataFileName,
-                                                                       const PixelIndex& pixelIndex,
+                                                                       const PixelLogicalIndex& pixelLogicalIndex,
                                                                        const std::array<float, 3>& stereotaxicXYZ,
                                                                        const bool stereotaxicXYZValidFlag);
 
@@ -103,7 +103,7 @@ namespace caret {
         
         int64_t getUniqueIdentifier() const;
         
-        PixelIndex getPixelIndex() const;
+        PixelLogicalIndex getPixelLogicalIndex() const;
         
         std::array<int64_t, 3> getVoxelIJK() const;
         
@@ -137,7 +137,7 @@ namespace caret {
                                 const StructureEnum::Enum structure,
                                 const int32_t surfaceNumberOfVertices,
                                 const int32_t surfaceVertexIndex,
-                                const PixelIndex& pixelIndex,
+                                const PixelLogicalIndex& pixelLogicalIndex,
                                 const std::array<int64_t, 3>& voxelIJK,
                                 const std::array<float, 3>& stereotaxicXYZ,
                                 const bool stereotaxicXYZValidFlag);
@@ -164,7 +164,7 @@ namespace caret {
         
         int32_t m_surfaceVertexIndex = - 1;
         
-        PixelIndex m_pixelIndex;
+        PixelLogicalIndex m_pixelLogicalIndex;
         
         std::array<int64_t, 3> m_voxelIJK;
         

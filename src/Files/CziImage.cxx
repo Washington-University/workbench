@@ -51,19 +51,28 @@ using namespace caret;
  * @param image
  *    The QImage instance
  * @param fullResolutionLogicalRect
- *    Logical Rectangle for the full-resolution source image
- * @param logicalRect
- *    Logical rectangle defining region of source image that was read from the file
+ *    Logical Rectangle for the full-resolution source image that defines the coordinates of the primitive
+ * @param imageDataLogicalRect
+ *    Logical rectangle defining region of source image that was read from the file that results
+ * @param resolutionChangeMode
+ *    Resolution change mode that created this image
+ * @param resolutionChangeModeLevel
+ *    Level from resolution change mode that created this image
  */
 CziImage::CziImage(const CziImageFile* parentCziImageFile,
                    QImage* image,
                    const QRectF& fullResolutionLogicalRect,
-                   const QRectF& logicalRect)
+                   const QRectF& imageDataLogicalRect,
+                   const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                   const int32_t resolutionChangeModeLevel)
 : CaretObject(),
 m_parentCziImageFile(parentCziImageFile),
 m_image(image),
 m_fullResolutionLogicalRect(fullResolutionLogicalRect),
-m_logicalRect(logicalRect)
+m_imageDataLogicalRect(imageDataLogicalRect),
+m_resolutionChangeMode(resolutionChangeMode),
+m_resolutionChangeModeLevel(resolutionChangeModeLevel)
+
 {
     CaretAssert(image);
 
@@ -71,18 +80,20 @@ m_logicalRect(logicalRect)
     
     m_fullResolutionPixelsRect = QRectF(0, 0, m_fullResolutionLogicalRect.width(), m_fullResolutionLogicalRect.height());
 
-    m_pixelsRect = QRectF(0, 0, m_image->width(), m_image->height());
+    m_imagePixelsRect = QRectF(0, 0, m_image->width(), m_image->height());
     
-    const PixelIndex logBotLeft(m_logicalRect.x(),
-                                m_logicalRect.y() + m_logicalRect.height(),
+    const PixelIndex logBotLeft(m_imageDataLogicalRect.x(),
+                                m_imageDataLogicalRect.y() + m_imageDataLogicalRect.height(),
                                 0.0f);
     const PixelIndex pixelBotLeft = transformPixelIndexToSpace(logBotLeft,
                                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT,
                                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT);
+    
+    /* Below only used in transform transformPixelIndexToSpace() */
     m_pixelsRegionOfInterestRect = QRectF(pixelBotLeft.getI(),
                                           pixelBotLeft.getJ(),
-                                          m_logicalRect.width(),
-                                          m_logicalRect.height());
+                                          m_imageDataLogicalRect.width(),
+                                          m_imageDataLogicalRect.height());
 }
 
 /**
@@ -181,14 +192,14 @@ CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndexIn,
              */
             pixelIndex.setJ(m_fullResolutionPixelsRect.height() - pixelIndex.getJ());
             break;
-        case CziPixelCoordSpaceEnum::PIXEL_BOTTOM_LEFT:
+        case CziPixelCoordSpaceEnum::IMAGE_DATA_PIXEL_BOTTOM_LEFT:
             /*
              * Convert to full resolution pixels bottom left
              */
             pixelIndex.setI(pixelIndex.getI() + m_pixelsRegionOfInterestRect.x());
             pixelIndex.setJ(pixelIndex.getJ() + m_pixelsRegionOfInterestRect.y());
             break;
-        case CziPixelCoordSpaceEnum::PIXEL_TOP_LEFT:
+        case CziPixelCoordSpaceEnum::IMAGE_DATA_PIXEL_TOP_LEFT:
             /*
              * Convert to full resolution pixels bottom left
              */
@@ -231,7 +242,7 @@ CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndexIn,
              */
             pixelIndex.setJ(m_fullResolutionPixelsRect.height() - pixelIndex.getJ());
             break;
-        case CziPixelCoordSpaceEnum::PIXEL_BOTTOM_LEFT:
+        case CziPixelCoordSpaceEnum::IMAGE_DATA_PIXEL_BOTTOM_LEFT:
         {
             /*
              * Origin is from image origin bottom left
@@ -242,7 +253,7 @@ CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndexIn,
             QRectF sourceRect(0, 0, m_pixelsRegionOfInterestRect.width(), m_pixelsRegionOfInterestRect.height());
             RectangleTransform transform(sourceRect,
                                          RectangleTransform::Origin::BOTTOM_LEFT,
-                                         m_pixelsRect,
+                                         m_imagePixelsRect,
                                          RectangleTransform::Origin::BOTTOM_LEFT);
             if ( ! transform.isValid()) {
                 CaretLogSevere("Creating rectangle transform TO (2) failed: "
@@ -256,7 +267,7 @@ CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndexIn,
             pixelIndex.setJ(static_cast<int64_t>(y));
         }
             break;
-        case CziPixelCoordSpaceEnum::PIXEL_TOP_LEFT:
+        case CziPixelCoordSpaceEnum::IMAGE_DATA_PIXEL_TOP_LEFT:
         {
             /*
              * Origin is from image origin bottom left
@@ -267,7 +278,7 @@ CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndexIn,
             QRectF sourceRect(0, 0, m_pixelsRegionOfInterestRect.width(), m_pixelsRegionOfInterestRect.height());
             RectangleTransform transform(sourceRect,
                                          RectangleTransform::Origin::BOTTOM_LEFT,
-                                         m_pixelsRect,
+                                         m_imagePixelsRect,
                                          RectangleTransform::Origin::TOP_LEFT);
             if ( ! transform.isValid()) {
                 CaretLogSevere("Creating rectangle transform TO (2) failed: "
@@ -294,22 +305,43 @@ CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndexIn,
 bool
 CziImage::isPixelIndexValid(const PixelIndex& pixelIndex) const
 {
-    const QPoint point(pixelIndex.getI(),
-                       pixelIndex.getJ());
-    if (m_pixelsRegionOfInterestRect.contains(point)) {
-        return true;
+    const float imageWidth(m_image->width());
+    const float imageHeight(m_image->height());
+    
+    if ((imageWidth > 0.0)
+        && (imageHeight > 0.0)) {
+        const int64_t pixelI(pixelIndex.getI());
+        const int64_t pixelJ(pixelIndex.getJ());
+        
+        if ((pixelI >= 0)
+            && (pixelI < imageWidth)
+            && (pixelJ >= 0)
+            && (pixelJ < imageHeight)) {
+            return true;
+        }
     }
+    
     return false;
 }
 
 /**
- * Get the identification text for the pixel at the given pixel index with origin at bottom left.
+ * @return True if the given pixel logical index is valid for this image
+ * @param pixelLogicalIndex
+ *    Pixel logical index
+ */
+bool
+CziImage::isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const
+{
+    const PixelIndex pixelIndex(pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
+    return isPixelIndexValid(pixelIndex);
+}
+
+/**
+ * Get the identification text for the pixel at the given pixel logical index
  * @param filename
  *    Name of CZI file
- * @param pixelIndexOriginAtTop
- *     Image of pixel in FULL RES image with origin top left
- * @param logicalXYZ
- *     Logical coordinates of pixel
+ * @param pixelLogicalIndex
+ *     Pixel logical index
  * @param columnOneTextOut
  *    Text for column one that is displayed to user.
  * @param columnTwoTextOut
@@ -319,68 +351,141 @@ CziImage::isPixelIndexValid(const PixelIndex& pixelIndex) const
  */
 void
 CziImage::getPixelIdentificationText(const AString& filename,
-                                     const PixelIndex& pixelIndexOriginAtTop,
-                                     const std::array<float, 3>& logicalXYZ,
+                                     const PixelLogicalIndex& pixelLogicalIndex,
                                      std::vector<AString>& columnOneTextOut,
                                      std::vector<AString>& columnTwoTextOut,
                                      std::vector<AString>& toolTipTextOut) const
 {
-    columnOneTextOut.push_back("Filename");
-    columnTwoTextOut.push_back(filename);
     
     uint8_t rgba[4];
-    const bool rgbaValidFlag = getImagePixelRGBA(pixelIndexOriginAtTop,
-                                                 rgba);
+    const bool rgbaValidFlag = getPixelRGBA(pixelLogicalIndex,
+                                            rgba);
     const AString rgbaText("RGBA ("
                            + (rgbaValidFlag
                               ? AString::fromNumbers(rgba, 4, ",")
                               : "Unknown")
                            + ")");
-    columnOneTextOut.push_back(rgbaText);
-    toolTipTextOut.push_back(rgbaText);
     
+    const PixelIndex pixelIndex(m_parentCziImageFile->pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
+    const int64_t fullResPixelI(pixelIndex.getI());
+    const int64_t fullResPixelJ(pixelIndex.getJ());
     const AString pixelText("Pixel IJ ("
-                            + AString::number(pixelIndexOriginAtTop.getI())
+                            + AString::number(fullResPixelI)
                             + ","
-                            + AString::number(pixelIndexOriginAtTop.getJ())
+                            + AString::number(fullResPixelJ)
                             + ")");
-    columnTwoTextOut.push_back(pixelText);
-    toolTipTextOut.push_back(pixelText);
     
-    const AString logicalText("Logical XY ("
-                            + AString::number(logicalXYZ[0], 'f', 3)
-                            + ","
-                            + AString::number(logicalXYZ[1], 'f', 3)
-                            + ")");
-    columnTwoTextOut.push_back(logicalText);
-    toolTipTextOut.push_back(logicalText);
-
+    const AString logicalText("Logical IJ ("
+                              + AString::number(pixelLogicalIndex.getI(), 'f', 3)
+                              + ","
+                              + AString::number(pixelLogicalIndex.getJ(), 'f', 3)
+                              + ")");
+    
     const PixelCoordinate pixelsSize(m_parentCziImageFile->getPixelSizeInMillimeters());
-    const float pixelX(pixelIndexOriginAtTop.getI() * pixelsSize.getX());
-    const float pixelY(pixelIndexOriginAtTop.getJ() * pixelsSize.getY());
-    columnOneTextOut.push_back("");
+    const float pixelX(fullResPixelI * pixelsSize.getX());
+    const float pixelY(fullResPixelJ * pixelsSize.getY());
     const AString mmText("Pixel XY ("
                          + AString::number(pixelX, 'f', 3)
                          + "mm,"
                          + AString::number(pixelY, 'f', 3)
                          + "mm)");
+    
+    
+    
+    columnOneTextOut.push_back("Filename");
+    columnTwoTextOut.push_back(filename);
+    
+    columnOneTextOut.push_back(pixelText);
+    columnTwoTextOut.push_back(logicalText);
+
+    columnOneTextOut.push_back(rgbaText);
     columnTwoTextOut.push_back(mmText);
+
+    toolTipTextOut.push_back(rgbaText);
+    toolTipTextOut.push_back(pixelText);
+    toolTipTextOut.push_back(logicalText);
     toolTipTextOut.push_back(mmText);
 }
 
 /**
- * Get the pixel RGBA at the given pixel I and J.
+ * @return A pixel index converted from a pixel logical index.
+ * @param pixelLogicalIndex
+ *    The logical pixel index.
+ * Note: the "logical width/height" is often much greater than the pixel width/height.
+ * Pixel index can be used to index into the image pixel data.
+ */
+PixelIndex
+CziImage::pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const
+{
+    const int64_t logicalOffsetI(pixelLogicalIndex.getI() - m_imageDataLogicalRect.x());
+    const int64_t logicalOffsetJ(pixelLogicalIndex.getJ() - m_imageDataLogicalRect.y());
+    
+    const float logicalWidth(m_imageDataLogicalRect.width());
+    const float logicalHeight(m_imageDataLogicalRect.height());
+    
+    const float imageWidth(m_image->width());
+    const float imageHeight(m_image->height());
+    
+    PixelIndex pixelIndex;
+    
+    if ((logicalWidth > 0.0)
+        && (logicalHeight > 0.0)) {
+        const int64_t pixelI((logicalOffsetI / logicalWidth)  * imageWidth);
+        const int64_t pixelJ((logicalOffsetJ / logicalHeight) * imageHeight);
+        
+        pixelIndex.setI(pixelI);
+        pixelIndex.setJ(pixelJ);
+        pixelIndex.setK(0);
+    }
+    
+    return pixelIndex;
+}
+
+/**
+ * @return A pixel logical index converted from a pixel index.
+ * @param pixelIndex
+ *    The  pixel index.
+ */
+PixelLogicalIndex
+CziImage::pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const
+{
+    const int64_t imageOffsetI(pixelIndex.getI());
+    const int64_t imageOffsetJ(pixelIndex.getJ());
+    
+    const float logicalWidth(m_imageDataLogicalRect.width());
+    const float logicalHeight(m_imageDataLogicalRect.height());
+    
+    const float imageWidth(m_image->width());
+    const float imageHeight(m_image->height());
+    
+    PixelLogicalIndex pixelLogicalIndex;
+    
+    if ((imageWidth > 0.0)
+        && (imageWidth > 0.0)) {
+        const int64_t pixelLogicalI(((imageOffsetI / imageWidth) * logicalWidth) + m_imageDataLogicalRect.x());
+        const int64_t pixelLogicalJ(((imageOffsetJ / imageHeight) * logicalHeight) + m_imageDataLogicalRect.y());
+        
+        pixelLogicalIndex.setI(pixelLogicalI);
+        pixelLogicalIndex.setJ(pixelLogicalJ);
+        pixelLogicalIndex.setK(0);
+    }
+
+    return pixelLogicalIndex;
+}
+
+/**
+ * Get the pixel RGBA at the pixel logical index
  *
- * @param pixelIndexOriginAtTop
- *     Image of pixel in FULL RES image with origin top left
+ * @param pixelLogicalIndex
+ *     Pixel logical index
  * @param pixelRGBAOut
  *     RGBA at Pixel I, J
  * @return
  *     True if valid, else false.
  */
 bool
-CziImage::getImagePixelRGBA(const PixelIndex& pixelIndexOriginAtTop,
-                            uint8_t pixelRGBAOut[4]) const
+CziImage::getPixelRGBA(const PixelLogicalIndex& pixelLogicalIndex,
+                       uint8_t pixelRGBAOut[4]) const
 {
     pixelRGBAOut[0] = 0;
     pixelRGBAOut[1] = 0;
@@ -392,22 +497,10 @@ CziImage::getImagePixelRGBA(const PixelIndex& pixelIndexOriginAtTop,
     const QImage* image = m_image.get();
     
     if (image != NULL) {
-        /*
-         * Transform the full-resolution pixel index to space for this image
-         */
-        const PixelIndex pixelIndex = transformPixelIndexToSpace(pixelIndexOriginAtTop,
-                                                                 CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT,
-                                                                 CziPixelCoordSpaceEnum::PIXEL_TOP_LEFT);
-        const int32_t w = image->width();
-        const int32_t h = image->height();
-        
-        const int64_t pixelI(pixelIndex.getI());
-        const int64_t pixelJ(pixelIndex.getJ());
-        
-        if ((pixelI >= 0)
-            && (pixelI < w)
-            && (pixelJ >= 0)
-            && (pixelJ < h)) {
+        const PixelIndex pixelIndex(pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
+        if (isPixelIndexValid(pixelIndex)) {
+            const int64_t pixelI(pixelIndex.getI());
+            const int64_t pixelJ(pixelIndex.getJ());
             const QRgb rgb = image->pixel(pixelI,
                                           pixelJ);
             pixelRGBAOut[0] = static_cast<uint8_t>(qRed(rgb));
@@ -417,16 +510,14 @@ CziImage::getImagePixelRGBA(const PixelIndex& pixelIndexOriginAtTop,
             return true;
         }
         else {
-            const AString msg("Pixel Index: "
-                              + pixelIndex.toString()
-                              + " but valid max I="
-                              + AString::number(w - 1)
-                              + ", max J="
-                              + AString::number(h - 1));
+            const AString msg("Pixel Logical Index: "
+                              + pixelLogicalIndex.toString()
+                              + " but valid rect is "
+                              + CziUtilities::qRectToString(m_imageDataLogicalRect));
             CaretLogSevere(msg);
         }
     }
-
+    
     return false;
 }
 
@@ -497,33 +588,50 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
                                                                                        &bytesRGBA[0],
                                                                                        width,
                                                                                        height,
-                                                                                       GraphicsPrimitive::TextureWrappingType::CLAMP,
+                                                                                       GraphicsPrimitive::TextureWrappingType::CLAMP_TO_BORDER,
                                                                                        GraphicsPrimitive::TextureMipMappingType::ENABLED,
                                                                                        GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                                                        GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                                                        textureBorderColorRGBA);
             
             /*
-             * Coordinates at EDGE of the pixels
-             * in CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT
+             * The Geometric Coordinates are those of the full-resolution.
+             * The Texture Coordinates map to the subregion that contains
+             * the image data.  This allows the same viewing transformations
+             * for all CZI images since all primitives use the same
+             * geometric coordinates.
              */
-            const float minX = m_logicalRect.x();
-            const float maxX = m_logicalRect.x() + m_logicalRect.width();
-            const float minY = m_logicalRect.y();
-            const float maxY = m_logicalRect.y() + m_logicalRect.height();
+            const float minX = m_fullResolutionLogicalRect.x();
+            const float maxX = m_fullResolutionLogicalRect.x() + m_fullResolutionLogicalRect.width();
+            const float minY = m_fullResolutionLogicalRect.y();
+            const float maxY = m_fullResolutionLogicalRect.y() + m_fullResolutionLogicalRect.height();
 
+            const float imageLogicalWidth(m_imageDataLogicalRect.width());
+            const float imageLogicalHeight(m_imageDataLogicalRect.height());
+            
+            const float textureMaxS2(((m_fullResolutionLogicalRect.right()
+                                       - m_imageDataLogicalRect.right()) / imageLogicalWidth)
+                                     + 1.0);
+            const float textureMinS2(((m_fullResolutionLogicalRect.left()
+                                       - m_imageDataLogicalRect.left()) / imageLogicalWidth)
+                                     - 0.0);
+            const float textureMinT2(((m_imageDataLogicalRect.top()
+                                       - m_fullResolutionLogicalRect.top()) / imageLogicalHeight)
+                                     + 1.0);
+            const float textureMaxT2(((m_imageDataLogicalRect.bottom()
+                                       - m_fullResolutionLogicalRect.bottom()) / imageLogicalHeight)
+                                     - 0.0);
+            
             /*
              * A Triangle Strip (consisting of two triangles) is used
              * for drawing the image.
              * The order of the vertices in the triangle strip is
              * Top Left, Bottom Left, Top Right, Bottom Right.
              */
-            const float minTextureST(0.0);
-            const float maxTextureST(1.0);
-            primitive->addVertex(minX, minY, minTextureST, maxTextureST);  /* Top Left */
-            primitive->addVertex(minX, maxY, minTextureST, minTextureST);  /* Bottom Left */
-            primitive->addVertex(maxX, minY, maxTextureST, maxTextureST);  /* Top Right */
-            primitive->addVertex(maxX, maxY, maxTextureST, minTextureST);  /* Bottom Right */
+            primitive->addVertex(minX, minY, textureMinS2, textureMinT2);  /* Top Left */
+            primitive->addVertex(minX, maxY, textureMinS2, textureMaxT2);  /* Bottom Left */
+            primitive->addVertex(maxX, minY, textureMaxS2, textureMinT2);  /* Top Right */
+            primitive->addVertex(maxX, maxY, textureMaxS2, textureMaxT2);  /* Bottom Right */
 
             m_graphicsPrimitiveForMediaDrawing.reset(primitive);
         }

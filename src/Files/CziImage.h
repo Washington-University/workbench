@@ -28,8 +28,10 @@
 #include <QRectF>
 
 #include "CaretObject.h"
+#include "CziImageResolutionChangeModeEnum.h"
 #include "CziPixelCoordSpaceEnum.h"
 #include "PixelIndex.h"
+#include "PixelLogicalIndex.h"
 #include "SceneableInterface.h"
 
 class QImage;
@@ -47,7 +49,9 @@ namespace caret {
         CziImage(const CziImageFile* parentCziImageFile,
                  QImage* image,
                  const QRectF& fullResolutionLogicalRect,
-                 const QRectF& logicalRect);
+                 const QRectF& imageDataLogicalRect,
+                 const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                 const int32_t resolutionChangeModeLevel);
         
         virtual ~CziImage();
         
@@ -62,22 +66,26 @@ namespace caret {
                                               const CziPixelCoordSpaceEnum::Enum toPixelCoordSpace) const;
 
         void getPixelIdentificationText(const AString& filename,
-                                        const PixelIndex& pixelIndexOriginAtTop,
-                                        const std::array<float, 3>& logicalXYZ,
+                                        const PixelLogicalIndex& pixelLogicalIndex,
                                         std::vector<AString>& columnOneTextOut,
                                         std::vector<AString>& columnTwoTextOut,
                                         std::vector<AString>& toolTipTextOut) const;
 
-
         bool isPixelIndexValid(const PixelIndex& pixelIndex) const;
 
-        bool getImagePixelRGBA(const PixelIndex& pixelIndex,
-                               uint8_t pixelRGBAOut[4]) const;
+        bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const;
         
+        bool getPixelRGBA(const PixelLogicalIndex& pixelLogicalIndex,
+                          uint8_t pixelRGBAOut[4]) const;
+
         int32_t getWidth() const;
         
         int32_t getHeight() const;
         
+        virtual PixelIndex pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const;
+        
+        virtual PixelLogicalIndex pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const;
+
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -126,17 +134,28 @@ namespace caret {
          * The bounds are accumulated from all sub blocks
          * The origin is at the top left, X increases to the right, Y increases downward.
          */
-        const QRectF m_logicalRect;
+        const QRectF m_imageDataLogicalRect;
         
         /**
          * This rectangle defines the pixels of the full-resolution image with (0, 0) in corner
+         * and w/h is same as full resolution logical w/h
          */
         QRectF m_fullResolutionPixelsRect;
         
         /**
          * This rectangle defines the pixels of this image with (0, 0) in corner
          */
-        QRectF m_pixelsRect;
+        QRectF m_imagePixelsRect;
+        
+        /**
+         * Resolution change mode that created this image (INVALID is default mode)
+         */
+        const CziImageResolutionChangeModeEnum::Enum m_resolutionChangeMode;
+        
+        /**
+         * Resolution chnage mode level for this image
+         */
+        const int32_t m_resolutionChangeModeLevel;
         
         /**
          * This rectangle defines the region of this image in m_fullResolutionPixelsRect
@@ -146,6 +165,7 @@ namespace caret {
         mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForMediaDrawing;
         
         friend class CziImageFile;
+        friend class CziImageLoaderAllFrames;
 
         // ADD_NEW_MEMBERS_HERE
 

@@ -1424,62 +1424,46 @@ ImageFile::getImageBytesRGBA(const QImage* qImage,
  * Get the pixel RGBA at the given pixel I and J.
  *
  * @param tabIndex
- *    Index of tab
- * @param imageOrigin
- *    Location of first pixel in the image data.
- * @param pixelIndex
- *     Image of pixel
+ *    Index of the tab.
+ * @param overlayIndex
+ *    Index of overlay
+ * @param pixelLogicalIndex
+ *     Logical pixel index
  * @param pixelRGBAOut
  *     RGBA at Pixel I, J
  * @return
  *     True if valid, else false.
  */
 bool
-ImageFile::getImagePixelRGBA(const int32_t /*tabIndex*/,
-                             const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
-                             const PixelIndex& pixelIndex,
-                             uint8_t pixelRGBAOut[4]) const
+ImageFile::getPixelRGBA(const int32_t /*tabIndex*/,
+                        const int32_t /*overlayIndex*/,
+                        const PixelLogicalIndex& pixelLogicalIndex,
+                        uint8_t pixelRGBAOut[4]) const
 {
     if (m_image != NULL) {
         const int32_t w = m_image->width();
         const int32_t h = m_image->height();
         
-        const int64_t pixelI(pixelIndex.getI());
-        const int64_t pixelJ(pixelIndex.getJ());
+        const int64_t pixelI(pixelLogicalIndex.getI());
+        const int64_t pixelJ(pixelLogicalIndex.getJ());
         if ((pixelI >= 0)
             && (pixelI < w)
             && (pixelJ >= 0)
             && (pixelJ < h)) {
+            const QRgb rgb = m_image->pixel(pixelI,
+                                            pixelJ);
+            pixelRGBAOut[0] = static_cast<uint8_t>(qRed(rgb));
+            pixelRGBAOut[1] = static_cast<uint8_t>(qGreen(rgb));
+            pixelRGBAOut[2] = static_cast<uint8_t>(qBlue(rgb));
+            pixelRGBAOut[3] = static_cast<uint8_t>(qAlpha(rgb));
             
-            int64_t imageJ = pixelJ;
-            switch (imageOrigin) {
-                case IMAGE_DATA_ORIGIN_AT_BOTTOM:
-                    imageJ = h - pixelJ - 1;
-                    break;
-                case IMAGE_DATA_ORIGIN_AT_TOP:
-                    break;
-            }
-            
-            if ((imageJ >= 0)
-                && (imageJ < h)) {
-                const QRgb rgb = m_image->pixel(pixelI,
-                                                imageJ);
-                pixelRGBAOut[0] = static_cast<uint8_t>(qRed(rgb));
-                pixelRGBAOut[1] = static_cast<uint8_t>(qGreen(rgb));
-                pixelRGBAOut[2] = static_cast<uint8_t>(qBlue(rgb));
-                pixelRGBAOut[3] = static_cast<uint8_t>(qAlpha(rgb));
-                
-                return true;
-            }
-            else {
-                CaretLogSevere("Invalid image J");
-            }
+            return true;
         }
     }
     
     return false;
-}
 
+}
 
 /**
  * Get the RGBA bytes from the image resized into the given width and height.
@@ -1861,9 +1845,12 @@ ImageFile::getControlPointFile() const
  * @return The graphics primitive for drawing the image as a texture in media drawing model.
  * @param tabIndex
  *    Index of tab where image is drawn
+ * @param overlayIndex
+ *    Index of overlay
  */
 GraphicsPrimitiveV3fT2f*
-ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/) const
+ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/,
+                                               const int32_t /*overlayIndex*/) const
 {
     if (m_image == NULL) {
         return NULL;
@@ -2276,16 +2263,19 @@ ImageFile::supportsFileMetaData() const
  * @return True if the given pixel index is valid for the image in the given tabf
  * @param tabIndex
  *    Index of the tab.
- * @param pixelIndex
- *     Image of pixel
+ * @param overlayIndex
+ *    Index of overlay
+ * @param pixelIndexOriginAtTopLeft
+ *    Image of pixel with origin (0, 0) at the top left
  */
 bool
 ImageFile::isPixelIndexValid(const int32_t /*tabIndex*/,
-                                const PixelIndex& pixelIndex) const
+                             const int32_t /*overlayIndex*/,
+                                const PixelIndex& pixelIndexOriginAtTopLeft) const
 {
     if (m_image != NULL) {
-        const int32_t i(pixelIndex.getI());
-        const int32_t j(pixelIndex.getJ());
+        const int32_t i(pixelIndexOriginAtTopLeft.getI());
+        const int32_t j(pixelIndexOriginAtTopLeft.getJ());
         if ((i >= 0)
             && (i < m_image->width())
             && (j >= 0)
@@ -2296,24 +2286,63 @@ ImageFile::isPixelIndexValid(const int32_t /*tabIndex*/,
     return false;
 }
 
+/**
+ * @return True if the given pixel index is valid for the image in the given tab
+ * @param tabIndex
+ *    Index of the tab.
+ *@param overlayIndex
+ *    Index of overlay
+ * @param pixelLogicalIndex
+ *    Pixel logical index
+ */
+bool
+ImageFile::isPixelIndexValid(const int32_t /*tabIndex*/,
+                             const int32_t /*overlayIndex*/,
+                             const PixelLogicalIndex& pixelLogicalIndex) const
+{
+    return isPixelIndexValid(pixelLogicalIndex);
+}
+
+/**
+ * @return True if the given pixel index is valid
+ * @param pixelLogicalIndex
+ *    Pixel logical index
+ */
+bool
+ImageFile::isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const
+{
+    if (m_image != NULL) {
+        const int32_t i(pixelLogicalIndex.getI());
+        const int32_t j(pixelLogicalIndex.getJ());
+        if ((i >= 0)
+            && (i < m_image->width())
+            && (j >= 0)
+            && (j < m_image->height())) {
+            return true;
+        }
+    }
+    return false;
+}
 
 /**
  * Get the identification text for the pixel at the given pixel index with origin at bottom left.
  * @param tabIndex
  *    Index of the tab in which identification took place
- * @param pixelIndex
- *    Index of the pixel.
- * @param logicalXYZ
- *    The logical coordinates
+ * @param overlayIndex
+ *    Index of the overlay
+ * @param pixelLogicalIndex
+ *    Logical pixel index
  * @param columnOneTextOut
  *    Text for column one that is displayed to user.
  * @param columnTwoTextOut
  *    Text for column two that is displayed to user.
+ * @param toolTipTextOut
+ *    Text for tooltip
  */
 void
 ImageFile::getPixelIdentificationText(const int32_t tabIndex,
-                                      const PixelIndex& pixelIndex,
-                                      const std::array<float, 3>& logicalXYZ,
+                                      const int32_t overlayIndex,
+                                      const PixelLogicalIndex& pixelLogicalIndex,
                                       std::vector<AString>& columnOneTextOut,
                                       std::vector<AString>& columnTwoTextOut,
                                       std::vector<AString>& toolTipTextOut) const
@@ -2322,16 +2351,17 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
     columnTwoTextOut.clear();
     toolTipTextOut.clear();
     if ( ! isPixelIndexValid(tabIndex,
-                             pixelIndex)) {
+                             overlayIndex,
+                             pixelLogicalIndex)) {
         return;
     }
     
     uint8_t rgba[4];
-    getImagePixelRGBA(tabIndex,
-                      IMAGE_DATA_ORIGIN_AT_TOP,
-                      pixelIndex,
-                      rgba);
-    
+    getPixelRGBA(tabIndex,
+                 overlayIndex,
+                 pixelLogicalIndex,
+                 rgba);
+
     columnOneTextOut.push_back("Filename");
     columnTwoTextOut.push_back(getFileNameNoPath());
     
@@ -2339,12 +2369,11 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
     columnOneTextOut.push_back(rgbaText);
     toolTipTextOut.push_back(rgbaText);
     
-    const PixelIndex pixelIndexTopLeft(pixelIndex);
     const AString pixelText("Pixel IJ ("
-                             + AString::number(pixelIndexTopLeft.getI())
-                             + ","
-                             + AString::number(pixelIndexTopLeft.getJ())
-                             + ")");
+                            + AString::number(pixelLogicalIndex.getI())
+                            + ","
+                            + AString::number(pixelLogicalIndex.getJ())
+                            + ")");
     columnTwoTextOut.push_back(pixelText);
     toolTipTextOut.push_back(pixelText);
     
@@ -2354,8 +2383,8 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
          * Show coordinates in millimeters
          */
         const float metersPerDot(1 / dotsPerMeter);
-        const float xMillimeters(pixelIndexTopLeft.getI() * metersPerDot * 100.0);
-        const float yMillimeters(pixelIndexTopLeft.getJ() * metersPerDot * 100.0);
+        const float xMillimeters(pixelLogicalIndex.getI() * metersPerDot * 100.0);
+        const float yMillimeters(pixelLogicalIndex.getJ() * metersPerDot * 100.0);
         columnOneTextOut.push_back("");
         const AString mmText("("
                              + AString::number(xMillimeters, 'f', 2)
@@ -2369,8 +2398,8 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
 
 /**
  * convert a pixel index to a stereotaxic coordinate
- * @param pixelIndexOriginAtTop
- *    The pixel index (full resolution) with origin at top left
+ * @param pixelLogicalIndex
+ *    Logical pixel index
  * @param includeNonlinearFlag
  *    If true, include the non-linear transform when converting
  * @param xyzOut
@@ -2380,10 +2409,11 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
  *    True if conversion successful, else false.
  */
 bool
-ImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& /*pixelIndexOriginAtTop*/,
-                                         const bool /*includeNonlinearFlag*/,
-                                         std::array<float, 3>& /*xyzOut*/) const
+ImageFile::pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& /*pixelLogicalIndex*/,
+                                      const bool /*includeNonlinearFlag*/,
+                                      std::array<float, 3>& /*xyzOut*/) const
 {
+    /* Not supported, no stereotaxic coordinates for images */
     return false;
 }
 
@@ -2393,16 +2423,17 @@ ImageFile::pixelIndexToStereotaxicXYZ(const PixelIndex& /*pixelIndexOriginAtTop*
  *    The coordinate
  * @param includeNonlinearFlag
  *    If true, include the non-linear transform when converting
- * @param pixelIndexOriginAtTopLeftOut
- *    Output with pixel index in full resolution with origin at top left
+ * @param pixelLogicalIndexOut
+ *    Output logical pixel index
  * @return
  *    True if successful, else false.
  */
 bool
 ImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& /*xyz*/,
-                                         const bool /*includeNonlinearFlag*/,
-                                         PixelIndex& /*pixelIndexOriginAtTopLeftOut*/) const
+                                      const bool /*includeNonlinearFlag*/,
+                                      PixelLogicalIndex& /*pixelLogicalIndexOut*/) const
 {
+    /* Not supported, no stereotaxic coordinates for images */
     return false;
 }
 
@@ -2414,8 +2445,8 @@ ImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& /*xyz*/,
  *    If true, include the non-linear transform when converting
  * @param signedDistanceToPixelMillimetersOut
  *    Output with signed distance to the pixel in millimeters
- * @param pixelIndexOriginAtTopLeftOut
- *    Output with pixel index in full resolution with origin at top left
+ * @param pixelLogicalIndexOut
+ *    Output with logical pixel index
  * @return
  *    True if successful, else false.
  */
@@ -2423,7 +2454,8 @@ bool
 ImageFile::findPixelNearestStereotaxicXYZ(const std::array<float, 3>& /*xyz*/,
                                           const bool /*includeNonLinearFlag*/,
                                           float& /*signedDistanceToPixelMillimetersOut*/,
-                                          PixelIndex& /*pixelIndexOriginAtTopLeftOut*/) const
+                                          PixelLogicalIndex& /*pixelLogicalIndexOut*/) const
 {
+    /* Not supported, no stereotaxic coordinates for images */
     return false;
 }

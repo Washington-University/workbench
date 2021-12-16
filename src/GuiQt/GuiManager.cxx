@@ -3755,13 +3755,13 @@ GuiManager::processIdentification(const int32_t tabIndex,
                     if (idMedia->getMediaFile() != NULL) {
                         dataFileName = idMedia->getMediaFile()->getFileNameNoPath();
                     }
-                    const PixelIndex pixelIndex = idMedia->getPixelIndexOriginAtTop();
+                    const PixelLogicalIndex pixelLogicalIndex = idMedia->getPixelLogicalIndex();
                     std::array<float, 3> stereotaxicXYZ;
                     bool stereotaxicXYZValidFlag = idMedia->getStereotaxicXYZ(stereotaxicXYZ);
                     identifiedItem = IdentifiedItemUniversal::newInstanceMediaIdentification(identificationMessage,
                                                                                              formattedIdentificationMessage,
                                                                                              dataFileName,
-                                                                                             pixelIndex,
+                                                                                             pixelLogicalIndex,
                                                                                              stereotaxicXYZ,
                                                                                              stereotaxicXYZValidFlag);
                 }

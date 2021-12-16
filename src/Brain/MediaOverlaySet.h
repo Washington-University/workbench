@@ -84,6 +84,9 @@ namespace caret {
         
         std::vector<MediaFile*> getDisplayedMediaFiles() const;
         
+        void getDisplayedMediaFileAndOverlayIndices(std::vector<MediaFile*>& mediaFilesOut,
+                                                    std::vector<int32_t>& overlayIndicesOut) const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         

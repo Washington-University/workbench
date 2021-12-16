@@ -61,6 +61,7 @@ namespace caret {
     class EventImageCapture;
     class GraphicsFramesPerSecond;
     class SelectionItemAnnotation;
+    class SelectionItemMedia;
     class SelectionManager;
     class Model;
     class SurfaceProjectedItem;
@@ -86,6 +87,9 @@ namespace caret {
         SelectionManager* performIdentification(const int x,
                                                 const int y,
                                                 const bool applySelectionBackgroundFiltering);
+        
+        SelectionItemMedia* performIdentificationMedia(const int x,
+                                                       const int y);
         
         SelectionItemAnnotation* performIdentificationAnnotations(const int x,
                                                            const int y);

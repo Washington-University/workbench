@@ -85,13 +85,15 @@ MediaOverlaySetViewController::MediaOverlaySetViewController(const Qt::Orientati
         gridLayout->setColumnStretch(5, 100);
         gridLayout->setColumnStretch(6, 0);
         gridLayout->setColumnStretch(7, 0);
-        gridLayout->setColumnStretch(8, 100);
+        gridLayout->setColumnStretch(8, 0);
+        gridLayout->setColumnStretch(9, 100);
         
         QLabel* onLabel       = new QLabel("On");
         QLabel* settingsLabel = new QLabel("Settings");
         QLabel* opacityLabel  = new QLabel("Opacity");
         QLabel* fileLabel     = new QLabel("File");
         QLabel* yokeLabel     = new QLabel("Yoke");
+        QLabel* allLabel      = new QLabel("All");
         QLabel* mapLabel      = new QLabel("Frame");
 
         const int row = gridLayout->rowCount();
@@ -100,6 +102,7 @@ MediaOverlaySetViewController::MediaOverlaySetViewController(const Qt::Orientati
         gridLayout->addWidget(opacityLabel, row, 4, Qt::AlignHCenter);
         gridLayout->addWidget(fileLabel, row, 5, Qt::AlignHCenter);
         gridLayout->addWidget(yokeLabel, row, 6, Qt::AlignHCenter);
+        gridLayout->addWidget(allLabel, row, 7, Qt::AlignHCenter);
         gridLayout->addWidget(mapLabel, row, 8, 1, 2, Qt::AlignHCenter);
     }
     else {
@@ -109,7 +112,8 @@ MediaOverlaySetViewController::MediaOverlaySetViewController(const Qt::Orientati
         gridLayout->setColumnStretch(3, 0);
         gridLayout->setColumnStretch(4, 0);
         gridLayout->setColumnStretch(5, 0);
-        gridLayout->setColumnStretch(6, 100);
+        gridLayout->setColumnStretch(6, 0);
+        gridLayout->setColumnStretch(7, 100);
     }
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {

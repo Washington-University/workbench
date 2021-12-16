@@ -122,14 +122,14 @@ CziPixelCoordSpaceEnum::initialize()
                                               "Full Resolution Pixel Top Left",
                                               "Pixel coordinate of full-resolution image with origin (0, 0) at top left"));
     
-    enumData.push_back(CziPixelCoordSpaceEnum(PIXEL_BOTTOM_LEFT,
-                                             "PIXEL_BOTTOM_LEFT",
-                                             "Pixel Bottom Left",
+    enumData.push_back(CziPixelCoordSpaceEnum(IMAGE_DATA_PIXEL_BOTTOM_LEFT,
+                                             "IMAGE_DATA_PIXEL_BOTTOM_LEFT",
+                                             "Image Data Pixel Bottom Left",
                                              "Pixel coordinate of image with origin (0,0) at the bottom left"));
     
-    enumData.push_back(CziPixelCoordSpaceEnum(PIXEL_TOP_LEFT,
-                                             "PIXEL_TOP_LEFT",
-                                             "Pixel Top Lefrt",
+    enumData.push_back(CziPixelCoordSpaceEnum(IMAGE_DATA_PIXEL_TOP_LEFT,
+                                             "IMAGE_DATA_PIXEL_TOP_LEFT",
+                                             "Image Data Pixel Top Left",
                                              "Pixel coordinate of image with origin (0,0) at the top left"));
 }
 

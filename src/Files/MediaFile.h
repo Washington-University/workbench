@@ -29,6 +29,7 @@
 #include "NiftiEnums.h"
 #include "PixelCoordinate.h"
 #include "PixelIndex.h"
+#include "PixelLogicalIndex.h"
 #include "SceneClassAssistant.h"
 #include "Vector3D.h"
 #include "VoxelIJK.h"
@@ -118,51 +119,46 @@ namespace caret {
         const MediaFile* castToMediaFile() const;
         
         virtual bool isPixelIndexValid(const int32_t tabIndex,
-                                       const PixelIndex& pixelIndex) const = 0;
+                                       const int32_t overlayIndex,
+                                       const PixelIndex& pixelIndexOriginAtTopLeft) const = 0;
         
-        /**
-         * Get the identification text for the pixel at the given pixel index with origin at bottom left.
-         * @param idMedia
-         *    The media identification
-         * @param pixelIndex
-         *    Index of the pixel.
-         * @param columnOneTextOut
-         *    Text for column one that is displayed to user.
-         * @param columnTwoTextOut
-         *    Text for column two that is displayed to user.
-         */
+        virtual bool isPixelIndexValid(const int32_t tabIndex,
+                                       const int32_t overlayIndex,
+                                       const PixelLogicalIndex& pixelLogicalIndex) const = 0;
+        
+        virtual bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const = 0;
+        
         virtual void getPixelIdentificationText(const int32_t tabIndex,
-                                                const PixelIndex& pixelIndexOriginAtTop,
-                                                const std::array<float, 3>& logicalXYZ,
+                                                const int32_t overlayIndex,
+                                                const PixelLogicalIndex& pixelLogicalIndex,
                                                 std::vector<AString>& columnOneTextOut,
                                                 std::vector<AString>& columnTwoTextOut,
                                                 std::vector<AString>& toolTipTextOut) const = 0;
         
-        virtual bool getImagePixelRGBA(const int32_t tabIndex,
-                                       const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
-                                       const PixelIndex& pixelIndex,
-                                       uint8_t pixelRGBAOut[4]) const = 0;
+        virtual bool getPixelRGBA(const int32_t tabIndex,
+                                  const int32_t overlayIndex,
+                                  const PixelLogicalIndex& pixelLogicalIndex,
+                                  uint8_t pixelRGBAOut[4]) const = 0;
 
-        virtual bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
+        virtual bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
                                                 const bool includeNonlinearFlag,
                                                 std::array<float, 3>& xyzOut) const = 0;
         
         virtual bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
                                                 const bool includeNonlinearFlag,
-                                                PixelIndex& pixelIndexOriginAtTopLeftOut) const = 0;
-
+                                                PixelLogicalIndex& pixelLogicalIndexOut) const = 0;
+        
         virtual bool findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
                                                     const bool includeNonLinearFlag,
                                                     float& signedDistanceToPixelMillimetersOut,
-                                                    PixelIndex& pixelIndexOriginAtTopLeftOut) const = 0;
+                                                    PixelLogicalIndex& pixelLogicalIndexOut) const = 0;
         
-        virtual bool pixelIndexToImageLogicalXYZ(const PixelIndex& pixelIndexOriginAtTop,
-                                                 std::array<float, 3>& logicalXYZOut) const;
+        virtual PixelIndex pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const;
         
-        virtual bool imageLogicalXYZToPixelIndex(const std::array<float, 3>& logicalXYZ,
-                                                 PixelIndex& pixelIndexOriginAtTopLeftOut) const;
+        virtual PixelLogicalIndex pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const;
         
-        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex) const = 0;
+        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
+                                                                             const int32_t overlayIndex) const = 0;
         
         // ADD_NEW_METHODS_HERE
 

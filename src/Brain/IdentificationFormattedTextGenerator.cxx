@@ -2066,11 +2066,11 @@ IdentificationFormattedTextGenerator::generateMediaIdentificationText(HtmlTableB
         const MediaFile* mediaFile(idMedia->getMediaFile());
         std::vector<AString> columnOneText, columnTwoText, toolTipText;
         mediaFile->getPixelIdentificationText(idMedia->getTabIndex(),
-                                              idMedia->getPixelIndexOriginAtTop(),
-                                              modelXYZ,
-                                                 columnOneText,
-                                                 columnTwoText,
-                                                 toolTipText);
+                                              idMedia->getOverlayIndex(),
+                                              idMedia->getPixelLogicalIndex(),
+                                              columnOneText,
+                                              columnTwoText,
+                                              toolTipText);
         const int32_t numColOne(columnOneText.size());
         const int32_t numColTwo(columnTwoText.size());
         const int32_t maxNum(std::max(numColOne, numColTwo));

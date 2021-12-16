@@ -28,6 +28,7 @@
 #include <QRectF>
 
 #include "BrainConstants.h"
+#include "CziImage.h"
 #include "CziImageResolutionChangeModeEnum.h"
 #include "EventListenerInterface.h"
 #include "SingleChannelPyramidLevelTileAccessor.h"
@@ -49,6 +50,7 @@ class QImage;
 namespace caret {
 
     class CziImage;
+    class CziImageLoaderAllFrames;
     class GraphicsObjectToWindowTransform;
     class Matrix4x4;
     class RectangleTransform;
@@ -85,14 +87,19 @@ namespace caret {
 
         virtual int32_t getNumberOfFrames() const override;
         
-        virtual bool isPixelIndexValid(const int32_t tabIndex,
-                                       const PixelIndex& pixelIndex) const override;
+        virtual bool isPixelIndexValid(const int32_t tabIndex, 
+                                       const int32_t overlayIndex,
+                                       const PixelIndex& pixelIndexOriginAtTopLeft) const override;
         
-        bool isPixelIndexFullResolutionValid(const PixelIndex& pixelIndex) const;
+        virtual bool isPixelIndexValid(const int32_t tabIndex,
+                                       const int32_t overlayIndex,
+                                       const PixelLogicalIndex& pixelLogicalIndex) const override;
+        
+        virtual bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const;
         
         virtual void getPixelIdentificationText(const int32_t tabIndex,
-                                                const PixelIndex& pixelIndexOriginAtTop,
-                                                const std::array<float, 3>& logicalXYZ,
+                                                const int32_t overlayIndex,
+                                                const PixelLogicalIndex& pixelLogicalIndex,
                                                 std::vector<AString>& columnOneTextOut,
                                                 std::vector<AString>& columnTwoTextOut,
                                                 std::vector<AString>& toolTipTextOut) const override;
@@ -105,35 +112,31 @@ namespace caret {
 
         virtual bool supportsWriting() const override;
         
-        CziImage* getDefaultImage();
+        int32_t getNumberOfScenes() const;
         
-        const CziImage* getDefaultImage() const;
-        
-        CziImage* getImageForTab(const int32_t tabIndex);
-        
-        const CziImage* getImageForTab(const int32_t tabIndex) const;
-
         const CziImage* getImageForDrawingInTab(const int32_t tabIndex,
-                                                const GraphicsObjectToWindowTransform* transform,
-                                                const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode);
+                                                const int32_t overlayIndex,
+                                                const int32_t frameIndex,
+                                                const bool allFramesFlag,
+                                                const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                const int32_t pyramidLayerIndex,
+                                                const GraphicsObjectToWindowTransform* transform);
         
-        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex) const override;
+        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
+                                                                             const int32_t overlayIndex) const override;
 
-        CziImage* loadImageForPyrmaidLayer(const int32_t tabIndex,
-                                           const GraphicsObjectToWindowTransform* transform,
-                                           const int32_t pyramidLayerIndex);
-
-        bool getImagePixelRGBA(const int32_t tabIndex,
-                               const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
-                               const PixelIndex& pixelIndex,
-                               uint8_t pixelRGBAOut[4]) const override;
+        QRectF getFullResolutionLogicalRect() const;
         
-        PixelCoordinate getPixelSizeInMillimeters() const;
+        virtual bool getPixelRGBA(const int32_t tabIndex,
+                                  const int32_t overlayIndex,
+                                  const PixelLogicalIndex& pixelLogicalIndex,
+                                  uint8_t pixelRGBAOut[4]) const override;
         
         void getPyramidLayerRange(int32_t& lowestResolutionPyramidLayerIndexOut,
                                   int32_t& highestResolutionPyramidLayerIndexOut) const;
         
-        int32_t getPyramidLayerIndexForTab(const int32_t tabIndex) const;
+        int32_t getPyramidLayerIndexForTabOverlay(const int32_t tabIndex,
+                                                  const int32_t overlayIndex) const;
         
         void setPyramidLayerIndexForTab(const int32_t tabIndex,
                                    const int32_t pyramidLayerIndex);
@@ -142,29 +145,18 @@ namespace caret {
         
         virtual void receiveEvent(Event* event) override;
         
-        virtual bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
-                                        const bool includeNonlinearFlag,
-                                        std::array<float, 3>& xyzOut) const override;
+        virtual bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
+                                                const bool includeNonlinearFlag,
+                                                std::array<float, 3>& xyzOut) const override;
         
         virtual bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
-                                        const bool includeNonlinearFlag,
-                                        PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
-        
-        bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
-                                        const bool includeNonlinearFlag,
-                                        std::array<float, 3>& xyzOut,
-                                        std::array<float, 3>& debugPixelIndexOut) const;
-        
-        bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
-                                        const bool includeNonlinearFlag,
-                                        PixelIndex& pixelIndexOriginAtTopLeftOut,
-                                        const std::array<float, 3>& debugPixelIndex) const;
-        
+                                                const bool includeNonlinearFlag,
+                                                PixelLogicalIndex& pixelLogicalIndexOut) const override;
         
         virtual bool findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
                                                     const bool includeNonLinearFlag,
                                                     float& signedDistanceToPixelMillimetersOut,
-                                                    PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
+                                                    PixelLogicalIndex& pixelLogicalIndexOut) const override;
         
         void testPixelTransforms(const int32_t pixelIndexStep,
                                  const bool nonLinearFlag,
@@ -172,16 +164,12 @@ namespace caret {
                                  AString& resultsMessageOut,
                                  QImage& imageOut) const;
         
-        virtual bool pixelIndexToImageLogicalXYZ(const PixelIndex& pixelIndexOriginAtTop,
-                                                 std::array<float, 3>& logicalXYZOut) const override;
+        virtual PixelIndex pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const override;
         
-        virtual bool imageLogicalXYZToPixelIndex(const std::array<float, 3>& logicalXYZ,
-                                          PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
+        virtual PixelLogicalIndex pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const override;
+
         // ADD_NEW_METHODS_HERE
 
-          
-          
-          
           
           
     protected: 
@@ -220,6 +208,30 @@ namespace caret {
             float m_zoomLevelFromLowestResolutionImage = 1.0;
         };
         
+        class CziSceneInfo {
+        public:
+            CziSceneInfo(const int32_t sceneIndex,
+                         const QRectF& logicalRectange)
+            : m_sceneIndex(sceneIndex),
+            m_logicalRectangle(logicalRectange) {
+                
+            }
+            
+            void addPyramidLayer(const PyramidLayer& pyramidLayer) {
+                m_pyramidLayers.push_back(pyramidLayer);
+            }
+            
+            int32_t getNumberOfPyramidLayers() const {
+                return m_pyramidLayers.size();
+            }
+            
+            int32_t m_sceneIndex;
+            
+            QRectF m_logicalRectangle;
+            
+            std::vector<PyramidLayer> m_pyramidLayers;
+        };
+        
         class NiftiTransform {
         public:
             mutable std::unique_ptr<VolumeFile> m_niftiFile;
@@ -243,8 +255,8 @@ namespace caret {
         
         class TestTransformResult {
         public:
-            TestTransformResult(const PixelIndex& pixel,
-                                const PixelIndex& pixelTwo,
+            TestTransformResult(const PixelLogicalIndex& pixel,
+                                const PixelLogicalIndex& pixelTwo,
                                 const std::array<float, 3>& xyz,
                                 const int64_t dI,
                                 const int64_t dJ,
@@ -256,24 +268,87 @@ namespace caret {
             m_dJ(dJ),
             m_dIJK(dIJK) { }
 
-            const PixelIndex m_pixel;
-            const PixelIndex m_pixelTwo;
+            const PixelLogicalIndex m_pixel;
+            const PixelLogicalIndex m_pixelTwo;
             const std::array<float, 3> m_xyz;
             const int64_t m_dI;
             const int64_t m_dJ;
             const float m_dIJK;
         };
+
+        class TabOverlayInfo {
+        public:
+            void resetContent() {
+                m_cziImage.reset();
+                m_pyramidLevelChangedFlag = false;
+                m_pyramidLevel = -1;
+                m_logicalRect.setRect(0, 0, 0, 0);
+            }
+            
+            std::unique_ptr<CziImage> m_cziImage;
+            
+            bool m_pyramidLevelChangedFlag = false;
+            
+            int32_t m_pyramidLevel = -1;
+            
+            QRectF m_logicalRect;
+        };
+        
+        bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
+                                        const bool includeNonlinearFlag,
+                                        std::array<float, 3>& xyzOut,
+                                        std::array<float, 3>& debugPixelIndexOut) const;
+
+        bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+                                        const bool includeNonlinearFlag,
+                                        PixelLogicalIndex& pixelLogicalIndex,
+                                        const std::array<float, 3>& debugPixelIndex) const;
+        
+        PixelCoordinate getPixelSizeInMillimeters() const;
+        
+        CziImage* loadImageForPyrmaidLayer(const int32_t tabIndex,
+                                           const int32_t overlayIndex,
+                                           const GraphicsObjectToWindowTransform* transform,
+                                           const int32_t pyramidLayerIndex);
+        
+        CziImage* getImageForTabOverlay(const int32_t tabIndex,
+                                        const int32_t overlayIndex);
+        
+        const CziImage* getImageForTabOverlay(const int32_t tabIndex,
+                                              const int32_t overlayIndex) const;
+        
+        CziImage* getDefaultAllFramesImage();
+        
+        const CziImage* getDefaultAllFramesImage() const;
+        
+        CziImage* getDefaultFrameImage(const int32_t frameIndex);
+        
+        const CziImage* getDefaultFrameImage(const int32_t frameIndex) const;
+        
+        void readDefaultImage();
+        
+        CziImage* readDefaultFrameImage(const int32_t frameIndex);
         
         void closeFile();
         
+        bool isPixelIndexFullResolutionValid(const PixelIndex& pixelIndex) const;
+        
+        CziImage* readFramePyramidLayerFromCziImageFile(const int32_t frameIndex,
+                                                        const int32_t pyramidLayer,
+                                                        const QRectF& logicalRectangleRegionRect,
+                                                        const QRectF& rectangleForReadingRect,
+                                                        AString& errorMessageOut);
+
         CziImage* readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
                                                    const QRectF& logicalRectangleRegionRect,
                                                    const QRectF& rectangleForReadingRect,
                                                    AString& errorMessageOut);
         
         CziImage* readFromCziImageFile(const QRectF& regionOfInterest,
-                                          const int64_t outputImageWidthHeightMaximum,
-                                          AString& errorMessageOut);
+                                       const int64_t outputImageWidthHeightMaximum,
+                                       const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                       const int32_t resolutionChangeModeLevel,
+                                       AString& errorMessageOut);
         
         QImage* createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
                                            AString& errorMessageOut);
@@ -293,11 +368,20 @@ namespace caret {
         
         static int CalcSizeOfPixelOnLayer0(const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo& pyramidInfo);
         
+        void autoTwoModePanZoomResolutionChange(const CziImage* cziImage,
+                                                const int32_t tabIndex,
+                                                const int32_t overlayIndex,
+                                                const int32_t frameIndex,
+                                                const bool allFramesFlag,
+                                                const GraphicsObjectToWindowTransform* transform);
+        
         int32_t autoModeZoomOnlyResolutionChange(const int32_t tabIndex,
+                                                 const int32_t overlayIndex,
                                                  const GraphicsObjectToWindowTransform* transform);
         
         int32_t autoModePanZoomResolutionChange(const CziImage* cziImage,
                                                 const int32_t tabIndex,
+                                                const int32_t overlayIndex,
                                                 const GraphicsObjectToWindowTransform* transform);
 
         QRectF moveAndClipRectangle(const QRectF& rectangleIn);
@@ -306,6 +390,19 @@ namespace caret {
                                     NiftiTransform& transform) const;
         
         const Plane* getImagePlane() const;
+        
+        void resetPrivate();
+        
+        PixelLogicalIndex viewportXyToPixelLogicalIndex(const GraphicsObjectToWindowTransform* transform,
+                                                        const float x,
+                                                        const float y);
+
+        float getIntersectedArea(const QRectF& rectOne,
+                                 const QRectF& rectTwo) const;
+
+        int32_t getPreferencesImageDimension() const;
+        
+        std::array<float, 3> getPreferencesImageBackgroundRGB() const;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
@@ -321,6 +418,8 @@ namespace caret {
         
         std::shared_ptr<libCZI::ISingleChannelPyramidLayerTileAccessor> m_pyramidLayerTileAccessor;
         
+        std::vector<CziSceneInfo> m_cziSceneInfos;
+        
         int32_t m_lowestResolutionPyramidLayerIndex = -1;
         
         int32_t m_highestResolutionPyramidLayerIndex = -1;
@@ -335,9 +434,14 @@ namespace caret {
         
         mutable std::unique_ptr<GiftiMetaData> m_fileMetaData;
         
-        std::unique_ptr<CziImage> m_defaultImage;
+        std::unique_ptr<CziImage> m_defaultAllFramesImage;
+        
+        std::vector<std::unique_ptr<CziImage>> m_defaultFrameImages;
         
         std::array<std::unique_ptr<CziImage>, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_tabCziImages;
+        
+        std::unique_ptr<TabOverlayInfo> m_tabOverlayInfo[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS]
+                                                        [BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
         
         /*
          * While we could reset the image to cause a change that may result in failure
@@ -345,7 +449,6 @@ namespace caret {
          */
         std::array<bool, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_tabCziImagePyramidLevelChanged;
         
-
         /*
          * Logical rectangle of full-resolution image
          */
@@ -354,7 +457,9 @@ namespace caret {
         std::vector<PyramidLayer> m_pyramidLayers;
         
         std::array<int32_t, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_pyramidLayerIndexInTabs;
-                
+             
+        std::unique_ptr<CziImageLoaderAllFrames> m_allFramesCziImageLoader;
+        
         mutable NiftiTransform m_pixelToStereotaxicTransform;
         
         mutable NiftiTransform m_stereotaxicToPixelTransform;
@@ -365,6 +470,9 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        friend class CziImage;
+        friend class CziImageLoaderAllFrames;
+        
     };
     
 #ifdef __CZI_IMAGE_FILE_DECLARE__

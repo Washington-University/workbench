@@ -32,8 +32,6 @@
 #include "SessionManager.h"
 
 using namespace caret;
-
-
     
 /**
  * \class caret::IdentifiedItem
@@ -69,8 +67,8 @@ SceneableInterface()
  *    Number of vertices in surface.
  * @param surfaceVertexIndex
  *    Index of vertex that was identified.
- * @param pixelIndex
- *    Index of pixel.
+ * @param pixelLogicalIndex
+ *   Logical Index of pixel.
  * @param voxelIJK
  *    The voxel IJK indices
  *@param stereotaxicXYZ
@@ -85,7 +83,7 @@ IdentifiedItemUniversal::IdentifiedItemUniversal(const IdentifiedItemUniversalTy
                                                  const StructureEnum::Enum structure,
                                                  const int32_t surfaceNumberOfVertices,
                                                  const int32_t surfaceVertexIndex,
-                                                 const PixelIndex& pixelIndex,
+                                                 const PixelLogicalIndex& pixelLogicalIndex,
                                                  const std::array<int64_t, 3>& voxelIJK,
                                                  const std::array<float, 3>& stereotaxicXYZ,
                                                  const bool stereotaxicXYZValidFlag)
@@ -99,7 +97,7 @@ m_structure(structure),
 m_contralateralStructure(StructureEnum::getContralateralStructure(structure)),
 m_surfaceNumberOfVertices(surfaceNumberOfVertices),
 m_surfaceVertexIndex(surfaceVertexIndex),
-m_pixelIndex(pixelIndex),
+m_pixelLogicalIndex(pixelLogicalIndex),
 m_voxelIJK(voxelIJK),
 m_stereotaxicXYZ(stereotaxicXYZ),
 m_stereotaxicXYZValidFlag(stereotaxicXYZValidFlag)
@@ -129,7 +127,7 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
                                                                const AString& formattedText)
 {
     AString dataFileName;
-    PixelIndex pixelIndex;
+    PixelLogicalIndex pixelLogicalIndex;
     const std::array<float, 3> stereotaxicXYZ { 0.0f, 0.0f, 0.0f };
     const bool stereotaxicXYZValidFlag(false);
     const StructureEnum::Enum structure(StructureEnum::INVALID);
@@ -144,7 +142,7 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
                                                                 structure,
                                                                 surfaceNumberOfVertices,
                                                                 surfaceVertexIndex,
-                                                                pixelIndex,
+                                                                pixelLogicalIndex,
                                                                 voxelIJK,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
@@ -161,7 +159,7 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
  *    Formatted text describing the identified item.
  * @param dataFileName
  *    Name of data file on which identification was performed
- * @param pixelIndex
+ * @param pixelLogicalIndex
  *    The pixel index
  * @param stereotaxicXYZ
  *    Stereotaxic coordinate of vertex
@@ -173,7 +171,7 @@ IdentifiedItemUniversal*
 IdentifiedItemUniversal::newInstanceMediaIdentification(const AString& simpleText,
                                                         const AString& formattedText,
                                                         const AString& dataFileName,
-                                                        const PixelIndex& pixelIndex,
+                                                        const PixelLogicalIndex& pixelLogicalIndex,
                                                         const std::array<float, 3>& stereotaxicXYZ,
                                                         const bool stereotaxicXYZValidFlag)
 {
@@ -189,7 +187,7 @@ IdentifiedItemUniversal::newInstanceMediaIdentification(const AString& simpleTex
                                                                 structure,
                                                                 surfaceNumberOfVertices,
                                                                 surfaceVertexIndex,
-                                                                pixelIndex,
+                                                                pixelLogicalIndex,
                                                                 voxelIJK,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
@@ -234,7 +232,7 @@ IdentifiedItemUniversal::newInstanceSurfaceIdentification(const AString& simpleT
                                                                 structure,
                                                                 surfaceNumberOfVertices,
                                                                 surfaceVertexIndex,
-                                                                PixelIndex(),
+                                                                PixelLogicalIndex(),
                                                                 voxelIJK,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
@@ -274,7 +272,7 @@ IdentifiedItemUniversal::newInstanceVolumeIdentification(const AString& simpleTe
                                                                 structure,
                                                                 surfaceNumberOfVertices,
                                                                 surfaceVertexIndex,
-                                                                PixelIndex(),
+                                                                PixelLogicalIndex(),
                                                                 voxelIJK,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
@@ -383,7 +381,7 @@ IdentifiedItemUniversal::copyHelperIdentifiedItemUniversal(const IdentifiedItemU
     m_contralateralStructure = obj.m_contralateralStructure;
     m_surfaceNumberOfVertices = obj.m_surfaceNumberOfVertices;
     m_surfaceVertexIndex = obj.m_surfaceVertexIndex;
-    m_pixelIndex = obj.m_pixelIndex;
+    m_pixelLogicalIndex = obj.m_pixelLogicalIndex;
     m_voxelIJK = obj.m_voxelIJK;
     m_stereotaxicXYZ = obj.m_stereotaxicXYZ;
     m_stereotaxicXYZValidFlag = obj.m_stereotaxicXYZValidFlag;
@@ -468,7 +466,7 @@ IdentifiedItemUniversal::initializeInstance()
     m_sceneAssistant->add<StructureEnum>("m_contralateralStructure", &m_contralateralStructure);
     m_sceneAssistant->add("m_surfaceNumberOfVertices", &m_surfaceNumberOfVertices);
     m_sceneAssistant->add("m_surfaceVertexIndex", &m_surfaceVertexIndex);
-    m_sceneAssistant->add("m_pixelIndex", "PixelIndex", &m_pixelIndex);
+    m_sceneAssistant->add("m_pixelIndex", "PixelLogicalIndex", &m_pixelLogicalIndex); /* "m_pixelIndex" is compatible with old scenes */
     m_sceneAssistant->addArray("m_voxelIJK", m_voxelIJK.data(), m_voxelIJK.size(), -1);
     m_sceneAssistant->addArray("m_stereotaxicXYZ", m_stereotaxicXYZ.data(), m_stereotaxicXYZ.size(), 0.0);
     m_sceneAssistant->add("m_stereotaxicXYZValidFlag", &m_stereotaxicXYZValidFlag);
@@ -500,7 +498,7 @@ IdentifiedItemUniversal::getToolTip() const
             toolTipText = ("Media File: "
                            + m_dataFileName + "<br>"
                            "Pixel ("
-                           + m_pixelIndex.toString()
+                           + m_pixelLogicalIndex.toString()
                            + ")"
                            + xyzText);
         }
@@ -541,9 +539,9 @@ IdentifiedItemUniversal::isValid() const
             CaretAssert(0);
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA:
-            if (m_pixelIndex.isValid()) {
+            //if (m_pixelLogicalIndex.isValid()) {
                 return true;
-            }
+            //}
             break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
             if ((m_structure != StructureEnum::INVALID)
@@ -663,10 +661,10 @@ IdentifiedItemUniversal::resetUniqueIdentifierGenerator()
 /**
  * @return The pixel index.
  */
-PixelIndex
-IdentifiedItemUniversal::getPixelIndex() const
+PixelLogicalIndex
+IdentifiedItemUniversal::getPixelLogicalIndex() const
 {
-    return m_pixelIndex;
+    return m_pixelLogicalIndex;
 }
 
 /**
@@ -731,7 +729,7 @@ IdentifiedItemUniversal::toString() const
                        + ", m_contralateralStructure=" + StructureEnum::toName(m_contralateralStructure)
                        + ", m_surfaceNumberOfVertices=" + AString::number(m_surfaceNumberOfVertices)
                        + ", m_surfaceVertexIndex=" + AString::number(m_surfaceVertexIndex)
-                       + ", m_pixelIndex=" + m_pixelIndex.toString()
+                       + ", m_pixelLogicalIndex=" + m_pixelLogicalIndex.toString()
                        + ", m_voxelIJK=" + AString::fromNumbers(m_voxelIJK.data(), m_voxelIJK.size(), ", ")
                        + ", m_stereotaxicXYZ=" + AString::fromNumbers(m_stereotaxicXYZ.data(), m_stereotaxicXYZ.size(), ", ")
                        + ", m_stereotaxicXYZValidFlag=" + AString::fromBool(m_stereotaxicXYZValidFlag)

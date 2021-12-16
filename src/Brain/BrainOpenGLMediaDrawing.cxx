@@ -104,42 +104,45 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
     BoundingBox boundingBox;
     
     CaretAssert(mediaOverlaySet);
-    std::vector<MediaFile*> mediaFiles(mediaOverlaySet->getDisplayedMediaFiles());
-    if (mediaFiles.empty()) {
-        return false;
-    }
     
-    for (auto mf : mediaFiles) {
+    std::vector<MediaFile*> displayedMediaFiles;
+    std::vector<int32_t> displayedverlayIndices;
+    mediaOverlaySet->getDisplayedMediaFileAndOverlayIndices(displayedMediaFiles,
+                                                             displayedverlayIndices);
+    const int32_t numberOfFiles(displayedMediaFiles.size());
+    for (int32_t i = 0; i < numberOfFiles; i++) {
+        CaretAssertVectorIndex(displayedMediaFiles, i);
+        MediaFile* mediaFile(displayedMediaFiles[i]);
+        CaretAssertVectorIndex(displayedverlayIndices, i);
+        const int32_t overlayIndex(displayedverlayIndices[i]);
+        
         GraphicsPrimitiveV3fT2f* primitive(NULL);
-        CziImageFile* cziImageFile = mf->castToCziImageFile();
-        const CziImage* cziImage(NULL);
-        ImageFile* imageFile = mf->castToImageFile();
+        CziImageFile* cziImageFile = mediaFile->castToCziImageFile();
+        ImageFile* imageFile = mediaFile->castToImageFile();
         if (imageFile != NULL) {
             /*
              * Image is drawn using a primitive in which
              * the image is a texture
              */
-            primitive = imageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex);
+            primitive = imageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
+                                                                       overlayIndex);
         }
         else  if (cziImageFile != NULL) {
-            cziImage = cziImageFile->getDefaultImage();
-            if (cziImage == NULL) {
-                CaretLogSevere("CZI file has invalid default image: "
-                               + mf->getFileNameNoPath());
-                return false;
-            }
-            primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
+            primitive = cziImageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
+                                                                          overlayIndex);
         }
         else {
             CaretAssertMessage(0, ("Unrecognized file type "
-                                   + DataFileTypeEnum::toName(mf->getDataFileType())
+                                   + DataFileTypeEnum::toName(mediaFile->getDataFileType())
                                    + " for media drawing."));
             return false;
         }
         if (primitive == NULL) {
             CaretLogSevere("Media file has invalid primitive for tab "
                            + AString::number(tabIndex + 1)
-                           + mf->getFileNameNoPath());
+                           + " overlay "
+                           + AString::number(overlayIndex + 1)
+                           + mediaFile->getFileNameNoPath());
             return false;
         }
         
@@ -343,17 +346,17 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
     const int32_t numberOfOverlays = mediaOverlaySet->getNumberOfDisplayedOverlays();
     
     float underlayMediaHeight(-1.0);
-    for (int32_t i = (numberOfOverlays - 1); i >= 0; i--) {
-        MediaOverlay* overlay = mediaOverlaySet->getOverlay(i);
+    for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
+        MediaOverlay* overlay = mediaOverlaySet->getOverlay(iOverlay);
         CaretAssert(overlay);
         
         glPushMatrix();
         
         if (overlay->isEnabled()) {
             MediaFile* mediaFile(NULL);
-            int32_t selectedIndex(-1);
+            int32_t selectedFrameIndex(-1);
             overlay->getSelectionData(mediaFile,
-                                      selectedIndex);
+                                      selectedFrameIndex);
             
             if (mediaFile != NULL) {
                 GraphicsPrimitiveV3fT2f* primitive(NULL);
@@ -366,20 +369,21 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                      * Image is drawn using a primitive in which
                      * the image is a texture
                      */
-                    primitive = imageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex);
+                    primitive = imageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
+                                                                               iOverlay);
                     
                     mediaHeight = imageFile->getHeight();
                 }
                 else  if (cziImageFile != NULL) {
                     const DisplayPropertiesCziImages* dpc(m_fixedPipelineDrawing->m_brain->getDisplayPropertiesCziImages());
                     cziImage = cziImageFile->getImageForDrawingInTab(tabIndex,
-                                                                     transform,
-                                                                     dpc->getResolutionChangeMode(tabIndex));
+                                                                     iOverlay,
+                                                                     selectedFrameIndex,
+                                                                     overlay->isAllCziScenesSelected(),
+                                                                     overlay->getCziResolutionChangeMode(),
+                                                                     overlay->getCziPyramidLayerIndex(),
+                                                                     transform);
                     primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
-                    
-                    BoundingBox boundingBox;
-                    primitive->getVertexBounds(boundingBox);
-                    
                     mediaHeight = cziImageFile->getHeight();
                 }
                 else {
@@ -407,7 +411,11 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                     
                     glPushAttrib(GL_COLOR_BUFFER_BIT);
                     if ( ! selectImageFlag) {
-                       // m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
+                        /*
+                         * Allow blending.  Images may have a border color with alpha of zero
+                         * so that background shows through.
+                         */
+                        BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
                     }
                     
                     /*
@@ -421,12 +429,13 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                     
                     if (selectImageFlag) {
                         processMediaFileSelection(m_browserTabContent->getTabNumber(),
+                                                  iOverlay,
                                                   mediaFile,
                                                   primitive);
                     }
                     
                     /*
-                     * Draw volume identification symbols
+                     * Draw identification symbols
                      */
                     BrainOpenGLIdentificationDrawing idDrawing(m_fixedPipelineDrawing,
                                                                m_fixedPipelineDrawing->m_brain,
@@ -488,6 +497,8 @@ BrainOpenGLMediaDrawing::drawSelectionBox()
  * Process selection in amedia  file
  * @param tabIndex
  *   Index of the tab
+ * @param overlayIndex
+ *   Index of the overlay
  * @param mediaFile
  *    The medai file
  * @param primitive
@@ -495,6 +506,7 @@ BrainOpenGLMediaDrawing::drawSelectionBox()
  */
 void
 BrainOpenGLMediaDrawing::processMediaFileSelection(const int32_t tabIndex,
+                                                   const int32_t overlayIndex,
                                                    MediaFile* mediaFile,
                                                    GraphicsPrimitiveV3fT2f* primitive)
 {
@@ -517,25 +529,24 @@ BrainOpenGLMediaDrawing::processMediaFileSelection(const int32_t tabIndex,
             std::array<float, 3> logicalXYZ;
             xform.inverseTransformPoint(windowXYZ, logicalXYZ.data());
             
-            PixelIndex pixelIndexOriginAtTop;
-            if (mediaFile->imageLogicalXYZToPixelIndex(logicalXYZ,
-                                                       pixelIndexOriginAtTop)) {
+            logicalXYZ[2] = 0.0;
+            PixelLogicalIndex pixelLogicalIndex(logicalXYZ.data());
+            if (mediaFile->isPixelIndexValid(tabIndex,
+                                             overlayIndex,
+                                             pixelLogicalIndex)) {
                 idMedia->setMediaFile(mediaFile);
-                PixelIndex pixelIndexOriginAtBottom(pixelIndexOriginAtTop);
-                pixelIndexOriginAtBottom.setJ(mediaFile->getHeight() - pixelIndexOriginAtTop.getJ() - 1);
-                idMedia->setPixelIndex(pixelIndexOriginAtBottom,
-                                          pixelIndexOriginAtTop);
                 idMedia->setTabIndex(tabIndex);
-                
+                idMedia->setOverlayIndex(overlayIndex);
+                idMedia->setPixelLogicalIndex(pixelLogicalIndex);
                 idMedia->setMediaFile(mediaFile);
                 uint8_t pixelByteRGBA[4] = { 0, 0, 0, 0 };
                 idMedia->setModelXYZ(logicalXYZ.data());
                 idMedia->setScreenXYZ(windowXYZ);
                 idMedia->setScreenDepth(0.0);
-                if (mediaFile->getImagePixelRGBA(tabIndex,
-                                                    ImageFile::IMAGE_DATA_ORIGIN_AT_TOP,
-                                                 pixelIndexOriginAtTop,
-                                                    pixelByteRGBA)) {
+                if (mediaFile->getPixelRGBA(tabIndex,
+                                            overlayIndex,
+                                            pixelLogicalIndex,
+                                            pixelByteRGBA)) {
                     idMedia->setPixelRGBA(pixelByteRGBA);
                 }
             }

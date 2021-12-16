@@ -403,7 +403,7 @@ GraphicsUtilitiesOpenGL::setMaximumTextureDimension(const int32_t widthHeightMax
     if (widthHeightMaximumDimension > 0) {
         s_textureWidthHeightMaximumDimension = widthHeightMaximumDimension;
     }
-    if (depthMaximumDimension) {
+    if (depthMaximumDimension > 0) {
         s_textureDepthMaximumDimension = depthMaximumDimension;
     }
 }

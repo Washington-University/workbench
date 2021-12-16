@@ -21,9 +21,11 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 #include <set>
 
 #include "CaretObject.h"
+#include "CziImageResolutionChangeModeEnum.h"
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "MapYokingGroupEnum.h"
@@ -77,6 +79,20 @@ namespace caret {
         
         void setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup);
         
+        int32_t getCziPyramidLayerIndex() const;
+        
+        void setCziPyramidLayerIndex(const int32_t pyramidLayerIndex);
+        
+        std::array<int32_t, 2> getCziPyramidLayerRange() const;
+        
+        bool isAllCziScenesSelected() const;
+        
+        void setCziAllScenesSelected(const bool selectAll);
+
+        CziImageResolutionChangeModeEnum::Enum getCziResolutionChangeMode() const;
+        
+        void setCziResolutionChangeMode(const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -107,6 +123,12 @@ namespace caret {
         
         /** selected frame index */
         int32_t m_selectedFrameIndex;
+        
+        CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO_PYRAMID;
+        
+        bool m_cziAllScenesSelectedFlag = true;
+        
+        int32_t m_cziPyramidLayerIndex = 1;
         
         /** helps with scene save/restore */
         SceneClassAssistant* m_sceneAssistant;

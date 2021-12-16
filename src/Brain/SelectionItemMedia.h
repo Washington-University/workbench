@@ -24,6 +24,7 @@
 #include <array>
 
 #include "PixelIndex.h"
+#include "PixelLogicalIndex.h"
 #include "SelectionItem.h"
 
 namespace caret {
@@ -45,16 +46,17 @@ namespace caret {
 
         void setMediaFile(MediaFile* mediaFile);
         
-        PixelIndex getPixelIndexOriginAtBottom() const;
+        PixelLogicalIndex getPixelLogicalIndex() const;
         
-        PixelIndex getPixelIndexOriginAtTop() const;
+        void setPixelLogicalIndex(const PixelLogicalIndex& pixelLogicalIndex);
         
-        void setPixelIndex(const PixelIndex& pixelIndexOriginAtBottom,
-                           const PixelIndex& pixelIndexOriginAtTop);
+        int32_t getOverlayIndex() const;
         
         int32_t getTabIndex() const;
         
         bool getStereotaxicXYZ(std::array<float, 3>& stereotaxicXYZOut);
+        
+        void setOverlayIndex(const int32_t tabIndex);
         
         void setTabIndex(const int32_t tabIndex);
         
@@ -75,11 +77,11 @@ namespace caret {
         
         MediaFile* m_mediaFile;
         
-        PixelIndex m_pixelIndexOriginAtBottom;
-        
-        PixelIndex m_pixelIndexOriginAtTop;
+        PixelLogicalIndex m_pixelLogicalIndex;
         
         int32_t m_tabIndex = -1;
+        
+        int32_t m_overlayIndex = -1;
         
         uint8_t m_pixelRGBA[4];
         

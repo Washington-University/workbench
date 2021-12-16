@@ -35,16 +35,36 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Logical Coordinate from the full-resolution image */
+        /**
+         * Logical Coordinate with origin at top left with positive-x
+         * increasing to the right and positive-Y increaing downward.
+         * This is used for a CZI logical coordinate.
+         */
         FULL_RESOLUTION_LOGICAL_TOP_LEFT,
-        /** Full-Resolution image with origin (0, 0) at the bottom  left */
+        /**
+         * Full-Resolution with origin (0, 0) at the top  left
+         * and (w-1, h-1) at the bottom right. (w,h) are the
+         * same as the other "FULL_RESOLUTION" types.
+         */
         FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
-        /** Full-Resolution image with origin (0, 0) at the top  left */
+        /**
+         * Full-Resolution with origin (0, 0) at the bottom  left
+         * and (w-1, h-1) at the top right. (w,h) are the
+         * same as the other "FULL_RESOLUTION" types.
+         */
         FULL_RESOLUTION_PIXEL_TOP_LEFT,
-        /** Pixel coordinate with origin (0,0) at the bottom left */
-        PIXEL_BOTTOM_LEFT,
-        /** Pixel coordinate with origin (0,0) at the top left */
-        PIXEL_TOP_LEFT
+        /**
+         * Pixel coordinate into image data with origin (0,0) at the top left
+         * and (w-1,h-1) at the bottom right.  W/H are the width and height of the
+         * loaded image data.
+         */
+        IMAGE_DATA_PIXEL_BOTTOM_LEFT,
+        /**
+         * Pixel coordinate into image data with origin (0,0) at the bottom left
+         * and (w-1,h-1) at the top right.  W/H are the width and height of the
+         * loaded image data.
+         */
+        IMAGE_DATA_PIXEL_TOP_LEFT
     };
 
 

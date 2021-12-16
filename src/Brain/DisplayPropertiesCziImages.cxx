@@ -43,11 +43,6 @@ using namespace caret;
 DisplayPropertiesCziImages::DisplayPropertiesCziImages()
 : DisplayProperties()
 {
-    m_resolutionChangeMode.fill(CziImageResolutionChangeModeEnum::AUTO);
-    m_sceneAssistant->addArray<CziImageResolutionChangeModeEnum,CziImageResolutionChangeModeEnum::Enum>("m_resolutionChangeMode",
-                                                                                                        m_resolutionChangeMode.data(),
-                                                                                                        m_resolutionChangeMode.size(),
-                                                                                                        CziImageResolutionChangeModeEnum::MANUAL);
 }
 
 /**
@@ -64,7 +59,6 @@ DisplayPropertiesCziImages::~DisplayPropertiesCziImages()
 void 
 DisplayPropertiesCziImages::reset()
 {
-    m_resolutionChangeMode.fill(CziImageResolutionChangeModeEnum::MANUAL);
 }
 
 /**
@@ -88,32 +82,6 @@ void
 DisplayPropertiesCziImages::copyDisplayProperties(const int32_t /*sourceTabIndex*/,
                                                     const int32_t /*targetTabIndex*/)
 {
-}
-
-/**
- * @return Resolution change mode for the given tab
- * @param tabIndex
- *    Index of the tab.
- */
-CziImageResolutionChangeModeEnum::Enum
-DisplayPropertiesCziImages::getResolutionChangeMode(const int32_t tabIndex) const
-{
-    CaretAssertVectorIndex(m_resolutionChangeMode, tabIndex);
-    return m_resolutionChangeMode[tabIndex];
-}
-
-/**
- * Set the overall surface opacity.
- *
- * @param opacity
- *    New value for opacity.
- */
-void
-DisplayPropertiesCziImages::setResolutionChangeMode(const int32_t tabIndex,
-                             const CziImageResolutionChangeModeEnum::Enum changeMode)
-{
-    CaretAssertVectorIndex(m_resolutionChangeMode, tabIndex);
-    m_resolutionChangeMode[tabIndex] = changeMode;
 }
 
 /**

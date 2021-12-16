@@ -56,10 +56,17 @@ MediaOverlay::MediaOverlay()
     m_name = "Overlay ";
     m_enabled = false;
     m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
+    m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO_PYRAMID;
+    m_cziAllScenesSelectedFlag = true;
+    m_cziPyramidLayerIndex = 1;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_opacity", &m_opacity);
     m_sceneAssistant->add("m_enabled", &m_enabled);
+    m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup", &m_mapYokingGroup);
+    m_sceneAssistant->add<CziImageResolutionChangeModeEnum,CziImageResolutionChangeModeEnum::Enum>("m_cziResolutionChangeMode", &m_cziResolutionChangeMode);
+    m_sceneAssistant->add("m_cziAllScenesSelectedFlag", &m_cziAllScenesSelectedFlag);
+    m_sceneAssistant->add("m_cziPyramidLayerIndex", &m_cziPyramidLayerIndex);
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_OVERLAY_VALIDATE);
@@ -126,6 +133,88 @@ MediaOverlay::getName() const
 {
     return m_name;
 }
+
+/**
+ * @return The CZI pyramid layer index
+ */
+int32_t
+MediaOverlay::getCziPyramidLayerIndex() const
+{
+    return m_cziPyramidLayerIndex;
+}
+
+/**
+ * Set the CZI pyramid layer index
+ * @param pyramidLayerIndex
+ *   New pyramid layer index
+ */
+void
+MediaOverlay::setCziPyramidLayerIndex(const int32_t pyramidLayerIndex)
+{
+    m_cziPyramidLayerIndex = pyramidLayerIndex;
+}
+
+/**
+ * @return The valid range of the pyramid layer indices
+ */
+std::array<int32_t, 2>
+MediaOverlay::getCziPyramidLayerRange() const
+{
+    std::array<int32_t, 2> indexRange { 1, 1 };
+    
+    MediaFile* mediaFile(NULL);
+    int32_t frameIndex(-1);
+    const_cast<MediaOverlay*>(this)->getSelectionData(mediaFile, frameIndex);
+    
+    if (mediaFile != NULL) {
+        const CziImageFile* cziFile(mediaFile->castToCziImageFile());
+        cziFile->getPyramidLayerRange(indexRange[0], indexRange[1]);
+    }
+    
+    return indexRange;
+}
+
+
+/**
+ * @return Is all CZI scenes selected
+ */
+bool
+MediaOverlay::isAllCziScenesSelected() const
+{
+    return m_cziAllScenesSelectedFlag;
+}
+
+/**
+ * Set all CZI scenes selected
+ * @param selectAll
+ *    New status
+ */
+void
+MediaOverlay::setCziAllScenesSelected(const bool selectAll)
+{
+    m_cziAllScenesSelectedFlag = selectAll;
+}
+
+/**
+ * @return The CZI resolution change mode
+ */
+CziImageResolutionChangeModeEnum::Enum
+MediaOverlay::getCziResolutionChangeMode() const
+{
+    return m_cziResolutionChangeMode;
+}
+
+/**
+ * Set the CZI resolution change mode
+ * @param resolutionChangeMode
+ *    New change mode
+ */
+void
+MediaOverlay::setCziResolutionChangeMode(const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode)
+{
+    m_cziResolutionChangeMode = resolutionChangeMode;
+}
+
 
 /**
  * Get a description of this object's content.
@@ -208,6 +297,9 @@ MediaOverlay::copyData(const MediaOverlay* overlay)
     m_selectedFile = overlay->m_selectedFile;
     m_selectedFrameIndex = overlay->m_selectedFrameIndex;
     m_mapYokingGroup = overlay->m_mapYokingGroup;
+    m_cziResolutionChangeMode = overlay->m_cziResolutionChangeMode;
+    m_cziAllScenesSelectedFlag = overlay->m_cziAllScenesSelectedFlag;
+    m_cziPyramidLayerIndex = overlay->m_cziPyramidLayerIndex;
 }
 
 /**
@@ -268,9 +360,9 @@ MediaOverlay::getSelectionData(std::vector<MediaFile*>& filesOut,
     selectedFileOut = NULL;
     selectedFrameIndexOut = -1;
     
-//    /**
-//     * Get the data files.
-//     */
+    /**
+     * Get the data files.
+     */
     EventMediaFilesGet mediaFilesEvent;
     EventManager::get()->sendEvent(mediaFilesEvent.getPointer());
     filesOut = mediaFilesEvent.getMediaFiles();

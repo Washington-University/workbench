@@ -23,16 +23,11 @@
 
 #include "BrainBrowserWindowToolBarComponent.h"
 
-class QAction;
-class QRadioButton;
-class QSpinBox;
-
 namespace caret {
 
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class CziImageFile;
-    class EnumComboBoxTemplate;
 
     class BrainBrowserWindowToolBarCziImage : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
@@ -46,13 +41,6 @@ namespace caret {
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
         void receiveEvent(Event* event) override;
-        
-    private slots:
-        void pyramidLayerChanged(int value);
-        
-        void reloadActionTriggered();
-        
-        void resolutionModeComboBoxActivated();
         
     private:
         BrainBrowserWindowToolBarCziImage(const BrainBrowserWindowToolBarCziImage&);
@@ -73,13 +61,7 @@ namespace caret {
         BrainBrowserWindowToolBar* m_parentToolBar;
         
         BrowserTabContent* m_browserTabContent = NULL;
-        
-        QAction* m_reloadAction;
-        
-        QSpinBox* m_pyramidLayerSpinBox;
-        
-        EnumComboBoxTemplate* m_resolutionModeComboBox;
-    };
+};
     
     
 #ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CZI_IMAGE_DECLARE__

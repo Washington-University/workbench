@@ -86,6 +86,7 @@
 #include "OffScreenOpenGLRenderer.h"
 #include "SelectionManager.h"
 #include "SelectionItemAnnotation.h"
+#include "SelectionItemMedia.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxelEditing.h"
 #include "SessionManager.h"
@@ -1810,6 +1811,90 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
 #endif
     
     return annotationID;
+}
+
+/**
+ * Perform identification of only media.  Identification of other
+ * data types is off.
+ *
+ * @param x
+ *    X-coordinate for identification.
+ * @param y
+ *    Y-coordinate for identification.
+ * @return
+ *    A pointer to the meida selection item.  Its
+ *    "isValid()" method may be queried to determine
+ *    if the selected media is valid.
+ */
+SelectionItemMedia*
+BrainOpenGLWidget::performIdentificationMedia(const int x,
+                                                    const int y)
+{
+    const UserInputModeEnum::Enum inputMode = getSelectedInputMode();
+    bool manLayoutFlag(false);
+    switch (inputMode) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            manLayoutFlag = true;
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            break;
+    }
+    
+    const BrainOpenGLViewportContent* idViewport = (manLayoutFlag
+                                                    ? this->getViewportContentManualLayoutWithoutLockAspectAtXY(x, y)
+                                                    : this->getViewportContentAtXY(x, y));
+    
+    this->makeCurrent();
+    CaretLogFine("Performing selection");
+    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
+    idManager->reset();
+    idManager->setAllSelectionsEnabled(false);
+    SelectionItemMedia* mediaID = idManager->getMediaIdentification();
+    mediaID->setEnabledForSelection(true);
+    
+    if (idViewport != NULL) {
+        /*
+         * ID coordinate needs to be relative to the viewport
+         *
+         int vp[4];
+         idViewport->getViewport(vp);
+         const int idX = x - vp[0];
+         const int idY = y - vp[1];
+         */
+        s_singletonOpenGL->selectModel(this->windowIndex,
+                                       inputMode,
+                                       GuiManager::get()->getBrain(),
+                                       m_contextShareGroupPointer,
+                                       idViewport,
+                                       x,
+                                       y,
+                                       true);
+    }
+    
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /*
+     * Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation) so
+     * there is no "back" or "front buffer".  Since
+     * identification is encoded in the framebuffer,
+     * it is necessary to repaint (udpates graphics
+     * immediately) to redraw the models.  Otherwise,
+     * the graphics flash with strange looking drawing.
+     */
+    this->repaintGraphics();
+    this->doneCurrent();
+#else
+    this->repaintGraphics();
+#endif
+    
+    return mediaID;
 }
 
 /**

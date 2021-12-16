@@ -480,6 +480,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_PALETTE_GET_BY_NAME:
         case EventTypeEnum::EVENT_PALETTE_GROUPS_GET:
         case EventTypeEnum::EVENT_RECENT_FILES_SYSTEM_ACCESS_MODE:
+        case EventTypeEnum::EVENT_RESET_VIEW:
         case EventTypeEnum::EVENT_SCENE_ACTIVE:
         case EventTypeEnum::EVENT_SHOW_FILE_DATA_READ_WARNING_DIALOG:
         case EventTypeEnum::EVENT_SPACER_TAB_GET:

@@ -808,14 +808,18 @@ IdentifyBrainordinateDialog::processImagePixelSelection(AString& errorMessage)
             mediaID->reset();
             mediaID->setMediaFile(const_cast<MediaFile*>(mediaFile));
             const int64_t pixelK(0);
-            PixelIndex pixelIndexOriginAtTop(pixelI,
-                                             pixelJ,
-                                             pixelK);
-            PixelIndex pixelIndexOriginAtBottom(pixelI,
-                                                mediaFile->getHeight() - pixelJ - 1,
+//            PixelIndex pixelIndexOriginAtTop(pixelI,
+//                                             pixelJ,
+//                                             pixelK);
+//            PixelIndex pixelIndexOriginAtBottom(pixelI,
+//                                                mediaFile->getHeight() - pixelJ - 1,
+//                                                pixelK);
+//            mediaID->setPixelIndex(pixelIndexOriginAtBottom,
+//                                   pixelIndexOriginAtTop);
+            PixelLogicalIndex pixelLogicalIndex(pixelI,
+                                                pixelJ,
                                                 pixelK);
-            mediaID->setPixelIndex(pixelIndexOriginAtBottom,
-                                   pixelIndexOriginAtTop);
+            mediaID->setPixelLogicalIndex(pixelLogicalIndex);
             selectionItem = mediaID;
         }
         else {

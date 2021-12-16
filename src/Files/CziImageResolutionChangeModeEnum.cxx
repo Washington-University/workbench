@@ -106,12 +106,19 @@ CziImageResolutionChangeModeEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(CziImageResolutionChangeModeEnum(INVALID,
+                                                        "INVALID",
+                                                        "Invalid"));
     enumData.push_back(CziImageResolutionChangeModeEnum(AUTO_OLD,
                                                         "AUTO_OLD",
                                                         "Auto (Old)"));
     
-    enumData.push_back(CziImageResolutionChangeModeEnum(AUTO,
-                                                        "AUTO",
+    enumData.push_back(CziImageResolutionChangeModeEnum(AUTO_PYRAMID,
+                                                        "AUTO_PYRAMID",
+                                                        "Auto Pyramid"));
+    
+    enumData.push_back(CziImageResolutionChangeModeEnum(AUTO2,
+                                                        "AUTO2",
                                                         "Auto"));
     
     enumData.push_back(CziImageResolutionChangeModeEnum(MANUAL,
@@ -168,10 +175,13 @@ CziImageResolutionChangeModeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 CziImageResolutionChangeModeEnum::Enum 
-CziImageResolutionChangeModeEnum::fromName(const AString& name, bool* isValidOut)
+CziImageResolutionChangeModeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
-    
+    AString name(nameIn);
+    if (name == "AUTO") {
+        name = "AUTO_PYRAMID";
+    }
     bool validFlag = false;
     Enum enumValue = CziImageResolutionChangeModeEnum::enumData[0].enumValue;
     
@@ -318,7 +328,9 @@ CziImageResolutionChangeModeEnum::getAllEnums(std::vector<CziImageResolutionChan
     for (std::vector<CziImageResolutionChangeModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allEnums.push_back(iter->enumValue);
+        if (iter->enumValue != INVALID) {
+            allEnums.push_back(iter->enumValue);
+        }
     }
 }
 

@@ -222,6 +222,8 @@ public:
         EVENT_PALETTE_GROUPS_GET,
         /** Get the file system access mode for recent files */
         EVENT_RECENT_FILES_SYSTEM_ACCESS_MODE,
+        /** Issued when reset view is requested */
+        EVENT_RESET_VIEW,
         /** Get the active scene */
         EVENT_SCENE_ACTIVE,
         /** Show a dialog containing warnings encountered when reading data files */

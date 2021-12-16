@@ -218,40 +218,32 @@ MediaFile::castToMediaFile() const
 }
 
 /**
- * Convert pixel index with origin at top left to image coordinate.  For media that does not support
- * imag coordinates, the XY is the same as the pixel index.
- * @param pixelIndexOriginAtTop
- *   Index of pixel.  For images that support multiple resolutions, this pixel index is for the full resolution image.
- * @param xyzOut
- *   Output with the XYZ coordinate.  In most instance Z is unused and will be zero.
- * @return
- *   True if the pixel is a valid pixel index in the image.  If the pixel index is outside the pixel range of the image,
- *   the coordinate is still computed.
+ * @return A pixel index converted from a pixel logical index.
+ * @param pixelLogicalIndex
+ *    The logical pixel index.
  */
-bool
-MediaFile::pixelIndexToImageLogicalXYZ(const PixelIndex& pixelIndexOriginAtTop,
-                                       std::array<float, 3>& logicalXYZOut) const
+PixelIndex
+MediaFile::pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const
 {
-    logicalXYZOut[0] = pixelIndexOriginAtTop.getI();
-    logicalXYZOut[1] = pixelIndexOriginAtTop.getJ();
-    logicalXYZOut[2] = pixelIndexOriginAtTop.getK();
-
-    return (isPixelIndexValid(0, pixelIndexOriginAtTop));
+    PixelIndex pixelIndex(pixelLogicalIndex.getI(),
+                          pixelLogicalIndex.getJ(),
+                          pixelLogicalIndex.getK());
+    
+    return pixelIndex;
 }
 
 /**
- * Convert an image logical XYZ (Z is typically 0 and ignored) to a pixel index.
- * @param xyz
- *    The XYZ image coordinate (2D)
- * @param pixelIndexOriginAtTopLeftOut
- *    Output with the pixel index
- * @return True if the output pixel index is within the range of image pixels.  If not in range,
- *    false is returned but the pixel index is still computed.
+ * @return A pixel logical index converted from a pixel index.
+ * @param pixelIndex
+ *    The  pixel index.
  */
-bool
-MediaFile::imageLogicalXYZToPixelIndex(const std::array<float, 3>& logicalXYZ,
-                                        PixelIndex& pixelIndexOriginAtTopLeftOut) const
+PixelLogicalIndex
+MediaFile::pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const
 {
-    pixelIndexOriginAtTopLeftOut.setIJK(logicalXYZ[0], logicalXYZ[1], logicalXYZ[2]);
-    return (isPixelIndexValid(0, pixelIndexOriginAtTopLeftOut));
+    PixelLogicalIndex pixelLogicalIndex(pixelIndex.getI(),
+                                        pixelIndex.getJ(),
+                                        pixelIndex.getK());
+    
+    return pixelLogicalIndex;
 }
+

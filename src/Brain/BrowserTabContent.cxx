@@ -62,6 +62,7 @@
 #include "EventIdentificationHighlightLocation.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
+#include "EventResetView.h"
 #include "FociFile.h"
 #include "GraphicsRegionSelectionBox.h"
 #include "IdentificationManager.h"
@@ -2866,6 +2867,9 @@ BrowserTabContent::resetView()
     m_mprRotationY = 0.0;
     m_mprRotationZ = 0.0;
     updateYokedModelBrowserTabs();
+    
+    EventResetView resetViewEvent(getTabNumber());
+    EventManager::get()->sendEvent(resetViewEvent.getPointer());
 }
 
 /**
@@ -4903,8 +4907,9 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                         
                         PixelIndex pixel00(0, 0);
                         std::array<float, 3> logicalXYZ;
-                        mediaFile->pixelIndexToImageLogicalXYZ(pixel00,
-                                                               logicalXYZ);
+                        const PixelLogicalIndex pixelLogicalIndex(mediaFile->pixelIndexToPixelLogicalIndex(pixel00));
+                        logicalXYZ[0] = pixelLogicalIndex.getI();
+                        logicalXYZ[1] = pixelLogicalIndex.getJ();
                         
                         /*
                          * Account for origin is now top left logical coordinates.

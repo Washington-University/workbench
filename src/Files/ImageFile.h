@@ -123,28 +123,28 @@ public:
                               const int32_t resizeToWidth,
                               const int32_t resizeToHeight,
                               std::vector<uint8_t>& bytesRGBAOut) const;
-    
-    bool getImagePixelRGBA(const int32_t tabIndex,
-                           const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
-                           const PixelIndex& pixelIndex,
-                           uint8_t pixelRGBAOut[4]) const override;
-    
+        
+    virtual bool getPixelRGBA(const int32_t tabIndex,
+                              const int32_t overlayIndex,
+                              const PixelLogicalIndex& pixelLogicalIndex,
+                              uint8_t pixelRGBAOut[4]) const override;
+
     virtual int32_t getWidth() const override;
     
     virtual int32_t getHeight() const override;
 
-    virtual bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndexOriginAtTop,
+    virtual bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
                                             const bool includeNonlinearFlag,
                                             std::array<float, 3>& xyzOut) const override;
     
     virtual bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
                                             const bool includeNonlinearFlag,
-                                            PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
-
+                                            PixelLogicalIndex& pixelLogicalIndexOut) const override;
+    
     virtual bool findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
                                                 const bool includeNonLinearFlag,
                                                 float& signedDistanceToPixelMillimetersOut,
-                                                PixelIndex& pixelIndexOriginAtTopLeftOut) const override;
+                                                PixelLogicalIndex& pixelLogicalIndexOut) const override;
     
     virtual void readFile(const AString& filename) override;
     
@@ -197,7 +197,8 @@ public:
     VolumeFile* convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
                                     AString& errorMessageOut) const;
 
-    virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex) const override;
+    virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
+                                                                         const int32_t overlayIndex) const override; 
     
 
     ControlPointFile* getControlPointFile();
@@ -215,15 +216,22 @@ public:
     const ImageFile* castToImageFile() const;
     
     virtual bool isPixelIndexValid(const int32_t tabIndex,
-                                   const PixelIndex& pixelIndex) const override;
+                                   const int32_t overlayIndex,
+                                   const PixelIndex& pixelIndexOriginAtTopLeft) const override;
+    
+    virtual bool isPixelIndexValid(const int32_t tabIndex,
+                                   const int32_t overlayIndex,
+                                   const PixelLogicalIndex& pixelLogicalIndex) const override;
+    
+    virtual bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const override;
     
     virtual void getPixelIdentificationText(const int32_t tabIndex,
-                                            const PixelIndex& pixelIndexOriginAtTop,
-                                            const std::array<float, 3>& logicalXYZ,
+                                            const int32_t overlayIndex,
+                                            const PixelLogicalIndex& pixelLogicalIndex,
                                             std::vector<AString>& columnOneTextOut,
                                             std::vector<AString>& columnTwoTextOut,
-                                            std::vector<AString>& toolTipTextOut) const;
-    
+                                            std::vector<AString>& toolTipTextOut) const override;
+
     virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
     
     static void getQtSupportedImageFileExtensions(std::vector<AString>& readableExtensionsOut,

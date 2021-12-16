@@ -317,18 +317,11 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     if (drawingOnMediaFlag) {
                         CaretAssert(mediaFile);
                         if (mediaFile->getFileNameNoPath() == item->getDataFileName()) {
-                            const PixelIndex pixelIndex(item->getPixelIndex());
-                            xyz[0] = pixelIndex.getI();
-                            xyz[1] = pixelIndex.getJ();
+                            const PixelLogicalIndex pixelLogicalIndex(item->getPixelLogicalIndex());
+                            xyz[0] = pixelLogicalIndex.getI();
+                            xyz[1] = pixelLogicalIndex.getJ();
                             xyz[2] = 0.0;
                             drawFlag = true;
-
-                            std::array<float, 3> logicalXYZ;
-                            if (mediaFile->pixelIndexToImageLogicalXYZ(pixelIndex,
-                                                                       logicalXYZ)) {
-                                xyz[0] = logicalXYZ[0];
-                                xyz[1] = logicalXYZ[1];
-                            }
                         }
                         else if (item->isStereotaxicXYZValid()) {
                             /*
@@ -336,17 +329,20 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                              */
                             xyz = item->getStereotaxicXYZ();
                             const bool nonLinearFlag(true);
-                            PixelIndex pixelIndex;
+                            PixelLogicalIndex pixelLogicalIndex;
                             
                             /*
                              * Need to see if xyz is close to media file within some tolerance
                              */
                             float distanceToPixelMM(1.0);
-                            if (mediaFile->findPixelNearestStereotaxicXYZ(xyz, nonLinearFlag, distanceToPixelMM, pixelIndex)) {
-                                if (pixelIndex.isValid()) {
+                            if (mediaFile->findPixelNearestStereotaxicXYZ(xyz,
+                                                                          nonLinearFlag,
+                                                                          distanceToPixelMM,
+                                                                          pixelLogicalIndex)) {
+                                if (mediaFile->isPixelIndexValid(pixelLogicalIndex)) {
                                     if (distanceToPixelMM < maxDistanceMM) {
-                                        xyz[0] = pixelIndex.getI();
-                                        xyz[1] = (mediaHeight - pixelIndex.getJ() - 1);
+                                        xyz[0] = pixelLogicalIndex.getI();
+                                        xyz[1] = (mediaHeight - pixelLogicalIndex.getJ() - 1);
                                         xyz[2] = 0.0;
                                         drawFlag = true;
                                     }
@@ -497,15 +493,16 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                          */
                         float distanceToPixelMM(1.0);
                         const bool nonLinearFlag(true);
-                        PixelIndex pixelIndex;
-                        if (mediaFile->findPixelNearestStereotaxicXYZ(xyz, nonLinearFlag, distanceToPixelMM, pixelIndex)) {
-                            if (pixelIndex.isValid()) {
-                                if (distanceToPixelMM < maxDistanceMM) {
-                                    if (mediaFile->pixelIndexToImageLogicalXYZ(pixelIndex,
-                                                                               xyz)) {
-                                        drawFlag = true;
-                                    }
-                                }
+                        PixelLogicalIndex pixelLogicalIndex;
+                        if (mediaFile->findPixelNearestStereotaxicXYZ(xyz,
+                                                                      nonLinearFlag,
+                                                                      distanceToPixelMM,
+                                                                      pixelLogicalIndex)) {
+                            if (distanceToPixelMM < maxDistanceMM) {
+                                xyz[0] = pixelLogicalIndex.getI();
+                                xyz[1] = pixelLogicalIndex.getJ();
+                                xyz[2] = 0.0;
+                                drawFlag = true;
                             }
                         }
                     }

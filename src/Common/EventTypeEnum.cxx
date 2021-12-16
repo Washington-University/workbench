@@ -431,6 +431,10 @@ EventTypeEnum::initialize()
                                      "EVENT_RECENT_FILES_SYSTEM_ACCESS_MODE",
                                      "Get file system access mode for recent files"));
     
+    enumData.push_back(EventTypeEnum(EVENT_RESET_VIEW,
+                                     "EVENT_RESET_VIEW",
+                                     "Reset the View"));
+    
     enumData.push_back(EventTypeEnum(EVENT_SCENE_ACTIVE,
                                      "EVENT_SCENE_ACTIVE",
                                      "Get/Set the active scene"));

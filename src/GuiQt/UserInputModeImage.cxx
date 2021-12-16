@@ -257,9 +257,13 @@ UserInputModeImage::addControlPoint(SelectionItemMedia* mediaSelection,
     ControlPointFile* controlPointFile = imageFile->getControlPointFile();
     CaretAssert(controlPointFile);
     
-    const PixelIndex pixelIndex(mediaSelection->getPixelIndexOriginAtBottom());
-    const float pixelX = pixelIndex.getI();
-    const float pixelY = pixelIndex.getJ();
+    const PixelLogicalIndex pixelLogicalIndex(mediaSelection->getPixelLogicalIndex());
+    const int64_t imageHeight(imageFile->getHeight());
+    const PixelIndex pixelBottomLeft(pixelLogicalIndex.getI(),
+                                     imageHeight - pixelLogicalIndex.getJ(),
+                                     pixelLogicalIndex.getK());
+    const float pixelX = pixelBottomLeft.getI();
+    const float pixelY = pixelBottomLeft.getJ();
     const float pixelZ = 0.0;
     
     double voxelXYZ[3] = { 0.0, 0.0, 0.0 };

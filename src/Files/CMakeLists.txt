@@ -77,6 +77,8 @@ ConnectivityDataLoaded.h
 ControlPointFile.h
 CziImage.h
 CziImageFile.h
+CziImageLoaderAllFrames.h
+CziImageLoaderBase.h
 CziImageResolutionChangeModeEnum.h
 CziPixelCoordSpaceEnum.h
 CziUtilities.h
@@ -129,6 +131,7 @@ OxfordSparseThreeFile.h
 PaletteFile.h
 PixelCoordinate.h
 PixelIndex.h
+PixelLogicalIndex.h
 RectangleTransform.h
 RgbaFile.h
 RibbonMappingHelper.h
@@ -227,6 +230,8 @@ ConnectivityDataLoaded.cxx
 ControlPointFile.cxx
 CziImage.cxx
 CziImageFile.cxx
+CziImageLoaderAllFrames.cxx
+CziImageLoaderBase.cxx
 CziImageResolutionChangeModeEnum.cxx
 CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
@@ -279,6 +284,7 @@ OxfordSparseThreeFile.cxx
 PaletteFile.cxx
 PixelCoordinate.cxx
 PixelIndex.cxx
+PixelLogicalIndex.cxx
 RectangleTransform.cxx
 RgbaFile.cxx
 RibbonMappingHelper.cxx

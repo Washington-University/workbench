@@ -8392,18 +8392,30 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
             && (pixelY <  originalImageHeight)) {
             idMedia->setMediaFile(imageFile);
             const int64_t pixelZ(0);
-            PixelIndex pixelIndex(pixelX, pixelY, pixelZ);
+//            PixelIndex pixelIndex(pixelX, pixelY, pixelZ);
             PixelIndex pixelIndexOriginTop(pixelX, originalImageHeight - pixelY - 1, pixelZ);
-            idMedia->setPixelIndex(pixelIndex, pixelIndexOriginTop);
+//            idMedia->setPixelIndex(pixelIndex, pixelIndexOriginTop);
+            PixelLogicalIndex pixelLogicalIndex(pixelIndexOriginTop.getI(),
+                                                pixelIndexOriginTop.getJ(),
+                                                pixelIndexOriginTop.getK());
+            idMedia->setPixelLogicalIndex(pixelLogicalIndex);
 
             uint8_t pixelByteRGBA[4];
             const int32_t tabIndex(0); /* no tabs fof ImageFile */
-            if (imageFile->getImagePixelRGBA(tabIndex,
-                                             ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                             pixelIndex,
-                                             pixelByteRGBA)) {
+            const int32_t overlayIndex(0); /* no overlays for ImageFile */
+            if (imageFile->getPixelRGBA(tabIndex,
+                                        overlayIndex,
+                                        pixelLogicalIndex,
+                                        pixelByteRGBA)) {
                 idMedia->setPixelRGBA(pixelByteRGBA);
             }
+//            if (imageFile->getImagePixelRGBA(tabIndex,
+//                                             overlayIndex,
+//                                             ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+//                                             pixelIndex,
+//                                             pixelByteRGBA)) {
+//                idMedia->setPixelRGBA(pixelByteRGBA);
+//            }
         }
     }
     

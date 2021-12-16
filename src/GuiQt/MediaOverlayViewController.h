@@ -83,6 +83,8 @@ namespace caret {
                 
         void opacityDoubleSpinBoxValueChanged(double value);
         
+        void cziAllScenesCheckBoxClicked(bool checked);
+        
         void yokingGroupActivated();
         
         void menuAddOverlayAboveTriggered();
@@ -126,6 +128,8 @@ namespace caret {
         
         const int32_t m_overlayIndex;
         
+        const QString m_parentObjectName;
+        
         MediaOverlay* m_mediaOverlay;
         
         QCheckBox* enabledCheckBox;
@@ -136,12 +140,16 @@ namespace caret {
         
         QSpinBox* m_frameIndexSpinBox;
         
+        QCheckBox* m_cziAllScenesCheckBox;
+        
         QDoubleSpinBox* opacityDoubleSpinBox;
         
         QToolButton* m_constructionToolButton;
         
         QAction* constructionAction;
 
+        QToolButton* m_settingsToolButton;
+        
         QAction* settingsAction;
         
         MapYokingGroupComboBox* m_frameYokingGroupComboBox;
@@ -151,6 +159,7 @@ namespace caret {
         QAction* m_copyPathAndFileNameToClipboardAction;
         
         WuQGridLayoutGroup* gridLayoutGroup;
+        
         
     friend class OverlaySetViewController;
         

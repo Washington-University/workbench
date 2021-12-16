@@ -42,10 +42,6 @@ namespace caret {
         
         void update();
         
-        CziImageResolutionChangeModeEnum::Enum getResolutionChangeMode(const int32_t tabIndex) const;
-        
-        void setResolutionChangeMode(const int32_t tabIndex,
-                                     const CziImageResolutionChangeModeEnum::Enum changeMode);
         virtual void copyDisplayProperties(const int32_t sourceTabIndex,
                                            const int32_t targetTabIndex);
         
@@ -59,8 +55,6 @@ namespace caret {
         DisplayPropertiesCziImages(const DisplayPropertiesCziImages&);
 
         DisplayPropertiesCziImages& operator=(const DisplayPropertiesCziImages&);
-        
-        std::array<CziImageResolutionChangeModeEnum::Enum, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_resolutionChangeMode;
         
     };
     

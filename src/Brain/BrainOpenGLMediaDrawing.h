@@ -80,6 +80,7 @@ namespace caret {
         void drawSelectionBox();
         
         void processMediaFileSelection(const int32_t tabIndex,
+                                       const int32_t overlayIndex,
                                        MediaFile* mediaFile,
                                        GraphicsPrimitiveV3fT2f* primitive);
         
