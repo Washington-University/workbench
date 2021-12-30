@@ -102,3 +102,7 @@ CommandOperation::getCommandLineSwitch() const
     return this->commandLineSwitch;
 }
 
+std::vector<AString> caret::CommandOperation::getCompatibilitySwitches() const
+{
+    return std::vector<AString>();
+}

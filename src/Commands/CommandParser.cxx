@@ -63,6 +63,11 @@ void CommandParser::disableProvenance()
     m_doProvenance = false;
 }
 
+vector<AString> CommandParser::getCompatibilitySwitches() const
+{
+    return m_autoOper->getCompatibilitySwitches();
+}
+
 void CommandParser::executeOperation(ProgramParameters& parameters)
 {
     CaretPointer<OperationParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer

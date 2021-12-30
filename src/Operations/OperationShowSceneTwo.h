@@ -59,6 +59,7 @@ namespace caret {
 
         static bool isShowSceneCommandAvailable();
         
+        static std::vector<AString> getCompatibilitySwitches() { std::vector<AString> ret; ret.push_back("-show-scene-two"); return ret; }
     private:
         class Inputs {
         public:

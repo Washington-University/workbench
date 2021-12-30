@@ -59,6 +59,9 @@ namespace caret {
         
         ///convenience method for checking structures of input files
         static void checkStructureMatch(const CaretDataFile* toCheck, const StructureEnum::Enum& correctStruct, const AString& fileDescrip, const AString& basisDescrip);
+        
+        ///to be able to rename commands without breaking early scripts
+        static std::vector<AString> getCompatibilitySwitches() { return std::vector<AString>(); }
     };
 
     ///interface class for use by operation parsers - used because the above interface has only static methods, so to avoid neededing to instantiate the operation or template the parser code
@@ -70,6 +73,7 @@ namespace caret {
         virtual AString getShortDescription() = 0;
         virtual bool takesParameters() = 0;
         virtual bool lazyFileReading() = 0;
+        virtual std::vector<AString> getCompatibilitySwitches() const = 0;
         virtual ~AutoOperationInterface();
     };
 
@@ -85,6 +89,7 @@ namespace caret {
         AString getShortDescription() { return T::getShortDescription(); }
         bool takesParameters() { return T::takesParameters(); }
         bool lazyFileReading() { return T::lazyFileReading(); }
+        std::vector<AString> getCompatibilitySwitches() const { return T::getCompatibilitySwitches(); }
     };
 
 }

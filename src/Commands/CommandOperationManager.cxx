@@ -463,9 +463,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSceneFileRelocate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetMapNames()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
-    if (OperationShowScene::isShowSceneCommandAvailable()) {
-        this->commandOperations.push_back(new CommandParser(new AutoOperationShowScene()));
-    }
     if (OperationShowSceneTwo::isShowSceneCommandAvailable()) {
         this->commandOperations.push_back(new CommandParser(new AutoOperationShowSceneTwo()));
     }
@@ -514,6 +511,9 @@ CommandOperationManager::CommandOperationManager()
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationCiftiCopyMapping()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationMetricVertexSum()));
+    if (OperationShowScene::isShowSceneCommandAvailable()) {
+        this->deprecatedOperations.push_back(new CommandParser(new AutoOperationShowScene()));
+    }
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationSetMapName()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldResample()));
@@ -668,7 +668,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
         printAllCommandsHelpInfo(myProgramName);
     } else {
         
-        CommandOperation* operation = NULL;
+        CommandOperation* operation = NULL, *compatOperation = NULL; //separate so we can do both in one pass while giving priority on collision
         
         for (uint64_t i = 0; i < numberOfCommands; i++)
         {
@@ -676,6 +676,15 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
             {
                 operation = this->commandOperations[i];
                 break;
+            }
+            for (const AString compatSwitch : this->commandOperations[i]->getCompatibilitySwitches())
+            {
+                if (compatSwitch == commandSwitch)
+                {
+                    CaretAssert(compatOperation == NULL); //try to catch switch collisions in debug builds
+                    compatOperation = this->commandOperations[i];
+                    break; //do NOT break outer loop, we want to give priority to non-compat switches
+                }
             }
         }
         if (operation == NULL)
@@ -687,7 +696,22 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
                     operation = this->deprecatedOperations[i];
                     break;
                 }
+                for (const AString compatSwitch : this->deprecatedOperations[i]->getCompatibilitySwitches())
+                {
+                    if (compatSwitch == commandSwitch)
+                    {
+                        CaretAssert(compatOperation == NULL); //try to catch switch collisions in debug builds
+                        compatOperation = this->deprecatedOperations[i];
+                        break; //do NOT break outer loop, we want to give priority to non-compat switches
+                    }
+                }
             }
+        }
+        if (operation == NULL)
+        {
+            operation = compatOperation; //may also be null, but that is fine
+        } else {
+            CaretAssert(compatOperation == NULL); //try to catch switch collisions in debug builds
         }
         
         if (operation == NULL) {
@@ -964,12 +988,6 @@ CommandOperationManager::printAllCommandsMatching(const AString& partialSwitch)
             
             cmdMap.insert(make_pair(cmdSwitch,
                                         op->getOperationShortDescription()));
-#ifndef NDEBUG
-            const AString helpInfo = op->getHelpInformation("");//TSC: generating help info takes a little processing (populating and walking an OperationParameters tree for each command)
-            if (helpInfo.isEmpty()) {//So, test the same define as for asserts and skip this check in release
-                CaretLogSevere("Command has no help info: " + cmdSwitch);
-            }
-#endif
         }
     }
     if (longestSwitch == -1)//no command found

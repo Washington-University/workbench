@@ -93,7 +93,7 @@ OperationShowScene::getCommandSwitch()
 AString
 OperationShowScene::getShortDescription()
 {
-    return ("OFFSCREEN RENDERING OF SCENE TO AN IMAGE FILE");
+    return ("DEPRECATED: use -scene-capture-image");
 }
 
 /**
@@ -127,7 +127,8 @@ OperationShowScene::getParameters()
     connDbOpt->addStringParameter(1, "Username", "Connectome DB Username");
     connDbOpt->addStringParameter(2, "Password", "Connectome DB Password");
     
-    AString helpText("Render content of browser windows displayed in a scene "
+    AString helpText("DEPRECATED: this command may be removed in a future release, use -scene-capture-image.\n\n"
+                     "Render content of browser windows displayed in a scene "
                      "into image file(s).  The image file name should be "
                      "similar to \"capture.png\".  If there is only one image "
                      "to render, the image name will not change.  If there is "

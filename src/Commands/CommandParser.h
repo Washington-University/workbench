@@ -77,6 +77,7 @@ namespace caret {
         void showParsedOperation(ProgramParameters& parameters);
         AString doCompletion(ProgramParameters& parameters, const bool& useExtGlob);
         AString getHelpInformation(const AString& programName);
+        std::vector<AString> getCompatibilitySwitches() const;
         bool takesParameters();
     };
 

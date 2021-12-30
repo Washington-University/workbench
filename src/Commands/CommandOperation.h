@@ -29,6 +29,8 @@
 
 #include "nifti1.h"
 
+#include <vector>
+
 namespace caret {
 
     class ProgramParameters;
@@ -77,6 +79,8 @@ namespace caret {
         virtual AString getHelpInformation(const AString& programName) = 0;
         
         virtual bool takesParameters();
+        
+        virtual std::vector<AString> getCompatibilitySwitches() const;
         
     private:
         /** Short description listing commands purpose */

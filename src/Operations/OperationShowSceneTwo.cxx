@@ -76,7 +76,7 @@ using namespace caret;
 AString
 OperationShowSceneTwo::getCommandSwitch()
 {
-    return "-show-scene-two";
+    return "-scene-capture-image";
 }
 
 /**
@@ -85,7 +85,7 @@ OperationShowSceneTwo::getCommandSwitch()
 AString
 OperationShowSceneTwo::getShortDescription()
 {
-    return ("OFFSCREEN RENDERING OF SCENE TO AN IMAGE FILE VERSION TWO");
+    return ("OFFSCREEN RENDERING OF SCENE TO AN IMAGE FILE");
 }
 
 enum ParamKeys : int32_t {
@@ -150,7 +150,7 @@ OperationShowSceneTwo::getParameters()
     
     ret->addStringParameter(PARAM_KEY_IMAGE_FILE_NAME,
                             "image-file-name",
-                            ("output image file name.\n"
+                            ("output - image file name\n"
                              "   "
                              + imageExtensionList
                              + "\n\n   "
