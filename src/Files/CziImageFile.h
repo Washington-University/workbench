@@ -50,7 +50,7 @@ class QImage;
 namespace caret {
 
     class CziImage;
-    class CziImageLoaderAllFrames;
+    class CziImageLoaderMultiResolution;
     class GraphicsObjectToWindowTransform;
     class Matrix4x4;
     class RectangleTransform;
@@ -114,14 +114,14 @@ namespace caret {
         
         int32_t getNumberOfScenes() const;
         
-        const CziImage* getImageForDrawingInTab(const int32_t tabIndex,
-                                                const int32_t overlayIndex,
-                                                const int32_t frameIndex,
-                                                const bool allFramesFlag,
-                                                const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
-                                                const int32_t pyramidLayerIndex,
-                                                const GraphicsObjectToWindowTransform* transform);
-        
+        void updateImageForDrawingInTab(const int32_t tabIndex,
+                                        const int32_t overlayIndex,
+                                        const int32_t frameIndex,
+                                        const bool allFramesFlag,
+                                        const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                        const int32_t pyramidLayerIndex,
+                                        const GraphicsObjectToWindowTransform* transform);
+
         virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
                                                                              const int32_t overlayIndex) const override;
 
@@ -190,29 +190,40 @@ namespace caret {
         public:
             PyramidLayer(const int32_t sceneIndex,
                          const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo layerInfo,
-                         const int64_t width,
-                         const int64_t height)
+                         const int64_t pixelWidth,
+                         const int64_t pixelHeight)
             : m_sceneIndex(sceneIndex),
             m_layerInfo(layerInfo),
-            m_width(width),
-            m_height(height) { }
+            m_pixelWidth(pixelWidth),
+            m_pixelHeight(pixelHeight) { }
             
             int32_t m_sceneIndex;
             
             libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo m_layerInfo;
             
-            int64_t m_width = 0;
+            int64_t m_pixelWidth = 0;
             
-            int64_t m_height = 0;
+            int64_t m_pixelHeight = 0;
             
             float m_zoomLevelFromLowestResolutionImage = 1.0;
+            
+            int64_t m_logicalWidthForImageReading = 0.0;
+            
+            int64_t m_logicalHeightForImageReading = 0.0;
+            
         };
         
         class CziSceneInfo {
         public:
-            CziSceneInfo(const int32_t sceneIndex,
+            CziSceneInfo() {
+                
+            }
+            
+            CziSceneInfo(CziImageFile* cziImageFile,
+                         const int32_t sceneIndex,
                          const QRectF& logicalRectange)
-            : m_sceneIndex(sceneIndex),
+            : m_parentCziImageFile(cziImageFile),
+            m_sceneIndex(sceneIndex),
             m_logicalRectangle(logicalRectange) {
                 
             }
@@ -225,11 +236,24 @@ namespace caret {
                 return m_pyramidLayers.size();
             }
             
-            int32_t m_sceneIndex;
+            CziImage* getDefaultImage();
+            
+            const CziImage* getDefaultImage() const {
+                CziSceneInfo* nonConst(const_cast<CziSceneInfo*>(this));
+                return nonConst->getDefaultImage();
+            }
+            
+            CziImageFile* m_parentCziImageFile = NULL;
+            
+            int32_t m_sceneIndex = -1;
             
             QRectF m_logicalRectangle;
             
             std::vector<PyramidLayer> m_pyramidLayers;
+            
+            std::unique_ptr<CziImage> m_defaultImage;
+            
+            bool m_defaultImageErrorFlag = false;
         };
         
         class NiftiTransform {
@@ -325,7 +349,7 @@ namespace caret {
         
         const CziImage* getDefaultFrameImage(const int32_t frameIndex) const;
         
-        void readDefaultImage();
+        CziImage* readDefaultImage();
         
         CziImage* readDefaultFrameImage(const int32_t frameIndex);
         
@@ -358,11 +382,14 @@ namespace caret {
         
         void readMetaData();
         
+        void createAllFramesPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatistics);
+        
         void readPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatistics);
         
         int32_t getPyramidLayerWithMaximumResolution(const int32_t resolution) const;
         
-        void pixelSizeToLogicalSize(const int32_t pyramidLayerIndex,
+        void pixelSizeToLogicalSize(const std::vector<PyramidLayer>& pyramidLayers,
+                                    const int32_t pyramidLayerIndex,
                                     int32_t& widthInOut,
                                     int32_t& heightOut) const;
         
@@ -388,6 +415,8 @@ namespace caret {
         
         void loadNiftiTransformFile(const AString& filename,
                                     NiftiTransform& transform) const;
+        
+        void setLayersZoomFactors(CziSceneInfo& cziSceneInfo);
         
         const Plane* getImagePlane() const;
         
@@ -418,7 +447,9 @@ namespace caret {
         
         std::shared_ptr<libCZI::ISingleChannelPyramidLayerTileAccessor> m_pyramidLayerTileAccessor;
         
-        std::vector<CziSceneInfo> m_cziSceneInfos;
+        CziSceneInfo m_allFramesPyramidInfo;
+        
+        std::vector<CziSceneInfo> m_cziScenePyramidInfos;
         
         int32_t m_lowestResolutionPyramidLayerIndex = -1;
         
@@ -434,7 +465,7 @@ namespace caret {
         
         mutable std::unique_ptr<GiftiMetaData> m_fileMetaData;
         
-        std::unique_ptr<CziImage> m_defaultAllFramesImage;
+        //std::unique_ptr<CziImage> m_defaultAllFramesImage;
         
         std::vector<std::unique_ptr<CziImage>> m_defaultFrameImages;
         
@@ -458,7 +489,8 @@ namespace caret {
         
         std::array<int32_t, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_pyramidLayerIndexInTabs;
              
-        std::unique_ptr<CziImageLoaderAllFrames> m_allFramesCziImageLoader;
+        std::unique_ptr<CziImageLoaderMultiResolution> m_imageLoaderMultiResolution[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS]
+                                                                                   [BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
         
         mutable NiftiTransform m_pixelToStereotaxicTransform;
         
@@ -468,15 +500,17 @@ namespace caret {
         
         mutable bool m_imagePlaneInvalid = false;
         
+        static const int32_t s_allFramesIndex;
+        
         // ADD_NEW_MEMBERS_HERE
 
         friend class CziImage;
-        friend class CziImageLoaderAllFrames;
+        friend class CziImageLoaderMultiResolution;
         
     };
     
 #ifdef __CZI_IMAGE_FILE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const int32_t CziImageFile::s_allFramesIndex = -1;
 #endif // __CZI_IMAGE_FILE_DECLARE__
 
 } // namespace

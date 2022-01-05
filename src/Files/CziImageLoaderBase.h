@@ -27,7 +27,7 @@
 
 #include "CaretObject.h"
 
-
+class QRectF;
 
 namespace caret {
     
@@ -46,18 +46,26 @@ namespace caret {
 
         CziImageLoaderBase& operator=(const CziImageLoaderBase&) = delete;
         
-        virtual void initialize(CziImageFile* cziImageFile) = 0;
+        virtual void initialize(const int32_t tabIndex,
+                                const int32_t overlayIndex,
+                                CziImageFile* cziImageFile) = 0;
 
-        virtual CziImage* loadNewData(const CziImage* cziImage,
-                                      const int32_t tabIndex,
-                                      const int32_t overlayIndex,
-                                      const int32_t frameIndex,
-                                      const bool allFramesFlag,
-                                      const GraphicsObjectToWindowTransform* transform) = 0;
+        virtual void updateImage(const CziImage* cziImage,
+                                 const int32_t frameIndex,
+                                 const bool allFramesFlag,
+                                 const GraphicsObjectToWindowTransform* transform) = 0;
 
+        virtual CziImage* getImage() = 0;
+        
+        virtual const CziImage* getImage() const = 0;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
+        
+    protected:
+        QRectF moveAndClipRectangle(const QRectF& referenceRectangle,
+                                    const QRectF& rectangleToClipIn) const;
         
     private:
         // ADD_NEW_MEMBERS_HERE

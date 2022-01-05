@@ -26,14 +26,12 @@
 #include "CaretAssert.h"
 using namespace caret;
 
-
+#include <QRectF>
     
 /**
  * \class caret::CziImageLoaderBase 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Base class for CZI image loaders.
  * \ingroup Files
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
  */
 
 /**
@@ -62,3 +60,17 @@ CziImageLoaderBase::toString() const
     return "CziImageLoaderBase";
 }
 
+/**
+ * Move and/or clip the rectangle so all of it (or as much as possible) is within
+ * the full resolution logical space.
+ * @param referenceRectangle
+ *    The reference rectangle
+ * @param rectangleToClipIn
+ *    Rectangle that is clipped by the reference rectangle
+ */
+QRectF
+CziImageLoaderBase::moveAndClipRectangle(const QRectF& referenceRectangle,
+                                         const QRectF& rectangleToClipIn) const
+{
+    return rectangleToClipIn;
+}

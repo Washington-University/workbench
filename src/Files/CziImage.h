@@ -165,7 +165,7 @@ namespace caret {
         mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForMediaDrawing;
         
         friend class CziImageFile;
-        friend class CziImageLoaderAllFrames;
+        friend class CziImageLoaderMultiResolution;
 
         // ADD_NEW_MEMBERS_HERE
 

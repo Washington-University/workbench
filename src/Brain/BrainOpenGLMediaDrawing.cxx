@@ -375,15 +375,16 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                     mediaHeight = imageFile->getHeight();
                 }
                 else  if (cziImageFile != NULL) {
-                    const DisplayPropertiesCziImages* dpc(m_fixedPipelineDrawing->m_brain->getDisplayPropertiesCziImages());
-                    cziImage = cziImageFile->getImageForDrawingInTab(tabIndex,
-                                                                     iOverlay,
-                                                                     selectedFrameIndex,
-                                                                     overlay->isAllCziScenesSelected(),
-                                                                     overlay->getCziResolutionChangeMode(),
-                                                                     overlay->getCziPyramidLayerIndex(),
-                                                                     transform);
-                    primitive = cziImage->getGraphicsPrimitiveForMediaDrawing();
+                    //const DisplayPropertiesCziImages* dpc(m_fixedPipelineDrawing->m_brain->getDisplayPropertiesCziImages());
+                    cziImageFile->updateImageForDrawingInTab(tabIndex,
+                                                             iOverlay,
+                                                             selectedFrameIndex,
+                                                             overlay->isAllCziScenesSelected(),
+                                                             overlay->getCziResolutionChangeMode(),
+                                                             overlay->getCziPyramidLayerIndex(),
+                                                             transform);
+                    primitive = cziImageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
+                                                                                  iOverlay);
                     mediaHeight = cziImageFile->getHeight();
                 }
                 else {

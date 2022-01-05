@@ -77,8 +77,8 @@ ConnectivityDataLoaded.h
 ControlPointFile.h
 CziImage.h
 CziImageFile.h
-CziImageLoaderAllFrames.h
 CziImageLoaderBase.h
+CziImageLoaderMultiResolution.h
 CziImageResolutionChangeModeEnum.h
 CziPixelCoordSpaceEnum.h
 CziUtilities.h
@@ -230,8 +230,8 @@ ConnectivityDataLoaded.cxx
 ControlPointFile.cxx
 CziImage.cxx
 CziImageFile.cxx
-CziImageLoaderAllFrames.cxx
 CziImageLoaderBase.cxx
+CziImageLoaderMultiResolution.cxx
 CziImageResolutionChangeModeEnum.cxx
 CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
