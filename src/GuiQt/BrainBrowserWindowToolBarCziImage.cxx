@@ -104,12 +104,10 @@ BrainBrowserWindowToolBarCziImage::getCziImageFile(BrowserTabContent* browserTab
             MediaOverlaySet* mediaOverlaySet = browserTabContent->getMediaOverlaySet();
             MediaOverlay* underlay = mediaOverlaySet->getBottomMostEnabledOverlay();
             if (underlay != NULL) {
-                MediaFile* mediaFile(NULL);
-                int32_t frameIndex(-1);
-                underlay->getSelectionData(mediaFile, frameIndex);
+                const MediaOverlay::SelectionData selectionData(underlay->getSelectionData());
 
-                if (mediaFile != NULL) {
-                    cziImageFile = mediaFile->castToCziImageFile();
+                if (selectionData.m_selectedMediaFile != NULL) {
+                    cziImageFile = selectionData.m_selectedMediaFile->castToCziImageFile();
                 }
             }
         }

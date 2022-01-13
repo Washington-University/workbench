@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "CaretObject.h"
+#include "CziImageResolutionChangeModeEnum.h"
 
 class QRectF;
 
@@ -53,8 +54,12 @@ namespace caret {
         virtual void updateImage(const CziImage* cziImage,
                                  const int32_t frameIndex,
                                  const bool allFramesFlag,
+                                 const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                 const int32_t manualPyramidLayerIndex,
                                  const GraphicsObjectToWindowTransform* transform) = 0;
 
+        virtual void forceImageReloading() = 0;
+        
         virtual CziImage* getImage() = 0;
         
         virtual const CziImage* getImage() const = 0;

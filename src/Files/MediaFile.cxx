@@ -247,3 +247,13 @@ MediaFile::pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const
     return pixelLogicalIndex;
 }
 
+/**
+ * @return Return a rectangle that defines the bounds of the media data
+ */
+QRectF
+MediaFile::getLogicalBoundsRect() const
+{
+    QRectF rect(0, 0, getWidth(), getHeight());
+    return rect;
+}
+

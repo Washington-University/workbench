@@ -38,6 +38,7 @@ class QImage;
 
 namespace caret {
     class CziImageFile;
+    class CziImageLoaderMultiResolution;
     class GraphicsPrimitiveV3fT2f;
     class PixelIndex;
     class RectangleTransform;
@@ -59,12 +60,10 @@ namespace caret {
 
         CziImage& operator=(const CziImage&) = delete;
         
+        bool isEntireImageLoaded() const;
+        
         GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing() const;
         
-        PixelIndex transformPixelIndexToSpace(const PixelIndex& pixelIndex,
-                                              const CziPixelCoordSpaceEnum::Enum fromPixelCoordSpace,
-                                              const CziPixelCoordSpaceEnum::Enum toPixelCoordSpace) const;
-
         void getPixelIdentificationText(const AString& filename,
                                         const PixelLogicalIndex& pixelLogicalIndex,
                                         std::vector<AString>& columnOneTextOut,
@@ -156,11 +155,6 @@ namespace caret {
          * Resolution chnage mode level for this image
          */
         const int32_t m_resolutionChangeModeLevel;
-        
-        /**
-         * This rectangle defines the region of this image in m_fullResolutionPixelsRect
-         */
-        QRectF m_pixelsRegionOfInterestRect;
         
         mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForMediaDrawing;
         

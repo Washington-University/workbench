@@ -50,6 +50,7 @@ class QImage;
 namespace caret {
 
     class CziImage;
+    class CziImageLoaderBase;
     class CziImageLoaderMultiResolution;
     class GraphicsObjectToWindowTransform;
     class Matrix4x4;
@@ -119,29 +120,24 @@ namespace caret {
                                         const int32_t frameIndex,
                                         const bool allFramesFlag,
                                         const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
-                                        const int32_t pyramidLayerIndex,
+                                        const int32_t manualPyramidLayerIndex,
                                         const GraphicsObjectToWindowTransform* transform);
 
         virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
                                                                              const int32_t overlayIndex) const override;
 
-        QRectF getFullResolutionLogicalRect() const;
-        
         virtual bool getPixelRGBA(const int32_t tabIndex,
                                   const int32_t overlayIndex,
                                   const PixelLogicalIndex& pixelLogicalIndex,
                                   uint8_t pixelRGBAOut[4]) const override;
         
-        void getPyramidLayerRange(int32_t& lowestResolutionPyramidLayerIndexOut,
-                                  int32_t& highestResolutionPyramidLayerIndexOut) const;
-        
-        int32_t getPyramidLayerIndexForTabOverlay(const int32_t tabIndex,
-                                                  const int32_t overlayIndex) const;
-        
-        void setPyramidLayerIndexForTab(const int32_t tabIndex,
-                                   const int32_t pyramidLayerIndex);
-        
-        void reloadPyramidLayerInTab(const int32_t tabIndex);
+        void getPyramidLayerRangeForFrame(const int32_t frameIndex,
+                                          const bool allFramesFlag,
+                                          int32_t& lowestPyramidLayerIndexOut,
+                                          int32_t& highestPyramidLayerIndexOut) const;
+
+        void reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
+                                            const int32_t overlayIndex);
         
         virtual void receiveEvent(Event* event) override;
         
@@ -168,6 +164,8 @@ namespace caret {
         
         virtual PixelLogicalIndex pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const override;
 
+        virtual QRectF getLogicalBoundsRect() const override;
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -216,7 +214,9 @@ namespace caret {
         class CziSceneInfo {
         public:
             CziSceneInfo() {
-                
+                m_logicalCenter[0] = 0.0;
+                m_logicalCenter[1] = 0.0;
+                m_logicalCenter[2] = 0.0;
             }
             
             CziSceneInfo(CziImageFile* cziImageFile,
@@ -225,7 +225,10 @@ namespace caret {
             : m_parentCziImageFile(cziImageFile),
             m_sceneIndex(sceneIndex),
             m_logicalRectangle(logicalRectange) {
-                
+                const QPointF center(m_logicalRectangle.center());
+                m_logicalCenter[0] = center.x();
+                m_logicalCenter[1] = center.y();
+                m_logicalCenter[2] = 0.0;
             }
             
             void addPyramidLayer(const PyramidLayer& pyramidLayer) {
@@ -248,6 +251,8 @@ namespace caret {
             int32_t m_sceneIndex = -1;
             
             QRectF m_logicalRectangle;
+            
+            float m_logicalCenter[3];
             
             std::vector<PyramidLayer> m_pyramidLayers;
             
@@ -302,20 +307,28 @@ namespace caret {
 
         class TabOverlayInfo {
         public:
-            void resetContent() {
-                m_cziImage.reset();
-                m_pyramidLevelChangedFlag = false;
-                m_pyramidLevel = -1;
-                m_logicalRect.setRect(0, 0, 0, 0);
-            }
             
-            std::unique_ptr<CziImage> m_cziImage;
+            TabOverlayInfo(CziImageFile* cziImageFile,
+                           const int32_t tabIndex,
+                           const int32_t overlayIndex);
             
-            bool m_pyramidLevelChangedFlag = false;
+            ~TabOverlayInfo();
             
-            int32_t m_pyramidLevel = -1;
+            CziImageLoaderBase* getMultiResolutionImageLoader();
             
-            QRectF m_logicalRect;
+            const CziImageLoaderBase* getMultiResolutionImageLoader() const;
+
+            void resetContent();
+            
+            CziImageFile* m_cziImageFile;
+            
+            const int32_t m_tabIndex;
+            
+            const int32_t m_overlayIndex;
+            
+            CziImageResolutionChangeModeEnum::Enum m_imageResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
+            
+            std::unique_ptr<CziImageLoaderMultiResolution> m_multiResolutionImageLoader;
         };
         
         bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
@@ -330,11 +343,6 @@ namespace caret {
         
         PixelCoordinate getPixelSizeInMillimeters() const;
         
-        CziImage* loadImageForPyrmaidLayer(const int32_t tabIndex,
-                                           const int32_t overlayIndex,
-                                           const GraphicsObjectToWindowTransform* transform,
-                                           const int32_t pyramidLayerIndex);
-        
         CziImage* getImageForTabOverlay(const int32_t tabIndex,
                                         const int32_t overlayIndex);
         
@@ -345,17 +353,17 @@ namespace caret {
         
         const CziImage* getDefaultAllFramesImage() const;
         
-        CziImage* getDefaultFrameImage(const int32_t frameIndex);
-        
-        const CziImage* getDefaultFrameImage(const int32_t frameIndex) const;
-        
         CziImage* readDefaultImage();
         
         CziImage* readDefaultFrameImage(const int32_t frameIndex);
         
         void closeFile();
         
-        bool isPixelIndexFullResolutionValid(const PixelIndex& pixelIndex) const;
+        CziImageLoaderBase* getImageLoaderForTabOverlay(const int32_t tabIndex,
+                                                        const int32_t overlayIndex);
+
+        const CziImageLoaderBase* getImageLoaderForTabOverlay(const int32_t tabIndex,
+                                                              const int32_t overlayIndex) const;
         
         CziImage* readFramePyramidLayerFromCziImageFile(const int32_t frameIndex,
                                                         const int32_t pyramidLayer,
@@ -363,12 +371,10 @@ namespace caret {
                                                         const QRectF& rectangleForReadingRect,
                                                         AString& errorMessageOut);
 
-        CziImage* readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
-                                                   const QRectF& logicalRectangleRegionRect,
-                                                   const QRectF& rectangleForReadingRect,
-                                                   AString& errorMessageOut);
-        
         CziImage* readFromCziImageFile(const QRectF& regionOfInterest,
+                                       const CziImageFile::CziSceneInfo* cziSceneInfo,
+                                       const int32_t pyramidLayerIndex,
+                                       const QRectF& frameRegionOfInterest,
                                        const int64_t outputImageWidthHeightMaximum,
                                        const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
                                        const int32_t resolutionChangeModeLevel,
@@ -386,33 +392,6 @@ namespace caret {
         
         void readPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatistics);
         
-        int32_t getPyramidLayerWithMaximumResolution(const int32_t resolution) const;
-        
-        void pixelSizeToLogicalSize(const std::vector<PyramidLayer>& pyramidLayers,
-                                    const int32_t pyramidLayerIndex,
-                                    int32_t& widthInOut,
-                                    int32_t& heightOut) const;
-        
-        static int CalcSizeOfPixelOnLayer0(const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo& pyramidInfo);
-        
-        void autoTwoModePanZoomResolutionChange(const CziImage* cziImage,
-                                                const int32_t tabIndex,
-                                                const int32_t overlayIndex,
-                                                const int32_t frameIndex,
-                                                const bool allFramesFlag,
-                                                const GraphicsObjectToWindowTransform* transform);
-        
-        int32_t autoModeZoomOnlyResolutionChange(const int32_t tabIndex,
-                                                 const int32_t overlayIndex,
-                                                 const GraphicsObjectToWindowTransform* transform);
-        
-        int32_t autoModePanZoomResolutionChange(const CziImage* cziImage,
-                                                const int32_t tabIndex,
-                                                const int32_t overlayIndex,
-                                                const GraphicsObjectToWindowTransform* transform);
-
-        QRectF moveAndClipRectangle(const QRectF& rectangleIn);
-        
         void loadNiftiTransformFile(const AString& filename,
                                     NiftiTransform& transform) const;
         
@@ -422,16 +401,15 @@ namespace caret {
         
         void resetPrivate();
         
-        PixelLogicalIndex viewportXyToPixelLogicalIndex(const GraphicsObjectToWindowTransform* transform,
-                                                        const float x,
-                                                        const float y);
-
-        float getIntersectedArea(const QRectF& rectOne,
-                                 const QRectF& rectTwo) const;
-
         int32_t getPreferencesImageDimension() const;
         
         std::array<float, 3> getPreferencesImageBackgroundRGB() const;
+        
+        void zoomToMatchPixelDimension(const QRectF& regionOfInterestToRead,
+                                       const QRectF& fullRegionOfInterest,
+                                       const float maximumPixelWidthOrHeight,
+                                       QRectF& regionToReadOut,
+                                       float& zoomOut) const;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
@@ -451,12 +429,6 @@ namespace caret {
         
         std::vector<CziSceneInfo> m_cziScenePyramidInfos;
         
-        int32_t m_lowestResolutionPyramidLayerIndex = -1;
-        
-        int32_t m_highestResolutionPyramidLayerIndex = -1;
-        
-        int32_t m_numberOfPyramidLayers = 0;
-        
         float m_pixelSizeMmX = 1.0f;
         
         float m_pixelSizeMmY = 1.0f;
@@ -465,32 +437,13 @@ namespace caret {
         
         mutable std::unique_ptr<GiftiMetaData> m_fileMetaData;
         
-        //std::unique_ptr<CziImage> m_defaultAllFramesImage;
-        
-        std::vector<std::unique_ptr<CziImage>> m_defaultFrameImages;
-        
-        std::array<std::unique_ptr<CziImage>, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_tabCziImages;
-        
         std::unique_ptr<TabOverlayInfo> m_tabOverlayInfo[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS]
                                                         [BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
-        
-        /*
-         * While we could reset the image to cause a change that may result in failure
-         * to display an image for a frame, so use flag to load new resolution.
-         */
-        std::array<bool, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_tabCziImagePyramidLevelChanged;
         
         /*
          * Logical rectangle of full-resolution image
          */
         QRectF m_fullResolutionLogicalRect;
-        
-        std::vector<PyramidLayer> m_pyramidLayers;
-        
-        std::array<int32_t, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_pyramidLayerIndexInTabs;
-             
-        std::unique_ptr<CziImageLoaderMultiResolution> m_imageLoaderMultiResolution[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS]
-                                                                                   [BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
         
         mutable NiftiTransform m_pixelToStereotaxicTransform;
         

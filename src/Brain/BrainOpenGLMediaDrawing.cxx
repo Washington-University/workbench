@@ -101,7 +101,8 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
     orthoBottomOut = -1.0;
     orthoTopOut    =  1.0;
         
-    BoundingBox boundingBox;
+//    BoundingBox boundingBox;
+    QRectF boundingRect;
     
     CaretAssert(mediaOverlaySet);
     
@@ -116,47 +117,57 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
         CaretAssertVectorIndex(displayedverlayIndices, i);
         const int32_t overlayIndex(displayedverlayIndices[i]);
         
-        GraphicsPrimitiveV3fT2f* primitive(NULL);
-        CziImageFile* cziImageFile = mediaFile->castToCziImageFile();
-        ImageFile* imageFile = mediaFile->castToImageFile();
-        if (imageFile != NULL) {
-            /*
-             * Image is drawn using a primitive in which
-             * the image is a texture
-             */
-            primitive = imageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
-                                                                       overlayIndex);
-        }
-        else  if (cziImageFile != NULL) {
-            primitive = cziImageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
-                                                                          overlayIndex);
+        const QRectF logicalRect(mediaFile->getLogicalBoundsRect());
+        if (i == 0) {
+            boundingRect = logicalRect;
         }
         else {
-            CaretAssertMessage(0, ("Unrecognized file type "
-                                   + DataFileTypeEnum::toName(mediaFile->getDataFileType())
-                                   + " for media drawing."));
-            return false;
-        }
-        if (primitive == NULL) {
-            CaretLogSevere("Media file has invalid primitive for tab "
-                           + AString::number(tabIndex + 1)
-                           + " overlay "
-                           + AString::number(overlayIndex + 1)
-                           + mediaFile->getFileNameNoPath());
-            return false;
+            boundingRect = boundingRect.united(logicalRect);
         }
         
-        BoundingBox primitiveBoundingBox;
-        primitive->getVertexBounds(primitiveBoundingBox);
-        boundingBox.unionOperation(primitiveBoundingBox);
+//        GraphicsPrimitiveV3fT2f* primitive(NULL);
+//        CziImageFile* cziImageFile = mediaFile->castToCziImageFile();
+//        ImageFile* imageFile = mediaFile->castToImageFile();
+//        if (imageFile != NULL) {
+//            /*
+//             * Image is drawn using a primitive in which
+//             * the image is a texture
+//             */
+//            primitive = imageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
+//                                                                       overlayIndex);
+//        }
+//        else  if (cziImageFile != NULL) {
+//            primitive = cziImageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
+//                                                                          overlayIndex);
+//        }
+//        else {
+//            CaretAssertMessage(0, ("Unrecognized file type "
+//                                   + DataFileTypeEnum::toName(mediaFile->getDataFileType())
+//                                   + " for media drawing."));
+//            return false;
+//        }
+//        if (primitive == NULL) {
+//            CaretLogSevere("Media file has invalid primitive for tab "
+//                           + AString::number(tabIndex + 1)
+//                           + " overlay "
+//                           + AString::number(overlayIndex + 1)
+//                           + mediaFile->getFileNameNoPath());
+//            return false;
+//        }
+//
+//        BoundingBox primitiveBoundingBox;
+//        primitive->getVertexBounds(primitiveBoundingBox);
+//        boundingBox.unionOperation(primitiveBoundingBox);
     }
     
     const double viewportWidth(m_viewport[2]);
     const double viewportHeight(m_viewport[3]);
     const double viewportAspectRatio = (viewportHeight
                                         / viewportWidth);
-    const double imageWidth(boundingBox.getDifferenceX());
-    const double imageHeight(boundingBox.getDifferenceY());
+//    const double imageWidth(boundingBox.getDifferenceX());
+//    const double imageHeight(boundingBox.getDifferenceY());
+    const double imageWidth(boundingRect.width());
+    const double imageHeight(boundingRect.height());
     if ((imageWidth < 1.0)
         || (imageHeight < 1.0)) {
         return false;
@@ -193,11 +204,13 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
      * Change ORTHO to fit image with origin at top left
      */
     const float orthoHeight(orthoTopOut - orthoBottomOut);
-    orthoTopOut = boundingBox.getMinY() - topMargin;
+//    orthoTopOut = boundingBox.getMinY() - topMargin;
+    orthoTopOut = boundingRect.top() - topMargin;
     orthoBottomOut = orthoTopOut + orthoHeight;
     
     const float orthoWidth(orthoRightOut - orthoLeftOut);
-    orthoLeftOut = boundingBox.getMinX() - leftMargin;
+//    orthoLeftOut = boundingBox.getMinX() - leftMargin;
+    orthoLeftOut = boundingRect.left() - leftMargin;
     orthoRightOut = orthoLeftOut + orthoWidth;
     
     return true;
@@ -353,16 +366,13 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
         glPushMatrix();
         
         if (overlay->isEnabled()) {
-            MediaFile* mediaFile(NULL);
-            int32_t selectedFrameIndex(-1);
-            overlay->getSelectionData(mediaFile,
-                                      selectedFrameIndex);
+            const MediaOverlay::SelectionData selectionData(overlay->getSelectionData());
             
-            if (mediaFile != NULL) {
+            if (selectionData.m_selectedMediaFile != NULL) {
                 GraphicsPrimitiveV3fT2f* primitive(NULL);
-                CziImageFile* cziImageFile = mediaFile->castToCziImageFile();
+                CziImageFile* cziImageFile = selectionData.m_selectedCziImageFile;
                 const CziImage* cziImage(NULL);
-                ImageFile* imageFile = mediaFile->castToImageFile();
+                ImageFile* imageFile = selectionData.m_selectedMediaFile->castToImageFile();
                 float mediaHeight(-1.0);
                 if (imageFile != NULL) {
                     /*
@@ -378,18 +388,19 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                     //const DisplayPropertiesCziImages* dpc(m_fixedPipelineDrawing->m_brain->getDisplayPropertiesCziImages());
                     cziImageFile->updateImageForDrawingInTab(tabIndex,
                                                              iOverlay,
-                                                             selectedFrameIndex,
-                                                             overlay->isAllCziScenesSelected(),
-                                                             overlay->getCziResolutionChangeMode(),
-                                                             overlay->getCziPyramidLayerIndex(),
+                                                             selectionData.m_selectedFrameIndex,
+                                                             selectionData.m_allFramesSelectedFlag,
+                                                             selectionData.m_cziResolutionChangeMode,
+                                                             selectionData.m_cziManualPyramidLayerIndex,
                                                              transform);
+                    
                     primitive = cziImageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
                                                                                   iOverlay);
                     mediaHeight = cziImageFile->getHeight();
                 }
                 else {
                     CaretAssertMessage(0, ("Unrecognized file type "
-                                           + DataFileTypeEnum::toName(mediaFile->getDataFileType())
+                                           + DataFileTypeEnum::toName(selectionData.m_selectedMediaFile->getDataFileType())
                                            + " for media drawing."));
                 }
                 
@@ -431,7 +442,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                     if (selectImageFlag) {
                         processMediaFileSelection(m_browserTabContent->getTabNumber(),
                                                   iOverlay,
-                                                  mediaFile,
+                                                  selectionData.m_selectedMediaFile,
                                                   primitive);
                     }
                     
@@ -444,7 +455,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                                                                m_fixedPipelineDrawing->mode);
                     const float mediaThickness(2.0f);
                     Plane plane;
-                    idDrawing.drawMediaFileIdentificationSymbols(mediaFile,
+                    idDrawing.drawMediaFileIdentificationSymbols(selectionData.m_selectedMediaFile,
                                                                  plane,
                                                                  mediaThickness,
                                                                  viewportHeight);

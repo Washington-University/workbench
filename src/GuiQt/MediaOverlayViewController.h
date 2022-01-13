@@ -124,6 +124,8 @@ namespace caret {
         
         void updateOverlaySettingsEditor();
         
+        void resetUserView();
+        
         const int32_t browserWindowIndex;
         
         const int32_t m_overlayIndex;

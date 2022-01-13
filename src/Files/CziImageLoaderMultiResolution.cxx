@@ -104,6 +104,10 @@ CziImageLoaderMultiResolution::getImage() const
  *    Index of frame
  * @param allFramesFlag
  *    True if all frames are selected for display
+ * @param resolutionChangeMode
+ *    Mode for changing resolutiln (auto/manual)
+ * @param manualPyramidLayerIndex
+ *    Index of pyramid layer for manual mode
  * @param transform
  *    Transforms from/to viewport and model coordinates
  */
@@ -111,41 +115,78 @@ void
 CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
                                            const int32_t frameIndex,
                                            const bool allFramesFlag,
+                                           const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                           const int32_t manualPyramidLayerIndex,
                                            const GraphicsObjectToWindowTransform* transform)
 {
-    bool reloadImageFlag(false);
+    m_frameChangedFlag = false;
+    m_reloadImageFlag  = false;
+    
     if ((frameIndex != m_previousFrameIndex)
         || (allFramesFlag != m_previousAllFramesFlag)) {
-        reloadImageFlag = true;
-        std::cout << "Reload image due to frame change" << std::endl;
+        m_reloadImageFlag  = true;
+        m_frameChangedFlag = true;
+        if (cziDebugFlag) std::cout << "Reload image due to frame change" << std::endl;
+    }
+    if ((resolutionChangeMode != m_previousResolutionChangeMode)
+        || (manualPyramidLayerIndex != m_previousManualPyramidLayerIndex)) {
+        m_reloadImageFlag = true;
+        if (cziDebugFlag) std::cout << "Reload image due to resolution/pyramid change" << std::endl;
     }
     
     const CziImageFile::CziSceneInfo& cziSceneInfo = (allFramesFlag
                                                    ? m_cziImageFile->m_allFramesPyramidInfo
                                                    : m_cziImageFile->m_cziScenePyramidInfos[frameIndex]);
     
-    /*
-     * Always update zoom layer index
-     */
-    const int32_t zoomLayerIndex = getLayerIndexForCurrentZoom(cziSceneInfo,
-                                                               frameIndex,
-                                                               allFramesFlag,
-                                                               transform);
-    if (zoomLayerIndex != m_previousZoomLayerIndex) {
-        reloadImageFlag = true;
-        std::cout << "Reload image due to zoom resolution change index=" << zoomLayerIndex << std::endl;
+    int32_t zoomLayerIndex(0);
+    switch (resolutionChangeMode) {
+        case CziImageResolutionChangeModeEnum::INVALID:
+            CaretAssert(0);
+            break;
+        case CziImageResolutionChangeModeEnum::AUTO2:
+            zoomLayerIndex = getLayerIndexForCurrentZoom(cziSceneInfo,
+                                                         frameIndex,
+                                                         allFramesFlag,
+                                                         transform);
+            break;
+        case CziImageResolutionChangeModeEnum::MANUAL2:
+            zoomLayerIndex = manualPyramidLayerIndex;
+            break;
+    }
+    
+    if (m_frameChangedFlag) {
+        /*
+         * Reset to full view of frame
+         */
+        zoomLayerIndex = 0;
+    }
+
+    if ( ! m_reloadImageFlag) {
+        if (zoomLayerIndex != m_previousZoomLayerIndex) {
+            m_reloadImageFlag = true;
+            if (cziDebugFlag) std::cout << "Reload image due to zoom resolution change index=" << zoomLayerIndex << std::endl;
+        }
     }
     m_previousZoomLayerIndex = zoomLayerIndex;
 
-    if ( ! reloadImageFlag) {
-        reloadImageFlag = isReloadForPanning(cziImage,
-                                             transform);
-        if (reloadImageFlag) {
-            std::cout << "Reload image due to panning" << std::endl;
+    if ( ! m_reloadImageFlag) {
+        switch (resolutionChangeMode) {
+            case CziImageResolutionChangeModeEnum::INVALID:
+                CaretAssert(0);
+                break;
+            case CziImageResolutionChangeModeEnum::AUTO2:
+                m_reloadImageFlag = isReloadForPanZoom(cziImage,
+                                                       transform);
+                if (m_reloadImageFlag) {
+                    if (cziDebugFlag) std::cout << "Reload image due to panning/zooming" << std::endl;
+                }
+                break;
+            case CziImageResolutionChangeModeEnum::MANUAL2:
+                break;
         }
     }
     
-    if (reloadImageFlag) {
+    if (m_reloadImageFlag) {
         CziImage* newImage(loadImageForPyrmaidLayer(cziImage,
                                                     cziSceneInfo,
                                                     transform,
@@ -159,8 +200,22 @@ CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
             m_cziImage.reset();
         }
     }
-    m_previousFrameIndex    = frameIndex;
-    m_previousAllFramesFlag = allFramesFlag;
+    m_previousFrameIndex              = frameIndex;
+    m_previousAllFramesFlag           = allFramesFlag;
+    m_previousResolutionChangeMode    = resolutionChangeMode;
+    m_previousManualPyramidLayerIndex = manualPyramidLayerIndex;
+    m_reloadImageFlag                 = false;
+    m_frameChangedFlag                = false;
+}
+
+/**
+ * Force reloading of the image
+ */
+void
+CziImageLoaderMultiResolution::forceImageReloading()
+{
+    m_cziImage.reset();
+    m_reloadImageFlag = true;
 }
 
 /**
@@ -185,14 +240,14 @@ CziImageLoaderMultiResolution::getLayerIndexForCurrentZoom(const CziImageFile::C
      * The size of the image, in pixels when drawn, determines when to switch to
      * lower or higher resolution image.
      */
-    const float imageBottomLeftPixel[3] { 0.0, static_cast<float>(m_cziImageFile->m_fullResolutionLogicalRect.height()), 0.0 };
+    const float imageBottomLeftPixel[3] { 0.0, static_cast<float>(cziSceneInfo.m_logicalRectangle.height()), 0.0 };
     const float imageTopLeftPixel[3] { 0.0, 0.0, 0.0 };
     float imageBottomLeftWindow[3];
     float imageTopLeftWindow[3];
     transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
     transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
     const float drawnPixelHeight = imageTopLeftWindow[1] - imageBottomLeftWindow[1];
-    //std::cout << "Drawn pixel height: " << drawnPixelHeight << std::endl;
+    if (cziDebugFlag) std::cout << "Drawn pixel height: " << drawnPixelHeight << std::endl;
     
     const int32_t numberOfPyramidLayers(cziSceneInfo.getNumberOfPyramidLayers());
     layerIndex = (numberOfPyramidLayers - 1);
@@ -208,16 +263,13 @@ CziImageLoaderMultiResolution::getLayerIndexForCurrentZoom(const CziImageFile::C
 }
 
 /**
- * @return Does new image data need to be loaded due to panning?
+ * @return Logical rectangle of viewport
  * @param transform
  *    Transforms from/to viewport and model coordinates
  */
-bool
-CziImageLoaderMultiResolution::isReloadForPanning(const CziImage* cziImage,
-                                                  const GraphicsObjectToWindowTransform* transform) const
+QRectF
+CziImageLoaderMultiResolution::getViewportLogicalCoordinates(const GraphicsObjectToWindowTransform* transform) const
 {
-    bool reloadFlag(false);
-    
     /*
      * After getting the viewport enlarge it a little bit.
      * When the user pans the image, this will cause new image data
@@ -242,111 +294,105 @@ CziImageLoaderMultiResolution::isReloadForPanning(const CziImage* cziImage,
      * Window coordinate at Top Left Corner of Viewport
      * 'inverseTransformPoint()' transforms from window coordinates to the ortho's pixel index with
      * origin at bottom left.
-     * 'transformPixelIndexToSpace' transforms pixel index to CZI 'logical coordinates'
      */
     float viewportTopLeftWindowCoordinate[3];
     transform->inverseTransformPoint(viewport.x(),
                                      viewport.y() + viewport.height(),
                                      0.0,
                                      viewportTopLeftWindowCoordinate);
-    const PixelLogicalIndex windowLogicalTopLeft(viewportTopLeftWindowCoordinate);
+    const PixelLogicalIndex viewportLogicalTopLeft(viewportTopLeftWindowCoordinate);
     
     /*
      * Bottom Right Corner of Window
      * 'inverseTransformPoint()' transforms from window coordinates to the ortho's pixel index with
      * origin at bottom left.
-     * 'transformPixelIndexToSpace' transforms pixel index to CZI 'logical coordinates'
      */
     float viewportBottomRightWindowCoordinate[3];
     transform->inverseTransformPoint(viewport.x() + viewport.width(),
                                      viewport.y(),
                                      0.0,
                                      viewportBottomRightWindowCoordinate);
-    const PixelLogicalIndex windowLogicalBottomRight(viewportBottomRightWindowCoordinate);
+    const PixelLogicalIndex viewportLogicalBottomRight(viewportBottomRightWindowCoordinate);
     /*
      * CZI Logical coordinates of viewport (portion of CZI image that fills the viewport)
      */
-    const QRectF viewportFullResLogicalRect(windowLogicalTopLeft.getI(),
-                                            windowLogicalTopLeft.getJ(),
-                                            windowLogicalBottomRight.getI() - windowLogicalTopLeft.getI(),
-                                            windowLogicalBottomRight.getJ() - windowLogicalTopLeft.getJ());
-    if (cziDebugFlag) {
-        std::cout << "Pixel Logical Index Top Left (origin top left): " << windowLogicalTopLeft.toString() << std::endl;
+    const QRectF viewportFullResLogicalRect(viewportLogicalTopLeft.getI(),
+                                            viewportLogicalTopLeft.getJ(),
+                                            viewportLogicalBottomRight.getI() - viewportLogicalTopLeft.getI(),
+                                            viewportLogicalBottomRight.getJ() - viewportLogicalTopLeft.getJ());
 
-        std::cout << "Pixel Logical Index Bottom Right (origin top left): " << windowLogicalBottomRight.toString() << std::endl;
+    return viewportFullResLogicalRect;
+}
 
-        std::cout << "Window Logical Rect: " << CziUtilities::qRectToString(viewportFullResLogicalRect) << std::endl;
-        std::cout << "Full Res Logical Rect: " << CziUtilities::qRectToString(m_cziImageFile->m_fullResolutionLogicalRect) << std::endl;
-        std::cout << "Image Logical Rect: " << CziUtilities::qRectToString(cziImage->m_imageDataLogicalRect) << std::endl;
-        
-        const QRectF imageIntersectWindowRect(viewportFullResLogicalRect.intersected(cziImage->m_imageDataLogicalRect));
-        const float imageInWindowArea(imageIntersectWindowRect.width() * imageIntersectWindowRect.height());
-        const float imageArea(cziImage->m_imageDataLogicalRect.width()* cziImage->m_imageDataLogicalRect.height());
-        const float viewedPercentage((imageArea > 0.0f)
-                                     ? (imageInWindowArea / imageArea)
-                                     : imageArea);
-        std::cout << "Image Viewed Percentage: " << viewedPercentage << std::endl;
+/**
+ * @return Does new image data need to be loaded due to panning?
+ * @param cziImage
+ *    Image currently displayed
+ * @param transform
+ *    Transforms from/to viewport and model coordinates
+ */
+bool
+CziImageLoaderMultiResolution::isReloadForPanZoom(const CziImage* cziImage,
+                                                  const GraphicsObjectToWindowTransform* transform) const
+{
+    CaretAssert(cziImage);
+    CaretAssert(transform);
+    
+    /*
+     * Logical rectangle of viewport
+     */
+    const QRectF viewportLogicalRect(getViewportLogicalCoordinates(transform));
+    
+    /*
+     * If no part of full image bounds overlaps viewport, then exit
+     */
+    if ( ! viewportLogicalRect.intersects(cziImage->m_fullResolutionLogicalRect)) {
+        if (cziDebugFlag) std::cout << "Pan/Zoom Test Reject: Image data does not intersect viewport" << std::endl;
+        return false;
     }
     
     /*
-     * (1) Find intersection of currently loaded image region with the viewport region
-     * (2) Find amount of viewport that overlaps the current image region
+     * If all of the image data is loaded, then cannot load anymore data
      */
-    const QRectF viewportIntersectImageRect(cziImage->m_imageDataLogicalRect.intersected(viewportFullResLogicalRect));
-    const float viewportInImageArea(viewportIntersectImageRect.width() * viewportIntersectImageRect.height());
-    const float viewportArea(viewportFullResLogicalRect.width() * viewportFullResLogicalRect.height());
-    const float viewportRoiPercentage((viewportArea > 0.0f)
-                                      ? (viewportInImageArea / viewportArea)
-                                      : viewportArea);
-    if (cziDebugFlag) {
-        std::cout << "Window Image Percentage: " << viewportRoiPercentage << std::endl;
+    if (cziImage->isEntireImageLoaded()) {
+        if (cziDebugFlag) std::cout << "Pan/Zoom Test Reject: All possible image data is loaded" << std::endl;
+        return false;
     }
     
     /*
-     * (1) Find intersection of full resolution image region with the viewport region
-     * (2) Find amount of viewport that overlaps the full image region
+     * If current image contains viewport, do not need to load data
      */
-    const QRectF viewportIntersectFullImageRect(m_cziImageFile->m_fullResolutionLogicalRect.intersected(viewportFullResLogicalRect));
-    const float viewportInFullResImageArea(viewportIntersectFullImageRect.width() * viewportIntersectFullImageRect.height());
-    const float viewportFullResPercentage(viewportArea
-                                          ? (viewportInFullResImageArea / viewportArea)
-                                          : viewportArea);
-    if (cziDebugFlag) {
-        std::cout << "Window Full Res Image Percentage: " << viewportFullResPercentage << std::endl;
+    if (cziImage->m_imageDataLogicalRect.contains(viewportLogicalRect)) {
+        if (cziDebugFlag) std::cout << "Pan/Zoom test Reject: Loaded image data overlaps viewport" << std::endl;
+        return false;
     }
     
-    if (viewportFullResPercentage > 0.0) {
-        /*
-         * Get ratio of current image ROI and viewport full res image
-         * When less that one, the current image has been panned so
-         * that there is a gap on a side (or sides) of the viewport
-         * that can be filled by loading new image data
-         */
-        const float ratio(viewportRoiPercentage / viewportFullResPercentage);
-        if (cziDebugFlag) {
-            std::cout << "Viewed vs Available Percentage: " << ratio << std::endl;
-        }
-        
-        /*
-         * If parts of the viewport do not contain image data but
-         * there is image data available, reload image data to
-         * cover the entire viewport.
-         */
-        const float reloadThreshold(0.99);
-        if (ratio < reloadThreshold) {
-            /*
-             * Cause reloading of image data which should fill the window
-             */
-            if (cziDebugFlag) {
-                std::cout << "...Reloading Image Data" << std::endl;
-            }
-            reloadFlag = true;
-        }
+    /*
+     * Region of full image that overlaps viewport
+     */
+    const float fullImageIntersectionArea(CziUtilities::intersectionArea(cziImage->m_fullResolutionLogicalRect,
+                                                                         viewportLogicalRect));
+
+    /*
+     * Region of image loaded that overlaps viewport
+     */
+    const float loadedImageIntersetionArea(CziUtilities::intersectionArea(cziImage->m_imageDataLogicalRect,
+                                                                          viewportLogicalRect));
+    
+    /*
+     * No additional image data can be loaded that is within the viewport ?
+     */
+    if (loadedImageIntersetionArea >= fullImageIntersectionArea) {
+        if (cziDebugFlag) std::cout << "Pan/Zoom Test Reject: No additional image data is available that overlaps viewport" << std::endl;
+        return false;
     }
-    if (cziDebugFlag) {
-        std::cout << std::endl;
-    }
-    return reloadFlag;
+    
+    /*
+     * If we are here, additional image data can be loaded that is within the viewport
+     */
+    if (cziDebugFlag) std::cout << "Pan/Zoom Test Accept: Need to load image data" << std::endl;
+    
+    return true;
 }
 
 /**
@@ -388,98 +434,64 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
     CaretAssertVectorIndex(allPyramidLayers, pyramidLayerIndex);
     const auto& pyramidLayer = allPyramidLayers[pyramidLayerIndex];
     
-    CziImage* cziImageOut(NULL);
     
-    std::array<float,4> viewport(transform->getViewport());
-    if ((viewport[2] <= 0)
-        || (viewport[3] <= 0)) {
-        CaretLogSevere("Viewport is invalid: "
-                       + AString::fromNumbers(viewport.data(), 4, ", ")
-                       + " for pyramid layer "
-                       + AString::number(pyramidLayerIndex));
+    
+    /*
+     * Intersection of viewport and image data
+     */
+    const QRectF viewportRect(getViewportLogicalCoordinates(transform));
+    if ( ! viewportRect.intersects(cziSceneInfo.m_logicalRectangle)) {
+        std::cout << "Image does not overlap viewport " << std::endl;
         return NULL;
     }
-    const float vpCenterXYZ[3] {
-        viewport[0] + (viewport[2] / 2.0f),
-        viewport[1] + (viewport[3] / 2.0f),
-        0.0
-    };
-    float modelXYZ[3];
-    transform->inverseTransformPoint(vpCenterXYZ, modelXYZ);
-    
-    float modelXYZ2[3];
-    GraphicsUtilitiesOpenGL::unproject(vpCenterXYZ[0], vpCenterXYZ[1], modelXYZ2);
-    //    std::cout << "Model XYZ: " << AString::fromNumbers(modelXYZ, 3, "f") << std::endl;
-    //    std::cout << "   Model 2 XYZ: " << AString::fromNumbers(modelXYZ2, 3, "f") << std::endl;
-    
-    CaretAssert(oldCziImage);
-    
-    const PixelLogicalIndex centerLogicalPixelIndex(modelXYZ[0], modelXYZ[1], 0.0f);
-    
-    const int32_t maxLogicalWidthHeight(std::max(pyramidLayer.m_logicalWidthForImageReading,
-                                                 pyramidLayer.m_logicalHeightForImageReading));
-    const int32_t halfLogicalWidthHeight(maxLogicalWidthHeight / 2);
-    
-    QRectF logicalRegion(centerLogicalPixelIndex.getI() - halfLogicalWidthHeight,
-                         centerLogicalPixelIndex.getJ() - halfLogicalWidthHeight,
-                         maxLogicalWidthHeight,
-                         maxLogicalWidthHeight);
-    std::cout << "Load logical region: " << CziUtilities::qRectToString(logicalRegion) << std::endl;
+    QRectF rectToLoad(viewportRect.intersected(cziSceneInfo.m_logicalRectangle));
+    CaretAssert(rectToLoad.isValid());
 
     /*
-     * Limit region for reading to valid area of image
+     * Expand the region for loading so that it is bigger than the viewport
+     * and it will prevent reloading when the image is panned by a small amount.
      */
-    if (cziSceneInfo.m_logicalRectangle.intersects(logicalRegion)) {
-        logicalRegion = cziSceneInfo.m_logicalRectangle.intersected(logicalRegion);
-    }
-    else {
-        CaretLogSevere("Loading Pyramid level="
-                       + AString::number(pyramidLayerIndex)
-                       + " for rectangle="
-                       + CziUtilities::qRectToString(logicalRegion)
-                       + " for file "
-                       + m_cziImageFile->getFileNameNoPath()
-                       + " does not overlap the full resolution rectangle="
-                       + CziUtilities::qRectToString(cziSceneInfo.m_logicalRectangle));
-        return NULL;
-    }
-
-    /*
-     * May need to move or clip to stay in the logical space
-     */
-    QRectF adjustedRect = moveAndClipRectangle(cziSceneInfo.m_logicalRectangle,
-                                                logicalRegion);
-    std::cout << "Clipped logical region: " << CziUtilities::qRectToString(adjustedRect) << std::endl;
-
+    const float percentageToExpend(20.0);
+    rectToLoad = CziUtilities::expandByPercentage(rectToLoad,
+                                                  percentageToExpend);
+    rectToLoad = rectToLoad.intersected(cziSceneInfo.m_logicalRectangle);
+ 
     /*
      * If the region has not changed, do not need to load data
      */
-    if (oldCziImage->m_imageDataLogicalRect == adjustedRect) {
-        return NULL;
+    if (oldCziImage->m_imageDataLogicalRect == rectToLoad) {
+        /*
+         * Continue using image
+         */
+        return const_cast<CziImage*>(oldCziImage);
     }
     
     AString errorMessage;
-    cziImageOut = m_cziImageFile->readFromCziImageFile(adjustedRect,
-                                                       m_cziImageFile->getPreferencesImageDimension(),
-                                                       CziImageResolutionChangeModeEnum::AUTO2,
-                                                       pyramidLayerIndex,
-                                                       errorMessage);
-    
+    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(rectToLoad,
+                                                                 &cziSceneInfo,
+                                                                 pyramidLayerIndex,
+                                                                 cziSceneInfo.m_logicalRectangle,
+                                                                 m_cziImageFile->getPreferencesImageDimension(),
+                                                                 CziImageResolutionChangeModeEnum::AUTO2,
+                                                                 pyramidLayerIndex,
+                                                                 errorMessage);
+
     if (cziImageOut == NULL) {
         CaretLogSevere("Loading Pyramid level="
                        + AString::number(pyramidLayerIndex)
                        + " for frame(scene) index="
                        + cziSceneInfo.m_sceneIndex
                        + " for rectangle="
-                       + CziUtilities::qRectToString(adjustedRect)
+                       + CziUtilities::qRectToString(rectToLoad)
                        + " for file "
                        + m_cziImageFile->getFileNameNoPath()
                        + " error: "
                        + errorMessage);
     }
     else {
-        std::cout << "Image Pixels width=" << cziImageOut->getWidth() << ", " << cziImageOut->getHeight() << std::endl;
+        if (cziDebugFlag) std::cout << "Image Pixels width=" << cziImageOut->getWidth() << ", " << cziImageOut->getHeight() << std::endl;
     }
-
+    
     return cziImageOut;
 }
+

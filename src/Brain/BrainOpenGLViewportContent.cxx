@@ -1377,19 +1377,19 @@ BrainOpenGLViewportContent::getTranslationFactors(float& customViewStepValueOut,
         MediaOverlaySet* overlaySet = tabContent->getMediaOverlaySet();
         CaretAssert(overlaySet);
         MediaOverlay* underlay = overlaySet->getBottomMostEnabledOverlay();
-        MediaFile* mediaFile(NULL);
-        int32_t frameIndex(0);
-        underlay->getSelectionData(mediaFile, frameIndex);
-        if (mediaFile != NULL) {
-            const float height(mediaFile->getHeight());
-            if (height > 0.0) {
-                int32_t viewport[4];
-                getModelViewport(viewport);
-                const float viewportHeight(viewport[3]);
-                if (viewportHeight > 0.0) {
-                    const float factor(height / viewportHeight);
-                    mousePanningFactorOut = factor * 0.5;
-                    customViewStepValueOut = factor;
+        if (underlay != NULL) {
+            const MediaOverlay::SelectionData selectionData(underlay->getSelectionData());
+            if (selectionData.m_selectedMediaFile != NULL) {
+                const float height(selectionData.m_selectedMediaFile->getHeight());
+                if (height > 0.0) {
+                    int32_t viewport[4];
+                    getModelViewport(viewport);
+                    const float viewportHeight(viewport[3]);
+                    if (viewportHeight > 0.0) {
+                        const float factor(height / viewportHeight);
+                        mousePanningFactorOut = factor * 0.5;
+                        customViewStepValueOut = factor;
+                    }
                 }
             }
         }

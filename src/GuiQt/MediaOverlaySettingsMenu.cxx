@@ -29,6 +29,7 @@
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
+#include "CziImageFile.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -74,19 +75,11 @@ m_mediaOverlay(mediaOverlay)
             case CziImageResolutionChangeModeEnum::INVALID:
                 resModeTT.append("Invalid");
                 break;
-            case CziImageResolutionChangeModeEnum::AUTO_OLD:
-                resModeTT.append("Workbench automatically selects level of image resolution "
-                                 "but only when zoomed");
-                break;
-            case CziImageResolutionChangeModeEnum::AUTO_PYRAMID:
-                resModeTT.append("Workbench automatically selects level of image resolution "
-                                 "when zoomed or panned by reading from pyramid layers");
-                break;
             case CziImageResolutionChangeModeEnum::AUTO2:
                 resModeTT.append("Workbench allows the CZI library to load the appropriate "
                                  "image resolution when zoomed and panned.");
                 break;
-            case CziImageResolutionChangeModeEnum::MANUAL:
+            case CziImageResolutionChangeModeEnum::MANUAL2:
                 resModeTT.append("User selects level of image resolution");
                 break;
         }
@@ -104,12 +97,9 @@ m_mediaOverlay(mediaOverlay)
     WuQMacroManager::instance()->addMacroSupportToObject(m_cziResolutionChangeModeComboBox->getWidget(),
                                                          "Change CZI Resolution Mode");
     
-    const std::array<int32_t, 2> pyramidRange(m_mediaOverlay->getCziPyramidLayerRange());
     const QString pyrTT("Increase/decrease pyramid layer to show higher/lower resolution image.  "
                         "Higher resolution images cover a smaller spatial region.");
     m_cziPyramidLayerIndexSpinBox = new QSpinBox();
-    m_cziPyramidLayerIndexSpinBox->setRange(pyramidRange[0],
-                                            pyramidRange[1]);
     QObject::connect(m_cziPyramidLayerIndexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &MediaOverlaySettingsMenu::pyramidLayerChanged);
     m_cziPyramidLayerIndexSpinBox->setObjectName(parentObjectName
@@ -136,10 +126,6 @@ m_mediaOverlay(mediaOverlay)
     reloadToolButton->setDefaultAction(m_reloadAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(reloadToolButton);
     
-    m_cziResolutionChangeModeComboBox->setSelectedItem<CziImageResolutionChangeModeEnum, CziImageResolutionChangeModeEnum::Enum>(m_mediaOverlay->getCziResolutionChangeMode());
-    QSignalBlocker indexBlocker(m_cziPyramidLayerIndexSpinBox);
-    m_cziPyramidLayerIndexSpinBox->setValue(m_mediaOverlay->getCziPyramidLayerIndex());
-    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
     layout->addWidget(pyramidLayerLabel);
@@ -147,6 +133,8 @@ m_mediaOverlay(mediaOverlay)
     layout->addWidget(m_cziPyramidLayerIndexSpinBox);
     layout->addWidget(reloadToolButton);
     layout->addStretch();
+    
+    updateContent();
 }
 
 /**
@@ -155,6 +143,24 @@ m_mediaOverlay(mediaOverlay)
 MediaOverlaySettingsMenu::~MediaOverlaySettingsMenu()
 {
 }
+
+/**
+ * Update content of widget
+ */
+void
+MediaOverlaySettingsMenu::updateContent()
+{
+    CaretAssert(m_mediaOverlay);
+    const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
+
+    QSignalBlocker indexBlocker(m_cziPyramidLayerIndexSpinBox);
+    m_cziPyramidLayerIndexSpinBox->setRange(selectionData.m_cziManualPyramidLayerMinimumValue,
+                                            selectionData.m_cziManualPyramidLayerMaximumValue);
+    m_cziPyramidLayerIndexSpinBox->setValue(selectionData.m_cziManualPyramidLayerIndex);
+    
+    m_cziResolutionChangeModeComboBox->setSelectedItem<CziImageResolutionChangeModeEnum, CziImageResolutionChangeModeEnum::Enum>(selectionData.m_cziResolutionChangeMode);
+}
+
 
 /**
  * Called when pyramid layer spin box is changed
@@ -175,13 +181,14 @@ void
 MediaOverlaySettingsMenu::reloadActionTriggered()
 {
     CaretAssertToDoFatal();
-//    CziImageFile* cziImageFile = getCziImageFile(m_browserTabContent);
-//    if (cziImageFile != NULL) {
-//        const int32_t tabIndex = m_browserTabContent->getTabNumber();
-//        cziImageFile->reloadPyramidLayerInTab(tabIndex);
-//    }
-//    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//    updateContent(m_browserTabContent);
+    
+    const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
+    if (selectionData.m_selectedCziImageFile != NULL) {
+        selectionData.m_selectedCziImageFile->reloadPyramidLayerInTabOverlay(m_mediaOverlay->m_tabIndex,
+                                                                             m_mediaOverlay->m_overlayIndex);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        updateContent();
+    }
 }
 
 /**
@@ -196,8 +203,6 @@ MediaOverlaySettingsMenu::resolutionModeComboBoxActivated()
     switch (mode) {
         case CziImageResolutionChangeModeEnum::INVALID:
             break;
-        case CziImageResolutionChangeModeEnum::AUTO_OLD:
-        case CziImageResolutionChangeModeEnum::AUTO_PYRAMID:
         case CziImageResolutionChangeModeEnum::AUTO2:
         {
             /*
@@ -209,7 +214,7 @@ MediaOverlaySettingsMenu::resolutionModeComboBoxActivated()
             EventManager::get()->sendEvent(graphicsEvent.getPointer());
         }
             break;
-        case CziImageResolutionChangeModeEnum::MANUAL:
+        case CziImageResolutionChangeModeEnum::MANUAL2:
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
             break;
     }

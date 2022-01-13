@@ -48,6 +48,16 @@ namespace caret {
         
         static QString qRectToLrbtString(const QRectF& qRect);
         
+        static bool equalWithTolerance(const QRectF& rectOne,
+                                       const QRectF& rectTwo,
+                                       const float tolerance = 5.0);
+        
+        static float intersectionArea(const QRectF& rectOne,
+                                      const QRectF& rectTwo);
+        
+        static QRectF expandByPercentage(const QRectF rect,
+                                         const float expandPercentage);
+        
         // ADD_NEW_METHODS_HERE
 
     private:

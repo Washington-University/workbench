@@ -109,19 +109,12 @@ CziImageResolutionChangeModeEnum::initialize()
     enumData.push_back(CziImageResolutionChangeModeEnum(INVALID,
                                                         "INVALID",
                                                         "Invalid"));
-    enumData.push_back(CziImageResolutionChangeModeEnum(AUTO_OLD,
-                                                        "AUTO_OLD",
-                                                        "Auto (Old)"));
-    
-    enumData.push_back(CziImageResolutionChangeModeEnum(AUTO_PYRAMID,
-                                                        "AUTO_PYRAMID",
-                                                        "Auto Pyramid"));
-    
+
     enumData.push_back(CziImageResolutionChangeModeEnum(AUTO2,
-                                                        "AUTO2",
+                                                        "AUTO",
                                                         "Auto"));
     
-    enumData.push_back(CziImageResolutionChangeModeEnum(MANUAL,
+    enumData.push_back(CziImageResolutionChangeModeEnum(MANUAL2,
                                                         "MANUAL",
                                                         "Manual"));
 }
@@ -180,10 +173,13 @@ CziImageResolutionChangeModeEnum::fromName(const AString& nameIn, bool* isValidO
     if (initializedFlag == false) initialize();
     AString name(nameIn);
     if (name == "AUTO") {
-        name = "AUTO_PYRAMID";
+        name = "AUTO2";
+    }
+    else if (name == "MANUAL2") {
+        name = "MANUAL";
     }
     bool validFlag = false;
-    Enum enumValue = CziImageResolutionChangeModeEnum::enumData[0].enumValue;
+    Enum enumValue = AUTO2;
     
     for (std::vector<CziImageResolutionChangeModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

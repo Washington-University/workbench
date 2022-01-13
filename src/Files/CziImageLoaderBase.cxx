@@ -24,6 +24,7 @@
 #undef __CZI_IMAGE_LOADER_BASE_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 using namespace caret;
 
 #include <QRectF>
@@ -72,5 +73,14 @@ QRectF
 CziImageLoaderBase::moveAndClipRectangle(const QRectF& referenceRectangle,
                                          const QRectF& rectangleToClipIn) const
 {
-    return rectangleToClipIn;
+    if (referenceRectangle.intersects(rectangleToClipIn)) {
+        const QRectF rectangle = referenceRectangle.intersected(rectangleToClipIn);
+        return rectangle;
+    }
+
+    /*
+     * No intersection with full resolution image, return invalid rectangle
+     */
+    CaretLogWarning("No intersection with full resolution image");
+    return QRect();
 }

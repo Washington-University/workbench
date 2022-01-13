@@ -37,14 +37,10 @@ public:
     enum Enum {
         /** Invalid */
         INVALID,
-        /** Automatic (Old)*/
-        AUTO_OLD,
-        /** Auto  reading pyramids was AUTO at one time*/
-        AUTO_PYRAMID,
-        /** Auto2, Cannot use "AUTO" as it is an early, obsolete name that  */
+        /** Auto2, Cannot use "AUTO" as it is an older, obsolete name  */
         AUTO2,
-        /** Manual */
-        MANUAL
+        /** Manual2, Cannot use "MANUAL" as it is an older, obsolete name  */
+        MANUAL2
     };
 
 

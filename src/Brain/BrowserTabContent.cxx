@@ -1178,12 +1178,9 @@ BrowserTabContent::getDisplayedMediaFiles() const
                 MediaOverlay* overlay = const_cast<MediaOverlay*>(overlaySet->getOverlay(i));
                 CaretAssert(overlay);
                 if (overlay->isEnabled()) {
-                    MediaFile* mediaFile;
-                    int32_t frameIndex(-1);
-                    overlay->getSelectionData(mediaFile,
-                                              frameIndex);
-                    if (mediaFile != NULL) {
-                        names.insert(mediaFile->getFileName());
+                    const MediaOverlay::SelectionData selectionData(overlay->getSelectionData());
+                    if (selectionData.m_selectedMediaFile != NULL) {
+                        names.insert(selectionData.m_selectedMediaFile->getFileName());
                     }
                 }
             }
@@ -2198,15 +2195,12 @@ BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAn
             for (int32_t i = 0; i < numOverlays; i++) {
                 MediaOverlay* overlay = overlaySet->getOverlay(i);
                 if (overlay->isEnabled()) {
-                    MediaFile* mediaFile = NULL;
-                    int32_t frameIndex;
-                    overlay->getSelectionData(mediaFile,
-                                              frameIndex);
+                    const MediaOverlay::SelectionData selectionData(overlay->getSelectionData());
                     
-                    if (mediaFile != NULL) {
-                        if (frameIndex >= 0) {
-                            fileAndMapsEvent->addMediaFileAndFrame(mediaFile,
-                                                                   frameIndex,
+                    if (selectionData.m_selectedMediaFile != NULL) {
+                        if (selectionData.m_selectedFrameIndex >= 0) {
+                            fileAndMapsEvent->addMediaFileAndFrame(selectionData.m_selectedMediaFile,
+                                                                   selectionData.m_selectedFrameIndex,
                                                                    m_tabNumber);
                         }
                     }
@@ -2273,13 +2267,9 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                 for (int32_t i = 0; i < numOverlays; i++) {
                     MediaOverlay* mediaOverlay = overlaySet->getOverlay(i);
                     if (mediaOverlay->isEnabled()) {
-                        MediaFile* mediaFile = NULL;
-                        int32_t selectedIndex = -1;
-                        mediaOverlay->getSelectionData(mediaFile,
-                                                       selectedIndex);
-                        
-                        if (mediaFile != NULL) {
-                            displayedDataFiles.insert(mediaFile);
+                        const MediaOverlay::SelectionData selectionData(mediaOverlay->getSelectionData());
+                        if (selectionData.m_selectedMediaFile != NULL) {
+                            displayedDataFiles.insert(selectionData.m_selectedMediaFile);
                         }
                     }
                 }
@@ -3786,15 +3776,13 @@ BrowserTabContent::setMediaScaling(const float newScaleValue)
         MediaOverlaySet* overlaySet = getMediaOverlaySet();
         MediaOverlay* underlay = overlaySet->getBottomMostEnabledOverlay();
         if (underlay != NULL) {
-            MediaFile* mediaFile(NULL);
-            int32_t frameIndex(-1);
-            underlay->getSelectionData(mediaFile, frameIndex);
-            if (mediaFile != NULL) {
+            const MediaOverlay::SelectionData selectionData(underlay->getSelectionData());
+            if (selectionData.m_selectedMediaFile != NULL) {
                 const float oldScaleValue = m_mediaViewingTransformation->getScaling();
                 if ((newScaleValue > 0.0)
                     && (oldScaleValue > 0.0)) {
-                    const float imageWidth(mediaFile->getWidth());
-                    const float imageHeight(mediaFile->getHeight());
+                    const float imageWidth(selectionData.m_selectedMediaFile->getWidth());
+                    const float imageHeight(selectionData.m_selectedMediaFile->getHeight());
                     
                     /*
                      * Width/height of image with previous scaling
@@ -4857,11 +4845,9 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         if (getDisplayedMediaModel() != NULL) {
             MediaOverlay* underlay(getMediaOverlaySet()->getBottomMostEnabledOverlay());
             if (underlay != NULL) {
-                MediaFile* mediaFile(NULL);
-                int32_t frameIndex(-1);
-                underlay->getSelectionData(mediaFile, frameIndex);
-                if (mediaFile != NULL) {
-                    const float imageHeight(mediaFile->getHeight());
+                const MediaOverlay::SelectionData selectionData(underlay->getSelectionData());
+                if (selectionData.m_selectedMediaFile != NULL) {
+                    const float imageHeight(selectionData.m_selectedMediaFile->getHeight());
                     if (imageHeight > 0.0) {
                         /*
                          * Old orthographic projection was +/- 500 vertically
@@ -4888,10 +4874,8 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         if (getDisplayedMediaModel() != NULL) {
             MediaOverlay* underlay(getMediaOverlaySet()->getBottomMostEnabledOverlay());
             if (underlay != NULL) {
-                MediaFile* mediaFile(NULL);
-                int32_t frameIndex(-1);
-                underlay->getSelectionData(mediaFile, frameIndex);
-                if (mediaFile != NULL) {
+                const MediaOverlay::SelectionData selectionData(underlay->getSelectionData());
+                if (selectionData.m_selectedMediaFile != NULL) {
                     const float scale(m_mediaViewingTransformation->getScaling());
                     if ((scale < 0.999)
                         || (scale > 1.001)) {
@@ -4903,11 +4887,10 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                          */
                         float translation[3];
                         m_mediaViewingTransformation->getTranslation(translation);
-//                        translation[1] = -translation[1];
                         
                         PixelIndex pixel00(0, 0);
                         std::array<float, 3> logicalXYZ;
-                        const PixelLogicalIndex pixelLogicalIndex(mediaFile->pixelIndexToPixelLogicalIndex(pixel00));
+                        const PixelLogicalIndex pixelLogicalIndex(selectionData.m_selectedMediaFile->pixelIndexToPixelLogicalIndex(pixel00));
                         logicalXYZ[0] = pixelLogicalIndex.getI();
                         logicalXYZ[1] = pixelLogicalIndex.getJ();
                         
@@ -4923,7 +4906,7 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                         if (logicalXYZ[1] != 0.0) {
                             const float newTransY(-(translation[1] + logicalXYZ[1]) / scale);
                             translation[1] = newTransY;
-                            translation[1] += mediaFile->getHeight();
+                            translation[1] += selectionData.m_selectedMediaFile->getHeight();
                         }
                         else {
                             /*
@@ -6266,7 +6249,6 @@ BrowserTabContent::updateMediaModelYokedBrowserTabs()
                 btc->m_mediaViewingTransformation->copyTransformsForYoking(*m_mediaViewingTransformation,
                                                                            myImageWidthHeight,
                                                                            btcImageWidthHeight);
-                //*btc->m_mediaViewingTransformation = *m_mediaViewingTransformation;
             }
         }
     }

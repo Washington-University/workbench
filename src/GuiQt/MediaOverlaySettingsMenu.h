@@ -60,6 +60,8 @@ namespace caret {
         void pyramidLayerChanged(int value);
         
     private:
+        void updateContent();
+        
         MediaOverlay* m_mediaOverlay;
         
         EnumComboBoxTemplate* m_cziResolutionChangeModeComboBox;

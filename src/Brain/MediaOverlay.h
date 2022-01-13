@@ -33,13 +33,15 @@
 #include "SceneableInterface.h"
 
 namespace caret {
+    class CziImageFile;
     class MediaFile;
     class SceneClassAssistant;
     
     class MediaOverlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        MediaOverlay();
+        MediaOverlay(const int32_t tabIndex,
+                     const int32_t overlayIndex);
         
         virtual ~MediaOverlay();
         
@@ -65,12 +67,55 @@ namespace caret {
         
         void swapData(MediaOverlay* overlay);
         
-        void getSelectionData(std::vector<MediaFile*>& filesOut,
-                              MediaFile* &selectedFileOut,
-                              int32_t& selectedFrameIndexOut);
+        class SelectionData {
+        public:
+            SelectionData() { }
+            
+            SelectionData(const int32_t tabIndex,
+                          const int32_t overlayIndex,
+                          std::vector<MediaFile*>& mediaFiles,
+                          MediaFile* selectedMediaFile,
+                          CziImageFile* selectedCziImageFile,
+                          const int32_t selectedFrameIndex,
+                          const AString selectedFrameName,
+                          const bool allFramesSelectedFlag,
+                          const CziImageResolutionChangeModeEnum::Enum cziResolutionChangeMode,
+                          const int32_t cziManualPyramidLayerIndex,
+                          const int32_t cziManualPyramidLayerMinimumValue,
+                          const int32_t cziManualPyramidLayerMaximumValue)
+            :
+            m_tabIndex(tabIndex),
+            m_overlayIndex(overlayIndex),
+            m_mediaFiles(mediaFiles),
+            m_selectedMediaFile(selectedMediaFile),
+            m_selectedCziImageFile(selectedCziImageFile),
+            m_selectedFrameIndex(selectedFrameIndex),
+            m_selectedFrameName(selectedFrameName),
+            m_allFramesSelectedFlag(allFramesSelectedFlag),
+            m_cziResolutionChangeMode(cziResolutionChangeMode),
+            m_cziManualPyramidLayerIndex(cziManualPyramidLayerIndex),
+            m_cziManualPyramidLayerMinimumValue(cziManualPyramidLayerMinimumValue),
+            m_cziManualPyramidLayerMaximumValue(cziManualPyramidLayerMaximumValue)
+            { }
+            
+            int32_t m_tabIndex = -1;
+            int32_t m_overlayIndex = -1;
+            std::vector<MediaFile*> m_mediaFiles;
+            MediaFile* m_selectedMediaFile = NULL;
+            CziImageFile* m_selectedCziImageFile = NULL;
+            int32_t m_selectedFrameIndex = 0;
+            AString m_selectedFrameName;
+            bool m_allFramesSelectedFlag = false;
+            
+            CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
+            int32_t m_cziManualPyramidLayerIndex = 0;
+            int32_t m_cziManualPyramidLayerMinimumValue = 0;
+            int32_t m_cziManualPyramidLayerMaximumValue = 0;
+        };
         
-        void getSelectionData(MediaFile* &selectedFileOut,
-                              int32_t& selectedFrameIndexOut);
+        SelectionData getSelectionData();
+        
+        SelectionData getSelectionData() const;
         
         void setSelectionData(MediaFile* selectedFile,
                               const int32_t selectedFrameIndex);
@@ -79,18 +124,10 @@ namespace caret {
         
         void setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup);
         
-        int32_t getCziPyramidLayerIndex() const;
-        
         void setCziPyramidLayerIndex(const int32_t pyramidLayerIndex);
-        
-        std::array<int32_t, 2> getCziPyramidLayerRange() const;
-        
-        bool isAllCziScenesSelected() const;
         
         void setCziAllScenesSelected(const bool selectAll);
 
-        CziImageResolutionChangeModeEnum::Enum getCziResolutionChangeMode() const;
-        
         void setCziResolutionChangeMode(const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -106,8 +143,11 @@ namespace caret {
         /** Name of overlay (DO NOT COPY)*/
         AString m_name;
         
+        /** Tab index containing this overlay (DO NOT COPY) **/
+        const int32_t m_tabIndex;
+        
         /** Index of this overlay (DO NOT COPY)*/
-        int32_t m_overlayIndex;
+        const int32_t m_overlayIndex;
         
         /** opacity for overlay */
         float m_opacity;
@@ -123,15 +163,17 @@ namespace caret {
         
         /** selected frame index */
         int32_t m_selectedFrameIndex;
+
+        bool m_allFramesSelectedFlag = true;
         
-        CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO_PYRAMID;
-        
-        bool m_cziAllScenesSelectedFlag = true;
-        
-        int32_t m_cziPyramidLayerIndex = 1;
+        CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
+
+        int32_t m_cziManualPyramidLayerIndex = 1;
         
         /** helps with scene save/restore */
         SceneClassAssistant* m_sceneAssistant;
+        
+        friend class MediaOverlaySettingsMenu;
     };
     
 #ifdef __MEDIA_OVERLAY_DECLARE__

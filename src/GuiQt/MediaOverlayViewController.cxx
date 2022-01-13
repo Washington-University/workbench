@@ -37,7 +37,9 @@
 #include "MediaOverlayViewController.h"
 #undef __MEDIA_OVERLAY_VIEW_CONTROLLER_DECLARE__
 
+#include "BrowserTabContent.h"
 #include "CaretMappableDataFile.h"
+#include "EventBrowserTabGet.h"
 #include "EventDataFileReload.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -360,13 +362,10 @@ MediaOverlayViewController::updateOverlaySettingsEditor()
         return;
     }
 
-    MediaFile* mediaFile = NULL;
-    int32_t frameIndex = -1;
-    m_mediaOverlay->getSelectionData(mediaFile,
-                              frameIndex);
+    const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
     
-    if ((mediaFile != NULL)
-        && (frameIndex >= 0)) {
+    if ((selectionData.m_selectedMediaFile != NULL)
+        && (selectionData.m_selectedFrameIndex >= 0)) {
 //        EventOverlaySettingsEditorDialogRequest pcme(EventOverlaySettingsEditorDialogRequest::MODE_OVERLAY_MAP_CHANGED,
 //                                                     this->browserWindowIndex,
 //                                                     m_mediaOverlay,
@@ -518,11 +517,8 @@ MediaOverlayViewController::enabledCheckBoxClicked(bool checked)
     
     const MapYokingGroupEnum::Enum frameYoking = m_mediaOverlay->getMapYokingGroup();
     if (frameYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-        MediaFile* myFile = NULL;
-        int32_t myIndex = -1;
-        m_mediaOverlay->getSelectionData(myFile,
-                                         myIndex);
-        
+        const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
+
 //        EventMapYokingSelectMap selectMapEvent(frameYoking,
 //                                               myFile,
 //                                               NULL,
@@ -567,7 +563,6 @@ MediaOverlayViewController::cziAllScenesCheckBoxClicked(bool checked)
     }
     
     m_mediaOverlay->setCziAllScenesSelected(checked);
-    
     this->updateGraphicsWindow();
 }
 
@@ -611,11 +606,8 @@ MediaOverlayViewController::settingsActionTriggered()
         return;
     }
     
-    MediaFile* mediaFile;
-    int32_t frameIndex = -1;
-    m_mediaOverlay->getSelectionData(mediaFile,
-                                     frameIndex);
-    if (mediaFile != NULL) {
+    const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
+    if (selectionData.m_selectedMediaFile != NULL) {
         MediaOverlaySettingsMenu menu(m_mediaOverlay,
                                       m_parentObjectName);
         menu.exec(m_settingsToolButton->mapToGlobal(QPoint(0,0)));
@@ -638,40 +630,36 @@ MediaOverlayViewController::updateViewController(MediaOverlay* overlay)
 {
     m_mediaOverlay = overlay;
 
-    this->fileComboBox->clear();
-    
     /*
      * Get the selection information for the overlay.
      */
-    std::vector<MediaFile*> mediaFiles;
-    MediaFile* selectedFile = NULL;
-    int32_t selectedFrameIndex = -1;
+    MediaOverlay::SelectionData selectionData;
     if (m_mediaOverlay != NULL) {
-        m_mediaOverlay->getSelectionData(mediaFiles,
-                                  selectedFile, 
-                                  selectedFrameIndex);
+        selectionData = m_mediaOverlay->getSelectionData();
     }
     
-    std::vector<CaretDataFile*> caretDataFiles(mediaFiles.begin(),
-                                               mediaFiles.end());
+    this->fileComboBox->clear();
+    
+    std::vector<CaretDataFile*> caretDataFiles(selectionData.m_mediaFiles.begin(),
+                                               selectionData.m_mediaFiles.end());
     std::vector<AString> displayNames;
     FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(caretDataFiles,
                                                                             displayNames);
-    CaretAssert(mediaFiles.size() == displayNames.size());
+    CaretAssert(selectionData.m_mediaFiles.size() == displayNames.size());
 
     /*
      * Load the file selection combo box.
      */
     int32_t selectedFileIndex = -1;
-    const int32_t numFiles = static_cast<int32_t>(mediaFiles.size());
+    const int32_t numFiles = static_cast<int32_t>(selectionData.m_mediaFiles.size());
     for (int32_t i = 0; i < numFiles; i++) {
-        MediaFile* dataFile = mediaFiles[i];
+        MediaFile* dataFile = selectionData.m_mediaFiles[i];
         
         AString dataTypeName = DataFileTypeEnum::toOverlayTypeName(dataFile->getDataFileType());
         CaretAssertVectorIndex(displayNames, i);
         this->fileComboBox->addItem(displayNames[i],
                                     QVariant::fromValue((void*)dataFile));
-        if (dataFile == selectedFile) {
+        if (dataFile == selectionData.m_selectedMediaFile) {
             selectedFileIndex = i;
         }
     }
@@ -685,12 +673,12 @@ MediaOverlayViewController::updateViewController(MediaOverlay* overlay)
     int32_t numberOfFrames = 0;
     this->frameNameComboBox->blockSignals(true);
     this->frameNameComboBox->clear();
-    if (selectedFile != NULL) {
-        numberOfFrames = selectedFile->getNumberOfFrames();
+    if (selectionData.m_selectedMediaFile != NULL) {
+        numberOfFrames = selectionData.m_selectedMediaFile->getNumberOfFrames();
         for (int32_t i = 0; i < numberOfFrames; i++) {
-            this->frameNameComboBox->addItem(selectedFile->getFrameName(i));
+            this->frameNameComboBox->addItem(selectionData.m_selectedMediaFile->getFrameName(i));
         }
-        this->frameNameComboBox->setCurrentIndex(selectedFrameIndex);
+        this->frameNameComboBox->setCurrentIndex(selectionData.m_selectedFrameIndex);
     }
     this->frameNameComboBox->blockSignals(false);
     
@@ -699,15 +687,15 @@ MediaOverlayViewController::updateViewController(MediaOverlay* overlay)
      */
     m_frameIndexSpinBox->blockSignals(true);
     m_frameIndexSpinBox->setRange(1, numberOfFrames);
-    if (selectedFile != NULL) {
-        m_frameIndexSpinBox->setValue(selectedFrameIndex + 1);
+    if (selectionData.m_selectedMediaFile != NULL) {
+        m_frameIndexSpinBox->setValue(selectionData.m_selectedFrameIndex + 1);
     }
     m_frameIndexSpinBox->blockSignals(false);
 
     /*
      * All CZI check box
      */
-    m_cziAllScenesCheckBox->setChecked(m_mediaOverlay->isAllCziScenesSelected());
+    m_cziAllScenesCheckBox->setChecked(selectionData.m_allFramesSelectedFlag);
     
     /*
      * Update enable check box
@@ -726,11 +714,11 @@ MediaOverlayViewController::updateViewController(MediaOverlay* overlay)
     this->opacityDoubleSpinBox->setValue(m_mediaOverlay->getOpacity());
     this->opacityDoubleSpinBox->blockSignals(false);
 
-    const bool haveFile = (selectedFile != NULL);
+    const bool haveFile = (selectionData.m_selectedMediaFile != NULL);
     bool haveMultipleFrames = false;
     bool haveOpacity = false;
     if (haveFile) {
-        haveMultipleFrames = (selectedFile->getNumberOfFrames() > 1);
+        haveMultipleFrames = (selectionData.m_selectedMediaFile->getNumberOfFrames() > 1);
     }
     
     /**
@@ -751,8 +739,8 @@ MediaOverlayViewController::updateViewController(MediaOverlay* overlay)
      */
     AString fileComboBoxToolTip("Select file for this overlay");
     AString nameComboBoxToolTip("Select frame by its name");
-    if (selectedFile != NULL) {
-        FileInformation fileInfo(selectedFile->getFileName());
+    if (selectionData.m_selectedMediaFile != NULL) {
+        FileInformation fileInfo(selectionData.m_selectedMediaFile->getFileName());
         fileComboBoxToolTip.append(":\n"
                                    + fileInfo.getFileName()
                                    + "\n"
@@ -930,14 +918,11 @@ void
 MediaOverlayViewController::menuConstructionAboutToShow()
 {
     if (m_mediaOverlay != NULL) {
-        MediaFile* mediaFile = NULL;
-        int32_t frameIndex = -1;
-        m_mediaOverlay->getSelectionData(mediaFile,
-                                         frameIndex);
+        const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
     
         QString menuText = "Reload Selected File";
-        if (mediaFile != NULL) {
-            if (mediaFile->isModified()) {
+        if (selectionData.m_selectedMediaFile != NULL) {
+            if (selectionData.m_selectedMediaFile->isModified()) {
                 QString suffix = " (MODIFIED)";
                 menuText += suffix;
             }
@@ -1000,13 +985,10 @@ void
 MediaOverlayViewController::menuCopyFileNameToClipBoard()
 {
     if (m_mediaOverlay != NULL) {
-        MediaFile* mediaFile = NULL;
-        int32_t frameIndex = -1;
-        m_mediaOverlay->getSelectionData(mediaFile,
-                                         frameIndex);
+        const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
         
-        if (mediaFile != NULL) {
-            QApplication::clipboard()->setText(mediaFile->getFileName().trimmed(),
+        if (selectionData.m_selectedMediaFile != NULL) {
+            QApplication::clipboard()->setText(selectionData.m_selectedMediaFile->getFileName().trimmed(),
                                                QClipboard::Clipboard);
         }
     }
@@ -1019,17 +1001,10 @@ void
 MediaOverlayViewController::menuCopyFrameNameToClipBoard()
 {
     if (m_mediaOverlay != NULL) {
-        MediaFile* mediaFile = NULL;
-        int32_t frameIndex = -1;
-        m_mediaOverlay->getSelectionData(mediaFile,
-                                         frameIndex);
-        
-        if (mediaFile != NULL) {
-            if ((frameIndex >= 0)
-                && (frameIndex < mediaFile->getNumberOfFrames())) {
-                QApplication::clipboard()->setText(mediaFile->getFrameName(frameIndex).trimmed(),
-                                                   QClipboard::Clipboard);
-            }
+        const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
+        if (selectionData.m_selectedMediaFile != NULL) {
+            QApplication::clipboard()->setText(selectionData.m_selectedFrameName,
+                                               QClipboard::Clipboard);
         }
     }
 }
@@ -1040,16 +1015,13 @@ MediaOverlayViewController::menuCopyFrameNameToClipBoard()
 void MediaOverlayViewController::menuReloadFileTriggered()
 {
     if (m_mediaOverlay != NULL) {
-        MediaFile* mediaFile = NULL;
-        int32_t frameIndex = -1;
-        m_mediaOverlay->getSelectionData(mediaFile,
-                                         frameIndex);
+        const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
         
-        if (mediaFile != NULL) {
+        if (selectionData.m_selectedMediaFile != NULL) {
             AString username;
             AString password;
             
-            if (DataFile::isFileOnNetwork(mediaFile->getFileName())) {
+            if (DataFile::isFileOnNetwork(selectionData.m_selectedMediaFile->getFileName())) {
                 const QString msg("This file is on the network.  "
                                   "If accessing the file requires a username and "
                                   "password, enter it here.  Otherwise, remove any "
@@ -1069,7 +1041,7 @@ void MediaOverlayViewController::menuReloadFileTriggered()
             }
             
             EventDataFileReload reloadEvent(GuiManager::get()->getBrain(),
-                                            mediaFile);
+                                            selectionData.m_selectedMediaFile);
             reloadEvent.setUsernameAndPassword(username,
                                                password);
             EventManager::get()->sendEvent(reloadEvent.getPointer());
@@ -1082,6 +1054,30 @@ void MediaOverlayViewController::menuReloadFileTriggered()
             updateOverlaySettingsEditor();
             
             updateUserInterfaceAndGraphicsWindow();
+        }
+    }
+}
+
+/**
+ * Reset the view since displayed data (frame or all frames has changed)
+ */
+void
+MediaOverlayViewController::resetUserView()
+{
+    CaretAssertToDoWarning(); /* Have synchronization issue as need to draw before resetting view */
+    if (m_mediaOverlay != NULL) {
+        const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
+        EventBrowserTabGet tabEvent(selectionData.m_tabIndex);
+        EventManager::get()->sendEvent(tabEvent.getPointer());
+        BrowserTabContent* btc(tabEvent.getBrowserTab());
+        if (btc != NULL) {
+            const bool doRepaintFlag(true);
+            EventGraphicsUpdateOneWindow graphicsEvent(this->browserWindowIndex,
+                                                       doRepaintFlag);
+            EventManager::get()->sendEvent(graphicsEvent.getPointer());
+
+            btc->resetView();
+            updateGraphicsWindow();
         }
     }
 }

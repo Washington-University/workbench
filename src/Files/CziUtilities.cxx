@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #define __CZI_UTILITIES_DECLARE__
 #include "CziUtilities.h"
 #undef __CZI_UTILITIES_DECLARE__
@@ -134,3 +136,76 @@ CziUtilities::qRectToLrbtString(const QRectF& qRect)
     }
     return s;
 }
+
+/**
+ * @return True if the rectangles are equal using the given tolerance
+ * @param rectOne
+ *    FIrst rectangle
+ * @param rectTwo
+ *    Second rectangle
+ * @param tolerance
+ *    Distance between corresponding edges must be within this value
+ */
+bool
+CziUtilities::equalWithTolerance(const QRectF& rectOne,
+                                 const QRectF& rectTwo,
+                                 const float tolerance)
+{
+    const float tol(5.0);
+    if (   (std::fabs(rectOne.left()   - rectTwo.left())   < tolerance)
+        && (std::fabs(rectOne.right()  - rectTwo.right())  < tolerance)
+        && (std::fabs(rectOne.top()    - rectTwo.top())    < tolerance)
+        && (std::fabs(rectOne.bottom() - rectTwo.bottom()) < tolerance)) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @return Area of the intersection of the two given rectangles
+ * @param rectOne
+ *    FIrst rectangle
+ * @param rectTwo
+ *    Second rectangle
+ */
+float
+CziUtilities::intersectionArea(const QRectF& rectOne,
+                               const QRectF& rectTwo)
+{
+    float area(0.0);
+    
+    if (rectOne.intersects(rectTwo)) {
+        const QRectF intersectionRect(rectOne.intersected(rectTwo));
+        area = (intersectionRect.width()
+                * intersectionRect.height());
+    }
+    
+    return area;
+}
+
+/**
+ * @return The given rectangle expanded by the given percentage
+ * @param rect
+ *    The rectangle
+ * @param expandPercentage
+ *    Percentage 1.0 = one percent; 100.0 = one-hundred percent
+ *    Use negative value to contract
+ */
+QRectF
+CziUtilities::expandByPercentage(const QRectF rect,
+                                 const float expandPercentage)
+{
+    const float halfPct(expandPercentage / 200.0);
+    const float widthToAdd(rect.width() * halfPct);
+    const float heightToAdd(rect.height() * halfPct);
+    
+    const QMargins marginsToAdd(widthToAdd,   /* top */
+                                heightToAdd,  /* left */
+                                widthToAdd,   /* right */
+                                heightToAdd); /* bottom */
+    const QRectF newRect(rect.marginsAdded(marginsToAdd));
+    
+    return newRect;
+}
+
+

@@ -78,7 +78,8 @@ m_tabIndex(tabIndex)
                           &m_numberOfDisplayedOverlays);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        m_overlays[i] = new MediaOverlay();
+        m_overlays[i] = new MediaOverlay(m_tabIndex,
+                                         i);
     }
     
     initializeOverlays();
@@ -188,10 +189,10 @@ MediaFile*
 MediaOverlaySet::getBottomMostMediaFile()
 {
     MediaFile* mediaFile(NULL);
-    int32_t frameIndex(0);
     MediaOverlay* underlay = getBottomMostEnabledOverlay();
     if (underlay != NULL) {
-        underlay->getSelectionData(mediaFile, frameIndex);
+        MediaOverlay::SelectionData selectionData(underlay->getSelectionData());
+        mediaFile = selectionData.m_selectedMediaFile;
     }
     return mediaFile;
 }
@@ -249,10 +250,8 @@ MediaOverlaySet::getDisplayedMediaFiles() const
     const int numOverlays = getNumberOfDisplayedOverlays();
     for (int32_t i = 0; i < numOverlays; i++) {
         if (getOverlay(i)->isEnabled()) {
-            MediaFile* mf(NULL);
-            int32_t dummyIndex(0);
-            (const_cast<MediaOverlay*>(getOverlay(i)))->getSelectionData(mf,
-                                                                         dummyIndex);
+            MediaOverlay::SelectionData selectionData(getOverlay(i)->getSelectionData());
+            MediaFile* mf(selectionData.m_selectedMediaFile);
             if (mf != NULL) {
                 mediaFilesOut.push_back(mf);
             }
@@ -279,10 +278,9 @@ MediaOverlaySet::getDisplayedMediaFileAndOverlayIndices(std::vector<MediaFile*>&
     const int numOverlays = getNumberOfDisplayedOverlays();
     for (int32_t i = 0; i < numOverlays; i++) {
         if (getOverlay(i)->isEnabled()) {
-            MediaFile* mf(NULL);
-            int32_t dummyIndex(0);
-            (const_cast<MediaOverlay*>(getOverlay(i)))->getSelectionData(mf,
-                                                                         dummyIndex);
+            MediaOverlay::SelectionData selectionData(getOverlay(i)->getSelectionData());
+
+            MediaFile* mf(selectionData.m_selectedMediaFile);
             if (mf != NULL) {
                 mediaFilesOut.push_back(mf);
                 overlayIndicesOut.push_back(i);
@@ -491,11 +489,9 @@ MediaOverlaySet::getSelectedIndicesForFile(const MediaFile* mediaFile,
         }
         
         if (checkIt) {
-            MediaFile* file;
-            int32_t mapIndex;
-            overlay->getSelectionData(file, mapIndex);
-            if (file == mediaFile) {
-                indicesSet.insert(mapIndex);
+            const MediaOverlay::SelectionData selectionData(overlay->getSelectionData());
+            if (selectionData.m_selectedMediaFile == mediaFile) {
+                indicesSet.insert(selectionData.m_selectedFrameIndex);
             }
         }
     }

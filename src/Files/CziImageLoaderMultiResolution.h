@@ -44,8 +44,12 @@ namespace caret {
         virtual void updateImage(const CziImage* cziImage,
                                  const int32_t frameIndex,
                                  const bool allFramesFlag,
+                                 const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                 const int32_t manualPyramidLayerIndex,
                                  const GraphicsObjectToWindowTransform* transform) override;
 
+        virtual void forceImageReloading() override;
+        
         virtual CziImage* getImage() override;
         
         virtual const CziImage* getImage() const override;
@@ -64,7 +68,7 @@ namespace caret {
                                             const bool allFramesFlag,
                                             const GraphicsObjectToWindowTransform* transform) const;
         
-        bool isReloadForPanning(const CziImage* cziImage,
+        bool isReloadForPanZoom(const CziImage* cziImage,
                                 const GraphicsObjectToWindowTransform* transform) const;
         
         CziImage* loadImageForPyrmaidLayer(const CziImage* oldCziImage,
@@ -72,6 +76,8 @@ namespace caret {
                                            const GraphicsObjectToWindowTransform* transform,
                                            const int32_t pyramidLayerIndex);
 
+        QRectF getViewportLogicalCoordinates(const GraphicsObjectToWindowTransform* transform) const;
+        
         std::unique_ptr<CziImage> m_cziImage;
         
         int32_t m_tabIndex;
@@ -84,7 +90,15 @@ namespace caret {
         
         bool m_previousAllFramesFlag = false;
 
+        CziImageResolutionChangeModeEnum::Enum m_previousResolutionChangeMode = CziImageResolutionChangeModeEnum::INVALID;
+        
+        int32_t m_previousManualPyramidLayerIndex = -1;
+
         int32_t m_previousZoomLayerIndex = -1;
+        
+        bool m_reloadImageFlag = false;
+        
+        bool m_frameChangedFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

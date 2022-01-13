@@ -81,19 +81,6 @@ m_resolutionChangeModeLevel(resolutionChangeModeLevel)
     m_fullResolutionPixelsRect = QRectF(0, 0, m_fullResolutionLogicalRect.width(), m_fullResolutionLogicalRect.height());
 
     m_imagePixelsRect = QRectF(0, 0, m_image->width(), m_image->height());
-    
-    const PixelIndex logBotLeft(m_imageDataLogicalRect.x(),
-                                m_imageDataLogicalRect.y() + m_imageDataLogicalRect.height(),
-                                0.0f);
-    const PixelIndex pixelBotLeft = transformPixelIndexToSpace(logBotLeft,
-                                                               CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT,
-                                                               CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT);
-    
-    /* Below only used in transform transformPixelIndexToSpace() */
-    m_pixelsRegionOfInterestRect = QRectF(pixelBotLeft.getI(),
-                                          pixelBotLeft.getJ(),
-                                          m_imageDataLogicalRect.width(),
-                                          m_imageDataLogicalRect.height());
 }
 
 /**
@@ -112,6 +99,22 @@ CziImage::toString() const
 {
     return "CziImage";
 }
+
+/**
+ * @return True if all possible image data is loaded for the scene containing this image
+ */
+bool
+CziImage::isEntireImageLoaded() const
+{
+    const float tol(2.0);
+    if (CziUtilities::equalWithTolerance(m_fullResolutionLogicalRect,
+                                         m_imageDataLogicalRect,
+                                         tol)) {
+        
+    }
+    return false;
+}
+
 
 /**
  * @return Width of image
@@ -135,166 +138,6 @@ CziImage::getHeight() const
         return m_image->height();
     }
     return 0;
-}
-
-/**
- * Transform a pixel index to a different pixel space
- * @param pixelIndexIn
- *    The pixel index
- * @param fromPixelCoordSpace
- *    Current space of the input pixel
- * @param toPixelCoordSpace
- *    Space to transform to
- * @return Pixel index in new space
- */
-PixelIndex
-CziImage::transformPixelIndexToSpace(const PixelIndex& pixelIndexIn,
-                                     const CziPixelCoordSpaceEnum::Enum fromPixelCoordSpace,
-                                     const CziPixelCoordSpaceEnum::Enum toPixelCoordSpace) const
-{
-    PixelIndex pixelIndex(pixelIndexIn);
-    if (fromPixelCoordSpace == toPixelCoordSpace) {
-        return pixelIndex;
-    }
-    
-    
-    /*
-     * First, convert index into full resolution image space with
-     * origin at the bottom
-     */
-    switch (fromPixelCoordSpace) {
-        case CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT:
-        {
-            RectangleTransform transform(m_fullResolutionLogicalRect,
-                                         RectangleTransform::Origin::TOP_LEFT,
-                                         m_fullResolutionPixelsRect,
-                                         RectangleTransform::Origin::BOTTOM_LEFT);
-            if ( ! transform.isValid()) {
-                CaretLogSevere("Creating rectangle transform FROM failed: "
-                               + transform.getErrorMessage());
-                return pixelIndex;
-            }
-            float x(0.0), y(0.0);
-            transform.transformSourceToTarget(pixelIndex.getI(), pixelIndex.getJ(),
-                                              x, y);
-            pixelIndex.setI(static_cast<int64_t>(x));
-            pixelIndex.setJ(static_cast<int64_t>(y));
-        }
-            break;
-        case CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT:
-            /*
-             * Pixel is in full resolution image with origin bottom left
-             */
-            break;
-        case CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT:
-            /*
-             * Convert to bottom
-             */
-            pixelIndex.setJ(m_fullResolutionPixelsRect.height() - pixelIndex.getJ());
-            break;
-        case CziPixelCoordSpaceEnum::IMAGE_DATA_PIXEL_BOTTOM_LEFT:
-            /*
-             * Convert to full resolution pixels bottom left
-             */
-            pixelIndex.setI(pixelIndex.getI() + m_pixelsRegionOfInterestRect.x());
-            pixelIndex.setJ(pixelIndex.getJ() + m_pixelsRegionOfInterestRect.y());
-            break;
-        case CziPixelCoordSpaceEnum::IMAGE_DATA_PIXEL_TOP_LEFT:
-            /*
-             * Convert to full resolution pixels bottom left
-             */
-            pixelIndex.setI(pixelIndex.getI() + m_pixelsRegionOfInterestRect.x());
-            pixelIndex.setJ(pixelIndex.getJ() + m_pixelsRegionOfInterestRect.y());
-            /*
-             * Convert to distance from top
-             */
-            pixelIndex.setJ(m_pixelsRegionOfInterestRect.height() - pixelIndex.getJ());
-            break;
-    }
-    
-    switch (toPixelCoordSpace) {
-        case CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT:
-        {
-            RectangleTransform transform(m_fullResolutionPixelsRect,
-                                         RectangleTransform::Origin::BOTTOM_LEFT,
-                                         m_fullResolutionLogicalRect,
-                                         RectangleTransform::Origin::TOP_LEFT);
-            if ( ! transform.isValid()) {
-                CaretLogSevere("Creating rectangle transform TO (1) failed: "
-                               + transform.getErrorMessage());
-                return pixelIndex;
-            }
-            float x(0.0), y(0.0);
-            transform.transformSourceToTarget(pixelIndex.getI(), pixelIndex.getJ(),
-                                              x, y);
-            pixelIndex.setI(static_cast<int64_t>(x));
-            pixelIndex.setJ(static_cast<int64_t>(y));
-        }
-            break;
-        case CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT:
-            /*
-             * Pixel was transformed to this space so no additional transform needed
-             */
-            break;
-        case CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT:
-            /*
-             * Offset from top
-             */
-            pixelIndex.setJ(m_fullResolutionPixelsRect.height() - pixelIndex.getJ());
-            break;
-        case CziPixelCoordSpaceEnum::IMAGE_DATA_PIXEL_BOTTOM_LEFT:
-        {
-            /*
-             * Origin is from image origin bottom left
-             */
-            pixelIndex.setI(pixelIndex.getI() - m_pixelsRegionOfInterestRect.x());
-            pixelIndex.setJ(pixelIndex.getJ() - m_pixelsRegionOfInterestRect.y());
-
-            QRectF sourceRect(0, 0, m_pixelsRegionOfInterestRect.width(), m_pixelsRegionOfInterestRect.height());
-            RectangleTransform transform(sourceRect,
-                                         RectangleTransform::Origin::BOTTOM_LEFT,
-                                         m_imagePixelsRect,
-                                         RectangleTransform::Origin::BOTTOM_LEFT);
-            if ( ! transform.isValid()) {
-                CaretLogSevere("Creating rectangle transform TO (2) failed: "
-                               + transform.getErrorMessage());
-                return pixelIndex;
-            }
-            float x(0.0), y(0.0);
-            transform.transformSourceToTarget(pixelIndex.getI(), pixelIndex.getJ(),
-                                              x, y);
-            pixelIndex.setI(static_cast<int64_t>(x));
-            pixelIndex.setJ(static_cast<int64_t>(y));
-        }
-            break;
-        case CziPixelCoordSpaceEnum::IMAGE_DATA_PIXEL_TOP_LEFT:
-        {
-            /*
-             * Origin is from image origin bottom left
-             */
-            pixelIndex.setI(pixelIndex.getI() - m_pixelsRegionOfInterestRect.x());
-            pixelIndex.setJ(pixelIndex.getJ() - m_pixelsRegionOfInterestRect.y());
-
-            QRectF sourceRect(0, 0, m_pixelsRegionOfInterestRect.width(), m_pixelsRegionOfInterestRect.height());
-            RectangleTransform transform(sourceRect,
-                                         RectangleTransform::Origin::BOTTOM_LEFT,
-                                         m_imagePixelsRect,
-                                         RectangleTransform::Origin::TOP_LEFT);
-            if ( ! transform.isValid()) {
-                CaretLogSevere("Creating rectangle transform TO (2) failed: "
-                               + transform.getErrorMessage());
-                return pixelIndex;
-            }
-            float x(0.0), y(0.0);
-            transform.transformSourceToTarget(pixelIndex.getI(), pixelIndex.getJ(),
-                                              x, y);
-            pixelIndex.setI(static_cast<int64_t>(x));
-            pixelIndex.setJ(static_cast<int64_t>(y));
-        }
-            break;
-    }
-
-    return pixelIndex;
 }
 
 /**

@@ -76,17 +76,13 @@ CziImageFile::CziImageFile()
 {
     for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
         for (int32_t iOverlay = 0; iOverlay < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; iOverlay++) {
-            m_tabOverlayInfo[iTab][iOverlay].reset(new TabOverlayInfo());
+            m_tabOverlayInfo[iTab][iOverlay].reset(new TabOverlayInfo(this, iTab, iOverlay));
         }
     }
 
     resetPrivate();
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->addArray("m_pyramidLayerIndexInTabs",
-                               m_pyramidLayerIndexInTabs.data(),
-                               m_pyramidLayerIndexInTabs.size(),
-                               0);
 
     /* NEED THIS AFTER Tile Tabs have been modified */
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_CLOSE);
@@ -113,37 +109,34 @@ CziImageFile::resetPrivate()
     
     m_errorMessage.clear();
     
-    m_stream.reset();
     
     m_allFramesPyramidInfo = CziSceneInfo();
     m_cziScenePyramidInfos.clear();
-    
-    m_reader.reset();
     m_scalingTileAccessor.reset();
     m_pyramidLayerTileAccessor.reset();
-    m_lowestResolutionPyramidLayerIndex = -1;
-    m_highestResolutionPyramidLayerIndex = -1;
-    m_numberOfPyramidLayers = 0;
+
+    if (m_reader) {
+        m_reader->Close();
+    }
+    m_reader.reset();
+    
+    m_stream.reset();
+
     m_pixelSizeMmX = 1.0f;
     m_pixelSizeMmY = 1.0f;
     m_pixelSizeMmZ = 1.0f;
     m_fileMetaData.reset(new GiftiMetaData());
-//    m_defaultAllFramesImage.reset();
-    m_defaultFrameImages.clear();
     m_fullResolutionLogicalRect = QRectF();
-    m_pyramidLayers.clear();
     m_pixelToStereotaxicTransform = NiftiTransform();
     m_stereotaxicToPixelTransform = NiftiTransform();
     m_imagePlane.reset();
     m_imagePlaneInvalid = false;
     
-    m_pyramidLayerIndexInTabs.fill(0);
-    m_tabCziImagePyramidLevelChanged.fill(false);
-    
     for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
         for (int32_t iOverlay = 0; iOverlay < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; iOverlay++) {
+            CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, iTab);
+            CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, iOverlay);
             m_tabOverlayInfo[iTab][iOverlay]->resetContent();
-            m_imageLoaderMultiResolution[iTab][iOverlay].reset();
         }
     }
 }
@@ -164,30 +157,13 @@ CziImageFile::closeFile()
         case Status::OPEN:
             break;
     }
-    m_reader->Close();
-
-    /*
-     * Desctructors will close the files
-     */
-    m_scalingTileAccessor.reset();
-    m_reader.reset();
-    m_stream.reset();
     
+    resetPrivate();
     
     /*
      * File is now closed
      */
     m_status = Status::CLOSED;
-    
-    m_fullResolutionLogicalRect = QRectF();
-    
-    /*
-     * Remove all images
-     */
-    for (auto& img : m_tabCziImages) {
-        img.reset();
-    }
-//    m_defaultAllFramesImage.reset();
 }
 
 /**
@@ -281,9 +257,10 @@ CziImageFile::receiveEvent(Event* event)
         
         const int32_t cloneToTabIndex   = cloneTabEvent->getNewBrowserTabIndex();
         const int32_t cloneFromTabIndex = cloneTabEvent->getIndexOfBrowserTabThatWasCloned();
-        CaretAssertVectorIndex(m_pyramidLayerIndexInTabs, cloneToTabIndex);
-        CaretAssertVectorIndex(m_pyramidLayerIndexInTabs, cloneFromTabIndex);
-        m_pyramidLayerIndexInTabs[cloneToTabIndex] = m_pyramidLayerIndexInTabs[cloneFromTabIndex];
+        
+        CaretAssertToDoFatal();
+        /* Need to clone settings for all overlays in the tab */
+
         cloneTabEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_RESET_VIEW) {
@@ -294,9 +271,9 @@ CziImageFile::receiveEvent(Event* event)
     }
     
     if (removeTabIndex >= 0) {
-        CaretAssertVectorIndex(m_tabCziImages, removeTabIndex);
-        m_tabCziImages[removeTabIndex].reset();
         for (int32_t jOverlay = 0; jOverlay < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; jOverlay++) {
+            CaretAssertArrayIndex(m_imageLoaderMultiResolution, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, removeTabIndex);
+            CaretAssertArrayIndex(m_imageLoaderMultiResolution, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, jOverlay);
             m_tabOverlayInfo[removeTabIndex][jOverlay]->resetContent();
         }
     }
@@ -419,89 +396,8 @@ CziImageFile::readFile(const AString& filename)
             m_status = Status::ERRORED;
             return;
         }
-
-        CziImage* defImage(NULL);
-        const bool readPyramidFlag(false);
-        if (readPyramidFlag
-            && (m_numberOfPyramidLayers > 2)) {
-            /*
-             * Maximum resolution for default image is no more than 1/2 maximum texture dimension
-             */
-            const int32_t resolution(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension() / 2);
-            if (cziDebugFlag) {
-                std::cout << "For CZI Image, seeking resolution " << resolution << std::endl;
-            }
-            
-            /*
-             * Index of pyramid level that is no more than 1/2 maximum texture dimension
-             */
-            const int32_t defaultPyramidIndex(getPyramidLayerWithMaximumResolution(resolution));
-            if (defaultPyramidIndex >= 0) {
-                defImage = readPyramidLayerFromCziImageFile(defaultPyramidIndex,
-                                                            m_fullResolutionLogicalRect,
-                                                            m_fullResolutionLogicalRect,
-                                                            m_errorMessage);
-                if (defImage == NULL) {
-                    std::cout << "PYRAMID ERROR: " << m_errorMessage << std::endl;
-                    m_errorMessage.clear();
-                }
-                else {
-                    /*
-                     * Range of pyramid layers for low-res to high-res
-                     */
-                    m_lowestResolutionPyramidLayerIndex  = defaultPyramidIndex;
-                    m_highestResolutionPyramidLayerIndex = m_numberOfPyramidLayers - 1;
-                    
-                    /*
-                     * For the highest resolution pyramid layer, the CZI library has the
-                     * minification factor set to zero.  If one tries to load this pyramid
-                     * layer with minification factor of zero, the CZI library goes into
-                     * an infinite loop in CSingleChannelPyramidLevelTileAccessor::CalcPyramidLayerNo
-                     * at " if (f >= minFactorInt)" because 'f' will be zero and 'minFactorInt' is 2.
-                     *
-                     * So, replacing the minification factor with 2 seems to prevent the infinite loop.
-                     */
-                    CaretAssertVectorIndex(m_pyramidLayers, m_highestResolutionPyramidLayerIndex);
-                    if (m_pyramidLayers[m_highestResolutionPyramidLayerIndex].m_layerInfo.minificationFactor == 0) {
-                        m_pyramidLayers[m_highestResolutionPyramidLayerIndex].m_layerInfo.minificationFactor = 2;
-                    }
-                    CaretAssert(m_lowestResolutionPyramidLayerIndex <= m_highestResolutionPyramidLayerIndex);
-                    
-                    /*
-                     * Set level of zoom that corresponds to each of the pyramid layers
-                     * and level of zoom used for switching to next layer in auto mode
-                     */
-                    float zoomFromLowRes(1.0);
-                    for (int32_t i = m_lowestResolutionPyramidLayerIndex;
-                         i <= m_highestResolutionPyramidLayerIndex;
-                         i++) {
-                        CaretAssertVectorIndex(m_pyramidLayers, i);
-                        m_pyramidLayers[i].m_zoomLevelFromLowestResolutionImage = zoomFromLowRes;
-                        zoomFromLowRes *= (m_pyramidLayers[i+1].m_layerInfo.minificationFactor);
-                    }
-                    
-                    if (cziDebugFlag) {
-                        std::cout << "Pyramid Range: " << m_lowestResolutionPyramidLayerIndex
-                        << ", " << m_highestResolutionPyramidLayerIndex << std::endl;
-                        std::cout << "Default pyramid index: " << defaultPyramidIndex << std::endl;
-                    }
-                }
-            }
-            m_pyramidLayerIndexInTabs.fill(defaultPyramidIndex);
-        }
         
-        if (defImage == NULL) {
-            
-//            m_defaultAllFramesImage.reset(readDefaultImage());
-//
-//            defImage = readFromCziImageFile(m_fullResolutionLogicalRect,
-//                                            getPreferencesImageDimension(),
-//                                            CziImageResolutionChangeModeEnum::INVALID, /* use INVALID for default image */
-//                                            0, /* level index (value not used for default image) */
-//                                            m_errorMessage);
-        }
         if ( m_allFramesPyramidInfo.getDefaultImage() == NULL) {
-//        if ( ! m_defaultAllFramesImage) {
             m_status = Status::ERRORED;
             return;
         }
@@ -530,24 +426,19 @@ CziImageFile::readFile(const AString& filename)
 }
 
 /**
- * @return The full resolution logical rectangle
- */
-QRectF
-CziImageFile::getFullResolutionLogicalRect() const
-{
-    return m_fullResolutionLogicalRect;
-}
-
-
-/**
  * Read the default image.
  * @throw DataFileException if there is an error
  */
 CziImage*
 CziImageFile::readDefaultImage()
 {
+    const CziSceneInfo* nullSceneInfo(NULL);
+    const int32_t invalidPyramidLayerIndex(-1);
     AString errorMessage;
     CziImage* cziImage = readFromCziImageFile(m_fullResolutionLogicalRect,
+                                              nullSceneInfo,
+                                              invalidPyramidLayerIndex,
+                                              m_fullResolutionLogicalRect,
                                               getPreferencesImageDimension(),
                                               CziImageResolutionChangeModeEnum::INVALID, /* use INVALID for default image */
                                               0, /* level index (value not used for default image) */
@@ -556,7 +447,7 @@ CziImageFile::readDefaultImage()
         throw DataFileException("Reading default image: "
                                 + errorMessage);
     }
-    
+
     return cziImage;
 }
 
@@ -641,8 +532,7 @@ CziImageFile::createAllFramesPyramidInfo(const libCZI::SubBlockStatistics& subBl
                                   pyramidInfo,
                                   width,
                                   height);
-        m_pyramidLayers.push_back(pyramidLayer);
-        
+
         m_allFramesPyramidInfo.addPyramidLayer(pyramidLayer);
         width /= 2;
         height /= 2;
@@ -688,11 +578,6 @@ CziImageFile::setLayersZoomFactors(CziSceneInfo& cziSceneInfo)
 void
 CziImageFile::readPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatistics)
 {
-    m_numberOfPyramidLayers = 0;
-//    auto overallBoundingBox = subBlockStatistics.boundingBox;
-//    if (cziDebugFlag) {
-//        std::cout << "Overall bounding box: " << CziUtilities::intRectToString(overallBoundingBox) << std::endl;
-//    }
     libCZI::PyramidStatistics pyramidStatistics = m_reader->GetPyramidStatistics();
     const int32_t numberOfScenes(pyramidStatistics.scenePyramidStatistics.size());
     
@@ -747,7 +632,6 @@ CziImageFile::readPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatisti
                                       pyramidInfo,
                                       width,
                                       height);
-            m_pyramidLayers.push_back(pyramidLayer);
 
             CaretAssertVectorIndex(m_cziScenePyramidInfos, sceneIndex);
             m_cziScenePyramidInfos[sceneIndex].addPyramidLayer(pyramidLayer);
@@ -758,12 +642,6 @@ CziImageFile::readPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatisti
                 << " width=" << pl.m_pixelWidth << " height=" << pl.m_pixelHeight << std::endl;
             }
         }
-        
-        std::sort(m_pyramidLayers.begin(),
-                  m_pyramidLayers.end(),
-                  [=](PyramidLayer a, PyramidLayer b) { return (a.m_layerInfo.pyramidLayerNo > b.m_layerInfo.pyramidLayerNo); } );
-        
-        
     }
     
     for (auto& sceneInfo : m_cziScenePyramidInfos) {
@@ -792,17 +670,6 @@ CziImageFile::readPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatisti
         }
         
         setLayersZoomFactors(sceneInfo);
-
-    }
-    
-    m_numberOfPyramidLayers = static_cast<int32_t>(m_pyramidLayers.size());
-    
-    if (cziDebugFlag) {
-        for (int32_t i = 0; i < m_numberOfPyramidLayers; i++) {
-            const auto& pl = m_pyramidLayers[i];
-            std::cout << "Index=" << i << " CZI Pyramid Layer Number: " << (int)pl.m_layerInfo.pyramidLayerNo << " MinFactor: " << (int)pl.m_layerInfo.minificationFactor
-            << " width=" << pl.m_pixelWidth << " height=" << pl.m_pixelHeight << std::endl;
-        }
     }
 }
 
@@ -825,11 +692,115 @@ CziImageFile::addToMetadataIfNotEmpty(const AString& name,
     getFileMetaData()->set(name, text);
 }
 
+/**
+ * Want image loaded to be as close to the maximum dimension.
+ * Enlarge image if small and set zoom when logical image is too large
+ *
+ * @param regionOfInterestToRead
+ *    Region that is requested for reading
+ * @param fullRegionOfInterest
+ *    Total region of data that can be read
+ * @param maximumPixelWidthOrHeight
+ *    Maximum size for either dimension in pixels
+ * @param regionToReadOut
+ *    Region that should be read
+ * @param zoomOut
+ *    Zooming to keep image read within maximumPixelWidthOrHeight
+ */
+void
+CziImageFile::zoomToMatchPixelDimension(const QRectF& regionOfInterestToRead,
+                                        const QRectF& fullRegionOfInterest,
+                                        const float maximumPixelWidthOrHeight,
+                                        QRectF& regionToReadOut,
+                                        float& zoomOut) const
+{
+    regionToReadOut = regionOfInterestToRead;
+    zoomOut = 1.0;
+
+    
+    const float inputWidth(regionOfInterestToRead.width());
+    const float inputHeight(regionOfInterestToRead.height());
+    
+    /*
+     * If ROI is exact pixel dimensions do nothing
+     */
+    if ((inputWidth == maximumPixelWidthOrHeight)
+        && (inputHeight == maximumPixelWidthOrHeight)) {
+        return;
+    }
+    
+
+    /*
+     * If width and height are less than maximum dimension,
+     * increase size of region to fill maximum dimension
+     */
+    if ((inputWidth < maximumPixelWidthOrHeight)
+        && (inputHeight < maximumPixelWidthOrHeight)) {
+        float newWidth(0.0);
+        float newHeight(0.0);
+        
+        /*
+         * Enlarge ROI to maximum pixel dimension
+         */
+        if (inputWidth > inputHeight) {
+            const float scale = maximumPixelWidthOrHeight / inputWidth;
+            newWidth = maximumPixelWidthOrHeight;
+            newHeight = inputHeight * scale;
+        }
+        else {
+            const float scale = maximumPixelWidthOrHeight / inputHeight;
+            newWidth  = inputWidth * scale;
+            newHeight = maximumPixelWidthOrHeight;
+        }
+        
+        if ((newWidth <= 1.0)
+            || (newHeight <= 1.0)) {
+            return;
+        }
+        
+        /* Enlarge the ROI */
+        const float centerX(regionOfInterestToRead.center().x());
+        const float centerY(regionOfInterestToRead.center().y());
+        const float halfWidth(newWidth / 2.0);
+        const float halfHeight(newHeight / 2.0);
+        
+        const QRectF newRegionToRead(centerX - halfWidth,  /* left */
+                                     centerY - halfHeight, /* top */
+                                     newWidth,             /* width */
+                                     newHeight);           /* height */
+        
+        /*
+         * Limit to valid region
+         */
+        if (fullRegionOfInterest.intersects(newRegionToRead)) {
+            regionToReadOut = fullRegionOfInterest.intersected(newRegionToRead);
+        }
+    }
+    
+    float roiWidth(regionToReadOut.width());
+    float roiHeight(regionToReadOut.height());
+    
+    /*
+     * If either width or height is greater than maximum dimension
+     * use zooming to keep image loaded to no more than maximum dimensions
+     */
+    if ((roiWidth > maximumPixelWidthOrHeight)
+        || (roiHeight > maximumPixelWidthOrHeight)) {
+        if (roiWidth > roiHeight) {
+            zoomOut =  maximumPixelWidthOrHeight / roiWidth;
+        }
+        else {
+            zoomOut =  maximumPixelWidthOrHeight / roiHeight;
+        }
+    }
+}
 
 /**
  * Read the specified SCALED region from the CZI file into an image of the given width and height.
  * @param regionOfInterest
  *    Region of interest to read from file.  Origin is in top left.
+ * @param frameRegionOfInterest
+ *    Region of interest of the frame or all frames
  * @param outputImageWidthHeightMaximum
  *    Maximum width and height of output image
  * @param resolutionChangeMode
@@ -842,7 +813,10 @@ CziImageFile::addToMetadataIfNotEmpty(const AString& name,
  *    Pointer to CziImage or NULL if there is an error.
  */
 CziImage*
-CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
+CziImageFile::readFromCziImageFile(const QRectF& regionOfInterestIn,
+                                   const CziImageFile::CziSceneInfo* cziSceneInfo,
+                                   const int32_t pyramidLayerIndex,
+                                   const QRectF& frameRegionOfInterest,
                                    const int64_t outputImageWidthHeightMaximum,
                                    const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
                                    const int32_t resolutionChangeModeLevel,
@@ -850,7 +824,7 @@ CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
 {
     errorMessageOut.clear();
     
-    if ( ! regionOfInterest.isValid()) {
+    if ( ! regionOfInterestIn.isValid()) {
         errorMessageOut = "Region of interest for reading from file is invalid";
         return NULL;
     }
@@ -864,34 +838,48 @@ CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
     scstaOptions.backGroundColor.g = prefBackRGB[1];
     scstaOptions.backGroundColor.b = prefBackRGB[2];
     
-    /*
-     * Maximum of ROI width/height
-     */
-    const auto roiMaxWidthHeight(std::max(regionOfInterest.width(),
-                                          regionOfInterest.height()));
+    float zoomToRead(1.0);
+    QRectF regionOfInterest(regionOfInterestIn);
     
     /*
      * If ROI width/height is greater than output image width/height,
      * use zoom to reduce the dimensions of the image data that is read
      */
-    float zoom(1.0);
-    if (roiMaxWidthHeight > outputImageWidthHeightMaximum) {
-        zoom = static_cast<float>(outputImageWidthHeightMaximum) / static_cast<float>(roiMaxWidthHeight);
-    }
-    else {
-        zoom = static_cast<float>(roiMaxWidthHeight) / static_cast<float>(outputImageWidthHeightMaximum);
+    {
+        QRectF newRegion(regionOfInterest);
+        float newZoom(1.0);
+        zoomToMatchPixelDimension(regionOfInterest,
+                                  frameRegionOfInterest,
+                                  outputImageWidthHeightMaximum,
+                                  newRegion,
+                                  newZoom);
+        if (cziDebugFlag) {
+            std::cout << "Region: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
+            std::cout << "   New: " << CziUtilities::qRectToString(newRegion) << std::endl;
+            std::cout << "  Zoom: " << newZoom << std::endl;
+            if (cziSceneInfo != NULL) {
+                std::cout << "  Pyramid " << pyramidLayerIndex << " of " << cziSceneInfo->getNumberOfPyramidLayers() << std::endl;
+            }
+        }
+        
+        regionOfInterest = newRegion;
+        zoomToRead = newZoom;
     }
     
     /*
      * Read into 24 bit RGB to avoid conversion from other pixel formats
      */
+    if (cziDebugFlag) {
+        std::cout << "----------------------" << std::endl;
+        std::cout << "READING IMAGE with ROI: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
+    }
     const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
     const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(regionOfInterest);
     CaretAssert(m_scalingTileAccessor);
     std::shared_ptr<libCZI::IBitmapData> bitmapData = m_scalingTileAccessor->Get(pixelType,
                                                                                  intRectROI,
                                                                                  &coordinate,
-                                                                                 zoom,
+                                                                                 zoomToRead,
                                                                                  &scstaOptions);
     if ( ! bitmapData) {
         errorMessageOut = ("Failed to read data for region "
@@ -907,7 +895,7 @@ CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
     
     CziImage* cziImageOut = new CziImage(this,
                                          qImage,
-                                         m_fullResolutionLogicalRect,
+                                         frameRegionOfInterest,
                                          CziUtilities::intRectToQRect(intRectROI),
                                          resolutionChangeMode,
                                          resolutionChangeModeLevel);
@@ -915,111 +903,60 @@ CziImageFile::readFromCziImageFile(const QRectF& regionOfInterest,
 }
 
 /**
- * @return The pyramid layer for a tab.
- * @param tabIndex
- * Index of the tab
- * @param overlayIndex
- * Index of overlasy
- */
-int32_t
-CziImageFile::getPyramidLayerIndexForTabOverlay(const int32_t tabIndex,
-                                                const int32_t overlayIndex) const
-{
-    return m_tabOverlayInfo[tabIndex][overlayIndex]->m_pyramidLevel;
-    CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
-    return m_pyramidLayerIndexInTabs[tabIndex];
-}
-
-/**
- * Set the pyramid layer for a tab.
- * @param tabIndex
- * Index of the tab
- * @param pyramidLayerIndex
- * New pyramid layer
- */
-void
-CziImageFile::setPyramidLayerIndexForTab(const int32_t tabIndex,
-                                         const int32_t pyramidLayerIndex)
-{
-    CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
-    
-    int32_t minLayerIndex(0), maxLayerIndex(0);
-    getPyramidLayerRange(minLayerIndex, maxLayerIndex);
-    int32_t newPyramidLayerIndex = MathFunctions::limitRange(pyramidLayerIndex,
-                                                             minLayerIndex,
-                                                             maxLayerIndex);
-    
-    CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
-    if (newPyramidLayerIndex != m_pyramidLayerIndexInTabs[tabIndex]) {
-        m_pyramidLayerIndexInTabs[tabIndex] = newPyramidLayerIndex;
-        if (newPyramidLayerIndex != m_lowestResolutionPyramidLayerIndex) {
-            /*
-             * Need image specific to tab
-             */
-            CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
-            m_tabCziImagePyramidLevelChanged[tabIndex] = true;
-        }
-    }
-}
-
-/**
  * Reload the pyramid layer in the given tab.
  * @param tabIndex
  *    Index of the tab.
+ * @param overlayIndex
+ * Index of overlasy
  */
 void
-CziImageFile::reloadPyramidLayerInTab(const int32_t tabIndex)
+CziImageFile::reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
+                                             const int32_t overlayIndex)
 {
-    if (m_pyramidLayerIndexInTabs[tabIndex] != m_lowestResolutionPyramidLayerIndex) {
-        /*
-         * Set level changed.  Cannot invalidate current image as it may
-         * get used before new image is loaded.
-         */
-        CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
-        m_tabCziImagePyramidLevelChanged[tabIndex] = true;
-    }
+    CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, overlayIndex);
+    
+    CziImageLoaderBase* imageLoader(getImageLoaderForTabOverlay(tabIndex,
+                                                                overlayIndex));
+    imageLoader->forceImageReloading();
 }
 
 /**
  * Get the range of available pyramid layers.  If range is invalid, layer indices will be -1.
- * @param lowestResolutionPyramidLayerIndexOut
+ * @param frameIndex
+ *    Index of frame
+ * @param allFramesFlag
+ *    If true, image contains all frames (for CZI this is all scenes)
+ * @param lowestPyramidLayerIndexOut
  *    Output with lowest resolution layer index (
- * @param highestResolutionPyramidLayerIndexOut
+ * @param highestPyramidLayerIndexOut
  *    Output with highest resolution layer index
  */
 void
-CziImageFile::getPyramidLayerRange(int32_t& lowestResolutionPyramidLayerIndexOut,
-                                   int32_t& highestResolutionPyramidLayerIndexOut) const
+CziImageFile::getPyramidLayerRangeForFrame(const int32_t frameIndex,
+                                           const bool allFramesFlag,
+                                           int32_t& lowestPyramidLayerIndexOut,
+                                           int32_t& highestPyramidLayerIndexOut) const
 {
-    lowestResolutionPyramidLayerIndexOut  = m_lowestResolutionPyramidLayerIndex;
-    highestResolutionPyramidLayerIndexOut = m_highestResolutionPyramidLayerIndex;
-}
-
-/**
- * Find the pyramid layer that is closest to but less than or equal to the given resolution.
- * Both width and height must be less than or equal to the resolution.
- *
- * @param resolution
- *    Maximum resolution for pyramid layer
- * @return
- *    Index of pyramid layer that is closest but less than or equal to the given resolution.
- */
-int32_t
-CziImageFile::getPyramidLayerWithMaximumResolution(const int32_t resolution) const
-{
-    int32_t layerIndex = 0;
+    lowestPyramidLayerIndexOut  = -1;
+    highestPyramidLayerIndexOut = -1;
     
-    for (int32_t i = 0; i < m_numberOfPyramidLayers; i++) {
-        CaretAssertVectorIndex(m_pyramidLayers, i);
-        const auto& layerInfo = m_pyramidLayers[i];
-        if ((layerInfo.m_pixelWidth > resolution)
-            || (layerInfo.m_pixelHeight > resolution)) {
-            break;
-        }
-        layerIndex = i;
+    const CziSceneInfo* cziInfo(NULL);
+    if (allFramesFlag) {
+        cziInfo = &m_allFramesPyramidInfo;
+    }
+    else {
+        CaretAssertVectorIndex(m_cziScenePyramidInfos, frameIndex);
+        cziInfo = &m_cziScenePyramidInfos[frameIndex];
     }
     
-    return layerIndex;
+    if (cziInfo != NULL) {
+        const int32_t numPyramidLayers(cziInfo->m_pyramidLayers.size());
+        if (numPyramidLayers > 0) {
+            lowestPyramidLayerIndexOut  = 0;
+            highestPyramidLayerIndexOut = numPyramidLayers;
+        }
+    }
 }
 
 /**
@@ -1127,152 +1064,6 @@ CziImageFile::readFramePyramidLayerFromCziImageFile(const int32_t frameIndex,
                                          pyramidInfo.pyramidLayerNo);
     return cziImageOut;
 }
-
-/**
- * Read a pyramid layer from CZI file
- * @param pyramidLayer
- *    Index of pyramid layer to read
- * @param logicalRectangleRegionRect
- *    Rectangular region to read NOT REALLY USED ???
- * @param rectangleForReadingRect
- *    Rectangular region to read
- * @param errorMessageOut
- *    Contains information about any errors
- * @return
- *    Pointer to CziImage or NULL if there is an error.
- */
-CziImage*
-CziImageFile::readPyramidLayerFromCziImageFile(const int32_t pyramidLayer,
-                                               const QRectF& logicalRectangleRegionRect,
-                                               const QRectF& rectangleForReadingRect,
-                                               AString& errorMessageOut)
-{
-    errorMessageOut.clear();
-    
-    const int32_t numPyramidLayers(m_pyramidLayers.size());
-    if (numPyramidLayers <= 0) {
-        errorMessageOut = "There are no pyramid layers for accessing data";
-        return NULL;
-    }
-    if ((pyramidLayer < 0)
-        || (pyramidLayer >= numPyramidLayers)) {
-        errorMessageOut = ("Invalid pyramid level="
-                           + AString::number(pyramidLayer)
-                           + " range is [0,"
-                           + AString::number(numPyramidLayers - 1)
-                           + "]");
-        return NULL;
-    }
-    CaretAssertVectorIndex(m_pyramidLayers, pyramidLayer);
-    libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo pyramidInfo = m_pyramidLayers[pyramidLayer].m_layerInfo;
-    
-    libCZI::CDimCoordinate coordinate;
-    libCZI::IDimCoordinate* iDimCoord = &coordinate;
-    
-    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundRGB();
-    libCZI::ISingleChannelPyramidLayerTileAccessor::Options scstaOptions;
-    scstaOptions.Clear();
-    scstaOptions.backGroundColor.r = prefBackRGB[0];
-    scstaOptions.backGroundColor.g = prefBackRGB[1];
-    scstaOptions.backGroundColor.b = prefBackRGB[2];
-    
-    /*
-     * Read into 24 bit RGB to avoid conversion from other pixel formats
-     */
-    const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
-    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(logicalRectangleRegionRect);
-    CaretAssert(m_pyramidLayerTileAccessor);
-    const libCZI::IntRect rectToReadROI = CziUtilities::qRectToIntRect(rectangleForReadingRect);
-    std::shared_ptr<libCZI::IBitmapData> bitmapData;
-    try {
-        bitmapData = m_pyramidLayerTileAccessor->Get(pixelType,
-                                                     rectToReadROI,
-                                                     iDimCoord,
-                                                     pyramidInfo,
-                                                     &scstaOptions);
-    }
-    catch (std::out_of_range& e) {
-        errorMessageOut = ("Out of range exception: "
-                           + QString(e.exception::what())
-                           + " reading pyramid layer="
-                           + QString::number(pyramidInfo.pyramidLayerNo)
-                           + " for ROI="
-                           + CziUtilities::intRectToString(rectToReadROI));
-        return NULL;
-    }
-    
-    if ( ! bitmapData) {
-        errorMessageOut = "Failed to read data";
-        return NULL;
-    }
-    
-    CaretLogInfo("Request reading of :"
-                 + CziUtilities::intRectToString(intRectROI)
-                 + " and actually read width="
-                 + QString::number(bitmapData->GetWidth())
-                 + ", height="
-                 + QString::number(bitmapData->GetHeight()));
-    QImage* qImage = createQImageFromBitmapData(bitmapData.get(),
-                                                errorMessageOut);
-    if (qImage == NULL) {
-        return NULL;
-    }
-    
-    CziImage* cziImageOut = new CziImage(this,
-                                         qImage,
-                                         m_fullResolutionLogicalRect,
-                                         CziUtilities::intRectToQRect(rectToReadROI),
-                                         CziImageResolutionChangeModeEnum::AUTO_PYRAMID,
-                                         pyramidInfo.pyramidLayerNo);
-    return cziImageOut;
-}
-
-/**
- * This function is taken from CSingleChannelPyramidLevelTileAccessor.  It computes how many pixels from the
- * highest resolution will fit in the pyramid layer.
- */
-/// <summary>    For the specified pyramid layer (and the pyramid type), calculate the size of a pixel on this
-///             layer as measured by pixels on layer 0. </summary>
-/// <param name="pyramidInfo">    Information describing the pyramid and the requested pyramid-layer. </param>
-/// <returns>    The calculated size of pixel (in units of pixels on pyramid layer 0). </returns>
-/*static*/int
-CziImageFile::CalcSizeOfPixelOnLayer0(const libCZI::ISingleChannelPyramidLayerTileAccessor::PyramidLayerInfo& pyramidInfo)
-{
-    int f = 1;
-    for (int i = 0; i < pyramidInfo.pyramidLayerNo; ++i)
-    {
-        f *= pyramidInfo.minificationFactor;
-    }
-    
-    return f;
-}
-
-/**
- * Convert a pixel size to a logical size for the given layer.
- * Reading images uses "logical width"
- * @param pyramidLayers
- *    Pyramid layers for selection
- * @param pyramidLayerIndex
- *    Index of pyramid layer
- * @param widthInOut
- *    Width (input pixels; output logical)
- * @param heightInOut
- *    Height (input pixels; output logical)
- */
-void
-CziImageFile::pixelSizeToLogicalSize(const std::vector<PyramidLayer>& pyramidLayers,
-                                     const int32_t pyramidLayerIndex,
-                                     int32_t& widthInOut,
-                                     int32_t& heightInOut) const
-{
-    CaretAssertVectorIndex(pyramidLayers, pyramidLayerIndex);
-    const int32_t pixelScale = CalcSizeOfPixelOnLayer0(pyramidLayers[pyramidLayerIndex].m_layerInfo);
-    widthInOut  *= pixelScale;
-    heightInOut *= pixelScale;
-    widthInOut  = std::min(widthInOut, static_cast<int32_t>(m_fullResolutionLogicalRect.width()));
-    heightInOut = std::min(heightInOut, static_cast<int32_t>(m_fullResolutionLogicalRect.height()));
-}
-
 
 /**
  * Create a QImage from the CZI bitmap data
@@ -2210,76 +2001,30 @@ CziImageFile::loadNiftiTransformFile(const AString& filename,
                 throw DataFileException(orientationErrorMessage);
             }
             
-            const int64_t dimI(dims[0]);
-            const int64_t dimJ(dims[1]);
+            /*
+             * Map full-res pixel index to a NIFTI transform voxel index
+             */
+            transform.m_pixelScaleI = (static_cast<float>(dims[0]) / getWidth());
+            transform.m_pixelScaleJ = (static_cast<float>(dims[1])  / getHeight());
             
-            int32_t pyramidLayerIndex(-1);
-            int64_t maxDiff(9999999999);
-            const int32_t numResolutions(m_pyramidLayers.size());
-            for (int32_t i = 0; i < numResolutions; i++) {
-                const int64_t diffI(std::abs(m_pyramidLayers[i].m_pixelWidth - dimI));
-                const int64_t diffJ(std::abs(m_pyramidLayers[i].m_pixelHeight - dimJ));
-                const int64_t diff(diffI + diffJ);
-                if (diff < maxDiff) {
-                    maxDiff = diff;
-                    pyramidLayerIndex = i;
-                }
-            }
+            std::vector<std::vector<float>> sform(transform.m_niftiFile->getSform());
+            transform.m_sformMatrix.reset(new Matrix4x4(sform));
             
-            if (pyramidLayerIndex >= 0) {
-                CaretAssertVectorIndex(m_pyramidLayers, pyramidLayerIndex);
-                const PyramidLayer& pyramidLayer = m_pyramidLayers[pyramidLayerIndex];
-                transform.m_pixelScaleI = (static_cast<float>(pyramidLayer.m_pixelWidth)
-                                           / getWidth());
-                transform.m_pixelScaleJ = (static_cast<float>(pyramidLayer.m_pixelHeight)
-                                           / getHeight());
-                
-                std::vector<std::vector<float>> sform(transform.m_niftiFile->getSform());
-                transform.m_sformMatrix.reset(new Matrix4x4(sform));
-                
-                AString pixelStepText;
-                if (CaretLogger::getLogger()->isFine()) {
-                    std::array<float, 4> p1 { 0.0, 0.0, 0.0, 1.0 };
-                    transform.m_sformMatrix->multiplyPoint4(p1.data());
-                    std::array<float, 4> p2 { 1.0, 1.0, 1.0, 1.0 };
-                    transform.m_sformMatrix->multiplyPoint4(p2.data());
-                    std::array<float, 4> stepXYZ {
-                        p2[0] - p1[0],
-                        p2[1] - p1[1],
-                        p2[2] - p1[2],
-                        p2[3] - p1[3]
-                    };
-                    pixelStepText = ("Pixel Step (0, 0, 0) to (1, 1, 1): "
-                                     + AString::fromNumbers(stepXYZ.data(), 3, ", "));
-                }
-                
-                CaretLogFine("\n"
-                             + transform.m_niftiFile->getFileName()
-                             + "\nBest matching pyramid layer index: "
-                             + AString::number(pyramidLayerIndex)
-                             + "\nCZI Layer: "
-                             + AString::number(pyramidLayer.m_layerInfo.pyramidLayerNo)
-                             + "\nWidth: "
-                             + AString::number(pyramidLayer.m_pixelWidth)
-                             + " height: "
-                             + AString::number(pyramidLayer.m_pixelHeight)
-                             + "\nPixel Scale I/J "
-                             + AString::number(transform.m_pixelScaleI)
-                             + ", "
-                             + AString::number(transform.m_pixelScaleJ)
-                             + "\nNIFTI Dimensions: "
-                             + AString::fromNumbers(dims, ", ")
-                             + "\nNIFTI Orientations: "
-                             + AString::join(orientationNames, ", ")
-                             + "\n" + pixelStepText
-                             + "\nNIFTI sform: "
-                             + transform.m_sformMatrix->toString());
-            }
-            else {
-                throw DataFileException("Unable to find pyramid layer that best matches width/height: "
-                                        + AString::number(dimI)
-                                        + ", "
-                                        + AString::number(dimJ));
+            
+            AString pixelStepText;
+            if (CaretLogger::getLogger()->isFine()) {
+                std::array<float, 4> p1 { 0.0, 0.0, 0.0, 1.0 };
+                transform.m_sformMatrix->multiplyPoint4(p1.data());
+                std::array<float, 4> p2 { 1.0, 1.0, 1.0, 1.0 };
+                transform.m_sformMatrix->multiplyPoint4(p2.data());
+                std::array<float, 4> stepXYZ {
+                    p2[0] - p1[0],
+                    p2[1] - p1[1],
+                    p2[2] - p1[2],
+                    p2[3] - p1[3]
+                };
+                pixelStepText = ("Pixel Step (0, 0, 0) to (1, 1, 1): "
+                                 + AString::fromNumbers(stepXYZ.data(), 3, ", "));
             }
         }
         catch (const DataFileException& dfe) {
@@ -2380,29 +2125,6 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
         }
     }
     
-    const int32_t numPyramidLayers(m_pyramidLayers.size());
-    for (int32_t i = 0; i < numPyramidLayers; i++) {
-        const PyramidLayer& pl(m_pyramidLayers[i]);
-        if (i == m_lowestResolutionPyramidLayerIndex) {
-            dataFileInformation.addNameAndValue("---", QString("--- Lowest Resolution Layer ---"));
-        }
-        dataFileInformation.addNameAndValue(("Pyramid Index "
-                                             + QString::number(i)),
-                                            ("Scene Index "
-                                             + QString::number(pl.m_sceneIndex)
-                                             + " W/H: "
-                                             + QString::number(pl.m_pixelWidth)
-                                             + " x "
-                                             + QString::number(pl.m_pixelHeight)
-                                             + "; CZI Layer: "
-                                             + QString::number(pl.m_layerInfo.pyramidLayerNo)
-                                             + "; Min Factor: "
-                                             + QString::number(pl.m_layerInfo.minificationFactor)
-                                             + "; Zoom From Low Res: "
-                                             + QString::number(pl.m_zoomLevelFromLowestResolutionImage, 'f', 2)));
-    }
-    
-    
     if (m_pixelToStereotaxicTransform.m_niftiFile
         && m_pixelToStereotaxicTransform.m_sformMatrix) {
         dataFileInformation.addNameAndValue("NIFTI Pixel To XYZ Transform File",
@@ -2451,13 +2173,21 @@ CziImageFile::pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const
 }
 
 /**
+ * @return Return a rectangle that defines the bounds of the media data
+ */
+QRectF
+CziImageFile::getLogicalBoundsRect() const
+{
+    return m_fullResolutionLogicalRect;
+}
+
+/**
  * @return The default image for all frames
  */
 CziImage*
 CziImageFile::getDefaultAllFramesImage()
 {
    return m_allFramesPyramidInfo.getDefaultImage();
-//    return m_defaultAllFramesImage.get();
 }
 
 /**
@@ -2467,39 +2197,6 @@ const CziImage*
 CziImageFile::getDefaultAllFramesImage() const
 {
     return m_allFramesPyramidInfo.getDefaultImage();
-//    return m_defaultAllFramesImage.get();
-}
-
-/**
- * @return The default image for a frame
- * @param frameIndex
- *    Index of the frame
- */
-CziImage*
-CziImageFile::getDefaultFrameImage(const int32_t frameIndex)
-{
-    if (static_cast<int32_t>(m_defaultFrameImages.size()) < getNumberOfFrames()) {
-        m_defaultFrameImages.resize(getNumberOfFrames());
-    }
-    
-    CaretAssertVectorIndex(m_defaultFrameImages, frameIndex);
-    if (m_defaultFrameImages[frameIndex] == NULL) {
-        m_defaultFrameImages[frameIndex].reset(readDefaultFrameImage(frameIndex));
-    }
-    
-    return m_defaultFrameImages[frameIndex].get();
-}
-
-/**
- * @return The default image for a frame
- * @param frameIndex
- *    Index of the frame
- */
-const CziImage*
-CziImageFile::getDefaultFrameImage(const int32_t frameIndex) const
-{
-    CziImageFile* nonConst(const_cast<CziImageFile*>(this));
-    return nonConst->getDefaultFrameImage(frameIndex);
 }
 
 /**
@@ -2545,6 +2242,43 @@ CziImageFile::readDefaultFrameImage(const int32_t frameIndex)
 }
 
 /**
+ * Get the image loader for the given tab and overlay
+ * @param tabIndex
+ *    Index of the tab
+ * @param overlayIndex
+ *    Index of the overlay
+ * @return
+ *    Image loader for the given tab and index
+ */
+CziImageLoaderBase*
+CziImageFile::getImageLoaderForTabOverlay(const int32_t tabIndex,
+                                          const int32_t overlayIndex)
+{
+    CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, overlayIndex);
+    return m_tabOverlayInfo[tabIndex][overlayIndex]->getMultiResolutionImageLoader();
+}
+
+/**
+ * Get the image loader for the given tab and overlay
+ * @param tabIndex
+ *    Index of the tab
+ * @param overlayIndex
+ *    Index of the overlay
+ * @return
+ *    Image loader for the given tab and index
+ */
+const CziImageLoaderBase*
+CziImageFile::getImageLoaderForTabOverlay(const int32_t tabIndex,
+                                          const int32_t overlayIndex) const
+{
+    CziImageFile* nonConstThis(const_cast<CziImageFile*>(this));
+    CaretAssert(nonConstThis);
+    return nonConstThis->getImageLoaderForTabOverlay(tabIndex,
+                                                     overlayIndex);
+}
+
+/**
  * @return CZI image for the given tab and overlay
  * @param tabIndex
  *    Index of the tab
@@ -2555,17 +2289,13 @@ CziImage*
 CziImageFile::getImageForTabOverlay(const int32_t tabIndex,
                                     const int32_t overlayIndex)
 {
-    if (m_imageLoaderMultiResolution[tabIndex][overlayIndex] != NULL) {
-        CziImage* cziOut(m_imageLoaderMultiResolution[tabIndex][overlayIndex]->getImage());
-        if (cziOut != NULL) {
-            std::cout << "Using multi-res CZI level " << cziOut->m_resolutionChangeModeLevel << std::endl;
-            return cziOut;
-        }
+    CziImageLoaderBase* imageLoader = getImageLoaderForTabOverlay(tabIndex,
+                                                                  overlayIndex);
+    CaretAssert(imageLoader);
+    CziImage* cziImageOut = imageLoader->getImage();
+    if (cziImageOut != NULL) {
+        return cziImageOut;
     }
-//    CziImage* image(m_tabOverlayInfo[tabIndex][overlayIndex]->m_cziImage.get());
-//    if (image != NULL) {
-//        return image;
-//    }
     
     return getDefaultAllFramesImage();
 }
@@ -2581,19 +2311,9 @@ const CziImage*
 CziImageFile::getImageForTabOverlay(const int32_t tabIndex,
                                     const int32_t overlayIndex) const
 {
-    if (m_imageLoaderMultiResolution[tabIndex][overlayIndex] != NULL) {
-        const CziImage* cziOut(m_imageLoaderMultiResolution[tabIndex][overlayIndex]->getImage());
-        if (cziOut != NULL) {
-            std::cout << "Using multi-res CZI level " << cziOut->m_resolutionChangeModeLevel << std::endl;
-            return cziOut;
-        }
-    }
-//    CziImage* image(m_tabOverlayInfo[tabIndex][overlayIndex]->m_cziImage.get());
-//    if (image != NULL) {
-//        return image;
-//    }
-    
-    return getDefaultAllFramesImage();
+    CziImageFile* nonConstThis(const_cast<CziImageFile*>(this));
+    return nonConstThis->getImageForTabOverlay(tabIndex,
+                                               overlayIndex);
 }
 
 /**
@@ -2608,148 +2328,48 @@ CziImageFile::getImageForTabOverlay(const int32_t tabIndex,
  *    If true, image contains all frames (for CZI this is all scenes)
  * @param resolutionChangeMode
  *    Mode for changing resolutiln (auto/manual)
- * @param pyramidLayerIndex
- *    Index of pyramid layer for manual pyramid layer mode
+ * @param manualPyramidLayerIndex
+ *    Index of pyramid layer for manual mode
  * @param transform
  *    Transform for converts from object to window space (and inverse)
  */
 void
 CziImageFile::updateImageForDrawingInTab(const int32_t tabIndex,
-                                      const int32_t overlayIndex,
-                                      const int32_t frameIndex,
-                                      const bool allFramesFlag,
-                                      const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
-                                      const int32_t pyramidLayerIndex,
-                                      const GraphicsObjectToWindowTransform* transform)
+                                         const int32_t overlayIndex,
+                                         const int32_t frameIndex,
+                                         const bool allFramesFlag,
+                                         const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                         const int32_t manualPyramidLayerIndex,
+                                         const GraphicsObjectToWindowTransform* transform)
 {
-//    if (allFramesFlag) {
-//        return getDefaultAllFramesImage();
-//    }
-//    else {
-//        return getDefaultFrameImage(frameIndex);
-//    }
+    CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, overlayIndex);
+    m_tabOverlayInfo[tabIndex][overlayIndex]->m_imageResolutionChangeMode = resolutionChangeMode;
     
-    CziImage* cziImageOut = getImageForTabOverlay(tabIndex,
-                                                  overlayIndex);
+    CziImage* cziImage(getImageForTabOverlay(tabIndex,
+                                             overlayIndex));
     
-    autoTwoModePanZoomResolutionChange(cziImageOut,
-                                       tabIndex,
-                                       overlayIndex,
-                                       frameIndex,
-                                       allFramesFlag,
-                                       transform);
-
-//    CaretAssertToDoWarning();
-    return;
-    
-    //CziImage* cziImageOut(getDefaultAllFramesImage());
-//    CziImage* cziImageOut = getImageForTabOverlay(tabIndex,
-//                                               overlayIndex);
-//
     switch (resolutionChangeMode) {
         case CziImageResolutionChangeModeEnum::INVALID:
             CaretAssert(0);
             break;
-        case CziImageResolutionChangeModeEnum::AUTO_PYRAMID:
-            break;
         case CziImageResolutionChangeModeEnum::AUTO2:
-            autoTwoModePanZoomResolutionChange(cziImageOut,
-                                               tabIndex,
-                                               overlayIndex,
-                                               frameIndex,
-                                               allFramesFlag,
-                                               transform);
-            cziImageOut = getImageForTabOverlay(tabIndex,
-                                                overlayIndex);
-            //return cziImageOut;
-            return;
             break;
-        case CziImageResolutionChangeModeEnum::AUTO_OLD:
-            break;
-        case CziImageResolutionChangeModeEnum::MANUAL:
+        case CziImageResolutionChangeModeEnum::MANUAL2:
             break;
     }
-    CaretAssertStdArrayIndex(m_pyramidLayerIndexInTabs, tabIndex);
-
-    //const int32_t pyramidLayerIndex = m_pyramidLayerIndexInTabs[tabIndex];
     
-    /*
-     * Lowest pyramid layer is always the default image
-     */
-    if (pyramidLayerIndex == m_lowestResolutionPyramidLayerIndex) {
-        cziImageOut = getDefaultAllFramesImage();
-    }
+    CaretAssert(cziImage);
     
-    if (cziImageOut == NULL) {
-        /*
-         * If pyramid level has not changed and have valid image in tab use it
-         */
-        CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
-        CaretAssertStdArrayIndex(m_tabCziImages, tabIndex);
-        if (  ! m_tabCziImagePyramidLevelChanged[tabIndex]) {
-            if (m_tabCziImages[tabIndex] != NULL) {
-                cziImageOut = m_tabCziImages[tabIndex].get();
-            }
-        }
-        
-        if (cziImageOut == NULL) {
-            /*
-             * In some instance, a new image is not loaded and
-             * 'loadImageForPyramidLayer' returns the current (old)
-             * image.  So, do not want to 'reset' with same value
-             * as it will delete the image and likely cause a crash.
-             */
-            CziImage* oldCziImage = m_tabCziImages[tabIndex].get();
-            CziImage* newCziImage = loadImageForPyrmaidLayer(tabIndex,
-                                                             overlayIndex,
-                                                             transform,
-                                                             pyramidLayerIndex);
-            if (newCziImage != oldCziImage) {
-                m_tabCziImages[tabIndex].reset(newCziImage);
-            }
-            
-            if (m_tabCziImages[tabIndex]) {
-                cziImageOut = m_tabCziImages[tabIndex].get();
-            }
-            
-            if (cziImageOut == NULL) {
-                /*
-                 * Failed so go back to default image
-                 */
-                m_pyramidLayerIndexInTabs[tabIndex] = m_lowestResolutionPyramidLayerIndex;
-                //return getDefaultAllFramesImage();
-                return;
-            }
-        }
-    }
-    
-    if (cziImageOut != NULL) {
-        /*
-         * For AUTO mode
-         */
-        switch (resolutionChangeMode) {
-            case CziImageResolutionChangeModeEnum::INVALID:
-                break;
-            case CziImageResolutionChangeModeEnum::AUTO_OLD:
-                autoModeZoomOnlyResolutionChange(tabIndex,
-                                                 overlayIndex,
-                                                 transform);
-                break;
-            case CziImageResolutionChangeModeEnum::AUTO_PYRAMID:
-                autoModePanZoomResolutionChange(cziImageOut,
-                                                tabIndex,
-                                                overlayIndex,
-                                                transform);
-                break;
-            case CziImageResolutionChangeModeEnum::AUTO2:
-                break;
-            case CziImageResolutionChangeModeEnum::MANUAL:
-                break;
-        }
-    }
-    
-   // return cziImageOut;
-    return;
+    CziImageLoaderBase* imageLoaderBase(getImageLoaderForTabOverlay(tabIndex,
+                                                                    overlayIndex));
+    CaretAssert(imageLoaderBase);
+    imageLoaderBase->updateImage(cziImage,
+                                 frameIndex,
+                                 allFramesFlag,
+                                 resolutionChangeMode,
+                                 manualPyramidLayerIndex,
+                                 transform);
 }
 
 /**
@@ -2766,869 +2386,11 @@ CziImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
     const CziImage* cziImage(getImageForTabOverlay(tabIndex,
                                                    overlayIndex));
     CaretAssert(cziImage);
-    return cziImage->getGraphicsPrimitiveForMediaDrawing();
+    
+    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForMediaDrawing());
+    CaretAssert(primitive);
+    return primitive;
 }
-
-/**
- * Convert a viewport XY-coordinate to a model space coordinate and return in a pixel index.
- * @param transform
- *    Transform for converts from object to window space (and inverse)
- * @param x
- *    X-coordinate
- * @param y
- *    Y-coordinate
- * @return
- *    Pixel index containing coordinate in model space.
- */
-PixelLogicalIndex
-CziImageFile::viewportXyToPixelLogicalIndex(const GraphicsObjectToWindowTransform* transform,
-                                            const float x,
-                                            const float y)
-{
-    float modelXYZ[3];
-    transform->inverseTransformPoint(x,
-                                     y,
-                                     0.0,
-                                     modelXYZ);
-    const PixelLogicalIndex pixelLogicalIndex(modelXYZ);
-    return pixelLogicalIndex;
-}
-
-/**
- * @return Area of the intersected region of the two rectangles
- * @param rectOne
- *    First rectangle
- * @param rectTwo
- *    Second rectangle
- */
-float
-CziImageFile::getIntersectedArea(const QRectF& rectOne,
-                                 const QRectF& rectTwo) const
-{
-    float area(0.0);
-    
-    if (rectOne.isValid()
-        && rectTwo.isValid()) {
-        const QRectF intersectionRect(rectOne.intersected(rectTwo));
-        if (intersectionRect.isValid()) {
-            area = (intersectionRect.width()
-                    * intersectionRect.height());
-        }
-    }
-
-    return area;
-}
-
-/**
- * Process change in resoluion for auto mode for zooming and panning for Auto TWO mode
- * @param cziImage
- *    Current CZI image.  May be image unique to tab or the default image
- * @param tabIndex
- *    Index of the tab
- * @param overlayIndex
- *    Index of overlay
- * @param frameIndex
- *    Index of frame selected
- * @param allFramesFlag
- *    True if all frames selected, else false.
- * @param transform
- *    Transform for converts from object to window space (and inverse)
- * @return
- *    Pyramid layer index selected
- */
-
-void
-CziImageFile::autoTwoModePanZoomResolutionChange(const CziImage* cziImage,
-                                        const int32_t tabIndex,
-                                        const int32_t overlayIndex,
-                                        const int32_t frameIndex,
-                                        const bool allFramesFlag,
-                                        const GraphicsObjectToWindowTransform* transform)
-{
-    CaretAssert(cziImage);
-
-    if ( ! m_imageLoaderMultiResolution[tabIndex][overlayIndex]) {
-        m_imageLoaderMultiResolution[tabIndex][overlayIndex].reset(new CziImageLoaderMultiResolution());
-        m_imageLoaderMultiResolution[tabIndex][overlayIndex]->initialize(tabIndex,
-                                                                         overlayIndex,
-                                                                         this);
-    }
-    CziImage* newCziImage(NULL);
-    m_imageLoaderMultiResolution[tabIndex][overlayIndex]->updateImage(cziImage,
-                                                                      frameIndex,
-                                                                      allFramesFlag,
-                                                                      transform);
-    
-
-//    need to display newly loaded images NOT Default image
-//    if (newCziImage != NULL) {
-//        m_tabOverlayInfo[tabIndex][overlayIndex]->m_cziImage.reset(newCziImage);
-//    }
-    return;
-
-//    /*
-//     * CZI uses "Logical Coordinates" that have the origin at the top left
-//     * corner of the image.  The origin is typically non-zero with both
-//     * the x- and y-coordinates being negative.  Postive-X goes to the right
-//     * and positive-Y is down.
-//     *
-//     * The "Available Rectangle" is the coordinates of the image that is
-//     * available and can be displayed.
-//     *
-//     * A CZI file may contain multiple "Scenes".  A CZI "Scene"
-//     * is a separate image that is stored in the file.  In Workbench
-//     * these separate images are selected as "Frames" in a Layer.
-//     */
-//    QRectF availableLogicalRect(m_fullResolutionLogicalRect);
-//    if ( ! allFramesFlag) {
-//        if ((frameIndex >= 0)
-//            && (frameIndex < getNumberOfFrames())) {
-//            CaretAssertVectorIndex(m_cziSceneInfos, frameIndex);
-//            availableLogicalRect = m_cziSceneInfos[frameIndex].m_logicalRectangle;
-//        }
-//    }
-//
-////    CziImage* cziImage(m_tabOverlayInfo[tabIndex][overlayIndex]->m_cziImage.get());
-////    if (cziImage == NULL) {
-////        cziImage = getDefaultImage();
-////    }
-//
-//    /*
-//     * After getting the viewport enlarge it a little bit.
-//     * When the user pans the image, this will cause new image data
-//     * to be loaded as the edge of the current image is about to
-//     * be panned into the viewport.
-//     *
-//     * If we do not enlarge the viewport, new image data is not loaded
-//     * until the edge of the image is moved into the viewport and this
-//     * results in a small amount of the background becoming visible
-//     * (until the new image is loaded).
-//     */
-//    const std::array<float, 4> viewportArray(transform->getViewport());
-//    const QRectF viewport(viewportArray[0],
-//                    viewportArray[1],
-//                    viewportArray[2],
-//                    viewportArray[3]);
-//    const float mv(10);
-//    const QMarginsF margins(mv, mv, mv, mv);
-//    const QRectF viewportWithMargins = viewport.marginsAdded(margins);
-//
-//    /*
-//     * Logical oordinate at Top Left and Bottom Right of Viewport
-//     */
-//    const PixelIndex viewportLogicalTopLeft(viewportXyToPixelLogicalIndex(transform,
-//                                                                        viewport.x(),
-//                                                                        viewport.y() + viewport.height()));
-//    const PixelIndex viewportLogicalBottomRight(viewportXyToPixelLogicalIndex(transform,
-//                                                                            viewport.x() + viewport.width(),
-//                                                                            viewport.y()));
-//
-////    const PixelIndex pixelIndexBottomRight(viewportBottomRightWindowCoordinate);
-////    const PixelIndex windowLogicalBottomRight(cziImage->transformPixelIndexToSpace(pixelIndexBottomRight,
-////                                                                                   CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT,
-////                                                                                   CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT));
-//    /*
-//     * CZI Logical coordinates of viewport (portion of CZI image that fills the viewport)
-//     */
-//    const QRectF viewportLogicalRect(viewportLogicalTopLeft.getI(),
-//                                     viewportLogicalTopLeft.getJ(),
-//                                     viewportLogicalBottomRight.getI() - viewportLogicalTopLeft.getI(),
-//                                     viewportLogicalBottomRight.getJ() - viewportLogicalTopLeft.getJ());
-//    bool cziDebugFlag(true);
-//    if (cziDebugFlag) {
-//        std::cout << "Viewport Logical Top Left: " << viewportLogicalTopLeft.toString() << std::endl;
-//////        std::cout << "Pixel Index Top Left (origin top left): " << pixelIndexTopLeft.toString() << std::endl;
-////        std::cout << "Pixel Index Top Left (origin top left): "
-////        << cziImage->transformPixelIndexToSpace(pixelIndexTopLeft,
-////                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
-////                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT).toString() << std::endl;
-//        std::cout << "Viewport Logical Bottom Right: " << viewportLogicalBottomRight.toString() << std::endl;
-//////        std::cout << "Pixel Index Bottom Right (origin top left): " << pixelIndexBottomRight.toString() << std::endl;
-////        std::cout << "Pixel Index Bottom Right (origin top left): "
-////        << cziImage->transformPixelIndexToSpace(pixelIndexBottomRight,
-////                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
-////                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT).toString() << std::endl;
-//        std::cout << "Viewport Logical Rect: " << CziUtilities::qRectToString(viewportLogicalRect) << std::endl;
-//        std::cout << "Available Logical Rect: " << CziUtilities::qRectToString(availableLogicalRect) << std::endl;
-//        std::cout << "Image Logical Rect: " << CziUtilities::qRectToString(cziImage->m_imageDataLogicalRect) << std::endl;
-//
-//        const QRectF imageIntersectWindowRect(viewportLogicalRect.intersected(cziImage->m_imageDataLogicalRect));
-//        const float imageInWindowArea(imageIntersectWindowRect.width() * imageIntersectWindowRect.height());
-//        const float imageArea(cziImage->m_imageDataLogicalRect.width()* cziImage->m_imageDataLogicalRect.height());
-//        const float viewedPercentage((imageArea > 0.0f)
-//                                     ? (imageInWindowArea / imageArea)
-//                                     : imageArea);
-//        std::cout << "Image Viewed Percentage: " << viewedPercentage << std::endl;
-//    }
-//
-//
-//    /*
-//     * Find the area of the of current image that intersects the viewport
-//     */
-//    const float imageIntersectsViewportArea(getIntersectedArea(cziImage->m_imageDataLogicalRect,
-//                                                               viewportLogicalRect));
-//
-//    /*
-//     * Find the area of the available image that intersects the viewport
-//     */
-//    const float availableImageIntersectsViewportArea(getIntersectedArea(availableLogicalRect,
-//                                                                        viewportLogicalRect));
-//
-//    if (cziDebugFlag) {
-//        std::cout << "Area of image that intersects viewport: " << imageIntersectsViewportArea << std::endl;
-//        std::cout << "Area of availble image that intersects viewport: " << availableImageIntersectsViewportArea << std::endl;
-//    }
-//
-//    bool reloadFlag(false);
-//
-//    /*
-//     * If the available image area overlaps more of the viewport than the
-//     * current image, need to reload as more of the image can be seen.
-//     */
-//    if (availableImageIntersectsViewportArea > imageIntersectsViewportArea) {
-//        std::cout << "RELOAD: available image greater than current image" << std::endl;
-//        reloadFlag = true;
-//    }
-//
-//    if ( ! reloadFlag) {
-//        /*
-//         * Height of viewport in logical coordinates
-//         */
-//        const double viewportLogicalHeight(viewportLogicalRect.height());
-//
-//        /*
-//         * Height of viewport in pixels
-//         */
-//        const double viewportPixelHeight(viewport.height());
-//
-//        std::cout << "Viewport LOGICAL height: " << viewportLogicalHeight << std::endl;
-//        std::cout << "Viewport PIXEL height:   " << viewportPixelHeight << std::endl;
-//
-//        if ((viewportLogicalHeight > 0.0)
-//            && (viewportPixelHeight > 0.0)) {
-//            const float logicalToPixelRatio(viewportLogicalHeight
-//                                            / viewportPixelHeight);
-//
-//            /*
-//             * If ratio is:
-//             * (1) Greater than one; logical element is smaller than pixel
-//             * (2) Less than one; logical element is bigger than pixel
-//             * (3) Equal to 1; logical element is same size as pixel
-//             *
-//             * When logical element is bigger than pixel, we should load
-//             * higher resolution data as user has zoomed in.
-//             */
-//            const float threshold(2.0);
-//            if (logicalToPixelRatio < threshold) {
-//                std::cout << "RELOAD: logical element is larger than pixel" << std::endl;
-//                reloadFlag = true;
-//            }
-//        }
-//    }
-//
-//    if (reloadFlag) {
-//        CziImage* newImage(NULL);
-//
-//        bool doneFlag = false;
-//        if (allFramesFlag) {
-//            if (viewportLogicalRect.contains(m_fullResolutionLogicalRect)) {
-//                /*
-//                 * Entire full image is within window, can use default image
-//                 */
-//                doneFlag = true;
-//            }
-//        }
-//
-//        if ( ! doneFlag) {
-//            /*
-//             * Find portion of available image region that intersects the viewport
-//             */
-//            const QRectF imageIntersectViewportLogicalRect(availableLogicalRect.intersected(viewportLogicalRect));
-//
-////            const QRectF imageIntersectFullImageLogicalRect(imageIntersectViewportLogicalRect.intersected(m_fullResolutionLogicalRect));
-////            if (imageIntersectFullImageLogicalRect == m_fullResolutionLogicalRect) {
-////
-////            }
-//            QRectF imageRegion(imageIntersectViewportLogicalRect);
-//
-//            if (cziImage->m_imageDataLogicalRect == imageRegion) {
-//                /*
-//                 * Do not need to reload since image region has not changed
-//                 */
-//                doneFlag = true;
-//            }
-//
-//            if ( ! doneFlag) {
-//                std::cout << "LOADING IMAGE: " << CziUtilities::qRectToString(imageRegion) << std::endl;
-//                AString errorMessage;
-//                newImage = readFromCziImageFile(imageRegion,
-//                                                        getPreferencesImageDimension(),
-//                                                        errorMessage);
-//                if (newImage == NULL) {
-//                    CaretLogSevere(errorMessage);
-//                }
-//            }
-//        }
-//
-//        m_tabOverlayInfo[tabIndex][overlayIndex]->m_cziImage.reset(newImage);
-//        if (newImage != NULL) {
-//            m_tabOverlayInfo[tabIndex][overlayIndex]->m_logicalRect = newImage->m_imageDataLogicalRect;
-//        }
-//        else {
-//            m_tabOverlayInfo[tabIndex][overlayIndex]->m_logicalRect = QRectF();
-//        }
-//    }
-//
-//
-//
-//
-//    /*
-//     * (1) Find intersection of currently loaded image region with the viewport region
-//     * (2) Find amount of viewport that overlaps the current image region
-//     */
-//    const QRectF viewportIntersectImageRect(cziImage->m_imageDataLogicalRect.intersected(viewportLogicalRect));
-//    const float viewportInImageArea(viewportIntersectImageRect.width() * viewportIntersectImageRect.height());
-//    const float viewportArea(viewportLogicalRect.width() * viewportLogicalRect.height());
-//    const float viewportRoiPercentage((viewportArea > 0.0f)
-//                                      ? (viewportInImageArea / viewportArea)
-//                                      : viewportArea);
-//    if (cziDebugFlag) {
-//        std::cout << "Window Image Percentage: " << viewportRoiPercentage << std::endl;
-//    }
-//
-//    /*
-//     * (1) Find intersection of full resolution image region with the viewport region
-//     * (2) Find amount of viewport that overlaps the full image region
-//     */
-//    const QRectF viewportIntersectFullImageRect(availableLogicalRect.intersected(viewportLogicalRect));
-//    const float viewportInFullResImageArea(viewportIntersectFullImageRect.width() * viewportIntersectFullImageRect.height());
-//    const float viewportFullResPercentage(viewportArea
-//                                          ? (viewportInFullResImageArea / viewportArea)
-//                                          : viewportArea);
-//    if (cziDebugFlag) {
-//        std::cout << "Window Full Res Image Percentage: " << viewportFullResPercentage << std::endl;
-//    }
-//
-//    if (viewportFullResPercentage > 0.0) {
-//        /*
-//         * Get ratio of current image ROI and viewport full res image
-//         * When less that one, the current image has been panned so
-//         * that there is a gap on a side (or sides) of the viewport
-//         * that can be filled by loading new image data
-//         */
-//        const float ratio(viewportRoiPercentage / viewportFullResPercentage);
-//        if (cziDebugFlag) {
-//            std::cout << "Viewed vs Available Percentage: " << ratio << std::endl;
-//        }
-//
-//        /*
-//         * If parts of the viewport do not contain image data but
-//         * there is image data available, reload image data to
-//         * cover the entire viewport.
-//         */
-//        const float reloadThreshold(0.99);
-//        if (ratio < reloadThreshold) {
-//            /*
-//             * Cause reloading of image data which should fill the window
-//             */
-//            if (cziDebugFlag) {
-//                std::cout << "...Reloading Image Data" << std::endl;
-//            }
-//            std::cout << "Need to load image for auto TWO mode" << std::endl;
-//            //reloadPyramidLayerInTab(tabIndex);
-//        }
-//    }
-//    if (cziDebugFlag) {
-//        std::cout << std::endl;
-//    }
-}
-
-/**
- * Process change in resoluion for auto mode for zooming and panning
- * @param cziImage
- *    Current CZI image
- * @param tabIndex
- *    Index of the tab
- * @param overlayIndex
- *    Index of overlay
- * @param transform
- *    Transform for converts from object to window space (and inverse)
- * @return
- *    Pyramid layer index selected
- */
-int32_t
-CziImageFile::autoModePanZoomResolutionChange(const CziImage* cziImage,
-                                              const int32_t tabIndex,
-                                              const int32_t overlayIndex,
-                                              const GraphicsObjectToWindowTransform* transform)
-{
-    const int32_t previousPyramidLayerIndex = getPyramidLayerIndexForTabOverlay(tabIndex,
-                                                                                overlayIndex);
-    
-    const int32_t pyramidLayerIndex = autoModeZoomOnlyResolutionChange(tabIndex,
-                                                                       overlayIndex,
-                                                                       transform);
-    
-    if (pyramidLayerIndex <= m_lowestResolutionPyramidLayerIndex) {
-        /*
-         * Lowest resolution shows entire image
-         */
-        return pyramidLayerIndex;
-    }
-    
-    if (pyramidLayerIndex != previousPyramidLayerIndex) {
-        /*
-         * Resolution has changed which will cause loading of new image data
-         * and the new data may fill the window.
-         */
-        return pyramidLayerIndex;
-    }
-    
-    /*
-     * After getting the viewport enlarge it a little bit.
-     * When the user pans the image, this will cause new image data
-     * to be loaded as the edge of the current image is about to
-     * be panned into the viewport.
-     *
-     * If we do not enlarge the viewport, new image data is not loaded
-     * until the edge of the image is moved into the viewport and this
-     * results in a small amount of the background becoming visible
-     * (until the new image is loaded).
-     */
-    const std::array<float, 4> viewportArray(transform->getViewport());
-    QRectF viewport(viewportArray[0],
-                    viewportArray[1],
-                    viewportArray[2],
-                    viewportArray[3]);
-    const float mv(10);
-    const QMarginsF margins(mv, mv, mv, mv);
-    viewport = viewport.marginsAdded(margins);
-    
-    /*
-     * Window coordinate at Top Left Corner of Viewport
-     * 'inverseTransformPoint()' transforms from window coordinates to the ortho's pixel index with
-     * origin at bottom left.
-     * 'transformPixelIndexToSpace' transforms pixel index to CZI 'logical coordinates'
-     */
-    float viewportTopLeftWindowCoordinate[3];
-    transform->inverseTransformPoint(viewport.x(),
-                                     viewport.y(),
-                                     0.0,
-                                     viewportTopLeftWindowCoordinate);
-    const PixelIndex pixelIndexTopLeft(viewportTopLeftWindowCoordinate);
-    const PixelIndex windowLogicalTopLeft(cziImage->transformPixelIndexToSpace(pixelIndexTopLeft,
-                                                                               CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT,
-                                                                               CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT));
-    
-    /*
-     * Bottom Right Corner of Window
-     * 'inverseTransformPoint()' transforms from window coordinates to the ortho's pixel index with
-     * origin at bottom left.
-     * 'transformPixelIndexToSpace' transforms pixel index to CZI 'logical coordinates'
-     */
-    float viewportBottomRightWindowCoordinate[3];
-    transform->inverseTransformPoint(viewport.x() + viewport.width(),
-                                     viewport.y() + viewport.height(),
-                                     0.0,
-                                     viewportBottomRightWindowCoordinate);
-    const PixelIndex pixelIndexBottomRight(viewportBottomRightWindowCoordinate);
-    const PixelIndex windowLogicalBottomRight(cziImage->transformPixelIndexToSpace(pixelIndexBottomRight,
-                                                                                   CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT,
-                                                                                   CziPixelCoordSpaceEnum::FULL_RESOLUTION_LOGICAL_TOP_LEFT));
-    /*
-     * CZI Logical coordinates of viewport (portion of CZI image that fills the viewport)
-     */
-    const QRectF viewportFullResLogicalRect(windowLogicalTopLeft.getI(),
-                                            windowLogicalTopLeft.getJ(),
-                                            windowLogicalBottomRight.getI() - windowLogicalTopLeft.getI(),
-                                            windowLogicalBottomRight.getJ() - windowLogicalTopLeft.getJ());
-    if (cziDebugFlag) {
-        std::cout << "Pixel Index Top Left (origin top left): " << pixelIndexTopLeft.toString() << std::endl;
-        std::cout << "Pixel Index Top Left (origin top left): "
-        << cziImage->transformPixelIndexToSpace(pixelIndexTopLeft,
-                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
-                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT).toString() << std::endl;
-        std::cout << "Pixel Index Bottom Right (origin bottom left): " << pixelIndexBottomRight.toString() << std::endl;
-        std::cout << "Pixel Index Bottom Right (origin top left): "
-        << cziImage->transformPixelIndexToSpace(pixelIndexBottomRight,
-                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_BOTTOM_LEFT,
-                                                CziPixelCoordSpaceEnum::FULL_RESOLUTION_PIXEL_TOP_LEFT).toString() << std::endl;
-        std::cout << "Window Logical Rect: " << CziUtilities::qRectToString(viewportFullResLogicalRect) << std::endl;
-        std::cout << "Full Res Logical Rect: " << CziUtilities::qRectToString(m_fullResolutionLogicalRect) << std::endl;
-        std::cout << "Image Logical Rect: " << CziUtilities::qRectToString(cziImage->m_imageDataLogicalRect) << std::endl;
-        
-        const QRectF imageIntersectWindowRect(viewportFullResLogicalRect.intersected(cziImage->m_imageDataLogicalRect));
-        const float imageInWindowArea(imageIntersectWindowRect.width() * imageIntersectWindowRect.height());
-        const float imageArea(cziImage->m_imageDataLogicalRect.width()* cziImage->m_imageDataLogicalRect.height());
-        const float viewedPercentage((imageArea > 0.0f)
-                                     ? (imageInWindowArea / imageArea)
-                                     : imageArea);
-        std::cout << "Image Viewed Percentage: " << viewedPercentage << std::endl;
-    }
-    
-    /*
-     * (1) Find intersection of currently loaded image region with the viewport region
-     * (2) Find amount of viewport that overlaps the current image region
-     */
-    const QRectF viewportIntersectImageRect(cziImage->m_imageDataLogicalRect.intersected(viewportFullResLogicalRect));
-    const float viewportInImageArea(viewportIntersectImageRect.width() * viewportIntersectImageRect.height());
-    const float viewportArea(viewportFullResLogicalRect.width() * viewportFullResLogicalRect.height());
-    const float viewportRoiPercentage((viewportArea > 0.0f)
-                                      ? (viewportInImageArea / viewportArea)
-                                      : viewportArea);
-    if (cziDebugFlag) {
-        std::cout << "Window Image Percentage: " << viewportRoiPercentage << std::endl;
-    }
-    
-    /*
-     * (1) Find intersection of full resolution image region with the viewport region
-     * (2) Find amount of viewport that overlaps the full image region
-     */
-    const QRectF viewportIntersectFullImageRect(m_fullResolutionLogicalRect.intersected(viewportFullResLogicalRect));
-    const float viewportInFullResImageArea(viewportIntersectFullImageRect.width() * viewportIntersectFullImageRect.height());
-    const float viewportFullResPercentage(viewportArea
-                                          ? (viewportInFullResImageArea / viewportArea)
-                                          : viewportArea);
-    if (cziDebugFlag) {
-        std::cout << "Window Full Res Image Percentage: " << viewportFullResPercentage << std::endl;
-    }
-    
-    if (viewportFullResPercentage > 0.0) {
-        /*
-         * Get ratio of current image ROI and viewport full res image
-         * When less that one, the current image has been panned so
-         * that there is a gap on a side (or sides) of the viewport
-         * that can be filled by loading new image data
-         */
-        const float ratio(viewportRoiPercentage / viewportFullResPercentage);
-        if (cziDebugFlag) {
-            std::cout << "Viewed vs Available Percentage: " << ratio << std::endl;
-        }
-        
-        /*
-         * If parts of the viewport do not contain image data but
-         * there is image data available, reload image data to
-         * cover the entire viewport.
-         */
-        const float reloadThreshold(0.99);
-        if (ratio < reloadThreshold) {
-            /*
-             * Cause reloading of image data which should fill the window
-             */
-            if (cziDebugFlag) {
-                std::cout << "...Reloading Image Data" << std::endl;
-            }
-            reloadPyramidLayerInTab(tabIndex);
-        }
-    }
-    if (cziDebugFlag) {
-        std::cout << std::endl;
-    }
-    
-    return pyramidLayerIndex;
-}
-
-/**
- * Process change in resoluion for auto mode for zooming only
- * @param tabIndex
- *    Index of the tab
- * @param overlayIndex
- *    Index of overlay
- * @param transform
- *    Transform for converts from object to window space (and inverse)
- * @return
- *    Pyramid layer index selected
- */
-int32_t
-CziImageFile::autoModeZoomOnlyResolutionChange(const int32_t tabIndex,
-                                               const int32_t overlayIndex,
-                                               const GraphicsObjectToWindowTransform* transform)
-{
-    /*
-     * Compute pixel height of the high-resolution image when drawn in the window.
-     * The size of the image, in pixels when drawn, determines when to switch to
-     * lower or higher resolution image.
-     */
-    const float imageBottomLeftPixel[3] { 0.0, static_cast<float>(m_fullResolutionLogicalRect.height()), 0.0 };
-    const float imageTopLeftPixel[3] { 0.0, 0.0, 0.0 };
-    float imageBottomLeftWindow[3];
-    float imageTopLeftWindow[3];
-    transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
-    transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
-    const float drawnPixelHeight = imageTopLeftWindow[1] - imageBottomLeftWindow[1];
-    
-    int32_t pyramidLayerForScaling = m_highestResolutionPyramidLayerIndex;
-    for (int32_t i = m_lowestResolutionPyramidLayerIndex;
-         i <= m_highestResolutionPyramidLayerIndex;
-         i++) {
-        if (drawnPixelHeight < m_pyramidLayers[i].m_pixelHeight) {
-            pyramidLayerForScaling = i;
-            break;
-        }
-    }
-    if (pyramidLayerForScaling != getPyramidLayerIndexForTabOverlay(tabIndex,
-                                                                    overlayIndex)) {
-        setPyramidLayerIndexForTab(tabIndex,
-                                   pyramidLayerForScaling);
-    }
-    
-    return pyramidLayerForScaling;
-}
-
-/**
- * Load a image from the given pyramid layer for the center of the tab region defined by the transform
- * @param tabIndex
- *    Index of the tab
- * @param overlayIndex
- *    Index of the overlay
- * @param transform
- *    Transform from the tab where image is drawn
- * @param pyramidLayerIndexIn
- *    Index of the pyramid layer
- */
-CziImage*
-CziImageFile::loadImageForPyrmaidLayer(const int32_t tabIndex,
-                                       const int32_t overlayIndex,
-                                       const GraphicsObjectToWindowTransform* transform,
-                                       const int32_t pyramidLayerIndexIn)
-{
-    if (m_pyramidLayers.empty()) {
-        CaretLogSevere("Attempting to load pyramid layer="
-                       + AString::number(pyramidLayerIndexIn)
-                       + " but no pyramid layers available.");
-    }
-    
-    int32_t pyramidLayerIndex(pyramidLayerIndexIn);
-    if (pyramidLayerIndex < 0) {
-        pyramidLayerIndex = 0;
-        CaretLogSevere("Attempt to load invalid pyramid layer="
-                       + AString::number(pyramidLayerIndexIn));
-    }
-    else if (pyramidLayerIndex >= static_cast<int32_t>(m_pyramidLayers.size())) {
-        pyramidLayerIndex = m_pyramidLayers.size() - 1;
-        CaretLogSevere("Attempt to load invalid pyramid layer="
-                       + AString::number(pyramidLayerIndexIn));
-    }
-    
-    CziImage* cziImageOut(NULL);
-    
-    std::array<float,4> viewport(transform->getViewport());
-    if ((viewport[2] <= 0)
-        || (viewport[3] <= 0)) {
-        CaretLogSevere("Viewport is invalid: "
-                       + AString::fromNumbers(viewport.data(), 4, ", ")
-                       + " for pyramid layer "
-                       + AString::number(pyramidLayerIndex));
-        return NULL;
-    }
-    const float vpCenterXYZ[3] {
-        viewport[0] + (viewport[2] / 2.0f),
-        viewport[1] + (viewport[3] / 2.0f),
-        0.0
-    };
-    float modelXYZ[3];
-    transform->inverseTransformPoint(vpCenterXYZ, modelXYZ);
-    PixelIndex imagePixelIndex(modelXYZ[0], modelXYZ[1], 0.0f);
-    
-    float modelXYZ2[3];
-    GraphicsUtilitiesOpenGL::unproject(vpCenterXYZ[0], vpCenterXYZ[1], modelXYZ2);
-//    std::cout << "Model XYZ: " << AString::fromNumbers(modelXYZ, 3, "f") << std::endl;
-//    std::cout << "   Model 2 XYZ: " << AString::fromNumbers(modelXYZ2, 3, "f") << std::endl;
-
-    CziImage* oldCziImage(getImageForTabOverlay(tabIndex,
-                                                overlayIndex));
-    CaretAssert(oldCziImage);
-    PixelIndex fullImagePixelIndex = imagePixelIndex;
-    PixelIndex fullResolutionLogicalPixelIndex = imagePixelIndex;
-    
-    /*
-     * Get preferred image size from preferences
-     */
-    const int32_t preferredImageDimension(getPreferencesImageDimension());
-    
-    /*
-     * Aspect ratio
-     *  "2"   when height is double width
-     *  "1"   when width equals height
-     *  "0.5" when width is double height
-     *
-     * So, when aspect is:
-     *  "> 1.33"  use a vertical rectangle;
-     *  "< 0.75" use a horizontal rectangle;
-     *  Otherwise, a square;
-     * Note: (1 / 0.75) = 1.33
-     *
-     * Textures should be powers of 2 for performance reasons.
-     *
-     */
-    const float viewportAspectRatio(viewport[3] / viewport[2]);
-    CaretAssert(viewportAspectRatio > 0.0f);
-    int32_t loadImageWidth(preferredImageDimension);
-    int32_t loadImageHeight(preferredImageDimension);
-    if (viewportAspectRatio > 1.333f) {
-        loadImageHeight *= 2;
-    }
-    else if (viewportAspectRatio < 0.75) {
-        loadImageWidth *= 2;
-    }
-    
-    /*
-     * Limit width/height to maximum texture dimension supported
-     * on this computer by OpenGL
-     */
-    const int32_t maximumTextureDimension(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
-    loadImageWidth = std::min(loadImageWidth,
-                              maximumTextureDimension);
-    loadImageHeight = std::min(loadImageHeight,
-                               maximumTextureDimension);
-    
-    /*
-     * Create rectangle in logical coordinates
-     */
-    const int32_t halfLoadImageWidth(loadImageWidth / 2);
-    const int32_t halfLoadImageHeight(loadImageHeight / 2);
-    QRectF imageRegionRect(fullResolutionLogicalPixelIndex.getI() - halfLoadImageWidth,
-                           fullResolutionLogicalPixelIndex.getJ() - halfLoadImageHeight,
-                           loadImageWidth,
-                           loadImageHeight);
-    if (cziDebugFlag) {
-        std::cout << "Loading width/height: " << loadImageWidth << ", " << loadImageHeight << " for aspect: " << viewportAspectRatio << std::endl;
-    }
-    
-    /*
-     * Limit region for reading to valid area of image
-     */
-    if (m_fullResolutionLogicalRect.intersects(imageRegionRect)) {
-        imageRegionRect = m_fullResolutionLogicalRect.intersected(imageRegionRect);
-    }
-    else {
-        CaretLogSevere("Loading Pyramid level="
-                       + AString::number(pyramidLayerIndex)
-                       + " for rectangle="
-                       + CziUtilities::qRectToString(imageRegionRect)
-                       + " for file "
-                       + getFileNameNoPath()
-                       + " does not overlap the full resolution rectangle="
-                       + CziUtilities::qRectToString(m_fullResolutionLogicalRect));
-        return NULL;
-    }
-    
-    /*
-     * When reading, the size is a "logical size" not PIXELS.  So, need to convert
-     * the pixel size to a logical size
-     */
-    const int32_t centerX = imageRegionRect.center().rx();
-    const int32_t centerY = imageRegionRect.center().ry();
-    int32_t roiWidth = imageRegionRect.width();
-    int32_t roiHeight = imageRegionRect.height();
-    pixelSizeToLogicalSize(m_pyramidLayers,
-                           pyramidLayerIndex,
-                           roiWidth,
-                           roiHeight);
-    QRectF adjustedRect(imageRegionRect);
-    adjustedRect.setX(centerX - (roiWidth / 2));
-    adjustedRect.setY(centerY - (roiHeight / 2));
-    adjustedRect.setWidth(roiWidth);
-    adjustedRect.setHeight(roiHeight);
-    
-    /*
-     * May need to move or clip to stay in the logical space
-     */
-    adjustedRect = moveAndClipRectangle(adjustedRect);
-    if (cziDebugFlag) {
-        std::cout << "Adjusted width/height: " << roiWidth << ", " << roiHeight << std::endl;
-        std::cout << "Original ROI: " << CziUtilities::qRectToString(imageRegionRect) << std::endl;
-        std::cout << "   Adjusted for w/h: " << CziUtilities::qRectToString(adjustedRect) << std::endl;
-        std::cout << "   Old Center: " << centerX << ", " << centerY << std::endl;
-        std::cout << "   New Center: " << adjustedRect.center().x() << ", " << adjustedRect.center().y() << std::endl;
-    }
-    if ( ! adjustedRect.isValid()) {
-        return NULL;
-    }
-    
-    /*
-     * If the region has not changed, do not need to load data
-     */
-    if (oldCziImage->m_imageDataLogicalRect == adjustedRect) {
-        return oldCziImage;
-    }
-    
-    AString errorMessage;
-    cziImageOut = readPyramidLayerFromCziImageFile(pyramidLayerIndex, imageRegionRect, adjustedRect, errorMessage);
-    if (cziImageOut == NULL) {
-        CaretLogSevere("Loading Pyramid level="
-                       + AString::number(pyramidLayerIndex)
-                       + " for rectangle="
-                       + CziUtilities::qRectToString(imageRegionRect)
-                       + " for file "
-                       + getFileNameNoPath()
-                       + " error: "
-                       + errorMessage);
-    }
-    
-    CaretAssertStdArrayIndex(m_tabCziImagePyramidLevelChanged, tabIndex);
-    m_tabCziImagePyramidLevelChanged[tabIndex] = false;
-    
-    return cziImageOut;
-}
-
-/**
- * Move and/or clip the rectangle so all of it (or as much as possible) is within
- * the full resolution logical space.
- */
-QRectF
-CziImageFile::moveAndClipRectangle(const QRectF& rectangleIn)
-{
-    return rectangleIn;
-    
-    QRectF rectangle(rectangleIn);
-    
-    const bool moveToKeepFullWidthHeightFlag(false);
-    if (moveToKeepFullWidthHeightFlag) {
-        float dx(0.0);
-        if (rectangle.left() < m_fullResolutionLogicalRect.left()) {
-            dx = (m_fullResolutionLogicalRect.left() - rectangle.left());
-        }
-        else if (rectangle.right() > m_fullResolutionLogicalRect.right()) {
-            dx = -(rectangle.right() - m_fullResolutionLogicalRect.right());
-        }
-        
-        /*
-         * With QRect, the origin is at the top left corner.  Thus,
-         * bottom is always GREATER than top.
-         */
-        float dy(0.0);
-        if (rectangle.bottom() > m_fullResolutionLogicalRect.bottom()) {
-            dy = (rectangle.bottom() - m_fullResolutionLogicalRect.bottom());
-        }
-        else if (rectangle.top() < m_fullResolutionLogicalRect.top()) {
-            dy = -(m_fullResolutionLogicalRect.top() - rectangle.top());
-        }
-        
-        if ((dx != 0.0)
-            || (dy != 0.0)) {
-            std::cout << "Translate by " << dx << ", " << dy << std::endl;
-            std::cout << "       Full: " << CziUtilities::qRectToLrbtString(m_fullResolutionLogicalRect) << std::endl;
-            std::cout << "   Rect was: " << CziUtilities::qRectToLrbtString(rectangle) << std::endl;
-            rectangle.translate(dx, dy);
-            std::cout << "        now: " << CziUtilities::qRectToLrbtString(rectangle) << std::endl;
-        }
-    }
-    
-    if (m_fullResolutionLogicalRect.intersects(rectangle)) {
-        rectangle = m_fullResolutionLogicalRect.intersected(rectangle);
-    }
-    else {
-        /*
-         * No intersection with full resolution image, return invalid rectangle
-         */
-        CaretLogWarning("No intersection with full resolution image");
-        return QRect();
-    }
-    
-    return rectangle;
-}
-
 
 /**
  * @return True if the given pixel index is valid for the CZI image file (may be outside of currently loaded sub-image)
@@ -3692,23 +2454,6 @@ CziImageFile::isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) cons
         return true;
     }
     
-    return false;
-}
-
-/**
- * @return True if the given pixel index is valid for the image in the given tab
- * @param pixelIndex
- *     Image of pixel in FULL RES image
- */
-bool
-CziImageFile::isPixelIndexFullResolutionValid(const PixelIndex& pixelIndex) const
-{
-    if ((pixelIndex.getI() >= 0)
-        && (pixelIndex.getI() < getWidth())
-        && (pixelIndex.getJ() >= 0)
-        && (pixelIndex.getJ() < getHeight())) {
-        return true;
-    }
     return false;
 }
 
@@ -3853,3 +2598,83 @@ CziImageFile::CziSceneInfo::getDefaultImage() {
     }
     return m_defaultImage.get();
 }
+
+/**
+ * Constructor
+ * @param cziImageFile
+ *    CZI image file using this tab overlay info
+ * @param tabIndex
+ *    Index of the tab
+ * @param overlayIndex
+ *    Index of overlay
+ */
+CziImageFile::TabOverlayInfo::TabOverlayInfo(CziImageFile* cziImageFile,
+                                             const int32_t tabIndex,
+                                             const int32_t overlayIndex)
+:
+m_cziImageFile(cziImageFile),
+m_tabIndex(tabIndex),
+m_overlayIndex(overlayIndex)
+{
+    
+}
+
+/**
+ * @return The selected image loader
+ */
+CziImageFile::TabOverlayInfo::~TabOverlayInfo()
+{
+}
+
+/**
+ * @return The selected image loader
+ * @param resolutionChangeMode)
+ *    The resolution mode for loader selection
+ */
+CziImageLoaderBase*
+CziImageFile::TabOverlayInfo::getMultiResolutionImageLoader()
+{
+    CziImageLoaderBase* imageLoaderOut(NULL);
+    
+    switch (m_imageResolutionChangeMode) {
+        case CziImageResolutionChangeModeEnum::INVALID:
+            CaretAssert(0);
+            break;
+        case CziImageResolutionChangeModeEnum::AUTO2:
+        case CziImageResolutionChangeModeEnum::MANUAL2:
+            if (m_multiResolutionImageLoader == NULL) {
+                m_multiResolutionImageLoader.reset(new CziImageLoaderMultiResolution());
+                m_multiResolutionImageLoader->initialize(m_tabIndex,
+                                                         m_overlayIndex,
+                                                         m_cziImageFile);
+            }
+            imageLoaderOut = m_multiResolutionImageLoader.get();
+            break;
+    }
+    
+    
+    CaretAssert(imageLoaderOut);
+    return imageLoaderOut;
+}
+
+/**
+ * @return The selected image loader
+ */
+const CziImageLoaderBase*
+CziImageFile::TabOverlayInfo::getMultiResolutionImageLoader() const
+{
+    TabOverlayInfo* nonConstThis(const_cast<TabOverlayInfo*>(this));
+    CaretAssert(nonConstThis);
+    return nonConstThis->getMultiResolutionImageLoader();
+}
+
+/**
+ * Reset content such as when file is closed
+ */
+void
+CziImageFile::TabOverlayInfo::resetContent()
+{
+    m_imageResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
+    m_multiResolutionImageLoader.reset();
+}
+

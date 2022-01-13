@@ -25,6 +25,8 @@
 #include <array>
 #include <memory>
 
+#include <QRectF>
+
 #include "CaretDataFile.h"
 #include "NiftiEnums.h"
 #include "PixelCoordinate.h"
@@ -153,12 +155,15 @@ namespace caret {
                                                     float& signedDistanceToPixelMillimetersOut,
                                                     PixelLogicalIndex& pixelLogicalIndexOut) const = 0;
         
+        virtual QRectF getLogicalBoundsRect() const;
+        
         virtual PixelIndex pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const;
         
         virtual PixelLogicalIndex pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const;
         
         virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
                                                                              const int32_t overlayIndex) const = 0;
+        
         
         // ADD_NEW_METHODS_HERE
 
