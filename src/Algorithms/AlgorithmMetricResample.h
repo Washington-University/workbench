@@ -35,7 +35,8 @@ namespace caret {
     public:
         AlgorithmMetricResample(ProgressObject* myProgObj, const MetricFile* metricIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
                                 const SurfaceResamplingMethodEnum::Enum& myMethod, MetricFile* metricOut, const MetricFile* curAreas = NULL,
-                                const MetricFile* newAreas = NULL, const MetricFile* currentRoi = NULL, MetricFile* validRoiOut = NULL, const bool& largest = false);
+                                const MetricFile* newAreas = NULL, const MetricFile* currentRoi = NULL, MetricFile* validRoiOut = NULL,
+                                const bool& largest = false, const bool& allowNonSphere = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

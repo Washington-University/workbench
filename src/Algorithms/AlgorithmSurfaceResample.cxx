@@ -61,6 +61,8 @@ OperationParameters* AlgorithmSurfaceResample::getParameters()
     areaMetricsOpt->addMetricParameter(1, "current-area", "a metric file with vertex areas for <current-sphere> mesh");
     areaMetricsOpt->addMetricParameter(2, "new-area", "a metric file with vertex areas for <new-sphere> mesh");
     
+    ret->createOptionalParameter(8, "-bypass-sphere-check", "ADVANCED: allow the current and new 'spheres' to have arbitrary shape as long as they follow the same contour");
+    
     AString myHelpText =
         AString("Resamples a surface file, given two spherical surfaces that are in register.  ") +
         "If ADAP_BARY_AREA is used, exactly one of -area-surfs or -area-metrics must be specified.  " +
@@ -136,11 +138,13 @@ void AlgorithmSurfaceResample::useParameters(OperationParameters* myParams, Prog
         curAreas = areaMetricsOpt->getMetric(1);
         newAreas = areaMetricsOpt->getMetric(2);
     }
-    AlgorithmSurfaceResample(myProgObj, surfaceIn, curSphere, newSphere, myMethod, surfaceOut, curAreas, newAreas);
+    bool allowNonSphere = myParams->getOptionalParameter(8)->m_present;
+    AlgorithmSurfaceResample(myProgObj, surfaceIn, curSphere, newSphere, myMethod, surfaceOut, curAreas, newAreas, allowNonSphere);
 }
 
 AlgorithmSurfaceResample::AlgorithmSurfaceResample(ProgressObject* myProgObj, const SurfaceFile* surfaceIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                                   const SurfaceResamplingMethodEnum::Enum& myMethod, SurfaceFile* surfaceOut, const MetricFile* curAreas, const MetricFile* newAreas) : AbstractAlgorithm(myProgObj)
+                                                   const SurfaceResamplingMethodEnum::Enum& myMethod, SurfaceFile* surfaceOut,
+                                                   const MetricFile* curAreas, const MetricFile* newAreas, const bool allowNonSphere) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (surfaceIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input surface has different number of nodes than input sphere");
@@ -173,7 +177,7 @@ AlgorithmSurfaceResample::AlgorithmSurfaceResample(ProgressObject* myProgObj, co
     surfaceOut->setSecondaryType(surfaceIn->getSecondaryType());
     surfaceOut->setSurfaceType(surfaceIn->getSurfaceType());
     vector<float> coordScratch(numNewNodes * 3, 0.0f);
-    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreaData, newAreaData);
+    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreaData, newAreaData, NULL, allowNonSphere);
     myHelp.resample3DCoord(surfaceIn->getCoordinateData(), coordScratch.data());
     surfaceOut->setCoordinates(coordScratch.data());
 }

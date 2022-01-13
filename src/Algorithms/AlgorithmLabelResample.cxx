@@ -70,6 +70,8 @@ OperationParameters* AlgorithmLabelResample::getParameters()
     
     ret->createOptionalParameter(10, "-largest", "use only the label of the vertex with the largest weight");
     
+    ret->createOptionalParameter(11, "-bypass-sphere-check", "ADVANCED: allow the current and new 'spheres' to have arbitrary shape as long as they follow the same contour");
+    
     AString myHelpText =
         AString("Resamples a label file, given two spherical surfaces that are in register.  ") +
         "If ADAP_BARY_AREA is used, exactly one of -area-surfs or -area-metrics must be specified.\n\n" +
@@ -157,12 +159,14 @@ void AlgorithmLabelResample::useParameters(OperationParameters* myParams, Progre
         validRoiOut = validRoiOutOpt->getOutputMetric(1);
     }
     bool largest = myParams->getOptionalParameter(10)->m_present;
-    AlgorithmLabelResample(myProgObj, labelIn, curSphere, newSphere, myMethod, labelOut, curAreas, newAreas, currentRoi, validRoiOut, largest);
+    bool allowNonSphere = myParams->getOptionalParameter(11)->m_present;
+    AlgorithmLabelResample(myProgObj, labelIn, curSphere, newSphere, myMethod, labelOut, curAreas, newAreas, currentRoi, validRoiOut, largest, allowNonSphere);
 }
 
 AlgorithmLabelResample::AlgorithmLabelResample(ProgressObject* myProgObj, const LabelFile* labelIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
                                                const SurfaceResamplingMethodEnum::Enum& myMethod, LabelFile* labelOut, const MetricFile* curAreas,
-                                               const MetricFile* newAreas, const MetricFile* currentRoi, MetricFile* validRoiOut, const bool& largest) : AbstractAlgorithm(myProgObj)
+                                               const MetricFile* newAreas, const MetricFile* currentRoi, MetricFile* validRoiOut,
+                                               const bool largest, const bool allowNonSphere) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (labelIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input label file has different number of nodes than input sphere");
@@ -186,7 +190,7 @@ AlgorithmLabelResample::AlgorithmLabelResample(ProgressObject* myProgObj, const 
     vector<int32_t> colScratch(numNewNodes, unusedLabel);
     const float* roiCol = NULL;
     if (currentRoi != NULL) roiCol = currentRoi->getValuePointerForColumn(0);
-    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreaData, newAreaData, roiCol);
+    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreaData, newAreaData, roiCol, allowNonSphere);
     if (validRoiOut != NULL)
     {
         validRoiOut->setNumberOfNodesAndColumns(numNewNodes, 1);

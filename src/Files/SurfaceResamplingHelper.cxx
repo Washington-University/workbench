@@ -27,13 +27,16 @@
 
 #include "CaretAssert.h"
 #include "CaretException.h"
+#include "CaretLogger.h"
 #include "CaretOMP.h"
+#include "FastStatistics.h"
 #include "GeodesicHelper.h"
 #include "SignedDistanceHelper.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
 #include "Vector3D.h"
 
+#include <algorithm>
 #include <set>
 #include <map>
 
@@ -41,21 +44,30 @@ using namespace std;
 using namespace caret;
 
 SurfaceResamplingHelper::SurfaceResamplingHelper(const SurfaceResamplingMethodEnum::Enum& myMethod, const SurfaceFile* currentSphere, const SurfaceFile* newSphere,
-                                                 const float* currentAreas, const float* newAreas, const float* currentRoi)
+                                                 const float* currentAreas, const float* newAreas, const float* currentRoi, const bool allowNonSphere)
 {
-    if (!checkSphere(currentSphere) || !checkSphere(newSphere)) throw CaretException("input surfaces to SurfaceResamplingHelper must be spheres");
+    m_nonsphereAllowed = allowNonSphere;
     SurfaceFile currentSphereMod, newSphereMod;
-    changeRadius(100.0f, currentSphere, &currentSphereMod);
-    changeRadius(100.0f, newSphere, &newSphereMod);
+    const SurfaceFile* useCurrent = currentSphere, *useNew = newSphere;
+    if (!allowNonSphere)
+    {
+        if (!checkSphere(currentSphere) || !checkSphere(newSphere)) throw CaretException("input surfaces to SurfaceResamplingHelper must be spheres");
+        changeRadius(100.0f, currentSphere, &currentSphereMod);
+        changeRadius(100.0f, newSphere, &newSphereMod);
+        useCurrent = &currentSphereMod;
+        useNew = &newSphereMod;
+    }
+    //TODO: warning if nonsphere allowed and distance between surfaces is large at some point?
+    //if warning was enabled always, then a highly distorted sphere could trip it, so maybe it would be a good idea anyway, but with a different message
     switch (myMethod)
     {
         case SurfaceResamplingMethodEnum::ADAP_BARY_AREA:
             CaretAssert(currentAreas != NULL && newAreas != NULL);
-            if (currentAreas == NULL || newAreas == NULL) throw CaretException("ADAP_BARY_AREA method requires area surfaces");
-            computeWeightsAdapBaryArea(&currentSphereMod, &newSphereMod, currentAreas, newAreas, currentRoi);
+            if (currentAreas == NULL || newAreas == NULL) throw CaretException("ADAP_BARY_AREA method requires providing vertex areas using anatomical surfaces or vertex area metrics");
+            computeWeightsAdapBaryArea(useCurrent, useNew, currentAreas, newAreas, currentRoi);
             break;
         case SurfaceResamplingMethodEnum::BARYCENTRIC:
-            computeWeightsBarycentric(&currentSphereMod, &newSphereMod, currentRoi);
+            computeWeightsBarycentric(useCurrent, useNew, currentRoi);
             break;
     }
 }
@@ -562,6 +574,11 @@ void SurfaceResamplingHelper::makeBarycentricWeights(const SurfaceFile* from, co
     int numToNodes = to->getNumberOfNodes();
     weights.resize(numToNodes);
     const float* toCoordData = to->getCoordinateData();
+    FastStatistics fromEdgeStatistics, toEdgeStatistics;
+    from->getNodesSpacingStatistics(fromEdgeStatistics);
+    to->getNodesSpacingStatistics(toEdgeStatistics);
+    const float warningDistance = 3.0f * max(fromEdgeStatistics.getMean(), toEdgeStatistics.getMean());
+    bool doWarn = false;
     if (currentRoi == NULL)
     {
 #pragma omp CARET_PAR
@@ -575,6 +592,7 @@ void SurfaceResamplingHelper::makeBarycentricWeights(const SurfaceFile* from, co
                 if (myInfo.baryWeights[0] != 0.0f) weights[i][myInfo.nodes[0]] = myInfo.baryWeights[0];
                 if (myInfo.baryWeights[1] != 0.0f) weights[i][myInfo.nodes[1]] = myInfo.baryWeights[1];
                 if (myInfo.baryWeights[2] != 0.0f) weights[i][myInfo.nodes[2]] = myInfo.baryWeights[2];
+                if (myInfo.absDistance > warningDistance) doWarn = true; //shouldn't matter if threads collide writing the same value
             }
         }
     } else {
@@ -608,8 +626,18 @@ void SurfaceResamplingHelper::makeBarycentricWeights(const SurfaceFile* from, co
                     {
                         iter->second /= weightsum;
                     }
+                    if (myInfo.absDistance > warningDistance) doWarn = true;
                 }
             }
+        }
+    }
+    if (doWarn)
+    {
+        if (m_nonsphereAllowed)
+        {
+            CaretLogWarning("current and new resampling surfaces do not follow the same contour very closely everywhere (or have extreme distortion somewhere), resampling output may have artifacts.  please check whether you used the appropriate current and new surfaces");
+        } else {
+            CaretLogWarning("current or new resampling spheres seem to have extremely large distortions, please check them manually");
         }
     }
 }
