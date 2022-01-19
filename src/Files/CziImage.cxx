@@ -92,7 +92,7 @@ m_resolutionChangeModeLevel(resolutionChangeModeLevel)
  */
 CziImage::~CziImage()
 {
-    std::cout << "Deleting CZI Image: " << m_imageName << std::endl;
+    //std::cout << "Deleting CZI Image: " << m_imageName << std::endl;
 }
 
 /**

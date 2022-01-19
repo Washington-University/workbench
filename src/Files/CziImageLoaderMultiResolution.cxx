@@ -58,34 +58,7 @@ CziImageLoaderMultiResolution::CziImageLoaderMultiResolution()
  */
 CziImageLoaderMultiResolution::~CziImageLoaderMultiResolution()
 {
-    removeCziImage();
-}
-
-/**
- * Remove the CZI image
- */
-void
-CziImageLoaderMultiResolution::removeCziImage()
-{
-    /*
-     * DO NOT destroy image if it is the default image in the CZI image file
-     */
-    if (m_cziImage) {
-        if (m_cziImage.get() == m_cziImageFile->getDefaultAllFramesImage()) {
-            /*
-             * Default image is owned by parent CZI file
-             */
-           // m_cziImage.release();
-            CaretAssertToDoWarning();
-            m_cziImage.reset();
-        }
-        else {
-            /*
-             * File is owned by this instance
-             */
-            m_cziImage.reset();
-        }
-    }
+    m_cziImage.reset();
 }
 
 /**
@@ -117,7 +90,7 @@ CziImageLoaderMultiResolution::getImage()
         return m_cziImage.get();
     }
     
-    return m_cziImageFile->getDefaultFrameImage(m_previousFrameIndex);
+    return NULL;
 }
 
 /**
@@ -157,6 +130,11 @@ CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
     m_frameChangedFlag = false;
     m_reloadImageFlag  = false;
     
+    if (cziImage == NULL) {
+        m_reloadImageFlag = true;
+        m_frameChangedFlag = true;
+        if (cziDebugFlag) std::cout << "Reload image due to previous image invalid" << std::endl;
+    }
     if ((frameIndex != m_previousFrameIndex)
         || (allFramesFlag != m_previousAllFramesFlag)) {
         m_reloadImageFlag  = true;
@@ -212,6 +190,11 @@ CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
                 CaretAssert(0);
                 break;
             case CziImageResolutionChangeModeEnum::AUTO2:
+                /*
+                 * If cziImage is invalid, we should not get here as
+                 * m_reloadImageFlag should be set
+                 */
+                CaretAssert(cziImage);
                 m_reloadImageFlag = isReloadForPanZoom(cziImage,
                                                        transform);
                 if (m_reloadImageFlag) {
@@ -231,14 +214,11 @@ CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
                                                     zoomLayerIndex));
         if (newImage != NULL) {
             if (newImage != m_cziImage.get()) {
-                if (newImage == m_cziImageFile->getDefaultAllFramesImage()) {
-                    std::cout << "ASSIGNING DEFAULT IMAGE" << std::endl;
-                }
                 m_cziImage.reset(newImage);
             }
         }
         else {
-            removeCziImage();
+            m_cziImage.reset();
         }
     }
     m_previousFrameIndex              = frameIndex;
@@ -256,7 +236,6 @@ CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
 void
 CziImageLoaderMultiResolution::forceImageReloading()
 {
-    //removeCziImage();
     //m_reloadImageFlag = true;
     m_forceImageReloadFlag = true;
 }
@@ -507,7 +486,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
     if ((selectedPyramidLayer.m_logicalWidthForImageReading == cziSceneInfo.m_logicalRectangle.width())
         && (selectedPyramidLayer.m_logicalHeightForImageReading == cziSceneInfo.m_logicalRectangle.height())) {
         rectToLoad = cziSceneInfo.m_logicalRectangle;
-        std::cout << "Load full resolution" << std::endl;
+        if (cziDebugFlag) std::cout << "Load full resolution" << std::endl;
     }
     else {
         const float widthToLoad(selectedPyramidLayer.m_logicalWidthForImageReading);
@@ -516,11 +495,11 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
         const QPointF centerXY(rectToLoad.center());
         const float rectX(centerXY.x() - (widthToLoad / 2.0));
         const float rectY(centerXY.y() - (heightToLoad / 2.0));
-        std::cout << "Rect to load before pyramid size: " << CziUtilities::qRectToString(rectToLoad) << std::endl;
+        if (cziDebugFlag) std::cout << "Rect to load before pyramid size: " << CziUtilities::qRectToString(rectToLoad) << std::endl;
         rectToLoad.setRect(rectX, rectY, widthToLoad, heightToLoad);
-        std::cout << "             after pyramid size: " << CziUtilities::qRectToString(rectToLoad) << std::endl;
+        if (cziDebugFlag) std::cout << "             after pyramid size: " << CziUtilities::qRectToString(rectToLoad) << std::endl;
         rectToLoad = rectToLoad.intersected(cziSceneInfo.m_logicalRectangle);
-        std::cout << "             after clip: " << CziUtilities::qRectToString(rectToLoad) << std::endl;
+        if (cziDebugFlag) std::cout << "             after clip: " << CziUtilities::qRectToString(rectToLoad) << std::endl;
     }
 
     const bool expandFlag(false);
@@ -549,9 +528,9 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
     }
     
     if (forceReloadFlag) {
-        
+        /* nothing */
     }
-    else {
+    else if (oldCziImage != NULL) {
         /*
          * If the region has not changed, do not need to load data
          */
@@ -569,7 +548,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
     const AString cziName(cziSceneInfo.getName()
                           + " PyramidLayer="
                           + AString::number(pyramidLayerIndex));
-    std::cout << "Loading pyramid index=" << pyramidLayerIndex << ", rect=" << CziUtilities::qRectToString(rectToLoad) << std::endl;
+    if (cziDebugFlag) std::cout << "Loading pyramid index=" << pyramidLayerIndex << ", rect=" << CziUtilities::qRectToString(rectToLoad) << std::endl;
     AString errorMessage;
     CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(cziName,
                                                                  rectToLoad,
@@ -600,5 +579,5 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
     }
     
     return cziImageOut;
-} // oldCziImage
+}
 

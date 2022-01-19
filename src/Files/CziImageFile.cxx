@@ -223,11 +223,22 @@ CziImageFile::isModified() const
 /**
  * @return true if the file is is empty (image contains no pixels).
  */
-
 bool
 CziImageFile::isEmpty() const
 {
-    return (getDefaultAllFramesImage() == NULL);
+    bool emptyFlag(true);
+    
+    switch (m_status) {
+        case Status::CLOSED:
+            break;
+        case Status::ERRORED:
+            break;
+        case Status::OPEN:
+            emptyFlag = false;
+            break;
+    }
+    
+    return emptyFlag;
 }
 
 /**
@@ -408,7 +419,7 @@ CziImageFile::readFile(const AString& filename)
             return;
         }
         
-        if ( m_allFramesPyramidInfo.getDefaultImage() == NULL) {
+        if ( ! testReadingSmallImage(m_errorMessage)) {
             m_status = Status::ERRORED;
             return;
         }
@@ -504,7 +515,7 @@ CziImageFile::createAllFramesPyramidInfo(const libCZI::SubBlockStatistics& subBl
     m_allFramesPyramidInfo = CziSceneInfo(this,
                                           s_allFramesIndex,
                                           CziUtilities::intRectToQRect(overallBoundingBox),
-                                          "All Frames");
+                                          "All Scenes");
 
     int32_t pyramidLayerNumber(0);
     const int32_t minDim(400);
@@ -2017,24 +2028,20 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
 {
     MediaFile::addToDataFileContentInformation(dataFileInformation);
     
-    const CziImage* defaultCziImage(m_allFramesPyramidInfo.getDefaultImage());
-    if (defaultCziImage != NULL) {
-        dataFileInformation.addNameAndValue("Default Image", QString(""));
-        dataFileInformation.addNameAndValue("----Width (pixels)", defaultCziImage->getWidth());
-        dataFileInformation.addNameAndValue("----Height (pixels)", defaultCziImage->getHeight());
-        dataFileInformation.addNameAndValue("----Logical X", defaultCziImage->m_imageDataLogicalRect.x());
-        dataFileInformation.addNameAndValue("----Logical Y", defaultCziImage->m_imageDataLogicalRect.y());
-        dataFileInformation.addNameAndValue("----Logical Width", defaultCziImage->m_imageDataLogicalRect.width());
-        dataFileInformation.addNameAndValue("----Logical Height", defaultCziImage->m_imageDataLogicalRect.height());
-    }
-    
+    dataFileInformation.addNameAndValue("Width (pixels)", getWidth());
+    dataFileInformation.addNameAndValue("Height (pixels)", getHeight());
+    dataFileInformation.addNameAndValue("Logical X", m_fullResolutionLogicalRect.x());
+    dataFileInformation.addNameAndValue("Logical Y", m_fullResolutionLogicalRect.y());
+    dataFileInformation.addNameAndValue("Logical Width", m_fullResolutionLogicalRect.width());
+    dataFileInformation.addNameAndValue("Logical Height", m_fullResolutionLogicalRect.height());
+
     dataFileInformation.addNameAndValue("Pixel Size X (mm)", m_pixelSizeMmX, 6);
     dataFileInformation.addNameAndValue("Pixel Size Y (mm)", m_pixelSizeMmY, 6);
     dataFileInformation.addNameAndValue("Pixel Size Z (mm)", m_pixelSizeMmZ, 6);
     dataFileInformation.addNameAndValue("Full Logical Rectangle",
                                         CziUtilities::qRectToString(m_fullResolutionLogicalRect));
     
-    m_allFramesPyramidInfo.addToDataFileContentInformation(dataFileInformation, "All Frames");
+    m_allFramesPyramidInfo.addToDataFileContentInformation(dataFileInformation, "All Scenes");
     
     const int32_t numScenes = getNumberOfScenes();
     dataFileInformation.addNameAndValue("Number of Scenes", numScenes);
@@ -2102,60 +2109,6 @@ CziImageFile::getLogicalBoundsRect() const
 }
 
 /**
- * @return The default image for all frames
- */
-CziImage*
-CziImageFile::getDefaultAllFramesImage()
-{
-   return m_allFramesPyramidInfo.getDefaultImage();
-}
-
-/**
- * @return The default image for all frames
- */
-const CziImage*
-CziImageFile::getDefaultAllFramesImage() const
-{
-    return m_allFramesPyramidInfo.getDefaultImage();
-}
-
-/**
- * @return The default image for the given frame
- * @param frameIndex
- *    Index of the frame
- */
-CziImage*
-CziImageFile::getDefaultFrameImage(const int32_t frameIndex)
-{
-    CziImage* imageOut(NULL);
-    
-    if ((frameIndex >= 0)
-        && (frameIndex < getNumberOfFrames())) {
-        CaretAssertVectorIndex(m_cziScenePyramidInfos, frameIndex);
-        imageOut = m_cziScenePyramidInfos[frameIndex].m_defaultImage.get();
-    }
-    
-    if (imageOut == NULL) {
-        imageOut = m_allFramesPyramidInfo.getDefaultImage();
-    }
-    
-    return imageOut;
-}
-
-/**
- * @return The default image for the given frame (const method)
- * @param frameIndex
- *    Index of the frame
- */
-const CziImage*
-CziImageFile::getDefaultFrameImage(const int32_t frameIndex) const
-{
-    CziImageFile* nonConstThis(const_cast<CziImageFile*>(this));
-    CaretAssert(this);
-    return nonConstThis->getDefaultFrameImage(frameIndex);
-}
-
-/**
  * Get the image loader for the given tab and overlay
  * @param tabIndex
  *    Index of the tab
@@ -2207,12 +2160,7 @@ CziImageFile::getImageForTabOverlay(const int32_t tabIndex,
                                                                   overlayIndex);
     CaretAssert(imageLoader);
     CziImage* cziImageOut = imageLoader->getImage();
-    if (cziImageOut != NULL) {
-        return cziImageOut;
-    }
-    
-    CaretAssertToDoFatal();
-    return getDefaultAllFramesImage();
+    return cziImageOut;
 }
 
 /**
@@ -2274,8 +2222,6 @@ CziImageFile::updateImageForDrawingInTab(const int32_t tabIndex,
             break;
     }
     
-    CaretAssert(cziImage);
-    
     CziImageLoaderBase* imageLoaderBase(getImageLoaderForTabOverlay(tabIndex,
                                                                     overlayIndex));
     CaretAssert(imageLoaderBase);
@@ -2300,7 +2246,9 @@ CziImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
 {
     const CziImage* cziImage(getImageForTabOverlay(tabIndex,
                                                    overlayIndex));
-    CaretAssert(cziImage);
+    if (cziImage == NULL) {
+        return NULL;
+    }
     
     GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForMediaDrawing());
     return primitive;
@@ -2432,6 +2380,35 @@ CziImageFile::getPreferencesImageBackgroundRGB() const
     return rgb;
 }
 
+/**
+ * Read a small image to verify that data can be read from the file.
+ * @param errorMessageOut
+ *    Contains error information if there is an error
+ * @return True if data read successfully, else false
+ */
+bool
+CziImageFile::testReadingSmallImage(AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    const int32_t imageDimensionWidthHeight(512);
+    const CziSceneInfo* nullSceneInfo(NULL);
+    const int32_t invalidPyramidLayerIndex(-1);
+    std::unique_ptr<CziImage> cziImage(readFromCziImageFile("Test Image File Reading",
+                                                            m_fullResolutionLogicalRect,
+                                                            nullSceneInfo,
+                                                            invalidPyramidLayerIndex,
+                                                            m_fullResolutionLogicalRect,
+                                                            imageDimensionWidthHeight,
+                                                            CziImageResolutionChangeModeEnum::INVALID, /* use INVALID for test reading image */
+                                                            0, /* level index (value not used for test reading image) */
+                                                            errorMessageOut));
+    if (cziImage) {
+        return true;
+    }
+        
+    return false;
+}
 
 /**
  * Save subclass data to the scene.
@@ -2475,46 +2452,6 @@ CziImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                         sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
-}
-
-
-/**
- * @return a default (base level) image
- */
-CziImage*
-CziImageFile::CziSceneInfo::getDefaultImage()
-{
-    if ( ! m_defaultImage) {
-        if ( ! m_defaultImageErrorFlag) {
-            if (m_parentCziImageFile != NULL) {
-                try {
-                    const CziSceneInfo* nullSceneInfo(NULL);
-                    const int32_t invalidPyramidLayerIndex(-1);
-                    AString errorMessage;
-                    CziImage* cziImage = m_parentCziImageFile->readFromCziImageFile("Default Image File",
-                                                                                    m_logicalRectangle,
-                                                                                    nullSceneInfo,
-                                                                                    invalidPyramidLayerIndex,
-                                                                                    m_logicalRectangle,
-                                                                                    m_parentCziImageFile->getPreferencesImageDimension(),
-                                                                                    CziImageResolutionChangeModeEnum::INVALID, /* use INVALID for default image */
-                                                                                    0, /* level index (value not used for default image) */
-                                                                                    errorMessage);
-                    if (cziImage == NULL) {
-                        throw DataFileException("Reading default image: "
-                                                + errorMessage);
-                    }
-                    
-                    m_defaultImage.reset(cziImage);
-                }
-                catch (const DataFileException& dfe) {
-                    m_defaultImageErrorFlag = true;
-                    throw dfe;
-                }
-            }
-        }
-    }
-    return m_defaultImage.get();
 }
 
 /**

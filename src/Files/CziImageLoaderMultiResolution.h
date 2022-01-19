@@ -77,10 +77,6 @@ namespace caret {
 
         QRectF getViewportLogicalCoordinates(const GraphicsObjectToWindowTransform* transform) const;
         
-        void removeCziImage();
-        
-        /* Never "reset() this, call removeCziImage() */
-//        std::unique_ptr<CziImage> m_cziImage;
         std::shared_ptr<CziImage> m_cziImage;
 
         int32_t m_tabIndex;

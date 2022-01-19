@@ -166,7 +166,6 @@ namespace caret {
 
         virtual QRectF getLogicalBoundsRect() const override;
         
-        
         bool exportToImageFile(const QString& imageFileName,
                                const int32_t maximumWidthHeight,
                                AString& errorMessageOut);
@@ -244,13 +243,6 @@ namespace caret {
             
             int32_t getNumberOfPyramidLayers() const {
                 return m_pyramidLayers.size();
-            }
-            
-            CziImage* getDefaultImage();
-            
-            const CziImage* getDefaultImage() const {
-                CziSceneInfo* nonConst(const_cast<CziSceneInfo*>(this));
-                return nonConst->getDefaultImage();
             }
             
             void finishSetup(const bool fixMinFactorFlag);
@@ -377,14 +369,6 @@ namespace caret {
         const CziImage* getImageForTabOverlay(const int32_t tabIndex,
                                               const int32_t overlayIndex) const;
         
-        CziImage* getDefaultAllFramesImage();
-        
-        const CziImage* getDefaultAllFramesImage() const;
-        
-        CziImage* getDefaultFrameImage(const int32_t frameIndex);
-        
-        const CziImage* getDefaultFrameImage(const int32_t frameIndex) const;
-        
         void closeFile();
         
         CziImageLoaderBase* getImageLoaderForTabOverlay(const int32_t tabIndex,
@@ -439,6 +423,8 @@ namespace caret {
                                        const float maximumPixelWidthOrHeight,
                                        QRectF& regionToReadOut,
                                        float& zoomOut) const;
+        
+        bool testReadingSmallImage(AString& errorMessageOut);
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
