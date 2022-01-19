@@ -56,6 +56,7 @@
 #include "CaretResult.h"
 #include "CaretResultDialog.h"
 #include "CursorDisplayScoped.h"
+#include "CziImageFile.h"
 #include "DataFileContentCopyMoveDialog.h"
 #include "DataFileContentCopyMoveInterface.h"
 #include "DataFileException.h"
@@ -2322,6 +2323,7 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
         QAction* copyFilePathToClipboardAction = NULL;
         QAction* copyMoveFileContentAction     = NULL;
         QAction* editMetaDataAction            = NULL;
+        QAction* exportCziToImageFileAction    = NULL;
         QAction* setFileNameAction             = NULL;
         QAction* showFileInformationAction     = NULL;
         QAction* setStructureAction            = NULL;
@@ -2343,6 +2345,9 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                         editMetaDataAction = menu.addAction("Edit Metadata...");
                         if ( ! caretDataFile->supportsFileMetaData()) {
                             editMetaDataAction->setEnabled(false);
+                        }
+                        if (caretDataFile->getDataFileType() == DataFileTypeEnum::CZI_IMAGE_FILE) {
+                            exportCziToImageFileAction = menu.addAction("Export to Image File...");
                         }
                         setFileNameAction = menu.addAction("Set File Name...");
                         showFileInformationAction = menu.addAction("Show File Information...");
@@ -2401,6 +2406,22 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                         specFileDataFile->setSavingSelected(true);
                     }
                     loadSpecFileContentIntoDialog();
+                }
+            }
+            else if (selectedAction == exportCziToImageFileAction) {
+                CaretAssert(caretDataFile);
+                CziImageFile* cziImageFile = caretDataFile->castToCziImageFile();
+                CaretAssert(cziImageFile);
+                AString errorMessage;
+                const int32_t widthHeight(16384);
+                const AString cziFileName("/tmp/czi_"
+                                          + AString::number(widthHeight)
+                                          + ".png");
+                if ( ! cziImageFile->exportToImageFile(cziFileName,
+                                                       8192,
+                                                       errorMessage)) {
+                    WuQMessageBox::errorOk(this,
+                                           errorMessage);
                 }
             }
             else if (selectedAction == viewMetaDataAction) {

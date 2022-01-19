@@ -90,7 +90,6 @@ BrainOpenGLMediaDrawing::~BrainOpenGLMediaDrawing()
  */
 bool
 BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
-                                        const int32_t tabIndex,
                                         double& orthoLeftOut,
                                         double& orthoRightOut,
                                         double& orthoBottomOut,
@@ -101,7 +100,6 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
     orthoBottomOut = -1.0;
     orthoTopOut    =  1.0;
         
-//    BoundingBox boundingBox;
     QRectF boundingRect;
     
     CaretAssert(mediaOverlaySet);
@@ -115,7 +113,6 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
         CaretAssertVectorIndex(displayedMediaFiles, i);
         MediaFile* mediaFile(displayedMediaFiles[i]);
         CaretAssertVectorIndex(displayedverlayIndices, i);
-        const int32_t overlayIndex(displayedverlayIndices[i]);
         
         const QRectF logicalRect(mediaFile->getLogicalBoundsRect());
         if (i == 0) {
@@ -124,48 +121,13 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
         else {
             boundingRect = boundingRect.united(logicalRect);
         }
-        
-//        GraphicsPrimitiveV3fT2f* primitive(NULL);
-//        CziImageFile* cziImageFile = mediaFile->castToCziImageFile();
-//        ImageFile* imageFile = mediaFile->castToImageFile();
-//        if (imageFile != NULL) {
-//            /*
-//             * Image is drawn using a primitive in which
-//             * the image is a texture
-//             */
-//            primitive = imageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
-//                                                                       overlayIndex);
-//        }
-//        else  if (cziImageFile != NULL) {
-//            primitive = cziImageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
-//                                                                          overlayIndex);
-//        }
-//        else {
-//            CaretAssertMessage(0, ("Unrecognized file type "
-//                                   + DataFileTypeEnum::toName(mediaFile->getDataFileType())
-//                                   + " for media drawing."));
-//            return false;
-//        }
-//        if (primitive == NULL) {
-//            CaretLogSevere("Media file has invalid primitive for tab "
-//                           + AString::number(tabIndex + 1)
-//                           + " overlay "
-//                           + AString::number(overlayIndex + 1)
-//                           + mediaFile->getFileNameNoPath());
-//            return false;
-//        }
-//
-//        BoundingBox primitiveBoundingBox;
-//        primitive->getVertexBounds(primitiveBoundingBox);
-//        boundingBox.unionOperation(primitiveBoundingBox);
     }
     
     const double viewportWidth(m_viewport[2]);
     const double viewportHeight(m_viewport[3]);
     const double viewportAspectRatio = (viewportHeight
                                         / viewportWidth);
-//    const double imageWidth(boundingBox.getDifferenceX());
-//    const double imageHeight(boundingBox.getDifferenceY());
+
     const double imageWidth(boundingRect.width());
     const double imageHeight(boundingRect.height());
     if ((imageWidth < 1.0)
@@ -204,12 +166,10 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
      * Change ORTHO to fit image with origin at top left
      */
     const float orthoHeight(orthoTopOut - orthoBottomOut);
-//    orthoTopOut = boundingBox.getMinY() - topMargin;
     orthoTopOut = boundingRect.top() - topMargin;
     orthoBottomOut = orthoTopOut + orthoHeight;
     
     const float orthoWidth(orthoRightOut - orthoLeftOut);
-//    orthoLeftOut = boundingBox.getMinX() - leftMargin;
     orthoLeftOut = boundingRect.left() - leftMargin;
     orthoRightOut = orthoLeftOut + orthoWidth;
     
@@ -255,7 +215,7 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     double orthoRight(1.0);
     double orthoBottom(-1.0);
     double orthoTop(1.0);
-    if ( ! getOrthoBounds(mediaOverlaySet, browserTabContent->getTabNumber(),
+    if ( ! getOrthoBounds(mediaOverlaySet,
                           orthoLeft, orthoRight, orthoBottom, orthoTop)) {
         return;
     }
@@ -371,7 +331,6 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
             if (selectionData.m_selectedMediaFile != NULL) {
                 GraphicsPrimitiveV3fT2f* primitive(NULL);
                 CziImageFile* cziImageFile = selectionData.m_selectedCziImageFile;
-                const CziImage* cziImage(NULL);
                 ImageFile* imageFile = selectionData.m_selectedMediaFile->castToImageFile();
                 float mediaHeight(-1.0);
                 if (imageFile != NULL) {
@@ -405,6 +364,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                 }
                 
                 if (primitive) {
+                    CaretAssert(primitive->isValid());
                     if (mediaHeight > 0.0) {
                         /*
                          * OpenGL and media primitives have origin in bottom left

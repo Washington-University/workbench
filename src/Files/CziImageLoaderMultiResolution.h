@@ -64,8 +64,6 @@ namespace caret {
     private:
 
         int32_t getLayerIndexForCurrentZoom(const CziImageFile::CziSceneInfo& cziSceneInfo,
-                                            const int32_t frameIndex,
-                                            const bool allFramesFlag,
                                             const GraphicsObjectToWindowTransform* transform) const;
         
         bool isReloadForPanZoom(const CziImage* cziImage,
@@ -74,12 +72,17 @@ namespace caret {
         CziImage* loadImageForPyrmaidLayer(const CziImage* oldCziImage,
                                            const CziImageFile::CziSceneInfo& cziSceneInfo,
                                            const GraphicsObjectToWindowTransform* transform,
+                                           const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
                                            const int32_t pyramidLayerIndex);
 
         QRectF getViewportLogicalCoordinates(const GraphicsObjectToWindowTransform* transform) const;
         
-        std::unique_ptr<CziImage> m_cziImage;
+        void removeCziImage();
         
+        /* Never "reset() this, call removeCziImage() */
+//        std::unique_ptr<CziImage> m_cziImage;
+        std::shared_ptr<CziImage> m_cziImage;
+
         int32_t m_tabIndex;
         
         int32_t m_overlayIndex;
@@ -95,6 +98,8 @@ namespace caret {
         int32_t m_previousManualPyramidLayerIndex = -1;
 
         int32_t m_previousZoomLayerIndex = -1;
+        
+        bool m_forceImageReloadFlag = false;
         
         bool m_reloadImageFlag = false;
         

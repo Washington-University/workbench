@@ -48,6 +48,7 @@ namespace caret {
         
     public:
         CziImage(const CziImageFile* parentCziImageFile,
+                 const AString& imageName,
                  QImage* image,
                  const QRectF& fullResolutionLogicalRect,
                  const QRectF& imageDataLogicalRect,
@@ -114,6 +115,8 @@ namespace caret {
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         const CziImageFile* m_parentCziImageFile;
+        
+        const AString m_imageName;
         
         std::unique_ptr<QImage> m_image;
         

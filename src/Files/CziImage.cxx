@@ -48,6 +48,8 @@ using namespace caret;
  * Constructor
  * @param parentCziImageFile
  *    The parent CZI Image File
+ * @param imageName
+ *    Name for image that may be used when debugging
  * @param image
  *    The QImage instance
  * @param fullResolutionLogicalRect
@@ -60,6 +62,7 @@ using namespace caret;
  *    Level from resolution change mode that created this image
  */
 CziImage::CziImage(const CziImageFile* parentCziImageFile,
+                   const AString& imageName,
                    QImage* image,
                    const QRectF& fullResolutionLogicalRect,
                    const QRectF& imageDataLogicalRect,
@@ -67,6 +70,7 @@ CziImage::CziImage(const CziImageFile* parentCziImageFile,
                    const int32_t resolutionChangeModeLevel)
 : CaretObject(),
 m_parentCziImageFile(parentCziImageFile),
+m_imageName(imageName),
 m_image(image),
 m_fullResolutionLogicalRect(fullResolutionLogicalRect),
 m_imageDataLogicalRect(imageDataLogicalRect),
@@ -88,6 +92,7 @@ m_resolutionChangeModeLevel(resolutionChangeModeLevel)
  */
 CziImage::~CziImage()
 {
+    std::cout << "Deleting CZI Image: " << m_imageName << std::endl;
 }
 
 /**
@@ -371,6 +376,11 @@ GraphicsPrimitiveV3fT2f*
 CziImage::getGraphicsPrimitiveForMediaDrawing() const
 {
     if (m_image == NULL) {
+        return NULL;
+    }
+    
+    if ((m_image->width() <= 0)
+        || (m_image->height()) <= 0) {
         return NULL;
     }
     

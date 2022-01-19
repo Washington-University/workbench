@@ -166,6 +166,11 @@ namespace caret {
 
         virtual QRectF getLogicalBoundsRect() const override;
         
+        
+        bool exportToImageFile(const QString& imageFileName,
+                               const int32_t maximumWidthHeight,
+                               AString& errorMessageOut);
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -221,10 +226,12 @@ namespace caret {
             
             CziSceneInfo(CziImageFile* cziImageFile,
                          const int32_t sceneIndex,
-                         const QRectF& logicalRectange)
+                         const QRectF& logicalRectange,
+                         const AString& name)
             : m_parentCziImageFile(cziImageFile),
             m_sceneIndex(sceneIndex),
-            m_logicalRectangle(logicalRectange) {
+            m_logicalRectangle(logicalRectange),
+            m_name(name) {
                 const QPointF center(m_logicalRectangle.center());
                 m_logicalCenter[0] = center.x();
                 m_logicalCenter[1] = center.y();
@@ -246,18 +253,37 @@ namespace caret {
                 return nonConst->getDefaultImage();
             }
             
+            void finishSetup(const bool fixMinFactorFlag);
+            
+            void setLayersZoomFactors();
+            
+            std::array<int32_t, 2> getPyramidLayerIndexRange() const;
+            
+            void setPyramidLayerIndexRange();
+            
+            void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation,
+                                                 const AString& sceneInfoName) const;
+            
+            AString getName() const { return m_name; }
+            
             CziImageFile* m_parentCziImageFile = NULL;
             
             int32_t m_sceneIndex = -1;
             
             QRectF m_logicalRectangle;
             
+            AString m_name;
+            
             float m_logicalCenter[3];
             
             std::vector<PyramidLayer> m_pyramidLayers;
             
-            std::unique_ptr<CziImage> m_defaultImage;
+            int32_t m_minimumPyramidLayerIndex = 0;
             
+            int32_t m_maximumPyramidLayerIndex = 0;
+            
+            std::shared_ptr<CziImage> m_defaultImage;
+
             bool m_defaultImageErrorFlag = false;
         };
         
@@ -318,6 +344,8 @@ namespace caret {
             
             const CziImageLoaderBase* getMultiResolutionImageLoader() const;
 
+            void cloneFromOtherTabOverlayInfo(TabOverlayInfo* otherTabOverlayInfo);
+            
             void resetContent();
             
             CziImageFile* m_cziImageFile;
@@ -353,9 +381,9 @@ namespace caret {
         
         const CziImage* getDefaultAllFramesImage() const;
         
-        CziImage* readDefaultImage();
+        CziImage* getDefaultFrameImage(const int32_t frameIndex);
         
-        CziImage* readDefaultFrameImage(const int32_t frameIndex);
+        const CziImage* getDefaultFrameImage(const int32_t frameIndex) const;
         
         void closeFile();
         
@@ -365,13 +393,14 @@ namespace caret {
         const CziImageLoaderBase* getImageLoaderForTabOverlay(const int32_t tabIndex,
                                                               const int32_t overlayIndex) const;
         
-        CziImage* readFramePyramidLayerFromCziImageFile(const int32_t frameIndex,
+        CziImage* readFramePyramidLayerFromCziImageFile(const AString& imageName,
+                                                        const int32_t frameIndex,
                                                         const int32_t pyramidLayer,
-                                                        const QRectF& logicalRectangleRegionRect,
                                                         const QRectF& rectangleForReadingRect,
                                                         AString& errorMessageOut);
 
-        CziImage* readFromCziImageFile(const QRectF& regionOfInterest,
+        CziImage* readFromCziImageFile(const AString& imageName,
+                                       const QRectF& regionOfInterest,
                                        const CziImageFile::CziSceneInfo* cziSceneInfo,
                                        const int32_t pyramidLayerIndex,
                                        const QRectF& frameRegionOfInterest,
@@ -452,6 +481,8 @@ namespace caret {
         mutable std::unique_ptr<Plane> m_imagePlane;
         
         mutable bool m_imagePlaneInvalid = false;
+        
+        int32_t m_maximumImageDimension = 2048;
         
         static const int32_t s_allFramesIndex;
         

@@ -151,7 +151,6 @@ CziUtilities::equalWithTolerance(const QRectF& rectOne,
                                  const QRectF& rectTwo,
                                  const float tolerance)
 {
-    const float tol(5.0);
     if (   (std::fabs(rectOne.left()   - rectTwo.left())   < tolerance)
         && (std::fabs(rectOne.right()  - rectTwo.right())  < tolerance)
         && (std::fabs(rectOne.top()    - rectTwo.top())    < tolerance)

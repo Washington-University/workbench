@@ -85,7 +85,6 @@ namespace caret {
                                        GraphicsPrimitiveV3fT2f* primitive);
         
         bool getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
-                            const int32_t tabIndex,
                             double& orthoLeftOut,
                             double& orthoRightOut,
                             double& orthoBottomOut,

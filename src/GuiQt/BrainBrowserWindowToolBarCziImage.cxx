@@ -69,7 +69,7 @@ using namespace caret;
  *    parent toolbar.
  */
 BrainBrowserWindowToolBarCziImage::BrainBrowserWindowToolBarCziImage(BrainBrowserWindowToolBar* parentToolBar,
-                                                                                   const QString& parentObjectName)
+                                                                                   const QString& /*parentObjectName*/)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {

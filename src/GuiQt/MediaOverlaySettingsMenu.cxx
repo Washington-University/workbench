@@ -180,8 +180,6 @@ MediaOverlaySettingsMenu::pyramidLayerChanged(int value)
 void
 MediaOverlaySettingsMenu::reloadActionTriggered()
 {
-    CaretAssertToDoFatal();
-    
     const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
     if (selectionData.m_selectedCziImageFile != NULL) {
         selectionData.m_selectedCziImageFile->reloadPyramidLayerInTabOverlay(m_mediaOverlay->m_tabIndex,
