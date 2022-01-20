@@ -2455,6 +2455,127 @@ CziImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
 }
 
 /**
+ * Export a full resolution image to an image file with the maximum width/height
+ * @param imageFileName
+ *    Name for file
+ * @param maximumWidthHeight
+ *    Width and height will be no greater than this value (aspect is preserved)
+ *     Negative is no limit on size
+ * @param errorMessageOut
+ *    Contains info if writing image fails
+ * @return True if successful, else false.
+ */
+bool
+CziImageFile::exportToImageFile(const QString& imageFileName,
+                                const int32_t maximumWidthHeight,
+                                AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if (maximumWidthHeight == 0) {
+        errorMessageOut.appendWithNewLine("Image maximum size is zero.  Must be positive value or use "
+                                          "any negative value for no size limit.");
+    }
+    if (imageFileName.isEmpty()) {
+        errorMessageOut.appendWithNewLine("Image file name is invalid.");
+    }
+    if ( ! errorMessageOut.isEmpty()) {
+        return false;
+    }
+    
+    libCZI::CDimCoordinate coordinate;
+    coordinate.Set(libCZI::DimensionIndex::C, 0);
+    
+    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundRGB();
+    libCZI::ISingleChannelScalingTileAccessor::Options scstaOptions; scstaOptions.Clear();
+    scstaOptions.backGroundColor.r = prefBackRGB[0];
+    scstaOptions.backGroundColor.g = prefBackRGB[1];
+    scstaOptions.backGroundColor.b = prefBackRGB[2];
+    
+    float zoomToRead(1.0);
+    QRectF regionOfInterest(m_fullResolutionLogicalRect);
+    
+    /*
+     * If ROI width/height is greater than output image width/height,
+     * use zoom to reduce the dimensions of the image data that is read
+     */
+    if (maximumWidthHeight > 0) {
+        QRectF newRegion(regionOfInterest);
+        float newZoom(1.0);
+        zoomToMatchPixelDimension(regionOfInterest,
+                                  regionOfInterest,
+                                  maximumWidthHeight,
+                                  newRegion,
+                                  newZoom);
+        if (cziDebugFlag) {
+            std::cout << "Region: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
+            std::cout << "   New: " << CziUtilities::qRectToString(newRegion) << std::endl;
+            std::cout << "  Zoom: " << newZoom << std::endl;
+        }
+        
+        regionOfInterest = newRegion;
+        zoomToRead = newZoom;
+    }
+    
+    /*
+     * Read into 24 bit RGB to avoid conversion from other pixel formats
+     */
+    if (cziDebugFlag) {
+        std::cout << "----------------------" << std::endl;
+        std::cout << "READING IMAGE with ROI: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
+    }
+    const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
+    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(regionOfInterest);
+    CaretAssert(m_scalingTileAccessor);
+    std::shared_ptr<libCZI::IBitmapData> bitmapData = m_scalingTileAccessor->Get(pixelType,
+                                                                                 intRectROI,
+                                                                                 &coordinate,
+                                                                                 zoomToRead,
+                                                                                 &scstaOptions);
+    if ( ! bitmapData) {
+        errorMessageOut = ("Failed to read data for region "
+                           + CziUtilities::intRectToString(intRectROI));
+        return false;
+    }
+    
+    std::unique_ptr<QImage> qImage(createQImageFromBitmapData(bitmapData.get(),
+                                                              errorMessageOut));
+    if (qImage == NULL) {
+        errorMessageOut = "Failed to create QImage after reading from CZI file";
+        return false;
+    }
+    
+    FileInformation fileInfo(imageFileName);
+    AString format = fileInfo.getFileExtension().toUpper();
+    if (format == "JPG") {
+        format = "JPEG";
+    }
+    
+    QImageWriter writer(imageFileName, format.toLatin1());
+    if (writer.supportsOption(QImageIOHandler::Quality)) {
+        if (format.compare("png", Qt::CaseInsensitive) == 0) {
+            const int quality = 1;
+            writer.setQuality(quality);
+        }
+        else {
+            const int quality = 100;
+            writer.setQuality(quality);
+        }
+    }
+    
+    if (writer.supportsOption(QImageIOHandler::CompressionRatio)) {
+        writer.setCompression(1);
+    }
+    
+    if ( ! writer.write(*qImage)) {
+        errorMessageOut = writer.errorString();
+    }
+    
+    return errorMessageOut.isEmpty();
+}
+
+
+/**
  * @return Range of pyramid layer indices
  */
 std::array<int32_t, 2>
@@ -2677,122 +2798,4 @@ CziImageFile::TabOverlayInfo::resetContent()
     m_multiResolutionImageLoader.reset();
 }
 
-/**
- * Export a full resolution image to an image file with the maximum width/height
- */
-bool
-CziImageFile::exportToImageFile(const QString& imageFileName,
-                                const int32_t maximumWidthHeight,
-                                AString& errorMessageOut)
-{
-    errorMessageOut.clear();
-    
-    if (imageFileName.isEmpty()) {
-        errorMessageOut.appendWithNewLine("Image file name is invalid.");
-    }
-    const int32_t minimumSize(1024);
-    if (maximumWidthHeight < minimumSize) {
-        errorMessageOut.appendWithNewLine("Image size must be greater than "
-                                          + AString::number(minimumSize));
-    }
-    if ( ! errorMessageOut.isEmpty()) {
-        return false;
-    }
-    
-    libCZI::CDimCoordinate coordinate;
-    coordinate.Set(libCZI::DimensionIndex::C, 0);
-    
-    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundRGB();
-    libCZI::ISingleChannelScalingTileAccessor::Options scstaOptions; scstaOptions.Clear();
-    scstaOptions.backGroundColor.r = prefBackRGB[0];
-    scstaOptions.backGroundColor.g = prefBackRGB[1];
-    scstaOptions.backGroundColor.b = prefBackRGB[2];
-    
-    float zoomToRead(1.0);
-    QRectF regionOfInterest(m_fullResolutionLogicalRect);
-    
-    /*
-     * If ROI width/height is greater than output image width/height,
-     * use zoom to reduce the dimensions of the image data that is read
-     */
-    {
-        QRectF newRegion(regionOfInterest);
-        float newZoom(1.0);
-        zoomToMatchPixelDimension(regionOfInterest,
-                                  regionOfInterest,
-                                  maximumWidthHeight,
-                                  newRegion,
-                                  newZoom);
-        if (cziDebugFlag) {
-            std::cout << "Region: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
-            std::cout << "   New: " << CziUtilities::qRectToString(newRegion) << std::endl;
-            std::cout << "  Zoom: " << newZoom << std::endl;
-        }
-        
-        regionOfInterest = newRegion;
-        zoomToRead = newZoom;
-    }
-    
-    /*
-     * Read into 24 bit RGB to avoid conversion from other pixel formats
-     */
-    if (cziDebugFlag) {
-        std::cout << "----------------------" << std::endl;
-        std::cout << "READING IMAGE with ROI: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
-    }
-    const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
-    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(regionOfInterest);
-    CaretAssert(m_scalingTileAccessor);
-    std::shared_ptr<libCZI::IBitmapData> bitmapData = m_scalingTileAccessor->Get(pixelType,
-                                                                                 intRectROI,
-                                                                                 &coordinate,
-                                                                                 zoomToRead,
-                                                                                 &scstaOptions);
-    if ( ! bitmapData) {
-        errorMessageOut = ("Failed to read data for region "
-                           + CziUtilities::intRectToString(intRectROI));
-        return false;
-    }
-    
-    QImage* qImage = createQImageFromBitmapData(bitmapData.get(),
-                                                errorMessageOut);
-    if (qImage == NULL) {
-        errorMessageOut = "Failed to create QImage after reading from CZI file";
-        return false;
-    }
-    
-    FileInformation fileInfo(imageFileName);
-    AString format = fileInfo.getFileExtension().toUpper();
-    if (format == "JPG") {
-        format = "JPEG";
-    }
-
-    QImageWriter writer(imageFileName, format.toLatin1());
-    if (writer.supportsOption(QImageIOHandler::Quality)) {
-        if (format.compare("png", Qt::CaseInsensitive) == 0) {
-            const int quality = 1;
-            writer.setQuality(quality);
-        }
-        else {
-            const int quality = 100;
-            writer.setQuality(quality);
-        }
-    }
-    
-    if (writer.supportsOption(QImageIOHandler::CompressionRatio)) {
-        writer.setCompression(1);
-    }
-        
-    if ( ! writer.write(*qImage)) {
-        errorMessageOut = writer.errorString();
-    }
-    else {
-        std::cout << "Wrote file: " << imageFileName << std::endl;
-    }
-
-    delete qImage;
-    qImage = NULL;
-    
-    return errorMessageOut.isEmpty();
-}
 

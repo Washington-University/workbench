@@ -2412,16 +2412,23 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                 CaretAssert(caretDataFile);
                 CziImageFile* cziImageFile = caretDataFile->castToCziImageFile();
                 CaretAssert(cziImageFile);
-                AString errorMessage;
-                const int32_t widthHeight(16384);
-                const AString cziFileName("/tmp/czi_"
-                                          + AString::number(widthHeight)
-                                          + ".png");
-                if ( ! cziImageFile->exportToImageFile(cziFileName,
-                                                       8192,
-                                                       errorMessage)) {
-                    WuQMessageBox::errorOk(this,
-                                           errorMessage);
+                
+                const AString imageFileName(CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::IMAGE,
+                                                                                   this,
+                                                                                   "Export to Image File"));
+                if ( ! imageFileName.isEmpty()) {
+                    CursorDisplayScoped cursor;
+                    cursor.showWaitCursor();
+                    
+                    AString errorMessage;
+                    const int32_t widthHeight(-1); /* negative is no limit on size */
+                    if ( ! cziImageFile->exportToImageFile(imageFileName,
+                                                           widthHeight,
+                                                           errorMessage)) {
+                        cursor.restoreCursor();
+                        WuQMessageBox::errorOk(this,
+                                               errorMessage);
+                    }
                 }
             }
             else if (selectedAction == viewMetaDataAction) {
