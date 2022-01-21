@@ -144,6 +144,26 @@ SelectionItemMedia::setPixelRGBA(const uint8_t pixelRGBA[4])
 }
 
 /**
+ * @return True if pixel RGBA should be included in selection information
+ */
+bool
+SelectionItemMedia::isIncludePixelRGBA() const
+{
+    return m_includePixelRGBAFlag;
+}
+
+/**
+ * Set pixel RGBA should be included in selection information
+ * @param status
+ *    New status
+ */
+void
+SelectionItemMedia::setIncludePixelRGBA(const bool status)
+{
+    m_includePixelRGBAFlag = status;
+}
+
+/**
  * Get the stereotaxic coordinate of the selected pixel
  * @param stereotaxicXYZOut
  *   Output containing the coordinate
@@ -189,6 +209,7 @@ SelectionItemMedia::resetPrivate()
     m_pixelRGBAValidFlag = false;
     m_tabIndex = -1;
     m_overlayIndex = -1;
+    m_includePixelRGBAFlag = false;
 }
 
 /**

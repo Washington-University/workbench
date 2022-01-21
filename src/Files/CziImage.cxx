@@ -56,27 +56,20 @@ using namespace caret;
  *    Logical Rectangle for the full-resolution source image that defines the coordinates of the primitive
  * @param imageDataLogicalRect
  *    Logical rectangle defining region of source image that was read from the file that results
- * @param resolutionChangeMode
- *    Resolution change mode that created this image
- * @param resolutionChangeModeLevel
- *    Level from resolution change mode that created this image
  */
 CziImage::CziImage(const CziImageFile* parentCziImageFile,
                    const AString& imageName,
                    QImage* image,
                    const QRectF& fullResolutionLogicalRect,
-                   const QRectF& imageDataLogicalRect,
-                   const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
-                   const int32_t resolutionChangeModeLevel)
+                   const QRectF& imageDataLogicalRect)
 : CaretObject(),
 m_parentCziImageFile(parentCziImageFile),
 m_imageName(imageName),
 m_image(image),
+m_imageWidth((image != NULL) ? image->width() : 0),
+m_imageHeight((image != NULL) ? image->height() : 0),
 m_fullResolutionLogicalRect(fullResolutionLogicalRect),
-m_imageDataLogicalRect(imageDataLogicalRect),
-m_resolutionChangeMode(resolutionChangeMode),
-m_resolutionChangeModeLevel(resolutionChangeModeLevel)
-
+m_imageDataLogicalRect(imageDataLogicalRect)
 {
     CaretAssert(image);
 
@@ -84,7 +77,7 @@ m_resolutionChangeModeLevel(resolutionChangeModeLevel)
     
     m_fullResolutionPixelsRect = QRectF(0, 0, m_fullResolutionLogicalRect.width(), m_fullResolutionLogicalRect.height());
 
-    m_imagePixelsRect = QRectF(0, 0, m_image->width(), m_image->height());
+    m_imagePixelsRect = QRectF(0, 0, m_imageWidth, m_imageHeight);
 }
 
 /**
@@ -120,6 +113,24 @@ CziImage::isEntireImageLoaded() const
     return false;
 }
 
+/**
+ * @return "logical rectangle" defines the region of this image in the source file.
+ */
+QRectF
+CziImage::getImageDataLogicalRect() const
+{
+    return m_imageDataLogicalRect;
+}
+
+/**
+ * @return full resolution rectangle defines the full bounds of the original image in the file
+ */
+QRectF
+CziImage::getFullResolutionLogicalRect() const
+{
+    return m_fullResolutionLogicalRect;
+}
+
 
 /**
  * @return Width of image
@@ -127,10 +138,7 @@ CziImage::isEntireImageLoaded() const
 int32_t
 CziImage::getWidth() const
 {
-    if (m_image != NULL) {
-        return m_image->width();
-    }
-    return 0;
+    return m_imageWidth;
 }
 
 /*
@@ -139,10 +147,7 @@ CziImage::getWidth() const
 int32_t
 CziImage::getHeight() const
 {
-    if (m_image != NULL) {
-        return m_image->height();
-    }
-    return 0;
+    return m_imageHeight;
 }
 
 /**
@@ -153,8 +158,8 @@ CziImage::getHeight() const
 bool
 CziImage::isPixelIndexValid(const PixelIndex& pixelIndex) const
 {
-    const float imageWidth(m_image->width());
-    const float imageHeight(m_image->height());
+    const float imageWidth(m_imageWidth);
+    const float imageHeight(m_imageHeight);
     
     if ((imageWidth > 0.0)
         && (imageHeight > 0.0)) {
@@ -185,77 +190,6 @@ CziImage::isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const
 }
 
 /**
- * Get the identification text for the pixel at the given pixel logical index
- * @param filename
- *    Name of CZI file
- * @param pixelLogicalIndex
- *     Pixel logical index
- * @param columnOneTextOut
- *    Text for column one that is displayed to user.
- * @param columnTwoTextOut
- *    Text for column two that is displayed to user.
- * @param toolTipTextOut
- *    Text for tooltip
- */
-void
-CziImage::getPixelIdentificationText(const AString& filename,
-                                     const PixelLogicalIndex& pixelLogicalIndex,
-                                     std::vector<AString>& columnOneTextOut,
-                                     std::vector<AString>& columnTwoTextOut,
-                                     std::vector<AString>& toolTipTextOut) const
-{
-    
-    uint8_t rgba[4];
-    const bool rgbaValidFlag = getPixelRGBA(pixelLogicalIndex,
-                                            rgba);
-    const AString rgbaText("RGBA ("
-                           + (rgbaValidFlag
-                              ? AString::fromNumbers(rgba, 4, ",")
-                              : "Unknown")
-                           + ")");
-    
-    const PixelIndex pixelIndex(m_parentCziImageFile->pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
-    const int64_t fullResPixelI(pixelIndex.getI());
-    const int64_t fullResPixelJ(pixelIndex.getJ());
-    const AString pixelText("Pixel IJ ("
-                            + AString::number(fullResPixelI)
-                            + ","
-                            + AString::number(fullResPixelJ)
-                            + ")");
-    
-    const AString logicalText("Logical IJ ("
-                              + AString::number(pixelLogicalIndex.getI(), 'f', 3)
-                              + ","
-                              + AString::number(pixelLogicalIndex.getJ(), 'f', 3)
-                              + ")");
-    
-    const PixelCoordinate pixelsSize(m_parentCziImageFile->getPixelSizeInMillimeters());
-    const float pixelX(fullResPixelI * pixelsSize.getX());
-    const float pixelY(fullResPixelJ * pixelsSize.getY());
-    const AString mmText("Pixel XY ("
-                         + AString::number(pixelX, 'f', 3)
-                         + "mm,"
-                         + AString::number(pixelY, 'f', 3)
-                         + "mm)");
-    
-    
-    
-    columnOneTextOut.push_back("Filename");
-    columnTwoTextOut.push_back(filename);
-    
-    columnOneTextOut.push_back(pixelText);
-    columnTwoTextOut.push_back(logicalText);
-
-    columnOneTextOut.push_back(rgbaText);
-    columnTwoTextOut.push_back(mmText);
-
-    toolTipTextOut.push_back(rgbaText);
-    toolTipTextOut.push_back(pixelText);
-    toolTipTextOut.push_back(logicalText);
-    toolTipTextOut.push_back(mmText);
-}
-
-/**
  * @return A pixel index converted from a pixel logical index.
  * @param pixelLogicalIndex
  *    The logical pixel index.
@@ -271,8 +205,8 @@ CziImage::pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalInd
     const float logicalWidth(m_imageDataLogicalRect.width());
     const float logicalHeight(m_imageDataLogicalRect.height());
     
-    const float imageWidth(m_image->width());
-    const float imageHeight(m_image->height());
+    const float imageWidth(m_imageWidth);
+    const float imageHeight(m_imageHeight);
     
     PixelIndex pixelIndex;
     
@@ -303,8 +237,8 @@ CziImage::pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const
     const float logicalWidth(m_imageDataLogicalRect.width());
     const float logicalHeight(m_imageDataLogicalRect.height());
     
-    const float imageWidth(m_image->width());
-    const float imageHeight(m_image->height());
+    const float imageWidth(m_imageWidth);
+    const float imageHeight(m_imageHeight);
     
     PixelLogicalIndex pixelLogicalIndex;
     
@@ -340,9 +274,11 @@ CziImage::getPixelRGBA(const PixelLogicalIndex& pixelLogicalIndex,
     pixelRGBAOut[2] = 0;
     pixelRGBAOut[3] = 0;
     
-    /* COULD just read the pixel from the CZI file */
-    
     const QImage* image = m_image.get();
+    
+    if (image == NULL) {
+        return false;
+    }
     
     if (image != NULL) {
         const PixelIndex pixelIndex(pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
@@ -379,8 +315,8 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
         return NULL;
     }
     
-    if ((m_image->width() <= 0)
-        || (m_image->height()) <= 0) {
+    if ((m_imageWidth <= 0)
+        || (m_imageHeight) <= 0) {
         return NULL;
     }
     
@@ -394,8 +330,8 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
          */
         const int32_t maxTextureWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
         if (maxTextureWidthHeight > 0) {
-            const int32_t excessWidth(m_image->width() - maxTextureWidthHeight);
-            const int32_t excessHeight(m_image->height() - maxTextureWidthHeight);
+            const int32_t excessWidth(m_imageWidth - maxTextureWidthHeight);
+            const int32_t excessHeight(m_imageHeight - maxTextureWidthHeight);
             if ((excessWidth > 0)
                 || (excessHeight > 0)) {
                 if (excessWidth > excessHeight) {
@@ -403,9 +339,9 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
                                     + " is too big for texture.  Maximum width/height is: "
                                     + AString::number(maxTextureWidthHeight)
                                     + " Image Width: "
-                                    + AString::number(m_image->width())
+                                    + AString::number(m_imageWidth)
                                     + " Image Height: "
-                                    + AString::number(m_image->height()));
+                                    + AString::number(m_imageHeight));
                 }
             }
         }
@@ -546,6 +482,5 @@ CziImage::restoreFromScene(const SceneAttributes* sceneAttributes,
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
-    
 }
 

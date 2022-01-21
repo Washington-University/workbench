@@ -63,6 +63,10 @@ namespace caret {
         bool getPixelRGBA(uint8_t pixelRGBAOut[4]) const;
         
         void setPixelRGBA(const uint8_t pixelRGBA[4]);
+
+        bool isIncludePixelRGBA() const;
+        
+        void setIncludePixelRGBA(const bool status);
         
         virtual void reset();
         
@@ -87,6 +91,7 @@ namespace caret {
         
         bool m_pixelRGBAValidFlag = false;
         
+        bool m_includePixelRGBAFlag = false;
     };
     
 #ifdef __SELECTION_ITEM_MEDIA_DECLARE__

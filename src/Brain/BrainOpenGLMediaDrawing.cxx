@@ -515,11 +515,13 @@ BrainOpenGLMediaDrawing::processMediaFileSelection(const int32_t tabIndex,
                 idMedia->setModelXYZ(logicalXYZ.data());
                 idMedia->setScreenXYZ(windowXYZ);
                 idMedia->setScreenDepth(0.0);
-                if (mediaFile->getPixelRGBA(tabIndex,
-                                            overlayIndex,
-                                            pixelLogicalIndex,
-                                            pixelByteRGBA)) {
-                    idMedia->setPixelRGBA(pixelByteRGBA);
+                if (idMedia->isIncludePixelRGBA()) {
+                    if (mediaFile->getPixelRGBA(tabIndex,
+                                                overlayIndex,
+                                                pixelLogicalIndex,
+                                                pixelByteRGBA)) {
+                        idMedia->setPixelRGBA(pixelByteRGBA);
+                    }
                 }
             }
         }

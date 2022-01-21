@@ -367,7 +367,7 @@ CziImageLoaderMultiResolution::isReloadForPanZoom(const CziImage* cziImage,
     /*
      * If no part of full image bounds overlaps viewport, then exit
      */
-    if ( ! viewportLogicalRect.intersects(cziImage->m_fullResolutionLogicalRect)) {
+    if ( ! viewportLogicalRect.intersects(cziImage->getFullResolutionLogicalRect())) {
         if (cziDebugFlag) std::cout << "Pan/Zoom Test Reject: Image data does not intersect viewport" << std::endl;
         return false;
     }
@@ -383,7 +383,7 @@ CziImageLoaderMultiResolution::isReloadForPanZoom(const CziImage* cziImage,
     /*
      * If current image contains viewport, do not need to load data
      */
-    if (cziImage->m_imageDataLogicalRect.contains(viewportLogicalRect)) {
+    if (cziImage->getImageDataLogicalRect().contains(viewportLogicalRect)) {
         if (cziDebugFlag) std::cout << "Pan/Zoom test Reject: Loaded image data overlaps viewport" << std::endl;
         return false;
     }
@@ -391,13 +391,13 @@ CziImageLoaderMultiResolution::isReloadForPanZoom(const CziImage* cziImage,
     /*
      * Region of full image that overlaps viewport
      */
-    const float fullImageIntersectionArea(CziUtilities::intersectionArea(cziImage->m_fullResolutionLogicalRect,
+    const float fullImageIntersectionArea(CziUtilities::intersectionArea(cziImage->getFullResolutionLogicalRect(),
                                                                          viewportLogicalRect));
 
     /*
      * Region of image loaded that overlaps viewport
      */
-    const float loadedImageIntersetionArea(CziUtilities::intersectionArea(cziImage->m_imageDataLogicalRect,
+    const float loadedImageIntersetionArea(CziUtilities::intersectionArea(cziImage->getImageDataLogicalRect(),
                                                                           viewportLogicalRect));
     
     /*
@@ -534,7 +534,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
         /*
          * If the region has not changed, do not need to load data
          */
-        if (oldCziImage->m_imageDataLogicalRect == rectToLoad) {
+        if (oldCziImage->getImageDataLogicalRect() == rectToLoad) {
             /*
              * Continue using image
              */
@@ -552,12 +552,8 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
     AString errorMessage;
     CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(cziName,
                                                                  rectToLoad,
-                                                                 &cziSceneInfo,
-                                                                 pyramidLayerIndex,
                                                                  cziSceneInfo.m_logicalRectangle,
                                                                  m_cziImageFile->getPreferencesImageDimension(),
-                                                                 resolutionChangeMode,
-                                                                 pyramidLayerIndex,
                                                                  errorMessage);
 
     if (cziDebugFlag) std::cout << "Time to load CZI Image: (ms): " << timer.getElapsedTimeMilliseconds() << std::endl;

@@ -51,9 +51,7 @@ namespace caret {
                  const AString& imageName,
                  QImage* image,
                  const QRectF& fullResolutionLogicalRect,
-                 const QRectF& imageDataLogicalRect,
-                 const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
-                 const int32_t resolutionChangeModeLevel);
+                 const QRectF& imageDataLogicalRect);
         
         virtual ~CziImage();
         
@@ -63,14 +61,12 @@ namespace caret {
         
         bool isEntireImageLoaded() const;
         
+        QRectF getImageDataLogicalRect() const;
+        
+        QRectF getFullResolutionLogicalRect() const;
+        
         GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing() const;
         
-        void getPixelIdentificationText(const AString& filename,
-                                        const PixelLogicalIndex& pixelLogicalIndex,
-                                        std::vector<AString>& columnOneTextOut,
-                                        std::vector<AString>& columnTwoTextOut,
-                                        std::vector<AString>& toolTipTextOut) const;
-
         bool isPixelIndexValid(const PixelIndex& pixelIndex) const;
 
         bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const;
@@ -120,6 +116,10 @@ namespace caret {
         
         std::unique_ptr<QImage> m_image;
         
+        const int32_t m_imageWidth;
+        
+        const int32_t m_imageHeight;
+        
         /**
          * This rectangle defines the original, full-resolution source image logcial rectangle
          * Coordinates are in the 'space' from SubBlockStatistics::boundingBox.
@@ -149,21 +149,8 @@ namespace caret {
          */
         QRectF m_imagePixelsRect;
         
-        /**
-         * Resolution change mode that created this image (INVALID is default mode)
-         */
-        const CziImageResolutionChangeModeEnum::Enum m_resolutionChangeMode;
-        
-        /**
-         * Resolution chnage mode level for this image
-         */
-        const int32_t m_resolutionChangeModeLevel;
-        
         mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForMediaDrawing;
         
-        friend class CziImageFile;
-        friend class CziImageLoaderMultiResolution;
-
         // ADD_NEW_MEMBERS_HERE
 
     };

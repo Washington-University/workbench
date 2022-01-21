@@ -779,10 +779,6 @@ CziImageFile::zoomToMatchPixelDimension(const QRectF& regionOfInterestToRead,
  *    Region of interest of the frame or all frames
  * @param outputImageWidthHeightMaximum
  *    Maximum width and height of output image
- * @param resolutionChangeMode
- *    Resolution change mode that created this image
- * @param resolutionChangeModeLevel
- *    Level from resolution change mode that created this image
  * @param errorMessageOut
  *    Contains information about any errors
  * @return
@@ -791,12 +787,8 @@ CziImageFile::zoomToMatchPixelDimension(const QRectF& regionOfInterestToRead,
 CziImage*
 CziImageFile::readFromCziImageFile(const AString& imageName,
                                    const QRectF& regionOfInterestIn,
-                                   const CziImageFile::CziSceneInfo* cziSceneInfo,
-                                   const int32_t pyramidLayerIndex,
                                    const QRectF& frameRegionOfInterest,
                                    const int64_t outputImageWidthHeightMaximum,
-                                   const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
-                                   const int32_t resolutionChangeModeLevel,
                                    AString& errorMessageOut)
 {
     errorMessageOut.clear();
@@ -809,7 +801,7 @@ CziImageFile::readFromCziImageFile(const AString& imageName,
     libCZI::CDimCoordinate coordinate;
     coordinate.Set(libCZI::DimensionIndex::C, 0);
     
-    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundRGB();
+    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundFloatRGB();
     libCZI::ISingleChannelScalingTileAccessor::Options scstaOptions; scstaOptions.Clear();
     scstaOptions.backGroundColor.r = prefBackRGB[0];
     scstaOptions.backGroundColor.g = prefBackRGB[1];
@@ -834,9 +826,6 @@ CziImageFile::readFromCziImageFile(const AString& imageName,
             std::cout << "Region: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
             std::cout << "   New: " << CziUtilities::qRectToString(newRegion) << std::endl;
             std::cout << "  Zoom: " << newZoom << std::endl;
-            if (cziSceneInfo != NULL) {
-                std::cout << "  Pyramid " << pyramidLayerIndex << " of " << cziSceneInfo->getNumberOfPyramidLayers() << std::endl;
-            }
         }
         
         regionOfInterest = newRegion;
@@ -874,9 +863,7 @@ CziImageFile::readFromCziImageFile(const AString& imageName,
                                          imageName,
                                          qImage,
                                          frameRegionOfInterest,
-                                         CziUtilities::intRectToQRect(intRectROI),
-                                         resolutionChangeMode,
-                                         resolutionChangeModeLevel);
+                                         CziUtilities::intRectToQRect(intRectROI));
     return cziImageOut;
 }
 
@@ -987,7 +974,7 @@ CziImageFile::readFramePyramidLayerFromCziImageFile(const AString& imageName,
     libCZI::CDimCoordinate coordinate;
     libCZI::IDimCoordinate* iDimCoord = &coordinate;
     
-    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundRGB();
+    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundFloatRGB();
     libCZI::ISingleChannelPyramidLayerTileAccessor::Options scstaOptions;
     scstaOptions.Clear();
     scstaOptions.backGroundColor.r = prefBackRGB[0];
@@ -1039,9 +1026,7 @@ CziImageFile::readFramePyramidLayerFromCziImageFile(const AString& imageName,
                                          imageName,
                                          qImage,
                                          m_fullResolutionLogicalRect,
-                                         CziUtilities::intRectToQRect(rectToReadROI),
-                                         CziImageResolutionChangeModeEnum::INVALID,
-                                         pyramidInfo.pyramidLayerNo);
+                                         CziUtilities::intRectToQRect(rectToReadROI));
     return cziImageOut;
 }
 
@@ -1213,25 +1198,67 @@ CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
         return;
     }
     
-    const CziImage* cziImage = getImageForTabOverlay(tabIndex,
-                                                     overlayIndex);
-    if (cziImage != NULL) {
-        cziImage->getPixelIdentificationText(getFileNameNoPath(),
-                                             pixelLogicalIndex,
-                                             columnOneTextOut,
-                                             columnTwoTextOut,
-                                             toolTipTextOut);
-        
-        std::array<float, 3> xyz;
-        if (pixelIndexToStereotaxicXYZ(pixelLogicalIndex, false, xyz)) {
-            columnOneTextOut.push_back("Stereotaxic XYZ");
-            columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
-        }
-        
-        if (pixelIndexToStereotaxicXYZ(pixelLogicalIndex, true, xyz)) {
-            columnOneTextOut.push_back("Stereotaxic XYZ with NIFTI warping");
-            columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
-        }
+    
+    uint8_t rgba[4];
+    const bool rgbaValidFlag = getPixelRGBA(tabIndex,
+                                            overlayIndex,
+                                            pixelLogicalIndex,
+                                            rgba);
+    const AString rgbaText("RGBA ("
+                           + (rgbaValidFlag
+                              ? AString::fromNumbers(rgba, 4, ",")
+                              : "Invalid")
+                           + ")");
+    
+    const PixelIndex pixelIndex(pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
+    const int64_t fullResPixelI(pixelIndex.getI());
+    const int64_t fullResPixelJ(pixelIndex.getJ());
+    const AString pixelText("Pixel IJ ("
+                            + AString::number(fullResPixelI)
+                            + ","
+                            + AString::number(fullResPixelJ)
+                            + ")");
+    
+    const AString logicalText("Logical IJ ("
+                              + AString::number(pixelLogicalIndex.getI(), 'f', 3)
+                              + ","
+                              + AString::number(pixelLogicalIndex.getJ(), 'f', 3)
+                              + ")");
+    
+    const PixelCoordinate pixelsSize(getPixelSizeInMillimeters());
+    const float pixelX(fullResPixelI * pixelsSize.getX());
+    const float pixelY(fullResPixelJ * pixelsSize.getY());
+    const AString mmText("Pixel XY ("
+                         + AString::number(pixelX, 'f', 3)
+                         + "mm,"
+                         + AString::number(pixelY, 'f', 3)
+                         + "mm)");
+    
+    
+    
+    columnOneTextOut.push_back("Filename");
+    columnTwoTextOut.push_back(getFileNameNoPath());
+    
+    columnOneTextOut.push_back(pixelText);
+    columnTwoTextOut.push_back(logicalText);
+    
+    columnOneTextOut.push_back(rgbaText);
+    columnTwoTextOut.push_back(mmText);
+    
+    toolTipTextOut.push_back(rgbaText);
+    toolTipTextOut.push_back(pixelText);
+    toolTipTextOut.push_back(logicalText);
+    toolTipTextOut.push_back(mmText);
+
+    std::array<float, 3> xyz;
+    if (pixelIndexToStereotaxicXYZ(pixelLogicalIndex, false, xyz)) {
+        columnOneTextOut.push_back("Stereotaxic XYZ");
+        columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
+    }
+    
+    if (pixelIndexToStereotaxicXYZ(pixelLogicalIndex, true, xyz)) {
+        columnOneTextOut.push_back("Stereotaxic XYZ with NIFTI warping");
+        columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
     }
 }
 
@@ -2331,7 +2358,7 @@ CziImageFile::isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) cons
  * @param pixelRGBAOut
  *     RGBA at Pixel I, J
  * @return
- *     True if valid, else false.
+ *     True if valid, else false.  If pixel is background color, false is returned.
  */
 bool
 CziImageFile::getPixelRGBA(const int32_t tabIndex,
@@ -2339,6 +2366,80 @@ CziImageFile::getPixelRGBA(const int32_t tabIndex,
                            const PixelLogicalIndex& pixelLogicalIndex,
                            uint8_t pixelRGBAOut[4]) const
 {
+    pixelRGBAOut[0] = 0;
+    pixelRGBAOut[1] = 0;
+    pixelRGBAOut[2] = 0;
+    pixelRGBAOut[3] = 0;
+    
+    const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
+    libCZI::IntRect pixelRect;
+    pixelRect.x = pixelLogicalIndex.getI();
+    pixelRect.y = pixelLogicalIndex.getJ();
+    pixelRect.w = 1;
+    pixelRect.h = 1;
+    
+    libCZI::CDimCoordinate coordinate;
+    coordinate.Set(libCZI::DimensionIndex::C, 0);
+
+    const bool readFromFileFlag(true);
+    if (readFromFileFlag) {
+        auto singleChannelTileAccessor = m_reader->CreateSingleChannelTileAccessor();
+        if (singleChannelTileAccessor) {
+            const std::array<float, 3> prefBackFloatRGB = getPreferencesImageBackgroundFloatRGB();
+
+            libCZI::ISingleChannelTileAccessor::Options options;
+            options.Clear();
+            options.backGroundColor.r = prefBackFloatRGB[0];
+            options.backGroundColor.g = prefBackFloatRGB[1];
+            options.backGroundColor.b = prefBackFloatRGB[2];
+
+            std::shared_ptr<libCZI::IBitmapData> bitmapData = singleChannelTileAccessor->Get(pixelType,
+                                                                                             pixelRect,
+                                                                                             &coordinate,
+                                                                                             &options);
+                                                                                             
+            if (bitmapData) {
+                if ((bitmapData->GetWidth() == 1)
+                    && (bitmapData->GetHeight() == 1)
+                    && (bitmapData->GetPixelType() == pixelType)) {
+                    libCZI::BitmapLockInfo bitMapInfo = bitmapData->Lock();
+                    unsigned char* cziPtr8 = (unsigned char*)bitMapInfo.ptrDataRoi;
+                    pixelRGBAOut[0] = cziPtr8[2];
+                    pixelRGBAOut[1] = cziPtr8[1];
+                    pixelRGBAOut[2] = cziPtr8[0];
+                    bitmapData->Unlock();
+                    
+                    const std::array<uint8_t, 3> prefBackByteRGB = getPreferencesImageBackgroundByteRGB();
+                    if ((prefBackByteRGB[0] == pixelRGBAOut[0])
+                        && (prefBackByteRGB[1] == pixelRGBAOut[1])
+                        && (prefBackByteRGB[2] == pixelRGBAOut[2])) {
+                        /*
+                         * If pixel color is background, then return invalid status
+                         */
+                        return false;
+                    }
+                    
+                    return true;
+                }
+                else {
+                    CaretLogSevere("Single Channel Data read is incorrect size width="
+                                   + AString::number(bitmapData->GetWidth())
+                                   + ", height="
+                                   + AString::number(bitmapData->GetHeight()));
+                }
+            }
+            else {
+                CaretLogSevere("Single Channel Failed to read RGBA pixel "
+                               + pixelLogicalIndex.toString()
+                               + " from file "
+                               + getFileNameNoPath());
+            }
+        }
+    }
+    
+    /*
+     * If pixel identification above failed, try to access from image data
+     */
     const CziImage* cziImage = getImageForTabOverlay(tabIndex,
                                                      overlayIndex);
     CaretAssert(cziImage);
@@ -2346,7 +2447,7 @@ CziImageFile::getPixelRGBA(const int32_t tabIndex,
                                pixelRGBAOut)) {
         return true;
     }
-    
+
     return false;
 }
 
@@ -2361,22 +2462,32 @@ CziImageFile::getPreferencesImageDimension() const
 }
 
 /**
- * @return The RGB background color for images from preferences
+ * @return The RGB background color for images from preferences BYTE values
  */
-std::array<float, 3>
-CziImageFile::getPreferencesImageBackgroundRGB() const
+std::array<uint8_t, 3>
+CziImageFile::getPreferencesImageBackgroundByteRGB() const
 {
-    std::array<float, 3> rgb;
+    std::array<uint8_t, 3> rgb;
     
     EventCaretPreferencesGet prefsEvent;
     EventManager::get()->sendEvent(prefsEvent.getPointer());
     CaretPreferences* prefs = prefsEvent.getCaretPreferences();
     if (prefs != NULL) {
-        uint8_t backgroundColor[3];
-        prefs->getBackgroundAndForegroundColors()->getColorBackgroundMediaView(backgroundColor);
-        rgb = BackgroundAndForegroundColors::toFloatRGB(backgroundColor);
+        prefs->getBackgroundAndForegroundColors()->getColorBackgroundMediaView(rgb.data());
     }
     
+    return rgb;
+}
+
+/**
+ * @return The RGB background color for images from preferences FLOAT values
+ */
+std::array<float, 3>
+CziImageFile::getPreferencesImageBackgroundFloatRGB() const
+{
+    std::array<uint8_t, 3> rgbByte = getPreferencesImageBackgroundByteRGB();
+    std::array<float, 3> rgb = BackgroundAndForegroundColors::toFloatRGB(rgbByte.data());
+
     return rgb;
 }
 
@@ -2392,16 +2503,10 @@ CziImageFile::testReadingSmallImage(AString& errorMessageOut)
     errorMessageOut.clear();
     
     const int32_t imageDimensionWidthHeight(512);
-    const CziSceneInfo* nullSceneInfo(NULL);
-    const int32_t invalidPyramidLayerIndex(-1);
     std::unique_ptr<CziImage> cziImage(readFromCziImageFile("Test Image File Reading",
                                                             m_fullResolutionLogicalRect,
-                                                            nullSceneInfo,
-                                                            invalidPyramidLayerIndex,
                                                             m_fullResolutionLogicalRect,
                                                             imageDimensionWidthHeight,
-                                                            CziImageResolutionChangeModeEnum::INVALID, /* use INVALID for test reading image */
-                                                            0, /* level index (value not used for test reading image) */
                                                             errorMessageOut));
     if (cziImage) {
         return true;
@@ -2486,7 +2591,7 @@ CziImageFile::exportToImageFile(const QString& imageFileName,
     libCZI::CDimCoordinate coordinate;
     coordinate.Set(libCZI::DimensionIndex::C, 0);
     
-    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundRGB();
+    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundFloatRGB();
     libCZI::ISingleChannelScalingTileAccessor::Options scstaOptions; scstaOptions.Clear();
     scstaOptions.backGroundColor.r = prefBackRGB[0];
     scstaOptions.backGroundColor.g = prefBackRGB[1];

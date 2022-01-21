@@ -385,12 +385,8 @@ namespace caret {
 
         CziImage* readFromCziImageFile(const AString& imageName,
                                        const QRectF& regionOfInterest,
-                                       const CziImageFile::CziSceneInfo* cziSceneInfo,
-                                       const int32_t pyramidLayerIndex,
                                        const QRectF& frameRegionOfInterest,
                                        const int64_t outputImageWidthHeightMaximum,
-                                       const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
-                                       const int32_t resolutionChangeModeLevel,
                                        AString& errorMessageOut);
         
         QImage* createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
@@ -416,7 +412,9 @@ namespace caret {
         
         int32_t getPreferencesImageDimension() const;
         
-        std::array<float, 3> getPreferencesImageBackgroundRGB() const;
+        std::array<float, 3> getPreferencesImageBackgroundFloatRGB() const;
+        
+        std::array<uint8_t, 3> getPreferencesImageBackgroundByteRGB() const;
         
         void zoomToMatchPixelDimension(const QRectF& regionOfInterestToRead,
                                        const QRectF& fullRegionOfInterest,
