@@ -4876,51 +4876,26 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
             if (underlay != NULL) {
                 const MediaOverlay::SelectionData selectionData(underlay->getSelectionData());
                 if (selectionData.m_selectedMediaFile != NULL) {
+                    const float imageWidth(selectionData.m_selectedMediaFile->getWidth());
+                    const float imageHeight(selectionData.m_selectedMediaFile->getHeight());
+                    
+                    /*
+                     * Older scenes were drawn in pixels with origin at bottom left.
+                     * We don't know the size of the viewport, so we cannot process the
+                     * translation correctly.  So, we ignore the translation.  But we
+                     * do use the scaling from the scene and try to set the translation
+                     * so that the image is centered.
+                     *
+                     * Code below is from ViewingTransformationsMedia::setMediaScaling().
+                     */
                     const float scale(m_mediaViewingTransformation->getScaling());
-                    if ((scale < 0.999)
-                        || (scale > 1.001)) {
-                        /*
-                         * Since origin moved to top, need to flip translation
-                         * BUT ONLY if there is scaling.  Note: that since zooming
-                         * may be about a point, translation is added while scaling
-                         * to keep image at position of mouse.
-                         */
-                        float translation[3];
-                        m_mediaViewingTransformation->getTranslation(translation);
-                        
-                        PixelIndex pixel00(0, 0);
-                        std::array<float, 3> logicalXYZ;
-                        const PixelLogicalIndex pixelLogicalIndex(selectionData.m_selectedMediaFile->pixelIndexToPixelLogicalIndex(pixel00));
-                        logicalXYZ[0] = pixelLogicalIndex.getI();
-                        logicalXYZ[1] = pixelLogicalIndex.getJ();
-                        
-                        /*
-                         * Account for origin is now top left logical coordinates.
-                         * Previously origin was bottom left (0, 0)
-                         */
-                        if (logicalXYZ[0] != 0.0) {
-                            const float newTransX(-(translation[0] + logicalXYZ[0]) / scale);
-                            translation[0] = newTransX;
-                        }
-                        
-                        if (logicalXYZ[1] != 0.0) {
-                            const float newTransY(-(translation[1] + logicalXYZ[1]) / scale);
-                            translation[1] = newTransY;
-                            translation[1] += selectionData.m_selectedMediaFile->getHeight();
-                        }
-                        else {
-                            /*
-                             * Since origin moved to top, need to flip translation
-                             * BUT ONLY if there is scaling.  Note: that since zooming
-                             * may be about a point, translation is added while scaling
-                             * to keep image at position of mouse.
-                             */
-                            translation[1] = -translation[1];
-                        }
-                        
-                        
-                        m_mediaViewingTransformation->setTranslation(translation);
-                    }
+                    const float halfWidth(-imageWidth / 2.0);
+                    const float halfHeight(imageHeight / 2.0);
+                    float tx = -((halfWidth * scale) - halfWidth);
+                    float ty = -((halfHeight * scale) - halfHeight);
+                    m_mediaViewingTransformation->resetView();
+                    m_mediaViewingTransformation->setScaling(scale);
+                    m_mediaViewingTransformation->setTranslation(tx, -ty, 0.0);
                 }
             }
         }
