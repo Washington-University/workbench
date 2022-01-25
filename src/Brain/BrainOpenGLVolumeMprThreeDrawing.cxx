@@ -2883,15 +2883,15 @@ BrainOpenGLVolumeMprThreeDrawing::deleteStaticMembers()
  *    Coordinates of the selected slices.
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum /*sliceDrawingType*/,
                                           const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           const Plane& slicePlane,
                                         const std::array<float, 3>& sliceCoordinates)
 {
-    bool drawCrosshairsFlag = true;
+//    bool drawCrosshairsFlag = true;
     bool drawFibersFlag     = true;
-    bool drawFociFlag       = true;
+//    bool drawFociFlag       = true;
     bool drawOutlineFlag    = true;
     
     if ( ! m_identificationModeFlag) {

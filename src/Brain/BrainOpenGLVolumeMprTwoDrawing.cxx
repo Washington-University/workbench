@@ -705,8 +705,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const VolumeSliceP
 }
 
 BrainOpenGLVolumeMprTwoDrawing::SliceInfo
-BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const VolumeSliceProjectionTypeEnum::Enum /*sliceProjectionType*/,
+                                                const VolumeSliceDrawingTypeEnum::Enum /*sliceDrawingType*/,
                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                 const std::array<float, 3>& sliceCoordinates)
 {
@@ -2923,9 +2923,9 @@ BrainOpenGLVolumeMprTwoDrawing::getIdentificationPrimitive(const SliceInfo& slic
         std::vector<uint8_t> textureBuffer;
         textureBuffer.reserve(textureBytes);
         
-        uint8_t red(0);
-        uint8_t green(0);
-        uint8_t blue(0);
+//        uint8_t red(0);
+//        uint8_t green(0);
+//        uint8_t blue(0);
         const uint8_t alpha(255);
         
         
@@ -3267,15 +3267,15 @@ BrainOpenGLVolumeMprTwoDrawing::deleteStaticMembers()
  *    Coordinates of the selected slices.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum /*sliceDrawingType*/,
                                           const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           const Plane& slicePlane,
                                         const std::array<float, 3>& sliceCoordinates)
 {
-    bool drawCrosshairsFlag = true;
+//    bool drawCrosshairsFlag = true;
     bool drawFibersFlag     = true;
-    bool drawFociFlag       = true;
+//    bool drawFociFlag       = true;
     bool drawOutlineFlag    = true;
     
     if ( ! m_identificationModeFlag) {

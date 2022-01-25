@@ -1913,7 +1913,6 @@ GraphicsPrimitive::setTextureImage(const uint8_t* imageBytesRGBA,
                 break;
             case TexturePixelOrigin::TOP_LEFT:
             {
-                const int32_t sliceLength(imageWidth * imageHeight * numBytesPerPixel);
                 const int32_t rowLength(imageWidth * numBytesPerPixel);
                 const int32_t sourceRowLength((imageRowStride > 0)
                                               ? imageRowStride
@@ -1922,7 +1921,6 @@ GraphicsPrimitive::setTextureImage(const uint8_t* imageBytesRGBA,
                 
                 if (imageSlices == 1) {
                     for (int32_t jRow = 0; jRow < m_textureImageHeight; jRow++) {
-                        const int32_t insertRowOffset(jRow * rowLength);
                         const int32_t sourceRowIndex(m_textureImageHeight - jRow - 1);
                         const int32_t sourceDataOffset(sourceRowIndex * sourceRowLength);
                         CaretAssertArrayIndex(imageBytesRGBA,

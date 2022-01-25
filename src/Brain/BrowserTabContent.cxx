@@ -6423,13 +6423,13 @@ BrowserTabContent::getMediaRegionSelectionBox() const
  *    Change in mouse Y coordinate.
  */
 void
-BrowserTabContent::applyMouseDragVolumeMPR(BrainOpenGLViewportContent* viewportContent,
-                                           const int32_t mousePressX,
-                                           const int32_t mousePressY,
-                                           const int32_t mouseX,
-                                           const int32_t mouseY,
-                                           const int32_t mouseDeltaX,
-                                           const int32_t mouseDeltaY)
+BrowserTabContent::applyMouseDragVolumeMPR(BrainOpenGLViewportContent* /*viewportContent*/,
+                                           const int32_t /*mousePressX*/,
+                                           const int32_t /*mousePressY*/,
+                                           const int32_t /*mouseX*/,
+                                           const int32_t /*mouseY*/,
+                                           const int32_t /*mouseDeltaX*/,
+                                           const int32_t /*mouseDeltaY*/)
 {
     std::cout << "Mouse drag MPR" << std::endl;
 }
