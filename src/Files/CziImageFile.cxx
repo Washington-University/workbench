@@ -853,17 +853,29 @@ CziImageFile::readFromCziImageFile(const AString& imageName,
         return NULL;
     }
     
-    QImage* qImage = createQImageFromBitmapData(bitmapData.get(),
-                                                errorMessageOut);
-    if (qImage == NULL) {
-        return NULL;
-    }
+    CziImage* cziImageOut(NULL);
     
-    CziImage* cziImageOut = new CziImage(this,
-                                         imageName,
-                                         qImage,
-                                         frameRegionOfInterest,
-                                         CziUtilities::intRectToQRect(intRectROI));
+    const bool useQImageFlag(false);
+    if (useQImageFlag) {
+        QImage* qImage = createQImageFromBitmapData(bitmapData.get(),
+                                                    errorMessageOut);
+        if (qImage == NULL) {
+            return NULL;
+        }
+        
+        cziImageOut = new CziImage(this,
+                                   imageName,
+                                   qImage,
+                                   frameRegionOfInterest,
+                                   CziUtilities::intRectToQRect(intRectROI));
+    }
+    else {
+        cziImageOut = new CziImage(this,
+                                   imageName,
+                                   bitmapData,
+                                   frameRegionOfInterest,
+                                   CziUtilities::intRectToQRect(intRectROI));
+    }
     return cziImageOut;
 }
 
@@ -1046,7 +1058,7 @@ CziImageFile::createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
     
     const auto width(bitmapData->GetWidth());
     const auto height(bitmapData->GetHeight());
-    if (cziDebugFlag) std::cout << "Image width/height: " << width << ", " << height << std::endl;
+    /*if (cziDebugFlag)*/ std::cout << "Image width/height: " << width << ", " << height << std::endl;
     
     if ((width <= 0)
         || (height <= 0)) {
@@ -1063,8 +1075,8 @@ CziImageFile::createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
      * call to "Lock()" must have corresponding "Unlock()"
      */
     libCZI::BitmapLockInfo bitMapInfo = bitmapData->Lock();
-    if (cziDebugFlag) std::cout << "   Stride: " << bitMapInfo.stride << std::endl;
-    if (cziDebugFlag) std::cout << "   Size: " << bitMapInfo.size << std::endl;
+    /*if (cziDebugFlag)*/ std::cout << "   Stride: " << bitMapInfo.stride << std::endl;
+    /*if (cziDebugFlag)*/ std::cout << "   Size: " << bitMapInfo.size << std::endl;
 
     unsigned char* cziPtr8 = (unsigned char*)bitMapInfo.ptrDataRoi;
     
@@ -2407,6 +2419,7 @@ CziImageFile::getPixelRGBA(const int32_t tabIndex,
                     pixelRGBAOut[0] = cziPtr8[2];
                     pixelRGBAOut[1] = cziPtr8[1];
                     pixelRGBAOut[2] = cziPtr8[0];
+                    pixelRGBAOut[3] = 255;
                     bitmapData->Unlock();
                     
                     const std::array<uint8_t, 3> prefBackByteRGB = getPreferencesImageBackgroundByteRGB();
@@ -2443,8 +2456,8 @@ CziImageFile::getPixelRGBA(const int32_t tabIndex,
     const CziImage* cziImage = getImageForTabOverlay(tabIndex,
                                                      overlayIndex);
     CaretAssert(cziImage);
-    if (cziImage->getPixelRGBA(pixelLogicalIndex,
-                               pixelRGBAOut)) {
+    if (cziImage->getImageDataPixelRGBA(pixelLogicalIndex,
+                                        pixelRGBAOut)) {
         return true;
     }
 

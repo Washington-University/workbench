@@ -1907,11 +1907,15 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/,
         }
         
         if (validRGBA) {
+            const int32_t rowStride(-1); /* negative is tightly packed */
             const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
             GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &bytesRGBA[0],
                                                                                        width,
                                                                                        height,
+                                                                                       rowStride,
+                                                                                       GraphicsPrimitive::TexturePixelFormatType::RGBA,
+                                                                                       GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT,
                                                                                        GraphicsPrimitive::TextureWrappingType::CLAMP,
                                                                                        GraphicsPrimitive::TextureMipMappingType::ENABLED,
                                                                                        GraphicsTextureMagnificationFilterEnum::LINEAR,

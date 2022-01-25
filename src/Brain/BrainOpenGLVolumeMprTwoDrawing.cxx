@@ -2956,6 +2956,8 @@ BrainOpenGLVolumeMprTwoDrawing::getIdentificationPrimitive(const SliceInfo& slic
                                                                               numCols,
                                                                               numRows,
                                                                               numSlices,
+                                                                              GraphicsPrimitive::TexturePixelFormatType::RGBA,
+                                                                              GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT,
                                                                               GraphicsPrimitive::TextureWrappingType::CLAMP_TO_BORDER,
                                                                               GraphicsPrimitive::TextureMipMappingType::DISABLED,
                                                                               GraphicsTextureMagnificationFilterEnum::NEAREST,

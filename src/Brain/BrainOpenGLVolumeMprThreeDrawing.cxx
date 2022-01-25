@@ -2613,10 +2613,14 @@ BrainOpenGLVolumeMprThreeDrawing::getIdentificationPrimitive(const std::array<fl
         }
         
         const std::array<float, 4> borderColor { 0.0, 0.0, 0.0, 0.0 };
+        const int32_t rowStride(-1); /* negative is tightly packed */
         s_identificationPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                               &textureBuffer[0],
                                                                               numCols,
                                                                               numRows,
+                                                                              rowStride,
+                                                                              GraphicsPrimitive::TexturePixelFormatType::RGBA,
+                                                                              GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT,
                                                                               GraphicsPrimitive::TextureWrappingType::CLAMP_TO_BORDER,
                                                                               GraphicsPrimitive::TextureMipMappingType::DISABLED,
                                                                               GraphicsTextureMagnificationFilterEnum::NEAREST,

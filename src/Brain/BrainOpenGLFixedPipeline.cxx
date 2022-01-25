@@ -8705,10 +8705,14 @@ BrainOpenGLFixedPipeline::drawStippledBackgroundInAreasOutsideWindowAspectLockin
         }
     }
     const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+    const int32_t rowStride(-1); /* Negative is tightly packed */
     std::unique_ptr<GraphicsPrimitiveV3fT2f> primitive(GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
                                                                                              &textureRGBA[0],
                                                                                              textureDim,
                                                                                              textureDim,
+                                                                                             rowStride,
+                                                                                             GraphicsPrimitive::TexturePixelFormatType::RGBA,
+                                                                                             GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT,
                                                                                              GraphicsPrimitive::TextureWrappingType::REPEAT,
                                                                                              GraphicsPrimitive::TextureMipMappingType::ENABLED,
                                                                                              GraphicsTextureMagnificationFilterEnum::LINEAR,

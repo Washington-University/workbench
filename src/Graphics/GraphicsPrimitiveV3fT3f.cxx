@@ -47,6 +47,10 @@ using namespace caret;
  *     Height of the image.
  * @param imageSlices
  *     Slices of the image.
+ * @param texturePixelFormatType
+ *     Format of pixels in texture image
+ * @param texturePixelOrigin
+ *   Location of first pixel in texture image
  * @param textureWrappingType
  *     Type of texture wrapping
  * @param textureMipMappingType
@@ -63,6 +67,8 @@ GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveTy
                                                  const int32_t imageWidth,
                                                  const int32_t imageHeight,
                                                  const int32_t imageSlices,
+                                                 const TexturePixelFormatType texturePixelFormatType,
+                                                 const TexturePixelOrigin texturePixelOrigin,
                                                  const TextureWrappingType textureWrappingType,
                                                  const TextureMipMappingType textureMipMappingType,
                                                  const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
@@ -72,17 +78,21 @@ GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveTy
                     NormalVectorDataType::NONE,
                     ColorDataType::NONE,
                     VertexColorType::NONE,
-                    TextureDataType::FLOAT_STR_3D,
+                    TextureDimensionType::FLOAT_STR_3D,
+                    texturePixelFormatType,
+                    texturePixelOrigin,
                     textureWrappingType,
                     textureMipMappingType,
                     textureMagnificationFilter,
                     textureMinificationFilter,
                     primitiveType)
 {
+    const int32_t rowStride(-1); /* negative is tightly packed */
     setTextureImage(imageBytesRGBA,
                     imageWidth,
                     imageHeight,
-                    imageSlices);
+                    imageSlices,
+                    rowStride);
     setTextureBorderColorRGBA(textureBorderColorRGBA);
 }
 

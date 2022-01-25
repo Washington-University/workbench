@@ -311,9 +311,9 @@ GraphicsEngineDataOpenGL::loadTextureCoordinateBuffer(GraphicsPrimitive* primiti
     
     GLenum usageHint = getOpenGLBufferUsageHint(primitive->getUsageTypeTextureCoordinates());
     
-    switch (primitive->m_textureDataType) {
-        case GraphicsPrimitive::TextureDataType::FLOAT_STR_2D:
-        case GraphicsPrimitive::TextureDataType::FLOAT_STR_3D:
+    switch (primitive->m_textureDimensionType) {
+        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_2D:
+        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_3D:
         {
             /*
              * Note both 2D and 3D use 3 coordinates.
@@ -338,7 +338,7 @@ GraphicsEngineDataOpenGL::loadTextureCoordinateBuffer(GraphicsPrimitive* primiti
             
         }
             break;
-        case GraphicsPrimitive::TextureDataType::NONE:
+        case GraphicsPrimitive::TextureDimensionType::NONE:
             break;
     }
     
@@ -377,13 +377,13 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
         return;
     }
     
-    switch (primitive->m_textureDataType) {
-        case GraphicsPrimitive::TextureDataType::NONE:
+    switch (primitive->m_textureDimensionType) {
+        case GraphicsPrimitive::TextureDimensionType::NONE:
             break;
-        case GraphicsPrimitive::TextureDataType::FLOAT_STR_2D:
+        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_2D:
             loadTextureImageDataBuffer2D(primitive);
             break;
-        case GraphicsPrimitive::TextureDataType::FLOAT_STR_3D:
+        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_3D:
             loadTextureImageDataBuffer3D(primitive);
             break;
     }
@@ -403,19 +403,29 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
 {
     const int32_t imageWidth  = primitive->m_textureImageWidth;
     const int32_t imageHeight = primitive->m_textureImageHeight;
-    const int32_t imageNumberOfBytes = imageWidth * imageHeight * 4;
+    const int32_t numBytesPerPixel = primitive->getTexturePixelFormatBytesPerPixel();
+    const int32_t imageNumberOfBytes = imageWidth * imageHeight * numBytesPerPixel;
     if (imageNumberOfBytes <= 0) {
         CaretLogWarning("Invalid texture (empty data) for drawing primitive with 2D texture");
         return;
     }
-    if (imageNumberOfBytes != static_cast<int32_t>(primitive->m_textureImageBytesRGBA.size())) {
+    if (imageNumberOfBytes != static_cast<int32_t>(primitive->m_textureImageBytesPtr.size())) {
         CaretLogWarning("Texture 2D image bytes size incorrect for image width/height");
         return;
     }
     
     glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-    
-    const GLubyte* imageBytesRGBA = &primitive->m_textureImageBytesRGBA[0];
+
+    glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);
+    glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_IMAGES, 0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    const GLubyte* imageBytesPtr = &primitive->m_textureImageBytesPtr[0];
     EventGraphicsOpenGLCreateTextureName createEvent;
     EventManager::get()->sendEvent(createEvent.getPointer());
     m_textureImageDataName = createEvent.getOpenGLTextureName();
@@ -432,6 +442,24 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
             break;
         case GraphicsPrimitive::TextureMipMappingType::DISABLED:
             useMipMapFlag = false;
+            break;
+    }
+    
+    GLenum pixelDataFormat = GL_RGBA;
+    switch (primitive->getTexturePixelFormatType()) {
+        case GraphicsPrimitive::TexturePixelFormatType::NONE:
+            break;
+        case GraphicsPrimitive::TexturePixelFormatType::BGR:
+            pixelDataFormat = GL_BGR;
+            break;
+        case GraphicsPrimitive::TexturePixelFormatType::BGRA:
+            pixelDataFormat = GL_BGRA;
+            break;
+        case GraphicsPrimitive::TexturePixelFormatType::RGB:
+            pixelDataFormat = GL_RGB;
+            break;
+        case GraphicsPrimitive::TexturePixelFormatType::RGBA:
+            pixelDataFormat = GL_RGBA;
             break;
     }
     
@@ -457,9 +485,9 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
                                                 GL_RGBA,           // number of components
                                                 imageWidth,        // width of image
                                                 imageHeight,       // height of image
-                                                GL_RGBA,           // format of the pixel data
+                                                pixelDataFormat,   // format of the pixel data
                                                 GL_UNSIGNED_BYTE,  // data type of pixel data
-                                                imageBytesRGBA);    // pointer to image data
+                                                imageBytesPtr);    // pointer to image data
         if (errorCode != 0) {
             useMipMapFlag = false;
             
@@ -483,9 +511,9 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
                      imageWidth,        // width of image
                      imageHeight,       // height of image
                      0,                 // border
-                     GL_RGBA,           // format of the pixel data
+                     pixelDataFormat,   // format of the pixel data
                      GL_UNSIGNED_BYTE,  // data type of pixel data
-                     imageBytesRGBA);   // pointer to image data
+                     imageBytesPtr);   // pointer to image data
         
         const auto errorGL = GraphicsUtilitiesOpenGL::getOpenGLError();
         if (errorGL) {
@@ -517,12 +545,13 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
     const int32_t imageWidth(primitive->m_textureImageWidth);
     const int32_t imageHeight(primitive->m_textureImageHeight);
     const int32_t imageSlices(primitive->m_textureImageSlices);
-    const int32_t imageNumberOfBytes = imageWidth * imageHeight * imageSlices * 4;
+    const int32_t imageBytesPerPixel(primitive->getTexturePixelFormatBytesPerPixel());
+    const int32_t imageNumberOfBytes = imageWidth * imageHeight * imageSlices * imageBytesPerPixel;
     if (imageNumberOfBytes <= 0) {
         CaretLogWarning("Invalid texture (empty data) for drawing primitive with 3D texture");
         return;
     }
-    if (imageNumberOfBytes != static_cast<int32_t>(primitive->m_textureImageBytesRGBA.size())) {
+    if (imageNumberOfBytes != static_cast<int32_t>(primitive->m_textureImageBytesPtr.size())) {
         CaretLogWarning("Texture 3D image bytes size incorrect for image width/height/slices");
         return;
     }
@@ -567,13 +596,31 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 0);
 
-    const GLubyte* imageBytesRGBA = &primitive->m_textureImageBytesRGBA[0];
+    const GLubyte* imageBytesPtr = &primitive->m_textureImageBytesPtr[0];
     EventGraphicsOpenGLCreateTextureName createEvent;
     EventManager::get()->sendEvent(createEvent.getPointer());
     m_textureImageDataName = createEvent.getOpenGLTextureName();
     CaretAssert(m_textureImageDataName);
     
     const GLuint openGLTextureName = m_textureImageDataName->getTextureName();
+    
+    GLenum pixelDataFormat = GL_RGBA;
+    switch (primitive->getTexturePixelFormatType()) {
+        case GraphicsPrimitive::TexturePixelFormatType::NONE:
+            break;
+        case GraphicsPrimitive::TexturePixelFormatType::BGR:
+            pixelDataFormat = GL_BGR;
+            break;
+        case GraphicsPrimitive::TexturePixelFormatType::BGRA:
+            pixelDataFormat = GL_BGRA;
+            break;
+        case GraphicsPrimitive::TexturePixelFormatType::RGB:
+            pixelDataFormat = GL_RGB;
+            break;
+        case GraphicsPrimitive::TexturePixelFormatType::RGBA:
+            pixelDataFormat = GL_RGBA;
+            break;
+    }
     
     glBindTexture(GL_TEXTURE_3D, openGLTextureName);
     
@@ -614,9 +661,9 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
                                                 imageWidth,        // width of image
                                                 imageHeight,       // height of image
                                                 imageSlices,       // slices of image
-                                                GL_RGBA,           // format of the pixel data
+                                                pixelDataFormat,   // format of the pixel data
                                                 GL_UNSIGNED_BYTE,  // data type of pixel data
-                                                imageBytesRGBA);    // pointer to image data
+                                                imageBytesPtr);    // pointer to image data
         if (errorCode != 0) {
             useMipMapFlag = false;
             
@@ -642,9 +689,9 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
                      imageHeight,       // height of volume
                      imageSlices,       // slices of volume
                      0,                 // border
-                     GL_RGBA,           // format of the pixel data
+                     pixelDataFormat,   // format of the pixel data
                      GL_UNSIGNED_BYTE,  // data type of pixel data
-                     imageBytesRGBA);   // pointer to image data
+                     imageBytesPtr);   // pointer to image data
         
         const auto errorGL = GraphicsUtilitiesOpenGL::getOpenGLError();
         if (errorGL) {
@@ -1440,13 +1487,13 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     
     bool hasTexture2dFlag(false);
     bool hasTexture3dFlag(false);
-    switch (primitive->getTextureDataType()) {
-        case GraphicsPrimitive::TextureDataType::NONE:
+    switch (primitive->getTextureDimensionType()) {
+        case GraphicsPrimitive::TextureDimensionType::NONE:
             break;
-        case GraphicsPrimitive::TextureDataType::FLOAT_STR_2D:
+        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_2D:
             hasTexture2dFlag = true;
             break;
-        case GraphicsPrimitive::TextureDataType::FLOAT_STR_3D:
+        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_3D:
             hasTexture3dFlag = true;
             break;
     }

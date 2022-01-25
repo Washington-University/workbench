@@ -50,6 +50,44 @@ using namespace caret;
  *    The parent CZI Image File
  * @param imageName
  *    Name for image that may be used when debugging
+ * @param qimage
+ *    The QImage instance
+ * @param fullResolutionLogicalRect
+ *    Logical Rectangle for the full-resolution source image that defines the coordinates of the primitive
+ * @param imageDataLogicalRect
+ *    Logical rectangle defining region of source image that was read from the file that results
+ */
+CziImage::CziImage(const CziImageFile* parentCziImageFile,
+                   const AString& imageName,
+                   QImage* qimage,
+                   const QRectF& fullResolutionLogicalRect,
+                   const QRectF& imageDataLogicalRect)
+: CaretObject(),
+m_parentCziImageFile(parentCziImageFile),
+m_imageName(imageName),
+m_imageStorageFormat(ImageStorageFormat::Q_IMAGE),
+m_qimageData(qimage),
+m_cziImageData(NULL),
+m_imageWidth((qimage != NULL) ? qimage->width() : 0),
+m_imageHeight((qimage != NULL) ? qimage->height() : 0),
+m_fullResolutionLogicalRect(fullResolutionLogicalRect),
+m_imageDataLogicalRect(imageDataLogicalRect)
+{
+    CaretAssert(qimage);
+
+    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    
+    m_fullResolutionPixelsRect = QRectF(0, 0, m_fullResolutionLogicalRect.width(), m_fullResolutionLogicalRect.height());
+
+    m_imagePixelsRect = QRectF(0, 0, m_imageWidth, m_imageHeight);
+}
+
+/**
+ * Constructor
+ * @param parentCziImageFile
+ *    The parent CZI Image File
+ * @param imageName
+ *    Name for image that may be used when debugging
  * @param image
  *    The QImage instance
  * @param fullResolutionLogicalRect
@@ -59,24 +97,26 @@ using namespace caret;
  */
 CziImage::CziImage(const CziImageFile* parentCziImageFile,
                    const AString& imageName,
-                   QImage* image,
+                   std::shared_ptr<libCZI::IBitmapData>& cziImageData,
                    const QRectF& fullResolutionLogicalRect,
                    const QRectF& imageDataLogicalRect)
 : CaretObject(),
 m_parentCziImageFile(parentCziImageFile),
 m_imageName(imageName),
-m_image(image),
-m_imageWidth((image != NULL) ? image->width() : 0),
-m_imageHeight((image != NULL) ? image->height() : 0),
+m_imageStorageFormat(ImageStorageFormat::CZI_IMAGE),
+m_qimageData((QImage*)NULL),
+m_cziImageData(cziImageData),
+m_imageWidth((cziImageData != NULL) ? cziImageData->GetWidth() : 0),
+m_imageHeight((cziImageData != NULL) ? cziImageData->GetHeight() : 0),
 m_fullResolutionLogicalRect(fullResolutionLogicalRect),
 m_imageDataLogicalRect(imageDataLogicalRect)
 {
-    CaretAssert(image);
+    CaretAssert(cziImageData.get());
 
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
     m_fullResolutionPixelsRect = QRectF(0, 0, m_fullResolutionLogicalRect.width(), m_fullResolutionLogicalRect.height());
-
+    
     m_imagePixelsRect = QRectF(0, 0, m_imageWidth, m_imageHeight);
 }
 
@@ -256,7 +296,7 @@ CziImage::pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const
 }
 
 /**
- * Get the pixel RGBA at the pixel logical index
+ * Get the pixel RGBA at the pixel logical index from the image data
  *
  * @param pixelLogicalIndex
  *     Pixel logical index
@@ -266,42 +306,66 @@ CziImage::pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const
  *     True if valid, else false.
  */
 bool
-CziImage::getPixelRGBA(const PixelLogicalIndex& pixelLogicalIndex,
-                       uint8_t pixelRGBAOut[4]) const
+CziImage::getImageDataPixelRGBA(const PixelLogicalIndex& pixelLogicalIndex,
+                                uint8_t pixelRGBAOut[4]) const
 {
     pixelRGBAOut[0] = 0;
     pixelRGBAOut[1] = 0;
     pixelRGBAOut[2] = 0;
     pixelRGBAOut[3] = 0;
-    
-    const QImage* image = m_image.get();
-    
-    if (image == NULL) {
-        return false;
-    }
-    
-    if (image != NULL) {
-        const PixelIndex pixelIndex(pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
-        if (isPixelIndexValid(pixelIndex)) {
-            const int64_t pixelI(pixelIndex.getI());
-            const int64_t pixelJ(pixelIndex.getJ());
-            const QRgb rgb = image->pixel(pixelI,
-                                          pixelJ);
-            pixelRGBAOut[0] = static_cast<uint8_t>(qRed(rgb));
-            pixelRGBAOut[1] = static_cast<uint8_t>(qGreen(rgb));
-            pixelRGBAOut[2] = static_cast<uint8_t>(qBlue(rgb));
-            pixelRGBAOut[3] = static_cast<uint8_t>(qAlpha(rgb));
-            return true;
+        
+    const PixelIndex pixelIndex(pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
+    if (isPixelIndexValid(pixelIndex)) {
+        const int64_t pixelI(pixelIndex.getI());
+        const int64_t pixelJ(pixelIndex.getJ());
+        
+        switch (m_imageStorageFormat) {
+            case ImageStorageFormat::INVALID:
+                CaretAssert(0);
+                break;
+            case ImageStorageFormat::CZI_IMAGE:
+            {
+                const int32_t bytesPerPixel(3);
+                
+                const libCZI::BitmapLockInfo bitmapInfo(m_cziImageData->Lock());
+                const int32_t rowStride(bitmapInfo.stride);
+                const int32_t rowOffset(rowStride * pixelJ);
+                const int32_t pixelOffset((pixelI * bytesPerPixel)
+                                          + rowOffset);
+                CaretAssert(pixelOffset < static_cast<int32_t>(bitmapInfo.size));
+
+                /* Data is BGR ! */
+                const uint8_t* dataPtr(static_cast<uint8_t*>(bitmapInfo.ptrDataRoi));
+                pixelRGBAOut[0] = static_cast<uint8_t>(dataPtr[pixelOffset + 2]);
+                pixelRGBAOut[1] = static_cast<uint8_t>(dataPtr[pixelOffset + 1]);
+                pixelRGBAOut[2] = static_cast<uint8_t>(dataPtr[pixelOffset + 0]);
+                pixelRGBAOut[3] = static_cast<uint8_t>(255);
+                
+                m_cziImageData->Unlock();
+                return true;
+            }
+                break;
+            case ImageStorageFormat::Q_IMAGE:
+                if (m_qimageData) {
+                    QRgb rgb = m_qimageData->pixel(pixelI,
+                                              pixelJ);
+                    pixelRGBAOut[0] = static_cast<uint8_t>(qRed(rgb));
+                    pixelRGBAOut[1] = static_cast<uint8_t>(qGreen(rgb));
+                    pixelRGBAOut[2] = static_cast<uint8_t>(qBlue(rgb));
+                    pixelRGBAOut[3] = static_cast<uint8_t>(qAlpha(rgb));
+                    return true;
+                }
+                break;
         }
-        else {
-            const AString msg("Pixel Logical Index: "
-                              + pixelLogicalIndex.toString()
-                              + " but valid rect is "
-                              + CziUtilities::qRectToString(m_imageDataLogicalRect));
-            CaretLogSevere(msg);
-        }
     }
-    
+    else {
+        const AString msg("Pixel Logical Index: "
+                          + pixelLogicalIndex.toString()
+                          + " but valid rect is "
+                          + CziUtilities::qRectToString(m_imageDataLogicalRect));
+        CaretLogSevere(msg);
+    }
+
     return false;
 }
 
@@ -311,8 +375,19 @@ CziImage::getPixelRGBA(const PixelLogicalIndex& pixelLogicalIndex,
 GraphicsPrimitiveV3fT2f*
 CziImage::getGraphicsPrimitiveForMediaDrawing() const
 {
-    if (m_image == NULL) {
-        return NULL;
+    switch (m_imageStorageFormat) {
+        case ImageStorageFormat::INVALID:
+            CaretAssertMessage(0, "Image storage format is invalid");
+            return NULL;
+            break;
+        case ImageStorageFormat::CZI_IMAGE:
+            break;
+        case ImageStorageFormat::Q_IMAGE:
+            if (m_qimageData == NULL) {
+                CaretAssertMessage(0, "QImage is invalid");
+                return NULL;
+            }
+            break;
     }
     
     if ((m_imageWidth <= 0)
@@ -321,7 +396,6 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
     }
     
     if (m_graphicsPrimitiveForMediaDrawing == NULL) {
-        std::vector<uint8_t> bytesRGBA;
         int32_t width(0);
         int32_t height(0);
         
@@ -346,37 +420,89 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
             }
         }
         
-        /*
-         * Some images may use a color table so convert images
-         * if there are not in preferred format prior to
-         * getting colors of pixels
-         */
+        std::vector<uint8_t> bytesRGBA;
+        uint8_t* ptrBytesRGBA(NULL);
         bool validRGBA(false);
-        if (m_image->format() != QImage::Format_ARGB32) {
-            QImage image = m_image->convertToFormat(QImage::Format_ARGB32);
-            if (! image.isNull()) {
-                ImageFile convImageFile;
-                convImageFile.setFromQImage(image);
-                validRGBA = convImageFile.getImageBytesRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                            bytesRGBA,
-                                                            width,
-                                                            height);
-            }
+        
+        libCZI::BitmapLockInfo cziBitmapLockInfo;
+        bool cziLockFlag(false);
+        GraphicsPrimitive::TexturePixelFormatType pixelFormatType(GraphicsPrimitive::TexturePixelFormatType::NONE);
+        
+        GraphicsPrimitive::TexturePixelOrigin pixelOrigin(GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT);
+        
+        /*
+         * Image formats may pad each row of data so that the row is an even number (or multiple of 4/8)
+         * length with padding at the end of the row.
+         */
+        int32_t rowStride(-1);
+        
+        switch (m_imageStorageFormat) {
+            case ImageStorageFormat::INVALID:
+                CaretAssertMessage(0, "Image storage format is invalid");
+                return NULL;
+                break;
+            case ImageStorageFormat::CZI_IMAGE:
+                if (m_cziImageData->GetPixelType() == libCZI::PixelType::Bgr24) {
+                    cziBitmapLockInfo = m_cziImageData->Lock();
+                    pixelFormatType = GraphicsPrimitive::TexturePixelFormatType::BGR;
+                    pixelOrigin     = GraphicsPrimitive::TexturePixelOrigin::TOP_LEFT;
+                    cziLockFlag = true;
+                    
+                    if (cziBitmapLockInfo.size > 0) {
+                        validRGBA = true;
+                        ptrBytesRGBA = static_cast<uint8_t*>(cziBitmapLockInfo.ptrData);
+                        width        = m_cziImageData->GetWidth();
+                        height       = m_cziImageData->GetHeight();
+                        rowStride    = cziBitmapLockInfo.stride;
+                    }
+                }
+                break;
+            case ImageStorageFormat::Q_IMAGE:
+                if (m_qimageData->format() != QImage::Format_ARGB32) {
+                    /*
+                     * Some images may use a color table so convert images
+                     * if there are not in preferred format prior to
+                     * getting colors of pixels
+                     */
+                    QImage image = m_qimageData->convertToFormat(QImage::Format_ARGB32);
+                    if (! image.isNull()) {
+                        ImageFile convImageFile;
+                        convImageFile.setFromQImage(image);
+                        validRGBA = convImageFile.getImageBytesRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                                                    bytesRGBA,
+                                                                    width,
+                                                                    height);
+                    }
+                }
+                else {
+                    validRGBA = ImageFile::getImageBytesRGBA(m_qimageData.get(),
+                                                             ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                                             bytesRGBA,
+                                                             width,
+                                                             height);
+                }
+                if (validRGBA) {
+                    ptrBytesRGBA = bytesRGBA.data();
+                    pixelFormatType = GraphicsPrimitive::TexturePixelFormatType::RGBA;
+                    pixelOrigin     = GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT;
+                    rowStride       = width * 4; /* RGBA */
+                }
+                break;
         }
-        else {
-            validRGBA = ImageFile::getImageBytesRGBA(m_image.get(),
-                                                     ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                     bytesRGBA,
-                                                     width,
-                                                     height);
-        }
+
         
         if (validRGBA) {
+            CaretAssert(ptrBytesRGBA);
+            CaretAssert(width > 0);
+            CaretAssert(height > 0);
             const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
             GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                                                                       &bytesRGBA[0],
+                                                                                       ptrBytesRGBA,
                                                                                        width,
                                                                                        height,
+                                                                                       rowStride,
+                                                                                       pixelFormatType,
+                                                                                       pixelOrigin,
                                                                                        GraphicsPrimitive::TextureWrappingType::CLAMP_TO_BORDER,
                                                                                        GraphicsPrimitive::TextureMipMappingType::ENABLED,
                                                                                        GraphicsTextureMagnificationFilterEnum::LINEAR,
@@ -423,6 +549,10 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
             primitive->addVertex(maxX, maxY, textureMaxS2, textureMaxT2);  /* Bottom Right */
 
             m_graphicsPrimitiveForMediaDrawing.reset(primitive);
+        }
+        
+        if (cziLockFlag) {
+            m_cziImageData->Unlock();
         }
     }
     

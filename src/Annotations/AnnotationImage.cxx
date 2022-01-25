@@ -232,10 +232,14 @@ AnnotationImage::getGraphicsPrimitive() const
     if (m_graphicsPrimitive == NULL) {
         if ( ! m_imageBytesRGBA.empty()) {
             std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+            const int32_t rowStride(-1); /* Data tightly packed */
             GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &m_imageBytesRGBA[0],
                                                                                        m_imageWidth,
                                                                                        m_imageHeight,
+                                                                                       rowStride,
+                                                                                       GraphicsPrimitive::TexturePixelFormatType::RGBA,
+                                                                                       GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT,
                                                                                        GraphicsPrimitive::TextureWrappingType::CLAMP,
                                                                                        GraphicsPrimitive::TextureMipMappingType::ENABLED,
                                                                                        GraphicsTextureMagnificationFilterEnum::LINEAR,

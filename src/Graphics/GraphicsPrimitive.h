@@ -92,15 +92,43 @@ namespace caret {
         };
         
         /**
-         * Data type of texture components
+         * Dimension type of texture components
          */
-        enum class TextureDataType {
+        enum class TextureDimensionType {
             /** No texture coordinates */
             NONE,
             /** User supplie two float values per vertex contain S and T texture coordinates, R is added by code and is always 0.  Used for 2D images */
             FLOAT_STR_2D,
             /** Three float values per vertex contain S, T, and R texture coordinates.  Used for 3D images (volumes) */
             FLOAT_STR_3D
+        };
+        
+        /**
+         * Format of pixel data
+         */
+        enum class TexturePixelFormatType {
+            /** None - not texture primitive*/
+            NONE,
+            /** Blue, green, red */
+            BGR,
+            /** Blue, green, red, alpha */
+            BGRA,
+            /** Red, green, blue */
+            RGB,
+            /** Red, green, blue, alpha */
+            RGBA
+        };
+         
+        /*
+         * Location of first pixel in the texture image
+         */
+        enum class TexturePixelOrigin {
+            /* None - not texture primitive */
+            NONE,
+            /* First pixel is at bottom left of texture image*/
+            BOTTOM_LEFT,
+            /* First pixel is at top left of texture image*/
+            TOP_LEFT
         };
         
         /**
@@ -332,7 +360,9 @@ namespace caret {
                           const NormalVectorDataType  normalVectorDataType,
                           const ColorDataType         colorDataType,
                           const VertexColorType       vertexColorType,
-                          const TextureDataType       textureDataType,
+                          const TextureDimensionType  textureDimensionType,
+                          const TexturePixelFormatType texturePixelFormatType,
+                          const TexturePixelOrigin    texturePixelOrigin,
                           const TextureWrappingType   textureWrappingType,
                           const TextureMipMappingType textureMipMappingType,
                           const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
@@ -366,6 +396,9 @@ namespace caret {
                                                            const uint8_t* imageBytesRGBA,
                                                            const int32_t imageWidth,
                                                            const int32_t imageHeight,
+                                                           const int32_t imageRowStride,
+                                                           const TexturePixelFormatType texturePixelFormatType,
+                                                           const TexturePixelOrigin texturePixelOrigin,
                                                            const TextureWrappingType textureWrappingType,
                                                            const TextureMipMappingType textureMipMappingType,
                                                            const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
@@ -377,6 +410,8 @@ namespace caret {
                                                            const int32_t imageWidth,
                                                            const int32_t imageHeight,
                                                            const int32_t imageSlices,
+                                                           const TexturePixelFormatType texturePixelFormatType,
+                                                           const TexturePixelOrigin texturePixelOrigin,
                                                            const TextureWrappingType textureWrappingType,
                                                            const TextureMipMappingType textureMipMappingType,
                                                            const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
@@ -448,9 +483,21 @@ namespace caret {
         }
         
         /**
-         * @return Data type of texture.
+         * @return Pixel format type of texture data
          */
-        inline TextureDataType getTextureDataType() const { return m_textureDataType; }
+        inline TexturePixelFormatType getTexturePixelFormatType() const { return m_texturePixelFormatType; }
+        
+        /**
+         * @return Location of first pixel in texture image
+         */
+        inline TexturePixelOrigin getTexturePixelOrigin() const { return m_texturePixelOrigin; }
+        
+        int32_t getTexturePixelFormatBytesPerPixel() const;
+
+        /**
+         * @return Dimension type of texture.
+         */
+        inline TextureDimensionType getTextureDimensionType() const { return m_textureDimensionType; }
         
         /**
          * @return Type of texture wrapping
@@ -600,7 +647,8 @@ namespace caret {
         void setTextureImage(const uint8_t* imageBytesRGBA,
                              const int32_t imageWidth,
                              const int32_t imageHeight,
-                             const int32_t imageSlices);
+                             const int32_t imageSlices,
+                             const int32_t rowStride);
         
         void addVertexProtected(const float xyz[3],
                                 const float normalVector[3],
@@ -628,7 +676,11 @@ namespace caret {
         
         const VertexColorType m_vertexColorType;
         
-        const TextureDataType m_textureDataType;
+        const TextureDimensionType m_textureDimensionType;
+        
+        const TexturePixelFormatType m_texturePixelFormatType;
+        
+        const TexturePixelOrigin m_texturePixelOrigin;
         
         const TextureWrappingType m_textureWrappingType;
         
@@ -707,7 +759,7 @@ namespace caret {
         
         std::vector<float> m_floatTextureSTR;
         
-        std::vector<uint8_t> m_textureImageBytesRGBA;
+        std::vector<uint8_t> m_textureImageBytesPtr;
 
         mutable float m_yMean = 0.0;
         

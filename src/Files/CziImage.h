@@ -30,6 +30,7 @@
 #include "CaretObject.h"
 #include "CziImageResolutionChangeModeEnum.h"
 #include "CziPixelCoordSpaceEnum.h"
+#include "libCZI_Pixels.h"
 #include "PixelIndex.h"
 #include "PixelLogicalIndex.h"
 #include "SceneableInterface.h"
@@ -53,6 +54,12 @@ namespace caret {
                  const QRectF& fullResolutionLogicalRect,
                  const QRectF& imageDataLogicalRect);
         
+        CziImage(const CziImageFile* parentCziImageFile,
+                 const AString& imageName,
+                 std::shared_ptr<libCZI::IBitmapData>& cziImageData,
+                 const QRectF& fullResolutionLogicalRect,
+                 const QRectF& imageDataLogicalRect);
+        
         virtual ~CziImage();
         
         CziImage(const CziImage&) = delete;
@@ -71,8 +78,8 @@ namespace caret {
 
         bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const;
         
-        bool getPixelRGBA(const PixelLogicalIndex& pixelLogicalIndex,
-                          uint8_t pixelRGBAOut[4]) const;
+        bool getImageDataPixelRGBA(const PixelLogicalIndex& pixelLogicalIndex,
+                                   uint8_t pixelRGBAOut[4]) const;
 
         int32_t getWidth() const;
         
@@ -108,13 +115,23 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
+        enum class ImageStorageFormat {
+            INVALID,
+            CZI_IMAGE,
+            Q_IMAGE
+        };
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         const CziImageFile* m_parentCziImageFile;
         
         const AString m_imageName;
         
-        std::unique_ptr<QImage> m_image;
+        const ImageStorageFormat m_imageStorageFormat = ImageStorageFormat::INVALID;
+        
+        std::unique_ptr<QImage> m_qimageData;
+        
+        std::shared_ptr<libCZI::IBitmapData> m_cziImageData;
         
         const int32_t m_imageWidth;
         

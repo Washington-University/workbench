@@ -39,12 +39,18 @@ using namespace caret;
  * 
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
- * @param imageBytesRGBA
+ * @param imageBytesPtr
  *     Bytes containing the image data.
  * @param imageWidth
  *     Width of the actual image.
  * @param imageHeight
  *     Height of the image.
+ * @param imageRowStride
+ *     Length of a row including padding so that row length  is a multipleof 2/4/8/? (negative is tightly packed - no padding)
+ * @param texturePixelFormatType
+ *     Format of pixels in texture image
+ * @param texturePixelOrigin
+ *   Location of first pixel in texture image
  * @param textureWrappingType
  *     Type of texture wrapping
  * @param textureMipMappingType
@@ -57,9 +63,12 @@ using namespace caret;
  *    Color used when clamp to border is used for warpping
  */
 GraphicsPrimitiveV3fT2f::GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveType,
-                                                 const uint8_t* imageBytesRGBA,
+                                                 const uint8_t* imageBytesPtr,
                                                  const int32_t imageWidth,
                                                  const int32_t imageHeight,
+                                                 const int32_t imageRowStride,
+                                                 const TexturePixelFormatType texturePixelFormatType,
+                                                 const TexturePixelOrigin texturePixelOrigin,
                                                  const TextureWrappingType textureWrappingType,
                                                  const TextureMipMappingType textureMipMappingType,
                                                  const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
@@ -69,7 +78,9 @@ GraphicsPrimitiveV3fT2f::GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveTy
                     NormalVectorDataType::NONE,
                     ColorDataType::NONE,
                     VertexColorType::NONE,
-                    TextureDataType::FLOAT_STR_2D,
+                    TextureDimensionType::FLOAT_STR_2D,
+                    texturePixelFormatType,
+                    texturePixelOrigin,
                     textureWrappingType,
                     textureMipMappingType,
                     textureMagnificationFilter,
@@ -77,10 +88,11 @@ GraphicsPrimitiveV3fT2f::GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveTy
                     primitiveType)
 {
     const int32_t imageSlices(1);
-    setTextureImage(imageBytesRGBA,
+    setTextureImage(imageBytesPtr,
                     imageWidth,
                     imageHeight,
-                    imageSlices);
+                    imageSlices,
+                    imageRowStride);
     setTextureBorderColorRGBA(textureBorderColorRGBA);
 }
 

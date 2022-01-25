@@ -1064,7 +1064,6 @@ void MediaOverlayViewController::menuReloadFileTriggered()
 void
 MediaOverlayViewController::resetUserView()
 {
-    CaretAssertToDoWarning(); /* Have synchronization issue as need to draw before resetting view */
     if (m_mediaOverlay != NULL) {
         const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
         EventBrowserTabGet tabEvent(selectionData.m_tabIndex);

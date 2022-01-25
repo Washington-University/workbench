@@ -66,8 +66,12 @@ using namespace caret;
  *     Data type of the colors.
  * @param vertexColorType
  *     Type of vertex coloring
- * @param textureDataType
- *     Data type of texture coordinates.
+ * @param textureDimensionType
+ *     Dimension type of texture coordinates.
+ * @param texturePixelFormatType
+ *     Format of texure pixels
+ * @param texturePixelOrigin
+ *     Location of first pixel in texture image
  * @param textureWrappingType
  *     Type of texture wrapping
  * @param textureMipMappingType
@@ -79,23 +83,27 @@ using namespace caret;
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
  */
-GraphicsPrimitive::GraphicsPrimitive(const VertexDataType        vertexDataType,
-                                     const NormalVectorDataType  normalVectorDataType,
-                                     const ColorDataType         colorDataType,
-                                     const VertexColorType       vertexColorType,
-                                     const TextureDataType       textureDataType,
-                                     const TextureWrappingType   textureWrappingType,
+GraphicsPrimitive::GraphicsPrimitive(const VertexDataType         vertexDataType,
+                                     const NormalVectorDataType   normalVectorDataType,
+                                     const ColorDataType          colorDataType,
+                                     const VertexColorType        vertexColorType,
+                                     const TextureDimensionType   textureDimensionType,
+                                     const TexturePixelFormatType texturePixelFormatType,
+                                     const TexturePixelOrigin     texturePixelOrigin,
+                                     const TextureWrappingType    textureWrappingType,
                                      const TextureMipMappingType  textureMipMappingType,
                                      const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
                                      const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                                     const PrimitiveType         primitiveType)
+                                     const PrimitiveType          primitiveType)
 : CaretObject(),
  EventListenerInterface(),
  m_vertexDataType(vertexDataType),
  m_normalVectorDataType(normalVectorDataType),
  m_colorDataType(colorDataType),
  m_vertexColorType(vertexColorType),
- m_textureDataType(textureDataType),
+ m_textureDimensionType(textureDimensionType),
+ m_texturePixelFormatType(texturePixelFormatType),
+ m_texturePixelOrigin(texturePixelOrigin),
  m_textureWrappingType(textureWrappingType),
  m_textureMipMappingType(textureMipMappingType),
  m_textureMagnificationFilter(textureMagnificationFilter),
@@ -107,11 +115,11 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType        vertexDataType,
     
     invalidateVertexMeasurements();
     
-    switch (textureDataType) {
-        case TextureDataType::NONE:
+    switch (textureDimensionType) {
+        case TextureDimensionType::NONE:
             break;
-        case TextureDataType::FLOAT_STR_2D:
-        case TextureDataType::FLOAT_STR_3D:
+        case TextureDimensionType::FLOAT_STR_2D:
+        case TextureDimensionType::FLOAT_STR_3D:
             switch (m_textureMipMappingType) {
                 case TextureMipMappingType::DISABLED:
                     switch (m_textureMinificationFilter) {
@@ -155,7 +163,9 @@ GraphicsPrimitive::GraphicsPrimitive(const GraphicsPrimitive& obj)
  m_normalVectorDataType(obj.m_normalVectorDataType),
  m_colorDataType(obj.m_colorDataType),
  m_vertexColorType(obj.m_vertexColorType),
- m_textureDataType(obj.m_textureDataType),
+ m_textureDimensionType(obj.m_textureDimensionType),
+ m_texturePixelFormatType(obj.m_texturePixelFormatType),
+ m_texturePixelOrigin(obj.m_texturePixelOrigin),
  m_textureWrappingType(obj.m_textureWrappingType),
  m_textureMipMappingType(obj.m_textureMipMappingType),
  m_primitiveType(obj.m_primitiveType),
@@ -186,7 +196,7 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
     m_polygonalLinePrimitiveRestartIndices     = obj.m_polygonalLinePrimitiveRestartIndices;
     m_sphereSizeType              = obj.m_sphereSizeType;
     m_sphereDiameterValue         = obj.m_sphereDiameterValue;
-    m_textureImageBytesRGBA       = obj.m_textureImageBytesRGBA;
+    m_textureImageBytesPtr        = obj.m_textureImageBytesPtr;
     m_textureImageWidth           = obj.m_textureImageWidth;
     m_textureImageHeight          = obj.m_textureImageHeight;
     m_textureImageSlices          = obj.m_textureImageSlices;
@@ -235,13 +245,13 @@ GraphicsPrimitive::reserveForNumberOfVertices(const int32_t numberOfVertices)
             break;
     }
     
-    switch (m_textureDataType) {
-        case GraphicsPrimitive::TextureDataType::NONE:
+    switch (m_textureDimensionType) {
+        case GraphicsPrimitive::TextureDimensionType::NONE:
             break;
-        case GraphicsPrimitive::TextureDataType::FLOAT_STR_2D:
+        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_2D:
             m_floatTextureSTR.reserve(numberOfVertices * 3);
             break;
-        case GraphicsPrimitive::TextureDataType::FLOAT_STR_3D:
+        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_3D:
             m_floatTextureSTR.reserve(numberOfVertices * 3);
             break;
     }
@@ -432,11 +442,11 @@ GraphicsPrimitive::isValid() const
         
         bool haveTextureFlag = false;
         uint32_t numTextureSTR = 0;
-        switch (m_textureDataType) {
-            case TextureDataType::NONE:
+        switch (m_textureDimensionType) {
+            case TextureDimensionType::NONE:
                 break;
-            case TextureDataType::FLOAT_STR_2D:
-            case TextureDataType::FLOAT_STR_3D:
+            case TextureDimensionType::FLOAT_STR_2D:
+            case TextureDimensionType::FLOAT_STR_3D:
                 numTextureSTR = m_floatTextureSTR.size();
                 haveTextureFlag = true;
                 break;
@@ -447,8 +457,32 @@ GraphicsPrimitive::isValid() const
                 return false;
             }
             
-            if (m_textureImageBytesRGBA.empty()) {
+            if (m_textureImageBytesPtr.empty()) {
                 CaretLogWarning("ERROR: GraphicsPrimitive has invalid texture data");
+            }
+            
+            switch (m_texturePixelFormatType) {
+                case TexturePixelFormatType::NONE:
+                    CaretLogWarning("ERROR: GraphicsPrimitive has texture but NONE for pixel format type");
+                    break;
+                case TexturePixelFormatType::BGR:
+                    break;
+                case TexturePixelFormatType::BGRA:
+                    break;
+                case TexturePixelFormatType::RGB:
+                    break;
+                case TexturePixelFormatType::RGBA:
+                    break;
+            }
+            
+            switch (m_texturePixelOrigin) {
+                case TexturePixelOrigin::NONE:
+                    CaretLogWarning("ERROR: GraphicsPrimitive has texture but NONE for pixel origin");
+                    break;
+                case TexturePixelOrigin::BOTTOM_LEFT:
+                    break;
+                case TexturePixelOrigin::TOP_LEFT:
+                    break;
             }
         }
         
@@ -715,11 +749,11 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
     const int32_t numVertices = getNumberOfVertices();
     s.appendWithNewLine("Number of Vertices: " + AString::number(numVertices) + "\n");
     
-    switch (m_textureDataType) {
-        case TextureDataType::NONE:
+    switch (m_textureDimensionType) {
+        case TextureDimensionType::NONE:
             break;
-        case TextureDataType::FLOAT_STR_2D:
-        case TextureDataType::FLOAT_STR_3D:
+        case TextureDimensionType::FLOAT_STR_2D:
+        case TextureDimensionType::FLOAT_STR_3D:
             s.appendWithNewLine("Texture: " + AString::number(m_floatTextureSTR.size()) + " Float Texture 0.0 to 1.0.  ");
             s.appendWithNewLine("   Width: " + AString::number(m_textureImageWidth)
                                 + " Height: " + AString::number(m_textureImageHeight)
@@ -855,11 +889,11 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
                 }
             }
             
-            switch (m_textureDataType) {
-                case TextureDataType::NONE:
+            switch (m_textureDimensionType) {
+                case TextureDimensionType::NONE:
                     break;
-                case TextureDataType::FLOAT_STR_2D:
-                case TextureDataType::FLOAT_STR_3D:
+                case TextureDimensionType::FLOAT_STR_2D:
+                case TextureDimensionType::FLOAT_STR_3D:
                 {
                     CaretAssertVectorIndex(m_floatTextureSTR, i*3 + 2);
                     const float* str = &m_floatTextureSTR[i * 3];
@@ -924,11 +958,11 @@ GraphicsPrimitive::addVertexProtected(const float xyz[3],
             break;
     }
     
-    switch (m_textureDataType) {
-        case TextureDataType::NONE:
+    switch (m_textureDimensionType) {
+        case TextureDimensionType::NONE:
             break;
-        case TextureDataType::FLOAT_STR_2D:
-        case TextureDataType::FLOAT_STR_3D:
+        case TextureDimensionType::FLOAT_STR_2D:
+        case TextureDimensionType::FLOAT_STR_3D:
             CaretAssert(textureSTR);
             m_floatTextureSTR.insert(m_floatTextureSTR.end(),
                                      textureSTR,
@@ -1617,11 +1651,11 @@ GraphicsPrimitive::copyVertex(const int32_t copyFromIndex,
                 break;
         }
         
-        switch (m_textureDataType) {
-            case TextureDataType::NONE:
+        switch (m_textureDimensionType) {
+            case TextureDimensionType::NONE:
                 break;
-            case TextureDataType::FLOAT_STR_2D:
-            case TextureDataType::FLOAT_STR_3D:
+            case TextureDimensionType::FLOAT_STR_2D:
+            case TextureDimensionType::FLOAT_STR_3D:
                 CaretAssertVectorIndex(m_floatTextureSTR, from3 + i);
                 CaretAssertVectorIndex(m_floatTextureSTR, to3 + i);
                 m_floatTextureSTR[to3 + i] = m_floatTextureSTR[from3 + i];
@@ -1811,6 +1845,34 @@ GraphicsPrimitive::setSphereDiameter(const SphereSizeType sizeType,
 }
 
 /**
+ * @return Number of bytes per pixel for the texture pixel format
+ */
+int32_t
+GraphicsPrimitive::getTexturePixelFormatBytesPerPixel() const
+{
+    int32_t numBytesPerPixel(0);
+    switch (m_texturePixelFormatType) {
+        case TexturePixelFormatType::NONE:
+            numBytesPerPixel = 0;
+            break;
+        case TexturePixelFormatType::BGR:
+            numBytesPerPixel = 3;
+            break;
+        case TexturePixelFormatType::BGRA:
+            numBytesPerPixel = 4;
+            break;
+        case TexturePixelFormatType::RGB:
+            numBytesPerPixel = 3;
+            break;
+        case TexturePixelFormatType::RGBA:
+            numBytesPerPixel = 4;
+            break;
+    }
+    
+    return numBytesPerPixel;
+}
+
+/**
  * Set the image for the texture.
  *
  * @param imageBytesRGBA
@@ -1826,21 +1888,55 @@ void
 GraphicsPrimitive::setTextureImage(const uint8_t* imageBytesRGBA,
                                    const int32_t imageWidth,
                                    const int32_t imageHeight,
-                                   const int32_t imageSlices)
+                                   const int32_t imageSlices,
+                                   const int32_t imageRowStride)
 {
-    m_textureImageBytesRGBA.clear();
+    m_textureImageBytesPtr.clear();
     m_textureImageWidth  = -1;
     m_textureImageHeight = -1;
     m_textureImageSlices = -1;
     
-    const int32_t numBytes = imageWidth * imageHeight * imageSlices * 4;
+    const int32_t numBytesPerPixel(getTexturePixelFormatBytesPerPixel());
+    const int32_t numBytes = imageWidth * imageHeight * imageSlices * numBytesPerPixel;
     if (numBytes > 0) {
-        m_textureImageBytesRGBA.reserve(numBytes);
+        m_textureImageBytesPtr.reserve(numBytes);
         m_textureImageWidth  = imageWidth;
         m_textureImageHeight = imageHeight;
         m_textureImageSlices = imageSlices;
-        m_textureImageBytesRGBA.insert(m_textureImageBytesRGBA.end(),
-                                       imageBytesRGBA, imageBytesRGBA + numBytes);
+        
+        switch (m_texturePixelOrigin) {
+            case TexturePixelOrigin::NONE:
+                break;
+            case TexturePixelOrigin::BOTTOM_LEFT:
+                m_textureImageBytesPtr.insert(m_textureImageBytesPtr.end(),
+                                              imageBytesRGBA, imageBytesRGBA + numBytes);
+                break;
+            case TexturePixelOrigin::TOP_LEFT:
+            {
+                const int32_t sliceLength(imageWidth * imageHeight * numBytesPerPixel);
+                const int32_t rowLength(imageWidth * numBytesPerPixel);
+                const int32_t sourceRowLength((imageRowStride > 0)
+                                              ? imageRowStride
+                                              : (imageWidth * numBytesPerPixel));
+                const int32_t sourceDataLength(sourceRowLength * m_textureImageHeight * m_textureImageSlices);
+                
+                if (imageSlices == 1) {
+                    for (int32_t jRow = 0; jRow < m_textureImageHeight; jRow++) {
+                        const int32_t insertRowOffset(jRow * rowLength);
+                        const int32_t sourceRowIndex(m_textureImageHeight - jRow - 1);
+                        const int32_t sourceDataOffset(sourceRowIndex * sourceRowLength);
+                        CaretAssertArrayIndex(imageBytesRGBA,
+                                              sourceDataLength,
+                                              sourceDataOffset + rowLength - 1);
+                        m_textureImageBytesPtr.insert(m_textureImageBytesPtr.end(),
+                                                      (imageBytesRGBA + sourceDataOffset),
+                                                      (imageBytesRGBA + sourceDataOffset + rowLength));
+                    }
+                    CaretAssert(numBytes == static_cast<int32_t>(m_textureImageBytesPtr.size()));
+                }
+            }
+                break;
+        }
     }
     else {
         CaretLogSevere("Invalid Texture Image: "
@@ -1984,14 +2080,14 @@ GraphicsPrimitive::simplfyLines(const int32_t skipVertexCount)
                     break;
             }
             
-            switch (m_textureDataType) {
-                case TextureDataType::FLOAT_STR_2D:
-                case TextureDataType::FLOAT_STR_3D:
+            switch (m_textureDimensionType) {
+                case TextureDimensionType::FLOAT_STR_2D:
+                case TextureDimensionType::FLOAT_STR_3D:
                     textureSTR.push_back(m_floatTextureSTR[i3]);
                     textureSTR.push_back(m_floatTextureSTR[i3+1]);
                     textureSTR.push_back(m_floatTextureSTR[i3+2]);
                     break;
-                case TextureDataType::NONE:
+                case TextureDimensionType::NONE:
                     break;
             }
         }
@@ -2469,6 +2565,12 @@ GraphicsPrimitive::newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType pr
  *     Width of the actual image.
  * @param imageHeight
  *     Height of the image.
+ * @param imageRowStride
+ *     Length of a row including padding so that row length  is a multipleof 2/4/8/? (negative is tightly packed - no padding)
+ * @param texturePixelFormatType
+ *     Format of texure pixels
+ * @param texturePixelOrigin
+ *     Location of first pixel in texture image
  * @param textureWrappingType
  *     Type of texture wrapping
  * @param textureMipMappingType
@@ -2485,6 +2587,9 @@ GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType pri
                                       const uint8_t* imageBytesRGBA,
                                       const int32_t imageWidth,
                                       const int32_t imageHeight,
+                                      const int32_t imageRowStride,
+                                      const TexturePixelFormatType texturePixelFormatType,
+                                      const TexturePixelOrigin texturePixelOrigin,
                                       const TextureWrappingType textureWrappingType,
                                       const TextureMipMappingType textureMipMappingType,
                                       const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
@@ -2495,6 +2600,9 @@ GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType pri
                                                                      imageBytesRGBA,
                                                                      imageWidth,
                                                                      imageHeight,
+                                                                     imageRowStride,
+                                                                     texturePixelFormatType,
+                                                                     texturePixelOrigin,
                                                                      textureWrappingType,
                                                                      textureMipMappingType,
                                                                      textureMagnificationFilter,
@@ -2517,6 +2625,10 @@ GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType pri
  *     Height of the image.
  * @param imageSlices
  *     Slices of image
+ * @param texturePixelFormatType
+ *     Format of texure pixels
+ * @param texturePixelOrigin
+ *     Location of first pixel in texture image
  * @param textureWrappingType
  *     Type of texture wrapping
  * @param textureMipMappingType
@@ -2534,6 +2646,8 @@ GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType pri
                                       const int32_t imageWidth,
                                       const int32_t imageHeight,
                                       const int32_t imageSlices,
+                                      const TexturePixelFormatType texturePixelFormatType,
+                                      const TexturePixelOrigin texturePixelOrigin,
                                       const TextureWrappingType textureWrappingType,
                                       const TextureMipMappingType textureMipMappingType,
                                       const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
@@ -2545,6 +2659,8 @@ GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType pri
                                                                      imageWidth,
                                                                      imageHeight,
                                                                      imageSlices,
+                                                                     texturePixelFormatType,
+                                                                     texturePixelOrigin,
                                                                      textureWrappingType,
                                                                      textureMipMappingType,
                                                                      textureMagnificationFilter,
@@ -2580,7 +2696,7 @@ GraphicsPrimitive::setOpenGLBuffersHaveBeenLoadedByGraphicsEngine()
             std::vector<float>().swap(m_floatNormalVectorXYZ);
             std::vector<uint8_t>().swap(m_unsignedByteRGBA);
             std::vector<float>().swap(m_floatTextureSTR);
-            std::vector<uint8_t>().swap(m_textureImageBytesRGBA);
+            std::vector<uint8_t>().swap(m_textureImageBytesPtr);
             
             m_releaseInstanceDataMode = ReleaseInstanceDataMode::COMPLETED;
         }
