@@ -1671,6 +1671,7 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(BrainOpenGLFixedPipelin
     idDrawing.drawVolumeIdentificationSymbols(volume,
                                               plane,
                                               sliceThickness,
+                                              browserTabContent->getScaling(),
                                               maxDimension);
 }
 

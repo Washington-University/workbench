@@ -113,11 +113,16 @@ BrainOpenGLIdentificationDrawing::toString() const
  *    Plane of the media
  * @param mediaThickness
  *    Thickness of the media for those that support stereotaxic coordinates
+ * @param viewingZoom
+ *    Zooming (scaling) for current view
+ * @param viewportHeight
+ *    Height of viewport
  */
 void
 BrainOpenGLIdentificationDrawing::drawMediaFileIdentificationSymbols(const MediaFile* mediaFile,
                                                                      const Plane& plane,
                                                                      const float mediaThickness,
+                                                                     const float viewingZoom,
                                                                      const float viewportHeight)
 {
     CaretAssert(mediaFile);
@@ -131,6 +136,7 @@ BrainOpenGLIdentificationDrawing::drawMediaFileIdentificationSymbols(const Media
                               volume,
                               plane,
                               mediaThickness,
+                              viewingZoom,
                               viewportHeight);
 }
 
@@ -138,9 +144,15 @@ BrainOpenGLIdentificationDrawing::drawMediaFileIdentificationSymbols(const Media
  * Draw identification symbols on media file
  * @param mediaFile
  *    Media file on which symbols are drawn
+ * @param viewingZoom
+ *    Zooming (scaling) for current view
+ * @param viewportHeight
+ *    Height of viewport
  */
 void
-BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface* surface)
+BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface* surface,
+                                                                   const float viewingZoom,
+                                                                   const float viewportHeight)
 {
     CaretAssert(surface);
 
@@ -148,7 +160,6 @@ BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface
     const VolumeMappableInterface* volume(NULL);
     Plane plane;
     const float planeThickness(1.0f);
-    const float viewportHeight(1.0f);
     
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::SURFACE,
                               surface,
@@ -156,6 +167,7 @@ BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface
                               volume,
                               plane,
                               planeThickness,
+                              viewingZoom,
                               viewportHeight);
 }
 
@@ -167,6 +179,8 @@ BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface
  *    Plane of the volume
  * @param sliceThickness
  *    Thickness of the slice
+ * @param viewingZoom
+ *    Zooming (scaling) for current view
  * @param viewportHeight
  *    Height of viewport
  */
@@ -174,6 +188,7 @@ void
 BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMappableInterface* volume,
                                                                   const Plane& plane,
                                                                   const float sliceThickness,
+                                                                  const float viewingZoom,
                                                                   const float viewportHeight)
 {
     CaretAssert(volume);
@@ -187,6 +202,7 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
                               volume,
                               plane,
                               sliceThickness,
+                              viewingZoom,
                               viewportHeight);
 }
 
@@ -204,6 +220,8 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
  *    Plane of the volume
  * @param planeThickness
  *    Thickness of the plane for media and volume
+ * @param viewingZoom
+ *    Zooming (scaling) for current view
  * @param viewportHeight
  *    Height of viewport
  */
@@ -214,6 +232,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                             const VolumeMappableInterface* volume,
                                                             const Plane& plane,
                                                             const float planeThickness,
+                                                            const float viewingZoom,
                                                             const float viewportHeight)
 {
     /*
@@ -255,6 +274,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             surfaceStructure = surface->getStructure();
             BoundingBox boundingBox;
             surface->getBounds(boundingBox);
+            surfaceMaxDimension = boundingBox.getMaximumDifferenceOfXYZ();
         }
             break;
         case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
@@ -514,6 +534,12 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             float height(0.0f);
             if (drawingOnMediaFlag) {
                 height = mediaFile->getHeight();
+                if (viewingZoom > 0.0) {
+                    /*
+                     * Prevents symbols from becoming way too large when zoomed in
+                     */
+                    height /= viewingZoom;
+                }
             }
             else if (drawingOnSurfaceFlag) {
                 height = surfaceMaxDimension;

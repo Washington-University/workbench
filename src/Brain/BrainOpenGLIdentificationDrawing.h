@@ -59,13 +59,17 @@ namespace caret {
         void drawMediaFileIdentificationSymbols(const MediaFile* mediaFile,
                                                 const Plane& plane,
                                                 const float mediaThickness,
+                                                const float viewingZoom,
                                                 const float viewportHeight);
         
-        void drawSurfaceIdentificationSymbols(const Surface* surface);
+        void drawSurfaceIdentificationSymbols(const Surface* surface,
+                                              const float viewingZoom,
+                                              const float viewportHeight);
 
         void drawVolumeIdentificationSymbols(const VolumeMappableInterface* volume,
                                              const Plane& plane,
                                              const float sliceThickness,
+                                             const float viewingZoom,
                                              const float viewportHeight);
         
         void drawIdentificationSymbols(const IdentifiedItemUniversalTypeEnum::Enum drawingOnType,
@@ -74,6 +78,7 @@ namespace caret {
                                        const VolumeMappableInterface* volume,
                                        const Plane& plane,
                                        const float planeThickness,
+                                       const float viewingZoom,
                                        const float viewportHeight);
         
         // ADD_NEW_METHODS_HERE

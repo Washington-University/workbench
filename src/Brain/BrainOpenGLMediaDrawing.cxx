@@ -406,6 +406,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                                                   primitive);
                     }
                     
+                    
                     /*
                      * Draw identification symbols
                      */
@@ -418,6 +419,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                     idDrawing.drawMediaFileIdentificationSymbols(selectionData.m_selectedMediaFile,
                                                                  plane,
                                                                  mediaThickness,
+                                                                 m_browserTabContent->getScaling(),
                                                                  viewportHeight);
                     
                     m_fixedPipelineDrawing->drawMediaSpaceAnnotations(viewportContent);

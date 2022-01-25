@@ -555,7 +555,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
                                                                  m_cziImageFile->getPreferencesImageDimension(),
                                                                  errorMessage);
 
-    /*if (cziDebugFlag)*/ std::cout << "Time to load CZI Image: (ms): " << timer.getElapsedTimeMilliseconds() << std::endl;
+    if (cziDebugFlag) std::cout << "Time to load CZI Image: (ms): " << timer.getElapsedTimeMilliseconds() << std::endl;
     
     if (cziImageOut == NULL) {
         CaretLogSevere("Loading Pyramid level="

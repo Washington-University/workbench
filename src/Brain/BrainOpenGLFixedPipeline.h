@@ -217,6 +217,7 @@ namespace caret {
         void drawSurface(Surface* surface,
                          const SurfaceTabType surfaceTabType,
                          const float surfaceScaling,
+                         const int32_t viewportHeight,
                          const float* nodeColoringRGBA,
                          const bool drawAnnotationsInModelSpaceFlag);
         
@@ -229,7 +230,8 @@ namespace caret {
         void drawSurfaceTriangles(Surface* surface,
                                   const float* nodeColoringRGBA);
         
-        void drawSurfaceNodeAttributes(Surface* surface);
+        void drawSurfaceNodeAttributes(Surface* surface,
+                                       const int32_t viewportHeight);
         
         void drawSurfaceBorderBeingDrawn(const Surface* surface);
         

@@ -2527,6 +2527,7 @@ BrainOpenGLFixedPipeline::drawSurfaceModel(BrowserTabContent* browserTabContent,
     this->drawSurface(surface,
                       SurfaceTabType::SINGLE_SURFACE,
                       browserTabContent->getScaling(),
+                      viewport[3], /* height */
                       nodeColoringRGBA,
                       true);
 }
@@ -2561,6 +2562,8 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
  *    Content of tab (single surface, montage, or whole brain)
  * @param surfaceScaling
  *    User scaling of surface.
+ * @param viewportHeight
+ *    Height of viewport
  * @param nodeColoringRGBA
  *    RGBA coloring for the nodes.
  * @param drawAnnotationsInModelSpaceFlag
@@ -2570,6 +2573,7 @@ void
 BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                       const SurfaceTabType surfaceTabType,
                                       const float surfaceScaling,
+                                      const int32_t viewportHeight,
                                       const float* nodeColoringRGBA,
                                       const bool drawAnnotationsInModelSpaceFlag)
 {
@@ -2717,7 +2721,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                 drawSurfaceNormalVectors(surface);
             }
             this->drawSurfaceBorders(surface);
-            this->drawSurfaceNodeAttributes(surface);
+            this->drawSurfaceNodeAttributes(surface,
+                                            viewportHeight);
             this->drawSurfaceBorderBeingDrawn(surface);
 
             /*
@@ -2787,7 +2792,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             }
             this->drawSurfaceBorders(surface);
             this->drawSurfaceFoci(surface);
-            this->drawSurfaceNodeAttributes(surface);
+            this->drawSurfaceNodeAttributes(surface,
+                                            viewportHeight);
 
             /*
              * Draw annotations for this surface and maybe draw
@@ -3383,9 +3389,12 @@ BrainOpenGLFixedPipeline::drawSurfaceNormalVectors(const Surface* surface)
  * Draw attributes for the given surface.
  * @param surface
  *    Surface for which attributes are drawn.
+ * @param viewportHeight
+ *    Height of viewport
  */
 void 
-BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
+BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface,
+                                                    const int32_t viewportHeight)
 {    
     /*
      * Draw surface identification symbols
@@ -3394,7 +3403,9 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                                                m_brain,
                                                browserTabContent,
                                                this->mode);
-    idDrawing.drawSurfaceIdentificationSymbols(surface);
+    idDrawing.drawSurfaceIdentificationSymbols(surface,
+                                               browserTabContent->getScaling(),
+                                               viewportHeight);
 }
 
 /**
@@ -6622,6 +6633,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         this->drawSurface(mvp->getSurface(),
                           SurfaceTabType::SURFACE_MONTAGE,
                           browserTabContent->getScaling(),
+                          subViewportHeight,
                           nodeColoringRGBA,
                           true);
     }
@@ -6983,6 +6995,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
             this->drawSurface(surface,
                               SurfaceTabType::WHOLE_BRAIN,
                               browserTabContent->getScaling(),
+                              viewport[3], /* height */
                               nodeColoringRGBA,
                               drawModelSpaceAnnotationsFlag);
             glPopMatrix();
