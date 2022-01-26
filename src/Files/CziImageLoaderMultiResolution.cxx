@@ -561,7 +561,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
         CaretLogSevere("Loading Pyramid level="
                        + AString::number(pyramidLayerIndex)
                        + " for frame(scene) index="
-                       + cziSceneInfo.m_sceneIndex
+                       + AString::number(cziSceneInfo.m_sceneIndex)
                        + " for rectangle="
                        + CziUtilities::qRectToString(rectToLoad)
                        + " for file "
