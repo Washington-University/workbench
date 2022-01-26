@@ -802,25 +802,15 @@ IdentifyBrainordinateDialog::processImagePixelSelection(AString& errorMessage)
         const MediaFile* mediaFile = mapFile->castToMediaFile();
         const int64_t pixelI = m_imagePixelISpinBox->value();
         const int64_t pixelJ = m_imagePixelJSpinBox->value();
-        SelectionItem* selectionItem(NULL);
         if (mediaFile != NULL) {
             SelectionItemMedia* mediaID = selectionManager->getMediaIdentification();
             mediaID->reset();
             mediaID->setMediaFile(const_cast<MediaFile*>(mediaFile));
             const int64_t pixelK(0);
-//            PixelIndex pixelIndexOriginAtTop(pixelI,
-//                                             pixelJ,
-//                                             pixelK);
-//            PixelIndex pixelIndexOriginAtBottom(pixelI,
-//                                                mediaFile->getHeight() - pixelJ - 1,
-//                                                pixelK);
-//            mediaID->setPixelIndex(pixelIndexOriginAtBottom,
-//                                   pixelIndexOriginAtTop);
             PixelLogicalIndex pixelLogicalIndex(pixelI,
                                                 pixelJ,
                                                 pixelK);
             mediaID->setPixelLogicalIndex(pixelLogicalIndex);
-            selectionItem = mediaID;
         }
         else {
             errorMessage = ("Unrecognized image file type "
@@ -828,7 +818,6 @@ IdentifyBrainordinateDialog::processImagePixelSelection(AString& errorMessage)
             CaretAssertMessage(0, errorMessage);
             return;
         }
-        CaretAssert(selectionItem);
         GuiManager::get()->processIdentification(-1,
                                                  selectionManager,
                                                  this);

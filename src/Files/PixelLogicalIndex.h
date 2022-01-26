@@ -53,8 +53,6 @@ namespace caret {
                    const int32_t j,
                    const int32_t k = 0);
         
-//        PixelLogicalIndex(const PixelCoordinate& coordinate);
-        
         virtual ~PixelLogicalIndex();
         
         PixelLogicalIndex(const PixelLogicalIndex& obj);
@@ -62,9 +60,6 @@ namespace caret {
         PixelLogicalIndex& operator=(const PixelLogicalIndex& obj);
         
         bool operator==(const PixelLogicalIndex& obj) const;
-        
-//        bool isValid(const int64_t originI,
-//                     const int64_t ) const;
         
         /** @return The "i" component */
         inline int64_t getI() const { return m_ijk[0]; }

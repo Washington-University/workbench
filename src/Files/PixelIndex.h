@@ -53,8 +53,6 @@ namespace caret {
                    const int32_t j,
                    const int32_t k = 0);
         
-//        PixelIndex(const PixelCoordinate& coordinate);
-        
         virtual ~PixelIndex();
         
         PixelIndex(const PixelIndex& obj);

@@ -117,16 +117,6 @@ PixelIndex::PixelIndex(const int64_t i,
     m_pixelIndices.m_ijk[1] = j;
     m_pixelIndices.m_ijk[2] = k;
 }
-///**
-// * Constructor from a pixel coordinate
-// * @param coordinate
-// *    The pixel coordinate
-// */
-//PixelIndex::PixelIndex(const PixelCoordinate& coordinate)
-//: CaretObject()
-//{
-//    initializeMembers();
-//}
 
 /**
  * Destructor.
@@ -141,7 +131,8 @@ PixelIndex::~PixelIndex()
  *    Object that is copied.
  */
 PixelIndex::PixelIndex(const PixelIndex& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     initializeMembers();
     

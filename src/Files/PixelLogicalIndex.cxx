@@ -125,16 +125,6 @@ PixelLogicalIndex::PixelLogicalIndex(const int64_t i,
     m_ijk[1] = j;
     m_ijk[2] = k;
 }
-///**
-// * Constructor from a pixel coordinate
-// * @param coordinate
-// *    The pixel coordinate
-// */
-//PixelLogicalIndex::PixelLogicalIndex(const PixelCoordinate& coordinate)
-//: CaretObject()
-//{
-//    initializeMembers();
-//}
 
 /**
  * Destructor.
@@ -149,7 +139,8 @@ PixelLogicalIndex::~PixelLogicalIndex()
  *    Object that is copied.
  */
 PixelLogicalIndex::PixelLogicalIndex(const PixelLogicalIndex& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     initializeMembers();
     
@@ -207,17 +198,6 @@ PixelLogicalIndex::operator==(const PixelLogicalIndex& obj) const
 
     return (m_ijk == obj.m_ijk);
 }
-
-///**
-// * @return True if the pixel index is valid (all IJK >= 0)
-// */
-//bool
-//PixelLogicalIndex::isValid() const
-//{
-//    return ((getI() >= 0)
-//            && (getJ() >= 0)
-//            && (getK() >= 0));
-//}
 
 /**
  * Get a description of this object's content.

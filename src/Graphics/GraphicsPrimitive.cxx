@@ -1917,14 +1917,13 @@ GraphicsPrimitive::setTextureImage(const uint8_t* imageBytesRGBA,
                 const int32_t sourceRowLength((imageRowStride > 0)
                                               ? imageRowStride
                                               : (imageWidth * numBytesPerPixel));
-                const int32_t sourceDataLength(sourceRowLength * m_textureImageHeight * m_textureImageSlices);
                 
                 if (imageSlices == 1) {
                     for (int32_t jRow = 0; jRow < m_textureImageHeight; jRow++) {
                         const int32_t sourceRowIndex(m_textureImageHeight - jRow - 1);
                         const int32_t sourceDataOffset(sourceRowIndex * sourceRowLength);
                         CaretAssertArrayIndex(imageBytesRGBA,
-                                              sourceDataLength,
+                                              (sourceRowLength * m_textureImageHeight * m_textureImageSlices), /* length of data*/
                                               sourceDataOffset + rowLength - 1);
                         m_textureImageBytesPtr.insert(m_textureImageBytesPtr.end(),
                                                       (imageBytesRGBA + sourceDataOffset),
