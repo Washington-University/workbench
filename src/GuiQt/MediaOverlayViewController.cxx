@@ -147,6 +147,13 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
      * All scenes CZI checkbox
      */
     m_cziAllScenesCheckBox = new QCheckBox("");
+    switch (orientation) {
+        case Qt::Horizontal:
+            break;
+        case Qt::Vertical:
+            m_cziAllScenesCheckBox->setText("All");
+            break;
+    }
     QObject::connect(m_cziAllScenesCheckBox, &QCheckBox::clicked,
                      this, &MediaOverlayViewController::cziAllScenesCheckBoxClicked);
     
@@ -298,7 +305,8 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
         bottomHorizontalLineWidget->setFrameStyle(QFrame::HLine | QFrame::Raised);
         
         QLabel* fileLabel = new QLabel("File");
-        QLabel* frameLabel = new QLabel("Frame");
+        QLabel* frameLabel = new QLabel("Frame ");
+        QLabel* yokeLabel = new QLabel("Yoke");
         
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox,
@@ -306,7 +314,9 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
         this->gridLayoutGroup->addWidget(m_settingsToolButton,
                                          row, 1);
         this->gridLayoutGroup->addWidget(m_constructionToolButton,
-                                         row, 3);
+                                         row, 2);
+        this->gridLayoutGroup->addWidget(yokeLabel,
+                                         row, 3, Qt::AlignHCenter);
         this->gridLayoutGroup->addWidget(fileLabel,
                                          row, 4);
         this->gridLayoutGroup->addWidget(this->fileComboBox,
@@ -315,11 +325,10 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
         row++;
         this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
                                          row, 0,
-                                         1, 2,
+                                         1, 3,
                                          Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(this->m_frameYokingGroupComboBox->getWidget(),
-                                         row, 2,
-                                         1, 2);
+                                         row, 3);
         this->gridLayoutGroup->addWidget(frameLabel,
                                          row, 4);
         this->gridLayoutGroup->addWidget(this->m_cziAllScenesCheckBox,

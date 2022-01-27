@@ -2039,7 +2039,7 @@ BrainBrowserWindowToolBar::updateToolBar()
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-                showCziImageWidget = true;
+                showCziImageWidget = false; /* Widget is currently empty so hide it  true; */
                 showImageWidget = true;
                 showOrientationWidget = true;
                 break;
