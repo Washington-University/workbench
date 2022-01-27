@@ -24,8 +24,8 @@
 #undef __CZI_FILE_READER_DECLARE__
 
 #include <array>
-#include <cstdint>
 
+#include <QtGlobal>
 #include <QDataStream>
 #include <QFile>
 
@@ -212,10 +212,10 @@ CziFileReader::readNextSegment(QFile& file,
         idChars[16] = '\0';
         const AString idText(idChars.data());
         
-        int64_t allocatedSize(0);
+        qint64 allocatedSize;
         headerStream >> allocatedSize;
         
-        int64_t usedSize(0);
+        qint64 usedSize;
         headerStream >> usedSize;
         
         return new SegmentInfo(segmentOffset,
