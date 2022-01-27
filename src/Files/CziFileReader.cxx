@@ -23,6 +23,9 @@
 #include "CziFileReader.h"
 #undef __CZI_FILE_READER_DECLARE__
 
+#include <array>
+#include <cstdint>
+
 #include <QDataStream>
 #include <QFile>
 
