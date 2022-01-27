@@ -75,6 +75,7 @@ CiftiParcelScalarFile.h
 CiftiScalarDataSeriesFile.h
 ConnectivityDataLoaded.h
 ControlPointFile.h
+CziFileReader.h
 CziImage.h
 CziImageFile.h
 CziImageLoaderBase.h
@@ -228,6 +229,7 @@ CiftiParcelScalarFile.cxx
 CiftiScalarDataSeriesFile.cxx
 ConnectivityDataLoaded.cxx
 ControlPointFile.cxx
+CziFileReader.cxx
 CziImage.cxx
 CziImageFile.cxx
 CziImageLoaderBase.cxx

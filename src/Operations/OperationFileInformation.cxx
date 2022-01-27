@@ -31,6 +31,7 @@
 #include "CiftiMappableDataFile.h"
 #include "CiftiFile.h"
 #include "CiftiXML.h"
+#include "CziFileReader.h"
 #include "CZIcmd.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
@@ -93,6 +94,8 @@ OperationFileInformation::getParameters()
     ret->createOptionalParameter(9, "-czi-all-sub-blocks", "show all sub-blocks in CZI file (may produce long output)");
     
     ret->createOptionalParameter(10, "-czi-xml", "show XML from CZI file");
+    
+    ret->createOptionalParameter(11, "-czi-develop", "developer option to list czi file info");
     
     AString helpText("List information about the content of a data file.  "
                      "Only one -only option may be specified.  "
@@ -197,6 +200,9 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     OptionalParameter* cziShowXMLParam = myParams->getOptionalParameter(10);
     const bool cziShowXML = cziShowXMLParam->m_present;
     
+    OptionalParameter* cziShowDevelopParam = myParams->getOptionalParameter(11);
+    const bool cziShowDevelop = cziShowDevelopParam->m_present;
+    
     if (countOnlys > 1) throw OperationException("only one -only-* option may be specified");
     
     const bool cziFlag(cziShow
@@ -228,6 +234,10 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
         
         czi_main(argv.size(),
                  &argv[0]);
+        return;
+    }
+    else if (cziShowDevelop) {
+        CziFileReader::testReading(dataFileName);
         return;
     }
     else {
