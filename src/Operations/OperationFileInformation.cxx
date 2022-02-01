@@ -31,7 +31,7 @@
 #include "CiftiMappableDataFile.h"
 #include "CiftiFile.h"
 #include "CiftiXML.h"
-#include "CziFileReader.h"
+#include "CziFileTestReader.h"
 #include "CZIcmd.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
@@ -237,7 +237,7 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
         return;
     }
     else if (cziShowDevelop) {
-        CziFileReader::testReading(dataFileName);
+        CziFileTestReader::testReading(dataFileName);
         return;
     }
     else {
