@@ -857,7 +857,8 @@ CziImageFile::readFromCziImageFile(const AString& imageName,
     
     const bool useQImageFlag(false);
     if (useQImageFlag) {
-        QImage* qImage = createQImageFromBitmapData(bitmapData.get(),
+        QImage* qImage = createQImageFromBitmapData(QImagePixelFormat::RGBA,
+                                                    bitmapData.get(),
                                                     errorMessageOut);
         if (qImage == NULL) {
             return NULL;
@@ -1028,7 +1029,8 @@ CziImageFile::readFramePyramidLayerFromCziImageFile(const AString& imageName,
                  + QString::number(bitmapData->GetWidth())
                  + ", height="
                  + QString::number(bitmapData->GetHeight()));
-    QImage* qImage = createQImageFromBitmapData(bitmapData.get(),
+    QImage* qImage = createQImageFromBitmapData(QImagePixelFormat::RGBA,
+                                                bitmapData.get(),
                                                 errorMessageOut);
     if (qImage == NULL) {
         return NULL;
@@ -1044,6 +1046,8 @@ CziImageFile::readFramePyramidLayerFromCziImageFile(const AString& imageName,
 
 /**
  * Create a QImage from the CZI bitmap data
+ * @param imagePixelFormat
+ *    Pixel format of QImage.
  * @param bitmapData
  *    The CZI bitmap data
  * @param errorMessageOut
@@ -1051,14 +1055,15 @@ CziImageFile::readFramePyramidLayerFromCziImageFile(const AString& imageName,
  * @return A QImage containing the bitmap data or NULL if not valid
  */
 QImage*
-CziImageFile::createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
+CziImageFile::createQImageFromBitmapData(const QImagePixelFormat imagePixelFormat,
+                                         libCZI::IBitmapData* bitmapData,
                                          AString& errorMessageOut)
 {
     CaretAssert(bitmapData);
     
     const auto width(bitmapData->GetWidth());
     const auto height(bitmapData->GetHeight());
-    /*if (cziDebugFlag)*/ std::cout << "Image width/height: " << width << ", " << height << std::endl;
+    if (cziDebugFlag) std::cout << "Image width/height: " << width << ", " << height << std::endl;
     
     if ((width <= 0)
         || (height <= 0)) {
@@ -1075,18 +1080,27 @@ CziImageFile::createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
      * call to "Lock()" must have corresponding "Unlock()"
      */
     libCZI::BitmapLockInfo bitMapInfo = bitmapData->Lock();
-    /*if (cziDebugFlag)*/ std::cout << "   Stride: " << bitMapInfo.stride << std::endl;
-    /*if (cziDebugFlag)*/ std::cout << "   Size: " << bitMapInfo.size << std::endl;
-
+    if (cziDebugFlag) std::cout << "   Stride: " << bitMapInfo.stride << std::endl;
+    if (cziDebugFlag) std::cout << "   Size: " << bitMapInfo.size << std::endl;
+    
     unsigned char* cziPtr8 = (unsigned char*)bitMapInfo.ptrDataRoi;
     
     /*
      * Documentation for QImage states that setPixel may be very costly
      * and recommends using the scanLine() method to access pixel data.
      */
+    QImage::Format qFormat = QImage::Format_ARGB32;
+    switch (imagePixelFormat) {
+        case QImagePixelFormat::RGB:
+            qFormat = QImage::Format_RGB32;
+            break;
+        case QImagePixelFormat::RGBA:
+            qFormat = QImage::Format_ARGB32;
+            break;
+    }
     QImage* imageOut = new QImage(width,
                                   height,
-                                  QImage::Format_ARGB32);
+                                  qFormat);
     
     const bool isOriginAtTop(true);
     for (int64_t y = 0; y < height; y++) {
@@ -1105,7 +1119,14 @@ CziImageFile::createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
                         255);
             
             QRgb* pixel = &rgbScanLine[x];
-            *pixel = rgba.rgba();
+            switch (imagePixelFormat) {
+                case QImagePixelFormat::RGB:
+                    *pixel = rgba.rgb();
+                    break;
+                case QImagePixelFormat::RGBA:
+                    *pixel = rgba.rgba();
+                    break;
+            }
         }
     }
     
@@ -2579,6 +2600,8 @@ CziImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
  * @param maximumWidthHeight
  *    Width and height will be no greater than this value (aspect is preserved)
  *     Negative is no limit on size
+ * @param includeAlphaFlag
+ *    Include the alpha component in the pixels
  * @param errorMessageOut
  *    Contains info if writing image fails
  * @return True if successful, else false.
@@ -2586,6 +2609,7 @@ CziImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
 bool
 CziImageFile::exportToImageFile(const QString& imageFileName,
                                 const int32_t maximumWidthHeight,
+                                const bool includeAlphaFlag,
                                 AString& errorMessageOut)
 {
     errorMessageOut.clear();
@@ -2656,7 +2680,12 @@ CziImageFile::exportToImageFile(const QString& imageFileName,
         return false;
     }
     
-    std::unique_ptr<QImage> qImage(createQImageFromBitmapData(bitmapData.get(),
+    QImagePixelFormat qimagePixelFormat(QImagePixelFormat::RGB);
+    if (includeAlphaFlag) {
+        qimagePixelFormat = QImagePixelFormat::RGBA;
+    }
+    std::unique_ptr<QImage> qImage(createQImageFromBitmapData(qimagePixelFormat,
+                                                              bitmapData.get(),
                                                               errorMessageOut));
     if (qImage == NULL) {
         errorMessageOut = "Failed to create QImage after reading from CZI file";

@@ -56,6 +56,7 @@
 #include "CaretResult.h"
 #include "CaretResultDialog.h"
 #include "CursorDisplayScoped.h"
+#include "CziImageExportDialog.h"
 #include "CziImageFile.h"
 #include "DataFileContentCopyMoveDialog.h"
 #include "DataFileContentCopyMoveInterface.h"
@@ -2413,23 +2414,9 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                 CziImageFile* cziImageFile = caretDataFile->castToCziImageFile();
                 CaretAssert(cziImageFile);
                 
-                const AString imageFileName(CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::IMAGE,
-                                                                                   this,
-                                                                                   "Export to Image File"));
-                if ( ! imageFileName.isEmpty()) {
-                    CursorDisplayScoped cursor;
-                    cursor.showWaitCursor();
-                    
-                    AString errorMessage;
-                    const int32_t widthHeight(-1); /* negative is no limit on size */
-                    if ( ! cziImageFile->exportToImageFile(imageFileName,
-                                                           widthHeight,
-                                                           errorMessage)) {
-                        cursor.restoreCursor();
-                        WuQMessageBox::errorOk(this,
-                                               errorMessage);
-                    }
-                }
+                CziImageExportDialog cziImageExportDialog(cziImageFile,
+                                                          this);
+                cziImageExportDialog.exec();
             }
             else if (selectedAction == viewMetaDataAction) {
                 

@@ -168,6 +168,7 @@ namespace caret {
         
         bool exportToImageFile(const QString& imageFileName,
                                const int32_t maximumWidthHeight,
+                               const bool includeAlphaFlag,
                                AString& errorMessageOut);
         
         // ADD_NEW_METHODS_HERE
@@ -389,7 +390,12 @@ namespace caret {
                                        const int64_t outputImageWidthHeightMaximum,
                                        AString& errorMessageOut);
         
-        QImage* createQImageFromBitmapData(libCZI::IBitmapData* bitmapData,
+        enum class QImagePixelFormat {
+            RGB,
+            RGBA
+        };
+        QImage* createQImageFromBitmapData(const QImagePixelFormat imagePixelFormat,
+                                           libCZI::IBitmapData* bitmapData,
                                            AString& errorMessageOut);
         
         void addToMetadataIfNotEmpty(const AString& name,

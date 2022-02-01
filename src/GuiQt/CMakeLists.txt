@@ -132,6 +132,7 @@ ELSE()
         ColorEditorWidget.h
         CopyPaletteColorMappingToFilesDialog.h
         CustomViewDialog.h
+	CziImageExportDialog.h
         DataFileContentCopyMoveDialog.h
         DisplayGroupAndTabItemViewController.h
         DisplayGroupEnumComboBox.h
@@ -400,6 +401,7 @@ CursorDisplayScoped.h
 CursorEnum.h
 CursorManager.h
 CustomViewDialog.h
+CziImageExportDialog.h
 DataFileContentCopyMoveDialog.h
 DisplayGroupAndTabItemTreeWidgetItem.h
 DisplayGroupAndTabItemViewController.h
@@ -721,6 +723,7 @@ CursorDisplayScoped.cxx
 CursorEnum.cxx
 CursorManager.cxx
 CustomViewDialog.cxx
+CziImageExportDialog.cxx
 DataFileContentCopyMoveDialog.cxx
 DisplayGroupAndTabItemTreeWidgetItem.cxx
 DisplayGroupAndTabItemViewController.cxx
