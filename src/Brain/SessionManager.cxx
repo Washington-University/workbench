@@ -25,6 +25,8 @@
 #include "SessionManager.h"
 #undef __SESSION_MANAGER_DECLARE__
 
+#include <QImageReader>
+
 #include "AnnotationBrowserTab.h"
 #include "AnnotationManager.h"
 #include "ApplicationInformation.h"
@@ -91,6 +93,20 @@ SessionManager::SessionManager()
     
     m_imageCaptureDialogSettings = new ImageCaptureDialogSettings();
 
+#if QT_VERSION >= 0x060000
+    /*
+     * Qt may reject large images with the message:
+     *    QImageIOHandler: Rejecting image as it exceeds the current allocation limit of 128 megabytes
+     *
+     * Setting the allocation limit to zero removes this limit.  However, if there is an
+     * attempt to read a corrupt file, it could cause a very large allocation of memory
+     * that could be fatal or cause other problems.
+     *
+     * This allocation limit was added in Qt 6.0
+     */
+    QImageReader::setAllocationLimit(0);
+#endif
+    
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
     m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
     m_dataToolTipsManager.reset(new DataToolTipsManager(m_caretPreferences->isShowDataToolTipsEnabled()));
