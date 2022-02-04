@@ -49,6 +49,20 @@ namespace caret {
     class BrainOpenGLVolumeMprTwoDrawing : public CaretObject {
         
     public:
+        class SliceInfo {
+        public:
+            SliceInfo() { }
+            
+            Vector3D m_centerXYZ;
+            Vector3D m_bottomLeftXYZ;
+            Vector3D m_bottomRightXYZ;
+            Vector3D m_topRightXYZ;
+            Vector3D m_topLeftXYZ;
+            Vector3D m_upVector;
+            Vector3D m_normalVector;
+            Plane m_plane;
+        };
+        
         BrainOpenGLVolumeMprTwoDrawing();
         
         virtual ~BrainOpenGLVolumeMprTwoDrawing();
@@ -64,46 +78,30 @@ namespace caret {
 
         static void deleteStaticMembers();
         
+        static SliceInfo createSliceInfo(const BrowserTabContent* browserTabContent,
+                                         const VolumeMappableInterface* underlayVolume,
+                                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                         const std::array<float, 3>& sliceCoordinates,
+                                         const bool allSliceViewFlag);
+        
         // ADD_NEW_METHODS_HERE
         
     private:
-        class SliceInfo {
-        public:
-            SliceInfo() { }
-            
-            Vector3D m_centerXYZ;
-            Vector3D m_bottomLeftXYZ;
-            Vector3D m_bottomRightXYZ;
-            Vector3D m_topRightXYZ;
-            Vector3D m_topLeftXYZ;
-            Vector3D m_upVector;
-            Vector3D m_normalVector;
-            Plane m_plane;
-        };
-        
         void drawVolumeSliceViewType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                      const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                      const GraphicsViewport& viewport);
         
         void drawVolumeSliceViewProjection(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                           const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                            const std::array<float, 3>& sliceCoordinates,
                                            const GraphicsViewport& viewport);
         
-        SliceInfo createSliceInfo(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                            const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
-                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                            const std::array<float, 3>& sliceCoordinates);
-        
-        void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void setOrthographicProjection(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const GraphicsViewport& viewport);
         
-        Plane createSlicePlaneEquation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                       const std::array<float, 3>& sliceCoordinates);
-
         void setViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                       const SliceInfo& sliceInfo);
 
@@ -118,25 +116,13 @@ namespace caret {
                                           const std::array<float, 3>& maxStr,
                                           std::array<float, 3>& strOut);
 
-        void performVoxelIdentification(const Matrix4x4& viewRotationMatrix,
+        void performPlaneIdentification(const SliceInfo& sliceInfo,
                                         VolumeMappableInterface* volumeInterface,
-                                        const GraphicsPrimitiveV3fT3f* primitive,
                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                         const GraphicsViewport& viewport,
-                                        const std::array<float, 3> bottomLeft,
-                                        const std::array<float, 3> bottomRight,
-                                        const std::array<float, 3> topRight,
-                                        const std::array<float, 3> topLeft,
                                         const float mouseX,
                                         const float mouseY);
         
-        void performImageIdentification(const SliceInfo& sliceInfo,
-                                        VolumeMappableInterface* volumeInterface,
-                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                        const GraphicsViewport& viewport,
-                                        const float mouseX,
-                                        const float mouseY);
-
         void getMouseViewportXY(const GraphicsViewport& viewport,
                                 const float mouseX,
                                 const float mouseY,
@@ -171,29 +157,12 @@ namespace caret {
                                    const std::array<float, 3>& crossHairXYZ,
                                    const GraphicsViewport& viewport);
         
-        void drawRotationCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                    const std::array<float, 3>& crossHairXYZ,
-                                    const GraphicsViewport& viewport);
-        
         void drawAxisLabels(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                             const GraphicsViewport& viewport);
 
         std::array<uint8_t, 4> getAxisColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const;
         
-        void getViewportModelCoordinates(const GraphicsViewport& viewport,
-                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                         std::array<float, 3>& bottomLeftOut,
-                                         std::array<float, 3>& bottomRightOut,
-                                         std::array<float, 3>& topRightOut,
-                                         std::array<float, 3>& topLeftOut) const;
-
-        Matrix4x4 createViewTransformationMatrix(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                 const std::array<float, 3>& sliceCoordinates);
-
-        static GraphicsPrimitiveV3fT3f* getIdentificationPrimitive(const SliceInfo& sliceInfo,
-                                                                   VolumeMappableInterface* underlayVolume);
-
         void drawLayers(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,

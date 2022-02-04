@@ -357,6 +357,17 @@ void
 VolumeSliceSettings::setSliceProjectionType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType)
 {
     m_sliceProjectionType = sliceProjectionType;
+    
+    switch (m_sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            m_sliceViewPlane = VolumeSliceViewPlaneEnum::ALL;
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+    }
 }
 
 

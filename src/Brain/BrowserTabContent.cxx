@@ -34,6 +34,7 @@
 #include "Brain.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
+#include "BrainOpenGLVolumeMprTwoDrawing.h"
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
@@ -170,9 +171,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     
     leftView();
 
-    m_mprRotationX = 0.0;
-    m_mprRotationY = 0.0;
-    m_mprRotationZ = 0.0;
+    m_mprRotationMatrix.identity();
     
     m_volumeSliceSettings = new VolumeSliceSettings();
     
@@ -230,10 +229,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_volumeSliceSettings",
                                "VolumeSliceSettings",
                                m_volumeSliceSettings);
-
-    m_sceneClassAssistant->add("m_mprRotationX", &m_mprRotationX);
-    m_sceneClassAssistant->add("m_mprRotationY", &m_mprRotationY);
-    m_sceneClassAssistant->add("m_mprRotationZ", &m_mprRotationZ);
 
     m_sceneClassAssistant->add("m_wholeBrainSurfaceSettings",
                                "WholeBrainSurfaceSettings",
@@ -407,9 +402,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     
     m_lightingEnabled = tabToClone->m_lightingEnabled;
 
-    m_mprRotationX = tabToClone->m_mprRotationX;
-    m_mprRotationY = tabToClone->m_mprRotationY;
-    m_mprRotationZ = tabToClone->m_mprRotationZ;
+    m_mprRotationMatrix = tabToClone->m_mprRotationMatrix;
 
     Model* model = getModelForDisplay();
     
@@ -2732,64 +2725,26 @@ BrowserTabContent::setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix)
 }
 
 /**
- * @return Rotation for MPR X-axis
+ * @return The volume MPR rotation matrix
  */
-float
-BrowserTabContent::getMprRotationX() const
+Matrix4x4
+BrowserTabContent::getMprRotationMatrix() const
 {
-    return m_mprRotationX;
+    return m_mprRotationMatrix;
 }
 
 /**
- * Set the MPR rotation for the X-axis
- * @param rotation
- *    New rotation value
+ * Set the volume MPR rotation matrix
  */
 void
-BrowserTabContent::setMprRotationX(const float rotation)
+BrowserTabContent::setMprRotationMatrix(const Matrix4x4& mprRotationMatrix)
 {
-    m_mprRotationX = rotation;
+    m_mprRotationMatrix = mprRotationMatrix;
 }
 
 /**
- * @return Rotation for MPR Y-axis
+ * Rotate about a vector for MPR viewing
  */
-float
-BrowserTabContent::getMprRotationY() const
-{
-    return m_mprRotationY;
-}
-
-/**
- * Set the MPR rotation for the Y-axis
- * @param rotation
- *    New rotation value
- */
-void
-BrowserTabContent::setMprRotationY(const float rotation)
-{
-    m_mprRotationY = rotation;
-}
-
-/**
- * @return Rotation for MPR Z-axis
- */
-float
-BrowserTabContent::getMprRotationZ() const
-{
-    return m_mprRotationZ;
-}
-
-/**
- * Set the MPR rotation for the Z-axis
- * @param rotation
- *    New rotation value
- */
-void
-BrowserTabContent::setMprRotationZ(const float rotation)
-{
-    m_mprRotationZ = rotation;
-}
 
 /**
  * Get the offset for the right flat map offset.
@@ -2853,9 +2808,7 @@ BrowserTabContent::resetView()
     if (isVolumeSlicesDisplayed()) {
         m_obliqueVolumeRotationMatrix->identity();
     }
-    m_mprRotationX = 0.0;
-    m_mprRotationY = 0.0;
-    m_mprRotationZ = 0.0;
+    m_mprRotationMatrix.identity();
     updateYokedModelBrowserTabs();
     
     EventResetView resetViewEvent(getTabNumber());
@@ -3301,6 +3254,24 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                 float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
                                                                                 + (mouseDeltaY * mouseDeltaY)));
                                 
+                                std::array<float, 3> sliceCoordinates {
+                                    getSliceCoordinateParasagittal(),
+                                    getSliceCoordinateCoronal(),
+                                    getSliceCoordinateAxial()
+                                };
+                                const bool allSlicesFlag(false);
+                                BrainOpenGLVolumeMprTwoDrawing::SliceInfo sliceInfo =
+                                BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(this,
+                                                                                getOverlaySet()->getUnderlayVolume(),
+                                                                                getSliceProjectionType(),
+                                                                                slicePlane,
+                                                                                sliceCoordinates,
+                                                                                allSlicesFlag);
+
+                                
+                                double mprRotX, mprRotY, mprRotZ;
+                                m_mprRotationMatrix.getRotation(mprRotX, mprRotY, mprRotZ);
+                                
                                 switch (slicePlane) {
                                     case VolumeSliceViewPlaneEnum::ALL:
                                     {
@@ -3310,34 +3281,35 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                     case VolumeSliceViewPlaneEnum::AXIAL:
                                     {
                                         if (isClockwise) {
-                                            m_mprRotationZ += mouseDelta;
+                                            mprRotZ += mouseDelta;
                                         }
                                         else if (isCounterClockwise) {
-                                            m_mprRotationZ -= mouseDelta;
+                                            mprRotZ -= mouseDelta;
                                         }
                                     }
                                         break;
                                     case VolumeSliceViewPlaneEnum::CORONAL:
                                     {
                                         if (isClockwise) {
-                                            m_mprRotationY -= mouseDelta;
+                                            mprRotY -= mouseDelta;
                                         }
                                         else if (isCounterClockwise) {
-                                            m_mprRotationY += mouseDelta;
+                                            mprRotY += mouseDelta;
                                         }
                                     }
                                         break;
                                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                                     {
                                         if (isClockwise) {
-                                            m_mprRotationX -= mouseDelta;
+                                            mprRotX -= mouseDelta;
                                         }
                                         else if (isCounterClockwise) {
-                                            m_mprRotationX += mouseDelta;
+                                            mprRotX += mouseDelta;
                                         }
                                     }
                                         break;
                                 }
+                                m_mprRotationMatrix.setRotation(mprRotX, mprRotY, mprRotZ);
                             }
                         }
                     }
@@ -4431,10 +4403,10 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     obliqueRotationMatrix.getMatrix(mob);
     modelTransform.setObliqueRotation(mob);
     
+    double mprRotX, mprRotY, mprRotZ;
+    m_mprRotationMatrix.getRotation(mprRotX, mprRotY, mprRotZ);
     const float mprRotationAngles[3] {
-        getMprRotationX(),
-        getMprRotationY(),
-        getMprRotationZ()
+        (float)mprRotX, (float)mprRotY, (float)mprRotZ
     };
     modelTransform.setMprRotationAngles(mprRotationAngles);
     
@@ -4483,9 +4455,7 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
 
     float mprRotationAngles[3];
     modelTransform.getMprRotationAngles(mprRotationAngles);
-    setMprRotationX(mprRotationAngles[0]);
-    setMprRotationY(mprRotationAngles[1]);
-    setMprRotationZ(mprRotationAngles[2]);
+    m_mprRotationMatrix.setRotation(mprRotationAngles[0], mprRotationAngles[1], mprRotationAngles[2]);
 
     float fm[4][4];
     modelTransform.getFlatRotation(fm);
@@ -4545,6 +4515,13 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     TileTabsBrowserTabGeometrySceneHelper geometryHelper(&manualLayoutTabGeometry);
     sceneClass->addClass(geometryHelper.saveToScene(sceneAttributes,
                                                     "m_manualLayoutTabGeometry"));
+
+    /*
+     * Save rotation matrices.
+     */
+    float matrix[4][4];
+    m_mprRotationMatrix.getMatrix(matrix);
+    sceneClass->addFloatArray("m_mprRotationMatrix", (float*)matrix, 16);
 
     m_sceneClassAssistant->saveMembers(sceneAttributes,
                                        sceneClass);
@@ -4899,6 +4876,17 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                 }
             }
         }
+    }
+
+    /*
+     * Restore rotation matrices.
+     */
+    float matrix[4][4];
+    if (sceneClass->getFloatArrayValue("m_mprRotationMatrix", (float*)matrix, 16) == 16) {
+        m_mprRotationMatrix.setMatrix(matrix);
+    }
+    else {
+        m_mprRotationMatrix.identity();
     }
 
     testForRestoreSceneWarnings(sceneAttributes,
@@ -6404,32 +6392,3 @@ BrowserTabContent::getMediaRegionSelectionBox() const
     return m_mediaRegionSelectionBox.get();
 }
 
-/**
- * Apply mouse rotation to the displayed model.
- *
- * @param viewportContent
- *    Content of viewport
- * @param mousePressX
- *    X coordinate of where mouse was pressed.
- * @param mousePressY
- *    Y coordinate of where mouse was pressed.
- * @param mouseX
- *    X coordinate of mouse.
- * @param mouseY
- *    Y coordinate of mouse.
- * @param mouseDeltaX
- *    Change in mouse X coordinate.
- * @param mouseDeltaY
- *    Change in mouse Y coordinate.
- */
-void
-BrowserTabContent::applyMouseDragVolumeMPR(BrainOpenGLViewportContent* /*viewportContent*/,
-                                           const int32_t /*mousePressX*/,
-                                           const int32_t /*mousePressY*/,
-                                           const int32_t /*mouseX*/,
-                                           const int32_t /*mouseY*/,
-                                           const int32_t /*mouseDeltaX*/,
-                                           const int32_t /*mouseDeltaY*/)
-{
-    std::cout << "Mouse drag MPR" << std::endl;
-}

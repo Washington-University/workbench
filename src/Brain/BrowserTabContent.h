@@ -29,6 +29,7 @@
 #include "ChartTwoAxisOrientationTypeEnum.h"
 #include "ChartTwoAxisScaleRangeModeEnum.h"
 #include "EventListenerInterface.h"
+#include "Matrix4x4.h"
 #include "Model.h"
 #include "ModelTypeEnum.h"
 #include "Plane.h"
@@ -273,18 +274,10 @@ namespace caret {
         
         void setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix);
         
-        float getMprRotationX() const;
+        Matrix4x4 getMprRotationMatrix() const;
         
-        void setMprRotationX(const float rotation);
+        void setMprRotationMatrix(const Matrix4x4& mprRotationMatrix);
         
-        float getMprRotationY() const;
-        
-        void setMprRotationY(const float rotation);
-        
-        float getMprRotationZ() const;
-        
-        void setMprRotationZ(const float rotation);
-
         void getRightCortexFlatMapOffset(float& offsetX,
                                          float& offsetY) const;
         
@@ -324,14 +317,6 @@ namespace caret {
                                 const int32_t mouseDeltaX,
                                 const int32_t mouseDeltaY);
         
-        void applyMouseDragVolumeMPR(BrainOpenGLViewportContent* viewportContent,
-                                     const int32_t mousePressX,
-                                     const int32_t mousePressY,
-                                     const int32_t mouseX,
-                                     const int32_t mouseY,
-                                     const int32_t mouseDeltaX,
-                                     const int32_t mouseDeltaY);
-
         void applyMediaMouseScaling(BrainOpenGLViewportContent* viewportContent,
                                     const int32_t mousePressX,
                                     const int32_t mousePressY,
@@ -700,11 +685,7 @@ namespace caret {
         
         std::unique_ptr<AnnotationScaleBar> m_scaleBar;
         
-        float m_mprRotationX = 0.0;
-        
-        float m_mprRotationY = 0.0;
-        
-        float m_mprRotationZ = 0.0;
+        Matrix4x4 m_mprRotationMatrix;
         
         /** aspect ratio */
         float m_aspectRatio;

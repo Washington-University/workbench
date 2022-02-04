@@ -816,6 +816,7 @@ BrainBrowserWindowToolBarSliceSelection::volumeSliceProjectionTypeEnumComboBoxIt
     this->updateGraphicsWindowAndYokedWindows();
     updateObliqueMaskingButton();
     EventManager::get()->sendEvent(EventUpdateVolumeEditingToolBar().getPointer());
+    updateUserInterface();
 }
 
 /**

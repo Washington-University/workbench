@@ -50,7 +50,6 @@
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLMediaDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
-#include "BrainOpenGLVolumeMprThreeDrawing.h"
 #include "BrainOpenGLVolumeMprTwoDrawing.h"
 #include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
@@ -235,7 +234,6 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     this->colorIdentification = NULL;
     
     GraphicsShape::deleteAllPrimitives();
-    BrainOpenGLVolumeMprThreeDrawing::deleteStaticMembers();
     BrainOpenGLVolumeMprTwoDrawing::deleteStaticMembers();
 }
 
@@ -4473,7 +4471,6 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
      * fix the problem.
      */
     bool useNewDrawingFlag = false;
-    bool useMprThreeDrawingFlag = false;
     bool useMprTwoDrawingFlag = false;
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
@@ -4489,15 +4486,7 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
             break;
     }
     
-    if (useMprThreeDrawingFlag) {
-        GraphicsViewport graphicsViewport(viewport);
-        BrainOpenGLVolumeMprThreeDrawing mprDrawing;
-        mprDrawing.draw(this,
-                        browserTabContent,
-                        volumeDrawInfo,
-                        graphicsViewport);
-    }
-    else if (useMprTwoDrawingFlag) {
+    if (useMprTwoDrawingFlag) {
         GraphicsViewport graphicsViewport(viewport);
         BrainOpenGLVolumeMprTwoDrawing mprDrawing;
         mprDrawing.draw(this,

@@ -340,7 +340,6 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
 
     bool allowRotationFlag(true);
     bool scrollVolumeSlicesFlag(false);
-    bool volumeMprDragFlag(false);
     if (browserTabContent->isVolumeSlicesDisplayed()) {
         switch (browserTabContent->getSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
@@ -390,7 +389,6 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                              */
                             break;
                     }
-                    volumeMprDragFlag = false; //true;
                 }
                 break;
         }
@@ -401,15 +399,6 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                           mouseEvent.getPressedY(),
                                                           mouseEvent.getDy());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
-    }
-    else if (volumeMprDragFlag) {
-        browserTabContent->applyMouseDragVolumeMPR(viewportContent,
-                                                   mouseEvent.getPressedX(),
-                                                   mouseEvent.getPressedY(),
-                                                   mouseEvent.getX(),
-                                                   mouseEvent.getY(),
-                                                   mouseEvent.getDx(),
-                                                   mouseEvent.getDy());
     }
     else if (browserTabContent->isChartTwoDisplayed()) {
         const int32_t x1(mouseEvent.getPressedX());
