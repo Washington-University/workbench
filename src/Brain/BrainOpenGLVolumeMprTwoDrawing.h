@@ -94,6 +94,7 @@ namespace caret {
                                      const GraphicsViewport& viewport);
         
         void drawVolumeSliceViewProjection(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                           const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                            const std::array<float, 3>& sliceCoordinates,
                                            const GraphicsViewport& viewport);

@@ -32,6 +32,7 @@
 #include "AnnotationPercentSizeText.h"
 #include "Brain.h"
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
+#include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLShapeRing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
@@ -153,7 +154,8 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
 
     m_allSliceViewFlag = false;
     
-    switch (browserTabContent->getSliceViewPlane()) {
+    VolumeSliceViewPlaneEnum::Enum sliceViewPlane(browserTabContent->getSliceViewPlane());
+    switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
         {
             m_allSliceViewFlag = true;
@@ -208,7 +210,7 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
             glPushMatrix();
             drawVolumeSliceViewType(sliceProjectionType,
                                     sliceDrawingType,
-                                    browserTabContent->getSliceViewPlane(),
+                                    sliceViewPlane,
                                     viewport);
             glPopMatrix();
             break;
@@ -250,6 +252,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const VolumeSliceProject
                 m_browserTabContent->getSliceCoordinateAxial()
             };
             drawVolumeSliceViewProjection(sliceProjectionType,
+                                          sliceDrawingType,
                                           sliceViewPlane,
                                           sliceCoordinates,
                                           viewport);
@@ -273,7 +276,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const VolumeSliceProject
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceDrawingTypeEnum::Enum /*sliceDrawingType*/,
+BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                                const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                const GraphicsViewport& viewport)
@@ -425,6 +428,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const VolumeSlice
                     }
                     
                     drawVolumeSliceViewProjection(sliceProjectionType,
+                                                  sliceDrawingType,
                                                   sliceViewPlane,
                                                   sliceCoordinates,
                                                   vp);
@@ -468,6 +472,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const VolumeSlice
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                              const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                               const std::array<float, 3>& sliceCoordinates,
                                                               const GraphicsViewport& viewport)
@@ -571,6 +576,68 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const VolumeSliceP
                                sliceViewPlane,
                                sliceCoordinates,
                                viewport);
+
+
+        float sliceThickness = 1.0;
+        if ( ! m_volumeDrawInfo.empty()) {
+            if (m_volumeDrawInfo[0].volumeFile != NULL) {
+                float spaceX = 0.0, spaceY = 0.0, spaceZ = 0.0;
+                m_volumeDrawInfo[0].volumeFile->getVoxelSpacing(spaceX, spaceY, spaceZ);
+                
+                switch (sliceViewPlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        CaretAssert(0);
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        sliceThickness = spaceZ;
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        sliceThickness = spaceY;
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        sliceThickness = spaceX;
+                        break;
+                }
+            }
+            
+            CaretAssertVectorIndex(m_volumeDrawInfo, 0);
+            
+            BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(m_fixedPipelineDrawing,
+                                                                     m_browserTabContent,
+                                                                     m_volumeDrawInfo[0].volumeFile,
+                                                                     sliceInfo.m_plane,
+                                                                     sliceThickness);
+        }
+        
+        const Plane slicePlane(sliceInfo.m_plane);
+        
+        if ( ! m_identificationModeFlag) {
+            if (slicePlane.isValidPlane()) {
+                drawLayers(sliceDrawingType,
+                           sliceProjectionType,
+                           sliceViewPlane,
+                           slicePlane,
+                           sliceCoordinates);
+            }
+        }
+        
+        const bool annotationModeFlag = (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
+        const bool tileTabsEditModeFlag = (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
+        std::set<AString> emptyMediaFileNames;
+        BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                                 m_fixedPipelineDrawing->mode,
+                                                                 BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                                 m_fixedPipelineDrawing->m_windowIndex,
+                                                                 m_fixedPipelineDrawing->windowTabIndex,
+                                                                 SpacerTabIndex(),
+                                                                 BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
+                                                                 emptyMediaFileNames,
+                                                                 annotationModeFlag,
+                                                                 tileTabsEditModeFlag);
+        const float doubleSliceThickness(sliceThickness * 2.0);
+        m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
+                                                                                            slicePlane,
+                                                                                            doubleSliceThickness);
     }
 
     m_fixedPipelineDrawing->disableClippingPlanes();
@@ -2175,12 +2242,12 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
     const float topRightRGBA[4] { 1.0, 1.0, 1.0, 1.0 };     /* red and green */
     const float topLeftRGBA[4] { 0.0, 1.0, 1.0, 1.0 };      /* green */
     
-    GraphicsPrimitiveV3fC4f* primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN));
+    std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN));
     primitive->addVertex(sliceInfo.m_bottomLeftXYZ, bottomLeftRGBA);
     primitive->addVertex(sliceInfo.m_bottomRightXYZ, bottomRightRGBA);
     primitive->addVertex(sliceInfo.m_topRightXYZ, topRightRGBA);
     primitive->addVertex(sliceInfo.m_topLeftXYZ, topLeftRGBA);
-    GraphicsEngineDataOpenGL::draw(primitive);
+    GraphicsEngineDataOpenGL::draw(primitive.get());
         
     glPixelStorei(GL_PACK_SKIP_ROWS, 0);
     glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
@@ -2238,7 +2305,7 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
                 glPixelStorei(GL_PACK_ALIGNMENT, 4); /* float */
                 float selectedPrimitiveDepth(0.0);
                 glReadPixels(mouseX,
-                             mouseX,
+                             mouseY,
                              1,
                              1,
                              GL_DEPTH_COMPONENT,
@@ -2305,16 +2372,16 @@ BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enu
     if ( ! m_identificationModeFlag) {
         if (slicePlane.isValidPlane()) {
             /*
+             * Save cull and depth test status
+             */
+            glPushAttrib(GL_ENABLE_BIT);
+            
+            /*
              * Disable culling so that both sides of the triangles/quads are drawn.
              */
-            GLboolean cullFaceOn = glIsEnabled(GL_CULL_FACE);
             glDisable(GL_CULL_FACE);
             
             glPushMatrix();
-            
-            GLboolean depthBufferEnabled = false;
-            glGetBooleanv(GL_DEPTH_TEST,
-                          &depthBufferEnabled);
             
             /*
              * Use some polygon offset that will adjust the depth values of the
@@ -2342,21 +2409,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enu
                                                               StructureEnum::ALL);
                 m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane,
                                                               StructureEnum::ALL);
-                if (depthBufferEnabled) {
-                    glEnable(GL_DEPTH_TEST);
-                }
-                else {
-                    glDisable(GL_DEPTH_TEST);
-                }
             }
             
             glDisable(GL_POLYGON_OFFSET_FILL);
                         
             glPopMatrix();
             
-            if (cullFaceOn) {
-                glEnable(GL_CULL_FACE);
-            }
+            glPopAttrib();
         }
     }
 }

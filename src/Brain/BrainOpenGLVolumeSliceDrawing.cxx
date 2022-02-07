@@ -2424,11 +2424,24 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const VolumeMappableInterface*
                                                   BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                   const bool useNegativePolygonOffsetFlag)
 {
+    bool drawCachedFlag(true);
+    
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            drawCachedFlag = false;
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+            drawCachedFlag = false;
+            break;
+    }
     /*
      * Code still here to allow comparison with
      * previous algorithm
      */
-    bool drawCachedFlag(true);
     if (drawCachedFlag) {
         drawSurfaceOutlineCached(underlayVolume,
                                  modelType,

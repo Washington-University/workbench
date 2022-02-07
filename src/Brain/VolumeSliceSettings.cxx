@@ -361,7 +361,10 @@ VolumeSliceSettings::setSliceProjectionType(const VolumeSliceProjectionTypeEnum:
     switch (m_sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-            m_sliceViewPlane = VolumeSliceViewPlaneEnum::ALL;
+            /*
+             * Switch to ALL view for MPR
+             */
+            setSliceViewPlane(VolumeSliceViewPlaneEnum::ALL);
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             break;
