@@ -52,6 +52,8 @@ namespace caret {
         
         static std::unique_ptr<GraphicsOpenGLError> getOpenGLError(const AString& message = "");
         
+        static void printMatrixDepths(const AString messagePrefix);
+        
         static bool isVersionOrGreater(const int32_t majorVersion,
                                        const int32_t minorVersion);
         

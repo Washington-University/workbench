@@ -47,6 +47,8 @@ m_userMessage(userMessage)
                   &m_modelviewStackDepth);
     glGetIntegerv(GL_NAME_STACK_DEPTH,
                   &m_nameStackDepth);
+    glGetIntegerv(GL_ATTRIB_STACK_DEPTH,
+                  &m_attribStackDepth);
     
     SystemUtilities::getBackTrace(m_backtrace);
 }
@@ -135,13 +137,15 @@ GraphicsOpenGLError::getVerboseDescription() const
     msg.appendWithNewLine("OpenGL Version: " + AString((char*)glGetString(GL_VERSION)));
     msg.appendWithNewLine("OpenGL Vendor:  " + AString((char*)glGetString(GL_VENDOR)));
     
-    GLint maxNameStackDepth, maxModelStackDepth, maxProjStackDepth;
+    GLint maxNameStackDepth, maxModelStackDepth, maxProjStackDepth, maxAttribStackDepth;
     glGetIntegerv(GL_MAX_PROJECTION_STACK_DEPTH,
                   &maxProjStackDepth);
     glGetIntegerv(GL_MAX_MODELVIEW_STACK_DEPTH,
                   &maxModelStackDepth);
     glGetIntegerv(GL_MAX_NAME_STACK_DEPTH,
                   &maxNameStackDepth);
+    glGetIntegerv(GL_MAX_ATTRIB_STACK_DEPTH,
+                  &maxAttribStackDepth);
     
     msg.appendWithNewLine("Projection Matrix Stack Depth "
                           + AString::number(m_projectionStackDepth)
@@ -155,6 +159,10 @@ GraphicsOpenGLError::getVerboseDescription() const
                           + AString::number(m_nameStackDepth)
                           + "  Max Depth "
                           + AString::number(maxNameStackDepth));
+    msg.appendWithNewLine("Attribute Matrix Stack Depth "
+                          + AString::number(m_attribStackDepth)
+                          + "  Max Depth "
+                          + AString::number(maxAttribStackDepth));
     msg.appendWithNewLine("Backtrace: "
                           + m_backtrace.toSymbolString());
     

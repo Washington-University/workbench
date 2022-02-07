@@ -79,6 +79,8 @@ namespace caret {
         
         int32_t m_nameStackDepth = 0;
         
+        int32_t m_attribStackDepth = 0;
+        
         // ADD_NEW_MEMBERS_HERE
 
         friend class GraphicsUtilitiesOpenGL;

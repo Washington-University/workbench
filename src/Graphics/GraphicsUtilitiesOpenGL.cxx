@@ -315,6 +315,56 @@ GraphicsUtilitiesOpenGL::getOpenGLError(const AString& message)
 }
 
 /**
+ * Print depths of the matrix stacks for debugging
+ * @param messagePrefix
+ *    Text printed before matrix depths
+ */
+void
+GraphicsUtilitiesOpenGL::printMatrixDepths(const AString messagePrefix)
+{
+    GLint projectionStackDepth, modelviewStackDepth, nameStackDepth, attribStackDepth;
+    glGetIntegerv(GL_PROJECTION_STACK_DEPTH,
+                  &projectionStackDepth);
+    glGetIntegerv(GL_MODELVIEW_STACK_DEPTH,
+                  &modelviewStackDepth);
+    glGetIntegerv(GL_NAME_STACK_DEPTH,
+                  &nameStackDepth);
+    glGetIntegerv(GL_ATTRIB_STACK_DEPTH,
+                  &attribStackDepth);
+
+    GLint maxNameStackDepth, maxModelStackDepth, maxProjStackDepth, maxAttribStackDepth;
+    glGetIntegerv(GL_MAX_PROJECTION_STACK_DEPTH,
+                  &maxProjStackDepth);
+    glGetIntegerv(GL_MAX_MODELVIEW_STACK_DEPTH,
+                  &maxModelStackDepth);
+    glGetIntegerv(GL_MAX_NAME_STACK_DEPTH,
+                  &maxNameStackDepth);
+    glGetIntegerv(GL_MAX_ATTRIB_STACK_DEPTH,
+                  &maxAttribStackDepth);
+    
+    AString msg(messagePrefix
+                + " Matrices: ");
+    msg.append("Projection: "
+               + AString::number(projectionStackDepth)
+               + "  of "
+               + AString::number(maxProjStackDepth));
+    msg.append("; Model: "
+               + AString::number(modelviewStackDepth)
+               + "  of "
+               + AString::number(maxModelStackDepth));
+    msg.append("; Name: "
+               + AString::number(nameStackDepth)
+               + "  of "
+               + AString::number(maxNameStackDepth));
+    msg.append("; Attrib: "
+               + AString::number(attribStackDepth)
+               + "  of "
+               + AString::number(maxAttribStackDepth));
+
+    std::cout << msg << std::endl;
+}
+
+/**
  * Set the OpenGL major and minor version
  * @param majorVersion
  *     Major version
