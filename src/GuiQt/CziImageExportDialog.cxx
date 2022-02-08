@@ -78,7 +78,7 @@ m_cziImageFile(cziImageFile)
     m_maximumWidthHeightSpinBox->setRange(1, 99999999);
     m_maximumWidthHeightSpinBox->setValue(4096);
     m_maximumWidthHeightSpinBox->setToolTip(dimensionToolTip);
-    QObject::connect(m_maximumWidthHeightSpinBox, &QSpinBox::valueChanged,
+    QObject::connect(m_maximumWidthHeightSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &CziImageExportDialog::updateExportImageDimensionsLabel);
 
     
