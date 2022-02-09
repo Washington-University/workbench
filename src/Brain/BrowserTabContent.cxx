@@ -998,6 +998,29 @@ BrowserTabContent::isVolumeSlicesDisplayed() const
 }
 
 /**
+ * @return  Is a MPR volume viewer displayed
+ */
+bool
+BrowserTabContent::isVolumeMprDisplayed() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        switch (getSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                return true;
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                break;
+        }
+    }
+    
+    return false;
+}
+
+
+/**
  * @return Is the displayed model the whole brain model (ALL)?
  */
 bool

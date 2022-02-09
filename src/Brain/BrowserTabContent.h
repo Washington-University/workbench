@@ -174,6 +174,8 @@ namespace caret {
         
         bool isVolumeSlicesDisplayed() const;
         
+        bool isVolumeMprDisplayed() const;
+        
         bool isMediaDisplayed() const;
         
         bool isWholeBrainDisplayed() const;

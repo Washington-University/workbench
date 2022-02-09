@@ -38,6 +38,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUpdateYokedWindows.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventBrowserWindowDrawingContent.h"
 #include "EventManager.h"
 #include "GestureEvent.h"
 #include "GraphicsObjectToWindowTransform.h"
@@ -187,17 +188,24 @@ UserInputModeView::update()
 CursorEnum::Enum
 UserInputModeView::getCursor() const
 {
-    switch (m_mprDragMode) {
-        case VOLUME_MPR_DRAG_MODE::INVALID:
+    CursorEnum::Enum cursorOut(CursorEnum::CURSOR_DEFAULT);
+    
+    switch (m_mprCursorMode) {
+        case VOLUME_MPR_CURSOR_MODE::INVALID:
+            cursorOut = CursorEnum::CURSOR_DEFAULT;
             break;
-        case VOLUME_MPR_DRAG_MODE::ROTATE_SLICE:
-            return CursorEnum::CURSOR_ROTATION;
+        case VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE:
+            cursorOut = CursorEnum::CURSOR_ROTATION;
             break;
-        case VOLUME_MPR_DRAG_MODE::SELECT_SLICE:
-            return CursorEnum::CURSOR_FOUR_ARROWS;
+        case VOLUME_MPR_CURSOR_MODE::SCROLL_SLICE:
+            /* cursorOut = CursorEnum::CURSOR_RESIZE_VERTICAL; */
+            break;
+        case VOLUME_MPR_CURSOR_MODE::SELECT_SLICE:
+            cursorOut = CursorEnum::CURSOR_FOUR_ARROWS;
             break;
     }
-    return CursorEnum::CURSOR_DEFAULT;
+    
+    return cursorOut;
 }
 
 /**
@@ -340,57 +348,49 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
 
     bool allowRotationFlag(true);
     bool scrollVolumeSlicesFlag(false);
-    if (browserTabContent->isVolumeSlicesDisplayed()) {
-        switch (browserTabContent->getSliceProjectionType()) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                scrollVolumeSlicesFlag = true;
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-                if (browserTabContent->getSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
-                    /*
-                     * Scroll slice if viewing a single slice plane
-                     */
+    if (browserTabContent->isVolumeMprDisplayed()) {
+        if (browserTabContent->getSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
+            /*
+             * Scroll slice if viewing a single slice plane
+             */
+            scrollVolumeSlicesFlag = true;
+        }
+        else {
+            switch (m_mprCursorMode) {
+                case VOLUME_MPR_CURSOR_MODE::INVALID:
+                    break;
+                case VOLUME_MPR_CURSOR_MODE::SCROLL_SLICE:
                     scrollVolumeSlicesFlag = true;
-                }
-                else {
-                    switch (m_mprDragMode) {
-                        case VOLUME_MPR_DRAG_MODE::INVALID:
-                            scrollVolumeSlicesFlag = true;
-                            break;
-                        case VOLUME_MPR_DRAG_MODE::SELECT_SLICE:
-                        {
-                            SelectionManager* selectionManager(GuiManager::get()->getBrain()->getSelectionManager());
-                            selectionManager->setAllSelectionsEnabled(false);
-                            SelectionItemVoxel* voxelID(selectionManager->getVoxelIdentification());
-                            voxelID->setEnabledForSelection(true);
-                            mouseEvent.getOpenGLWidget()->performIdentification(mouseEvent.getX(),
-                                                                                mouseEvent.getY(),
-                                                                                false);
-                            if (voxelID->isValid()) {
-                                double xyzDouble[3] { 0.0, 0.0, 0.0 };
-                                voxelID->getModelXYZ(xyzDouble);
-                                float xyz[3] {
-                                    static_cast<float>(xyzDouble[0]),
-                                    static_cast<float>(xyzDouble[1]),
-                                    static_cast<float>(xyzDouble[2])
-                                };
-                                browserTabContent->selectSlicesAtCoordinate(xyz);
-                            }
-                            allowRotationFlag = false;
-                            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
-                        }
-                            break;
-                        case VOLUME_MPR_DRAG_MODE::ROTATE_SLICE:
-                            /*
-                             * Will fall through to rotation
-                             */
-                            break;
+                    break;
+                case VOLUME_MPR_CURSOR_MODE::SELECT_SLICE:
+                {
+                    SelectionManager* selectionManager(GuiManager::get()->getBrain()->getSelectionManager());
+                    selectionManager->setAllSelectionsEnabled(false);
+                    SelectionItemVoxel* voxelID(selectionManager->getVoxelIdentification());
+                    voxelID->setEnabledForSelection(true);
+                    mouseEvent.getOpenGLWidget()->performIdentification(mouseEvent.getX(),
+                                                                        mouseEvent.getY(),
+                                                                        false);
+                    if (voxelID->isValid()) {
+                        double xyzDouble[3] { 0.0, 0.0, 0.0 };
+                        voxelID->getModelXYZ(xyzDouble);
+                        float xyz[3] {
+                            static_cast<float>(xyzDouble[0]),
+                            static_cast<float>(xyzDouble[1]),
+                            static_cast<float>(xyzDouble[2])
+                        };
+                        browserTabContent->selectSlicesAtCoordinate(xyz);
                     }
+                    allowRotationFlag = false;
+                    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
                 }
-                break;
+                    break;
+                case VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE:
+                    /*
+                     * Will fall through to rotation
+                     */
+                    break;
+            }
         }
     }
     if (scrollVolumeSlicesFlag) {
@@ -565,7 +565,7 @@ UserInputModeView::mouseLeftDragWithShift(const MouseEvent& mouseEvent)
 void
 UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
 {
-    m_mprDragMode = VOLUME_MPR_DRAG_MODE::INVALID;
+    m_mprCursorMode = VOLUME_MPR_CURSOR_MODE::INVALID;
     
 
     BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
@@ -662,46 +662,63 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
 void
 UserInputModeView::mouseLeftPress(const MouseEvent& mouseEvent)
 {
-    m_mprDragMode = VOLUME_MPR_DRAG_MODE::INVALID;
+    m_mprCursorMode = getVolumeMprMouseMode(mouseEvent);
+}
+
+/**
+ * @return MPR mouse mode based upon cursor position
+ * @param mouseEvent
+ *    A mouse event
+ */
+UserInputModeView::VOLUME_MPR_CURSOR_MODE
+UserInputModeView::getVolumeMprMouseMode(const MouseEvent& mouseEvent)
+{
+    UserInputModeView::VOLUME_MPR_CURSOR_MODE mprModeOut(VOLUME_MPR_CURSOR_MODE::INVALID);
     
     BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
     if (viewportContent == NULL) {
-        return;
+        return mprModeOut;
     }
     
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
     if (browserTabContent == NULL) {
-        return;
+        return mprModeOut;
     }
-
-    if (browserTabContent->isVolumeSlicesDisplayed()) {
-        switch (browserTabContent->getSliceProjectionType()) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-            {
-                BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-                SelectionManager* idManager = openGLWidget->performIdentification(mouseEvent.getPressedX(),
-                                                                                  mouseEvent.getPressedY(),
-                                                                                  false);
-                CaretAssert(idManager);
-                
-                SelectionItemVolumeMprCrosshair* crosshairID(idManager->getVolumeMprCrosshairIdentification());
-                if (crosshairID->isValid()) {
-                    if (crosshairID->isRotateAxisSelected()) {
-                        m_mprDragMode = VOLUME_MPR_DRAG_MODE::ROTATE_SLICE;
-                    }
-                    else if (crosshairID->isSliceAxisSelected()) {
-                        m_mprDragMode = VOLUME_MPR_DRAG_MODE::SELECT_SLICE;
-                    }
-                }
+    
+    if (browserTabContent->isVolumeMprDisplayed()) {
+        BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+        SelectionManager* idManager = openGLWidget->performIdentification(mouseEvent.getX(), // mouseEvent.getPressedX(),
+                                                                          mouseEvent.getY(), // mouseEvent.getPressedY(),
+                                                                          false);
+        CaretAssert(idManager);
+        
+        SelectionItemVolumeMprCrosshair* crosshairID(idManager->getVolumeMprCrosshairIdentification());
+        if (crosshairID->isValid()) {
+            if (crosshairID->isRotateAxisSelected()) {
+                mprModeOut = VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE;
             }
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                break;
+            else if (crosshairID->isSliceAxisSelected()) {
+                mprModeOut = VOLUME_MPR_CURSOR_MODE::SELECT_SLICE;
+            }
+        }
+        else {
+            mprModeOut = VOLUME_MPR_CURSOR_MODE::SCROLL_SLICE;
         }
     }
+
+    return mprModeOut;
+}
+
+/**
+ * Process a mouse move with no buttons or keys down
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeView::mouseMove(const MouseEvent& mouseEvent)
+{
+    m_mprCursorMode = getVolumeMprMouseMode(mouseEvent);
 }
 
 /**

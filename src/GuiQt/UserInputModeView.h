@@ -67,6 +67,8 @@ namespace caret {
         
         virtual void mouseLeftRelease(const MouseEvent& mouseEvent);
         
+        virtual void mouseMove(const MouseEvent& mouseEvent) override;
+        
         virtual void gestureEvent(const GestureEvent& gestureEvent);
         
         virtual void showContextMenu(const MouseEvent& mouseEvent,
@@ -85,9 +87,10 @@ namespace caret {
             SELECT
         };
         
-        enum class VOLUME_MPR_DRAG_MODE {
+        enum class VOLUME_MPR_CURSOR_MODE {
             INVALID,
             ROTATE_SLICE,
+            SCROLL_SLICE,
             SELECT_SLICE
         };
         
@@ -98,6 +101,8 @@ namespace caret {
         void updateGraphics(const MouseEvent& mouseEvent);
         
         void updateGraphics(const BrainOpenGLViewportContent* viewportContent);
+        
+        VOLUME_MPR_CURSOR_MODE getVolumeMprMouseMode(const MouseEvent& mouseEvent);
         
         void processModelViewIdentification(BrainOpenGLViewportContent* viewportContent,
                                             BrainOpenGLWidget* openGLWidget,
@@ -114,7 +119,7 @@ namespace caret {
         
         bool m_mediaLeftDragWithCtrlModelXYZValidFlag = false;
         
-        VOLUME_MPR_DRAG_MODE m_mprDragMode = VOLUME_MPR_DRAG_MODE::INVALID;
+        VOLUME_MPR_CURSOR_MODE m_mprCursorMode = VOLUME_MPR_CURSOR_MODE::INVALID;
         
     public:
         virtual AString toString() const;
