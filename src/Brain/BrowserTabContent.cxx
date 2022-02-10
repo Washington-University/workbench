@@ -3001,27 +3001,62 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                                                                                         sliceViewport);
     }
     
-    /*
-     * Note: Functions that set slice indices will prevent
-     * invalid slice indices
-     */
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            setSliceIndexAxial(underlayVolume,
-                               (getSliceIndexAxial(underlayVolume) + sliceDelta));
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            setSliceIndexCoronal(underlayVolume,
-                                 (getSliceIndexCoronal(underlayVolume) + sliceDelta));
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            setSliceIndexParasagittal(underlayVolume,
-                                      (getSliceIndexParasagittal(underlayVolume) + sliceDelta));
-            break;
+    if (isVolumeMprDisplayed()) {
+        float sliceVector[3] = { 0.0, 0.0, 0.0 };
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                sliceVector[2] = 1.0;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                sliceVector[1] = -1.0;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                sliceVector[0] = -1.0;
+                break;
+        }
+        
+        m_mprRotationMatrix.multiplyPoint3(sliceVector);
+        
+        const float axialDelta(std::round(sliceVector[2] * sliceDelta));
+        const float coronalDelta(std::round(sliceVector[1] * sliceDelta));
+        const float paraDelta(std::round(sliceVector[0] * sliceDelta));
+
+        //std::cout << "Deltas  P: " << paraDelta << ", C: " << coronalDelta << " A: " << axialDelta << std::endl;
+        setSliceCoordinateAxial(getSliceCoordinateAxial() + axialDelta);
+        setSliceCoordinateCoronal(getSliceCoordinateCoronal() + coronalDelta);
+        setSliceCoordinateParasagittal(getSliceCoordinateParasagittal() + paraDelta);
+
+
+        //std::cout << "   Para: " << (getSliceCoordinateParasagittal());
+        //std::cout << " Coronal: " << (getSliceCoordinateCoronal());
+        //std::cout << " Axial: " << (getSliceCoordinateAxial()) << std::endl;
     }
-    
+    else {
+        /*
+         * Note: Functions that set slice indices will prevent
+         * invalid slice indices
+         */
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                setSliceIndexAxial(underlayVolume,
+                                   (getSliceIndexAxial(underlayVolume) + sliceDelta));
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                setSliceIndexCoronal(underlayVolume,
+                                     (getSliceIndexCoronal(underlayVolume) + sliceDelta));
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                setSliceIndexParasagittal(underlayVolume,
+                                          (getSliceIndexParasagittal(underlayVolume) + sliceDelta));
+                break;
+        }
+    }
+
     updateYokedModelBrowserTabs();
 }
 
