@@ -3011,10 +3011,10 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                 sliceVector[2] = 1.0;
                 break;
             case VolumeSliceViewPlaneEnum::CORONAL:
-                sliceVector[1] = -1.0;
+                sliceVector[1] = 1.0;
                 break;
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                sliceVector[0] = -1.0;
+                sliceVector[0] = 1.0;
                 break;
         }
         
