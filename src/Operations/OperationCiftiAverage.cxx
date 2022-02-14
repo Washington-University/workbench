@@ -301,6 +301,8 @@ void OperationCiftiAverage::useParameters(OperationParameters* myParams, Progres
                     if (weightAccum[k] != 0.0)
                     {
                         outRow[k] = accum[k] / weightAccum[k];
+                    } else {
+                        outRow[k] = 0.0f;
                     }
                 }
                 ciftiOut->setRow(outRow.data(), *(rowIndices[j]));
