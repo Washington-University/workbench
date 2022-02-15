@@ -214,17 +214,17 @@ SurfaceFile::validateDataArraysAfterReading()
         }
         
     }
-    
-    AString errorMessage;
     if (this->coordinateDataArray == NULL) {
-        errorMessage += "Unable to find coordinate data array which "
-            " contains data type FLOAT32, Intent POINTSET, and two "
-            " dimensions with the second dimension set to three.  ";
+        throw DataFileException(getFileName(),
+                                "Unable to find coordinate data array which "
+                                " contains data type FLOAT32, Intent POINTSET, and two "
+                                " dimensions with the second dimension set to three.  ");
     }
     if (this->triangleDataArray == NULL) {
-        errorMessage += "Unable to find topology data array which "
-        " contains data type INT32, Intent TRIANGLE, and two "
-        " dimensions with the second dimension set to three.";
+        throw DataFileException(getFileName(),
+                                "Unable to find topology data array which "
+                                " contains data type INT32, Intent TRIANGLE, and two "
+                                " dimensions with the second dimension set to three.");
     }
     const int32_t numNodes = this->getNumberOfNodes();
     if (!m_skipSanityCheck)
@@ -237,26 +237,22 @@ SurfaceFile::validateDataArraysAfterReading()
             {
                 if (thisTri[j] < 0 || thisTri[j] >= numNodes)
                 {
-                    errorMessage += "Invalid vertex in triangle array: triangle " + AString::number(i) + ", vertex " + AString::number(thisTri[j]);
-                    break;
+                    throw DataFileException(getFileName(),
+                                            "Invalid vertex in triangle array: triangle " + AString::number(i) + ", vertex " + AString::number(thisTri[j]));
                 }
                 for (int k = j + 1; k < 3; ++k)
                 {
                     if (thisTri[j] == thisTri[k])
                     {
-                        errorMessage += "Vertex used twice in one triangle: triangle " + AString::number(i) + ", vertex " + AString::number(thisTri[j]);
-                        break;
+                        throw DataFileException(getFileName(),
+                                                "Vertex used twice in one triangle: triangle " + AString::number(i) + ", vertex " + AString::number(thisTri[j]));
                     }
                 }
             }
         }
-        if (errorMessage.isEmpty() == false) {
-            throw DataFileException(getFileName(),
-                                    errorMessage);
-        }
     }
-    
-    this->computeNormals();
+
+    this->computeNormals(); //this will be garbage in the case that m_skipSanityCheck is used for, but we want it to be allocated to the right size, as multiple functions use it unchecked...
 
     /*
      * Apply the first transformation matrix that transforms to 

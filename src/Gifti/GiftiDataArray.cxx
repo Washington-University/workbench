@@ -621,6 +621,7 @@ GiftiDataArray::readFromText(const AString text,
                         float* ptr = dataPointerFloat;
                         for (int64_t i = 0; i < numElements; i++) {
                            stream >> *ptr;
+                           if (!stream) throw GiftiException("premature end of ascii-encoded gifti array");
                            ptr++;
                         }
                      }
@@ -630,6 +631,7 @@ GiftiDataArray::readFromText(const AString text,
                         int32_t* ptr = dataPointerInt;
                         for (int64_t i = 0; i < numElements; i++) {
                            stream >> *ptr;
+                           if (!stream) throw GiftiException("premature end of ascii-encoded gifti array");
                            ptr++;
                         }
                      }
@@ -640,6 +642,7 @@ GiftiDataArray::readFromText(const AString text,
                          int32_t c;
                         for (int64_t i = 0; i < numElements; i++) {
                            stream >> c;
+                           if (!stream) throw GiftiException("premature end of ascii-encoded gifti array");
                            *ptr = static_cast<uint8_t>(c);
                            ptr++;
                         }
