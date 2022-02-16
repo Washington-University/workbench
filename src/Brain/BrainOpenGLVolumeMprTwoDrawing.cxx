@@ -833,36 +833,7 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
      */
     viewRotationMatrix.translate(-sliceCoordinates[0], -sliceCoordinates[1], -sliceCoordinates[2]);
 
-    Matrix4x4 mprRotationMatrix(browserTabContent->getMprRotationMatrix());
-    double mprRotX, mprRotY, mprRotZ;
-    mprRotationMatrix.getRotation(mprRotX, mprRotY, mprRotZ);
-    
-    Matrix4x4 rotationMatrix;
-    
-    if (allSliceViewFlag) {
-        const float noRotationValue(0.0);
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssert(0);
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                rotationMatrix.setRotation(mprRotX,
-                                           mprRotY,
-                                           noRotationValue);
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                rotationMatrix.setRotation(mprRotX,
-                                           noRotationValue,
-                                           mprRotZ);
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                rotationMatrix.setRotation(noRotationValue,
-                                           mprRotY,
-                                           mprRotZ);
-                break;
-        }
-    }
-    
+    const Matrix4x4 rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(sliceViewPlane);
     viewRotationMatrix.postmultiply(rotationMatrix);
     
     viewRotationMatrix.translate(sliceCoordinates[0], sliceCoordinates[1], sliceCoordinates[2]);
@@ -879,6 +850,12 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
     
     sliceInfo.m_plane.getNormalVector(sliceInfo.m_normalVector);
 
+    /*
+     * "Up" vector points from bottom of slice to top
+     */
+    const Vector3D bottomToTop(sliceInfo.m_topLeftXYZ - sliceInfo.m_bottomLeftXYZ);
+    sliceInfo.m_upVector = bottomToTop.normal();
+    
     return sliceInfo;
 }
 
@@ -1200,24 +1177,20 @@ BrainOpenGLVolumeMprTwoDrawing::drawPanningCrosshairs(const VolumeSliceViewPlane
             break;
     }
     
-    glPushMatrix();
-    
+    glPushMatrix();    
     glTranslatef(crossHairXYZ[0], crossHairXYZ[1], crossHairXYZ[2]);
 
-    Matrix4x4 mprRotationMatrix(m_browserTabContent->getMprRotationMatrix());
-    double mprRotX, mprRotY, mprRotZ;
-    mprRotationMatrix.getRotation(mprRotX, mprRotY, mprRotZ);
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            glRotatef(-mprRotZ, 0.0, 0.0, 1.0);
+            glRotatef(-m_browserTabContent->getMprRotationZ(), 0.0, 0.0, 1.0);
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            glRotatef(mprRotY, 0.0, 0.0, 1.0);
+            glRotatef(m_browserTabContent->getMprRotationY(), 0.0, 0.0, 1.0);
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            glRotatef(mprRotX, 0.0, 0.0, 1.0);
+            glRotatef(m_browserTabContent->getMprRotationX(), 0.0, 0.0, 1.0);
             break;
     }
 
@@ -1731,6 +1704,19 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPl
     glm::vec3 up(sliceInfo.m_upVector[0], sliceInfo.m_upVector[1], sliceInfo.m_upVector[2]);
     glm::vec3 lookAt(m_lookAtCenterXYZ[0], m_lookAtCenterXYZ[1], m_lookAtCenterXYZ[2]);
     glm::mat4 lookAtMatrix = glm::lookAt(eye, lookAt, up);
+    
+    if (debugFlag) {
+        if (sliceViewPlane == VolumeSliceViewPlaneEnum::PARASAGITTAL) {
+            glm::vec3 vec = lookAt - eye;
+            glm::vec3 n = glm::normalize(vec);
+            std::cout << "Eye : " << eye[0] << ", " << eye[1] << ", " << eye[2] << std::endl;
+            std::cout << "   Look at: "
+            << AString::fromNumbers(m_lookAtCenterXYZ, 3, ", ") << std::endl;
+            std::cout << "   Up: "
+            << AString::fromNumbers(sliceInfo.m_upVector, 3, ", ") << std::endl;
+            std::cout << "   Eye to Look At Vector: " << n[0] << ", " << n[1] << ", " << n[2] << std::endl;
+        }
+    }
     
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(glm::value_ptr(lookAtMatrix));

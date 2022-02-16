@@ -171,7 +171,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     
     leftView();
 
-    m_mprRotationMatrix.identity();
+    resetMprRotations();
     
     m_volumeSliceSettings = new VolumeSliceSettings();
     
@@ -263,7 +263,16 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_scaleBar",
                                "AnnotationScaleBar",
                                m_scaleBar.get());
-    
+
+#ifdef MPR_USE_ROTATION_ANGLES
+    m_sceneClassAssistant->add("m_mprRotationX",
+                               &m_mprRotationX);
+    m_sceneClassAssistant->add("m_mprRotationY",
+                               &m_mprRotationY);
+    m_sceneClassAssistant->add("m_mprRotationZ",
+                               &m_mprRotationZ);
+#endif
+
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_ANNOTATION_BARS_GET);
     EventManager::get()->addEventListener(this,
@@ -402,7 +411,16 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     
     m_lightingEnabled = tabToClone->m_lightingEnabled;
 
-    m_mprRotationMatrix = tabToClone->m_mprRotationMatrix;
+#ifdef MPR_USE_ROTATION_ANGLES
+    m_mprRotationX = tabToClone->m_mprRotationX;
+    m_mprRotationY = tabToClone->m_mprRotationY;
+    m_mprRotationZ = tabToClone->m_mprRotationZ;
+#else
+    m_mprRotationMatrixAll = tabToClone->m_mprRotationMatrixAll;
+    m_mprRotationMatrixAxial = tabToClone->m_mprRotationMatrixAxial;
+    m_mprRotationMatrixCoronal = tabToClone->m_mprRotationMatrixCoronal;
+    m_mprRotationMatrixParasagittal = tabToClone->m_mprRotationMatrixParasagittal;
+#endif
 
     Model* model = getModelForDisplay();
     
@@ -2747,27 +2765,122 @@ BrowserTabContent::setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix)
     updateYokedModelBrowserTabs();
 }
 
+#ifdef MPR_USE_ROTATION_ANGLES
 /**
- * @return The volume MPR rotation matrix
+ * @return MPR rotation X-angle
  */
-Matrix4x4
-BrowserTabContent::getMprRotationMatrix() const
+float
+BrowserTabContent::getMprRotationX() const
 {
-    return m_mprRotationMatrix;
+    return m_mprRotationX;
 }
 
 /**
- * Set the volume MPR rotation matrix
+ * @return MPR rotation Y-angle
+ */
+float
+BrowserTabContent::getMprRotationY() const
+{
+    return m_mprRotationY;
+}
+
+/**
+ * @return MPR rotation Z-angle
+ */
+float
+BrowserTabContent::getMprRotationZ() const
+{
+    return m_mprRotationZ;
+}
+#endif
+
+/**
+ * Reset  MPR rotations to zero.
  */
 void
-BrowserTabContent::setMprRotationMatrix(const Matrix4x4& mprRotationMatrix)
+BrowserTabContent::resetMprRotations()
 {
-    m_mprRotationMatrix = mprRotationMatrix;
+#ifdef MPR_USE_ROTATION_ANGLES
+    m_mprRotationX = 0.0;
+    m_mprRotationY = 0.0;
+    m_mprRotationZ = 0.0;
+#else
+    m_mprRotationMatrixAll = QQuaternion();
+    m_mprRotationMatrixAxial = QQuaternion();
+    m_mprRotationMatrixCoronal = QQuaternion();
+    m_mprRotationMatrixParasagittal = QQuaternion();
+#endif
 }
 
+#ifndef MPR_USE_ROTATION_ANGLES
 /**
- * Rotate about a vector for MPR viewing
+ * @return Matrix for the given slice plane for MPR rotation
+ * @param slicePlane
+ *    The slice plane
  */
+QQuaternion
+BrowserTabContent::getMprRotationMatrixForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane) const
+{
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            return m_mprRotationMatrixAll;
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            return m_mprRotationMatrixAxial;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            return m_mprRotationMatrixCoronal;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            return m_mprRotationMatrixParasagittal;
+            break;
+    }
+    
+    CaretAssert(0);
+    return QQuaternion();
+}
+#endif
+
+/**
+ * @return Matrix for the given slice plane for MPR rotation
+ * @param slicePlane
+ *    The slice plane
+ */
+Matrix4x4
+BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane) const
+{
+#ifdef MPR_USE_ROTATION_ANGLES
+    const float noRotationAngle(0.0);
+    Matrix4x4 matrixOut;
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            matrixOut.setRotation(m_mprRotationX, m_mprRotationY, m_mprRotationZ);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            matrixOut.setRotation(m_mprRotationX, m_mprRotationY, noRotationAngle);
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            matrixOut.setRotation(m_mprRotationX, noRotationAngle, m_mprRotationZ);
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            matrixOut.setRotation(noRotationAngle, m_mprRotationY, m_mprRotationZ);
+            break;
+    }
+    return matrixOut;
+
+#else
+    
+    QQuaternion quaternion(getMprRotationMatrixForSlicePlane(slicePlane));
+    QMatrix3x3 rotMatrix3x3(quaternion.toRotationMatrix());
+    Matrix4x4 rotMatrix;
+    for (int32_t i = 0; i < 3; i++) {
+        for (int32_t j = 0; j < 3; j++) {
+            rotMatrix.setMatrixElement(i, j, rotMatrix3x3(i, j));
+        }
+    }
+    return rotMatrix;
+#endif
+}
 
 /**
  * Get the offset for the right flat map offset.
@@ -2831,7 +2944,7 @@ BrowserTabContent::resetView()
     if (isVolumeSlicesDisplayed()) {
         m_obliqueVolumeRotationMatrix->identity();
     }
-    m_mprRotationMatrix.identity();
+    resetMprRotations();
     updateYokedModelBrowserTabs();
     
     EventResetView resetViewEvent(getTabNumber());
@@ -3017,22 +3130,31 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                 sliceVector[0] = 1.0;
                 break;
         }
-        
-        m_mprRotationMatrix.multiplyPoint3(sliceVector);
+
+        const Matrix4x4 rotMatrix = getMprRotationMatrix4x4ForSlicePlane(sliceViewPlane);
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                
+                rotMatrix.multiplyPoint3(sliceVector);
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                rotMatrix.multiplyPoint3(sliceVector);
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                rotMatrix.multiplyPoint3(sliceVector);
+                break;
+        }
         
         const float axialDelta(std::round(sliceVector[2] * sliceDelta));
         const float coronalDelta(std::round(sliceVector[1] * sliceDelta));
         const float paraDelta(std::round(sliceVector[0] * sliceDelta));
 
-        //std::cout << "Deltas  P: " << paraDelta << ", C: " << coronalDelta << " A: " << axialDelta << std::endl;
         setSliceCoordinateAxial(getSliceCoordinateAxial() + axialDelta);
         setSliceCoordinateCoronal(getSliceCoordinateCoronal() + coronalDelta);
         setSliceCoordinateParasagittal(getSliceCoordinateParasagittal() + paraDelta);
-
-
-        //std::cout << "   Para: " << (getSliceCoordinateParasagittal());
-        //std::cout << " Coronal: " << (getSliceCoordinateCoronal());
-        //std::cout << " Axial: " << (getSliceCoordinateAxial()) << std::endl;
     }
     else {
         /*
@@ -3326,10 +3448,6 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                                                                 sliceCoordinates,
                                                                                 allSlicesFlag);
 
-                                
-                                double mprRotX, mprRotY, mprRotZ;
-                                m_mprRotationMatrix.getRotation(mprRotX, mprRotY, mprRotZ);
-                                
                                 switch (slicePlane) {
                                     case VolumeSliceViewPlaneEnum::ALL:
                                     {
@@ -3338,36 +3456,50 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                         break;
                                     case VolumeSliceViewPlaneEnum::AXIAL:
                                     {
-                                        if (isClockwise) {
-                                            mprRotZ += mouseDelta;
-                                        }
-                                        else if (isCounterClockwise) {
-                                            mprRotZ -= mouseDelta;
-                                        }
+                                        const float mprRotZ(isClockwise
+                                                            ? mouseDelta
+                                                            : -mouseDelta);
+#ifdef MPR_USE_ROTATION_ANGLES
+                                        m_mprRotationZ += mprRotZ;
+#else
+                                        QQuaternion rotQuat(QQuaternion::fromEulerAngles(0.0, 0.0, mprRotZ));
+                                        m_mprRotationMatrixAll *= rotQuat;
+                                        m_mprRotationMatrixCoronal *= rotQuat;
+                                        m_mprRotationMatrixParasagittal *= rotQuat;
+#endif
                                     }
                                         break;
                                     case VolumeSliceViewPlaneEnum::CORONAL:
                                     {
-                                        if (isClockwise) {
-                                            mprRotY -= mouseDelta;
-                                        }
-                                        else if (isCounterClockwise) {
-                                            mprRotY += mouseDelta;
-                                        }
+                                        const float mprRotY(isClockwise
+                                                            ? - mouseDelta
+                                                            : mouseDelta);
+#ifdef MPR_USE_ROTATION_ANGLES
+                                        m_mprRotationY += mprRotY;
+#else
+                                        QQuaternion rotQuat(QQuaternion::fromEulerAngles(0.0, mprRotY, 0.0));
+                                        m_mprRotationMatrixAll *= rotQuat;
+                                        m_mprRotationMatrixAxial *= rotQuat;
+                                        m_mprRotationMatrixParasagittal *= rotQuat;
+#endif
                                     }
                                         break;
                                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                                     {
-                                        if (isClockwise) {
-                                            mprRotX -= mouseDelta;
-                                        }
-                                        else if (isCounterClockwise) {
-                                            mprRotX += mouseDelta;
-                                        }
-                                    }
+                                        const float mprRotX(isClockwise
+                                                            ? -mouseDelta
+                                                            : mouseDelta);
+#ifdef MPR_USE_ROTATION_ANGLES
+                                        m_mprRotationX += mprRotX;
+#else
+                                        QQuaternion rotQuat(QQuaternion::fromEulerAngles(mprRotX, 0.0, 0.0));
+                                        m_mprRotationMatrixAll *= rotQuat;
+                                        m_mprRotationMatrixAxial *= rotQuat;
+                                        m_mprRotationMatrixCoronal *= rotQuat;
+#endif
+                                   }
                                         break;
                                 }
-                                m_mprRotationMatrix.setRotation(mprRotX, mprRotY, mprRotZ);
                             }
                         }
                     }
@@ -4460,13 +4592,21 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     float mob[4][4];
     obliqueRotationMatrix.getMatrix(mob);
     modelTransform.setObliqueRotation(mob);
-    
-    double mprRotX, mprRotY, mprRotZ;
-    m_mprRotationMatrix.getRotation(mprRotX, mprRotY, mprRotZ);
+
+#ifdef MPR_USE_ROTATION_ANGLES
     const float mprRotationAngles[3] {
-        (float)mprRotX, (float)mprRotY, (float)mprRotZ
+        m_mprRotationX, m_mprRotationY, m_mprRotationZ
     };
     modelTransform.setMprRotationAngles(mprRotationAngles);
+#else
+    const Matrix4x4 mprRotMat(getMprRotationMatrix4x4ForSlicePlane(VolumeSliceViewPlaneEnum::ALL));
+    double mprRotX, mprRotY, mprRotZ;
+    mprRotMat.getRotation(mprRotX, mprRotY, mprRotZ);
+    const float mprRotationAngles[3] {
+        mprRotX, mprRotY, mprRotZ
+    };
+    modelTransform.setMprRotationAngles(mprRotationAngles);
+#endif
     
     const Matrix4x4 flatRotationMatrix = getFlatRotationMatrix();
     float fm[4][4];
@@ -4513,7 +4653,17 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
 
     float mprRotationAngles[3];
     modelTransform.getMprRotationAngles(mprRotationAngles);
-    m_mprRotationMatrix.setRotation(mprRotationAngles[0], mprRotationAngles[1], mprRotationAngles[2]);
+#ifdef MPR_USE_ROTATION_ANGLES
+    m_mprRotationX = mprRotationAngles[0];
+    m_mprRotationY = mprRotationAngles[1];
+    m_mprRotationZ = mprRotationAngles[2];
+#else
+//    setAllMprRotationMatricesToIdentity();
+//    m_mprRotationMatrixAll.setRotation(mprRotationAngles[0], mprRotationAngles[1], mprRotationAngles[2]);
+//    m_mprRotationMatrixAxial.setRotation(mprRotationAngles[0], mprRotationAngles[1], 0.0);
+//    m_mprRotationMatrixCoronal.setRotation(mprRotationAngles[0], 0.0, mprRotationAngles[2]);
+//    m_mprRotationMatrixParasagittal.setRotation(0.0, mprRotationAngles[1], mprRotationAngles[2]);
+#endif
 
     float fm[4][4];
     modelTransform.getFlatRotation(fm);
@@ -4573,13 +4723,6 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     TileTabsBrowserTabGeometrySceneHelper geometryHelper(&manualLayoutTabGeometry);
     sceneClass->addClass(geometryHelper.saveToScene(sceneAttributes,
                                                     "m_manualLayoutTabGeometry"));
-
-    /*
-     * Save rotation matrices.
-     */
-    float matrix[4][4];
-    m_mprRotationMatrix.getMatrix(matrix);
-    sceneClass->addFloatArray("m_mprRotationMatrix", (float*)matrix, 16);
 
     m_sceneClassAssistant->saveMembers(sceneAttributes,
                                        sceneClass);
@@ -4934,17 +5077,6 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                 }
             }
         }
-    }
-
-    /*
-     * Restore rotation matrices.
-     */
-    float matrix[4][4];
-    if (sceneClass->getFloatArrayValue("m_mprRotationMatrix", (float*)matrix, 16) == 16) {
-        m_mprRotationMatrix.setMatrix(matrix);
-    }
-    else {
-        m_mprRotationMatrix.identity();
     }
 
     testForRestoreSceneWarnings(sceneAttributes,

@@ -24,6 +24,8 @@
 #include <memory>
 #include <set>
 
+#include <QQuaternion>
+
 #include "BoundingBox.h"
 #include "CaretObject.h"
 #include "ChartTwoAxisOrientationTypeEnum.h"
@@ -43,6 +45,11 @@
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
 #include "YokingGroupEnum.h"
+
+/*
+ * When defined, uses angles for rotations.
+ */
+#define MPR_USE_ROTATION_ANGLES 1
 
 namespace caret {
 
@@ -83,7 +90,6 @@ namespace caret {
     class VolumeSurfaceOutlineSetModel;
     class WholeBrainSurfaceSettings;
     
-    /// Maintains content in a brower's tab
     class BrowserTabContent : public TabContentBase, public EventListenerInterface, public SceneableInterface {
         
     public:
@@ -276,9 +282,19 @@ namespace caret {
         
         void setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix);
         
-        Matrix4x4 getMprRotationMatrix() const;
+        void resetMprRotations();
+
+#ifdef MPR_USE_ROTATION_ANGLES
+        float getMprRotationX() const;
         
-        void setMprRotationMatrix(const Matrix4x4& mprRotationMatrix);
+        float getMprRotationY() const;
+        
+        float getMprRotationZ() const;
+#else
+        QQuaternion getMprRotationMatrixForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
+#endif
+        
+        Matrix4x4 getMprRotationMatrix4x4ForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
         
         void getRightCortexFlatMapOffset(float& offsetX,
                                          float& offsetY) const;
@@ -687,7 +703,21 @@ namespace caret {
         
         std::unique_ptr<AnnotationScaleBar> m_scaleBar;
         
-        Matrix4x4 m_mprRotationMatrix;
+#ifdef MPR_USE_ROTATION_ANGLES
+        float m_mprRotationX = 0.0;
+        
+        float m_mprRotationY = 0.0;
+        
+        float m_mprRotationZ = 0.0;
+#else
+        QQuaternion m_mprRotationMatrixAll;
+        
+        QQuaternion m_mprRotationMatrixAxial;
+        
+        QQuaternion m_mprRotationMatrixCoronal;
+        
+        QQuaternion m_mprRotationMatrixParasagittal;
+#endif
         
         /** aspect ratio */
         float m_aspectRatio;
