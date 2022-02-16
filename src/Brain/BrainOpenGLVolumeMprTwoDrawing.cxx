@@ -246,7 +246,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const VolumeSliceProject
             break;
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
         {
-            const std::array<float, 3> sliceCoordinates {
+            const Vector3D sliceCoordinates {
                 m_browserTabContent->getSliceCoordinateParasagittal(),
                 m_browserTabContent->getSliceCoordinateCoronal(),
                 m_browserTabContent->getSliceCoordinateAxial()
@@ -322,7 +322,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const VolumeSlice
     
     AString axisLetter = "";
     
-    std::array<float, 3> sliceCoordinates {
+    Vector3D sliceCoordinates {
         m_browserTabContent->getSliceCoordinateParasagittal(),
         m_browserTabContent->getSliceCoordinateCoronal(),
         m_browserTabContent->getSliceCoordinateAxial()
@@ -474,7 +474,7 @@ void
 BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                               const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                              const std::array<float, 3>& sliceCoordinates,
+                                                              const Vector3D& sliceCoordinates,
                                                               const GraphicsViewport& viewport)
 {
     
@@ -663,8 +663,8 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
                                                 const VolumeMappableInterface* underlayVolume,
                                                 const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                const std::array<float, 3>& sliceCoordinates,
-                                                const bool allSliceViewFlag)
+                                                const Vector3D& sliceCoordinates,
+                                                const bool allSliceViewFlag) const
 {
     SliceInfo sliceInfo;
     
@@ -971,7 +971,7 @@ BrainOpenGLVolumeMprTwoDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* pr
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::drawPanningCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                      const std::array<float, 3>& crossHairXYZ,
+                                                      const Vector3D& crossHairXYZ,
                                                       const GraphicsViewport& viewport)
 {
     SelectionItemVolumeMprCrosshair* crosshairID(m_brain->getSelectionManager()->getVolumeMprCrosshairIdentification());
@@ -1279,7 +1279,7 @@ BrainOpenGLVolumeMprTwoDrawing::getAxisColor(const VolumeSliceViewPlaneEnum::Enu
 void
 BrainOpenGLVolumeMprTwoDrawing::drawCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                               const std::array<float, 3>& sliceCoordinates,
+                                               const Vector3D& sliceCoordinates,
                                                const GraphicsViewport& viewport)
 {
     /*
@@ -1288,9 +1288,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawCrosshairs(const VolumeSliceProjectionTypeEn
     EventOpenGLObjectToWindowTransform transformEvent(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
     EventManager::get()->sendEvent(transformEvent.getPointer());
         
-    std::array<float, 3> crossHairXYZ;
-    transformEvent.transformPoint(sliceCoordinates.data(),
-                                  crossHairXYZ.data());
+    Vector3D crossHairXYZ;
+    transformEvent.transformPoint(sliceCoordinates,
+                                  crossHairXYZ);
 
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
@@ -1747,7 +1747,7 @@ void
 BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInfo,
                                                        const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                       const std::array<float, 3>& sliceCoordinates,
+                                                       const Vector3D& sliceCoordinates,
                                                        const GraphicsViewport& viewport)
 {
     /*
@@ -1835,14 +1835,14 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                                                                                               m_tabIndex));
                 
                 if (primitive != NULL) {
-                    std::array<float, 3> maxStr = { 1.0, 1.0, 1.0 };
-                    std::array<float, 3> textureBottomLeft;
+                    Vector3D maxStr = { 1.0, 1.0, 1.0 };
+                    Vector3D textureBottomLeft;
                     getTextureCoordinates(volumeInterface, sliceInfo.m_bottomLeftXYZ, maxStr, textureBottomLeft);
-                    std::array<float, 3> textureBottomRight;
+                    Vector3D textureBottomRight;
                     getTextureCoordinates(volumeInterface, sliceInfo.m_bottomRightXYZ, maxStr, textureBottomRight);
-                    std::array<float, 3> textureTopLeft;
+                    Vector3D textureTopLeft;
                     getTextureCoordinates(volumeInterface, sliceInfo.m_topLeftXYZ, maxStr, textureTopLeft);
-                    std::array<float, 3> textureTopRight;
+                    Vector3D textureTopRight;
                     getTextureCoordinates(volumeInterface, sliceInfo.m_topRightXYZ, maxStr, textureTopRight);
                     
                     primitive->replaceVertexFloatXYZ(0, sliceInfo.m_bottomLeftXYZ);
@@ -1850,10 +1850,10 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                     primitive->replaceVertexFloatXYZ(2, sliceInfo.m_topLeftXYZ);
                     primitive->replaceVertexFloatXYZ(3, sliceInfo.m_topRightXYZ);
                     
-                    primitive->replaceVertexTextureSTR(0, textureBottomLeft.data());
-                    primitive->replaceVertexTextureSTR(1, textureBottomRight.data());
-                    primitive->replaceVertexTextureSTR(2, textureTopLeft.data());
-                    primitive->replaceVertexTextureSTR(3, textureTopRight.data());
+                    primitive->replaceVertexTextureSTR(0, textureBottomLeft);
+                    primitive->replaceVertexTextureSTR(1, textureBottomRight);
+                    primitive->replaceVertexTextureSTR(2, textureTopLeft);
+                    primitive->replaceVertexTextureSTR(3, textureTopRight);
                     
                     bool discreteFlag(false);
                     bool magNearestFlag(false);
@@ -1984,10 +1984,10 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
         const float maxZ(boundingBox.getMaxZ());
         
         const float d(4.0);
-        std::array<float, 3> bottomLeft;
-        std::array<float, 3> bottomRight;
-        std::array<float, 3> topRight;
-        std::array<float, 3> topLeft;
+        Vector3D bottomLeft;
+        Vector3D bottomRight;
+        Vector3D topRight;
+        Vector3D topLeft;
         switch (sliceViewPlane) {
             case VolumeSliceViewPlaneEnum::ALL:
                 CaretAssert(0);
@@ -2057,8 +2057,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
 bool
 BrainOpenGLVolumeMprTwoDrawing::getTextureCoordinates(const VolumeMappableInterface* volumeMappableInterface,
                                                       const Vector3D& xyz,
-                                                      const std::array<float, 3>& maxStr,
-                                                      std::array<float, 3>& strOut)
+                                                      const Vector3D& maxStr,
+                                                      Vector3D& strOut)
 {
     std::vector<int64_t> dims(5);
     volumeMappableInterface->getDimensions(dims);
@@ -2066,15 +2066,15 @@ BrainOpenGLVolumeMprTwoDrawing::getTextureCoordinates(const VolumeMappableInterf
     
     {
         const VolumeSpace& volumeSpace = volumeMappableInterface->getVolumeSpace();
-        std::array<float, 3> ijk;
-        volumeSpace.spaceToIndex(xyz, ijk.data());
+        Vector3D ijk;
+        volumeSpace.spaceToIndex(xyz, ijk);
         
-        const std::array<float, 3> normalizedIJK {
+        const Vector3D normalizedIJK {
             (ijk[0] / dims[0]),
             (ijk[1] / dims[1]),
             (ijk[2] / dims[2])
         };
-        std::array<float, 3> str {
+        Vector3D str {
             (normalizedIJK[0] * maxStr[0]),
             (normalizedIJK[1] * maxStr[1]),
             (normalizedIJK[2] * maxStr[2])
@@ -2322,16 +2322,6 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
 }
 
 /**
- * Delete any static members
- */
-void
-BrainOpenGLVolumeMprTwoDrawing::deleteStaticMembers()
-{
-    s_identificationPrimitive.reset();
-    s_idRgbToIJ.clear();
-}
-
-/**
  * Draw the layers type data.
  *
  * @param sliceDrawingType
@@ -2347,10 +2337,10 @@ BrainOpenGLVolumeMprTwoDrawing::deleteStaticMembers()
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum /*sliceDrawingType*/,
-                                          const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                          const Plane& slicePlane,
-                                        const std::array<float, 3>& sliceCoordinates)
+                                           const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                           const Plane& slicePlane,
+                                           const Vector3D& sliceCoordinates)
 {
     bool drawFibersFlag     = true;
     bool drawOutlineFlag    = true;
@@ -2382,7 +2372,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enu
                                                                   ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
                                                                   sliceProjectionType,
                                                                   sliceViewPlane,
-                                                                  sliceCoordinates.data(),
+                                                                  sliceCoordinates,
                                                                   slicePlane,
                                                                   m_browserTabContent->getVolumeSurfaceOutlineSet(),
                                                                   m_fixedPipelineDrawing,

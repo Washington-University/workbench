@@ -76,15 +76,13 @@ namespace caret {
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                   const GraphicsViewport& viewport);
 
-        static void deleteStaticMembers();
-        
-        static SliceInfo createSliceInfo(const BrowserTabContent* browserTabContent,
-                                         const VolumeMappableInterface* underlayVolume,
-                                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                         const std::array<float, 3>& sliceCoordinates,
-                                         const bool allSliceViewFlag);
-        
+        SliceInfo createSliceInfo(const BrowserTabContent* browserTabContent,
+                                  const VolumeMappableInterface* underlayVolume,
+                                  const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                  const Vector3D& sliceCoordinates,
+                                  const bool allSliceViewFlag) const;
+
         // ADD_NEW_METHODS_HERE
         
     private:
@@ -96,7 +94,7 @@ namespace caret {
         void drawVolumeSliceViewProjection(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                            const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                           const std::array<float, 3>& sliceCoordinates,
+                                           const Vector3D& sliceCoordinates,
                                            const GraphicsViewport& viewport);
         
         void setOrthographicProjection(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
@@ -109,13 +107,13 @@ namespace caret {
         void drawSliceWithPrimitive(const SliceInfo& sliceInfo,
                                     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                    const std::array<float, 3>& sliceCoordinates,
+                                    const Vector3D& sliceCoordinates,
                                     const GraphicsViewport& viewport);
         
         static bool getTextureCoordinates(const VolumeMappableInterface* volumeMappableInterface,
                                           const Vector3D& xyz,
-                                          const std::array<float, 3>& maxStr,
-                                          std::array<float, 3>& strOut);
+                                          const Vector3D& maxStr,
+                                          Vector3D& strOut);
 
         void performPlaneIdentification(const SliceInfo& sliceInfo,
                                         VolumeMappableInterface* volumeInterface,
@@ -151,11 +149,11 @@ namespace caret {
 
         void drawCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                            const std::array<float, 3>& sliceCoordinates,
+                            const Vector3D& sliceCoordinates,
                             const GraphicsViewport& viewport);
         
         void drawPanningCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                   const std::array<float, 3>& crossHairXYZ,
+                                   const Vector3D& crossHairXYZ,
                                    const GraphicsViewport& viewport);
         
         void drawAxisLabels(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
@@ -168,7 +166,7 @@ namespace caret {
                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                         const Plane& slicePlane,
-                        const std::array<float, 3>& sliceCoordinates);
+                        const Vector3D& sliceCoordinates);
         
         void drawVolumeSliceViewTypeMontage(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                             const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
@@ -199,10 +197,6 @@ namespace caret {
         
         bool m_allSliceViewFlag = false;
         
-        static std::unique_ptr<GraphicsPrimitiveV3fT3f> s_identificationPrimitive;
-        
-        static std::map<std::array<uint8_t, 3>, std::array<int32_t, 2>> s_idRgbToIJ;
-        
         static float s_idNumRows;
         
         static float s_idNumCols;
@@ -212,10 +206,6 @@ namespace caret {
     };
     
 #ifdef __BRAIN_OPEN_G_L_VOLUME_MPR_TWO_DRAWING_DECLARE__
-    std::unique_ptr<GraphicsPrimitiveV3fT3f> BrainOpenGLVolumeMprTwoDrawing::s_identificationPrimitive;
-    
-    std::map<std::array<uint8_t, 3>, std::array<int32_t, 2>> BrainOpenGLVolumeMprTwoDrawing::s_idRgbToIJ;
-    
     float BrainOpenGLVolumeMprTwoDrawing::s_idNumRows = 0.0;
     
     float BrainOpenGLVolumeMprTwoDrawing::s_idNumCols = 0.0;

@@ -234,7 +234,6 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     this->colorIdentification = NULL;
     
     GraphicsShape::deleteAllPrimitives();
-    BrainOpenGLVolumeMprTwoDrawing::deleteStaticMembers();
 }
 
 /**

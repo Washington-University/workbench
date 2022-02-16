@@ -3434,19 +3434,19 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                 float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
                                                                                 + (mouseDeltaY * mouseDeltaY)));
                                 
-                                std::array<float, 3> sliceCoordinates {
-                                    getSliceCoordinateParasagittal(),
-                                    getSliceCoordinateCoronal(),
-                                    getSliceCoordinateAxial()
-                                };
-                                const bool allSlicesFlag(false);
-                                BrainOpenGLVolumeMprTwoDrawing::SliceInfo sliceInfo =
-                                BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(this,
-                                                                                getOverlaySet()->getUnderlayVolume(),
-                                                                                getSliceProjectionType(),
-                                                                                slicePlane,
-                                                                                sliceCoordinates,
-                                                                                allSlicesFlag);
+//                                std::array<float, 3> sliceCoordinates {
+//                                    getSliceCoordinateParasagittal(),
+//                                    getSliceCoordinateCoronal(),
+//                                    getSliceCoordinateAxial()
+//                                };
+//                                const bool allSlicesFlag(false);
+//                                BrainOpenGLVolumeMprTwoDrawing::SliceInfo sliceInfo =
+//                                BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(this,
+//                                                                                getOverlaySet()->getUnderlayVolume(),
+//                                                                                getSliceProjectionType(),
+//                                                                                slicePlane,
+//                                                                                sliceCoordinates,
+//                                                                                allSlicesFlag);
 
                                 switch (slicePlane) {
                                     case VolumeSliceViewPlaneEnum::ALL:

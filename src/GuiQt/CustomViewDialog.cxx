@@ -1018,9 +1018,9 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                 
                 const float rightFlatZoom = btc->getRightCortexFlatMapZoomFactor();
                 
-                Matrix4x4 mprRotationMatrix(btc->getMprRotationMatrix4x4ForSlicePlane(VolumeSliceViewPlaneEnum::ALL));
-                double mprRotX, mprRotY, mprRotZ;
-                mprRotationMatrix.getRotation(mprRotX, mprRotY, mprRotZ);
+                const float mprRotX(btc->getMprRotationX());
+                const float mprRotY(btc->getMprRotationY());
+                const float mprRotZ(btc->getMprRotationZ());
 
                 setTransformationControlValues(panning[0],
                                                panning[1],
