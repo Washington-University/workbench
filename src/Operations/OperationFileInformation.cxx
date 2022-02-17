@@ -245,14 +245,14 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     try
     {
         caretDataFile.grabNew(CaretDataFileHelper::readAnyCaretDataFile(dataFileName, preferOnDisk));
-    } catch (...) {//still fails if the Cifti XML has a nonstandard mapping combination
+    } catch (CaretException& myexcept) {//still fails if the Cifti XML has a nonstandard mapping combination
         try
         {
             CiftiMappableDataFile::getDataFileContentInformationForGenericCiftiFile(dataFileName, nonstandardInfo);
             nonstandardCifti.openFile(dataFileName);
             nonstandardMD = nonstandardCifti.getCiftiXML().getFileMetaData();
-        } catch (...) {
-            throw OperationException("unable to open file '" + dataFileName + "', check the format and file extension");
+        } catch (CaretException&) {
+            throw myexcept;//if it fails, throw the first exception, as that is probably more informative
         }
     }
     //readAnyCaretDataFile now handles cifti files with the wrong extension
