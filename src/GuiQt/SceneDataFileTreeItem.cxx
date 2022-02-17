@@ -57,7 +57,10 @@ m_itemType(itemType)
     FileInformation fileInfo(absolutePathName);
     if ( ! fileInfo.exists()) {
         setText(text
-                + " <NOT FOUND>");
+                + "  --NOT FOUND--");
+        QBrush fg(foreground());
+        fg.setColor(Qt::red);
+        setForeground(fg);
     }
     
     setColumnCount(1);

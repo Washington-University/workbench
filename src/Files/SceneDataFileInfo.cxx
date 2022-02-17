@@ -160,6 +160,8 @@ SceneDataFileInfo::copyHelperSceneDataFileInfo(const SceneDataFileInfo& obj)
     m_dataFileName            = obj.m_dataFileName;
     m_relativePathToBasePath  = obj.m_relativePathToBasePath;
     m_relativePathToSceneFile = obj.m_relativePathToSceneFile;
+    m_remoteFlag              = obj.m_remoteFlag;
+    m_missingFlag             = obj.m_missingFlag;
     m_sceneIndices            = obj.m_sceneIndices;
 }
 

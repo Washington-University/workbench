@@ -64,7 +64,9 @@ namespace caret {
         
         const SceneFile* m_sceneFile;
         
-        QTextEdit* m_textEdit;
+        QTextEdit* m_listTextEdit;
+        
+        QTextEdit* m_sceneTextEdit;
         
         QTreeView* m_sceneFileHierarchyTreeView;
         

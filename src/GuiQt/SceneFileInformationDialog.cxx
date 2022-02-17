@@ -34,6 +34,7 @@
 
 #include "CaretAssert.h"
 #include "CursorDisplayScoped.h"
+#include "DataFileContentInformation.h"
 #include "FileInformation.h"
 #include "SceneDataFileTreeItemModel.h"
 #include "SceneFile.h"
@@ -63,6 +64,11 @@ SceneFileInformationDialog::SceneFileInformationDialog(const SceneFile* sceneFil
                     parent),
 m_sceneFile(sceneFile)
 {
+    SceneFile* nonConstSceneFile(NULL);
+    if (m_sceneFile != NULL) {
+        nonConstSceneFile = const_cast<SceneFile*>(m_sceneFile);
+    }
+    
     setDeleteWhenClosed(true);
     setApplyButtonText("");
     
@@ -79,14 +85,25 @@ m_sceneFile(sceneFile)
     m_sceneFilePathLineEdit = new QLineEdit();
     m_sceneFilePathLineEdit->setReadOnly(true);
     
-    m_textEdit = new QTextEdit();
-    
+    m_listTextEdit = new QTextEdit();
+    m_listTextEdit->setLineWrapMode(QTextEdit::NoWrap);
+
+    m_sceneTextEdit = new QTextEdit();
+    if (nonConstSceneFile != NULL) {
+        DataFileContentInformation dataFileInformation;
+        nonConstSceneFile->addToDataFileContentInformation(dataFileInformation);
+        m_sceneTextEdit->setText(dataFileInformation.getInformationInString());
+        m_sceneTextEdit->setReadOnly(true);
+        m_sceneTextEdit->setLineWrapMode(QTextEdit::NoWrap);
+    }
+
     m_sceneFileHierarchyTreeView = new QTreeView();
     m_sceneFileHierarchyTreeView->setHeaderHidden(true);
     
     QTabWidget* tabWidget = new QTabWidget();
     tabWidget->addTab(m_sceneFileHierarchyTreeView, "Hierarchy");
-    tabWidget->addTab(m_textEdit, "List");
+    tabWidget->addTab(m_listTextEdit, "List");
+    tabWidget->addTab(m_sceneTextEdit, "Scenes");
     
     QGridLayout* namesLayout = new QGridLayout();
     int32_t nameLayoutRow(0);
@@ -223,24 +240,25 @@ SceneFileInformationDialog::displayFilesList(const SceneFileBasePathTypeEnum::En
             pathName.append("/ ");
         }
         
+        const FileInformation fileInfo(fileData.getAbsolutePathAndFileName());
         if (fileData.isMissing()) {
-            missingText = "<NOT FOUND> ";
+            missingText = "<html><font color=red>--NOT FOUND--</font></html>";
         }
         
         text.append("<li> "
-                    + missingText
                     + pathName
                     + fileData.getDataFileName()
                     + " ("
                     + fileData.getSceneIndicesAsString()
-                    + ")");
+                    + ") "
+                    + missingText);
     }
     
     text.append("</ul>");
     text.append("</html>");
     
-    m_textEdit->clear();
-    m_textEdit->setHtml(text);
+    m_listTextEdit->clear();
+    m_listTextEdit->setHtml(text);
 }
 
 /**
@@ -271,6 +289,7 @@ SceneFileInformationDialog::displayFilesHierarchy()
     m_sceneFileHierarchyTreeView->setModel(m_sceneFileHierarchyTreeModel.get());
     m_sceneFileHierarchyTreeView->expandAll();
 }
+
 
 
 
