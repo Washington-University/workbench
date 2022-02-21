@@ -27,6 +27,8 @@
 #include <stdint.h>
 
 namespace caret {
+    class Vector3D;
+    
     class AString : public QString
     {
     public:
@@ -81,20 +83,21 @@ namespace caret {
         bool toBool() const;
                 
         //I may move these outside the class since they don't require access to the class's internals
-        static AString fromNumbers(const std::vector<uint8_t>& v, const AString& separator);
-        static AString fromNumbers(const std::vector<int8_t>& v, const AString& separator);
-        static AString fromNumbers(const std::vector<int32_t>& v, const AString& separator);
-        static AString fromNumbers(const std::vector<uint32_t>& v, const AString& separator);
-        static AString fromNumbers(const std::vector<int64_t>& v, const AString& separator);
-        static AString fromNumbers(const std::vector<uint64_t>& v, const AString& separator);
-        static AString fromNumbers(const std::vector<float>& v, const AString& separator, const char format = 'g', const int32_t precision = 6);
-        static AString fromNumbers(const std::vector<double>& v, const AString& separator, const char format = 'g', const int32_t precision = 6);
-        static AString fromNumbers(const float* array, const int64_t numberOfElements, const AString& separator, char format = 'g', const int32_t precision = 6);
-        static AString fromNumbers(const uint8_t* array,const int64_t numberOfElements, const AString& separator);
-        static AString fromNumbers(const int8_t* array,const int64_t numberOfElements, const AString& separator);
-        static AString fromNumbers(const int32_t* array,const int64_t numberOfElements, const AString& separator);
-        static AString fromNumbers(const int64_t* array,const int64_t numberOfElements, const AString& separator);
-        static AString fromNumbers(const double* array, const int64_t numberOfElements, const AString& separator, const char format = 'g', const int32_t precision = 6);
+        static AString fromNumbers(const std::vector<uint8_t>& v, const AString& separator = ", ");
+        static AString fromNumbers(const std::vector<int8_t>& v, const AString& separator = ", ");
+        static AString fromNumbers(const std::vector<int32_t>& v, const AString& separator = ", ");
+        static AString fromNumbers(const std::vector<uint32_t>& v, const AString& separator = ", ");
+        static AString fromNumbers(const std::vector<int64_t>& v, const AString& separator = ", ");
+        static AString fromNumbers(const std::vector<uint64_t>& v, const AString& separator = ", ");
+        static AString fromNumbers(const Vector3D& v, const AString& separator = ", ", const char format = 'g', const int32_t precision = 6);
+        static AString fromNumbers(const std::vector<float>& v, const AString& separator = ", ", const char format = 'g', const int32_t precision = 6);
+        static AString fromNumbers(const std::vector<double>& v, const AString& separator = ", ", const char format = 'g', const int32_t precision = 6);
+        static AString fromNumbers(const float* array, const int64_t numberOfElements, const AString& separator = ", ", char format = 'g', const int32_t precision = 6);
+        static AString fromNumbers(const uint8_t* array,const int64_t numberOfElements, const AString& separator = ", ");
+        static AString fromNumbers(const int8_t* array,const int64_t numberOfElements, const AString& separator = ", ");
+        static AString fromNumbers(const int32_t* array,const int64_t numberOfElements, const AString& separator = ", ");
+        static AString fromNumbers(const int64_t* array,const int64_t numberOfElements, const AString& separator = ", ");
+        static AString fromNumbers(const double* array, const int64_t numberOfElements, const AString& separator = ", ", const char format = 'g', const int32_t precision = 6);
         static AString fromBool(const bool b);
         
         AString replaceHtmlSpecialCharactersWithEscapeCharacters() const;
@@ -106,7 +109,7 @@ namespace caret {
         static std::vector<AString> stringListToVector(const QStringList& stringList);
         
         static AString join(const std::vector<AString>& elements,
-                            const AString& separator);
+                            const AString& separator = ", ");
         
         static int32_t matchingCount(const std::vector<AString>& v1,
                                      const std::vector<AString>& v2);

@@ -24,6 +24,7 @@
 #include "AString.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "Vector3D.h"
 #include <iostream>
 
 using namespace caret;
@@ -172,6 +173,36 @@ AString::fromNumbers(const std::vector<uint64_t>& v, const AString& separator)
     return s;
 }
 
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @param format
+ *   e format as [-]9.9e[+|-]999
+ *   E format as [-]9.9E[+|-]999
+ *   f format as [-]9.9
+ *   g use e or f format, whichever is the most concise
+ *   G use E or f format, whichever is the most concise
+ * @param precision
+ *   Maximum number of digits following decimal.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const Vector3D& v, const AString& separator, char format, const int32_t precision)
+{
+    AString s;
+    for (int32_t i = 0; i < 3; i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(v[i], format, precision);
+    }
+    return s;
+}
 
 /**
  * Convert a vector of values into a string.
