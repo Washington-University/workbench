@@ -98,6 +98,7 @@ OperationParameters* AlgorithmCiftiParcellate::getParameters()
         CiftiXML::directionFromStringExplanation() + "  " +
         "For dtseries or dscalar, use COLUMN.  " +
         "If you are parcellating a dconn in both directions, parcellating by ROW first will use much less memory.\n\n" +
+        "NOTE: the parcels in the output file are sorted by the numeric label keys, in ascending order.\n\n" +
         "The parameter to the -method option must be one of the following:\n\n" + ReductionOperation::getHelpInfo() +
         "\nThe -*-weights options are mutually exclusive and may only be used with MEAN (default), SUM, STDEV, SAMPSTDEV, VARIANCE, MEDIAN, or MODE (default for label data)."
     );
