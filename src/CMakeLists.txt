@@ -52,6 +52,16 @@ set (WORKBENCH_USE_QT5_QOPENGL_WIDGET FALSE CACHE BOOL
 set (WORKBENCH_MESA_DIR "" CACHE PATH 
      "Directory containing Mesa's 'include' and 'lib' <NEWLINE>directories.  Mesa is optional and used by <NEWLINE>wb_command's -show-scene operation.")
 
+#
+# Use when FindOpenMP does not work such as on Macs
+#
+set (WORKBENCH_OPENMP_COMPILER_FLAGS "" CACHE STRING
+    "OpenMP compiler flags for when FindOpenMP does not work")
+set (WORKBENCH_OPENMP_INCLUDE_DIR    "" CACHE STRING
+    "OpenMP include directory for when FindOpenMP does not work")
+set (WORKBENCH_OPENMP_LIBRARY        "" CACHE STRING
+    "OpenMP library path (path and lib) for when FindOpenMP does not work")
+
 ##########################################################################################
 #
 # Setting the compiler MUST be done before the PROJECT
@@ -379,30 +389,34 @@ ENDIF()
 
 ##########################################################################################
 #
-# The Find OpenMP package may not work on all systems and the user may
-# furnish the paths to the OpenMP files by using environment variables.
+# The Find OpenMP package may not work on Macs as OpenMP is not part of 
+# Apple's Developer Tools.  The OpenMP library may be installed but
+# CMake's FindOpenMP may not find it on Apple (it may if Brew is used
+# to install OpenMP according to "Modern CMake").
 #
-# The environment variables are:
-#    OPENMP_COMPILE_OPTION=-fopenmp
-#    OPENMP_HEADER_DIR=/usr/local/clang-openmp-opt/llvm/build/Release/include
-#    OPENMP_LIB_DIR=/usr/local/clang-openmp-opt/llvm/build/Release/lib
+# These variables may be used to define OpenMP:
+#    WORKBENCH_OPENMP_COMPILER_FLAGS="-Xclang -fopenmp"
+#    WORKBENCH_OPENMP_INCLUDE_DIR=<path>/openmp-13.0.0/include
+#    WORKBENCH_OPENMP_LIBRARY=<path>/openmp-13.0.0/lib/libomp.a
 #
+UNSET(OPENMP_LIBRARY)
 UNSET(OPENMP_FOUND)
-IF (EXISTS $ENV{OPENMP_HEADER_DIR})
-    MESSAGE("OpenMP Header File:  $ENV{OPENMP_HEADER_DIR}")
-    IF (EXISTS $ENV{OPENMP_LIB_DIR})
-        MESSAGE("OpenMP Library File: $ENV{OPENMP_LIB_DIR}")
-        SET (STUFF $ENV{OPENMP_COMPILE_OPTION})
-        IF (DEFINED STUFF)
-            MESSAGE("OpenMP Compiler Option: $ENV{OPENMP_COMPILE_OPTION}")
-            SET(OpenMP_CXX_FLAGS "-I$ENV{OPENMP_HEADER_DIR} $ENV{OPENMP_COMPILE_OPTION}")
-            SET(OpenMP_C_FLAGS "-I$ENV{OPENMP_HEADER_DIR} $ENV{OPENMP_COMPILE_OPTION}")
-            SET(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -L$ENV{OPENMP_LIB_DIR})
-            SET(OPENMP_FOUND TRUE)
-        ENDIF (DEFINED STUFF)
-    ENDIF (EXISTS $ENV{OPENMP_LIB_DIR})
-ENDIF (EXISTS $ENV{OPENMP_HEADER_DIR})
-    
+IF (EXISTS ${WORKBENCH_OPENMP_INCLUDE_DIR})
+    MESSAGE("OpenMP Header File:  ${WORKBENCH_OPENMP_INCLUDE_DIR}")
+    IF (EXISTS ${WORKBENCH_OPENMP_LIBRARY})
+        MESSAGE("OpenMP Library File: ${WORKBENCH_OPENMP_LIBRARY}")
+        SET (STUFF ${WORKBENCH_OPENMP_COMPILER_FLAGS})
+         IF (DEFINED STUFF)
+            MESSAGE("OpenMP Compiler Option: ${WORKBENCH_OPENMP_COMPILER_FLAGS}")
+            SET(OpenMP_CXX_FLAGS "-I${WORKBENCH_OPENMP_INCLUDE_DIR} ${WORKBENCH_OPENMP_COMPILER_FLAGS}")
+            SET(OpenMP_C_FLAGS "-I${WORKBENCH_OPENMP_INCLUDE_DIR} ${WORKBENCH_OPENMP_COMPILER_FLAGS}")
+            SET(OPENMP_LIBRARY ${WORKBENCH_OPENMP_LIBRARY})
+#            SET(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -L$ENV{OPENMP_LIB_DIR})
+             SET(OPENMP_FOUND TRUE)
+        ENDIF ()
+    ENDIF ()
+ENDIF ()
+
 #
 # IF OpenMP not found through environment variables,
 # Use CMAKE's Find OpenMP module
