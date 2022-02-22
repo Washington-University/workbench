@@ -243,6 +243,7 @@ namespace caret {
         
         void processDevelopGraphicsTiming();
         void processDevelopGraphicsTimingDuration();
+        void processDevelopOpenMPTesting();
 
         void processDevelopExportVtkFile();
         void processDevelopCziFileTransformTesting();
@@ -438,6 +439,7 @@ namespace caret {
         QAction* m_developerGraphicsTimingDurationAction;
         QAction* m_developerExportVtkFileAction;
         QAction* m_developerCziFileTransformTestingAction;
+        QAction* m_developerOpenMPTestingAction;
         
         QAction* m_overlayToolBoxAction;
         

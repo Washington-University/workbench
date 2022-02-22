@@ -1705,6 +1705,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processDevelopGraphicsTimingDuration()));
     
+    m_developerOpenMPTestingAction =
+    WuQtUtilities::createAction("Test OpenMP...",
+                                "Test OpenMP with a parallel for loop",
+                                this,
+                                this,
+                                SLOT(processDevelopOpenMPTesting()));
+    
     m_developerExportVtkFileAction =
     WuQtUtilities::createAction("Export to VTK File",
                                 "Export model(s) to VTK File",
@@ -1800,7 +1807,9 @@ BrainBrowserWindow::createMenuDevelop()
     if ( ! menu->isEmpty()) {
         menu->addSeparator();
     }
-    
+    menu->addAction(m_developerOpenMPTestingAction);
+
+    menu->addSeparator();
     menu->addAction(m_developerGraphicsTimingAction);
     menu->addAction(m_developerGraphicsTimingDurationAction);
     
@@ -2874,6 +2883,36 @@ BrainBrowserWindow::processDevelopGraphicsTimingDuration()
         WuQMessageBox::informationOk(this,
                                      text);
     }
+}
+
+/**
+ * Test OpenMP
+ */
+void
+BrainBrowserWindow::processDevelopOpenMPTesting()
+{
+#ifdef _OPENMP
+    AString message("<html>Maximum number of threads: "
+                    + AString::number(omp_get_max_threads())
+                    + "<br>This list of numbers is unlikely to be sequential if OpenMP is functioning:<br>");
+    
+    /*
+     * Small loop run in parallel
+     */
+    CaretMutex mutex;
+#pragma omp CARET_PARFOR
+    for (int64_t i = 0; i < 100; i++) {
+        CaretMutexLocker locked(&mutex);
+        message.append(" "
+                       + AString::number(i));
+    }
+    message.append("</html>");
+    WuQMessageBox::informationOk(this,
+                                 message);
+#else
+    WuQMessageBox::informationOk(this,
+                                 "<html>This version of wb_view was built without OpenMP Support.</html>");
+#endif
 }
 
 /**
