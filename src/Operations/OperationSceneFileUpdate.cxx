@@ -82,12 +82,19 @@ OperationSceneFileUpdate::getParameters()
     ret->addStringParameter(PARAM_KEY_SCENE_NAME_NUMBER, "scene-name-or-number", "name or number (starting at one) of the scene in the scene file");
     
     
-    const QString copyMapOnePaletteToAllMapsSwitch("-copy-map-one-palette-to-all-maps");
-    OptionalParameter* copyMapOnePaletteOpt = ret->createOptionalParameter(PARAM_OPTION_KEY_COPY_MAP_ONE_PALETTE,
-                                                                           copyMapOnePaletteToAllMapsSwitch,
-                                                                           "Copy palettes settings from first map to all maps in a data file");
-    copyMapOnePaletteOpt->addStringParameter(1, "Data File Name", "Name of palette mapped data file (cifti, metric, volume)");
+    const QString copyMapOnePaletteToAllMapsSwitch("-copy-map-one-palette");
+//    OptionalParameter* copyMapOnePaletteOpt = ret->createOptionalParameter(PARAM_OPTION_KEY_COPY_MAP_ONE_PALETTE,
+//                                                                           copyMapOnePaletteToAllMapsSwitch,
+//                                                                           "Copy palettes settings from first map to all maps in a data file");
+//    copyMapOnePaletteOpt->addStringParameter(1, "Data File Name", "Name of palette mapped data file (cifti, metric, volume)");
 
+
+    ParameterComponent* copyMapOnePaletteOpt = ret->createRepeatableParameter(PARAM_OPTION_KEY_COPY_MAP_ONE_PALETTE,
+                                                                  copyMapOnePaletteToAllMapsSwitch,
+                                                                  "Copy palettes settings from first map to all maps in a data file");
+    copyMapOnePaletteOpt->addStringParameter(1, "Data File Name Suffix", "Name of palette mapped data file (cifti, metric, volume)");
+
+    
     
     AString helpText("This command will update a scene for specific changes in data files.\n"
                      "\n\""
@@ -97,9 +104,10 @@ OperationSceneFileUpdate::getParameters()
                      "is typically used when the number of maps in a data file changes.  It "
                      "changes the palette settings in the scene that are applied to the data file when the scene "
                      "is loaded (the data file is not modified).  The name of the data file specified on the "
-                     "command line is matched to the end of "
-                     "file names in the scene.  Only the file name is needed but a relative path may be included "
-                     "for instances where there is more than one file with the same name but in different paths."
+                     "command line is matched to the end of file names in the scene.  This allows matching multiple "
+                     "files if their names end with the same characters.  It also allows including a relative path "
+                     "when there is more than one file with the same name but in different paths and only one of the "
+                     "files to be updated."
                      );
     
     ret->setHelpText(helpText);
@@ -120,10 +128,11 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
     AString sceneNameOrNumber = myParams->getString(PARAM_KEY_SCENE_NAME_NUMBER);
     
     int32_t optionsCounter(0);
-    AString copyMapOneDataFileName;
-    OptionalParameter* copyMapOnePaletteOpt(myParams->getOptionalParameter(PARAM_OPTION_KEY_COPY_MAP_ONE_PALETTE));
-    if (copyMapOnePaletteOpt->m_present) {
-        copyMapOneDataFileName = copyMapOnePaletteOpt->getString(1);
+    
+    std::vector<AString> copyMapOneDataFileNames;
+    const std::vector<ParameterComponent*>& copyMapOneInstances = myParams->getRepeatableParameterInstances(PARAM_OPTION_KEY_COPY_MAP_ONE_PALETTE);
+    for (ParameterComponent* copyMapPC : copyMapOneInstances) {
+        copyMapOneDataFileNames.push_back(copyMapPC->getString(1));
         ++optionsCounter;
     }
     
@@ -198,7 +207,7 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
 
     bool sceneUpdatedFlag(false);
     
-    if (! copyMapOneDataFileName.isEmpty()) {
+    if (! copyMapOneDataFileNames.empty()) {
         /*
          * Get all mappable data files
          */
@@ -208,24 +217,40 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
         mapFilesEvent.getAllFiles(allDataFiles);
         
         /*
-         * Find the file input by user and update the file
+         * Loop through map files in memory loaded by scene
          */
         bool mapPalettesUpdatedFlag(false);
         for (auto& mapFile : allDataFiles) {
-            if (mapFile->getFileName().endsWith(copyMapOneDataFileName)) {
-                if (mapFile->isMappedWithPalette()) {
-                    const int32_t updateCount(updateScenePaletteXML(scene,
-                                                                    &sceneAttributes,
-                                                                    mapFile,
-                                                                    copyMapOneDataFileName));
-                    if (updateCount > 0) {
-                        mapPalettesUpdatedFlag = true;
-                        sceneUpdatedFlag = true;
+            /*
+             * Loop through names of files specified by user
+             */
+            for (AString& copyMapFileName : copyMapOneDataFileNames) {
+                bool exitInnerLoopFlag(false);
+                if (mapFile->getFileName().endsWith(copyMapFileName)) {
+                    if (mapFile->isMappedWithPalette()) {
+                        std::cout << "Updating palettes in scene for: " << mapFile->getFileNameNoPath() << std::endl;
+                        const int32_t updateCount(updateScenePaletteXML(scene,
+                                                                        &sceneAttributes,
+                                                                        mapFile,
+                                                                        copyMapFileName));
+                        if (updateCount > 0) {
+                            mapPalettesUpdatedFlag = true;
+                            sceneUpdatedFlag = true;
+                            
+                            /*
+                             * Do not need to process 'mapFile' again so exit names loop
+                             */
+                            exitInnerLoopFlag = true;
+                        }
+                    }
+                    else {
+                        throw OperationException(mapFile->getFileName()
+                                                 + " is not mapped with a palette.");
                     }
                 }
-                else {
-                    throw OperationException(mapFile->getFileName()
-                                             + " is not mapped with a palette.");
+                
+                if (exitInnerLoopFlag) {
+                    break;
                 }
             }
         }
