@@ -54,6 +54,7 @@ SceneAttributes::SceneAttributes(const SceneTypeEnum::Enum sceneType,
     m_allLoadedFilesSavedToScene = true;
     m_useSceneForgroundAndBackgroundColorsFlag = true;
     m_modifiedPaletteSettingsSavedToScene = true;//TSC: was uninitialized, bad idea
+    m_ignoreUnableToFindMapForPaletteSettingsFlag = false;
 }
 
 SceneAttributes::SceneAttributes(const SceneAttributes& rhs): CaretObject(), m_sceneType(rhs.m_sceneType)
@@ -66,6 +67,7 @@ SceneAttributes::SceneAttributes(const SceneAttributes& rhs): CaretObject(), m_s
     //leaving sceneFileName empty, as that shouldn't even be stored inside the scene, and we don't know where this scene will be put
     m_indicesOfTabsForSavingToScene = rhs.m_indicesOfTabsForSavingToScene;
     m_indicesOfWindowsForSavingToScene = rhs.m_indicesOfWindowsForSavingToScene;
+    m_ignoreUnableToFindMapForPaletteSettingsFlag = rhs.m_ignoreUnableToFindMapForPaletteSettingsFlag;
     //leaving error message empty, seems to make the most sense
 }
 
@@ -306,6 +308,29 @@ SceneAttributes::setModifiedPaletteSettingsSavedToScene(const bool status)
     m_modifiedPaletteSettingsSavedToScene = status;
 }
 
+/**
+ * @return True if "Unable to find map for restoring palette settings for file" error
+ *         should be ignored in CaretMappableDataFile::restoreFileDataFromScene().
+ *         This is only used by "wb_command -scene-file-update".
+ */
+bool
+SceneAttributes::isIgnoreUnableToFindMapForPaletteSettingsFlag() const
+{
+    return m_ignoreUnableToFindMapForPaletteSettingsFlag;
+}
+
+/**
+ * @return Set if "Unable to find map for restoring palette settings for file" error
+ *         should be ignored in CaretMappableDataFile::restoreFileDataFromScene().
+ *         This is only used by "wb_command -scene-file-update".
+ * @param status
+ *     New status
+ */
+void
+SceneAttributes::setIgnoreUnableToFindMapForPaletteSettingsFlag(const bool status)
+{
+    m_ignoreUnableToFindMapForPaletteSettingsFlag = status;
+}
 
 /**
  * Add a new message to the error message.  Each message is

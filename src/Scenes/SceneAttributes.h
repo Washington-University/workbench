@@ -86,6 +86,10 @@ namespace caret {
         
         void setModifiedPaletteSettingsSavedToScene(const bool status);
         
+        bool isIgnoreUnableToFindMapForPaletteSettingsFlag() const;
+        
+        void setIgnoreUnableToFindMapForPaletteSettingsFlag(const bool status);
+        
         void addToErrorMessage(const AString& message) const;
         
         AString getErrorMessage() const;
@@ -130,6 +134,8 @@ namespace caret {
         bool m_modifiedPaletteSettingsSavedToScene;
         
         bool m_useSceneForgroundAndBackgroundColorsFlag;
+        
+        bool m_ignoreUnableToFindMapForPaletteSettingsFlag;
         
         mutable AString m_errorMessage;
         

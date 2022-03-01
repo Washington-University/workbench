@@ -666,13 +666,15 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                     }
                 }
                 else {
-                    const AString msg = ("Unable to find map for restoring palette settings for file: "
-                                         + getFileNameNoPath()
-                                         + "  Map Name: "
-                                         + mapName
-                                         + "  Map Index: "
-                                         + AString::number(mapIndex));
-                    sceneAttributes->addToErrorMessage(msg);
+                    if ( ! sceneAttributes->isIgnoreUnableToFindMapForPaletteSettingsFlag()) {
+                        const AString msg = ("Unable to find map for restoring palette settings for file: "
+                                             + getFileNameNoPath()
+                                             + "  Map Name: "
+                                             + mapName
+                                             + "  Map Index: "
+                                             + AString::number(mapIndex));
+                        sceneAttributes->addToErrorMessage(msg);
+                    }
                 }
             }
         }

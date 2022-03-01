@@ -200,6 +200,7 @@
 #include "OperationProbtrackXDotConvert.h"
 #include "OperationSceneFileMerge.h"
 #include "OperationSceneFileRelocate.h"
+#include "OperationSceneFileUpdate.h"
 #include "OperationSetMapName.h"
 #include "OperationSetMapNames.h"
 #include "OperationSetStructure.h"
@@ -461,6 +462,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationProbtrackXDotConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSceneFileMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSceneFileRelocate()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSceneFileUpdate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetMapNames()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
     if (OperationShowSceneTwo::isShowSceneCommandAvailable()) {
