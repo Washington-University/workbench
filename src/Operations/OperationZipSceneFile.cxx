@@ -141,6 +141,7 @@ void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
         }
 
         myBaseDir = QDir::cleanPath(baseDirectoryName);
+        std::cout << "Base Directory: " << myBaseDir << std::endl;
     }
     if (!myBaseDir.endsWith('/'))//root is a special case, if we didn't handle it differently it would end up looking for "//somefile"
     {//this is actually because the path function strips the final "/" from the path, but not when it is just "/"
