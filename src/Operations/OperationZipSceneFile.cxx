@@ -151,7 +151,9 @@ void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
     AString sceneFilePath = QDir::cleanPath(sceneFileInfo.getAbsoluteFilePath());//resolve filenames to open from the spec file's location, NOT from current directory
     if (!sceneFilePath.startsWith(myBaseDir))
     {
-        throw OperationException("scene file lies outside the base directory");
+        throw OperationException("scene file lies outside the base directory\n"
+                                 "scene file path: " + sceneFilePath + "\n"
+                                 "base directory: " + myBaseDir);
     }
     
     set<AString> allFiles;
