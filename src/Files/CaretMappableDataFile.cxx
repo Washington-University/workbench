@@ -560,6 +560,17 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
         const SceneClassArray* pcmArray = sceneClass->getClassArray("savedPaletteColorMappingArray");
         if (pcmArray != NULL) {
             const int32_t numElements = pcmArray->getNumberOfArrayElements();
+            if (sceneAttributes->isLogFilesWithPaletteSettingsErrors()) {
+                if (numMaps != numElements) {
+                    /*
+                     * Number of maps in file is different than number of palette settings
+                     * in the scene for the file.  This may be used by the
+                     * scene file update command.
+                     */
+                    sceneAttributes->addToMapFilesWithPaletteSettingsErrors(this,
+                                                                            getFileName());
+                }
+            }
             for (int32_t i = 0; i < numElements; i++) {
                 const SceneClass* pcmClass = pcmArray->getClassAtIndex(i);
                 
@@ -666,7 +677,10 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                     }
                 }
                 else {
-                    if ( ! sceneAttributes->isIgnoreUnableToFindMapForPaletteSettingsFlag()) {
+                    if (sceneAttributes->isLogFilesWithPaletteSettingsErrors()) {
+                        /* Prevent logging of error message */
+                    }
+                    else {
                         const AString msg = ("Unable to find map for restoring palette settings for file: "
                                              + getFileNameNoPath()
                                              + "  Map Name: "

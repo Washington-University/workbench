@@ -42,11 +42,15 @@
 
 using namespace caret;
 
+bool OperationSceneFileUpdate::s_fatalErrorFlag = true;
+bool OperationSceneFileUpdate::s_enableCopyMapsOptionFlag = false;
+bool OperationSceneFileUpdate::s_verboseFlag = false;
+
 /**
  * \class caret::OperationSceneFileUpdate
- * \brief Offscreen rendering of scene to an image file
+ * \brief Fix palettes in a scene file after the number of maps in a file changes
  *
- * Render a scene into an image file using the Offscreen Mesa Library
+ * Fix palettes in a scene file after the number of maps in a file changes
  */
 
 /**
@@ -81,35 +85,58 @@ OperationSceneFileUpdate::getParameters()
     
     ret->addStringParameter(PARAM_KEY_SCENE_NAME_NUMBER, "scene-name-or-number", "name or number (starting at one) of the scene in the scene file");
     
-    
+    const QString fixMapPaletteSettingsSwitch("-fix-map-palette-settings");
+    ret->createOptionalParameter(PARAM_KEY_OPTION_FIX_MAP_PALETTE_SETTINGS,
+                                 fixMapPaletteSettingsSwitch,
+                                 "Fix palette settings for files with change in number of maps");
+
     const QString copyMapOnePaletteToAllMapsSwitch("-copy-map-one-palette");
-//    OptionalParameter* copyMapOnePaletteOpt = ret->createOptionalParameter(PARAM_OPTION_KEY_COPY_MAP_ONE_PALETTE,
-//                                                                           copyMapOnePaletteToAllMapsSwitch,
-//                                                                           "Copy palettes settings from first map to all maps in a data file");
-//    copyMapOnePaletteOpt->addStringParameter(1, "Data File Name", "Name of palette mapped data file (cifti, metric, volume)");
+    if (s_enableCopyMapsOptionFlag) {
+        ParameterComponent* copyMapOnePaletteOpt = ret->createRepeatableParameter(PARAM_KEY_OPTION_COPY_MAP_ONE_PALETTE,
+                                                                                  copyMapOnePaletteToAllMapsSwitch,
+                                                                                  "Copy palettes settings from first map to all maps in a data file");
+        copyMapOnePaletteOpt->addStringParameter(1, "Data File Name Suffix", "Name of palette mapped data file (cifti, metric, volume)");
+    }
 
-
-    ParameterComponent* copyMapOnePaletteOpt = ret->createRepeatableParameter(PARAM_OPTION_KEY_COPY_MAP_ONE_PALETTE,
-                                                                  copyMapOnePaletteToAllMapsSwitch,
-                                                                  "Copy palettes settings from first map to all maps in a data file");
-    copyMapOnePaletteOpt->addStringParameter(1, "Data File Name Suffix", "Name of palette mapped data file (cifti, metric, volume)");
-
+    const QString errorsAsWarningsSwitch("-Werror");
+    ret->createOptionalParameter(PARAM_KEY_OPTION_ERROR_AS_WARNING,
+                                 errorsAsWarningsSwitch,
+                                 "Treat file errors as warnings (unable to find a file or fix a file's palettes)");
     
+    const QString verboseSwitch("-verbose");
+    ret->createOptionalParameter(PARAM_KEY_OPTION_VERBOSE,
+                                 verboseSwitch,
+                                 "Print names of files that have palettes updated");
     
     AString helpText("This command will update a scene for specific changes in data files.\n"
                      "\n\""
-                     + copyMapOnePaletteToAllMapsSwitch
-                     +
-                     "\" will copy the palette settings from the first map to all other maps in a data file.  This option "
-                     "is typically used when the number of maps in a data file changes.  It "
-                     "changes the palette settings in the scene that are applied to the data file when the scene "
-                     "is loaded (the data file is not modified).  The name of the data file specified on the "
-                     "command line is matched to the end of file names in the scene.  This allows matching multiple "
-                     "files if their names end with the same characters.  It also allows including a relative path "
-                     "when there is more than one file with the same name but in different paths and only one of the "
-                     "files to be updated."
-                     );
-    
+                     + fixMapPaletteSettingsSwitch
+                     + "\" will find all data files that have had a change in the number of maps since the scene "
+                     "scene was created.  If the file has its \"Apply to All Maps\" property enabled, the palette "
+                     "setting in the first map is copied to all maps in the file.  Note: This modifies the palette "
+                     "settings for the file in the scene (data file is NOT modified)."
+                     "\n\n\"");
+    if (s_enableCopyMapsOptionFlag) {
+        helpText.append(copyMapOnePaletteToAllMapsSwitch
+                        + "\" will copy the palette settings from the first map to all other maps in a data file.  This option "
+                        "is typically used when the number of maps in a data file changes.  It "
+                        "changes the palette settings in the scene that are applied to the data file when the scene "
+                        "is loaded (the data file is not modified).  The name of the data file specified on the "
+                        "command line is matched to the end of file names in the scene.  This allows matching multiple "
+                        "files if their names end with the same characters.  It also allows including a relative path "
+                        "when there is more than one file with the same name but in different paths and only one of the "
+                        "files to be updated."
+                        "\n\n"
+                        "Note: the " + fixMapPaletteSettingsSwitch + " and " + copyMapOnePaletteToAllMapsSwitch
+                        + " options are mutually exclusive."
+                        "\n\n\"");
+    }
+    helpText.append(errorsAsWarningsSwitch
+                    + "\" will treat file errors (unable to find a file or fix a file's palettes) as warnings and print message(s).  "
+                    "If this option is not specified and a file error occurs, the command will terminate without "
+                    "creating a new scene file.\n"
+                    );
+
     ret->setHelpText(helpText);
     
     return ret;
@@ -120,7 +147,7 @@ OperationSceneFileUpdate::getParameters()
  */
 void
 OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
-                                  ProgressObject* myProgObj)
+                                        ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const AString inputSceneFileName(FileInformation(myParams->getString(PARAM_KEY_INPUT_SCENE_FILE)).getAbsoluteFilePath());
@@ -129,17 +156,39 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
     
     int32_t optionsCounter(0);
     
-    std::vector<AString> copyMapOneDataFileNames;
-    const std::vector<ParameterComponent*>& copyMapOneInstances = myParams->getRepeatableParameterInstances(PARAM_OPTION_KEY_COPY_MAP_ONE_PALETTE);
-    for (ParameterComponent* copyMapPC : copyMapOneInstances) {
-        copyMapOneDataFileNames.push_back(copyMapPC->getString(1));
+    OptionalParameter* fixMapPaletteSettingsOption(myParams->getOptionalParameter(PARAM_KEY_OPTION_FIX_MAP_PALETTE_SETTINGS));
+    const bool fixMapPaletteSettingsFlag(fixMapPaletteSettingsOption->m_present);
+    if (fixMapPaletteSettingsFlag) {
         ++optionsCounter;
+    }
+
+    std::vector<AString> copyMapOneDataFileNames;
+    if (s_enableCopyMapsOptionFlag) {
+        const std::vector<ParameterComponent*>& copyMapOneInstances(myParams->getRepeatableParameterInstances(PARAM_KEY_OPTION_COPY_MAP_ONE_PALETTE));
+        for (ParameterComponent* copyMapPC : copyMapOneInstances) {
+            copyMapOneDataFileNames.push_back(copyMapPC->getString(1));
+            ++optionsCounter;
+            
+            if (fixMapPaletteSettingsFlag) {
+                throw OperationException("Cannot have both options for repairing palettes");
+            }
+        }
     }
     
     if (optionsCounter <= 0) {
         throw OperationException("At least one of the optional parameters must be specified.");
     }
 
+    OptionalParameter* errorsAsWarningsOption(myParams->getOptionalParameter(PARAM_KEY_OPTION_ERROR_AS_WARNING));
+    if (errorsAsWarningsOption->m_present) {
+        s_fatalErrorFlag = false;
+    }
+    
+    OptionalParameter* verboseOption(myParams->getOptionalParameter(PARAM_KEY_OPTION_VERBOSE));
+    if (verboseOption->m_present) {
+        s_verboseFlag = true;
+    }
+    
     /*
      * Read the scene file and load the scene
      */
@@ -185,7 +234,7 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
      */
     SceneAttributes sceneAttributes(SceneTypeEnum::SCENE_TYPE_FULL,
                                     scene);
-    sceneAttributes.setIgnoreUnableToFindMapForPaletteSettingsFlag(true);
+    sceneAttributes.setLogFilesWithPaletteSettingsErrors(true);
     
     SessionManager* sessionManager = SessionManager::get();
     sessionManager->restoreFromScene(&sceneAttributes,
@@ -205,58 +254,21 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
     }
     CaretAssert(SessionManager::get()->getBrain(0));
 
+
     bool sceneUpdatedFlag(false);
     
-    if (! copyMapOneDataFileNames.empty()) {
-        /*
-         * Get all mappable data files
-         */
-        std::vector<CaretMappableDataFile*> allDataFiles;
-        EventCaretMappableDataFilesGet mapFilesEvent;
-        EventManager::get()->sendEvent(mapFilesEvent.getPointer());
-        mapFilesEvent.getAllFiles(allDataFiles);
-        
-        /*
-         * Loop through map files in memory loaded by scene
-         */
-        bool mapPalettesUpdatedFlag(false);
-        for (auto& mapFile : allDataFiles) {
-            /*
-             * Loop through names of files specified by user
-             */
-            for (AString& copyMapFileName : copyMapOneDataFileNames) {
-                bool exitInnerLoopFlag(false);
-                if (mapFile->getFileName().endsWith(copyMapFileName)) {
-                    if (mapFile->isMappedWithPalette()) {
-                        std::cout << "Updating palettes in scene for: " << mapFile->getFileNameNoPath() << std::endl;
-                        const int32_t updateCount(updateScenePaletteXML(scene,
-                                                                        &sceneAttributes,
-                                                                        mapFile,
-                                                                        copyMapFileName));
-                        if (updateCount > 0) {
-                            mapPalettesUpdatedFlag = true;
-                            sceneUpdatedFlag = true;
-                            
-                            /*
-                             * Do not need to process 'mapFile' again so exit names loop
-                             */
-                            exitInnerLoopFlag = true;
-                        }
-                    }
-                    else {
-                        throw OperationException(mapFile->getFileName()
-                                                 + " is not mapped with a palette.");
-                    }
-                }
-                
-                if (exitInnerLoopFlag) {
-                    break;
-                }
-            }
+    if (fixMapPaletteSettingsFlag) {
+        if (fixPalettesInFilesWithMapCountChanged(scene,
+                                                  sceneAttributes) > 0) {
+            sceneUpdatedFlag = true;
         }
-        
-        if ( ! mapPalettesUpdatedFlag) {
-            throw OperationException("File with name was not found for copying palettes.");
+    }
+    
+    if (! copyMapOneDataFileNames.empty()) {
+        if (copyMapOnePalettes(scene,
+                           sceneAttributes,
+                               copyMapOneDataFileNames) > 0) {
+            sceneUpdatedFlag = true;
         }
     }
     
@@ -269,6 +281,154 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
 }
 
 /**
+ * Fix palette settings for files with a change in the number of maps
+ * @param sceneAttributes
+ *    The scene attributes containing data files with changed map counts
+ * @return
+ *    Number of files that had palettes settings updated in the scene.
+ */
+int32_t
+OperationSceneFileUpdate::fixPalettesInFilesWithMapCountChanged(Scene* scene,
+                                                                SceneAttributes& sceneAttributes)
+{
+    int32_t updateCounter(0);
+
+    const std::vector<std::pair<CaretMappableDataFile*, AString>> filesAndNames(sceneAttributes.getMapFilesWithPaletteSettingsErrors());
+    if (filesAndNames.empty()) {
+        throw OperationException("No files were found with a change in map count compared to map count in palette settings in scene.");
+    }
+    
+    std::vector<CaretMappableDataFile*> allDataFiles;
+    EventCaretMappableDataFilesGet mapFilesEvent;
+    EventManager::get()->sendEvent(mapFilesEvent.getPointer());
+    mapFilesEvent.getAllFiles(allDataFiles);
+
+    /* ensure apply to all selected */
+    for (auto& fn : filesAndNames) {
+        CaretMappableDataFile* file(fn.first);
+        const AString name(fn.second);
+        
+        bool foundFlag(false);
+        for (auto& mapFile : allDataFiles) {
+            if (mapFile == file) {
+                if (mapFile->isOnePaletteUsedForAllMaps()) {
+                    /*
+                     * One palette used for all maps so nothing to fix
+                     */
+                    foundFlag = true;
+                }
+                else if (mapFile->isApplyPaletteColorMappingToAllMaps()) {
+                    const int32_t changedCount(updateScenePaletteXML(scene,
+                                                                     &sceneAttributes,
+                                                                     mapFile,
+                                                                     mapFile->getFileNameNoPath(),
+                                                                     MatchNameMode::MATCH_EXACT));
+                    if (changedCount > 0) {
+                        updateCounter += changedCount;
+                    }
+                    else {
+                        processError("Failed to fix: " + name);
+                    }
+                }
+                else {
+                    processError("File not fixed (Apply to All Maps is OFF): "
+                                 + name);
+                }
+                foundFlag = true;
+                ++updateCounter;
+                
+                break;
+            }
+        }
+        
+        if ( ! foundFlag) {
+            processError("Unable to fix (file may not have been read and is missing: "
+                         + name);
+        }
+    }
+    
+    return updateCounter;
+}
+
+/**
+ * Copy the map one palette to all other palettes for files
+ * @param scene
+ *   Scene that is being updated
+ * @param sceneAttributes
+ *   The scene attributes
+ * @param copyMapOneDataFileNames
+ *   Name of map files
+ */
+int32_t
+OperationSceneFileUpdate::copyMapOnePalettes(Scene* scene,
+                                             SceneAttributes& sceneAttributes,
+                                             std::vector<AString> copyMapOneDataFileNames)
+{
+    int32_t filesUpdatedCounter(0);
+    
+    /*
+     * Get all mappable data files
+     */
+    std::vector<CaretMappableDataFile*> allDataFiles;
+    EventCaretMappableDataFilesGet mapFilesEvent;
+    EventManager::get()->sendEvent(mapFilesEvent.getPointer());
+    mapFilesEvent.getAllFiles(allDataFiles);
+    
+    /*
+     * Loop through map files in memory loaded by scene
+     */
+    bool mapPalettesUpdatedFlag(false);
+    for (auto& mapFile : allDataFiles) {
+        /*
+         * Loop through names of files specified by user
+         */
+        for (AString& copyMapFileName : copyMapOneDataFileNames) {
+            bool exitInnerLoopFlag(false);
+            if (mapFile->getFileName().endsWith(copyMapFileName)) {
+                if (mapFile->isOnePaletteUsedForAllMaps()) {
+                    /*
+                     * One palette used for all maps so nothing to fix
+                     */
+                }
+                else if (mapFile->isMappedWithPalette()) {
+                    const int32_t updateCount(updateScenePaletteXML(scene,
+                                                                    &sceneAttributes,
+                                                                    mapFile,
+                                                                    copyMapFileName,
+                                                                    MatchNameMode::MATCH_END_OF_NAME));
+                    if (updateCount > 0) {
+                        filesUpdatedCounter += updateCount;
+                        mapPalettesUpdatedFlag = true;
+                        
+                        /*
+                         * Do not need to process 'mapFile' again so exit names loop
+                         */
+                        exitInnerLoopFlag = true;
+                    }
+                    else {
+                        processError("FAILED TO UPDATE: "
+                                     + mapFile->getFileName()
+                                     + " and matching to "
+                                     + copyMapFileName);
+                    }
+                }
+                else {
+                    processError(mapFile->getFileName()
+                                 + " is not mapped with a palette.");
+                }
+            }
+            
+            if (exitInnerLoopFlag) {
+                break;
+            }
+        }
+    }
+    
+    return filesUpdatedCounter;
+}
+
+
+/**
  * Find the file in the Scene XML tree and update its palette content
  * @param scene
  *    The scene that needs to be updated
@@ -276,15 +436,19 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
  *    The scene attributes
  * @param mapFile
  *    The map file with updated palette color mapping
- * @param dataFileName
+ * @param dataFileNameOrSuffix
  *    Name of data file (note mapFile->getFileName() will have absolute path)
+ * @param matchMode
+ *    If EXACT, dataFileNameOrSuffix is the name of file without any path
+ *    If END_OF_NAME dataFileNameOrSuffix matches to end of file name in scene.
  *
  */
 int32_t
 OperationSceneFileUpdate::updateScenePaletteXML(Scene* scene,
                                                 SceneAttributes* sceneAttributes,
                                                 CaretMappableDataFile* mapFile,
-                                                const AString& dataFileName)
+                                                const AString& dataFileNameOrSuffix,
+                                                const MatchNameMode matchMode)
 {
     CaretAssert(scene);
     CaretAssert(sceneAttributes);
@@ -322,13 +486,23 @@ OperationSceneFileUpdate::updateScenePaletteXML(Scene* scene,
                 const int32_t numFiles(filesArray->getNumberOfArrayElements());
                 for (int32_t iFile = 0; iFile < numFiles; iFile++) {
                     const SceneClass* fileClass(filesArray->getClassAtIndex(iFile));
-                    if (fileClass->getName().endsWith(dataFileName)) {
-
+                    
+                    bool matchFlag(false);
+                    switch (matchMode) {
+                        case MatchNameMode::MATCH_EXACT:
+                            matchFlag = fileClass->getName().endsWith(dataFileNameOrSuffix);
+                            break;
+                        case MatchNameMode::MATCH_END_OF_NAME:
+                            matchFlag = fileClass->getName().endsWith(dataFileNameOrSuffix);
+                            break;
+                    }
+                    
+                    if (matchFlag) {
                         /*
                          * We located the file in the scene.  Now 'apply to all maps'
                          * for the data file in memory.
                          */
-                        mapFile->setApplyPaletteColorMappingToAllMaps(true);
+                        //mapFile->setApplyPaletteColorMappingToAllMaps(true);
                         const int32_t mapIndex(0);
                         mapFile->applyPaletteColorMappingToAllMaps(mapIndex);
 
@@ -355,6 +529,10 @@ OperationSceneFileUpdate::updateScenePaletteXML(Scene* scene,
                         delete fileClass;
                         
                         ++updateCounter;
+                        
+                        if (s_verboseFlag) {
+                            std::cout << "Palettes updated for: " << mapFile->getFileName() << std::endl;
+                        }
                     }
                 }
             }
@@ -364,4 +542,18 @@ OperationSceneFileUpdate::updateScenePaletteXML(Scene* scene,
     }
     
     return updateCounter;
+}
+
+/**
+ * Process error messages
+ * @param message
+ *    The error message
+ */
+void
+OperationSceneFileUpdate::processError(const AString& message)
+{
+    if (s_fatalErrorFlag) {
+        throw OperationException(message);
+    }
+    std::cout << "WARNING: " << message << std::endl;
 }

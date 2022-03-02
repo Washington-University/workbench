@@ -29,6 +29,7 @@
 
 namespace caret {
     
+    class CaretMappableDataFile;
     class Scene;
     
     class SceneAttributes : public CaretObject {
@@ -86,9 +87,14 @@ namespace caret {
         
         void setModifiedPaletteSettingsSavedToScene(const bool status);
         
-        bool isIgnoreUnableToFindMapForPaletteSettingsFlag() const;
+        bool isLogFilesWithPaletteSettingsErrors() const;
         
-        void setIgnoreUnableToFindMapForPaletteSettingsFlag(const bool status);
+        void setLogFilesWithPaletteSettingsErrors(const bool status);
+        
+        void addToMapFilesWithPaletteSettingsErrors(CaretMappableDataFile* mapFile,
+                                                    const AString& dataFileName) const;
+        
+        std::vector<std::pair<CaretMappableDataFile*, AString>> getMapFilesWithPaletteSettingsErrors() const;
         
         void addToErrorMessage(const AString& message) const;
         
@@ -135,7 +141,9 @@ namespace caret {
         
         bool m_useSceneForgroundAndBackgroundColorsFlag;
         
-        bool m_ignoreUnableToFindMapForPaletteSettingsFlag;
+        bool m_logFilesWithPaletteSettingsErrorsFlag;
+        
+        mutable std::vector<std::pair<CaretMappableDataFile*, AString>> m_mapFilesWithPaletteSettingsErrors;
         
         mutable AString m_errorMessage;
         

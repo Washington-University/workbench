@@ -47,13 +47,37 @@ namespace caret {
             PARAM_KEY_INPUT_SCENE_FILE,
             PARAM_KEY_OUTPUT_SCENE_FILE,
             PARAM_KEY_SCENE_NAME_NUMBER,
-            PARAM_OPTION_KEY_COPY_MAP_ONE_PALETTE
+            PARAM_KEY_OPTION_FIX_MAP_PALETTE_SETTINGS,
+            PARAM_KEY_OPTION_COPY_MAP_ONE_PALETTE,
+            PARAM_KEY_OPTION_ERROR_AS_WARNING,
+            PARAM_KEY_OPTION_VERBOSE
         };
+        
+        enum class MatchNameMode {
+            MATCH_EXACT,
+            MATCH_END_OF_NAME
+        };
+        
+        static int32_t fixPalettesInFilesWithMapCountChanged(Scene* scene,
+                                                             SceneAttributes& sceneAttributes);
+        
+        static int32_t copyMapOnePalettes(Scene* scene,
+                                          SceneAttributes& sceneAttributes,
+                                          std::vector<AString> copyMapOneDataFileNames);
         
         static int32_t updateScenePaletteXML(Scene* scene,
                                              SceneAttributes* sceneAttributes,
                                              CaretMappableDataFile* mapFile,
-                                             const AString& dataFileName);
+                                             const AString& dataFileName,
+                                             const MatchNameMode matchMode);
+        
+        static void processError(const AString& message);
+        
+        static bool s_fatalErrorFlag;
+        
+        static bool s_enableCopyMapsOptionFlag;
+        
+        static bool s_verboseFlag;
     };
 
     typedef TemplateAutoOperation<OperationSceneFileUpdate> AutoOperationSceneFileUpdate;
