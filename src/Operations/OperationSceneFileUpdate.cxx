@@ -43,7 +43,7 @@
 using namespace caret;
 
 bool OperationSceneFileUpdate::s_fatalErrorFlag = true;
-bool OperationSceneFileUpdate::s_enableCopyMapsOptionFlag = false;
+bool OperationSceneFileUpdate::s_enableCopyMapsOptionFlag = true;
 bool OperationSceneFileUpdate::s_verboseFlag = false;
 
 /**
@@ -126,9 +126,9 @@ OperationSceneFileUpdate::getParameters()
                         "files if their names end with the same characters.  It also allows including a relative path "
                         "when there is more than one file with the same name but in different paths and only one of the "
                         "files to be updated."
-                        "\n\n"
-                        "Note: the " + fixMapPaletteSettingsSwitch + " and " + copyMapOnePaletteToAllMapsSwitch
-                        + " options are mutually exclusive."
+//                        "\n\n"
+//                        "Note: the " + fixMapPaletteSettingsSwitch + " and " + copyMapOnePaletteToAllMapsSwitch
+//                        + " options are mutually exclusive."
                         "\n\n\"");
     }
     helpText.append(errorsAsWarningsSwitch
@@ -169,9 +169,9 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
             copyMapOneDataFileNames.push_back(copyMapPC->getString(1));
             ++optionsCounter;
             
-            if (fixMapPaletteSettingsFlag) {
-                throw OperationException("Cannot have both options for repairing palettes");
-            }
+//            if (fixMapPaletteSettingsFlag) {
+//                throw OperationException("Cannot have both options for repairing palettes");
+//            }
         }
     }
     
