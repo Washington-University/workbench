@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include "ApplicationInformation.h"
 #include "CaretLogger.h"
 #include "DataFile.h"
 #include "EventManager.h"
@@ -43,6 +44,8 @@
 using namespace caret;
 using namespace std;
 
+static const AString writeSceneFileOptionName("-write-scene-file");
+
 AString OperationZipSceneFile::getCommandSwitch()
 {
     return "-zip-scene-file";
@@ -67,7 +70,7 @@ OperationParameters* OperationZipSceneFile::getParameters()
     
     ret->createOptionalParameter(5, "-skip-missing", "any missing files will generate only warnings, and the zip file will be created anyway");
 
-    ret->createOptionalParameter(6, "-write-scene", "allow writing of scene file if base path or extract directory change");
+    ret->createOptionalParameter(6, writeSceneFileOptionName, "allow writing of scene file if base path or extract directory change");
     
     ret->setHelpText("If zip-file already exists, it will be overwritten.  "
         "If -base-dir is not specified, the base directory will be automatically set to the lowest level directory containing all files.  "
@@ -132,6 +135,8 @@ void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
     if ( ! baseDirectory.isEmpty())
     {
         myBaseDir = QDir::cleanPath(QDir(baseDirectory).absolutePath());
+        sceneFile.setBasePathType(SceneFileBasePathTypeEnum::CUSTOM);
+        sceneFile.setBalsaCustomBaseDirectory(myBaseDir);
     }
     else {
         AString baseDirectoryName;
@@ -154,11 +159,26 @@ void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
         myBaseDir += "/";//so, add the trailing slash to the path
     }
     
-    if (allowSceneFileWriting) {
-        sceneFile.setBalsaExtractToDirectoryName(outputSubDirectory);
-        if (sceneFile.isModified()) {
-            sceneFile.writeFile(sceneFile.getFileName());
-            cout << "Writing scene file: " << sceneFile.getFileName() << endl;
+    sceneFile.setBalsaExtractToDirectoryName(outputSubDirectory);
+    if (sceneFile.isModified()) {
+        switch (ApplicationInformation::getApplicationType()) {
+            case ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE:
+                if (allowSceneFileWriting) {
+                    sceneFile.writeFile(sceneFile.getFileName());
+                    cout << "Writing scene file: " << sceneFile.getFileName() << endl;
+                }
+                else {
+                    cout << ("WARNING: Files may not load correctly as base path may have changed.  Extract files from ZIP file "
+                             "and test loading of scenes.  If files are not correctly loaded, rerun this command with the \""
+                             + writeSceneFileOptionName + "\" option so that paths to files in the scene file are updated.");
+                }
+                break;
+            case ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE:
+                // GUI writes scene file in zip dialog
+                break;
+            case ApplicationTypeEnum::APPLICATION_TYPE_INVALID:
+                CaretAssert(0);
+                break;
         }
     }
     AString sceneFilePath = QDir::cleanPath(sceneFileInfo.getAbsoluteFilePath());//resolve filenames to open from the spec file's location, NOT from current directory
