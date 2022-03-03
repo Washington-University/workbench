@@ -67,6 +67,8 @@ OperationParameters* OperationZipSceneFile::getParameters()
     
     ret->createOptionalParameter(5, "-skip-missing", "any missing files will generate only warnings, and the zip file will be created anyway");
 
+    ret->createOptionalParameter(6, "-write-scene", "allow writing of scene file if base path or extract directory change");
+    
     ret->setHelpText("If zip-file already exists, it will be overwritten.  "
         "If -base-dir is not specified, the base directory will be automatically set to the lowest level directory containing all files.  "
         "The scene file must contain only relative paths, and no data files may be outside the base directory.");
@@ -85,6 +87,7 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
         myBaseDir = QDir::cleanPath(QDir(baseOpt->getString(1)).absolutePath());
     }
     bool skipMissing = myParams->getOptionalParameter(5)->m_present;
+    bool allowSceneFileWriting = myParams->getOptionalParameter(6)->m_present;
     
     OperationZipSceneFile::createZipFile(myProgObj,
                                          sceneFileName,
@@ -92,7 +95,8 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
                                          zipFileName,
                                          myBaseDir,
                                          PROGRESS_COMMAND_LINE,
-                                         skipMissing);
+                                         skipMissing,
+                                         allowSceneFileWriting);
 }
 
 void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
@@ -101,7 +105,8 @@ void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
                                           const AString& zipFileName,
                                           const AString& baseDirectory,
                                           const ProgressMode progressMode,
-                                          const bool skipMissing)
+                                          const bool skipMissing,
+                                          const bool allowSceneFileWriting)
 {
     LevelProgress myProgress(myProgObj);
     FileInformation sceneFileInfo(sceneFileName);
@@ -141,13 +146,21 @@ void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
         }
 
         myBaseDir = QDir::cleanPath(baseDirectoryName);
-        std::cout << "Base Directory: " << myBaseDir << std::endl;
+        cout << "Base Directory: " << myBaseDir << endl;
+        sceneFile.setBasePathType(SceneFileBasePathTypeEnum::AUTOMATIC);
     }
     if (!myBaseDir.endsWith('/'))//root is a special case, if we didn't handle it differently it would end up looking for "//somefile"
     {//this is actually because the path function strips the final "/" from the path, but not when it is just "/"
         myBaseDir += "/";//so, add the trailing slash to the path
     }
     
+    if (allowSceneFileWriting) {
+        sceneFile.setBalsaExtractToDirectoryName(outputSubDirectory);
+        if (sceneFile.isModified()) {
+            sceneFile.writeFile(sceneFile.getFileName());
+            cout << "Writing scene file: " << sceneFile.getFileName() << endl;
+        }
+    }
     AString sceneFilePath = QDir::cleanPath(sceneFileInfo.getAbsoluteFilePath());//resolve filenames to open from the spec file's location, NOT from current directory
     if (!sceneFilePath.startsWith(myBaseDir))
     {

@@ -43,7 +43,8 @@ namespace caret {
                                   const AString& zipFileName,
                                   const AString& baseDirectory,
                                   const ProgressMode progressMode,
-                                  const bool skipMissing = false);
+                                  const bool skipMissing = false,
+                                  const bool allowSceneFileWriting = false);
     };
 
     typedef TemplateAutoOperation<OperationZipSceneFile> AutoOperationZipSceneFile;
