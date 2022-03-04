@@ -784,6 +784,12 @@ SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     
+    dataFileInformation.addNameAndValue("Base Path Type", SceneFileBasePathTypeEnum::toGuiName(getBasePathType()));
+    dataFileInformation.addNameAndValue("Custom Base Path", getBalsaCustomBaseDirectory());
+    dataFileInformation.addNameAndValue("Extract Directory", getBalsaExtractToDirectoryName());
+    dataFileInformation.addNameAndValue("BALSA Title", getBalsaStudyTitle());
+    dataFileInformation.addNameAndValue("BALSA Study ID", getBalsaStudyID());
+    
     const int32_t numScenes = getNumberOfScenes();
     if (numScenes > 0) {
         AString sceneNamesText = "Scenes:";
