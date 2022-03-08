@@ -53,6 +53,8 @@ namespace caret {
 
         std::vector<SceneObject*> getDescendants() const;
         
+        SceneObject* getDescendantWithName(const AString& objectName);
+        
         void addClass(SceneClass* sceneClass);
         
         int32_t getNumberOfClasses() const;

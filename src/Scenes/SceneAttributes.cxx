@@ -56,6 +56,7 @@ SceneAttributes::SceneAttributes(const SceneTypeEnum::Enum sceneType,
     m_modifiedPaletteSettingsSavedToScene = true;//TSC: was uninitialized, bad idea
     m_logFilesWithPaletteSettingsErrorsFlag = false;
     m_mapFilesWithPaletteSettingsErrors.clear();
+    m_filenamesForceWriteToScene.clear();
 }
 
 SceneAttributes::SceneAttributes(const SceneAttributes& rhs): CaretObject(), m_sceneType(rhs.m_sceneType)
@@ -70,6 +71,7 @@ SceneAttributes::SceneAttributes(const SceneAttributes& rhs): CaretObject(), m_s
     m_indicesOfWindowsForSavingToScene = rhs.m_indicesOfWindowsForSavingToScene;
     m_logFilesWithPaletteSettingsErrorsFlag = rhs.m_logFilesWithPaletteSettingsErrorsFlag;
     m_mapFilesWithPaletteSettingsErrors = rhs.m_mapFilesWithPaletteSettingsErrors;
+    m_filenamesForceWriteToScene = rhs.m_filenamesForceWriteToScene;
     //leaving error message empty, seems to make the most sense
 }
 
@@ -463,4 +465,32 @@ SceneAttributes::getSceneLoadWarningMessage() const
     return loadMessage;
 }
 
+/**
+ * Add a filename that will be written to the spec file in the scene, even if the file is not loaded.
+ * This is used by the scene-file-update command.
+ * @param filename
+ *    Name of file (should be absolute path)
+ */
+void
+SceneAttributes::addFilenameForceWriteToScene(const AString& filename) const
+{
+    CaretAssert( ! filename.isEmpty());
+    m_filenamesForceWriteToScene.insert(filename);
+}
+
+/**
+ * @return Should the file with the given name be added to the scene's spec file, even
+ * if the file is not loaded.
+ * @param filename
+ *    Name of file (should be absolute path)
+ */
+bool
+SceneAttributes::isFilenameForceWriteToScene(const AString& filename) const
+{
+    CaretAssert( ! filename.isEmpty());
+    if (m_filenamesForceWriteToScene.find(filename) != m_filenamesForceWriteToScene.end()) {
+        return true;
+    }
+    return false;
+}
 

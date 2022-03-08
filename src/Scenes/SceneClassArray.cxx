@@ -199,6 +199,24 @@ SceneClassArray::setClassAtIndex(const int32_t arrayIndex,
  * @return
  *     Class at the given array index.
  */
+SceneClass*
+SceneClassArray::getClassAtIndex(const int32_t arrayIndex)
+{
+    CaretAssertVectorIndex(m_values, arrayIndex);
+    SceneClass* sc = m_values[arrayIndex];
+    if (sc != NULL) {
+        sc->m_restoredFlag = true;
+    }
+    return sc;
+}
+
+/**
+ * Get the element for a given array index.
+ * @param arrayIndex
+ *     Index of array element.
+ * @return
+ *     Class at the given array index.
+ */
 const SceneClass* 
 SceneClassArray::getClassAtIndex(const int32_t arrayIndex) const
 {

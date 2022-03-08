@@ -393,9 +393,12 @@ SpecFile::addCaretDataFile(CaretDataFile* caretDataFile)
  *
  * @param caretDataFile
  *    Caret data file that is removed from a spec file entry.
+ * @param logSevereIfFailureToRemoveFileFlag
+ *   If true, log a message if failure to remove file
  */
-void
-SpecFile::removeCaretDataFile(const CaretDataFile* caretDataFile)
+bool
+SpecFile::removeCaretDataFile(const CaretDataFile* caretDataFile,
+                              const bool logSevereIfFailureToRemoveFileFlag)
 {
     CaretAssert(caretDataFile);
     
@@ -411,15 +414,19 @@ SpecFile::removeCaretDataFile(const CaretDataFile* caretDataFile)
             SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
             if (sfdf->getCaretDataFile() == caretDataFile) {
                 sfdf->setCaretDataFile(NULL);
-                return;
+                return true;
             }
         }
     }
     
-    CaretLogSevere("Failed to remove CaretDataFile at address "
-                   + AString::number((qulonglong)caretDataFile)
-                   + " from SpecFile: "
-                   + getFileName());
+    if (logSevereIfFailureToRemoveFileFlag) {
+        CaretLogSevere("Failed to remove CaretDataFile at address "
+                       + AString::number((qulonglong)caretDataFile)
+                       + " from SpecFile: "
+                       + getFileName());
+    }
+    
+    return false;
 }
 
 
@@ -1482,40 +1489,51 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
         else {
             const int32_t numFiles = group->getNumberOfFiles();
             for (int32_t j = 0; j < numFiles; j++) {
-                SpecFileDataFile* file = group->getFileInformation(j);
+                SpecFileDataFile* specFileDataFile = group->getFileInformation(j);
                 
-                /*
-                 * Only write files that are loaded (indicated by its
-                 * "caretDataFile" not NULL.
-                 */
-                const CaretDataFile* caretDataFile = file->getCaretDataFile();
-                if (caretDataFile != NULL) {
-                    bool addFileToSceneFlag = false;
-                    if (allLoadedFilesFlag) {
-                        addFileToSceneFlag = true;
-                    }
-                    else {
-                        if (displayedDataFiles.find(caretDataFile) != displayedDataFiles.end()) {
+                bool addFileToSceneFlag = false;
+                
+                
+                if (sceneAttributes->isFilenameForceWriteToScene(specFileDataFile->getFileName())) {
+                    /*
+                     * The scene file update command adds file to the scene that are not loaded
+                     * so we must force adding of the filename to the scene's spec file
+                     */
+                    addFileToSceneFlag = true;
+                }
+                else {
+                    /*
+                     * Only write files that are loaded (indicated by its
+                     * "caretDataFile" not NULL.
+                     */
+                    const CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
+                    if (caretDataFile != NULL) {
+                        if (allLoadedFilesFlag) {
                             addFileToSceneFlag = true;
                         }
+                        else {
+                            if (displayedDataFiles.find(caretDataFile) != displayedDataFiles.end()) {
+                                addFileToSceneFlag = true;
+                            }
+                        }
                     }
+                }
+
+                if (addFileToSceneFlag) {
+                    SceneClass* fileClass = new SceneClass("specFileDataFile",
+                                                           "SpecFileDataFile",
+                                                           1);
+                    fileClass->addEnumeratedType<DataFileTypeEnum, DataFileTypeEnum::Enum>("dataFileType",
+                                                                                           dataFileType);
+                    fileClass->addEnumeratedType<StructureEnum, StructureEnum::Enum>("structure",
+                                                                                     specFileDataFile->getStructure());
+                    const AString name = updateFileNameAndPathForWriting(specFileDataFile->getFileName());
+                    fileClass->addPathName("fileName",
+                                           specFileDataFile->getFileName());
+                    fileClass->addBoolean("selected",
+                                          specFileDataFile->isLoadingSelected());
                     
-                    if (addFileToSceneFlag) {
-                        SceneClass* fileClass = new SceneClass("specFileDataFile",
-                                                               "SpecFileDataFile",
-                                                               1);
-                        fileClass->addEnumeratedType<DataFileTypeEnum, DataFileTypeEnum::Enum>("dataFileType", 
-                                                                                               dataFileType);
-                        fileClass->addEnumeratedType<StructureEnum, StructureEnum::Enum>("structure", 
-                                                                                         file->getStructure());
-                        const AString name = updateFileNameAndPathForWriting(file->getFileName());
-                        fileClass->addPathName("fileName", 
-                                               file->getFileName());
-                        fileClass->addBoolean("selected", 
-                                              file->isLoadingSelected());
-                        
-                        dataFileClasses.push_back(fileClass);
-                    }
+                    dataFileClasses.push_back(fileClass);
                 }
             }
         }

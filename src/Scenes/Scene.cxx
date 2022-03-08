@@ -312,6 +312,27 @@ Scene::getDescendants() const
 }
 
 /**
+ * @return First descendant with the given name or NULL if not found
+ * @param objectName
+ *    Name of item
+ */
+SceneObject*
+Scene::getDescendantWithName(const AString& objectName)
+{
+    SceneObject* sceneObject(NULL);
+    
+    std::vector<SceneObject*> descendants(getDescendants());
+    for (auto d : descendants) {
+        if (d->getName() == objectName) {
+            sceneObject = d;
+            break;
+        }
+    }
+    
+    return sceneObject;
+}
+
+/**
  * @return Attributes of the scene
  */
 const SceneAttributes*

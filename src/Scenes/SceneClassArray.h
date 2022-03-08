@@ -52,6 +52,8 @@ namespace caret {
         void setClassAtIndex(const int32_t arrayIndex,
                       SceneClass* sceneClass);
         
+        SceneClass* getClassAtIndex(const int32_t arrayIndex);
+        
         const SceneClass* getClassAtIndex(const int32_t arrayIndex) const;
         
         virtual std::vector<SceneObject*> getDescendants() const;

@@ -56,6 +56,8 @@ namespace caret {
         
         AString getText() const;
         
+        std::vector<AString> getTextLines() const;
+        
         void replaceText(const AString& text);
         
         void addText(const AString& text);

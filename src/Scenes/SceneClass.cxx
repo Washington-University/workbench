@@ -191,6 +191,28 @@ SceneClass::addChild(SceneObject* sceneObject)
 }
 
 /**
+ * Replace the given child object with the object for insertion
+ * @param sceneObjectToReplace
+ *    Object that is to be replace (IT IS NOT DELETED !!! )
+ * @param newObjectToInsert
+ *    Object that is inserted
+ * @return True if object replacement is sucessful, else false.
+ */
+bool
+SceneClass::replaceChild(const SceneObject* sceneObjectToReplace,
+                         SceneObject* newObjectToInsert)
+{
+    const int32_t numChildren(static_cast<int32_t>(m_childObjects.size()));
+    for (int32_t i = 0; i < numChildren; i++) {
+        if (m_childObjects[i] == sceneObjectToReplace) {
+            m_childObjects[i] = newObjectToInsert;
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Add a child boolean value to the class.
  * 
  * @param name

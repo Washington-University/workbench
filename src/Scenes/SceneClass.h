@@ -246,6 +246,9 @@ namespace caret {
         
         void addChild(SceneObject* sceneObject);
         
+        bool replaceChild(const SceneObject* sceneObjectToReplace,
+                          SceneObject* newObjectToInsert);
+        
         bool getBooleanValue(const AString& name,
                              const bool defaultValue = false) const;
         
