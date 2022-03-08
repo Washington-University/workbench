@@ -159,9 +159,13 @@ TextFile::getTextLines() const
      * Split lines with return and new line characters
      * Cannot split with whitespace since files names may contain spaces
      */
+#if QT_VERSION >= 0x060000
     QStringList linesList(this->text.split(QRegularExpression("[\\n|\\r]"),
                                            Qt::SkipEmptyParts));
-
+#else
+    QStringList linesList(this->text.split(QRegularExpression("[\\n|\\r]"),
+                                           QString::SkipEmptyParts));
+#endif
     std::vector<AString> lines;
     QStringListIterator iter(linesList);
     while (iter.hasNext()) {
