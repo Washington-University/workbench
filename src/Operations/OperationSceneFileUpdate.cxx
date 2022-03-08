@@ -97,11 +97,12 @@ OperationSceneFileUpdate::getParameters()
         copyMapOnePaletteOpt->addStringParameter(1, "Data File Name Suffix", "Name of palette mapped data file (cifti, metric, volume)");
     }
     
-    const QString addRemoveFileDescription("Name of data file.  If a data file is in a different directory than the scene, "
-                                           "a full or relative path is needed.  Instead of a data file, this value may "
-                                           "be the name of a text file (must end in \".txt\") that contains the name of "
+    const QString addRemoveFileDescription("Name of data file.  If a data file not in the current directory, it is best to use "
+                                           "an absolute path (a relative path may work).  Instead of a data file, this value may "
+                                           "be the name of a text file (must end in \".txt\") that contains the names of "
                                            "one or more data files, one per line.\n"
-                                           "Example on UNIX to create a text file containing all CIFTI scalar files in the current directory:\n"
+                                           "Example on UNIX to create a text file containing all CIFTI scalar files in the current directory "
+                                           "with absolute paths:\n"
                                            "   ls -d $PWD/*dscalar.nii  > file.txt");
     const QString dataFileAddSwitch("-data-file-add");
     ParameterComponent* dataFileAddOpt(ret->createRepeatableParameter(PARAM_KEY_OPTION_DATA_FILE_ADD,
