@@ -188,9 +188,11 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
                                                  dataFileRemoveComp->getString(1)));
     }
     
+    bool haveFixMapPaletteSettingsFlag(false);
     if (myParams->getOptionalParameter(PARAM_KEY_OPTION_FIX_MAP_PALETTE_SETTINGS)->m_present) {
         sceneOperations.push_back(SceneOperation(SceneOperationType::FIX_MAP_PALETTE_SETTINGS,
                                                  ""));
+        haveFixMapPaletteSettingsFlag = true;
     }
 
     if (s_enableCopyMapsOptionFlag) {
@@ -261,7 +263,9 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
      */
     SceneAttributes sceneAttributes(SceneTypeEnum::SCENE_TYPE_FULL,
                                     scene);
-    sceneAttributes.setLogFilesWithPaletteSettingsErrors(true);
+    if (haveFixMapPaletteSettingsFlag) {
+        sceneAttributes.setLogFilesWithPaletteSettingsErrors(true);
+    }
     
     SessionManager* sessionManager = SessionManager::get();
     sessionManager->restoreFromScene(&sceneAttributes,

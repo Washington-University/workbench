@@ -287,6 +287,13 @@ CaretMappableDataFile::applyPaletteColorMappingToAllMaps(const int32_t mapIndex)
                 pcm->copy(*mapColoring,
                           false);
         }
+        
+        /*
+         * Want all palette color mappings modified.
+         * Otherwise, this index might remain unmodified and the
+         * auto palette fixing when scenes are loaded may
+         */
+        getMapPaletteColorMapping(mapIndex)->setModified();
     }
 }
 
@@ -556,21 +563,56 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
             }
         }
         
+        /*
+         * This enables fixing of palettes for files that have palette settings
+         * for each map; apply to all maps is enabled; there is at least one
+         * palettes settings in the scene for the file; and the number of maps
+         * in the file does not match the number of palette settings in the scene
+         * for the file
+         */
+        const bool enablePaletteFixingFlag(true);
+        
+        /*
+         * Will be set to true if we find that the file's palette
+         * settings need to be updated.
+         */
+        bool fixFilesPalettesFlag(false);
+
+        std::vector<AString> paletteErrorMessages;
+        int32_t numberOfMapPaletteSettings(-1);
+        
         const int32_t numMaps = getNumberOfMaps();
         const SceneClassArray* pcmArray = sceneClass->getClassArray("savedPaletteColorMappingArray");
         if (pcmArray != NULL) {
             const int32_t numElements = pcmArray->getNumberOfArrayElements();
-            if (sceneAttributes->isLogFilesWithPaletteSettingsErrors()) {
-                if (numMaps != numElements) {
-                    /*
-                     * Number of maps in file is different than number of palette settings
-                     * in the scene for the file.  This may be used by the
-                     * scene file update command.
-                     */
-                    sceneAttributes->addToMapFilesWithPaletteSettingsErrors(this,
-                                                                            getFileName());
+            if (enablePaletteFixingFlag) {
+                if ( ! isOnePaletteUsedForAllMaps()) {
+                    if ((numElements > 0)
+                        && (numMaps > 0)
+                        && (numMaps != numElements)) {
+                        
+                        //std::cout << "*** Maps=" << numMaps << ", palettes=" << numElements << " file: " << getFileNameNoPath() << std::endl;
+                        
+                        numberOfMapPaletteSettings = numElements;
+                        
+                        if (sceneAttributes->isLogFilesWithPaletteSettingsErrors()) {
+                            
+                            
+                            /*
+                             * Number of maps in file is different than number of palette settings
+                             * in the scene for the file.  This is used by the
+                             * scene file update command that will fix the palette errors itself.
+                             */
+                            sceneAttributes->addToMapFilesWithPaletteSettingsErrors(this,
+                                                                                    getFileName());
+                        }
+                        else {
+                            fixFilesPalettesFlag = true;
+                        }
+                    }
                 }
             }
+
             for (int32_t i = 0; i < numElements; i++) {
                 const SceneClass* pcmClass = pcmArray->getClassAtIndex(i);
                 
@@ -687,7 +729,15 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                                              + mapName
                                              + "  Map Index: "
                                              + AString::number(mapIndex));
-                        sceneAttributes->addToErrorMessage(msg);
+                        if (fixFilesPalettesFlag) {
+                            /*
+                             * Message may be displayed later
+                             */
+                            paletteErrorMessages.push_back(msg);
+                        }
+                        else {
+                            sceneAttributes->addToErrorMessage(msg);
+                        }
                     }
                 }
             }
@@ -723,6 +773,39 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
             m_applyToAllMapsSelected = applyToAllMapsPrimitive->booleanValue();
         }
         
+        /*
+         * Need to fix here since we need to know if Apply to All Maps is enabled
+         */
+        if (fixFilesPalettesFlag
+            && m_applyToAllMapsSelected) {
+            /*
+             * Only need to set palettes if the number of maps has increased
+             */
+            if (numMaps != numberOfMapPaletteSettings) {
+                if (numMaps > numberOfMapPaletteSettings) {
+                    /*
+                     * Apply the first map to all maps
+                     */
+                    const int32_t mapIndex(0);
+                    applyPaletteColorMappingToAllMaps(mapIndex);
+                }
+                CaretLogInfo("Fixed incorrect palette settings count (maps="
+                             + AString::number(numMaps)
+                             + ", paletteSettings="
+                             + AString::number(numberOfMapPaletteSettings)
+                             + ") for "
+                             + getFileNameNoPath()
+                             + ".  Replacing the scene will eliminate this message.");
+            }
+        }
+        else {
+            /*
+             * Cannot fix palette errors so keep any error messages
+             */
+            for (const auto& msg : paletteErrorMessages) {
+                sceneAttributes->addToErrorMessage(msg);
+            }
+        }
         /*
          * README ABOUT IMPORTANCE OF MODIFIED COLOR PALLETTE MAPPING STATUS MUST REMAIN ON
          *
