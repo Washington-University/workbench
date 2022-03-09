@@ -5972,7 +5972,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
         FileInformation fileInfoFullPath(dataFileName);
         if (fileInfoFullPath.exists() == false) {
             throw DataFileException(dataFileName,
-                                    "File not found:");
+                                    "File was not found");
         }
     }
     

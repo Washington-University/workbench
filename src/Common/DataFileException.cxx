@@ -92,7 +92,9 @@ DataFileException::DataFileException(const AString& dataFileName,
         }
         msg.append("\n");
     }
-    msg.appendWithNewLine(s);
+    if ( ! s.isEmpty()) {
+        msg.append("   " + s);
+    }
 
     this->setExceptionDescription(msg);
 }
