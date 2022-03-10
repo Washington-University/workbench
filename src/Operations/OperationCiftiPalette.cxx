@@ -136,19 +136,8 @@ void OperationCiftiPalette::useParameters(OperationParameters* myParams, Progres
 {
     LevelProgress myProgress(myProgObj);
     CiftiFile* ciftiIn = myParams->getCifti(1);
-    CiftiXMLOld myOutXML = ciftiIn->getCiftiXMLOld();
-    int64_t numRows = myOutXML.getNumberOfRows(), numCols = myOutXML.getNumberOfColumns();
-    if (numRows < 1 || numCols < 1)
-    {
-        throw OperationException("cifti file has invalid dimensions");
-    }
-    PaletteColorMapping myMapping;
-    if (myOutXML.getRowMappingType() == CIFTI_INDEX_TYPE_SCALARS)
-    {
-         myMapping = *(myOutXML.getMapPalette(CiftiXMLOld::ALONG_ROW, 0));
-    } else {
-         myMapping = *(myOutXML.getFilePalette());
-    }
+    CiftiXML myOutXML = ciftiIn->getCiftiXML();
+    int64_t rowLength = myOutXML.getDimensionLength(CiftiXML::ALONG_ROW);
     AString myModeName = myParams->getString(2);
     bool ok = false;
     PaletteScaleModeEnum::Enum myMode = PaletteScaleModeEnum::fromName(myModeName, &ok);
@@ -157,38 +146,51 @@ void OperationCiftiPalette::useParameters(OperationParameters* myParams, Progres
         throw OperationException("unknown mapping mode");
     }
     CiftiFile* ciftiOut = myParams->getOutputCifti(3);
-    int myColumn = -1;
+    int myColumn = -1; //actually means index along row, does support 3D cifti now...
     OptionalParameter* columnOpt = myParams->getOptionalParameter(4);
     if (columnOpt->m_present)
     {
-        if (myOutXML.getRowMappingType() != CIFTI_INDEX_TYPE_SCALARS)
+        if (myOutXML.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::SCALARS)
         {
             throw OperationException("-column option can only be used on scalar maps");
         }
+        const CiftiScalarsMap& myMap = myOutXML.getScalarsMap(CiftiXML::ALONG_ROW);
         AString columnIdentifier = columnOpt->getString(1);
         bool ok = false;
         myColumn = columnIdentifier.toInt(&ok) - 1;
         if (ok)
         {
-            if (myColumn < 0 || myColumn >= numCols)
+            if (myColumn < 0 || myColumn >= rowLength)
             {
                 throw OperationException("invalid column specified");
             }
         } else {
             int i = 0;
-            for (; i < numCols; ++i)
+            for (; i < rowLength; ++i)
             {
-                if (myOutXML.getMapNameForRowIndex(i) == columnIdentifier)//index along a row - we need to fix these function names
+                if (myMap.getMapName(i) == columnIdentifier)
                 {
                     myColumn = i;
                     break;
                 }
             }
-            if (i >= numCols)
+            if (i >= rowLength)
             {
                 throw OperationException("invalid column specified");
             }
         }
+    }
+    PaletteColorMapping myMapping;
+    if (myOutXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS)
+    {
+        if (myColumn == -1)
+        {
+            myMapping = *(myOutXML.getScalarsMap(CiftiXML::ALONG_ROW).getMapPalette(0));
+        } else {
+            myMapping = *(myOutXML.getScalarsMap(CiftiXML::ALONG_ROW).getMapPalette(myColumn));
+        }
+    } else {
+        myMapping = *(myOutXML.getFilePalette());
     }
     myMapping.setScaleMode(myMode);
     OptionalParameter* posMinMaxPercent = myParams->getOptionalParameter(5);
@@ -261,25 +263,25 @@ void OperationCiftiPalette::useParameters(OperationParameters* myParams, Progres
         if (!ok) throw OperationException("unrecognized palette inversion type: " + inversionOpt->getString(1));
         myMapping.setInvertedMode(inversionType);
     }
-    if (myOutXML.getRowMappingType() == CIFTI_INDEX_TYPE_SCALARS)
+    ciftiOut->setCiftiXML(myOutXML); //use mutability of palette to get both provenance and file palette correct
+    if (myOutXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS)
     {
         if (myColumn == -1)
         {
-            for (int i = 0; i < numCols; ++i)
+            for (int i = 0; i < rowLength; ++i)
             {
-                *(myOutXML.getMapPalette(CiftiXMLOld::ALONG_ROW, i)) = myMapping;
+                *(ciftiOut->getCiftiXML().getScalarsMap(CiftiXML::ALONG_ROW).getMapPalette(i)) = myMapping;
             }
         } else {
-            *(myOutXML.getMapPalette(CiftiXMLOld::ALONG_ROW, myColumn)) = myMapping;
+            *(ciftiOut->getCiftiXML().getScalarsMap(CiftiXML::ALONG_ROW).getMapPalette(myColumn)) = myMapping;
         }
     } else {
-        *(myOutXML.getFilePalette()) = myMapping;
+        *(ciftiOut->getCiftiXML().getFilePalette()) = myMapping;
     }
-    ciftiOut->setCiftiXML(myOutXML);
-    vector<float> scratchRow(numCols);
-    for (int64_t i = 0; i < numRows; ++i)
+    vector<float> scratchRow(rowLength);
+    for (MultiDimIterator<int64_t> iter = ciftiIn->getIteratorOverRows(); !iter.atEnd(); ++iter)
     {
-        ciftiIn->getRow(scratchRow.data(), i);
-        ciftiOut->setRow(scratchRow.data(), i);
+        ciftiIn->getRow(scratchRow.data(), *iter);
+        ciftiOut->setRow(scratchRow.data(), *iter);
     }
 }
