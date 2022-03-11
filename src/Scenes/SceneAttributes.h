@@ -110,9 +110,9 @@ namespace caret {
         
         AString getSceneLoadWarningMessage() const;
         
-        void addFilenameForceWriteToScene(const AString& filename) const;
+        void setKeepAllFilesInScene(const bool status) const;
         
-        bool isFilenameForceWriteToScene(const AString& filename) const;
+        bool isKeepAllFilesInScene() const;
         
     private:
         SceneAttributes& operator=(const SceneAttributes&);
@@ -153,7 +153,7 @@ namespace caret {
         
         mutable std::set<SceneRestoreWarningCodesEnum::Enum> m_sceneWarningCodes;
         
-        mutable std::set<AString> m_filenamesForceWriteToScene;
+        mutable bool m_keepAllFilesInSceneFlag;
         
         // ADD_NEW_MEMBERS_HERE
 

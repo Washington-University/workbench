@@ -414,6 +414,7 @@ SpecFile::removeCaretDataFile(const CaretDataFile* caretDataFile,
             SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
             if (sfdf->getCaretDataFile() == caretDataFile) {
                 sfdf->setCaretDataFile(NULL);
+                sfdf->setRemoveWhenSavingToScene(true);
                 return true;
             }
         }
@@ -424,6 +425,110 @@ SpecFile::removeCaretDataFile(const CaretDataFile* caretDataFile,
                        + AString::number((qulonglong)caretDataFile)
                        + " from SpecFile: "
                        + getFileName());
+    }
+    
+    return false;
+}
+
+/*
+ * Remove any files that are not loaded.  Entries are
+ * removed when spec file is saved.
+ * @return Number of files that were removed
+ */
+int32_t
+SpecFile::removeAllNonLoadedFiles()
+{
+    int32_t removedCount(0);
+    
+    /*
+     * Get the entry
+     */
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+        for (int32_t i = 0; i < numFiles; i++) {
+            SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
+            if (sfdf->getCaretDataFile() == NULL) {
+                sfdf->setRemoveWhenSavingToScene(true);
+                ++removedCount;
+            }
+        }
+    }
+    
+    return removedCount;
+}
+
+/**
+ * Remove a Caret Data File by its name.
+ *
+ * If there is a a spec file entry with the given caret data file
+ * remove it.  Note: file has likely already been deleted so use only the
+ * the caret data file pointer but to not deference it.
+ *
+ * @param filename
+ *    Name of file.
+ * @param logSevereIfFailureToRemoveFileFlag
+ *   If true, log a message if failure to remove file
+ */
+bool
+SpecFile::removeCaretDataFileByName(const AString& filename,
+                                    const bool logSevereIfFailureToRemoveFileFlag)
+{
+    /*
+     * Get the entry
+     * Go through loop two times:
+     * First time look for exact match.
+     * Second time look for match at end of name.
+     */
+    std::vector<SpecFileDataFile*> endMatchedFiles;
+    for (int32_t counter = 0; counter < 2; counter++) {
+        for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+             iter != dataFileTypeGroups.end();
+             iter++) {
+            SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+            const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+            for (int32_t i = 0; i < numFiles; i++) {
+                SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
+                if (counter == 0) {
+                    /*
+                     * Exact match
+                     */
+                    if (sfdf->getFileName() == filename) {
+                        sfdf->setCaretDataFile(NULL);
+                        sfdf->setRemoveWhenSavingToScene(true);
+                        return true;
+                    }
+                }
+                else {
+                    /*
+                     * End match
+                     */
+                    if (sfdf->getFileName().endsWith(filename)) {
+                        endMatchedFiles.push_back(sfdf);
+                    }
+                }
+            }
+        }
+    }
+
+    if (endMatchedFiles.size() == 1) {
+        SpecFileDataFile* sfdf(endMatchedFiles[0]);
+        sfdf->setCaretDataFile(NULL);
+        sfdf->setRemoveWhenSavingToScene(true);
+        return true;
+    }
+    
+    if (logSevereIfFailureToRemoveFileFlag) {
+        if (endMatchedFiles.size() > 1) {
+            CaretLogSevere("Unable to remove file from SpecFile by name matching.  More than one file with name: "
+                           + filename);
+        }
+        else {
+            CaretLogSevere("Failed to remove CaretDataFile by name from SpecFile: "
+                           + filename);
+        }
     }
     
     return false;
@@ -1493,8 +1598,10 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
                 
                 bool addFileToSceneFlag = false;
                 
-                
-                if (sceneAttributes->isFilenameForceWriteToScene(specFileDataFile->getFileName())) {
+                if (specFileDataFile->isRemoveWhenSavingToScene()) {
+                    addFileToSceneFlag = false;
+                }
+                else if (sceneAttributes->isKeepAllFilesInScene()) {
                     /*
                      * The scene file update command adds file to the scene that are not loaded
                      * so we must force adding of the filename to the scene's spec file

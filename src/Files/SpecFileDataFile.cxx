@@ -63,6 +63,7 @@ SpecFileDataFile::SpecFileDataFile(const AString& filename,
     m_loadingSelected  = true;
     m_savingSelected = false;
     m_specFileMember = specFileMember;
+    m_removeWhenSavingToSceneFlag = false;
 }
 
 /**
@@ -109,6 +110,7 @@ SpecFileDataFile::copyHelper(const SpecFileDataFile& sfdf)
     m_loadingSelected  = sfdf.m_loadingSelected;
     m_savingSelected  = sfdf.m_savingSelected;
     m_specFileMember = sfdf.m_specFileMember;
+    m_removeWhenSavingToSceneFlag = sfdf.m_removeWhenSavingToSceneFlag;
 }
 
 
@@ -282,6 +284,26 @@ SpecFileDataFile::setSpecFileMember(const bool status)
         m_specFileMember = status;
         setModified();
     }
+}
+
+/**
+ * @return If true, do not write this file to the scene when saving the scene
+ */
+bool
+SpecFileDataFile::isRemoveWhenSavingToScene() const
+{
+    return m_removeWhenSavingToSceneFlag;
+}
+
+/**
+ * Set do not write this file to scene when saving to scene
+ * @param status
+ *    New status
+ */
+void
+SpecFileDataFile::setRemoveWhenSavingToScene(const bool status)
+{
+    m_removeWhenSavingToSceneFlag = status;
 }
 
 /**

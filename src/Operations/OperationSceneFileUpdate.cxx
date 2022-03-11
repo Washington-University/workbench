@@ -46,7 +46,8 @@
 
 using namespace caret;
 
-bool OperationSceneFileUpdate::s_fatalErrorFlag = true;
+AString OperationSceneFileUpdate::s_errorMessages;
+bool OperationSceneFileUpdate::s_fatalErrorFlag = false;
 bool OperationSceneFileUpdate::s_enableCopyMapsOptionFlag = true;
 bool OperationSceneFileUpdate::s_verboseFlag = false;
 
@@ -121,10 +122,15 @@ OperationSceneFileUpdate::getParameters()
                                  fixMapPaletteSettingsSwitch,
                                  "Fix palette settings for files with change in number of maps");
 
-    const QString errorsAsWarningsSwitch("-Werror");
-    ret->createOptionalParameter(PARAM_KEY_OPTION_ERROR_AS_WARNING,
-                                 errorsAsWarningsSwitch,
-                                 "Treat file errors as warnings (unable to find a file or fix a file's palettes)");
+    const QString removeMissingFilesSwitch("-remove-missing-files");
+    ret->createOptionalParameter(PARAM_KEY_OPTION_REMOVE_MISSING_FILES,
+                                 removeMissingFilesSwitch,
+                                 "Remove missing files from SpecFile");
+    
+    const QString errorSwitch("-error");
+    ret->createOptionalParameter(PARAM_KEY_OPTION_ERROR,
+                                 errorSwitch,
+                                 "Abort command if there is an error performing any of the operations on the scene file");
     
     const QString verboseSwitch("-verbose");
     ret->createOptionalParameter(PARAM_KEY_OPTION_VERBOSE,
@@ -151,11 +157,15 @@ OperationSceneFileUpdate::getParameters()
                         "files to be updated."
                         "\n\n\"");
     }
-    helpText.append(errorsAsWarningsSwitch
-                    + "\" will treat file errors (unable to find a file or fix a file's palettes) as warnings and print message(s).  "
-                    "If this option is not specified and a file error occurs, the command will terminate without "
-                    "creating a new scene file.\n"
-                    );
+    helpText.append(removeMissingFilesSwitch
+                    + "\" Any files that fail to load when the scene is read will be removed from the scene.  Thus, if "
+                    "one deletes files prior to running with this option, the deleted files are removed from the scene.  "
+                    "\n\n\"");
+    
+    helpText.append(errorSwitch
+                    + "\" If this option is provided and there is an error while performing any of the scene "
+                    "operations, the command will immediately cease processing and the output scene file will not "
+                    "be created.   Otherwise any errors will be listed after the command finishes.\n");
 
     ret->setHelpText(helpText);
     
@@ -203,18 +213,28 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
         }
     }
     
-    if (sceneOperations.empty()) {
-        throw OperationException("At least one of the optional parameters must be provided.");
+    OptionalParameter* removeMissingFilesOption(myParams->getOptionalParameter(PARAM_KEY_OPTION_REMOVE_MISSING_FILES));
+    const bool removeMissingFilesFlag(removeMissingFilesOption->m_present);
+    if (removeMissingFilesFlag) {
+        /* prevents need "at least one operation error" */
+        sceneOperations.push_back(SceneOperation(SceneOperationType::REMOVE_MISSING_FILES, ""));
     }
-
-    OptionalParameter* errorsAsWarningsOption(myParams->getOptionalParameter(PARAM_KEY_OPTION_ERROR_AS_WARNING));
-    if (errorsAsWarningsOption->m_present) {
-        s_fatalErrorFlag = false;
+    
+    OptionalParameter* errorOption(myParams->getOptionalParameter(PARAM_KEY_OPTION_ERROR));
+    if (errorOption->m_present) {
+        s_fatalErrorFlag = true;
     }
     
     OptionalParameter* verboseOption(myParams->getOptionalParameter(PARAM_KEY_OPTION_VERBOSE));
     if (verboseOption->m_present) {
         s_verboseFlag = true;
+    }
+    
+    /*
+     * Did user provide an operation?
+     */
+    if (sceneOperations.empty()) {
+        throw OperationException("At least one of the optional parameters must be provided.");
     }
     
     /*
@@ -233,11 +253,13 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
                 scene = sceneFile.getSceneAtIndex(sceneIndex);
             }
             else {
-                throw OperationException("Scene index is invalid");
+                throw OperationException("Scene index is invalid: "
+                                         + sceneNameOrNumber);
             }
         }
         else {
-            throw OperationException("Scene name is invalid");
+            throw OperationException("Scene name is invalid: "
+                                     + sceneNameOrNumber);
         }
     }
     CaretAssert(scene);
@@ -253,7 +275,7 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
      */
     const SceneClass* guiManagerClass = scene->getClassWithName("guiManager");
     if (guiManagerClass->getName() != "guiManager") {
-        throw OperationException("Top level scene class should be guiManager but it is: "
+        throw OperationException("PROGRAM ERROR: Top level scene class should be guiManager but it is: "
                                  + guiManagerClass->getName());
     }
     
@@ -267,6 +289,12 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
         sceneAttributes.setLogFilesWithPaletteSettingsErrors(true);
     }
     
+    /*
+     * Keep all files in the scene when writing the scene,
+     * event those files that were not or failed to load.
+     */
+    sceneAttributes.setKeepAllFilesInScene(true);
+    
     SessionManager* sessionManager = SessionManager::get();
     sessionManager->restoreFromScene(&sceneAttributes,
                                      guiManagerClass->getClass("m_sessionManager"));
@@ -277,11 +305,13 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
      */
     const AString sceneErrorMessage(sceneAttributes.getErrorMessage());
     if ( ! sceneErrorMessage.isEmpty()) {
-        throw OperationException(sceneErrorMessage);
+        std::cout << ("Begin errors loading scene (command will continue):\n"
+                      + sceneErrorMessage
+                      + "\nEnd errors loading scene (command will continue)") << std::endl;
     }
     
     if (sessionManager->getNumberOfBrains() <= 0) {
-        throw OperationException("Scene loading failure, SessionManager contains no Brains");
+        throw OperationException("Scene loading failure, SessionManager contains no Brains; scenee is invalid or corrupt");
     }
     Brain* brain(SessionManager::get()->getBrain(0));
     if (brain == NULL) {
@@ -291,7 +321,20 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
 
     bool sceneUpdatedFlag(false);
     
+    /*
+     * Sort the operations on the scene
+     * Note: the SceneOperationType enums are integers
+     * used for sorting
+     */
+    std::sort(sceneOperations.begin(),
+              sceneOperations.end());
+
+    bool specFileModified(false);
+    
     for (auto& sc : sceneOperations) {
+        addToVerboseMessages("Performing operation: "
+                             + SceneOperation::typeToName(sc.m_sceneOperationType));
+
         switch (sc.m_sceneOperationType) {
             case SceneOperationType::COPY_MAP_ONE_PALETTE:
                 if (copyMapOnePalettes(scene,
@@ -307,6 +350,7 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
                                       brain,
                                       SceneOperationType::DATA_FILE_ADD) > 0) {
                     sceneUpdatedFlag = true;
+                    specFileModified = true;
                 }
                 break;
             case SceneOperationType::DATA_FILE_REMOVE:
@@ -316,6 +360,7 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
                                       brain,
                                       SceneOperationType::DATA_FILE_REMOVE) > 0) {
                     sceneUpdatedFlag = true;
+                    specFileModified = true;
                 }
                 break;
             case SceneOperationType::FIX_MAP_PALETTE_SETTINGS:
@@ -324,14 +369,77 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
                     sceneUpdatedFlag = true;
                 }
                 break;
+            case SceneOperationType::REMOVE_MISSING_FILES:
+            {
+                SpecFile* specFile(brain->getSpecFile());
+                CaretAssert(specFile);
+                const int32_t removedCount(specFile->removeAllNonLoadedFiles());
+                if (removedCount > 0) {
+                    addToVerboseMessages("Removed "
+                                         + AString::number(removedCount)
+                                         + " missing files.");
+                    sceneUpdatedFlag = true;
+                    specFileModified = true;
+                }
+            }
+                /* Nothing here, using the option sets a SceneAttribute above */
+                break;
         }
     }
     
-    if (sceneUpdatedFlag) {
-        sceneFile.writeFile(outputSceneFileName);
+    if (specFileModified) {
+        SpecFile* specFile(brain->getSpecFile());
+        SceneClass* newSpecFileClass(specFile->saveToScene(&sceneAttributes, "specFile"));
+        CaretAssert(newSpecFileClass);
+        
+        /*
+         * <ObjectArray Type="class" Name="m_brains" Length="1">
+         *    <Element Index="0">
+         *       <Object Type="class" Class="Brain" Name="m_brains" Version="1">
+         *
+         *  lots of stuff
+         *
+         * <Object Type="class" Class="SpecFile" Name="specFile" Version="1">
+         *    <Object Type="pathName" Name="specFileName">../../../fsaverage_LR32k/S1200_MSMAll3T535V.MSMAll.32k_fs_LR.wb.spec</Object>
+         *    <ObjectArray Type="class" Name="dataFilesArray" Length="35">
+         *       <Element Index="0">
+         */
+        SceneObject* brainArrayObject(scene->getDescendantWithName("m_brains"));
+        if (brainArrayObject == NULL) {
+            throw OperationException("Unable to find object named \"m_brains\" in the scene.  Is the scene corrupt?");
+        }
+        
+        SceneClassArray* brainArrayClass(dynamic_cast<SceneClassArray*>(brainArrayObject));
+        if (brainArrayClass->getNumberOfArrayElements() != 1) {
+            throw OperationException("PROGRAM ERROR: m_brains has child brain count (should be 1): "
+                                     + AString::number(brainArrayClass->getNumberOfArrayElements()));
+        }
+        
+        SceneClass* brainClass(brainArrayClass->getClassAtIndex(0));
+        if (brainClass == NULL) {
+            throw OperationException("PROGRAM ERROR: brain class at index 0 is invalid.");
+        }
+        
+        const SceneObject* specFileObject(brainClass->getObjectWithName("specFile"));
+        if (specFileObject == NULL) {
+            throw OperationException("PROGRAM ERROR: Unable to find \"specFile\" child of \"m_brains\"");
+        }
+        
+        if ( ! brainClass->replaceChild(specFileObject,
+                                        newSpecFileClass)) {
+            throw OperationException("PROGRAM ERROR: Failed to replace spec file object in scene with new spec file object");
+        }
     }
-    else {
-        throw OperationException("No changes were made to scene file.  Scene file was not written.");
+    
+    if ( ! sceneUpdatedFlag) {
+        addToErrorMessages("No changes were made to scene file.  New scene file was created.");
+    }
+    
+    sceneFile.writeFile(outputSceneFileName);
+    
+    if ( ! s_errorMessages.isEmpty()) {
+        std::cout << std::endl << "Scene file has been created.  These errors occurred during processing:" << std::endl;
+        std::cout << s_errorMessages << std::endl << std::endl;
     }
 }
 
@@ -350,7 +458,8 @@ OperationSceneFileUpdate::fixPalettesInFilesWithMapCountChanged(Scene* scene,
 
     const std::vector<std::pair<CaretMappableDataFile*, AString>> filesAndNames(sceneAttributes.getMapFilesWithPaletteSettingsErrors());
     if (filesAndNames.empty()) {
-        throw OperationException("No files were found with a change in map count compared to map count in palette settings in scene.");
+        addToErrorMessages("Fix Palettes: No files were found with a change in map count compared to map count in palette settings in scene.");
+        return updateCounter;
     }
     
     std::vector<CaretMappableDataFile*> allDataFiles;
@@ -367,38 +476,46 @@ OperationSceneFileUpdate::fixPalettesInFilesWithMapCountChanged(Scene* scene,
         for (auto& mapFile : allDataFiles) {
             if (mapFile == file) {
                 if (mapFile->isOnePaletteUsedForAllMaps()) {
-                    /*
-                     * One palette used for all maps so nothing to fix
-                     */
-                    foundFlag = true;
-                }
-                else if (mapFile->isApplyPaletteColorMappingToAllMaps()) {
-                    const int32_t changedCount(updateScenePaletteXML(scene,
-                                                                     &sceneAttributes,
-                                                                     mapFile,
-                                                                     mapFile->getFileNameNoPath(),
-                                                                     MatchNameMode::MATCH_EXACT));
-                    if (changedCount > 0) {
-                        updateCounter += changedCount;
+                    if (mapFile->isOnePaletteUsedForAllMaps()) {
+                        /*
+                         * One palette used for all maps so nothing to fix
+                         */
+                        foundFlag = true;
+                        addToErrorMessages("File not fixed, one palette is used for all maps: "
+                                           + name);
+                    }
+                    else if (mapFile->isApplyPaletteColorMappingToAllMaps()) {
+                        const int32_t changedCount(updateScenePaletteXML(scene,
+                                                                         &sceneAttributes,
+                                                                         mapFile,
+                                                                         mapFile->getFileNameNoPath(),
+                                                                         MatchNameMode::MATCH_EXACT));
+                        if (changedCount > 0) {
+                            updateCounter += changedCount;
+                        }
+                        else {
+                            addToErrorMessages("Failed to fix palettes: "
+                                               + name);
+                        }
+                        foundFlag = true;
                     }
                     else {
-                        processError("Failed to fix: " + name);
+                        addToErrorMessages("File not fixed, Apply to All Maps is OFF): "
+                                           + mapFile->getFileName());
                     }
                 }
                 else {
-                    processError("File not fixed (Apply to All Maps is OFF): "
-                                 + name);
+                    addToErrorMessages("Map one palettes not copied, file is not mapped with palettes: "
+                                       + mapFile->getFileName());
                 }
-                foundFlag = true;
-                ++updateCounter;
                 
                 break;
             }
         }
         
         if ( ! foundFlag) {
-            processError("Unable to fix (file may not have been read and is missing: "
-                         + name);
+            addToErrorMessages("Unable to fix (file may not have been read and is missing): "
+                               + file->getFileName());
         }
     }
     
@@ -435,38 +552,40 @@ OperationSceneFileUpdate::copyMapOnePalettes(Scene* scene,
     bool mapPalettesUpdatedFlag(false);
     for (auto& mapFile : allDataFiles) {
         if (mapFile->getFileName().endsWith(copyMapOneDataFileName)) {
-            if (mapFile->isOnePaletteUsedForAllMaps()) {
-                /*
-                 * One palette used for all maps so nothing to fix
-                 */
-            }
-            else if (mapFile->isMappedWithPalette()) {
-                const int32_t updateCount(updateScenePaletteXML(scene,
+            if (mapFile->isMappedWithPalette()) {
+                if (mapFile->isOnePaletteUsedForAllMaps()) {
+                    /*
+                     * One palette used for all maps so nothing to fix
+                     */
+                    addToErrorMessages("Map one palettes not copied, one palette is used for all maps: "
+                                       + mapFile->getFileName());
+                }
+                else {
+                    const int32_t updateCount(updateScenePaletteXML(scene,
                                                                 &sceneAttributes,
                                                                 mapFile,
                                                                 copyMapOneDataFileName,
                                                                 MatchNameMode::MATCH_END_OF_NAME));
-                if (updateCount > 0) {
-                    filesUpdatedCounter += updateCount;
-                    mapPalettesUpdatedFlag = true;
-                }
-                else {
-                    processError("FAILED TO UPDATE: "
-                                 + mapFile->getFileName()
-                                 + " and matching to "
-                                 + copyMapOneDataFileName);
+                    if (updateCount > 0) {
+                        filesUpdatedCounter += updateCount;
+                        mapPalettesUpdatedFlag = true;
+                    }
+                    else {
+                        addToErrorMessages("Failed to copy map one palettes: "
+                                           + mapFile->getFileName());
+                    }
                 }
             }
             else {
-                processError(mapFile->getFileName()
-                             + " is not mapped with a palette.");
+                addToErrorMessages("Map one palettes not copied, file is not mapped with palettes: "
+                                   + mapFile->getFileName());
             }
         }
     }
     
     if (filesUpdatedCounter == 0) {
-        processError("No files found for: "
-                     + copyMapOneDataFileName);
+        addToErrorMessages("No files found for: "
+                           + copyMapOneDataFileName);
     }
     
     return filesUpdatedCounter;
@@ -496,11 +615,6 @@ OperationSceneFileUpdate::dataFileAddRemove(Scene* scene,
     CaretAssert(scene);
     CaretAssert(brain);
 
-    if (filenames.empty()) {
-        processError("No files for add/remove operation");
-        return 0;
-    }
-    
     bool addFlag(false);
     if (addRemoveOperation == SceneOperationType::DATA_FILE_ADD) {
         addFlag = true;
@@ -512,40 +626,14 @@ OperationSceneFileUpdate::dataFileAddRemove(Scene* scene,
         CaretAssert(0);
     }
     
+    if (filenames.empty()) {
+        addToErrorMessages("No files provided for "
+                           + AString(addFlag ? "Data File Add " : "Data File Remove ")
+                           + " operation");
+        return 0;
+    }
+    
     int32_t updateCounter(0);
-
-    /*
-     * <ObjectArray Type="class" Name="m_brains" Length="1">
-     *    <Element Index="0">
-     *       <Object Type="class" Class="Brain" Name="m_brains" Version="1">
-     *
-     *  lots of stuff
-     *
-     * <Object Type="class" Class="SpecFile" Name="specFile" Version="1">
-     *    <Object Type="pathName" Name="specFileName">../../../fsaverage_LR32k/S1200_MSMAll3T535V.MSMAll.32k_fs_LR.wb.spec</Object>
-     *    <ObjectArray Type="class" Name="dataFilesArray" Length="35">
-     *       <Element Index="0">
-     */
-    SceneObject* brainArrayObject(scene->getDescendantWithName("m_brains"));
-    if (brainArrayObject == NULL) {
-        throw OperationException("Unable to find object named \"m_brains\" in the scene.  Is the scene corrupt?");
-    }
-    
-    SceneClassArray* brainArrayClass(dynamic_cast<SceneClassArray*>(brainArrayObject));
-    if (brainArrayClass->getNumberOfArrayElements() != 1) {
-        throw OperationException("PROGRAM ERROR: m_brains has child brain count: "
-                                 + AString::number(brainArrayClass->getNumberOfArrayElements()));
-    }
-    
-    SceneClass* brainClass(brainArrayClass->getClassAtIndex(0));
-    if (brainClass == NULL) {
-        throw OperationException("PROGRAM ERROR: brain class at index 0 is invalid.");
-    }
-    
-    const SceneObject* specFileObject(brainClass->getObjectWithName("specFile"));
-    if (specFileObject == NULL) {
-        throw OperationException("Unable to find \"specFile\" child of \"m_brains\"; this should not happen");
-    }
     
     SpecFile* specFile(brain->getSpecFile());
     for (auto& name : filenames) {
@@ -567,60 +655,69 @@ OperationSceneFileUpdate::dataFileAddRemove(Scene* scene,
                                               fileSavingSelectionStatus,
                                               specFileMemberStatus);
                         
-                        /*
-                         * Files are not written to scene when no corresponding data file is loaded.
-                         * This fill force writing of the file to the scene.
-                         */
-                        sceneAttributes.addFilenameForceWriteToScene(fullPathName);
-                        
                         ++updateCounter;
-                        if (s_verboseFlag) {
-                            std::cout << "Added to Spec File: " << fullPathName << std::endl;
-                        }
+                        addToVerboseMessages("Added to Spec File: "
+                                             + fullPathName);
                     }
                     catch (const DataFileException& dfe) {
-                        processError(dfe.whatString());
+                        addToErrorMessages("Failed to add "
+                                           + fullPathName
+                                           + " to SpecFile.  "
+                                           + dfe.whatString());
                     }
                 }
                 else {
-                    processError("Invalid file type: " + name);
+                    addToErrorMessages("Invalid file type: "
+                                       + fullPathName);
                 }
             }
             else {
-                processError("File does not exist for adding: "
-                             + fullPathName);
+                addToErrorMessages("File not added because file does not exist: "
+                                   + fullPathName);
             }
         }
         else {
-            std::vector<CaretDataFile*> allDataFiles;
-            brain->getAllDataFiles(allDataFiles);
-            for (auto dataFile : allDataFiles) {
-                if (dataFile->getFileName().endsWith(name)) {
-                    const bool logSevereIfFailureToRemoveFileFlag(false);
-                    if (specFile->removeCaretDataFile(dataFile,
-                                                      logSevereIfFailureToRemoveFileFlag)) {
-                        ++updateCounter;
-                        if (s_verboseFlag) {
-                            std::cout << "Removed from Spec File: " << dataFile->getFileName() << std::endl;
+            const bool logSevereIfFailureToRemoveFileFlag(false);
+
+            FileInformation fileInfo(name);
+            const AString fullPathName(fileInfo.getAbsoluteFilePath());
+            
+            if (QFile::exists(fullPathName)) {
+                std::vector<CaretDataFile*> allDataFiles;
+                brain->getAllDataFiles(allDataFiles);
+                for (auto dataFile : allDataFiles) {
+                    if (dataFile->getFileName().endsWith(name)) {
+                        if (specFile->removeCaretDataFile(dataFile,
+                                                          logSevereIfFailureToRemoveFileFlag)) {
+                            ++updateCounter;
+                            addToVerboseMessages("Removed from Spec File: "
+                                                 + dataFile->getFileName());
+                        }
+                        else {
+                            addToErrorMessages("Failed to remove file: "
+                                               + fullPathName);
                         }
                     }
-                    else {
-                        processError("Failed to remove file: " + name);
+                }
+            }
+            else {
+                SpecFile* specFile(brain->getSpecFile());
+                if (specFile->removeCaretDataFileByName(fullPathName,
+                                                        logSevereIfFailureToRemoveFileFlag)) {
+                    ++updateCounter;
+                    if (s_verboseFlag) {
+                        addToVerboseMessages("Removed from Spec File (by name): "
+                                             + fullPathName);
                     }
+                }
+                else {
+                    addToErrorMessages("Failed to remove file (by name): "
+                                       + fullPathName);
                 }
             }
         }
     }
-    
-    if (updateCounter > 0) {
-        SceneClass* newSpecFileClass(specFile->saveToScene(&sceneAttributes, "specFile"));
-        CaretAssert(newSpecFileClass);
-        
-        if ( ! brainClass->replaceChild(specFileObject,
-                                        newSpecFileClass)) {
-            throw OperationException("Failed to replace spec file object in scene with new spec file object");
-        }
-    }
+
     return updateCounter;
 }
 
@@ -726,9 +823,8 @@ OperationSceneFileUpdate::updateScenePaletteXML(Scene* scene,
                         
                         ++updateCounter;
                         
-                        if (s_verboseFlag) {
-                            std::cout << "Palettes updated for: " << mapFile->getFileName() << std::endl;
-                        }
+                        addToVerboseMessages("Palettes updated for: "
+                                             + mapFile->getFileName());
                     }
                 }
             }
@@ -741,17 +837,30 @@ OperationSceneFileUpdate::updateScenePaletteXML(Scene* scene,
 }
 
 /**
- * Process error messages
+ * Add to error  messages
  * @param message
  *    The error message
  */
 void
-OperationSceneFileUpdate::processError(const AString& message)
+OperationSceneFileUpdate::addToErrorMessages(const AString& message)
 {
     if (s_fatalErrorFlag) {
         throw OperationException(message);
     }
-    std::cout << "WARNING: " << message << std::endl;
+    s_errorMessages.appendWithNewLine(message);
+}
+
+/**
+ * Add to verbose  messages
+ * @param message
+ *    The error message
+ */
+void
+OperationSceneFileUpdate::addToVerboseMessages(const AString& message)
+{
+    if (s_verboseFlag) {
+        std::cout << "Verbose: " << message << std::endl;
+    }
 }
 
 /**
@@ -771,15 +880,15 @@ OperationSceneFileUpdate::SceneOperation::getFileNames() const
             textFile.readFile(m_parameter);
             namesOut = textFile.getTextLines();
             if (namesOut.empty()) {
-                throw OperationException("No filenames read from "
-                                         + m_parameter);
+                addToErrorMessages("No filenames read from "
+                                   + m_parameter);
             }
         }
         catch (DataFileException& dfe) {
-            throw OperationException("Failed to read: "
-                                     + m_parameter
-                                     + " "
-                                     + dfe.whatString());
+            addToErrorMessages("Failed to read: "
+                               + m_parameter
+                               + " "
+                               + dfe.whatString());
         }
     }
     else {
@@ -787,4 +896,28 @@ OperationSceneFileUpdate::SceneOperation::getFileNames() const
     }
     
     return namesOut;
+}
+
+AString
+OperationSceneFileUpdate::SceneOperation::typeToName(const SceneOperationType sceneOperationType)
+{
+    AString s;
+    switch (sceneOperationType) {
+        case SceneOperationType::REMOVE_MISSING_FILES:
+            s = "Remove Missing Files";
+            break;
+        case SceneOperationType::DATA_FILE_REMOVE:
+            s = "Data File - Remove";
+            break;
+        case SceneOperationType::DATA_FILE_ADD:
+            s = "Data File - Add";
+            break;
+        case SceneOperationType::COPY_MAP_ONE_PALETTE:
+            s = "Copy Map One Palette to Other Maps";
+            break;
+        case SceneOperationType::FIX_MAP_PALETTE_SETTINGS:
+            s = "Fix map palette settings";
+            break;
+    }
+    return s;
 }

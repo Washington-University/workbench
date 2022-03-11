@@ -69,6 +69,10 @@ namespace caret {
         
         void setSpecFileMember(const bool status);
         
+        bool isRemoveWhenSavingToScene() const;
+        
+        void setRemoveWhenSavingToScene(const bool status);
+        
         bool exists() const;
         
     public:
@@ -92,6 +96,8 @@ namespace caret {
         bool m_savingSelected;
         
         bool m_specFileMember;
+        
+        bool m_removeWhenSavingToSceneFlag;
     };
     
 #ifdef __SPEC_FILE_GROUP_FILE_DECLARE__

@@ -45,15 +45,16 @@ namespace caret {
 
     private:
         enum ParamKeys : int32_t {
-            PARAM_KEY_INPUT_SCENE_FILE = 1,
-            PARAM_KEY_OUTPUT_SCENE_FILE = 2,
-            PARAM_KEY_SCENE_NAME_NUMBER = 3,
-            PARAM_KEY_OPTION_COPY_MAP_ONE_PALETTE = 4,
-            PARAM_KEY_OPTION_DATA_FILE_ADD = 5,
-            PARAM_KEY_OPTION_DATA_FILE_REMOVE = 6,
-            PARAM_KEY_OPTION_FIX_MAP_PALETTE_SETTINGS= 7,
-            PARAM_KEY_OPTION_ERROR_AS_WARNING = 8,
-            PARAM_KEY_OPTION_VERBOSE = 9
+            PARAM_KEY_INPUT_SCENE_FILE,
+            PARAM_KEY_OUTPUT_SCENE_FILE,
+            PARAM_KEY_SCENE_NAME_NUMBER,
+            PARAM_KEY_OPTION_COPY_MAP_ONE_PALETTE,
+            PARAM_KEY_OPTION_DATA_FILE_ADD,
+            PARAM_KEY_OPTION_DATA_FILE_REMOVE,
+            PARAM_KEY_OPTION_ERROR,
+            PARAM_KEY_OPTION_FIX_MAP_PALETTE_SETTINGS,
+            PARAM_KEY_OPTION_REMOVE_MISSING_FILES,
+            PARAM_KEY_OPTION_VERBOSE
         };
         
         enum class MatchNameMode {
@@ -61,21 +62,34 @@ namespace caret {
             MATCH_END_OF_NAME
         };
         
-        enum class SceneOperationType {
-            COPY_MAP_ONE_PALETTE,
-            DATA_FILE_ADD,
+        /**
+         * Type of operations on scene
+         *
+         * The order of these enums (not alphabetical) is the order that
+         * the operations must be performed.
+         */
+        enum class SceneOperationType : int32_t {
             DATA_FILE_REMOVE,
+            REMOVE_MISSING_FILES, /* Run after DATA_FILE_REMOVE as file removed may not exist */
+            DATA_FILE_ADD,
+            COPY_MAP_ONE_PALETTE, /* Run after DATA_FILE_ADD since this operation may apply to added files */
             FIX_MAP_PALETTE_SETTINGS
         };
         
         class SceneOperation {
         public:
+            static AString typeToName(const SceneOperationType sceneOperationType);
+            
             SceneOperation(const SceneOperationType sceneOperationType,
                            const AString& parameter)
             : m_sceneOperationType(sceneOperationType),
             m_parameter(parameter) { }
             
             std::vector<AString> getFileNames() const;
+            
+            bool operator<(const SceneOperation& rhs) const {
+                return (m_sceneOperationType < rhs.m_sceneOperationType);
+            }
             
             SceneOperationType m_sceneOperationType;
             AString m_parameter;
@@ -100,7 +114,11 @@ namespace caret {
                                              const AString& dataFileName,
                                              const MatchNameMode matchMode);
         
-        static void processError(const AString& message);
+        static void addToVerboseMessages(const AString& message);
+        
+        static void addToErrorMessages(const AString& message);
+        
+        static AString s_errorMessages;
         
         static bool s_fatalErrorFlag;
         
