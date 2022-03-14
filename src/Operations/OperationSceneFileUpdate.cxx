@@ -307,7 +307,15 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
     if ( ! sceneErrorMessage.isEmpty()) {
         std::cout << ("Begin errors loading scene (command will continue):\n"
                       + sceneErrorMessage
-                      + "\nEnd errors loading scene (command will continue)") << std::endl;
+                      + "\nEnd errors loading scene (command will continue)\n");
+        if (removeMissingFilesFlag) {
+            std::cout << ("\nWhen running with the \""
+                          + removeMissingFilesOption->m_optionSwitch
+                          + "\" option, the error\n"
+                          "messages above will list files that are missing and thus\n"
+                          "could not be read when the scene was loaded.  In this case\n"
+                          "case, the error messages can be ignored.") << std::endl << std::endl;
+        }
     }
     
     if (sessionManager->getNumberOfBrains() <= 0) {
