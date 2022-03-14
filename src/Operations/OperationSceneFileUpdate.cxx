@@ -345,7 +345,6 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
                 break;
             case SceneOperationType::DATA_FILE_ADD:
                 if (dataFileAddRemove(scene,
-                                      sceneAttributes,
                                       sc.getFileNames(),
                                       brain,
                                       SceneOperationType::DATA_FILE_ADD) > 0) {
@@ -355,7 +354,6 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
                 break;
             case SceneOperationType::DATA_FILE_REMOVE:
                 if (dataFileAddRemove(scene,
-                                      sceneAttributes,
                                       sc.getFileNames(),
                                       brain,
                                       SceneOperationType::DATA_FILE_REMOVE) > 0) {
@@ -595,8 +593,6 @@ OperationSceneFileUpdate::copyMapOnePalettes(Scene* scene,
  * Add or remove data files in the scene
  * @param scene
  *    The scene that needs to be updated
- * @param sceneAttributes
- *    The scene attributes
  * @param filenames
  *    Names of data files
  * @param brain
@@ -607,7 +603,6 @@ OperationSceneFileUpdate::copyMapOnePalettes(Scene* scene,
  */
 int32_t
 OperationSceneFileUpdate::dataFileAddRemove(Scene* scene,
-                                            SceneAttributes& sceneAttributes,
                                             const std::vector<AString>& filenames,
                                             Brain* brain,
                                             const SceneOperationType addRemoveOperation)

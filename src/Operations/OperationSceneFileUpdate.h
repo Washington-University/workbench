@@ -103,7 +103,6 @@ namespace caret {
                                           const AString& copyMapOneDataFileName);
         
         static int32_t dataFileAddRemove(Scene* scene,
-                                         SceneAttributes& sceneAttributes,
                                          const std::vector<AString>& filenames,
                                          Brain* brain,
                                          const SceneOperationType addRemoveOperation);
