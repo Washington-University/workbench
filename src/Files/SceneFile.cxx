@@ -835,7 +835,11 @@ SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
                     int numNames = (int)tempNames.size();
                     for (int k = 0; k < numNames; ++k)
                     {
-                        sceneNamesText.appendWithNewLine("        " + tempNames[k]);
+                        AString notFoundText;
+                        if ( ! QFile::exists(tempNames[k])) {
+                            notFoundText = " (NOT FOUND)";
+                        }
+                        sceneNamesText.appendWithNewLine("        " + tempNames[k] + notFoundText);
                     }
                 }
             }
