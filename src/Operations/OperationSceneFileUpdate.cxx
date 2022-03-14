@@ -312,9 +312,9 @@ OperationSceneFileUpdate::useParameters(OperationParameters* myParams,
             std::cout << ("\nWhen running with the \""
                           + removeMissingFilesOption->m_optionSwitch
                           + "\" option, the error\n"
-                          "messages above will list files that are missing and thus\n"
-                          "could not be read when the scene was loaded.  In this case\n"
-                          "case, the error messages can be ignored.") << std::endl << std::endl;
+                          "messages above will include \"File was not found\" messages.\n"
+                          "These \"File was not found\" messages can be ignored as they are\n"
+                          "listing the files that will be removed by this command.") << std::endl << std::endl;
         }
     }
     
