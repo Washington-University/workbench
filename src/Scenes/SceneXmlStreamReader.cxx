@@ -51,7 +51,6 @@
 #include "SceneStringArray.h"
 #include "SceneUnsignedByte.h"
 #include "SceneUnsignedByteArray.h"
-#include "SceneXmlElements.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroGroupXmlStreamReader.h"
 

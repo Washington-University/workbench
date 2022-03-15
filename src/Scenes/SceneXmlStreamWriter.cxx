@@ -39,7 +39,6 @@
 #include "ScenePathNameArray.h"
 #include "ScenePrimitive.h"
 #include "ScenePrimitiveArray.h"
-#include "SceneXmlElements.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroGroupXmlStreamWriter.h"
 

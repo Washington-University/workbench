@@ -75,8 +75,6 @@ SceneTypeEnum.h
 SceneUnsignedByte.h
 SceneUnsignedByteArray.h
 SceneWriterInterface.h
-SceneWriterXml.h
-SceneXmlElements.h
 SceneXmlStreamBase.h
 SceneXmlStreamReader.h
 SceneXmlStreamWriter.h
@@ -120,7 +118,6 @@ SceneStringArray.cxx
 SceneTypeEnum.cxx
 SceneUnsignedByte.cxx
 SceneUnsignedByteArray.cxx
-SceneWriterXml.cxx
 SceneXmlStreamBase.cxx
 SceneXmlStreamReader.cxx
 SceneXmlStreamWriter.cxx

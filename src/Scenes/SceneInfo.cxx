@@ -25,7 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "SceneXmlElements.h"
+#include "SceneInfoXmlStreamBase.h"
 #include "XmlAttributes.h"
 #include "XmlUtilities.h"
 #include "XmlWriter.h"
@@ -225,84 +225,6 @@ SceneInfo::setBalsaSceneID(const AString& balsaSceneID)
 }
 
 /**
- * Write the scene info element.
- *
- * @param sceneInfo
- *     The scene info element that is written.
- * @param sceneInfoIndex
- *     The index for the scene info.
- */
-void
-SceneInfo::writeSceneInfo(XmlWriter& xmlWriter,
-                          const int32_t sceneInfoIndex) const
-{
-    XmlAttributes attributes;
-    attributes.addAttribute(SceneXmlElements::SCENE_INFO_INDEX_ATTRIBUTE,
-                            sceneInfoIndex);
-    
-    xmlWriter.writeStartElement(SceneXmlElements::SCENE_INFO_TAG,
-                                  attributes);
-    
-    xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_NAME_TAG,
-                                     m_sceneName);
-    
-    xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_SCENE_ID_TAG,
-                                m_balsaSceneID);
-    
-    xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_DESCRIPTION_TAG,
-                                       m_sceneDescription);
-    
-    writeSceneInfoImage(xmlWriter,
-                        SceneXmlElements::SCENE_INFO_IMAGE_TAG,
-                        m_imageBytes,
-                        m_imageFormat);
-    
-    /*
-     * End class element.
-     */
-    xmlWriter.writeEndElement();
-}
-
-/**
- * Write an image to the scene info.
- *
- * @param xmlWriter
- *    The XML writer.
- * @param xmlTag
- *    Tag for the image.
- * @param imageBytes
- *    Bytes containing the image.
- * @param imageFormat
- *    Format of the image.
- *
- */
-void
-SceneInfo::writeSceneInfoImage(XmlWriter& xmlWriter,
-                               const AString& xmlTag,
-                                    const QByteArray& imageBytes,
-                                    const AString& imageFormat) const
-{
-    if (imageBytes.length() > 0) {
-        //QString base64String(imageBytes.toBase64());
-        const QByteArray base64ByteArray(imageBytes.toBase64());
-        QString base64String = QString::fromLatin1(base64ByteArray.constData(),
-                                                  base64ByteArray.size());
-        XmlAttributes attributes;
-        attributes.addAttribute(SceneXmlElements::SCENE_INFO_IMAGE_ENCODING_ATTRIBUTE,
-                                SceneXmlElements::SCENE_INFO_ENCODING_BASE64_NAME);
-        attributes.addAttribute(SceneXmlElements::SCENE_INFO_IMAGE_FORMAT_ATTRIBUTE,
-                                imageFormat);
-        
-        xmlWriter.writeStartElement(xmlTag,
-                                      attributes);
-        
-        xmlWriter.writeCharacters(base64String);
-        
-        xmlWriter.writeEndElement();
-    }
-}
-
-/**
  * Set an image form text.
  *
  * @param text
@@ -321,7 +243,7 @@ SceneInfo::setImageFromText(const AString& text,
     m_imageFormat = "";
     
     if ( ! text.isEmpty()) {
-        if (encoding == SceneXmlElements::SCENE_INFO_ENCODING_BASE64_NAME) {
+        if (encoding == SceneInfoXmlStreamBase::VALUE_ENCODING_BASE64) {
             m_imageBytes = QByteArray::fromBase64(text.toLatin1());
             m_imageFormat = imageFormat;
         }

@@ -64,17 +64,9 @@ namespace caret {
         
         void setWorkbenchInfo(const AString& workbenchInfo);
         
-        void writeSceneInfo(XmlWriter& xmlWriter,
-                            const int32_t sceneInfoIndex) const;
-
         void setImageFromText(const AString& text,
                                        const AString& encoding,
                                        const AString& imageFormat);
-        
-        void writeSceneInfoImage(XmlWriter& xmlWriter,
-                                 const AString& xmlTag,
-                                 const QByteArray& imageBytes,
-                                 const AString& imageFormat) const;
         
     private:
         /*
