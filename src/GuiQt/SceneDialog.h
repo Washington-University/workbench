@@ -153,8 +153,6 @@ namespace caret {
         
         int32_t getNumberOfValidSceneInfoWidgets() const;
         
-        void addImageToScene(Scene* scene);
-        
         void highlightSceneAtIndex(const int32_t sceneIndex);
         
         void highlightScene(const Scene* scene);

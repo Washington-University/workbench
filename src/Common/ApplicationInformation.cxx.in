@@ -142,6 +142,15 @@ ApplicationInformation::getCommit() const
 }
 
 /**
+ * @return Commit date of application.
+ */
+AString 
+ApplicationInformation::getCommitDate() const
+{
+    return this->commitDate;
+}
+
+/**
  * @return Text indicating if Workbench was compiled with Debug on.
  */
 AString

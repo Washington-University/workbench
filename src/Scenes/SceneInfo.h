@@ -60,6 +60,10 @@ namespace caret {
         
         bool hasImage() const;
         
+        AString getWorkbenchInfo() const;
+        
+        void setWorkbenchInfo(const AString& workbenchInfo);
+        
         void writeSceneInfo(XmlWriter& xmlWriter,
                             const int32_t sceneInfoIndex) const;
 
@@ -95,6 +99,9 @@ namespace caret {
         
         /** format of thumbnail image (eg: jpg, ppm, etc.) */
         AString m_imageFormat;
+        
+        /** Info about Workbench that created this scene */
+        AString m_workbenchInfo;
         
         // ADD_NEW_MEMBERS_HERE
 

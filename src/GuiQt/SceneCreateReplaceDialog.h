@@ -54,9 +54,9 @@ namespace caret {
                                     SceneFile* sceneFile,
                                     Scene* sceneToReplace);
         
-        static void addImageToScene(Scene* scene,
-                                    AString& errorMessageOut);
-        
+        static void addImageAndWorkbenchInfoToScene(Scene* scene,
+                                                    AString& errorMessageOut);
+
         static bool createSceneImage(QImage& imageOut,
                                      AString& errorMessageOut);
         

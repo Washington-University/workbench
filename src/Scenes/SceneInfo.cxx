@@ -53,6 +53,7 @@ SceneInfo::SceneInfo(const SceneInfo& rhs) : CaretObjectTracksModification()
     m_balsaSceneID = rhs.m_balsaSceneID;
     m_imageFormat = rhs.m_imageFormat;
     m_imageBytes = rhs.m_imageBytes;
+    m_workbenchInfo = rhs.m_workbenchInfo;
 }
 
 /**
@@ -179,6 +180,24 @@ SceneInfo::hasImage() const
     }
     
     return true;
+}
+
+/**
+ * @return Info about Workbench info that created this scene
+ */
+AString
+SceneInfo::getWorkbenchInfo() const
+{
+    return m_workbenchInfo;
+}
+
+void
+SceneInfo::setWorkbenchInfo(const AString& workbenchInfo)
+{
+    if (workbenchInfo != m_workbenchInfo) {
+        m_workbenchInfo = workbenchInfo;
+        setModified();
+    }
 }
 
 /**

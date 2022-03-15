@@ -101,6 +101,9 @@ SceneInfoXmlStreamReader::readSceneInfo(QXmlStreamReader& xmlReader,
                 else if (xmlReader.name() == ELEMENT_DESCRIPTION) {
                     sceneInfo->setDescription(xmlReader.readElementText());
                 }
+                else if (xmlReader.name() == ELEMENT_WORKBENCH_INFO) {
+                    sceneInfo->setWorkbenchInfo(xmlReader.readElementText());
+                }
                 else if (xmlReader.name() == ELEMENT_IMAGE) {
                     const QXmlStreamAttributes atts = xmlReader.attributes();
                     const QString encodingName = atts.value(ATTRIBUTE_IMAGE_ENCODING).toString();

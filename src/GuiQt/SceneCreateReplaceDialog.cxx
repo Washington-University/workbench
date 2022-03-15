@@ -382,14 +382,14 @@ SceneCreateReplaceDialog::replaceExistingScene(QWidget* parent,
 }
 
 /**
- * Add an image to the scene.
+ * Add an image to the scene and also info about Workbench.
  *
  * @param scene
  *    Scene to which image is added.
  */
 void
-SceneCreateReplaceDialog::addImageToScene(Scene* scene,
-                                          AString& errorMessageOut)
+SceneCreateReplaceDialog::addImageAndWorkbenchInfoToScene(Scene* scene,
+                                                          AString& errorMessageOut)
 {
     errorMessageOut.clear();
     
@@ -474,6 +474,18 @@ SceneCreateReplaceDialog::addImageToScene(Scene* scene,
          iter++) {
         delete *iter;
     }
+    
+    const AString dateTimeString(QDateTime(QDateTime::currentDateTime()).toString(Qt::ISODate));
+    ApplicationInformation appInfo;
+    const AString workbenchInfo("Version: "
+                                + appInfo.getVersion()
+                                + ", Date: "
+                                + dateTimeString
+                                + ", "
+                                + appInfo.getCommit()  /* Note: contains "Commit: " */
+                                + ", "
+                                + appInfo.getCommitDate());  /* Note: contains "Commit Date: " */
+    scene->getSceneInfo()->setWorkbenchInfo(workbenchInfo);
 }
 
 /**
@@ -759,8 +771,8 @@ SceneCreateReplaceDialog::okButtonClicked()
                                                       "guiManager"));
     
     AString imageErrorMessage;
-    addImageToScene(newScene,
-                    imageErrorMessage);
+    addImageAndWorkbenchInfoToScene(newScene,
+                                    imageErrorMessage);
     if ( ! imageErrorMessage.isEmpty()) {
         WuQMessageBox::errorOk(this,
                                imageErrorMessage);

@@ -87,6 +87,9 @@ SceneInfoXmlStreamWriter::writeXML(QXmlStreamWriter* xmlWriter,
     m_xmlWriter->writeTextElement(ELEMENT_DESCRIPTION,
                                   sceneInfo->getDescription());
     
+    m_xmlWriter->writeTextElement(ELEMENT_WORKBENCH_INFO,
+                                  sceneInfo->getWorkbenchInfo());
+    
     writeImageElement(sceneInfo);
     
     m_xmlWriter->writeEndElement();

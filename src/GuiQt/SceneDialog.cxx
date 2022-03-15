@@ -1570,8 +1570,8 @@ SceneDialog::replaceAllScenesPushButtonClicked()
                                                               "guiManager"));
             
             AString imageErrorMessage;
-            SceneCreateReplaceDialog::addImageToScene(newScene,
-                                                      imageErrorMessage);
+            SceneCreateReplaceDialog::addImageAndWorkbenchInfoToScene(newScene,
+                                                                      imageErrorMessage);
             if ( ! imageErrorMessage.isEmpty()) {
                 errorMessage.appendWithNewLine(imageErrorMessage);
             }
@@ -1690,6 +1690,7 @@ SceneDialog::replaceAllScenesPushButtonClicked()
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
     dialogLayout->addLayout(gridLayout);
+    dialogLayout->addStretch();
     
     WuQDialogNonModal* dialog = new WuQDialogNonModal("Replace All Scenes Comparison",
                                                       m_replaceAllScenesPushButton);
