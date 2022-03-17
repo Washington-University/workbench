@@ -22,6 +22,11 @@ endif()
 # Create a Library
 #
 ADD_LIBRARY(Xml
+GiftiException.h
+GiftiMetaData.h
+GiftiMetaDataXmlElements.h
+GiftiXmlElements.h
+
 XmlAttributes.h
 XmlException.h
 XmlSaxParser.h
@@ -31,6 +36,10 @@ XmlSaxParserWithQt.h
 XmlUnexpectedElementSaxParser.h
 XmlUtilities.h
 XmlWriter.h
+
+GiftiException.cxx
+GiftiMetaData.cxx
+GiftiXmlElements.cxx
 
 XmlAttributes.cxx
 XmlException.cxx

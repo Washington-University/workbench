@@ -23,12 +23,8 @@ endif()
 # Create the NIFTI library
 #
 ADD_LIBRARY(FilesBase
-GiftiException.h
 GiftiLabel.h
 GiftiLabelTable.h
-GiftiMetaData.h
-GiftiMetaDataXmlElements.h
-GiftiXmlElements.h
 nifti1.h
 nifti2.h
 NiftiEnums.h
@@ -37,11 +33,8 @@ VolumeMappableInterface.h
 VolumeSliceViewPlaneEnum.h
 VolumeSpace.h
 
-GiftiException.cxx
 GiftiLabel.cxx
 GiftiLabelTable.cxx
-GiftiMetaData.cxx
-GiftiXmlElements.cxx
 NiftiEnums.cxx
 VolumeBase.cxx
 VolumeMappableInterface.cxx
