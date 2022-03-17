@@ -27,6 +27,8 @@
 #include <QXmlStreamReader>
 
 #include "CaretAssert.h"
+#include "GiftiMetaData.h"
+#include "GiftiXmlElements.h"
 #include "SceneInfo.h"
 
 using namespace caret;
@@ -101,9 +103,6 @@ SceneInfoXmlStreamReader::readSceneInfo(QXmlStreamReader& xmlReader,
                 else if (xmlReader.name() == ELEMENT_DESCRIPTION) {
                     sceneInfo->setDescription(xmlReader.readElementText());
                 }
-                else if (xmlReader.name() == ELEMENT_WORKBENCH_INFO) {
-                    sceneInfo->setWorkbenchInfo(xmlReader.readElementText());
-                }
                 else if (xmlReader.name() == ELEMENT_IMAGE) {
                     const QXmlStreamAttributes atts = xmlReader.attributes();
                     const QString encodingName = atts.value(ATTRIBUTE_IMAGE_ENCODING).toString();
@@ -111,6 +110,9 @@ SceneInfoXmlStreamReader::readSceneInfo(QXmlStreamReader& xmlReader,
                     sceneInfo->setImageFromText(xmlReader.readElementText(),
                                                 encodingName,
                                                 formatName);
+                }
+                else if (xmlReader.name() == GiftiXmlElements::TAG_METADATA) {
+                    sceneInfo->getMetaData()->readSceneFile3(xmlReader);
                 }
                 else {
                     m_unexpectedXmlElements.insert(xmlReader.name().toString());

@@ -26,6 +26,7 @@
 #include <QXmlStreamWriter>
 
 #include "CaretAssert.h"
+#include "GiftiMetaData.h"
 #include "SceneInfo.h"
 #include "WuQMacroGroupXmlStreamWriter.h"
 
@@ -87,8 +88,7 @@ SceneInfoXmlStreamWriter::writeXML(QXmlStreamWriter* xmlWriter,
     m_xmlWriter->writeTextElement(ELEMENT_DESCRIPTION,
                                   sceneInfo->getDescription());
     
-    m_xmlWriter->writeTextElement(ELEMENT_WORKBENCH_INFO,
-                                  sceneInfo->getWorkbenchInfo());
+    sceneInfo->getMetaData()->writeSceneFile3(*xmlWriter);
     
     writeImageElement(sceneInfo);
     

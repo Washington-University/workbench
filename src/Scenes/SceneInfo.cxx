@@ -23,8 +23,13 @@
 #include "SceneInfo.h"
 #undef __SCENE_INFO_DECLARE__
 
+#include <QDateTime>
+#include <QSysInfo>
+
+#include "ApplicationInformation.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "GiftiMetaData.h"
 #include "SceneInfoXmlStreamBase.h"
 #include "XmlAttributes.h"
 #include "XmlUtilities.h"
@@ -44,6 +49,7 @@ using namespace caret;
 SceneInfo::SceneInfo()
 : CaretObjectTracksModification()
 {
+    m_metaData.reset(new GiftiMetaData());
 }
 
 SceneInfo::SceneInfo(const SceneInfo& rhs) : CaretObjectTracksModification()
@@ -53,7 +59,7 @@ SceneInfo::SceneInfo(const SceneInfo& rhs) : CaretObjectTracksModification()
     m_balsaSceneID = rhs.m_balsaSceneID;
     m_imageFormat = rhs.m_imageFormat;
     m_imageBytes = rhs.m_imageBytes;
-    m_workbenchInfo = rhs.m_workbenchInfo;
+    m_metaData.reset(new GiftiMetaData(*m_metaData));
 }
 
 /**
@@ -132,6 +138,25 @@ SceneInfo::setDescription(const AString& sceneDescription)
 }
 
 /**
+ * @return Pointer to metadata
+ */
+GiftiMetaData*
+SceneInfo::getMetaData()
+{
+    return m_metaData.get();
+}
+
+/**
+ * @return Pointer to metadata (const method)
+ */
+const GiftiMetaData*
+SceneInfo::getMetaData() const
+{
+    return m_metaData.get();
+}
+
+
+/**
  * Set bytes containing the thumbnail image.  
  *
  * @param imageBytes
@@ -183,21 +208,55 @@ SceneInfo::hasImage() const
 }
 
 /**
- * @return Info about Workbench info that created this scene
+ * Add data about Workbench Version to the scene's metadata
  */
-AString
-SceneInfo::getWorkbenchInfo() const
+void
+SceneInfo::addWorkbenchVersionInfoToSceneMetaData()
 {
-    return m_workbenchInfo;
+    addWorkbenchVersionInfoToMetaData(m_metaData.get());
 }
 
+/**
+ * Add (or replace) informatrion about this version of Workbench to the
+ * given metadata that may be a scene or the scene file's metadfata
+ * @param metaData
+ *    The metadata
+ */
 void
-SceneInfo::setWorkbenchInfo(const AString& workbenchInfo)
+SceneInfo::addWorkbenchVersionInfoToMetaData(GiftiMetaData* metaData)
 {
-    if (workbenchInfo != m_workbenchInfo) {
-        m_workbenchInfo = workbenchInfo;
-        setModified();
+    CaretAssert(metaData);
+
+    const AString dateTimeString(QDateTime(QDateTime::currentDateTime()).toString(Qt::ISODate));
+    ApplicationInformation appInfo;
+
+    metaData->set(METADATA_WORKBENCH_COMMIT_DATE_NAME,       SceneInfo::removeNamePrefix(appInfo.getCommitDate()));
+    metaData->set(METADATA_WORKBENCH_COMMIT_NAME,            SceneInfo::removeNamePrefix(appInfo.getCommit()));
+    metaData->set(METADATA_WORKBENCH_CURRENT_TIME_NAME,      dateTimeString);
+    metaData->set(METADATA_WORKBENCH_SYSTEM_INFO,            QSysInfo::prettyProductName());
+    metaData->set(METADATA_WORKBENCH_WORKBENCH_VERSION_NAME, appInfo.getVersion());
+}
+
+/**
+ * @return Text after the ": " from the given string
+ * @param text
+ *    The text string
+ *
+ * The commit and commit data from ApplicationInfo are like this:
+ *    Commit: 512308ecc04b66c1ce5650653bee869b12d9965c
+ *    Commit Date: 2022-03-17 08:53:20 -0500
+ *  just need data without title
+ */
+AString
+SceneInfo::removeNamePrefix(const AString& text)
+{
+    AString s(text);
+    const int32_t offset(s.indexOf(": "));
+    if (offset > 0) {
+        s = s.mid(offset + 2);
     }
+    
+    return s;
 }
 
 /**

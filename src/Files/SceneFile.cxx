@@ -726,6 +726,11 @@ SceneFile::writeFile(const AString& filename)
     
     
     try {
+        /*
+         * Update file's metadata with info about Workbench
+         */
+        SceneInfo::addWorkbenchVersionInfoToMetaData(m_metadata);
+        
         SceneFileXmlStreamWriter xmlStreamWriter;
         xmlStreamWriter.writeFile(this);
 

@@ -27,7 +27,6 @@
 
 #include <QAction>
 #include <QCheckBox>
-#include <QDateTime>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -475,17 +474,7 @@ SceneCreateReplaceDialog::addImageAndWorkbenchInfoToScene(Scene* scene,
         delete *iter;
     }
     
-    const AString dateTimeString(QDateTime(QDateTime::currentDateTime()).toString(Qt::ISODate));
-    ApplicationInformation appInfo;
-    const AString workbenchInfo("Version: "
-                                + appInfo.getVersion()
-                                + ", Date: "
-                                + dateTimeString
-                                + ", "
-                                + appInfo.getCommit()  /* Note: contains "Commit: " */
-                                + ", "
-                                + appInfo.getCommitDate());  /* Note: contains "Commit Date: " */
-    scene->getSceneInfo()->setWorkbenchInfo(workbenchInfo);
+    scene->getSceneInfo()->addWorkbenchVersionInfoToSceneMetaData();
 }
 
 /**
