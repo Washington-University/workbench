@@ -348,48 +348,65 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
 
     bool allowRotationFlag(true);
     bool scrollVolumeSlicesFlag(false);
-    if (browserTabContent->isVolumeMprDisplayed()) {
-        if (browserTabContent->getSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
-            /*
-             * Scroll slice if viewing a single slice plane
-             */
-            scrollVolumeSlicesFlag = true;
+    if (browserTabContent->isVolumeSlicesDisplayed()) {
+        bool mprFlag(false);
+        switch (browserTabContent->getSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+                mprFlag = true;
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                mprFlag = true;
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                allowRotationFlag      = false;
+                scrollVolumeSlicesFlag = true;
+                break;
         }
-        else {
-            switch (m_mprCursorMode) {
-                case VOLUME_MPR_CURSOR_MODE::INVALID:
-                    break;
-                case VOLUME_MPR_CURSOR_MODE::SCROLL_SLICE:
-                    scrollVolumeSlicesFlag = true;
-                    break;
-                case VOLUME_MPR_CURSOR_MODE::SELECT_SLICE:
-                {
-                    SelectionManager* selectionManager(GuiManager::get()->getBrain()->getSelectionManager());
-                    selectionManager->setAllSelectionsEnabled(false);
-                    SelectionItemVoxel* voxelID(selectionManager->getVoxelIdentification());
-                    voxelID->setEnabledForSelection(true);
-                    mouseEvent.getOpenGLWidget()->performIdentification(mouseEvent.getX(),
-                                                                        mouseEvent.getY(),
-                                                                        false);
-                    if (voxelID->isValid()) {
-                        double xyzDouble[3] { 0.0, 0.0, 0.0 };
-                        voxelID->getModelXYZ(xyzDouble);
-                        float xyz[3] {
-                            static_cast<float>(xyzDouble[0]),
-                            static_cast<float>(xyzDouble[1]),
-                            static_cast<float>(xyzDouble[2])
-                        };
-                        browserTabContent->selectSlicesAtCoordinate(xyz);
+        if (mprFlag) {
+            if (browserTabContent->getSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
+                /*
+                 * Scroll slice if viewing a single slice plane
+                 */
+                scrollVolumeSlicesFlag = true;
+            }
+            else {
+                switch (m_mprCursorMode) {
+                    case VOLUME_MPR_CURSOR_MODE::INVALID:
+                        break;
+                    case VOLUME_MPR_CURSOR_MODE::SCROLL_SLICE:
+                        scrollVolumeSlicesFlag = true;
+                        break;
+                    case VOLUME_MPR_CURSOR_MODE::SELECT_SLICE:
+                    {
+                        SelectionManager* selectionManager(GuiManager::get()->getBrain()->getSelectionManager());
+                        selectionManager->setAllSelectionsEnabled(false);
+                        SelectionItemVoxel* voxelID(selectionManager->getVoxelIdentification());
+                        voxelID->setEnabledForSelection(true);
+                        mouseEvent.getOpenGLWidget()->performIdentification(mouseEvent.getX(),
+                                                                            mouseEvent.getY(),
+                                                                            false);
+                        if (voxelID->isValid()) {
+                            double xyzDouble[3] { 0.0, 0.0, 0.0 };
+                            voxelID->getModelXYZ(xyzDouble);
+                            float xyz[3] {
+                                static_cast<float>(xyzDouble[0]),
+                                static_cast<float>(xyzDouble[1]),
+                                static_cast<float>(xyzDouble[2])
+                            };
+                            browserTabContent->selectSlicesAtCoordinate(xyz);
+                        }
+                        allowRotationFlag = false;
+                        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
                     }
-                    allowRotationFlag = false;
-                    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
+                        break;
+                    case VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE:
+                        /*
+                         * Will fall through to rotation
+                         */
+                        break;
                 }
-                    break;
-                case VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE:
-                    /*
-                     * Will fall through to rotation
-                     */
-                    break;
             }
         }
     }
