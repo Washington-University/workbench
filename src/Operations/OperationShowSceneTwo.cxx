@@ -50,6 +50,7 @@
 #include "MapYokingGroupEnum.h"
 #include "OffScreenSceneRendererOSMesa.h"
 #include "OperationException.h"
+#include "OperationShowScene.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -360,11 +361,28 @@ OperationShowSceneTwo::getParameters()
                      "\n");
     }
     
+#ifndef HAVE_OSMESA
+    helpText += ("\n\nERROR: "
+                 + OperationShowScene::getCommandNotAvailableMessage(OperationShowSceneTwo::getCommandSwitch())
+                 + "\n");
+#endif
+
     ret->setHelpText(helpText);
     
     return ret;
 }
 
+/**
+ * Use Parameters and perform operation
+ */
+#ifndef HAVE_OSMESA
+void
+OperationShowSceneTwo::useParameters(OperationParameters* /*myParams*/,
+                                  ProgressObject* /*myProgObj*/)
+{
+    throw OperationException(OperationShowScene::getCommandNotAvailableMessage(OperationShowSceneTwo::getCommandSwitch()));
+}
+#else // HAVE_OSMESA
 void
 OperationShowSceneTwo::useParameters(OperationParameters* myParams,
                                   ProgressObject* myProgObj)
@@ -835,6 +853,7 @@ OperationShowSceneTwo::useParameters(OperationParameters* myParams,
         std::cerr << sceneErrorMessage << std::endl;
     }
 }
+#endif // HAVE_OSMESA
 
 /**
  * Override map yoking group and map index in the scene

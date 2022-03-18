@@ -465,9 +465,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSceneFileUpdate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetMapNames()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
-    if (OperationShowSceneTwo::isShowSceneCommandAvailable()) {
-        this->commandOperations.push_back(new CommandParser(new AutoOperationShowSceneTwo()));
-    }
+    this->commandOperations.push_back(new CommandParser(new AutoOperationShowSceneTwo()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileRelocate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestVertex()));
@@ -513,9 +511,7 @@ CommandOperationManager::CommandOperationManager()
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationCiftiCopyMapping()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationMetricVertexSum()));
-    if (OperationShowScene::isShowSceneCommandAvailable()) {
-        this->deprecatedOperations.push_back(new CommandParser(new AutoOperationShowScene()));
-    }
+    this->deprecatedOperations.push_back(new CommandParser(new AutoOperationShowScene()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationSetMapName()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldResample()));

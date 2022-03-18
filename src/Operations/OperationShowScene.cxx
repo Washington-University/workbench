@@ -72,6 +72,22 @@
 using namespace caret;
 
 /**
+ *  @return A message indicating that the command is not available due to lack of Mesa3D library
+ */
+AString
+OperationShowScene::getCommandNotAvailableMessage(const AString& commandSwitch)
+{
+    AString s(commandSwitch
+              + " is not available !\n"
+              "A required library for this command, Mesa3D (software version of OpenGL), was not available when this "
+              "software was created.  This command is not available for the Windows version of this software but should "
+              "always be available in the Linux and MacOS versions.");
+
+    return s;
+}
+
+
+/**
  * \class caret::OperationShowScene
  * \brief Offscreen rendering of scene to an image file
  *
@@ -176,6 +192,12 @@ OperationShowScene::getParameters()
                  );
     
     
+#ifndef HAVE_OSMESA
+    helpText += ("\n\nERROR: "
+                 + getCommandNotAvailableMessage(OperationShowScene::getCommandSwitch())
+                 + "\n");
+#endif
+    
     ret->setHelpText(helpText);
     
     return ret;
@@ -189,8 +211,7 @@ void
 OperationShowScene::useParameters(OperationParameters* /*myParams*/,
                                   ProgressObject* /*myProgObj*/)
 {
-    throw OperationException("Show scene command not available due to this software version "
-                             "not being built with the Mesa OffScreen Library");
+    throw OperationException(getCommandNotAvailableMessage(OperationShowScene::getCommandSwitch()));
 }
 #else // HAVE_OSMESA
 void

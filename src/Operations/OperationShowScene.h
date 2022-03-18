@@ -42,6 +42,8 @@ namespace caret {
 
         static bool isShowSceneCommandAvailable();
         
+        static AString getCommandNotAvailableMessage(const AString& commandSwitch);
+        
     private:
         static BrainOpenGLFixedPipeline* createBrainOpenGL();
         
