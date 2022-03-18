@@ -798,11 +798,21 @@ SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
         AString sceneNamesText = "Scenes:";
         for (int32_t i = 0; i < numScenes; i++) {
             const Scene* scene = getSceneAtIndex(i);
-            sceneNamesText.appendWithNewLine("#" + AString::number(i + 1) + "  " +
+            sceneNamesText.appendWithNewLine("\n#" + AString::number(i + 1) + "  " +
                                              scene->getName());
             if (dataFileInformation.isOptionFlag(DataFileContentInformation::OPTION_SHOW_MAP_INFORMATION))
             {
-                sceneNamesText += ":";
+                const AString indent("        ");
+                const GiftiMetaData* sceneMetaData(scene->getSceneInfo()->getMetaData());
+                const auto namesAndValues(sceneMetaData->getAsMap());
+                if ( ! namesAndValues.empty()) {
+                    sceneNamesText.appendWithNewLine(indent + "Metadata:");
+                    for (const auto& nv : namesAndValues) {
+                        sceneNamesText.appendWithNewLine(indent + "   " + nv.first + ":  " + nv.second);
+                    }
+                }
+
+                //sceneNamesText += ":";
                 const SceneAttributes* myAttrs = scene->getAttributes();
                 const SceneClass* guiMgrClass = scene->getClassWithName("guiManager");
                 if (guiMgrClass == NULL)
@@ -842,7 +852,7 @@ SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
                         if ( ! QFile::exists(tempNames[k])) {
                             notFoundText = " (NOT FOUND)";
                         }
-                        sceneNamesText.appendWithNewLine("        " + tempNames[k] + notFoundText);
+                        sceneNamesText.appendWithNewLine(indent + tempNames[k] + notFoundText);
                     }
                 }
             }

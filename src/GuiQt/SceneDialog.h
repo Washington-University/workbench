@@ -303,7 +303,8 @@ namespace caret {
                                                                AString& nameTextOut,
                                                                AString& sceneIdTextOut,
                                                                AString& abbreviatedDescriptionTextOut,
-                                                               AString& fullDescriptionTextOut);
+                                                               AString& fullDescriptionTextOut,
+                                                               const bool scenePreviewDialogFlag);
         
     signals:
         /**

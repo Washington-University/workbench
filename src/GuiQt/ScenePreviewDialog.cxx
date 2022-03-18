@@ -97,12 +97,14 @@ ScenePreviewDialog::ScenePreviewDialog(const Scene* scene,
     AString sceneIdText;
     AString abbreviatedDescriptionText;
     AString fullDescriptionText;
+    const bool scenePreviewDialogFlag(true);
     SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
                                                                      -1,
                                                                      nameText,
                                                                      sceneIdText,
                                                                      abbreviatedDescriptionText,
-                                                                     fullDescriptionText);
+                                                                     fullDescriptionText,
+                                                                     scenePreviewDialogFlag);
     QLabel* nameLabel = new QLabel(nameText);
     
     QLabel* sceneIdLabel = new QLabel(sceneIdText);

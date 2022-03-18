@@ -74,6 +74,7 @@
 #include "EventShowDataFileReadWarningsDialog.h"
 #include "EventSceneActive.h"
 #include "FileInformation.h"
+#include "GiftiMetaData.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
 #include "ProgressReportingDialog.h"
@@ -2734,74 +2735,12 @@ SceneDialog::showImagePreviewButtonClicked()
         scene->getSceneInfo()->getImageBytes(imageByteArray,
                                              imageBytesFormat);
         
-        bool useNonModalDialogFlag = true;
-        if (useNonModalDialogFlag) {
-            /*
-             * Scene preview dialog will be deleted when user closes it
-             */
-            ScenePreviewDialog* spd = new ScenePreviewDialog(scene,
-                                                             m_showSceneImagePreviewPushButton);
-            spd->show();
-        }
-        else {
-            WuQDataEntryDialog ded(scene->getName(),
-                                   m_showSceneImagePreviewPushButton,
-                                   WuQDialog::SCROLL_AREA_AS_NEEDED);
-            ded.setCancelButtonText("");
-            ded.setOkButtonText("Close");
-            
-            try {
-                if (imageByteArray.length() > 0) {
-                    ImageFile imageFile;
-                    imageFile.setImageFromByteArray(imageByteArray,
-                                                    imageBytesFormat);
-                    const QImage* image = imageFile.getAsQImage();
-                    if (image != NULL) {
-                        if (image->isNull()) {
-                            CaretLogSevere("Preview image is invalid (isNull)");
-                        }
-                        else {
-                            QLabel* imageLabel = new QLabel();
-                            imageLabel->setPixmap(QPixmap::fromImage(*image));
-                            ded.addWidget("",
-                                          imageLabel);
-                        }
-                    }
-                }
-                
-            }
-            catch (const DataFileException& dfe) {
-                CaretLogSevere("Converting preview to image: "
-                               + dfe.whatString());
-            }
-            
-            AString nameText;
-            AString sceneIdText;
-            AString abbreviatedDescriptionText;
-            AString fullDescriptionText;
-            SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
-                                                                             -1,
-                                                                             nameText,
-                                                                             sceneIdText,
-                                                                             abbreviatedDescriptionText,
-                                                                             fullDescriptionText);
-            QLabel* nameLabel = new QLabel(nameText);
-            ded.addWidget("",
-                          nameLabel);
-            
-            QLabel* sceneIdLabel = new QLabel(sceneIdText);
-            ded.addWidget("",
-                          sceneIdLabel);
-            
-            if (! fullDescriptionText.isEmpty()) {
-                QLabel* descriptionLabel = new QLabel(fullDescriptionText);
-                descriptionLabel->setWordWrap(true);
-                ded.addWidget("",
-                              descriptionLabel);
-            }
-            
-            ded.exec();
-        }
+        /*
+         * Scene preview dialog will be deleted when user closes it
+         */
+        ScenePreviewDialog* spd = new ScenePreviewDialog(scene,
+                                                         m_showSceneImagePreviewPushButton);
+        spd->show();
     }
 }
 
@@ -3376,12 +3315,14 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         AString descriptionText;
         AString abbreviatedDescriptionText;
         AString fullDescriptionText;
+        const bool scenePreviewDialogFlag(false);
         SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
                                                                          sceneIndex,
                                                                          nameText,
                                                                          sceneIdText,
                                                                          abbreviatedDescriptionText,
-                                                                         fullDescriptionText);
+                                                                         fullDescriptionText,
+                                                                         scenePreviewDialogFlag);
         
         if (activeSceneFlag) {
             m_activeSceneLabel->setText("<html><font color=\"red\">Current Scene</font></html>");
@@ -3483,6 +3424,8 @@ SceneClassInfoWidget::limitToNumberOfLines(AString& textLines,
  *    Abbreviated text for description.
  * @param fullDescriptionTextOut
  *    Full text for description.
+ * @param previewDialogFlag
+ *    True if info will be displayed in scene preview dialog
  */
 void
 SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo* sceneInfo,
@@ -3490,7 +3433,8 @@ SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo
                                                                  AString& nameTextOut,
                                                                  AString& sceneIdTextOut,
                                                                  AString& abbreviatedDescriptionTextOut,
-                                                                 AString& fullDescriptionTextOut)
+                                                                 AString& fullDescriptionTextOut,
+                                                                 const bool scenePreviewDialogFlag)
 {
     CaretAssert(sceneInfo);
     
@@ -3521,7 +3465,9 @@ SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo
     
     fullDescriptionTextOut = sceneInfo->getDescription();
     abbreviatedDescriptionTextOut = fullDescriptionTextOut;
-    const int32_t maximumLinesInDescription(9);
+    const int32_t maximumLinesInDescription(scenePreviewDialogFlag
+                                            ? 999999  /* unlimited for preview dialog*/
+                                            : 9);
     SceneClassInfoWidget::limitToNumberOfLines(abbreviatedDescriptionTextOut,
                                                maximumLinesInDescription);
 
@@ -3551,6 +3497,23 @@ SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo
                                                                   + abbreviatedDescriptionTextOut);
         abbreviatedDescriptionTextOut.replace(replaceWithDescriptionBoldText,
                             "<b>DESCRIPTION:</b> ");
+    }
+    
+    if (scenePreviewDialogFlag) {
+        /*
+         * Show metadata in scene preview dialog
+         */
+        std::map<AString, AString> metaDataMap(sceneInfo->getMetaData()->getAsMap());
+        if ( ! metaDataMap.empty()) {
+            fullDescriptionTextOut.appendWithNewLine("<p><b>MetaData</b>:<br>");
+            for (auto& m : metaDataMap) {
+                fullDescriptionTextOut.appendWithNewLine(" "
+                                                         + m.first
+                                                         + ": "
+                                                         + m.second
+                                                         + "<br>");
+            }
+        }
     }
 }
 
