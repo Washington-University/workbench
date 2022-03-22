@@ -35,8 +35,6 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Capture the image with QGLWidget::renderPixmap() */
-        IMAGE_CAPTURE_WITH_RENDER_PIXMAP,
         /** Capture the image with QGLWidget::grabFrameBuffer() */
         IMAGE_CAPTURE_WITH_GRAB_FRAME_BUFFER,
         /** Capture with QOffscreenSurface and QOpenGLFramebufferObject */

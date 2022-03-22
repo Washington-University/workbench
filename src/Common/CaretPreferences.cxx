@@ -2176,7 +2176,7 @@ CaretPreferences::readPreferences()
     this->loggingLevel = logLevel;
     CaretLogger::getLogger()->setLevel(this->loggingLevel);
     
-    ImageCaptureMethodEnum::Enum defaultCaptureType = ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP;
+    ImageCaptureMethodEnum::Enum defaultCaptureType = ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_OFFSCREEN_FRAME_BUFFER;
     AString imageCaptureMethodName = this->qSettings->value(NAME_IMAGE_CAPTURE_METHOD,
                                                         ImageCaptureMethodEnum::toName(defaultCaptureType)).toString();
     bool validImageCaptureMethodName = false;

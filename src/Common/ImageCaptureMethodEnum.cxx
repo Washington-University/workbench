@@ -106,10 +106,6 @@ ImageCaptureMethodEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(ImageCaptureMethodEnum(IMAGE_CAPTURE_WITH_RENDER_PIXMAP, 
-                                    "IMAGE_CAPTURE_WITH_RENDER_PIXMAP", 
-                                    "Render Pixmap"));
-    
     enumData.push_back(ImageCaptureMethodEnum(IMAGE_CAPTURE_WITH_GRAB_FRAME_BUFFER, 
                                     "IMAGE_CAPTURE_WITH_GRAB_FRAME_BUFFER", 
                                     "Grab Frame Buffer"));

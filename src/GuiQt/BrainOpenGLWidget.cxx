@@ -2655,28 +2655,6 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
             
         }
             break;
-        case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP:
-        {
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-            WuQMessageBox::errorOk(this, "Render PixMap not implemented with Qt5");
-#else
-            /*
-             * When the user chooses to exclude regions
-             * caused by locking of tab/window aspect ratio,
-             * the pixmap is rendered to the output width and
-             * height and in the correct aspect ratio so when
-             * the rendering takes place, there is no empty 
-             * region caused by aspect locking that needs to 
-             * be excluded.
-             */
-            
-            QPixmap pixmap = this->renderPixmap(outputImageWidth,
-                                                outputImageHeight,
-                                                true);
-            image = pixmap.toImage();
-#endif
-        }
-            break;
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_OFFSCREEN_FRAME_BUFFER:
         {
             image = performOffScreenImageCapture(outputImageWidth,
