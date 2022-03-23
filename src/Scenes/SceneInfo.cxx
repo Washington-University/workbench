@@ -59,7 +59,7 @@ SceneInfo::SceneInfo(const SceneInfo& rhs) : CaretObjectTracksModification()
     m_balsaSceneID = rhs.m_balsaSceneID;
     m_imageFormat = rhs.m_imageFormat;
     m_imageBytes = rhs.m_imageBytes;
-    m_metaData.reset(new GiftiMetaData(*m_metaData));
+    m_metaData.reset(new GiftiMetaData(*(rhs.m_metaData)));
 }
 
 /**
