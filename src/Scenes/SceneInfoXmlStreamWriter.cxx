@@ -76,8 +76,20 @@ SceneInfoXmlStreamWriter::writeXML(QXmlStreamWriter* xmlWriter,
     m_xmlWriter = xmlWriter;
     
     m_xmlWriter->writeStartElement(ELEMENT_SCENE_INFO);
+
+
     m_xmlWriter->writeAttribute(ATTRIBUTE_SCENE_INDEX,
                                 QString::number(sceneInfoIndex));
+    
+    /*
+     * Write metadata first.  Metadata contains a 'Name' element and
+     * ELEMENT_NAME is also 'Name'.  When BALSA scans for the scene
+     * name, it looks for an element 'Name' and the last scanned
+     * 'Name' element becomes the scene name in BALSA.  By placing
+     * the metadata first, BALSA will get the scene name from
+     * ELEMENT_NAME that is written after the metadata.
+     */
+    sceneInfo->getMetaData()->writeSceneFile3(*xmlWriter);
     
     m_xmlWriter->writeTextElement(ELEMENT_NAME,
                                   sceneInfo->getName());
@@ -87,8 +99,6 @@ SceneInfoXmlStreamWriter::writeXML(QXmlStreamWriter* xmlWriter,
     
     m_xmlWriter->writeTextElement(ELEMENT_DESCRIPTION,
                                   sceneInfo->getDescription());
-    
-    sceneInfo->getMetaData()->writeSceneFile3(*xmlWriter);
     
     writeImageElement(sceneInfo);
     
