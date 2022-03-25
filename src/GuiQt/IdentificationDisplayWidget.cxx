@@ -42,6 +42,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
+#include "CaretLogger.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -59,7 +60,7 @@
 using namespace caret;
 
 /**
- * \class caret::IdentificationDisplayWidget 
+ * \class caret::IdentificationDisplayWidget
  * \brief Widget for display of identification data
  * \ingroup GuiQt
  */
@@ -92,18 +93,18 @@ m_location(location)
     const int32_t symbolsIndex = m_tabWidget->addTab(m_symbolsWidget,              "Symbols");
     
     m_tabWidget->setTabToolTip(infoIndex,
-                            "<html><body>Display results of identification operations</body></hmtl>");
+                               "<html><body>Display results of identification operations</body></hmtl>");
     m_tabWidget->setTabToolTip(chartIndex,
-                            "<html><body>Controls for chart identification</body></html>");
+                               "<html><body>Controls for chart identification</body></html>");
     m_tabWidget->setTabToolTip(filesIndex,
-                            "<html><body>Select specific files for identification; Enables "
-                            "identification of files that are NOT in an overlay</body></html>");
+                               "<html><body>Select specific files for identification; Enables "
+                               "identification of files that are NOT in an overlay</body></html>");
     m_tabWidget->setTabToolTip(filterIndex,
-                            "<html><body>Select tabs (all or selected)for identification data; "
+                               "<html><body>Select tabs (all or selected)for identification data; "
                                "Enable feature (borders/foci) identification</body></html>");
     m_tabWidget->setTabToolTip(symbolsIndex,
-                            "<html><body></body>Control the size/color/types of symbols shown "
-                            "on surfaces and volume slices</html>");
+                               "<html><body></body>Control the size/color/types of symbols shown "
+                               "on surfaces and volume slices</html>");
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -137,7 +138,7 @@ IdentificationDisplayWidget::receiveEvent(Event* event)
         dynamic_cast<EventUpdateInformationWindows*>(event);
         CaretAssert(textEvent);
         textEvent->setEventProcessed();
-
+        
         updateContent(true);
     }
 }
@@ -194,7 +195,7 @@ IdentificationDisplayWidget::createInfoWidget()
     m_infoTextBrowser = new QTextBrowser();
     m_infoTextBrowser->setLineWrapMode(QTextEdit::NoWrap);
     m_infoTextBrowser->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-
+    
     QToolButton* clearHistoryToolButton = new QToolButton();
     clearHistoryToolButton->setText("Clear");
     clearHistoryToolButton->setToolTip("Remove all information text");
@@ -222,7 +223,7 @@ IdentificationDisplayWidget::createInfoWidget()
     }
     QToolButton* removeSymbolsButton = new QToolButton();
     removeSymbolsButton->setText(removeButtonText);
-
+    
     removeSymbolsButton->setToolTip("Remove identification symbols on surfaces and volume slices");
     QObject::connect(removeSymbolsButton, &QToolButton::clicked,
                      this, &IdentificationDisplayWidget::infoRemoveSymbolsButtonClicked);
@@ -277,7 +278,7 @@ IdentificationDisplayWidget::createInfoWidget()
         }
             break;
     }
-
+    
     QBoxLayout* historySymbolLayout(NULL);
     Qt::Alignment symbolAlignment = Qt::Alignment();
     switch (m_location) {
@@ -377,7 +378,7 @@ IdentificationDisplayWidget::createFilteringFilesWidget()
     WuQtUtilities::setLayoutSpacingAndMargins(filesLayout, 0, 0);
     filesLayout->addWidget(m_fileFilteringTableWidget, 100);
     
-
+    
     return filesGroupBox;
 }
 
@@ -425,7 +426,7 @@ IdentificationDisplayWidget::createFilteringSettingsWidget()
     signalWatcher->addObject(m_filteringCiftiLoadingCheckBox);
     signalWatcher->addObject(m_filteringBorderCheckBox);
     signalWatcher->addObject(m_filteringFociCheckBox);
-
+    
     QWidget* showDataWidget = new QGroupBox("Data Identification");
     QVBoxLayout* showLayout = new QVBoxLayout(showDataWidget);
     showLayout->addWidget(m_filteringBorderCheckBox);
@@ -452,7 +453,7 @@ IdentificationDisplayWidget::createFilteringSettingsWidget()
     layout->addWidget(tabFilterWidget, 0, alignment);
     layout->addWidget(showDataWidget, 0, alignment);
     layout->addStretch();
-
+    
     QScrollArea* scrollArea = new QScrollArea();
     scrollArea->setWidget(widget);
     return scrollArea;
@@ -525,11 +526,10 @@ IdentificationDisplayWidget::updateSymbolsWidget()
     m_symbolsShowVolumeIdCheckBox->setChecked(info->isShowVolumeIdentificationSymbols());
     m_symbolsShowOtherTypesCheckBox->setChecked(info->isShowOtherTypeIdentificationSymbols());
     m_symbolsSurfaceContralateralVertexCheckBox->setChecked(info->isContralateralIdentificationEnabled());
-
+    
     m_symbolsIdColorComboBox->setSelectedColor(info->getIdentificationSymbolColor());
     m_symbolsContralateralIdColorComboBox->setSelectedColor(info->getIdentificationContralateralSymbolColor());
-    m_symbolSizeTypeComboBox->setSelectedItem<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>(info->getIdentificationSymbolSizeType());
-
+    
     QSignalBlocker symbolSizeBlocker(m_symbolsMillimetersDiameterSpinBox);
     m_symbolsMillimetersDiameterSpinBox->setValue(info->getIdentificationSymbolSize());
     QSignalBlocker recentSymbolSizeBlocker(m_symbolsMillimetersMostRecentDiameterSpinBox);
@@ -538,6 +538,24 @@ IdentificationDisplayWidget::updateSymbolsWidget()
     m_symbolsPercentageDiameterSpinBox->setValue(info->getIdentificationSymbolPercentageSize());
     QSignalBlocker symbolPercentageMostRecentSizeBlocker(m_symbolsPercentageMostRecentDiameterSpinBox);
     m_symbolsPercentageMostRecentDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolPercentageSize());
+    
+    bool mmFlag(false);
+    bool pctFlag(false);
+    switch (info->getIdentificationSymbolSizeType()) {
+        case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+            m_symbolSizeMillimeterRadioButton->setChecked(true);
+            mmFlag = true;
+            break;
+        case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+            m_symbolSizePercentageRadioButton->setChecked(true);
+            pctFlag = true;
+            break;
+    }
+    
+    m_symbolsMillimetersDiameterSpinBox->setEnabled(mmFlag);
+    m_symbolsMillimetersMostRecentDiameterSpinBox->setEnabled(mmFlag);
+    m_symbolsPercentageDiameterSpinBox->setEnabled(pctFlag);
+    m_symbolsPercentageMostRecentDiameterSpinBox->setEnabled(pctFlag);
 }
 
 /**
@@ -551,41 +569,46 @@ IdentificationDisplayWidget::createSymbolsWidget()
     
     m_symbolsShowSurfaceIdCheckBox = new QCheckBox("Show Surface ID Symbols");
     m_symbolsShowSurfaceIdCheckBox->setToolTip("<html>Enable display of surface identification symbols</html>");
-
+    
     m_symbolsShowVolumeIdCheckBox = new QCheckBox("Show Volume ID Symbols");
     m_symbolsShowVolumeIdCheckBox->setToolTip("<html>Enable display of volume identification symbols</html>");
-
+    
     m_symbolsShowOtherTypesCheckBox = new QCheckBox("Show Symbols on Other Model Types");
     m_symbolsShowOtherTypesCheckBox->setToolTip("<html>Show ID symbols from any model "
                                                 "(image / surface / volume) on all models</html>");
     
     m_symbolsSurfaceContralateralVertexCheckBox = new QCheckBox("Show Surface Contralateral");
     m_symbolsSurfaceContralateralVertexCheckBox->setToolTip("<html>Enable display of contralateral surface identification symbols</html>");
-
+    
     QLabel* idSymbolColorLabel = new QLabel("ID Color:");
     m_symbolsIdColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::DISABLED,
-                                                                   CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
-                                                                   this);
+                                                          CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
+                                                          this);
     m_symbolsIdColorComboBox->setToolTip("<html>Set color of identification symbols shown on surfaces and volumes</html>");
     
     QLabel* contralateralIdSymbolColorLabel = new QLabel("Contralateral:");
     m_symbolsContralateralIdColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::DISABLED,
-                                                                                CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
-                                                                                this);
+                                                                       CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
+                                                                       this);
     m_symbolsContralateralIdColorComboBox->setToolTip("<html>Set color of identification symbol on contralateral surface</html>");
     
     QLabel* symbolSizeTypeLabel = new QLabel("Surf/Vol Diameter:");
-    m_symbolSizeTypeComboBox = new EnumComboBoxTemplate(this);
-    m_symbolSizeTypeComboBox->setup<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>();
-    QObject::connect(m_symbolSizeTypeComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &IdentificationDisplayWidget::symbolSizeTypeComboBoxActivated);
+    
+    m_symbolSizeMillimeterRadioButton = new QRadioButton("mm");
+    m_symbolSizePercentageRadioButton = new QRadioButton("pct");
+    
+    QButtonGroup* sizeButtonGroup = new QButtonGroup(this);
+    sizeButtonGroup->addButton(m_symbolSizeMillimeterRadioButton,
+                               IdentificationSymbolSizeTypeEnum::toIntegerCode(IdentificationSymbolSizeTypeEnum::MILLIMETERS));
+    sizeButtonGroup->addButton(m_symbolSizePercentageRadioButton,
+                               IdentificationSymbolSizeTypeEnum::toIntegerCode(IdentificationSymbolSizeTypeEnum::PERCENTAGE));
+    QObject::connect(sizeButtonGroup, &QButtonGroup::idClicked,
+                     this, &IdentificationDisplayWidget::symbolSizeTypeButtonIdClicked);
+    
     QString sizeTypeToolTip(IdentificationSymbolSizeTypeEnum::getToolTip("identification"));
-    const int endHtmlIndex(sizeTypeToolTip.indexOf("</html>"));
-    if (endHtmlIndex >= 0) {
-        sizeTypeToolTip.insert(endHtmlIndex,
-                               "<p>Identification symbols on images always use Percentage.");
-    }
-    m_symbolSizeTypeComboBox->setToolTip(sizeTypeToolTip);
+    m_symbolSizeMillimeterRadioButton->setToolTip(sizeTypeToolTip);
+    m_symbolSizePercentageRadioButton->setToolTip(sizeTypeToolTip);
+    
     
     const int spinBoxWidth(70);
     
@@ -606,7 +629,7 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolsPercentageDiameterSpinBox->setToolTip("<html>Set percentage diameter of identification symbols<br>"
                                                    "Images symbols are always percentage diameter</html>");
     m_symbolsPercentageDiameterSpinBox->setFixedWidth(spinBoxWidth);
-
+    
     QLabel* mostRecentSymbolDiameterLabel = new QLabel("Most Recent:");
     m_symbolsMillimetersMostRecentDiameterSpinBox = new QDoubleSpinBox();
     m_symbolsMillimetersMostRecentDiameterSpinBox->setRange(0.1, 1000.0);
@@ -615,7 +638,7 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolsMillimetersMostRecentDiameterSpinBox->setSuffix("mm");
     m_symbolsMillimetersMostRecentDiameterSpinBox->setToolTip("<html>Set millimeter diamater of most recent identification symbol</html>");
     m_symbolsMillimetersMostRecentDiameterSpinBox->setFixedWidth(spinBoxWidth);
-
+    
     m_symbolsPercentageMostRecentDiameterSpinBox = new QDoubleSpinBox();
     m_symbolsPercentageMostRecentDiameterSpinBox->setRange(0.1, 100.0);
     m_symbolsPercentageMostRecentDiameterSpinBox->setSingleStep(0.1);
@@ -624,7 +647,7 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolsPercentageMostRecentDiameterSpinBox->setToolTip("<html>Set percentage diamater of most recent identification symbol<br>"
                                                              "Images symbols are always percentage diameter</html>");
     m_symbolsPercentageMostRecentDiameterSpinBox->setFixedWidth(spinBoxWidth);
-
+    
     WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);
     QObject::connect(signalWatcher, &WuQValueChangedSignalWatcher::valueChanged,
                      this, &IdentificationDisplayWidget::symbolChanged);
@@ -639,7 +662,7 @@ IdentificationDisplayWidget::createSymbolsWidget()
     signalWatcher->addObject(m_symbolsMillimetersMostRecentDiameterSpinBox);
     signalWatcher->addObject(m_symbolsPercentageDiameterSpinBox);
     signalWatcher->addObject(m_symbolsPercentageMostRecentDiameterSpinBox);
-
+    
     QVBoxLayout* showLayout = new QVBoxLayout();
     showLayout->addWidget(m_symbolsShowMediaCheckbox);
     showLayout->addWidget(m_symbolsShowSurfaceIdCheckBox);
@@ -647,40 +670,42 @@ IdentificationDisplayWidget::createSymbolsWidget()
     showLayout->addWidget(m_symbolsShowOtherTypesCheckBox);
     showLayout->addWidget(m_symbolsSurfaceContralateralVertexCheckBox);
     showLayout->addStretch();
-
+    
     QGridLayout* symbolLayout = new QGridLayout();
     int32_t row(0);
     symbolLayout->addWidget(idSymbolColorLabel,
-                      row, 0);
+                            row, 0);
     symbolLayout->addWidget(m_symbolsIdColorComboBox->getWidget(),
-                      row, 1, 1, 2);
+                            row, 1, 1, 2);
     row++;
     symbolLayout->addWidget(contralateralIdSymbolColorLabel,
-                      row, 0);
+                            row, 0);
     symbolLayout->addWidget(m_symbolsContralateralIdColorComboBox->getWidget(),
-                      row, 1, 1, 2);
+                            row, 1, 1, 2);
     row++;
     symbolLayout->addWidget(symbolSizeTypeLabel,
                             row, 0);
-    symbolLayout->addWidget(m_symbolSizeTypeComboBox->getWidget(),
-                            row, 1, 1, 2);
+    symbolLayout->addWidget(m_symbolSizeMillimeterRadioButton,
+                            row, 1, Qt::AlignHCenter);
+    symbolLayout->addWidget(m_symbolSizePercentageRadioButton,
+                            row, 2, Qt::AlignHCenter);
     row++;
     symbolLayout->addWidget(symbolDiameterLabel,
-                      row, 0);
+                            row, 0);
     symbolLayout->addWidget(m_symbolsMillimetersDiameterSpinBox,
-                      row, 1);
+                            row, 1);
     symbolLayout->addWidget(m_symbolsPercentageDiameterSpinBox,
                             row, 2);
     row++;
     symbolLayout->addWidget(mostRecentSymbolDiameterLabel,
-                      row, 0);
+                            row, 0);
     symbolLayout->addWidget(m_symbolsMillimetersMostRecentDiameterSpinBox,
-                      row, 1);
+                            row, 1);
     symbolLayout->addWidget(m_symbolsPercentageMostRecentDiameterSpinBox,
                             row, 2);
     row++;
     symbolLayout->setRowStretch(row, 100);
-
+    
     Qt::Alignment alignment = Qt::Alignment();
     QWidget* widget = new QWidget();
     QBoxLayout* boxLayout(NULL);
@@ -736,11 +761,25 @@ IdentificationDisplayWidget::symbolChanged()
  * Called when symbol size type combo box changed
  */
 void
-IdentificationDisplayWidget::symbolSizeTypeComboBoxActivated()
+IdentificationDisplayWidget::symbolSizeTypeButtonIdClicked(int id)
 {
+    bool validFlag(false);
+    const IdentificationSymbolSizeTypeEnum::Enum symbolSizeType(IdentificationSymbolSizeTypeEnum::fromIntegerCode(id,
+                                                                                                                  &validFlag));
+    if (validFlag) {
+        
+    }
+    else {
+        const AString msg("Invalid identification symbol size id="
+                          + AString::number(id));
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
+    }
+    
+    
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* info = brain->getIdentificationManager();
-    info->setIdentificationSymbolSizeType(m_symbolSizeTypeComboBox->getSelectedItem<IdentificationSymbolSizeTypeEnum, IdentificationSymbolSizeTypeEnum::Enum>());
+    info->setIdentificationSymbolSizeType(symbolSizeType);
     updateSymbolsWidget();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -759,7 +798,7 @@ IdentificationDisplayWidget::symbolSizeTypeComboBoxActivated()
  */
 SceneClass*
 IdentificationDisplayWidget::saveToScene(const SceneAttributes* sceneAttributes,
-                                 const AString& instanceName)
+                                         const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "IdentificationDisplayWidget",
@@ -787,14 +826,14 @@ IdentificationDisplayWidget::saveToScene(const SceneAttributes* sceneAttributes,
  */
 void
 IdentificationDisplayWidget::restoreFromScene(const SceneAttributes* sceneAttributes,
-                                      const SceneClass* sceneClass)
+                                              const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
         return;
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);    
+                                     sceneClass);
     
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
@@ -825,7 +864,7 @@ IdentificationDisplayWidget::createChartLineLayerSymbolsWidget()
     m_chartLineLayerToolTipTextSizeSpinBox->setSuffix("%");
     m_chartLineLayerToolTipTextSizeSpinBox->setToolTip("Size of selected chart lines point tooltip text as a\n"
                                                        "percentage of viewport height");
-
+    
     WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);
     QObject::connect(signalWatcher, &WuQValueChangedSignalWatcher::valueChanged,
                      this, &IdentificationDisplayWidget::chartLineLayerSymbolChanged);
@@ -899,4 +938,6 @@ IdentificationDisplayWidget::updateChartLineLayerSymbolsWidget()
     QSignalBlocker toolTipBlocker(m_chartLineLayerToolTipTextSizeSpinBox);
     m_chartLineLayerToolTipTextSizeSpinBox->setValue(info->getChartLineLayerToolTipTextSize());
 }
+
+
 

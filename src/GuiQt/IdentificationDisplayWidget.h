@@ -105,7 +105,7 @@ namespace caret {
         
         void chartLineLayerSymbolChanged();
         
-        void symbolSizeTypeComboBoxActivated();
+        void symbolSizeTypeButtonIdClicked(int id);
         
     private:
         void updateContent(const bool scrollTextToEndFlag);
@@ -172,7 +172,9 @@ namespace caret {
         
         CaretColorEnumComboBox* m_symbolsContralateralIdColorComboBox;
         
-        EnumComboBoxTemplate* m_symbolSizeTypeComboBox;
+        QRadioButton* m_symbolSizeMillimeterRadioButton;
+        
+        QRadioButton* m_symbolSizePercentageRadioButton;
         
         QDoubleSpinBox* m_symbolsMillimetersDiameterSpinBox;
         
