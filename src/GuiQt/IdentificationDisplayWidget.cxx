@@ -394,10 +394,11 @@ IdentificationDisplayWidget::createFilteringSettingsWidget()
     m_tabFilterButtonGroup = new QButtonGroup(this);
 #if QT_VERSION >= 0x060000
     QObject::connect(m_tabFilterButtonGroup, QOverload<int>::of(&QButtonGroup::idClicked),
+                     this, &IdentificationDisplayWidget::tabFilterRadioButtonClicked);
 #else
     QObject::connect(m_tabFilterButtonGroup, QOverload<int>::of(&QButtonGroup::buttonClicked),
-#endif
                      this, &IdentificationDisplayWidget::tabFilterRadioButtonClicked);
+#endif
     
     std::vector<IdentificationFilterTabSelectionEnum::Enum> tabFilterEnums;
     IdentificationFilterTabSelectionEnum::getAllEnums(tabFilterEnums);
@@ -602,8 +603,13 @@ IdentificationDisplayWidget::createSymbolsWidget()
                                IdentificationSymbolSizeTypeEnum::toIntegerCode(IdentificationSymbolSizeTypeEnum::MILLIMETERS));
     sizeButtonGroup->addButton(m_symbolSizePercentageRadioButton,
                                IdentificationSymbolSizeTypeEnum::toIntegerCode(IdentificationSymbolSizeTypeEnum::PERCENTAGE));
-    QObject::connect(sizeButtonGroup, &QButtonGroup::idClicked,
-                     this, &IdentificationDisplayWidget::symbolSizeTypeButtonIdClicked);
+#if QT_VERSION >= 0x060000
+        QObject::connect(sizeButtonGroup, &QButtonGroup::idClicked,
+                         this, &IdentificationDisplayWidget::symbolSizeTypeButtonIdClicked);
+#else
+        QObject::connect(sizeButtonGroup, QOverload<int>::of(&QButtonGroup::buttonClicked),
+                         this, &IdentificationDisplayWidget::symbolSizeTypeButtonIdClicked);
+#endif
     
     QString sizeTypeToolTip(IdentificationSymbolSizeTypeEnum::getToolTip("identification"));
     m_symbolSizeMillimeterRadioButton->setToolTip(sizeTypeToolTip);
