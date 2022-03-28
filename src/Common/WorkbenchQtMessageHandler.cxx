@@ -218,11 +218,12 @@ WorkbenchQtMessageHandler::isMessageTextSuppressed(const QString& msg)
         s_suppressedMessagesTextValidFlag = true;
         
         /*
-         * Suppress invalid "ICC Profile" messages from PNG images
+         * Suppress messages that are not a problem, usually from Qt
          */
         s_supressedMessagesText.push_back("QPngHandler: Failed to parse ICC profile");
         s_supressedMessagesText.push_back("fromIccProfile: failed general sanity check");
         s_supressedMessagesText.push_back("Unsupported ICC profile class");
+        s_supressedMessagesText.push_back("Populating font family aliases");
     }
     
     for (const auto& smt : s_supressedMessagesText) {
