@@ -126,6 +126,14 @@ namespace caret {
         
         void setShowOtherTypeIdentificationSymbols(const bool showOtherTypeIdentificationSymbols);
         
+        float getMediaIdentificationPercentageSymbolSize() const;
+        
+        void setMediaIdentificationPercentageSymbolSize(const float symbolSize);
+        
+        float getMediaIdentificationMostRecentPercentageSymbolSize() const;
+        
+        void setMediaIdentificationMostRecentPercentageSymbolSize(const float symbolSize);
+        
         float getChartLineLayerSymbolSize() const;
         
         void setChartLineLayerSymbolSize(const float symbolSize);
@@ -180,6 +188,10 @@ namespace caret {
         float m_identifcationSymbolPercentageSize;
         
         float m_identifcationMostRecentSymbolPercentageSize;
+        
+        float m_mediaIdentificationPercentageSymbolSize = 3.0;
+        
+        float m_mediaIdentificationMostRecentPercentageSymbolSize = 3.0;
         
         CaretColorEnum::Enum m_identificationSymbolColor;
         

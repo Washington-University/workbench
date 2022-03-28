@@ -184,6 +184,10 @@ namespace caret {
         
         QDoubleSpinBox* m_symbolsPercentageMostRecentDiameterSpinBox;
         
+        QDoubleSpinBox* m_symbolsMediaPercentageDiameterSpinBox;
+        
+        QDoubleSpinBox* m_symbolsMediaPercentageMostRecentDiameterSpinBox;
+        
         QCheckBox* m_symbolsSurfaceContralateralVertexCheckBox;
         
         QWidget* m_chartLineLayerSymbolWidget;

@@ -73,6 +73,8 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_identifcationMostRecentSymbolSize = 5.0;
     m_identifcationSymbolPercentageSize = 3.0;
     m_identifcationMostRecentSymbolPercentageSize = 5.0;
+    m_mediaIdentificationPercentageSymbolSize = 3.0;
+    m_mediaIdentificationMostRecentPercentageSymbolSize = 5.0;
     m_showMediaIdentificationSymbols = caretPreferences->isShowMediaIdentificationSymbols();
     m_showSurfaceIdentificationSymbols = caretPreferences->isShowSurfaceIdentificationSymbols();
     m_showVolumeIdentificationSymbols  = caretPreferences->isShowVolumeIdentificationSymbols();
@@ -99,6 +101,11 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     
     m_sceneAssistant->add("m_identifcationMostRecentSymbolPercentageSize",
                           &m_identifcationMostRecentSymbolPercentageSize);
+    
+    m_sceneAssistant->add("m_mediaIdentificationPercentageSymbolSize",
+                          &m_mediaIdentificationPercentageSymbolSize);
+    m_sceneAssistant->add("m_mediaIdentificationMostRecentPercentageSymbolSize",
+                          &m_mediaIdentificationMostRecentPercentageSymbolSize);
     
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationSymbolColor",
                                                                 &m_identificationSymbolColor);
@@ -269,16 +276,14 @@ IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUnivers
     
     IdentificationSymbolSizeTypeEnum::Enum sizeType(getIdentificationSymbolSizeType());
 
+    bool mediaFlag(false);
     switch (drawingOnType) {
         case IdentifiedItemUniversalTypeEnum::INVALID:
             CaretAssert(0);
             return;
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA:
-            /*
-             * Media is always percentage
-             */
-            sizeType = IdentificationSymbolSizeTypeEnum::PERCENTAGE;
+            mediaFlag = true;
             break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
             break;
@@ -290,20 +295,33 @@ IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUnivers
             break;
     }
     
-    switch (sizeType) {
-        case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
-            symbolDiameterOut = getIdentificationSymbolSize();
-            if (item == m_mostRecentIdentifiedItem) {
-                symbolDiameterOut = getMostRecentIdentificationSymbolSize();
-            }
-            break;
-        case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
-            symbolDiameterOut = getIdentificationSymbolPercentageSize();
-            if (item == m_mostRecentIdentifiedItem) {
-                symbolDiameterOut = getMostRecentIdentificationSymbolPercentageSize();
-            }
-            symbolDiameterOut = referenceHeight * (symbolDiameterOut / 100.0);
-            break;
+    if (mediaFlag) {
+        /*
+         * Media is always percentage
+         */
+        sizeType = IdentificationSymbolSizeTypeEnum::PERCENTAGE;
+        symbolDiameterOut = getMediaIdentificationPercentageSymbolSize();
+        if (item == m_mostRecentIdentifiedItem) {
+            symbolDiameterOut = getMediaIdentificationMostRecentPercentageSymbolSize();
+        }
+        symbolDiameterOut = referenceHeight * (symbolDiameterOut / 100.0);
+    }
+    else {
+        switch (sizeType) {
+            case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
+                symbolDiameterOut = getIdentificationSymbolSize();
+                if (item == m_mostRecentIdentifiedItem) {
+                    symbolDiameterOut = getMostRecentIdentificationSymbolSize();
+                }
+                break;
+            case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
+                symbolDiameterOut = getIdentificationSymbolPercentageSize();
+                if (item == m_mostRecentIdentifiedItem) {
+                    symbolDiameterOut = getMostRecentIdentificationSymbolPercentageSize();
+                }
+                symbolDiameterOut = referenceHeight * (symbolDiameterOut / 100.0);
+                break;
+        }
     }
 
     const CaretColorEnum::Enum caretColor = (contralateralSurfaceFlag
@@ -517,6 +535,46 @@ void
 IdentificationManager::setMostRecentIdentificationSymbolPercentageSize(const float symbolSize)
 {
     m_identifcationMostRecentSymbolPercentageSize = symbolSize;
+}
+
+/**
+ * @return The percentage size of the most recent media identification symbol
+ */
+float
+IdentificationManager::getMediaIdentificationPercentageSymbolSize() const
+{
+    return m_mediaIdentificationPercentageSymbolSize;
+}
+
+/**
+ * Set the percentage size of the most recent media identification symbol
+ * @param symbolSize
+ *    New size of symbol.
+ */
+void
+IdentificationManager::setMediaIdentificationPercentageSymbolSize(const float symbolSize)
+{
+    m_mediaIdentificationPercentageSymbolSize = symbolSize;
+}
+
+/**
+ * @return The percentage size of the most recent media identification symbol
+ */
+float
+IdentificationManager::getMediaIdentificationMostRecentPercentageSymbolSize() const
+{
+    return m_mediaIdentificationMostRecentPercentageSymbolSize;
+}
+
+/**
+ * Set the percentage size of the most recent media identification symbol
+ * @param symbolSize
+ *    New size of symbol.
+ */
+void
+IdentificationManager::setMediaIdentificationMostRecentPercentageSymbolSize(const float symbolSize)
+{
+    m_mediaIdentificationMostRecentPercentageSymbolSize = symbolSize;
 }
 
 /**
@@ -743,9 +801,12 @@ IdentificationManager::saveToScene(const SceneAttributes* sceneAttributes,
             break;
     }
     
+    /*
+     * Note: version 2 added separate symbol sizes for media
+     */
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "IdentificationManager",
-                                            1);
+                                            2);
     
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -878,6 +939,15 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                                      restoringSceneFlag);
         }
         delete oldItem;
+    }
+    
+    if (sceneClass->getVersionNumber() < 2) {
+        /*
+         * In version 1, media used the generic symbol percentage sizes.  
+         * Media unique sizes added in version 2.
+         */
+        m_mediaIdentificationPercentageSymbolSize           = m_identifcationSymbolPercentageSize;
+        m_mediaIdentificationMostRecentPercentageSymbolSize = m_identifcationMostRecentSymbolPercentageSize;
     }
 }
 

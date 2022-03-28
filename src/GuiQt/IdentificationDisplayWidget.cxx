@@ -540,6 +540,11 @@ IdentificationDisplayWidget::updateSymbolsWidget()
     QSignalBlocker symbolPercentageMostRecentSizeBlocker(m_symbolsPercentageMostRecentDiameterSpinBox);
     m_symbolsPercentageMostRecentDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolPercentageSize());
     
+    QSignalBlocker mediaSymbolSizeBlocker(m_symbolsMediaPercentageDiameterSpinBox);
+    m_symbolsMediaPercentageDiameterSpinBox->setValue(info->getMediaIdentificationPercentageSymbolSize());
+    QSignalBlocker mediaMostRecentSymbolSizeBlocker(m_symbolsMediaPercentageMostRecentDiameterSpinBox);
+    m_symbolsMediaPercentageMostRecentDiameterSpinBox->setValue(info->getMediaIdentificationMostRecentPercentageSymbolSize());
+    
     bool mmFlag(false);
     bool pctFlag(false);
     switch (info->getIdentificationSymbolSizeType()) {
@@ -632,8 +637,7 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolsPercentageDiameterSpinBox->setSingleStep(0.1);
     m_symbolsPercentageDiameterSpinBox->setDecimals(1);
     m_symbolsPercentageDiameterSpinBox->setSuffix("%");
-    m_symbolsPercentageDiameterSpinBox->setToolTip("<html>Set percentage diameter of identification symbols<br>"
-                                                   "Images symbols are always percentage diameter</html>");
+    m_symbolsPercentageDiameterSpinBox->setToolTip("<html>Set percentage diameter of identification symbols</html>");
     m_symbolsPercentageDiameterSpinBox->setFixedWidth(spinBoxWidth);
     
     QLabel* mostRecentSymbolDiameterLabel = new QLabel("Most Recent:");
@@ -650,9 +654,26 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolsPercentageMostRecentDiameterSpinBox->setSingleStep(0.1);
     m_symbolsPercentageMostRecentDiameterSpinBox->setDecimals(1);
     m_symbolsPercentageMostRecentDiameterSpinBox->setSuffix("%");
-    m_symbolsPercentageMostRecentDiameterSpinBox->setToolTip("<html>Set percentage diamater of most recent identification symbol<br>"
-                                                             "Images symbols are always percentage diameter</html>");
+    m_symbolsPercentageMostRecentDiameterSpinBox->setToolTip("<html>Set percentage diamater of most recent identification symbol</html>");
     m_symbolsPercentageMostRecentDiameterSpinBox->setFixedWidth(spinBoxWidth);
+    
+    QLabel* mediaSymbolLabel = new QLabel("Media");
+    
+    m_symbolsMediaPercentageDiameterSpinBox = new QDoubleSpinBox();
+    m_symbolsMediaPercentageDiameterSpinBox->setRange(0.1, 100.0);
+    m_symbolsMediaPercentageDiameterSpinBox->setSingleStep(0.1);
+    m_symbolsMediaPercentageDiameterSpinBox->setDecimals(1);
+    m_symbolsMediaPercentageDiameterSpinBox->setSuffix("%");
+    m_symbolsMediaPercentageDiameterSpinBox->setToolTip("<html>Set percentage diameter of media identification symbols</html>");
+    m_symbolsMediaPercentageDiameterSpinBox->setFixedWidth(spinBoxWidth);
+    
+    m_symbolsMediaPercentageMostRecentDiameterSpinBox = new QDoubleSpinBox();
+    m_symbolsMediaPercentageMostRecentDiameterSpinBox->setRange(0.1, 100.0);
+    m_symbolsMediaPercentageMostRecentDiameterSpinBox->setSingleStep(0.1);
+    m_symbolsMediaPercentageMostRecentDiameterSpinBox->setDecimals(1);
+    m_symbolsMediaPercentageMostRecentDiameterSpinBox->setSuffix("%");
+    m_symbolsMediaPercentageMostRecentDiameterSpinBox->setToolTip("<html>Set percentage diameter of most recent media identification symbols</html>");
+    m_symbolsMediaPercentageMostRecentDiameterSpinBox->setFixedWidth(spinBoxWidth);
     
     WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);
     QObject::connect(signalWatcher, &WuQValueChangedSignalWatcher::valueChanged,
@@ -668,7 +689,9 @@ IdentificationDisplayWidget::createSymbolsWidget()
     signalWatcher->addObject(m_symbolsMillimetersMostRecentDiameterSpinBox);
     signalWatcher->addObject(m_symbolsPercentageDiameterSpinBox);
     signalWatcher->addObject(m_symbolsPercentageMostRecentDiameterSpinBox);
-    
+    signalWatcher->addObject(m_symbolsMediaPercentageDiameterSpinBox);
+    signalWatcher->addObject(m_symbolsMediaPercentageMostRecentDiameterSpinBox);
+
     QVBoxLayout* showLayout = new QVBoxLayout();
     showLayout->addWidget(m_symbolsShowMediaCheckbox);
     showLayout->addWidget(m_symbolsShowSurfaceIdCheckBox);
@@ -695,6 +718,8 @@ IdentificationDisplayWidget::createSymbolsWidget()
                             row, 1, Qt::AlignHCenter);
     symbolLayout->addWidget(m_symbolSizePercentageRadioButton,
                             row, 2, Qt::AlignHCenter);
+    symbolLayout->addWidget(mediaSymbolLabel,
+                            row, 3, Qt::AlignHCenter);
     row++;
     symbolLayout->addWidget(symbolDiameterLabel,
                             row, 0);
@@ -702,6 +727,8 @@ IdentificationDisplayWidget::createSymbolsWidget()
                             row, 1);
     symbolLayout->addWidget(m_symbolsPercentageDiameterSpinBox,
                             row, 2);
+    symbolLayout->addWidget(m_symbolsMediaPercentageDiameterSpinBox,
+                            row, 3);
     row++;
     symbolLayout->addWidget(mostRecentSymbolDiameterLabel,
                             row, 0);
@@ -709,6 +736,8 @@ IdentificationDisplayWidget::createSymbolsWidget()
                             row, 1);
     symbolLayout->addWidget(m_symbolsPercentageMostRecentDiameterSpinBox,
                             row, 2);
+    symbolLayout->addWidget(m_symbolsMediaPercentageMostRecentDiameterSpinBox,
+                            row, 3);
     row++;
     symbolLayout->setRowStretch(row, 100);
     
@@ -760,6 +789,8 @@ IdentificationDisplayWidget::symbolChanged()
     info->setMostRecentIdentificationSymbolSize(m_symbolsMillimetersMostRecentDiameterSpinBox->value());
     info->setIdentificationSymbolPercentageSize(m_symbolsPercentageDiameterSpinBox->value());
     info->setMostRecentIdentificationSymbolPercentageSize(m_symbolsPercentageMostRecentDiameterSpinBox->value());
+    info->setMediaIdentificationPercentageSymbolSize(m_symbolsMediaPercentageDiameterSpinBox->value());
+    info->setMediaIdentificationMostRecentPercentageSymbolSize(m_symbolsMediaPercentageMostRecentDiameterSpinBox->value());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
