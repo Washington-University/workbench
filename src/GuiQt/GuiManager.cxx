@@ -85,6 +85,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
+#include "ExitProgramModifiedFilesDialog.h"
 #include "FociPropertiesEditorDialog.h"
 #include "GapsAndMarginsDialog.h"
 #include "HelpViewerDialog.h"
@@ -1038,41 +1039,29 @@ GuiManager::exitProgram(BrainBrowserWindow* parent)
                              modifiedFilesMessage)) {
         modifiedFilesMessage.appendWithNewLine("");
         
-        QMessageBox quitDialog(QMessageBox::Warning,
-                               "Exit Workbench",
-                               textMessage,
-                               QMessageBox::NoButton,
-                               parent);
-        quitDialog.setInformativeText(modifiedFilesMessage);
-        
-        QPushButton* saveButton = quitDialog.addButton("Save...", QMessageBox::AcceptRole);
-        saveButton->setToolTip("Display manage files window to save files");
-        
-        QPushButton* dontSaveButton = quitDialog.addButton("Don't Save", QMessageBox::DestructiveRole);
-        dontSaveButton->setToolTip("Do not save changes and exit.");
-        
-        QPushButton* cancelButton = quitDialog.addButton("Cancel", QMessageBox::RejectRole);
-        
-        quitDialog.setDefaultButton(saveButton);
-        quitDialog.setEscapeButton(cancelButton);
-        
-        quitDialog.exec();
-        const QAbstractButton* clickedButton = quitDialog.clickedButton();
-        if (clickedButton == saveButton) {
-            if (SpecFileManagementDialog::runSaveFilesDialogWhileQuittingWorkbench(this->getBrain(),
-                                                                                   parent)) {
+        /*
+         * Allow user to save files, discard and quit, or cancel
+         */
+        ExitProgramModifiedFilesDialog exitProgramDialog(modifiedFilesMessage,
+                                                         parent);
+        exitProgramDialog.exec();
+        switch (exitProgramDialog.getResult()) {
+            case ExitProgramModifiedFilesDialog::Result::INVALID:
+                CaretAssert(0);
+                break;
+            case ExitProgramModifiedFilesDialog::Result::CANCEL_EXIT:
+                okToExit = false;
+                break;
+            case ExitProgramModifiedFilesDialog::Result::DISCARD_AND_EXIT:
                 okToExit = true;
-                
-            }
-        }
-        else if (clickedButton == dontSaveButton) {
-            okToExit = true;
-        }
-        else if (clickedButton == cancelButton) {
-            /* nothing */
-        }
-        else {
-            CaretAssert(0);
+                break;
+            case ExitProgramModifiedFilesDialog::Result::SAVE_AND_EXIT:
+                if (SpecFileManagementDialog::runSaveFilesDialogWhileQuittingWorkbench(this->getBrain(),
+                                                                                       parent)) {
+                    okToExit = true;
+                    
+                }
+                break;
         }
     }
     else {

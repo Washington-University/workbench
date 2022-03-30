@@ -138,6 +138,7 @@ ELSE()
         DisplayGroupEnumComboBox.h
 	DynConnViewController.h
         EnumComboBoxTemplate.h
+	ExitProgramModifiedFilesDialog.h
         FiberOrientationSelectionViewController.h
         FiberSamplesOpenGLWidget.h
         FociProjectionDialog.h
@@ -434,6 +435,7 @@ EventUpdateInformationWindows.h
 EventUpdateVolumeEditingToolBar.h
 EventUpdateYokedWindows.h
 EventUserInterfaceUpdate.h
+ExitProgramModifiedFilesDialog.h
 FiberOrientationSelectionViewController.h
 FiberSamplesOpenGLWidget.h
 FociProjectionDialog.h
@@ -755,6 +757,7 @@ EventUpdateInformationWindows.cxx
 EventUpdateVolumeEditingToolBar.cxx
 EventUpdateYokedWindows.cxx
 EventUserInterfaceUpdate.cxx
+ExitProgramModifiedFilesDialog.cxx
 FiberOrientationSelectionViewController.cxx
 FiberSamplesOpenGLWidget.cxx
 FociProjectionDialog.cxx
