@@ -8,6 +8,8 @@
 <file>./LayersPanel/construction.png</file>
 <file>./LayersPanel/wrench.png</file>
 <file>./MessageDialog/BrainErrorImage.png</file>
+<file>./MessageDialog/BrainInformationImage.png</file>
+<file>./MessageDialog/BrainQuestionImage.png</file>
 <file>./MessageDialog/BrainWarningImage.png</file>
 <file>./PaletteSettings/chain_link_icon.png</file>
 <file>./PaletteEditorDialog/construction.png</file>
