@@ -179,6 +179,10 @@ BrainStructure::addLabelFile(LabelFile* labelFile,
             DataFileException e(labelFile->getFileName(),
                                 message);
             CaretLogThrowing(e);
+
+            /* destroy label file since it was rejected */
+            delete labelFile;
+            
             throw e;
         }
     }
@@ -192,7 +196,11 @@ BrainStructure::addLabelFile(LabelFile* labelFile,
         DataFileException e(labelFile->getFileName(),
                             message);
         CaretLogThrowing(e);
-        throw e;        
+
+        /* destroy label file since it was rejected */
+        delete labelFile;
+        
+        throw e;
     }
     
     if (addFileToBrainStructure) {
@@ -232,6 +240,10 @@ BrainStructure::addMetricFile(MetricFile* metricFile,
             DataFileException e(metricFile->getFileName(),
                                 message);
             CaretLogThrowing(e);
+            
+            /* destroy metric file since it was rejected */
+            delete metricFile;
+            
             throw e;
         }
     }
@@ -245,7 +257,11 @@ BrainStructure::addMetricFile(MetricFile* metricFile,
         DataFileException e(metricFile->getFileName(),
                             message);
         CaretLogThrowing(e);
-        throw e;        
+                
+        /* destroy metric file since it was rejected */
+        delete metricFile;
+        
+        throw e;
     }
     
     if (addFileToBrainStructure) {
@@ -294,6 +310,10 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile,
             DataFileException e(rgbaFile->getFileName(),
                                 message);
             CaretLogThrowing(e);
+            
+            /* destroy rgba file since it was rejected */
+            delete rgbaFile;
+            
             throw e;
         }
     }
@@ -308,7 +328,11 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile,
         DataFileException e(rgbaFile->getFileName(),
                             message);
         CaretLogThrowing(e);
-        throw e;        
+
+        /* destroy rgba file since it was rejected */
+        delete rgbaFile;
+
+        throw e;
     }
     
     if (addFileToBrainStructure) {
@@ -349,12 +373,16 @@ BrainStructure::addSurface(Surface* surface,
             DataFileException e(surface->getFileName(),
                                 message);
             CaretLogThrowing(e);
+            
+            /* destroy surface since it was rejected */
+            delete surface;
+            
             throw e;
         }
     }
     
     if (surface->getStructure() != getStructure()) {
-        AString message = ("Trying to add metric file with structure \""
+        AString message = ("Trying to add surface file with structure \""
                            + StructureEnum::toGuiName(surface->getStructure())
                            + " to BrainStructure for \""
                            + StructureEnum::toGuiName(getStructure())
@@ -362,7 +390,11 @@ BrainStructure::addSurface(Surface* surface,
         DataFileException e(surface->getFileName(),
                             message);
         CaretLogThrowing(e);
-        throw e;        
+
+        /* destroy surface since it was rejected */
+        delete surface;
+
+        throw e;
     }
     if (numNodes == 0) {
         const int32_t numSurfaceNodes = surface->getNumberOfNodes();
