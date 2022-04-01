@@ -121,6 +121,7 @@
 #include "WuQMacroManager.h"
 #include "WuQMacroMenu.h"
 #include "WuQMessageBox.h"
+#include "WuQMessageBoxTwo.h"
 #include "WuQTabBar.h"
 #include "WuQtUtilities.h"
 #include "WuQTextEditorDialog.h"
@@ -3836,10 +3837,10 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
     
     bool successFlag = true;
     if (errorMessages.isEmpty() == false) {
+        WuQMessageBoxTwo::critical(parentWidget,
+                                   "ERROR",
+                                   errorMessages);
         successFlag = false;
-        QMessageBox::critical(parentWidget, 
-                              "ERROR", 
-                              errorMessages);
     }
     
     if (sceneFileWasLoaded) {

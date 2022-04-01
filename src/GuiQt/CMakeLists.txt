@@ -267,6 +267,7 @@ ELSE()
         WuQMacroSignalWatcher.h
         WuQMacroWidgetAction.h
         WuQMessageBox.h
+	WuQMessageBoxTwo.h
         WuQwtPlot.h
 	WuQScrollArea.h
         WuQSpecialIncrementDoubleSpinBox.h
@@ -601,6 +602,7 @@ WuQMacroSignalEmitter.h
 WuQMacroSignalWatcher.h
 WuQMacroWidgetAction.h
 WuQMessageBox.h
+WuQMessageBoxTwo.h
 WuQwtPlot.h
 WuQScrollArea.h
 WuQSpecialIncrementDoubleSpinBox.h
@@ -919,6 +921,7 @@ WuQMacroSignalEmitter.cxx
 WuQMacroSignalWatcher.cxx
 WuQMacroWidgetAction.cxx
 WuQMessageBox.cxx
+WuQMessageBoxTwo.cxx
 WuQwtPlot.cxx
 WuQScrollArea.cxx
 WuQSpecialIncrementDoubleSpinBox.cxx

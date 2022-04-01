@@ -5419,6 +5419,7 @@ BrowserTabContent::getValidSliceProjectionTypes(std::vector<VolumeSliceProjectio
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
             orthoValidFlag = true;
+            break;
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
         {
