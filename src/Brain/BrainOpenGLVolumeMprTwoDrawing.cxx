@@ -528,7 +528,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const VolumeSliceP
     /*
      * Set the viewing transformation (camera position)
      */
-    setViewingTransformation(sliceViewPlane,
+    setViewingTransformation(sliceProjectionType,
+                             sliceViewPlane,
                              sliceInfo);
 
     SelectionItemVolumeMprCrosshair* crosshairID(m_brain->getSelectionManager()->getVolumeMprCrosshairIdentification());
@@ -1654,13 +1655,16 @@ BrainOpenGLVolumeMprTwoDrawing::setOrthographicProjection(const VolumeSliceProje
 /**
  * Set the viewing transformation
  *
+ * @param sliceProjectionType
+ *    Type of slice projection
  * @param sliceViewPlane
  *    View plane that is displayed.
  * @param plane
  *    Plane equation of selected slice.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                          const SliceInfo& sliceInfo)
 {
     /*
@@ -1670,6 +1674,22 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPl
     
     Vector3D translation;
     m_browserTabContent->getTranslation(translation);
+    
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            /*
+             * Radiological view has right side of brain on left side of screen
+             * (ie: Anterior View)
+             */
+            translation[0] = -translation[0];
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+    }
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             CaretAssert(0);
@@ -1683,7 +1703,7 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPl
             m_lookAtCenterXYZ[2] -= translation[2];
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            m_lookAtCenterXYZ[1] += translation[1];
+            m_lookAtCenterXYZ[1] -= translation[1];
             m_lookAtCenterXYZ[2] -= translation[2];
             break;
     }

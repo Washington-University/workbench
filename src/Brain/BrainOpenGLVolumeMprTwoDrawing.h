@@ -101,7 +101,8 @@ namespace caret {
                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const GraphicsViewport& viewport);
         
-        void setViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void setViewingTransformation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                       const SliceInfo& sliceInfo);
 
         void drawSliceWithPrimitive(const SliceInfo& sliceInfo,
