@@ -1786,7 +1786,8 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                                               viewport);
             }
             else if (volumeModel != NULL) {
-                this->drawVolumeModel(browserTabContent,
+                this->drawVolumeModel(viewportContent,
+                                      browserTabContent,
                                            volumeModel, viewport);
             }
             else if (wholeBrainModel != NULL) {
@@ -4435,6 +4436,8 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
 
 /**
  * Draw the volume slices.
+ * @param viewportContent
+ *    Content of viewport
  * @param browserTabContent
  *    Content of the window.
  * @param volumeModel
@@ -4443,7 +4446,8 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
  *    Region of drawing.
  */
 void 
-BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
+BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* viewportContent,
+                                          BrowserTabContent* browserTabContent,
                                   ModelVolume* volumeModel,
                                   const int32_t viewport[4])
 {
@@ -4489,6 +4493,7 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
         GraphicsViewport graphicsViewport(viewport);
         BrainOpenGLVolumeMprTwoDrawing mprDrawing;
         mprDrawing.draw(this,
+                        viewportContent,
                         browserTabContent,
                         volumeDrawInfo,
                         graphicsViewport);

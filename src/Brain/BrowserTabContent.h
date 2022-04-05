@@ -608,6 +608,12 @@ namespace caret {
         
         static std::vector<BrowserTabContent*> getOpenBrowserTabs();
         
+        void applyMouseTranslationVolumeMPR(BrainOpenGLViewportContent* viewportContent,
+                                            const int32_t mousePressX,
+                                            const int32_t mousePressY,
+                                            const int32_t mouseDX,
+                                            const int32_t mouseDY);
+        
         /** Number of this tab */
         int32_t m_tabNumber;
         

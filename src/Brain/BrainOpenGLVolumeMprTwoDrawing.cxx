@@ -49,6 +49,7 @@
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "GapsAndMargins.h"
 #include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fC4f.h"
@@ -95,6 +96,8 @@ BrainOpenGLVolumeMprTwoDrawing::~BrainOpenGLVolumeMprTwoDrawing()
  * Draw the volume slices
  * @param fixedPipelineDrawing
  *    The fixed pipeline drawing
+ * @param viewportContent
+ *    Content of viewport
  * @param browserTabContent
  *    Content of the browser tab being drawn
  * @param volumeDrawInfo
@@ -104,6 +107,7 @@ BrainOpenGLVolumeMprTwoDrawing::~BrainOpenGLVolumeMprTwoDrawing()
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                     const BrainOpenGLViewportContent* viewportContent,
                                      BrowserTabContent* browserTabContent,
                                      std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                                      const GraphicsViewport& viewport)
@@ -169,7 +173,8 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
                                                                 browserTabContent->getSlicePlanesAllViewLayout(),
                                                                 axisVP.data());
             glPushMatrix();
-            drawVolumeSliceViewType(sliceProjectionType,
+            drawVolumeSliceViewType(viewportContent,
+                                    sliceProjectionType,
                                     sliceDrawingType,
                                     VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                     axisVP);
@@ -183,7 +188,8 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
                                                                 browserTabContent->getSlicePlanesAllViewLayout(),
                                                                 axisVP.data());
             glPushMatrix();
-            drawVolumeSliceViewType(sliceProjectionType,
+            drawVolumeSliceViewType(viewportContent,
+                                    sliceProjectionType,
                                     sliceDrawingType,
                                     VolumeSliceViewPlaneEnum::CORONAL,
                                     axisVP);
@@ -197,7 +203,8 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
                                                                 browserTabContent->getSlicePlanesAllViewLayout(),
                                                                 axisVP.data());
             glPushMatrix();
-            drawVolumeSliceViewType(sliceProjectionType,
+            drawVolumeSliceViewType(viewportContent,
+                                    sliceProjectionType,
                                     sliceDrawingType,
                                     VolumeSliceViewPlaneEnum::AXIAL,
                                     axisVP);
@@ -208,7 +215,8 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
         case VolumeSliceViewPlaneEnum::CORONAL:
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             glPushMatrix();
-            drawVolumeSliceViewType(sliceProjectionType,
+            drawVolumeSliceViewType(viewportContent,
+                                    sliceProjectionType,
                                     sliceDrawingType,
                                     sliceViewPlane,
                                     viewport);
@@ -219,7 +227,8 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
 
 /**
  * Draw single or montage volume view slices.
- *
+ * @param viewportContent
+ *    Content of viewport
  * @param sliceProjectionType
  *   Type of slice projection
  * @param sliceDrawingType
@@ -230,7 +239,8 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const BrainOpenGLViewportContent* viewportContent,
+                                                        const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                         const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                         const GraphicsViewport& viewport)
@@ -239,7 +249,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const VolumeSliceProject
     
     switch (sliceDrawingType) {
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
-            drawVolumeSliceViewTypeMontage(sliceDrawingType,
+            drawVolumeSliceViewTypeMontage(viewportContent,
+                                           sliceDrawingType,
                                            sliceProjectionType,
                                            sliceViewPlane,
                                            viewport);
@@ -251,7 +262,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const VolumeSliceProject
                 m_browserTabContent->getSliceCoordinateCoronal(),
                 m_browserTabContent->getSliceCoordinateAxial()
             };
-            drawVolumeSliceViewProjection(sliceProjectionType,
+            drawVolumeSliceViewProjection(viewportContent,
+                                          sliceProjectionType,
                                           sliceDrawingType,
                                           sliceViewPlane,
                                           sliceCoordinates,
@@ -266,6 +278,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const VolumeSliceProject
 /**
  * Draw montage slices.
  *
+ * @param viewportContent
+ *   Content of viewport
  * @param sliceDrawingType
  *    Type of slice drawing (montage, single)
  * @param sliceProjectionType
@@ -276,7 +290,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const VolumeSliceProject
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGLViewportContent* viewportContent,
+                                                               const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                                const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                const GraphicsViewport& viewport)
@@ -427,7 +442,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const VolumeSlice
                             break;
                     }
                     
-                    drawVolumeSliceViewProjection(sliceProjectionType,
+                    drawVolumeSliceViewProjection(viewportContent,
+                                                  sliceProjectionType,
                                                   sliceDrawingType,
                                                   sliceViewPlane,
                                                   sliceCoordinates,
@@ -460,7 +476,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const VolumeSlice
 
 /**
  * Draw a slice for either projection mode (oblique, orthogonal)
- *
+ * @param viewportContent
+ *    Content of viewport
  * @param sliceProjectionType
  *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
@@ -471,7 +488,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const VolumeSlice
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLViewportContent* viewportContent,
+                                                              const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                               const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                               const Vector3D& sliceCoordinates,
@@ -578,7 +596,16 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const VolumeSliceP
                                sliceCoordinates,
                                viewport);
 
-
+        std::array<float, 4> orthoLRBT {
+            static_cast<float>(viewport.getLeft()),
+            static_cast<float>(viewport.getRight()),
+            static_cast<float>(viewport.getBottom()),
+            static_cast<float>(viewport.getTop())
+        };
+        GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
+        m_fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
+        viewportContent->setVolumeMprGraphicsObjectToWindowTransform(sliceViewPlane, transform);
+        
         float sliceThickness = 1.0;
         if ( ! m_volumeDrawInfo.empty()) {
             if (m_volumeDrawInfo[0].volumeFile != NULL) {
@@ -819,9 +846,6 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
                                          sliceInfo.m_topRightXYZ,
                                          sliceInfo.m_topLeftXYZ,
                                          expandPercentage);
-    
-    Vector3D translation;
-    browserTabContent->getTranslation(translation);
     
     Matrix4x4 viewRotationMatrix;
     

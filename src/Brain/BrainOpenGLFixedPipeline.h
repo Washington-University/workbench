@@ -286,7 +286,8 @@ namespace caret {
                             ModelMedia* mediaModel,
                             const int32_t viewport[4]);
         
-        void drawVolumeModel(BrowserTabContent* browserTabContent,
+        void drawVolumeModel(const BrainOpenGLViewportContent* viewportContent,
+                             BrowserTabContent* browserTabContent,
                                   ModelVolume* volumeModel,
                                   const int32_t viewport[4]);
         

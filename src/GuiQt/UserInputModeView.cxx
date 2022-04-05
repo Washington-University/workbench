@@ -620,7 +620,7 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
         
         int32_t viewport[4];
         viewportContent->getModelViewport(viewport);
-        const GraphicsObjectToWindowTransform* transform = viewportContent->getGraphicsObjectToWindowTransform();
+        const GraphicsObjectToWindowTransform* transform = viewportContent->getMediaGraphicsObjectToWindowTransform();
         
         const float vpMinX(viewport[0]);
         const float vpMaxX(viewport[0] + viewport[2]);

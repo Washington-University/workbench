@@ -210,9 +210,21 @@ BrainOpenGLViewportContent::copyHelperBrainOpenGLViewportContent(const BrainOpen
 
     m_browserTabContent = obj.m_browserTabContent;
     m_spacerTabContent  = obj.m_spacerTabContent;
-    m_graphicsObjectToWindowTransform.reset();
-    if (obj.m_graphicsObjectToWindowTransform) {
-        m_graphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_graphicsObjectToWindowTransform));
+    m_mediaGraphicsObjectToWindowTransform.reset();
+    if (obj.m_mediaGraphicsObjectToWindowTransform) {
+        m_mediaGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_mediaGraphicsObjectToWindowTransform));
+    }
+    m_volumeMprAxialGraphicsObjectToWindowTransform.reset();
+    if (obj.m_volumeMprAxialGraphicsObjectToWindowTransform) {
+        m_volumeMprAxialGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_volumeMprAxialGraphicsObjectToWindowTransform));
+    }
+    m_volumeMprCoronalGraphicsObjectToWindowTransform.reset();
+    if (obj.m_volumeMprCoronalGraphicsObjectToWindowTransform) {
+        m_volumeMprCoronalGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_volumeMprCoronalGraphicsObjectToWindowTransform));
+    }
+    m_volumeMprParasagittalGraphicsObjectToWindowTransform.reset();
+    if (obj.m_volumeMprParasagittalGraphicsObjectToWindowTransform) {
+        m_volumeMprParasagittalGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_volumeMprParasagittalGraphicsObjectToWindowTransform));
     }
 }
 
@@ -1315,21 +1327,67 @@ BrainOpenGLViewportContent::getSurfaceMontageModelViewport(const int32_t montage
 }
 
 /**
- * Set the object to window transformation.  This instance will take ownership of the given transform and delete when appropriate.
+ * Set the object to window transformation for media.  This instance will take ownership of the given transform and delete when appropriate.
  */
 void
-BrainOpenGLViewportContent::setGraphicsObjectToWindowTransform(GraphicsObjectToWindowTransform* transform) const
+BrainOpenGLViewportContent::setMediaGraphicsObjectToWindowTransform(GraphicsObjectToWindowTransform* transform) const
 {
-    m_graphicsObjectToWindowTransform.reset(transform);
+    m_mediaGraphicsObjectToWindowTransform.reset(transform);
 }
 
 /**
- * @return Object to window transformation (MAY BE NULL !!!)
+ * @return Object to window transformation (MAY BE NULL !!!) for media
  */
 const GraphicsObjectToWindowTransform*
-BrainOpenGLViewportContent::getGraphicsObjectToWindowTransform() const
+BrainOpenGLViewportContent::getMediaGraphicsObjectToWindowTransform() const
 {
-    return m_graphicsObjectToWindowTransform.get();
+    return m_mediaGraphicsObjectToWindowTransform.get();
+}
+
+/**
+ * Set the object to window transformation for media.  This instance will take ownership of the given transform and delete when appropriate.
+ */
+void
+BrainOpenGLViewportContent::setVolumeMprGraphicsObjectToWindowTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                        GraphicsObjectToWindowTransform* transform) const
+{
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            m_volumeMprAxialGraphicsObjectToWindowTransform.reset(transform);
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            m_volumeMprCoronalGraphicsObjectToWindowTransform.reset(transform);
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            m_volumeMprParasagittalGraphicsObjectToWindowTransform.reset(transform);
+            break;
+    }
+}
+
+/**
+ * @return Object to window transformation (MAY BE NULL !!!) for media
+ */
+const GraphicsObjectToWindowTransform*
+BrainOpenGLViewportContent::getVolumeMprGraphicsObjectToWindowTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const
+{
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            return m_volumeMprAxialGraphicsObjectToWindowTransform.get();
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            return m_volumeMprCoronalGraphicsObjectToWindowTransform.get();
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            return m_volumeMprParasagittalGraphicsObjectToWindowTransform.get();
+            break;
+    }
+    return NULL;
 }
 
 /**

@@ -38,6 +38,7 @@ namespace caret {
 
     class BrowserTabContent;
     class BrainOpenGLFixedPipeline;
+    class BrainOpenGLViewportContent;
     class GraphicsPrimitiveV3f;
     class GraphicsPrimitiveV3fC4ub;
     class GraphicsPrimitiveV3fT2f;
@@ -72,6 +73,7 @@ namespace caret {
         BrainOpenGLVolumeMprTwoDrawing& operator=(const BrainOpenGLVolumeMprTwoDrawing&) = delete;
         
         void draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                  const BrainOpenGLViewportContent* viewportContent,
                   BrowserTabContent* browserTabContent,
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                   const GraphicsViewport& viewport);
@@ -86,12 +88,14 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
     private:
-        void drawVolumeSliceViewType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+        void drawVolumeSliceViewType(const BrainOpenGLViewportContent* viewportContent,
+                                     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                      const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                      const GraphicsViewport& viewport);
         
-        void drawVolumeSliceViewProjection(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+        void drawVolumeSliceViewProjection(const BrainOpenGLViewportContent* viewportContent,
+                                           const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                            const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                            const Vector3D& sliceCoordinates,
@@ -169,7 +173,8 @@ namespace caret {
                         const Plane& slicePlane,
                         const Vector3D& sliceCoordinates);
         
-        void drawVolumeSliceViewTypeMontage(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+        void drawVolumeSliceViewTypeMontage(const BrainOpenGLViewportContent* viewportContent,
+                                            const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                             const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                             const GraphicsViewport& viewport);

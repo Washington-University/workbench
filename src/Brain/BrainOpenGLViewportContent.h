@@ -77,9 +77,14 @@ namespace caret {
         
         bool isTabHighlighted() const;
         
-        void setGraphicsObjectToWindowTransform(GraphicsObjectToWindowTransform* transform) const;
+        void setMediaGraphicsObjectToWindowTransform(GraphicsObjectToWindowTransform* transform) const;
         
-        const GraphicsObjectToWindowTransform* getGraphicsObjectToWindowTransform() const;
+        const GraphicsObjectToWindowTransform* getMediaGraphicsObjectToWindowTransform() const;
+        
+        void setVolumeMprGraphicsObjectToWindowTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                         GraphicsObjectToWindowTransform* transform) const;
+        
+        const GraphicsObjectToWindowTransform* getVolumeMprGraphicsObjectToWindowTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const;
         
         float getTranslationStepValueForCustomViewDialog() const;
         
@@ -252,7 +257,13 @@ namespace caret {
         /** Window viewport's Height */
         int m_windowBeforeAspectLockingHeight = 0;
         
-        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_graphicsObjectToWindowTransform;
+        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_mediaGraphicsObjectToWindowTransform;
+        
+        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_volumeMprAxialGraphicsObjectToWindowTransform;
+        
+        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_volumeMprCoronalGraphicsObjectToWindowTransform;
+        
+        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_volumeMprParasagittalGraphicsObjectToWindowTransform;
         
     public:
         virtual AString toString() const;

@@ -260,7 +260,7 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     };
     GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
     fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
-    viewportContent->setGraphicsObjectToWindowTransform(transform);
+    viewportContent->setMediaGraphicsObjectToWindowTransform(transform);
     
     drawModelLayers(viewportContent,
                     transform,

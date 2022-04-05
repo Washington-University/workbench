@@ -65,6 +65,7 @@
 #include "EventManager.h"
 #include "EventResetView.h"
 #include "FociFile.h"
+#include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsRegionSelectionBox.h"
 #include "IdentificationManager.h"
 #include "ImageFile.h"
@@ -3890,7 +3891,7 @@ BrowserTabContent::applyMediaMouseScaling(BrainOpenGLViewportContent* viewportCo
                                           const bool dataXYValidFlag)
 {
     if (isMediaDisplayed()) {
-        const GraphicsObjectToWindowTransform* xform = viewportContent->getGraphicsObjectToWindowTransform();
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
         getViewingTransformation()->scaleAboutMouse(xform,
                                                     mousePressX,
                                                     mousePressY,
@@ -3917,7 +3918,7 @@ BrowserTabContent::setMediaScalingFromGui(BrainOpenGLViewportContent* viewportCo
                                           const float scaling)
 {
     if (isMediaDisplayed()) {
-        const GraphicsObjectToWindowTransform* xform = viewportContent->getGraphicsObjectToWindowTransform();
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
         getViewingTransformation()->setMediaScaling(xform,
                                                     scaling);
     }
@@ -4002,7 +4003,7 @@ BrowserTabContent::setMediaViewToBounds(const BrainOpenGLViewportContent* viewpo
                                         const BoundingBox* windowBounds,
                                         const GraphicsRegionSelectionBox* selectionBounds)
 {
-    const GraphicsObjectToWindowTransform* xform = viewportContent->getGraphicsObjectToWindowTransform();
+    const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
     m_mediaViewingTransformation->setViewToBounds(xform,
                                                   windowBounds,
                                                   selectionBounds);
@@ -4111,6 +4112,28 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
     const int tabIndex = getTabNumber();
     
     if (isVolumeSlicesDisplayed()) {
+        bool mprFlag(false);
+        switch (getSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                mprFlag = true;
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+                mprFlag = true;
+                break;
+        }
+        if (mprFlag) {
+            applyMouseTranslationVolumeMPR(viewportContent,
+                                           mousePressX,
+                                           mousePressY,
+                                           mouseDX,
+                                           mouseDY);
+            return;
+        }
+        
         const float volumeSliceScaling = m_volumeSliceViewingTransformation->getScaling();
         ModelVolume* modelVolume = getDisplayedVolumeModel();
         VolumeMappableInterface* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
@@ -4381,6 +4404,234 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
     }
     updateYokedModelBrowserTabs();
 }
+
+/**
+ * Apply mouse translation to the displayed MPR volume model
+ *
+ * @param viewportContent
+ *    Content of the viewport.
+ * @param mousePressX
+ *    X coordinate of where mouse was pressed.
+ * @param mousePressY
+ *    X coordinate of where mouse was pressed.
+ * @param mouseDX
+ *    Change in mouse X coordinate.
+ * @param mouseDY
+ *    Change in mouse Y coordinate.
+ */
+void
+BrowserTabContent::applyMouseTranslationVolumeMPR(BrainOpenGLViewportContent* viewportContent,
+                                                  const int32_t mousePressX,
+                                                  const int32_t mousePressY,
+                                                  const int32_t mouseDX,
+                                                  const int32_t mouseDY)
+{
+    //    const int tabIndex = getTabNumber();
+    //    const float volumeSliceScaling = m_volumeSliceViewingTransformation->getScaling();
+    //    ModelVolume* modelVolume = getDisplayedVolumeModel();
+    //    VolumeMappableInterface* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
+    //    BoundingBox mybox;
+    //    vf->getVoxelSpaceBoundingBox(mybox);
+    //    float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
+    //    float slowdown = 0.005f * cubesize / volumeSliceScaling;//when zoomed in, make the movements slower to match - still changes based on viewport currently
+    //    slowdown = 1.0;
+    
+    float dx = 0.0;
+    float dy = 0.0;
+    float dz = 0.0;
+    
+    int viewport[4];
+    viewportContent->getModelViewport(viewport);
+    int sliceViewport[4];
+    viewportContent->getModelViewport(sliceViewport);
+    
+    VolumeSliceViewPlaneEnum::Enum slicePlane = getSliceViewPlane();
+    if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+        slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                                        getSlicePlanesAllViewLayout(),
+                                                                                        mousePressX,
+                                                                                        mousePressY,
+                                                                                        sliceViewport);
+    }
+    
+    float xScale(1.0);
+    float yScale(1.0);
+    float zScale(1.0);
+    const GraphicsObjectToWindowTransform* objectToWindowXform = viewportContent->getVolumeMprGraphicsObjectToWindowTransform(slicePlane);
+    if (objectToWindowXform != NULL) {
+        /*
+         * Convert one pixel distance to object space
+         */
+        float windowOneXYZ[3] { 0.0, 0.0, 0.0 };
+        float windowTwoXYZ[3] { 1.0, 1.0, 0.0 };
+        float objectOneXYZ[3];
+        float objectTwoXYZ[3];
+        objectToWindowXform->inverseTransformPoint(windowOneXYZ, objectOneXYZ);
+        objectToWindowXform->inverseTransformPoint(windowTwoXYZ, objectTwoXYZ);
+        float dx(objectTwoXYZ[0] - objectOneXYZ[0]);
+        float dy(objectTwoXYZ[1] - objectOneXYZ[1]);
+        float dz(objectTwoXYZ[2] - objectOneXYZ[2]);
+        std::cout << "Dxyz: " << dx << ", " << dy << ", " << dz << std::endl;
+        xScale = std::fabs(dx);
+        yScale = std::fabs(dy);
+        zScale = std::fabs(dz);
+        //            if (dx > 0.0) {
+        //                /*
+        //                 * This will convert the mouse pixel distance to object distance.
+        //                 * As a result, the same point under the mouse will follow the mouse
+        //                 */
+        //                if (slicePlane == VolumeSliceViewPlaneEnum::AXIAL) {
+        //                    xScale = dx;
+        //                    yScale = dy;
+        //                    zScale = dz;
+        //                }
+        //            }
+    }
+    
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            dx = mouseDX * xScale;
+            dy = mouseDY * yScale;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            dx = mouseDX * xScale;
+            dz = mouseDY * zScale;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            dy = -mouseDX * yScale;
+            dz =  mouseDY * zScale;
+            break;
+    }
+    
+    float translation[3];
+    m_volumeSliceViewingTransformation->getTranslation(translation);
+    translation[0] += dx;
+    translation[1] += dy;
+    translation[2] += dz;
+    m_volumeSliceViewingTransformation->setTranslation(translation);
+}
+
+
+
+
+
+
+
+
+
+///**
+// * Apply mouse translation to the displayed MPR volume model
+// *
+// * @param viewportContent
+// *    Content of the viewport.
+// * @param mousePressX
+// *    X coordinate of where mouse was pressed.
+// * @param mousePressY
+// *    X coordinate of where mouse was pressed.
+// * @param mouseDX
+// *    Change in mouse X coordinate.
+// * @param mouseDY
+// *    Change in mouse Y coordinate.
+// */
+//void
+//BrowserTabContent::applyMouseTranslationVolumeMPR(BrainOpenGLViewportContent* viewportContent,
+//                                                  const int32_t mousePressX,
+//                                                  const int32_t mousePressY,
+//                                                  const int32_t mouseDX,
+//                                                  const int32_t mouseDY)
+//{
+////    const int tabIndex = getTabNumber();
+////    const float volumeSliceScaling = m_volumeSliceViewingTransformation->getScaling();
+////    ModelVolume* modelVolume = getDisplayedVolumeModel();
+////    VolumeMappableInterface* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
+////    BoundingBox mybox;
+////    vf->getVoxelSpaceBoundingBox(mybox);
+////    float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
+////    float slowdown = 0.005f * cubesize / volumeSliceScaling;//when zoomed in, make the movements slower to match - still changes based on viewport currently
+////    slowdown = 1.0;
+//    
+//    int viewport[4];
+//    viewportContent->getModelViewport(viewport);
+//    int sliceViewport[4];
+//    viewportContent->getModelViewport(sliceViewport);
+//    
+//    VolumeSliceViewPlaneEnum::Enum slicePlane = getSliceViewPlane();
+//    if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+//        /*
+//         * sliceViewport is for axial, coronal, or parasagittal region of an ALL slice view
+//         */
+//        slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+//                                                                                        getSlicePlanesAllViewLayout(),
+//                                                                                        mousePressX,
+//                                                                                        mousePressY,
+//                                                                                        sliceViewport);
+//    }
+//       
+//    float xScale(1.0);
+//    float yScale(1.0);
+//    float zScale(1.0);
+//        const GraphicsObjectToWindowTransform* objectToWindowXform = viewportContent->getVolumeMprGraphicsObjectToWindowTransform(slicePlane);
+//        if (objectToWindowXform != NULL) {
+//            /*
+//             * Convert one pixel distance to object space
+//             */
+//            float windowOneXYZ[3] { 0.0, 0.0, 0.0 };
+//            float windowTwoXYZ[3] { 1.0, 1.0, 0.0 };
+//            float objectOneXYZ[3];
+//            float objectTwoXYZ[3];
+//            objectToWindowXform->inverseTransformPoint(windowOneXYZ, objectOneXYZ);
+//            objectToWindowXform->inverseTransformPoint(windowTwoXYZ, objectTwoXYZ);
+//            float xScale(objectTwoXYZ[0] - objectOneXYZ[0]);
+//            float yScale(objectTwoXYZ[1] - objectOneXYZ[1]);
+//            float zScale(objectTwoXYZ[2] - objectOneXYZ[2]);
+//            std::cout << "Dxyz: " << xScale << ", " << yScale << ", " << zScale << std::endl;
+//            xScale = std::fabs(xScale);
+//            yScale = std::fabs(yScale);
+//            zScale = std::fabs(zScale);
+//            
+////            if (dx > 0.0) {
+////                /*
+////                 * This will convert the mouse pixel distance to object distance.
+////                 * As a result, the same point under the mouse will follow the mouse
+////                 */
+////                if (slicePlane == VolumeSliceViewPlaneEnum::AXIAL) {
+////                    xScale = dx;
+////                    yScale = dy;
+////                    zScale = dz;
+////                }
+////            }
+//        }
+//    
+//    float dx(0.0);
+//    float dy(0.0);
+//    float dz(0.0);
+//    
+//    switch (slicePlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//            break;
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//            dx = mouseDX * xScale;
+//            dy = mouseDY * yScale;
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//            dx = mouseDX * xScale;
+//            dz = mouseDY * zScale;
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//            dy = -mouseDX * yScale;
+//            dz =  mouseDY * zScale;
+//            break;
+//    }
+//    
+//    float translation[3];
+//    m_volumeSliceViewingTransformation->getTranslation(translation);
+//    translation[0] += dx;
+//    translation[1] += dy;
+//    translation[2] += dz;
+//    m_volumeSliceViewingTransformation->setTranslation(translation);
+//}
 
 /**
  * Apply chart two bounds selection as user drags the mouse
