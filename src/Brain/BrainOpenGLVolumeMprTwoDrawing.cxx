@@ -868,6 +868,59 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
     viewRotationMatrix.multiplyPoint3(sliceInfo.m_topRightXYZ);
     viewRotationMatrix.multiplyPoint3(sliceInfo.m_topLeftXYZ);
     
+    /*
+     * Apply user panning (translation) by shifting the slice
+     * in the screen horizontally and vertically
+     */
+    {
+        /*
+         * Vector from left to right side of the screen in model coordinates
+         */
+        const Vector3D leftToRight(sliceInfo.m_topRightXYZ - sliceInfo.m_topLeftXYZ);
+        const Vector3D leftToRightVector(leftToRight.normal());
+        
+        /*
+         * Vector from bottom to top of screen in model coordinates
+         */
+        const Vector3D bottomToTop(sliceInfo.m_topLeftXYZ - sliceInfo.m_bottomLeftXYZ);
+        const Vector3D bottomToTopVector(bottomToTop.normal());
+        
+        /*
+         * Set the offset horizontally and vertically
+         * of the slice using the user's translation
+         */
+        Vector3D offsetHoriz;
+        Vector3D offsetVert;
+        Vector3D translation;
+        browserTabContent->getTranslation(translation);
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                offsetHoriz = leftToRightVector * (-translation[0]);
+                offsetVert  = bottomToTopVector * (-translation[1]);
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                offsetHoriz = leftToRightVector * (-translation[0]);
+                offsetVert  = bottomToTopVector * (-translation[2]);
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                offsetHoriz = leftToRightVector * (-translation[1]);
+                offsetVert  = bottomToTopVector * (-translation[2]);
+                break;
+        }
+        
+        /*
+         * Shift the slice
+         */
+        sliceInfo.m_bottomLeftXYZ  += (offsetHoriz + offsetVert);
+        sliceInfo.m_bottomRightXYZ += (offsetHoriz + offsetVert);
+        sliceInfo.m_topLeftXYZ     += (offsetHoriz + offsetVert);
+        sliceInfo.m_topRightXYZ    += (offsetHoriz + offsetVert);
+        sliceInfo.m_centerXYZ      += (offsetHoriz + offsetVert);
+    }
+    
     sliceInfo.m_plane = Plane(sliceInfo.m_topLeftXYZ,
                               sliceInfo.m_bottomLeftXYZ,
                               sliceInfo.m_bottomRightXYZ);
@@ -1696,42 +1749,6 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceProjec
      */
     m_lookAtCenterXYZ = sliceInfo.m_centerXYZ;
     
-    Vector3D translation;
-    m_browserTabContent->getTranslation(translation);
-    
-    switch (sliceProjectionType) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-            /*
-             * Radiological view has right side of brain on left side of screen
-             * (ie: Anterior View)
-             */
-            translation[0] = -translation[0];
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            break;
-    }
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            m_lookAtCenterXYZ[0] -= translation[0];
-            m_lookAtCenterXYZ[1] -= translation[1];
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            m_lookAtCenterXYZ[0] -= translation[0];
-            m_lookAtCenterXYZ[2] -= translation[2];
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            m_lookAtCenterXYZ[1] -= translation[1];
-            m_lookAtCenterXYZ[2] -= translation[2];
-            break;
-    }
-
     /*
      * Since an orthographic projection is used, the eye only needs
      * to be a little bit from the center along the plane's normal vector.

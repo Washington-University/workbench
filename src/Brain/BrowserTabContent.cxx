@@ -3435,20 +3435,6 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                 float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
                                                                                 + (mouseDeltaY * mouseDeltaY)));
                                 
-//                                std::array<float, 3> sliceCoordinates {
-//                                    getSliceCoordinateParasagittal(),
-//                                    getSliceCoordinateCoronal(),
-//                                    getSliceCoordinateAxial()
-//                                };
-//                                const bool allSlicesFlag(false);
-//                                BrainOpenGLVolumeMprTwoDrawing::SliceInfo sliceInfo =
-//                                BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(this,
-//                                                                                getOverlaySet()->getUnderlayVolume(),
-//                                                                                getSliceProjectionType(),
-//                                                                                slicePlane,
-//                                                                                sliceCoordinates,
-//                                                                                allSlicesFlag);
-
                                 switch (slicePlane) {
                                     case VolumeSliceViewPlaneEnum::ALL:
                                     {
@@ -4456,171 +4442,68 @@ BrowserTabContent::applyMouseTranslationVolumeMPR(BrainOpenGLViewportContent* vi
                                                                                         sliceViewport);
     }
     
-    float dx = 0.0;
-    float dy = 0.0;
-    float dz = 0.0;
-    float xScale(1.0);
-    float yScale(1.0);
-    float zScale(1.0);
     const GraphicsObjectToWindowTransform* objectToWindowXform = viewportContent->getVolumeMprGraphicsObjectToWindowTransform(slicePlane);
     if (objectToWindowXform != NULL) {
+        /*
+         * Previous position of mouse
+         */
         const float oldMouseX(mouseX - mouseDX);
         const float oldMouseY(mouseY - mouseDY);
-            /*
-             * Convert one pixel distance to object space
-             */
-            float windowOneXYZ[3] { oldMouseX, oldMouseY, 0.0 };
-            float windowTwoXYZ[3] { (float)mouseX, (float)mouseY, 0.0 };
-            float objectOneXYZ[3];
-            float objectTwoXYZ[3];
-            objectToWindowXform->inverseTransformPoint(windowOneXYZ, objectOneXYZ);
-            objectToWindowXform->inverseTransformPoint(windowTwoXYZ, objectTwoXYZ);
-            dx = (objectTwoXYZ[0] - objectOneXYZ[0]);
-            dy = (objectTwoXYZ[1] - objectOneXYZ[1]);
-            dz = (objectTwoXYZ[2] - objectOneXYZ[2]);
-//            std::cout << "   Dxyz: " << dx << ", " << dy << ", " << dz << std::endl;
         
-        /* MAY NEED TO USE NORMAL VECTOR OR PLANE EQUATION TO MULTIPLE TRANSLATION
-         ROTATE AXIAL BY 90 so CORONAL BECOMES PARASAGITTAL
+        /*
+         * Convert location of mouse from window to model coordinates
          */
+        Vector3D windowOneXYZ(oldMouseX, oldMouseY, 0.0);
+        Vector3D windowTwoXYZ((float)mouseX, (float)mouseY, 0.0);
+        Vector3D objectOneXYZ;
+        Vector3D objectTwoXYZ;
+        objectToWindowXform->inverseTransformPoint(windowOneXYZ, objectOneXYZ);
+        objectToWindowXform->inverseTransformPoint(windowTwoXYZ, objectTwoXYZ);
+        
+        /*
+         * Convert mouse movement from window to model coordinates
+         */
+        Vector3D objDXYZ((objectTwoXYZ[0] - objectOneXYZ[0]),
+                         (objectTwoXYZ[1] - objectOneXYZ[1]),
+                         (objectTwoXYZ[2] - objectOneXYZ[2]));
+        const float objLength(objDXYZ.length());
+        Vector3D mouseNormalDXY(Vector3D(mouseDX, mouseDY, 0.0).normal());
+        
+        
+        const float horizontalMovement(mouseNormalDXY[0] * objLength);
+        const float verticalMovement(mouseNormalDXY[1] * objLength);
+        
+        float dx = 0.0;
+        float dy = 0.0;
+        float dz = 0.0;
+        switch (slicePlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                dx = horizontalMovement;
+                dy = verticalMovement;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                dx = horizontalMovement;
+                dz = verticalMovement;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                dy =  horizontalMovement;
+                dz =  verticalMovement;
+                break;
+        }
+        
+        float translation[3];
+        m_volumeSliceViewingTransformation->getTranslation(translation);
+        translation[0] += dx;
+        translation[1] += dy;
+        translation[2] += dz;
+        m_volumeSliceViewingTransformation->setTranslation(translation);
     }
-    
-//    float dx = 0.0;
-//    float dy = 0.0;
-//    float dz = 0.0;
-//    switch (slicePlane) {
-//        case VolumeSliceViewPlaneEnum::ALL:
-//            break;
-//        case VolumeSliceViewPlaneEnum::AXIAL:
-//            dx = mouseDX * xScale;
-//            dy = mouseDY * yScale;
-//            break;
-//        case VolumeSliceViewPlaneEnum::CORONAL:
-//            dx = mouseDX * xScale;
-//            dz = mouseDY * zScale;
-//            break;
-//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//            dy =  mouseDX * yScale;
-//            dz =  mouseDY * zScale;
-//            break;
-//    }
-    
-    float translation[3];
-    m_volumeSliceViewingTransformation->getTranslation(translation);
-    translation[0] += dx;
-    translation[1] += dy;
-    translation[2] += dz;
-    m_volumeSliceViewingTransformation->setTranslation(translation);
+    else {
+        CaretLogSevere("PROGRAM ERROR: GraphicsObjectToWindowTransform failed, unable to pan view");
+    }
 }
-
-
-///**
-// * Apply mouse translation to the displayed MPR volume model
-// *
-// * @param viewportContent
-// *    Content of the viewport.
-// * @param mousePressX
-// *    X coordinate of where mouse was pressed.
-// * @param mousePressY
-// *    X coordinate of where mouse was pressed.
-// * @param mouseDX
-// *    Change in mouse X coordinate.
-// * @param mouseDY
-// *    Change in mouse Y coordinate.
-// */
-//void
-//BrowserTabContent::applyMouseTranslationVolumeMPR(BrainOpenGLViewportContent* viewportContent,
-//                                                  const int32_t mousePressX,
-//                                                  const int32_t mousePressY,
-//                                                  const int32_t mouseDX,
-//                                                  const int32_t mouseDY)
-//{
-//    int viewport[4];
-//    viewportContent->getModelViewport(viewport);
-//    int sliceViewport[4];
-//    viewportContent->getModelViewport(sliceViewport);
-//
-//    VolumeSliceViewPlaneEnum::Enum slicePlane = getSliceViewPlane();
-//    if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
-//        slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-//                                                                                        getSlicePlanesAllViewLayout(),
-//                                                                                        mousePressX,
-//                                                                                        mousePressY,
-//                                                                                        sliceViewport);
-//    }
-//
-//    float xScale(1.0);
-//    float yScale(1.0);
-//    float zScale(1.0);
-//    const GraphicsObjectToWindowTransform* objectToWindowXform = viewportContent->getVolumeMprGraphicsObjectToWindowTransform(slicePlane);
-//    if (objectToWindowXform != NULL) {
-//        /*
-//         * Convert one pixel distance to object space
-//         */
-//        float windowOneXYZ[3] { 0.0, 0.0, 0.0 };
-//        float windowTwoXYZ[3] { 1.0, 1.0, 0.0 };
-//        float objectOneXYZ[3];
-//        float objectTwoXYZ[3];
-//        objectToWindowXform->inverseTransformPoint(windowOneXYZ, objectOneXYZ);
-//        objectToWindowXform->inverseTransformPoint(windowTwoXYZ, objectTwoXYZ);
-//        float dx(objectTwoXYZ[0] - objectOneXYZ[0]);
-//        float dy(objectTwoXYZ[1] - objectOneXYZ[1]);
-//        float dz(objectTwoXYZ[2] - objectOneXYZ[2]);
-//        std::cout << "Dxyz: " << dx << ", " << dy << ", " << dz << std::endl;
-//        xScale = dx;
-//        yScale = dy;
-//        zScale = dz;
-//
-//        {
-//            /*
-//             * Convert one pixel distance to object space
-//             */
-//            float windowOneXYZ[3] { 0.0, 0.0, 0.0 };
-//            float windowTwoXYZ[3] { (float)mouseDX, (float)mouseDY, 0.0 };
-//            float objectOneXYZ[3];
-//            float objectTwoXYZ[3];
-//            objectToWindowXform->inverseTransformPoint(windowOneXYZ, objectOneXYZ);
-//            objectToWindowXform->inverseTransformPoint(windowTwoXYZ, objectTwoXYZ);
-//            float dx(objectTwoXYZ[0] - objectOneXYZ[0]);
-//            float dy(objectTwoXYZ[1] - objectOneXYZ[1]);
-//            float dz(objectTwoXYZ[2] - objectOneXYZ[2]);
-//            std::cout << "   Dxyz: " << dx << ", " << dy << ", " << dz << std::endl;
-//        }
-//    }
-//
-//    float dx = 0.0;
-//    float dy = 0.0;
-//    float dz = 0.0;
-//    switch (slicePlane) {
-//        case VolumeSliceViewPlaneEnum::ALL:
-//            break;
-//        case VolumeSliceViewPlaneEnum::AXIAL:
-//            dx = mouseDX * xScale;
-//            dy = mouseDY * yScale;
-//            break;
-//        case VolumeSliceViewPlaneEnum::CORONAL:
-//            dx = mouseDX * xScale;
-//            dz = mouseDY * zScale;
-//            break;
-//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//            dy =  mouseDX * yScale;
-//            dz =  mouseDY * zScale;
-//            break;
-//    }
-//
-//    float translation[3];
-//    m_volumeSliceViewingTransformation->getTranslation(translation);
-//    translation[0] += dx;
-//    translation[1] += dy;
-//    translation[2] += dz;
-//    m_volumeSliceViewingTransformation->setTranslation(translation);
-//}
-
-
-
-
-
-
 
 /**
  * Apply chart two bounds selection as user drags the mouse
