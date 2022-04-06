@@ -568,6 +568,8 @@ UserInputModeView::mouseLeftDragWithShift(const MouseEvent& mouseEvent)
     browserTabContent->applyMouseTranslation(viewportContent,
                                              mouseEvent.getPressedX(),
                                              mouseEvent.getPressedY(),
+                                             mouseEvent.getX(),
+                                             mouseEvent.getY(),
                                              static_cast<int32_t>(mouseEvent.getDx() * factor),
                                              static_cast<int32_t>(mouseEvent.getDy() * factor));
     updateGraphics(mouseEvent);

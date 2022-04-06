@@ -359,6 +359,8 @@ namespace caret {
         void applyMouseTranslation(BrainOpenGLViewportContent* viewportContent,
                                    const int32_t mousePressX,
                                    const int32_t mousePressY,
+                                   const int32_t mouseX,
+                                   const int32_t mouseY,
                                    const int32_t mouseDX,
                                    const int32_t mouseDY);
         
@@ -611,6 +613,8 @@ namespace caret {
         void applyMouseTranslationVolumeMPR(BrainOpenGLViewportContent* viewportContent,
                                             const int32_t mousePressX,
                                             const int32_t mousePressY,
+                                            const int32_t mouseX,
+                                            const int32_t mouseY,
                                             const int32_t mouseDX,
                                             const int32_t mouseDY);
         
