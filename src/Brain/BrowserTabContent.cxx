@@ -265,14 +265,12 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                "AnnotationScaleBar",
                                m_scaleBar.get());
 
-#ifdef MPR_USE_ROTATION_ANGLES
     m_sceneClassAssistant->add("m_mprRotationX",
                                &m_mprRotationX);
     m_sceneClassAssistant->add("m_mprRotationY",
                                &m_mprRotationY);
     m_sceneClassAssistant->add("m_mprRotationZ",
                                &m_mprRotationZ);
-#endif
 
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_ANNOTATION_BARS_GET);
@@ -412,16 +410,9 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     
     m_lightingEnabled = tabToClone->m_lightingEnabled;
 
-#ifdef MPR_USE_ROTATION_ANGLES
     m_mprRotationX = tabToClone->m_mprRotationX;
     m_mprRotationY = tabToClone->m_mprRotationY;
     m_mprRotationZ = tabToClone->m_mprRotationZ;
-#else
-    m_mprRotationMatrixAll = tabToClone->m_mprRotationMatrixAll;
-    m_mprRotationMatrixAxial = tabToClone->m_mprRotationMatrixAxial;
-    m_mprRotationMatrixCoronal = tabToClone->m_mprRotationMatrixCoronal;
-    m_mprRotationMatrixParasagittal = tabToClone->m_mprRotationMatrixParasagittal;
-#endif
 
     Model* model = getModelForDisplay();
     
@@ -2766,7 +2757,6 @@ BrowserTabContent::setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix)
     updateYokedModelBrowserTabs();
 }
 
-#ifdef MPR_USE_ROTATION_ANGLES
 /**
  * @return MPR rotation X-angle
  */
@@ -2793,7 +2783,6 @@ BrowserTabContent::getMprRotationZ() const
 {
     return m_mprRotationZ;
 }
-#endif
 
 /**
  * Reset  MPR rotations to zero.
@@ -2801,46 +2790,10 @@ BrowserTabContent::getMprRotationZ() const
 void
 BrowserTabContent::resetMprRotations()
 {
-#ifdef MPR_USE_ROTATION_ANGLES
     m_mprRotationX = 0.0;
     m_mprRotationY = 0.0;
     m_mprRotationZ = 0.0;
-#else
-    m_mprRotationMatrixAll = QQuaternion();
-    m_mprRotationMatrixAxial = QQuaternion();
-    m_mprRotationMatrixCoronal = QQuaternion();
-    m_mprRotationMatrixParasagittal = QQuaternion();
-#endif
 }
-
-#ifndef MPR_USE_ROTATION_ANGLES
-/**
- * @return Matrix for the given slice plane for MPR rotation
- * @param slicePlane
- *    The slice plane
- */
-QQuaternion
-BrowserTabContent::getMprRotationMatrixForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane) const
-{
-    switch (slicePlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            return m_mprRotationMatrixAll;
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            return m_mprRotationMatrixAxial;
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            return m_mprRotationMatrixCoronal;
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            return m_mprRotationMatrixParasagittal;
-            break;
-    }
-    
-    CaretAssert(0);
-    return QQuaternion();
-}
-#endif
 
 /**
  * @return Matrix for the given slice plane for MPR rotation
@@ -2850,7 +2803,6 @@ BrowserTabContent::getMprRotationMatrixForSlicePlane(const VolumeSliceViewPlaneE
 Matrix4x4
 BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane) const
 {
-#ifdef MPR_USE_ROTATION_ANGLES
     const float noRotationAngle(0.0);
     Matrix4x4 matrixOut;
     switch (slicePlane) {
@@ -2868,19 +2820,6 @@ BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const VolumeSliceViewPla
             break;
     }
     return matrixOut;
-
-#else
-    
-    QQuaternion quaternion(getMprRotationMatrixForSlicePlane(slicePlane));
-    QMatrix3x3 rotMatrix3x3(quaternion.toRotationMatrix());
-    Matrix4x4 rotMatrix;
-    for (int32_t i = 0; i < 3; i++) {
-        for (int32_t j = 0; j < 3; j++) {
-            rotMatrix.setMatrixElement(i, j, rotMatrix3x3(i, j));
-        }
-    }
-    return rotMatrix;
-#endif
 }
 
 /**
@@ -3446,14 +3385,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                         const float mprRotZ(isClockwise
                                                             ? mouseDelta
                                                             : -mouseDelta);
-#ifdef MPR_USE_ROTATION_ANGLES
                                         m_mprRotationZ += mprRotZ;
-#else
-                                        QQuaternion rotQuat(QQuaternion::fromEulerAngles(0.0, 0.0, mprRotZ));
-                                        m_mprRotationMatrixAll *= rotQuat;
-                                        m_mprRotationMatrixCoronal *= rotQuat;
-                                        m_mprRotationMatrixParasagittal *= rotQuat;
-#endif
                                     }
                                         break;
                                     case VolumeSliceViewPlaneEnum::CORONAL:
@@ -3461,14 +3393,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                         const float mprRotY(isClockwise
                                                             ? - mouseDelta
                                                             : mouseDelta);
-#ifdef MPR_USE_ROTATION_ANGLES
                                         m_mprRotationY += mprRotY;
-#else
-                                        QQuaternion rotQuat(QQuaternion::fromEulerAngles(0.0, mprRotY, 0.0));
-                                        m_mprRotationMatrixAll *= rotQuat;
-                                        m_mprRotationMatrixAxial *= rotQuat;
-                                        m_mprRotationMatrixParasagittal *= rotQuat;
-#endif
                                     }
                                         break;
                                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
@@ -3476,14 +3401,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                         const float mprRotX(isClockwise
                                                             ? -mouseDelta
                                                             : mouseDelta);
-#ifdef MPR_USE_ROTATION_ANGLES
                                         m_mprRotationX += mprRotX;
-#else
-                                        QQuaternion rotQuat(QQuaternion::fromEulerAngles(mprRotX, 0.0, 0.0));
-                                        m_mprRotationMatrixAll *= rotQuat;
-                                        m_mprRotationMatrixAxial *= rotQuat;
-                                        m_mprRotationMatrixCoronal *= rotQuat;
-#endif
                                    }
                                         break;
                                 }
@@ -4716,20 +4634,10 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     obliqueRotationMatrix.getMatrix(mob);
     modelTransform.setObliqueRotation(mob);
 
-#ifdef MPR_USE_ROTATION_ANGLES
     const float mprRotationAngles[3] {
         m_mprRotationX, m_mprRotationY, m_mprRotationZ
     };
     modelTransform.setMprRotationAngles(mprRotationAngles);
-#else
-    const Matrix4x4 mprRotMat(getMprRotationMatrix4x4ForSlicePlane(VolumeSliceViewPlaneEnum::ALL));
-    double mprRotX, mprRotY, mprRotZ;
-    mprRotMat.getRotation(mprRotX, mprRotY, mprRotZ);
-    const float mprRotationAngles[3] {
-        mprRotX, mprRotY, mprRotZ
-    };
-    modelTransform.setMprRotationAngles(mprRotationAngles);
-#endif
     
     const Matrix4x4 flatRotationMatrix = getFlatRotationMatrix();
     float fm[4][4];
@@ -4776,17 +4684,9 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
 
     float mprRotationAngles[3];
     modelTransform.getMprRotationAngles(mprRotationAngles);
-#ifdef MPR_USE_ROTATION_ANGLES
     m_mprRotationX = mprRotationAngles[0];
     m_mprRotationY = mprRotationAngles[1];
     m_mprRotationZ = mprRotationAngles[2];
-#else
-//    setAllMprRotationMatricesToIdentity();
-//    m_mprRotationMatrixAll.setRotation(mprRotationAngles[0], mprRotationAngles[1], mprRotationAngles[2]);
-//    m_mprRotationMatrixAxial.setRotation(mprRotationAngles[0], mprRotationAngles[1], 0.0);
-//    m_mprRotationMatrixCoronal.setRotation(mprRotationAngles[0], 0.0, mprRotationAngles[2]);
-//    m_mprRotationMatrixParasagittal.setRotation(0.0, mprRotationAngles[1], mprRotationAngles[2]);
-#endif
 
     float fm[4][4];
     modelTransform.getFlatRotation(fm);

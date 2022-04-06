@@ -528,16 +528,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
     /*
      * Set the orthographic projection to fit the slice axis
      */
-    setOrthographicProjection(sliceProjectionType,
-                              sliceViewPlane,
-                              viewport);
+    setOrthographicProjection(viewport);
 
     SliceInfo sliceInfo(createSliceInfo(m_browserTabContent,
                                         m_underlayVolume,
                                         sliceProjectionType,
                                         sliceViewPlane,
-                                        sliceCoordinates,
-                                        m_allSliceViewFlag));
+                                        sliceCoordinates));
 
     if ( ! sliceInfo.m_plane.isValidPlane()) {
         return;
@@ -546,8 +543,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
     /*
      * Set the viewing transformation (camera position)
      */
-    setViewingTransformation(sliceProjectionType,
-                             sliceViewPlane,
+    setViewingTransformation(sliceViewPlane,
                              sliceInfo);
 
     SelectionItemVolumeMprCrosshair* crosshairID(m_brain->getSelectionManager()->getVolumeMprCrosshairIdentification());
@@ -683,16 +679,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
  *    Plane being viewed
  * @param sliceCoordinates
  *    Coordinates of selected slices
- * @param allSliceViewFlag
- *    True if all slice view
  */
 BrainOpenGLVolumeMprTwoDrawing::SliceInfo
 BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browserTabContent,
                                                 const VolumeMappableInterface* underlayVolume,
                                                 const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                const Vector3D& sliceCoordinates,
-                                                const bool allSliceViewFlag) const
+                                                const Vector3D& sliceCoordinates) const
 {
     SliceInfo sliceInfo;
     
@@ -1567,17 +1560,11 @@ BrainOpenGLVolumeMprTwoDrawing::drawAxisLabels(const VolumeSliceProjectionTypeEn
 /**
  * Set the orthographic projection.
  *
- * @param sliceProjectionType
- *    Type of slice projection
- * @param sliceViewPlane
- *    The slice plane being drawn
  * @param viewport
  *    The viewport.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::setOrthographicProjection(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                          const GraphicsViewport& viewport)
+BrainOpenGLVolumeMprTwoDrawing::setOrthographicProjection(const GraphicsViewport& viewport)
 {
     /*
      * Determine aspect ratio of viewport
@@ -1630,74 +1617,6 @@ BrainOpenGLVolumeMprTwoDrawing::setOrthographicProjection(const VolumeSliceProje
     const double nearDepth = -1000.0;
     const double farDepth  =  1000.0;
     
-    const bool centerizeFlag(false);
-    if (centerizeFlag) {
-        /*
-         * Center the volume in the orthographic region
-         */
-        bool xHorizontalFlag(false);
-        bool yHorozontalFlag(false);
-        bool yVerticalFlag(false);
-        bool zVerticalFlag(false);
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssert(0);
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                xHorizontalFlag = true;
-                yVerticalFlag   = true;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                xHorizontalFlag = true;
-                zVerticalFlag   = true;
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                yHorozontalFlag = true;
-                zVerticalFlag       = true;
-                break;
-        }
-        
-        if (xHorizontalFlag) {
-            const float halfExtra((defaultOrthoWidth - lengthX) / 2.0);
-            orthoRight = boundingBox.getMaxX() + halfExtra;
-            orthoLeft  = boundingBox.getMinX() - halfExtra;
-            
-            switch (sliceProjectionType) {
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-                    break;
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-                    std::swap(orthoLeft,
-                              orthoRight);
-                    break;
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                    CaretAssert(0);
-                    break;
-            }
-        }
-        else if (yHorozontalFlag) {
-            const float halfExtra((defaultOrthoWidth - lengthY) / 2.0);
-            orthoLeft  += halfExtra;
-            orthoRight += halfExtra;
-        }
-        else {
-            CaretAssert(0);
-        }
-        if (yVerticalFlag) {
-            const float halfExtra((defaultOrthoHeight - lengthY) / 2.0);
-            orthoTop    = boundingBox.getMaxY() + halfExtra;
-            orthoBottom = boundingBox.getMinY() - halfExtra;
-        }
-        else if (zVerticalFlag) {
-            const float halfExtra((defaultOrthoHeight - lengthZ) / 2.0);
-            orthoTop    = boundingBox.getMaxZ() + halfExtra;
-            orthoBottom = boundingBox.getMinZ() - halfExtra;
-        }
-        else {
-            CaretAssert(0);
-        }
-    }
-
     m_orthographicBounds[0] = orthoLeft;
     m_orthographicBounds[1] = orthoRight;
     m_orthographicBounds[2] = orthoBottom;
@@ -1732,16 +1651,13 @@ BrainOpenGLVolumeMprTwoDrawing::setOrthographicProjection(const VolumeSliceProje
 /**
  * Set the viewing transformation
  *
- * @param sliceProjectionType
- *    Type of slice projection
  * @param sliceViewPlane
  *    View plane that is displayed.
  * @param plane
  *    Plane equation of selected slice.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                          const SliceInfo& sliceInfo)
 {
     /*

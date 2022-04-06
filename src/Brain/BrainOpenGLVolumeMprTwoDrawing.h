@@ -82,8 +82,7 @@ namespace caret {
                                   const VolumeMappableInterface* underlayVolume,
                                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                  const Vector3D& sliceCoordinates,
-                                  const bool allSliceViewFlag) const;
+                                  const Vector3D& sliceCoordinates) const;
 
         // ADD_NEW_METHODS_HERE
         
@@ -101,12 +100,9 @@ namespace caret {
                                            const Vector3D& sliceCoordinates,
                                            const GraphicsViewport& viewport);
         
-        void setOrthographicProjection(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                       const GraphicsViewport& viewport);
+        void setOrthographicProjection(const GraphicsViewport& viewport);
         
-        void setViewingTransformation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void setViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                       const SliceInfo& sliceInfo);
 
         void drawSliceWithPrimitive(const SliceInfo& sliceInfo,
