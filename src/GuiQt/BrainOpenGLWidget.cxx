@@ -1351,8 +1351,8 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
     this->isMousePressedNearToolBox = false;
     
     if (button == Qt::LeftButton) {
-        const int mouseX = adjustForHighDPI(me->x());
-        const int mouseY = getWidgetHeight() - adjustForHighDPI(me->y());
+        const int mouseX = adjustForHighDPI(me->pos().x());
+        const int mouseY = getWidgetHeight() - adjustForHighDPI(me->pos().y());
 
         this->mousePressX = mouseX;
         this->mousePressY = mouseY;
@@ -1441,8 +1441,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                               false);
     
     if (button == Qt::LeftButton) {
-        const int mouseX = adjustForHighDPI(me->x());
-        const int mouseY = getWidgetHeight() - adjustForHighDPI(me->y());
+        const int mouseX = adjustForHighDPI(me->pos().x());
+        const int mouseY = getWidgetHeight() - adjustForHighDPI(me->pos().y());
         
         this->mouseMovementMinimumX = std::min(this->mouseMovementMinimumX, mouseX);
         this->mouseMovementMaximumX = std::max(this->mouseMovementMaximumX, mouseX);
@@ -1550,8 +1550,8 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
     
     if (button == Qt::LeftButton) {
         if (keyModifiers == Qt::NoModifier) {
-            const int mouseX = adjustForHighDPI(me->x());
-            const int mouseY = getWidgetHeight() - adjustForHighDPI(me->y());
+            const int mouseX = adjustForHighDPI(me->pos().x());
+            const int mouseY = getWidgetHeight() - adjustForHighDPI(me->pos().y());
             
             /*
              * Use location of mouse press so that the model
@@ -2037,8 +2037,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                               keyModifiers,
                               true);
     
-    const int mouseX = adjustForHighDPI(me->x());
-    const int mouseY = getWidgetHeight() - adjustForHighDPI(me->y());
+    const int mouseX = adjustForHighDPI(me->pos().x());
+    const int mouseY = getWidgetHeight() - adjustForHighDPI(me->pos().y());
     
     UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
     

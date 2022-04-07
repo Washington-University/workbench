@@ -179,8 +179,8 @@ WuQImageLabel::mouseMoveEvent(QMouseEvent* ev)
 {
     if (ev->button() == Qt::NoButton) {
         if (ev->buttons() == Qt::LeftButton) {
-            const int x = ev->x();
-            const int y = ev->y();
+            const int x = ev->pos().x();
+            const int y = ev->pos().y();
             
             if (x < m_mouseMinX) m_mouseMinX = x;
             if (x > m_mouseMaxX) m_mouseMaxX = x;
@@ -222,10 +222,10 @@ void
 WuQImageLabel::mousePressEvent(QMouseEvent* ev)
 {
     if (ev->button() == Qt::LeftButton) {
-        m_mouseMinX = ev->x();
-        m_mouseMaxX = ev->x();
-        m_mouseMinY = ev->y();
-        m_mouseMaxY = ev->y();
+        m_mouseMinX = ev->pos().x();
+        m_mouseMaxX = ev->pos().x();
+        m_mouseMinY = ev->pos().y();
+        m_mouseMaxY = ev->pos().y();
     }
 }
 
@@ -247,7 +247,7 @@ WuQImageLabel::mouseReleaseEvent(QMouseEvent* ev)
         if ((dx < tolerance)
             && (dy < tolerance)) {
             emit clicked();
-            emit clickedXY(ev->x(), ev->y());
+            emit clickedXY(ev->pos().x(), ev->pos().y());
         }
     }
 }

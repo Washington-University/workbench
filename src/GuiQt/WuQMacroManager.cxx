@@ -460,8 +460,8 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
                                                                            static_cast<uint32_t>(me->modifiers()),
                                                                            widget->width(),
                                                                            widget->height());
-            mouseInfo->addLocalXY(me->localPos().x(),
-                                  me->localPos().y());
+            mouseInfo->addLocalXY(me->pos().x(),
+                                  me->pos().y());
         
             const int32_t versionNumber(1);
             QString errorMessage;

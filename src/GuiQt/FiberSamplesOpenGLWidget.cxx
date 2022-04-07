@@ -618,8 +618,8 @@ FiberSamplesOpenGLWidget::mousePressEvent(QMouseEvent* me)
 //    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
     
     if (button == Qt::LeftButton) {
-        const int mouseX = me->x();
-        const int mouseY = m_widgetHeight - me->y();
+        const int mouseX = me->pos().x();
+        const int mouseY = m_widgetHeight - me->pos().y();
         
         m_mousePressX = mouseX;
         m_mousePressY = mouseY;
@@ -662,8 +662,8 @@ FiberSamplesOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     
     if (button == Qt::NoButton) {
         if (me->buttons() == Qt::LeftButton) {
-            const int mouseX = me->x();
-            const int mouseY = m_widgetHeight - me->y();
+            const int mouseX = me->pos().x();
+            const int mouseY = m_widgetHeight - me->pos().y();
             
             const int dx = mouseX - m_lastMouseX;
             const int dy = mouseY - m_lastMouseY;

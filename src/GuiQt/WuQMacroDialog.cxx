@@ -734,7 +734,11 @@ WuQMacroDialog::updateDialogContents()
     QString selectedUniqueIdentifer;
     const QVariant dataSelected = m_macroGroupComboBox->currentData();
     if (dataSelected.isValid()) {
+#if QT_VERSION >= 0x060000
+        if (dataSelected.metaType().id() == QMetaType::QString) {
+#else
         if (dataSelected.type() == QVariant::String) {
+#endif
             selectedUniqueIdentifer = dataSelected.toString();
         }
     }
