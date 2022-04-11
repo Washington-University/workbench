@@ -495,7 +495,7 @@ IdentifiedItemUniversal::getToolTip() const
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA:
         {
-            toolTipText = ("Media File: "
+            toolTipText = ("ID from Media File: "
                            + m_dataFileName + "<br>"
                            "Pixel ("
                            + m_pixelLogicalIndex.toString()
@@ -504,7 +504,7 @@ IdentifiedItemUniversal::getToolTip() const
         }
             break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
-            toolTipText = ("Surface: "
+            toolTipText = ("ID from Surface: "
                            + m_dataFileName + "<br>"
                            "Vertex: "
                            + AString::number(m_surfaceVertexIndex)
@@ -514,7 +514,7 @@ IdentifiedItemUniversal::getToolTip() const
         case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
             break;
         case IdentifiedItemUniversalTypeEnum::VOLUME:
-            toolTipText = ("Volume: "
+            toolTipText = ("ID from Volume: "
                            + m_dataFileName + "<br>"
                            "Index ("
                            + AString::fromNumbers(m_voxelIJK.data(), 3, ", ")
