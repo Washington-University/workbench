@@ -285,7 +285,8 @@ namespace caret {
         
         float getMprRotationZ() const;
         
-        Matrix4x4 getMprRotationMatrix4x4ForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
+        Matrix4x4 getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enum modelType,
+                                                       const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
         
         void getRightCortexFlatMapOffset(float& offsetX,
                                          float& offsetY) const;

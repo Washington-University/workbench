@@ -60,6 +60,7 @@
 #include "GraphicsViewport.h"
 #include "MathFunctions.h"
 #include "ModelVolume.h"
+#include "ModelWholeBrain.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionItemVoxelEditing.h"
 #include "SelectionManager.h"
@@ -120,12 +121,25 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
     
     m_volumeDrawInfo = volumeDrawInfo;
     
-    m_modelVolume = browserTabContent->getDisplayedVolumeModel();
-    if (m_modelVolume == NULL) {
+    m_viewMode = ViewMode::INVALID;
+    ModelVolume* modelVolume(browserTabContent->getDisplayedVolumeModel());
+    ModelWholeBrain* modelWholeBrain(browserTabContent->getDisplayedWholeBrainModel());
+    if (modelVolume != NULL) {
+        m_brain = modelVolume->getBrain();
+        m_viewMode = ViewMode::VOLUME_2D;
+    }
+    else if (modelWholeBrain != NULL) {
+        m_brain = modelWholeBrain->getBrain();
+        m_viewMode = ViewMode::ALL_3D;
+    }
+    else {
+        const AString msg("Neither Volume nor All (Whole Brain) view");
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
         return;
     }
-    m_brain = m_modelVolume->getBrain();
     CaretAssert(m_brain);
+    CaretAssert(m_viewMode != ViewMode::INVALID);
     
     const int32_t numberOfVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
     if (numberOfVolumes <= 0) {
@@ -156,13 +170,52 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
             break;
     }
 
-    m_allSliceViewFlag = false;
-    
+    m_axialCoronalParaSliceViewFlag = false;
+
+    if (browserTabContent->isWholeBrainDisplayed()) {
+        drawWholeBrainView(viewportContent,
+                           browserTabContent,
+                           sliceDrawingType,
+                           sliceProjectionType,
+                           viewport);
+    }
+    else if (browserTabContent->isVolumeSlicesDisplayed()) {
+        drawSliceView(viewportContent,
+                      browserTabContent,
+                      sliceDrawingType,
+                      sliceProjectionType,
+                      viewport);
+    }
+    else {
+        CaretAssert(0);
+    }
+}
+
+/**
+ * Draw the volume slice view in Volume mode
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing
+ * @param viewportContent
+ *    Content of viewport
+ * @param browserTabContent
+ *    Content of the browser tab being drawn
+ * @param volumeDrawInfo
+ *    Volumes being drawn
+ * @param viewport
+ *    The viewport
+ */
+void
+BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* viewportContent,
+                                              BrowserTabContent* browserTabContent,
+                                              const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                              const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                              const GraphicsViewport& viewport)
+{
     VolumeSliceViewPlaneEnum::Enum sliceViewPlane(browserTabContent->getSliceViewPlane());
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
         {
-            m_allSliceViewFlag = true;
+            m_axialCoronalParaSliceViewFlag = true;
             
             /*
              * Draw parasagittal slice
@@ -222,6 +275,73 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
                                     viewport);
             glPopMatrix();
             break;
+    }
+}
+
+/**
+ * Draw the  slice view in Whole Brain (ALL)  mode
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing
+ * @param viewportContent
+ *    Content of viewport
+ * @param browserTabContent
+ *    Content of the browser tab being drawn
+ * @param volumeDrawInfo
+ *    Volumes being drawn
+ * @param viewport
+ *    The viewport
+ */
+void
+BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportContent* viewportContent,
+                                                   BrowserTabContent* browserTabContent,
+                                                   const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                   const GraphicsViewport& viewport)
+{
+    m_orthographicBounds[0] = m_fixedPipelineDrawing->orthographicLeft;
+    m_orthographicBounds[1] = m_fixedPipelineDrawing->orthographicRight;
+    m_orthographicBounds[2] = m_fixedPipelineDrawing->orthographicBottom;
+    m_orthographicBounds[3] = m_fixedPipelineDrawing->orthographicTop;
+    m_orthographicBounds[4] = m_fixedPipelineDrawing->orthographicNear;
+    m_orthographicBounds[5] = m_fixedPipelineDrawing->orthographicFar;
+    
+    const Vector3D sliceCoordinates {
+        m_browserTabContent->getSliceCoordinateParasagittal(),
+        m_browserTabContent->getSliceCoordinateCoronal(),
+        m_browserTabContent->getSliceCoordinateAxial()
+    };
+
+    if (m_browserTabContent->isSliceAxialEnabled()) {
+        glPushMatrix();
+        drawVolumeSliceViewProjection(viewportContent,
+                                      sliceProjectionType,
+                                      sliceDrawingType,
+                                      VolumeSliceViewPlaneEnum::AXIAL,
+                                      sliceCoordinates,
+                                      viewport);
+        glPopMatrix();
+    }
+    
+    if (m_browserTabContent->isSliceCoronalEnabled()) {
+        glPushMatrix();
+        drawVolumeSliceViewProjection(viewportContent,
+                                      sliceProjectionType,
+                                      sliceDrawingType,
+                                      VolumeSliceViewPlaneEnum::CORONAL,
+                                      sliceCoordinates,
+                                      viewport);
+        glPopMatrix();
+    }
+    
+    if (m_browserTabContent->isSliceParasagittalEnabled()) {
+        glPushMatrix();
+        drawVolumeSliceViewProjection(viewportContent,
+                                      sliceProjectionType,
+                                      sliceDrawingType,
+                                      VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                      sliceCoordinates,
+                                      viewport);
+        glPopMatrix();
     }
 }
 
@@ -497,38 +617,55 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
 {
     
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
     
-    glViewport(viewport.getX(),
-               viewport.getY(),
-               viewport.getWidth(),
-               viewport.getHeight());
     
-    bool drawViewportBoxFlag(false);
-    if (drawViewportBoxFlag) {
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        glOrtho(viewport.getLeftF(), viewport.getRightF(),
-                viewport.getBottomF(), viewport.getTopF(),
-                -100.0, 100.0);
-        glColor3f(0.0, 1.0, 0.0);
-        glLineWidth(2.0);
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(viewport.getLeftF() + 1, viewport.getBottomF() + 1);
-        glVertex2f(viewport.getRightF() - 1, viewport.getBottomF() + 1);
-        glVertex2f(viewport.getRightF() - 1, viewport.getTopF() - 1);
-        glVertex2f(viewport.getLeftF() + 1, viewport.getTopF() - 1);
-        glEnd();
-        
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
+    switch (m_viewMode) {
+        case ViewMode::INVALID:
+            break;
+        case ViewMode::ALL_3D:
+            break;
+        case ViewMode::VOLUME_2D:
+            glLoadIdentity();
+            glViewport(viewport.getX(),
+                       viewport.getY(),
+                       viewport.getWidth(),
+                       viewport.getHeight());
+            
+            bool drawViewportBoxFlag(false);
+            if (drawViewportBoxFlag) {
+                glMatrixMode(GL_PROJECTION);
+                glPushMatrix();
+                glLoadIdentity();
+                glOrtho(viewport.getLeftF(), viewport.getRightF(),
+                        viewport.getBottomF(), viewport.getTopF(),
+                        -100.0, 100.0);
+                glColor3f(0.0, 1.0, 0.0);
+                glLineWidth(2.0);
+                glBegin(GL_LINE_LOOP);
+                glVertex2f(viewport.getLeftF() + 1, viewport.getBottomF() + 1);
+                glVertex2f(viewport.getRightF() - 1, viewport.getBottomF() + 1);
+                glVertex2f(viewport.getRightF() - 1, viewport.getTopF() - 1);
+                glVertex2f(viewport.getLeftF() + 1, viewport.getTopF() - 1);
+                glEnd();
+                
+                glPopMatrix();
+                glMatrixMode(GL_MODELVIEW);
+            }
+            break;
     }
-    
-    /*
-     * Set the orthographic projection to fit the slice axis
-     */
-    setOrthographicProjection(viewport);
+        
+    switch (m_viewMode) {
+        case ViewMode::INVALID:
+            break;
+        case ViewMode::ALL_3D:
+            break;
+        case ViewMode::VOLUME_2D:
+            /*
+             * Set the orthographic projection to fit the slice axis
+             */
+            setOrthographicProjection(viewport);
+            break;
+    }
 
     SliceInfo sliceInfo(createSliceInfo(m_browserTabContent,
                                         m_underlayVolume,
@@ -540,11 +677,19 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         return;
     }
 
-    /*
-     * Set the viewing transformation (camera position)
-     */
-    setViewingTransformation(sliceViewPlane,
-                             sliceInfo);
+    switch (m_viewMode) {
+        case ViewMode::INVALID:
+            break;
+        case ViewMode::ALL_3D:
+            break;
+        case ViewMode::VOLUME_2D:
+            /*
+             * Set the viewing transformation (camera position)
+             */
+            setViewingTransformation(sliceViewPlane,
+                                     sliceInfo);
+            break;
+    }
 
     SelectionItemVolumeMprCrosshair* crosshairID(m_brain->getSelectionManager()->getVolumeMprCrosshairIdentification());
     SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
@@ -581,11 +726,35 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
     }
 
     if (drawVolumeSlicesFlag) {
+        glPushMatrix();
+        
+        switch (m_viewMode) {
+            case ViewMode::INVALID:
+                break;
+            case ViewMode::VOLUME_2D:
+                break;
+            case ViewMode::ALL_3D:
+//                switch (sliceViewPlane) {
+//                    case VolumeSliceViewPlaneEnum::ALL:
+//                        break;
+//                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                        glRotatef(m_browserTabContent->getMprRotationX(), -1.0, 0.0, 0.0);
+//                        break;
+//                    case VolumeSliceViewPlaneEnum::CORONAL:
+//                        glRotatef(m_browserTabContent->getMprRotationY(), 0.0, -1.0, 0.0);
+//                        break;
+//                    case VolumeSliceViewPlaneEnum::AXIAL:
+//                        glRotatef(m_browserTabContent->getMprRotationZ(), 0.0, 0.0, -1.0);
+//                        break;
+//                }
+                break;
+        }
+        
         /*
          * Disable culling so that both sides of the triangles/quads are drawn.
          */
         glDisable(GL_CULL_FACE);
-
+        
         drawSliceWithPrimitive(sliceInfo,
                                sliceProjectionType,
                                sliceViewPlane,
@@ -662,6 +831,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
                                                                                             slicePlane,
                                                                                             doubleSliceThickness);
+        
+        glPopMatrix();
     }
 
     m_fixedPipelineDrawing->disableClippingPlanes();
@@ -851,7 +1022,24 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
      */
     viewRotationMatrix.translate(-sliceCoordinates[0], -sliceCoordinates[1], -sliceCoordinates[2]);
 
-    const Matrix4x4 rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(sliceViewPlane);
+    Matrix4x4 rotationMatrix;
+    switch (m_viewMode) {
+        case ViewMode::INVALID:
+            CaretAssert(0);
+            break;
+        case ViewMode::ALL_3D:
+            /*
+             * ALL gets a matrix filled with all three MPR rotations
+             */
+            rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
+                                                                                     sliceViewPlane);
+            break;
+        case ViewMode::VOLUME_2D:
+            rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+                                                                                     sliceViewPlane);
+            break;
+    }
+
     viewRotationMatrix.postmultiply(rotationMatrix);
     
     viewRotationMatrix.translate(sliceCoordinates[0], sliceCoordinates[1], sliceCoordinates[2]);
@@ -865,55 +1053,64 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
      * Apply user panning (translation) by shifting the slice
      * in the screen horizontally and vertically
      */
-    {
-        /*
-         * Vector from left to right side of the screen in model coordinates
-         */
-        const Vector3D leftToRight(sliceInfo.m_topRightXYZ - sliceInfo.m_topLeftXYZ);
-        const Vector3D leftToRightVector(leftToRight.normal());
-        
-        /*
-         * Vector from bottom to top of screen in model coordinates
-         */
-        const Vector3D bottomToTop(sliceInfo.m_topLeftXYZ - sliceInfo.m_bottomLeftXYZ);
-        const Vector3D bottomToTopVector(bottomToTop.normal());
-        
-        /*
-         * Set the offset horizontally and vertically
-         * of the slice using the user's translation
-         */
-        Vector3D offsetHoriz;
-        Vector3D offsetVert;
-        Vector3D translation;
-        browserTabContent->getTranslation(translation);
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssert(0);
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                offsetHoriz = leftToRightVector * (-translation[0]);
-                offsetVert  = bottomToTopVector * (-translation[1]);
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                offsetHoriz = leftToRightVector * (-translation[0]);
-                offsetVert  = bottomToTopVector * (-translation[2]);
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                offsetHoriz = leftToRightVector * (-translation[1]);
-                offsetVert  = bottomToTopVector * (-translation[2]);
-                break;
+    switch (m_viewMode) {
+        case ViewMode::INVALID:
+            CaretAssert(0);
+            break;
+        case ViewMode::ALL_3D:
+            break;
+        case ViewMode::VOLUME_2D:
+        {
+            /*
+             * Vector from left to right side of the screen in model coordinates
+             */
+            const Vector3D leftToRight(sliceInfo.m_topRightXYZ - sliceInfo.m_topLeftXYZ);
+            const Vector3D leftToRightVector(leftToRight.normal());
+            
+            /*
+             * Vector from bottom to top of screen in model coordinates
+             */
+            const Vector3D bottomToTop(sliceInfo.m_topLeftXYZ - sliceInfo.m_bottomLeftXYZ);
+            const Vector3D bottomToTopVector(bottomToTop.normal());
+            
+            /*
+             * Set the offset horizontally and vertically
+             * of the slice using the user's translation
+             */
+            Vector3D offsetHoriz;
+            Vector3D offsetVert;
+            Vector3D translation;
+            browserTabContent->getTranslation(translation);
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    offsetHoriz = leftToRightVector * (-translation[0]);
+                    offsetVert  = bottomToTopVector * (-translation[1]);
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    offsetHoriz = leftToRightVector * (-translation[0]);
+                    offsetVert  = bottomToTopVector * (-translation[2]);
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    offsetHoriz = leftToRightVector * (-translation[1]);
+                    offsetVert  = bottomToTopVector * (-translation[2]);
+                    break;
+            }
+            
+            /*
+             * Shift the slice
+             */
+            sliceInfo.m_bottomLeftXYZ  += (offsetHoriz + offsetVert);
+            sliceInfo.m_bottomRightXYZ += (offsetHoriz + offsetVert);
+            sliceInfo.m_topLeftXYZ     += (offsetHoriz + offsetVert);
+            sliceInfo.m_topRightXYZ    += (offsetHoriz + offsetVert);
+            sliceInfo.m_centerXYZ      += (offsetHoriz + offsetVert);
         }
-        
-        /*
-         * Shift the slice
-         */
-        sliceInfo.m_bottomLeftXYZ  += (offsetHoriz + offsetVert);
-        sliceInfo.m_bottomRightXYZ += (offsetHoriz + offsetVert);
-        sliceInfo.m_topLeftXYZ     += (offsetHoriz + offsetVert);
-        sliceInfo.m_topRightXYZ    += (offsetHoriz + offsetVert);
-        sliceInfo.m_centerXYZ      += (offsetHoriz + offsetVert);
+            break;
     }
-    
+
     sliceInfo.m_plane = Plane(sliceInfo.m_topLeftXYZ,
                               sliceInfo.m_bottomLeftXYZ,
                               sliceInfo.m_bottomRightXYZ);
@@ -1045,12 +1242,16 @@ BrainOpenGLVolumeMprTwoDrawing::drawPanningCrosshairs(const VolumeSliceViewPlane
                                                       const Vector3D& crossHairXYZ,
                                                       const GraphicsViewport& viewport)
 {
+    if ( ! m_browserTabContent->isVolumeAxesCrosshairsDisplayed()) {
+        return;
+    }
+        
     SelectionItemVolumeMprCrosshair* crosshairID(m_brain->getSelectionManager()->getVolumeMprCrosshairIdentification());
     if (m_identificationModeFlag) {
         if ( ! crosshairID->isEnabledForSelection()) {
             return;
         }
-        if ( ! m_allSliceViewFlag) {
+        if ( ! m_axialCoronalParaSliceViewFlag) {
             return;
         }
     }
@@ -1071,7 +1272,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawPanningCrosshairs(const VolumeSliceViewPlane
                                           sliceLineWidth);
     
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> rotatePrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
-    const float rotateThicker(m_allSliceViewFlag
+    const float rotateThicker(m_axialCoronalParaSliceViewFlag
                               ? 2.0
                               : 1.0);
     const float rotateLineWidth(m_identificationModeFlag
@@ -1423,6 +1624,10 @@ BrainOpenGLVolumeMprTwoDrawing::drawAxisLabels(const VolumeSliceProjectionTypeEn
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                             const GraphicsViewport& viewport)
 {
+    if ( ! m_browserTabContent->isVolumeAxesCrosshairLabelsDisplayed()) {
+        return;
+    }
+
     const std::array<uint8_t, 4> backgroundRGBA = {
         m_fixedPipelineDrawing->m_backgroundColorByte[0],
         m_fixedPipelineDrawing->m_backgroundColorByte[1],
@@ -1663,15 +1868,15 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPl
     /*
      * Look at center of volume
      */
-    m_lookAtCenterXYZ = sliceInfo.m_centerXYZ;
+    Vector3D lookAtCenterXYZ = sliceInfo.m_centerXYZ;
     
     /*
      * Since an orthographic projection is used, the eye only needs
      * to be a little bit from the center along the plane's normal vector.
      */
-    glm::vec3 eye(m_lookAtCenterXYZ[0] + sliceInfo.m_normalVector[0] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-                  m_lookAtCenterXYZ[1] + sliceInfo.m_normalVector[1] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-                  m_lookAtCenterXYZ[2] + sliceInfo.m_normalVector[2] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
+    glm::vec3 eye(lookAtCenterXYZ[0] + sliceInfo.m_normalVector[0] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                  lookAtCenterXYZ[1] + sliceInfo.m_normalVector[1] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                  lookAtCenterXYZ[2] + sliceInfo.m_normalVector[2] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
         
     /*
      * Now set the camera to look at the center.
@@ -1679,7 +1884,7 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPl
      * This allows the slice's voxels to be drawn in the actual coordinates.
      */
     glm::vec3 up(sliceInfo.m_upVector[0], sliceInfo.m_upVector[1], sliceInfo.m_upVector[2]);
-    glm::vec3 lookAt(m_lookAtCenterXYZ[0], m_lookAtCenterXYZ[1], m_lookAtCenterXYZ[2]);
+    glm::vec3 lookAt(lookAtCenterXYZ[0], lookAtCenterXYZ[1], lookAtCenterXYZ[2]);
     glm::mat4 lookAtMatrix = glm::lookAt(eye, lookAt, up);
     
     if (debugFlag) {
@@ -1688,7 +1893,7 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPl
             glm::vec3 n = glm::normalize(vec);
             std::cout << "Eye : " << eye[0] << ", " << eye[1] << ", " << eye[2] << std::endl;
             std::cout << "   Look at: "
-            << AString::fromNumbers(m_lookAtCenterXYZ, 3, ", ") << std::endl;
+            << AString::fromNumbers(lookAtCenterXYZ, 3, ", ") << std::endl;
             std::cout << "   Up: "
             << AString::fromNumbers(sliceInfo.m_upVector, 3, ", ") << std::endl;
             std::cout << "   Eye to Look At Vector: " << n[0] << ", " << n[1] << ", " << n[2] << std::endl;
@@ -1785,6 +1990,17 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
         }
         
         glDisable(GL_DEPTH_TEST);
+        switch (m_viewMode) {
+            case ViewMode::INVALID:
+                break;
+            case ViewMode::VOLUME_2D:
+                break;
+            case ViewMode::ALL_3D:
+                glAlphaFunc(GL_GEQUAL, 0.95);
+                glEnable(GL_ALPHA_TEST);
+                glEnable(GL_DEPTH_TEST);
+                break;
+        }
         
         bool firstFlag(true);
         for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
@@ -1933,10 +2149,19 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
             }
         }
         
-        drawCrosshairs(sliceProjectionType,
-                       sliceViewPlane,
-                       sliceCoordinates,
-                       viewport);
+        switch (m_viewMode) {
+            case ViewMode::INVALID:
+                CaretAssert(0);
+                break;
+            case ViewMode::ALL_3D:
+                break;
+            case ViewMode::VOLUME_2D:
+                drawCrosshairs(sliceProjectionType,
+                               sliceViewPlane,
+                               sliceCoordinates,
+                               viewport);
+                break;
+        }
 
         glPopAttrib();
     }
@@ -2322,6 +2547,16 @@ BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enu
     bool drawFibersFlag     = true;
     bool drawOutlineFlag    = true;
     
+    switch (m_viewMode) {
+        case ViewMode::INVALID:
+            break;
+        case ViewMode::ALL_3D:
+            drawFibersFlag = false;
+            break;
+        case ViewMode::VOLUME_2D:
+            break;
+    }
+
     if ( ! m_identificationModeFlag) {
         if (slicePlane.isValidPlane()) {
             /*

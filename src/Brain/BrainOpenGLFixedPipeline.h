@@ -335,9 +335,10 @@ namespace caret {
                                  Brain* brain,
                                  std::vector<VolumeDrawInfo>& volumeDrawInfoOut);
         
-        void drawWholeBrainModel(BrowserTabContent* browserTabContent,
-                                      ModelWholeBrain* wholeBrainModel,
-                                      const int32_t viewport[4]);
+        void drawWholeBrainModel(const BrainOpenGLViewportContent* viewportContent,
+                                 BrowserTabContent* browserTabContent,
+                                 ModelWholeBrain* wholeBrainModel,
+                                 const int32_t viewport[4]);
         
         void drawSurfaceMontageModel(BrowserTabContent* browserTabContent,
                                      ModelSurfaceMontage* surfaceMontageModel,

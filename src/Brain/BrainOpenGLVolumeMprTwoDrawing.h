@@ -87,6 +87,24 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
     private:
+        enum class ViewMode {
+            INVALID,
+            ALL_3D,
+            VOLUME_2D
+        };
+        
+        void drawSliceView(const BrainOpenGLViewportContent* viewportContent,
+                           BrowserTabContent* browserTabContent,
+                           const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                           const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                           const GraphicsViewport& viewport);
+
+        void drawWholeBrainView(const BrainOpenGLViewportContent* viewportContent,
+                                BrowserTabContent* browserTabContent,
+                                const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                const GraphicsViewport& viewport);
+
         void drawVolumeSliceViewType(const BrainOpenGLViewportContent* viewportContent,
                                      const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                      const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
@@ -183,9 +201,9 @@ namespace caret {
         
         Brain* m_brain = NULL;
         
-        ModelVolume* m_modelVolume = NULL;
-        
         VolumeMappableInterface* m_underlayVolume = NULL;
+        
+        ViewMode m_viewMode = ViewMode::INVALID;
         
         DisplayGroupEnum::Enum m_displayGroup;
         
@@ -193,11 +211,11 @@ namespace caret {
         
         std::array<double, 6> m_orthographicBounds;
         
-        Vector3D m_lookAtCenterXYZ;
+        //Vector3D m_lookAtCenterXYZ;
         
         bool m_identificationModeFlag = false;
         
-        bool m_allSliceViewFlag = false;
+        bool m_axialCoronalParaSliceViewFlag = false;
         
         static float s_idNumRows;
         

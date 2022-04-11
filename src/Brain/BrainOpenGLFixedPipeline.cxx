@@ -1788,11 +1788,14 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             else if (volumeModel != NULL) {
                 this->drawVolumeModel(viewportContent,
                                       browserTabContent,
-                                           volumeModel, viewport);
+                                      volumeModel,
+                                      viewport);
             }
             else if (wholeBrainModel != NULL) {
-                this->drawWholeBrainModel(browserTabContent,
-                                               wholeBrainModel, viewport);
+                this->drawWholeBrainModel(viewportContent,
+                                          browserTabContent,
+                                          wholeBrainModel,
+                                          viewport);
             }
             else {
                 CaretAssertMessage(0, "Unknown type of model for drawing");
@@ -6697,9 +6700,10 @@ BrainOpenGLFixedPipeline::setupScaleBarDrawingInformation(BrowserTabContent* bro
  *    Region for drawing.
  */
 void 
-BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabContent,
-                                      ModelWholeBrain* wholeBrainModel,
-                                      const int32_t viewport[4])
+BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* viewportContent,
+                                              BrowserTabContent* browserTabContent,
+                                              ModelWholeBrain* wholeBrainModel,
+                                              const int32_t viewport[4])
 {
     const int32_t tabNumberIndex = browserTabContent->getTabNumber();
     
@@ -6881,7 +6885,13 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
                             break;
                         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
                         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-                            CaretAssertToDoWarning();
+                            GraphicsViewport graphicsViewport(viewport);
+                            BrainOpenGLVolumeMprTwoDrawing mprDrawing;
+                            mprDrawing.draw(this,
+                                            viewportContent,
+                                            browserTabContent,
+                                            volumeDrawInfo,
+                                            graphicsViewport);
                             break;
                     }
                 }

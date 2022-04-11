@@ -2801,22 +2801,57 @@ BrowserTabContent::resetMprRotations()
  *    The slice plane
  */
 Matrix4x4
-BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane) const
+BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enum modelType,
+                                                        const VolumeSliceViewPlaneEnum::Enum slicePlane) const
 {
-    const float noRotationAngle(0.0);
     Matrix4x4 matrixOut;
+
+    bool wholeBrainFlag(false);
+    switch (modelType) {
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+        case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            CaretAssert(0);
+            return matrixOut;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            wholeBrainFlag = true;
+            break;
+    }
+    
+    const float noRotationAngle(0.0);
     switch (slicePlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             matrixOut.setRotation(m_mprRotationX, m_mprRotationY, m_mprRotationZ);
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            matrixOut.setRotation(m_mprRotationX, m_mprRotationY, noRotationAngle);
+            if (wholeBrainFlag) {
+                matrixOut.setRotation(-m_mprRotationX, -m_mprRotationY, noRotationAngle);
+            }
+            else {
+                matrixOut.setRotation(m_mprRotationX, m_mprRotationY, noRotationAngle);
+            }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            matrixOut.setRotation(m_mprRotationX, noRotationAngle, m_mprRotationZ);
+            if (wholeBrainFlag) {
+                matrixOut.setRotation(-m_mprRotationX, noRotationAngle, -m_mprRotationZ);
+            }
+            else {
+                matrixOut.setRotation(m_mprRotationX, noRotationAngle, m_mprRotationZ);
+            }
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            matrixOut.setRotation(noRotationAngle, m_mprRotationY, m_mprRotationZ);
+            if (wholeBrainFlag) {
+                matrixOut.setRotation(noRotationAngle, -m_mprRotationY, -m_mprRotationZ);
+            }
+            else {
+                matrixOut.setRotation(noRotationAngle, m_mprRotationY, m_mprRotationZ);
+            }
             break;
     }
     return matrixOut;
@@ -3071,7 +3106,8 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                 break;
         }
 
-        const Matrix4x4 rotMatrix = getMprRotationMatrix4x4ForSlicePlane(sliceViewPlane);
+        const Matrix4x4 rotMatrix = getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+                                                                         sliceViewPlane);
         switch (sliceViewPlane) {
             case VolumeSliceViewPlaneEnum::ALL:
                 CaretAssert(0);
@@ -6216,6 +6252,9 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_displayVolumeAxesCrosshairLabels = btc->m_displayVolumeAxesCrosshairLabels;
                 m_displayVolumeMontageAxesCoordinates = btc->m_displayVolumeMontageAxesCoordinates;
                 m_volumeMontageCoordinatePrecision = btc->m_volumeMontageCoordinatePrecision;
+                m_mprRotationX = btc->m_mprRotationX;
+                m_mprRotationY = btc->m_mprRotationY;
+                m_mprRotationZ = btc->m_mprRotationZ;
                 /**
                  * lighting enabled NOT yoked 
                  * m_lightingEnabled = btc->m_lightingEnabled;
@@ -6337,6 +6376,9 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_displayVolumeAxesCrosshairLabels = m_displayVolumeAxesCrosshairLabels;
                 btc->m_displayVolumeMontageAxesCoordinates = m_displayVolumeMontageAxesCoordinates;
                 btc->m_volumeMontageCoordinatePrecision = m_volumeMontageCoordinatePrecision;
+                btc->m_mprRotationX = m_mprRotationX;
+                btc->m_mprRotationY = m_mprRotationY;
+                btc->m_mprRotationZ = m_mprRotationZ;
 
                 /*
                  * DO NOT YOKE MEDIA TRANSFORMATION (but might have its own yoking in the future 
