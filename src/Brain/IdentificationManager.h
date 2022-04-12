@@ -43,6 +43,10 @@ namespace caret {
     class IdentificationManager : public SceneableInterface {
         
     public:
+        static AString getShowSymbolOnTypeLabel(const IdentifiedItemUniversalTypeEnum::Enum type);
+        
+        static AString getShowSymbolOnTypeToolTip(const IdentifiedItemUniversalTypeEnum::Enum type);
+        
         IdentificationManager(const CaretPreferences* caretPreferences);
         
         virtual ~IdentificationManager();
@@ -121,10 +125,6 @@ namespace caret {
         bool isShowVolumeIdentificationSymbols() const;
         
         void setShowVolumeIdentificationSymbols(const bool showVolumeIdentificationSymbols);
-        
-        bool isShowOtherTypeIdentificationSymbols() const;
-        
-        void setShowOtherTypeIdentificationSymbols(const bool showOtherTypeIdentificationSymbols);
         
         float getMediaIdentificationPercentageSymbolSize() const;
         
@@ -214,8 +214,6 @@ namespace caret {
         /** show volume identification symbols*/
         bool m_showVolumeIdentificationSymbols;
         
-        /** show identification symbols from other types (eg: volume symbols on surfaces)*/
-        bool m_showOtherTypeIdentificationSymbols;
     };
     
 #ifdef __IDENTIFICATION_MANAGER_DECLARE__

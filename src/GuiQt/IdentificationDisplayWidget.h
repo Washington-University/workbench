@@ -166,8 +166,6 @@ namespace caret {
         
         QCheckBox* m_symbolsShowVolumeIdCheckBox;
         
-        QCheckBox* m_symbolsShowOtherTypesCheckBox;
-        
         CaretColorEnumComboBox* m_symbolsIdColorComboBox;
         
         CaretColorEnumComboBox* m_symbolsContralateralIdColorComboBox;

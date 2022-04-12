@@ -47,6 +47,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "IdentificationManager.h"
 #include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
 #include "PreferencesCziImagesWidget.h"
@@ -617,13 +618,13 @@ PreferencesDialog::createIdentificationSymbolWidget()
     gridLayout->addWidget(infoLabel,
                           row, 0, 1, 2);
     addWidgetToLayout(gridLayout,
-                      "Show Media ID Symbols: ",
+                      IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::MEDIA) + ": ",
                       m_mediaIdentificationSymbolComboBox->getWidget());
     addWidgetToLayout(gridLayout,
-                      "Show Surface ID Symbols: ",
+                      IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::SURFACE) + ": ",
                       m_surfaceIdentificationSymbolComboBox->getWidget());
     addWidgetToLayout(gridLayout,
-                      "Show Volume ID Symbols: ",
+                      IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::VOLUME) + ": ",
                       m_volumeIdentificationSymbolComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       "Show Data Tool Tips: ",
@@ -632,7 +633,7 @@ PreferencesDialog::createIdentificationSymbolWidget()
                       "Identification Display: ",
                       m_identificationModeComboBox->getWidget());
     addWidgetToLayout(gridLayout,
-                      "Stereotaxic Distance",
+                      "Stereotaxic Distance: ",
                       m_identificationStereotaxicDistanceSpinBox);
 
     QWidget* widget = new QWidget();

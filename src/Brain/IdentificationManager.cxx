@@ -78,7 +78,6 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_showMediaIdentificationSymbols = caretPreferences->isShowMediaIdentificationSymbols();
     m_showSurfaceIdentificationSymbols = caretPreferences->isShowSurfaceIdentificationSymbols();
     m_showVolumeIdentificationSymbols  = caretPreferences->isShowVolumeIdentificationSymbols();
-    m_showOtherTypeIdentificationSymbols = true;
     m_identificationFilter.reset(new IdentificationFilter());
     m_identificationHistoryManager.reset(new IdentificationHistoryManager());
     
@@ -681,26 +680,6 @@ IdentificationManager::setShowVolumeIdentificationSymbols(const bool showVolumeI
 }
 
 /**
- * @return show other type identification symbols (eg: volume symbols on surfaces)
- */
-bool
-IdentificationManager::isShowOtherTypeIdentificationSymbols() const
-{
-    return m_showOtherTypeIdentificationSymbols;
-}
-
-/**
- * Set show other type identification symbols (eg: volume symbols on surfaces)
- * @param showOtherTypeIdentificationSymbols
- *    New value for show other type identification symbols
- */
-void
-IdentificationManager::setShowOtherTypeIdentificationSymbols(const bool showOtherTypeIdentificationSymbols)
-{
-    m_showOtherTypeIdentificationSymbols = showOtherTypeIdentificationSymbols;
-}
-
-/**
  * @return Size for chart line layer symbols, except selected layer (percentage of viewport height)
  */
 float
@@ -987,4 +966,65 @@ IdentificationManager::getIdentificationHistoryManager()
     return m_identificationHistoryManager.get();
 }
 
+/**
+ * @return Text for "show symbol on <type>"  checkbox
+ * @param type
+ *    Indentification type
+ */
+AString
+IdentificationManager::getShowSymbolOnTypeLabel(const IdentifiedItemUniversalTypeEnum::Enum type)
+{
+    AString text;
+    
+    switch (type) {
+        case IdentifiedItemUniversalTypeEnum::INVALID:
+            text = "INVALID";
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA:
+            text = "Show ID Symbols on Media";
+            break;
+        case IdentifiedItemUniversalTypeEnum::SURFACE:
+            text = "Show ID Symbols on Surface";
+            break;
+        case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
+            text = "TEXT";
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME:
+            text = "Show ID Symbols on Volume";
+            break;
+    }
+    
+    return text;
+}
+
+/**
+ * @return Text for "show symbol on <type>"  tooltip
+ * @param type
+ *    Indentification type
+ */
+AString
+IdentificationManager::getShowSymbolOnTypeToolTip(const IdentifiedItemUniversalTypeEnum::Enum type)
+{
+    AString text("<html>");
+    text.append(getShowSymbolOnTypeLabel(type) + "; ");
+    text.append("Symbol may have been created on another type ");
+    switch (type) {
+        case IdentifiedItemUniversalTypeEnum::INVALID:
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA:
+            text.append("(Surface, Volume, or other Media)");
+            break;
+        case IdentifiedItemUniversalTypeEnum::SURFACE:
+            text.append("(Media, Volume)");
+            break;
+        case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME:
+            text.append("(Media, Surface)");
+            break;
+    }
+    text.append("</html>");
+    
+    return text;
+}
 

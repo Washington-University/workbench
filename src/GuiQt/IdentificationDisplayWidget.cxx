@@ -525,7 +525,6 @@ IdentificationDisplayWidget::updateSymbolsWidget()
     m_symbolsShowMediaCheckbox->setChecked(info->isShowMediaIdentificationSymbols());
     m_symbolsShowSurfaceIdCheckBox->setChecked(info->isShowSurfaceIdentificationSymbols());
     m_symbolsShowVolumeIdCheckBox->setChecked(info->isShowVolumeIdentificationSymbols());
-    m_symbolsShowOtherTypesCheckBox->setChecked(info->isShowOtherTypeIdentificationSymbols());
     m_symbolsSurfaceContralateralVertexCheckBox->setChecked(info->isContralateralIdentificationEnabled());
     
     m_symbolsIdColorComboBox->setSelectedColor(info->getIdentificationSymbolColor());
@@ -570,18 +569,14 @@ IdentificationDisplayWidget::updateSymbolsWidget()
 QWidget*
 IdentificationDisplayWidget::createSymbolsWidget()
 {
-    m_symbolsShowMediaCheckbox = new QCheckBox("Show Media ID Symbols");
-    m_symbolsShowMediaCheckbox->setToolTip("<html>Enable display of media identification symbols</html>");
+    m_symbolsShowMediaCheckbox = new QCheckBox(IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::MEDIA));
+    m_symbolsShowMediaCheckbox->setToolTip(IdentificationManager::getShowSymbolOnTypeToolTip(IdentifiedItemUniversalTypeEnum::MEDIA));
     
-    m_symbolsShowSurfaceIdCheckBox = new QCheckBox("Show Surface ID Symbols");
-    m_symbolsShowSurfaceIdCheckBox->setToolTip("<html>Enable display of surface identification symbols</html>");
+    m_symbolsShowSurfaceIdCheckBox = new QCheckBox(IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::SURFACE));
+    m_symbolsShowSurfaceIdCheckBox->setToolTip(IdentificationManager::getShowSymbolOnTypeToolTip(IdentifiedItemUniversalTypeEnum::SURFACE));
     
-    m_symbolsShowVolumeIdCheckBox = new QCheckBox("Show Volume ID Symbols");
-    m_symbolsShowVolumeIdCheckBox->setToolTip("<html>Enable display of volume identification symbols</html>");
-    
-    m_symbolsShowOtherTypesCheckBox = new QCheckBox("Show Symbols on Other Model Types");
-    m_symbolsShowOtherTypesCheckBox->setToolTip("<html>Show ID symbols from any model "
-                                                "(image / surface / volume) on all models</html>");
+    m_symbolsShowVolumeIdCheckBox = new QCheckBox(IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::VOLUME));
+    m_symbolsShowVolumeIdCheckBox->setToolTip(IdentificationManager::getShowSymbolOnTypeToolTip(IdentifiedItemUniversalTypeEnum::VOLUME));
     
     m_symbolsSurfaceContralateralVertexCheckBox = new QCheckBox("Show Surface Contralateral");
     m_symbolsSurfaceContralateralVertexCheckBox->setToolTip("<html>Enable display of contralateral surface identification symbols</html>");
@@ -681,7 +676,6 @@ IdentificationDisplayWidget::createSymbolsWidget()
     signalWatcher->addObject(m_symbolsShowMediaCheckbox);
     signalWatcher->addObject(m_symbolsShowSurfaceIdCheckBox);
     signalWatcher->addObject(m_symbolsShowVolumeIdCheckBox);
-    signalWatcher->addObject(m_symbolsShowOtherTypesCheckBox);
     signalWatcher->addObject(m_symbolsSurfaceContralateralVertexCheckBox);
     signalWatcher->addObject(m_symbolsIdColorComboBox);
     signalWatcher->addObject(m_symbolsContralateralIdColorComboBox);
@@ -696,7 +690,6 @@ IdentificationDisplayWidget::createSymbolsWidget()
     showLayout->addWidget(m_symbolsShowMediaCheckbox);
     showLayout->addWidget(m_symbolsShowSurfaceIdCheckBox);
     showLayout->addWidget(m_symbolsShowVolumeIdCheckBox);
-    showLayout->addWidget(m_symbolsShowOtherTypesCheckBox);
     showLayout->addWidget(m_symbolsSurfaceContralateralVertexCheckBox);
     showLayout->addStretch();
     
@@ -781,7 +774,6 @@ IdentificationDisplayWidget::symbolChanged()
     info->setShowMediaIdentificationSymbols(m_symbolsShowMediaCheckbox->isChecked());
     info->setShowSurfaceIdentificationSymbols(m_symbolsShowSurfaceIdCheckBox->isChecked());
     info->setShowVolumeIdentificationSymbols(m_symbolsShowVolumeIdCheckBox->isChecked());
-    info->setShowOtherTypeIdentificationSymbols(m_symbolsShowOtherTypesCheckBox->isChecked());
     info->setContralateralIdentificationEnabled(m_symbolsSurfaceContralateralVertexCheckBox->isChecked());
     info->setIdentificationSymbolColor(m_symbolsIdColorComboBox->getSelectedColor());
     info->setIdentificationContralateralSymbolColor(m_symbolsContralateralIdColorComboBox->getSelectedColor());

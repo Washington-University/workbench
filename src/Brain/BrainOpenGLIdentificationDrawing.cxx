@@ -127,6 +127,10 @@ BrainOpenGLIdentificationDrawing::drawMediaFileIdentificationSymbols(const Media
 {
     CaretAssert(mediaFile);
 
+    if ( ! m_idManager->isShowMediaIdentificationSymbols()) {
+        return;
+    }
+    
     const Surface* surface(NULL);
     const VolumeMappableInterface* volume(NULL);
     
@@ -141,7 +145,7 @@ BrainOpenGLIdentificationDrawing::drawMediaFileIdentificationSymbols(const Media
 }
 
 /**
- * Draw identification symbols on media file
+ * Draw identification symbols on surface file
  * @param mediaFile
  *    Media file on which symbols are drawn
  * @param viewingZoom
@@ -156,6 +160,10 @@ BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface
 {
     CaretAssert(surface);
 
+    if ( ! m_idManager->isShowSurfaceIdentificationSymbols()) {
+        return;
+    }
+    
     const MediaFile* mediaFile(NULL);
     const VolumeMappableInterface* volume(NULL);
     Plane plane;
@@ -192,6 +200,10 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
                                                                   const float viewportHeight)
 {
     CaretAssert(volume);
+    
+    if ( ! m_idManager->isShowVolumeIdentificationSymbols()) {
+        return;
+    }
     
     const Surface* surface(NULL);
     const MediaFile* mediaFile(NULL);
@@ -330,7 +342,6 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             case IdentifiedItemUniversalTypeEnum::INVALID:
                 break;
             case IdentifiedItemUniversalTypeEnum::MEDIA:
-                if (m_idManager->isShowMediaIdentificationSymbols()) {
                     /*
                      * Drawing a media symbol on media ?
                      */
@@ -369,8 +380,19 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                 }
                             }
                         }
+                        else if (mediaFile != NULL) {
+                            const PixelLogicalIndex pixelLogicalIndex(item->getPixelLogicalIndex());
+                            xyz[0] = pixelLogicalIndex.getI();
+                            xyz[1] = pixelLogicalIndex.getJ();
+                            xyz[2] = 0.0;
+                            
+                            if ((xyz[0] < mediaFile->getWidth())
+                                && (xyz[1] < mediaFile->getHeight())) {
+                                drawFlag = true;
+                            }
+                        }
                     }
-                    else if (m_idManager->isShowOtherTypeIdentificationSymbols()) {
+                    else {
                         /*
                          * Drawing media symbol on non-media (surface or volume)
                          */
@@ -379,10 +401,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                             drawFlag = true;
                         }
                     }
-                }
                 break;
             case IdentifiedItemUniversalTypeEnum::SURFACE:
-                if (m_idManager->isShowSurfaceIdentificationSymbols()) {
                     if (drawingOnSurfaceFlag) {
                         if ((item->getStructure() == surfaceStructure)
                             && (item->getSurfaceNumberOfVertices() == surfaceNumberOfVertices)) {
@@ -400,7 +420,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                    xyz.data());
                         }
                     }
-                    else if (m_idManager->isShowOtherTypeIdentificationSymbols()) {
+                    else {
                         /*
                          * Drawing surface symbol on image or volume
                          */
@@ -409,25 +429,22 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                             drawFlag = true;
                         }
                     }
-                }
                 break;
             case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
                 break;
             case IdentifiedItemUniversalTypeEnum::VOLUME:
-                if (m_idManager->isShowVolumeIdentificationSymbols()) {
                     if (drawingOnVolumeFlag) {
                         if (item->isStereotaxicXYZValid()) {
                             xyz = item->getStereotaxicXYZ();
                             drawFlag = true;
                         }
                     }
-                    else if (m_idManager->isShowOtherTypeIdentificationSymbols()) {
+                    else {
                         if (item->isStereotaxicXYZValid()) {
                             xyz = item->getStereotaxicXYZ();
                             drawFlag = true;
                         }
                     }
-                }
                 break;
         }
         
