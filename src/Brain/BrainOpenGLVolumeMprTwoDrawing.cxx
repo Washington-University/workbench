@@ -1230,6 +1230,8 @@ BrainOpenGLVolumeMprTwoDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* pr
 /**
  * Draw the panning crosshairs for slice
  *
+ * @param sliceProjectionType
+ *    Type of slice projection
  * @param sliceViewPlane
  *    The plane for slice drawing.
  * @param crossHairXYZ
@@ -1238,7 +1240,8 @@ BrainOpenGLVolumeMprTwoDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* pr
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::drawPanningCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLVolumeMprTwoDrawing::drawPanningCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                       const Vector3D& crossHairXYZ,
                                                       const GraphicsViewport& viewport)
 {
@@ -1254,6 +1257,22 @@ BrainOpenGLVolumeMprTwoDrawing::drawPanningCrosshairs(const VolumeSliceViewPlane
         if ( ! m_axialCoronalParaSliceViewFlag) {
             return;
         }
+    }
+
+    bool radiologicalFlag(false);
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            CaretAssert(0);
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+            radiologicalFlag = false;
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            radiologicalFlag = true;
+            break;
     }
     
     const float percentViewportHeight(0.5);
@@ -1456,10 +1475,20 @@ BrainOpenGLVolumeMprTwoDrawing::drawPanningCrosshairs(const VolumeSliceViewPlane
         case VolumeSliceViewPlaneEnum::ALL:
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            glRotatef(m_browserTabContent->getMprRotationZ(), 0.0, 0.0, 1.0);
+            if (radiologicalFlag) {
+                glRotatef(-m_browserTabContent->getMprRotationZ(), 0.0, 0.0, 1.0);
+            }
+            else {
+                glRotatef(m_browserTabContent->getMprRotationZ(), 0.0, 0.0, 1.0);
+            }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            glRotatef(m_browserTabContent->getMprRotationY(), 0.0, 0.0, 1.0);
+            if (radiologicalFlag) {
+                glRotatef(-m_browserTabContent->getMprRotationY(), 0.0, 0.0, 1.0);
+            }
+            else {
+                glRotatef(m_browserTabContent->getMprRotationY(), 0.0, 0.0, 1.0);
+            }
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             glRotatef(m_browserTabContent->getMprRotationX(), 0.0, 0.0, 1.0);
@@ -1593,7 +1622,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawCrosshairs(const VolumeSliceProjectionTypeEn
     glLoadIdentity();
     
     /* start */
-    drawPanningCrosshairs(sliceViewPlane,
+    drawPanningCrosshairs(sliceProjectionType,
+                          sliceViewPlane,
                           crossHairXYZ,
                           viewport);
     

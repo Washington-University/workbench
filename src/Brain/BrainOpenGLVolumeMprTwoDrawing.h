@@ -171,7 +171,8 @@ namespace caret {
                             const Vector3D& sliceCoordinates,
                             const GraphicsViewport& viewport);
         
-        void drawPanningCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawPanningCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                    const Vector3D& crossHairXYZ,
                                    const GraphicsViewport& viewport);
         

@@ -3331,6 +3331,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
                 if (viewportContent != NULL) {
+                    const bool radiologicalFlag(getSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL);
+
                     int viewport[4];
                     viewportContent->getModelViewport(viewport);
                     VolumeSliceViewPlaneEnum::Enum slicePlane = this->getSliceViewPlane();
@@ -3421,7 +3423,12 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                         const float mprRotZ(isClockwise
                                                             ? -mouseDelta
                                                             : mouseDelta);
-                                        m_mprRotationZ += mprRotZ;
+                                        if (radiologicalFlag) {
+                                            m_mprRotationZ -= mprRotZ;
+                                        }
+                                        else {
+                                            m_mprRotationZ += mprRotZ;
+                                        }
                                     }
                                         break;
                                     case VolumeSliceViewPlaneEnum::CORONAL:
@@ -3429,7 +3436,12 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                         const float mprRotY(isClockwise
                                                             ? - mouseDelta
                                                             : mouseDelta);
-                                        m_mprRotationY += mprRotY;
+                                        if (radiologicalFlag) {
+                                            m_mprRotationY -= mprRotY;
+                                        }
+                                        else {
+                                            m_mprRotationY += mprRotY;
+                                        }
                                     }
                                         break;
                                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
