@@ -2839,18 +2839,18 @@ BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enu
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             if (wholeBrainFlag) {
-                matrixOut.setRotation(-m_mprRotationX, noRotationAngle, -m_mprRotationZ);
+                matrixOut.setRotation(-m_mprRotationX, noRotationAngle, m_mprRotationZ);
             }
             else {
-                matrixOut.setRotation(m_mprRotationX, noRotationAngle, m_mprRotationZ);
+                matrixOut.setRotation(m_mprRotationX, noRotationAngle, -m_mprRotationZ);
             }
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             if (wholeBrainFlag) {
-                matrixOut.setRotation(noRotationAngle, -m_mprRotationY, -m_mprRotationZ);
+                matrixOut.setRotation(noRotationAngle, -m_mprRotationY, m_mprRotationZ);
             }
             else {
-                matrixOut.setRotation(noRotationAngle, m_mprRotationY, m_mprRotationZ);
+                matrixOut.setRotation(noRotationAngle, m_mprRotationY, -m_mprRotationZ);
             }
             break;
     }
@@ -3419,8 +3419,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                     case VolumeSliceViewPlaneEnum::AXIAL:
                                     {
                                         const float mprRotZ(isClockwise
-                                                            ? mouseDelta
-                                                            : -mouseDelta);
+                                                            ? -mouseDelta
+                                                            : mouseDelta);
                                         m_mprRotationZ += mprRotZ;
                                     }
                                         break;

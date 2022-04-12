@@ -1456,7 +1456,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawPanningCrosshairs(const VolumeSliceViewPlane
         case VolumeSliceViewPlaneEnum::ALL:
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            glRotatef(-m_browserTabContent->getMprRotationZ(), 0.0, 0.0, 1.0);
+            glRotatef(m_browserTabContent->getMprRotationZ(), 0.0, 0.0, 1.0);
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             glRotatef(m_browserTabContent->getMprRotationY(), 0.0, 0.0, 1.0);
