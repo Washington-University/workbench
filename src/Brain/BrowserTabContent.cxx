@@ -2827,7 +2827,7 @@ BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enu
     const float noRotationAngle(0.0);
     switch (slicePlane) {
         case VolumeSliceViewPlaneEnum::ALL:
-            matrixOut.setRotation(m_mprRotationX, m_mprRotationY, m_mprRotationZ);
+            matrixOut.setRotation(-m_mprRotationX, -m_mprRotationY, m_mprRotationZ);
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
             if (wholeBrainFlag) {
@@ -3412,46 +3412,105 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                 float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
                                                                                 + (mouseDeltaY * mouseDeltaY)));
                                 
-                                switch (slicePlane) {
-                                    case VolumeSliceViewPlaneEnum::ALL:
-                                    {
-                                        CaretAssert(0);
+                                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_ROTATE_ABOUT_NORMAL_VECTOR)) {
+                                    VolumeSliceViewPlaneEnum::Enum sliceViewPlane = this->getSliceViewPlane();
+                                    if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
+                                        sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                                                                        getSlicePlanesAllViewLayout(),
+                                                                                                                        mousePressX,
+                                                                                                                        mousePressY,
+                                                                                                                        sliceViewport);
                                     }
-                                        break;
-                                    case VolumeSliceViewPlaneEnum::AXIAL:
-                                    {
-                                        const float mprRotZ(isClockwise
-                                                            ? -mouseDelta
-                                                            : mouseDelta);
-                                        if (radiologicalFlag) {
-                                            m_mprRotationZ -= mprRotZ;
-                                        }
-                                        else {
-                                            m_mprRotationZ += mprRotZ;
-                                        }
+                                    float sliceVector[3] = { 0.0, 0.0, 0.0 };
+                                    switch (sliceViewPlane) {
+                                        case VolumeSliceViewPlaneEnum::ALL:
+                                            CaretAssert(0);
+                                            break;
+                                        case VolumeSliceViewPlaneEnum::AXIAL:
+                                            sliceVector[2] = (radiologicalFlag ? -1.0 : 1.0); /* inferior : superior */
+                                            break;
+                                        case VolumeSliceViewPlaneEnum::CORONAL:
+                                            sliceVector[1] = (radiologicalFlag ? -1.0 : 1.0); /* posterior : anterior */
+                                            break;
+                                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                            sliceVector[0] = 1.0;
+                                            break;
                                     }
-                                        break;
-                                    case VolumeSliceViewPlaneEnum::CORONAL:
-                                    {
-                                        const float mprRotY(isClockwise
-                                                            ? - mouseDelta
-                                                            : mouseDelta);
-                                        if (radiologicalFlag) {
-                                            m_mprRotationY -= mprRotY;
-                                        }
-                                        else {
-                                            m_mprRotationY += mprRotY;
-                                        }
+                                    
+                                    const Matrix4x4 rotMatrix = getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+                                                                                                     sliceViewPlane);
+                                    switch (sliceViewPlane) {
+                                        case VolumeSliceViewPlaneEnum::ALL:
+                                            CaretAssert(0);
+                                            break;
+                                        case VolumeSliceViewPlaneEnum::AXIAL:
+                                            
+                                            rotMatrix.multiplyPoint3(sliceVector);
+                                            break;
+                                        case VolumeSliceViewPlaneEnum::CORONAL:
+                                            rotMatrix.multiplyPoint3(sliceVector);
+                                            break;
+                                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                            rotMatrix.multiplyPoint3(sliceVector);
+                                            break;
                                     }
-                                        break;
-                                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                    {
-                                        const float mprRotX(isClockwise
-                                                            ? -mouseDelta
-                                                            : mouseDelta);
-                                        m_mprRotationX += mprRotX;
-                                   }
-                                        break;
+                                    
+                                    const float mprRot(isClockwise
+                                                        ? -mouseDelta
+                                                        : mouseDelta);
+                                    
+                                    Matrix4x4 m;
+                                    m.rotate(mprRot, sliceVector[0], sliceVector[1], sliceVector[2]);
+
+                                    double rx(0.0), ry(0.0), rz(0.0);
+                                    m.getRotation(rx, ry, rz);
+                                    
+                                    m_mprRotationX += rx;
+                                    m_mprRotationY += ry;
+                                    m_mprRotationZ += rz;
+                                }
+                                else {
+                                    switch (slicePlane) {
+                                        case VolumeSliceViewPlaneEnum::ALL:
+                                        {
+                                            CaretAssert(0);
+                                        }
+                                            break;
+                                        case VolumeSliceViewPlaneEnum::AXIAL:
+                                        {
+                                            const float mprRotZ(isClockwise
+                                                                ? -mouseDelta
+                                                                : mouseDelta);
+                                            if (radiologicalFlag) {
+                                                m_mprRotationZ -= mprRotZ;
+                                            }
+                                            else {
+                                                m_mprRotationZ += mprRotZ;
+                                            }
+                                        }
+                                            break;
+                                        case VolumeSliceViewPlaneEnum::CORONAL:
+                                        {
+                                            const float mprRotY(isClockwise
+                                                                ? - mouseDelta
+                                                                : mouseDelta);
+                                            if (radiologicalFlag) {
+                                                m_mprRotationY -= mprRotY;
+                                            }
+                                            else {
+                                                m_mprRotationY += mprRotY;
+                                            }
+                                        }
+                                            break;
+                                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                        {
+                                            const float mprRotX(isClockwise
+                                                                ? -mouseDelta
+                                                                : mouseDelta);
+                                            m_mprRotationX += mprRotX;
+                                        }
+                                            break;
+                                    }
                                 }
                             }
                         }

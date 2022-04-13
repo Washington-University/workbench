@@ -727,29 +727,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
 
     if (drawVolumeSlicesFlag) {
         glPushMatrix();
-        
-        switch (m_viewMode) {
-            case ViewMode::INVALID:
-                break;
-            case ViewMode::VOLUME_2D:
-                break;
-            case ViewMode::ALL_3D:
-//                switch (sliceViewPlane) {
-//                    case VolumeSliceViewPlaneEnum::ALL:
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                        glRotatef(m_browserTabContent->getMprRotationX(), -1.0, 0.0, 0.0);
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::CORONAL:
-//                        glRotatef(m_browserTabContent->getMprRotationY(), 0.0, -1.0, 0.0);
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::AXIAL:
-//                        glRotatef(m_browserTabContent->getMprRotationZ(), 0.0, 0.0, -1.0);
-//                        break;
-//                }
-                break;
-        }
-        
+                
         /*
          * Disable culling so that both sides of the triangles/quads are drawn.
          */
@@ -1028,11 +1006,17 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
             CaretAssert(0);
             break;
         case ViewMode::ALL_3D:
-            /*
-             * ALL gets a matrix filled with all three MPR rotations
-             */
-            rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
-                                                                                     sliceViewPlane);
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_INDEPENDENT_ROTATION)) {
+                rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
+                                                                                         sliceViewPlane);
+            }
+            else {
+                /*
+                 * ALL gets a matrix filled with all three MPR rotations
+                 */
+                rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
+                                                                                         VolumeSliceViewPlaneEnum::ALL);
+            }
             break;
         case ViewMode::VOLUME_2D:
             rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
