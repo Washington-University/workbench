@@ -843,14 +843,14 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
      */
     Vector3D planeNormalVector;
     
-    bool radioFlag(false);
+    bool radiologicalFlag(false);
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-            radioFlag = true;
+            radiologicalFlag = true;
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
             break;
@@ -870,7 +870,7 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
             sliceInfo.m_upVector[1] = 1.0;
             orthogonalVector[0]  = 1.0;
             
-            if (radioFlag) {
+            if (radiologicalFlag) {
                 planeNormalVector[2] = -1.0;
             }
             break;
@@ -879,7 +879,7 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
             sliceInfo.m_upVector[2] =  1.0;
             orthogonalVector[0]  =  1.0;
             
-            if (radioFlag) {
+            if (radiologicalFlag) {
                 planeNormalVector[1] = 1.0;
             }
             break;
@@ -910,10 +910,10 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
     
     boundingBox.getCenter(sliceInfo.m_centerXYZ);
     
-    const float leftX(radioFlag
+    const float leftX(radiologicalFlag
                       ? posX
                       : negX);
-    const float rightX(radioFlag
+    const float rightX(radiologicalFlag
                       ? negX
                       : posX);
     switch (sliceViewPlane) {
@@ -1006,17 +1006,11 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
             CaretAssert(0);
             break;
         case ViewMode::ALL_3D:
-            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_INDEPENDENT_ROTATION)) {
-                rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
-                                                                                         sliceViewPlane);
-            }
-            else {
-                /*
-                 * ALL gets a matrix filled with all three MPR rotations
-                 */
-                rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
-                                                                                         VolumeSliceViewPlaneEnum::ALL);
-            }
+            /*
+             * ALL gets a matrix filled with all three MPR rotations
+             */
+            rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
+                                                                                     VolumeSliceViewPlaneEnum::ALL);
             break;
         case ViewMode::VOLUME_2D:
             rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
@@ -1680,12 +1674,12 @@ BrainOpenGLVolumeMprTwoDrawing::drawAxisLabels(const VolumeSliceProjectionTypeEn
     const std::array<uint8_t, 4> coronalPlaneRGBA(getAxisColor(VolumeSliceViewPlaneEnum::CORONAL));
     const std::array<uint8_t, 4> parasagittalPlaneRGBA(getAxisColor(VolumeSliceViewPlaneEnum::PARASAGITTAL));
 
-    bool radioFlag(false);
+    bool radiologicalFlag(false);
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-            radioFlag = true;
+            radiologicalFlag = true;
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
@@ -1712,7 +1706,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawAxisLabels(const VolumeSliceProjectionTypeEn
             westText  = "L";
             horizontalAxisRGBA = coronalPlaneRGBA;
             verticalAxisRGBA   = parasagittalPlaneRGBA;
-            if (radioFlag) {
+            if (radiologicalFlag) {
                 std::swap(eastText, westText);
             }
             break;
@@ -1731,7 +1725,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawAxisLabels(const VolumeSliceProjectionTypeEn
             westText  = "L";
             horizontalAxisRGBA = axialPlaneRGBA;
             verticalAxisRGBA   = parasagittalPlaneRGBA;
-            if (radioFlag) {
+            if (radiologicalFlag) {
                 std::swap(eastText, westText);
             }
             break;

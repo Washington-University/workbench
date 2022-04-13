@@ -166,12 +166,6 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_MPR_INDEPENDENT_ROTATION,
-                                                "DEVELOPER_FLAG_MPR_INDEPENDENT_ROTATION",
-                                                "MPR Slices in All View Rotate Independently",
-                                                CheckableEnum::YES,
-                                                false));
-    
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_MPR_ROTATE_ABOUT_NORMAL_VECTOR,
                                                 "DEVELOPER_FLAG_MPR_ROTATE_ABOUT_NORMAL_VECTOR",
                                                 "MPR Slices in All Rotate About Vector Pointing to User",
@@ -316,9 +310,6 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
             toolTip = ("For voxel cubes in ALL view, only draw \"outside faces\" "
                        "(faster but causes problem when opacity is less than one so disable "
                        "in that instance)");
-            break;
-        case DEVELOPER_FLAG_MPR_INDEPENDENT_ROTATION:
-            toolTip = ("In ALL view, MPR slices rotate independently (may not remain orthogonal)");
             break;
         case DEVELOPER_FLAG_MPR_ROTATE_ABOUT_NORMAL_VECTOR:
             toolTip = ("In ALL view, MPR rotates about normal vector pointing to user");
