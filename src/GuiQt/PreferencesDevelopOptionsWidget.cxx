@@ -64,7 +64,7 @@ PreferencesDevelopOptionsWidget::PreferencesDevelopOptionsWidget(QWidget* parent
 : QWidget(parent)
 {
     std::vector<DeveloperFlagsEnum::Enum> developerFlags;
-    DeveloperFlagsEnum::getAllEnums(developerFlags);
+    DeveloperFlagsEnum::getAllEnumsSortedByGuiName(developerFlags);
     
     QGridLayout* gridLayout = new QGridLayout();
     if ( ! developerFlags.empty()) {
@@ -102,9 +102,9 @@ PreferencesDevelopOptionsWidget::PreferencesDevelopOptionsWidget(QWidget* parent
     QObject::connect(m_obliqueVolumeInterpolationTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &PreferencesDevelopOptionsWidget::obliqueVolumeInterpolationTypeComboBoxActivated);
     WuQtUtilities::setWordWrappedToolTip(m_obliqueVolumeInterpolationTypeComboBox->getWidget(),
-                                         "Voxel Interpolation Type ");
+                                         "Voxel Interpolation Type.  Cubic is best quality and slower; Enclosing Voxel is fastest");
     PreferencesDialog::addWidgetToLayout(gridLayout,
-                                         "Oblique Interpolation Type",
+                                         "Volume: Oblique Interpolation Type",
                                          m_obliqueVolumeInterpolationTypeComboBox->getWidget());
 
     /*
@@ -113,8 +113,8 @@ PreferencesDevelopOptionsWidget::PreferencesDevelopOptionsWidget(QWidget* parent
     m_obliqueVoxelScalingSpinBox = new QDoubleSpinBox();
     m_obliqueVoxelScalingSpinBox->setRange(0.25, 100.0);
     m_obliqueVoxelScalingSpinBox->setSingleStep(0.25);
-    m_obliqueVoxelScalingSpinBox->setToolTip("Scale oblique voxel size");
-    PreferencesDialog::addWidgetToLayout(gridLayout, "Oblique Voxel Scaling", m_obliqueVoxelScalingSpinBox);
+    m_obliqueVoxelScalingSpinBox->setToolTip("Scale oblique voxel size; larger is faster but lower quality");
+    PreferencesDialog::addWidgetToLayout(gridLayout, "Volume: Oblique Voxel Scaling", m_obliqueVoxelScalingSpinBox);
     QObject::connect(m_obliqueVoxelScalingSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                      this, &PreferencesDevelopOptionsWidget::obliqueVoxelScalingSpinBoxValueChanged);
     

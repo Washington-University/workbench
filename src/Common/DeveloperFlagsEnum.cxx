@@ -121,49 +121,49 @@ DeveloperFlagsEnum::initialize()
                                                 false));
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA,
                                                 "DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA",
-                                                "Flip Palette Not Data",
+                                                "Drawing: Flip Palette Not Data",
                                                 CheckableEnum::YES,
                                                 false));
     
     checkableItems.push_back(DeveloperFlagsEnum(DELELOPER_FLAG_TEXTURE_ANATOMY_VOLUME_SMOOTH,
                                                 "DELELOPER_FLAG_TEXTURE_ANATOMY_VOLUME_SMOOTH",
-                                                "Smooth Texture Anatomy Oblique Volume Voxels",
+                                                "Volume: MPR Smooth Anatomy Volume Voxels",
                                                 CheckableEnum::YES,
                                                 true));
 
     checkableItems.push_back(DeveloperFlagsEnum(DELELOPER_FLAG_TEXTURE_FUNCTIONAL_VOLUME_SMOOTH,
                                                 "DELELOPER_FLAG_TEXTURE_FUNCTIONAL_VOLUME_SMOOTH",
-                                                "Smooth Functional Oblique Volume Voxels",
+                                                "Volume: MPR Smooth Functional Volume Voxels",
                                                 CheckableEnum::YES,
                                                 false));
     
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_SURFACE_BUFFER,
                                                 "DEVELOPER_FLAG_SURFACE_BUFFER",
-                                                "Draw Surfaces Using Buffers",
+                                                "Drawing: Draw Surfaces Using Buffers",
                                                 CheckableEnum::YES,
                                                 false));
     
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOXEL_CUBES_TEST,
                                                 "DEVELOPER_FLAG_VOXEL_CUBES_TEST",
-                                                "All View Voxel Cubes Outside Faces",
+                                                "Drawing: All View Voxel Cubes Outside Faces",
                                                 CheckableEnum::YES,
                                                 true));
     
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_CHART_OPENGL_LINES,
                                                 "DEVELOPER_FLAG_CHART_OPENGL_LINES",
-                                                "Draw Chart Lines with OpenGL Lines",
+                                                "Drawing: Draw Chart Lines with OpenGL Lines",
                                                 CheckableEnum::YES,
                                                 true));
     
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BLENDING,
                                                 "DEVELOPER_FLAG_BLENDING",
-                                                "Separate RGB / Alpha Opacity",
+                                                "Drawing: Separate RGB / Alpha Opacity",
                                                 CheckableEnum::YES,
                                                 true));
     
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_MPR_ROTATE_ABOUT_NORMAL_VECTOR,
                                                 "DEVELOPER_FLAG_MPR_ROTATE_ABOUT_NORMAL_VECTOR",
-                                                "MPR Slices in All Rotate About Vector Pointing to User",
+                                                "Volume: MPR Slices Rotate About Slice Normal Vector",
                                                 CheckableEnum::YES,
                                                 false));
 #ifdef HAVE_WEBKIT
@@ -430,6 +430,34 @@ DeveloperFlagsEnum::getAllEnums(std::vector<DeveloperFlagsEnum::Enum>& allEnums)
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
+    }
+}
+
+/**
+ * Get all of the enumerated type values.  The values can be used
+ * as parameters to toXXX() methods to get associated metadata.
+ *
+ * @param allEnums
+ *     A vector that is OUTPUT containing all of the enumerated values.
+ */
+void
+DeveloperFlagsEnum::getAllEnumsSortedByGuiName(std::vector<Enum>& allEnums)
+{
+    if (initializedFlag == false) initialize();
+    
+    allEnums.clear();
+
+    std::vector<AString> allNames;
+    const bool sortedFlag(true);
+    getAllGuiNames(allNames, sortedFlag);
+    
+    for (auto& name : allNames) {
+        bool validFlag(false);
+        const Enum enumValue(fromGuiName(name, &validFlag));
+        CaretAssert(validFlag);
+        if (validFlag) {
+            allEnums.push_back(enumValue);
+        }
     }
 }
 
