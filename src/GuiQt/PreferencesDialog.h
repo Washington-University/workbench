@@ -36,9 +36,9 @@ namespace caret {
     
     class CaretPreferences;
     class EnumComboBoxTemplate;
-    class PreferencesCziImagesWidget;
     class PreferencesDevelopOptionsWidget;
     class PreferencesDisplayWidget;
+    class PreferencesImageWidget;
     class PreferencesRecentFilesWidget;
     class WuQTrueFalseComboBox;
     class WuQWidgetObjectGroup;
@@ -180,13 +180,13 @@ namespace caret {
         
         WuQWidgetObjectGroup* m_allWidgets;
         
-        PreferencesCziImagesWidget* m_cziOptionsWidget;
+        PreferencesImageWidget* m_imageOptionsWidget;
         
         PreferencesDevelopOptionsWidget* m_developOptionsWidget;
         PreferencesDisplayWidget* m_displayWidget;
         PreferencesRecentFilesWidget* m_recentFilesWidget;
         
-        friend class PreferencesCziImagesWidget;
+        friend class PreferencesImageWidget;
         friend class PreferencesDevelopOptionsWidget;
     };
     

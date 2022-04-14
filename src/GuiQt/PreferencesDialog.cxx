@@ -50,9 +50,9 @@
 #include "IdentificationManager.h"
 #include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
-#include "PreferencesCziImagesWidget.h"
 #include "PreferencesDevelopOptionsWidget.h"
 #include "PreferencesDisplayWidget.h"
+#include "PreferencesImageWidget.h"
 #include "PreferencesRecentFilesWidget.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
@@ -104,14 +104,12 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     
     m_displayWidget = new PreferencesDisplayWidget();
     
-    m_cziOptionsWidget = new PreferencesCziImagesWidget();
+    m_imageOptionsWidget = new PreferencesImageWidget();
     
     /*
      * Create the tab widget and all tab content
      */
     QTabWidget* tabWidget = new QTabWidget();
-    tabWidget->addTab(m_cziOptionsWidget,
-                      "CZI");
     tabWidget->addTab(createColorsWidget(),
                       "Colors");
     tabWidget->addTab(m_developOptionsWidget,
@@ -120,6 +118,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
                       "Displays");
     tabWidget->addTab(createIdentificationSymbolWidget(),
                       "ID");
+    tabWidget->addTab(m_imageOptionsWidget,
+                      "Image");
     tabWidget->addTab(createMiscellaneousWidget(),
                       "Misc");
     tabWidget->addTab(createTabDefaltsWidget(),
@@ -999,7 +999,7 @@ PreferencesDialog::updateDialog()
     updateIdentificationWidget(prefs);
     updateOpenGLWidget(prefs);
     updateVolumeWidget(prefs);
-    m_cziOptionsWidget->updateContent(prefs);
+    m_imageOptionsWidget->updateContent(prefs);
     m_developOptionsWidget->updateContent(prefs);
     m_displayWidget->updateContent(prefs);
     m_recentFilesWidget->updateContent(prefs);

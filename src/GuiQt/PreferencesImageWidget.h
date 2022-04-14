@@ -1,5 +1,5 @@
-#ifndef __PREFERENCES_CZI_IMAGES_WIDGET_H__
-#define __PREFERENCES_CZI_IMAGES_WIDGET_H__
+#ifndef __PREFERENCES_IMAGE_WIDGET_H__
+#define __PREFERENCES_IMAGE_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -30,19 +30,20 @@ class QComboBox;
 
 namespace caret {
     class CaretPreferences;
+    class EnumComboBoxTemplate;
 
-    class PreferencesCziImagesWidget : public QWidget {
+    class PreferencesImageWidget : public QWidget {
         
         Q_OBJECT
 
     public:
-        PreferencesCziImagesWidget(QWidget* parent = 0);
+        PreferencesImageWidget(QWidget* parent = 0);
         
-        virtual ~PreferencesCziImagesWidget();
+        virtual ~PreferencesImageWidget();
         
-        PreferencesCziImagesWidget(const PreferencesCziImagesWidget&) = delete;
+        PreferencesImageWidget(const PreferencesImageWidget&) = delete;
 
-        PreferencesCziImagesWidget& operator=(const PreferencesCziImagesWidget&) = delete;
+        PreferencesImageWidget& operator=(const PreferencesImageWidget&) = delete;
         
         void updateContent(CaretPreferences* preferences);
 
@@ -55,21 +56,29 @@ namespace caret {
     private slots:
         void dimensionChanged(int index);
         
+        void graphicsTextureMagnificationFilterEnumComboBoxItemActivated();
+        
+        void graphicsTextureMinificationFilterEnumComboBoxItemActivated();
+
     private:
-        void updateGraphics();
+        void updateGraphicsAndUserInterface();
         
         /* DO NOT delete */
         CaretPreferences* m_preferences = NULL;
         
         QComboBox* m_dimensionComboBox;
         
+        EnumComboBoxTemplate* m_graphicsTextureMagnificationFilterEnumComboBox = NULL;
+        
+        EnumComboBoxTemplate* m_graphicsTextureMinificationFilterEnumComboBox = NULL;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __PREFERENCES_CZI_IMAGE_DECLARE__
+#ifdef __PREFERENCES_IMAGE_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __PREFERENCES_CZI_IMAGE_DECLARE__
+#endif // __PREFERENCES_IMAGE_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__PREFERENCES_CZI_IMAGES_WIDGET_H__
+#endif  //__PREFERENCES_IMAGE_WIDGET_H__

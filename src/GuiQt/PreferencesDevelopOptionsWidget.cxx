@@ -114,35 +114,6 @@ PreferencesDevelopOptionsWidget::PreferencesDevelopOptionsWidget(QWidget* parent
     WuQtUtilities::setWordWrappedToolTip(cropSceneImagesLabel,
                                          cropSceneToolTip);
 
-    /*
-     * Image texture magnification filter
-     */
-    m_graphicsTextureMagnificationFilterEnumComboBox = new EnumComboBoxTemplate(this);
-    m_graphicsTextureMagnificationFilterEnumComboBox->setup<GraphicsTextureMagnificationFilterEnum,GraphicsTextureMagnificationFilterEnum::Enum>();
-    QObject::connect(m_graphicsTextureMagnificationFilterEnumComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &PreferencesDevelopOptionsWidget::graphicsTextureMagnificationFilterEnumComboBoxItemActivated);
-    WuQtUtilities::setWordWrappedToolTip(m_graphicsTextureMagnificationFilterEnumComboBox->getWidget(),
-                                         GraphicsTextureMagnificationFilterEnum::toToolTip());
-    QLabel* magFilterLabel = PreferencesDialog::addWidgetToLayout(gridLayout,
-                                         "Image Magnification Filter (Zoomed In)",
-                                         m_graphicsTextureMagnificationFilterEnumComboBox->getWidget());
-    WuQtUtilities::setWordWrappedToolTip(magFilterLabel,
-                                         GraphicsTextureMagnificationFilterEnum::toToolTip());
-    
-    /*
-     * Image texture minification filter
-     */
-    m_graphicsTextureMinificationFilterEnumComboBox = new EnumComboBoxTemplate(this);
-    m_graphicsTextureMinificationFilterEnumComboBox->setup<GraphicsTextureMinificationFilterEnum,GraphicsTextureMinificationFilterEnum::Enum>();
-    QObject::connect(m_graphicsTextureMinificationFilterEnumComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &PreferencesDevelopOptionsWidget::graphicsTextureMinificationFilterEnumComboBoxItemActivated);
-    WuQtUtilities::setWordWrappedToolTip(m_graphicsTextureMinificationFilterEnumComboBox->getWidget(),
-                                         GraphicsTextureMinificationFilterEnum::toToolTip());
-    QLabel* minFilterLabel = PreferencesDialog::addWidgetToLayout(gridLayout,
-                                                                  "Image Minification Filter (Zoomed Out)",
-                                                                  m_graphicsTextureMinificationFilterEnumComboBox->getWidget());
-    WuQtUtilities::setWordWrappedToolTip(minFilterLabel,
-                                         GraphicsTextureMinificationFilterEnum::toToolTip());
 
     /*
      * Oblique voxel interpolation type
@@ -246,37 +217,9 @@ PreferencesDevelopOptionsWidget::updateContent(CaretPreferences* preferences)
     
     m_cropSceneImagesComboBox->setStatus(m_preferences->isCropSceneImagesEnabled());
     
-    const GraphicsTextureMinificationFilterEnum::Enum minFilter  = BrainOpenGLMediaDrawing::getTextureMinificationFilter();
-    const GraphicsTextureMagnificationFilterEnum::Enum magFilter = BrainOpenGLMediaDrawing::getTextureMagnificationFilter();
-    m_graphicsTextureMagnificationFilterEnumComboBox->setSelectedItem<GraphicsTextureMagnificationFilterEnum,GraphicsTextureMagnificationFilterEnum::Enum>(magFilter);
-    m_graphicsTextureMinificationFilterEnumComboBox->setSelectedItem<GraphicsTextureMinificationFilterEnum,GraphicsTextureMinificationFilterEnum::Enum>(minFilter);
-    
     m_obliqueVolumeInterpolationTypeComboBox->setSelectedItem<VoxelInterpolationTypeEnum,VoxelInterpolationTypeEnum::Enum>(BrainOpenGLVolumeObliqueSliceDrawing::getVoxelInterpolationType());
     QSignalBlocker voxelScaleBlocker(m_obliqueVoxelScalingSpinBox);
     m_obliqueVoxelScalingSpinBox->setValue(BrainOpenGLVolumeObliqueSliceDrawing::getVoxelStepScaling());
-}
-
-/**
- * Called when graphics magnification filter changed
- */
-void
-PreferencesDevelopOptionsWidget::graphicsTextureMagnificationFilterEnumComboBoxItemActivated()
-{
-    const GraphicsTextureMagnificationFilterEnum::Enum magFilter = m_graphicsTextureMagnificationFilterEnumComboBox->getSelectedItem<GraphicsTextureMagnificationFilterEnum,GraphicsTextureMagnificationFilterEnum::Enum>();
-    BrainOpenGLMediaDrawing::setTextureMagnificationFilter(magFilter);
-    updateGraphicsAndUserInterface();
-
-}
-
-/**
- * Called when graphics minification filter changed
- */
-void
-PreferencesDevelopOptionsWidget::graphicsTextureMinificationFilterEnumComboBoxItemActivated()
-{
-    const GraphicsTextureMinificationFilterEnum::Enum minFilter = m_graphicsTextureMinificationFilterEnumComboBox->getSelectedItem<GraphicsTextureMinificationFilterEnum,GraphicsTextureMinificationFilterEnum::Enum>();
-    BrainOpenGLMediaDrawing::setTextureMinificationFilter(minFilter);
-    updateGraphicsAndUserInterface();
 }
 
 /**

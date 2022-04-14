@@ -59,11 +59,7 @@ namespace caret {
                                    const bool status);
         
         void cropSceneImagesStatusChanged(const bool status);
-        
-        void graphicsTextureMagnificationFilterEnumComboBoxItemActivated();
-        
-        void graphicsTextureMinificationFilterEnumComboBoxItemActivated();
-        
+                
         void obliqueVolumeInterpolationTypeComboBoxActivated();
         
         void obliqueVoxelScalingSpinBoxValueChanged(double value);
@@ -77,10 +73,6 @@ namespace caret {
         std::map<WuQTrueFalseComboBox*, DeveloperFlagsEnum::Enum> m_developerFlagsMap;
         
         WuQTrueFalseComboBox* m_cropSceneImagesComboBox;
-        
-        EnumComboBoxTemplate* m_graphicsTextureMagnificationFilterEnumComboBox = NULL;
-        
-        EnumComboBoxTemplate* m_graphicsTextureMinificationFilterEnumComboBox = NULL;
         
         EnumComboBoxTemplate* m_obliqueVolumeInterpolationTypeComboBox = NULL;
         
