@@ -53,7 +53,6 @@
 #include "BrainOpenGLVolumeMprTwoDrawing.h"
 #include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
-#include "BrainOpenGLVolumeTextureSliceDrawing.h"
 #include "BrainOpenGLShapeCone.h"
 #include "BrainOpenGLShapeCube.h"
 #include "BrainOpenGLShapeCylinder.h"
@@ -4502,47 +4501,23 @@ BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* view
                         graphicsViewport);
     }
     else if (useNewDrawingFlag) {
-        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_VOLUME)) {
-            BrainOpenGLVolumeTextureSliceDrawing textureSliceDrawing;
-            textureSliceDrawing.draw(this,
-                                     browserTabContent,
-                                     volumeDrawInfo,
-                                     sliceDrawingType,
-                                     sliceProjectionType,
-                                     obliqueMaskType,
-                                     viewport);
-        }
-        else {
-            BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-            volumeSliceDrawing.draw(this,
-                                    browserTabContent,
-                                    volumeDrawInfo,
-                                    sliceDrawingType,
-                                    sliceProjectionType,
-                                    viewport);
-        }
+        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+        volumeSliceDrawing.draw(this,
+                                browserTabContent,
+                                volumeDrawInfo,
+                                sliceDrawingType,
+                                sliceProjectionType,
+                                viewport);
     }
     else {
-        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_VOLUME)) {
-            BrainOpenGLVolumeTextureSliceDrawing textureSliceDrawing;
-            textureSliceDrawing.draw(this,
-                                           browserTabContent,
-                                           volumeDrawInfo,
-                                           sliceDrawingType,
-                                           sliceProjectionType,
-                                           obliqueMaskType,
-                                           viewport);
-        }
-        else {
-            BrainOpenGLVolumeObliqueSliceDrawing obliqueVolumeSliceDrawing;
-            obliqueVolumeSliceDrawing.draw(this,
-                                           browserTabContent,
-                                           volumeDrawInfo,
-                                           sliceDrawingType,
-                                           sliceProjectionType,
-                                           obliqueMaskType,
-                                           viewport);
-        }
+        BrainOpenGLVolumeObliqueSliceDrawing obliqueVolumeSliceDrawing;
+        obliqueVolumeSliceDrawing.draw(this,
+                                       browserTabContent,
+                                       volumeDrawInfo,
+                                       sliceDrawingType,
+                                       sliceProjectionType,
+                                       obliqueMaskType,
+                                       viewport);
     }
 }
 
@@ -6846,54 +6821,41 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
                 VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
                 VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
                 
-                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_VOLUME)) {
-                    VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueMaskType = browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType();
-                    BrainOpenGLVolumeTextureSliceDrawing textureSliceDrawing;
-                    textureSliceDrawing.draw(this,
-                                             browserTabContent,
-                                             twoDimSliceDrawVolumeDrawInfo,
-                                             sliceDrawingType,
-                                             sliceProjectionType,
-                                             obliqueMaskType,
-                                             viewport);
-                }
-                else {
-                    switch (sliceProjectionType) {
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                        {
-                            VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueMaskType = browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType();
-                            BrainOpenGLVolumeObliqueSliceDrawing volumeSliceDrawing;
-                            volumeSliceDrawing.draw(this,
-                                                    browserTabContent,
-                                                    twoDimSliceDrawVolumeDrawInfo,
-                                                    sliceDrawingType,
-                                                    sliceProjectionType,
-                                                    obliqueMaskType,
-                                                    viewport);
-                        }
-                            break;
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                        {
-                            BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-                            volumeSliceDrawing.draw(this,
-                                                    browserTabContent,
-                                                    twoDimSliceDrawVolumeDrawInfo,
-                                                    sliceDrawingType,
-                                                    sliceProjectionType,
-                                                    viewport);
-                        }
-                            break;
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-                            GraphicsViewport graphicsViewport(viewport);
-                            BrainOpenGLVolumeMprTwoDrawing mprDrawing;
-                            mprDrawing.draw(this,
-                                            viewportContent,
-                                            browserTabContent,
-                                            volumeDrawInfo,
-                                            graphicsViewport);
-                            break;
+                switch (sliceProjectionType) {
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                    {
+                        VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueMaskType = browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType();
+                        BrainOpenGLVolumeObliqueSliceDrawing volumeSliceDrawing;
+                        volumeSliceDrawing.draw(this,
+                                                browserTabContent,
+                                                twoDimSliceDrawVolumeDrawInfo,
+                                                sliceDrawingType,
+                                                sliceProjectionType,
+                                                obliqueMaskType,
+                                                viewport);
                     }
+                        break;
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                    {
+                        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+                        volumeSliceDrawing.draw(this,
+                                                browserTabContent,
+                                                twoDimSliceDrawVolumeDrawInfo,
+                                                sliceDrawingType,
+                                                sliceProjectionType,
+                                                viewport);
+                    }
+                        break;
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                        GraphicsViewport graphicsViewport(viewport);
+                        BrainOpenGLVolumeMprTwoDrawing mprDrawing;
+                        mprDrawing.draw(this,
+                                        viewportContent,
+                                        browserTabContent,
+                                        volumeDrawInfo,
+                                        graphicsViewport);
+                        break;
                 }
 
                 glPopAttrib();

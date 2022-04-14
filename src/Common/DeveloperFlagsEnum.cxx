@@ -124,11 +124,6 @@ DeveloperFlagsEnum::initialize()
                                                 "Flip Palette Not Data",
                                                 CheckableEnum::YES,
                                                 false));
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TEXTURE_VOLUME,
-                                                "DEVELOPER_FLAG_TEXTURE_VOLUME",
-                                                "Texture Volume Drawing",
-                                                CheckableEnum::YES,
-                                                false));
     
     checkableItems.push_back(DeveloperFlagsEnum(DELELOPER_FLAG_TEXTURE_ANATOMY_VOLUME_SMOOTH,
                                                 "DELELOPER_FLAG_TEXTURE_ANATOMY_VOLUME_SMOOTH",
@@ -270,14 +265,10 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
     
     switch (enumValue) {
         case DELELOPER_FLAG_TEXTURE_ANATOMY_VOLUME_SMOOTH:
-            toolTip = ("Smooth texture anatomy volume drawing voxels (\""
-                       + toGuiName(DEVELOPER_FLAG_TEXTURE_VOLUME)
-                       + "\" must also be ON)");
+            toolTip = ("Smooth MPR volume anatomy volume drawing voxels");
             break;
         case DELELOPER_FLAG_TEXTURE_FUNCTIONAL_VOLUME_SMOOTH:
-            toolTip = ("Smooth texture functional volume drawing voxels (\""
-                       + toGuiName(DEVELOPER_FLAG_TEXTURE_VOLUME)
-                       + "\" must also be ON)");
+            toolTip = ("Smooth MPR volume functional volume drawing voxels");
             break;
         case DEVELOPER_FLAG_SURFACE_BUFFER:
             toolTip = ("Draw surface using buffers (improved performance)");
@@ -298,10 +289,6 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
         case DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA:
             toolTip = ("When Invert Data is selected on Overlay and Map Settings Dialog,  "
                        "flip the palette instead of flipping the data (not recommended)");
-            break;
-        case DEVELOPER_FLAG_TEXTURE_VOLUME:
-            toolTip = ("Draw volume slices, both orthogonal and oblique, using textures instead of drawing individual voxels "
-                       "(much faster)");
             break;
         case DEVELOPER_FLAG_UNUSED:
             toolTip = "Unused";

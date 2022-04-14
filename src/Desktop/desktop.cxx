@@ -740,7 +740,6 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                     exit(0);
                 } else if (thisParam == "-enable-perf") {
                     DeveloperFlagsEnum::setFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_SURFACE_BUFFER, true);
-                    DeveloperFlagsEnum::setFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_VOLUME, true);
                 } else if (thisParam == "-logging") {
                     if (myParams->hasNext()) {
                         const AString logLevelName = myParams->nextString("Logging Level").toUpper();

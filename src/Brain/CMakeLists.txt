@@ -54,7 +54,6 @@ BrainOpenGLViewportContent.h
 BrainOpenGLVolumeMprTwoDrawing.h
 BrainOpenGLVolumeObliqueSliceDrawing.h
 BrainOpenGLVolumeSliceDrawing.h
-BrainOpenGLVolumeTextureSliceDrawing.h
 BrainOpenGLWindowContent.h
 BrainStructure.h
 BrainStructureNodeAttributes.h
@@ -248,7 +247,6 @@ BrainOpenGLViewportContent.cxx
 BrainOpenGLVolumeMprTwoDrawing.cxx
 BrainOpenGLVolumeObliqueSliceDrawing.cxx
 BrainOpenGLVolumeSliceDrawing.cxx
-BrainOpenGLVolumeTextureSliceDrawing.cxx
 BrainOpenGLWindowContent.cxx
 BrainStructure.cxx
 BrainStructureNodeAttributes.cxx
