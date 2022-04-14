@@ -113,6 +113,7 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
         s_previousSelections.m_addAllTabs                 = true;
         s_previousSelections.m_addModifiedPaletteSettings = true;
         s_previousSelections.m_addSpecFileNameToScene     = true;
+        s_previousSelections.m_cropImage                  = true;
     }
     
     m_sceneFile = sceneFile;
@@ -385,9 +386,14 @@ SceneCreateReplaceDialog::replaceExistingScene(QWidget* parent,
  *
  * @param scene
  *    Scene to which image is added.
+ * @param cropImageFlag
+ *   If true, crop the image
+ * @param errorMessageOut
+ *   Output with any error messages
  */
 void
 SceneCreateReplaceDialog::addImageAndWorkbenchInfoToScene(Scene* scene,
+                                                          const bool cropImageFlag,
                                                           AString& errorMessageOut)
 {
     errorMessageOut.clear();
@@ -440,7 +446,7 @@ SceneCreateReplaceDialog::addImageAndWorkbenchInfoToScene(Scene* scene,
                                                                       backgroundColor);
             
             if (backgroundColorValid) {
-                if (SessionManager::get()->getCaretPreferences()->isCropSceneImagesEnabled()) {
+                if (cropImageFlag) {
                     const int marginSize = 5;
                     compositeImageFile.cropImageRemoveBackground(marginSize,
                                                                  backgroundColor);
@@ -482,6 +488,8 @@ SceneCreateReplaceDialog::addImageAndWorkbenchInfoToScene(Scene* scene,
  *
  * @param imageOut
  *     Output image of the scene.
+ * @param cropImageFlag
+ *     If true, crop the image
  * @param errorMessageOut
  *     Contains error information if image was not created.
  * @return
@@ -489,6 +497,7 @@ SceneCreateReplaceDialog::addImageAndWorkbenchInfoToScene(Scene* scene,
  */
 bool
 SceneCreateReplaceDialog::createSceneImage(QImage& imageOut,
+                                           const bool cropImageFlag,
                                            AString& errorMessageOut)
 {
     bool validImageFlag = false;
@@ -541,7 +550,7 @@ SceneCreateReplaceDialog::createSceneImage(QImage& imageOut,
                                                                       backgroundColor);
             
             if (backgroundColorValid) {
-                if (SessionManager::get()->getCaretPreferences()->isCropSceneImagesEnabled()) {
+                if (cropImageFlag) {
                     const int marginSize = 5;
                     compositeImageFile.cropImageRemoveBackground(marginSize,
                                                                  backgroundColor);
@@ -618,6 +627,16 @@ SceneCreateReplaceDialog::createSceneOptionsWidget()
                                          "and the data files with modified palette color mapping do not need "
                                          "to be saved.");
     
+    m_cropImageCheckBox = new QCheckBox("Crop Image");
+    m_cropImageCheckBox->setChecked(s_previousSelections.m_cropImage);
+    WuQtUtilities::setWordWrappedToolTip(m_cropImageCheckBox,
+                                         "Crop the image by removing background pixels on the sides of the "
+                                         "brain models.  "
+                                         "Disabling of image cropping may be useful when "
+                                         "debugging scenes where the content occupies a "
+                                         "portion of the viewing region (data may be "
+                                         "panned/zoomed");
+    
     /*
      * Layout for scene options widgets
      */
@@ -626,6 +645,7 @@ SceneCreateReplaceDialog::createSceneOptionsWidget()
     optionsLayout->addWidget(m_addAllTabsCheckBox);
     optionsLayout->addWidget(m_addAllLoadedFilesCheckBox);
     optionsLayout->addWidget(m_addModifiedPaletteSettingsCheckBox);
+    optionsLayout->addWidget(m_cropImageCheckBox);
     
     /*
      * Add the layout to a widget and return the widget.
@@ -649,6 +669,7 @@ SceneCreateReplaceDialog::okButtonClicked()
     s_previousSelections.m_addAllTabs                 = m_addAllTabsCheckBox->isChecked();
     s_previousSelections.m_addModifiedPaletteSettings = m_addModifiedPaletteSettingsCheckBox->isChecked();
     s_previousSelections.m_addSpecFileNameToScene     = m_addSpecFileNameToSceneCheckBox->isChecked();
+    s_previousSelections.m_cropImage                  = m_cropImageCheckBox->isChecked();
     
     const AString newSceneName = m_nameLineEdit->text();
     
@@ -761,6 +782,7 @@ SceneCreateReplaceDialog::okButtonClicked()
     
     AString imageErrorMessage;
     addImageAndWorkbenchInfoToScene(newScene,
+                                    s_previousSelections.m_cropImage,
                                     imageErrorMessage);
     if ( ! imageErrorMessage.isEmpty()) {
         WuQMessageBox::errorOk(this,

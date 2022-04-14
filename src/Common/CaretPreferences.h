@@ -272,10 +272,6 @@ namespace caret {
         
         void setGraphicsFramesPerSecondEnabled(const bool status);
         
-        bool isCropSceneImagesEnabled() const;
-        
-        void setCropSceneImagesEnabled(const bool status);
-        
         DisplayHighDpiModeEnum::Enum getDisplayHighDpiMode() const;
         
         void setDisplayHighDpiMode(const DisplayHighDpiModeEnum::Enum highDpiMode);
@@ -436,8 +432,6 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_recentFilesSystemAccessMode;
         
         std::unique_ptr<CaretPreferenceDataValue> m_graphicsFramePerSecondEnabled;
-        
-        std::unique_ptr<CaretPreferenceDataValue> m_cropSceneImagesEnabled;
         
         std::unique_ptr<CaretPreferenceDataValue> m_cziDimension;
         

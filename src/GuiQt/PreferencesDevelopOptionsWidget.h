@@ -58,8 +58,6 @@ namespace caret {
         void developerFlagSelected(const DeveloperFlagsEnum::Enum flag,
                                    const bool status);
         
-        void cropSceneImagesStatusChanged(const bool status);
-                
         void obliqueVolumeInterpolationTypeComboBoxActivated();
         
         void obliqueVoxelScalingSpinBoxValueChanged(double value);
@@ -71,8 +69,6 @@ namespace caret {
         CaretPreferences* m_preferences = NULL;
         
         std::map<WuQTrueFalseComboBox*, DeveloperFlagsEnum::Enum> m_developerFlagsMap;
-        
-        WuQTrueFalseComboBox* m_cropSceneImagesComboBox;
         
         EnumComboBoxTemplate* m_obliqueVolumeInterpolationTypeComboBox = NULL;
         

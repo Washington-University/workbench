@@ -1570,8 +1570,10 @@ SceneDialog::replaceAllScenesPushButtonClicked()
             newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
                                                               "guiManager"));
             
+            const bool cropImageFlag(true);
             AString imageErrorMessage;
             SceneCreateReplaceDialog::addImageAndWorkbenchInfoToScene(newScene,
+                                                                      cropImageFlag,
                                                                       imageErrorMessage);
             if ( ! imageErrorMessage.isEmpty()) {
                 errorMessage.appendWithNewLine(imageErrorMessage);
@@ -1838,9 +1840,11 @@ SceneDialog::testScenesPushButtonClicked()
              * Always generate an image, even if the scene fails and failure may 
              * be a very minor error.
              */
+            const bool cropImageFlag(true);
             QImage image;
             AString imageErrorMessage;
             const bool validImage = SceneCreateReplaceDialog::createSceneImage(image,
+                                                                               cropImageFlag,
                                                                                imageErrorMessage);
             if (validImage) {
                 newImages.push_back(image.scaledToWidth(IMAGE_DISPLAY_WIDTH));

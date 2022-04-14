@@ -55,9 +55,11 @@ namespace caret {
                                     Scene* sceneToReplace);
         
         static void addImageAndWorkbenchInfoToScene(Scene* scene,
+                                                    const bool cropImageFlag,
                                                     AString& errorMessageOut);
 
         static bool createSceneImage(QImage& imageOut,
+                                     const bool cropImageFlag,
                                      AString& errorMessageOut);
         
         virtual ~SceneCreateReplaceDialog();
@@ -118,6 +120,8 @@ namespace caret {
         
         QCheckBox* m_addModifiedPaletteSettingsCheckBox;
         
+        QCheckBox* m_cropImageCheckBox;
+        
         AString m_sceneWindowDescription;
         
         struct PreviousSelections {
@@ -125,6 +129,7 @@ namespace caret {
             bool m_addAllTabs;
             bool m_addAllLoadedFiles;
             bool m_addModifiedPaletteSettings;
+            bool m_cropImage;
         };
         
         static PreviousSelections s_previousSelections;

@@ -95,27 +95,6 @@ PreferencesDevelopOptionsWidget::PreferencesDevelopOptionsWidget(QWidget* parent
     }
 
     /*
-     * Crop scene images
-     */
-    m_cropSceneImagesComboBox = new WuQTrueFalseComboBox("On",
-                                                         "Off",
-                                                         this);
-    QObject::connect(m_cropSceneImagesComboBox, &WuQTrueFalseComboBox::statusChanged,
-                     this, &PreferencesDevelopOptionsWidget::cropSceneImagesStatusChanged);
-    const AString cropSceneToolTip("Disabling of image cropping may be useful when "
-                                   "debugging scenes where the content occupies a "
-                                   "portion of the viewing region (data may be "
-                                   "panned/zoomed");
-    WuQtUtilities::setWordWrappedToolTip(m_cropSceneImagesComboBox->getWidget(),
-                                         cropSceneToolTip);
-    QLabel* cropSceneImagesLabel = PreferencesDialog::addWidgetToLayout(gridLayout,
-                                                                        "Crop Scene Images",
-                                                                        m_cropSceneImagesComboBox->getWidget());
-    WuQtUtilities::setWordWrappedToolTip(cropSceneImagesLabel,
-                                         cropSceneToolTip);
-
-
-    /*
      * Oblique voxel interpolation type
      */
     m_obliqueVolumeInterpolationTypeComboBox = new EnumComboBoxTemplate(this);
@@ -186,18 +165,6 @@ PreferencesDevelopOptionsWidget::updateGraphicsAndUserInterface()
 }
 
 /**
- * Called when crop scene image combo box changec
- * @param status
- *    New status
- */
-void
-PreferencesDevelopOptionsWidget::cropSceneImagesStatusChanged(const bool status)
-{
-    CaretAssert(m_preferences);
-    m_preferences->setCropSceneImagesEnabled(status);
-}
-
-/**
  * Update the widget
  * @param preferences
  *    The preferences
@@ -214,8 +181,6 @@ PreferencesDevelopOptionsWidget::updateContent(CaretPreferences* preferences)
         
         comboBox->setStatus(DeveloperFlagsEnum::isFlag(flag));
     }
-    
-    m_cropSceneImagesComboBox->setStatus(m_preferences->isCropSceneImagesEnabled());
     
     m_obliqueVolumeInterpolationTypeComboBox->setSelectedItem<VoxelInterpolationTypeEnum,VoxelInterpolationTypeEnum::Enum>(BrainOpenGLVolumeObliqueSliceDrawing::getVoxelInterpolationType());
     QSignalBlocker voxelScaleBlocker(m_obliqueVoxelScalingSpinBox);
