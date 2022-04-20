@@ -631,7 +631,16 @@ namespace caret {
                          * and exit loop
                          */
                         newDataFile->setFileName(versionFullName);
-                        newDataFile->setModified();
+                        if (newDataFile->supportsWriting()) {
+                            newDataFile->setModified();
+                        }
+                        else {
+                            /*
+                             * Cannot write file, so don't let name update
+                             * report file as modified
+                             */
+                            newDataFile->clearModified();
+                        }
                         done = true;
                     }
                 }
