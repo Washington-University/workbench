@@ -146,7 +146,12 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
     /*
      * All scenes CZI checkbox
      */
+    const QString allToolTipText("Display all frames (scenes in CZI files) in the selected file.  "
+                                 "When unchecked, the displayed frame (scene) is selected using the "
+                                 "Frame Index or Name controls.  Disable if image file contains one frame.");
     m_cziAllScenesCheckBox = new QCheckBox("");
+    m_cziAllScenesCheckBox->setObjectName(objectNamePrefix
+                                          + "AllFrames");
     switch (orientation) {
         case Qt::Horizontal:
             break;
@@ -154,19 +159,26 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
             m_cziAllScenesCheckBox->setText("All");
             break;
     }
+    WuQtUtilities::setWordWrappedToolTip(m_cziAllScenesCheckBox,
+                                         allToolTipText);
     QObject::connect(m_cziAllScenesCheckBox, &QCheckBox::clicked,
                      this, &MediaOverlayViewController::cziAllScenesCheckBoxClicked);
-    
+    macroManager->addMacroSupportToObject(m_cziAllScenesCheckBox,
+                                          ("Select " + descriptivePrefix + " all frames"));
+
     /*
      * Frame Index Spin Box
      */
+    m_indexNameToolTipText = ("Select frame (CZI scene) by its index/name.  "
+                              "Disabled when ALL is checked (viewing all frames) or if there is one frame in file.");
     m_frameIndexSpinBox = WuQFactory::newSpinBox();
     m_frameIndexSpinBox->setMinimumWidth(50);
     this->m_frameIndexSpinBox->setObjectName(objectNamePrefix
                                          + "FrameIndex");
     QObject::connect(m_frameIndexSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(frameIndexSpinBoxValueChanged(int)));
-    m_frameIndexSpinBox->setToolTip("Select frame by its index");
+    WuQtUtilities::setWordWrappedToolTip(m_frameIndexSpinBox,
+                                         m_indexNameToolTipText);
     macroManager->addMacroSupportToObject(m_frameIndexSpinBox,
                                           ("Select " + descriptivePrefix + " frame index"));
     
@@ -180,7 +192,8 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
     this->frameNameComboBox->setMaximumWidth(maxComboBoxWidth);
     QObject::connect(this->frameNameComboBox, SIGNAL(activated(int)),
                      this, SLOT(frameNameComboBoxSelected(int)));
-    this->frameNameComboBox->setToolTip("Select frame by its name");
+    WuQtUtilities::setWordWrappedToolTip(this->frameNameComboBox,
+                                         m_indexNameToolTipText);
     this->frameNameComboBox->setSizeAdjustPolicy(comboSizePolicy);
     macroManager->addMacroSupportToObject(this->frameNameComboBox,
                                           ("Select " + descriptivePrefix + " frame name"));
@@ -246,15 +259,14 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
     m_constructionToolButton->setDefaultAction(this->constructionAction);
     m_constructionToolButton->setPopupMode(QToolButton::InstantPopup);
     
-    const AString yokeToolTip =
-    ("Select a yoking group.\n"
-     "\n"
-     "When files with more than one frame are yoked,\n"
-     "the seleted frames are synchronized by frame index.\n"
-     "\n"
-     "If the SAME FILE is in yoked in multiple overlays,\n"
-     "the overlay enabled statuses are synchronized.\n");
-    
+    const AString yokeToolTip("Select a yoking group.\n"
+                              "\n"
+                              "When files with more than one frame are yoked,\n"
+                              "the seleted frames are synchronized by frame index.\n"
+                              "If the SAME FILE is in yoked in multiple overlays,\n"
+                              "the overlay enabled statuses are synchronized.\n"
+                              "This control is disabled if file contains one frame.");
+
     /*
      * Yoking Group
      * Note: macro support is in the class MapYokingGroupComboBox
@@ -264,7 +276,7 @@ MediaOverlayViewController::MediaOverlayViewController(const Qt::Orientation ori
                                                            + "FrameYokingSelection"),
                                                           descriptivePrefix);
     m_frameYokingGroupComboBox->getWidget()->setStatusTip("Synchronize enabled status and frame indices)");
-    m_frameYokingGroupComboBox->getWidget()->setToolTip("Yoke to Files");
+    m_frameYokingGroupComboBox->getWidget()->setToolTip(yokeToolTip);
     QObject::connect(m_frameYokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokingGroupActivated()));
 
@@ -572,6 +584,7 @@ MediaOverlayViewController::cziAllScenesCheckBoxClicked(bool checked)
     }
     
     m_mediaOverlay->setCziAllScenesSelected(checked);
+    updateViewController(m_mediaOverlay);
     this->updateGraphicsWindow();
 }
 
@@ -747,7 +760,7 @@ MediaOverlayViewController::updateViewController(MediaOverlay* overlay)
      * as names may be too long to fit into combo boxes
      */
     AString fileComboBoxToolTip("Select file for this overlay");
-    AString nameComboBoxToolTip("Select frame by its name");
+    AString nameComboBoxToolTip(m_indexNameToolTipText);
     if (selectionData.m_selectedMediaFile != NULL) {
         FileInformation fileInfo(selectionData.m_selectedMediaFile->getFileName());
         fileComboBoxToolTip.append(":\n"
@@ -757,18 +770,25 @@ MediaOverlayViewController::updateViewController(MediaOverlay* overlay)
                                    + "\n\n"
                                    + "Copy File Name/Path to Clipboard with Construction Menu");
         
-        nameComboBoxToolTip.append(":\n"
-                                   + this->frameNameComboBox->currentText());
+        const QString frameName(this->frameNameComboBox->currentText());
+        if (frameName.length() > 15) {
+            nameComboBoxToolTip.append(":\n"
+                                       + frameName);
+        }
     }
     this->fileComboBox->setToolTip(fileComboBoxToolTip);
-    this->frameNameComboBox->setToolTip(nameComboBoxToolTip);
+    WuQtUtilities::setWordWrappedToolTip(this->frameNameComboBox,
+                                         nameComboBoxToolTip);
 
     /*
      * Make sure items are enabled at the appropriate time
      */
+    const bool frameSelectionEnabled(haveMultipleFrames
+                                     && ( ! m_cziAllScenesCheckBox->isChecked()));
     this->fileComboBox->setEnabled(haveFile);
-    this->frameNameComboBox->setEnabled(haveFile);
-    this->m_frameIndexSpinBox->setEnabled(haveMultipleFrames);
+    this->frameNameComboBox->setEnabled(frameSelectionEnabled);
+    this->m_frameIndexSpinBox->setEnabled(frameSelectionEnabled);
+    this->m_cziAllScenesCheckBox->setEnabled(haveMultipleFrames);
     this->enabledCheckBox->setEnabled(haveFile);
     this->constructionAction->setEnabled(true);
     this->opacityDoubleSpinBox->setEnabled(haveOpacity);

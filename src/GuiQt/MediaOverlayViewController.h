@@ -162,6 +162,7 @@ namespace caret {
         
         WuQGridLayoutGroup* gridLayoutGroup;
         
+        QString m_indexNameToolTipText;
         
     friend class OverlaySetViewController;
         
