@@ -818,6 +818,18 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
     }
     
     /*
+     * If the application is terminating, we can ignore
+     * this close event.  If the user selects Exit from
+     * the file menu, it displays the exit dialog so we
+     * do not need to call GuiManager::allowBrainBrowserWindowToClose()
+     * below.  This prevents two exit dialogs from being displayed.
+     */
+    if (GuiManager::get()->isApplicationTerminating()) {
+        event->accept();
+        return;
+    }
+    
+    /*
      * The GuiManager may warn user about closing the 
      * window and the user may cancel closing of the window.
      */

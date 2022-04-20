@@ -1031,6 +1031,7 @@ bool
 GuiManager::exitProgram(BrainBrowserWindow* parent)
 {
     bool okToExit = false;
+    m_applicationIsTerminating = false;
     
     AString textMessage;
     AString modifiedFilesMessage;
@@ -1127,6 +1128,11 @@ GuiManager::exitProgram(BrainBrowserWindow* parent)
          */
         get()->getBrain()->resetBrain();
         
+        /*
+         * Confirm application terminating
+         */
+        m_applicationIsTerminating = true;
+        
         std::vector<BrainBrowserWindow*> bws = this->getAllOpenBrainBrowserWindows();
         for (int i = 0; i < static_cast<int>(bws.size()); i++) {
             bws[i]->deleteLater();
@@ -1136,6 +1142,17 @@ GuiManager::exitProgram(BrainBrowserWindow* parent)
     }    
     
     return okToExit;
+}
+
+/**
+ * @return True if the application is terminating and the user has
+ * confirmed this termination.  This status is set on the Exit Workbench
+ * dialog.  This is called by the closeEvent in BrainBrowserWindow.
+ */
+bool
+GuiManager::isApplicationTerminating() const
+{
+    return m_applicationIsTerminating;
 }
 
 /**

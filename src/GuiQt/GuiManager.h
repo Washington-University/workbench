@@ -116,6 +116,8 @@ namespace caret {
         
         bool exitProgram(BrainBrowserWindow* parent);
         
+        bool isApplicationTerminating() const;
+
         bool processShowOpenSpecFileDialog(SpecFile* specFile,
                                            BrainBrowserWindow* browserWindow);
         
@@ -369,6 +371,12 @@ namespace caret {
          * the data file is opened.
          */
         AString m_nameOfDataFileToOpenAfterStartup;
+        
+        /**
+         * Is true when the application is closing and all BrainBrowserWindows
+         * should ignore a close event.
+         */
+        bool m_applicationIsTerminating = false;
     };
     
 #ifdef __GUI_MANAGER_DEFINE__
