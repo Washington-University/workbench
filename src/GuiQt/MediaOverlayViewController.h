@@ -83,8 +83,6 @@ namespace caret {
                 
         void opacityDoubleSpinBoxValueChanged(double value);
         
-        void cziAllScenesCheckBoxClicked(bool checked);
-        
         void yokingGroupActivated();
         
         void menuAddOverlayAboveTriggered();
@@ -126,7 +124,7 @@ namespace caret {
         
         void resetUserView();
         
-        const int32_t browserWindowIndex;
+        const int32_t m_browserWindowIndex;
         
         const int32_t m_overlayIndex;
         
@@ -134,25 +132,23 @@ namespace caret {
         
         MediaOverlay* m_mediaOverlay;
         
-        QCheckBox* enabledCheckBox;
+        QCheckBox* m_enabledCheckBox;
         
-        QComboBox* fileComboBox;
+        QComboBox* m_fileComboBox;
         
-        QComboBox* frameNameComboBox;
+        QComboBox* m_frameNameComboBox;
         
         QSpinBox* m_frameIndexSpinBox;
         
-        QCheckBox* m_cziAllScenesCheckBox;
-        
-        QDoubleSpinBox* opacityDoubleSpinBox;
+        QDoubleSpinBox* m_opacityDoubleSpinBox;
         
         QToolButton* m_constructionToolButton;
         
-        QAction* constructionAction;
+        QAction* m_constructionAction;
 
         QToolButton* m_settingsToolButton;
         
-        QAction* settingsAction;
+        QAction* m_settingsAction;
         
         MapYokingGroupComboBox* m_frameYokingGroupComboBox;
         
@@ -160,12 +156,11 @@ namespace caret {
         
         QAction* m_copyPathAndFileNameToClipboardAction;
         
-        WuQGridLayoutGroup* gridLayoutGroup;
+        WuQGridLayoutGroup* m_gridLayoutGroup;
         
-        QString m_indexNameToolTipText;
-        
-    friend class OverlaySetViewController;
-        
+        QString m_nameToolTipText;
+
+        static constexpr int32_t s_ALL_FRAMES_IDENTIFIER = -1;
     };
     
 #ifdef __MEDIA_OVERLAY_VIEW_CONTROLLER_DECLARE__

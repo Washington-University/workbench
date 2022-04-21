@@ -78,6 +78,7 @@ namespace caret {
                           CziImageFile* selectedCziImageFile,
                           const int32_t selectedFrameIndex,
                           const AString selectedFrameName,
+                          const bool fileSupportsAllFramesFlag,
                           const bool allFramesSelectedFlag,
                           const CziImageResolutionChangeModeEnum::Enum cziResolutionChangeMode,
                           const int32_t cziManualPyramidLayerIndex,
@@ -91,12 +92,17 @@ namespace caret {
             m_selectedCziImageFile(selectedCziImageFile),
             m_selectedFrameIndex(selectedFrameIndex),
             m_selectedFrameName(selectedFrameName),
+            m_fileSupportsAllFramesFlag(fileSupportsAllFramesFlag),
             m_allFramesSelectedFlag(allFramesSelectedFlag),
             m_cziResolutionChangeMode(cziResolutionChangeMode),
             m_cziManualPyramidLayerIndex(cziManualPyramidLayerIndex),
             m_cziManualPyramidLayerMinimumValue(cziManualPyramidLayerMinimumValue),
             m_cziManualPyramidLayerMaximumValue(cziManualPyramidLayerMaximumValue)
-            { }
+            {
+                if ( ! m_fileSupportsAllFramesFlag) {
+                    m_allFramesSelectedFlag = false;
+                }
+            }
             
             int32_t m_tabIndex = -1;
             int32_t m_overlayIndex = -1;
@@ -105,6 +111,7 @@ namespace caret {
             CziImageFile* m_selectedCziImageFile = NULL;
             int32_t m_selectedFrameIndex = 0;
             AString m_selectedFrameName;
+            bool m_fileSupportsAllFramesFlag = false;
             bool m_allFramesSelectedFlag = false;
             
             CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
@@ -169,6 +176,8 @@ namespace caret {
         CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
 
         int32_t m_cziManualPyramidLayerIndex = 1;
+        
+        MediaFile* m_previousSelectedFile = NULL;
         
         /** helps with scene save/restore */
         SceneClassAssistant* m_sceneAssistant;

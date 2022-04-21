@@ -304,7 +304,6 @@ MediaOverlay::getSelectionData()
     EventManager::get()->sendEvent(mediaFilesEvent.getPointer());
     allFiles = mediaFilesEvent.getMediaFiles();
     
-    
     /*
      * Does selected data file no longer exist?
      */
@@ -346,17 +345,35 @@ MediaOverlay::getSelectionData()
         }
     }
     
+    CziImageFile* cziImageFile((m_selectedFile != NULL)
+                               ? m_selectedFile->castToCziImageFile()
+                               : NULL);
+    const int32_t numberOfFrames((m_selectedFile != NULL)
+                                 ? m_selectedFile->getNumberOfFrames()
+                                 : 0);
+    const bool fileSupportsAllFramesFlag((cziImageFile != NULL)
+                                         && (numberOfFrames > 1));
+    
+    if (m_selectedFile != NULL) {
+        if (m_selectedFile != m_previousSelectedFile) {
+            /*
+             * Selected file has changed.
+             * Set to first frame.
+             * Enable all frames if supported by file
+             */
+            m_selectedFrameIndex = 0;
+            m_allFramesSelectedFlag = fileSupportsAllFramesFlag;
+        }
+    }
+
     AString selectedFrameName;
     if (m_selectedFile != NULL) {
         if ((m_selectedFrameIndex >= 0)
-            && (m_selectedFrameIndex < m_selectedFile->getNumberOfFrames())) {
+            && (m_selectedFrameIndex < numberOfFrames)) {
             selectedFrameName = m_selectedFile->getFrameName(m_selectedFrameIndex);
         }
     }
     
-    CziImageFile* cziImageFile((m_selectedFile != NULL)
-                               ? m_selectedFile->castToCziImageFile()
-                               : NULL);
     
     int32_t cziManualPyramidLayerMinimumValue(0);
     int32_t cziManualPyramidLayerMaximumValue(0);
@@ -366,6 +383,7 @@ MediaOverlay::getSelectionData()
                                                    cziManualPyramidLayerMinimumValue,
                                                    cziManualPyramidLayerMaximumValue);
     }
+    
     SelectionData selectionDataOut(m_tabIndex,
                                    m_overlayIndex,
                                    allFiles,
@@ -373,11 +391,17 @@ MediaOverlay::getSelectionData()
                                    cziImageFile,
                                    m_selectedFrameIndex,
                                    selectedFrameName,
+                                   fileSupportsAllFramesFlag,
                                    m_allFramesSelectedFlag,
                                    m_cziResolutionChangeMode,
                                    m_cziManualPyramidLayerIndex,
                                    cziManualPyramidLayerMinimumValue,
                                    cziManualPyramidLayerMaximumValue);
+   
+    /*
+     * Needed to catch change of selected file in this function
+     */
+    m_previousSelectedFile = m_selectedFile;
     
     return selectionDataOut;
 }
