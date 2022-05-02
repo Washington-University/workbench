@@ -143,7 +143,10 @@ int64_t NiftiHeader::computeVoxOffset(const int& version) const
 
 bool NiftiHeader::getDataScaling(double& mult, double& offset) const
 {
-    if (m_header.datatype == NIFTI_TYPE_RGB24 || m_header.scl_slope == 0.0 || (m_header.scl_slope == 1.0 && m_header.scl_inter == 0.0))//the "if slope is zero" case is in the nifti spec
+    if (m_header.datatype == NIFTI_TYPE_RGB24 ||
+        m_header.scl_slope == 0.0 ||
+        (m_header.scl_slope == 1.0 && m_header.scl_inter == 0.0) ||
+        (!(MathFunctions::isNumeric(m_header.scl_slope) && MathFunctions::isNumeric(m_header.scl_inter))))//the RGB and "if slope is zero" cases are in the nifti spec
     {
         mult = 1.0;//in case someone ignores the boolean
         offset = 0.0;
@@ -539,6 +542,11 @@ namespace
             double mymin = mylimits::lowest();
             mult = (maxval - minval) / ((double)mylimits::max() - mymin);//multiplying is the first step of decoding (after byteswap), so start with the range
             offset = minval - mymin * mult;//offset is added after multiplying the encoded value by mult
+            if (!(MathFunctions::isNumeric(mult) && MathFunctions::isNumeric(offset)))
+            {//don't do something stupid to the header and values
+                mult = 1.0;
+                offset = 0.0;
+            }
         }
     };
 }
