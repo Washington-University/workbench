@@ -708,7 +708,7 @@ void CiftiXML::parseMatrixIndicesMap2(QXmlStreamReader& xml)
     } else if (type == QLatin1String("CIFTI_INDEX_TYPE_SERIES")) {
         toRead = CaretPointer<CiftiSeriesMap>(new CiftiSeriesMap());
     } else {
-        throw DataFileException("invalid value for IndicesMapToDataType in CIFTI-1: " + type.toString());
+        throw DataFileException("invalid value for IndicesMapToDataType in CIFTI-2: " + type.toString());
     }
     toRead->readXML2(xml);
     if (xml.hasError()) return;
