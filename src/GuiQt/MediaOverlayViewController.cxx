@@ -386,11 +386,6 @@ MediaOverlayViewController::fileComboBoxSelected(int indx)
     
     validateYokingSelection();
     
-    //validateYokingSelection(overlay->getYokingGroup());
-    // not needed with call to validateYokingSelection: updateViewController(overlay);
-    
-    // called inside validateYokingSelection();  updateUserInterfaceAndGraphicsWindow();
-
     updateOverlaySettingsEditor();
     updateViewController(m_mediaOverlay);
     
@@ -405,9 +400,7 @@ MediaOverlayViewController::fileComboBoxSelected(int indx)
 void
 MediaOverlayViewController::frameIndexSpinBoxValueChanged(int indx)
 {
-    if (m_mediaOverlay == NULL)
-    {
-        //TSC: not sure how to put the displayed integer back to 0 where it starts when opening without data files
+    if (m_mediaOverlay == NULL) {
         return;
     }
     
@@ -425,12 +418,13 @@ MediaOverlayViewController::frameIndexSpinBoxValueChanged(int indx)
     
     const MapYokingGroupEnum::Enum frameYoking = m_mediaOverlay->getMapYokingGroup();
     if (frameYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-//        EventMapYokingSelectMap selectMapEvent(frameYoking,
-//                                               file,
-//                                               NULL,
-//                                               overlayIndex,
-//                                               m_mediaOverlay->isEnabled());
-//        EventManager::get()->sendEvent(selectMapEvent.getPointer());
+        EventMapYokingSelectMap selectMapEvent(frameYoking,
+                                               NULL,
+                                               NULL,
+                                               selectionData.m_selectedMediaFile,
+                                               frameIndex,
+                                               m_mediaOverlay->isEnabled());
+        EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }
     
     updateViewController(m_mediaOverlay);
@@ -475,12 +469,13 @@ MediaOverlayViewController::frameNameComboBoxSelected(int itemIndex)
         
         const MapYokingGroupEnum::Enum frameYoking = m_mediaOverlay->getMapYokingGroup();
         if (frameYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-            //        EventMapYokingSelectMap selectMapEvent(frameYoking,
-            //                                               file,
-            //                                               NULL,
-            //                                               indx,
-            //                                               m_mediaOverlay->isEnabled());
-            //        EventManager::get()->sendEvent(selectMapEvent.getPointer());
+            EventMapYokingSelectMap selectMapEvent(frameYoking,
+                                                   NULL,
+                                                   NULL,
+                                                   selectionData.m_selectedMediaFile,
+                                                   frameIndex,
+                                                   m_mediaOverlay->isEnabled());
+            EventManager::get()->sendEvent(selectMapEvent.getPointer());
         }
     }
 
@@ -510,12 +505,13 @@ MediaOverlayViewController::enabledCheckBoxClicked(bool checked)
     if (frameYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
 
-//        EventMapYokingSelectMap selectMapEvent(frameYoking,
-//                                               myFile,
-//                                               NULL,
-//                                               myIndex,
-//                                               m_mediaOverlay->isEnabled());
-//        EventManager::get()->sendEvent(selectMapEvent.getPointer());
+        EventMapYokingSelectMap selectMapEvent(frameYoking,
+                                               NULL,
+                                               NULL,
+                                               selectionData.m_selectedMediaFile,
+                                               selectionData.m_selectedFrameIndex,
+                                               m_mediaOverlay->isEnabled());
+        EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }
     
     updateUserInterface();
@@ -547,7 +543,7 @@ MediaOverlayViewController::opacityDoubleSpinBoxValueChanged(double value)
 void
 MediaOverlayViewController::validateYokingSelection()
 {
-//    m_frameYokingGroupComboBox->validateYokingChange(m_mediaOverlay);
+    m_frameYokingGroupComboBox->validateYokingChange(m_mediaOverlay);
     updateViewController(m_mediaOverlay);
     updateGraphicsWindow();
 }
@@ -779,12 +775,13 @@ MediaOverlayViewController::updateUserInterfaceAndGraphicsWindow()
 void
 MediaOverlayViewController::updateUserInterface()
 {
-//    if (overlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-//        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//    }
-//    else {
-//        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).getPointer());
-//    }
+    if (m_frameYokingGroupComboBox->getWidget()->isEnabled()
+        && (m_frameYokingGroupComboBox->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF)) {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    }
+    else {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).getPointer());
+    }
 }
 
 /**
@@ -794,12 +791,13 @@ void
 MediaOverlayViewController::updateGraphicsWindow()
 {
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-//    if (overlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-//        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//    }
-//    else {
+    if (m_frameYokingGroupComboBox->getWidget()->isEnabled()
+        && (m_frameYokingGroupComboBox->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF)) {
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+    else {
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
-//    }
+    }
 }
 
 /**

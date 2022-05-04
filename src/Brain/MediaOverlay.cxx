@@ -366,14 +366,15 @@ MediaOverlay::getSelectionData()
         }
     }
 
+    bool supportsYokingFlag(false);
     AString selectedFrameName;
     if (m_selectedFile != NULL) {
         if ((m_selectedFrameIndex >= 0)
             && (m_selectedFrameIndex < numberOfFrames)) {
             selectedFrameName = m_selectedFile->getFrameName(m_selectedFrameIndex);
         }
+        supportsYokingFlag = (numberOfFrames > 1);
     }
-    
     
     int32_t cziManualPyramidLayerMinimumValue(0);
     int32_t cziManualPyramidLayerMaximumValue(0);
@@ -393,6 +394,7 @@ MediaOverlay::getSelectionData()
                                    selectedFrameName,
                                    fileSupportsAllFramesFlag,
                                    m_allFramesSelectedFlag,
+                                   supportsYokingFlag,
                                    m_cziResolutionChangeMode,
                                    m_cziManualPyramidLayerIndex,
                                    cziManualPyramidLayerMinimumValue,
@@ -520,11 +522,12 @@ MediaOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
-    /*
-     * Making a call to getSelectionData() to get the availble
-     * files
+    /**
+     * Get the data files.
      */
-    const SelectionData selectionData(getSelectionData());
+    EventMediaFilesGet mediaFilesEvent;
+    EventManager::get()->sendEvent(mediaFilesEvent.getPointer());
+    std::vector<MediaFile*> mediaFiles(mediaFilesEvent.getMediaFiles());
 
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
@@ -545,7 +548,7 @@ MediaOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Try to match with full path
      */
-    for (auto& dataFile : selectionData.m_mediaFiles) {
+    for (auto& dataFile : mediaFiles) {
         if (selectedFileNameWithPath == dataFile->getFileName()) {
             matchedFile = dataFile;
             break;
@@ -556,7 +559,7 @@ MediaOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
      * Match by name only
      */
     if (matchedFile == NULL) {
-        for (auto& dataFile : selectionData.m_mediaFiles) {
+        for (auto& dataFile : mediaFiles) {
             if (selectedFileName == dataFile->getFileName()) {
                 matchedFile = dataFile;
                 break;
@@ -567,14 +570,15 @@ MediaOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (matchedFile == NULL) {
         CaretLogWarning("Unable to restore image overlay file: "
                         + selectedFileName);
-        if ( ! selectionData.m_mediaFiles.empty()) {
-            CaretAssertVectorIndex(selectionData.m_mediaFiles, 0);
-            matchedFile = selectionData.m_mediaFiles[0];
+        if ( ! mediaFiles.empty()) {
+            CaretAssertVectorIndex(mediaFiles, 0);
+            matchedFile = mediaFiles[0];
         }
     }
     
     setSelectionData(matchedFile,
                      selectedFrameIndex);
+    m_previousSelectedFile = matchedFile;
 }
 
 

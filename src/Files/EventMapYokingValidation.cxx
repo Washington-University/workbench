@@ -32,6 +32,7 @@
 #include "EventBrowserTabIndicesGetAll.h"
 #include "EventManager.h"
 #include "EventTypeEnum.h"
+#include "MediaFile.h"
 
 using namespace caret;
 
@@ -103,9 +104,53 @@ EventMapYokingValidation::addMapYokedFile(const CaretMappableDataFile* caretMapF
         return;
     }
  
-    m_yokedFileInfo.insert(YokedFileInfo(NULL,
+    AnnotationTextSubstitutionFile* nullAnnTextSubsFile(NULL);
+    MediaFile* nullMediaFile(NULL);
+    m_yokedFileInfo.insert(YokedFileInfo(nullAnnTextSubsFile,
                                          caretMapFile,
+                                         nullMediaFile,
                                          tabIndex));
+}
+
+/**
+ * Add a media file, if it is yoked to the same yoking group, so that it
+ * may be used in the compatibility test.
+ *
+ * @param mediaFile
+ *     The media file.
+ * @param mapYokingGroup
+ *     Yoking group status of the file
+ * @param tabIndex
+ *     Index of tab in which the file is displayed.
+ */
+void
+EventMapYokingValidation::addMediaYokedFile(const MediaFile* mediaFile,
+                                            const MapYokingGroupEnum::Enum mapYokingGroup,
+                                            const int32_t tabIndex)
+{
+    CaretAssert(mediaFile);
+    
+    if (mapYokingGroup == MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    if (mapYokingGroup != m_mapYokingGroup) {
+        return;
+    }
+    
+    if (std::find(m_validTabIndices.begin(),
+                  m_validTabIndices.end(),
+                  tabIndex) == m_validTabIndices.end()) {
+        return;
+    }
+    
+    AnnotationTextSubstitutionFile* nullAnnTextSubsFile(NULL);
+    CaretMappableDataFile* nullMapFile(NULL);
+    m_yokedFileInfo.insert(YokedFileInfo(nullAnnTextSubsFile,
+                                         nullMapFile,
+                                         mediaFile,
+                                         tabIndex));
+
 }
 
 /**
@@ -131,8 +176,11 @@ EventMapYokingValidation::addAnnotationTextSubstitutionFile(const AnnotationText
         return;
     }
     
+    CaretMappableDataFile* nullMapFile(NULL);
+    MediaFile* nullMediaFile(NULL);
     m_yokedFileInfo.insert(YokedFileInfo(annTextSubFile,
-                                         NULL,
+                                         nullMapFile,
+                                         nullMediaFile,
                                          -1));
 }
 
@@ -168,8 +216,11 @@ EventMapYokingValidation::addMapYokedFileAllTabs(const CaretMappableDataFile* ca
             continue;
         }
         
-        m_yokedFileInfo.insert(YokedFileInfo(NULL,
+        AnnotationTextSubstitutionFile* nullAnnTextSubsFile(NULL);
+        MediaFile* nullMediaFile(NULL);
+        m_yokedFileInfo.insert(YokedFileInfo(nullAnnTextSubsFile,
                                              caretMapFile,
+                                             nullMediaFile,
                                              iTab));
     }
 }
@@ -190,6 +241,8 @@ EventMapYokingValidation::getMapYokingGroup() const
  *     The annotation text substitution file.
  * @param caretMapFile
  *     The map file.
+ * @param mediaFile
+ *     The media file
  * @param numberOfYokedFilesOut
  *     Number of files, excluding the given file, currently yoked 
  *     to this yoking group.
@@ -201,6 +254,7 @@ EventMapYokingValidation::getMapYokingGroup() const
 bool
 EventMapYokingValidation::validateCompatibility(const AnnotationTextSubstitutionFile* annTextSubFile,
                                                 const CaretMappableDataFile* caretMapFile,
+                                                const MediaFile* mediaFile,
                                                 int32_t& numberOfYokedFilesOut,
                                                 AString& messageOut) const
 {
@@ -221,6 +275,12 @@ EventMapYokingValidation::validateCompatibility(const AnnotationTextSubstitution
         numberOfMaps = caretMapFile->getNumberOfMaps();
         message = (AString::number(numberOfMaps)
                    + " maps in ");
+    }
+    else if (mediaFile != NULL) {
+        filename     = mediaFile->getFileName();
+        numberOfMaps = mediaFile->getNumberOfFrames();
+        message = (AString::number(numberOfMaps)
+                   + " frames in ");
     }
     else {
         CaretAssert(0);
@@ -257,14 +317,18 @@ EventMapYokingValidation::validateCompatibility(const AnnotationTextSubstitution
  *     The annotation text substitution file.
  * @param caretMapFile
  *     The map file.
+ * @param mediaFile
+ *     The media file
  * @param tabIndex
  *     Index of tab in which the file is displayed.
  */
 EventMapYokingValidation::YokedFileInfo::YokedFileInfo(const AnnotationTextSubstitutionFile* annTextSubFile,
                                                        const CaretMappableDataFile* caretMapFile,
+                                                       const MediaFile* mediaFile,
                                                        const int32_t tabIndex)
 : m_annTextSubFile(annTextSubFile),
 m_mapFile(caretMapFile),
+m_mediaFile(mediaFile),
 m_tabIndex(tabIndex)
 {
     if (m_annTextSubFile != NULL) {
@@ -282,6 +346,14 @@ m_tabIndex(tabIndex)
                       + AString::number(tabIndex + 1)
                       + " file: "
                       + caretMapFile->getFileNameNoPath());
+    }
+    else if (m_mediaFile != NULL) {
+        m_numberOfMaps = m_mediaFile->getNumberOfFrames();
+        m_infoText = (AString::number(m_numberOfMaps)
+                      + " maps in tab "
+                      + AString::number(tabIndex + 1)
+                      + " file: "
+                      + m_mediaFile->getFileNameNoPath());
     }
     else {
         CaretAssert(0);

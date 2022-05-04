@@ -244,9 +244,12 @@ AnnotationTextSubstitutionViewController::valueIndexSpinBoxChanged(int32_t fileI
                                     - spinBox->minimum());
         MapYokingGroupEnum::Enum mapYoking = textSubFile->getMapYokingGroup();
         if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+            CaretMappableDataFile* nullMapFile(NULL);
+            MediaFile* nullMediaFile(NULL);
             EventMapYokingSelectMap selectMapEvent(mapYoking,
-                                                   NULL,
+                                                   nullMapFile,
                                                    textSubFile,
+                                                   nullMediaFile,
                                                    valueIndex,
                                                    true);
             EventManager::get()->sendEvent(selectMapEvent.getPointer());

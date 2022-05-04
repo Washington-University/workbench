@@ -3443,9 +3443,12 @@ GuiManager::processIdentification(const int32_t tabIndex,
                         const MapYokingGroupEnum::Enum mapYoking = scalarDataSeriesFile->getMatrixRowColumnMapYokingGroup(tabIndex);
                         
                         if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                            AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+                            MediaFile* nullMediaFile(NULL);
                             EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                                    scalarDataSeriesFile,
-                                                                   NULL,
+                                                                   nullAnnTextFile,
+                                                                   nullMediaFile,
                                                                    rowIndex,
                                                                    true);
                             EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -3526,9 +3529,12 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                                              rowColumnIndex);
                             const MapYokingGroupEnum::Enum mapYoking = chartOverlayContainingDataFile->getMapYokingGroup();
                             if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                                AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+                                MediaFile* nullMediaFile(NULL);
                                     EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                                            cmdf,
-                                                                           NULL,
+                                                                           nullAnnTextFile,
+                                                                           nullMediaFile,
                                                                            rowColumnIndex,
                                                                            true);
                                     EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -3601,9 +3607,12 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                     const MapYokingGroupEnum::Enum mapYoking = scalarDataSeriesFile->getMatrixRowColumnMapYokingGroup(tabIndex);
                                     
                                     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+                                        AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+                                        MediaFile* nullMediaFile(NULL);
                                         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                                                scalarDataSeriesFile,
-                                                                               NULL,
+                                                                               nullAnnTextFile,
+                                                                               nullMediaFile,
                                                                                rowIndex,
                                                                                true);
                                         EventManager::get()->sendEvent(selectMapEvent.getPointer());

@@ -527,9 +527,12 @@ ChartTwoOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indxIn
     
     const MapYokingGroupEnum::Enum mapYoking = m_chartOverlay->getMapYokingGroup();
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+        MediaFile* nullMediaFile(NULL);
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
-                                               NULL,
+                                               nullAnnTextFile,
+                                               nullMediaFile,
                                                indx,
                                                m_chartOverlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -580,9 +583,12 @@ ChartTwoOverlayViewController::mapRowOrColumnNameComboBoxSelected(int indx)
     
     const MapYokingGroupEnum::Enum mapYoking = m_chartOverlay->getMapYokingGroup();
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+        MediaFile* nullMediaFile(NULL);
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
-                                               NULL,
+                                               nullAnnTextFile,
+                                               nullMediaFile,
                                                indx,
                                                m_chartOverlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -632,9 +638,12 @@ ChartTwoOverlayViewController::enabledCheckBoxClicked(bool checked)
                                          selectedIndex);
         
         if (selectedIndexType == ChartTwoOverlay::SelectedIndexType::MAP) {
+            AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+            MediaFile* nullMediaFile(NULL);
             EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                    mapFile,
-                                                   NULL,
+                                                   nullAnnTextFile,
+                                                   nullMediaFile,
                                                    selectedIndex,
                                                    m_chartOverlay->isEnabled());
             EventManager::get()->sendEvent(selectMapEvent.getPointer());

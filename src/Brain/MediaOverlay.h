@@ -80,6 +80,7 @@ namespace caret {
                           const AString selectedFrameName,
                           const bool fileSupportsAllFramesFlag,
                           const bool allFramesSelectedFlag,
+                          const bool supportsYokingFlag,
                           const CziImageResolutionChangeModeEnum::Enum cziResolutionChangeMode,
                           const int32_t cziManualPyramidLayerIndex,
                           const int32_t cziManualPyramidLayerMinimumValue,
@@ -94,6 +95,7 @@ namespace caret {
             m_selectedFrameName(selectedFrameName),
             m_fileSupportsAllFramesFlag(fileSupportsAllFramesFlag),
             m_allFramesSelectedFlag(allFramesSelectedFlag),
+            m_supportsYokingFlag(supportsYokingFlag),
             m_cziResolutionChangeMode(cziResolutionChangeMode),
             m_cziManualPyramidLayerIndex(cziManualPyramidLayerIndex),
             m_cziManualPyramidLayerMinimumValue(cziManualPyramidLayerMinimumValue),
@@ -113,6 +115,7 @@ namespace caret {
             AString m_selectedFrameName;
             bool m_fileSupportsAllFramesFlag = false;
             bool m_allFramesSelectedFlag = false;
+            bool m_supportsYokingFlag = false;
             
             CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
             int32_t m_cziManualPyramidLayerIndex = 0;

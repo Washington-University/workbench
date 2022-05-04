@@ -360,6 +360,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         EventMapYokingSelectMap yokeEvent(mapYokingGroup,
                                           NULL,
                                           NULL,
+                                          NULL,
                                           mapYokingMapIndex,
                                           true);
         EventManager::get()->sendEvent(yokeEvent.getPointer());

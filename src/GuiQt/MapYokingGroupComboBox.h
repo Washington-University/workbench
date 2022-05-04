@@ -31,6 +31,8 @@ namespace caret {
     class ChartTwoOverlay;
     class ChartableMatrixSeriesInterface;
     class EnumComboBoxTemplate;
+    class MediaFile;
+    class MediaOverlay;
     class Overlay;
     
     class MapYokingGroupComboBox : public WuQWidget {
@@ -58,6 +60,8 @@ namespace caret {
         
         void validateYokingChange(ChartTwoOverlay* chartOverlay);
         
+        void validateYokingChange(MediaOverlay* mediaOverlay);
+        
         void validateYokingChange(AnnotationTextSubstitutionFile* annTextSubFile);
         
         // ADD_NEW_METHODS_HERE
@@ -78,8 +82,9 @@ namespace caret {
 
         MapYokingGroupComboBox& operator=(const MapYokingGroupComboBox&);
         
-        YokeValidationResult validateYoking(AnnotationTextSubstitutionFile* annTextSubFile,
-                                            CaretMappableDataFile* selectedFile,
+        YokeValidationResult validateYoking(AnnotationTextSubstitutionFile* selectedAnnTextSubFile,
+                                            CaretMappableDataFile* selectedMapFile,
+                                            MediaFile* selectedMediaFile,
                                             int32_t& selectedMapIndexInOut,
                                             bool& selectionStatusInOut);
         

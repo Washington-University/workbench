@@ -32,6 +32,8 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
 #include "EventMapYokingValidation.h"
+#include "MediaFile.h"
+#include "MediaOverlay.h"
 #include "Overlay.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
@@ -54,19 +56,6 @@ MapYokingGroupComboBox::MapYokingGroupComboBox(QObject* parent)
                          "")
 {
 }
-//: WuQWidget(parent)
-//{
-//    m_comboBox = new EnumComboBoxTemplate(this);
-//    m_comboBox->setup<MapYokingGroupEnum, MapYokingGroupEnum::Enum>();
-//    m_comboBox->getWidget()->setStatusTip("Synchronize selected map indices (and selection status for overlays)");
-//    m_comboBox->getWidget()->setToolTip("Synchronize selected map indices (and selection status for overlays)");
-//#ifdef CARET_OS_MACOSX
-//    m_comboBox->getComboBox()->setFixedWidth(m_comboBox->getComboBox()->sizeHint().width() - 20);
-//#endif // CARET_OS_MACOSX
-//    QObject::connect(m_comboBox, SIGNAL(itemActivated()),
-//                     this, SLOT(comboBoxActivated()));
-//    WuQObject::watchObjectForMacroRecording(m_comboBox);
-//}
 
 /**
  * Constructor.
@@ -88,9 +77,7 @@ MapYokingGroupComboBox::MapYokingGroupComboBox(QObject* parent,
     m_comboBox->getWidget()->setStatusTip("Synchronize selected map indices (and selection status for overlays)");
     m_comboBox->getWidget()->setToolTip("Synchronize selected map indices (and selection status for overlays)");
     m_comboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-#ifdef CARET_OS_MACOSX
-//    m_comboBox->getComboBox()->setFixedWidth(m_comboBox->getComboBox()->sizeHint().width() - 20);
-#endif // CARET_OS_MACOSX
+
     QObject::connect(m_comboBox, SIGNAL(itemActivated()),
                      this, SLOT(comboBoxActivated()));
     if ( ! objectName.isEmpty()) {
@@ -116,8 +103,6 @@ void
 MapYokingGroupComboBox::comboBoxActivated()
 {
     emit itemActivated();
-//    MapYokingGroupEnum::Enum mapYokingGroup = getMapYokingGroup();
-//    EventMapYokingValidation validateEvent(mapYokingGroup);
 }
 
 /**
@@ -172,8 +157,11 @@ MapYokingGroupComboBox::validateYokingChange(ChartableMatrixSeriesInterface* cha
         
         if ((mapFile != NULL)
             && (mapIndex >= 0)) {
-            const YokeValidationResult result = validateYoking(NULL,
+            AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
+            MediaFile* nullMediaFile(NULL);
+            const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
                                                                mapFile,
+                                                               nullMediaFile,
                                                                mapIndex,
                                                                selectionStatus);
             
@@ -212,8 +200,11 @@ MapYokingGroupComboBox::validateYokingChange(AnnotationTextSubstitutionFile* ann
     int32_t mapIndex = annTextSubFile->getSelectedValueIndex();
     bool selectionStatus = true;
     
+    CaretMappableDataFile* nullMapFile(NULL);
+    MediaFile* nullMediaFile(NULL);
         const YokeValidationResult result = validateYoking(annTextSubFile,
-                                                           NULL,
+                                                           nullMapFile,
+                                                           nullMediaFile,
                                                            mapIndex,
                                                            selectionStatus);
         
@@ -252,8 +243,11 @@ MapYokingGroupComboBox::validateYokingChange(Overlay* overlay)
     
     if ((mapFile != NULL)
         && (mapIndex >= 0)) {
-        const YokeValidationResult result = validateYoking(NULL,
+        AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
+        MediaFile* nullMediaFile(NULL);
+        const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
                                                            mapFile,
+                                                           nullMediaFile,
                                                      mapIndex,
                                                      selectionStatus);
         
@@ -302,8 +296,11 @@ MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
                 selectedIndex = 0;
             }
         }
-        const YokeValidationResult result = validateYoking(NULL,
+        AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
+        MediaFile* nullMediaFile(NULL);
+                const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
                                                            mapFile,
+                                                           nullMediaFile,
                                                            selectedIndex,
                                                            selectionStatus);
         
@@ -327,12 +324,66 @@ MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
 }
 
 /**
+ * Validate a change in yoking for a media overlay.
+ *
+ * @param mediaOverlay
+ *    Media overlay whose yoking changes.
+ */
+void
+MapYokingGroupComboBox::validateYokingChange(MediaOverlay* mediaOverlay)
+{
+    const MapYokingGroupEnum::Enum previousMapYokingGroup = mediaOverlay->getMapYokingGroup();
+    const MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
+
+    MediaOverlay::SelectionData selectionData(mediaOverlay->getSelectionData());
+    
+    MediaFile* mediaFile(selectionData.m_selectedMediaFile);
+    int32_t selectedIndex(selectionData.m_selectedFrameIndex);
+    bool selectionStatus = mediaOverlay->isEnabled();
+    
+    if ((mediaFile != NULL)
+        && selectionData.m_supportsYokingFlag) {
+        if (mediaFile->getNumberOfFrames() > 0) {
+            if (selectedIndex < 0) {
+                selectedIndex = 0;
+            }
+        }
+        AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
+        CaretMappableDataFile* nullMapFile(NULL);
+        const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
+                                                           nullMapFile,
+                                                           mediaFile,
+                                                           selectedIndex,
+                                                           selectionStatus);
+        
+        switch (result) {
+            case YOKE_VALIDATE_RESULT_ACCEPT:
+                mediaOverlay->setEnabled(selectionStatus);
+                mediaOverlay->setSelectionData(mediaFile,
+                                               selectedIndex);
+                mediaOverlay->setMapYokingGroup(newYokingGroup);
+                break;
+            case YOKE_VALIDATE_RESULT_OFF:
+                mediaOverlay->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
+                break;
+            case YOKE_VALIDATE_RESULT_PREVIOUS:
+                mediaOverlay->setMapYokingGroup(previousMapYokingGroup);
+                break;
+        }
+        
+        setMapYokingGroup(mediaOverlay->getMapYokingGroup());
+    }
+}
+
+/**
  * Validate yoking when a new file is added to a yoking group.
  *
- * @param annTextSubFile
+ * @param selectedAnnTextSubFile
  *     The annotation text substitution file.
- * @param mapFile
- *     The file that the user would like to yoke.
+ * @param selectedMapFile
+ *     The map file that the user would like to yoke.
+ * @param selectedMediaFile
+ *     The selected media file
  * @param selectedMapIndexInOut
  *     The current map selected for the file.  Its value will be updated
  *     if yoking is selected (turned on or changed).
@@ -341,15 +392,17 @@ MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
  *     if yoking is selected (turned on or changed).
  */
 MapYokingGroupComboBox::YokeValidationResult
-MapYokingGroupComboBox::validateYoking(AnnotationTextSubstitutionFile* annTextSubFile,
-                                       CaretMappableDataFile* mapFile,
+MapYokingGroupComboBox::validateYoking(AnnotationTextSubstitutionFile* selectedAnnTextSubFile,
+                                       CaretMappableDataFile* selectedMapFile,
+                                       MediaFile* selectedMediaFile,
                                        int32_t& selectedMapIndexInOut,
                                        bool& /* selectionStatusInOut */)
 {
     YokeValidationResult yokeResult = YOKE_VALIDATE_RESULT_OFF; //YOKE_VALIDATE_RESULT_PREVIOUS;
     
-    const bool validFileFlag = ((annTextSubFile != NULL)
-                                || (mapFile != NULL));
+    const bool validFileFlag = ((selectedAnnTextSubFile != NULL)
+                                || (selectedMapFile != NULL)
+                                || (selectedMediaFile != NULL));
     MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
     if (newYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         if (validFileFlag
@@ -366,8 +419,9 @@ MapYokingGroupComboBox::validateYoking(AnnotationTextSubstitutionFile* annTextSu
              */
             int32_t numberOfYokedFiles = 0;
             AString message;
-            if (validateEvent.validateCompatibility(annTextSubFile,
-                                                    mapFile,
+            if (validateEvent.validateCompatibility(selectedAnnTextSubFile,
+                                                    selectedMapFile,
+                                                    selectedMediaFile,
                                                     numberOfYokedFiles,
                                                     message)) {
                 yokeResult = YOKE_VALIDATE_RESULT_ACCEPT;

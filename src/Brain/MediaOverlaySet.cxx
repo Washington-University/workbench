@@ -32,6 +32,8 @@
 #include "ImageFile.h"
 #include "MediaFile.h"
 #include "EventManager.h"
+#include "EventMapYokingSelectMap.h"
+#include "EventMapYokingValidation.h"
 #include "MediaOverlay.h"
 #include "ModelMedia.h"
 #include "PlainTextStringBuilder.h"
@@ -595,7 +597,77 @@ MediaOverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
  *    An event for which this instance is listening.
  */
 void
-MediaOverlaySet::receiveEvent(Event* /*event*/)
+MediaOverlaySet::receiveEvent(Event* event)
 {
-
+    if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_VALIDATION) {
+        /*
+         * The events intended for overlays are received here so that
+         * only DISPLAYED overlays are updated.
+         */
+        EventMapYokingValidation* mapYokeEvent = dynamic_cast<EventMapYokingValidation*>(event);
+        CaretAssert(mapYokeEvent);
+        
+        const MapYokingGroupEnum::Enum requestedYokingGroup = mapYokeEvent->getMapYokingGroup();
+        if (requestedYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+            
+            /*
+             * Find all overlays with the requested yoking
+             */
+            const int32_t overlayCount = getNumberOfDisplayedOverlays();
+            for (int32_t j = 0; j < overlayCount; j++) {
+                MediaOverlay* overlay = getOverlay(j);
+                
+                MediaOverlay::SelectionData selectionData(overlay->getSelectionData());
+                if (selectionData.m_selectedMediaFile != NULL) {
+                    mapYokeEvent->addMediaYokedFile(selectionData.m_selectedMediaFile,
+                                                    overlay->getMapYokingGroup(),
+                                                    m_tabIndex);
+                }
+            }
+        }
+        
+        mapYokeEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP) {
+        /*
+         * The events intended for overlays are received here so that
+         * only DISPLAYED overlays are updated.
+         */
+        EventMapYokingSelectMap* selectMapEvent = dynamic_cast<EventMapYokingSelectMap*>(event);
+        CaretAssert(selectMapEvent);
+        const MapYokingGroupEnum::Enum eventYokingGroup = selectMapEvent->getMapYokingGroup();
+        if (eventYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+            const int32_t yokingGroupMapIndex = MapYokingGroupEnum::getSelectedMapIndex(eventYokingGroup);
+            const bool yokingGroupSelectedStatus = MapYokingGroupEnum::isEnabled(eventYokingGroup);
+            const MediaFile* eventMediaFile = selectMapEvent->getMediaFile();
+            
+            /*
+             * Find all overlays with the requested yoking
+             */
+            const int32_t overlayCount = getNumberOfDisplayedOverlays();
+            for (int32_t j = 0; j < overlayCount; j++) {
+                MediaOverlay* mediaOverlay = getOverlay(j);
+                
+                if (mediaOverlay->getMapYokingGroup() == selectMapEvent->getMapYokingGroup()) {
+                    MediaOverlay::SelectionData selectionData(mediaOverlay->getSelectionData());
+                    
+                    if (selectionData.m_selectedMediaFile != NULL) {
+                        if (yokingGroupMapIndex < selectionData.m_selectedMediaFile->getNumberOfFrames()) {
+                            mediaOverlay->setSelectionData(selectionData.m_selectedMediaFile,
+                                                           yokingGroupMapIndex);
+                        }
+                        
+                        if (selectionData.m_selectedMediaFile == eventMediaFile) {
+                            /* only alter status if event was sent by mappable file */
+                            if (selectMapEvent->getMediaFile() != NULL) {
+                                mediaOverlay->setEnabled(yokingGroupSelectedStatus);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            selectMapEvent->setEventProcessed();
+        }
+    }
 }

@@ -98,12 +98,12 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     m_constructionReloadFileAction = NULL;
     
     int minComboBoxWidth = 200;
-    int maxComboBoxWidth = 100000; //400;
+    int maxComboBoxWidth = 100000;
     if (orientation == Qt::Horizontal) {
         minComboBoxWidth = 50;
         maxComboBoxWidth = 100000;
     }
-    const QComboBox::SizeAdjustPolicy comboSizePolicy = QComboBox::AdjustToContentsOnFirstShow; //QComboBox::AdjustToContents;
+    const QComboBox::SizeAdjustPolicy comboSizePolicy = QComboBox::AdjustToContentsOnFirstShow;
 
     WuQMacroManager* macroManager = WuQMacroManager::instance();
     CaretAssert(macroManager);
@@ -196,25 +196,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                         + "ShowColorBar");
     macroManager->addMacroSupportToObject(m_colorBarToolButton,
                                           ("Enable " + descriptivePrefix + " colorbar"));
-    
-//    /*
-//     * ColorBar Tool Button
-//     */
-//    QIcon colorBarIcon;
-//    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/LayersPanel/colorbar.png",
-//                                                           colorBarIcon);
-//    this->colorBarAction = WuQtUtilities::createAction("CB", 
-//                                                       "Display color bar for this overlay", 
-//                                                       this, 
-//                                                       this, 
-//                                                       SLOT(colorBarActionTriggered(bool)));
-//    this->colorBarAction->setCheckable(true);
-//    if (colorBarIconValid) {
-//        this->colorBarAction->setIcon(colorBarIcon);
-//    }
-//    QToolButton* colorBarToolButton = new QToolButton();
-//    colorBarToolButton->setDefaultAction(this->colorBarAction);
-    
+        
     /*
      * Settings Tool Button
      */
@@ -294,7 +276,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         this->gridLayoutGroup->addWidget(settingsToolButton,
                                          row, 1,
                                          Qt::AlignHCenter);
-        this->gridLayoutGroup->addWidget(m_colorBarToolButton, //colorBarToolButton,
+        this->gridLayoutGroup->addWidget(m_colorBarToolButton,
                                          row, 2);
         this->gridLayoutGroup->addWidget(m_constructionToolButton,
                                          row, 3);
@@ -325,7 +307,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                          row, 0);
         this->gridLayoutGroup->addWidget(settingsToolButton,
                                          row, 1);
-        this->gridLayoutGroup->addWidget(m_colorBarToolButton, //colorBarToolButton,
+        this->gridLayoutGroup->addWidget(m_colorBarToolButton,
                                          row, 2);
         this->gridLayoutGroup->addWidget(m_constructionToolButton,
                                          row, 3);
@@ -416,11 +398,6 @@ OverlayViewController::fileComboBoxSelected(int indx)
     
     validateYokingSelection();
     
-    //validateYokingSelection(overlay->getYokingGroup());
-    // not needed with call to validateYokingSelection: this->updateViewController(this->overlay);
-    
-    // called inside validateYokingSelection();  this->updateUserInterfaceAndGraphicsWindow();
-
     updateOverlaySettingsEditor();
     updateViewController(this->overlay);
     
@@ -465,9 +442,12 @@ OverlayViewController::mapIndexSpinBoxValueChanged(int indx)
     
     const MapYokingGroupEnum::Enum mapYoking = overlay->getMapYokingGroup();
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        AnnotationTextSubstitutionFile* nullAnnTextSubsFile(NULL);
+        MediaFile* nullMediaFile(NULL);
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
-                                               NULL,
+                                               nullAnnTextSubsFile,
+                                               nullMediaFile,
                                                overlayIndex,
                                                overlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -512,9 +492,12 @@ OverlayViewController::mapNameComboBoxSelected(int indx)
     
     const MapYokingGroupEnum::Enum mapYoking = overlay->getMapYokingGroup();
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        AnnotationTextSubstitutionFile* nullAnnTextSubsFile(NULL);
+        MediaFile* nullMediaFile(NULL);
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
-                                               NULL,
+                                               nullAnnTextSubsFile,
+                                               nullMediaFile,
                                                indx,
                                                overlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -554,9 +537,12 @@ OverlayViewController::enabledCheckBoxClicked(bool checked)
         this->overlay->getSelectionData(myFile,
                                         myIndex);
         
+        AnnotationTextSubstitutionFile* nullAnnTextSubsFile(NULL);
+        MediaFile* nullMediaFile(NULL);
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                myFile,
-                                               NULL,
+                                               nullAnnTextSubsFile,
+                                               nullMediaFile,
                                                myIndex,
                                                overlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -610,7 +596,6 @@ OverlayViewController::validateYokingSelection()
     m_mapYokingGroupComboBox->validateYokingChange(this->overlay);
     updateViewController(this->overlay);
     updateGraphicsWindow();
-    //EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -672,12 +657,10 @@ OverlayViewController::updateViewController(Overlay* overlay)
      */
     std::vector<CaretMappableDataFile*> dataFiles;
     CaretMappableDataFile* selectedFile = NULL;
-    //AString selectedMapUniqueID = "";
     int32_t selectedMapIndex = -1;
     if (this->overlay != NULL) {
         this->overlay->getSelectionData(dataFiles, 
                                   selectedFile, 
-                                  //selectedMapUniqueID,
                                   selectedMapIndex);
     }
     
@@ -745,9 +728,6 @@ OverlayViewController::updateViewController(Overlay* overlay)
     m_mapYokingGroupComboBox->setMapYokingGroup(overlay->getMapYokingGroup());
     
     m_colorBarToolButton->setChecked(overlay->getColorBar()->isDisplayed());
-//    this->colorBarAction->blockSignals(true);
-//    this->colorBarAction->setChecked(overlay->getColorBar()->isDisplayed());
-//    this->colorBarAction->blockSignals(false);
     
     this->opacityDoubleSpinBox->blockSignals(true);
     this->opacityDoubleSpinBox->setValue(overlay->getOpacity());
@@ -816,7 +796,6 @@ OverlayViewController::updateViewController(Overlay* overlay)
     this->constructionAction->setEnabled(true);
     this->opacityDoubleSpinBox->setEnabled(haveOpacity);
     this->m_mapYokingGroupComboBox->getWidget()->setEnabled(haveYoking);
-    //this->colorBarAction->setEnabled(dataIsMappedWithPalette);
     this->m_colorBarToolButton->setEnabled(dataIsMappedWithPalette);
     this->settingsAction->setEnabled(true);
 }
