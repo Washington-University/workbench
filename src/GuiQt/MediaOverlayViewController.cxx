@@ -416,6 +416,11 @@ MediaOverlayViewController::frameIndexSpinBoxValueChanged(int indx)
     m_mediaOverlay->setSelectionData(selectionData.m_selectedMediaFile,
                                      frameIndex);
     
+    /*
+     * Selecting index implies All Frames is OFF
+     */
+    const MapYokingGroupEnum::MediaAllFramesStatus mediaAllFramesStatus(MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF);
+
     const MapYokingGroupEnum::Enum frameYoking = m_mediaOverlay->getMapYokingGroup();
     if (frameYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventMapYokingSelectMap selectMapEvent(frameYoking,
@@ -423,6 +428,7 @@ MediaOverlayViewController::frameIndexSpinBoxValueChanged(int indx)
                                                NULL,
                                                selectionData.m_selectedMediaFile,
                                                frameIndex,
+                                               mediaAllFramesStatus,
                                                m_mediaOverlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }
@@ -457,14 +463,17 @@ MediaOverlayViewController::frameNameComboBoxSelected(int itemIndex)
      */
     if ((itemIndex >= 0)
         && (itemIndex < m_frameNameComboBox->count())) {
+        MapYokingGroupEnum::MediaAllFramesStatus mediaAllFramesStatus(MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_NO_CHANGE);
         const int32_t frameIndex = m_frameNameComboBox->itemData(itemIndex).toInt();
         if (frameIndex == s_ALL_FRAMES_IDENTIFIER) {
             m_mediaOverlay->setCziAllScenesSelected(true);
+            mediaAllFramesStatus = MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_ON;
         }
         else {
             m_mediaOverlay->setCziAllScenesSelected(false);
             m_mediaOverlay->setSelectionData(selectionData.m_selectedMediaFile,
                                              frameIndex);
+            mediaAllFramesStatus = MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF;
         }
         
         const MapYokingGroupEnum::Enum frameYoking = m_mediaOverlay->getMapYokingGroup();
@@ -474,6 +483,7 @@ MediaOverlayViewController::frameNameComboBoxSelected(int itemIndex)
                                                    NULL,
                                                    selectionData.m_selectedMediaFile,
                                                    frameIndex,
+                                                   mediaAllFramesStatus,
                                                    m_mediaOverlay->isEnabled());
             EventManager::get()->sendEvent(selectMapEvent.getPointer());
         }
@@ -505,11 +515,13 @@ MediaOverlayViewController::enabledCheckBoxClicked(bool checked)
     if (frameYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
 
+        const MapYokingGroupEnum::MediaAllFramesStatus mediaAllFramesStatus(MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_NO_CHANGE);
         EventMapYokingSelectMap selectMapEvent(frameYoking,
                                                NULL,
                                                NULL,
                                                selectionData.m_selectedMediaFile,
                                                selectionData.m_selectedFrameIndex,
+                                               mediaAllFramesStatus,
                                                m_mediaOverlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }

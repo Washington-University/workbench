@@ -534,6 +534,7 @@ ChartTwoOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indxIn
                                                nullAnnTextFile,
                                                nullMediaFile,
                                                indx,
+                                               MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                                m_chartOverlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }
@@ -590,6 +591,7 @@ ChartTwoOverlayViewController::mapRowOrColumnNameComboBoxSelected(int indx)
                                                nullAnnTextFile,
                                                nullMediaFile,
                                                indx,
+                                               MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                                m_chartOverlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }
@@ -645,6 +647,7 @@ ChartTwoOverlayViewController::enabledCheckBoxClicked(bool checked)
                                                    nullAnnTextFile,
                                                    nullMediaFile,
                                                    selectedIndex,
+                                                   MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                                    m_chartOverlay->isEnabled());
             EventManager::get()->sendEvent(selectMapEvent.getPointer());
         }

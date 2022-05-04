@@ -251,6 +251,7 @@ AnnotationTextSubstitutionViewController::valueIndexSpinBoxChanged(int32_t fileI
                                                    textSubFile,
                                                    nullMediaFile,
                                                    valueIndex,
+                                                   MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                                    true);
             EventManager::get()->sendEvent(selectMapEvent.getPointer());
         }

@@ -640,6 +640,7 @@ MediaOverlaySet::receiveEvent(Event* event)
             const int32_t yokingGroupMapIndex = MapYokingGroupEnum::getSelectedMapIndex(eventYokingGroup);
             const bool yokingGroupSelectedStatus = MapYokingGroupEnum::isEnabled(eventYokingGroup);
             const MediaFile* eventMediaFile = selectMapEvent->getMediaFile();
+            const MapYokingGroupEnum::MediaAllFramesStatus allFramesStatus(MapYokingGroupEnum::getMediaAllFramesStatus(eventYokingGroup));
             
             /*
              * Find all overlays with the requested yoking
@@ -655,6 +656,17 @@ MediaOverlaySet::receiveEvent(Event* event)
                         if (yokingGroupMapIndex < selectionData.m_selectedMediaFile->getNumberOfFrames()) {
                             mediaOverlay->setSelectionData(selectionData.m_selectedMediaFile,
                                                            yokingGroupMapIndex);
+                        }
+                        
+                        switch (allFramesStatus) {
+                            case MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_NO_CHANGE:
+                                break;
+                            case MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_ON:
+                                mediaOverlay->setCziAllScenesSelected(true);
+                                break;
+                            case MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF:
+                                mediaOverlay->setCziAllScenesSelected(false);
+                                break;
                         }
                         
                         if (selectionData.m_selectedMediaFile == eventMediaFile) {

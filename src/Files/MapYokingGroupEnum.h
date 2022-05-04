@@ -59,6 +59,11 @@ public:
         MAP_YOKING_GROUP_10
     };
 
+    enum class MediaAllFramesStatus {
+        ALL_FRAMES_NO_CHANGE,
+        ALL_FRAMES_OFF,
+        ALL_FRAMES_ON
+    };
 
     ~MapYokingGroupEnum();
 
@@ -93,6 +98,11 @@ public:
     static void setEnabled(const Enum enumValue,
                            const bool enabled);
     
+    static MediaAllFramesStatus getMediaAllFramesStatus(const Enum enumValue);
+    
+    static void setMediaAllFramesStatus(const Enum enumValue,
+                                        const MediaAllFramesStatus mediaAllFramesStatus);
+    
 private:
     MapYokingGroupEnum(const Enum enumValue,
                  const AString& name,
@@ -125,10 +135,13 @@ private:
     AString guiName;
     
     /** Index of the selected map */
-    int32_t mapIndex;
+    int32_t mapIndex = 0;
     
     /** Enabled status of the map */
-    bool enabledStatus;
+    bool enabledStatus = false;
+    
+    /** All frames status */
+    MediaAllFramesStatus mediaAllFramesStatus = MediaAllFramesStatus::ALL_FRAMES_NO_CHANGE;
 };
 
 #ifdef __MAP_YOKING_GROUP_ENUM_DECLARE__

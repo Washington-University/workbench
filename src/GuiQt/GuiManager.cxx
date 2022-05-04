@@ -3450,6 +3450,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                                    nullAnnTextFile,
                                                                    nullMediaFile,
                                                                    rowIndex,
+                                                                   MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                                                    true);
                             EventManager::get()->sendEvent(selectMapEvent.getPointer());
                         }
@@ -3536,6 +3537,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                                            nullAnnTextFile,
                                                                            nullMediaFile,
                                                                            rowColumnIndex,
+                                                                           MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                                                            true);
                                     EventManager::get()->sendEvent(selectMapEvent.getPointer());
                             }
@@ -3614,6 +3616,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                                                nullAnnTextFile,
                                                                                nullMediaFile,
                                                                                rowIndex,
+                                                                               MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                                                                true);
                                         EventManager::get()->sendEvent(selectMapEvent.getPointer());
                                     }

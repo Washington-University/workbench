@@ -47,6 +47,8 @@ using namespace caret;
  *    Media file causing this event
  * @param mapIndex
  *    Index of map selected.
+ * @param mediaAllFramesStatus
+ *    The media all frames status
  * @param selectionStatus
  *    Status of selection.
  */
@@ -55,17 +57,18 @@ EventMapYokingSelectMap::EventMapYokingSelectMap(const MapYokingGroupEnum::Enum 
                                                  const AnnotationTextSubstitutionFile* annotationTextSubstitutionFile,
                                                  const MediaFile* mediaFile,
                                                  const int32_t mapIndex,
+                                                 const MapYokingGroupEnum::MediaAllFramesStatus mediaAllFramesStatus,
                                                  const bool mapOverlaySelectionStatus)
 : Event(EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP),
 m_mapYokingGroup(mapYokingGroup),
 m_caretMappableDataFile(caretMappableDataFile),
 m_annotationTextSubstitutionFile(annotationTextSubstitutionFile),
 m_mediaFile(mediaFile),
-m_mapIndex(mapIndex),
-m_selectionStatus(mapOverlaySelectionStatus)
+m_mapIndex(mapIndex)
 {
     if (mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         MapYokingGroupEnum::setSelectedMapIndex(mapYokingGroup, mapIndex);
+        MapYokingGroupEnum::setMediaAllFramesStatus(mapYokingGroup, mediaAllFramesStatus);
         MapYokingGroupEnum::setEnabled(mapYokingGroup, mapOverlaySelectionStatus);
     }
 }
@@ -124,14 +127,4 @@ EventMapYokingSelectMap::getMapIndex() const
 {
     return m_mapIndex;
 }
-
-/**
- * @return Selection status but ONLY for SAME FILE !
- */
-bool
-EventMapYokingSelectMap::getSelectionStatus() const
-{
-    return m_selectionStatus;
-}
-
 

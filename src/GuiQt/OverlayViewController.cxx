@@ -449,6 +449,7 @@ OverlayViewController::mapIndexSpinBoxValueChanged(int indx)
                                                nullAnnTextSubsFile,
                                                nullMediaFile,
                                                overlayIndex,
+                                               MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                                overlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }
@@ -499,6 +500,7 @@ OverlayViewController::mapNameComboBoxSelected(int indx)
                                                nullAnnTextSubsFile,
                                                nullMediaFile,
                                                indx,
+                                               MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                                overlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }
@@ -544,6 +546,7 @@ OverlayViewController::enabledCheckBoxClicked(bool checked)
                                                nullAnnTextSubsFile,
                                                nullMediaFile,
                                                myIndex,
+                                               MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                                overlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
     }

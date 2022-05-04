@@ -39,6 +39,7 @@ namespace caret {
                                 const AnnotationTextSubstitutionFile* annotationTextSubstitutionFile,
                                 const MediaFile* mediaFile,
                                 const int32_t mapIndex,
+                                const MapYokingGroupEnum::MediaAllFramesStatus mediaAllFramesStatus,
                                 const bool selectionStatus);
         
         virtual ~EventMapYokingSelectMap();
@@ -53,8 +54,6 @@ namespace caret {
         
         int32_t getMapIndex() const;
         
-        bool getSelectionStatus() const;
-
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -71,8 +70,6 @@ namespace caret {
         const MediaFile* m_mediaFile;
         
         const int32_t m_mapIndex;
-        
-        const bool m_selectionStatus;
 
         // ADD_NEW_MEMBERS_HERE
 

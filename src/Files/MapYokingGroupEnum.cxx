@@ -56,6 +56,7 @@ MapYokingGroupEnum::MapYokingGroupEnum(const Enum enumValue,
     
     this->mapIndex = 0;
     this->enabledStatus = false;
+    this->mediaAllFramesStatus = MediaAllFramesStatus::ALL_FRAMES_NO_CHANGE;
 }
 
 /**
@@ -533,3 +534,44 @@ MapYokingGroupEnum::setEnabled(const Enum enumValue,
     MapYokingGroupEnum* enumInstance = findData(enumValue);
     enumInstance->enabledStatus = enabled;
 }
+
+/**
+ * @return The media all frames status associated with the given value.
+ *
+ * @param enumValue
+ *     Value for which map index is requested.
+ */
+MapYokingGroupEnum::MediaAllFramesStatus
+MapYokingGroupEnum::getMediaAllFramesStatus(const Enum enumValue)
+{
+    CaretAssertMessage(enumValue != MAP_YOKING_GROUP_OFF,
+                       "Never should be called with MAP_YOKING_GROUP_OFF");
+    
+    if (initializedFlag == false) initialize();
+    
+    MapYokingGroupEnum* enumInstance = findData(enumValue);
+    return enumInstance->mediaAllFramesStatus;
+
+}
+
+/**
+ * Set the media all frames status for the given enum value.
+ *
+ * @param enumValue
+ *     Value for which map index is requested.
+ * @param mediaAllFramesStatus
+ *     New value for media all frames status.
+ */
+void
+MapYokingGroupEnum::setMediaAllFramesStatus(const Enum enumValue,
+                                            const MediaAllFramesStatus mediaAllFramesStatus)
+{
+    CaretAssertMessage(enumValue != MAP_YOKING_GROUP_OFF,
+                       "Never should be called with MAP_YOKING_GROUP_OFF");
+    
+    if (initializedFlag == false) initialize();
+    
+    MapYokingGroupEnum* enumInstance = findData(enumValue);
+    enumInstance->mediaAllFramesStatus = mediaAllFramesStatus;
+}
+
