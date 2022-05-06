@@ -52,6 +52,7 @@ VolumeSliceSettings::VolumeSliceSettings()
 : CaretObject()
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    m_mprIntensityProjectionMode = VolumeMprIntensityProjectionModeEnum::OFF;
     m_sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
     m_slicePlanesAllViewLayout = prefs->getVolumeAllSlicePlanesLayout();
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
@@ -72,6 +73,8 @@ VolumeSliceSettings::VolumeSliceSettings()
     
     
     m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add<VolumeMprIntensityProjectionModeEnum, VolumeMprIntensityProjectionModeEnum::Enum>("m_mprIntensityProjectionMode",
+                                                                                                            &m_mprIntensityProjectionMode);
     m_sceneAssistant->add<VolumeSliceViewPlaneEnum,VolumeSliceViewPlaneEnum::Enum>("m_sliceViewPlane",
                                                                                    &m_sliceViewPlane);
     m_sceneAssistant->add<VolumeSliceViewAllPlanesLayoutEnum, VolumeSliceViewAllPlanesLayoutEnum::Enum>("m_slicePlanesAllViewLayout",
@@ -141,6 +144,7 @@ VolumeSliceSettings::operator=(const VolumeSliceSettings& obj)
 void 
 VolumeSliceSettings::copyHelperVolumeSliceSettings(const VolumeSliceSettings& obj)
 {
+    m_mprIntensityProjectionMode = obj.m_mprIntensityProjectionMode;
     m_sliceViewPlane         = obj.m_sliceViewPlane;
     m_slicePlanesAllViewLayout = obj.m_slicePlanesAllViewLayout;
     m_sliceDrawingType       = obj.m_sliceDrawingType;
@@ -251,7 +255,25 @@ VolumeSliceSettings::getDescriptionOfContent(const ModelTypeEnum::Enum modelType
 }
 
 
+/**
+ * @return The Volume MPR intensity projection mode
+ */
+VolumeMprIntensityProjectionModeEnum::Enum
+VolumeSliceSettings::getVolumeMprIntensityProjectionMode() const
+{
+    return m_mprIntensityProjectionMode;
+}
 
+/**
+ * Set the Volume MPR intensity projection mode
+ * @param intensityProjectionMode
+ *    New mode
+ */
+void
+VolumeSliceSettings::setVolumeMprIntensityProjectionMode(const VolumeMprIntensityProjectionModeEnum::Enum intensityProjectionMode)
+{
+    m_mprIntensityProjectionMode = intensityProjectionMode;
+}
 
 /**
  * @return The slice view plane.

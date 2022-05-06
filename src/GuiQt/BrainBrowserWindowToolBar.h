@@ -69,6 +69,7 @@ namespace caret {
     class BrainBrowserWindowToolBarTab;
     class BrainBrowserWindowToolBarView;
     class BrainBrowserWindowToolBarVolumeMontage;
+    class BrainBrowserWindowToolBarVolumeMPR;
     class BrainBrowserWindow;
     class BrowserTabContent;
     class EventBrowserTabReopenClosed;
@@ -185,6 +186,7 @@ namespace caret {
         QWidget* createSingleSurfaceOptionsWidget();
         QWidget* createSurfaceMontageOptionsWidget();
         QWidget* createVolumeMontageWidget();
+        QWidget* createVolumeMprWidget();
         QWidget* createVolumePlaneWidget();
         
         ModelTypeEnum::Enum updateViewWidget(BrowserTabContent* browserTabContent);
@@ -205,6 +207,7 @@ namespace caret {
         void updateCziImageWidget(BrowserTabContent* browserTabContent);
         void updateImageWidget(BrowserTabContent* browserTabContent);
         void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
+        void updateVolumeMprWidget(BrowserTabContent* browserTabConent);
         void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
         
         QWidget* viewWidget;
@@ -216,6 +219,7 @@ namespace caret {
         QWidget* singleSurfaceSelectionWidget;
         QWidget* surfaceMontageSelectionWidget;
         QWidget* volumeMontageWidget;
+        QWidget* volumeMprWidget;
         QWidget* volumePlaneWidget;
         QWidget* chartTypeWidget;
         QWidget* chartTypeTwoWidget;
@@ -357,6 +361,7 @@ namespace caret {
         BrainBrowserWindowToolBarSlicePlane* m_slicePlaneComponent;
         BrainBrowserWindowToolBarSliceSelection* m_sliceSelectionComponent;
         BrainBrowserWindowToolBarVolumeMontage* m_volumeMontageComponent;
+        BrainBrowserWindowToolBarVolumeMPR* m_volumeMprComponent;
         BrainBrowserWindowToolBarTab* m_tabOptionsComponent;
         
     private slots:

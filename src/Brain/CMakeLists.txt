@@ -211,6 +211,7 @@ ViewingTransformationsCerebellum.h
 ViewingTransformationsMedia.h
 ViewingTransformationsUndoCommand.h
 ViewingTransformationsVolume.h
+VolumeMprIntensityProjectionModeEnum.h
 VolumeSliceDrawingTypeEnum.h
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.h
 VolumeSliceSettings.h
@@ -402,6 +403,7 @@ ViewingTransformationsCerebellum.cxx
 ViewingTransformationsMedia.cxx
 ViewingTransformationsUndoCommand.cxx
 ViewingTransformationsVolume.cxx
+VolumeMprIntensityProjectionModeEnum.cxx
 VolumeSliceDrawingTypeEnum.cxx
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.cxx
 VolumeSliceSettings.cxx

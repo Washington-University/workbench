@@ -70,6 +70,7 @@
 #include "BrainBrowserWindowToolBarTab.h"
 #include "BrainBrowserWindowToolBarTabPopUpMenu.h"
 #include "BrainBrowserWindowToolBarView.h"
+#include "BrainBrowserWindowToolBarVolumeMPR.h"
 #include "BrainBrowserWindowToolBarVolumeMontage.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainStructure.h"
@@ -445,6 +446,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
+    this->volumeMprWidget = this->createVolumeMprWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
     this->cziImageWidget = this->createCziImageWidget();
     this->imageWidget = this->createImageWidget();
@@ -507,6 +509,8 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->toolbarWidgetLayout->addWidget(this->volumePlaneWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->volumeMontageWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->volumeMprWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->volumeIndicesWidget, 0, Qt::AlignLeft);
     
@@ -1917,6 +1921,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showVolumeIndicesWidget = false;
     bool showVolumePlaneWidget = false;
     bool showVolumeMontageWidget = false;
+    bool showVolumeMprWidget = false;
     
     bool showChartOneAxesWidget = false;
     bool showChartOneTypeWidget = false;
@@ -2055,6 +2060,7 @@ BrainBrowserWindowToolBar::updateToolBar()
                 showVolumeIndicesWidget = true;
                 showVolumePlaneWidget = true;
                 showVolumeMontageWidget = true;
+                showVolumeMprWidget = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
                 showOrientationWidget = true;
@@ -2153,6 +2159,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
     this->volumeMontageWidget->setVisible(false);
+    this->volumeMprWidget->setVisible(false);
     this->tabMiscWidget->setVisible(false);
     
     this->annotateModeWidget->setVisible(false);
@@ -2189,6 +2196,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
+    this->volumeMprWidget->setVisible(showVolumeMprWidget);
     this->tabMiscWidget->setVisible(showTabMiscWidget);
     
     updateToolBarComponents(browserTabContent);
@@ -2230,6 +2238,7 @@ BrainBrowserWindowToolBar::updateToolBarComponents(BrowserTabContent* browserTab
         this->updateChartTwoAttributesWidget(browserTabContent);
         this->updateChartTwoOrientedAxesWidget(browserTabContent);
         this->updateVolumeMontageWidget(browserTabContent);
+        this->updateVolumeMprWidget(browserTabContent);
         this->updateVolumePlaneWidget(browserTabContent);
         this->updateModeWidget(browserTabContent);
         this->updateViewWidget(browserTabContent);
@@ -3151,6 +3160,43 @@ BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* browserT
     }
 
     m_volumeMontageComponent->updateContent(browserTabContent);
+}
+
+/**
+ * Create the volume mpr widget.
+ *
+ * @return The volume montage widget.
+ */
+QWidget*
+BrainBrowserWindowToolBar::createVolumeMprWidget()
+{
+    m_volumeMprComponent = new BrainBrowserWindowToolBarVolumeMPR(this,
+                                                                  m_objectNamePrefix);
+    
+    
+    QWidget* w = this->createToolWidget("MPR",
+                                        m_volumeMprComponent,
+                                        WIDGET_PLACEMENT_LEFT,
+                                        WIDGET_PLACEMENT_TOP,
+                                        0);
+    w->setVisible(false);
+    return w;
+}
+
+/**
+ * Update the volume mpr widget.
+ *
+ * @param browserTabContent
+ *   Content of browser tab.
+ */
+void
+BrainBrowserWindowToolBar::updateVolumeMprWidget(BrowserTabContent* browserTabContent)
+{
+    if (this->volumeMprWidget->isHidden()) {
+        return;
+    }
+    
+    m_volumeMprComponent->updateContent(browserTabContent);
 }
 
 /**

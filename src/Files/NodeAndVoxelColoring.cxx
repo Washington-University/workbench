@@ -328,7 +328,13 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
                 thresholdPassedFlag = true;
             }
         }
-        if (thresholdPassedFlag == false) {
+        if ( ! thresholdPassedFlag) {
+            /*
+             * Need to clear RGB, in addition to alpha for volume Maximum Intensity Projection
+             */
+            rgbaOut[0] = 0.0;
+            rgbaOut[1] = 0.0;
+            rgbaOut[2] = 0.0;
             rgbaOut[3] = 0.0;
             if (showMappedThresholdFailuresInGreen) {
                 if (thresholdType == PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED) {

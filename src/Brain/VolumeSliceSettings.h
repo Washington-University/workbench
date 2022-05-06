@@ -25,6 +25,7 @@
 #include "CaretObject.h"
 #include "ModelTypeEnum.h"
 #include "SceneableInterface.h"
+#include "VolumeMprIntensityProjectionModeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
@@ -49,6 +50,10 @@ namespace caret {
 
         VolumeSliceSettings& operator=(const VolumeSliceSettings& obj);
         
+        VolumeMprIntensityProjectionModeEnum::Enum getVolumeMprIntensityProjectionMode() const;
+        
+        void setVolumeMprIntensityProjectionMode(const VolumeMprIntensityProjectionModeEnum::Enum intensityProjectionMode);
+
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
         
         void setSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
@@ -162,6 +167,9 @@ namespace caret {
 
         // ADD_NEW_MEMBERS_HERE
 
+        /** MPR projection mode */
+        VolumeMprIntensityProjectionModeEnum::Enum m_mprIntensityProjectionMode = VolumeMprIntensityProjectionModeEnum::OFF;
+        
         /** Axis of slice being viewed */
         VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
 

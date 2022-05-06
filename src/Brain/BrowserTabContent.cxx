@@ -5435,6 +5435,26 @@ BrowserTabContent::getProjectionViewType() const
 }
 
 /**
+ * @return The Volume MPR intensity projection mode
+ */
+VolumeMprIntensityProjectionModeEnum::Enum
+BrowserTabContent::getVolumeMprIntensityProjectionMode() const
+{
+    return m_volumeSliceSettings->getVolumeMprIntensityProjectionMode();
+}
+
+/**
+ * Set the Volume MPR intensity projection mode
+ * @param intensityProjectionMode
+ *    New mode
+ */
+void
+BrowserTabContent::setVolumeMprIntensityProjectionMode(const VolumeMprIntensityProjectionModeEnum::Enum intensityProjectionMode)
+{
+    m_volumeSliceSettings->setVolumeMprIntensityProjectionMode(intensityProjectionMode);
+}
+
+/**
  * @return The slice view plane.
  *
  */

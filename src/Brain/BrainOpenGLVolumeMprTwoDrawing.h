@@ -62,6 +62,8 @@ namespace caret {
             Vector3D m_upVector;
             Vector3D m_normalVector;
             Plane m_plane;
+            
+            AString toString(const AString& indentation = "") const;
         };
         
         BrainOpenGLVolumeMprTwoDrawing();
@@ -123,11 +125,20 @@ namespace caret {
         void setViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                       const SliceInfo& sliceInfo);
 
+        void drawSliceIntensityProjection(const SliceInfo& sliceInfo,
+                                          const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                          const Vector3D& sliceCoordinates,
+                                          const GraphicsViewport& viewport);
+
+
         void drawSliceWithPrimitive(const SliceInfo& sliceInfo,
                                     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                     const Vector3D& sliceCoordinates,
-                                    const GraphicsViewport& viewport);
+                                    const GraphicsViewport& viewport,
+                                    const bool enabledBlendingFlag,
+                                    const bool drawAttributesFlag);
         
         static bool getTextureCoordinates(const VolumeMappableInterface* volumeMappableInterface,
                                           const Vector3D& xyz,

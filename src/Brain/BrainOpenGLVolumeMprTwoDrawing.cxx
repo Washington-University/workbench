@@ -733,11 +733,44 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
          */
         glDisable(GL_CULL_FACE);
         
-        drawSliceWithPrimitive(sliceInfo,
-                               sliceProjectionType,
-                               sliceViewPlane,
-                               sliceCoordinates,
-                               viewport);
+        bool intensityModeFlag(false);
+        switch (m_viewMode) {
+            case ViewMode::INVALID:
+                break;
+            case ViewMode::ALL_3D:
+                break;
+            case ViewMode::VOLUME_2D:
+                switch (m_browserTabContent->getVolumeMprIntensityProjectionMode()) {
+                    case VolumeMprIntensityProjectionModeEnum::MAXIMUM:
+                        intensityModeFlag = true;
+                        break;
+                    case VolumeMprIntensityProjectionModeEnum::MINIMUM:
+                        intensityModeFlag = true;
+                        break;
+                    case VolumeMprIntensityProjectionModeEnum::OFF:
+                        break;
+                }
+                break;
+        }
+
+        if (intensityModeFlag) {
+            drawSliceIntensityProjection(sliceInfo,
+                                         sliceProjectionType,
+                                         sliceViewPlane,
+                                         sliceCoordinates,
+                                         viewport);
+        }
+        else {
+            const bool enableBlendingFlag(true);
+            const bool drawAttributesFlag(true);
+            drawSliceWithPrimitive(sliceInfo,
+                                   sliceProjectionType,
+                                   sliceViewPlane,
+                                   sliceCoordinates,
+                                   viewport,
+                                   enableBlendingFlag,
+                                   drawAttributesFlag);
+        }
 
         std::array<float, 4> orthoLRBT {
             static_cast<float>(viewport.getLeft()),
@@ -1920,6 +1953,33 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPl
     }
 }
 
+bool
+getPlaneIntersection(const VolumeMappableInterface* volume,
+                     const int64_t aIJK[],
+                     const int64_t bIJK[],
+                     const int64_t cIJK[],
+                     const float rayOrigin[3],
+                     const float rayVector[3],
+                     Vector3D& intersectionXYZOut)
+{
+    float aXYZ[3], bXYZ[3], cXYZ[3];
+    volume->indexToSpace(aIJK, aXYZ);
+    volume->indexToSpace(bIJK, bXYZ);
+    volume->indexToSpace(cIJK, cXYZ);
+    
+    float xyzAndDistance[4];
+    Plane plane(aXYZ, bXYZ, cXYZ);
+    if (plane.rayIntersection(rayOrigin,
+                              rayVector,
+                              xyzAndDistance)) {
+        intersectionXYZOut[0] = xyzAndDistance[0];
+        intersectionXYZOut[1] = xyzAndDistance[1];
+        intersectionXYZOut[2] = xyzAndDistance[2];
+        return true;
+    }
+    
+    return false;
+}
 /**
  * Draw the slice
  * @param sliceInfo
@@ -1934,11 +1994,245 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPl
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
+BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection(const SliceInfo& sliceInfo,
+                                                             const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                             const Vector3D& sliceCoordinates,
+                                                             const GraphicsViewport& viewport)
+{
+    if (m_underlayVolume == NULL) {
+        return;
+    }
+    std::vector<int64_t> dims;
+    m_underlayVolume->getDimensions(dims);
+    if (dims.size() < 3) {
+        return;
+    }
+    CaretAssertVectorIndex(dims, 2);
+    for (int32_t i = 0; i < 3; i++) {
+        if (dims[i] < 1) {
+            return;
+        }
+    }
+    
+    const int64_t iMax(dims[0] - 1);
+    const int64_t jMax(dims[1] - 1);
+    const int64_t kMax(dims[2] - 1);
+
+    
+    const int64_t ijk[] { 0,    0,    0 };
+    const int64_t Ijk[] { iMax, 0,    0 };
+    const int64_t IJk[] { iMax, jMax, 0 };
+    const int64_t iJk[] { 0,    jMax, 0 };
+    
+    const int64_t ijK[] { 0,    0,    kMax };
+    const int64_t IjK[] { iMax, 0,    kMax };
+    const int64_t IJK[] { iMax, jMax, kMax };
+    const int64_t iJK[] { 0,    jMax, kMax };
+    
+    std::vector<Vector3D> allIntersections;
+    Vector3D intersectionXYZ;
+    
+    /*
+     * Bottom
+     */
+    if (getPlaneIntersection(m_underlayVolume,
+                             iJk, ijk, Ijk,
+                             sliceInfo.m_centerXYZ,
+                             sliceInfo.m_normalVector,
+                             intersectionXYZ)) {
+        allIntersections.push_back(intersectionXYZ);
+    }
+    
+    /*
+     * Near
+     */
+    if (getPlaneIntersection(m_underlayVolume,
+                             ijk, Ijk, IjK,
+                             sliceInfo.m_centerXYZ,
+                             sliceInfo.m_normalVector,
+                             intersectionXYZ)) {
+        allIntersections.push_back(intersectionXYZ);
+    }
+    
+    /*
+     * Far
+     */
+    if (getPlaneIntersection(m_underlayVolume,
+                             iJk, IJk, IJK,
+                             sliceInfo.m_centerXYZ,
+                             sliceInfo.m_normalVector,
+                             intersectionXYZ)) {
+        allIntersections.push_back(intersectionXYZ);
+    }
+    
+    /*
+     * Right
+     */
+    if (getPlaneIntersection(m_underlayVolume,
+                             Ijk, IJk, IJK,
+                             sliceInfo.m_centerXYZ,
+                             sliceInfo.m_normalVector,
+                             intersectionXYZ)) {
+        allIntersections.push_back(intersectionXYZ);
+    }
+    
+    /*
+     * Bottom
+     */
+    if (getPlaneIntersection(m_underlayVolume,
+                             ijk, iJk, iJK,
+                             sliceInfo.m_centerXYZ,
+                             sliceInfo.m_normalVector,
+                             intersectionXYZ)) {
+        allIntersections.push_back(intersectionXYZ);
+    }
+    
+    /*
+     * Top
+     */
+    if (getPlaneIntersection(m_underlayVolume,
+                             iJK, ijK, IjK,
+                             sliceInfo.m_centerXYZ,
+                             sliceInfo.m_normalVector,
+                             intersectionXYZ)) {
+        allIntersections.push_back(intersectionXYZ);
+    }
+    
+    const int32_t numIntersections(allIntersections.size());
+    if (numIntersections > 0) {
+        if (debugFlag) {
+            for (int32_t i = 0; i < numIntersections; i++) {
+                if (i == 0) {
+                    std::cout << "Intersections ";
+                }
+                else {
+                    std::cout << "              ";
+                }
+                std::cout << i << ": " << AString::fromNumbers(allIntersections[i]) << std::endl;
+            }
+        }
+    }
+    
+    if (numIntersections == 2) {
+        float dx, dy, dz;
+        m_underlayVolume->getVoxelSpacing(dx, dy, dz);
+        const float voxelSize(std::fabs(std::min(dx, std::min(dy, dz))));
+        if (voxelSize < 0.01) {
+            CaretLogSevere("Voxel size is too small for Intensity Projection: "
+                           + AString::number(voxelSize));
+            return;
+        }
+        CaretAssertVectorIndex(allIntersections, 1);
+        const Vector3D p1(allIntersections[0]);
+        const Vector3D p2(allIntersections[1]);
+        const float distance = (p1 - p2).length();
+        const Vector3D p1ToP2Vector((p2 - p1).normal());
+        const Vector3D stepVector(p1ToP2Vector[0] * voxelSize,
+                                  p1ToP2Vector[1] * voxelSize,
+                                  p1ToP2Vector[2] * voxelSize);
+        const float numSteps = distance / voxelSize;
+        if (debugFlag) {
+            std::cout << "Num Steps: " << numSteps << " Step Vector: " << AString::fromNumbers(stepVector) << std::endl;
+        }
+        
+        glPushAttrib(GL_COLOR_BUFFER_BIT
+                     | GL_ENABLE_BIT);
+        
+        /*
+         * Disable culling so that both sides of the triangles/quads are drawn.
+         */
+        glDisable(GL_CULL_FACE);
+
+        switch (m_browserTabContent->getVolumeMprIntensityProjectionMode()) {
+            case VolumeMprIntensityProjectionModeEnum::MAXIMUM:
+                glBlendEquationSeparate(GL_MAX, GL_MAX);
+                break;
+            case VolumeMprIntensityProjectionModeEnum::MINIMUM:
+                glBlendEquationSeparate(GL_MIN, GL_MAX);
+                break;
+            case VolumeMprIntensityProjectionModeEnum::OFF:
+                CaretAssert(0);
+                break;
+        }
+        BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::VOLUME_ORTHOGONAL_SLICES);
+        
+
+        for (int32_t iStep = 0; iStep < numSteps; iStep++) {
+            Vector3D sliceCoords(p1 + stepVector * iStep);
+            const SliceInfo stepSliceInfo(createSliceInfo(m_browserTabContent,
+                                                          m_underlayVolume,
+                                                          sliceProjectionType,
+                                                          sliceViewPlane,
+                                                          sliceCoords));
+            if (debugFlag) {
+                if (iStep == 0) {
+                    std::cout << "First slice: " << std::endl;
+                    std::cout << stepSliceInfo.toString("   ") << std::endl;
+                }
+                else if (iStep == (numSteps - 1)) {
+                    std::cout << "Last Slice: " << std::endl;
+                    std::cout << stepSliceInfo.toString("   ") << std::endl;
+                }
+            }
+            const bool enableBlendingFlag(false);
+            const bool drawAttributesFlag(false);
+            drawSliceWithPrimitive(stepSliceInfo,
+                                   sliceProjectionType,
+                                   sliceViewPlane,
+                                   sliceCoords,
+                                   viewport,
+                                   enableBlendingFlag,
+                                   drawAttributesFlag);
+        }
+        
+        glPopAttrib();
+        
+        switch (m_viewMode) {
+            case ViewMode::INVALID:
+                CaretAssert(0);
+                break;
+            case ViewMode::ALL_3D:
+                break;
+            case ViewMode::VOLUME_2D:
+                drawCrosshairs(sliceProjectionType,
+                               sliceViewPlane,
+                               sliceCoordinates,
+                               viewport);
+                break;
+        }
+    }
+    else if (numIntersections > 0) {
+        CaretLogSevere("Possible algorithm failure for Intensity Projection, intersection count="
+                       + AString::number(numIntersections));
+    }
+}
+
+/**
+ * Draw the slice
+ * @param sliceInfo
+ *    Information for drawing slice
+ * @param sliceProjectionType
+ *    Type of slice projection
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slice.
+ * @param viewport
+ *    The viewport (region of graphics area) for drawing slices.
+ * @patram enabledBlendingFlag
+ *    If true, enable blending
+ * @param drawAttributesFlag
+ *    Draw attributes (crosshairs, etc)
+ */
+void
 BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInfo,
                                                        const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                        const Vector3D& sliceCoordinates,
-                                                       const GraphicsViewport& viewport)
+                                                       const GraphicsViewport& viewport,
+                                                       const bool enabledBlendingFlag,
+                                                       const bool drawAttributesFlag)
 {
     /*
      * When performing voxel identification for editing voxels,
@@ -1992,7 +2286,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
         const bool allowBlendingFlag(dsv->getOpacity() >= 1.0);
         
         glPushAttrib(GL_COLOR_BUFFER_BIT);
-        if (allowBlendingFlag) {
+        if (allowBlendingFlag
+            && enabledBlendingFlag) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
@@ -2015,22 +2310,24 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
             const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
             VolumeMappableInterface* volumeInterface = vdi.volumeFile;
             if (volumeInterface != NULL) {
-                if (firstFlag) {
-                    /*
-                     * Using GL_ONE prevents an edge artifact
-                     * (narrow line on texture edges).
-                     */
-                    if (allowBlendingFlag) {
-                        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+                if (enabledBlendingFlag) {
+                    if (firstFlag) {
+                        /*
+                         * Using GL_ONE prevents an edge artifact
+                         * (narrow line on texture edges).
+                         */
+                        if (allowBlendingFlag) {
+                            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+                        }
+                        firstFlag = false;
                     }
-                    firstFlag = false;
-                }
-                else {
-                    if (allowBlendingFlag) {
-                        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    else {
+                        if (allowBlendingFlag) {
+                            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                        }
                     }
                 }
-                
+              
                 GraphicsPrimitiveV3fT3f* primitive(volumeInterface->getVolumeDrawingPrimitive(vdi.mapIndex,
                                                                                               DisplayGroupEnum::DISPLAY_GROUP_TAB,
                                                                                               m_tabIndex));
@@ -2142,7 +2439,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                         CaretAssert(0);
                     }
                     
-                    if (m_identificationModeFlag) {
+                    if (drawAttributesFlag
+                        && m_identificationModeFlag) {
                         performPlaneIdentification(sliceInfo,
                                                    volumeInterface,
                                                    sliceViewPlane,
@@ -2157,18 +2455,20 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
             }
         }
         
-        switch (m_viewMode) {
-            case ViewMode::INVALID:
-                CaretAssert(0);
-                break;
-            case ViewMode::ALL_3D:
-                break;
-            case ViewMode::VOLUME_2D:
-                drawCrosshairs(sliceProjectionType,
-                               sliceViewPlane,
-                               sliceCoordinates,
-                               viewport);
-                break;
+        if (drawAttributesFlag) {
+            switch (m_viewMode) {
+                case ViewMode::INVALID:
+                    CaretAssert(0);
+                    break;
+                case ViewMode::ALL_3D:
+                    break;
+                case ViewMode::VOLUME_2D:
+                    drawCrosshairs(sliceProjectionType,
+                                   sliceViewPlane,
+                                   sliceCoordinates,
+                                   viewport);
+                    break;
+            }
         }
 
         glPopAttrib();
@@ -2615,3 +2915,21 @@ BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enu
         }
     }
 }
+
+AString
+BrainOpenGLVolumeMprTwoDrawing::SliceInfo::toString(const AString& indentation) const
+{
+    AString txt;
+    
+    txt.appendWithNewLine(indentation + "Center:        " + AString::fromNumbers(m_centerXYZ));
+    txt.appendWithNewLine(indentation + "Bottom Left:   " + AString::fromNumbers(m_bottomLeftXYZ));
+    txt.appendWithNewLine(indentation + "Bottom Right:  " + AString::fromNumbers(m_bottomRightXYZ));
+    txt.appendWithNewLine(indentation + "Top Right:     " + AString::fromNumbers(m_topRightXYZ));
+    txt.appendWithNewLine(indentation + "Top Left:      " + AString::fromNumbers(m_topLeftXYZ));
+    txt.appendWithNewLine(indentation + "Up Vector:     " + AString::fromNumbers(m_upVector));
+    txt.appendWithNewLine(indentation + "Normal Vector: " + AString::fromNumbers(m_normalVector));
+    txt.appendWithNewLine(indentation + "Plane:         " + m_plane.toString());
+    
+    return txt;
+}
+
