@@ -70,6 +70,7 @@
 using namespace caret;
 
 static bool debugFlag(false);
+static bool debug2Flag(false);
 
 /**
  * \class caret::BrainOpenGLVolumeMprTwoDrawing
@@ -1953,19 +1954,45 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPl
     }
 }
 
+/**
+ * Does the ray intersect the rectangle (volume side) defined by the four points
+ * @param volume
+ *    The volume
+ * @param aIJK
+ *    First coordinate of rectangle
+ * @param bIJK
+ *    Second coordinate of rectangle
+ * @param cIJK
+ *    Third coordinate of rectangle
+ * @param dIJK
+ *    Fourth coordinate of rectangle
+ * @param rayOrigin
+ *    Origin of the ray
+ * @param rayVector
+ *    Direction of the ray
+ * @param sideName
+ *    Name of the side of the volume
+ * @param intersectionXYZOut
+ *    Output with where ray intersects the side
+ * @rerturn
+ *    True if the ray intersects the side, else false
+ */
 bool
-getPlaneIntersection(const VolumeMappableInterface* volume,
-                     const int64_t aIJK[],
-                     const int64_t bIJK[],
-                     const int64_t cIJK[],
-                     const float rayOrigin[3],
-                     const float rayVector[3],
-                     Vector3D& intersectionXYZOut)
+BrainOpenGLVolumeMprTwoDrawing::getVolumeSideIntersection(const VolumeMappableInterface* volume,
+                                                          const int64_t aIJK[],
+                                                          const int64_t bIJK[],
+                                                          const int64_t cIJK[],
+                                                          const int64_t dIJK[],
+                                                          const float rayOrigin[3],
+                                                          const float rayVector[3],
+                                                          const AString& sideName,
+                                                          Vector3D& intersectionXYZOut)
 {
-    float aXYZ[3], bXYZ[3], cXYZ[3];
+    Vector3D aXYZ, bXYZ, cXYZ, dXYZ;
     volume->indexToSpace(aIJK, aXYZ);
     volume->indexToSpace(bIJK, bXYZ);
     volume->indexToSpace(cIJK, cXYZ);
+    volume->indexToSpace(dIJK, dXYZ);
     
     float xyzAndDistance[4];
     Plane plane(aXYZ, bXYZ, cXYZ);
@@ -1975,7 +2002,58 @@ getPlaneIntersection(const VolumeMappableInterface* volume,
         intersectionXYZOut[0] = xyzAndDistance[0];
         intersectionXYZOut[1] = xyzAndDistance[1];
         intersectionXYZOut[2] = xyzAndDistance[2];
-        return true;
+        
+        bool insideFlag(false);
+        
+        const float degenerateTolerance(0.001);
+        {
+            /*
+             * Is point in triangle (half of side)?
+             * Use barycentric areas.  Orientation of triangle is unknown so if point
+             * is inside triangle all areas will be either negative or positive.
+             */
+            const float area1 = MathFunctions::triangleAreaSigned3D(rayVector, aXYZ, bXYZ, intersectionXYZOut);
+            const float area2 = MathFunctions::triangleAreaSigned3D(rayVector, bXYZ, cXYZ, intersectionXYZOut);
+            const float area3 = MathFunctions::triangleAreaSigned3D(rayVector, cXYZ, aXYZ, intersectionXYZOut);
+            if ((area1 > -degenerateTolerance)
+                && (area2 > -degenerateTolerance)
+                && (area3 > -degenerateTolerance)) {
+                insideFlag = true;
+            }
+            if ((area1 < degenerateTolerance)
+                && (area2 < degenerateTolerance)
+                && (area3 < degenerateTolerance)) {
+                insideFlag = true;
+            }
+        }
+
+        if ( ! insideFlag) {
+            const float area1 = MathFunctions::triangleAreaSigned3D(rayVector, aXYZ, cXYZ, intersectionXYZOut);
+            const float area2 = MathFunctions::triangleAreaSigned3D(rayVector, cXYZ, dXYZ, intersectionXYZOut);
+            const float area3 = MathFunctions::triangleAreaSigned3D(rayVector, dXYZ, aXYZ, intersectionXYZOut);
+            if ((area1 > -degenerateTolerance)
+                && (area2 > -degenerateTolerance)
+                && (area3 > -degenerateTolerance)) {
+                insideFlag = true;
+            }
+            if ((area1 < degenerateTolerance)
+                && (area2 < degenerateTolerance)
+                && (area3 < degenerateTolerance)) {
+                insideFlag = true;
+            }
+        }
+        
+        if (insideFlag) {
+            if (debug2Flag) {
+                std::cout << "Intersection " << sideName << ": ("
+                << AString::fromNumbers(aXYZ) << ") ("
+                << AString::fromNumbers(bXYZ) << ") ("
+                << AString::fromNumbers(cXYZ) << ") ("
+                << AString::fromNumbers(dXYZ) << ") -> "
+                << AString::fromNumbers(intersectionXYZOut) << std::endl;
+            }
+            return true;
+        }
     }
     
     return false;
@@ -2031,88 +2109,89 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection(const SliceInfo& sl
     const int64_t iJK[] { 0,    jMax, kMax };
     
     std::vector<Vector3D> allIntersections;
+    std::vector<AString> intersectionNames;
     Vector3D intersectionXYZ;
     
     /*
      * Bottom
      */
-    if (getPlaneIntersection(m_underlayVolume,
-                             iJk, ijk, Ijk,
-                             sliceInfo.m_centerXYZ,
-                             sliceInfo.m_normalVector,
-                             intersectionXYZ)) {
+    if (getVolumeSideIntersection(m_underlayVolume,
+                                  ijk, Ijk, IJk, iJk,
+                                  sliceInfo.m_centerXYZ,
+                                  sliceInfo.m_normalVector,
+                                  "Bottom",
+                                  intersectionXYZ)) {
         allIntersections.push_back(intersectionXYZ);
+        intersectionNames.push_back("Bottom");
     }
     
     /*
      * Near
      */
-    if (getPlaneIntersection(m_underlayVolume,
-                             ijk, Ijk, IjK,
-                             sliceInfo.m_centerXYZ,
-                             sliceInfo.m_normalVector,
-                             intersectionXYZ)) {
+    if (getVolumeSideIntersection(m_underlayVolume,
+                                  ijk, Ijk, IjK, ijK,
+                                  sliceInfo.m_centerXYZ,
+                                  sliceInfo.m_normalVector,
+                                  "Near",
+                                  intersectionXYZ)) {
         allIntersections.push_back(intersectionXYZ);
+        intersectionNames.push_back("Near");
     }
     
     /*
      * Far
      */
-    if (getPlaneIntersection(m_underlayVolume,
-                             iJk, IJk, IJK,
-                             sliceInfo.m_centerXYZ,
-                             sliceInfo.m_normalVector,
-                             intersectionXYZ)) {
+    if (getVolumeSideIntersection(m_underlayVolume,
+                                  iJk, IJk, IJK, iJK,
+                                  sliceInfo.m_centerXYZ,
+                                  sliceInfo.m_normalVector,
+                                  "Far",
+                                  intersectionXYZ)) {
         allIntersections.push_back(intersectionXYZ);
+        intersectionNames.push_back("Far");
     }
     
     /*
      * Right
      */
-    if (getPlaneIntersection(m_underlayVolume,
-                             Ijk, IJk, IJK,
-                             sliceInfo.m_centerXYZ,
-                             sliceInfo.m_normalVector,
-                             intersectionXYZ)) {
+    if (getVolumeSideIntersection(m_underlayVolume,
+                                  Ijk, IJk, IJK, IjK,
+                                  sliceInfo.m_centerXYZ,
+                                  sliceInfo.m_normalVector,
+                                  "Right",
+                                  intersectionXYZ)) {
         allIntersections.push_back(intersectionXYZ);
+        intersectionNames.push_back("Right");
     }
     
     /*
-     * Bottom
+     * Left
      */
-    if (getPlaneIntersection(m_underlayVolume,
-                             ijk, iJk, iJK,
-                             sliceInfo.m_centerXYZ,
-                             sliceInfo.m_normalVector,
-                             intersectionXYZ)) {
+    if (getVolumeSideIntersection(m_underlayVolume,
+                                  ijk, iJk, iJK, ijK,
+                                  sliceInfo.m_centerXYZ,
+                                  sliceInfo.m_normalVector,
+                                  "Left",
+                                  intersectionXYZ)) {
         allIntersections.push_back(intersectionXYZ);
+        intersectionNames.push_back("Left");
     }
     
     /*
      * Top
      */
-    if (getPlaneIntersection(m_underlayVolume,
-                             iJK, ijK, IjK,
-                             sliceInfo.m_centerXYZ,
-                             sliceInfo.m_normalVector,
-                             intersectionXYZ)) {
+    if (getVolumeSideIntersection(m_underlayVolume,
+                                  ijK, IjK, IJK, iJK,
+                                  sliceInfo.m_centerXYZ,
+                                  sliceInfo.m_normalVector,
+                                  "Top",
+                                  intersectionXYZ)) {
         allIntersections.push_back(intersectionXYZ);
+        intersectionNames.push_back("Top");
     }
-    
+
+    CaretAssert(allIntersections.size() == intersectionNames.size());
     const int32_t numIntersections(allIntersections.size());
-    if (numIntersections > 0) {
-        if (debugFlag) {
-            for (int32_t i = 0; i < numIntersections; i++) {
-                if (i == 0) {
-                    std::cout << "Intersections ";
-                }
-                else {
-                    std::cout << "              ";
-                }
-                std::cout << i << ": " << AString::fromNumbers(allIntersections[i]) << std::endl;
-            }
-        }
-    }
     
     if (numIntersections == 2) {
         float dx, dy, dz;

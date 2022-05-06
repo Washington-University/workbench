@@ -205,6 +205,16 @@ namespace caret {
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                             const GraphicsViewport& viewport);
 
+        bool getVolumeSideIntersection(const VolumeMappableInterface* volume,
+                                       const int64_t aIJK[],
+                                       const int64_t bIJK[],
+                                       const int64_t cIJK[],
+                                       const int64_t dIJK[],
+                                       const float rayOrigin[3],
+                                       const float rayVector[3],
+                                       const AString& sideName,
+                                       Vector3D& intersectionXYZOut);
+
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 
         BrowserTabContent* m_browserTabContent = NULL;
