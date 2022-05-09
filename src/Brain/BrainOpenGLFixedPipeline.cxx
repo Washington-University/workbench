@@ -8826,7 +8826,7 @@ BrainOpenGLFixedPipeline::getStateOfOpenGL() const
     s.appendWithNewLine("   Front Face " + frontFaceValue);
     
     GLint cullFace;
-    glGetIntegerv(GL_FRONT_FACE, &cullFace);
+    glGetIntegerv(GL_CULL_FACE_MODE, &cullFace);
     AString cullFaceValue;
     switch (cullFace) {
         case GL_FRONT:
@@ -8843,7 +8843,7 @@ BrainOpenGLFixedPipeline::getStateOfOpenGL() const
             break;
     }
     s.appendWithNewLine("   Cull Face " + cullFaceValue);
-    
+
     return s;
 }
 
