@@ -8844,6 +8844,29 @@ BrainOpenGLFixedPipeline::getStateOfOpenGL() const
     }
     s.appendWithNewLine("   Cull Face " + cullFaceValue);
 
+    GLint polygonFrontBack[2];
+    glGetIntegerv(GL_POLYGON_MODE, polygonFrontBack);
+    for (int32_t i = 0; i < 2; i++) {
+        QString modeValue;
+        switch (polygonFrontBack[i]) {
+            case GL_POINT:
+                modeValue = "GL_POINT";
+                break;
+            case GL_LINE:
+                modeValue = "GL_LINE";
+                break;
+            case GL_FILL:
+                modeValue = "GL_FILL";
+                break;
+            default:
+                modeValue = "Invalid";
+                break;
+        }
+        s.appendWithNewLine("   Polygon mode "
+                            + QString((i == 0) ? "front: " : "back: ")
+                            + modeValue);
+    }
+    
     return s;
 }
 
