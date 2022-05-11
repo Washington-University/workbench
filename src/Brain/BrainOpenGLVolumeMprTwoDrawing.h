@@ -30,6 +30,7 @@
 #include "Plane.h"
 #include "SelectionItemVolumeMprCrosshair.h"
 #include "Vector3D.h"
+#include "VolumeMprIntensityProjectionModeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -39,6 +40,7 @@ namespace caret {
     class BrowserTabContent;
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLViewportContent;
+    class GraphicsPrimitive;
     class GraphicsPrimitiveV3f;
     class GraphicsPrimitiveV3fC4ub;
     class GraphicsPrimitiveV3fT2f;
@@ -86,6 +88,12 @@ namespace caret {
                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                   const Vector3D& sliceCoordinates) const;
 
+        SliceInfo createSliceInfo3D(const BrowserTabContent* browserTabContent,
+                                    const VolumeMappableInterface* underlayVolume,
+                                    const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                    const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                    const Vector3D& sliceCoordinates,
+                                    const bool useCornersFlag) const;
         // ADD_NEW_METHODS_HERE
         
     private:
@@ -131,14 +139,21 @@ namespace caret {
                                           const Vector3D& sliceCoordinates,
                                           const GraphicsViewport& viewport);
 
+        void drawSliceIntensityProjection3D(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                            const Vector3D& sliceCoordinates,
+                                            const GraphicsViewport& viewport);
+
 
         void drawSliceWithPrimitive(const SliceInfo& sliceInfo,
                                     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                    const VolumeMprIntensityProjectionModeEnum::Enum intensityMode,
                                     const Vector3D& sliceCoordinates,
                                     const GraphicsViewport& viewport,
                                     const bool enabledBlendingFlag,
-                                    const bool drawAttributesFlag);
+                                    const bool drawAttributesFlag,
+                                    const bool drawIntensitySliceBackgroundFlag);
         
         static bool getTextureCoordinates(const VolumeMappableInterface* volumeMappableInterface,
                                           const Vector3D& xyz,
@@ -205,6 +220,10 @@ namespace caret {
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                             const GraphicsViewport& viewport);
 
+        std::vector<Vector3D> getVolumeRayIntersections(VolumeMappableInterface* volume,
+                                                        const Vector3D& rayOrigin,
+                                                        const Vector3D& rayVector) const;
+        
         bool getVolumeSideIntersection(const VolumeMappableInterface* volume,
                                        const int64_t aIJK[],
                                        const int64_t bIJK[],
@@ -213,8 +232,11 @@ namespace caret {
                                        const float rayOrigin[3],
                                        const float rayVector[3],
                                        const AString& sideName,
-                                       Vector3D& intersectionXYZOut);
+                                       Vector3D& intersectionXYZOut) const;
 
+        void drawIntensityBackgroundSlice(const VolumeMprIntensityProjectionModeEnum::Enum intensityMode,
+                                          const GraphicsPrimitive* volumePrimitive) const;
+        
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 
         BrowserTabContent* m_browserTabContent = NULL;
@@ -232,8 +254,6 @@ namespace caret {
         int32_t m_tabIndex = -1;
         
         std::array<double, 6> m_orthographicBounds;
-        
-        //Vector3D m_lookAtCenterXYZ;
         
         bool m_identificationModeFlag = false;
         

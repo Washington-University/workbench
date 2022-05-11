@@ -64,7 +64,7 @@ m_parentToolBar(parentToolBar)
                      this, SLOT(mprIntensityComboBoxItemActivated()));
     m_mprIntensityModeComboBox->getWidget()->setObjectName(parentObjectName
                                                            + "mprIntensityComboBox");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_mprIntensityModeComboBox,
+    WuQMacroManager::instance()->addMacroSupportToObject(m_mprIntensityModeComboBox->getWidget(),
                                                          "Intensity Mode");
 
 
