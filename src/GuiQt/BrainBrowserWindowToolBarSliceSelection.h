@@ -29,6 +29,7 @@ class QAction;
 class QCheckBox;
 class QDoubleSpinBox;
 class QSpinBox;
+class QToolButton;
 class WuQWidgetObjectGroup;
 
 namespace caret {
@@ -64,6 +65,7 @@ namespace caret {
         void volumeSliceProjectionTypeEnumComboBoxItemActivated();
         void volumeIdentificationToggled(bool value);
         void obliqueMaskingActionTriggered(bool);
+        void intensityModeActionTriggered(bool);
         
     private:
         BrainBrowserWindowToolBarSliceSelection(const BrainBrowserWindowToolBarSliceSelection&);
@@ -75,7 +77,7 @@ namespace caret {
                                                              const int64_t sliceIndex);
         void updateSliceIndicesAndCoordinatesRanges();
         
-        void updateObliqueMaskingButton();
+        void updateIntensityMaskingButton();
         
         QPixmap createVolumeIdentificationUpdatesSlicesIcon(const QWidget* widget);
         
@@ -94,7 +96,9 @@ namespace caret {
         QDoubleSpinBox* m_volumeIndicesXcoordSpinBox;
         QDoubleSpinBox* m_volumeIndicesYcoordSpinBox;
         QDoubleSpinBox* m_volumeIndicesZcoordSpinBox;
+        QToolButton* m_intensityMaskingToolButton;
         QAction* m_obliqueMaskingAction;
+        QAction* m_intensityModeAction;
         
         EnumComboBoxTemplate* m_volumeSliceProjectionTypeEnumComboBox;
         // ADD_NEW_MEMBERS_HERE

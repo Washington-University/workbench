@@ -245,6 +245,14 @@ m_parentToolBar(parentToolBar)
     macroManager->addMacroSupportToObject(m_volumeSliceProjectionTypeEnumComboBox->getComboBox(),
                                           "Select volume slice projection type");
     
+    m_intensityModeAction = new QAction("I", this);
+    m_intensityModeAction->setToolTip("Intensity Mode");
+    m_intensityModeAction->setCheckable(true);
+    QObject::connect(m_intensityModeAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarSliceSelection::intensityModeActionTriggered);
+    m_intensityModeAction->setObjectName(objectNamePrefix
+                                         + "IntensityMode");
+    
     m_obliqueMaskingAction = new QAction("M", this);
     m_obliqueMaskingAction->setToolTip(VolumeSliceInterpolationEdgeEffectsMaskingEnum::getToolTip());
     m_obliqueMaskingAction->setCheckable(true);
@@ -253,9 +261,9 @@ m_parentToolBar(parentToolBar)
     m_obliqueMaskingAction->setObjectName(objectNamePrefix
                                           + "ObliqueMasking");
     
-    QToolButton* obliqueMaskingToolButton = new QToolButton();
-    obliqueMaskingToolButton->setDefaultAction(m_obliqueMaskingAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(obliqueMaskingToolButton);
+    m_intensityMaskingToolButton = new QToolButton();
+    m_intensityMaskingToolButton->setDefaultAction(m_obliqueMaskingAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_intensityMaskingToolButton);
     
     
     QGridLayout* gridLayout = new QGridLayout(this);
@@ -277,7 +285,7 @@ m_parentToolBar(parentToolBar)
 
     gridLayout->addWidget(volumeIDToolButton, 3, 0, 1, 2, Qt::AlignLeft);
     gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 2, 1, 2, Qt::AlignCenter);
-    gridLayout->addWidget(obliqueMaskingToolButton, 3, 4);
+    gridLayout->addWidget(m_intensityMaskingToolButton, 3, 4);
 
     gridLayout->addWidget(volumeIndicesOriginToolButton, 0, 4, 3, 1);
     
@@ -373,7 +381,7 @@ BrainBrowserWindowToolBarSliceSelection::updateContent(BrowserTabContent* browse
         m_volumeIndicesParasagittalCheckBox->setChecked(browserTabContent->isSliceParasagittalEnabled());
     }
     
-    updateObliqueMaskingButton();
+    updateIntensityMaskingButton();
 
     m_volumeSliceProjectionTypeEnumComboBox->setSelectedItem<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>(browserTabContent->getSliceProjectionType());
     
@@ -814,7 +822,7 @@ BrainBrowserWindowToolBarSliceSelection::volumeSliceProjectionTypeEnumComboBoxIt
     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = m_volumeSliceProjectionTypeEnumComboBox->getSelectedItem<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>();
     btc->setSliceProjectionType(sliceProjectionType);
     this->updateGraphicsWindowAndYokedWindows();
-    updateObliqueMaskingButton();
+    updateIntensityMaskingButton();
     EventManager::get()->sendEvent(EventUpdateVolumeEditingToolBar().getPointer());
     updateUserInterface();
 }
@@ -833,6 +841,57 @@ BrainBrowserWindowToolBarSliceSelection::volumeIdentificationToggled(bool value)
         return;
     }
     browserTabContent->setIdentificationUpdatesVolumeSlices(value);
+}
+
+/**
+ * Called when the intensity mode action is triggered.
+ */
+void
+BrainBrowserWindowToolBarSliceSelection::intensityModeActionTriggered(bool)
+{
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
+    std::vector<VolumeMprIntensityProjectionModeEnum::Enum> allIntensityModes;
+    VolumeMprIntensityProjectionModeEnum::getAllEnums(allIntensityModes);
+    
+    QMenu intensityModeMenu("Intensity Mode");
+    QActionGroup* intensityActionGroup = new QActionGroup(this);
+    intensityActionGroup->setExclusive(true);
+    QAction* selectedAction(NULL);
+    for (auto intensityEnum : allIntensityModes) {
+        QAction* action(intensityActionGroup->addAction(VolumeMprIntensityProjectionModeEnum::toGuiName(intensityEnum)));
+        action->setObjectName(m_intensityModeAction->objectName()
+                              + ":"
+                              + VolumeMprIntensityProjectionModeEnum::toName(intensityEnum));
+        action->setCheckable(true);
+        action->setData(VolumeMprIntensityProjectionModeEnum::toIntegerCode(intensityEnum));
+        if (intensityEnum == browserTabContent->getVolumeMprIntensityProjectionMode()) {
+            selectedAction = action;
+        }
+        intensityModeMenu.addAction(action);
+    }
+    
+    if (selectedAction != NULL) {
+        selectedAction->setChecked(true);
+    }
+    
+    selectedAction = intensityModeMenu.exec(QCursor::pos());
+    if (selectedAction != NULL) {
+        const int32_t intValue = selectedAction->data().toInt();
+        bool validFlag = false;
+        VolumeMprIntensityProjectionModeEnum::Enum intensityMode = VolumeMprIntensityProjectionModeEnum::fromIntegerCode(intValue,
+                                                                                                                         &validFlag);
+        CaretAssert(validFlag);
+        browserTabContent->setVolumeMprIntensityProjectionMode(intensityMode);
+        
+        this->updateGraphicsWindowAndYokedWindows();
+        EventManager::get()->sendEvent(EventUpdateVolumeEditingToolBar().getPointer());
+    }
+    
+    updateIntensityMaskingButton();
 }
 
 /**
@@ -890,16 +949,16 @@ BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered(bool)
         EventManager::get()->sendEvent(EventUpdateVolumeEditingToolBar().getPointer());
     }
     
-    updateObliqueMaskingButton();
+    updateIntensityMaskingButton();
 }
 
 /**
- * Update the oblique masking button so that it enabled only 
+ * Update the intensity and oblique masking button so that it enabled only
  * when oblique slice drawing is selected and it is "checked"
  * when a masking is applied.
  */
 void
-BrainBrowserWindowToolBarSliceSelection::updateObliqueMaskingButton()
+BrainBrowserWindowToolBarSliceSelection::updateIntensityMaskingButton()
 {
     BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
     if (browserTabContent == NULL) {
@@ -919,15 +978,29 @@ BrainBrowserWindowToolBarSliceSelection::updateObliqueMaskingButton()
     
     switch (browserTabContent->getSliceProjectionType()) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            m_intensityModeAction->setEnabled(false);
             m_obliqueMaskingAction->setEnabled(true);
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            m_intensityModeAction->setEnabled(false);
             m_obliqueMaskingAction->setEnabled(false);
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            m_intensityModeAction->setEnabled(true);
             m_obliqueMaskingAction->setEnabled(false);
             break;
+    }
+    
+    QList<QAction*> buttonActions(m_intensityMaskingToolButton->actions());
+    for (auto action : buttonActions) {
+        m_intensityMaskingToolButton->removeAction(action);
+    }
+    if (m_intensityModeAction->isEnabled()) {
+        m_intensityMaskingToolButton->setDefaultAction(m_intensityModeAction);
+    }
+    else {
+        m_intensityMaskingToolButton->setDefaultAction(m_obliqueMaskingAction);
     }
 }
 

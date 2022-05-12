@@ -82,18 +82,6 @@ namespace caret {
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                   const GraphicsViewport& viewport);
 
-        SliceInfo createSliceInfo(const BrowserTabContent* browserTabContent,
-                                  const VolumeMappableInterface* underlayVolume,
-                                  const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                  const Vector3D& sliceCoordinates) const;
-
-        SliceInfo createSliceInfo3D(const BrowserTabContent* browserTabContent,
-                                    const VolumeMappableInterface* underlayVolume,
-                                    const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                    const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                    const Vector3D& sliceCoordinates,
-                                    const bool useCornersFlag) const;
         // ADD_NEW_METHODS_HERE
         
     private:
@@ -102,6 +90,14 @@ namespace caret {
             ALL_3D,
             VOLUME_2D
         };
+        
+        SliceInfo createSliceInfo(const BrowserTabContent* browserTabContent,
+                                  const VolumeMappableInterface* underlayVolume,
+                                  const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                  const Vector3D& sliceCoordinates) const;
+        
+        SliceInfo createSliceInfo3D() const;
         
         void drawSliceView(const BrainOpenGLViewportContent* viewportContent,
                            BrowserTabContent* browserTabContent,
@@ -208,7 +204,8 @@ namespace caret {
 
         std::array<uint8_t, 4> getAxisColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const;
         
-        void drawLayers(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+        void drawLayers(const VolumeMappableInterface* underlayVolume,
+                        const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                         const Plane& slicePlane,
@@ -237,6 +234,8 @@ namespace caret {
         void drawIntensityBackgroundSlice(const VolumeMprIntensityProjectionModeEnum::Enum intensityMode,
                                           const GraphicsPrimitive* volumePrimitive) const;
         
+        std::vector<VolumeFile*> getIntensityVolumeFiles() const;
+        
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 
         BrowserTabContent* m_browserTabContent = NULL;
@@ -244,8 +243,6 @@ namespace caret {
         std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo> m_volumeDrawInfo;
         
         Brain* m_brain = NULL;
-        
-        VolumeMappableInterface* m_underlayVolume = NULL;
         
         ViewMode m_viewMode = ViewMode::INVALID;
         

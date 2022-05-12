@@ -107,16 +107,16 @@ VolumeMprIntensityProjectionModeEnum::initialize()
     initializedFlag = true;
 
     enumData.push_back(VolumeMprIntensityProjectionModeEnum(OFF, 
-                                    "OFF", 
-                                    "Off"));
+                                    "OFF",
+                                    "Slices"));
     
     enumData.push_back(VolumeMprIntensityProjectionModeEnum(MAXIMUM, 
                                     "MAXIMUM", 
-                                    "Maximum"));
+                                    "MIP"));
     
     enumData.push_back(VolumeMprIntensityProjectionModeEnum(MINIMUM, 
                                     "MINIMUM", 
-                                    "Minimum"));
+                                    "MinIP"));
     
 }
 

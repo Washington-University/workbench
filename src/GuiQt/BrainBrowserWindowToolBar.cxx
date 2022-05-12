@@ -2196,7 +2196,10 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
-    this->volumeMprWidget->setVisible(showVolumeMprWidget);
+    const bool allowVolumeMprWidgetFlag(false);
+    if (allowVolumeMprWidgetFlag) {
+        this->volumeMprWidget->setVisible(showVolumeMprWidget);
+    }
     this->tabMiscWidget->setVisible(showTabMiscWidget);
     
     updateToolBarComponents(browserTabContent);
