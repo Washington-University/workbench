@@ -72,6 +72,19 @@ namespace caret {
                                              const float viewingZoom,
                                              const float viewportHeight);
         
+        void drawVolumeIntensity2dIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                        const float viewingZoom,
+                                                        const float viewportHeight);
+        
+        void drawVolumeIntensity3dIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                        const float viewingZoom,
+                                                        const float viewportHeight);
+        
+        // ADD_NEW_METHODS_HERE
+
+        virtual AString toString() const;
+        
+    private:
         void drawIdentificationSymbols(const IdentifiedItemUniversalTypeEnum::Enum drawingOnType,
                                        const Surface* surface,
                                        const MediaFile* mediaFile,
@@ -80,12 +93,7 @@ namespace caret {
                                        const float planeThickness,
                                        const float viewingZoom,
                                        const float viewportHeight);
-        
-        // ADD_NEW_METHODS_HERE
 
-        virtual AString toString() const;
-        
-    private:
         std::vector<const IdentifiedItemUniversal*> getIdentifiedItems();
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;

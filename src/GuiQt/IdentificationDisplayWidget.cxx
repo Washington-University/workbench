@@ -575,8 +575,8 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolsShowSurfaceIdCheckBox = new QCheckBox(IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::SURFACE));
     m_symbolsShowSurfaceIdCheckBox->setToolTip(IdentificationManager::getShowSymbolOnTypeToolTip(IdentifiedItemUniversalTypeEnum::SURFACE));
     
-    m_symbolsShowVolumeIdCheckBox = new QCheckBox(IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::VOLUME));
-    m_symbolsShowVolumeIdCheckBox->setToolTip(IdentificationManager::getShowSymbolOnTypeToolTip(IdentifiedItemUniversalTypeEnum::VOLUME));
+    m_symbolsShowVolumeIdCheckBox = new QCheckBox(IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::VOLUME_SLICES));
+    m_symbolsShowVolumeIdCheckBox->setToolTip(IdentificationManager::getShowSymbolOnTypeToolTip(IdentifiedItemUniversalTypeEnum::VOLUME_SLICES));
     
     m_symbolsSurfaceContralateralVertexCheckBox = new QCheckBox("Show Surface Contralateral");
     m_symbolsSurfaceContralateralVertexCheckBox->setToolTip("<html>Enable display of contralateral surface identification symbols</html>");

@@ -624,7 +624,7 @@ PreferencesDialog::createIdentificationSymbolWidget()
                       IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::SURFACE) + ": ",
                       m_surfaceIdentificationSymbolComboBox->getWidget());
     addWidgetToLayout(gridLayout,
-                      IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::VOLUME) + ": ",
+                      IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::VOLUME_SLICES) + ": ",
                       m_volumeIdentificationSymbolComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       "Show Data Tool Tips: ",

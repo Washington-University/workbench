@@ -265,7 +265,7 @@ IdentifiedItemUniversal::newInstanceVolumeIdentification(const AString& simpleTe
     const int32_t surfaceNumberOfVertices(-1);
     const int32_t surfaceVertexIndex(-1);
     const bool stereotaxicXYZValidFlag(true);
-    IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::VOLUME,
+    IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::VOLUME_SLICES,
                                                                 simpleText,
                                                                 formattedText,
                                                                 dataFileName,
@@ -513,7 +513,13 @@ IdentifiedItemUniversal::getToolTip() const
             break;
         case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
             break;
-        case IdentifiedItemUniversalTypeEnum::VOLUME:
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D:
+            CaretAssertMessage(0, "IDs not created on Intensity 2D");
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D:
+            CaretAssertMessage(0, "IDs not created on Intensity 3D");
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_SLICES:
             toolTipText = ("ID from Volume: "
                            + m_dataFileName + "<br>"
                            "Index ("
@@ -553,7 +559,13 @@ IdentifiedItemUniversal::isValid() const
         case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
             return true;
             break;
-        case IdentifiedItemUniversalTypeEnum::VOLUME:
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D:
+            CaretAssertMessage(0, "IDs not created on Intensity 2D");
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D:
+            CaretAssertMessage(0, "IDs not created on Intensity 2D");
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_SLICES:
             if ((m_voxelIJK[0] >= 0)
                 && (m_voxelIJK[1] >= 0)
                 && (m_voxelIJK[2] >= 0)) {

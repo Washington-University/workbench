@@ -37,6 +37,7 @@
 
 namespace caret {
 
+    class Brain;
     class BrowserTabContent;
     class BrainOpenGLFixedPipeline;
     class BrainOpenGLViewportContent;
@@ -106,7 +107,6 @@ namespace caret {
                            const GraphicsViewport& viewport);
 
         void drawWholeBrainView(const BrainOpenGLViewportContent* viewportContent,
-                                BrowserTabContent* browserTabContent,
                                 const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                 const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                 const GraphicsViewport& viewport);
@@ -129,11 +129,11 @@ namespace caret {
         void setViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                       const SliceInfo& sliceInfo);
 
-        void drawSliceIntensityProjection(const SliceInfo& sliceInfo,
-                                          const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                          const Vector3D& sliceCoordinates,
-                                          const GraphicsViewport& viewport);
+        void drawSliceIntensityProjection2D(const SliceInfo& sliceInfo,
+                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                            const Vector3D& sliceCoordinates,
+                                            const GraphicsViewport& viewport);
 
         void drawSliceIntensityProjection3D(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,

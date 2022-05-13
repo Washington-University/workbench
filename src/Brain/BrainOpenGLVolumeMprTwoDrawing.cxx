@@ -101,7 +101,7 @@ BrainOpenGLVolumeMprTwoDrawing::~BrainOpenGLVolumeMprTwoDrawing()
  * @param viewportContent
  *    Content of viewport
  * @param browserTabContent
- *    Content of the browser tab being drawn
+ *    Content of the browser tab
  * @param volumeDrawInfo
  *    Volumes being drawn
  * @param viewport
@@ -173,7 +173,6 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
 
     if (browserTabContent->isWholeBrainDisplayed()) {
         drawWholeBrainView(viewportContent,
-                           browserTabContent,
                            sliceDrawingType,
                            sliceProjectionType,
                            viewport);
@@ -281,10 +280,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
  * Draw the  slice view in Whole Brain (ALL)  mode
  * @param fixedPipelineDrawing
  *    The fixed pipeline drawing
- * @param viewportContent
- *    Content of viewport
- * @param browserTabContent
- *    Content of the browser tab being drawn
  * @param volumeDrawInfo
  *    Volumes being drawn
  * @param viewport
@@ -292,7 +287,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportContent* viewportContent,
-                                                   BrowserTabContent* browserTabContent,
                                                    const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                    const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                    const GraphicsViewport& viewport)
@@ -310,7 +304,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
         m_browserTabContent->getSliceCoordinateAxial()
     };
 
-    switch (browserTabContent->getVolumeMprIntensityProjectionMode()) {
+    switch (m_browserTabContent->getVolumeMprIntensityProjectionMode()) {
         case VolumeMprIntensityProjectionModeEnum::OFF:
             if (m_browserTabContent->isSliceAxialEnabled()) {
                 glPushMatrix();
@@ -780,19 +774,16 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
                 break;
         }
 
+        bool drawIdentificationSymbolsFlag(false);
         if (intensityMode3DFlag) {
             CaretAssertMessage(0, "This function should not be called for ALL view Intensity Modes");
-            drawSliceIntensityProjection3D(sliceProjectionType,
+        }
+        else if (intensityModeFlag) {
+            drawSliceIntensityProjection2D(sliceInfo,
+                                           sliceProjectionType,
                                            sliceViewPlane,
                                            sliceCoordinates,
                                            viewport);
-        }
-        else if (intensityModeFlag) {
-            drawSliceIntensityProjection(sliceInfo,
-                                         sliceProjectionType,
-                                         sliceViewPlane,
-                                         sliceCoordinates,
-                                         viewport);
         }
         else {
             const bool enableBlendingFlag(true);
@@ -807,6 +798,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
                                    enableBlendingFlag,
                                    drawAttributesFlag,
                                    drawIntensitySliceBackgroundFlag);
+            drawIdentificationSymbolsFlag = true;
         }
 
         std::array<float, 4> orthoLRBT {
@@ -843,11 +835,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
             
             CaretAssertVectorIndex(m_volumeDrawInfo, 0);
             
-            BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(m_fixedPipelineDrawing,
-                                                                     m_browserTabContent,
-                                                                     m_volumeDrawInfo[0].volumeFile,
-                                                                     sliceInfo.m_plane,
-                                                                     sliceThickness);
+            if (drawIdentificationSymbolsFlag) {
+                BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(m_fixedPipelineDrawing,
+                                                                         m_browserTabContent,
+                                                                         m_volumeDrawInfo[0].volumeFile,
+                                                                         sliceInfo.m_plane,
+                                                                         sliceThickness);
+            }
         }
         
         const Plane slicePlane(sliceInfo.m_plane);
@@ -2261,11 +2255,11 @@ BrainOpenGLVolumeMprTwoDrawing::getIntensityVolumeFiles() const
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection(const SliceInfo& sliceInfo,
-                                                             const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                             const Vector3D& sliceCoordinates,
-                                                             const GraphicsViewport& viewport)
+BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& sliceInfo,
+                                                               const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                               const Vector3D& sliceCoordinates,
+                                                               const GraphicsViewport& viewport)
 {
     std::vector<VolumeFile*> intensityVolumeFiles(getIntensityVolumeFiles());
     if (intensityVolumeFiles.empty()) {
@@ -2367,6 +2361,16 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection(const SliceInfo& sl
         }
     }
     
+    CaretAssertVectorIndex(intensityVolumeFiles, 0);
+    CaretAssert(intensityVolumeFiles[0]);
+    BrainOpenGLIdentificationDrawing idDrawing(m_fixedPipelineDrawing,
+                                               m_brain,
+                                               m_browserTabContent,
+                                               m_fixedPipelineDrawing->mode);
+    idDrawing.drawVolumeIntensity2dIdentificationSymbols(intensityVolumeFiles[0],
+                                                         m_browserTabContent->getScaling(),
+                                                         viewport.getHeight());
+
     switch (m_viewMode) {
         case ViewMode::INVALID:
             CaretAssert(0);
@@ -3208,6 +3212,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawIntensityBackgroundSlice(const VolumeMprInte
  *    The plane for slice drawing.
  * @param sliceCoordinates
  *    Coordinates of the selected slice.
+ * @param zooming
+ *    Zooming by user
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
  */
@@ -3335,6 +3341,17 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                            + AString::number(numIntersections));
         }
     }
+    
+    CaretAssertVectorIndex(intensityVolumeFiles, 0);
+    CaretAssert(intensityVolumeFiles[0]);
+    BrainOpenGLIdentificationDrawing idDrawing(m_fixedPipelineDrawing,
+                                               m_brain,
+                                               m_browserTabContent,
+                                               m_fixedPipelineDrawing->mode);
+    idDrawing.drawVolumeIntensity3dIdentificationSymbols(intensityVolumeFiles[0],
+                                                         m_browserTabContent->getScaling(),
+                                                         viewport.getHeight());
+
     switch (m_viewMode) {
         case ViewMode::INVALID:
             CaretAssert(0);

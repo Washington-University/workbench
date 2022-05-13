@@ -208,7 +208,77 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
     const Surface* surface(NULL);
     const MediaFile* mediaFile(NULL);
     
-    drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::VOLUME,
+    drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::VOLUME_SLICES,
+                              surface,
+                              mediaFile,
+                              volume,
+                              plane,
+                              sliceThickness,
+                              viewingZoom,
+                              viewportHeight);
+}
+
+/**
+ * Draw volume intensity 2D symbols
+ * @param volume
+ *    The volume on which symbols are drawn
+ * @param viewingZoom
+ *    Zooming (scaling) for current view
+ * @param viewportHeight
+ *    Height of viewport
+ */
+void
+BrainOpenGLIdentificationDrawing::drawVolumeIntensity2dIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                                             const float viewingZoom,
+                                                                             const float viewportHeight)
+{
+    CaretAssert(volume);
+    
+    if ( ! m_idManager->isShowVolumeIdentificationSymbols()) {
+        return;
+    }
+    
+    const Surface* surface(NULL);
+    const MediaFile* mediaFile(NULL);
+    
+    Plane plane;
+    const float sliceThickness(1.0);
+    drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D,
+                              surface,
+                              mediaFile,
+                              volume,
+                              plane,
+                              sliceThickness,
+                              viewingZoom,
+                              viewportHeight);
+}
+
+/**
+ * Draw volume intensity 3D symbols
+ * @param volume
+ *    The volume on which symbols are drawn
+ * @param viewingZoom
+ *    Zooming (scaling) for current view
+ * @param viewportHeight
+ *    Height of viewport
+ */
+void
+BrainOpenGLIdentificationDrawing::drawVolumeIntensity3dIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                                             const float viewingZoom,
+                                                                             const float viewportHeight)
+{
+    CaretAssert(volume);
+    
+    if ( ! m_idManager->isShowVolumeIdentificationSymbols()) {
+        return;
+    }
+    
+    const Surface* surface(NULL);
+    const MediaFile* mediaFile(NULL);
+    
+    Plane plane;
+    const float sliceThickness(1.0);
+    drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D,
                               surface,
                               mediaFile,
                               volume,
@@ -260,7 +330,9 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
     
     bool drawingOnSurfaceFlag(false);
     bool drawingOnMediaFlag(false);
-    bool drawingOnVolumeFlag(false);
+    bool drawingOnVolumeIntensity2dFlag(false);
+    bool drawingOnVolumeIntensity3dFlag(false);
+    bool drawingOnVolumeSlicesFlag(false);
     
     switch (drawingOnType) {
         case IdentifiedItemUniversalTypeEnum::INVALID:
@@ -293,12 +365,26 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             CaretAssert(0);
             return;
             break;
-        case IdentifiedItemUniversalTypeEnum::VOLUME:
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D:
             CaretAssert(volume);
             if (volume == NULL) {
                 return;
             }
-            drawingOnVolumeFlag = true;
+            drawingOnVolumeIntensity2dFlag = true;
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D:
+            CaretAssert(volume);
+            if (volume == NULL) {
+                return;
+            }
+            drawingOnVolumeIntensity3dFlag = true;
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_SLICES:
+            CaretAssert(volume);
+            if (volume == NULL) {
+                return;
+            }
+            drawingOnVolumeSlicesFlag = true;
             break;
     }
     
@@ -432,8 +518,14 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                 break;
             case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
                 break;
-            case IdentifiedItemUniversalTypeEnum::VOLUME:
-                    if (drawingOnVolumeFlag) {
+            case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D:
+                CaretAssertMessage(0, "IDs not created on Intensity 2D");
+                break;
+            case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D:
+                CaretAssertMessage(0, "IDs not created on Intensity 3D");
+                break;
+            case IdentifiedItemUniversalTypeEnum::VOLUME_SLICES:
+                    if (drawingOnVolumeSlicesFlag) {
                         if (item->isStereotaxicXYZValid()) {
                             xyz = item->getStereotaxicXYZ();
                             drawFlag = true;
@@ -502,7 +594,11 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                 }
             }
             
-            if (drawingOnVolumeFlag) {
+            if (drawingOnVolumeIntensity2dFlag
+                || drawingOnVolumeIntensity3dFlag) {
+                /* just use XYZ */
+            }
+            if (drawingOnVolumeSlicesFlag) {
                 drawFlag = false;
                 if (plane.isValidPlane()) {
                     /*
@@ -561,7 +657,11 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             else if (drawingOnSurfaceFlag) {
                 height = surfaceMaxDimension;
             }
-            else if (drawingOnVolumeFlag) {
+            else if (drawingOnVolumeIntensity2dFlag
+                     || drawingOnVolumeIntensity3dFlag) {
+                height = viewportHeight;
+            }
+            else if (drawingOnVolumeSlicesFlag) {
                 height = viewportHeight;
             }
             float symbolDiameter(1.0f);
@@ -584,7 +684,13 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                                          SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
                                                                          selectionItemIndex);
                 }
-                else if (drawingOnVolumeFlag) {
+                else if (drawingOnVolumeIntensity2dFlag
+                         || drawingOnVolumeIntensity3dFlag) {
+                    m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
+                                                                         SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
+                                                                         selectionItemIndex);
+                }
+                else if (drawingOnVolumeSlicesFlag) {
                     m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
                                                                          SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
                                                                          selectionItemIndex);
@@ -648,7 +754,11 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
                             CaretAssert(0);
                             break;
-                        case IdentifiedItemUniversalTypeEnum::VOLUME:
+                        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D:
+                            break;
+                        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D:
+                            break;
+                        case IdentifiedItemUniversalTypeEnum::VOLUME_SLICES:
                             break;
                     }
                     universalSymbolSelection->setIdentifiedItemUniqueIdentifier(selectedItem->getUniqueIdentifier());

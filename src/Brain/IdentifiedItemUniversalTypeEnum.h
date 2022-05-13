@@ -43,8 +43,12 @@ public:
         SURFACE,
         /** Text only, no symbol */
         TEXT_NO_SYMBOL,
-        /** Volume */
-        VOLUME
+        /** Volume intensity 2D*/
+        VOLUME_INTENSITY_2D,
+        /** Volume intensity 2D*/
+        VOLUME_INTENSITY_3D,
+        /** Volume Slices*/
+        VOLUME_SLICES
     };
 
 

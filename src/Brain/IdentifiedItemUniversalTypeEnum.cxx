@@ -122,9 +122,9 @@ IdentifiedItemUniversalTypeEnum::initialize()
                                                        "TEXT_NO_SYMBOL",
                                                        "Text No Symbol"));
     
-    enumData.push_back(IdentifiedItemUniversalTypeEnum(VOLUME,
-                                                       "VOLUME",
-                                                       "Volume"));
+    enumData.push_back(IdentifiedItemUniversalTypeEnum(VOLUME_SLICES,
+                                                       "VOLUME_SLICES",
+                                                       "Volume Slices"));
 
 }
 
@@ -168,7 +168,7 @@ IdentifiedItemUniversalTypeEnum::toName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its name.
- * @param name 
+ * @param nameIn
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -177,9 +177,16 @@ IdentifiedItemUniversalTypeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 IdentifiedItemUniversalTypeEnum::Enum 
-IdentifiedItemUniversalTypeEnum::fromName(const AString& name, bool* isValidOut)
+IdentifiedItemUniversalTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+    
+    AString name(nameIn);
+    
+    /* VOLUME was renamed to VOLUME_SLICES */
+    if (name == "VOLUME") {
+        name = IdentifiedItemUniversalTypeEnum::toName(VOLUME_SLICES);
+    }
     
     bool validFlag = false;
     Enum enumValue = IdentifiedItemUniversalTypeEnum::enumData[0].enumValue;

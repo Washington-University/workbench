@@ -224,7 +224,13 @@ IdentificationManager::removeIdentificationText()
                 break;
             case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
                 break;
-            case IdentifiedItemUniversalTypeEnum::VOLUME:
+            case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D:
+                keepFlag = true;
+                break;
+            case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D:
+                keepFlag = true;
+                break;
+            case IdentifiedItemUniversalTypeEnum::VOLUME_SLICES:
                 keepFlag = true;
                 break;
         }
@@ -290,7 +296,11 @@ IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUnivers
             CaretAssert(0);
             return;
             break;
-        case IdentifiedItemUniversalTypeEnum::VOLUME:
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D:
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D:
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_SLICES:
             break;
     }
     
@@ -989,7 +999,13 @@ IdentificationManager::getShowSymbolOnTypeLabel(const IdentifiedItemUniversalTyp
         case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
             text = "TEXT";
             break;
-        case IdentifiedItemUniversalTypeEnum::VOLUME:
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D:
+            CaretAssertMessage(0, "Use Volume Slices for Intensity 2D");
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D:
+            CaretAssertMessage(0, "Use Volume Slices for Intensity 3D");
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_SLICES:
             text = "Show ID Symbols on Volume";
             break;
     }
@@ -1019,7 +1035,13 @@ IdentificationManager::getShowSymbolOnTypeToolTip(const IdentifiedItemUniversalT
             break;
         case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
             break;
-        case IdentifiedItemUniversalTypeEnum::VOLUME:
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D:
+            CaretAssertMessage(0, "Use Volume Slices for Intensity 2D ToolTip");
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D:
+            CaretAssertMessage(0, "Use Volume Slices for Intensity 3D ToolTip");
+            break;
+        case IdentifiedItemUniversalTypeEnum::VOLUME_SLICES:
             text.append("(Media, Surface)");
             break;
     }
