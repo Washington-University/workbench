@@ -234,7 +234,7 @@ namespace caret {
         void drawIntensityBackgroundSlice(const VolumeMprIntensityProjectionModeEnum::Enum intensityMode,
                                           const GraphicsPrimitive* volumePrimitive) const;
         
-        std::vector<VolumeFile*> getIntensityVolumeFiles() const;
+        std::vector<VolumeMappableInterface*> getIntensityVolumeFiles() const;
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 

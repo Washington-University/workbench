@@ -2225,16 +2225,13 @@ BrainOpenGLVolumeMprTwoDrawing::getVolumeRayIntersections(VolumeMappableInterfac
 /**
  * @return The intensity files for drawing
  */
-std::vector<VolumeFile*>
+std::vector<VolumeMappableInterface*>
 BrainOpenGLVolumeMprTwoDrawing::getIntensityVolumeFiles() const
 {
-    std::vector<VolumeFile*> intensityVolumeFiles;
+    std::vector<VolumeMappableInterface*> intensityVolumeFiles;
     for (auto& vdi : m_volumeDrawInfo) {
         if (vdi.volumeFile != NULL) {
-            VolumeFile* vf(dynamic_cast<VolumeFile*>(vdi.volumeFile));
-            if (vf != NULL) {
-                intensityVolumeFiles.push_back(vf);
-            }
+            intensityVolumeFiles.push_back(vdi.volumeFile);
         }
     }
     return intensityVolumeFiles;
@@ -2261,12 +2258,12 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
                                                                const Vector3D& sliceCoordinates,
                                                                const GraphicsViewport& viewport)
 {
-    std::vector<VolumeFile*> intensityVolumeFiles(getIntensityVolumeFiles());
+    std::vector<VolumeMappableInterface*> intensityVolumeFiles(getIntensityVolumeFiles());
     if (intensityVolumeFiles.empty()) {
         return;
     }
     
-    for (VolumeFile* volumeFile : intensityVolumeFiles) {
+    for (VolumeMappableInterface* volumeFile : intensityVolumeFiles) {
         CaretAssert(volumeFile);
         const std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
                                                                                sliceInfo.m_centerXYZ,
@@ -3223,12 +3220,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                                                                const Vector3D& sliceCoordinates,
                                                                const GraphicsViewport& viewport)
 {
-    std::vector<VolumeFile*> intensityVolumeFiles(getIntensityVolumeFiles());
+    std::vector<VolumeMappableInterface*> intensityVolumeFiles(getIntensityVolumeFiles());
     if (intensityVolumeFiles.empty()) {
         return;
     }
     
-    for (VolumeFile* volumeFile : intensityVolumeFiles) {
+    bool drawBackgroundSliceFlag(true);
+    for (VolumeMappableInterface* volumeFile : intensityVolumeFiles) {
         const SliceInfo sliceInfo(createSliceInfo3D());
         const std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
                                                                                sliceInfo.m_centerXYZ,
@@ -3322,7 +3320,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                      */
                     glDisable(GL_DEPTH_TEST);
                     
-                    if (iStep == 0) {
+                    if (drawBackgroundSliceFlag) {
+                        drawBackgroundSliceFlag = false;
                         /*
                          * Necessary for Min/Max blending to function
                          */
