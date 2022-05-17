@@ -37,7 +37,6 @@ namespace caret {
     class PlainTextStringBuilder;
     class SceneClassAssistant;
     class VolumeMappableInterface;
-    class VolumeSliceCoordinateSelection;
     
     class VolumeSliceSettings : public CaretObject, public SceneableInterface {
         
@@ -85,10 +84,6 @@ namespace caret {
         int32_t getMontageSliceSpacing() const;
         
         void setMontageSliceSpacing(const int32_t montageSliceSpacing);
-        
-        VolumeSliceCoordinateSelection* getSelectedVolumeSlices(VolumeMappableInterface* underlayVolumeFile);
-        
-        const VolumeSliceCoordinateSelection* getSelectedVolumeSlices(VolumeMappableInterface* underlayVolumeFile) const;
         
         void setSlicesToOrigin();
 

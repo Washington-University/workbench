@@ -117,8 +117,6 @@ namespace caret {
         /** Surface types that have an anatomical appearance. */
         static std::vector<SurfaceTypeEnum::Enum> s_anatomicalSurfaceTypes;
         
-//        mutable VolumeSliceCoordinateSelection m_volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
         VolumeMappableInterface* m_lastVolumeFile;
 
         /** Overlays sets for this model and for each tab */
