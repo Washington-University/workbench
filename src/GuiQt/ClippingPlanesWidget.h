@@ -31,6 +31,7 @@ class QDoubleSpinBox;
 
 namespace caret {
     class BrowserTabContent;
+    class EnumComboBoxTemplate;
     class WuQWidgetObjectGroup;
     
     class ClippingPlanesWidget : public QWidget {
@@ -47,9 +48,13 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
     private slots:
+        void xyzPlaneEnabledCheckBoxClicked();
+        
         void clippingValueChanged();
         
         void resetButtonClicked();
+        
+        void panningModeComboBoxActivated();
         
     private:
         void updateGraphicsWindow();
@@ -63,6 +68,8 @@ namespace caret {
         QWidget* createClippingAxesWidget();
         
         QWidget* createClippingDataTypeWidget();
+        
+        QWidget* createOptionsWidget();
         
         BrowserTabContent* getBrowserTabContent();
         
@@ -99,6 +106,8 @@ namespace caret {
         QCheckBox* m_volumeClippingEnabledCheckBox;
         
         QCheckBox* m_featuresClippingEnabledCheckBox;
+        
+        EnumComboBoxTemplate* m_panningModeComboBox;
         
         QString m_objectNamePrefix;
         

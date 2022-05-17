@@ -30,6 +30,7 @@
 #include "CaretObject.h"
 #include "ChartTwoAxisOrientationTypeEnum.h"
 #include "ChartTwoAxisScaleRangeModeEnum.h"
+#include "ClippingPlanePanningModeEnum.h"
 #include "EventListenerInterface.h"
 #include "Matrix4x4.h"
 #include "Model.h"
@@ -252,6 +253,13 @@ namespace caret {
         
         void setClippingPlanesEnabled(const bool status);
         
+        void setClippingPlanesEnabledAndEnablePlanes(const bool status);
+        
+        void setClippingPanningMode(const ClippingPlanePanningModeEnum::Enum panningMode);
+        
+        ClippingPlanePanningModeEnum::Enum getClippingPanningMode() const;
+        
+
         const float* getTranslation() const;
         
         void getTranslation(float translationOut[3]) const;

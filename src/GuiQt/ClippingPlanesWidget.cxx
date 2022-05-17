@@ -23,6 +23,7 @@
 #include "ClippingPlanesWidget.h"
 #undef __CLIPPING_PLANES_WIDGET_DECLARE__
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
@@ -35,6 +36,7 @@
 
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventBrowserTabGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -74,6 +76,7 @@ ClippingPlanesWidget::ClippingPlanesWidget(const QString& objectNamePrefix,
     QWidget* clippingBoxWidget = createClippingBoxWidget();
     QWidget* clippingAxesWidget = createClippingAxesWidget(); // xyz plane selected
     QWidget* clippingDataTypesWidget = createClippingDataTypeWidget();  // surface/volume/features
+    QWidget* optionsWidget(createOptionsWidget());
 
     /*------------------------------------------------------------------------*/
     QHBoxLayout* boxLayout = new QHBoxLayout();
@@ -87,6 +90,7 @@ ClippingPlanesWidget::ClippingPlanesWidget(const QString& objectNamePrefix,
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 4);
     layout->addLayout(boxLayout);
+    layout->addWidget(optionsWidget);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(clippingBoxWidget);
     
@@ -117,7 +121,77 @@ ClippingPlanesWidget::resetButtonClicked()
         btc->resetClippingPlaneTransformation();
         updateContent(btc->getTabNumber());
         updateGraphicsWindow();
+        
+        /*
+         * Spin boxes need to be updated directly when
+         * the widget is displayed.
+         * Since this widget is part of a menu, it does not
+         * get updated by a user-interface update event.
+         */
+        m_xThicknessDoubleSpinBox->update();
+        m_yThicknessDoubleSpinBox->update();
+        m_zThicknessDoubleSpinBox->update();
+        
+        m_xPanDoubleSpinBox->update();
+        m_yPanDoubleSpinBox->update();
+        m_zPanDoubleSpinBox->update();
+        
+        m_xRotateDoubleSpinBox->update();
+        m_yRotateDoubleSpinBox->update();
+        m_zRotateDoubleSpinBox->update();
+        
+        m_panningModeComboBox->getWidget()->update();
+        
+   }
+}
+
+/**
+ * Called when one of the X/Y/Z plane enabled checkboxes is clicked
+ */
+void
+ClippingPlanesWidget::xyzPlaneEnabledCheckBoxClicked()
+{
+    BrowserTabContent* browserTabContent = getBrowserTabContent();
+    if (browserTabContent == NULL) {
+        return;
     }
+    bool xEnabled;
+    bool yEnabled;
+    bool zEnabled;
+    bool surfaceEnabled;
+    bool volumeEnabled;
+    bool featuresEnabled;
+    browserTabContent->getClippingPlaneEnabled(xEnabled,
+                                               yEnabled,
+                                               zEnabled,
+                                               surfaceEnabled,
+                                               volumeEnabled,
+                                               featuresEnabled);
+
+    bool planeToggledOnFlag(false);
+    if (m_xClippingEnabledCheckBox->isChecked()
+        && ( ! xEnabled)) {
+        planeToggledOnFlag = true;
+    }
+    if (m_yClippingEnabledCheckBox->isChecked()
+        && ( ! yEnabled)) {
+        planeToggledOnFlag = true;
+    }
+    if (m_zClippingEnabledCheckBox->isChecked()
+        && ( ! zEnabled)) {
+        planeToggledOnFlag = true;
+    }
+    
+    if (planeToggledOnFlag) {
+        /*
+         * If a clipping plane was toggled on and clipping is DISABLED,
+         * then enable clipping
+         */
+        if ( ! browserTabContent->isClippingPlanesEnabled()) {
+            browserTabContent->setClippingPlanesEnabled(true);
+        }
+    }
+    clippingValueChanged();
 }
 
 /**
@@ -164,12 +238,23 @@ ClippingPlanesWidget::clippingValueChanged()
                                                m_volumeClippingEnabledCheckBox->isChecked(),
                                                m_featuresClippingEnabledCheckBox->isChecked());
     
-    if (browserTabContent->isBrainModelYoked()) {
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    updateGraphicsWindow();
+}
+
+/**
+ * Called when panning mode combo box is activated
+ */
+void
+ClippingPlanesWidget::panningModeComboBoxActivated()
+{
+    BrowserTabContent* browserTabContent = getBrowserTabContent();
+    if (browserTabContent == NULL) {
+        return;
     }
-    else {
-        updateGraphicsWindow();
-    }
+    const ClippingPlanePanningModeEnum::Enum clipMode(m_panningModeComboBox->getSelectedItem<ClippingPlanePanningModeEnum, ClippingPlanePanningModeEnum::Enum>());
+    browserTabContent->setClippingPanningMode(clipMode);
+    updateGraphicsWindow();
+    updateContent(m_tabIndex);
 }
 
 
@@ -204,14 +289,14 @@ ClippingPlanesWidget::getBrowserTabContent()
 void
 ClippingPlanesWidget::updateContent(const int32_t tabIndex)
 {
+    setEnabled(false);
+    
     m_tabIndex = tabIndex;
     
     BrowserTabContent* browserTabContent = getBrowserTabContent();
     if (browserTabContent == NULL) {
-        setEnabled(false);
         return;
     }
-    setEnabled(true);
     
     QSignalBlocker xPanBlocker(m_xPanDoubleSpinBox);
     QSignalBlocker yPanBlocker(m_yPanDoubleSpinBox);
@@ -224,6 +309,9 @@ ClippingPlanesWidget::updateContent(const int32_t tabIndex)
     QSignalBlocker xThicknessBlocker(m_xThicknessDoubleSpinBox);
     QSignalBlocker yThicknessBlocker(m_yThicknessDoubleSpinBox);
     QSignalBlocker zThicknessBlocker(m_zThicknessDoubleSpinBox);
+
+    const ClippingPlanePanningModeEnum::Enum panMode(browserTabContent->getClippingPanningMode());
+    m_panningModeComboBox->setSelectedItem<ClippingPlanePanningModeEnum, ClippingPlanePanningModeEnum::Enum>(panMode);
 
     float panning[3];
     float rotation[3];
@@ -238,6 +326,18 @@ ClippingPlanesWidget::updateContent(const int32_t tabIndex)
     m_yPanDoubleSpinBox->setValue(panning[1]);
     m_zPanDoubleSpinBox->setValue(panning[2]);
     
+    bool panControlsEnabledFlag(false);
+    switch (panMode) {
+        case ClippingPlanePanningModeEnum::PAN_XYZ:
+            panControlsEnabledFlag = true;
+            break;
+        case ClippingPlanePanningModeEnum::PAN_VOLUME_SLICES_COORDS:
+            break;
+    }
+    m_xPanDoubleSpinBox->setEnabled(panControlsEnabledFlag);
+    m_yPanDoubleSpinBox->setEnabled(panControlsEnabledFlag);
+    m_zPanDoubleSpinBox->setEnabled(panControlsEnabledFlag);
+
     m_xRotateDoubleSpinBox->setValue(rotation[0]);
     m_yRotateDoubleSpinBox->setValue(rotation[1]);
     m_zRotateDoubleSpinBox->setValue(rotation[2]);
@@ -268,6 +368,8 @@ ClippingPlanesWidget::updateContent(const int32_t tabIndex)
     m_surfaceClippingEnabledCheckBox->setChecked(surfaceEnabled);
     m_volumeClippingEnabledCheckBox->setChecked(volumeEnabled);
     m_featuresClippingEnabledCheckBox->setChecked(featuresEnabled);
+
+    setEnabled(true);
 }
 
 /**
@@ -276,13 +378,6 @@ ClippingPlanesWidget::updateContent(const int32_t tabIndex)
 QWidget*
 ClippingPlanesWidget::createClippingBoxWidget()
 {
-    /*
-     * Show clipping box checkbox
-     */
-    m_displayClippingBoxCheckBox = new QCheckBox("Show Clipping Box Outline");
-    QObject::connect(m_displayClippingBoxCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(clippingValueChanged()));
-    
     /*
      * X, Y, Z column labels
      */
@@ -363,7 +458,7 @@ ClippingPlanesWidget::createClippingBoxWidget()
     const double thicknessMinimum = 0.0;
     const double thicknessMaximum = 1000000.0;
     const double thicknessStep    = 1.0;
-    QLabel* thicknessLabel = new QLabel("Thickness (mm)");
+    QLabel* thicknessLabel = new QLabel("Thickness (mm): ");
     
     m_xThicknessDoubleSpinBox = new QDoubleSpinBox();
     m_xThicknessDoubleSpinBox->setMinimum(thicknessMinimum);
@@ -409,10 +504,13 @@ ClippingPlanesWidget::createClippingBoxWidget()
     const int COLUMN_Y      = column++;
     const int COLUMN_Z      = column++;
     
-    QGroupBox* groupBox = new QGroupBox("Clipping Box");
-    QGridLayout* gridLayout = new QGridLayout(groupBox);
+    QWidget* widget = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 4, 4);
     int row = 0;
+    gridLayout->addWidget(new QLabel("Clipping Box"),
+                          row,
+                          COLUMN_LABEL);
     gridLayout->addWidget(xColumnLabel,
                           row,
                           COLUMN_X,
@@ -468,13 +566,11 @@ ClippingPlanesWidget::createClippingBoxWidget()
                           COLUMN_Z);
     
     row++;
-    gridLayout->addWidget(m_displayClippingBoxCheckBox,
-                          row, 0, 1, 2, Qt::AlignLeft);
     gridLayout->addWidget(resetToolButton,
-                          row, 2, 1, 2, Qt::AlignCenter);
+                          row, 0, 1, 4, Qt::AlignCenter);
     row++;
 
-    return groupBox;
+    return widget;
 }
 
 /**
@@ -486,8 +582,8 @@ ClippingPlanesWidget::createClippingAxesWidget()
     WuQMacroManager* macroManager = WuQMacroManager::instance();
     
     m_xClippingEnabledCheckBox = new QCheckBox("X");
-    QObject::connect(m_xClippingEnabledCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(clippingValueChanged()));
+    QObject::connect(m_xClippingEnabledCheckBox, &QCheckBox::clicked,
+                     this, &ClippingPlanesWidget::xyzPlaneEnabledCheckBoxClicked);
     m_xClippingEnabledCheckBox->setToolTip("Enable X clipping plane");
     m_xClippingEnabledCheckBox->setObjectName(m_objectNamePrefix
                                               + ":EnableX");
@@ -495,8 +591,8 @@ ClippingPlanesWidget::createClippingAxesWidget()
                                           "Enable X clipping plane");
     
     m_yClippingEnabledCheckBox = new QCheckBox("Y");
-    QObject::connect(m_yClippingEnabledCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(clippingValueChanged()));
+    QObject::connect(m_yClippingEnabledCheckBox, &QCheckBox::clicked,
+                     this, &ClippingPlanesWidget::xyzPlaneEnabledCheckBoxClicked);
     m_yClippingEnabledCheckBox->setToolTip("Enable Y clipping plane");
     m_yClippingEnabledCheckBox->setObjectName(m_objectNamePrefix
                                               + ":EnableY");
@@ -504,8 +600,8 @@ ClippingPlanesWidget::createClippingAxesWidget()
                                           "Enable Y clipping plane");
     
     m_zClippingEnabledCheckBox = new QCheckBox("Z");
-    QObject::connect(m_zClippingEnabledCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(clippingValueChanged()));
+    QObject::connect(m_zClippingEnabledCheckBox, &QCheckBox::clicked,
+                     this, &ClippingPlanesWidget::xyzPlaneEnabledCheckBoxClicked);
     m_zClippingEnabledCheckBox->setToolTip("Enable Z clipping plane");
     m_zClippingEnabledCheckBox->setObjectName(m_objectNamePrefix
                                               + ":EnableZ");
@@ -567,4 +663,38 @@ ClippingPlanesWidget::createClippingDataTypeWidget()
     return groupBox;
 }
 
+/**
+ * @return Instance of the options widget
+ */
+QWidget*
+ClippingPlanesWidget::createOptionsWidget()
+{
+    m_displayClippingBoxCheckBox = new QCheckBox("Show Clipping Box Outline");
+    
+    QObject::connect(m_displayClippingBoxCheckBox, &QCheckBox::clicked,
+                     this, &ClippingPlanesWidget::clippingValueChanged);
+    
+    QLabel* panModeLabel(new QLabel("Pan Mode: "));
+    m_panningModeComboBox = new EnumComboBoxTemplate(this);
+    m_panningModeComboBox->setup<ClippingPlanePanningModeEnum,ClippingPlanePanningModeEnum::Enum>();
+    QObject::connect(m_panningModeComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &ClippingPlanesWidget::panningModeComboBoxActivated);
+    m_panningModeComboBox->getWidget()->setToolTip(ClippingPlanePanningModeEnum::getToolTip());
+
+    QGroupBox* widget = new QGroupBox("Options");
+    QGridLayout* layout = new QGridLayout(widget);
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 100);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 4);
+    int row(0);
+    layout->addWidget(panModeLabel,
+                      row, 0);
+    layout->addWidget(m_panningModeComboBox->getWidget(),
+                      row, 1, Qt::AlignLeft);
+    row++;
+    layout->addWidget(m_displayClippingBoxCheckBox,
+                      row, 0, 1, 2, Qt::AlignLeft);
+
+    return widget;
+}
 

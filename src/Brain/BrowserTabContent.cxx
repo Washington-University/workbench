@@ -176,7 +176,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     
     m_volumeSliceSettings = new VolumeSliceSettings();
     
-    m_clippingPlaneGroup = new ClippingPlaneGroup();
+    m_clippingPlaneGroup = new ClippingPlaneGroup(m_tabNumber);
     
     m_manualLayoutBrowserTabAnnotation.reset(new AnnotationBrowserTab(AnnotationAttributesDefaultTypeEnum::NORMAL));
     m_manualLayoutBrowserTabAnnotation->setBrowserTabContent(this,
@@ -5400,6 +5400,39 @@ void
 BrowserTabContent::setClippingPlanesEnabled(const bool status)
 {
     m_clippingPlaneGroup->setEnabled(status);
+}
+
+/**
+ * Set clipping planes enabled
+ * If toggled on and no planes are enabled, enable all planes
+ * @param status
+ *   New enabled status
+ */
+void
+BrowserTabContent::setClippingPlanesEnabledAndEnablePlanes(const bool status)
+{
+    m_clippingPlaneGroup->setEnabledAndEnablePlanes(status);
+}
+
+/**
+ * Set the clipping panning mode
+ * @param panningMode
+ *    New panning mode
+ */
+void
+BrowserTabContent::setClippingPanningMode(const ClippingPlanePanningModeEnum::Enum panningMode)
+{
+    m_clippingPlaneGroup->setPanningMode(panningMode);
+    updateYokedModelBrowserTabs();
+}
+
+/**
+ * @return The clipping panning mode
+ */
+ClippingPlanePanningModeEnum::Enum
+BrowserTabContent::getClippingPanningMode() const
+{
+    return m_clippingPlaneGroup->getPanningMode();
 }
 
 /**

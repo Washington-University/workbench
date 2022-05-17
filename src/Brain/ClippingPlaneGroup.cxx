@@ -23,7 +23,10 @@
 #include "ClippingPlaneGroup.h"
 #undef __CLIPPING_PLANE_GROUP_DECLARE__
 
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventBrowserTabGet.h"
+#include "EventManager.h"
 #include "Plane.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -41,9 +44,12 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param tabIndex
+ *    Index of tab that uses this clipping plane group
  */
-ClippingPlaneGroup::ClippingPlaneGroup()
-: CaretObject()
+ClippingPlaneGroup::ClippingPlaneGroup(const int32_t tabIndex)
+: CaretObject(),
+m_tabIndex(tabIndex)
 {
     invalidateActiveClippingPlainEquations();
     
@@ -60,6 +66,7 @@ ClippingPlaneGroup::ClippingPlaneGroup()
     m_sceneAssistant->add("m_surfaceSelectionStatus", &m_surfaceSelectionStatus);
     m_sceneAssistant->add("m_volumeSelectionStatus", &m_volumeSelectionStatus);
     m_sceneAssistant->add("m_featuresSelectionStatus", &m_featuresSelectionStatus);
+    m_sceneAssistant->add<ClippingPlanePanningModeEnum, ClippingPlanePanningModeEnum::Enum>("m_panningMode", &m_panningMode);
 }
 
 /**
@@ -79,7 +86,8 @@ ClippingPlaneGroup::~ClippingPlaneGroup()
  */
 ClippingPlaneGroup::ClippingPlaneGroup(const ClippingPlaneGroup& obj)
 : CaretObject(obj),
-SceneableInterface()
+SceneableInterface(),
+m_tabIndex(obj.m_tabIndex)
 {
     this->copyHelperClippingPlaneGroup(obj);
 }
@@ -116,6 +124,7 @@ ClippingPlaneGroup::copyHelperClippingPlaneGroup(const ClippingPlaneGroup& obj)
     
     /* m_enabledStatus NOT copied */
     
+    m_panningMode    = obj.m_panningMode;
     m_rotationMatrix = obj.m_rotationMatrix;
     
     m_xAxisSelectionStatus = obj.m_xAxisSelectionStatus;
@@ -152,6 +161,33 @@ ClippingPlaneGroup::setEnabled(const bool status)
 }
 
 /**
+ * Set clipping planes enabled
+ * If toggled on and no planes are enabled, enable all planes
+ * @param status
+ *   New enabled status
+ */
+void
+ClippingPlaneGroup::setEnabledAndEnablePlanes(const bool status)
+{
+    const bool turnedOnFlag(status
+                            && ( ! m_enabledStatus));
+    m_enabledStatus = status;
+    
+    
+    if (turnedOnFlag) {
+        const bool anyPlaneEnabledFlag(isXAxisSelected()
+                                       || isYAxisSelected()
+                                       || isZAxisSelected());
+        if ( ! anyPlaneEnabledFlag) {
+            setXAxisSelected(true);
+            setYAxisSelected(true);
+            setZAxisSelected(true);
+        }
+    }
+}
+
+
+/**
  * Reset the transformation.
  */
 void
@@ -178,6 +214,7 @@ ClippingPlaneGroup::resetToDefaultValues()
 {
     resetTransformation();
     
+    m_panningMode = ClippingPlanePanningModeEnum::PAN_XYZ;
     m_xAxisSelectionStatus = false;
     m_yAxisSelectionStatus = false;
     m_zAxisSelectionStatus = false;
@@ -198,7 +235,9 @@ ClippingPlaneGroup::resetToDefaultValues()
 float
 ClippingPlaneGroup::getXCoordinateForStructure(const StructureEnum::Enum structure) const
 {
-    float x = m_translation[0];
+    float translation[3];
+    getTranslation(translation);
+    float x = translation[0];
     if (StructureEnum::isLeft(structure)) {
         x = -x;
     }
@@ -221,6 +260,9 @@ ClippingPlaneGroup::createClippingPlane(const PlaneIdentifier planeIdentifier,
     float normalVector[3] = { 0.0, 0.0, 0.0 };
     float pointOnPlane[3] = { 0.0, 0.0, 0.0 };
     
+    float translation[3];
+    getTranslation(translation);
+
     /*
      * Note: the planes form a rectangular cuboid and we want to
      * clip what is OUTSIDE this rectangular cuboid.
@@ -245,28 +287,28 @@ ClippingPlaneGroup::createClippingPlane(const PlaneIdentifier planeIdentifier,
              * Y Minimum
              */
             normalVector[1] = 1.0;
-            pointOnPlane[1] = m_translation[1] - (m_thickness[1] / 2.0);
+            pointOnPlane[1] = translation[1] - (m_thickness[1] / 2.0);
             break;
         case PLANE_MAXIMUM_Y:
             /*
              * Y Maximum
              */
             normalVector[1] = -1.0;
-            pointOnPlane[1] = m_translation[1] + (m_thickness[1] / 2.0);
+            pointOnPlane[1] = translation[1] + (m_thickness[1] / 2.0);
             break;
         case PLANE_MINIMUM_Z:
             /*
              * Z Minimum
              */
             normalVector[2] = 1.0;
-            pointOnPlane[2] = m_translation[2] - (m_thickness[2] / 2.0);
+            pointOnPlane[2] = translation[2] - (m_thickness[2] / 2.0);
             break;
         case PLANE_MAXIMUM_Z:
             /*
              * Z Maximum
              */
             normalVector[2] = -1.0;
-            pointOnPlane[2] = m_translation[2] + (m_thickness[2] / 2.0);
+            pointOnPlane[2] = translation[2] + (m_thickness[2] / 2.0);
             break;
         default:
             CaretAssert(0);
@@ -350,16 +392,6 @@ ClippingPlaneGroup::getRotationMatrixForStructure(const StructureEnum::Enum stru
                         rotationY,
                         rotationZ);
         return mat;
-        
-        
-//        const double rotationFlippedY = 180.0 - rotationY;
-//        const double rotationFlippedZ = 180.0 - rotationZ;
-//        Matrix4x4 mat;
-//        mat.setRotation(rotationX, //rotationFlippedX,
-//                        rotationFlippedY,
-//                        rotationFlippedZ);
-//        return mat;
-        
     }
     return m_rotationMatrix;
 }
@@ -450,6 +482,36 @@ ClippingPlaneGroup::setTranslation(const float translation[3])
 void
 ClippingPlaneGroup::getTranslation(float translation[3]) const
 {
+    switch (m_panningMode) {
+        case ClippingPlanePanningModeEnum::PAN_XYZ:
+            break;
+        case ClippingPlanePanningModeEnum::PAN_VOLUME_SLICES_COORDS:
+        {
+            EventBrowserTabGet tabEvent(m_tabIndex);
+            EventManager::get()->sendEvent(tabEvent.getPointer());
+            const BrowserTabContent* btc(tabEvent.getBrowserTab());
+            if (btc != NULL) {
+                const float sliceTranslation[3] {
+                   btc->getSliceCoordinateParasagittal(),
+                   btc->getSliceCoordinateCoronal(),
+                   btc->getSliceCoordinateAxial()
+                };
+                
+                /*
+                 * Must invalidate planes if translation changes
+                 */
+                if ((sliceTranslation[0] != m_translation[0])
+                    || (sliceTranslation[1] != m_translation[1])
+                    || (sliceTranslation[2] != m_translation[2])) {
+                    m_translation[0] = sliceTranslation[0];
+                    m_translation[1] = sliceTranslation[1];
+                    m_translation[2] = sliceTranslation[2];
+                    const_cast<ClippingPlaneGroup*>(this)->invalidateActiveClippingPlainEquations();
+                }
+            }
+        }
+            break;
+    }
     translation[0] = m_translation[0];
     translation[1] = m_translation[1];
     translation[2] = m_translation[2];
@@ -708,31 +770,6 @@ ClippingPlaneGroup::isCoordinateInsideClippingPlanesForStructure(const Structure
         }
     }
     
-//    USE THE CLIPPING PLANES EQUATIONS !!!!
-    
-    
-//    if (m_xAxisSelectionStatus) {
-//        const float x = getXCoordinateForStructure(structure);
-//        const float minX = x - (m_thickness[0] / 2.0);
-//        const float maxX = x + (m_thickness[0] / 2.0);
-//        if (xyz[0] < minX) return false;
-//        if (xyz[0] > maxX) return false;
-//    }
-//    
-//    if (m_yAxisSelectionStatus) {
-//        const float minY = m_translation[1] - (m_thickness[1] / 2.0);
-//        const float maxY = m_translation[1] + (m_thickness[1] / 2.0);
-//        if (xyz[1] < minY) return false;
-//        if (xyz[1] > maxY) return false;
-//    }
-//    
-//    if (m_zAxisSelectionStatus) {
-//        const float minZ = m_translation[2] - (m_thickness[2] / 2.0);
-//        const float maxZ = m_translation[2] + (m_thickness[2] / 2.0);
-//        if (xyz[2] < minZ) return false;
-//        if (xyz[2] > maxZ) return false;
-//    }
-    
     return true;
 }
 
@@ -818,7 +855,25 @@ ClippingPlaneGroup::invalidateActiveClippingPlainEquations()
     m_rightStructureActiveClippingPlanes.clear();
 }
 
+/**
+ * Set the panning mode
+ * @param panningMode
+ *    New panning mode
+ */
+void
+ClippingPlaneGroup::setPanningMode(const ClippingPlanePanningModeEnum::Enum panningMode)
+{
+    m_panningMode = panningMode;
+}
 
+/**
+ * @return The panning mode
+ */
+ClippingPlanePanningModeEnum::Enum
+ClippingPlaneGroup::getPanningMode() const
+{
+    return m_panningMode;
+}
 
 /**
  * Save information specific to this type of model to the scene.

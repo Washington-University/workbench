@@ -342,7 +342,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
         case VolumeMprIntensityProjectionModeEnum::MAXIMUM:
         case VolumeMprIntensityProjectionModeEnum::MINIMUM:
             drawSliceIntensityProjection3D(sliceProjectionType,
-                                           VolumeSliceViewPlaneEnum::AXIAL, //sliceViewPlane,
+                                           VolumeSliceViewPlaneEnum::AXIAL,
                                            sliceCoordinates,
                                            viewport);
             break;
@@ -2263,6 +2263,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
         return;
     }
     
+    m_fixedPipelineDrawing->applyClippingPlanes(BrainOpenGLFixedPipeline::CLIPPING_DATA_TYPE_VOLUME,
+                                                StructureEnum::ALL);
+    
     for (VolumeMappableInterface* volumeFile : intensityVolumeFiles) {
         CaretAssert(volumeFile);
         const std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
@@ -2277,8 +2280,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
             if (voxelSize < 0.01) {
                 CaretLogSevere("Voxel size is too small for Intensity Projection: "
                                + AString::number(voxelSize));
-                return;
+                continue;
             }
+            
             CaretAssertVectorIndex(allIntersections, 1);
             const Vector3D p1(allIntersections[0]);
             const Vector3D p2(allIntersections[1]);
@@ -2368,6 +2372,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
                                                          m_browserTabContent->getScaling(),
                                                          viewport.getHeight());
 
+
+    m_fixedPipelineDrawing->disableClippingPlanes();
+    
     switch (m_viewMode) {
         case ViewMode::INVALID:
             CaretAssert(0);
@@ -3225,6 +3232,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
         return;
     }
     
+    m_fixedPipelineDrawing->applyClippingPlanes(BrainOpenGLFixedPipeline::CLIPPING_DATA_TYPE_VOLUME,
+                                                StructureEnum::ALL);
+    
     bool drawBackgroundSliceFlag(true);
     for (VolumeMappableInterface* volumeFile : intensityVolumeFiles) {
         const SliceInfo sliceInfo(createSliceInfo3D());
@@ -3351,6 +3361,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                                                          m_browserTabContent->getScaling(),
                                                          viewport.getHeight());
 
+    m_fixedPipelineDrawing->disableClippingPlanes();
+    
     switch (m_viewMode) {
         case ViewMode::INVALID:
             CaretAssert(0);

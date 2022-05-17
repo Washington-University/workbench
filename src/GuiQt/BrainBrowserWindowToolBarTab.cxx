@@ -384,7 +384,7 @@ BrainBrowserWindowToolBarTab::clippingPlanesActionToggled(bool checked)
 {
     BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
     if (browserTabContent != NULL) {
-        browserTabContent->setClippingPlanesEnabled(checked);
+        browserTabContent->setClippingPlanesEnabledAndEnablePlanes(checked);
         updateContent(browserTabContent);
         updateGraphicsWindow();
     }

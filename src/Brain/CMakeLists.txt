@@ -67,6 +67,7 @@ ChartingDataManager.h
 CiftiConnectivityMatrixDataFileManager.h
 CiftiFiberTrajectoryManager.h
 ClippingPlaneGroup.h
+ClippingPlanePanningModeEnum.h
 DataToolTipsManager.h
 DisplayProperties.h
 DisplayPropertiesAnnotation.h
@@ -261,6 +262,7 @@ ChartingDataManager.cxx
 CiftiConnectivityMatrixDataFileManager.cxx
 CiftiFiberTrajectoryManager.cxx
 ClippingPlaneGroup.cxx
+ClippingPlanePanningModeEnum.cxx
 DataToolTipsManager.cxx
 DisplayProperties.cxx
 DisplayPropertiesAnnotation.cxx

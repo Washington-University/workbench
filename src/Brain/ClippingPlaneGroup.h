@@ -23,6 +23,7 @@
 
 
 #include "CaretObject.h"
+#include "ClippingPlanePanningModeEnum.h"
 #include "Matrix4x4.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
@@ -35,7 +36,7 @@ namespace caret {
     class ClippingPlaneGroup : public CaretObject, public SceneableInterface {
         
     public:
-        ClippingPlaneGroup();
+        ClippingPlaneGroup(const int32_t tabIndex);
         
         virtual ~ClippingPlaneGroup();
         
@@ -51,7 +52,13 @@ namespace caret {
         
         void setEnabled(const bool status);
         
+        void setEnabledAndEnablePlanes(const bool status);
+        
         std::vector<const Plane*> getActiveClippingPlanesForStructure(const StructureEnum::Enum structure) const;
+        
+        void setPanningMode(const ClippingPlanePanningModeEnum::Enum panningMode);
+        
+        ClippingPlanePanningModeEnum::Enum getPanningMode() const;
         
         void getTranslation(float translation[3]) const;
         
@@ -151,6 +158,8 @@ namespace caret {
         
         void invalidateActiveClippingPlainEquations();
         
+        const int32_t m_tabIndex;
+        
         /**
          * For all everthing EXCEPT right structures
          */
@@ -167,7 +176,9 @@ namespace caret {
 
         float getXCoordinateForStructure(const StructureEnum::Enum structure) const;
         
-        float m_translation[3];
+        ClippingPlanePanningModeEnum::Enum m_panningMode = ClippingPlanePanningModeEnum::PAN_XYZ;
+        
+        mutable float m_translation[3];
         
         Matrix4x4 m_rotationMatrix;
         
