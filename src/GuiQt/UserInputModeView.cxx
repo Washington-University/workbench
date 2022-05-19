@@ -706,12 +706,9 @@ UserInputModeView::getVolumeMprMouseMode(const MouseEvent& mouseEvent)
     
     if (browserTabContent->isVolumeMprDisplayed()) {
         BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-        SelectionManager* idManager = openGLWidget->performIdentification(mouseEvent.getX(), // mouseEvent.getPressedX(),
-                                                                          mouseEvent.getY(), // mouseEvent.getPressedY(),
-                                                                          false);
-        CaretAssert(idManager);
-        
-        SelectionItemVolumeMprCrosshair* crosshairID(idManager->getVolumeMprCrosshairIdentification());
+        SelectionItemVolumeMprCrosshair* crosshairID(openGLWidget->performIdentificationVolumeMprCrosshairs(mouseEvent.getX(), // mouseEvent.getPressedX(),
+                                                                                                            mouseEvent.getY()));
+        CaretAssert(crosshairID);
         if (crosshairID->isValid()) {
             if (crosshairID->isRotateAxisSelected()) {
                 mprModeOut = VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE;

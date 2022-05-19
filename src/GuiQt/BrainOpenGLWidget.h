@@ -62,6 +62,7 @@ namespace caret {
     class GraphicsFramesPerSecond;
     class SelectionItemAnnotation;
     class SelectionItemMedia;
+    class SelectionItemVolumeMprCrosshair;
     class SelectionManager;
     class Model;
     class SurfaceProjectedItem;
@@ -93,6 +94,9 @@ namespace caret {
         
         SelectionItemAnnotation* performIdentificationAnnotations(const int x,
                                                            const int y);
+        
+        SelectionItemVolumeMprCrosshair* performIdentificationVolumeMprCrosshairs(const int x,
+                                                                                  const int y);
         
         SelectionManager* performIdentificationVoxelEditing(VolumeFile* editingVolumeFile,
                                                             const int x,

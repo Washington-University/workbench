@@ -88,6 +88,7 @@
 #include "SelectionItemAnnotation.h"
 #include "SelectionItemMedia.h"
 #include "SelectionItemSurfaceNode.h"
+#include "SelectionItemVolumeMprCrosshair.h"
 #include "SelectionItemVoxelEditing.h"
 #include "SessionManager.h"
 #include "Surface.h"
@@ -1811,6 +1812,71 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
 #endif
     
     return annotationID;
+}
+
+/**
+ * Perform identification of only MPR Crosshairs.  Identification of other
+ * data types is off.
+ *
+ * @param x
+ *    X-coordinate for identification.
+ * @param y
+ *    Y-coordinate for identification.
+ * @return
+ *    A pointer to the annotation selection item.  Its
+ *    "isValid()" method may be queried to determine
+ *    if the selected annotation is valid.
+ */
+SelectionItemVolumeMprCrosshair*
+BrainOpenGLWidget::performIdentificationVolumeMprCrosshairs(const int x,
+                                                            const int y)
+{
+    const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
+    
+    this->makeCurrent();
+    CaretLogFine("Performing selection");
+    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
+    idManager->reset();
+    idManager->setAllSelectionsEnabled(false);
+    SelectionItemVolumeMprCrosshair* idMprCrosshair = idManager->getVolumeMprCrosshairIdentification();
+    idMprCrosshair->setEnabledForSelection(true);
+    
+    if (idViewport != NULL) {
+        /*
+         * ID coordinate needs to be relative to the viewport
+         *
+         int vp[4];
+         idViewport->getViewport(vp);
+         const int idX = x - vp[0];
+         const int idY = y - vp[1];
+         */
+        s_singletonOpenGL->selectModel(this->windowIndex,
+                                       getSelectedInputMode(),
+                                       GuiManager::get()->getBrain(),
+                                       m_contextShareGroupPointer,
+                                       idViewport,
+                                       x,
+                                       y,
+                                       true);
+    }
+    
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /*
+     * Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation) so
+     * there is no "back" or "front buffer".  Since
+     * identification is encoded in the framebuffer,
+     * it is necessary to repaint (udpates graphics
+     * immediately) to redraw the models.  Otherwise,
+     * the graphics flash with strange looking drawing.
+     */
+    this->repaintGraphics();
+    this->doneCurrent();
+#else
+    this->repaintGraphics();
+#endif
+    
+    return idMprCrosshair;
 }
 
 /**
