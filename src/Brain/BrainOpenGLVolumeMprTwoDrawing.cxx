@@ -2263,20 +2263,42 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
         return;
     }
     
+    SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+    bool idModeFlag(false);
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (voxelID->isEnabledForSelection()) {
+                idModeFlag = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
     m_fixedPipelineDrawing->applyClippingPlanes(BrainOpenGLFixedPipeline::CLIPPING_DATA_TYPE_VOLUME,
                                                 StructureEnum::ALL);
     
     for (VolumeMappableInterface* volumeFile : intensityVolumeFiles) {
         CaretAssert(volumeFile);
+        if (idModeFlag) {
+            performIntensityIdentification(sliceInfo,
+                                           volumeFile);
+            continue;
+        }
+        
         const std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
                                                                                sliceInfo.m_centerXYZ,
                                                                                sliceInfo.m_normalVector));
         const int32_t numIntersections(allIntersections.size());
         
         if (numIntersections == 2) {
-            float dx, dy, dz;
-            volumeFile->getVoxelSpacing(dx, dy, dz);
-            const float voxelSize(std::fabs(std::min(dx, std::min(dy, dz))));
+            const float voxelSize(getVoxelSize(volumeFile));
             if (voxelSize < 0.01) {
                 CaretLogSevere("Voxel size is too small for Intensity Projection: "
                                + AString::number(voxelSize));
@@ -3232,21 +3254,42 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
         return;
     }
     
+    SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+    bool idModeFlag(false);
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (voxelID->isEnabledForSelection()) {
+                idModeFlag = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+
     m_fixedPipelineDrawing->applyClippingPlanes(BrainOpenGLFixedPipeline::CLIPPING_DATA_TYPE_VOLUME,
                                                 StructureEnum::ALL);
     
     bool drawBackgroundSliceFlag(true);
     for (VolumeMappableInterface* volumeFile : intensityVolumeFiles) {
         const SliceInfo sliceInfo(createSliceInfo3D());
+        if (idModeFlag) {
+            performIntensityIdentification(sliceInfo,
+                                           volumeFile);
+            continue;
+        }
         const std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
                                                                                sliceInfo.m_centerXYZ,
                                                                                sliceInfo.m_normalVector));
         const int32_t numIntersections(allIntersections.size());
         
         if (numIntersections == 2) {
-            float dx, dy, dz;
-            volumeFile->getVoxelSpacing(dx, dy, dz);
-            const float voxelSize(std::fabs(std::min(dx, std::min(dy, dz))) / 2.0);
+            const float voxelSize(getVoxelSize(volumeFile));
             if (voxelSize < 0.01) {
                 CaretLogSevere("Voxel size is too small for Intensity Projection: "
                                + AString::number(voxelSize));
@@ -3260,7 +3303,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
             const Vector3D stepVector(p1ToP2Vector[0] * voxelSize,
                                       p1ToP2Vector[1] * voxelSize,
                                       p1ToP2Vector[2] * voxelSize);
-            const float numSteps = distance / voxelSize;
+            const float stepSize(voxelSize / 2.0);
+            const float numSteps = distance / stepSize;
             if (debugFlag) {
                 std::cout << "Num Steps: " << numSteps << " Step Vector: " << AString::fromNumbers(stepVector) << std::endl;
             }
@@ -3394,5 +3438,136 @@ BrainOpenGLVolumeMprTwoDrawing::SliceInfo::toString(const AString& indentation) 
     txt.appendWithNewLine(indentation + "Plane:         " + m_plane.toString());
     
     return txt;
+}
+
+/**
+ * @return Size of voxel (smallest of any dimension)
+ */
+float
+BrainOpenGLVolumeMprTwoDrawing::getVoxelSize(const VolumeMappableInterface* volume) const
+{
+    float dx, dy, dz;
+    volume->getVoxelSpacing(dx, dy, dz);
+    const float voxelSize(std::fabs(std::min(dx, std::min(dy, dz))));
+    return voxelSize;
+}
+
+/**
+ * Perform identification operation on 2D or 3D Maximum or Minimum Intensity Projection
+ * @param sliceInfo
+ *    Info for drawing slices
+ * @param volume
+ *    Volume being drawn
+ */
+void
+BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& sliceInfo,
+                                                               VolumeMappableInterface* volume)
+{
+    GraphicsViewport viewport(GraphicsViewport::newInstanceCurrentViewport());
+    const int32_t mouseVpX(m_fixedPipelineDrawing->mouseX - viewport.getX());
+    const int32_t mouseVpY(m_fixedPipelineDrawing->mouseY - viewport.getY());
+    if ((mouseVpX <= 0)
+        || (mouseVpY <= 0)
+        || (mouseVpX >= viewport.getWidth())
+        || (mouseVpY >= viewport.getHeight())) {
+        return;
+    }
+
+    const float voxelSize(std::max(getVoxelSize(volume), 0.1f));
+    
+    bool idMaxIntensityFlag(false);
+    switch (m_browserTabContent->getVolumeMprIntensityProjectionMode()) {
+        case VolumeMprIntensityProjectionModeEnum::MAXIMUM:
+            idMaxIntensityFlag = true;
+            break;
+        case VolumeMprIntensityProjectionModeEnum::MINIMUM:
+            idMaxIntensityFlag = false;
+            break;
+        case VolumeMprIntensityProjectionModeEnum::OFF:
+            CaretAssert(0);
+            break;
+    }
+
+    EventOpenGLObjectToWindowTransform transformEvent(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
+    EventManager::get()->sendEvent(transformEvent.getPointer());
+    
+    float modelXYZ[3];
+    transformEvent.inverseTransformPoint(m_fixedPipelineDrawing->mouseX, m_fixedPipelineDrawing->mouseY, 0.0,
+                                         modelXYZ);
+
+    /*
+     * Create a vector at the location of the mouse (converted from screen to model coords) and
+     * find the intersections of the vector with the volume.  Then iterate along the vector
+     * finding the voxel with the greatest/least intensity and use this voxel as the
+     * identified voxel.
+     */
+    const std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volume,
+                                                                           modelXYZ,
+                                                                           sliceInfo.m_normalVector));
+    const int32_t numIntersections(allIntersections.size());
+    
+    if (numIntersections == 2) {
+        CaretAssertVectorIndex(allIntersections, 1);
+        const Vector3D p1(allIntersections[0]);
+        const Vector3D p2(allIntersections[1]);
+        
+        const float distance(MathFunctions::distance3D(p1, p2));
+        if (distance > 1.0) {
+            float minMaxIntensity(idMaxIntensityFlag ? 0.0 : 256.0);
+            
+            int64_t minMaxIJK[3] { -1, -1, -1 };
+            const Vector3D p1toP2Vector((p2 - p1).normal());
+            const float stepDistance(voxelSize);
+            const int32_t numSteps(distance / stepDistance);
+            for (int64_t iStep = 0; iStep < numSteps; iStep++) {
+                const Vector3D xyz(p1 + (p1toP2Vector * (iStep * stepDistance)));
+                
+                int64_t voxelI(-1), voxelJ(-1), voxelK(-1);
+                volume->enclosingVoxel(xyz[0], xyz[1], xyz[2], voxelI, voxelJ, voxelK);
+                if (volume->indexValid(voxelI, voxelJ, voxelK)) {
+                    const int32_t brickIndex(0);
+                    uint8_t rgba[4];
+                    volume->getVoxelColorInMap(voxelI, voxelJ, voxelK, brickIndex,
+                                               m_displayGroup, m_tabIndex, rgba);
+                    if (rgba[3] > 0) {
+                        const float intensity((rgba[0] * 0.30)
+                                              + (rgba[1] * 0.59)
+                                              + (rgba[2] * 0.11));
+                        if (idMaxIntensityFlag) {
+                            if (intensity > minMaxIntensity) {
+                                minMaxIntensity = intensity;
+                                minMaxIJK[0] = voxelI;
+                                minMaxIJK[1] = voxelJ;
+                                minMaxIJK[2] = voxelK;
+                            }
+                        }
+                        else {
+                            if (intensity < minMaxIntensity) {
+                                minMaxIntensity = intensity;
+                                minMaxIJK[0] = voxelI;
+                                minMaxIJK[1] = voxelJ;
+                                minMaxIJK[2] = voxelK;
+                            }
+                        }
+                    }
+                }
+            }
+            if (minMaxIJK[0] >= 0) {
+                SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+                float xyz[3];
+                volume->indexToSpace(minMaxIJK, xyz);
+                voxelID->setModelXYZ(xyz);
+                
+                float primitiveDepth(1.0);
+                voxelID->setVoxelIdentification(m_brain,
+                                                volume,
+                                                minMaxIJK,
+                                                primitiveDepth);
+                
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
+                                                                 xyz);
+            }
+        }
+    }
 }
 

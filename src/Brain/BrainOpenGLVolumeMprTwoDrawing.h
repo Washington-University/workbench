@@ -236,6 +236,11 @@ namespace caret {
         
         std::vector<VolumeMappableInterface*> getIntensityVolumeFiles() const;
         
+        void performIntensityIdentification(const SliceInfo& sliceInfo,
+                                            VolumeMappableInterface* volume);
+        
+        float getVoxelSize(const VolumeMappableInterface* volume) const;
+        
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 
         BrowserTabContent* m_browserTabContent = NULL;
