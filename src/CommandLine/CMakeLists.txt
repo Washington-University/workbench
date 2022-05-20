@@ -38,18 +38,18 @@ ENDIF (Qt5_FOUND)
 # Create the executable
 # Apple creates a bundle
 #
-IF (APPLE)
+IF (APPLE AND ${WORKBENCH_APPLE_WB_COMMAND_BUNDLE_FLAG})
    ADD_EXECUTABLE(${EXE_NAME}
       MACOSX_BUNDLE
       wb_command.cxx
       ${IMAGE_RCS_SRCS}
    )
-ELSE (APPLE)
+ELSE ()
    ADD_EXECUTABLE(${EXE_NAME}
       wb_command.cxx
       ${IMAGE_RCS_SRCS}
    )
-ENDIF (APPLE)
+ENDIF ()
 
 
 if(Qt6_FOUND)

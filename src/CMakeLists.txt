@@ -51,6 +51,11 @@ set (WORKBENCH_USE_QT5_QOPENGL_WIDGET FALSE CACHE BOOL
      "With Qt5, QOpenGLWidget instead of deprecated QGLWidget")
 set (WORKBENCH_MESA_DIR "" CACHE PATH 
      "Directory containing Mesa's 'include' and 'lib' <NEWLINE>directories.  Mesa is optional and used by <NEWLINE>wb_command's -show-scene operation.")
+set (WORKBENCH_APPLE_WB_COMMAND_BUNDLE_FLAG TRUE CACHE BOOL
+     "On Apple Only: 
+           If TRUE, build wb_command as a MacOS Bundle (wb_command.app).
+           If FALSE, build wb_command as a normal UNIX executable."
+)
 
 #
 # Use when FindOpenMP does not work such as on Macs
