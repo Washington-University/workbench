@@ -140,6 +140,9 @@ namespace caret {
         
         bool waitForImagesToFinishWriting();
         
+        bool findFFmpegProgram(AString& programNameOut,
+                               AString& errorMessageOut) const;
+        
         MovieRecorderModeEnum::Enum m_recordingMode = MovieRecorderModeEnum::MANUAL;
         
         MovieRecorderVideoResolutionTypeEnum::Enum m_resolutionType = MovieRecorderVideoResolutionTypeEnum::SD_640_480;
