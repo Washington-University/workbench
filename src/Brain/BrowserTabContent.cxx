@@ -5500,6 +5500,7 @@ void
 BrowserTabContent::setVolumeMprOrientationMode(const VolumeMprOrientationModeEnum::Enum orientationMode)
 {
     m_volumeSliceSettings->setVolumeMprOrientationMode(orientationMode);
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
