@@ -40,7 +40,7 @@
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
 #include "TabContentBase.h"
-#include "VolumeMprIntensityProjectionModeEnum.h"
+#include "VolumeMprOrientationModeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
@@ -390,9 +390,9 @@ namespace caret {
 
         const ChartTwoMatrixDisplayProperties* getChartTwoMatrixDisplayProperties() const;
         
-        VolumeMprIntensityProjectionModeEnum::Enum getVolumeMprIntensityProjectionMode() const;
+        VolumeMprOrientationModeEnum::Enum getVolumeMprOrientationMode() const;
         
-        void setVolumeMprIntensityProjectionMode(const VolumeMprIntensityProjectionModeEnum::Enum intensityProjectionMode);
+        void setVolumeMprOrientationMode(const VolumeMprOrientationModeEnum::Enum orientationMode);
         
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
         

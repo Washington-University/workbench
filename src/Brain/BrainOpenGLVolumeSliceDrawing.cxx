@@ -306,8 +306,9 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawing
                         break;
                     case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                         break;
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                         CaretAssert(0);
                         break;
                 }
@@ -827,8 +828,9 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 CaretAssert(0);
                 break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                 CaretAssert(0);
                 break;
         }
@@ -2115,8 +2117,9 @@ BrainOpenGLVolumeSliceDrawing::createSlicePlaneEquation(const VolumeSliceProject
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
             CaretAssert(0);
             break;
     }
@@ -2258,8 +2261,9 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(c
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
             CaretAssert(0);
             break;
     }
@@ -2431,10 +2435,13 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const VolumeMappableInterface*
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
             drawCachedFlag = false;
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+            drawCachedFlag = false;
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
             drawCachedFlag = false;
             break;
     }
@@ -2555,8 +2562,9 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineCached(const VolumeMappableInte
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
             //CaretAssert(0);
             break;
     }
@@ -3093,8 +3101,9 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjectionTyp
             glPopMatrix();
         }
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
             CaretAssert(0);
             break;
     }

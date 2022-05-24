@@ -29,7 +29,6 @@
 #include "BrowserTabContent.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "CaretAssert.h"
-#include "CaretUndoStack.h"
 #include "EventManager.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
@@ -52,26 +51,12 @@ using namespace caret;
  *    parent toolbar.
  */
 BrainBrowserWindowToolBarVolumeMPR::BrainBrowserWindowToolBarVolumeMPR(BrainBrowserWindowToolBar* parentToolBar,
-                                                                                   const QString& parentObjectName)
+                                                                                   const QString& /*parentObjectName*/)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
-    QLabel* intensityModeLabel = new QLabel("Intensity");
-    m_mprIntensityModeComboBox = new EnumComboBoxTemplate(this);
-    m_mprIntensityModeComboBox->getWidget()->setToolTip("Select Intensity Mode");
-    m_mprIntensityModeComboBox->setup<VolumeMprIntensityProjectionModeEnum,VolumeMprIntensityProjectionModeEnum::Enum>();
-    QObject::connect(m_mprIntensityModeComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(mprIntensityComboBoxItemActivated()));
-    m_mprIntensityModeComboBox->getWidget()->setObjectName(parentObjectName
-                                                           + "mprIntensityComboBox");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_mprIntensityModeComboBox->getWidget(),
-                                                         "Intensity Mode");
-
-
     QGridLayout* layout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
-    layout->addWidget(intensityModeLabel, 0, 0);
-    layout->addWidget(m_mprIntensityModeComboBox->getWidget(), 0, 1);
 }
 
 /**
@@ -94,34 +79,8 @@ BrainBrowserWindowToolBarVolumeMPR::updateContent(BrowserTabContent* browserTabC
 
     bool enabledFlag(false);
     if (browserTabContent != NULL) {
-        const VolumeMprIntensityProjectionModeEnum::Enum intensityMode(m_browserTabContent->getVolumeMprIntensityProjectionMode());
-        m_mprIntensityModeComboBox->setSelectedItem<VolumeMprIntensityProjectionModeEnum,VolumeMprIntensityProjectionModeEnum::Enum>(intensityMode);
-        
-        switch (m_browserTabContent->getSliceProjectionType()) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-                enabledFlag = true;
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                break;
-        }
     }
     
     setEnabled(enabledFlag);
 }
 
-/**
- * Called when intensity mode combo box is selected
- */
-void
-BrainBrowserWindowToolBarVolumeMPR::mprIntensityComboBoxItemActivated()
-{
-    if (m_browserTabContent != NULL) {
-        const VolumeMprIntensityProjectionModeEnum::Enum value = m_mprIntensityModeComboBox->getSelectedItem<VolumeMprIntensityProjectionModeEnum,VolumeMprIntensityProjectionModeEnum::Enum>();
-        m_browserTabContent->setVolumeMprIntensityProjectionMode(value);
-        updateGraphicsWindowAndYokedWindows();
-        updateUserInterface();
-    }
-}

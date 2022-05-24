@@ -39,10 +39,12 @@ public:
         VOLUME_SLICE_PROJECTION_OBLIQUE,
         /** Draw volume slice with an orthogonal projection */
         VOLUME_SLICE_PROJECTION_ORTHOGONAL,
-        /** Multi-Planar Reconstruction Neurological (Left-on-Left) */
-        VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL,
-        /** Multi-Planar Reconstruction Neurological (Right-on-Left) */
-        VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL
+        /** Multi-Planar Reconstruction Neurological */
+        VOLUME_SLICE_PROJECTION_MPR,
+        /** Maximum Intensity Projection */
+        VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY,
+        /** Minimum Intensity Projection */
+        VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY
     };
 
 
@@ -66,10 +68,15 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static AString toToolTip(Enum enumValue);
+    
+    static AString getToolTipForGuiInHtml();
+    
 private:
     VolumeSliceProjectionTypeEnum(const Enum enumValue, 
-                 const AString& name,
-                 const AString& guiName);
+                                  const AString& name,
+                                  const AString& guiName,
+                                  const AString& toolTip);;
 
     static const VolumeSliceProjectionTypeEnum* findData(const Enum enumValue);
 
@@ -96,6 +103,9 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** Tooltip for GUI */
+    AString toolTip;
 };
 
 #ifdef __VOLUME_SLICE_PROJECTION_TYPE_ENUM_DECLARE__

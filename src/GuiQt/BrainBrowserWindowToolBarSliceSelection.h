@@ -96,9 +96,9 @@ namespace caret {
         QDoubleSpinBox* m_volumeIndicesXcoordSpinBox;
         QDoubleSpinBox* m_volumeIndicesYcoordSpinBox;
         QDoubleSpinBox* m_volumeIndicesZcoordSpinBox;
-        QToolButton* m_intensityMaskingToolButton;
+        QToolButton* m_secondaryModeToolButton;
         QAction* m_obliqueMaskingAction;
-        QAction* m_intensityModeAction;
+        QAction* m_mprOrientationModeAction;
         
         EnumComboBoxTemplate* m_volumeSliceProjectionTypeEnumComboBox;
         // ADD_NEW_MEMBERS_HERE

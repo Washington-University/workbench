@@ -1,5 +1,5 @@
-#ifndef __VOLUME_MPR_INTENSITY_PROJECTION_MODE_ENUM_H__
-#define __VOLUME_MPR_INTENSITY_PROJECTION_MODE_ENUM_H__
+#ifndef __VOLUME_MPR_ORIENTATION_MODE_ENUM_H__
+#define __VOLUME_MPR_ORIENTATION_MODE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,29 +28,29 @@
 
 namespace caret {
 
-class VolumeMprIntensityProjectionModeEnum {
+class VolumeMprOrientationModeEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Off */
-        OFF,
-        /** Maximum Intensity Projection */
-        MAXIMUM,
-        /** Minimum Intensity Projection */
-        MINIMUM
+        /** Neurological (left on left) */
+        NEUROLOGICAL,
+        /** Radiological (right on left) */
+        RADIOLOGICAL
     };
 
 
-    ~VolumeMprIntensityProjectionModeEnum();
+    ~VolumeMprOrientationModeEnum();
 
     static AString toName(Enum enumValue);
     
     static Enum fromName(const AString& name, bool* isValidOut);
     
     static AString toGuiName(Enum enumValue);
+    
+    static AString toShortGuiName(Enum enumValue);
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     
@@ -64,15 +64,18 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static AString getToolTipForGuiInHtml();
+    
 private:
-    VolumeMprIntensityProjectionModeEnum(const Enum enumValue, 
-                 const AString& name,
-                 const AString& guiName);
+    VolumeMprOrientationModeEnum(const Enum enumValue, 
+                                 const AString& name,
+                                 const AString& guiName,
+                                 const AString& shortGuiName);
 
-    static const VolumeMprIntensityProjectionModeEnum* findData(const Enum enumValue);
+    static const VolumeMprOrientationModeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<VolumeMprIntensityProjectionModeEnum> enumData;
+    static std::vector<VolumeMprOrientationModeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -94,13 +97,16 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** A short user-friendly name that is displayed in the GUI */
+    AString shortGuiName;
 };
 
-#ifdef __VOLUME_MPR_INTENSITY_PROJECTION_MODE_ENUM_DECLARE__
-std::vector<VolumeMprIntensityProjectionModeEnum> VolumeMprIntensityProjectionModeEnum::enumData;
-bool VolumeMprIntensityProjectionModeEnum::initializedFlag = false;
-int32_t VolumeMprIntensityProjectionModeEnum::integerCodeCounter = 0; 
-#endif // __VOLUME_MPR_INTENSITY_PROJECTION_MODE_ENUM_DECLARE__
+#ifdef __VOLUME_MPR_ORIENTATION_MODE_ENUM_DECLARE__
+std::vector<VolumeMprOrientationModeEnum> VolumeMprOrientationModeEnum::enumData;
+bool VolumeMprOrientationModeEnum::initializedFlag = false;
+int32_t VolumeMprOrientationModeEnum::integerCodeCounter = 0; 
+#endif // __VOLUME_MPR_ORIENTATION_MODE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__VOLUME_MPR_INTENSITY_PROJECTION_MODE_ENUM_H__
+#endif  //__VOLUME_MPR_ORIENTATION_MODE_ENUM_H__

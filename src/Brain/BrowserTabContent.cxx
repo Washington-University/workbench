@@ -1015,8 +1015,9 @@ BrowserTabContent::isVolumeMprDisplayed() const
 {
     if (isVolumeSlicesDisplayed()) {
         switch (getSliceProjectionType()) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                 return true;
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
@@ -1639,8 +1640,9 @@ BrowserTabContent::receiveEvent(Event* event)
                                 break;
                             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                                 break;
-                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                                 break;
                         }
                         switch (m_volumeSliceSettings->getSliceDrawingType()) {
@@ -3031,8 +3033,9 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                 incrementFlag = true;
                 break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                 incrementFlag = true;
                 break;
         }
@@ -3328,10 +3331,19 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                 break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                 if (viewportContent != NULL) {
-                    const bool radiologicalFlag(getSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL);
+                    bool radiologicalFlag(false);
+                    switch (getVolumeMprOrientationMode()) {
+                        case VolumeMprOrientationModeEnum::RADIOLOGICAL:
+                            radiologicalFlag = true;
+                            break;
+                        case VolumeMprOrientationModeEnum::NEUROLOGICAL:
+                            radiologicalFlag = false;
+                            break;
+                    }
 
                     int viewport[4];
                     viewportContent->getModelViewport(viewport);
@@ -4135,10 +4147,13 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                 mprFlag = true;
                 break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+                mprFlag = true;
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                 mprFlag = true;
                 break;
         }
@@ -5468,23 +5483,23 @@ BrowserTabContent::getProjectionViewType() const
 }
 
 /**
- * @return The Volume MPR intensity projection mode
+ * @return MPR Orientation mode
  */
-VolumeMprIntensityProjectionModeEnum::Enum
-BrowserTabContent::getVolumeMprIntensityProjectionMode() const
+VolumeMprOrientationModeEnum::Enum
+BrowserTabContent::getVolumeMprOrientationMode() const
 {
-    return m_volumeSliceSettings->getVolumeMprIntensityProjectionMode();
+    return m_volumeSliceSettings->getVolumeMprOrientationMode();
 }
 
 /**
- * Set the Volume MPR intensity projection mode
- * @param intensityProjectionMode
- *    New mode
+ * Set the MPR Orientation mode
+ * @param orientationMode
+ *   New orientation mode
  */
 void
-BrowserTabContent::setVolumeMprIntensityProjectionMode(const VolumeMprIntensityProjectionModeEnum::Enum intensityProjectionMode)
+BrowserTabContent::setVolumeMprOrientationMode(const VolumeMprOrientationModeEnum::Enum orientationMode)
 {
-    m_volumeSliceSettings->setVolumeMprIntensityProjectionMode(intensityProjectionMode);
+    m_volumeSliceSettings->setVolumeMprOrientationMode(orientationMode);
 }
 
 /**
@@ -5588,41 +5603,59 @@ void
 BrowserTabContent::getValidSliceProjectionTypes(std::vector<VolumeSliceProjectionTypeEnum::Enum>& sliceProjectionTypesOut) const
 {
     sliceProjectionTypesOut.clear();
-    sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL);
-    sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL);
-    sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
+
+    std::vector<VolumeSliceProjectionTypeEnum::Enum> allSliceProjectionTypes;
+    VolumeSliceProjectionTypeEnum::getAllEnums(allSliceProjectionTypes);
     
     bool orthoValidFlag(false);
-    switch (getSelectedModelType()) {
-        case ModelTypeEnum::MODEL_TYPE_CHART:
-        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
-        case ModelTypeEnum::MODEL_TYPE_INVALID:
-        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_SURFACE:
-        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-            orthoValidFlag = true;
-            break;
-        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-        {
-            /*
-             * Note: OverlaySet will be NULL if loading a scene
-             * and the volume file(s) in the scene are missing (do not exist)
-             */
-            const OverlaySet* overlaySet = getOverlaySet();
-            if (overlaySet != NULL) {
-                if ( ! overlaySet->hasObliqueOnlyVolumeSelected()) {
-                    orthoValidFlag = true;
+    for (auto spt : allSliceProjectionTypes) {
+        switch (spt) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                switch (getSelectedModelType()) {
+                    case ModelTypeEnum::MODEL_TYPE_CHART:
+                    case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                    case ModelTypeEnum::MODEL_TYPE_INVALID:
+                    case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                        orthoValidFlag = true;
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                    case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                    {
+                        /*
+                         * Note: OverlaySet will be NULL if loading a scene
+                         * and the volume file(s) in the scene are missing (do not exist)
+                         */
+                        const OverlaySet* overlaySet = getOverlaySet();
+                        if (overlaySet != NULL) {
+                            if ( ! overlaySet->hasObliqueOnlyVolumeSelected()) {
+                                orthoValidFlag = true;
+                            }
+                        }
+                    }
+                        break;
                 }
-            }
+                break;
         }
-            break;
     }
     
     if (orthoValidFlag) {
         sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
     }
+    sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
+    sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR);
+    sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY);
+    sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY);
 }
 
 /**

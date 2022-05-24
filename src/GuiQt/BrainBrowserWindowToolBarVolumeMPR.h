@@ -26,7 +26,6 @@
 namespace caret {
 
     class BrowserTabContent;
-    class EnumComboBoxTemplate;
     
     class BrainBrowserWindowToolBarVolumeMPR : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
@@ -39,8 +38,6 @@ namespace caret {
         
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
-    private slots:
-        void mprIntensityComboBoxItemActivated();
         
     private:
         BrainBrowserWindowToolBarVolumeMPR(const BrainBrowserWindowToolBarVolumeMPR&);
@@ -57,10 +54,7 @@ namespace caret {
         BrainBrowserWindowToolBar* m_parentToolBar;
         
         BrowserTabContent* m_browserTabContent = NULL;
-        
-        EnumComboBoxTemplate* m_mprIntensityModeComboBox;
-    };
-    
+};
     
 #ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_VOLUME_MPR_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

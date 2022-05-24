@@ -79,15 +79,19 @@ using namespace caret;
  *
  * @param guiName
  *    User-friendly name for use in user-interface.
+ * @param toolTip
+ *    Tooltip for GUI
  */
 VolumeSliceProjectionTypeEnum::VolumeSliceProjectionTypeEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+                                                             const AString& name,
+                                                             const AString& guiName,
+                                                             const AString& toolTip)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
+    this->toolTip = toolTip;
 }
 
 /**
@@ -108,21 +112,30 @@ VolumeSliceProjectionTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_OBLIQUE, 
-                                    "VOLUME_SLICE_PROJECTION_OBLIQUE", 
-                                    "Oblique"));
+    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_ORTHOGONAL,
+                                                     "VOLUME_SLICE_PROJECTION_ORTHOGONAL",
+                                                     "Orthogonal",
+                                                     "View slices perpendicular to X, Y, an Z axes"));
     
-    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_ORTHOGONAL, 
-                                    "VOLUME_SLICE_PROJECTION_ORTHOGONAL", 
-                                    "Orthogonal"));
-
-    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL,
-                                                     "VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL",
-                                                     "MPR (Neuro)"));
-
-    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL,
-                                                     "VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL",
-                                                     "MPR (Radio)"));
+    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_OBLIQUE,
+                                                     "VOLUME_SLICE_PROJECTION_OBLIQUE",
+                                                     "Oblique",
+                                                     "Rotate to view slices along arbitrary axes"));
+    
+    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_MPR,
+                                                     "VOLUME_SLICE_PROJECTION_MPR",
+                                                     "MPR",
+                                                     "Multi-Planar Reconstruction"));
+    
+    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY,
+                                                     "VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY",
+                                                     "MIP",
+                                                     "Maximum Intensity Projection (brightest voxels)"));
+    
+    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY,
+                                                     "VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY",
+                                                     "MinIP",
+                                                     "Minimum Intensity Projection (dimmest voxels)"));
 }
 
 /**
@@ -180,7 +193,13 @@ VolumeSliceProjectionTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
     
     AString name(nameIn);
     if (name == "VOLUME_SLICE_PROJECTION_MPR") {
-        name = "VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL";
+        name = "VOLUME_SLICE_PROJECTION_MPR";
+    }
+    else if (name == "VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL") {
+        name = "VOLUME_SLICE_PROJECTION_MPR";
+    }
+    else if (name == "VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL") {
+        name = "VOLUME_SLICE_PROJECTION_MPR";
     }
     
     bool validFlag = false;
@@ -219,6 +238,22 @@ VolumeSliceProjectionTypeEnum::toGuiName(Enum enumValue) {
     
     const VolumeSliceProjectionTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
+}
+
+/**
+ * Get a tooltip for use in GUI
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     String representing enumerated value.
+ */
+AString
+VolumeSliceProjectionTypeEnum::toToolTip(Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    
+    const VolumeSliceProjectionTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->toolTip;
 }
 
 /**
@@ -383,5 +418,29 @@ VolumeSliceProjectionTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames,
     if (isSorted) {
         std::sort(allGuiNames.begin(), allGuiNames.end());
     }
+}
+
+/**
+ * @return Tooltip for use in the GUI control for selecting a projection type
+ */
+AString
+VolumeSliceProjectionTypeEnum::getToolTipForGuiInHtml()
+{
+    std::vector<VolumeSliceProjectionTypeEnum::Enum> allEnums;
+    getAllEnums(allEnums);
+    
+    AString txt;
+    txt.append("<html>Select mode for viewing volume slices:");
+    txt.append("<ul>");
+    for (auto e : allEnums) {
+        txt.append("<li> "
+                   + toGuiName(e)
+                   + " - "
+                   + toToolTip(e));
+    }
+    txt.append("</ul>");
+    txt.append("</html>");
+    
+    return txt;
 }
 

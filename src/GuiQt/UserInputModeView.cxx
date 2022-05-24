@@ -351,10 +351,13 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
     if (browserTabContent->isVolumeSlicesDisplayed()) {
         bool mprFlag(false);
         switch (browserTabContent->getSliceProjectionType()) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                 mprFlag = true;
                 break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+                mprFlag = true;
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                 mprFlag = true;
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:

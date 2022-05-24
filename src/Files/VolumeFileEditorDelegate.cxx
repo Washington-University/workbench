@@ -170,9 +170,12 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
             CaretAssertToDoFatal();
+            errorMessageOut = ("Volume editing not yet supported for MPR modes");
+            return false;
             break;
     }
     
@@ -221,8 +224,9 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                     result = performTurnOnOrOffOrthogonal(editInfo,
                                                        errorMessageOut);
                     break;
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL:
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                     CaretAssertToDoFatal();
                     break;
             }

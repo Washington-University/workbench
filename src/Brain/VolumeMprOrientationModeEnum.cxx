@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __VOLUME_MPR_INTENSITY_PROJECTION_MODE_ENUM_DECLARE__
-#include "VolumeMprIntensityProjectionModeEnum.h"
-#undef __VOLUME_MPR_INTENSITY_PROJECTION_MODE_ENUM_DECLARE__
+#define __VOLUME_MPR_ORIENTATION_MODE_ENUM_DECLARE__
+#include "VolumeMprOrientationModeEnum.h"
+#undef __VOLUME_MPR_ORIENTATION_MODE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,10 @@ using namespace caret;
 
     
 /**
- * \class caret::VolumeMprIntensityProjectionModeEnum 
- * \brief Mode for MPR intensity projection
+ * \class caret::VolumeMprOrientationModeEnum 
+ * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ *
+ * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +42,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_volumeMprIntensityProjectionModeEnumComboBox;
+ *         EnumComboBoxTemplate* m_volumeMprOrientationModeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void volumeMprIntensityProjectionModeEnumComboBoxItemActivated();
+ *             void volumeMprOrientationModeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "VolumeMprIntensityProjectionModeEnum.h"
+ *         #include "VolumeMprOrientationModeEnum.h"
  * 
  *     Instatiate:
- *         m_volumeMprIntensityProjectionModeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_volumeMprIntensityProjectionModeEnumComboBox->setup<VolumeMprIntensityProjectionModeEnum,VolumeMprIntensityProjectionModeEnum::Enum>();
+ *         m_volumeMprOrientationModeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_volumeMprOrientationModeEnumComboBox->setup<VolumeMprOrientationModeEnum,VolumeMprOrientationModeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_volumeMprIntensityProjectionModeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(volumeMprIntensityProjectionModeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_volumeMprOrientationModeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(volumeMprOrientationModeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_volumeMprIntensityProjectionModeEnumComboBox->setSelectedItem<VolumeMprIntensityProjectionModeEnum,VolumeMprIntensityProjectionModeEnum::Enum>(NEW_VALUE);
+ *         m_volumeMprOrientationModeEnumComboBox->setSelectedItem<VolumeMprOrientationModeEnum,VolumeMprOrientationModeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const VolumeMprIntensityProjectionModeEnum::Enum VARIABLE = m_volumeMprIntensityProjectionModeEnumComboBox->getSelectedItem<VolumeMprIntensityProjectionModeEnum,VolumeMprIntensityProjectionModeEnum::Enum>();
+ *         const VolumeMprOrientationModeEnum::Enum VARIABLE = m_volumeMprOrientationModeEnumComboBox->getSelectedItem<VolumeMprOrientationModeEnum,VolumeMprOrientationModeEnum::Enum>();
  * 
  */
 
@@ -74,24 +76,27 @@ using namespace caret;
  *    An enumerated value.
  * @param name
  *    Name of enumerated value.
- *
  * @param guiName
  *    User-friendly name for use in user-interface.
+ * @param shortGuiName
+ *    Short User-friendly name for use in user-interface.
  */
-VolumeMprIntensityProjectionModeEnum::VolumeMprIntensityProjectionModeEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+VolumeMprOrientationModeEnum::VolumeMprOrientationModeEnum(const Enum enumValue,
+                                                           const AString& name,
+                                                           const AString& guiName,
+                                                           const AString& shortGuiName)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
+    this->shortGuiName = shortGuiName;
 }
 
 /**
  * Destructor.
  */
-VolumeMprIntensityProjectionModeEnum::~VolumeMprIntensityProjectionModeEnum()
+VolumeMprOrientationModeEnum::~VolumeMprOrientationModeEnum()
 {
 }
 
@@ -99,24 +104,22 @@ VolumeMprIntensityProjectionModeEnum::~VolumeMprIntensityProjectionModeEnum()
  * Initialize the enumerated metadata.
  */
 void
-VolumeMprIntensityProjectionModeEnum::initialize()
+VolumeMprOrientationModeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(VolumeMprIntensityProjectionModeEnum(OFF, 
-                                    "OFF",
-                                    "Slices"));
+    enumData.push_back(VolumeMprOrientationModeEnum(NEUROLOGICAL,
+                                                    "NEUROLOGICAL",
+                                                    "Neurological (left-on-left)",
+                                                    "N"));
     
-    enumData.push_back(VolumeMprIntensityProjectionModeEnum(MAXIMUM, 
-                                    "MAXIMUM", 
-                                    "MIP"));
-    
-    enumData.push_back(VolumeMprIntensityProjectionModeEnum(MINIMUM, 
-                                    "MINIMUM", 
-                                    "MinIP"));
+    enumData.push_back(VolumeMprOrientationModeEnum(RADIOLOGICAL,
+                                                    "RADIOLOGICAL",
+                                                    "Radiological (right-on-left)",
+                                                    "R"));
     
 }
 
@@ -127,14 +130,14 @@ VolumeMprIntensityProjectionModeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const VolumeMprIntensityProjectionModeEnum*
-VolumeMprIntensityProjectionModeEnum::findData(const Enum enumValue)
+const VolumeMprOrientationModeEnum*
+VolumeMprOrientationModeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const VolumeMprIntensityProjectionModeEnum* d = &enumData[i];
+        const VolumeMprOrientationModeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -151,10 +154,10 @@ VolumeMprIntensityProjectionModeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-VolumeMprIntensityProjectionModeEnum::toName(Enum enumValue) {
+VolumeMprOrientationModeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const VolumeMprIntensityProjectionModeEnum* enumInstance = findData(enumValue);
+    const VolumeMprOrientationModeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -168,18 +171,18 @@ VolumeMprIntensityProjectionModeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-VolumeMprIntensityProjectionModeEnum::Enum 
-VolumeMprIntensityProjectionModeEnum::fromName(const AString& name, bool* isValidOut)
+VolumeMprOrientationModeEnum::Enum 
+VolumeMprOrientationModeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = VolumeMprIntensityProjectionModeEnum::enumData[0].enumValue;
+    Enum enumValue = VolumeMprOrientationModeEnum::enumData[0].enumValue;
     
-    for (std::vector<VolumeMprIntensityProjectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMprOrientationModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const VolumeMprIntensityProjectionModeEnum& d = *iter;
+        const VolumeMprOrientationModeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -191,7 +194,7 @@ VolumeMprIntensityProjectionModeEnum::fromName(const AString& name, bool* isVali
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type VolumeMprIntensityProjectionModeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type VolumeMprOrientationModeEnum"));
     }
     return enumValue;
 }
@@ -204,10 +207,10 @@ VolumeMprIntensityProjectionModeEnum::fromName(const AString& name, bool* isVali
  *     String representing enumerated value.
  */
 AString 
-VolumeMprIntensityProjectionModeEnum::toGuiName(Enum enumValue) {
+VolumeMprOrientationModeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const VolumeMprIntensityProjectionModeEnum* enumInstance = findData(enumValue);
+    const VolumeMprOrientationModeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -221,18 +224,18 @@ VolumeMprIntensityProjectionModeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-VolumeMprIntensityProjectionModeEnum::Enum 
-VolumeMprIntensityProjectionModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+VolumeMprOrientationModeEnum::Enum 
+VolumeMprOrientationModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = VolumeMprIntensityProjectionModeEnum::enumData[0].enumValue;
+    Enum enumValue = VolumeMprOrientationModeEnum::enumData[0].enumValue;
     
-    for (std::vector<VolumeMprIntensityProjectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMprOrientationModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const VolumeMprIntensityProjectionModeEnum& d = *iter;
+        const VolumeMprOrientationModeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -244,10 +247,26 @@ VolumeMprIntensityProjectionModeEnum::fromGuiName(const AString& guiName, bool* 
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type VolumeMprIntensityProjectionModeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type VolumeMprOrientationModeEnum"));
     }
     return enumValue;
 }
+
+/**
+ * Get aShort  GUI string representation of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     String representing enumerated value.
+ */
+AString
+VolumeMprOrientationModeEnum::toShortGuiName(Enum enumValue) {
+    if (initializedFlag == false) initialize();
+    
+    const VolumeMprOrientationModeEnum* enumInstance = findData(enumValue);
+    return enumInstance->shortGuiName;
+}
+
 
 /**
  * Get the integer code for a data type.
@@ -256,10 +275,10 @@ VolumeMprIntensityProjectionModeEnum::fromGuiName(const AString& guiName, bool* 
  *    Integer code for data type.
  */
 int32_t
-VolumeMprIntensityProjectionModeEnum::toIntegerCode(Enum enumValue)
+VolumeMprOrientationModeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const VolumeMprIntensityProjectionModeEnum* enumInstance = findData(enumValue);
+    const VolumeMprOrientationModeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -274,18 +293,18 @@ VolumeMprIntensityProjectionModeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-VolumeMprIntensityProjectionModeEnum::Enum
-VolumeMprIntensityProjectionModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+VolumeMprOrientationModeEnum::Enum
+VolumeMprOrientationModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = VolumeMprIntensityProjectionModeEnum::enumData[0].enumValue;
+    Enum enumValue = VolumeMprOrientationModeEnum::enumData[0].enumValue;
     
-    for (std::vector<VolumeMprIntensityProjectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMprOrientationModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const VolumeMprIntensityProjectionModeEnum& enumInstance = *iter;
+        const VolumeMprOrientationModeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -297,7 +316,7 @@ VolumeMprIntensityProjectionModeEnum::fromIntegerCode(const int32_t integerCode,
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type VolumeMprIntensityProjectionModeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type VolumeMprOrientationModeEnum"));
     }
     return enumValue;
 }
@@ -310,13 +329,13 @@ VolumeMprIntensityProjectionModeEnum::fromIntegerCode(const int32_t integerCode,
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-VolumeMprIntensityProjectionModeEnum::getAllEnums(std::vector<VolumeMprIntensityProjectionModeEnum::Enum>& allEnums)
+VolumeMprOrientationModeEnum::getAllEnums(std::vector<VolumeMprOrientationModeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<VolumeMprIntensityProjectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMprOrientationModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -332,16 +351,16 @@ VolumeMprIntensityProjectionModeEnum::getAllEnums(std::vector<VolumeMprIntensity
  *     If true, the names are sorted in alphabetical order.
  */
 void
-VolumeMprIntensityProjectionModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+VolumeMprOrientationModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<VolumeMprIntensityProjectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMprOrientationModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(VolumeMprIntensityProjectionModeEnum::toName(iter->enumValue));
+        allNames.push_back(VolumeMprOrientationModeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -358,16 +377,16 @@ VolumeMprIntensityProjectionModeEnum::getAllNames(std::vector<AString>& allNames
  *     If true, the names are sorted in alphabetical order.
  */
 void
-VolumeMprIntensityProjectionModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+VolumeMprOrientationModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<VolumeMprIntensityProjectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMprOrientationModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(VolumeMprIntensityProjectionModeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(VolumeMprOrientationModeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -375,3 +394,26 @@ VolumeMprIntensityProjectionModeEnum::getAllGuiNames(std::vector<AString>& allGu
     }
 }
 
+/**
+ * @return Tooltip for use in the GUI control for selecting a projection type
+ */
+AString
+VolumeMprOrientationModeEnum::getToolTipForGuiInHtml()
+{
+    std::vector<VolumeMprOrientationModeEnum::Enum> allEnums;
+    getAllEnums(allEnums);
+    
+    AString txt;
+    txt.append("<html>Axial slice orientation");
+    txt.append("<ul>");
+    for (auto e : allEnums) {
+        txt.append("<li> "
+                   + toShortGuiName(e)
+                   + " - "
+                   + toGuiName(e));
+    }
+    txt.append("</ul>");
+    txt.append("</html>");
+    
+    return txt;
+}

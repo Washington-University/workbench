@@ -30,7 +30,6 @@
 #include "Plane.h"
 #include "SelectionItemVolumeMprCrosshair.h"
 #include "Vector3D.h"
-#include "VolumeMprIntensityProjectionModeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -94,7 +93,6 @@ namespace caret {
         
         SliceInfo createSliceInfo(const BrowserTabContent* browserTabContent,
                                   const VolumeMappableInterface* underlayVolume,
-                                  const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                   const Vector3D& sliceCoordinates) const;
         
@@ -144,7 +142,6 @@ namespace caret {
         void drawSliceWithPrimitive(const SliceInfo& sliceInfo,
                                     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                    const VolumeMprIntensityProjectionModeEnum::Enum intensityMode,
                                     const Vector3D& sliceCoordinates,
                                     const GraphicsViewport& viewport,
                                     const bool enabledBlendingFlag,
@@ -188,18 +185,15 @@ namespace caret {
                                  const SelectionItemVolumeMprCrosshair::Axis sliceAxisID,
                                  const SelectionItemVolumeMprCrosshair::Axis rotationAxisID);
 
-        void drawCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                             const Vector3D& sliceCoordinates,
                             const GraphicsViewport& viewport);
         
-        void drawPanningCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawPanningCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                    const Vector3D& crossHairXYZ,
                                    const GraphicsViewport& viewport);
         
-        void drawAxisLabels(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawAxisLabels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                             const GraphicsViewport& viewport);
 
         std::array<uint8_t, 4> getAxisColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const;
@@ -231,12 +225,13 @@ namespace caret {
                                        const AString& sideName,
                                        Vector3D& intersectionXYZOut) const;
 
-        void drawIntensityBackgroundSlice(const VolumeMprIntensityProjectionModeEnum::Enum intensityMode,
+        void drawIntensityBackgroundSlice(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                           const GraphicsPrimitive* volumePrimitive) const;
         
         std::vector<VolumeMappableInterface*> getIntensityVolumeFiles() const;
         
         void performIntensityIdentification(const SliceInfo& sliceInfo,
+                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                             VolumeMappableInterface* volume);
         
         float getVoxelSize(const VolumeMappableInterface* volume) const;
