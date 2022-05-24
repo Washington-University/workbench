@@ -97,6 +97,8 @@ namespace caret {
         QDoubleSpinBox* m_volumeIndicesYcoordSpinBox;
         QDoubleSpinBox* m_volumeIndicesZcoordSpinBox;
         QToolButton* m_secondaryModeToolButton;
+        QPalette m_secondaryModeToolButtonPalette;
+        QPalette m_secondaryModeToolButtonRedPalette;
         QAction* m_obliqueMaskingAction;
         QAction* m_mprOrientationModeAction;
         

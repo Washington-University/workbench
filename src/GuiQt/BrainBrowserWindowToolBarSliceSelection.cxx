@@ -265,6 +265,13 @@ m_parentToolBar(parentToolBar)
     m_secondaryModeToolButton->setDefaultAction(m_obliqueMaskingAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_secondaryModeToolButton);
     
+    /*
+     * Change color of Secondary Mode button text using the palette
+     */
+    m_secondaryModeToolButtonPalette = m_secondaryModeToolButton->palette();
+    m_secondaryModeToolButtonRedPalette = m_secondaryModeToolButton->palette();
+    m_secondaryModeToolButtonRedPalette.setColor(QPalette::ButtonText, QColor(255, 0, 0));
+
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
@@ -977,6 +984,7 @@ BrainBrowserWindowToolBarSliceSelection::updateIntensityMaskingButton()
             break;
     }
     
+    bool redTextFlag(false);
     switch (browserTabContent->getSliceProjectionType()) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             m_mprOrientationModeAction->setEnabled(false);
@@ -993,10 +1001,26 @@ BrainBrowserWindowToolBarSliceSelection::updateIntensityMaskingButton()
             m_mprOrientationModeAction->setEnabled(true);
             m_obliqueMaskingAction->setEnabled(false);
             
-            AString modeText(VolumeMprOrientationModeEnum::toShortGuiName(browserTabContent->getVolumeMprOrientationMode()));
+            const VolumeMprOrientationModeEnum::Enum orientationMode(browserTabContent->getVolumeMprOrientationMode());
+            const AString modeText(VolumeMprOrientationModeEnum::toShortGuiName(orientationMode));
             m_mprOrientationModeAction->setText(modeText);
+            
+            switch (orientationMode) {
+                case VolumeMprOrientationModeEnum::NEUROLOGICAL:
+                    break;
+                case VolumeMprOrientationModeEnum::RADIOLOGICAL:
+                    redTextFlag = true;
+                    break;
+            }
         }
             break;
+    }
+    
+    if (redTextFlag) {
+        m_secondaryModeToolButton->setPalette(m_secondaryModeToolButtonRedPalette);
+    }
+    else {
+        m_secondaryModeToolButton->setPalette(m_secondaryModeToolButtonPalette);
     }
     
     QList<QAction*> buttonActions(m_secondaryModeToolButton->actions());
