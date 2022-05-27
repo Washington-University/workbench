@@ -213,6 +213,8 @@ ViewingTransformationsMedia.h
 ViewingTransformationsUndoCommand.h
 ViewingTransformationsVolume.h
 VolumeMprOrientationModeEnum.h
+VolumeMprSettings.h
+VolumeMprViewModeEnum.h
 VolumeSliceDrawingTypeEnum.h
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.h
 VolumeSliceSettings.h
@@ -406,6 +408,8 @@ ViewingTransformationsMedia.cxx
 ViewingTransformationsUndoCommand.cxx
 ViewingTransformationsVolume.cxx
 VolumeMprOrientationModeEnum.cxx
+VolumeMprSettings.cxx
+VolumeMprViewModeEnum.cxx
 VolumeSliceDrawingTypeEnum.cxx
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.cxx
 VolumeSliceSettings.cxx

@@ -234,6 +234,8 @@ ELSE()
         UserInputModeVolumeEditWidget.h
         UsernamePasswordWidget.h
         VolumeFileCreateDialog.h
+	VolumeMprSettingsWidget.h
+	VolumeObliqueOptionsWidget.h
 	VolumePropertiesEditorDialog.h
         VolumeSurfaceOutlineColorOrTabViewController.h
         VolumeSurfaceOutlineSetViewController.h
@@ -551,6 +553,8 @@ UserInputModeVolumeEditWidget.h
 UsernamePasswordWidget.h
 ViewModeEnum.h
 VolumeFileCreateDialog.h
+VolumeMprSettingsWidget.h
+VolumeObliqueOptionsWidget.h
 VolumePropertiesEditorDialog.h
 VolumeSurfaceOutlineColorOrTabViewController.h
 VolumeSurfaceOutlineSetViewController.h
@@ -875,6 +879,8 @@ UserInputModeVolumeEditWidget.cxx
 UsernamePasswordWidget.cxx
 ViewModeEnum.cxx
 VolumeFileCreateDialog.cxx
+VolumeMprSettingsWidget.cxx
+VolumeObliqueOptionsWidget.cxx
 VolumePropertiesEditorDialog.cxx
 VolumeSurfaceOutlineColorOrTabViewController.cxx
 VolumeSurfaceOutlineSetViewController.cxx

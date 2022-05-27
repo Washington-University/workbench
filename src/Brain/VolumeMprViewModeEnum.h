@@ -1,9 +1,9 @@
-#ifndef __VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_H__
-#define __VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_H__
+#ifndef __VOLUME_MPR_VIEW_MODE_ENUM_H__
+#define __VOLUME_MPR_VIEW_MODE_ENUM_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2017 Washington University School of Medicine
+ *  Copyright (C) 2022 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,23 +28,25 @@
 
 namespace caret {
 
-class VolumeSliceInterpolationEdgeEffectsMaskingEnum {
+class VolumeMprViewModeEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Off */
-        OFF,
-        /** Loose - Trilinear */
-        LOOSE,
-        /** Tight - Enclosing Voxel */
-        TIGHT
+        /** Multi-planar reconstruction */
+        MULTI_PLANAR_RECONSTRUCTION,
+        /** Average Intensity Projection  */
+        AVERAGE_INTENSITY_PROJECTION,
+        /** Maximum Intensity Projection */
+        MAXIMUM_INTENSITY_PROJECTION,
+        /** Minimum Intensity Projection */
+        MINIMUM_INTENSITY_PROJECTION
     };
 
 
-    ~VolumeSliceInterpolationEdgeEffectsMaskingEnum();
+    ~VolumeMprViewModeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -53,6 +55,8 @@ public:
     static AString toGuiName(Enum enumValue);
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
+    
+    static AString toShortGuiName(Enum enumValue);
     
     static int32_t toIntegerCode(Enum enumValue);
     
@@ -64,20 +68,16 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
-    static AString toToolTip(Enum enumValue);
-    
-    static AString getToolTip();
-    
 private:
-    VolumeSliceInterpolationEdgeEffectsMaskingEnum(const Enum enumValue, 
-                                                   const AString& name,
-                                                   const AString& guiName,
-                                                   const AString& toolTip);
+    VolumeMprViewModeEnum(const Enum enumValue, 
+                          const AString& name,
+                          const AString& guiName,
+                          const AString& shortGuiName);
 
-    static const VolumeSliceInterpolationEdgeEffectsMaskingEnum* findData(const Enum enumValue);
+    static const VolumeMprViewModeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum> enumData;
+    static std::vector<VolumeMprViewModeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -100,14 +100,14 @@ private:
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
     
-    AString toolTip;
+    AString shortGuiName;
 };
 
-#ifdef __VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_DECLARE__
-std::vector<VolumeSliceInterpolationEdgeEffectsMaskingEnum> VolumeSliceInterpolationEdgeEffectsMaskingEnum::enumData;
-bool VolumeSliceInterpolationEdgeEffectsMaskingEnum::initializedFlag = false;
-int32_t VolumeSliceInterpolationEdgeEffectsMaskingEnum::integerCodeCounter = 0; 
-#endif // __VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_DECLARE__
+#ifdef __VOLUME_MPR_VIEW_MODE_ENUM_DECLARE__
+std::vector<VolumeMprViewModeEnum> VolumeMprViewModeEnum::enumData;
+bool VolumeMprViewModeEnum::initializedFlag = false;
+int32_t VolumeMprViewModeEnum::integerCodeCounter = 0; 
+#endif // __VOLUME_MPR_VIEW_MODE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__VOLUME_SLICE_INTERPOLATION_EDGE_EFFECTS_MASKING_ENUM_H__
+#endif  //__VOLUME_MPR_VIEW_MODE_ENUM_H__

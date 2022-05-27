@@ -37,6 +37,7 @@ namespace caret {
     class PlainTextStringBuilder;
     class SceneClassAssistant;
     class VolumeMappableInterface;
+    class VolumeMprSettings;
     
     class VolumeSliceSettings : public CaretObject, public SceneableInterface {
         
@@ -48,10 +49,6 @@ namespace caret {
         VolumeSliceSettings(const VolumeSliceSettings& obj);
 
         VolumeSliceSettings& operator=(const VolumeSliceSettings& obj);
-        
-        VolumeMprOrientationModeEnum::Enum getVolumeMprOrientationMode() const;
-        
-        void setVolumeMprOrientationMode(const VolumeMprOrientationModeEnum::Enum orientationMode);
         
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
         
@@ -142,6 +139,10 @@ namespace caret {
         
         void selectSlicesAtCoordinate(const float xyz[3]);
         
+        VolumeMprSettings* getMprSettings();
+        
+        const VolumeMprSettings* getMprSettings() const;
+        
         void reset();
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -162,9 +163,6 @@ namespace caret {
 
         // ADD_NEW_MEMBERS_HERE
 
-        /** MPR Orientation Mode */
-        VolumeMprOrientationModeEnum::Enum m_mprOrientationMode = VolumeMprOrientationModeEnum::NEUROLOGICAL;
-        
         /** Axis of slice being viewed */
         VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
 
@@ -203,6 +201,8 @@ namespace caret {
         
         bool m_initializedFlag;
         
+        std::unique_ptr<VolumeMprSettings> m_mprSettings;
+
         //VolumeFile* m_lastVolumeFile;
         
         SceneClassAssistant* m_sceneAssistant;

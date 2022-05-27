@@ -79,13 +79,15 @@ using namespace caret;
  *    User-friendly name for use in user-interface.
  */
 VolumeSliceInterpolationEdgeEffectsMaskingEnum::VolumeSliceInterpolationEdgeEffectsMaskingEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+                                                                                               const AString& name,
+                                                                                               const AString& guiName,
+                                                                                               const AString& toolTip)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
+    this->toolTip = toolTip;
 }
 
 /**
@@ -108,18 +110,20 @@ VolumeSliceInterpolationEdgeEffectsMaskingEnum::getToolTip()
     getAllEnums(allEnums);
     
     for (const auto enumValue : allEnums) {
-        AString description(toGuiName(enumValue) + " - ");
-        switch (enumValue) {
-            case OFF:
-                description.append("No masking");
-                break;
-            case LOOSE:
-                description.append("Mask with Trilinear Interpolation");
-                break;
-            case TIGHT:
-                description.append("Mask with Enclosing Voxel");
-                break;
-        }
+        AString description(toGuiName(enumValue)
+                            + " - "
+                            + toToolTip(enumValue));
+//        switch (enumValue) {
+//            case OFF:
+//                description.append("No masking");
+//                break;
+//            case LOOSE:
+//                description.append("Mask with Trilinear Interpolation");
+//                break;
+//            case TIGHT:
+//                description.append("Mask with Enclosing Voxel");
+//                break;
+//        }
         toolTip.append(description + "<br>");
     }
     
@@ -139,18 +143,20 @@ VolumeSliceInterpolationEdgeEffectsMaskingEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(VolumeSliceInterpolationEdgeEffectsMaskingEnum(OFF, 
-                                    "OFF", 
-                                    "Masking Off"));
+    enumData.push_back(VolumeSliceInterpolationEdgeEffectsMaskingEnum(OFF,
+                                                                      "OFF",
+                                                                      "Masking Off",
+                                                                      "No masking"));
     
-    enumData.push_back(VolumeSliceInterpolationEdgeEffectsMaskingEnum(LOOSE, 
-                                    "LOOSE", 
-                                    "Masking Loose"));
+    enumData.push_back(VolumeSliceInterpolationEdgeEffectsMaskingEnum(LOOSE,
+                                                                      "LOOSE",
+                                                                      "Masking Loose",
+                                                                      "Mask with Trilinear Interpolation"));
     
-    enumData.push_back(VolumeSliceInterpolationEdgeEffectsMaskingEnum(TIGHT, 
-                                    "TIGHT", 
-                                    "Masking Tight"));
-    
+    enumData.push_back(VolumeSliceInterpolationEdgeEffectsMaskingEnum(TIGHT,
+                                                                      "TIGHT",
+                                                                      "Masking Tight",
+                                                                      "Mask with Enclosing Voxel"));
 }
 
 /**
@@ -237,11 +243,28 @@ VolumeSliceInterpolationEdgeEffectsMaskingEnum::fromName(const AString& name, bo
  *     String representing enumerated value.
  */
 AString 
-VolumeSliceInterpolationEdgeEffectsMaskingEnum::toGuiName(Enum enumValue) {
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::toGuiName(Enum enumValue)
+{
     if (initializedFlag == false) initialize();
     
     const VolumeSliceInterpolationEdgeEffectsMaskingEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
+}
+
+/**
+ * ToolTip of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     Tool tip representing enumerated value.
+ */
+AString
+VolumeSliceInterpolationEdgeEffectsMaskingEnum::toToolTip(Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    
+    const VolumeSliceInterpolationEdgeEffectsMaskingEnum* enumInstance = findData(enumValue);
+    return enumInstance->toolTip;
 }
 
 /**

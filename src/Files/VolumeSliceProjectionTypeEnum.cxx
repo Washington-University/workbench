@@ -114,7 +114,7 @@ VolumeSliceProjectionTypeEnum::initialize()
 
     enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_ORTHOGONAL,
                                                      "VOLUME_SLICE_PROJECTION_ORTHOGONAL",
-                                                     "Orthogonal",
+                                                     "Ortho",
                                                      "View slices perpendicular to X, Y, an Z axes"));
     
     enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_OBLIQUE,
@@ -126,16 +126,6 @@ VolumeSliceProjectionTypeEnum::initialize()
                                                      "VOLUME_SLICE_PROJECTION_MPR",
                                                      "MPR",
                                                      "Multi-Planar Reconstruction"));
-    
-    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY,
-                                                     "VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY",
-                                                     "MIP",
-                                                     "Maximum Intensity Projection (brightest voxels)"));
-    
-    enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY,
-                                                     "VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY",
-                                                     "MinIP",
-                                                     "Minimum Intensity Projection (dimmest voxels)"));
 }
 
 /**

@@ -30,6 +30,8 @@
 #include "Plane.h"
 #include "SelectionItemVolumeMprCrosshair.h"
 #include "Vector3D.h"
+#include "VolumeMprViewModeEnum.h"
+#include "VolumeMprOrientationModeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -85,7 +87,7 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
     private:
-        enum class ViewMode {
+        enum class BrainModelMode {
             INVALID,
             ALL_3D,
             VOLUME_2D
@@ -244,12 +246,16 @@ namespace caret {
         
         Brain* m_brain = NULL;
         
-        ViewMode m_viewMode = ViewMode::INVALID;
+        BrainModelMode m_brainModelMode = BrainModelMode::INVALID;
         
         DisplayGroupEnum::Enum m_displayGroup;
         
         int32_t m_tabIndex = -1;
         
+        VolumeMprViewModeEnum::Enum m_mprViewMode = VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION;
+        
+        VolumeMprOrientationModeEnum::Enum m_orientationMode = VolumeMprOrientationModeEnum::NEUROLOGICAL;
+
         std::array<double, 6> m_orthographicBounds;
         
         bool m_identificationModeFlag = false;

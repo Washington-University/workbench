@@ -127,16 +127,16 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
     }
     CaretAssert( ! m_volumeDrawInfo.empty());
 
-    m_viewMode = ViewMode::INVALID;
+    m_brainModelMode = BrainModelMode::INVALID;
     ModelVolume* modelVolume(browserTabContent->getDisplayedVolumeModel());
     ModelWholeBrain* modelWholeBrain(browserTabContent->getDisplayedWholeBrainModel());
     if (modelVolume != NULL) {
         m_brain = modelVolume->getBrain();
-        m_viewMode = ViewMode::VOLUME_2D;
+        m_brainModelMode = BrainModelMode::VOLUME_2D;
     }
     else if (modelWholeBrain != NULL) {
         m_brain = modelWholeBrain->getBrain();
-        m_viewMode = ViewMode::ALL_3D;
+        m_brainModelMode = BrainModelMode::ALL_3D;
     }
     else {
         const AString msg("Neither Volume nor All (Whole Brain) view");
@@ -145,7 +145,7 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
         return;
     }
     CaretAssert(m_brain);
-    CaretAssert(m_viewMode != ViewMode::INVALID);
+    CaretAssert(m_brainModelMode != BrainModelMode::INVALID);
     
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     m_displayGroup = dsl->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
@@ -157,16 +157,29 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
      */
     m_fixedPipelineDrawing->disableLighting();
 
-    const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = m_browserTabContent->getSliceDrawingType();
+    m_mprViewMode = browserTabContent->getVolumeMprViewMode();
+    m_orientationMode = browserTabContent->getVolumeMprOrientationMode();
+    
     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType(m_browserTabContent->getSliceProjectionType());
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             CaretAssert(0);
+            break;
+    }
+    
+    const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = m_browserTabContent->getSliceDrawingType();
+    switch (m_mprViewMode) {
+        case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+            CaretAssertToDoFatal();
+            break;
+        case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
+            break;
+        case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
+            break;
+        case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
             break;
     }
 
@@ -305,15 +318,23 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
         m_browserTabContent->getSliceCoordinateAxial()
     };
 
-    switch (sliceProjectionType) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
+    switch (m_mprViewMode) {
+        case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+            CaretAssertToDoFatal();
+            break;
+        case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
             drawSliceIntensityProjection3D(sliceProjectionType,
                                            VolumeSliceViewPlaneEnum::AXIAL,
                                            sliceCoordinates,
                                            viewport);
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+        case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
+            drawSliceIntensityProjection3D(sliceProjectionType,
+                                           VolumeSliceViewPlaneEnum::AXIAL,
+                                           sliceCoordinates,
+                                           viewport);
+            break;
+        case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
             if (m_browserTabContent->isSliceAxialEnabled()) {
                 glPushMatrix();
                 drawVolumeSliceViewProjection(viewportContent,
@@ -346,10 +367,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                               viewport);
                 glPopMatrix();
             }
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            CaretAssert(0);
             break;
     }
 }
@@ -631,12 +648,12 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
     glMatrixMode(GL_MODELVIEW);
     
     
-    switch (m_viewMode) {
-        case ViewMode::INVALID:
+    switch (m_brainModelMode) {
+        case BrainModelMode::INVALID:
             break;
-        case ViewMode::ALL_3D:
+        case BrainModelMode::ALL_3D:
             break;
-        case ViewMode::VOLUME_2D:
+        case BrainModelMode::VOLUME_2D:
             glLoadIdentity();
             glViewport(viewport.getX(),
                        viewport.getY(),
@@ -666,12 +683,12 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
             break;
     }
         
-    switch (m_viewMode) {
-        case ViewMode::INVALID:
+    switch (m_brainModelMode) {
+        case BrainModelMode::INVALID:
             break;
-        case ViewMode::ALL_3D:
+        case BrainModelMode::ALL_3D:
             break;
-        case ViewMode::VOLUME_2D:
+        case BrainModelMode::VOLUME_2D:
             /*
              * Set the orthographic projection to fit the slice axis
              */
@@ -691,12 +708,12 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         return;
     }
 
-    switch (m_viewMode) {
-        case ViewMode::INVALID:
+    switch (m_brainModelMode) {
+        case BrainModelMode::INVALID:
             break;
-        case ViewMode::ALL_3D:
+        case BrainModelMode::ALL_3D:
             break;
-        case ViewMode::VOLUME_2D:
+        case BrainModelMode::VOLUME_2D:
             /*
              * Set the viewing transformation (camera position)
              */
@@ -749,34 +766,36 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         
         bool intensityModeFlag(false);
         bool intensityMode3DFlag(false);
-        switch (m_viewMode) {
-            case ViewMode::INVALID:
+        switch (m_brainModelMode) {
+            case BrainModelMode::INVALID:
                 break;
-            case ViewMode::ALL_3D:
-                switch (sliceProjectionType) {
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
+            case BrainModelMode::ALL_3D:
+                switch (m_mprViewMode) {
+                    case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+                        CaretAssertToDoFatal();
+                        break;
+                    case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
                         intensityMode3DFlag = true;
                         break;
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                    case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
+                        intensityMode3DFlag = true;
                         break;
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                        CaretAssert(0);
+                    case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
                         break;
                 }
                 break;
-            case ViewMode::VOLUME_2D:
-                switch (sliceProjectionType) {
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
+            case BrainModelMode::VOLUME_2D:
+                switch (m_mprViewMode) {
+                    case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+                        CaretAssertToDoFatal();
+                        break;
+                    case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
                         intensityModeFlag = true;
                         break;
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                    case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
+                        intensityModeFlag = true;
                         break;
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                        CaretAssert(0);
+                    case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
                         break;
                 }
                 break;
@@ -913,7 +932,7 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
     Vector3D planeNormalVector;
     
     bool radiologicalFlag(false);
-    switch (browserTabContent->getVolumeMprOrientationMode()) {
+    switch (m_orientationMode) {
         case VolumeMprOrientationModeEnum::NEUROLOGICAL:
             radiologicalFlag = false;
             break;
@@ -1068,18 +1087,18 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
     viewRotationMatrix.translate(-sliceCoordinates[0], -sliceCoordinates[1], -sliceCoordinates[2]);
 
     Matrix4x4 rotationMatrix;
-    switch (m_viewMode) {
-        case ViewMode::INVALID:
+    switch (m_brainModelMode) {
+        case BrainModelMode::INVALID:
             CaretAssert(0);
             break;
-        case ViewMode::ALL_3D:
+        case BrainModelMode::ALL_3D:
             /*
              * ALL gets a matrix filled with all three MPR rotations
              */
             rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
                                                                                      VolumeSliceViewPlaneEnum::ALL);
             break;
-        case ViewMode::VOLUME_2D:
+        case BrainModelMode::VOLUME_2D:
             rotationMatrix = browserTabContent->getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
                                                                                      sliceViewPlane);
             break;
@@ -1098,13 +1117,13 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
      * Apply user panning (translation) by shifting the slice
      * in the screen horizontally and vertically
      */
-    switch (m_viewMode) {
-        case ViewMode::INVALID:
+    switch (m_brainModelMode) {
+        case BrainModelMode::INVALID:
             CaretAssert(0);
             break;
-        case ViewMode::ALL_3D:
+        case BrainModelMode::ALL_3D:
             break;
-        case ViewMode::VOLUME_2D:
+        case BrainModelMode::VOLUME_2D:
         {
             /*
              * Vector from left to right side of the screen in model coordinates
@@ -1302,7 +1321,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawPanningCrosshairs(const VolumeSliceViewPlane
     }
 
     bool radiologicalFlag(false);
-    switch (m_browserTabContent->getVolumeMprOrientationMode()) {
+    switch (m_orientationMode) {
         case VolumeMprOrientationModeEnum::NEUROLOGICAL:
             radiologicalFlag = false;
             break;
@@ -1310,26 +1329,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawPanningCrosshairs(const VolumeSliceViewPlane
             radiologicalFlag = true;
             break;
     }
-//    switch (sliceProjectionType) {
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-//            CaretAssert(0);
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-//            CaretAssert(0);
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-//            radiologicalFlag = false;
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-//            radiologicalFlag = true;
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-//            CaretAssertToDoFatal();
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
-//            CaretAssertToDoFatal();
-//            break;
-//    }
     
     const float percentViewportHeight(0.5);
     const float gapPercentViewportHeight = SessionManager::get()->getCaretPreferences()->getVolumeCrosshairGap();
@@ -1745,7 +1744,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawAxisLabels(const VolumeSliceViewPlaneEnum::E
     const std::array<uint8_t, 4> parasagittalPlaneRGBA(getAxisColor(VolumeSliceViewPlaneEnum::PARASAGITTAL));
 
     bool radiologicalFlag(false);
-    switch (m_browserTabContent->getVolumeMprOrientationMode()) {
+    switch (m_orientationMode) {
         case VolumeMprOrientationModeEnum::NEUROLOGICAL:
             radiologicalFlag = false;
             break;
@@ -1753,23 +1752,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawAxisLabels(const VolumeSliceViewPlaneEnum::E
             radiologicalFlag = true;
             break;
     }
-//    switch (sliceProjectionType) {
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL:
-//            radiologicalFlag = true;
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-//            CaretAssertToDoFatal();
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
-//            CaretAssertToDoFatal();
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-//            CaretAssert(0);
-//            break;
-//    }
 
     /*
      * Text for sides of viewport
@@ -2346,16 +2328,17 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
              */
             glDisable(GL_CULL_FACE);
             
-            switch (sliceProjectionType) {
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+            switch (m_mprViewMode) {
+                case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+                    CaretAssertToDoFatal();
+                    break;
+                case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
                     glBlendEquationSeparate(GL_MAX, GL_MAX);
                     break;
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
+                case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
                     glBlendEquationSeparate(GL_MIN, GL_MIN);
                     break;
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
                     CaretAssert(0);
                     break;
             }
@@ -2416,13 +2399,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
 
     m_fixedPipelineDrawing->disableClippingPlanes();
     
-    switch (m_viewMode) {
-        case ViewMode::INVALID:
+    switch (m_brainModelMode) {
+        case BrainModelMode::INVALID:
             CaretAssert(0);
             break;
-        case ViewMode::ALL_3D:
+        case BrainModelMode::ALL_3D:
             break;
-        case ViewMode::VOLUME_2D:
+        case BrainModelMode::VOLUME_2D:
             drawCrosshairs(sliceViewPlane,
                            sliceCoordinates,
                            viewport);
@@ -2518,12 +2501,12 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
         }
         
         glDisable(GL_DEPTH_TEST);
-        switch (m_viewMode) {
-            case ViewMode::INVALID:
+        switch (m_brainModelMode) {
+            case BrainModelMode::INVALID:
                 break;
-            case ViewMode::VOLUME_2D:
+            case BrainModelMode::VOLUME_2D:
                 break;
-            case ViewMode::ALL_3D:
+            case BrainModelMode::ALL_3D:
                 glAlphaFunc(GL_GEQUAL, 0.95);
                 glEnable(GL_ALPHA_TEST);
                 glEnable(GL_DEPTH_TEST);
@@ -2685,13 +2668,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
         }
         
         if (drawAttributesFlag) {
-            switch (m_viewMode) {
-                case ViewMode::INVALID:
+            switch (m_brainModelMode) {
+                case BrainModelMode::INVALID:
                     CaretAssert(0);
                     break;
-                case ViewMode::ALL_3D:
+                case BrainModelMode::ALL_3D:
                     break;
-                case ViewMode::VOLUME_2D:
+                case BrainModelMode::VOLUME_2D:
                     drawCrosshairs(sliceViewPlane,
                                    sliceCoordinates,
                                    viewport);
@@ -3085,13 +3068,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeMappableInterface* underl
     bool drawFibersFlag     = true;
     bool drawOutlineFlag    = true;
     
-    switch (m_viewMode) {
-        case ViewMode::INVALID:
+    switch (m_brainModelMode) {
+        case BrainModelMode::INVALID:
             break;
-        case ViewMode::ALL_3D:
+        case BrainModelMode::ALL_3D:
             drawFibersFlag = false;
             break;
-        case ViewMode::VOLUME_2D:
+        case BrainModelMode::VOLUME_2D:
             break;
     }
 
@@ -3196,8 +3179,11 @@ BrainOpenGLVolumeMprTwoDrawing::drawIntensityBackgroundSlice(const VolumeSlicePr
                                                              const GraphicsPrimitive* volumePrimitive) const
 {
     float backgroundRGBA[4] { 0.0, 0.0, 0.0, 1.0 };
-    switch (sliceProjectionType) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+    switch (m_mprViewMode) {
+        case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+            CaretAssertToDoFatal();
+            break;
+        case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
             /*
              * Draw black background
              */
@@ -3205,7 +3191,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawIntensityBackgroundSlice(const VolumeSlicePr
             backgroundRGBA[1] = 0.0;
             backgroundRGBA[2] = 0.0;
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
+        case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
             /*
              * Draw white background
              */
@@ -3213,11 +3199,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawIntensityBackgroundSlice(const VolumeSlicePr
             backgroundRGBA[1] = 1.0;
             backgroundRGBA[2] = 1.0;
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+        case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
             CaretAssert(0);
-            return;
+            break;
     }
     
     /*
@@ -3333,19 +3317,21 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
              */
             glDisable(GL_CULL_FACE);
             
-            switch (sliceProjectionType) {
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+            switch (m_mprViewMode) {
+                case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+                    CaretAssertToDoFatal();
+                    break;
+                case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
                     glBlendEquationSeparate(GL_MAX, GL_MAX);
                     break;
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
+                case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
                     glBlendEquationSeparate(GL_MIN, GL_MIN);
                     break;
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
                     CaretAssert(0);
                     break;
             }
+
             glBlendFunc(GL_ONE, GL_ONE);
             glEnable(GL_BLEND);
             
@@ -3425,13 +3411,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
 
     m_fixedPipelineDrawing->disableClippingPlanes();
     
-    switch (m_viewMode) {
-        case ViewMode::INVALID:
+    switch (m_brainModelMode) {
+        case BrainModelMode::INVALID:
             CaretAssert(0);
             break;
-        case ViewMode::ALL_3D:
+        case BrainModelMode::ALL_3D:
             break;
-        case ViewMode::VOLUME_2D:
+        case BrainModelMode::VOLUME_2D:
             drawCrosshairs(sliceViewPlane,
                            sliceCoordinates,
                            viewport);
@@ -3496,16 +3482,17 @@ BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& 
     const float voxelSize(std::max(getVoxelSize(volume), 0.1f));
     
     bool idMaxIntensityFlag(false);
-    switch (sliceProjectionType) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
+    switch (m_mprViewMode) {
+        case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+            CaretAssertToDoFatal();
+            break;
+        case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
             idMaxIntensityFlag = true;
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
+        case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
             idMaxIntensityFlag = false;
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+        case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
             CaretAssert(0);
             break;
     }

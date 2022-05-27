@@ -354,12 +354,6 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                 mprFlag = true;
                 break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-                mprFlag = true;
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
-                mprFlag = true;
-                break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:

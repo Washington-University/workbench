@@ -39,12 +39,8 @@ public:
         VOLUME_SLICE_PROJECTION_OBLIQUE,
         /** Draw volume slice with an orthogonal projection */
         VOLUME_SLICE_PROJECTION_ORTHOGONAL,
-        /** Multi-Planar Reconstruction Neurological */
-        VOLUME_SLICE_PROJECTION_MPR,
-        /** Maximum Intensity Projection */
-        VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY,
-        /** Minimum Intensity Projection */
-        VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY
+        /** Multi-Planar Reconstruction  */
+        VOLUME_SLICE_PROJECTION_MPR
     };
 
 

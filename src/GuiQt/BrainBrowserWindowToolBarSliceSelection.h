@@ -28,6 +28,7 @@
 class QAction;
 class QCheckBox;
 class QDoubleSpinBox;
+class QMenu;
 class QSpinBox;
 class QToolButton;
 class WuQWidgetObjectGroup;
@@ -35,6 +36,8 @@ class WuQWidgetObjectGroup;
 namespace caret {
 
     class EnumComboBoxTemplate;
+    class VolumeMprSettingsWidget;
+    class VolumeObliqueOptionsWidget;
     
     class BrainBrowserWindowToolBarSliceSelection : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
@@ -64,8 +67,8 @@ namespace caret {
         void volumeIndicesZcoordSpinBoxValueChanged(double d);
         void volumeSliceProjectionTypeEnumComboBoxItemActivated();
         void volumeIdentificationToggled(bool value);
-        void obliqueMaskingActionTriggered(bool);
-        void intensityModeActionTriggered(bool);
+        void mprOptionsMenuAboutToShow();
+        void obliqueOptionsMenuAboutToShow();
         
     private:
         BrainBrowserWindowToolBarSliceSelection(const BrainBrowserWindowToolBarSliceSelection&);
@@ -77,12 +80,16 @@ namespace caret {
                                                              const int64_t sliceIndex);
         void updateSliceIndicesAndCoordinatesRanges();
         
-        void updateIntensityMaskingButton();
+        void updateOptionsButton();
+        
+        QMenu* createMprOptionsMenu();
+        QMenu* createObliqueOptionsMenu();
         
         QPixmap createVolumeIdentificationUpdatesSlicesIcon(const QWidget* widget);
         
 
         BrainBrowserWindowToolBar* m_parentToolBar;
+        const QString m_objectNamePrefix;
         
         WuQWidgetObjectGroup* m_volumeIndicesWidgetGroup;
         
@@ -96,11 +103,11 @@ namespace caret {
         QDoubleSpinBox* m_volumeIndicesXcoordSpinBox;
         QDoubleSpinBox* m_volumeIndicesYcoordSpinBox;
         QDoubleSpinBox* m_volumeIndicesZcoordSpinBox;
-        QToolButton* m_secondaryModeToolButton;
-        QPalette m_secondaryModeToolButtonPalette;
-        QPalette m_secondaryModeToolButtonRedPalette;
-        QAction* m_obliqueMaskingAction;
-        QAction* m_mprOrientationModeAction;
+        QToolButton* m_optionsToolButton;
+        QAction* m_mprOptionsAction;
+        VolumeMprSettingsWidget* m_volumeMprSettingsWidget;
+        QAction* m_obliqueOptionsAction;
+        VolumeObliqueOptionsWidget* m_obliqueOptionsWidget;
         
         EnumComboBoxTemplate* m_volumeSliceProjectionTypeEnumComboBox;
         // ADD_NEW_MEMBERS_HERE

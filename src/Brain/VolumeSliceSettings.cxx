@@ -32,6 +32,7 @@
 #include "SceneEnumeratedType.h"
 #include "SessionManager.h"
 #include "VolumeFile.h"
+#include "VolumeMprSettings.h"
 
 using namespace caret;
 
@@ -51,30 +52,10 @@ const static VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum defaultVolumeS
 VolumeSliceSettings::VolumeSliceSettings()
 : CaretObject()
 {
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    m_mprOrientationMode     = VolumeMprOrientationModeEnum::NEUROLOGICAL;
-    m_sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
-    m_slicePlanesAllViewLayout = prefs->getVolumeAllSlicePlanesLayout();
-    m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
-    m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
-    m_volumeSliceInterpolationEdgeEffectsMaskingType = defaultVolumeSliceInterpolationEdgeMaskType;
-    
-    m_montageNumberOfColumns = 6;
-    m_montageNumberOfRows    = 4;
-    m_montageSliceSpacing    = 5;
-    
-    m_sliceCoordinateAxial = 0.0;
-    m_sliceCoordinateCoronal = 0.0;
-    m_sliceCoordinateParasagittal = 0.0;
-    m_sliceEnabledAxial = true;
-    m_sliceEnabledCoronal = true;
-    m_sliceEnabledParasagittal = true;
-    m_initializedFlag = false;
-    
+    m_mprSettings.reset(new VolumeMprSettings());
+    reset();
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add<VolumeMprOrientationModeEnum, VolumeMprOrientationModeEnum::Enum>("m_mprOrientationMode",
-                                                                                            &m_mprOrientationMode);
     m_sceneAssistant->add<VolumeSliceViewPlaneEnum,VolumeSliceViewPlaneEnum::Enum>("m_sliceViewPlane",
                                                                                    &m_sliceViewPlane);
     m_sceneAssistant->add<VolumeSliceViewAllPlanesLayoutEnum, VolumeSliceViewAllPlanesLayoutEnum::Enum>("m_slicePlanesAllViewLayout",
@@ -98,6 +79,7 @@ VolumeSliceSettings::VolumeSliceSettings()
     m_sceneAssistant->add("m_sliceEnabledAxial", &m_sliceEnabledAxial);
     m_sceneAssistant->add("m_sliceEnabledCoronal", &m_sliceEnabledCoronal);
     m_sceneAssistant->add("m_sliceEnabledParasagittal", &m_sliceEnabledParasagittal);
+    m_sceneAssistant->add("m_mprSettings", "VolumeMprSettings", m_mprSettings.get());
 }
 
 /**
@@ -144,7 +126,6 @@ VolumeSliceSettings::operator=(const VolumeSliceSettings& obj)
 void 
 VolumeSliceSettings::copyHelperVolumeSliceSettings(const VolumeSliceSettings& obj)
 {
-    m_mprOrientationMode     = obj.m_mprOrientationMode;
     m_sliceViewPlane         = obj.m_sliceViewPlane;
     m_slicePlanesAllViewLayout = obj.m_slicePlanesAllViewLayout;
     m_sliceDrawingType       = obj.m_sliceDrawingType;
@@ -161,6 +142,9 @@ VolumeSliceSettings::copyHelperVolumeSliceSettings(const VolumeSliceSettings& ob
     m_sliceEnabledParasagittal = obj.m_sliceEnabledParasagittal;
     m_sliceEnabledCoronal      = obj.m_sliceEnabledCoronal;
     m_sliceEnabledAxial        = obj.m_sliceEnabledAxial;
+    
+    *m_mprSettings = *obj.m_mprSettings;
+    
     m_initializedFlag = true;
 }
 
@@ -252,27 +236,6 @@ VolumeSliceSettings::getDescriptionOfContent(const ModelTypeEnum::Enum modelType
     }
     
     descriptionOut.popIndentation();
-}
-
-
-/**
- * @return MPR Orientation mode
- */
-VolumeMprOrientationModeEnum::Enum
-VolumeSliceSettings::getVolumeMprOrientationMode() const
-{
-    return m_mprOrientationMode;
-}
-
-/**
- * Set the MPR Orientation mode
- * @param orientationMode
- *   New orientation mode
- */
-void
-VolumeSliceSettings::setVolumeMprOrientationMode(const VolumeMprOrientationModeEnum::Enum orientationMode)
-{
-    m_mprOrientationMode = orientationMode;
 }
 
 /**
@@ -382,8 +345,6 @@ VolumeSliceSettings::setSliceProjectionType(const VolumeSliceProjectionTypeEnum:
     
     switch (m_sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
             /*
              * Switch to ALL view for MPR
              */
@@ -473,13 +434,27 @@ VolumeSliceSettings::setSlicesToOrigin()
 void
 VolumeSliceSettings::reset()
 {
-    m_sliceCoordinateAxial        = 0.0;
-    m_sliceCoordinateCoronal      = 0.0;
-    m_sliceCoordinateParasagittal = 0.0;
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    m_sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
+    m_slicePlanesAllViewLayout = prefs->getVolumeAllSlicePlanesLayout();
+    m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
+    m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
+    m_volumeSliceInterpolationEdgeEffectsMaskingType = defaultVolumeSliceInterpolationEdgeMaskType;
     
-    m_sliceEnabledAxial        = true;
-    m_sliceEnabledCoronal      = true;
+    m_montageNumberOfColumns = 6;
+    m_montageNumberOfRows    = 4;
+    m_montageSliceSpacing    = 5;
+    
+    m_sliceCoordinateAxial = 0.0;
+    m_sliceCoordinateCoronal = 0.0;
+    m_sliceCoordinateParasagittal = 0.0;
+    m_sliceEnabledAxial = true;
+    m_sliceEnabledCoronal = true;
     m_sliceEnabledParasagittal = true;
+    m_initializedFlag = false;
+    
+    CaretAssert(m_mprSettings);
+    m_mprSettings->reset();
     
     m_initializedFlag = false;
 }
@@ -498,7 +473,7 @@ VolumeSliceSettings::updateForVolumeFile(const VolumeMappableInterface* volumeFi
         return;
     }
     
-    if (m_initializedFlag == false) {
+    if ( ! m_initializedFlag) {
         m_initializedFlag = true;
         selectSlicesAtOrigin();
     }
@@ -917,6 +892,24 @@ VolumeSliceSettings::setSliceAxialEnabled(const bool sliceEnabledAxial)
 }
 
 /**
+ * @return The MPR settings
+ */
+VolumeMprSettings*
+VolumeSliceSettings::getMprSettings()
+{
+    return m_mprSettings.get();
+}
+
+/**
+ * @return the MPR settings (const)
+ */
+const VolumeMprSettings*
+VolumeSliceSettings::getMprSettings() const
+{
+    return m_mprSettings.get();
+}
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
@@ -933,7 +926,7 @@ VolumeSliceSettings::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "VolumeSliceSettings",
-                                            2);
+                                            3);  // 3 -> new MPR modes including average
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -994,41 +987,70 @@ VolumeSliceSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
 
-    /*
-     * For scenes before all view layout, use GRID so that the
-     * older scenes display correctly
-     */
-    if (sceneClass->getObjectWithName("m_slicePlanesAllViewLayout") == NULL) {
-        m_slicePlanesAllViewLayout = VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT;
-    }
-    
-    /*
-     * Intensity mode was available early in Intensity mode development then
-     * moved to volume slice projection type.
-     */
-    const AString oldMprIntensityMode(sceneClass->getEnumeratedTypeValueAsString("m_mprIntensityProjectionMode"));
-    if ( ! oldMprIntensityMode.isEmpty()) {
-        if (oldMprIntensityMode == "MAXIMUM") {
-            m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY;
+    if (sceneClass->getVersionNumber() < 3) {
+        /*
+         * For scenes before all view layout, use GRID so that the
+         * older scenes display correctly
+         */
+        if (sceneClass->getObjectWithName("m_slicePlanesAllViewLayout") == NULL) {
+            m_slicePlanesAllViewLayout = VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT;
         }
-        else if (oldMprIntensityMode == "MINIMUM") {
-            m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY;
+        
+        /*
+         * Intensity mode was available early in Intensity mode development then
+         * moved to volume slice projection type.
+         */
+        const AString oldMprIntensityMode(sceneClass->getEnumeratedTypeValueAsString("m_mprIntensityProjectionMode"));
+        if ( ! oldMprIntensityMode.isEmpty()) {
+            if (oldMprIntensityMode == "MAXIMUM") {
+                m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR;
+                m_mprSettings->setViewMode(VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION);
+            }
+            else if (oldMprIntensityMode == "MINIMUM") {
+                m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR;
+                m_mprSettings->setViewMode(VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION);
+            }
         }
-    }
-    
-    /*
-     * MPR Neurological and Radiological were combined into VOLUME_SLICE_PROJECTION_MPR
-     * and MPR orientation was added
-     */
-    const AString oldSliceProjectionType(sceneClass->getEnumeratedTypeValueAsString("m_sliceProjectionType"));
-    if ( ! oldSliceProjectionType.isEmpty()) {
-        if (oldSliceProjectionType == "VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL") {
-            m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR;
-            m_mprOrientationMode = VolumeMprOrientationModeEnum::NEUROLOGICAL;
+        
+        /*
+         * MPR Neurological and Radiological were combined into VOLUME_SLICE_PROJECTION_MPR
+         * and MPR orientation was added
+         */
+        const AString oldSliceProjectionType(sceneClass->getEnumeratedTypeValueAsString("m_sliceProjectionType"));
+        if ( ! oldSliceProjectionType.isEmpty()) {
+            if (oldSliceProjectionType == "VOLUME_SLICE_PROJECTION_MPR_NEUROLOGICAL") {
+                m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR;
+                m_mprSettings->setOrientationMode(VolumeMprOrientationModeEnum::NEUROLOGICAL);
+            }
+            else if (oldSliceProjectionType == "VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL") {
+                m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR;
+                m_mprSettings->setOrientationMode(VolumeMprOrientationModeEnum::RADIOLOGICAL);
+            }
+            else if (oldSliceProjectionType == "VOLUME_SLICE_PROJECTION_MPR") {
+                m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR;
+                m_mprSettings->setViewMode(VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION);
+            }
+            else if (oldSliceProjectionType == "VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY") {
+                m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR;
+                m_mprSettings->setViewMode(VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION);
+            }
+            else if (oldSliceProjectionType == "VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY") {
+                m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR;
+                m_mprSettings->setViewMode(VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION);
+            }
         }
-        else if (oldSliceProjectionType == "VOLUME_SLICE_PROJECTION_MPR_RADIOLOGICAL") {
-            m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR;
-            m_mprOrientationMode = VolumeMprOrientationModeEnum::RADIOLOGICAL;
+        
+        /*
+         * old mpr orientation moved to VolumeMprSettings
+         */
+        const AString oldMprOrientation(sceneClass->getEnumeratedTypeValueAsString("m_mprOrientationMode"));
+        if ( ! oldMprOrientation.isEmpty()) {
+            if (oldMprOrientation == "NEUROLOGICAL") {
+                m_mprSettings->setOrientationMode(VolumeMprOrientationModeEnum::NEUROLOGICAL);
+            }
+            else if (oldMprOrientation == "RADIOLOGICAL") {
+                m_mprSettings->setOrientationMode(VolumeMprOrientationModeEnum::RADIOLOGICAL);
+            }
         }
     }
     

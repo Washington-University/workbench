@@ -106,6 +106,8 @@
 #include "ViewingTransformationsMedia.h"
 #include "ViewingTransformationsVolume.h"
 #include "VolumeDynamicConnectivityFile.h"
+#include "VolumeMprSettings.h"
+#include "VolumeMprViewModeEnum.h"
 #include "VolumeSliceSettings.h"
 #include "VolumeSurfaceOutlineModel.h"
 #include "VolumeSurfaceOutlineSetModel.h"
@@ -1016,8 +1018,6 @@ BrowserTabContent::isVolumeMprDisplayed() const
     if (isVolumeSlicesDisplayed()) {
         switch (getSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                 return true;
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
@@ -1641,8 +1641,6 @@ BrowserTabContent::receiveEvent(Event* event)
                             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                                 break;
                             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                                 break;
                         }
                         switch (m_volumeSliceSettings->getSliceDrawingType()) {
@@ -3034,8 +3032,6 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                 incrementFlag = true;
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                 incrementFlag = true;
                 break;
         }
@@ -3332,8 +3328,6 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                 if (viewportContent != NULL) {
                     bool radiologicalFlag(false);
                     switch (getVolumeMprOrientationMode()) {
@@ -4148,12 +4142,6 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                mprFlag = true;
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-                mprFlag = true;
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                 mprFlag = true;
                 break;
         }
@@ -5488,7 +5476,7 @@ BrowserTabContent::getProjectionViewType() const
 VolumeMprOrientationModeEnum::Enum
 BrowserTabContent::getVolumeMprOrientationMode() const
 {
-    return m_volumeSliceSettings->getVolumeMprOrientationMode();
+    return m_volumeSliceSettings->getMprSettings()->getOrientationMode();
 }
 
 /**
@@ -5499,9 +5487,109 @@ BrowserTabContent::getVolumeMprOrientationMode() const
 void
 BrowserTabContent::setVolumeMprOrientationMode(const VolumeMprOrientationModeEnum::Enum orientationMode)
 {
-    m_volumeSliceSettings->setVolumeMprOrientationMode(orientationMode);
+    m_volumeSliceSettings->getMprSettings()->setOrientationMode(orientationMode);
     updateBrainModelYokedBrowserTabs();
 }
+
+/**
+ * @return MPR volume view mode
+ */
+VolumeMprViewModeEnum::Enum
+BrowserTabContent::getVolumeMprViewMode() const
+{
+    return m_volumeSliceSettings->getMprSettings()->getViewMode();
+}
+
+/**
+ * Set MPR volume view mode
+ * @param viewMode
+ *    New mode
+ */
+void
+BrowserTabContent::setVolumeMprViewMode(const VolumeMprViewModeEnum::Enum viewMode)
+{
+    m_volumeSliceSettings->getMprSettings()->setViewMode(viewMode);
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
+ * @return MPR volume slice thickness
+ */
+float
+BrowserTabContent::getVolumeMprSliceThickness() const
+{
+    return m_volumeSliceSettings->getMprSettings()->getSliceThickness();
+}
+
+/**
+ * Set MPR volume slice thickness
+ * @param sliceThickness
+ *    New slice thickness
+ */
+void
+BrowserTabContent::setVolumeMprSliceThickness(const float sliceThickness)
+{
+    m_volumeSliceSettings->getMprSettings()->setSliceThickness(sliceThickness);
+    updateYokedModelBrowserTabs();
+}
+
+/**
+ * @return Is Volume MPR Axial slice thickness enabled
+ */
+bool
+BrowserTabContent::isVolumeMprAxialSliceThicknessEnabled() const
+{
+    return m_volumeSliceSettings->getMprSettings()->isAxialSliceThicknessEnabled();
+}
+
+/**
+ * Set Volume MPR axial slice thickness enabled
+ */
+void
+BrowserTabContent::setVolumeMprAxialSliceThicknessEnabled(const bool enabled)
+{
+    m_volumeSliceSettings->getMprSettings()->setAxialSliceThicknessEnabled(enabled);
+    updateYokedModelBrowserTabs();
+}
+
+/**
+ * @return Is Volume MPR Coronal slice thickness enabled
+ */
+bool
+BrowserTabContent::isVolumeMprCoronalSliceThicknessEnabled() const
+{
+    return m_volumeSliceSettings->getMprSettings()->isCoronalSliceThicknessEnabled();
+}
+
+/**
+ * Set Volume MPR coronal slice thickness enabled
+ */
+void
+BrowserTabContent::setVolumeMprCoronalSliceThicknessEnabled(const bool enabled)
+{
+    m_volumeSliceSettings->getMprSettings()->setCoronalSliceThicknessEnabled(enabled);
+    updateYokedModelBrowserTabs();
+}
+
+/**
+ * @return Is Volume MPR Parasagittal slice thickness enabled
+ */
+bool
+BrowserTabContent::isVolumeMprParasagittalSliceThicknessEnabled() const
+{
+    return m_volumeSliceSettings->getMprSettings()->isParasagittalSliceThicknessEnabled();
+}
+
+/**
+ * Set Volume MPR slice parasagital thickness enabled
+ */
+void
+BrowserTabContent::setVolumeMprParasagittalSliceThicknessEnabled(const bool enabled)
+{
+    m_volumeSliceSettings->getMprSettings()->setParasagittalSliceThicknessEnabled(enabled);
+    updateYokedModelBrowserTabs();
+}
+
 
 /**
  * @return The slice view plane.
@@ -5611,10 +5699,6 @@ BrowserTabContent::getValidSliceProjectionTypes(std::vector<VolumeSliceProjectio
     bool orthoValidFlag(false);
     for (auto spt : allSliceProjectionTypes) {
         switch (spt) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
-                break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
@@ -5655,8 +5739,6 @@ BrowserTabContent::getValidSliceProjectionTypes(std::vector<VolumeSliceProjectio
     }
     sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
     sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR);
-    sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY);
-    sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY);
 }
 
 /**

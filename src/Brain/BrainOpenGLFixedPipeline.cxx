@@ -4486,12 +4486,6 @@ BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* view
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
             useMprTwoDrawingFlag = true;
             break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-            useMprTwoDrawingFlag = true;
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
-            useMprTwoDrawingFlag = true;
-            break;
     }
     
     if (useMprTwoDrawingFlag) {
@@ -6850,8 +6844,6 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
                     }
                         break;
                     case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MAXIMUM_INTENSITY:
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_MINIMUM_INTENSITY:
                     {
                         GraphicsViewport graphicsViewport(viewport);
                         BrainOpenGLVolumeMprTwoDrawing mprDrawing;
