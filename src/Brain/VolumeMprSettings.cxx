@@ -216,7 +216,7 @@ VolumeMprSettings::setAxialSliceThicknessEnabled(const bool enabled)
 bool
 VolumeMprSettings::isCoronalSliceThicknessEnabled() const
 {
-    return m_axialSliceThicknessEnabled;
+    return m_coronalSliceThicknessEnabled;
 }
 
 /**
@@ -227,7 +227,7 @@ VolumeMprSettings::isCoronalSliceThicknessEnabled() const
 void
 VolumeMprSettings::setCoronalSliceThicknessEnabled(const bool enabled)
 {
-    m_axialSliceThicknessEnabled = enabled;
+    m_coronalSliceThicknessEnabled = enabled;
 }
 
 /**

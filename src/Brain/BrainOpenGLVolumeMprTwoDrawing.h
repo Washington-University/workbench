@@ -238,6 +238,10 @@ namespace caret {
         
         float getVoxelSize(const VolumeMappableInterface* volume) const;
         
+        void applySliceThicknessToIntersections(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                const Vector3D& sliceCoordinates,
+                                                std::vector<Vector3D>& rayVolumeIntersections) const;
+        
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 
         BrowserTabContent* m_browserTabContent = NULL;

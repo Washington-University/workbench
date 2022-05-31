@@ -2238,6 +2238,83 @@ BrainOpenGLVolumeMprTwoDrawing::getIntensityVolumeFiles() const
     return intensityVolumeFiles;
 }
 
+/**
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slice.
+ * @param rayVolumeIntersections
+ *    Intersections of ray with volume.
+ */
+void
+BrainOpenGLVolumeMprTwoDrawing::applySliceThicknessToIntersections(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                   const Vector3D& sliceCoordinates,
+                                                                   std::vector<Vector3D>& rayVolumeIntersections) const
+{
+    switch (m_mprViewMode) {
+        case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+            CaretAssertToDoFatal();
+            break;
+        case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
+            break;
+        case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
+            break;
+        case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
+            return;
+            break;
+    }
+
+    float minX(-std::numeric_limits<float>::max());
+    float maxX(std::numeric_limits<float>::max());
+    float minY(-std::numeric_limits<float>::max());
+    float maxY(std::numeric_limits<float>::max());
+    float minZ(-std::numeric_limits<float>::max());
+    float maxZ(std::numeric_limits<float>::max());
+    
+    CaretAssert(m_browserTabContent);
+    const float halfThickness(m_browserTabContent->getVolumeMprSliceThickness() / 2.0);
+    
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            if (m_browserTabContent->isVolumeMprAxialSliceThicknessEnabled()) {
+                minZ = sliceCoordinates[2] - halfThickness;
+                maxZ = sliceCoordinates[2] + halfThickness;
+            }
+            else {
+                return;
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            if (m_browserTabContent->isVolumeMprCoronalSliceThicknessEnabled()) {
+                minY = sliceCoordinates[1] - halfThickness;
+                maxY = sliceCoordinates[1] + halfThickness;
+            }
+            else {
+                return;
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            if (m_browserTabContent->isVolumeMprParasagittalSliceThicknessEnabled()) {
+                minX = sliceCoordinates[0] - halfThickness;
+                maxX = sliceCoordinates[0] + halfThickness;
+            }
+            else {
+                return;
+            }
+            break;
+    }
+    
+    for (auto& vec : rayVolumeIntersections) {
+        if (vec[0] > maxX) vec[0] = maxX;
+        if (vec[0] < minX) vec[0] = minX;
+        if (vec[1] > maxY) vec[1] = maxY;
+        if (vec[1] < minY) vec[1] = minY;
+        if (vec[2] > maxZ) vec[2] = maxZ;
+        if (vec[2] < minZ) vec[2] = minZ;
+    }
+}
 
 /**
  * Draw the intensity slices
@@ -2294,12 +2371,16 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
             continue;
         }
         
-        const std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
-                                                                               sliceInfo.m_centerXYZ,
-                                                                               sliceInfo.m_normalVector));
+        std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
+                                                                         sliceInfo.m_centerXYZ,
+                                                                         sliceInfo.m_normalVector));
         const int32_t numIntersections(allIntersections.size());
         
         if (numIntersections == 2) {
+            applySliceThicknessToIntersections(sliceViewPlane,
+                                               sliceCoordinates,
+                                               allIntersections);
+            
             const float voxelSize(getVoxelSize(volumeFile));
             if (voxelSize < 0.01) {
                 CaretLogSevere("Voxel size is too small for Intensity Projection: "
@@ -2365,6 +2446,20 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
                         std::cout << stepSliceInfo.toString("   ") << std::endl;
                     }
                 }
+                
+                switch (m_mprViewMode) {
+                    case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+                        CaretAssertToDoFatal();
+                        break;
+                    case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
+                        break;
+                    case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
+                        break;
+                    case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
+                        CaretAssert(0);
+                        break;
+                }
+                
                 const bool enableBlendingFlag(false);
                 const bool drawAttributesFlag(false);
                 const bool drawIntensitySliceBackgroundFlag(iStep == 0);
