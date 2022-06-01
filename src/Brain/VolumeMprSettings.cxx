@@ -50,6 +50,7 @@ VolumeMprSettings::VolumeMprSettings()
     m_sceneAssistant->add<VolumeMprOrientationModeEnum, VolumeMprOrientationModeEnum::Enum>("m_orientationMode", &m_orientationMode);
     m_sceneAssistant->add<VolumeMprViewModeEnum, VolumeMprViewModeEnum::Enum>("m_viewMode", &m_viewMode);
     m_sceneAssistant->add("m_sliceThickness", &m_sliceThickness);
+    m_sceneAssistant->add("m_allViewThicknessEnabled", &m_allViewThicknessEnabled);
     m_sceneAssistant->add("m_axialSliceThicknessEnabled", &m_axialSliceThicknessEnabled);
     m_sceneAssistant->add("m_coronalSliceThicknessEnabled", &m_coronalSliceThicknessEnabled);
     m_sceneAssistant->add("m_parasagittalSliceThicknessEnabled", &m_parasagittalSliceThicknessEnabled);
@@ -101,6 +102,7 @@ VolumeMprSettings::copyHelperVolumeMprSettings(const VolumeMprSettings& obj)
     m_orientationMode = obj.m_orientationMode;
     m_viewMode        = obj.m_viewMode;
     m_sliceThickness  = obj.m_sliceThickness;
+    m_allViewThicknessEnabled           = obj.m_allViewThicknessEnabled;
     m_axialSliceThicknessEnabled        = obj.m_axialSliceThicknessEnabled;
     m_coronalSliceThicknessEnabled      = obj.m_coronalSliceThicknessEnabled;
     m_parasagittalSliceThicknessEnabled = obj.m_parasagittalSliceThicknessEnabled;
@@ -115,6 +117,7 @@ VolumeMprSettings::reset()
     m_orientationMode = VolumeMprOrientationModeEnum::NEUROLOGICAL;
     m_viewMode        = VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION;
     m_sliceThickness  = 20.0;
+    m_allViewThicknessEnabled           = false;
     m_axialSliceThicknessEnabled        = false;
     m_coronalSliceThicknessEnabled      = false;
     m_parasagittalSliceThicknessEnabled = false;
@@ -189,6 +192,27 @@ VolumeMprSettings::setViewMode(const VolumeMprViewModeEnum::Enum viewMode)
 {
     m_viewMode = viewMode;
 }
+
+/**
+ * @return Is ALL view thickness enabled
+ */
+bool
+VolumeMprSettings::isAllViewThicknessEnabled() const
+{
+    return m_allViewThicknessEnabled;
+}
+
+/**
+ * Set the ALL view thickness enabled
+ * @param enabled
+ *    New status
+ */
+void
+VolumeMprSettings::setAllViewThicknessEnabled(const bool enabled)
+{
+    m_allViewThicknessEnabled = enabled;
+}
+
 
 /**
  * @return Is axial slice thickness enabled

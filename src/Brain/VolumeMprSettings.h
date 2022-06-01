@@ -57,10 +57,14 @@ namespace caret {
         
         void setSliceThickness(const float sliceThickness);
 
+        bool isAllViewThicknessEnabled() const;
+        
+        void setAllViewThicknessEnabled(const bool enabled);
+
         bool isAxialSliceThicknessEnabled() const;
         
         void setAxialSliceThicknessEnabled(const bool enabled);
-
+        
         bool isCoronalSliceThicknessEnabled() const;
         
         void setCoronalSliceThicknessEnabled(const bool enabled);
@@ -106,6 +110,8 @@ namespace caret {
         VolumeMprOrientationModeEnum::Enum m_orientationMode = VolumeMprOrientationModeEnum::NEUROLOGICAL;
         
         float m_sliceThickness = 20.0f;
+        
+        bool m_allViewThicknessEnabled = false;
         
         bool m_axialSliceThicknessEnabled = false;
         

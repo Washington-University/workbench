@@ -84,6 +84,11 @@ m_objectNamePrefix(objectNamePrefix
     QObject::connect(m_sliceThicknessSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &VolumeMprSettingsWidget::sliceThicknessSpinBoxValueChanged);
     m_sliceThicknessSpinBox->setToolTip("Select thickness for sub-region of volume");
+
+    m_allViewThicknessCheckBox = new QCheckBox("Apply Slice Thickness to All View");
+    QObject::connect(m_allViewThicknessCheckBox, &QCheckBox::clicked,
+                     this, &VolumeMprSettingsWidget::allViewThicknessCheckBoxClicked);
+    m_allViewThicknessCheckBox->setToolTip("Limit all view thickness along viewing axis");
     
     m_axialSliceThicknessCheckBox = new QCheckBox("Apply Slice Thickness to Axial");
     QObject::connect(m_axialSliceThicknessCheckBox, &QCheckBox::clicked,
@@ -112,6 +117,8 @@ m_objectNamePrefix(objectNamePrefix
     ++row;
     gridLayout->addWidget(thicknessLabel, row, 0);
     gridLayout->addWidget(m_sliceThicknessSpinBox, row, 1);
+    ++row;
+    gridLayout->addWidget(m_allViewThicknessCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     ++row;
     gridLayout->addWidget(m_axialSliceThicknessCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     ++row;
@@ -173,6 +180,7 @@ VolumeMprSettingsWidget::updateContent(const int32_t tabIndex)
     m_orientationComboBox->setSelectedItem<VolumeMprOrientationModeEnum,VolumeMprOrientationModeEnum::Enum>(btc->getVolumeMprOrientationMode());
     QSignalBlocker thicknessBlocker(m_sliceThicknessSpinBox);
     m_sliceThicknessSpinBox->setValue(btc->getVolumeMprSliceThickness());
+    m_allViewThicknessCheckBox->setChecked(btc->isVolumeMprAllViewThicknessEnabled());
     m_axialSliceThicknessCheckBox->setChecked(btc->isVolumeMprAxialSliceThicknessEnabled());
     m_coronalSliceThicknessCheckBox->setChecked(btc->isVolumeMprCoronalSliceThicknessEnabled());
     m_parasagittalSliceThicknessCheckBox->setChecked(btc->isVolumeMprParasagittalSliceThicknessEnabled());
@@ -257,6 +265,23 @@ VolumeMprSettingsWidget::sliceThicknessSpinBoxValueChanged(double sliceThickness
     }
     
     btc->setVolumeMprSliceThickness(sliceThickness);
+    updateGraphicsWindow();
+}
+
+/**
+ * Called when all viewcheckbox is toggle
+ * @bool checked
+ *    New checked status
+ */
+void
+VolumeMprSettingsWidget::allViewThicknessCheckBoxClicked(bool)
+{
+    BrowserTabContent* btc(getBrowserTabContent());
+    if (btc == NULL) {
+        return;
+    }
+    
+    btc->setVolumeMprAllViewThicknessEnabled(m_allViewThicknessCheckBox->isChecked());
     updateGraphicsWindow();
 }
 

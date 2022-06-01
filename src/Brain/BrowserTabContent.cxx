@@ -5534,6 +5534,26 @@ BrowserTabContent::setVolumeMprSliceThickness(const float sliceThickness)
 }
 
 /**
+ * @return Is ALL view thickness enabled
+ */
+bool
+BrowserTabContent::isVolumeMprAllViewThicknessEnabled() const
+{
+    return m_volumeSliceSettings->getMprSettings()->isAllViewThicknessEnabled();
+}
+
+/**
+ * Set the ALL view thickness enabled
+ * @param enabled
+ *    New status
+ */
+void
+BrowserTabContent::setVolumeMprAllViewThicknessEnabled(const bool enabled)
+{
+    m_volumeSliceSettings->getMprSettings()->setAllViewThicknessEnabled(enabled);
+}
+
+/**
  * @return Is Volume MPR Axial slice thickness enabled
  */
 bool

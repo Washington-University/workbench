@@ -403,6 +403,10 @@ namespace caret {
         
         void setVolumeMprSliceThickness(const float sliceThickness);
         
+        bool isVolumeMprAllViewThicknessEnabled() const;
+        
+        void setVolumeMprAllViewThicknessEnabled(const bool enabled);
+        
         bool isVolumeMprAxialSliceThicknessEnabled() const;
         
         void setVolumeMprAxialSliceThicknessEnabled(const bool enabled);

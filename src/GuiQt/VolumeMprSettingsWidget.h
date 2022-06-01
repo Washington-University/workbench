@@ -65,6 +65,8 @@ namespace caret {
         
         void sliceThicknessSpinBoxValueChanged(double);
         
+        void allViewThicknessCheckBoxClicked(bool);
+        
         void axialThickessCheckBoxClicked(bool);
         
         void coronalThickessCheckBoxClicked(bool);
@@ -91,6 +93,8 @@ namespace caret {
         EnumComboBoxTemplate* m_orientationComboBox;
         
         QDoubleSpinBox* m_sliceThicknessSpinBox;
+        
+        QCheckBox* m_allViewThicknessCheckBox;
         
         QCheckBox* m_axialSliceThicknessCheckBox;
         
