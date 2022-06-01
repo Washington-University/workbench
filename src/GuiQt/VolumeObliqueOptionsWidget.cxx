@@ -180,7 +180,7 @@ VolumeObliqueOptionsWidget::maskingButtonClicked(QAbstractButton*)
  *    The event
  */
 void
-VolumeObliqueOptionsWidget::receiveEvent(Event* event)
+VolumeObliqueOptionsWidget::receiveEvent(Event* /*event*/)
 {
     
 }

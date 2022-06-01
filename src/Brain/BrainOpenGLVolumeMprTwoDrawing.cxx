@@ -311,8 +311,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
         case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
         case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
         case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
-            drawSliceIntensityProjection3D(sliceProjectionType,
-                                           VolumeSliceViewPlaneEnum::AXIAL,
+            drawSliceIntensityProjection3D(VolumeSliceViewPlaneEnum::AXIAL,
                                            sliceCoordinates,
                                            viewport);
             break;
@@ -781,7 +780,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         bool drawIdentificationSymbolsFlag(false);
         if (intensityModeFlag) {
             drawSliceIntensityProjection2D(sliceInfo,
-                                           sliceProjectionType,
                                            sliceViewPlane,
                                            sliceCoordinates,
                                            viewport);
@@ -791,7 +789,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
             const bool drawAttributesFlag(true);
             const bool drawIntensitySliceBackgroundFlag(false);
             drawSliceWithPrimitive(sliceInfo,
-                                   sliceProjectionType,
                                    sliceViewPlane,
                                    sliceCoordinates,
                                    viewport,
@@ -2293,8 +2290,6 @@ BrainOpenGLVolumeMprTwoDrawing::applySliceThicknessToIntersections(const VolumeS
  * Draw the intensity slices
  * @param sliceInfo
  *    Information for drawing slice
- * @param sliceProjectionType
- *    Type of slice projection
  * @param sliceViewPlane
  *    The plane for slice drawing.
  * @param sliceCoordinates
@@ -2304,7 +2299,6 @@ BrainOpenGLVolumeMprTwoDrawing::applySliceThicknessToIntersections(const VolumeS
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& sliceInfo,
-                                                               const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                const Vector3D& sliceCoordinates,
                                                                const GraphicsViewport& viewport)
@@ -2339,7 +2333,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
         CaretAssert(volumeFile);
         if (idModeFlag) {
             performIntensityIdentification(sliceInfo,
-                                           sliceProjectionType,
                                            volumeFile);
             continue;
         }
@@ -2414,7 +2407,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
                 const bool drawAttributesFlag(false);
                 const bool drawIntensitySliceBackgroundFlag(iStep == 0);
                 drawSliceWithPrimitive(stepSliceInfo,
-                                       sliceProjectionType,
                                        sliceViewPlane,
                                        sliceCoords,
                                        viewport,
@@ -2527,8 +2519,6 @@ BrainOpenGLVolumeMprTwoDrawing::setupIntensityModeBlending(const int32_t numSlic
  * Draw the slice
  * @param sliceInfo
  *    Information for drawing slice
- * @param sliceProjectionType
- *    Type of slice projection
  * @param sliceViewPlane
  *    The plane for slice drawing.
  * @param sliceCoordinates
@@ -2544,7 +2534,6 @@ BrainOpenGLVolumeMprTwoDrawing::setupIntensityModeBlending(const int32_t numSlic
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInfo,
-                                                       const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                        const Vector3D& sliceCoordinates,
                                                        const GraphicsViewport& viewport,
@@ -2768,8 +2757,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                     }
                     else {
                         if (drawIntensitySliceBackgroundFlag) {
-                            drawIntensityBackgroundSlice(sliceProjectionType,
-                                                         primitive);
+                            drawIntensityBackgroundSlice(primitive);
                         }
                         GraphicsEngineDataOpenGL::draw(primitive);
                     }
@@ -3279,14 +3267,11 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo3D() const
  * The intensity modes set a replace a pixel when the new pixel value is greater than (MAXIMUM mode)
  * or less than the existing pixel (MINIMUM mode).  For this to work, the background must be black (for MAXIMUM)
  * or white (for MINIIMUM).  So prior to drawing any pixels from the volume, draw a slice in either black or white.
- * @param intensityMode
- *    The intensity mode
  * @param volumePrimitive
  *    Primitive from the volume used to draw voxels.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::drawIntensityBackgroundSlice(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                             const GraphicsPrimitive* volumePrimitive) const
+BrainOpenGLVolumeMprTwoDrawing::drawIntensityBackgroundSlice(const GraphicsPrimitive* volumePrimitive) const
 {
     float backgroundRGBA[4] { 0.0, 0.0, 0.0, 1.0 };
     switch (m_mprViewMode) {
@@ -3346,8 +3331,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawIntensityBackgroundSlice(const VolumeSlicePr
 
 /**
  * Draw the slice
- * @param sliceProjectionType
- *    Type of slice projection
  * @param sliceViewPlane
  *    The plane for slice drawing.
  * @param sliceCoordinates
@@ -3358,8 +3341,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawIntensityBackgroundSlice(const VolumeSlicePr
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                const Vector3D& sliceCoordinates,
                                                                const GraphicsViewport& viewport)
 {
@@ -3394,7 +3376,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
         const SliceInfo sliceInfo(createSliceInfo3D());
         if (idModeFlag) {
             performIntensityIdentification(sliceInfo,
-                                           sliceProjectionType,
                                            volumeFile);
             continue;
         }
@@ -3481,8 +3462,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                         /*
                          * Necessary for Min/Max blending to function
                          */
-                        drawIntensityBackgroundSlice(sliceProjectionType,
-                                                     primitive);
+                        drawIntensityBackgroundSlice(primitive);
                     }
                     GraphicsEngineDataOpenGL::draw(primitive);
                 }
@@ -3557,14 +3537,11 @@ BrainOpenGLVolumeMprTwoDrawing::getVoxelSize(const VolumeMappableInterface* volu
  * Perform identification operation on 2D or 3D Maximum or Minimum Intensity Projection
  * @param sliceInfo
  *    Info for drawing slices
- * @param sliceProjectionType
- *    Type of slice projection
  * @param volume
  *    Volume being drawn
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& sliceInfo,
-                                                               const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                                VolumeMappableInterface* volume)
 {
     GraphicsViewport viewport(GraphicsViewport::newInstanceCurrentViewport());

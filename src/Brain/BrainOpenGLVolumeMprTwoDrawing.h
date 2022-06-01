@@ -130,19 +130,16 @@ namespace caret {
                                       const SliceInfo& sliceInfo);
 
         void drawSliceIntensityProjection2D(const SliceInfo& sliceInfo,
-                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                             const Vector3D& sliceCoordinates,
                                             const GraphicsViewport& viewport);
 
-        void drawSliceIntensityProjection3D(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawSliceIntensityProjection3D(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                             const Vector3D& sliceCoordinates,
                                             const GraphicsViewport& viewport);
 
 
         void drawSliceWithPrimitive(const SliceInfo& sliceInfo,
-                                    const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                     const Vector3D& sliceCoordinates,
                                     const GraphicsViewport& viewport,
@@ -227,13 +224,11 @@ namespace caret {
                                        const AString& sideName,
                                        Vector3D& intersectionXYZOut) const;
 
-        void drawIntensityBackgroundSlice(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                          const GraphicsPrimitive* volumePrimitive) const;
+        void drawIntensityBackgroundSlice(const GraphicsPrimitive* volumePrimitive) const;
         
         std::vector<VolumeMappableInterface*> getIntensityVolumeFiles() const;
         
         void performIntensityIdentification(const SliceInfo& sliceInfo,
-                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                             VolumeMappableInterface* volume);
         
         float getVoxelSize(const VolumeMappableInterface* volume) const;
