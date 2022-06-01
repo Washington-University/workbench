@@ -171,17 +171,6 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
     }
     
     const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = m_browserTabContent->getSliceDrawingType();
-    switch (m_mprViewMode) {
-        case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
-            CaretAssertToDoFatal();
-            break;
-        case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
-            break;
-        case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
-            break;
-        case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
-            break;
-    }
 
     m_axialCoronalParaSliceViewFlag = false;
 
@@ -320,14 +309,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
 
     switch (m_mprViewMode) {
         case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
-            CaretAssertToDoFatal();
-            break;
         case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
-            drawSliceIntensityProjection3D(sliceProjectionType,
-                                           VolumeSliceViewPlaneEnum::AXIAL,
-                                           sliceCoordinates,
-                                           viewport);
-            break;
         case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
             drawSliceIntensityProjection3D(sliceProjectionType,
                                            VolumeSliceViewPlaneEnum::AXIAL,
@@ -765,20 +747,15 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         glDisable(GL_CULL_FACE);
         
         bool intensityModeFlag(false);
-        bool intensityMode3DFlag(false);
         switch (m_brainModelMode) {
             case BrainModelMode::INVALID:
                 break;
             case BrainModelMode::ALL_3D:
                 switch (m_mprViewMode) {
                     case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
-                        CaretAssertToDoFatal();
-                        break;
                     case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
-                        intensityMode3DFlag = true;
-                        break;
                     case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
-                        intensityMode3DFlag = true;
+                        CaretAssertMessage(0, "This function should not be called for ALL view Intensity Modes");
                         break;
                     case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
                         break;
@@ -787,7 +764,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
             case BrainModelMode::VOLUME_2D:
                 switch (m_mprViewMode) {
                     case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
-                        CaretAssertToDoFatal();
+                        intensityModeFlag = true;
                         break;
                     case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
                         intensityModeFlag = true;
@@ -802,10 +779,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         }
 
         bool drawIdentificationSymbolsFlag(false);
-        if (intensityMode3DFlag) {
-            CaretAssertMessage(0, "This function should not be called for ALL view Intensity Modes");
-        }
-        else if (intensityModeFlag) {
+        if (intensityModeFlag) {
             drawSliceIntensityProjection2D(sliceInfo,
                                            sliceProjectionType,
                                            sliceViewPlane,
@@ -2253,7 +2227,6 @@ BrainOpenGLVolumeMprTwoDrawing::applySliceThicknessToIntersections(const VolumeS
 {
     switch (m_mprViewMode) {
         case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
-            CaretAssertToDoFatal();
             break;
         case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
             break;
@@ -2397,10 +2370,19 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
                                       p1ToP2Vector[1] * voxelSize,
                                       p1ToP2Vector[2] * voxelSize);
             const float numSteps = distance / voxelSize;
+            if (numSteps < 1) {
+                CaretLogSevere("Invalid number of steps="
+                               + AString::number(numSteps)
+                               + " for intensity projection 2D");
+                return;
+            }
             if (debugFlag) {
                 std::cout << "Num Steps: " << numSteps << " Step Vector: " << AString::fromNumbers(stepVector) << std::endl;
             }
             
+            /*
+             * Save state to preserve blending setup
+             */
             glPushAttrib(GL_COLOR_BUFFER_BIT
                          | GL_ENABLE_BIT);
             
@@ -2409,26 +2391,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
              */
             glDisable(GL_CULL_FACE);
             
-            switch (m_mprViewMode) {
-                case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
-                    CaretAssertToDoFatal();
-                    break;
-                case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
-                    glBlendEquationSeparate(GL_MAX, GL_MAX);
-                    break;
-                case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
-                    glBlendEquationSeparate(GL_MIN, GL_MIN);
-                    break;
-                case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
-                    CaretAssert(0);
-                    break;
-            }
-            glBlendFunc(GL_ONE, GL_ONE);
-            glEnable(GL_BLEND);
-            
-            glAlphaFunc(GL_GEQUAL, 0.95);
-            glEnable(GL_ALPHA_TEST);
-            
+            setupIntensityModeBlending(numSteps);
             
             for (int32_t iStep = 0; iStep < numSteps; iStep++) {
                 Vector3D sliceCoords(p1 + stepVector * iStep);
@@ -2446,20 +2409,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
                         std::cout << stepSliceInfo.toString("   ") << std::endl;
                     }
                 }
-                
-                switch (m_mprViewMode) {
-                    case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
-                        CaretAssertToDoFatal();
-                        break;
-                    case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
-                        break;
-                    case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
-                        break;
-                    case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
-                        CaretAssert(0);
-                        break;
-                }
-                
+                                
                 const bool enableBlendingFlag(false);
                 const bool drawAttributesFlag(false);
                 const bool drawIntensitySliceBackgroundFlag(iStep == 0);
@@ -2505,6 +2455,71 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
                            sliceCoordinates,
                            viewport);
             break;
+    }
+}
+
+/**
+ * Setup blending for the intensity modes (Average, Minimum, Maximum)
+ * @param numSteps
+ *    Number of "slices" that are drawn (steps)
+ */
+void
+BrainOpenGLVolumeMprTwoDrawing::setupIntensityModeBlending(const int32_t numSlicesDrawn)
+{
+    bool averageFlag(false);
+    bool minMaxFlag(false);
+    switch (m_mprViewMode) {
+        case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
+            averageFlag = true;
+            break;
+        case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
+            glBlendEquationSeparate(GL_MAX, GL_MAX);
+            minMaxFlag = true;
+            break;
+        case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
+            glBlendEquationSeparate(GL_MIN, GL_MIN);
+            minMaxFlag = true;
+            break;
+        case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
+            CaretAssert(0);
+            break;
+    }
+    
+    if (minMaxFlag) {
+        glBlendFunc(GL_ONE, GL_ONE);
+        glEnable(GL_BLEND);
+        
+        glAlphaFunc(GL_GEQUAL, 0.95);
+        glEnable(GL_ALPHA_TEST);
+    }
+    else if (averageFlag) {
+        /*
+         * Each slice contributes equally
+         * From OpenGL RedBook, section "Sample Uses of Blending" bullet:
+         *
+         * To blend three different images equally, set the destination factor to GL_ONE and
+         * the source factor to GL_SRC_ALPHA.  Draw each of the images with alpha equal to
+         * 0.3333.  With this technique, each image is only one third of its original brightness,
+         * which is noticeable where the images don't overlap.
+         *
+         * Using (alpha == (1/numSlices) allows each slice to contribute
+         * equally and thus approximates "an average".
+         */
+        const float alpha(1.0 / static_cast<float>(numSlicesDrawn));
+        glBlendColor(0.0, 0.0, 0.0, alpha);
+        
+        glBlendFuncSeparate(GL_CONSTANT_ALPHA_EXT,
+                            GL_ONE,
+                            GL_ZERO,
+                            GL_ONE);
+        
+        glDisable(GL_ALPHA_TEST);
+        glAlphaFunc(GL_GEQUAL, 0.95);
+        glAlphaFunc(GL_ALWAYS, 1.0);
+        glEnable(GL_ALPHA_TEST);
+    }
+    else {
+        CaretAssertMessage(0, "Neither average nor min/max mode");
     }
 }
 
@@ -3276,7 +3291,12 @@ BrainOpenGLVolumeMprTwoDrawing::drawIntensityBackgroundSlice(const VolumeSlicePr
     float backgroundRGBA[4] { 0.0, 0.0, 0.0, 1.0 };
     switch (m_mprViewMode) {
         case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
-            CaretAssertToDoFatal();
+            /*
+             * Draw black background
+             */
+            backgroundRGBA[0] = 0.0;
+            backgroundRGBA[1] = 0.0;
+            backgroundRGBA[2] = 0.0;
             break;
         case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
             /*
@@ -3404,6 +3424,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                 std::cout << "Num Steps: " << numSteps << " Step Vector: " << AString::fromNumbers(stepVector) << std::endl;
             }
             
+            /*
+             * Save state to preserve blending setup
+             */
             glPushAttrib(GL_COLOR_BUFFER_BIT
                          | GL_ENABLE_BIT);
             
@@ -3412,28 +3435,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
              */
             glDisable(GL_CULL_FACE);
             
-            switch (m_mprViewMode) {
-                case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
-                    CaretAssertToDoFatal();
-                    break;
-                case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
-                    glBlendEquationSeparate(GL_MAX, GL_MAX);
-                    break;
-                case VolumeMprViewModeEnum::MINIMUM_INTENSITY_PROJECTION:
-                    glBlendEquationSeparate(GL_MIN, GL_MIN);
-                    break;
-                case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
-                    CaretAssert(0);
-                    break;
-            }
+            setupIntensityModeBlending(numSteps);
 
-            glBlendFunc(GL_ONE, GL_ONE);
-            glEnable(GL_BLEND);
-            
-            glAlphaFunc(GL_GEQUAL, 0.95);
-            glEnable(GL_ALPHA_TEST);
-            
-            
             for (int32_t iStep = 0; iStep < numSteps; iStep++) {
                 const Vector3D sliceCoords(p1 + stepVector * iStep);
                 const Vector3D sliceOffset(sliceCoords - sliceInfo.m_centerXYZ);
@@ -3579,7 +3582,8 @@ BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& 
     bool idMaxIntensityFlag(false);
     switch (m_mprViewMode) {
         case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
-            CaretAssertToDoFatal();
+            CaretLogWarning("No identification in Average Intensity Projection");
+            return;
             break;
         case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
             idMaxIntensityFlag = true;

@@ -242,6 +242,8 @@ namespace caret {
                                                 const Vector3D& sliceCoordinates,
                                                 std::vector<Vector3D>& rayVolumeIntersections) const;
         
+        void setupIntensityModeBlending(const int32_t numSlicesDrawn);
+        
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 
         BrowserTabContent* m_browserTabContent = NULL;
