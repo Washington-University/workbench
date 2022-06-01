@@ -68,10 +68,14 @@ public:
     
     static AString getToolTip();
     
+    static AString toShortGuiName(Enum enumValue);
+    
+    static Enum nextEnum(const Enum enumValue);
 private:
     VolumeSliceInterpolationEdgeEffectsMaskingEnum(const Enum enumValue, 
                                                    const AString& name,
                                                    const AString& guiName,
+                                                   const AString& shortGuiName,
                                                    const AString& toolTip);
 
     static const VolumeSliceInterpolationEdgeEffectsMaskingEnum* findData(const Enum enumValue);
@@ -99,6 +103,8 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    AString shortGuiName;
     
     AString toolTip;
 };

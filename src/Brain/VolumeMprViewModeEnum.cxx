@@ -115,17 +115,17 @@ VolumeMprViewModeEnum::initialize()
     enumData.push_back(VolumeMprViewModeEnum(MULTI_PLANAR_RECONSTRUCTION,
                                              "MULTI_PLANAR_RECONSTRUCTION",
                                              "Multi-Planar Reconstruction",
-                                             "MPR"));
+                                             " MPR "));
     
     enumData.push_back(VolumeMprViewModeEnum(AVERAGE_INTENSITY_PROJECTION,
                                              "AVERAGE_INTENSITY_PROJECTION",
                                              "Average Intensity Projection",
-                                             "AIP"));
+                                             " AIP "));
     
     enumData.push_back(VolumeMprViewModeEnum(MAXIMUM_INTENSITY_PROJECTION,
                                              "MAXIMUM_INTENSITY_PROJECTION",
                                              "Maximum Intensity Projection (brightest voxels)",
-                                             "MIP"));
+                                             " MIP "));
     
     enumData.push_back(VolumeMprViewModeEnum(MINIMUM_INTENSITY_PROJECTION,
                                              "MINIMUM_INTENSITY_PROJECTION",
@@ -402,5 +402,38 @@ VolumeMprViewModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const b
     if (isSorted) {
         std::sort(allGuiNames.begin(), allGuiNames.end());
     }
+}
+
+/**
+ * @return The next enum value after the given enum value
+ * @param enumValue
+ *    Enum value for which next enum value is requested
+ */
+VolumeMprViewModeEnum::Enum
+VolumeMprViewModeEnum::nextEnum(const Enum enumValue)
+{
+    int32_t enumIndex(-1);
+    const int32_t numEnums = static_cast<int32_t>(enumData.size());
+    for (int32_t i = 0; i < numEnums; i++) {
+        CaretAssertVectorIndex(enumData, i);
+        if (enumData[i].enumValue == enumValue) {
+            enumIndex = i + 1;
+            break;
+        }
+    }
+    CaretAssertMessage((enumIndex >= 0),
+                       ("Invalid input enumValue="
+                        + AString::number(static_cast<int32_t>(enumValue))));
+    if (enumIndex < 0) {
+        return enumValue;
+    }
+    
+    if (enumIndex >= numEnums) {
+        enumIndex = 0;
+    }
+    CaretAssertVectorIndex(enumData, enumIndex);
+    
+    const Enum nextEnum(enumData[enumIndex].enumValue);
+    return nextEnum;
 }
 

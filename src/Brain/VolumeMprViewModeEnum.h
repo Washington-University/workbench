@@ -68,6 +68,8 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static Enum nextEnum(const Enum enumValue);
+    
 private:
     VolumeMprViewModeEnum(const Enum enumValue, 
                           const AString& name,

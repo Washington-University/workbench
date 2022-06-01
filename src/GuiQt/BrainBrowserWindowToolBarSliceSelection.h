@@ -68,8 +68,10 @@ namespace caret {
         void volumeSliceProjectionTypeEnumComboBoxItemActivated();
         void volumeIdentificationToggled(bool value);
         void mprOptionsMenuAboutToShow();
+        void mprOptionsActionTriggered(bool);
         void obliqueOptionsMenuAboutToShow();
-        
+        void obliqueOptionsActionTriggered(bool);
+
     private:
         BrainBrowserWindowToolBarSliceSelection(const BrainBrowserWindowToolBarSliceSelection&);
 
@@ -82,9 +84,13 @@ namespace caret {
         
         void updateOptionsButton();
         
+        QAction* createMprOptionsAction();
         QMenu* createMprOptionsMenu();
+        void updateMprOptionsAction();
+        QAction* createObliqueOptionsAction();
         QMenu* createObliqueOptionsMenu();
-        
+        void updateObliqueOptionsAction();
+
         QPixmap createVolumeIdentificationUpdatesSlicesIcon(const QWidget* widget);
         
 

@@ -238,7 +238,7 @@ m_objectNamePrefix(parentObjectName
     
     m_volumeSliceProjectionTypeEnumComboBox = new EnumComboBoxTemplate(this);
     m_volumeSliceProjectionTypeEnumComboBox->setup<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>();
-    m_volumeSliceProjectionTypeEnumComboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
+    m_volumeSliceProjectionTypeEnumComboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     QObject::connect(m_volumeSliceProjectionTypeEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(volumeSliceProjectionTypeEnumComboBoxItemActivated()));
     WuQtUtilities::setToolTipAndStatusTip(m_volumeSliceProjectionTypeEnumComboBox->getWidget(),
@@ -247,42 +247,35 @@ m_objectNamePrefix(parentObjectName
                                                                           + "Orthogonal/Oblique");
     macroManager->addMacroSupportToObject(m_volumeSliceProjectionTypeEnumComboBox->getComboBox(),
                                           "Select volume slice projection type");
+    m_volumeSliceProjectionTypeEnumComboBox->getComboBox()->setSizePolicy(QSizePolicy::Fixed,
+                                                                          m_volumeSliceProjectionTypeEnumComboBox->getComboBox()->sizePolicy().verticalPolicy());
     
     /*
      * MPR Options action
      */
-    m_mprOptionsAction = new QAction(this);
-    m_mprOptionsAction->setCheckable(false);
-    m_mprOptionsAction->setText("Opts");
-    m_mprOptionsAction->setToolTip("Click arrow to view MPR options");
-    m_mprOptionsAction->setMenu(createMprOptionsMenu());
-    m_mprOptionsAction->setObjectName(m_objectNamePrefix
-                                          + ":MprOptions");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_mprOptionsAction,
-                                                         "View MPR Options");
+    m_mprOptionsAction = createMprOptionsAction();
 
     /*
      * Oblique options action
      */
-    m_obliqueOptionsAction = new QAction(this);
-    m_obliqueOptionsAction->setCheckable(false);
-    m_obliqueOptionsAction->setText("Opts");
-    m_obliqueOptionsAction->setToolTip("Click arrow to view oblique viewing options");
-    m_obliqueOptionsAction->setMenu(createObliqueOptionsMenu());
-    m_obliqueOptionsAction->setObjectName(m_objectNamePrefix
-                                          + ":ObliqueOptions");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_obliqueOptionsAction,
-                                                         "View Oblique Options");
+    m_obliqueOptionsAction = createObliqueOptionsAction();
     
     /*
      * Options button for MPR and Oblique options
+     * Add some text and set fixed width so that
+     * button does not change size as its text
+     * is updated by the MPR or Oblique QAction.
      */
     m_optionsToolButton = new QToolButton();
+    m_optionsToolButton->setText("123456");
+    m_optionsToolButton->setFixedWidth(m_optionsToolButton->sizeHint().width());
+    m_optionsToolButton->setText("");
     m_optionsToolButton->setDefaultAction(m_mprOptionsAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_optionsToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
+    gridLayout->setHorizontalSpacing(2);
     gridLayout->addWidget(m_volumeIndicesParasagittalCheckBox, 0, 0);
     gridLayout->addWidget(parasagittalLabel, 0, 1);
     gridLayout->addWidget(m_volumeIndicesCoronalCheckBox, 1, 0);
@@ -299,10 +292,13 @@ m_objectNamePrefix(parentObjectName
     gridLayout->addWidget(m_volumeIndicesZcoordSpinBox, 2, 3);
 
     QHBoxLayout* bottomLayout(new QHBoxLayout());
+    bottomLayout->setSpacing(1);
     bottomLayout->setContentsMargins(0, 0, 0, 0);
     bottomLayout->addWidget(volumeIDToolButton);
+    bottomLayout->addStretch();
     bottomLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget());
     bottomLayout->addWidget(m_optionsToolButton);
+    bottomLayout->setStretchFactor(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 100);
     
     gridLayout->addLayout(bottomLayout, 3, 0, 1, 5);
 
@@ -890,9 +886,11 @@ BrainBrowserWindowToolBarSliceSelection::updateOptionsButton()
     }
     if (m_mprOptionsAction->isEnabled()) {
         m_optionsToolButton->setDefaultAction(m_mprOptionsAction);
+        updateMprOptionsAction();
     }
     else {
         m_optionsToolButton->setDefaultAction(m_obliqueOptionsAction);
+        updateObliqueOptionsAction();
     }
 }
 
@@ -961,6 +959,98 @@ BrainBrowserWindowToolBarSliceSelection::createMprOptionsMenu()
     return menu;
 }
 
+/**
+ * @return New instance of MPR options action
+ */
+QAction*
+BrainBrowserWindowToolBarSliceSelection::createMprOptionsAction()
+{
+    const QString toolTip("Click button to cycle through MPR modes "
+                          "or click arrow to select a mode and adjust "
+                          "other options");
+    QAction* action = new QAction(this);
+    action->setCheckable(false);
+    action->setText("MPR");
+    WuQtUtilities::setWordWrappedToolTip(action,
+                                         toolTip);
+    action->setMenu(createMprOptionsMenu());
+    action->setObjectName(m_objectNamePrefix
+                          + ":MprOptions");
+    QObject::connect(action, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarSliceSelection::mprOptionsActionTriggered);
+    WuQMacroManager::instance()->addMacroSupportToObject(action,
+                                                         "View MPR Options");
+    return action;
+}
+
+/**
+ * Called when MPR options action is triggered
+ */
+void
+BrainBrowserWindowToolBarSliceSelection::mprOptionsActionTriggered(bool)
+{
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent != NULL) {
+        VolumeMprViewModeEnum::Enum viewMode(browserTabContent->getVolumeMprViewMode());
+        viewMode = VolumeMprViewModeEnum::nextEnum(viewMode);
+        browserTabContent->setVolumeMprViewMode(viewMode);
+        updateMprOptionsAction();
+        updateGraphicsWindowAndYokedWindows();
+    }
+}
+
+/**
+ * Update the MPR options action
+ */
+void
+BrainBrowserWindowToolBarSliceSelection::updateMprOptionsAction()
+{
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent != NULL) {
+        VolumeMprViewModeEnum::Enum viewMode(browserTabContent->getVolumeMprViewMode());
+
+        const AString text(VolumeMprViewModeEnum::toShortGuiName(viewMode));
+        m_mprOptionsAction->setText(text);
+    }
+}
+
+/**
+ * Called when MPR options menu is about to show
+ */
+void
+BrainBrowserWindowToolBarSliceSelection::mprOptionsMenuAboutToShow()
+{
+    int32_t tabIndex = -1;
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent != NULL) {
+        tabIndex = browserTabContent->getTabNumber();
+    }
+    
+    m_volumeMprSettingsWidget->updateContent(tabIndex);
+}
+
+/**
+ * @return New instance of oblique options action
+ */
+QAction*
+BrainBrowserWindowToolBarSliceSelection::createObliqueOptionsAction()
+{
+    const QString toolTip("Click button to cycle through Oblique masking modes "
+                          "or click arrow to select masking mode directly");
+    QAction* action = new QAction(this);
+    action->setCheckable(false);
+    action->setText("Opts");
+    WuQtUtilities::setWordWrappedToolTip(action,
+                                         toolTip);
+    action->setMenu(createObliqueOptionsMenu());
+    action->setObjectName(m_objectNamePrefix
+                                          + ":ObliqueOptions");
+    QObject::connect(action, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarSliceSelection::obliqueOptionsActionTriggered);
+    WuQMacroManager::instance()->addMacroSupportToObject(action,
+                                                         "View Oblique Options");
+    return action;
+}
 
 /**
  * @return Instance of the Oblique Options
@@ -983,21 +1073,6 @@ BrainBrowserWindowToolBarSliceSelection::createObliqueOptionsMenu()
  * Called when MPR options menu is about to show
  */
 void
-BrainBrowserWindowToolBarSliceSelection::mprOptionsMenuAboutToShow()
-{
-    int32_t tabIndex = -1;
-    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
-    if (browserTabContent != NULL) {
-        tabIndex = browserTabContent->getTabNumber();
-    }
-    
-    m_volumeMprSettingsWidget->updateContent(tabIndex);
-}
-
-/**
- * Called when MPR options menu is about to show
- */
-void
 BrainBrowserWindowToolBarSliceSelection::obliqueOptionsMenuAboutToShow()
 {
     int32_t tabIndex = -1;
@@ -1007,4 +1082,35 @@ BrainBrowserWindowToolBarSliceSelection::obliqueOptionsMenuAboutToShow()
     }
     
     m_obliqueOptionsWidget->updateContent(tabIndex);
+}
+
+/**
+ * Called when Oblique options action is triggered
+ */
+void
+BrainBrowserWindowToolBarSliceSelection::obliqueOptionsActionTriggered(bool)
+{
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent != NULL) {
+        VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskEnum(browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType());
+        maskEnum = VolumeSliceInterpolationEdgeEffectsMaskingEnum::nextEnum(maskEnum);
+        browserTabContent->setVolumeSliceInterpolationEdgeEffectsMaskingType(maskEnum);
+        updateObliqueOptionsAction();
+        updateGraphicsWindowAndYokedWindows();
+    }
+}
+
+/**
+ * Update the Oblique options action
+ */
+void
+BrainBrowserWindowToolBarSliceSelection::updateObliqueOptionsAction()
+{
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent != NULL) {
+        VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskEnum(browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType());
+
+        const AString text(VolumeSliceInterpolationEdgeEffectsMaskingEnum::toShortGuiName(maskEnum));
+        m_obliqueOptionsAction->setText(text);
+    }
 }
