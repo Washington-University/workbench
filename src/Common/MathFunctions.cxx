@@ -1834,9 +1834,9 @@ MathFunctions::nearestPointOnLine3D(const float p1[3],
     /*
      * Point on the line !
      */
-    pointOnLineOut[0] = p1ToP2Vector[0] * normalizedDistance;
-    pointOnLineOut[1] = p1ToP2Vector[1] * normalizedDistance;
-    pointOnLineOut[2] = p1ToP2Vector[2] * normalizedDistance;
+    pointOnLineOut[0] = p1[0] + p1ToP2Vector[0] * normalizedDistance;
+    pointOnLineOut[1] = p1[1] + p1ToP2Vector[1] * normalizedDistance;
+    pointOnLineOut[2] = p1[2] + p1ToP2Vector[2] * normalizedDistance;
     
     p1ToPointOnLineNormalizedDistanceOut = normalizedDistance;
 }
