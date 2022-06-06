@@ -84,6 +84,10 @@ m_objectNamePrefix(objectNamePrefix
     QObject::connect(m_sliceThicknessSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &VolumeMprSettingsWidget::sliceThicknessSpinBoxValueChanged);
     m_sliceThicknessSpinBox->setToolTip("Select thickness for sub-region of volume");
+    m_sliceThicknessSpinBox->setRange(0, 10000.0);
+    m_sliceThicknessSpinBox->setSingleStep(1.0);
+    m_sliceThicknessSpinBox->setDecimals(1);
+    m_sliceThicknessSpinBox->setFixedWidth(80);
 
     m_allViewThicknessCheckBox = new QCheckBox("Apply Slice Thickness to All View");
     QObject::connect(m_allViewThicknessCheckBox, &QCheckBox::clicked,
