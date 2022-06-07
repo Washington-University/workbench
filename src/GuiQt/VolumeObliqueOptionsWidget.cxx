@@ -61,7 +61,7 @@ m_objectNamePrefix(objectNamePrefix
     
     QButtonGroup* maskingButtonGroup(new QButtonGroup(this));
     maskingButtonGroup->setExclusive(true);
-    QObject::connect(maskingButtonGroup, &QButtonGroup::buttonClicked,
+    QObject::connect(maskingButtonGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked),
                      this, &VolumeObliqueOptionsWidget::maskingButtonClicked);
 
     QVBoxLayout* buttonLayout(new QVBoxLayout());

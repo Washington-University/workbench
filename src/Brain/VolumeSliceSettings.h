@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 
 #include "CaretObject.h"
 #include "ModelTypeEnum.h"
@@ -203,8 +204,6 @@ namespace caret {
         
         std::unique_ptr<VolumeMprSettings> m_mprSettings;
 
-        //VolumeFile* m_lastVolumeFile;
-        
         SceneClassAssistant* m_sceneAssistant;
     };
     
