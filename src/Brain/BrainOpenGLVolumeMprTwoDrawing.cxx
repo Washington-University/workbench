@@ -836,6 +836,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
                 BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(m_fixedPipelineDrawing,
                                                                          m_browserTabContent,
                                                                          m_volumeDrawInfo[0].volumeFile,
+                                                                         m_volumeDrawInfo[0].mapIndex,
                                                                          sliceInfo.m_plane,
                                                                          sliceThickness);
             }
@@ -2195,18 +2196,19 @@ BrainOpenGLVolumeMprTwoDrawing::getVolumeRayIntersections(VolumeMappableInterfac
 }
 
 /**
- * @return The intensity files for drawing
+ * @return The intensity files and map indices for drawing
  */
-std::vector<VolumeMappableInterface*>
-BrainOpenGLVolumeMprTwoDrawing::getIntensityVolumeFiles() const
+std::vector<std::pair<VolumeMappableInterface*,int32_t>>
+BrainOpenGLVolumeMprTwoDrawing::getIntensityVolumeFilesAndMapIndices() const
 {
-    std::vector<VolumeMappableInterface*> intensityVolumeFiles;
+    std::vector<std::pair<VolumeMappableInterface*,int32_t>> filesAndMapIndices;
     for (auto& vdi : m_volumeDrawInfo) {
         if (vdi.volumeFile != NULL) {
-            intensityVolumeFiles.push_back(vdi.volumeFile);
+            filesAndMapIndices.push_back(std::make_pair(vdi.volumeFile,
+                                                     vdi.mapIndex));
         }
     }
-    return intensityVolumeFiles;
+    return filesAndMapIndices;
 }
 
 /**
@@ -2346,7 +2348,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
                                                                const Vector3D& sliceCoordinates,
                                                                const GraphicsViewport& viewport)
 {
-    std::vector<VolumeMappableInterface*> intensityVolumeFiles(getIntensityVolumeFiles());
+    std::vector<std::pair<VolumeMappableInterface*,int32_t>> intensityVolumeFiles(getIntensityVolumeFilesAndMapIndices());
     if (intensityVolumeFiles.empty()) {
         return;
     }
@@ -2372,7 +2374,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
     m_fixedPipelineDrawing->applyClippingPlanes(BrainOpenGLFixedPipeline::CLIPPING_DATA_TYPE_VOLUME,
                                                 StructureEnum::ALL);
     
-    for (VolumeMappableInterface* volumeFile : intensityVolumeFiles) {
+    for (auto& volumeFileAndMapIndex : intensityVolumeFiles) {
+        VolumeMappableInterface* volumeFile(volumeFileAndMapIndex.first);
+        const int32_t mapIndex(volumeFileAndMapIndex.second);
         CaretAssert(volumeFile);
         if (idModeFlag) {
             performIntensityIdentification(sliceInfo,
@@ -2467,12 +2471,15 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
     }
     
     CaretAssertVectorIndex(intensityVolumeFiles, 0);
-    CaretAssert(intensityVolumeFiles[0]);
+    VolumeMappableInterface* volumeFile(intensityVolumeFiles[0].first);
+    const int32_t mapIndex(intensityVolumeFiles[0].second);
+    CaretAssert(volumeFile);
     BrainOpenGLIdentificationDrawing idDrawing(m_fixedPipelineDrawing,
                                                m_brain,
                                                m_browserTabContent,
                                                m_fixedPipelineDrawing->mode);
-    idDrawing.drawVolumeIntensity2dIdentificationSymbols(intensityVolumeFiles[0],
+    idDrawing.drawVolumeIntensity2dIdentificationSymbols(volumeFile,
+                                                         mapIndex,
                                                          m_browserTabContent->getScaling(),
                                                          viewport.getHeight());
 
@@ -3388,7 +3395,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                                                                const Vector3D& sliceCoordinates,
                                                                const GraphicsViewport& viewport)
 {
-    std::vector<VolumeMappableInterface*> intensityVolumeFiles(getIntensityVolumeFiles());
+    std::vector<std::pair<VolumeMappableInterface*,int32_t>> intensityVolumeFiles(getIntensityVolumeFilesAndMapIndices());
     if (intensityVolumeFiles.empty()) {
         return;
     }
@@ -3415,7 +3422,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                                                 StructureEnum::ALL);
     
     bool drawBackgroundSliceFlag(true);
-    for (VolumeMappableInterface* volumeFile : intensityVolumeFiles) {
+    for (auto& volumeFileAndMapIndex : intensityVolumeFiles) {
+        VolumeMappableInterface* volumeFile(volumeFileAndMapIndex.first);
+        const int32_t mapIndex(volumeFileAndMapIndex.second);
         const SliceInfo sliceInfo(createSliceInfo3D());
         if (idModeFlag) {
             performIntensityIdentification(sliceInfo,
@@ -3525,12 +3534,15 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
     }
     
     CaretAssertVectorIndex(intensityVolumeFiles, 0);
-    CaretAssert(intensityVolumeFiles[0]);
+    VolumeMappableInterface* volumeFile(intensityVolumeFiles[0].first);
+    const int32_t mapIndex(intensityVolumeFiles[0].second);
+    CaretAssert(volumeFile);
     BrainOpenGLIdentificationDrawing idDrawing(m_fixedPipelineDrawing,
                                                m_brain,
                                                m_browserTabContent,
                                                m_fixedPipelineDrawing->mode);
-    idDrawing.drawVolumeIntensity3dIdentificationSymbols(intensityVolumeFiles[0],
+    idDrawing.drawVolumeIntensity3dIdentificationSymbols(volumeFile,
+                                                         mapIndex,
                                                          m_browserTabContent->getScaling(),
                                                          viewport.getHeight());
 

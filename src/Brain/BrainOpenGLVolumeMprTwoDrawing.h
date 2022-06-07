@@ -226,7 +226,7 @@ namespace caret {
 
         void drawIntensityBackgroundSlice(const GraphicsPrimitive* volumePrimitive) const;
         
-        std::vector<VolumeMappableInterface*> getIntensityVolumeFiles() const;
+        std::vector<std::pair<VolumeMappableInterface*,int32_t>> getIntensityVolumeFilesAndMapIndices() const;
         
         void performIntensityIdentification(const SliceInfo& sliceInfo,
                                             VolumeMappableInterface* volume);

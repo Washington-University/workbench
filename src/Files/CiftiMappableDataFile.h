@@ -325,6 +325,9 @@ namespace caret {
         
         virtual void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const override;
         
+        virtual void getNonZeroVoxelCoordinateBoundingBox(const int32_t mapIndex,
+                                                   BoundingBox& boundingBoxOut) const override;
+
         virtual int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                  const int64_t sliceIndex,
@@ -701,6 +704,9 @@ namespace caret {
             float m_histogramLimitedValuesLeastNegativeValueInclusive;
             float m_histogramLimitedValuesMostNegativeValueInclusive;
             bool m_histogramLimitedValuesIncludeZeroValues;
+            
+            /** Have bounding box for  map */
+            mutable std::unique_ptr<BoundingBox> m_nonZeroVoxelCoordinateBoundingBox;
             
         private:
             /** Name of map */

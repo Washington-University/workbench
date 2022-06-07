@@ -67,16 +67,19 @@ namespace caret {
                                               const float viewportHeight);
 
         void drawVolumeIdentificationSymbols(const VolumeMappableInterface* volume,
+                                             const int32_t mapIndex,
                                              const Plane& plane,
                                              const float sliceThickness,
                                              const float viewingZoom,
                                              const float viewportHeight);
-        
+
         void drawVolumeIntensity2dIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                        const int32_t mapIndex,
                                                         const float viewingZoom,
                                                         const float viewportHeight);
         
         void drawVolumeIntensity3dIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                        const int32_t mapIndex,
                                                         const float viewingZoom,
                                                         const float viewportHeight);
         
@@ -92,7 +95,11 @@ namespace caret {
                                        const Plane& plane,
                                        const float planeThickness,
                                        const float viewingZoom,
-                                       const float viewportHeight);
+                                       const float viewportHeight,
+                                       const float surfaceOrVolumeMaximumDimension);
+
+        float getVolumeMaximumCoordinateDimension(const VolumeMappableInterface* volume,
+                                                  const int32_t mapIndex) const;
 
         std::vector<const IdentifiedItemUniversal*> getIdentifiedItems();
         

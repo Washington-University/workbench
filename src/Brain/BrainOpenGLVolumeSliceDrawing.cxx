@@ -55,6 +55,7 @@
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsUtilitiesOpenGL.h"
+#include "GraphicsViewport.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
 #include "IdentificationWithColor.h"
@@ -859,6 +860,7 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
         
         CaretAssertVectorIndex(m_volumeDrawInfo, 0);
         drawIdentificationSymbols(m_volumeDrawInfo[0].volumeFile,
+                                  m_volumeDrawInfo[0].mapIndex,
                                   slicePlane,
                                   sliceThickness);
     }
@@ -1615,6 +1617,8 @@ BrainOpenGLVolumeSliceDrawing::showBrainordinateHighlightRegionOfInterest(const 
  *
  * @param volume
  *    The underlay volume
+ * @param mapIndex
+ *    Index of map in volume file that is being drawn
  * @param plane
  *   The plane equation.
  * @param sliceThickess
@@ -1622,12 +1626,14 @@ BrainOpenGLVolumeSliceDrawing::showBrainordinateHighlightRegionOfInterest(const 
  */
 void
 BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                         const int32_t mapIndex,
                                                          const Plane& plane,
                                                          const float sliceThickness)
 {
     drawIdentificationSymbols(m_fixedPipelineDrawing,
                               m_browserTabContent,
                               volume,
+                              mapIndex,
                               plane,
                               sliceThickness);
 }
@@ -1640,6 +1646,8 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const VolumeMappableInt
  *    Tab content containing volume
  * @param volume
  *    The underlay volume
+ * @param mapIndex
+ *    Index of map in volume file that is being drawn
  * @param plane
  *   The plane equation.
  * @param sliceThickess
@@ -1649,16 +1657,15 @@ void
 BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                          BrowserTabContent* browserTabContent,
                                                          const VolumeMappableInterface* volume,
+                                                         const int32_t mapIndex,
                                                          const Plane& plane,
                                                          const float sliceThickness)
 {
     CaretAssert(fixedPipelineDrawing);
     CaretAssert(volume);
         
-    BoundingBox boundingBox;
-    volume->getVoxelSpaceBoundingBox(boundingBox);
-    const float maxDimension = boundingBox.getMaximumDifferenceOfXYZ();
-
+    const GraphicsViewport viewport(GraphicsViewport::newInstanceCurrentViewport());
+    
     /*
      * Draw volume identification symbols
      */
@@ -1667,10 +1674,11 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(BrainOpenGLFixedPipelin
                                                browserTabContent,
                                                fixedPipelineDrawing->mode);
     idDrawing.drawVolumeIdentificationSymbols(volume,
+                                              mapIndex,
                                               plane,
                                               sliceThickness,
                                               browserTabContent->getScaling(),
-                                              maxDimension);
+                                              viewport.getHeight());
 }
 
 /**

@@ -863,6 +863,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
         BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(m_fixedPipelineDrawing,
                                                                  m_browserTabContent,
                                                                  m_volumeDrawInfo[0].volumeFile,
+                                                                 m_volumeDrawInfo[0].mapIndex,
                                                                  slicePlane,
                                                                  sliceThickness);
         

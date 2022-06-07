@@ -124,6 +124,9 @@ namespace caret {
         
         mutable float m_dataRangeMaximum;
         
+        /** Have bounding box for each map */
+        mutable std::vector<std::unique_ptr<BoundingBox>> m_nonZeroVoxelCoordinateBoundingBoxes;
+        
         /** Holds class and name hierarchy used for display selection */
         mutable CaretPointer<GroupAndNameHierarchyModel> m_classNameHierarchy;
         
@@ -229,6 +232,9 @@ namespace caret {
         virtual bool isModifiedExcludingPaletteColorMapping() const;
         
         void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const override;
+        
+        virtual void getNonZeroVoxelCoordinateBoundingBox(const int32_t mapIndex,
+                                                   BoundingBox& boundingBoxOut) const override;
         
         /**
          * @return The structure for this file.

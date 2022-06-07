@@ -3362,6 +3362,24 @@ CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) con
 }
 
 /**
+ * Get a bounding box containing the non-zero voxel coordinate ranges
+ * @param mapIndex
+ *    Index of map
+ * @param boundingBoxOut
+ *    Output containing coordinate range of non-zero voxels
+ */
+void
+CiftiMappableDataFile::getNonZeroVoxelCoordinateBoundingBox(const int32_t /*mapIndex*/,
+                                                    BoundingBox& boundingBoxOut) const
+{
+    /*
+     * Since CIFTI only contains a subset of voxels, we can assume
+     * all of the voxels contain valid data.
+     */
+    getVoxelSpaceBoundingBox(boundingBoxOut);
+}
+
+/**
  * Get the voxel colors for a slice in the map.
  *
  * @param mapIndex

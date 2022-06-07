@@ -232,6 +232,7 @@ VolumeFile::clear()
     m_frameSplines.clear();
     
     m_dataRangeValid = false;
+    m_nonZeroVoxelCoordinateBoundingBoxes.clear();
     VolumeBase::clear();
     
     m_volumeFileEditorDelegate->clear();
@@ -788,6 +789,7 @@ void VolumeFile::updateCaretExtension()
 void VolumeFile::validateMembers()
 {
     m_dataRangeValid = false;
+    m_nonZeroVoxelCoordinateBoundingBoxes.clear();
     const int64_t* dimensions = getDimensionsPtr();
     m_frameSplineValid = vector<bool>(dimensions[3] * dimensions[4], false);
     m_frameSplines = vector<VolumeSpline>(dimensions[3] * dimensions[4]);//release any previous spline memory
@@ -1574,6 +1576,56 @@ VolumeFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const
             }
         }
     }
+}
+
+/**
+ * Get a bounding box containing the non-zero voxel coordinate ranges
+ * @param mapIndex
+ *    Index of map
+ * @param boundingBoxOut
+ *    Output containing coordinate range of non-zero voxels
+ */
+void
+VolumeFile::getNonZeroVoxelCoordinateBoundingBox(const int32_t mapIndex,
+                                           BoundingBox& boundingBoxOut) const
+{
+    if (static_cast<int32_t>(m_nonZeroVoxelCoordinateBoundingBoxes.size()) <= mapIndex) {
+        m_nonZeroVoxelCoordinateBoundingBoxes.resize(mapIndex + 1);
+    }
+    CaretAssertVectorIndex(m_nonZeroVoxelCoordinateBoundingBoxes, mapIndex);
+    
+    /*
+     * If pointer is valid, then the bounding box is valid
+     * and does not need to be updated.
+     */
+    if (m_nonZeroVoxelCoordinateBoundingBoxes[mapIndex]) {
+        boundingBoxOut = *m_nonZeroVoxelCoordinateBoundingBoxes[mapIndex];
+        return;
+    }
+    
+    m_nonZeroVoxelCoordinateBoundingBoxes[mapIndex].reset(new BoundingBox());
+    m_nonZeroVoxelCoordinateBoundingBoxes[mapIndex]->resetForUpdate();
+    
+    int64_t dimI(0), dimJ(0), dimK(0), dimTime(0), dimComp(0);
+    getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
+    
+    CaretAssert((mapIndex >= 0) && (mapIndex < getNumberOfMaps()));
+    for (int32_t i = 0; i < dimI; i++) {
+        for (int32_t j = 0; j < dimJ; j++) {
+            for (int32_t k = 0; k < dimK; k++) {
+                for (int32_t m = 0; m < dimComp; m++) {
+                    if (getValue(i, j, k, mapIndex, m) != 0.0) {
+                        float xyz[3];
+                        indexToSpace(i, j, k, xyz);
+                        m_nonZeroVoxelCoordinateBoundingBoxes[mapIndex]->update(xyz);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    boundingBoxOut = *m_nonZeroVoxelCoordinateBoundingBoxes[mapIndex];
 }
 
 /**

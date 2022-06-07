@@ -133,7 +133,8 @@ BrainOpenGLIdentificationDrawing::drawMediaFileIdentificationSymbols(const Media
     
     const Surface* surface(NULL);
     const VolumeMappableInterface* volume(NULL);
-    
+    float surfaceOrVolumeMaximumDimension(0.0);
+
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::MEDIA,
                               surface,
                               mediaFile,
@@ -141,7 +142,8 @@ BrainOpenGLIdentificationDrawing::drawMediaFileIdentificationSymbols(const Media
                               plane,
                               mediaThickness,
                               viewingZoom,
-                              viewportHeight);
+                              viewportHeight,
+                              surfaceOrVolumeMaximumDimension);
 }
 
 /**
@@ -169,6 +171,10 @@ BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface
     Plane plane;
     const float planeThickness(1.0f);
     
+    BoundingBox boundingBox;
+    surface->getBounds(boundingBox);
+    const float surfaceOrVolumeMaximumDimension(boundingBox.getMaximumDifferenceOfXYZ());
+
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::SURFACE,
                               surface,
                               mediaFile,
@@ -176,13 +182,16 @@ BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface
                               plane,
                               planeThickness,
                               viewingZoom,
-                              viewportHeight);
+                              viewportHeight,
+                              surfaceOrVolumeMaximumDimension);
 }
 
 /**
  * Draw volume identification symbols
  * @param volume
  *    The volume on which symbols are drawn
+ * @param mapIndex
+ *    Index of map in volume that is being drawn
  * @param plane
  *    Plane of the volume
  * @param sliceThickness
@@ -194,6 +203,7 @@ BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface
  */
 void
 BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                                  const int32_t mapIndex,
                                                                   const Plane& plane,
                                                                   const float sliceThickness,
                                                                   const float viewingZoom,
@@ -207,7 +217,9 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
     
     const Surface* surface(NULL);
     const MediaFile* mediaFile(NULL);
-    
+    const float surfaceOrVolumeMaximumDimension(getVolumeMaximumCoordinateDimension(volume,
+                                                                                    mapIndex));
+
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::VOLUME_SLICES,
                               surface,
                               mediaFile,
@@ -215,13 +227,16 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
                               plane,
                               sliceThickness,
                               viewingZoom,
-                              viewportHeight);
+                              viewportHeight,
+                              surfaceOrVolumeMaximumDimension);
 }
 
 /**
  * Draw volume intensity 2D symbols
  * @param volume
  *    The volume on which symbols are drawn
+ * @param mapIndex
+ *    Index of map in volume that is being drawn
  * @param viewingZoom
  *    Zooming (scaling) for current view
  * @param viewportHeight
@@ -229,6 +244,7 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
  */
 void
 BrainOpenGLIdentificationDrawing::drawVolumeIntensity2dIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                                             const int32_t mapIndex,
                                                                              const float viewingZoom,
                                                                              const float viewportHeight)
 {
@@ -240,7 +256,9 @@ BrainOpenGLIdentificationDrawing::drawVolumeIntensity2dIdentificationSymbols(con
     
     const Surface* surface(NULL);
     const MediaFile* mediaFile(NULL);
-    
+    const float surfaceOrVolumeMaximumDimension(getVolumeMaximumCoordinateDimension(volume,
+                                                                                    mapIndex));
+
     Plane plane;
     const float sliceThickness(1.0);
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D,
@@ -250,13 +268,16 @@ BrainOpenGLIdentificationDrawing::drawVolumeIntensity2dIdentificationSymbols(con
                               plane,
                               sliceThickness,
                               viewingZoom,
-                              viewportHeight);
+                              viewportHeight,
+                              surfaceOrVolumeMaximumDimension);
 }
 
 /**
  * Draw volume intensity 3D symbols
  * @param volume
  *    The volume on which symbols are drawn
+ * @param mapIndex
+ *    Index of map in volume that is being drawn
  * @param viewingZoom
  *    Zooming (scaling) for current view
  * @param viewportHeight
@@ -264,6 +285,7 @@ BrainOpenGLIdentificationDrawing::drawVolumeIntensity2dIdentificationSymbols(con
  */
 void
 BrainOpenGLIdentificationDrawing::drawVolumeIntensity3dIdentificationSymbols(const VolumeMappableInterface* volume,
+                                                                             const int32_t mapIndex,
                                                                              const float viewingZoom,
                                                                              const float viewportHeight)
 {
@@ -275,6 +297,8 @@ BrainOpenGLIdentificationDrawing::drawVolumeIntensity3dIdentificationSymbols(con
     
     const Surface* surface(NULL);
     const MediaFile* mediaFile(NULL);
+    const float surfaceOrVolumeMaximumDimension(getVolumeMaximumCoordinateDimension(volume,
+                                                                                    mapIndex));
     
     Plane plane;
     const float sliceThickness(1.0);
@@ -285,7 +309,29 @@ BrainOpenGLIdentificationDrawing::drawVolumeIntensity3dIdentificationSymbols(con
                               plane,
                               sliceThickness,
                               viewingZoom,
-                              viewportHeight);
+                              viewportHeight,
+                              surfaceOrVolumeMaximumDimension);
+}
+
+/**
+ * @return The maximum coordinate dimensions for the given volume file and map index
+ * @param volume
+ *    The volume
+ * @param mapIndex
+ *    Index of the map
+ */
+float
+BrainOpenGLIdentificationDrawing::getVolumeMaximumCoordinateDimension(const VolumeMappableInterface* volume,
+                                                             const int32_t mapIndex) const
+{
+    CaretAssert(volume);
+    
+    BoundingBox boundingBox;
+    volume->getNonZeroVoxelCoordinateBoundingBox(mapIndex,
+                                                 boundingBox);
+    const float maxDim(boundingBox.getMaximumDifferenceOfXYZ());
+    
+    return maxDim;
 }
 
 /**
@@ -306,6 +352,8 @@ BrainOpenGLIdentificationDrawing::drawVolumeIntensity3dIdentificationSymbols(con
  *    Zooming (scaling) for current view
  * @param viewportHeight
  *    Height of viewport
+ * @param surfaceOrVolumeMaximumDimension)
+ *    Maximum dimension of surface or volume being drawn
  */
 void
 BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItemUniversalTypeEnum::Enum drawingOnType,
@@ -315,7 +363,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                             const Plane& plane,
                                                             const float planeThickness,
                                                             const float viewingZoom,
-                                                            const float viewportHeight)
+                                                            const float viewportHeight,
+                                                            const float surfaceOrVolumeMaximumDimension)
 {
     /*
      * Maximum distance for non-media ID shown on media
@@ -326,7 +375,6 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
     float mediaHeight(0.0f);
     StructureEnum::Enum surfaceStructure(StructureEnum::INVALID);
     int32_t surfaceNumberOfVertices(0);
-    float surfaceMaxDimension(-1.0);
     
     bool drawingOnSurfaceFlag(false);
     bool drawingOnMediaFlag(false);
@@ -356,9 +404,6 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             drawingOnSurfaceFlag = true;
             surfaceNumberOfVertices = surface->getNumberOfNodes();
             surfaceStructure = surface->getStructure();
-            BoundingBox boundingBox;
-            surface->getBounds(boundingBox);
-            surfaceMaxDimension = boundingBox.getMaximumDifferenceOfXYZ();
         }
             break;
         case IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL:
@@ -380,11 +425,13 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             drawingOnVolumeIntensity3dFlag = true;
             break;
         case IdentifiedItemUniversalTypeEnum::VOLUME_SLICES:
+        {
             CaretAssert(volume);
             if (volume == NULL) {
                 return;
             }
             drawingOnVolumeSlicesFlag = true;
+        }
             break;
     }
     
@@ -655,14 +702,14 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                 }
             }
             else if (drawingOnSurfaceFlag) {
-                height = surfaceMaxDimension;
+                height = surfaceOrVolumeMaximumDimension;
             }
             else if (drawingOnVolumeIntensity2dFlag
                      || drawingOnVolumeIntensity3dFlag) {
-                height = viewportHeight;
+                height = surfaceOrVolumeMaximumDimension;
             }
             else if (drawingOnVolumeSlicesFlag) {
-                height = viewportHeight;
+                height = surfaceOrVolumeMaximumDimension;
             }
             float symbolDiameter(1.0f);
             std::array<uint8_t, 4> symbolRGBA;

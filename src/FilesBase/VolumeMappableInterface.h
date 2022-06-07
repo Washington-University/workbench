@@ -245,6 +245,16 @@ namespace caret {
         virtual void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const = 0;
         
         /**
+         * Get a bounding box containing the non-zero voxel coordinate ranges
+         * @param mapIndex
+         *    Index of map
+         * @param boundingBoxOut
+         *    Output containing coordinate range of non-zero voxels
+         */
+        virtual void getNonZeroVoxelCoordinateBoundingBox(const int32_t mapIndex,
+                                                   BoundingBox& boundingBoxOut) const = 0;
+        
+        /**
          * Get the voxel spacing for each of the spatial dimensions.
          *
          * @param spacingOut1

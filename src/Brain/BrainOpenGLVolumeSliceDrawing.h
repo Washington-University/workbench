@@ -86,6 +86,7 @@ namespace caret {
         static void drawIdentificationSymbols(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                               BrowserTabContent* browserTabContent,
                                               const VolumeMappableInterface* volume,
+                                              const int32_t mapIndex,
                                               const Plane& plane,
                                               const float sliceThickness);
         
@@ -343,6 +344,7 @@ namespace caret {
                                                 float spacingOut[3]);
         
         void drawIdentificationSymbols(const VolumeMappableInterface* volume,
+                                       const int32_t mapIndex,
                                        const Plane& plane,
                                        const float sliceThickness);
         
