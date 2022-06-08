@@ -59,6 +59,11 @@ namespace caret {
         bool isShowFociEnabled() const;
         
         void setShowFociEnabled(const bool fociEnabled);
+        
+        bool isShowVertexVoxelEnabled() const;
+        
+        void setShowVertexVoxelEnabled(const bool vertexVoxelEnabled);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -95,6 +100,8 @@ namespace caret {
 
         bool m_showFociEnabled = true;
 
+        bool m_showVertexVoxelEnabled = true;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

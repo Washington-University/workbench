@@ -48,6 +48,7 @@ IdentificationFilter::IdentificationFilter()
     m_sceneAssistant->add("m_showCiftiLoadingEnabled", &m_showCiftiLoadingEnabled);
     m_sceneAssistant->add("m_showBorderEnabled", &m_showBorderEnabled);
     m_sceneAssistant->add("m_showFociEnabled", &m_showFociEnabled);
+    m_sceneAssistant->add("m_showVertexVoxelEnabled", &m_showVertexVoxelEnabled);
 }
 
 /**
@@ -101,7 +102,7 @@ IdentificationFilter::isShowCiftiLoadingEnabled() const
  * Set show CIFTI loading information
  *
  * @param staus
- *    New loading status
+ *    New  status
  */
 void
 IdentificationFilter::setShowCiftiLoadingEnabled(const bool status)
@@ -122,7 +123,7 @@ IdentificationFilter::isShowBorderEnabled() const
  * Set show border information
  *
  * @param staus
- *    New loading status
+ *    New  status
  */
 void
 IdentificationFilter::setShowBorderEnabled(const bool status)
@@ -143,12 +144,33 @@ IdentificationFilter::isShowFociEnabled() const
  * Set show foci information
  *
  * @param staus
- *    New loading status
+ *    New  status
  */
 void
 IdentificationFilter::setShowFociEnabled(const bool status)
 {
     m_showFociEnabled = status;
+}
+
+/**
+ * @return show vertex/voxel information
+ */
+bool
+IdentificationFilter::isShowVertexVoxelEnabled() const
+{
+    return m_showVertexVoxelEnabled;
+}
+
+/**
+ * Set show vertex/voxel information
+ *
+ * @param staus
+ *    New  status
+ */
+void
+IdentificationFilter::setShowVertexVoxelEnabled(const bool status)
+{
+    m_showVertexVoxelEnabled = status;
 }
 
 /**

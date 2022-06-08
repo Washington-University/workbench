@@ -421,18 +421,26 @@ IdentificationDisplayWidget::createFilteringSettingsWidget()
     m_filteringFociCheckBox  = new QCheckBox("Focus");
     m_filteringFociCheckBox->setToolTip("<html>Enable identification of foci</html>");
     
+    m_filteringVertexVoxelCheckBox = new QCheckBox("Vertex/Voxel Geometry");
+    m_filteringVertexVoxelCheckBox->setToolTip("<html>"
+                                               "Enable display of geometry for the identified "
+                                               "vertex and/or voxel"
+                                               "</html>");
+    
     WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);
     QObject::connect(signalWatcher, &WuQValueChangedSignalWatcher::valueChanged,
                      this, &IdentificationDisplayWidget::filteringChanged);
     signalWatcher->addObject(m_filteringCiftiLoadingCheckBox);
     signalWatcher->addObject(m_filteringBorderCheckBox);
     signalWatcher->addObject(m_filteringFociCheckBox);
+    signalWatcher->addObject(m_filteringVertexVoxelCheckBox);
     
     QWidget* showDataWidget = new QGroupBox("Data Identification");
     QVBoxLayout* showLayout = new QVBoxLayout(showDataWidget);
     showLayout->addWidget(m_filteringBorderCheckBox);
     showLayout->addWidget(m_filteringCiftiLoadingCheckBox);
     showLayout->addWidget(m_filteringFociCheckBox);
+    showLayout->addWidget(m_filteringVertexVoxelCheckBox);
     
     Qt::Alignment alignment = Qt::Alignment();
     QWidget* widget = new QWidget();
@@ -496,6 +504,7 @@ IdentificationDisplayWidget::updateFilteringWidget()
     m_filteringCiftiLoadingCheckBox->setChecked(filter->isShowCiftiLoadingEnabled());
     m_filteringBorderCheckBox->setChecked(filter->isShowBorderEnabled());
     m_filteringFociCheckBox->setChecked(filter->isShowFociEnabled());
+    m_filteringVertexVoxelCheckBox->setChecked(filter->isShowVertexVoxelEnabled());
     
     m_fileFilteringTableWidget->updateContent();
 }
@@ -511,6 +520,7 @@ IdentificationDisplayWidget::filteringChanged()
     filter->setShowCiftiLoadingEnabled(m_filteringCiftiLoadingCheckBox->isChecked());
     filter->setShowBorderEnabled(m_filteringBorderCheckBox->isChecked());
     filter->setShowFociEnabled(m_filteringFociCheckBox->isChecked());
+    filter->setShowVertexVoxelEnabled(m_filteringVertexVoxelCheckBox->isChecked());
 }
 
 /**

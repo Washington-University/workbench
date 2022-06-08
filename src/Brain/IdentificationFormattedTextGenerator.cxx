@@ -158,13 +158,15 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
 
     const SelectionItemSurfaceNode* surfaceID = selectionManager->getSurfaceNodeIdentification();
     
-    this->generateSurfaceVertexIdentificationText(*geometryHtmlTableBuilder,
-                                                  brain,
-                                                  surfaceID);
-    this->generateVolumeVoxelIdentificationText(*geometryHtmlTableBuilder,
-                                                brain,
-                                                selectionManager->getVoxelIdentification());
-
+    if (filter->isShowVertexVoxelEnabled()) {
+        this->generateSurfaceVertexIdentificationText(*geometryHtmlTableBuilder,
+                                                      brain,
+                                                      surfaceID);
+        this->generateVolumeVoxelIdentificationText(*geometryHtmlTableBuilder,
+                                                    brain,
+                                                    selectionManager->getVoxelIdentification());
+    }
+    
     const std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo> displayedFiles = getFilesForIdentification(filter,
                                                                                                                                   tabIndex);
 

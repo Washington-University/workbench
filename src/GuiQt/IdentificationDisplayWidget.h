@@ -156,6 +156,8 @@ namespace caret {
         
         QCheckBox* m_filteringFociCheckBox;
         
+        QCheckBox* m_filteringVertexVoxelCheckBox;
+        
         IdentificationFileFilteringTableWidget* m_fileFilteringTableWidget = NULL;
         
         QWidget* m_symbolsWidget;
