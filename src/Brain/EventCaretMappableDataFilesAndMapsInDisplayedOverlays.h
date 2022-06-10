@@ -99,10 +99,14 @@ namespace caret {
         
         std::vector<MediaFileInfo> getMediaFilesAndMaps() const;
         
+        void removeFilesWithIdentificationModeOfNever();
+        
         // ADD_NEW_METHODS_HERE
 
     private:
         bool satisfiesConstraints(const int32_t tabIndex);
+        
+        void removeNeverFiles(std::map<CaretMappableDataFile*, std::set<int32_t>>& mapFilesAndIndices) const;
         
         std::map<CaretMappableDataFile*, std::set<int32_t>> m_surfaceVolumeMapFilesAndIndices;
         

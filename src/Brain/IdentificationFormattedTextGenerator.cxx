@@ -318,6 +318,12 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
     EventManager::get()->sendEvent(overlayFilesEvent.getPointer());
 
     /*
+     * May want to remove files that are in overlays if the
+     * file's display status is NEVER
+     */
+    overlayFilesEvent.removeFilesWithIdentificationModeOfNever();
+    
+    /*
      * Event gets all files
      */
     EventCaretMappableDataFilesGet mapFilesEvent;
@@ -326,7 +332,7 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
     mapFilesEvent.getAllFiles(allMapFiles);
     
     /*
-     * Test all files for any that the users has enabled for identification
+     * Test all files for any that the users has set to ALWAYS for identification
      * on the Identification Dialog's Filtering tab and add them to the
      * overlay files event
      */
@@ -334,24 +340,30 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
         CaretAssert(mapFile);
         const FileIdentificationAttributes* fileAtts = mapFile->getFileIdentificationAttributes();
         CaretAssert(fileAtts);
-        if (fileAtts->isEnabled()) {
-            switch (fileAtts->getMapSelectionMode()) {
-                case FileIdentificationMapSelectionEnum::ALL:
-                {
-                    const int32_t numMaps = mapFile->getNumberOfMaps();
-                    for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-                        overlayFilesEvent.addBrainordinateFileAndMap(mapFile,
-                                                                     iMap,
-                                                                     tabIndex);
+        switch (fileAtts->getDisplayMode()) {
+            case FileIdentificationDisplayModeEnum::ALWAYS:
+                switch (fileAtts->getMapSelectionMode()) {
+                    case FileIdentificationMapSelectionEnum::ALL:
+                    {
+                        const int32_t numMaps = mapFile->getNumberOfMaps();
+                        for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                            overlayFilesEvent.addBrainordinateFileAndMap(mapFile,
+                                                                         iMap,
+                                                                         tabIndex);
+                        }
                     }
+                        break;
+                    case FileIdentificationMapSelectionEnum::SELECTED:
+                        overlayFilesEvent.addBrainordinateFileAndMap(mapFile,
+                                                                     fileAtts->getMapIndex(),
+                                                                     tabIndex);
+                        break;
                 }
-                    break;
-                case FileIdentificationMapSelectionEnum::SELECTED:
-                    overlayFilesEvent.addBrainordinateFileAndMap(mapFile,
-                                                                 fileAtts->getMapIndex(),
-                                                                 tabIndex);
-                    break;
-            }
+                break;
+            case FileIdentificationDisplayModeEnum::NEVER:
+                break;
+            case FileIdentificationDisplayModeEnum::OVERLAY:
+                break;
         }
     }
     

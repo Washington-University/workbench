@@ -100,6 +100,7 @@ FiberTrajectoryColorModel.h
 FiberTrajectoryMapProperties.h
 FiberTrajectoryDisplayModeEnum.h
 FileIdentificationAttributes.h
+FileIdentificationDisplayModeEnum.h
 FileIdentificationMapSelectionEnum.h
 FilePathNamePrefixCompactor.h
 FociFile.h
@@ -253,6 +254,7 @@ FiberTrajectoryColorModel.cxx
 FiberTrajectoryDisplayModeEnum.cxx
 FiberTrajectoryMapProperties.cxx
 FileIdentificationAttributes.cxx
+FileIdentificationDisplayModeEnum.cxx
 FileIdentificationMapSelectionEnum.cxx
 FilePathNamePrefixCompactor.cxx
 FociFile.cxx

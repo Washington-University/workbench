@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "EventTypeEnum.h"
+#include "FileIdentificationAttributes.h"
 
 using namespace caret;
 
@@ -265,6 +266,58 @@ EventCaretMappableDataFilesAndMapsInDisplayedOverlays::setTabIndicesConstraint(c
 {
     m_tabIndices = tabIndices;
 }
+
+/**
+ * Remove any files with an identification mode of NEVER
+ */
+void
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::removeFilesWithIdentificationModeOfNever()
+{
+    removeNeverFiles(m_surfaceVolumeMapFilesAndIndices);
+    removeNeverFiles(m_chartOneMapFilesAndIndices);
+    removeNeverFiles(m_chartTwoMapFilesAndIndices);
+    
+    std::vector<MediaFile*> filesToRemove;
+    
+//    for (auto& fileAndIndices : m_mediaFilesAndFrameIndices) {
+//        switch (fileAndIndices.first->getFileIdentificationAttributes()->getDisplayMode()) {
+//            case FileIdentificationDisplayModeEnum::ALWAYS:
+//                break;
+//            case FileIdentificationDisplayModeEnum::NEVER:
+//                filesToRemove.push_back(fileAndIndices.first);
+//                break;
+//            case FileIdentificationDisplayModeEnum::OVERLAY:
+//                break;
+//        }
+//    }
+//    
+//    for (auto& mapFile : filesToRemove) {
+//        m_mediaFilesAndFrameIndices.erase(mapFile);
+//    }
+}
+
+void
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::removeNeverFiles(std::map<CaretMappableDataFile*, std::set<int32_t>>& mapFilesAndIndices) const
+{
+    std::vector<CaretMappableDataFile*> filesToRemove;
+    
+    for (auto& fileAndIndices : mapFilesAndIndices) {
+        switch (fileAndIndices.first->getFileIdentificationAttributes()->getDisplayMode()) {
+            case FileIdentificationDisplayModeEnum::ALWAYS:
+                break;
+            case FileIdentificationDisplayModeEnum::NEVER:
+                filesToRemove.push_back(fileAndIndices.first);
+                break;
+            case FileIdentificationDisplayModeEnum::OVERLAY:
+                break;
+        }
+    }
+    
+    for (auto& mapFile : filesToRemove) {
+        mapFilesAndIndices.erase(mapFile);
+    }
+}
+
 
 /**
  * Constructor.

@@ -46,8 +46,8 @@ FileIdentificationAttributes::FileIdentificationAttributes()
     reset();
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->add("m_enabled",
-                          &m_enabled);
+    m_sceneAssistant->add<FileIdentificationDisplayModeEnum, FileIdentificationDisplayModeEnum::Enum>("m_displayMode",
+                                                                                                      &m_displayMode);
     m_sceneAssistant->add<FileIdentificationMapSelectionEnum, FileIdentificationMapSelectionEnum::Enum>("m_mapSelectionMode",
                                                                                                         &m_mapSelectionMode);
     m_sceneAssistant->add("m_mapIndex",
@@ -57,7 +57,7 @@ FileIdentificationAttributes::FileIdentificationAttributes()
 void
 FileIdentificationAttributes::reset()
 {
-    m_enabled = false;
+    m_displayMode = FileIdentificationDisplayModeEnum::OVERLAY;
     m_mapSelectionMode = FileIdentificationMapSelectionEnum::SELECTED;
     m_mapIndex = 0;
 }
@@ -106,7 +106,7 @@ FileIdentificationAttributes::operator=(const FileIdentificationAttributes& obj)
 void 
 FileIdentificationAttributes::copyHelperFileIdentificationAttributes(const FileIdentificationAttributes& obj)
 {
-    m_enabled = obj.m_enabled;
+    m_displayMode = obj.m_displayMode;
     m_mapSelectionMode = obj.m_mapSelectionMode;
     m_mapIndex = obj.m_mapIndex;
 }
@@ -122,24 +122,23 @@ FileIdentificationAttributes::toString() const
 }
 
 /**
- * @return enabled for identification
+ * @return The display mode
  */
-bool
-FileIdentificationAttributes::isEnabled() const
+FileIdentificationDisplayModeEnum::Enum
+FileIdentificationAttributes::getDisplayMode() const
 {
-    return m_enabled;
+    return m_displayMode;
 }
 
 /**
- * Set enabled for identification
- *
- * @param enabled
- *    New value for enabled for identification
+ * Set the display mode
+ * @param displayMode
+ *    New display mode
  */
 void
-FileIdentificationAttributes::setEnabled(const bool enabled)
+FileIdentificationAttributes::setDisplayMode(const FileIdentificationDisplayModeEnum::Enum displayMode)
 {
-    m_enabled = enabled;
+    m_displayMode = displayMode;
 }
 
 /**
@@ -199,9 +198,13 @@ SceneClass*
 FileIdentificationAttributes::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
+    /*
+     * Scene Version 1 had "m_enabled" that was replaced with
+     * "m_displayMode" in version 2.
+     */
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "FileIdentificationAttributes",
-                                            1);
+                                            2);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -235,6 +238,27 @@ FileIdentificationAttributes::restoreFromScene(const SceneAttributes* sceneAttri
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
+    
+    const int32_t versionNumber(sceneClass->getVersionNumber());
+    if (versionNumber == 1) {
+        /*
+         * Scene Version 1 had "m_enabled" that was replaced with
+         * "m_displayMode" in version 2.
+         */
+        const bool enabledStatus(sceneClass->getBooleanValue("m_enabled"));
+        if (enabledStatus) {
+            /*
+             * "enabled" meant always show file in identification
+             */
+            m_displayMode = FileIdentificationDisplayModeEnum::ALWAYS;
+        }
+        else {
+            /*
+             * "Not enabled" meant show file identification if file was in an overlay
+             */
+            m_displayMode = FileIdentificationDisplayModeEnum::OVERLAY;
+        }
+    }
     
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
