@@ -204,7 +204,7 @@ MediaFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
 MediaFile*
 MediaFile::castToMediaFile()
 {
-    return NULL;
+    return this;
 }
 
 /**
@@ -214,7 +214,7 @@ MediaFile::castToMediaFile()
 const MediaFile*
 MediaFile::castToMediaFile() const
 {
-    return NULL;
+    return this;
 }
 
 /**

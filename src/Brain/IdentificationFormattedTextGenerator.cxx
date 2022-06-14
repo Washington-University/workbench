@@ -28,6 +28,7 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
@@ -41,11 +42,11 @@
 #include "ChartableTwoFileMatrixChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
-#include "CziImageFile.h"
 #include "CaretVolumeExtension.h"
 #include "DataToolTipsManager.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabIndicesGetAllViewed.h"
+#include "EventCaretDataFilesGet.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
@@ -61,8 +62,8 @@
 #include "IdentificationFilter.h"
 #include "IdentificationManager.h"
 #include "IdentifiedItemUniversal.h"
-#include "ImageFile.h"
 #include "MapFileDataSelector.h"
+#include "MediaFile.h"
 #include "MetricDynamicConnectivityFile.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
@@ -167,75 +168,87 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
                                                     selectionManager->getVoxelIdentification());
     }
     
-    const std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo> displayedFiles = getFilesForIdentification(filter,
-                                                                                                                                  tabIndex);
-
-    for (auto fileInfo : displayedFiles) {
-        switch (fileInfo.m_overlayType) {
-            case EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapOverlayType::BRAINORDINATE:
-                if (surfaceID->isValid()) {
-                    if (fileInfo.m_mapFile->isSurfaceMappable()) {
-                        this->generateSurfaceDataIdentificationText(*labelHtmlTableBuilder,
-                                                                    *scalarHtmlTableBuilder,
-                                                                    fileInfo.m_mapFile,
-                                                                    fileInfo.m_mapIndices,
-                                                                    brain,
-                                                                    surfaceID);
-                    }
-                }
-                if (selectionManager->getVoxelIdentification()->isValid()) {
-                    if (fileInfo.m_mapFile->isVolumeMappable()) {
-                        this->generateVolumeDataIdentificationText(*labelHtmlTableBuilder,
-                                                                   *scalarHtmlTableBuilder,
-                                                                   fileInfo.m_mapFile,
-                                                                   fileInfo.m_mapIndices,
-                                                                   brain,
-                                                                   selectionManager->getVoxelIdentification());
-                    }
-                }
-                break;
-            case EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapOverlayType::CHART_ONE:
-                break;
-            case EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapOverlayType::CHART_TWO:
-                this->generateChartTwoHistogramIdentificationText(*chartHtmlTableBuilder,
-                                                                  idText,
-                                                                  selectionManager->getChartTwoHistogramIdentification(),
-                                                                  fileInfo.m_mapFile,
-                                                                  fileInfo.m_mapIndices,
-                                                                  false);
-                
-                this->generateChartTwoLineLayerNearestIdentificationText(*chartHtmlTableBuilder,
-                                                                         idText,
-                                                                         selectionManager->getChartTwoLineLayerVerticalNearestIdentification(),
-                                                                         fileInfo.m_mapFile,
-                                                                         fileInfo.m_mapIndices,
-                                                                         false);
-                
-                this->generateChartTwoLineLayerIdentificationText(*chartHtmlTableBuilder,
-                                                                  idText,
-                                                                  selectionManager->getChartTwoLineLayerIdentification(),
-                                                                  fileInfo.m_mapFile,
-                                                                  fileInfo.m_mapIndices,
-                                                                  false);
-
-                this->generateChartTwoLineSeriesIdentificationText(*chartHtmlTableBuilder,
-                                                                   idText,
-                                                                   selectionManager->getChartTwoLineSeriesIdentification(),
-                                                                   fileInfo.m_mapFile,
-                                                                   fileInfo.m_mapIndices,
-                                                                   false);
-                
-                this->generateChartTwoMatrixIdentificationText(*chartHtmlTableBuilder,
-                                                               idText,
-                                                               selectionManager->getChartTwoMatrixIdentification(),
-                                                               fileInfo.m_mapFile,
-                                                               fileInfo.m_mapIndices,
-                                                               false);
-                
-                break;
+    std::vector<MapFileAndMapIndices> mapFilesAndIndices;
+    std::vector<MapFileAndMapIndices> chartFilesAndIndices;
+    std::vector<MapFileAndMapIndices> mediaFilesAndIndices;
+    getFilesForIdentification(filter,
+                              tabIndex,
+                              mapFilesAndIndices,
+                              chartFilesAndIndices,
+                              mediaFilesAndIndices);
+    
+    for (auto& mfi : mapFilesAndIndices) {
+        CaretMappableDataFile* cmdf(mfi.m_mapFile->castToCaretMappableDataFile());
+        CaretAssert(cmdf);
+        
+        if (cmdf->isSurfaceMappable()) {
+            this->generateSurfaceDataIdentificationText(*labelHtmlTableBuilder,
+                                                        *scalarHtmlTableBuilder,
+                                                        cmdf,
+                                                        mfi.m_mapIndices,
+                                                        brain,
+                                                        surfaceID);
+        }
+        if (selectionManager->getVoxelIdentification()->isValid()) {
+            if (cmdf->isVolumeMappable()) {
+                this->generateVolumeDataIdentificationText(*labelHtmlTableBuilder,
+                                                           *scalarHtmlTableBuilder,
+                                                           cmdf,
+                                                           mfi.m_mapIndices,
+                                                           brain,
+                                                           selectionManager->getVoxelIdentification());
+            }
         }
     }
     
+    for (auto& cfi : chartFilesAndIndices) {
+        CaretMappableDataFile* mapFile(cfi.m_mapFile->castToCaretMappableDataFile());
+        CaretAssert(mapFile);
+        this->generateChartTwoHistogramIdentificationText(*chartHtmlTableBuilder,
+                                                          idText,
+                                                          selectionManager->getChartTwoHistogramIdentification(),
+                                                          mapFile,
+                                                          cfi.m_mapIndices,
+                                                          false);
+        
+        this->generateChartTwoLineLayerNearestIdentificationText(*chartHtmlTableBuilder,
+                                                                 idText,
+                                                                 selectionManager->getChartTwoLineLayerVerticalNearestIdentification(),
+                                                                 mapFile,
+                                                                 cfi.m_mapIndices,
+                                                                 false);
+        
+        this->generateChartTwoLineLayerIdentificationText(*chartHtmlTableBuilder,
+                                                          idText,
+                                                          selectionManager->getChartTwoLineLayerIdentification(),
+                                                          mapFile,
+                                                          cfi.m_mapIndices,
+                                                          false);
+        
+        this->generateChartTwoLineSeriesIdentificationText(*chartHtmlTableBuilder,
+                                                           idText,
+                                                           selectionManager->getChartTwoLineSeriesIdentification(),
+                                                           mapFile,
+                                                           cfi.m_mapIndices,
+                                                           false);
+        
+        this->generateChartTwoMatrixIdentificationText(*chartHtmlTableBuilder,
+                                                       idText,
+                                                       selectionManager->getChartTwoMatrixIdentification(),
+                                                       mapFile,
+                                                       cfi.m_mapIndices,
+                                                       false);
+    }
+    
+    for (auto& mfi : mediaFilesAndIndices) {
+        MediaFile* mediaFile(mfi.m_mapFile->castToMediaFile());
+        CaretAssert(mediaFile);
+        this->generateMediaIdentificationText(*mediaHtmlTableBuilder,
+                                              idText,
+                                              mediaFile,
+                                              mfi.m_mapIndices,
+                                              selectionManager->getMediaIdentification());
+    }
 
     if (filter->isShowFociEnabled()) {
         this->generateSurfaceFocusIdentifcationText(*layersHtmlTableBuilder,
@@ -268,10 +281,6 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     this->generateCiftiConnectivityMatrixIdentificationText(*chartHtmlTableBuilder,
                                                             selectionManager->getCiftiConnectivityMatrixRowColumnIdentification());
     
-    this->generateMediaIdentificationText(*mediaHtmlTableBuilder,
-                                             idText,
-                                             selectionManager->getMediaIdentification());
-    
     AString textOut;
     textOut.append(geometryHtmlTableBuilder->getAsHtmlTable());
     textOut.append(labelHtmlTableBuilder->getAsHtmlTable());
@@ -283,19 +292,31 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
 }
 
 /**
- * @return Files for identification
+ * Get files for information
  * @param filter
  * Identification filter
  * @param tabIndex
  * Index of tab where ID took place
+ * @param mapFileInfoOut
+ * Map files for ID
+ * @param mediaFileInfoOut
+ * Media files for ID
  */
-std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo>
+void
 IdentificationFormattedTextGenerator::getFilesForIdentification(const IdentificationFilter* filter,
-                                                                const int32_t tabIndex) const
+                                                                const int32_t tabIndex,
+                                                                std::vector<MapFileAndMapIndices>& mapFilesAndIndicesOut,
+                                                                std::vector<MapFileAndMapIndices>& chartFilesAndIndicesOut,
+                                                                std::vector<MapFileAndMapIndices>& mediaFilesAndIndicesOut) const
 {
+    mapFilesAndIndicesOut.clear();
+    chartFilesAndIndicesOut.clear();
+    mediaFilesAndIndicesOut.clear();
+    
     /**
      * Event gets files from enabled overlays in the viewed tab(s)
      */
+    bool mouseClickedTabFlag(false);
     EventCaretMappableDataFilesAndMapsInDisplayedOverlays overlayFilesEvent;
     switch (filter->getTabFiltering()) {
         case IdentificationFilterTabSelectionEnum::ALL_DISPLAYED_TABS:
@@ -306,72 +327,145 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
             std::set<int32_t> tabsSet(tabs.begin(),
                                       tabs.end());
             overlayFilesEvent.setTabIndicesConstraint(tabsSet);
+            
+            mouseClickedTabFlag = false;
         }
             break;
         case IdentificationFilterTabSelectionEnum::MOUSE_CLICKED_TAB:
             if (tabIndex >= 0) {
                 std::set<int32_t> tabIndices { tabIndex };
                 overlayFilesEvent.setTabIndicesConstraint(tabIndices);
+                
+                mouseClickedTabFlag = true;
             }
             break;
     }
     EventManager::get()->sendEvent(overlayFilesEvent.getPointer());
 
-    /*
-     * May want to remove files that are in overlays if the
-     * file's display status is NEVER
+    /**
+     * Get chart files in overlays.  Chart data is NOT filtered at this time
      */
-    overlayFilesEvent.removeFilesWithIdentificationModeOfNever();
+    std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo> chartTwoFilesInOverlays(overlayFilesEvent.getChartTwoFilesAndMaps());
+    for (EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo chartInfo : chartTwoFilesInOverlays) {
+        MapFileAndMapIndices fileInfo(chartInfo.m_mapFile);
+        fileInfo.addMapIndices(chartInfo.m_mapIndices);
+        chartFilesAndIndicesOut.push_back(fileInfo);
+    }
     
     /*
-     * Event gets all files
+     * Get files in brainordinate overlays
      */
-    EventCaretMappableDataFilesGet mapFilesEvent;
-    EventManager::get()->sendEvent(mapFilesEvent.getPointer());
-    std::vector<CaretMappableDataFile*> allMapFiles;
-    mapFilesEvent.getAllFiles(allMapFiles);
+    std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo> brainordinateFilesInOverlays(overlayFilesEvent.getBrainordinateFilesAndMaps());
+    const int32_t numBrainordinateFilesInOverlays(brainordinateFilesInOverlays.size());
+
+    /*
+     * Get files in media overlays
+     */
+    std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MediaFileInfo> mediaFilesInOverlays(overlayFilesEvent.getMediaFilesAndMaps());
+    const int32_t numMediaFilesInOverlays(static_cast<int32_t>(mediaFilesInOverlays.size()));
+    
+    
     
     /*
-     * Test all files for any that the users has set to ALWAYS for identification
-     * on the Identification Dialog's Filtering tab and add them to the
-     * overlay files event
+     * Get all identifiable data files
      */
-    for (auto mapFile : allMapFiles) {
-        CaretAssert(mapFile);
-        const FileIdentificationAttributes* fileAtts = mapFile->getFileIdentificationAttributes();
-        CaretAssert(fileAtts);
-        switch (fileAtts->getDisplayMode()) {
+    std::vector<CaretDataFile*> idCaretDataFiles(EventCaretDataFilesGet::getIdentifiableFilesSortedByName());
+    
+    /*
+     * Get all files that should have identification info displayed
+     */
+    for (CaretDataFile* caretDataFile : idCaretDataFiles) {
+        CaretAssert(caretDataFile);
+        CaretMappableDataFile* mapFile(caretDataFile->castToCaretMappableDataFile());
+        MediaFile* mediaFile(caretDataFile->castToMediaFile());
+        if ((mapFile == NULL)
+            && (mediaFile == NULL)) {
+            const AString msg(caretDataFile->getFileName()
+                              + " is neither brainordinate mappable nor a media file.");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            continue;
+        }
+        
+        bool allMapsFlag(false);
+        switch (caretDataFile->getFileIdentificationAttributes()->getMapSelectionMode()) {
+            case FileIdentificationMapSelectionEnum::ALL:
+                allMapsFlag = true;
+                break;
+            case FileIdentificationMapSelectionEnum::SELECTED:
+                allMapsFlag = false;
+                break;
+        }
+
+        switch (caretDataFile->getFileIdentificationAttributes()->getDisplayMode()) {
             case FileIdentificationDisplayModeEnum::ALWAYS:
-                switch (fileAtts->getMapSelectionMode()) {
-                    case FileIdentificationMapSelectionEnum::ALL:
-                    {
-                        const int32_t numMaps = mapFile->getNumberOfMaps();
-                        for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-                            overlayFilesEvent.addBrainordinateFileAndMap(mapFile,
-                                                                         iMap,
-                                                                         tabIndex);
+            {
+                if (mapFile != NULL) {
+                    MapFileAndMapIndices mapFileAndIndices(mapFile);
+                    if (allMapsFlag) {
+                        for (int32_t i = 0; i < mapFile->getNumberOfMaps(); i++) {
+                            mapFileAndIndices.addMapIndex(i);
                         }
                     }
-                        break;
-                    case FileIdentificationMapSelectionEnum::SELECTED:
-                        overlayFilesEvent.addBrainordinateFileAndMap(mapFile,
-                                                                     fileAtts->getMapIndex(),
-                                                                     tabIndex);
-                        break;
+                    else {
+                        mapFileAndIndices.addMapIndex(mapFile->getFileIdentificationAttributes()->getMapIndex());
+                    }
+                    mapFilesAndIndicesOut.push_back(mapFileAndIndices);
                 }
+                else if (mediaFile != NULL) {
+                    MapFileAndMapIndices mapFileAndIndices(mediaFile);
+                    if (allMapsFlag) {
+                        for (int32_t i = 0; i < mediaFile->getNumberOfFrames(); i++) {
+                            mapFileAndIndices.addMapIndex(i);
+                        }
+                    }
+                    else {
+                        mapFileAndIndices.addMapIndex(mediaFile->getFileIdentificationAttributes()->getMapIndex());
+                    }
+                    mediaFilesAndIndicesOut.push_back(mapFileAndIndices);
+                }
+                else {
+                    CaretAssert(0);
+                }
+            }
                 break;
             case FileIdentificationDisplayModeEnum::NEVER:
                 break;
             case FileIdentificationDisplayModeEnum::OVERLAY:
+            {
+                if (mapFile != NULL) {
+                    for (int32_t i = 0; i < numBrainordinateFilesInOverlays; i++) {
+                        CaretAssertVectorIndex(brainordinateFilesInOverlays, i);
+                        if (brainordinateFilesInOverlays[i].m_mapFile == mapFile) {
+                            MapFileAndMapIndices mapFileAndIndices(mapFile);
+                            mapFileAndIndices.addMapIndices(brainordinateFilesInOverlays[i].m_mapIndices);
+                            mapFilesAndIndicesOut.push_back(mapFileAndIndices);
+                            break;
+                        }
+                    }
+                }
+                else if (mediaFile != NULL) {
+                    for (int32_t i = 0; i < numMediaFilesInOverlays; i++) {
+                        CaretAssertVectorIndex(mediaFilesInOverlays, i);
+                        if (mediaFilesInOverlays[i].m_mediaFile == mediaFile) {
+                            MapFileAndMapIndices mapFileAndIndices(mediaFile);
+                            mapFileAndIndices.addMapIndices(mediaFilesInOverlays[i].m_frameIndices);
+                            mediaFilesAndIndicesOut.push_back(mapFileAndIndices);
+                            break;
+                        }
+                    }
+                }
+                else {
+                    const AString msg(caretDataFile->getFileName()
+                                      + " is neither brainordinate mappable nor a media file.");
+                    CaretAssertMessage(0, msg);
+                    CaretLogSevere(msg);
+                }
                 break;
+            }
         }
+        
     }
-    
-    /*
-     * Get the displayed and user selected file and return them
-     */
-    std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo> displayedFiles = overlayFilesEvent.getFilesAndMaps();
-    return displayedFiles;
 }
 
 /**
@@ -1099,7 +1193,7 @@ IdentificationFormattedTextGenerator::getMapIndicesOfFileUsedInOverlays(const Ca
         if (overlaySet != NULL) {
             std::vector<int32_t> mapIndices;
             overlaySet->getSelectedMapIndicesForFile(caretMappableDataFile,
-                                                     false,  // true => enabled overlays
+                                                     false,  /* true => enabled overlays */
                                                      mapIndices);
             mapIndicesOut.insert(mapIndicesOut.end(),
                                  mapIndices.begin(),
@@ -2066,25 +2160,34 @@ IdentificationFormattedTextGenerator::generateVolumeFocusIdentifcationText(HtmlT
  * Generate identification text for media identification.
  * @param htmlTableBuilder
  *     HTML table builder for identification text.
+ * @param idText
+ *     string builder for id text
+ * @param mediaFile
+ *    The media file
+ * @param frameIndices
+ *    The frame indices
  * @param idMedia
  *     Information for media ID.
  */
 void
 IdentificationFormattedTextGenerator::generateMediaIdentificationText(HtmlTableBuilder& htmlTableBuilder,
-                                                                         IdentificationStringBuilder& idText,
-                                                                         const SelectionItemMedia* idMedia) const
+                                                                      IdentificationStringBuilder& idText,
+                                                                      const MediaFile* mediaFile,
+                                                                      const std::set<int32_t>& frameIndices,
+                                                                      const SelectionItemMedia* idMedia) const
 {
     if (idMedia->isValid()) {
         std::array<float, 3> modelXYZ;
         idMedia->getModelXYZ(modelXYZ.data());
-        const MediaFile* mediaFile(idMedia->getMediaFile());
         std::vector<AString> columnOneText, columnTwoText, toolTipText;
-        mediaFile->getPixelIdentificationText(idMedia->getTabIndex(),
-                                              idMedia->getOverlayIndex(),
-                                              idMedia->getPixelLogicalIndex(),
-                                              columnOneText,
-                                              columnTwoText,
-                                              toolTipText);
+        std::vector<int32_t> frameIndicesVector(frameIndices.begin(),
+                                                frameIndices.end());
+        mediaFile->getPixelIdentificationTextForFrames(idMedia->getTabIndex(),
+                                                       frameIndicesVector,
+                                                       idMedia->getPixelLogicalIndex(),
+                                                       columnOneText,
+                                                       columnTwoText,
+                                                       toolTipText);
         const int32_t numColOne(columnOneText.size());
         const int32_t numColTwo(columnTwoText.size());
         const int32_t maxNum(std::max(numColOne, numColTwo));
@@ -2111,6 +2214,7 @@ IdentificationFormattedTextGenerator::generateMediaIdentificationText(HtmlTableB
                            text);
         }
     }
+
 }
 
 /**
@@ -2446,9 +2550,18 @@ IdentificationFormattedTextGenerator::generateMediaToolTip(const SelectionManage
         
         const SelectionItemMedia* mediaSelection = selectionManager->getMediaIdentification();
         if (mediaSelection->isValid()) {
-            generateMediaIdentificationText(*htmlTableBuilder,
-                                            idText,
-                                            mediaSelection);
+            const MediaFile* mediaFile(mediaSelection->getMediaFile());
+            if (mediaFile != NULL) {
+                std::set<int32_t> frameIndices;
+                for (int32_t i = 0; i < mediaFile->getNumberOfFrames(); i++) {
+                    frameIndices.insert(i);
+                }
+                generateMediaIdentificationText(*htmlTableBuilder,
+                                                idText,
+                                                mediaFile,
+                                                frameIndices,
+                                                mediaSelection);
+            }
         }
     }
 }
@@ -2477,3 +2590,27 @@ IdentificationFormattedTextGenerator::createHtmlTableBuilder(const int32_t numbe
     return htb;
 }
 
+
+/* =============================================================================================*/
+
+IdentificationFormattedTextGenerator::MapFileAndMapIndices::MapFileAndMapIndices(CaretDataFile* mapFile)
+: m_mapFile(mapFile) {
+    CaretAssert(mapFile);
+}
+
+void
+IdentificationFormattedTextGenerator::MapFileAndMapIndices::addMapIndex(const int32_t mapIndex) {
+    m_mapIndices.insert(mapIndex);
+}
+
+void
+IdentificationFormattedTextGenerator::MapFileAndMapIndices::addMapIndices(const std::vector<int32_t> mapIndices) {
+    m_mapIndices.insert(mapIndices.begin(),
+                        mapIndices.end());
+}
+
+void
+IdentificationFormattedTextGenerator::MapFileAndMapIndices::addMapIndices(const std::set<int32_t> mapIndices) {
+    m_mapIndices.insert(mapIndices.begin(),
+                        mapIndices.end());
+}

@@ -25,6 +25,7 @@
 
 #include "CaretMappableDataFile.h"
 #include "DataFileContentInformation.h"
+#include "FileIdentificationAttributes.h"
 #include "SceneClass.h"
 
 using namespace caret;
@@ -47,6 +48,97 @@ SceneableInterface()
 {
     m_dataFileType = dataFileType;
     
+    /*
+     * As of 10jun2022 any instances of CaretMappableDataFile
+     * and MediaFile support identification attributes
+     * (files that are in layers)
+     */
+    bool supportsIdentificationAttributesFlag(false);
+    switch (dataFileType) {
+        case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+            break;
+        case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::CZI_IMAGE_FILE:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::IMAGE:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::LABEL:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::METRIC:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::METRIC_DYNAMIC:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            supportsIdentificationAttributesFlag = true;
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            break;
+    }
+
+    m_fileIdentificationAttributes.reset(new FileIdentificationAttributes(supportsIdentificationAttributesFlag));
+
     AString name = ("untitled_"
                     + AString::number(s_defaultFileNameCounter)
                     + "."
@@ -265,6 +357,9 @@ CaretDataFile::saveToScene(const SceneAttributes* sceneAttributes,
                                             "CaretDataFile",
                                             1);
     
+    sceneClass->addClass(m_fileIdentificationAttributes->saveToScene(sceneAttributes,
+                                                                     "m_fileIdentificationAttributes"));
+    
     saveFileDataToScene(sceneAttributes,
                         sceneClass);
     
@@ -313,6 +408,8 @@ CaretDataFile::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    m_fileIdentificationAttributes->restoreFromScene(sceneAttributes,
+                                                     sceneClass->getClass("m_fileIdentificationAttributes"));
     /*
      * Resoration of file data from the scene may cause
      * a modified palette status if the palette color
@@ -538,6 +635,43 @@ CaretDataFile::castToMediaFile() const
     return NULL;
 }
 
+/**
+ * @return File casted to caret mappable data  file (avoids use of dynamic_cast that can be slow)
+ * Overidden in MediaFile
+ */
+CaretMappableDataFile*
+CaretDataFile::castToCaretMappableDataFile()
+{
+    return NULL;
+}
 
+/**
+ * @return File casted to an caret mappable data file (avoids use of dynamic_cast that can be slow)
+ * Overidden in ImageFile
+ */
+const CaretMappableDataFile*
+CaretDataFile::castToCaretMappableDataFile() const
+{
+    return NULL;
+}
+
+
+/**
+ * @return The file identification attributes
+ */
+FileIdentificationAttributes*
+CaretDataFile::getFileIdentificationAttributes()
+{
+    return m_fileIdentificationAttributes.get();
+}
+
+/**
+ * @return The file identification attributes (const method)
+ */
+const FileIdentificationAttributes*
+CaretDataFile::getFileIdentificationAttributes() const
+{
+    return m_fileIdentificationAttributes.get();
+}
 
 

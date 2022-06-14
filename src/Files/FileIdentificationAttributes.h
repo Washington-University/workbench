@@ -37,13 +37,15 @@ namespace caret {
     class FileIdentificationAttributes : public CaretObject, public SceneableInterface {
         
     public:
-        FileIdentificationAttributes();
+        FileIdentificationAttributes(const bool identificationSupportedFlag);
         
         virtual ~FileIdentificationAttributes();
         
         FileIdentificationAttributes(const FileIdentificationAttributes& obj);
 
         FileIdentificationAttributes& operator=(const FileIdentificationAttributes& obj);
+        
+        bool isSupported() const;
         
         FileIdentificationDisplayModeEnum::Enum getDisplayMode() const;
         
@@ -86,6 +88,8 @@ namespace caret {
         void copyHelperFileIdentificationAttributes(const FileIdentificationAttributes& obj);
 
         void reset();
+        
+        bool m_identificationSupportedFlag = false;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 

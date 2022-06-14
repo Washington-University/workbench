@@ -30,13 +30,15 @@
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventCaretMappableDataFilesGet.h"
+#include "EventCaretDataFilesGet.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
 #include "FileIdentificationAttributes.h"
 #include "FilePathNamePrefixCompactor.h"
+#include "MediaFile.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
 
@@ -91,23 +93,18 @@ IdentificationFileFilteringTableWidget::updateTableRows(const int32_t numberOfFi
             /*
              * Remove extra items
              */
-            m_mapFiles.resize(numberOfFiles);
+            m_dataFiles.resize(numberOfFiles);
             m_displayModeComboBoxes.resize(numberOfFiles);
             m_mapModeComboBoxes.resize(numberOfFiles);
             m_mapNameComboBoxes.resize(numberOfFiles);
         }
     }
     
-//    if (numberOfFiles > numExistingRows) {
-//        setRowCount(numberOfFiles);
-//        setColumnCount(COLUMN_COUNT);
-//    }
-    
     /*
      * If needed, add additional rows
      */
     for (int32_t iRow = numExistingRows; iRow < numberOfFiles; iRow++) {
-        m_mapFiles.push_back(NULL);
+        m_dataFiles.push_back(NULL);
         
         for (int32_t iCol = 0; iCol < COLUMN_COUNT; iCol++) {
             QWidget* widget(NULL);
@@ -225,13 +222,9 @@ IdentificationFileFilteringTableWidget::updateContent()
     EventGetDisplayedDataFiles displayedFilesEvent(EventGetDisplayedDataFiles::Mode::FILES_IN_VIEWED_TABS);
     EventManager::get()->sendEvent(displayedFilesEvent.getPointer());
 
-    EventCaretMappableDataFilesGet mapFilesEvent;
-    EventManager::get()->sendEvent(mapFilesEvent.getPointer());
+    const std::vector<CaretDataFile*> allFiles(EventCaretDataFilesGet::getIdentifiableFilesSortedByName());
     
-    std::vector<CaretMappableDataFile*> allMapFiles;
-    mapFilesEvent.getAllFilesSortedByName(allMapFiles);
-    
-    const int32_t numFiles = static_cast<int32_t>(allMapFiles.size());
+    const int32_t numFiles = static_cast<int32_t>(allFiles.size());
     
     updateTableRows(numFiles);
     
@@ -243,18 +236,26 @@ IdentificationFileFilteringTableWidget::updateContent()
      * the minimum path to disambiguate these files
      */
     std::vector<AString> displayNames;
-    FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(allMapFiles,
+    FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(allFiles,
                                                                             displayNames);
     
     for (int32_t iRow = 0; iRow < numFiles; iRow++) {
-        CaretAssertVectorIndex(allMapFiles, iRow);
-        CaretMappableDataFile* cmdf = allMapFiles[iRow];
-        CaretAssert(cmdf);
+        CaretAssertVectorIndex(allFiles, iRow);
+        CaretDataFile* caretDataFile(allFiles[iRow]);
+        CaretAssert(caretDataFile);
+        CaretMappableDataFile* mapFile(caretDataFile->castToCaretMappableDataFile());
+        MediaFile* mediaFile(caretDataFile->castToMediaFile());
         
-        CaretAssertVectorIndex(m_mapFiles, iRow);
-        m_mapFiles[iRow] = cmdf;
+        if ((mapFile == NULL)
+            && (mediaFile == NULL)) {
+            CaretAssertMessage(0, "File is neither mappable nor media");
+            CaretLogSevere("File is neither mappable nor media");
+            continue;
+        }
+        CaretAssertVectorIndex(m_dataFiles, iRow);
+        m_dataFiles[iRow] = caretDataFile;
         
-        FileIdentificationAttributes* idAtts = cmdf->getFileIdentificationAttributes();
+        FileIdentificationAttributes* idAtts = caretDataFile->getFileIdentificationAttributes();
         CaretAssert(idAtts);
         
         for (int32_t iCol = 0; iCol < COLUMN_COUNT; iCol++) {
@@ -268,7 +269,7 @@ IdentificationFileFilteringTableWidget::updateContent()
                     break;
                 case COLUMN_DISPLAYED_LABEL:
                     CaretAssert(tableItem);
-                    if (displayedFilesEvent.isDataFileDisplayed(cmdf)) {
+                    if (displayedFilesEvent.isDataFileDisplayed(caretDataFile)) {
                         tableItem->setText("Yes");
                     }
                     else {
@@ -306,8 +307,19 @@ IdentificationFileFilteringTableWidget::updateContent()
                     QComboBox* comboBox = qobject_cast<QComboBox*>(widget);
                     CaretAssert(comboBox);
                     comboBox->clear();
-                    for (int32_t jMap = 0; jMap < cmdf->getNumberOfMaps(); jMap++) {
-                        comboBox->addItem(cmdf->getMapName(jMap));
+                    
+                    if (mapFile != NULL) {
+                        for (int32_t jMap = 0; jMap < mapFile->getNumberOfMaps(); jMap++) {
+                            comboBox->addItem(mapFile->getMapName(jMap));
+                        }
+                    }
+                    else if (mediaFile != NULL) {
+                        for (int32_t jMap = 0; jMap < mediaFile->getNumberOfFrames(); jMap++) {
+                            comboBox->addItem(mediaFile->getFrameName(jMap));
+                        }
+                    }
+                    else {
+                        CaretAssert(0);
                     }
                     comboBox->setCurrentIndex(idAtts->getMapIndex());
                 }
@@ -365,8 +377,8 @@ IdentificationFileFilteringTableWidget::mapModeComboBoxChanged(int row)
     const FileIdentificationMapSelectionEnum::Enum value =
        m_mapModeComboBoxes[row]->getSelectedItem<FileIdentificationMapSelectionEnum, FileIdentificationMapSelectionEnum::Enum>();
 
-    CaretAssertVectorIndex(m_mapFiles, row);
-    FileIdentificationAttributes* atts = m_mapFiles[row]->getFileIdentificationAttributes();
+    CaretAssertVectorIndex(m_dataFiles, row);
+    FileIdentificationAttributes* atts = m_dataFiles[row]->getFileIdentificationAttributes();
     CaretAssert(atts);
     atts->setMapSelectionMode(value);
 }
@@ -383,8 +395,8 @@ IdentificationFileFilteringTableWidget::mapNameComboBoxChanged(int row)
     CaretAssertVectorIndex(m_mapNameComboBoxes, row);
     const int32_t mapIndex = m_mapNameComboBoxes[row]->currentIndex();
     
-    CaretAssertVectorIndex(m_mapFiles, row);
-    FileIdentificationAttributes* atts = m_mapFiles[row]->getFileIdentificationAttributes();
+    CaretAssertVectorIndex(m_dataFiles, row);
+    FileIdentificationAttributes* atts = m_dataFiles[row]->getFileIdentificationAttributes();
     CaretAssert(atts);
     atts->setMapIndex(mapIndex);
 }
@@ -401,8 +413,8 @@ IdentificationFileFilteringTableWidget::displayModeComboBoxChanged(int row)
     const FileIdentificationDisplayModeEnum::Enum value =
     m_displayModeComboBoxes[row]->getSelectedItem<FileIdentificationDisplayModeEnum, FileIdentificationDisplayModeEnum::Enum>();
     
-    CaretAssertVectorIndex(m_mapFiles, row);
-    FileIdentificationAttributes* atts = m_mapFiles[row]->getFileIdentificationAttributes();
+    CaretAssertVectorIndex(m_dataFiles, row);
+    FileIdentificationAttributes* atts = m_dataFiles[row]->getFileIdentificationAttributes();
     CaretAssert(atts);
     atts->setDisplayMode(value);
 }

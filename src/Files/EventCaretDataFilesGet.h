@@ -51,6 +51,8 @@ namespace caret {
         static std::vector<CaretDataFile*> getCaretDataFilesForStructureAndTypes(const StructureEnum::Enum structure,
                                                                                  const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);
         
+        static std::vector<CaretDataFile*> getIdentifiableFilesSortedByName();
+        
         void addAllCaretDataFiles(std::vector<CaretDataFile*>& caretDataFiles);
         
         // ADD_NEW_METHODS_HERE

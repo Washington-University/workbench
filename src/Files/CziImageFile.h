@@ -98,12 +98,12 @@ namespace caret {
         
         virtual bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const;
         
-        virtual void getPixelIdentificationText(const int32_t tabIndex,
-                                                const int32_t overlayIndex,
-                                                const PixelLogicalIndex& pixelLogicalIndex,
-                                                std::vector<AString>& columnOneTextOut,
-                                                std::vector<AString>& columnTwoTextOut,
-                                                std::vector<AString>& toolTipTextOut) const override;
+        virtual void getPixelIdentificationTextForFrames(const int32_t tabIndex,
+                                                         const std::vector<int32_t>& frameIndices,
+                                                         const PixelLogicalIndex& pixelLogicalIndex,
+                                                         std::vector<AString>& columnOneTextOut,
+                                                         std::vector<AString>& columnTwoTextOut,
+                                                         std::vector<AString>& toolTipTextOut) const override;
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) override;
         

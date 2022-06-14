@@ -1203,8 +1203,8 @@ CziImageFile::getNumberOfScenes() const
  * Get the identification text for the pixel at the given pixel index with origin at bottom left.
  * @param tabIndex
  *    Index of the tab in which identification took place
- * @param overlayIndex
- *    Index of the overlay
+ * @param frameIndex
+ *    Indics of the frames
  * @param pixelLogicalIndex
  *    Logical pixel index
  * @param columnOneTextOut
@@ -1215,33 +1215,50 @@ CziImageFile::getNumberOfScenes() const
  *    Text for tooltip
  */
 void
-CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
-                                         const int32_t overlayIndex,
-                                         const PixelLogicalIndex& pixelLogicalIndex,
-                                         std::vector<AString>& columnOneTextOut,
-                                         std::vector<AString>& columnTwoTextOut,
-                                         std::vector<AString>& toolTipTextOut) const
+CziImageFile::getPixelIdentificationTextForFrames(const int32_t tabIndex,
+                                                  const std::vector<int32_t>& frameIndices,
+                                                 const PixelLogicalIndex& pixelLogicalIndex,
+                                                 std::vector<AString>& columnOneTextOut,
+                                                 std::vector<AString>& columnTwoTextOut,
+                                                 std::vector<AString>& toolTipTextOut) const
 {
     columnOneTextOut.clear();
     columnTwoTextOut.clear();
     toolTipTextOut.clear();
-    if ( ! isPixelIndexValid(tabIndex,
-                             overlayIndex,
-                             pixelLogicalIndex)) {
+    
+    std::vector<int32_t> validFrameIndices;
+    for (int32_t frameIndex : frameIndices) {
+        if (isPixelIndexValid(tabIndex,
+                                 frameIndex,
+                                 pixelLogicalIndex)) {
+            validFrameIndices.push_back(frameIndex);
+        }
+    }
+    if (validFrameIndices.empty()) {
         return;
     }
+        
     
-    
-    uint8_t rgba[4];
-    const bool rgbaValidFlag = getPixelRGBA(tabIndex,
-                                            overlayIndex,
-                                            pixelLogicalIndex,
-                                            rgba);
-    const AString rgbaText("RGBA ("
-                           + (rgbaValidFlag
-                              ? AString::fromNumbers(rgba, 4, ",")
-                              : "Invalid")
-                           + ")");
+    std::vector<AString> leftRgbaText;
+    std::vector<AString> rightRgbaText;
+    for (int32_t frameIndex : validFrameIndices) {
+        uint8_t rgba[4];
+        const bool rgbaValidFlag = getPixelRGBA(tabIndex,
+                                                frameIndex,
+                                                pixelLogicalIndex,
+                                                rgba);
+        if (rgbaValidFlag) {
+            leftRgbaText.push_back("Scene "
+                                   + AString::number(frameIndex + 1));
+            rightRgbaText.push_back("RGBA ("
+                                    + (rgbaValidFlag
+                                       ? AString::fromNumbers(rgba, 4, ",")
+                                       : "Invalid")
+                                    + ")");
+        }
+    }
+    CaretAssert(leftRgbaText.size() == rightRgbaText.size());
+    const int32_t numRgbaText(static_cast<int32_t>(leftRgbaText.size()));
     
     const PixelIndex pixelIndex(pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
     const int64_t fullResPixelI(pixelIndex.getI());
@@ -1275,14 +1292,9 @@ CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
     columnOneTextOut.push_back(pixelText);
     columnTwoTextOut.push_back(logicalText);
     
-    columnOneTextOut.push_back(rgbaText);
-    columnTwoTextOut.push_back(mmText);
+    columnOneTextOut.push_back(mmText);
+    columnTwoTextOut.push_back("");
     
-    toolTipTextOut.push_back(rgbaText);
-    toolTipTextOut.push_back(pixelText);
-    toolTipTextOut.push_back(logicalText);
-    toolTipTextOut.push_back(mmText);
-
     std::array<float, 3> xyz;
     if (pixelIndexToStereotaxicXYZ(pixelLogicalIndex, false, xyz)) {
         columnOneTextOut.push_back("Stereotaxic XYZ");
@@ -1293,6 +1305,21 @@ CziImageFile::getPixelIdentificationText(const int32_t tabIndex,
         columnOneTextOut.push_back("Stereotaxic XYZ with NIFTI warping");
         columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
     }
+
+    for (int32_t i = 0; i < numRgbaText; i++) {
+        CaretAssertVectorIndex(leftRgbaText, i);
+        CaretAssertVectorIndex(rightRgbaText, i);
+        toolTipTextOut.push_back(leftRgbaText[i]
+                                 + ": "
+                                 + rightRgbaText[i]);
+        columnOneTextOut.push_back(leftRgbaText[i]);
+        columnTwoTextOut.push_back(rightRgbaText[i]);
+    }
+    toolTipTextOut.push_back(pixelText);
+    toolTipTextOut.push_back(logicalText);
+    toolTipTextOut.push_back(mmText);
+    
+    CaretAssert(columnOneTextOut.size() == columnTwoTextOut.size());
 }
 
 /**

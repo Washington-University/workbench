@@ -27,6 +27,7 @@
 #include "CaretMappableDataFile.h"
 #include "EventTypeEnum.h"
 #include "FileIdentificationAttributes.h"
+#include "MediaFile.h"
 
 using namespace caret;
 
@@ -207,6 +208,41 @@ EventCaretMappableDataFilesAndMapsInDisplayedOverlays::getFilesAndMaps() const
 }
 
 /**
+ * @return Info for brainordinate mapped files (surface and volume overlays)
+ */
+std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo>
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::getBrainordinateFilesAndMaps() const
+{
+    std::vector<MapFileInfo> infoOut;
+    
+    for (auto iter : m_surfaceVolumeMapFilesAndIndices) {
+        infoOut.push_back(MapFileInfo(MapOverlayType::BRAINORDINATE,
+                                      iter.first,
+                                      iter.second));
+    }
+    
+    return infoOut;
+}
+
+/**
+ * @return Info for files in chart two overlays
+ */
+std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo>
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::getChartTwoFilesAndMaps() const
+{
+    std::vector<MapFileInfo> infoOut;
+    
+    for (auto iter : m_chartTwoMapFilesAndIndices) {
+        infoOut.push_back(MapFileInfo(MapOverlayType::CHART_TWO,
+                                      iter.first,
+                                      iter.second));
+    }
+    
+    return infoOut;
+}
+
+
+/**
  * @return Media files in media layers
  */
 std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MediaFileInfo>
@@ -279,23 +315,26 @@ EventCaretMappableDataFilesAndMapsInDisplayedOverlays::removeFilesWithIdentifica
     
     std::vector<MediaFile*> filesToRemove;
     
-//    for (auto& fileAndIndices : m_mediaFilesAndFrameIndices) {
-//        switch (fileAndIndices.first->getFileIdentificationAttributes()->getDisplayMode()) {
-//            case FileIdentificationDisplayModeEnum::ALWAYS:
-//                break;
-//            case FileIdentificationDisplayModeEnum::NEVER:
-//                filesToRemove.push_back(fileAndIndices.first);
-//                break;
-//            case FileIdentificationDisplayModeEnum::OVERLAY:
-//                break;
-//        }
-//    }
-//    
-//    for (auto& mapFile : filesToRemove) {
-//        m_mediaFilesAndFrameIndices.erase(mapFile);
-//    }
+    for (auto& fileAndIndices : m_mediaFilesAndFrameIndices) {
+        switch (fileAndIndices.first->getFileIdentificationAttributes()->getDisplayMode()) {
+            case FileIdentificationDisplayModeEnum::ALWAYS:
+                break;
+            case FileIdentificationDisplayModeEnum::NEVER:
+                filesToRemove.push_back(fileAndIndices.first);
+                break;
+            case FileIdentificationDisplayModeEnum::OVERLAY:
+                break;
+        }
+    }
+    
+    for (auto& mapFile : filesToRemove) {
+        m_mediaFilesAndFrameIndices.erase(mapFile);
+    }
 }
 
+/**
+ * Remove files that the user never wants to see information 
+ */
 void
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays::removeNeverFiles(std::map<CaretMappableDataFile*, std::set<int32_t>>& mapFilesAndIndices) const
 {

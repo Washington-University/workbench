@@ -29,7 +29,9 @@
 
 namespace caret {
 
+    class CaretMappableDataFile;
     class CziImageFile;
+    class FileIdentificationAttributes;
     class ImageFile;
     class MediaFile;
     class GiftiMetaData;
@@ -99,6 +101,13 @@ namespace caret {
         virtual MediaFile* castToMediaFile();
         virtual const MediaFile* castToMediaFile() const;
         
+        virtual CaretMappableDataFile* castToCaretMappableDataFile();
+        virtual const CaretMappableDataFile* castToCaretMappableDataFile() const;
+
+        FileIdentificationAttributes* getFileIdentificationAttributes();
+        
+        const FileIdentificationAttributes* getFileIdentificationAttributes() const;
+        
     protected:
         CaretDataFile(const CaretDataFile& cdf);
 
@@ -116,6 +125,8 @@ namespace caret {
         void copyDataCaretDataFile(const CaretDataFile& cdf);
         
         DataFileTypeEnum::Enum m_dataFileType;
+        
+        std::unique_ptr<FileIdentificationAttributes> m_fileIdentificationAttributes;
         
         /** A counter that is used when creating default file names */
         static int64_t s_defaultFileNameCounter;

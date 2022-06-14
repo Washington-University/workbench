@@ -32,6 +32,7 @@ namespace caret {
 
     class Brain;
     class BrowserTabContent;
+    class CaretDataFile;
     class CaretMappableDataFile;
     class ChartDataSource;
     class DataToolTipsManager;
@@ -39,6 +40,7 @@ namespace caret {
     class HtmlTableBuilder;
     class IdentificationFilter;
     class MapFileDataSelector;
+    class MediaFile;
     class Overlay;
     class OverlaySet;
     class SelectionItemBorderSurface;
@@ -86,8 +88,26 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MapFileInfo> getFilesForIdentification(const IdentificationFilter* filter,
-                                                                                                               const int32_t tabIndex) const;
+        class MapFileAndMapIndices {
+        public:
+            MapFileAndMapIndices(CaretDataFile* mapFile);
+            
+            void addMapIndex(const int32_t mapIndex);
+            
+            void addMapIndices(const std::vector<int32_t> mapIndices);
+            
+            void addMapIndices(const std::set<int32_t> mapIndices);
+            
+            CaretDataFile* m_mapFile;
+            
+            std::set<int32_t> m_mapIndices;
+        };
+        
+        void getFilesForIdentification(const IdentificationFilter* filter,
+                                       const int32_t tabIndex,
+                                       std::vector<MapFileAndMapIndices>& mapFilesAndIndicesOut,
+                                       std::vector<MapFileAndMapIndices>& chartFilesAndIndicesOut,
+                                       std::vector<MapFileAndMapIndices>& mediaFilesAndIndicesOut) const;
         
         void generateSurfaceToolTip(const Brain* brain,
                                     const BrowserTabContent* browserTab,
@@ -141,6 +161,8 @@ namespace caret {
 
         void generateMediaIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                              IdentificationStringBuilder& idText,
+                                             const MediaFile* mediaFile,
+                                             const std::set<int32_t>& frameIndices,
                                              const SelectionItemMedia* idMedia) const;
         
         void generateVolumeVoxelIdentificationText(HtmlTableBuilder& htmlTableBuilder,

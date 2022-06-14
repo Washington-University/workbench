@@ -39,9 +39,12 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param identificationSupportedFlag
+ *   True if identification is supported by the file
  */
-FileIdentificationAttributes::FileIdentificationAttributes()
-: CaretObject()
+FileIdentificationAttributes::FileIdentificationAttributes(const bool identificationSupportedFlag)
+: CaretObject(),
+m_identificationSupportedFlag(identificationSupportedFlag)
 {
     reset();
     
@@ -106,6 +109,7 @@ FileIdentificationAttributes::operator=(const FileIdentificationAttributes& obj)
 void 
 FileIdentificationAttributes::copyHelperFileIdentificationAttributes(const FileIdentificationAttributes& obj)
 {
+    /* not copied m_identificationSupportedFlag */
     m_displayMode = obj.m_displayMode;
     m_mapSelectionMode = obj.m_mapSelectionMode;
     m_mapIndex = obj.m_mapIndex;
@@ -119,6 +123,15 @@ AString
 FileIdentificationAttributes::toString() const
 {
     return "FileIdentificationAttributes";
+}
+
+/**
+ * @return True if identifcation is supported
+ */
+bool
+FileIdentificationAttributes::isSupported() const
+{
+    return m_identificationSupportedFlag;
 }
 
 /**

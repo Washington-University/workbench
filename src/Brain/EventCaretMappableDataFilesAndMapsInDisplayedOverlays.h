@@ -95,6 +95,10 @@ namespace caret {
                                   const int32_t frameIndex,
                                   const int32_t tabIndex);
                 
+        std::vector<MapFileInfo> getBrainordinateFilesAndMaps() const;
+        
+        std::vector<MapFileInfo> getChartTwoFilesAndMaps() const;
+        
         std::vector<MapFileInfo> getFilesAndMaps() const;
         
         std::vector<MediaFileInfo> getMediaFilesAndMaps() const;

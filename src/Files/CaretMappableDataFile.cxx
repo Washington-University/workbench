@@ -34,7 +34,6 @@
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
 #include "FastStatistics.h"
-#include "FileIdentificationAttributes.h"
 #include "FileInformation.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaDataXmlElements.h"
@@ -110,7 +109,6 @@ void
 CaretMappableDataFile::initializeCaretMappableDataFileInstance(const DataFileTypeEnum::Enum /*dataFileType*/)
 {
     m_labelDrawingProperties = std::unique_ptr<LabelDrawingProperties>(new LabelDrawingProperties());
-    m_fileIdentificationAttributes.reset(new FileIdentificationAttributes());
     m_applyToAllMapsSelected = false;
 }
 
@@ -370,9 +368,6 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
     sceneClass->addClass(m_labelDrawingProperties->saveToScene(sceneAttributes,
                                                                "m_labelDrawingProperties"));
     
-    sceneClass->addClass(m_fileIdentificationAttributes->saveToScene(sceneAttributes,
-                                                                     "m_fileIdentificationAttributes"));
-
     if (m_chartingDelegate != NULL) {
         SceneClass* chartDelegateScene = m_chartingDelegate->saveToScene(sceneAttributes,
                                                                          "m_chartingDelegate");
@@ -519,8 +514,6 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     
     m_labelDrawingProperties->restoreFromScene(sceneAttributes,
                                                sceneClass->getClass("m_labelDrawingProperties"));
-    m_fileIdentificationAttributes->restoreFromScene(sceneAttributes,
-                                                     sceneClass->getClass("m_fileIdentificationAttributes"));
     
     const SceneClass* chartingDelegateClass = sceneClass->getClass("m_chartingDelegate");
     ChartableTwoFileDelegate* chartDelegate = getChartingDelegate();
@@ -1650,21 +1643,21 @@ CaretMappableDataFile::getVolumeVoxelIdentificationForMaps(const std::vector<int
 }
 
 /**
- * @return The file identification attributes
+ * @return File casted to caret mappable data  file (avoids use of dynamic_cast that can be slow)
+ * Overidden in MediaFile
  */
-FileIdentificationAttributes*
-CaretMappableDataFile::getFileIdentificationAttributes()
+CaretMappableDataFile*
+CaretMappableDataFile::castToCaretMappableDataFile()
 {
-    return m_fileIdentificationAttributes.get();
+    return this;
 }
 
 /**
- * @return The file identification attributes (const method)
+ * @return File casted to an caret mappable data file (avoids use of dynamic_cast that can be slow)
+ * Overidden in ImageFile
  */
-const FileIdentificationAttributes*
-CaretMappableDataFile::getFileIdentificationAttributes() const
+const CaretMappableDataFile*
+CaretMappableDataFile::castToCaretMappableDataFile() const
 {
-    return m_fileIdentificationAttributes.get();
+    return this;
 }
-
-

@@ -2332,8 +2332,8 @@ ImageFile::isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const
  * Get the identification text for the pixel at the given pixel index with origin at bottom left.
  * @param tabIndex
  *    Index of the tab in which identification took place
- * @param overlayIndex
- *    Index of the overlay
+ * @param frameIndices
+ *    Indics of the frames
  * @param pixelLogicalIndex
  *    Logical pixel index
  * @param columnOneTextOut
@@ -2344,41 +2344,30 @@ ImageFile::isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const
  *    Text for tooltip
  */
 void
-ImageFile::getPixelIdentificationText(const int32_t tabIndex,
-                                      const int32_t overlayIndex,
-                                      const PixelLogicalIndex& pixelLogicalIndex,
-                                      std::vector<AString>& columnOneTextOut,
-                                      std::vector<AString>& columnTwoTextOut,
-                                      std::vector<AString>& toolTipTextOut) const
+ImageFile::getPixelIdentificationTextForFrames(const int32_t tabIndex,
+                                               const std::vector<int32_t>& frameIndices,
+                                                  const PixelLogicalIndex& pixelLogicalIndex,
+                                                  std::vector<AString>& columnOneTextOut,
+                                                  std::vector<AString>& columnTwoTextOut,
+                                                  std::vector<AString>& toolTipTextOut) const
 {
     columnOneTextOut.clear();
     columnTwoTextOut.clear();
     toolTipTextOut.clear();
     if ( ! isPixelIndexValid(tabIndex,
-                             overlayIndex,
+                             0,
                              pixelLogicalIndex)) {
         return;
     }
     
-    uint8_t rgba[4];
-    getPixelRGBA(tabIndex,
-                 overlayIndex,
-                 pixelLogicalIndex,
-                 rgba);
-
     columnOneTextOut.push_back("Filename");
     columnTwoTextOut.push_back(getFileNameNoPath());
-    
-    const AString rgbaText(("RGBA (" + AString::fromNumbers(rgba, 4, ",") + ")"));
-    columnOneTextOut.push_back(rgbaText);
-    toolTipTextOut.push_back(rgbaText);
     
     const AString pixelText("Pixel IJ ("
                             + AString::number(pixelLogicalIndex.getI())
                             + ","
                             + AString::number(pixelLogicalIndex.getJ())
                             + ")");
-    columnTwoTextOut.push_back(pixelText);
     toolTipTextOut.push_back(pixelText);
     
     const float dotsPerMeter(m_image->dotsPerMeterX());
@@ -2389,15 +2378,41 @@ ImageFile::getPixelIdentificationText(const int32_t tabIndex,
         const float metersPerDot(1 / dotsPerMeter);
         const float xMillimeters(pixelLogicalIndex.getI() * metersPerDot * 100.0);
         const float yMillimeters(pixelLogicalIndex.getJ() * metersPerDot * 100.0);
-        columnOneTextOut.push_back("");
         const AString mmText("("
                              + AString::number(xMillimeters, 'f', 2)
                              + "mm, "
                              + AString::number(yMillimeters, 'f', 2)
                              + "mm)");
+        columnOneTextOut.push_back(pixelText);
         columnTwoTextOut.push_back(mmText);
+        
         toolTipTextOut.push_back(mmText);
     }
+    else {
+        columnOneTextOut.push_back(pixelText);
+        columnTwoTextOut.push_back("");
+    }
+    
+    for (int32_t frameIndex : frameIndices) {
+        uint8_t rgba[4];
+        if (getPixelRGBA(tabIndex,
+                         frameIndex,
+                         pixelLogicalIndex,
+                         rgba)) {
+            const AString leftText("Frame "
+                                   + AString::number(frameIndex + 1)
+                                   + ": ");
+            const AString rightText("RGBA ("
+                                    + AString::fromNumbers(rgba, 4, ",")
+                                    + ")");
+            columnOneTextOut.push_back(leftText);
+            columnTwoTextOut.push_back(rightText);
+            toolTipTextOut.push_back(leftText
+                                     + rightText);
+        }
+    }
+
+    CaretAssert(columnOneTextOut.size() == columnTwoTextOut.size());
 }
 
 /**

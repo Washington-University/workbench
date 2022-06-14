@@ -29,6 +29,7 @@
 #include "CaretDataFile.h"
 #include "EventManager.h"
 #include "EventTypeEnum.h"
+#include "FileIdentificationAttributes.h"
 
 using namespace caret;
 
@@ -166,6 +167,31 @@ void
 EventCaretDataFilesGet::addAllCaretDataFiles(std::vector<CaretDataFile*>& caretDataFiles)
 {
     m_caretDataFiles = caretDataFiles;
+}
+
+/**
+ * @return All data files that support File Identification Attributes sorted by name
+ */
+std::vector<CaretDataFile*>
+EventCaretDataFilesGet::getIdentifiableFilesSortedByName()
+{
+    std::vector<CaretDataFile*> allFiles(getAllCaretDataFiles());
+    
+    std::vector<CaretDataFile*> idFiles;
+    for (CaretDataFile* cdf : allFiles) {
+        if (cdf->getFileIdentificationAttributes()->isSupported()) {
+            idFiles.push_back(cdf);
+        }
+    }
+    
+    std::sort(idFiles.begin(),
+              idFiles.end(),
+              [] (CaretDataFile* lhs, CaretDataFile* rhs) {
+        const int result = lhs->getFileNameNoPath().compare(rhs->getFileNameNoPath(), Qt::CaseInsensitive);
+        return (result < 0);
+    } );
+
+    return idFiles;
 }
 
 /**

@@ -37,7 +37,6 @@ namespace caret {
     class ChartDataCartesian;
     class ChartableTwoFileDelegate;
     class FastStatistics;
-    class FileIdentificationAttributes;
     class GiftiMetaData;
     class GiftiLabelTable;
     class Histogram;
@@ -520,9 +519,8 @@ namespace caret {
         
         void updateAfterFileDataChanges();
         
-        FileIdentificationAttributes* getFileIdentificationAttributes();
-        
-        const FileIdentificationAttributes* getFileIdentificationAttributes() const;
+        virtual CaretMappableDataFile* castToCaretMappableDataFile() override;
+        virtual const CaretMappableDataFile* castToCaretMappableDataFile() const override;
 
     protected:
         CaretMappableDataFile(const CaretMappableDataFile&);
@@ -557,9 +555,7 @@ namespace caret {
         
         std::vector<std::unique_ptr<CaretMappableDataFileAndMapSelectionModel>> m_mapThresholdFileSelectionModels;
         
-        std::unique_ptr<FileIdentificationAttributes> m_fileIdentificationAttributes;
-        
-        /** 
+        /**
          * Added by WB-781 Apply to All Maps for ColorBar.
          * This value is saved to scenes but NOT to the data file.
          */
