@@ -2264,18 +2264,41 @@ ImageFile::supportsFileMetaData() const
 }
 
 /**
- * @return True if the given pixel index is valid for the image in the given tabf
- * @param tabIndex
- *    Index of the tab.
- * @param overlayIndex
- *    Index of overlay
+ * @return True if the given pixel index is valid for the CZI image file (may be outside of currently loaded sub-image)
+ * @param frameIndex
+ *    Index of frame
  * @param pixelIndexOriginAtTopLeft
  *    Image of pixel with origin (0, 0) at the top left
  */
 bool
-ImageFile::isPixelIndexValid(const int32_t /*tabIndex*/,
-                             const int32_t /*overlayIndex*/,
-                                const PixelIndex& pixelIndexOriginAtTopLeft) const
+ImageFile::isPixelIndexInFrameValid(const int32_t /*frameIndex*/,
+                                    const PixelIndex& pixelIndexOriginAtTopLeft) const
+{
+    return isPixelIndexValid(pixelIndexOriginAtTopLeft);
+}
+
+/**
+ * @return True if the given pixel index is valid
+ * @param frameIndex
+ *    Index of frame
+ * @param pixelLogicalIndex
+ *    Pixel logical index
+ */
+bool
+ImageFile::isPixelIndexInFrameValid(const int32_t /*frameIndex*/,
+                                    const PixelLogicalIndex& pixelLogicalIndex) const
+{
+    return isPixelIndexValid(pixelLogicalIndex);
+}
+
+
+/**
+ * @return True if the given pixel index is valid for the image in the given tabf
+ * @param pixelIndexOriginAtTopLeft
+ *    Image of pixel with origin (0, 0) at the top left
+ */
+bool
+ImageFile::isPixelIndexValid(const PixelIndex& pixelIndexOriginAtTopLeft) const
 {
     if (m_image != NULL) {
         const int32_t i(pixelIndexOriginAtTopLeft.getI());
@@ -2288,23 +2311,6 @@ ImageFile::isPixelIndexValid(const int32_t /*tabIndex*/,
         }
     }
     return false;
-}
-
-/**
- * @return True if the given pixel index is valid for the image in the given tab
- * @param tabIndex
- *    Index of the tab.
- *@param overlayIndex
- *    Index of overlay
- * @param pixelLogicalIndex
- *    Pixel logical index
- */
-bool
-ImageFile::isPixelIndexValid(const int32_t /*tabIndex*/,
-                             const int32_t /*overlayIndex*/,
-                             const PixelLogicalIndex& pixelLogicalIndex) const
-{
-    return isPixelIndexValid(pixelLogicalIndex);
 }
 
 /**
@@ -2354,9 +2360,15 @@ ImageFile::getPixelIdentificationTextForFrames(const int32_t tabIndex,
     columnOneTextOut.clear();
     columnTwoTextOut.clear();
     toolTipTextOut.clear();
-    if ( ! isPixelIndexValid(tabIndex,
-                             0,
-                             pixelLogicalIndex)) {
+    
+    std::vector<int32_t> validFrameIndices;
+    for (int32_t frameIndex : frameIndices) {
+        if (isPixelIndexInFrameValid(frameIndex,
+                                     pixelLogicalIndex)) {
+            validFrameIndices.push_back(frameIndex);
+        }
+    }
+    if (validFrameIndices.empty()) {
         return;
     }
     
@@ -2393,21 +2405,21 @@ ImageFile::getPixelIdentificationTextForFrames(const int32_t tabIndex,
         columnTwoTextOut.push_back("");
     }
     
-    for (int32_t frameIndex : frameIndices) {
+    for (int32_t frameIndex : validFrameIndices) {
         uint8_t rgba[4];
         if (getPixelRGBA(tabIndex,
                          frameIndex,
                          pixelLogicalIndex,
                          rgba)) {
             const AString leftText("Frame "
-                                   + AString::number(frameIndex + 1)
-                                   + ": ");
+                                   + AString::number(frameIndex + 1));
             const AString rightText("RGBA ("
                                     + AString::fromNumbers(rgba, 4, ",")
                                     + ")");
             columnOneTextOut.push_back(leftText);
             columnTwoTextOut.push_back(rightText);
             toolTipTextOut.push_back(leftText
+                                     + " "
                                      + rightText);
         }
     }

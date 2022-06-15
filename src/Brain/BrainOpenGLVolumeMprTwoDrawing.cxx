@@ -2376,7 +2376,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
     
     for (auto& volumeFileAndMapIndex : intensityVolumeFiles) {
         VolumeMappableInterface* volumeFile(volumeFileAndMapIndex.first);
-        const int32_t mapIndex(volumeFileAndMapIndex.second);
         CaretAssert(volumeFile);
         if (idModeFlag) {
             performIntensityIdentification(sliceInfo,
@@ -3424,7 +3423,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
     bool drawBackgroundSliceFlag(true);
     for (auto& volumeFileAndMapIndex : intensityVolumeFiles) {
         VolumeMappableInterface* volumeFile(volumeFileAndMapIndex.first);
-        const int32_t mapIndex(volumeFileAndMapIndex.second);
         const SliceInfo sliceInfo(createSliceInfo3D());
         if (idModeFlag) {
             performIntensityIdentification(sliceInfo,

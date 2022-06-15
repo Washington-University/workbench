@@ -215,13 +215,13 @@ public:
 
     const ImageFile* castToImageFile() const;
     
-    virtual bool isPixelIndexValid(const int32_t tabIndex,
-                                   const int32_t overlayIndex,
-                                   const PixelIndex& pixelIndexOriginAtTopLeft) const override;
+    virtual bool isPixelIndexInFrameValid(const int32_t frameIndex,
+                                          const PixelIndex& pixelIndexOriginAtTopLeft) const override;
     
-    virtual bool isPixelIndexValid(const int32_t tabIndex,
-                                   const int32_t overlayIndex,
-                                   const PixelLogicalIndex& pixelLogicalIndex) const override;
+    virtual bool isPixelIndexInFrameValid(const int32_t frameIndex,
+                                          const PixelLogicalIndex& pixelLogicalIndex) const override;
+    
+    virtual bool isPixelIndexValid(const PixelIndex& pixelIndexOriginAtTopLeft) const override;
     
     virtual bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const override;
     

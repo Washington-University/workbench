@@ -82,6 +82,8 @@ namespace caret {
         void processMediaFileSelection(const int32_t tabIndex,
                                        const int32_t overlayIndex,
                                        MediaFile* mediaFile,
+                                       const int32_t selectedFrameIndex,
+                                       const bool allFramesSelectedFlag,
                                        GraphicsPrimitiveV3fT2f* primitive);
         
         bool getOrthoBounds(MediaOverlaySet* mediaOverlaySet,

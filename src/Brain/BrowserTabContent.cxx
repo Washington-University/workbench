@@ -2222,12 +2222,21 @@ BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAn
                 MediaOverlay* overlay = overlaySet->getOverlay(i);
                 if (overlay->isEnabled()) {
                     const MediaOverlay::SelectionData selectionData(overlay->getSelectionData());
-                    
                     if (selectionData.m_selectedMediaFile != NULL) {
-                        if (selectionData.m_selectedFrameIndex >= 0) {
-                            fileAndMapsEvent->addMediaFileAndFrame(selectionData.m_selectedMediaFile,
-                                                                   selectionData.m_selectedFrameIndex,
-                                                                   m_tabNumber);
+                        std::vector<int32_t> frameIndices;
+                        if (selectionData.m_allFramesSelectedFlag) {
+                            for (int32_t iFrame = 0; iFrame < selectionData.m_selectedMediaFile->getNumberOfFrames(); iFrame++) {
+                                fileAndMapsEvent->addMediaFileAndFrame(selectionData.m_selectedMediaFile,
+                                                                       iFrame,
+                                                                       m_tabNumber);
+                            }
+                        }
+                        else {
+                            if (selectionData.m_selectedFrameIndex >= 0) {
+                                fileAndMapsEvent->addMediaFileAndFrame(selectionData.m_selectedMediaFile,
+                                                                       selectionData.m_selectedFrameIndex,
+                                                                       m_tabNumber);
+                            }
                         }
                     }
                 }

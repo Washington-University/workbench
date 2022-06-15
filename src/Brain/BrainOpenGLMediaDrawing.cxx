@@ -403,6 +403,8 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                         processMediaFileSelection(m_browserTabContent->getTabNumber(),
                                                   iOverlay,
                                                   selectionData.m_selectedMediaFile,
+                                                  selectionData.m_selectedFrameIndex,
+                                                  selectionData.m_allFramesSelectedFlag,
                                                   primitive);
                     }
                     
@@ -475,6 +477,10 @@ BrainOpenGLMediaDrawing::drawSelectionBox()
  *   Index of the overlay
  * @param mediaFile
  *    The medai file
+ * @param selectedFrameIndex
+ *    Index of selected frame
+ * @param allFramesSelectedFlag
+ *    True if all frames are selected
  * @param primitive
  *    Primitive that draws image file
  */
@@ -482,6 +488,8 @@ void
 BrainOpenGLMediaDrawing::processMediaFileSelection(const int32_t tabIndex,
                                                    const int32_t overlayIndex,
                                                    MediaFile* mediaFile,
+                                                   const int32_t selectedFrameIndex,
+                                                   const bool allFramesSelectedFlag,
                                                    GraphicsPrimitiveV3fT2f* primitive)
 {
     SelectionItemMedia* idMedia = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getMediaIdentification();
@@ -505,9 +513,42 @@ BrainOpenGLMediaDrawing::processMediaFileSelection(const int32_t tabIndex,
             
             logicalXYZ[2] = 0.0;
             PixelLogicalIndex pixelLogicalIndex(logicalXYZ.data());
-            if (mediaFile->isPixelIndexValid(tabIndex,
-                                             overlayIndex,
-                                             pixelLogicalIndex)) {
+            
+            /*
+             * Frame indices to test
+             */
+            std::vector<int32_t> validFrameIndices;
+            if (allFramesSelectedFlag) {
+                for (int32_t i = 0; i < mediaFile->getNumberOfFrames(); i++) {
+                    validFrameIndices.push_back(i);
+                }
+            }
+            else {
+                validFrameIndices.push_back(selectedFrameIndex);
+            }
+            
+            /*
+             * Ensure that the pixel is within a displayed frame (Scene
+             * in CZI terminology).  Otherwise empty space pixels may
+             * be identified.  Also, if RGBA is NOT valid, then
+             * there is no CZI data for the pixel.
+             */
+            bool validPixelFlag(false);
+            for (int32_t frameIndex : validFrameIndices) {
+                if (mediaFile->isPixelIndexInFrameValid(frameIndex,
+                                                        pixelLogicalIndex)) {
+                    uint8_t rgba[4];
+                    validPixelFlag = mediaFile->getPixelRGBA(tabIndex,
+                                                             frameIndex,
+                                                             pixelLogicalIndex,
+                                                             rgba);
+                    if (validPixelFlag) {
+                        break;
+                    }
+                }
+            }
+            
+            if (validPixelFlag) {
                 idMedia->setMediaFile(mediaFile);
                 idMedia->setTabIndex(tabIndex);
                 idMedia->setOverlayIndex(overlayIndex);

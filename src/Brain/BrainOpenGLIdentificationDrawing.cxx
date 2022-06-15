@@ -363,7 +363,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                             const Plane& plane,
                                                             const float planeThickness,
                                                             const float viewingZoom,
-                                                            const float viewportHeight,
+                                                            const float /*viewportHeight*/,
                                                             const float surfaceOrVolumeMaximumDimension)
 {
     /*

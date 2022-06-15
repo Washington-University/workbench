@@ -1228,9 +1228,8 @@ CziImageFile::getPixelIdentificationTextForFrames(const int32_t tabIndex,
     
     std::vector<int32_t> validFrameIndices;
     for (int32_t frameIndex : frameIndices) {
-        if (isPixelIndexValid(tabIndex,
-                                 frameIndex,
-                                 pixelLogicalIndex)) {
+        if (isPixelIndexInFrameValid(frameIndex,
+                                     pixelLogicalIndex)) {
             validFrameIndices.push_back(frameIndex);
         }
     }
@@ -2343,46 +2342,54 @@ CziImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
 
 /**
  * @return True if the given pixel index is valid for the CZI image file (may be outside of currently loaded sub-image)
- * @param tabIndex
- *    Index of the tab.
- *@param overlayIndex
- *    Index of overlay
+ * @param frameIndex
+ *    Index of frame
  * @param pixelIndexOriginAtTopLeft
  *    Image of pixel with origin (0, 0) at the top left
  */
 bool
-CziImageFile::isPixelIndexValid(const int32_t tabIndex,
-                                const int32_t overlayIndex,
-                                const PixelIndex& pixelIndexOriginAtTopLeft) const
+CziImageFile::isPixelIndexInFrameValid(const int32_t frameIndex,
+                                       const PixelIndex& pixelIndexOriginAtTopLeft) const
 {
-    return isPixelIndexValid(tabIndex, overlayIndex, pixelIndexToPixelLogicalIndex(pixelIndexOriginAtTopLeft));
+    return isPixelIndexInFrameValid(frameIndex,
+                                    pixelIndexToPixelLogicalIndex(pixelIndexOriginAtTopLeft));
 }
 
 /**
- * @return True if the given pixel index is valid for the image in the given tab
- * @param tabIndex
- *    Index of the tab.
- *@param overlayIndex
- *    Index of overlay
+ * @return True if the given pixel index is valid
+ * @param frameIndex
+ *    Index of frame
  * @param pixelLogicalIndex
  *    Pixel logical index
  */
 bool
-CziImageFile::isPixelIndexValid(const int32_t /*tabIndex*/,
-                                const int32_t /*overlayIndex*/,
-                                const PixelLogicalIndex& pixelLogicalIndex) const
+CziImageFile::isPixelIndexInFrameValid(const int32_t frameIndex,
+                                       const PixelLogicalIndex& pixelLogicalIndex) const
 {
+    CaretAssertVectorIndex(m_cziScenePyramidInfos, frameIndex);
+    const QRectF frameLogicalRect(m_cziScenePyramidInfos[frameIndex].m_logicalRectangle);
     const float i(pixelLogicalIndex.getI());
     const float j(pixelLogicalIndex.getJ());
     
-    if ((i >= m_fullResolutionLogicalRect.left())
-        && (i < m_fullResolutionLogicalRect.right())
-        && (j >= m_fullResolutionLogicalRect.top())
-        && (j < m_fullResolutionLogicalRect.bottom())) {
+    if ((i >= frameLogicalRect.left())
+        && (i < frameLogicalRect.right())
+        && (j >= frameLogicalRect.top())
+        && (j < frameLogicalRect.bottom())) {
         return true;
     }
-
+    
     return false;
+}
+
+/**
+ * @return True if the given pixel index is valid for the CZI image file (may be outside of currently loaded sub-image)
+ * @param pixelIndexOriginAtTopLeft
+ *    Image of pixel with origin (0, 0) at the top left
+ */
+bool
+CziImageFile::isPixelIndexValid(const PixelIndex& pixelIndexOriginAtTopLeft) const
+{
+    return isPixelIndexValid(pixelIndexToPixelLogicalIndex(pixelIndexOriginAtTopLeft));
 }
 
 /**
