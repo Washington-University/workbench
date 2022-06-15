@@ -67,6 +67,7 @@ namespace caret {
         void volumeIndicesZcoordSpinBoxValueChanged(double d);
         void volumeSliceProjectionTypeEnumComboBoxItemActivated();
         void volumeIdentificationToggled(bool value);
+        void optionsToolButtonClicked();
         void mprOptionsMenuAboutToShow();
         void mprOptionsActionTriggered(bool);
         void obliqueOptionsMenuAboutToShow();
@@ -110,9 +111,12 @@ namespace caret {
         QDoubleSpinBox* m_volumeIndicesYcoordSpinBox;
         QDoubleSpinBox* m_volumeIndicesZcoordSpinBox;
         QToolButton* m_optionsToolButton;
+        bool m_newOptionsToolButtonFlag = true;
         QAction* m_mprOptionsAction;
+        QMenu* m_mprOptionsMenu;
         VolumeMprSettingsWidget* m_volumeMprSettingsWidget;
         QAction* m_obliqueOptionsAction;
+        QMenu* m_obliqueOptionsMenu;
         VolumeObliqueOptionsWidget* m_obliqueOptionsWidget;
         
         EnumComboBoxTemplate* m_volumeSliceProjectionTypeEnumComboBox;

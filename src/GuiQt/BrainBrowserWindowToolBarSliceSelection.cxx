@@ -270,8 +270,15 @@ m_objectNamePrefix(parentObjectName
     m_optionsToolButton->setText("123456");
     m_optionsToolButton->setFixedWidth(m_optionsToolButton->sizeHint().width());
     m_optionsToolButton->setText("");
-    m_optionsToolButton->setDefaultAction(m_mprOptionsAction);
+    if ( ! m_newOptionsToolButtonFlag) {
+        m_optionsToolButton->setDefaultAction(m_mprOptionsAction);
+    }
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_optionsToolButton);
+    if (m_newOptionsToolButtonFlag) {
+        m_optionsToolButton->setArrowType(Qt::DownArrow);
+        QObject::connect(m_optionsToolButton, &QToolButton::clicked,
+                         this, &BrainBrowserWindowToolBarSliceSelection::optionsToolButtonClicked);
+    }
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
@@ -298,7 +305,7 @@ m_objectNamePrefix(parentObjectName
     bottomLayout->addStretch();
     bottomLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget());
     bottomLayout->addWidget(m_optionsToolButton);
-    bottomLayout->setStretchFactor(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 100);
+bottomLayout->setStretchFactor(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 100);
     
     gridLayout->addLayout(bottomLayout, 3, 0, 1, 5);
 
@@ -880,17 +887,33 @@ BrainBrowserWindowToolBarSliceSelection::updateOptionsButton()
             break;
     }
         
-    QList<QAction*> buttonActions(m_optionsToolButton->actions());
-    for (auto action : buttonActions) {
-        m_optionsToolButton->removeAction(action);
-    }
-    if (m_mprOptionsAction->isEnabled()) {
-        m_optionsToolButton->setDefaultAction(m_mprOptionsAction);
-        updateMprOptionsAction();
+    if (m_newOptionsToolButtonFlag) {
+        if (m_mprOptionsAction->isEnabled()) {
+            m_optionsToolButton->setEnabled(true);
+            m_optionsToolButton->setToolTip("Click to set MPR intensity type and other options");
+        }
+        else if (m_obliqueOptionsAction->isEnabled()) {
+            m_optionsToolButton->setEnabled(true);
+            m_optionsToolButton->setToolTip("Click to change oblique masking");
+        }
+        else {
+            m_optionsToolButton->setEnabled(false);
+            m_optionsToolButton->setToolTip("");
+        }
     }
     else {
-        m_optionsToolButton->setDefaultAction(m_obliqueOptionsAction);
-        updateObliqueOptionsAction();
+        QList<QAction*> buttonActions(m_optionsToolButton->actions());
+        for (auto action : buttonActions) {
+            m_optionsToolButton->removeAction(action);
+        }
+        if (m_mprOptionsAction->isEnabled()) {
+            m_optionsToolButton->setDefaultAction(m_mprOptionsAction);
+            updateMprOptionsAction();
+        }
+        else {
+            m_optionsToolButton->setDefaultAction(m_obliqueOptionsAction);
+            updateObliqueOptionsAction();
+        }
     }
 }
 
@@ -943,6 +966,22 @@ BrainBrowserWindowToolBarSliceSelection::createVolumeIdentificationUpdatesSlices
 }
 
 /**
+ * Called when options tool button is clicked
+ */
+void
+BrainBrowserWindowToolBarSliceSelection::optionsToolButtonClicked()
+{
+    if (m_mprOptionsAction->isEnabled()) {
+        updateMprOptionsAction();
+        m_mprOptionsMenu->exec(m_optionsToolButton->mapToGlobal(QPoint(0, m_optionsToolButton->height())));
+    }
+    else if (m_obliqueOptionsAction->isEnabled()) {
+        updateObliqueOptionsAction();
+        m_obliqueOptionsMenu->exec(m_optionsToolButton->mapToGlobal(QPoint(0, m_optionsToolButton->height())));
+    }
+}
+
+/**
  * @return Instance of the MPR options
  */
 QMenu*
@@ -973,7 +1012,8 @@ BrainBrowserWindowToolBarSliceSelection::createMprOptionsAction()
     action->setText("MPR");
     WuQtUtilities::setWordWrappedToolTip(action,
                                          toolTip);
-    action->setMenu(createMprOptionsMenu());
+    m_mprOptionsMenu = createMprOptionsMenu();
+    action->setMenu(m_mprOptionsMenu);
     action->setObjectName(m_objectNamePrefix
                           + ":MprOptions");
     QObject::connect(action, &QAction::triggered,
@@ -1042,7 +1082,8 @@ BrainBrowserWindowToolBarSliceSelection::createObliqueOptionsAction()
     action->setText("Opts");
     WuQtUtilities::setWordWrappedToolTip(action,
                                          toolTip);
-    action->setMenu(createObliqueOptionsMenu());
+    m_obliqueOptionsMenu = createObliqueOptionsMenu();
+    action->setMenu(m_obliqueOptionsMenu);
     action->setObjectName(m_objectNamePrefix
                                           + ":ObliqueOptions");
     QObject::connect(action, &QAction::triggered,
