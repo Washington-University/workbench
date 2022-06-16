@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 
 #include "DataFile.h"
 #include "DataFileTypeEnum.h"
