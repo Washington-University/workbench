@@ -1169,52 +1169,6 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
 }
 
 /**
- * Find the usage of the file's maps in all overlays.
- *
- * @param caretMappableDataFile
- *    The file whose usage is desired.
- * @param mapIndicesOut
- *    Indices of maps of the file that are used in overlays.
- */
-void
-IdentificationFormattedTextGenerator::getMapIndicesOfFileUsedInOverlays(const CaretMappableDataFile* caretMappableDataFile,
-                                                               std::vector<int32_t>& mapIndicesOut) const
-{
-    mapIndicesOut.clear();
-    
-    EventBrowserTabGetAll allTabsEvent;
-    EventManager::get()->sendEvent(allTabsEvent.getPointer());
-    const std::vector<BrowserTabContent*> allTabs = allTabsEvent.getAllBrowserTabs();
-    for (std::vector<BrowserTabContent*>::const_iterator tabIter = allTabs.begin();
-         tabIter != allTabs.end();
-         tabIter++) {
-        BrowserTabContent* tabContent = *tabIter;
-        OverlaySet* overlaySet = tabContent->getOverlaySet();
-        if (overlaySet != NULL) {
-            std::vector<int32_t> mapIndices;
-            overlaySet->getSelectedMapIndicesForFile(caretMappableDataFile,
-                                                     false,  /* true => enabled overlays */
-                                                     mapIndices);
-            mapIndicesOut.insert(mapIndicesOut.end(),
-                                 mapIndices.begin(),
-                                 mapIndices.end());
-        }
-    }
-    
-    /*
-     * Sort and remove all duplicates
-     */
-    if (mapIndicesOut.empty() == false) {
-        std::sort(mapIndicesOut.begin(),
-                  mapIndicesOut.end());
-        std::vector<int32_t>::iterator uniqueIter = std::unique(mapIndicesOut.begin(),
-                                                                mapIndicesOut.end());
-        mapIndicesOut.resize(std::distance(mapIndicesOut.begin(),
-                                        uniqueIter));
-    }
-}
-
-/**
  * Generate identification text for a data series chart.
  * @param htmlTableBuilder
  *     String builder for identification text.

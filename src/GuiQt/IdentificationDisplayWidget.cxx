@@ -410,7 +410,7 @@ IdentificationDisplayWidget::createFilteringSettingsWidget()
     IdentificationFilterTabSelectionEnum::getAllEnums(tabFilterEnums);
     for (auto tf : tabFilterEnums) {
         QRadioButton* rb = new QRadioButton(IdentificationFilterTabSelectionEnum::toGuiName(tf));
-        rb->setToolTip(IdentificationFilterTabSelectionEnum::toToolTip(tf));
+        WuQtUtilities::setWordWrappedToolTip(rb, IdentificationFilterTabSelectionEnum::toToolTip(tf));
         /* second argument is integer ID that encodes the integer for tab filtering enum */
         m_tabFilterButtonGroup->addButton(rb,
                                           IdentificationFilterTabSelectionEnum::toIntegerCode(tf));

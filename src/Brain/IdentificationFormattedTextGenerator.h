@@ -226,9 +226,6 @@ namespace caret {
         void generateChartTimeSeriesIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                        const SelectionItemChartTimeSeries* idChartTimeSeries) const;
         
-        void getMapIndicesOfFileUsedInOverlays(const CaretMappableDataFile* caretMappableDataFile,
-                                               std::vector<int32_t>& mapIndicesOut) const;
-        
         void generateChartDataSourceText(HtmlTableBuilder& htmlTableBuilder,
                                          const AString& typeOfChartText,
                                          const ChartDataSource* chartDataSource) const;

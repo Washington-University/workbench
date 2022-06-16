@@ -108,7 +108,7 @@ IdentificationFilterTabSelectionEnum::initialize()
 
     enumData.push_back(IdentificationFilterTabSelectionEnum(ALL_DISPLAYED_TABS, 
                                     "ALL_DISPLAYED_TABS", 
-                                    "All Tabs"));
+                                    "All Viewed Tabs"));
     
     enumData.push_back(IdentificationFilterTabSelectionEnum(MOUSE_CLICKED_TAB, 
                                     "MOUSE_CLICKED_TAB", 
@@ -378,13 +378,11 @@ IdentificationFilterTabSelectionEnum::toToolTip(Enum enumValue)
     
     switch (enumValue) {
         case ALL_DISPLAYED_TABS:
-            toolTip = ("Identify files in enabled overlays\n"
-                       "in all displayed tabs");
+            toolTip = ("If a single tab is dislayed, only its overlays are identified.  "
+                       "If Tile Tabs is enabled, overlays in all tabs are identified.");
             break;
         case MOUSE_CLICKED_TAB:
-            toolTip = ("Identify files in enabled overlays\n"
-                       "but only in the tab in which\n"
-                       "the mouse was clicked");
+            toolTip = ("Identify overlays from the tab in which the mouse is clicked.");
             break;
     }
     
