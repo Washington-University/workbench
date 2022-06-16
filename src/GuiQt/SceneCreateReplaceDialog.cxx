@@ -33,6 +33,7 @@
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "ApplicationInformation.h"
@@ -133,9 +134,28 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     QLabel* nameLabel = new QLabel("Name");
     m_nameLineEdit = new QLineEdit();
     
+    const QString sceneIdWarningToolTip("The BALSA Scene ID is an identifier created by BALSA.  ALTERING "
+                                        "THE BALSA SCENE ID MAY CORRUPT THE SCENE FILE.");
     QLabel* sceneIDLabel = new QLabel("BALSA Scene ID");
+    const QString sceneIdLineEditToolTip(sceneIdWarningToolTip
+                                         + "  Click the "
+                                         "\"Unlock\" button if you must edit the ID.");
     m_balsaSceneIDLineEdit = new QLineEdit();
-    m_balsaSceneIDLineEdit->setToolTip("Scene ID is for use with BALSA Database");
+    m_balsaSceneIDLineEdit->setReadOnly(true);
+    m_balsaSceneIDLineEdit->setMaxLength(10);
+    WuQtUtilities::setWordWrappedToolTip(m_balsaSceneIDLineEdit,
+                                         sceneIdLineEditToolTip);
+    
+    const QString balsaIdToolTipText("Click this button to unlock (lock) and enable (disable) editing of the "
+                                     "BALSA Scene ID.  "
+                                     + sceneIdWarningToolTip);
+    m_lockUnlockBalseSceneIdToolButton = new QToolButton();
+    m_lockUnlockBalseSceneIdToolButton->setText("Unlock");
+    WuQtUtilities::setWordWrappedToolTip(m_lockUnlockBalseSceneIdToolButton,
+                                         balsaIdToolTipText);
+    QObject::connect(m_lockUnlockBalseSceneIdToolButton, &QToolButton::clicked,
+                     this, &SceneCreateReplaceDialog::lockUnlockBalseSceneIdToolButtonClicked);
+    
     
     QPushButton* addWindowDescriptionPushButton = new QPushButton("Add Window Info");
     QObject::connect(addWindowDescriptionPushButton, &QPushButton::clicked,
@@ -143,6 +163,12 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     
     QLabel* descriptionLabel = new QLabel("Description");
     m_descriptionTextEdit = new QPlainTextEdit();
+    
+    QHBoxLayout* idLayout = new QHBoxLayout();
+    idLayout->setContentsMargins(0, 0, 0, 0);
+    idLayout->addWidget(m_balsaSceneIDLineEdit);
+    idLayout->addWidget(m_lockUnlockBalseSceneIdToolButton);
+    idLayout->addStretch();
     
     const Qt::Alignment labelAlignment = (Qt::AlignLeft | Qt::AlignTop);
     
@@ -163,7 +189,9 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     infoGridLayout->addWidget(sceneIDLabel,
                               rowCounter, labelColumn,
                               labelAlignment);
-    infoGridLayout->addWidget(m_balsaSceneIDLineEdit,
+//    infoGridLayout->addWidget(m_balsaSceneIDLineEdit,
+//                              rowCounter, widgetColumn);
+    infoGridLayout->addLayout(idLayout,
                               rowCounter, widgetColumn);
     rowCounter++;
     infoGridLayout->addWidget(descriptionLabel,
@@ -285,6 +313,31 @@ SceneCreateReplaceDialog::createNewScene(QWidget* parent,
     
     Scene* scene = dialog.m_sceneThatWasCreated;
     return scene;
+}
+
+/**
+ * Called when the scene ID lock unlock button is clicked
+ */
+void
+SceneCreateReplaceDialog::lockUnlockBalseSceneIdToolButtonClicked()
+{
+    if (m_balsaSceneIDLineEdit->isReadOnly()) {
+        m_balsaSceneIDLineEdit->setReadOnly(false);
+        const AString text("WARNING: Are you sure you want to edit the BALSA Scene ID?");
+        const AString infoText("Changing the BALSA Scene ID may corrupt the Scene File.  Editing of the "
+                               "Scene ID should only be performed by those with expert knowledge of the BALSA "
+                               "Database.");
+        if (WuQMessageBox::warningYesNo(m_lockUnlockBalseSceneIdToolButton,
+                                        text,
+                                        infoText,
+                                        WuQMessageBox::DefaultButtonYesNo::NO)) {
+            m_lockUnlockBalseSceneIdToolButton->setText("Lock");
+        }
+    }
+    else {
+        m_balsaSceneIDLineEdit->setReadOnly(true);
+        m_lockUnlockBalseSceneIdToolButton->setText("Unlock");
+    }
 }
 
 /**

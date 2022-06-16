@@ -53,6 +53,11 @@ namespace caret {
             CANCEL
         };
         
+        enum class DefaultButtonYesNo {
+            YES,
+            NO
+        };
+        
         static void errorOk(QWidget* parent,
                                   const QString& text);
         
@@ -96,9 +101,10 @@ namespace caret {
                                                       const QString& informativeText);
         
         static bool warningYesNo(QWidget* parent,
-                                    const QString& text,
-                                    const QString& informativeText);
-        
+                                 const QString& text,
+                                 const QString& informativeText,
+                                 const DefaultButtonYesNo defaultButton = DefaultButtonYesNo::YES);
+
         static YesNoCancelResult warningYesNoCancel(QWidget* parent,
                                                     const QString& text,
                                                     const QString& informativeText);

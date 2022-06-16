@@ -228,8 +228,9 @@ WuQMessageBox::warningOkCancel(QWidget* parent,
  */
 bool
 WuQMessageBox::warningYesNo(QWidget* parent,
-                               const QString& text,
-                               const QString& informativeText)
+                            const QString& text,
+                            const QString& informativeText,
+                            const DefaultButtonYesNo defaultButton)
 {
     QMessageBox msgBox(parent);
     msgBox.setIcon(QMessageBox::Warning);
@@ -240,7 +241,14 @@ WuQMessageBox::warningYesNo(QWidget* parent,
     }
     msgBox.addButton(QMessageBox::Yes);
     msgBox.addButton(QMessageBox::No);
-    msgBox.setDefaultButton(QMessageBox::Yes);
+    switch (defaultButton) {
+        case DefaultButtonYesNo::YES:
+            msgBox.setDefaultButton(QMessageBox::Yes);
+            break;
+        case DefaultButtonYesNo::NO:
+            msgBox.setDefaultButton(QMessageBox::No);
+            break;
+    }
     msgBox.setEscapeButton(QMessageBox::No);
     
     QMessageBox::StandardButton buttonPressed =

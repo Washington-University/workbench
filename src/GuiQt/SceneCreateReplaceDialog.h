@@ -27,7 +27,7 @@
 class QCheckBox;
 class QLineEdit;
 class QPlainTextEdit;
-
+class QToolButton;
 
 namespace caret {
 
@@ -92,6 +92,8 @@ namespace caret {
     private slots:
         void addWindowContentToolButtonClicked();
         
+        void lockUnlockBalseSceneIdToolButtonClicked();
+        
     private:
         // ADD_NEW_MEMBERS_HERE
 
@@ -109,6 +111,8 @@ namespace caret {
         QLineEdit* m_nameLineEdit;
         
         QLineEdit* m_balsaSceneIDLineEdit;
+        
+        QToolButton* m_lockUnlockBalseSceneIdToolButton;
         
         QPlainTextEdit* m_descriptionTextEdit;
         
