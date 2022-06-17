@@ -3423,6 +3423,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
     bool drawBackgroundSliceFlag(true);
     for (auto& volumeFileAndMapIndex : intensityVolumeFiles) {
         VolumeMappableInterface* volumeFile(volumeFileAndMapIndex.first);
+        const int32_t mapIndex(volumeFileAndMapIndex.second);
+        
         const SliceInfo sliceInfo(createSliceInfo3D());
         if (idModeFlag) {
             performIntensityIdentification(sliceInfo,
@@ -3476,7 +3478,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                 const Vector3D sliceCoords(p1 + stepVector * iStep);
                 const Vector3D sliceOffset(sliceCoords - sliceInfo.m_centerXYZ);
                 
-                const int32_t mapIndex(0); /* JWH */
                 GraphicsPrimitiveV3fT3f* primitive(volumeFile->getVolumeDrawingPrimitive(mapIndex,
                                                                                                DisplayGroupEnum::DISPLAY_GROUP_TAB,
                                                                                                m_tabIndex));
