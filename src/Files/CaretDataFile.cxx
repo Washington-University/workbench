@@ -80,8 +80,10 @@ SceneableInterface()
             supportsIdentificationAttributesFlag = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            supportsIdentificationAttributesFlag = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            supportsIdentificationAttributesFlag = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
             supportsIdentificationAttributesFlag = true;
@@ -132,8 +134,10 @@ SceneableInterface()
         case DataFileTypeEnum::UNKNOWN:
             break;
         case DataFileTypeEnum::VOLUME:
+            supportsIdentificationAttributesFlag = true;
             break;
         case DataFileTypeEnum::VOLUME_DYNAMIC:
+            supportsIdentificationAttributesFlag = true;
             break;
     }
 
