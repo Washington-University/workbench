@@ -2860,19 +2860,7 @@ GuiManager::saveToScene(const SceneAttributes* sceneAttributes,
             }
             break;
     }
-    
-    /*
-     * Save surface properties window
-     */
-    if (m_surfacePropertiesEditorDialog != NULL) {
-        sceneClass->addClass(m_surfacePropertiesEditorDialog->saveToScene(sceneAttributes,
-                                                                          "m_surfacePropertiesEditorDialog"));
-    }
-    if (m_volumePropertiesEditorDialog != NULL) {
-        sceneClass->addClass(m_volumePropertiesEditorDialog->saveToScene(sceneAttributes,
-                                                                         "m_volumePropertiesEditorDialog"));
-    }
-    
+        
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
@@ -3122,37 +3110,8 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
          * Restore Information Widgets (newer replacement for information display dialog)
          */
         EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
-        
-        /*
-         * Restore surface properties
-         */
-        progressEvent.setProgressMessage("Restoring Surface Properties Window");
-        EventManager::get()->sendEvent(progressEvent.getPointer());
-        const SceneClass* surfPropClass = sceneClass->getClass("m_surfacePropertiesEditorDialog");
-        if (surfPropClass != NULL) {
-            if (m_surfacePropertiesEditorDialog == NULL) {
-                processShowSurfacePropertiesEditorDialog(firstBrowserWindow);
-            }
-            else if ( ! m_surfacePropertiesEditorDialog->isVisible()) {
-                processShowSurfacePropertiesEditorDialog(firstBrowserWindow);
-            }
-            m_surfacePropertiesEditorDialog->restoreFromScene(sceneAttributes,
-                                                              surfPropClass);
-        }
-        
-        const SceneClass* volPropClass = sceneClass->getClass("m_volumePropertiesEditorDialog");
-        if (volPropClass != NULL) {
-            if (m_volumePropertiesEditorDialog == NULL) {
-                processShowVolumePropertiesEditorDialog(firstBrowserWindow);
-            }
-            else if ( ! m_volumePropertiesEditorDialog->isVisible()) {
-                processShowVolumePropertiesEditorDialog(firstBrowserWindow);
-            }
-            m_volumePropertiesEditorDialog->restoreFromScene(sceneAttributes,
-                                                             volPropClass);
-        }
-        
-        CaretLogFine("Time to restore information/property windows was "
+                
+        CaretLogFine("Time to restore information windows was "
                      + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                      + " seconds");
         timer.reset();
