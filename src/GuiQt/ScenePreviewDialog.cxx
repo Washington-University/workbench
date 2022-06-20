@@ -31,13 +31,12 @@
 #include "DataFileException.h"
 #include "ImageFile.h"
 #include "Scene.h"
+#include "SceneClassInfoWidget.h"
 #include "SceneDialog.h"
 #include "SceneInfo.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
-
-
     
 /**
  * \class caret::ScenePreviewDialog 

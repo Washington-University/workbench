@@ -205,12 +205,14 @@ ELSE()
         RegionOfInterestCreateFromBorderDialog.h
 	ScaleBarWidget.h
         SceneBasePathWidget.h
+	SceneClassInfoWidget.h
         SceneCreateReplaceDialog.h
         SceneDialog.h
         SceneFileInformationDialog.h
         SceneDataFileTreeItemModel.h
         ScenePreviewDialog.h
         SceneReplaceAllDialog.h
+	SceneSelectionWidget.h
         SceneShowOptionsDialog.h
         SpecFileManagementDialog.h
         StructureEnumComboBox.h
@@ -511,6 +513,7 @@ RecentFilesTableWidget.h
 RegionOfInterestCreateFromBorderDialog.h
 ScaleBarWidget.h
 SceneBasePathWidget.h
+SceneClassInfoWidget.h
 SceneCreateReplaceDialog.h
 SceneDialog.h
 SceneFileInformationDialog.h
@@ -518,6 +521,7 @@ SceneDataFileTreeItem.h
 SceneDataFileTreeItemModel.h
 ScenePreviewDialog.h
 SceneReplaceAllDialog.h
+SceneSelectionWidget.h
 SceneShowOptionsDialog.h
 SceneWindowGeometry.h
 SpecFileManagementDialog.h
@@ -836,6 +840,7 @@ RecentFilesTableWidget.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 ScaleBarWidget.cxx
 SceneBasePathWidget.cxx
+SceneClassInfoWidget.cxx
 SceneCreateReplaceDialog.cxx
 SceneDialog.cxx
 SceneFileInformationDialog.cxx
@@ -843,6 +848,7 @@ SceneDataFileTreeItem.cxx
 SceneDataFileTreeItemModel.cxx
 ScenePreviewDialog.cxx
 SceneReplaceAllDialog.cxx
+SceneSelectionWidget.cxx
 SceneShowOptionsDialog.cxx
 SceneWindowGeometry.cxx
 SpecFileManagementDialog.cxx

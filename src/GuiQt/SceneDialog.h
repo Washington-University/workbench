@@ -251,8 +251,6 @@ namespace caret {
         
         QScrollArea* m_sceneSelectionScrollArea;
         
-        QWidget* m_sceneSelectionWidget;
-        
         QVBoxLayout* m_sceneSelectionLayout;
         
         std::vector<SceneClassInfoWidget*> m_sceneClassInfoWidgets;
@@ -278,79 +276,6 @@ namespace caret {
         static bool s_useSceneForegroundBackgroundColorsFlag;
     };
     
-    class SceneClassInfoWidget : public QGroupBox {
-        Q_OBJECT
-      
-    public:
-        SceneClassInfoWidget();
-        
-        ~SceneClassInfoWidget();
-        
-        void updateContent(Scene* scene,
-                           const int32_t sceneIndex,
-                           const bool activeSceneFlag);
-        
-        void setBackgroundForSelected(const bool selected);
-        
-        Scene* getScene();
-        
-        int32_t getSceneIndex() const;
-        
-        bool isValid() const;
-        
-        static void getFormattedTextForSceneNameAndDescription(const SceneInfo* sceneInfo,
-                                                               const int32_t sceneIndex,
-                                                               AString& nameTextOut,
-                                                               AString& sceneIdTextOut,
-                                                               AString& abbreviatedDescriptionTextOut,
-                                                               AString& fullDescriptionTextOut,
-                                                               const bool scenePreviewDialogFlag);
-        
-    signals:
-        /**
-         * Emited when user activates (double clicks) this widget.
-         */
-        void activated(const int32_t sceneIndex);
-        
-        /**
-         * Emited when user highlights (clicks) this widget.
-         */
-        void highlighted(const int32_t sceneIndex);
-        
-    protected:
-        virtual void mousePressEvent(QMouseEvent* event);
-        
-        virtual void mouseDoubleClickEvent(QMouseEvent* event);
-        
-    private:
-        static void limitToNumberOfLines(AString& textLines,
-                                         const int32_t maximumNumberOfLines);
-        
-        QWidget* m_leftSideWidget;
-        
-        QWidget* m_rightSideWidget;
-        
-        QLabel* m_previewImageLabel;
-        
-        QLabel* m_activeSceneLabel;
-        
-        QLabel* m_nameLabel;
-        
-        QLabel* m_sceneIdLabel;
-        
-        QLabel* m_descriptionLabel;
-        
-        Scene* m_scene;
-        
-        int32_t m_sceneIndex;
-        
-        bool m_previewImageValid;
-        
-        bool m_defaultAutoFillBackgroundStatus;
-        
-        QPalette::ColorRole m_defaultBackgroundRole;
-        
-    };
 #ifdef __SCENE_DIALOG_DECLARE__
     const AString SceneDialog::PREFERRED_IMAGE_FORMAT = "jpg";
     bool SceneDialog::s_informUserAboutScenesOnExitFlag = true;
