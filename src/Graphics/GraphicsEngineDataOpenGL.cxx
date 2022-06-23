@@ -470,7 +470,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
          *
          * glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
          *            0,                 // level of detail 0=base, n is nth mipmap reduction
-         *            GL_RGBA,           // number of components
+         *            GL_RGBA,           // internal format
          *            imageWidth,        // width of image
          *            imageHeight,       // height of image
          *            0,                 // border
@@ -482,7 +482,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
         
         
         const int errorCode = gluBuild2DMipmaps(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
-                                                GL_RGBA,           // number of components
+                                                GL_RGBA,           // internal format
                                                 imageWidth,        // width of image
                                                 imageHeight,       // height of image
                                                 pixelDataFormat,   // format of the pixel data
@@ -507,7 +507,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
     if ( ! useMipMapFlag) {
         glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
                      0,                 // level of detail 0=base, n is nth mipmap reduction
-                     GL_RGBA,           // number of components
+                     GL_RGBA,           // internal format
                      imageWidth,        // width of image
                      imageHeight,       // height of image
                      0,                 // border
@@ -657,7 +657,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
         
         CaretLogWarning("Generate 3D mip maps has not been tested");
         const int errorCode = gluBuild3DMipmaps(GL_TEXTURE_3D,     // MUST BE GL_TEXTURE_2D
-                                                GL_RGBA,           // number of components
+                                                GL_RGBA,           // internal format
                                                 imageWidth,        // width of image
                                                 imageHeight,       // height of image
                                                 imageSlices,       // slices of image
@@ -684,7 +684,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
     if ( ! useMipMapFlag) {
         glTexImage3D(GL_TEXTURE_3D,     // MUST BE GL_TEXTURE_2D
                      0,                 // level of detail 0=base, n is nth mipmap reduction
-                     GL_RGBA,           // number of components
+                     GL_RGBA,           // internal format
                      imageWidth,        // width of volume
                      imageHeight,       // height of volume
                      imageSlices,       // slices of volume

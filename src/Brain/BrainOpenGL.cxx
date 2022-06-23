@@ -964,6 +964,55 @@ BrainOpenGL::getOpenGLInformation()
     lineInfo += ("\nTexture 3D Max: " + AString::number(texture3DMax));
     lineInfo += "\n";
 
+    GLint numCompTexFormats(0);
+    glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &numCompTexFormats);
+    lineInfo += ("\nNum Compressed Texture Formats: " + AString::number(numCompTexFormats));
+    
+    if (numCompTexFormats > 0) {
+        std::vector<GLint> compTextureFormats;
+        compTextureFormats.resize(numCompTexFormats);
+        glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, &compTextureFormats[0]);
+        for (GLint fmt : compTextureFormats) {
+            QString name;
+            switch (fmt) {
+                case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+                    name = "GL_COMPRESSED_RGB_S3TC_DXT1_EXT";
+                    break;
+                case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+                    name = "GL_COMPRESSED_RGBA_S3TC_DXT1_EXT";
+                    break;
+                case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+                    name = "GL_COMPRESSED_RGBA_S3TC_DXT3_EXT";
+                    break;
+                case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+                    name = "GL_COMPRESSED_RGBA_S3TC_DXT5_EXT";
+                    break;
+            }
+            lineInfo += ("\n   Comp Texture Format: "
+                         + AString::number(fmt)
+                         + " 0x"
+                         + AString::number(fmt, 16)
+                         + " "
+                         + name);
+        }
+    }
+
+    GLint numCompTexFormatsARB(0);
+    glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS_ARB, &numCompTexFormatsARB);
+    lineInfo += ("\nNum ARB Compressed Texture Formats: " + AString::number(numCompTexFormatsARB));
+    
+    if (numCompTexFormatsARB > 0) {
+        std::vector<GLint> compTextureFormats;
+        compTextureFormats.resize(numCompTexFormats);
+        glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS_ARB, &compTextureFormats[0]);
+        for (GLint fmt : compTextureFormats) {
+            lineInfo += ("\n   ARB Comp Texture Format: "
+                         + AString::number(fmt)
+                         + " 0x"
+                         + AString::number(fmt, 16));
+        }
+    }
+
     lineInfo += "\n";
     lineInfo += "\n";
     lineInfo += "Note that State of OpenGL may be different when drawing objects.\n";
