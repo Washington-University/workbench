@@ -2442,7 +2442,7 @@ ImageFile::getPixelIdentificationTextForFrames(const int32_t tabIndex,
 bool
 ImageFile::pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& /*pixelLogicalIndex*/,
                                       const bool /*includeNonlinearFlag*/,
-                                      std::array<float, 3>& /*xyzOut*/) const
+                                      Vector3D& /*xyzOut*/) const
 {
     /* Not supported, no stereotaxic coordinates for images */
     return false;
@@ -2460,7 +2460,7 @@ ImageFile::pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& /*pixelLogicalInd
  *    True if successful, else false.
  */
 bool
-ImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& /*xyz*/,
+ImageFile::stereotaxicXyzToPixelIndex(const Vector3D& /*xyz*/,
                                       const bool /*includeNonlinearFlag*/,
                                       PixelLogicalIndex& /*pixelLogicalIndexOut*/) const
 {
@@ -2482,7 +2482,7 @@ ImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& /*xyz*/,
  *    True if successful, else false.
  */
 bool
-ImageFile::findPixelNearestStereotaxicXYZ(const std::array<float, 3>& /*xyz*/,
+ImageFile::findPixelNearestStereotaxicXYZ(const Vector3D& /*xyz*/,
                                           const bool /*includeNonLinearFlag*/,
                                           float& /*signedDistanceToPixelMillimetersOut*/,
                                           PixelLogicalIndex& /*pixelLogicalIndexOut*/) const

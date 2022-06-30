@@ -47,7 +47,9 @@ SceneableInterface()
 {
     initializeInstance();
     m_voxelIJK.fill(-1);
-    m_stereotaxicXYZ.fill(0.0f);
+    m_stereotaxicXYZ[0] = 0.0;
+    m_stereotaxicXYZ[1] = 0.0;
+    m_stereotaxicXYZ[2] = 0.0;
 }
 
 /**
@@ -85,7 +87,7 @@ IdentifiedItemUniversal::IdentifiedItemUniversal(const IdentifiedItemUniversalTy
                                                  const int32_t surfaceVertexIndex,
                                                  const PixelLogicalIndex& pixelLogicalIndex,
                                                  const std::array<int64_t, 3>& voxelIJK,
-                                                 const std::array<float, 3>& stereotaxicXYZ,
+                                                 const Vector3D& stereotaxicXYZ,
                                                  const bool stereotaxicXYZValidFlag)
 : CaretObject(),
 SceneableInterface(),
@@ -128,7 +130,7 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
 {
     AString dataFileName;
     PixelLogicalIndex pixelLogicalIndex;
-    const std::array<float, 3> stereotaxicXYZ { 0.0f, 0.0f, 0.0f };
+    const Vector3D stereotaxicXYZ { 0.0f, 0.0f, 0.0f };
     const bool stereotaxicXYZValidFlag(false);
     const StructureEnum::Enum structure(StructureEnum::INVALID);
     const int32_t surfaceNumberOfVertices(-1);
@@ -172,7 +174,7 @@ IdentifiedItemUniversal::newInstanceMediaIdentification(const AString& simpleTex
                                                         const AString& formattedText,
                                                         const AString& dataFileName,
                                                         const PixelLogicalIndex& pixelLogicalIndex,
-                                                        const std::array<float, 3>& stereotaxicXYZ,
+                                                        const Vector3D& stereotaxicXYZ,
                                                         const bool stereotaxicXYZValidFlag)
 {
     const StructureEnum::Enum structure(StructureEnum::INVALID);
@@ -220,7 +222,7 @@ IdentifiedItemUniversal::newInstanceSurfaceIdentification(const AString& simpleT
                                                           const StructureEnum::Enum structure,
                                                           const int32_t surfaceNumberOfVertices,
                                                           const int32_t surfaceVertexIndex,
-                                                          const std::array<float, 3>& stereotaxicXYZ)
+                                                          const Vector3D& stereotaxicXYZ)
 {
     std::array<int64_t, 3> voxelIJK;
     voxelIJK.fill(0);
@@ -259,7 +261,7 @@ IdentifiedItemUniversal::newInstanceVolumeIdentification(const AString& simpleTe
                                                          const AString& formattedText,
                                                          const AString& dataFileName,
                                                          const std::array<int64_t, 3>& voxelIJK,
-                                                         const std::array<float, 3>& stereotaxicXYZ)
+                                                         const Vector3D& stereotaxicXYZ)
 {
     const StructureEnum::Enum structure(StructureEnum::INVALID);
     const int32_t surfaceNumberOfVertices(-1);
@@ -296,7 +298,7 @@ IdentifiedItemUniversal::newInstanceFromOldIdentification(const IdentifiedItemBa
     
     AString dataFileName;
     if (vertexID != NULL) {
-        const std::array<float, 3> stereotaxicXYZ { 0.0f, 0.0f, 0.0f };
+        const Vector3D stereotaxicXYZ { 0.0f, 0.0f, 0.0f };
         item = newInstanceSurfaceIdentification(vertexID->getSimpleText(),
                                                 vertexID->getFormattedText(),
                                                 dataFileName,
@@ -307,8 +309,8 @@ IdentifiedItemUniversal::newInstanceFromOldIdentification(const IdentifiedItemBa
         item->m_stereotaxicXYZValidFlag = false;
     }
     else if (voxelID != NULL) {
-        std::array<float, 3> xyz;
-        voxelID->getXYZ(xyz.data());
+        Vector3D xyz;
+        voxelID->getXYZ(xyz);
         std::array<int64_t, 3> voxelIJK = { -1, -1, -1 };
         item = newInstanceVolumeIdentification(voxelID->getSimpleText(),
                                                voxelID->getFormattedText(),
@@ -468,7 +470,7 @@ IdentifiedItemUniversal::initializeInstance()
     m_sceneAssistant->add("m_surfaceVertexIndex", &m_surfaceVertexIndex);
     m_sceneAssistant->add("m_pixelIndex", "PixelLogicalIndex", &m_pixelLogicalIndex); /* "m_pixelIndex" is compatible with old scenes */
     m_sceneAssistant->addArray("m_voxelIJK", m_voxelIJK.data(), m_voxelIJK.size(), -1);
-    m_sceneAssistant->addArray("m_stereotaxicXYZ", m_stereotaxicXYZ.data(), m_stereotaxicXYZ.size(), 0.0);
+    m_sceneAssistant->addArray("m_stereotaxicXYZ", m_stereotaxicXYZ, 3, 0.0);
     m_sceneAssistant->add("m_stereotaxicXYZValidFlag", &m_stereotaxicXYZValidFlag);
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_symbolColor", &m_symbolColor);
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_contralateralSymbolColor", &m_contralateralSymbolColor);
@@ -485,7 +487,7 @@ IdentifiedItemUniversal::getToolTip() const
 {
     const AString xyzText(m_stereotaxicXYZValidFlag
                           ? ("<br>XYZ ("
-                             + AString::fromNumbers(m_stereotaxicXYZ.data(), 3, ", ")
+                             + AString::fromNumbers(m_stereotaxicXYZ, 3, ", ")
                              + ")")
                           : "");
     
@@ -691,7 +693,7 @@ IdentifiedItemUniversal::getVoxelIJK() const
 /**
  * @return The stereotaxic coordinate
  */
-std::array<float, 3>
+Vector3D
 IdentifiedItemUniversal::getStereotaxicXYZ() const
 {
     return m_stereotaxicXYZ;
@@ -703,7 +705,7 @@ IdentifiedItemUniversal::getStereotaxicXYZ() const
  *    new XYZ coordinate
  */
 void
-IdentifiedItemUniversal::setStereotaxicXYZ(const std::array<float, 3>& xyz)
+IdentifiedItemUniversal::setStereotaxicXYZ(const Vector3D& xyz)
 {
     m_stereotaxicXYZ = xyz;
 }
@@ -743,7 +745,7 @@ IdentifiedItemUniversal::toString() const
                        + ", m_surfaceVertexIndex=" + AString::number(m_surfaceVertexIndex)
                        + ", m_pixelLogicalIndex=" + m_pixelLogicalIndex.toString()
                        + ", m_voxelIJK=" + AString::fromNumbers(m_voxelIJK.data(), m_voxelIJK.size(), ", ")
-                       + ", m_stereotaxicXYZ=" + AString::fromNumbers(m_stereotaxicXYZ.data(), m_stereotaxicXYZ.size(), ", ")
+                       + ", m_stereotaxicXYZ=" + AString::fromNumbers(m_stereotaxicXYZ, 3, ", ")
                        + ", m_stereotaxicXYZValidFlag=" + AString::fromBool(m_stereotaxicXYZValidFlag)
                        + ", m_symbolColor=" + CaretColorEnum::toName(m_symbolColor)
                        + ", m_contralateralSymbolColor=" + CaretColorEnum::toName(m_contralateralSymbolColor)

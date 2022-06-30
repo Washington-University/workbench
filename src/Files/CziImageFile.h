@@ -144,13 +144,13 @@ namespace caret {
         
         virtual bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
                                                 const bool includeNonlinearFlag,
-                                                std::array<float, 3>& xyzOut) const override;
+                                                Vector3D& xyzOut) const override;
         
-        virtual bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+        virtual bool stereotaxicXyzToPixelIndex(const Vector3D& xyz,
                                                 const bool includeNonlinearFlag,
                                                 PixelLogicalIndex& pixelLogicalIndexOut) const override;
         
-        virtual bool findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
+        virtual bool findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
                                                     const bool includeNonLinearFlag,
                                                     float& signedDistanceToPixelMillimetersOut,
                                                     PixelLogicalIndex& pixelLogicalIndexOut) const override;
@@ -312,7 +312,7 @@ namespace caret {
         public:
             TestTransformResult(const PixelLogicalIndex& pixel,
                                 const PixelLogicalIndex& pixelTwo,
-                                const std::array<float, 3>& xyz,
+                                const Vector3D& xyz,
                                 const int64_t dI,
                                 const int64_t dJ,
                                 const float dIJK)
@@ -325,7 +325,7 @@ namespace caret {
 
             const PixelLogicalIndex m_pixel;
             const PixelLogicalIndex m_pixelTwo;
-            const std::array<float, 3> m_xyz;
+            const Vector3D m_xyz;
             const int64_t m_dI;
             const int64_t m_dJ;
             const float m_dIJK;
@@ -361,13 +361,13 @@ namespace caret {
         
         bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
                                         const bool includeNonlinearFlag,
-                                        std::array<float, 3>& xyzOut,
-                                        std::array<float, 3>& debugPixelIndexOut) const;
+                                        Vector3D& xyzOut,
+                                        Vector3D& debugPixelIndexOut) const;
 
-        bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+        bool stereotaxicXyzToPixelIndex(const Vector3D& xyz,
                                         const bool includeNonlinearFlag,
                                         PixelLogicalIndex& pixelLogicalIndex,
-                                        const std::array<float, 3>& debugPixelIndex) const;
+                                        const Vector3D& debugPixelIndex) const;
         
         PixelCoordinate getPixelSizeInMillimeters() const;
         

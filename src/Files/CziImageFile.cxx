@@ -1296,15 +1296,15 @@ CziImageFile::getPixelIdentificationTextForFrames(const int32_t tabIndex,
     columnOneTextOut.push_back(mmText);
     columnTwoTextOut.push_back("");
     
-    std::array<float, 3> xyz;
+    Vector3D xyz;
     if (pixelIndexToStereotaxicXYZ(pixelLogicalIndex, false, xyz)) {
         columnOneTextOut.push_back("Stereotaxic XYZ");
-        columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
+        columnTwoTextOut.push_back(AString::fromNumbers(xyz, 3, ", "));
     }
     
     if (pixelIndexToStereotaxicXYZ(pixelLogicalIndex, true, xyz)) {
         columnOneTextOut.push_back("Stereotaxic XYZ with NIFTI warping");
-        columnTwoTextOut.push_back(AString::fromNumbers(xyz.data(), 3, ", "));
+        columnTwoTextOut.push_back(AString::fromNumbers(xyz, 3, ", "));
     }
 
     for (int32_t i = 0; i < numRgbaText; i++) {
@@ -1338,9 +1338,9 @@ CziImageFile::getPixelIdentificationTextForFrames(const int32_t tabIndex,
 bool
 CziImageFile::pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
                                          const bool includeNonlinearFlag,
-                                         std::array<float, 3>& xyzOut) const
+                                         Vector3D& xyzOut) const
 {
-    std::array<float, 3> debugPixelIndex;
+    Vector3D debugPixelIndex;
     return pixelIndexToStereotaxicXYZ(pixelLogicalIndex,
                                       includeNonlinearFlag,
                                       xyzOut,
@@ -1364,12 +1364,14 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIn
 bool
 CziImageFile::pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
                                          const bool includeNonlinearFlag,
-                                         std::array<float, 3>& xyzOut,
-                                         std::array<float, 3>& debugPixelIndexOut) const
+                                         Vector3D& xyzOut,
+                                         Vector3D& debugPixelIndexOut) const
 {
     const PixelIndex pixelIndexOriginAtTop(pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
-    debugPixelIndexOut.fill(-1);
-    
+    debugPixelIndexOut[0] = -1;
+    debugPixelIndexOut[1] = -1;
+    debugPixelIndexOut[2] = -1;
+
     /*
      * Load NIFTI transform file if we have not tried to load in previously
      */
@@ -1399,11 +1401,10 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIn
          * Scale pixel index from full resolution to resolution
          * contained in the NIFTI transform file
          */
-        std::array<float, 4> pt {
+        Vector3D pt {
             static_cast<float>(MathFunctions::round(pixelI * m_pixelToStereotaxicTransform.m_pixelScaleI)),
             static_cast<float>(MathFunctions::round(pixelJ * m_pixelToStereotaxicTransform.m_pixelScaleJ)),
-            0.0f,
-            1.0f
+            0.0f
         };
         
         const int64_t niftiI(pt[0]);
@@ -1416,7 +1417,7 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIn
         /*
          * Use matrix to convert pixel index to coordinate
          */
-        m_pixelToStereotaxicTransform.m_sformMatrix->multiplyPoint4(pt.data());
+        m_pixelToStereotaxicTransform.m_sformMatrix->multiplyPoint3(pt);
         
         if (includeNonlinearFlag
             && m_pixelToStereotaxicTransform.m_niftiFile) {
@@ -1467,11 +1468,11 @@ CziImageFile::pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIn
  *    True if successful, else false.
  */
 bool
-CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+CziImageFile::stereotaxicXyzToPixelIndex(const Vector3D& xyz,
                                          const bool includeNonlinearFlag,
                                          PixelLogicalIndex& pixelLogicalIndexOut) const
 {
-    std::array<float, 3> debugPixelIndex;
+    Vector3D debugPixelIndex;
     if (stereotaxicXyzToPixelIndex(xyz,
                                    includeNonlinearFlag,
                                    pixelLogicalIndexOut,
@@ -1496,10 +1497,10 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
  *    True if successful, else false.
  */
 bool
-CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+CziImageFile::stereotaxicXyzToPixelIndex(const Vector3D& xyz,
                                          const bool includeNonlinearFlag,
                                          PixelLogicalIndex& pixelLogicalIndex,
-                                         const std::array<float, 3>& debugPixelIndex) const
+                                         const Vector3D& debugPixelIndex) const
 {
     pixelLogicalIndex.setIJK(-1, -1, -1);
     
@@ -1598,8 +1599,8 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
         /*
          * Use matrix to convert coordinate to 'mri space' pixel index
          */
-        std::array<float, 4> pt { xyz[0], xyz[1], xyz[2], 1.0 };
-        m_stereotaxicToPixelTransform.m_sformMatrix->multiplyPoint4(pt.data());
+        Vector3D pt { xyz[0], xyz[1], xyz[2] };
+        m_stereotaxicToPixelTransform.m_sformMatrix->multiplyPoint3(pt);
         pt[0] = MathFunctions::round(pt[0]);
         pt[1] = MathFunctions::round(pt[1]);
         pt[2] = MathFunctions::round(pt[2]);
@@ -1623,12 +1624,11 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
                 pt[0] = xyz[0] + dx;
                 pt[1] = xyz[1] + dy;
                 pt[2] = xyz[2] + dz;
-                pt[3] = 1;
                 
                 /*
                  * Multiply new XYZ to get pixel index
                  */
-                m_stereotaxicToPixelTransform.m_sformMatrix->multiplyPoint4(pt.data());
+                m_stereotaxicToPixelTransform.m_sformMatrix->multiplyPoint3(pt);
             }
             else {
                 CaretLogFine("("
@@ -1648,21 +1648,20 @@ CziImageFile::stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
          * Round a copy before printing.
          * Note: Keep fractional parts for later convertion to full res pixel indices
          */
-        std::array<float, 4> ptRounded {
+        Vector3D ptRounded {
             static_cast<float>(MathFunctions::round(pt[0])),
             static_cast<float>(MathFunctions::round(pt[1])),
-            static_cast<float>(MathFunctions::round(pt[2])),
-            static_cast<float>(MathFunctions::round(pt[3]))
+            static_cast<float>(MathFunctions::round(pt[2]))
         };
         
         CaretLogFine("\n"
                      + AString(includeNonlinearFlag ? "With NIFTI warping ": "")
                      + "XYZ to Pixel Index Test: "
-                     + AString::fromNumbers(ptRounded.data(), 3, ", ")
+                     + AString::fromNumbers(ptRounded)
                      + "\n"
                      + AString(includeNonlinearFlag ? "With NIFTI warping ": "")
                      + "    Correct pixel index: "
-                     + AString::fromNumbers(debugPixelIndex.data(), debugPixelIndex.size(), ", "));
+                     + AString::fromNumbers(debugPixelIndex));
         
         /*
          * Convert to full-resolution pixel index
@@ -1734,7 +1733,7 @@ CziImageFile::testPixelTransforms(const int32_t pixelIndexStep,
     for (int32_t iRow = 0; iRow < numRows; iRow += pixelIndexStep) {
         for (int32_t iCol = 0; iCol < numCols; iCol += pixelIndexStep) {
             const PixelLogicalIndex pixelLogicalIndex(iCol, iRow, 0);
-            std::array<float, 3> xyz;
+            Vector3D xyz;
             if ( ! pixelIndexToStereotaxicXYZ(pixelLogicalIndex,
                                               nonLinearFlag,
                                               xyz)) {
@@ -1750,7 +1749,7 @@ CziImageFile::testPixelTransforms(const int32_t pixelIndexStep,
                 resultsMessageOut.appendWithNewLine("Failed to convert pixel to xyz.  Pixel="
                                                     + pixelLogicalIndexTwo.toString()
                                                     + " and XYZ=("
-                                                    + AString::fromNumbers(xyz.data(), 3, ",")
+                                                    + AString::fromNumbers(xyz, 3, ",")
                                                     + " back to pixel index.");
                 continue;
                 
@@ -1878,7 +1877,7 @@ CziImageFile::testPixelTransforms(const int32_t pixelIndexStep,
  *    True if successful, else false.
  */
 bool
-CziImageFile::findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
+CziImageFile::findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
                                              const bool includeNonLinearFlag,
                                              float& signedDistanceToPixelMillimetersOut,
                                              PixelLogicalIndex& pixelLogicalIndexOut) const
@@ -1888,14 +1887,14 @@ CziImageFile::findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
         return false;
     }
     
-    std::array<float, 3> xyzOnPlane;
-    plane->projectPointToPlane(xyz.data(), xyzOnPlane.data());
+    Vector3D xyzOnPlane;
+    plane->projectPointToPlane(xyz, xyzOnPlane);
     
     if (stereotaxicXyzToPixelIndex(xyzOnPlane,
                                    includeNonLinearFlag,
                                    pixelLogicalIndexOut)) {
         if (isPixelIndexValid(pixelLogicalIndexOut)) {
-            signedDistanceToPixelMillimetersOut = plane->absoluteDistanceToPlane(xyz.data());
+            signedDistanceToPixelMillimetersOut = plane->absoluteDistanceToPlane(xyz);
             return true;
         }
     }
@@ -1942,7 +1941,7 @@ CziImageFile::getImagePlane() const
     /*
      * Convert pixel indices to XYZ coordinates
      */
-    std::array<float, 3> bottomLeftXYZ, topLeftXYZ, topRightXYZ;
+    Vector3D bottomLeftXYZ, topLeftXYZ, topRightXYZ;
     const bool nonLinearFlag(true);
     if (pixelIndexToStereotaxicXYZ(bottomLeftPixel, nonLinearFlag, bottomLeftXYZ)
         && pixelIndexToStereotaxicXYZ(topLeftPixel, nonLinearFlag, topLeftXYZ)
@@ -1950,9 +1949,9 @@ CziImageFile::getImagePlane() const
         /*
          * Create the plane from XYZ coordinates
          */
-        m_imagePlane.reset(new Plane(bottomLeftXYZ.data(),
-                                     topLeftXYZ.data(),
-                                     topRightXYZ.data()));
+        m_imagePlane.reset(new Plane(bottomLeftXYZ,
+                                     topLeftXYZ,
+                                     topRightXYZ));
         if (m_imagePlane->isValidPlane()) {
             return m_imagePlane.get();
         }
@@ -2080,18 +2079,17 @@ CziImageFile::loadNiftiTransformFile(const AString& filename,
             
             AString pixelStepText;
             if (CaretLogger::getLogger()->isFine()) {
-                std::array<float, 4> p1 { 0.0, 0.0, 0.0, 1.0 };
-                transform.m_sformMatrix->multiplyPoint4(p1.data());
-                std::array<float, 4> p2 { 1.0, 1.0, 1.0, 1.0 };
-                transform.m_sformMatrix->multiplyPoint4(p2.data());
-                std::array<float, 4> stepXYZ {
+                Vector3D p1 { 0.0, 0.0, 0.0 };
+                transform.m_sformMatrix->multiplyPoint3(p1);
+                Vector3D p2 { 1.0, 1.0, 1.0 };
+                transform.m_sformMatrix->multiplyPoint3(p2);
+                Vector3D stepXYZ {
                     p2[0] - p1[0],
                     p2[1] - p1[1],
                     p2[2] - p1[2],
-                    p2[3] - p1[3]
                 };
                 pixelStepText = ("Pixel Step (0, 0, 0) to (1, 1, 1): "
-                                 + AString::fromNumbers(stepXYZ.data(), 3, ", "));
+                                 + AString::fromNumbers(stepXYZ));
             }
         }
         catch (const DataFileException& dfe) {

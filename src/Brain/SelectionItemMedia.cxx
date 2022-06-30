@@ -170,7 +170,7 @@ SelectionItemMedia::setIncludePixelRGBA(const bool status)
  * @return True if output coordinate is valid, else false.
  */
 bool
-SelectionItemMedia::getStereotaxicXYZ(std::array<float, 3>& stereotaxicXYZOut)
+SelectionItemMedia::getStereotaxicXYZ(Vector3D& stereotaxicXYZOut)
 {
     const CziImageFile* cziImageFile = m_mediaFile->castToCziImageFile();
     if (cziImageFile != NULL) {

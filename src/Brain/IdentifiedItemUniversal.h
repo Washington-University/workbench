@@ -31,6 +31,7 @@
 #include "PixelLogicalIndex.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
+#include "Vector3D.h"
 
 namespace caret {
 
@@ -47,7 +48,7 @@ namespace caret {
                                                                        const AString& formattedText,
                                                                        const AString& dataFileName,
                                                                        const PixelLogicalIndex& pixelLogicalIndex,
-                                                                       const std::array<float, 3>& stereotaxicXYZ,
+                                                                       const Vector3D& stereotaxicXYZ,
                                                                        const bool stereotaxicXYZValidFlag);
 
         static IdentifiedItemUniversal* newInstanceSurfaceIdentification(const AString& simpleText,
@@ -56,13 +57,13 @@ namespace caret {
                                                                          const StructureEnum::Enum structure,
                                                                          const int32_t surfaceNumberOfVertices,
                                                                          const int32_t surfaceVertexIndex,
-                                                                         const std::array<float, 3>& stereotaxicXYZ);
+                                                                         const Vector3D& stereotaxicXYZ);
 
         static IdentifiedItemUniversal* newInstanceVolumeIdentification(const AString& simpleText,
                                                                         const AString& formattedText,
                                                                         const AString& dataFileName,
                                                                         const std::array<int64_t, 3>& voxelIJK,
-                                                                        const std::array<float, 3>& stereotaxicXYZ);
+                                                                        const Vector3D& stereotaxicXYZ);
         
         static IdentifiedItemUniversal* newInstanceFromOldIdentification(const IdentifiedItemBase* oldItem);
 
@@ -107,9 +108,9 @@ namespace caret {
         
         std::array<int64_t, 3> getVoxelIJK() const;
         
-        std::array<float, 3> getStereotaxicXYZ() const;
+        Vector3D getStereotaxicXYZ() const;
         
-        void setStereotaxicXYZ(const std::array<float, 3>& xyz);
+        void setStereotaxicXYZ(const Vector3D& xyz);
         
         bool isStereotaxicXYZValid() const;
         
@@ -139,7 +140,7 @@ namespace caret {
                                 const int32_t surfaceVertexIndex,
                                 const PixelLogicalIndex& pixelLogicalIndex,
                                 const std::array<int64_t, 3>& voxelIJK,
-                                const std::array<float, 3>& stereotaxicXYZ,
+                                const Vector3D& stereotaxicXYZ,
                                 const bool stereotaxicXYZValidFlag);
         
         void copyHelperIdentifiedItemUniversal(const IdentifiedItemUniversal& obj);
@@ -168,7 +169,7 @@ namespace caret {
         
         std::array<int64_t, 3> m_voxelIJK;
         
-        std::array<float, 3> m_stereotaxicXYZ;
+        Vector3D m_stereotaxicXYZ;
         
         bool m_stereotaxicXYZValidFlag = false;
 

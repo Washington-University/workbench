@@ -54,7 +54,7 @@ namespace caret {
         
         int32_t getTabIndex() const;
         
-        bool getStereotaxicXYZ(std::array<float, 3>& stereotaxicXYZOut);
+        bool getStereotaxicXYZ(Vector3D& stereotaxicXYZOut);
         
         void setOverlayIndex(const int32_t tabIndex);
         

@@ -508,11 +508,11 @@ BrainOpenGLMediaDrawing::processMediaFileSelection(const int32_t tabIndex,
             const float mouseY(this->m_fixedPipelineDrawing->mouseY);
             
             float windowXYZ[3] { mouseX, mouseY, 0.0 };
-            std::array<float, 3> logicalXYZ;
-            xform.inverseTransformPoint(windowXYZ, logicalXYZ.data());
+            Vector3D logicalXYZ;
+            xform.inverseTransformPoint(windowXYZ, logicalXYZ);
             
             logicalXYZ[2] = 0.0;
-            PixelLogicalIndex pixelLogicalIndex(logicalXYZ.data());
+            PixelLogicalIndex pixelLogicalIndex(logicalXYZ);
             
             /*
              * Frame indices to test
@@ -555,7 +555,7 @@ BrainOpenGLMediaDrawing::processMediaFileSelection(const int32_t tabIndex,
                 idMedia->setPixelLogicalIndex(pixelLogicalIndex);
                 idMedia->setMediaFile(mediaFile);
                 uint8_t pixelByteRGBA[4] = { 0, 0, 0, 0 };
-                idMedia->setModelXYZ(logicalXYZ.data());
+                idMedia->setModelXYZ(logicalXYZ);
                 idMedia->setScreenXYZ(windowXYZ);
                 idMedia->setScreenDepth(0.0);
                 if (idMedia->isIncludePixelRGBA()) {

@@ -135,13 +135,13 @@ public:
 
     virtual bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
                                             const bool includeNonlinearFlag,
-                                            std::array<float, 3>& xyzOut) const override;
+                                            Vector3D& xyzOut) const override;
     
-    virtual bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+    virtual bool stereotaxicXyzToPixelIndex(const Vector3D& xyz,
                                             const bool includeNonlinearFlag,
                                             PixelLogicalIndex& pixelLogicalIndexOut) const override;
     
-    virtual bool findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
+    virtual bool findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
                                                 const bool includeNonLinearFlag,
                                                 float& signedDistanceToPixelMillimetersOut,
                                                 PixelLogicalIndex& pixelLogicalIndexOut) const override;

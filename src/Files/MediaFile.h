@@ -21,8 +21,6 @@
  */
 /*LICENSE_END*/
 
-
-#include <array>
 #include <memory>
 
 #include <QRectF>
@@ -144,13 +142,13 @@ namespace caret {
 
         virtual bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
                                                 const bool includeNonlinearFlag,
-                                                std::array<float, 3>& xyzOut) const = 0;
+                                                Vector3D& xyzOut) const = 0;
         
-        virtual bool stereotaxicXyzToPixelIndex(const std::array<float, 3>& xyz,
+        virtual bool stereotaxicXyzToPixelIndex(const Vector3D& xyz,
                                                 const bool includeNonlinearFlag,
                                                 PixelLogicalIndex& pixelLogicalIndexOut) const = 0;
         
-        virtual bool findPixelNearestStereotaxicXYZ(const std::array<float, 3>& xyz,
+        virtual bool findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
                                                     const bool includeNonLinearFlag,
                                                     float& signedDistanceToPixelMillimetersOut,
                                                     PixelLogicalIndex& pixelLogicalIndexOut) const = 0;

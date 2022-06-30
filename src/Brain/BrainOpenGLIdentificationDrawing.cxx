@@ -470,7 +470,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
         ++selectionItemIndex;
         bool drawFlag(false);
         bool contralateralFlag(false);
-        std::array<float, 3> xyz { 0.0f, 0.0f, 0.0f };
+        Vector3D xyz(0.0f, 0.0f, 0.0f);
         switch (item->getType()) {
             case IdentifiedItemUniversalTypeEnum::INVALID:
                 break;
@@ -550,7 +550,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         }
                         if (drawFlag) {
                             surface->getCoordinate(item->getSurfaceVertexIndex(),
-                                                   xyz.data());
+                                                   xyz);
                         }
                     }
                     else {
@@ -591,7 +591,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             if (drawingOnSurfaceFlag) {
                 if (m_clippingPlaneGroup->isSurfaceSelected()) {
                     if ( ! m_fixedPipelineDrawing->isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
-                                                                                                xyz.data())) {
+                                                                                                xyz)) {
                         drawFlag = false;
                     }
                 }
@@ -619,7 +619,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         if (drawFlag) {
                             const Surface* anatSurface = m_brain->getPrimaryAnatomicalSurfaceForStructure(surface->getStructure());
                             if (anatSurface != NULL) {
-                                const int32_t nearestVertexIndex = anatSurface->closestNode(xyz.data(),
+                                const int32_t nearestVertexIndex = anatSurface->closestNode(xyz,
                                                                                             maxDistanceMM);
                                 if (nearestVertexIndex >= 0) {
                                     /*
@@ -627,7 +627,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                      */
                                     CaretAssert(surface);
                                     surface->getCoordinate(nearestVertexIndex,
-                                                           xyz.data());
+                                                           xyz);
                                 }
                                 else {
                                     /*
@@ -651,10 +651,10 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     /*
                      * Is symbol near plane of slice?
                      */
-                    const float dist = std::fabs(plane.signedDistanceToPlane(xyz.data()));
+                    const float dist = std::fabs(plane.signedDistanceToPlane(xyz));
                     if (dist <= halfSliceThickness) {
-                        std::array<float, 3> xyzProjected;
-                        plane.projectPointToPlane(xyz.data(), xyzProjected.data());
+                        Vector3D xyzProjected;
+                        plane.projectPointToPlane(xyz, xyzProjected);
                         xyz = xyzProjected;
                         drawFlag = true;
                     }
@@ -768,7 +768,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                 idPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, symbolDiameter);
                 
             }
-            idPrimitive->addVertex(xyz.data(),
+            idPrimitive->addVertex(xyz,
                                    symbolRGBA.data());
             GraphicsEngineDataOpenGL::draw(idPrimitive.get());
         }
@@ -811,8 +811,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     universalSymbolSelection->setIdentifiedItemUniqueIdentifier(selectedItem->getUniqueIdentifier());
                     universalSymbolSelection->setScreenDepth(depth);
                     universalSymbolSelection->setBrain(m_brain);
-                    const std::array<float, 3> xyz = selectedItem->getStereotaxicXYZ();
-                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(universalSymbolSelection, xyz.data());
+                    const Vector3D xyz = selectedItem->getStereotaxicXYZ();
+                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(universalSymbolSelection, xyz);
                     CaretLogFine("Selected Universal Identification Symbol: " + QString::number(idIndex));
                 }
             }

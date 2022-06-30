@@ -3662,7 +3662,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 xyz[2] = -10000000.0;
             }
             
-            std::array<float, 3> stereotaxicXYZ { xyz[0], xyz[1], xyz[2] };
+            Vector3D stereotaxicXYZ { xyz[0], xyz[1], xyz[2] };
             identifiedItem = IdentifiedItemUniversal::newInstanceSurfaceIdentification(identificationMessage,
                                                                                        formattedIdentificationMessage,
                                                                                        surface->getFileNameNoPath(),
@@ -3701,7 +3701,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                ? caretDataFile->getFileNameNoPath()
                                                : "");
                     std::array<int64_t, 3> voxelIdIJK { voxelIJK[0], voxelIJK[1], voxelIJK[2] };
-                    std::array<float, 3> stereotaxicXYZ { xyz[0], xyz[1], xyz[2] };
+                    Vector3D stereotaxicXYZ { xyz[0], xyz[1], xyz[2] };
                     identifiedItem = IdentifiedItemUniversal::newInstanceVolumeIdentification(identificationMessage,
                                                                                               formattedIdentificationMessage,
                                                                                               dataFileName,
@@ -3733,7 +3733,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                         dataFileName = idMedia->getMediaFile()->getFileNameNoPath();
                     }
                     const PixelLogicalIndex pixelLogicalIndex = idMedia->getPixelLogicalIndex();
-                    std::array<float, 3> stereotaxicXYZ;
+                    Vector3D stereotaxicXYZ;
                     bool stereotaxicXYZValidFlag = idMedia->getStereotaxicXYZ(stereotaxicXYZ);
                     identifiedItem = IdentifiedItemUniversal::newInstanceMediaIdentification(identificationMessage,
                                                                                              formattedIdentificationMessage,
