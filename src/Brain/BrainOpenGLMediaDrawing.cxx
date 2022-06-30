@@ -114,7 +114,7 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
         MediaFile* mediaFile(displayedMediaFiles[i]);
         CaretAssertVectorIndex(displayedverlayIndices, i);
         
-        const QRectF logicalRect(mediaFile->getLogicalBoundsRect());
+        const QRectF logicalRect(mediaFile->getDrawingBoundsRect());
         if (i == 0) {
             boundingRect = logicalRect;
         }

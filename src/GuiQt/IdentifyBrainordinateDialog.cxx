@@ -164,6 +164,8 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
             case DataFileTypeEnum::CZI_IMAGE_FILE:
                 imageFlag = true;
                 break;
+            case DataFileTypeEnum::CZI_META_FILE:
+                break;
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::LABEL:

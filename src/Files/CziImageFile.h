@@ -32,6 +32,7 @@
 #include "CziImageResolutionChangeModeEnum.h"
 #include "EventListenerInterface.h"
 #include "SingleChannelPyramidLevelTileAccessor.h"
+#include "Matrix4x4.h"
 #include "MediaFile.h"
 #include "PixelIndex.h"
 #include "Plane.h"
@@ -166,10 +167,16 @@ namespace caret {
 
         virtual QRectF getLogicalBoundsRect() const override;
         
+        virtual QRectF getDrawingBoundsRect() const override;
+        
         bool exportToImageFile(const QString& imageFileName,
                                const int32_t maximumWidthHeight,
                                const bool includeAlphaFlag,
                                AString& errorMessageOut);
+        
+        void setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
+                                    const Matrix4x4& planeToMillimetersMatrix,
+                                    const bool matixValidFlag);
         
         // ADD_NEW_METHODS_HERE
 
@@ -430,6 +437,8 @@ namespace caret {
         
         bool testReadingSmallImage(AString& errorMessageOut);
         
+        void resetMatrices();
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         Status m_status = Status::CLOSED;
@@ -474,12 +483,25 @@ namespace caret {
         
         int32_t m_maximumImageDimension = 2048;
         
+        Matrix4x4 m_indexToPlaneMatrix;
+        
+        Matrix4x4 m_planeToIndexMatrix;
+        
+        Matrix4x4 m_planeToMillimetersMatrix;
+
+        bool m_indexToPlaneMatrixValidFlag = false;
+        
+        bool m_planeToIndexMatrixValidFlag = false;
+        
+        bool m_planeToMillimetersMatrixValidFlag = false;
+        
         static const int32_t s_allFramesIndex;
         
         // ADD_NEW_MEMBERS_HERE
 
         friend class CziImage;
         friend class CziImageLoaderMultiResolution;
+        friend class CziMetaFileXmlStreamReader;
         
     };
     

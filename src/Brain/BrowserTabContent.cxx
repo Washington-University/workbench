@@ -2478,6 +2478,8 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                         break;
                     case DataFileTypeEnum::CZI_IMAGE_FILE:
                         break;
+                    case DataFileTypeEnum::CZI_META_FILE:
+                        break;
                     case DataFileTypeEnum::FOCI:
                         break;
                     case DataFileTypeEnum::IMAGE:

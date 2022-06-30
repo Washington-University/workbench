@@ -287,6 +287,13 @@ DataFileTypeEnum::initialize()
                                         false,             /* ext below begins with dot */
                                         DataFileTypeEnum::toCziImageFileExtension().mid(1)));
     
+    enumData.push_back(DataFileTypeEnum(CZI_META_FILE,
+                                        "CZI_META_FILE",
+                                        "CZI Meta",
+                                        "CZI META",
+                                        false,             /* ext below begins with dot */
+                                        DataFileTypeEnum::toCziMetaImageFileExtension().mid(1)));
+    
     enumData.push_back(DataFileTypeEnum(FOCI,
                                         "FOCI",
                                         "Foci",
@@ -821,6 +828,8 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
                 break;
             case DataFileTypeEnum::CZI_IMAGE_FILE:
                 break;
+            case DataFileTypeEnum::CZI_META_FILE:
+                break;
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::IMAGE:
@@ -1153,6 +1162,8 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
             case DataFileTypeEnum::CZI_IMAGE_FILE:
                 break;
             case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::CZI_META_FILE:
                 break;
             case DataFileTypeEnum::IMAGE:
                 break;

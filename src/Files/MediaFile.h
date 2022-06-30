@@ -157,6 +157,8 @@ namespace caret {
         
         virtual QRectF getLogicalBoundsRect() const;
         
+        virtual QRectF getDrawingBoundsRect() const;
+        
         virtual PixelIndex pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const;
         
         virtual PixelLogicalIndex pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const;

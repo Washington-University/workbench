@@ -106,6 +106,8 @@ SceneableInterface()
         case DataFileTypeEnum::CZI_IMAGE_FILE:
             supportsIdentificationAttributesFlag = true;
             break;
+        case DataFileTypeEnum::CZI_META_FILE:
+            break;
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::IMAGE:
@@ -589,7 +591,7 @@ CaretDataFile::castToCziImageFile()
 }
 
 /**
- * @return File casted to an image file (avoids use of dynamic_cast that can be slow)
+ * @return File casted to a CZI image file (avoids use of dynamic_cast that can be slow)
  * Overidden in ImageFile
  */
 const CziImageFile*
@@ -597,7 +599,6 @@ CaretDataFile::castToCziImageFile() const
 {
     return NULL;
 }
-
 
 /**
  * @return File casted to an image file (avoids use of dynamic_cast that can be slow)

@@ -518,3 +518,109 @@ XmlStreamReaderHelper::throwDataFileException(const QString message)
 }
 
 
+/**
+ * Get the string value for the given attribute name from the
+ * given attributes.  If the attribute name is not found or
+ * its value is an empty string, QXmlStreamReader::raiseError() is called.
+ * Caller can test for error by calling QxmlStreamReader::hasError()
+ *
+ * @param elementName
+ *     Name of element containing the attributes.
+ * @param attributeName
+ *     Name of the attribute.
+ * @param alternateAttributeNameOne
+ *     Use if attributeName is not found.
+ * @param alternateAttributeNameTwo
+ *     Use if neither attributeName nor alternateAttributeNameOne is not found.
+ * @return
+ *     String value for the attribute.
+ */
+QString
+XmlStreamReaderHelper::getRequiredStringAttributeRaiseError(const QString& elementName,
+                                                            const QString& attributeName,
+                                                            const QString& alternateAttributeNameOne,
+                                                            const QString& alternateAttributeNameTwo) const
+{
+    const QXmlStreamAttributes& attributes(m_stream->attributes());
+    QString valueString;
+    
+    QString foundAttributeName;
+    
+    if (attributes.hasAttribute(attributeName)) {
+        foundAttributeName = attributeName;
+    }
+    else if (( ! alternateAttributeNameOne.isEmpty())
+             && attributes.hasAttribute(alternateAttributeNameOne)) {
+        foundAttributeName = alternateAttributeNameOne;
+    }
+    else if (( ! alternateAttributeNameTwo.isEmpty())
+             && attributes.hasAttribute(alternateAttributeNameTwo)) {
+        foundAttributeName = alternateAttributeNameTwo;
+    }
+    
+    if ( ! foundAttributeName.isEmpty()) {
+        valueString = attributes.value(foundAttributeName).toString();
+        if (valueString.isEmpty()) {
+            m_stream->raiseError("Value for attribute "
+                                 + foundAttributeName
+                                 + " in element "
+                                 + elementName
+                                 + " is empty");
+        }
+    }
+    else {
+        m_stream->raiseError(attributeName
+                             + " is missing from element "
+                             + elementName);
+    }
+    
+    return valueString;
+}
+
+/**
+ * Get the int value for the given attribute name from the
+ * given attributes.  If the attribute name is not found,
+ * its value is an empty string, or value does not convert to an int,
+ * QXmlStreamReader::raiseError() is called.
+ * Caller can test for error by calling QxmlStreamReader::hasError()
+ *
+ * @param elementName
+ *     Name of element containing the attributes.
+ * @param attributeName
+ *     Name of the attribute.
+ * @param alternateAttributeNameOne
+ *     Use if attributeName is not found.
+ * @param alternateAttributeNameTwo
+ *     Use if neither attributeName nor alternateAttributeNameOne is not found.
+ * @return
+ *     Int value for the attribute.
+ */
+int32_t
+XmlStreamReaderHelper::getRequiredIntAttributeRaiseError(const QString& elementName,
+                                                         const QString& attributeName,
+                                                         const QString& alternateAttributeNameOne,
+                                                         const QString& alternateAttributeNameTwo) const
+{
+    const QString stringValue(getRequiredStringAttributeRaiseError(elementName,
+                                                                   attributeName,
+                                                                   alternateAttributeNameOne,
+                                                                   alternateAttributeNameTwo));
+    if (m_stream->hasError()) {
+        return 0;
+    }
+    
+    bool ok(false);
+    const int32_t intValue(stringValue.toInt(&ok));
+    if ( ! ok) {
+        m_stream->raiseError("Value for attribute "
+                             + attributeName
+                             + " in element "
+                             + elementName
+                             + " does not convert to an int, value=\""
+                             + stringValue
+                             + "\"");
+
+    }
+
+    return intValue;
+}

@@ -149,6 +149,8 @@ CziImageFile::resetPrivate()
             m_tabOverlayInfo[iTab][iOverlay]->resetContent();
         }
     }
+    
+    resetMatrices();
 }
 
 /**
@@ -2195,6 +2197,16 @@ CziImageFile::getLogicalBoundsRect() const
 }
 
 /**
+ * @return Return a rectangle containing bounds media for drawing.
+ * Unless overridden, same as getLogicalBoundRect().
+ */
+QRectF
+CziImageFile::getDrawingBoundsRect() const
+{
+    return getLogicalBoundsRect();
+}
+
+/**
  * Get the image loader for the given tab and overlay
  * @param tabIndex
  *    Index of the tab
@@ -2979,4 +2991,166 @@ CziImageFile::TabOverlayInfo::resetContent()
     m_multiResolutionImageLoader.reset();
 }
 
+static void
+indexToPlaneTest(const Matrix4x4& indexToPlane,
+                 const Matrix4x4& planeToMM,
+                 const int32_t i,
+                 const int32_t j,
+                 const AString& name)
+{
+    Vector3D ij(j,
+                i,
+                1.0f);
+    
+    Vector3D xy(ij);
+    indexToPlane.multiplyPoint3(xy);
+    float y = xy[0];  // yes correct Y is first
+    float x = xy[1];
+    std::cout << name << " plane i, j, k: " << i << ", " << j << " xyz: " << x << ", " << y << ", " << xy[2] << std::endl;
+    
+    planeToMM.multiplyPoint3(xy);
+    y = xy[0];
+    x = xy[1];
+    std::cout << "         mm x, y, z: " << i << ", " << j << " xyz: " << x << ", " << y << ", " << xy[2] << std::endl;
+}
+
+static void
+indexToPlaneTest(const Matrix4x4& scaledToPlane,
+                 const Matrix4x4& shiftMat,
+                 const Matrix4x4& scaleMat,
+                 const Matrix4x4& planeToMM,
+                 const int32_t i,
+                 const int32_t j,
+                 const AString& name)
+{
+    const Vector3D ij(j,
+                      i,
+                      1.0f);
+    Vector3D xy(j,
+                i,
+                1.0f);
+    
+    std::cout << "Input (i, j): " << i << ", " << j << " " << name << std::endl;
+    shiftMat.multiplyPoint3(xy);
+    std::cout << "   After Shift (x, y, z): " << xy[1] << ", " << xy[0] << ", " << xy[2] <<std::endl;
+    scaleMat.multiplyPoint3(xy);
+    std::cout << "   After scale (x, y, z): " << xy[1] << ", " << xy[0] << ", " << xy[2] <<std::endl;
+    scaledToPlane.multiplyPoint3(xy);
+    std::cout << "   Result (x, y, z): " << xy[1] << ", " << xy[0] << ", " << xy[2] <<std::endl;
+
+    planeToMM.multiplyPoint3(xy);
+    std::cout << "   Result Spatial (x, y, z): " << xy[1] << "mm, " << xy[0] << ", " << xy[2] << "mm" << std::endl;
+
+//    float y = xy[0];  // yes correct Y is first
+//    float x = xy[1];
+//    std::cout << name << " i, j: " << i << ", " << j << " xy: " << x << ", " << y << std::endl;
+}
+
+/**
+ * Reset the matrices.
+ */
+void
+CziImageFile::resetMatrices()
+{
+    
+    m_indexToPlaneMatrix.identity();
+    m_planeToIndexMatrix.identity();
+    m_planeToMillimetersMatrix.identity();
+    
+    m_indexToPlaneMatrixValidFlag       = false;
+    m_planeToIndexMatrixValidFlag       = false;
+    m_planeToMillimetersMatrixValidFlag = false;
+}
+
+/**
+ * Set the matrix for display drawing.
+ * @param scaledToPlaneMatrix
+ *    The scaled to plane matrix.
+ * @param planeToMillimetersMatrix
+ *    Matrix for converting from plane coords to millimeter coords
+ * @param matixValidFlag
+ *    True if the matrix is valid.
+ */
+void
+CziImageFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
+                                     const Matrix4x4& planeToMillimetersMatrix,
+                                     const bool matixValidFlag)
+{
+    resetMatrices();
+    
+    if ( ! matixValidFlag) {
+        return;
+    }
+    
+    m_planeToMillimetersMatrix = planeToMillimetersMatrix;
+    m_planeToMillimetersMatrixValidFlag = true;
+    
+    
+    /*
+     * Translate by 1/2 pixel (move to center of pixel)
+     */
+    Matrix4x4 shiftMat;
+    shiftMat.identity();
+    shiftMat.setTranslation(0.5,
+                            0.5,
+                            0.0);
+    
+    /*
+     * Matrix to convert pixel range so zero to one
+     */
+    const float scaleFactor(std::max(getWidth(), getHeight()));
+    CaretAssert(scaleFactor >= 1.0);
+    Matrix4x4 scaleMat;
+    scaleMat.identity();
+    scaleMat.scale((1.0 / scaleFactor),
+                   (1.0 / scaleFactor),
+                   1.0);
+    
+//    Matrix4x4 indexToPlane = matrix;
+//    indexToPlane.postmultiply(scaleMat);
+//    indexToPlane.postmultiply(shiftMat);
+//    indexToPlaneTest(indexToPlane, 0, 0, "top left");
+//    indexToPlaneTest(indexToPlane, getWidth() - 1, 0, "top right");
+//    indexToPlaneTest(indexToPlane, 0, getHeight() - 1, "bottom left");
+//    indexToPlaneTest(indexToPlane, getWidth() - 1, getHeight() - 1, "bottom right");
+//    std::cout << "-------------------------------" << std::endl;
+//    {
+    Matrix4x4 indexToPlane = scaledToPlaneMatrix;
+    indexToPlane.premultiply(scaleMat);
+    indexToPlane.premultiply(shiftMat);
+    
+    
+    const bool testFlag(true);
+    if (testFlag) {
+        std::cout << "---- File: " << getFileName() << std::endl;
+        std::cout << "Shift Mat: " << shiftMat.toString() << std::endl;
+        std::cout << "Scale Mat: " << scaleMat.toString() << std::endl;
+        std::cout << "ScaledToPlane: " << scaledToPlaneMatrix.toString() << std::endl;
+        std::cout << "PlaneToMM" << m_planeToMillimetersMatrix.toString() << std::endl;
+        std::cout << "Index to Plane: " << indexToPlane.toString() << std::endl;
+        std::cout << "Start Index to Plane ----------" << std::endl;
+        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, 0, 0, "top left");
+        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, getWidth() - 1, 0, "top right");
+        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, 0, getHeight() - 1, "bottom left");
+        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, getWidth() - 1, getHeight() - 1, "bottom right");
+        std::cout << "-------------------------------" << std::endl;
+//    }
+    
+//    {
+        std::cout << "Separate ----------" << std::endl;
+        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, 0, 0, "top left");
+        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, getWidth() - 1, 0, "top right");
+        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, 0, getHeight() - 1, "bottom left");
+        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, getWidth() - 1, getHeight() - 1, "bottom right");
+        std::cout << "-------------------------------" << std::endl;
+    }
+    
+    m_indexToPlaneMatrix = indexToPlane;
+    m_indexToPlaneMatrixValidFlag = true;
+    
+    m_planeToIndexMatrix = m_indexToPlaneMatrix;
+    if (m_planeToIndexMatrix.invert()) {
+        m_planeToIndexMatrixValidFlag = true;
+    }
+}
 

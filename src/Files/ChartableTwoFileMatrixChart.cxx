@@ -129,6 +129,8 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 break;
             case DataFileTypeEnum::CZI_IMAGE_FILE:
                 break;
+            case DataFileTypeEnum::CZI_META_FILE:
+                break;
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::IMAGE:

@@ -831,6 +831,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::CZI_IMAGE_FILE:
                     haveCziImages = true;
                     break;
+                case DataFileTypeEnum::CZI_META_FILE:
+                    break;
                 case DataFileTypeEnum::FOCI:
                     haveFoci = true;
                     break;

@@ -233,6 +233,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
         case DataFileTypeEnum::CZI_IMAGE_FILE:
+        case DataFileTypeEnum::CZI_META_FILE:
         case DataFileTypeEnum::FOCI:
         case DataFileTypeEnum::IMAGE:
         case DataFileTypeEnum::LABEL:
@@ -812,6 +813,7 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
         case DataFileTypeEnum::CZI_IMAGE_FILE:
+        case DataFileTypeEnum::CZI_META_FILE:
         case DataFileTypeEnum::FOCI:
         case DataFileTypeEnum::IMAGE:
         case DataFileTypeEnum::LABEL:
@@ -2143,6 +2145,8 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
             break;
         case DataFileTypeEnum::CZI_IMAGE_FILE:
+            break;
+        case DataFileTypeEnum::CZI_META_FILE:
             break;
         case DataFileTypeEnum::FOCI:
             break;
@@ -5373,6 +5377,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
             break;
         case DataFileTypeEnum::CZI_IMAGE_FILE:
+            CaretAssert(0);
+            break;
+        case DataFileTypeEnum::CZI_META_FILE:
             CaretAssert(0);
             break;
         case DataFileTypeEnum::FOCI:

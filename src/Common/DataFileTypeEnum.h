@@ -71,6 +71,8 @@ public:
         CONNECTIVITY_SCALAR_DATA_SERIES,
         /** Zeiss CZI Image File */
         CZI_IMAGE_FILE,
+        /** Meta File for CZI */
+        CZI_META_FILE,
         /** Foci */
         FOCI,
         /** Image */
@@ -190,6 +192,8 @@ public:
     static void getQtSupportedMovieFileExtensions(std::vector<AString>& readableExtensionsOut);
     
     static AString toCziImageFileExtension() { return ".czi"; }
+    
+    static AString toCziMetaImageFileExtension() { return ".metaczi"; }
     
 private:
     DataFileTypeEnum(const Enum enumValue, 

@@ -460,6 +460,8 @@ IdentificationSimpleTextGenerator::generateVolumeIdentificationText(Identificati
                                 break;
                             case DataFileTypeEnum::CZI_IMAGE_FILE:
                                 break;
+                            case DataFileTypeEnum::CZI_META_FILE:
+                                break;
                             case DataFileTypeEnum::FOCI:
                                 break;
                             case DataFileTypeEnum::IMAGE:
@@ -618,6 +620,8 @@ IdentificationSimpleTextGenerator::generateSurfaceIdentificationText(Identificat
                 case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                     break;
                 case DataFileTypeEnum::CZI_IMAGE_FILE:
+                    break;
+                case DataFileTypeEnum::CZI_META_FILE:
                     break;
                 case DataFileTypeEnum::FOCI:
                     break;

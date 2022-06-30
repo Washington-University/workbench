@@ -80,6 +80,16 @@ namespace caret {
         
         void throwDataFileException(const QString message);
         
+        QString getRequiredStringAttributeRaiseError( const QString& elementName,
+                                                     const QString& attributeName,
+                                                     const QString& alternateAttributeNameOne = "",
+                                                     const QString& alternateAttributeNameTwo = "") const;
+
+        int32_t getRequiredIntAttributeRaiseError(const QString& elementName,
+                                                  const QString& attributeName,
+                                                  const QString& alternateAttributeNameOne = "",
+                                                  const QString& alternateAttributeNameTwo = "") const;
+        
     private:
         XmlStreamReaderHelper(const XmlStreamReaderHelper&);
 

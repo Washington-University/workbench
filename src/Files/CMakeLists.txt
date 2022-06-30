@@ -80,6 +80,9 @@ CziImageFile.h
 CziImageLoaderBase.h
 CziImageLoaderMultiResolution.h
 CziImageResolutionChangeModeEnum.h
+CziMetaFile.h
+CziMetaFileXmlStreamBase.h
+CziMetaFileXmlStreamReader.h
 CziPixelCoordSpaceEnum.h
 CziUtilities.h
 EventCaretDataFilesGet.h
@@ -234,6 +237,9 @@ CziImageFile.cxx
 CziImageLoaderBase.cxx
 CziImageLoaderMultiResolution.cxx
 CziImageResolutionChangeModeEnum.cxx
+CziMetaFile.cxx
+CziMetaFileXmlStreamBase.cxx
+CziMetaFileXmlStreamReader.cxx
 CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
 EventCaretDataFilesGet.cxx

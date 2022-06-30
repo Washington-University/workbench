@@ -257,3 +257,14 @@ MediaFile::getLogicalBoundsRect() const
     return rect;
 }
 
+/**
+ * @return Return a rectangle containing bounds media for drawing.
+ * Unless overridden, same as getLogicalBoundRect().
+ */
+QRectF
+MediaFile::getDrawingBoundsRect() const
+{
+    return getLogicalBoundsRect();
+}
+
+

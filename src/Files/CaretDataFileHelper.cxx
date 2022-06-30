@@ -44,6 +44,7 @@
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiScalarDataSeriesFile.h"
 #include "CziImageFile.h"
+#include "CziMetaFile.h"
 #include "FileInformation.h"
 #include "FociFile.h"
 #include "ImageFile.h"
@@ -359,6 +360,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
             break;
         case DataFileTypeEnum::CZI_IMAGE_FILE:
             caretDataFile = new CziImageFile();
+            break;
+        case DataFileTypeEnum::CZI_META_FILE:
+            caretDataFile = new CziMetaFile();
             break;
         case DataFileTypeEnum::FOCI:
             caretDataFile = new FociFile();
