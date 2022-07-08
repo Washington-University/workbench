@@ -144,6 +144,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+    m_mediaDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PIXEL;
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
     
     m_displayVolumeAxesCrosshairs = prefs->isVolumeAxesCrosshairsDisplayed();
@@ -262,6 +263,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                                                        &m_chartModelYokingGroup);
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_mediaModelYokingGroup",
                                                                        &m_mediaModelYokingGroup);
+    
+    m_sceneClassAssistant->add<MediaDisplayCoordinateModeEnum, MediaDisplayCoordinateModeEnum::Enum>("m_mediaDisplayCoordinateMode",
+                                                                                                     &m_mediaDisplayCoordinateMode);
     
     m_sceneClassAssistant->add("m_scaleBar",
                                "AnnotationScaleBar",
@@ -412,6 +416,8 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     
     m_lightingEnabled = tabToClone->m_lightingEnabled;
 
+    m_mediaDisplayCoordinateMode = tabToClone->m_mediaDisplayCoordinateMode;
+    
     m_mprRotationX = tabToClone->m_mprRotationX;
     m_mprRotationY = tabToClone->m_mprRotationY;
     m_mprRotationZ = tabToClone->m_mprRotationZ;
@@ -1218,6 +1224,25 @@ BrowserTabContent::getDisplayedMediaFiles() const
     return names;
 }
 
+/**
+ * @return Media display coordinate mode
+ */
+MediaDisplayCoordinateModeEnum::Enum
+BrowserTabContent::getMediaDisplayCoordinateMode() const
+{
+    return m_mediaDisplayCoordinateMode;
+}
+
+/**
+ * Set the media display coordinate mode
+ * @param mediaDisplayCoordinateMode
+ *    New media display coordinate mode
+ */
+void
+BrowserTabContent::setMediaDisplayCoordinateMode(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordinateMode)
+{
+    m_mediaDisplayCoordinateMode = mediaDisplayCoordinateMode;
+}
 
 /**
  * Get all axes for chart two models (histogram, lines matrix) that are yoked with the given axes and range mode

@@ -248,6 +248,75 @@ MediaFile::pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const
 }
 
 /**
+ * Convert a pixel index to a plane XYZ.  If not supported, output is same as input.
+ * @param pixelIndex
+ *    Index of pixel
+ * @param planeXyzOut
+ *    Output with XYZ in plane
+ * @return True if successful, else false.
+ */
+bool
+MediaFile::pixelIndexToPlaneXYZ(const PixelIndex& pixelIndex,
+                                  Vector3D& planeXyzOut) const
+{
+    planeXyzOut[0] = pixelIndex.getI();
+    planeXyzOut[1] = pixelIndex.getJ();
+    planeXyzOut[2] = pixelIndex.getK();
+    return false;
+}
+
+/**
+ * Convert a pixel index to a plane XYZ.  If not supported, output is same as input.
+ * @param pixelIndex
+ *    Index of pixel
+ * @param planeXyzOut
+ *    Output with XYZ in plane
+ * @return True if successful, else false.
+ */
+bool
+MediaFile::logicalPixelIndexToPlaneXYZ(const PixelLogicalIndex& pixelLogicalIndex,
+                                         Vector3D& planeXyzOut) const
+{
+    planeXyzOut[0] = pixelLogicalIndex.getI();
+    planeXyzOut[1] = pixelLogicalIndex.getJ();
+    planeXyzOut[2] = pixelLogicalIndex.getK();
+    return false;
+}
+
+/**
+ * Convert a pixel XYZ to a pixel index.  If not supported, output is same as input.
+ * @param planeXyz
+ *     XYZ in plane
+ * @param pixelIndexOut
+ *    Index of pixel
+ * @return True if successful, else false.
+ */
+bool
+MediaFile::planeXyzToPixelIndex(const Vector3D& planeXyz,
+                                  PixelIndex& pixelIndexOut) const
+{
+    pixelIndexOut.setIJK(planeXyz);
+    return false;
+}
+
+/**
+ * Convert a pixel XYZ to a logical pixel index.  If not supported, output is same as input.
+ * @param planeXyz
+ *     XYZ in plane
+ * @param logicalPixelIndexOut
+ *    Index of pixel
+ * @return True if successful, else false.
+ */
+bool
+MediaFile::planeXyzToLogicalPixelIndex(const Vector3D& planeXyz,
+                                         PixelLogicalIndex& pixelLogicalIndexOut) const
+{
+    pixelLogicalIndexOut.setIJK(planeXyz);
+    return false;
+}
+
+
+/**
  * @return Return a rectangle that defines the bounds of the media data
  */
 QRectF
@@ -257,14 +326,5 @@ MediaFile::getLogicalBoundsRect() const
     return rect;
 }
 
-/**
- * @return Return a rectangle containing bounds media for drawing.
- * Unless overridden, same as getLogicalBoundRect().
- */
-QRectF
-MediaFile::getDrawingBoundsRect() const
-{
-    return getLogicalBoundsRect();
-}
 
 

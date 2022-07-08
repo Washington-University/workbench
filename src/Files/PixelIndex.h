@@ -28,6 +28,7 @@
 #include "CaretObject.h"
 
 #include "SceneableInterface.h"
+#include "Vector3D.h"
 #include "VoxelIJK.h"
 
 namespace caret {
@@ -118,7 +119,7 @@ namespace caret {
          * @param ijk
          *    The "ijk" components
          */
-        inline void setIJK(const std::array<float, 3>& ijk) {
+        inline void setIJK(const Vector3D& ijk) {
             m_pixelIndices.m_ijk[0] = static_cast<int64_t>(ijk[0]);
             m_pixelIndices.m_ijk[1] = static_cast<int64_t>(ijk[1]);
             m_pixelIndices.m_ijk[2] = static_cast<int64_t>(ijk[2]);

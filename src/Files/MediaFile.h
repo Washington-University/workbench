@@ -26,6 +26,7 @@
 #include <QRectF>
 
 #include "CaretDataFile.h"
+#include "MediaDisplayCoordinateModeEnum.h"
 #include "NiftiEnums.h"
 #include "PixelCoordinate.h"
 #include "PixelIndex.h"
@@ -153,9 +154,19 @@ namespace caret {
                                                     float& signedDistanceToPixelMillimetersOut,
                                                     PixelLogicalIndex& pixelLogicalIndexOut) const = 0;
         
-        virtual QRectF getLogicalBoundsRect() const;
+        virtual bool pixelIndexToPlaneXYZ(const PixelIndex& pixelIndex,
+                                          Vector3D& planeXyzOut) const;
         
-        virtual QRectF getDrawingBoundsRect() const;
+        virtual bool logicalPixelIndexToPlaneXYZ(const PixelLogicalIndex& pixelLogialIndex,
+                                                 Vector3D& planeXyzOut) const;
+        
+        virtual bool planeXyzToPixelIndex(const Vector3D& planeXyz,
+                                          PixelIndex& pixelIndexOut) const;
+        
+        virtual bool planeXyzToLogicalPixelIndex(const Vector3D& planeXyz,
+                                                 PixelLogicalIndex& pixelLogicalIndexOut) const;
+        
+        virtual QRectF getLogicalBoundsRect() const;
         
         virtual PixelIndex pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const;
         

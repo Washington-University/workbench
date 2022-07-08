@@ -165,9 +165,19 @@ namespace caret {
         
         virtual PixelLogicalIndex pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const override;
 
-        virtual QRectF getLogicalBoundsRect() const override;
+        virtual bool pixelIndexToPlaneXYZ(const PixelIndex& pixelIndex,
+                                          Vector3D& planeXyzOut) const override;
         
-        virtual QRectF getDrawingBoundsRect() const override;
+        virtual bool logicalPixelIndexToPlaneXYZ(const PixelLogicalIndex& pixelLogialIndex,
+                                                 Vector3D& planeXyzOut) const override;
+        
+        virtual bool planeXyzToPixelIndex(const Vector3D& planeXyz,
+                                          PixelIndex& pixelIndexOut) const override;
+        
+        virtual bool planeXyzToLogicalPixelIndex(const Vector3D& planeXyz,
+                                                 PixelLogicalIndex& pixelLogicalIndexOut) const override;
+        
+        virtual QRectF getLogicalBoundsRect() const override;
         
         bool exportToImageFile(const QString& imageFileName,
                                const int32_t maximumWidthHeight,
@@ -473,6 +483,10 @@ namespace caret {
          */
         QRectF m_fullResolutionLogicalRect;
         
+        QRectF m_planeXyzRect;
+        
+        BoundingBox m_planeBoundingBox;
+        
         mutable NiftiTransform m_pixelToStereotaxicTransform;
         
         mutable NiftiTransform m_stereotaxicToPixelTransform;
@@ -483,15 +497,15 @@ namespace caret {
         
         int32_t m_maximumImageDimension = 2048;
         
-        Matrix4x4 m_indexToPlaneMatrix;
+        Matrix4x4 m_pixelIndexToPlaneMatrix;
         
-        Matrix4x4 m_planeToIndexMatrix;
+        Matrix4x4 m_planeToPixelIndexMatrix;
         
         Matrix4x4 m_planeToMillimetersMatrix;
 
-        bool m_indexToPlaneMatrixValidFlag = false;
+        bool m_pixelIndexToPlaneMatrixValidFlag = false;
         
-        bool m_planeToIndexMatrixValidFlag = false;
+        bool m_planeToPixelIndexMatrixValidFlag = false;
         
         bool m_planeToMillimetersMatrixValidFlag = false;
         

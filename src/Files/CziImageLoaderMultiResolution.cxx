@@ -257,12 +257,33 @@ CziImageLoaderMultiResolution::getLayerIndexForCurrentZoom(const CziImageFile::C
      * The size of the image, in pixels when drawn, determines when to switch to
      * lower or higher resolution image.
      */
-    const float imageBottomLeftPixel[3] { 0.0, static_cast<float>(cziSceneInfo.m_logicalRectangle.height()), 0.0 };
-    const float imageTopLeftPixel[3] { 0.0, 0.0, 0.0 };
     float imageBottomLeftWindow[3];
     float imageTopLeftWindow[3];
-    transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
-    transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
+    
+    switch (m_coordinateMode) {
+        case MediaDisplayCoordinateModeEnum::PIXEL:
+        {
+            /*
+             * The transform will convert logical coordinates to window coordinates
+             */
+            const float imageBottomLeftPixel[3] { 0.0, static_cast<float>(cziSceneInfo.m_logicalRectangle.height()), 0.0 };
+            const float imageTopLeftPixel[3] { 0.0, 0.0, 0.0 };
+            transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
+            transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
+        }
+            break;
+        case MediaDisplayCoordinateModeEnum::PLANE:
+        {
+            /*
+             * The transform will convert plane coordinates to window coordinates
+             */
+            const float imageBottomLeftPixel[3] { 0.0, static_cast<float>(m_cziImageFile->m_planeXyzRect.height()), 0.0 };
+            const float imageTopLeftPixel[3] { 0.0, 0.0, 0.0 };
+            transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
+            transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
+        }
+            break;
+    }
     const float drawnPixelHeight = imageTopLeftWindow[1] - imageBottomLeftWindow[1];
     if (cziDebugFlag) std::cout << "Drawn pixel height: " << drawnPixelHeight << std::endl;
     
@@ -312,34 +333,62 @@ CziImageLoaderMultiResolution::getViewportLogicalCoordinates(const GraphicsObjec
     
     /*
      * Window coordinate at Top Left Corner of Viewport
-     * 'inverseTransformPoint()' transforms from window coordinates to the ortho's pixel index with
-     * origin at bottom left.
+     * 'inverseTransformPoint()' transforms from window coordinates to
+     * the logical coordinate (PIXEL) or plane coordinate (PLANE)
      */
     float viewportTopLeftWindowCoordinate[3];
     transform->inverseTransformPoint(viewport.x(),
                                      viewport.y() + viewport.height(),
                                      0.0,
                                      viewportTopLeftWindowCoordinate);
-    const PixelLogicalIndex viewportLogicalTopLeft(viewportTopLeftWindowCoordinate);
+    PixelLogicalIndex viewportTopLeft(viewportTopLeftWindowCoordinate);
     
     /*
-     * Bottom Right Corner of Window
-     * 'inverseTransformPoint()' transforms from window coordinates to the ortho's pixel index with
-     * origin at bottom left.
+     * Window coordinate at Bottom Right of Viewport
+     * 'inverseTransformPoint()' transforms from window coordinates to
+     * the logical coordinate (PIXEL) or plane coordinate (PLANE)
      */
     float viewportBottomRightWindowCoordinate[3];
     transform->inverseTransformPoint(viewport.x() + viewport.width(),
                                      viewport.y(),
                                      0.0,
                                      viewportBottomRightWindowCoordinate);
-    const PixelLogicalIndex viewportLogicalBottomRight(viewportBottomRightWindowCoordinate);
+    PixelLogicalIndex viewportBottomRight(viewportBottomRightWindowCoordinate);
+    
+    switch (m_coordinateMode) {
+        case MediaDisplayCoordinateModeEnum::PIXEL:
+            /*
+             * Coordinates are logical so no processing needed
+             */
+            break;
+        case MediaDisplayCoordinateModeEnum::PLANE:
+        {
+            /*
+             * Coordinates are PLANE with origin in bottom left
+             * so need to convert to Logical with origin in top left
+             */
+            Vector3D topLeft(viewportTopLeft.getI(),
+                             viewportTopLeft.getJ(),
+                             0.0);
+            CaretAssert(m_cziImageFile->planeXyzToLogicalPixelIndex(topLeft,
+                                                                    viewportTopLeft));
+            
+            Vector3D bottomRight(viewportBottomRight.getI(),
+                                 viewportBottomRight.getJ(),
+                                 0.0);
+            CaretAssert(m_cziImageFile->planeXyzToLogicalPixelIndex(bottomRight,
+                                                                    viewportBottomRight));
+        }
+            break;
+    }
+    
     /*
      * CZI Logical coordinates of viewport (portion of CZI image that fills the viewport)
      */
-    const QRectF viewportFullResLogicalRect(viewportLogicalTopLeft.getI(),
-                                            viewportLogicalTopLeft.getJ(),
-                                            viewportLogicalBottomRight.getI() - viewportLogicalTopLeft.getI(),
-                                            viewportLogicalBottomRight.getJ() - viewportLogicalTopLeft.getJ());
+    const QRectF viewportFullResLogicalRect(viewportTopLeft.getI(),
+                                            viewportTopLeft.getJ(),
+                                            viewportBottomRight.getI() - viewportTopLeft.getI(),
+                                            viewportBottomRight.getJ() - viewportTopLeft.getJ());
 
     return viewportFullResLogicalRect;
 }

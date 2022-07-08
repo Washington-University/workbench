@@ -246,7 +246,7 @@ CziMetaFileXmlStreamReader::readSliceElement(CziMetaFile* cziMetaFile,
                 }
                 else if (m_xmlReader->name() == ELEMENT_PLANE_TO_MM) {
                     readMatrixFromElementText(ELEMENT_PLANE_TO_MM,
-                                              MatrixType::THREE_DIM,
+                                              MatrixType::TWO_DIM,
                                               planeToMmMatrix);
                 }
                 else if (m_xmlReader->name() == ELEMENT_SCENE) {

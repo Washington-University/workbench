@@ -32,6 +32,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "ModelMedia.h"
@@ -83,10 +84,23 @@ m_parentToolBar(parentToolBar)
     m_undoAction->setObjectName(parentObjectName + ":Undo");
     WuQMacroManager::instance()->addMacroSupportToObject(m_undoAction, "Undo Image View");
 
+    QLabel* modeLabel(new QLabel("Coord"));
+    m_mediaDisplayCoordinateModeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_mediaDisplayCoordinateModeEnumComboBox->setup<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>();
+    QObject::connect(m_mediaDisplayCoordinateModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &BrainBrowserWindowToolBarImage::mediaDisplayCoordinateModeEnumComboBoxItemActivated);
+    m_mediaDisplayCoordinateModeEnumComboBox->getWidget()->setObjectName(parentObjectName
+                                                                         + ":mediaDisplayModeComboBox");
+    m_mediaDisplayCoordinateModeEnumComboBox->getWidget()->setToolTip("Coordinate Display Mode");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_mediaDisplayCoordinateModeEnumComboBox->getWidget(), "Set media coordinate mode for display");
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
-    layout->addWidget(redoToolButton);
-    layout->addWidget(undoToolButton);
+    layout->addWidget(redoToolButton, 0, Qt::AlignHCenter);
+    layout->addWidget(undoToolButton, 0, Qt::AlignHCenter);
+    layout->addSpacing(5);
+    layout->addWidget(modeLabel, 0, Qt::AlignHCenter);
+    layout->addWidget(m_mediaDisplayCoordinateModeEnumComboBox->getWidget(), 0, Qt::AlignHCenter);
     layout->addStretch();
 }
 
@@ -120,7 +134,12 @@ BrainBrowserWindowToolBarImage::updateContent(BrowserTabContent* browserTabConte
             m_undoAction->setEnabled(undoStack->canUndo());
             m_undoAction->setToolTip(undoStack->undoText());
         }
+        
+        const MediaDisplayCoordinateModeEnum::Enum mediaDisplayMode(browserTabContent->getMediaDisplayCoordinateMode());
+        m_mediaDisplayCoordinateModeEnumComboBox->setSelectedItem<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>(mediaDisplayMode);
     }
+    
+    m_mediaDisplayCoordinateModeEnumComboBox->getWidget()->setEnabled(browserTabContent != NULL);
 }
 
 /**
@@ -173,4 +192,17 @@ BrainBrowserWindowToolBarImage::undoActionTriggered()
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     updateContent(m_browserTabContent);
+}
+
+/**
+ * Called when media coordinate display mode is changed
+ */
+void
+BrainBrowserWindowToolBarImage::mediaDisplayCoordinateModeEnumComboBoxItemActivated()
+{
+    if (m_browserTabContent != NULL) {
+        const MediaDisplayCoordinateModeEnum::Enum mode(m_mediaDisplayCoordinateModeEnumComboBox->getSelectedItem<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>());
+        m_browserTabContent->setMediaDisplayCoordinateMode(mode);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
 }

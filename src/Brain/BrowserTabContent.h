@@ -33,6 +33,7 @@
 #include "ClippingPlanePanningModeEnum.h"
 #include "EventListenerInterface.h"
 #include "Matrix4x4.h"
+#include "MediaDisplayCoordinateModeEnum.h"
 #include "Model.h"
 #include "ModelTypeEnum.h"
 #include "Plane.h"
@@ -125,6 +126,10 @@ namespace caret {
         const MediaOverlaySet* getMediaOverlaySet() const;
         
         std::set<AString> getDisplayedMediaFiles() const;
+        
+        MediaDisplayCoordinateModeEnum::Enum getMediaDisplayCoordinateMode() const;
+        
+        void setMediaDisplayCoordinateMode(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordinateMode);
         
         int32_t getTabNumber() const;
         
@@ -677,8 +682,10 @@ namespace caret {
         
         /** The multi-media model */
         ModelMedia* m_mediaModel;
+
+        MediaDisplayCoordinateModeEnum::Enum m_mediaDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PIXEL;
         
-        /** 
+        /**
          * Name requested by user interface - reflects contents 
          * such as Surface, Volume Slices, etc
          */

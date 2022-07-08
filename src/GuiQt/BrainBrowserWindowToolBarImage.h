@@ -47,6 +47,8 @@ namespace caret {
         
         void undoActionTriggered();
 
+        void mediaDisplayCoordinateModeEnumComboBoxItemActivated();
+        
     private:
         BrainBrowserWindowToolBarImage(const BrainBrowserWindowToolBarImage&);
 
@@ -68,6 +70,8 @@ namespace caret {
         QAction* m_redoAction;
         
         QAction* m_undoAction;
+        
+        EnumComboBoxTemplate* m_mediaDisplayCoordinateModeEnumComboBox;
     };
     
     

@@ -114,7 +114,7 @@ BrainOpenGLMediaDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
         MediaFile* mediaFile(displayedMediaFiles[i]);
         CaretAssertVectorIndex(displayedverlayIndices, i);
         
-        const QRectF logicalRect(mediaFile->getDrawingBoundsRect());
+        const QRectF logicalRect(mediaFile->getLogicalBoundsRect());
         if (i == 0) {
             boundingRect = logicalRect;
         }
@@ -344,7 +344,6 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                     mediaHeight = imageFile->getHeight();
                 }
                 else  if (cziImageFile != NULL) {
-                    //const DisplayPropertiesCziImages* dpc(m_fixedPipelineDrawing->m_brain->getDisplayPropertiesCziImages());
                     cziImageFile->updateImageForDrawingInTab(tabIndex,
                                                              iOverlay,
                                                              selectionData.m_selectedFrameIndex,

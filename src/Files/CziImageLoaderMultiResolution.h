@@ -27,6 +27,7 @@
 
 #include "CziImageFile.h"
 #include "CziImageLoaderBase.h"
+#include "MediaDisplayCoordinateModeEnum.h"
 
 namespace caret {
 
@@ -76,6 +77,8 @@ namespace caret {
                                            const int32_t pyramidLayerIndex);
 
         QRectF getViewportLogicalCoordinates(const GraphicsObjectToWindowTransform* transform) const;
+        
+        MediaDisplayCoordinateModeEnum::Enum m_coordinateMode = MediaDisplayCoordinateModeEnum::PIXEL;
         
         std::shared_ptr<CziImage> m_cziImage;
 
