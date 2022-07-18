@@ -1,5 +1,5 @@
-#ifndef __SELECTION_ITEM_MEDIA_H_
-#define __SELECTION_ITEM_MEDIA_H_
+#ifndef __SELECTION_ITEM_MEDIA_LOGICAL_COORDINATE_H_
+#define __SELECTION_ITEM_MEDIA_LOGICAL_COORDINATE_H_
 
 /*LICENSE_START*/
 /*
@@ -31,12 +31,12 @@ namespace caret {
 
     class MediaFile;
     
-    class SelectionItemMedia : public SelectionItem {
+    class SelectionItemMediaLogicalCoordinate : public SelectionItem {
         
     public:
-        SelectionItemMedia();
+        SelectionItemMediaLogicalCoordinate();
         
-        virtual ~SelectionItemMedia();
+        virtual ~SelectionItemMediaLogicalCoordinate();
         
         virtual bool isValid() const;
         
@@ -73,9 +73,9 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        SelectionItemMedia(const SelectionItemMedia&);
+        SelectionItemMediaLogicalCoordinate(const SelectionItemMediaLogicalCoordinate&);
 
-        SelectionItemMedia& operator=(const SelectionItemMedia&);
+        SelectionItemMediaLogicalCoordinate& operator=(const SelectionItemMediaLogicalCoordinate&);
 
         void resetPrivate();
         
@@ -94,9 +94,9 @@ namespace caret {
         bool m_includePixelRGBAFlag = false;
     };
     
-#ifdef __SELECTION_ITEM_MEDIA_DECLARE__
+#ifdef __SELECTION_ITEM_MEDIA_LOGICAL_COORDINATE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SELECTION_ITEM_MEDIA_DECLARE__
+#endif // __SELECTION_ITEM_MEDIA_LOGICAL_COORDINATE_DECLARE__
 
 } // namespace
-#endif  //__SELECTION_ITEM_MEDIA_H_
+#endif  //__SELECTION_ITEM_MEDIA_LOGICAL_COORDINATE_H_

@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __SELECTION_ITEM_MEDIA_DECLARE__
-#include "SelectionItemMedia.h"
-#undef __SELECTION_ITEM_MEDIA_DECLARE__
+#define __SELECTION_ITEM_MEDIA_LOGICAL_COORDINATE_DECLARE__
+#include "SelectionItemMediaLogicalCoordinate.h"
+#undef __SELECTION_ITEM_MEDIA_LOGICAL_COORDINATE_DECLARE__
 
 #include "CziImageFile.h"
 
@@ -30,14 +30,14 @@ using namespace caret;
 
     
 /**
- * \class SelectionItemMedia
+ * \class SelectionItemMediaLogicalCoordinate
  * \brief Contains information about the selected media.
  */
 /**
  * Constructor.
  */
-SelectionItemMedia::SelectionItemMedia()
-: SelectionItem(SelectionItemDataTypeEnum::MEDIA)
+SelectionItemMediaLogicalCoordinate::SelectionItemMediaLogicalCoordinate()
+: SelectionItem(SelectionItemDataTypeEnum::MEDIA_LOGICAL_COORDINATE)
 {
     resetPrivate();
 }
@@ -45,7 +45,7 @@ SelectionItemMedia::SelectionItemMedia()
 /**
  * Destructor.
  */
-SelectionItemMedia::~SelectionItemMedia()
+SelectionItemMediaLogicalCoordinate::~SelectionItemMediaLogicalCoordinate()
 {
 }
 
@@ -53,7 +53,7 @@ SelectionItemMedia::~SelectionItemMedia()
  * @return The pixel logical index
  */
 PixelLogicalIndex
-SelectionItemMedia::getPixelLogicalIndex() const
+SelectionItemMediaLogicalCoordinate::getPixelLogicalIndex() const
 {
     return m_pixelLogicalIndex;
 }
@@ -64,7 +64,7 @@ SelectionItemMedia::getPixelLogicalIndex() const
  *    The pixel logical index
  */
 void
-SelectionItemMedia::setPixelLogicalIndex(const PixelLogicalIndex& pixelLogicalIndex)
+SelectionItemMediaLogicalCoordinate::setPixelLogicalIndex(const PixelLogicalIndex& pixelLogicalIndex)
 {
     m_pixelLogicalIndex = pixelLogicalIndex;
 }
@@ -73,7 +73,7 @@ SelectionItemMedia::setPixelLogicalIndex(const PixelLogicalIndex& pixelLogicalIn
  * @param The tab index.
  */
 int32_t
-SelectionItemMedia::getTabIndex() const
+SelectionItemMediaLogicalCoordinate::getTabIndex() const
 {
     return m_tabIndex;
 }
@@ -84,7 +84,7 @@ SelectionItemMedia::getTabIndex() const
  *    Index of the tab.
  */
 void
-SelectionItemMedia::setTabIndex(const int32_t tabIndex)
+SelectionItemMediaLogicalCoordinate::setTabIndex(const int32_t tabIndex)
 {
     m_tabIndex = tabIndex;
 }
@@ -93,7 +93,7 @@ SelectionItemMedia::setTabIndex(const int32_t tabIndex)
  * @param The overlay index.
  */
 int32_t
-SelectionItemMedia::getOverlayIndex() const
+SelectionItemMediaLogicalCoordinate::getOverlayIndex() const
 {
     return m_overlayIndex;
 }
@@ -104,7 +104,7 @@ SelectionItemMedia::getOverlayIndex() const
  *    Index of the overlay.
  */
 void
-SelectionItemMedia::setOverlayIndex(const int32_t overlayIndex)
+SelectionItemMediaLogicalCoordinate::setOverlayIndex(const int32_t overlayIndex)
 {
     m_overlayIndex = overlayIndex;
 }
@@ -118,7 +118,7 @@ SelectionItemMedia::setOverlayIndex(const int32_t overlayIndex)
  *     True if the RGBA values are valid
  */
 bool
-SelectionItemMedia::getPixelRGBA(uint8_t pixelRGBAOut[4]) const
+SelectionItemMediaLogicalCoordinate::getPixelRGBA(uint8_t pixelRGBAOut[4]) const
 {
     pixelRGBAOut[0] = m_pixelRGBA[0];
     pixelRGBAOut[1] = m_pixelRGBA[1];
@@ -134,7 +134,7 @@ SelectionItemMedia::getPixelRGBA(uint8_t pixelRGBAOut[4]) const
  *     Pixel RGBA.
  */
 void
-SelectionItemMedia::setPixelRGBA(const uint8_t pixelRGBA[4])
+SelectionItemMediaLogicalCoordinate::setPixelRGBA(const uint8_t pixelRGBA[4])
 {
     m_pixelRGBA[0] = pixelRGBA[0];
     m_pixelRGBA[1] = pixelRGBA[1];
@@ -147,7 +147,7 @@ SelectionItemMedia::setPixelRGBA(const uint8_t pixelRGBA[4])
  * @return True if pixel RGBA should be included in selection information
  */
 bool
-SelectionItemMedia::isIncludePixelRGBA() const
+SelectionItemMediaLogicalCoordinate::isIncludePixelRGBA() const
 {
     return m_includePixelRGBAFlag;
 }
@@ -158,7 +158,7 @@ SelectionItemMedia::isIncludePixelRGBA() const
  *    New status
  */
 void
-SelectionItemMedia::setIncludePixelRGBA(const bool status)
+SelectionItemMediaLogicalCoordinate::setIncludePixelRGBA(const bool status)
 {
     m_includePixelRGBAFlag = status;
 }
@@ -170,7 +170,7 @@ SelectionItemMedia::setIncludePixelRGBA(const bool status)
  * @return True if output coordinate is valid, else false.
  */
 bool
-SelectionItemMedia::getStereotaxicXYZ(Vector3D& stereotaxicXYZOut)
+SelectionItemMediaLogicalCoordinate::getStereotaxicXYZ(Vector3D& stereotaxicXYZOut)
 {
     const CziImageFile* cziImageFile = m_mediaFile->castToCziImageFile();
     if (cziImageFile != NULL) {
@@ -186,7 +186,7 @@ SelectionItemMedia::getStereotaxicXYZ(Vector3D& stereotaxicXYZOut)
  * This method is virtual so cannot be called from constructor.
   */
 void
-SelectionItemMedia::reset()
+SelectionItemMediaLogicalCoordinate::reset()
 {
     SelectionItem::reset();
     resetPrivate();
@@ -196,7 +196,7 @@ SelectionItemMedia::reset()
  * Reset this selection item.
  */
 void
-SelectionItemMedia::resetPrivate()
+SelectionItemMediaLogicalCoordinate::resetPrivate()
 {
     m_mediaFile = NULL;
     m_pixelLogicalIndex.setI(-1000000);
@@ -216,7 +216,7 @@ SelectionItemMedia::resetPrivate()
  * @return Is this selected item valid?
  */
 bool 
-SelectionItemMedia::isValid() const
+SelectionItemMediaLogicalCoordinate::isValid() const
 {
     return (m_mediaFile != NULL);
 }
@@ -225,7 +225,7 @@ SelectionItemMedia::isValid() const
  * @return Image that was selected (NULL if not valid).
  */
 const MediaFile*
-SelectionItemMedia::getMediaFile() const
+SelectionItemMediaLogicalCoordinate::getMediaFile() const
 {
     return m_mediaFile;
 }
@@ -234,7 +234,7 @@ SelectionItemMedia::getMediaFile() const
  * @return Image that was selected (NULL if not valid).
  */
 MediaFile*
-SelectionItemMedia::getMediaFile()
+SelectionItemMediaLogicalCoordinate::getMediaFile()
 {
     return m_mediaFile;
 }
@@ -246,7 +246,7 @@ SelectionItemMedia::getMediaFile()
  *    Pointer to selected media (NULL if not valid).
  */
 void 
-SelectionItemMedia::setMediaFile(MediaFile* mediaFile)
+SelectionItemMediaLogicalCoordinate::setMediaFile(MediaFile* mediaFile)
 {
     m_mediaFile = mediaFile;
 }
@@ -257,7 +257,7 @@ SelectionItemMedia::setMediaFile(MediaFile* mediaFile)
  * @return String describing m_ object's content.
  */
 AString
-SelectionItemMedia::toString() const
+SelectionItemMediaLogicalCoordinate::toString() const
 {
     AString text = SelectionItem::toString();
     text += ("Media File: " + ((m_mediaFile != NULL) ? m_mediaFile->getFileNameNoPath() : "INVALID") + "\n");

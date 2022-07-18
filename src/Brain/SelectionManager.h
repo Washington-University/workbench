@@ -47,7 +47,8 @@ namespace caret {
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
     class SelectionItemImageControlPoint;
-    class SelectionItemMedia;
+    class SelectionItemMediaLogicalCoordinate;
+    class SelectionItemMediaPlaneCoordinate;
     class SelectionItemSurfaceNode;
     class SelectionItemSurfaceTriangle;
     class SelectionItemUniversalIdentificationSymbol;
@@ -89,9 +90,13 @@ namespace caret {
         
         const SelectionItemImageControlPoint* getImageControlPointIdentification() const;
         
-        SelectionItemMedia* getMediaIdentification();
+        SelectionItemMediaLogicalCoordinate* getMediaLogicalCoordinateIdentification();
         
-        const SelectionItemMedia* getMediaIdentification() const;
+        const SelectionItemMediaLogicalCoordinate* getMediaLogicalCoordinateIdentification() const;
+        
+        SelectionItemMediaPlaneCoordinate* getMediaPlaneCoordinateIdentification();
+        
+        const SelectionItemMediaPlaneCoordinate* getMediaPlaneCoordinateIdentification() const;
         
         SelectionItemSurfaceNode* getSurfaceNodeIdentification();
         
@@ -233,7 +238,9 @@ namespace caret {
         
         SelectionItemImageControlPoint* m_imageControlPointIdentification;
         
-        std::unique_ptr<SelectionItemMedia> m_mediaIdentification;
+        std::unique_ptr<SelectionItemMediaLogicalCoordinate> m_mediaLogicalCoordinateIdentification;
+        
+        std::unique_ptr<SelectionItemMediaPlaneCoordinate> m_mediaPlaneCoordinateIdentification;
         
         SelectionItemSurfaceNode* m_surfaceNodeIdentification;
         

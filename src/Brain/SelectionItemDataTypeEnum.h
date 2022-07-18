@@ -81,8 +81,10 @@ public:
         IMAGE,
         /* Image Control Point */
         IMAGE_CONTROL_POINT,
-        /** Media */
-        MEDIA,
+        /** Media Logical Index */
+        MEDIA_LOGICAL_COORDINATE,
+        /** Media Plane Coordinate */
+        MEDIA_PLANE_COORDINATE,
         /** Surface Node*/
         SURFACE_NODE,
         /** Surface Triangle */

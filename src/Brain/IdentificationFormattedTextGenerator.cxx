@@ -79,7 +79,8 @@
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
-#include "SelectionItemMedia.h"
+#include "SelectionItemMediaLogicalCoordinate.h"
+#include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemUniversalIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
@@ -243,11 +244,16 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     for (auto& mfi : mediaFilesAndIndices) {
         MediaFile* mediaFile(mfi.m_mapFile->castToMediaFile());
         CaretAssert(mediaFile);
-        this->generateMediaIdentificationText(*mediaHtmlTableBuilder,
+        this->generateMediaLogicalCoordinateIdentificationText(*mediaHtmlTableBuilder,
                                               idText,
                                               mediaFile,
                                               mfi.m_mapIndices,
-                                              selectionManager->getMediaIdentification());
+                                              selectionManager->getMediaLogicalCoordinateIdentification());
+        this->generateMediaPlaneCoordinateIdentificationText(*mediaHtmlTableBuilder,
+                                                               idText,
+                                                               mediaFile,
+                                                               mfi.m_mapIndices,
+                                                               selectionManager->getMediaPlaneCoordinateIdentification());
     }
 
     if (filter->isShowFociEnabled()) {
@@ -497,7 +503,8 @@ IdentificationFormattedTextGenerator::createToolTipText(const Brain* brain,
 
     const SelectionItemSurfaceNode* selectedNode = selectionManager->getSurfaceNodeIdentification();
     const SelectionItemVoxel* selectedVoxel = selectionManager->getVoxelIdentification();
-    const SelectionItemMedia* selectedMedia = selectionManager->getMediaIdentification();
+    const SelectionItemMediaLogicalCoordinate* selectionMediaLogicalCoordinate = selectionManager->getMediaLogicalCoordinateIdentification();
+    const SelectionItemMediaPlaneCoordinate* selectionMediaPlaneCoordinate(selectionManager->getMediaPlaneCoordinateIdentification());
     const SelectionItemUniversalIdentificationSymbol* selectionSymbol = selectionManager->getUniversalIdentificationSymbol();
     AString selectionToolTip;
     if (selectionSymbol->isValid()) {
@@ -525,10 +532,20 @@ IdentificationFormattedTextGenerator::createToolTipText(const Brain* brain,
                               dataToolTipsManager,
                               idText);
     }
-    else if (selectedMedia->isValid()) {
-        generateMediaToolTip(selectionManager,
+    else if (selectionMediaLogicalCoordinate->isValid()) {
+        generateMediaLogicalCoordinateToolTip(selectionManager,
                              dataToolTipsManager,
                              idText);
+    }
+    else if (selectionMediaPlaneCoordinate->isValid()) {
+        generateMediaPlaneCoordinateToolTip(selectionManager,
+                                              dataToolTipsManager,
+                                              idText);
+    }
+    else if (selectionMediaPlaneCoordinate->isValid()) {
+        generateMediaPlaneCoordinateToolTip(selectionManager,
+                                            dataToolTipsManager,
+                                            idText);
     }
     else {
         generateChartToolTip(selectionManager,
@@ -2126,11 +2143,11 @@ IdentificationFormattedTextGenerator::generateVolumeFocusIdentifcationText(HtmlT
  *     Information for media ID.
  */
 void
-IdentificationFormattedTextGenerator::generateMediaIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+IdentificationFormattedTextGenerator::generateMediaLogicalCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                                       IdentificationStringBuilder& idText,
                                                                       const MediaFile* mediaFile,
                                                                       const std::set<int32_t>& frameIndices,
-                                                                      const SelectionItemMedia* idMedia) const
+                                                                      const SelectionItemMediaLogicalCoordinate* idMedia) const
 {
     if (idMedia->isValid()) {
         std::array<float, 3> modelXYZ;
@@ -2138,7 +2155,7 @@ IdentificationFormattedTextGenerator::generateMediaIdentificationText(HtmlTableB
         std::vector<AString> columnOneText, columnTwoText, toolTipText;
         std::vector<int32_t> frameIndicesVector(frameIndices.begin(),
                                                 frameIndices.end());
-        mediaFile->getPixelIdentificationTextForFrames(idMedia->getTabIndex(),
+        mediaFile->getPixelLogicalIdentificationTextForFrames(idMedia->getTabIndex(),
                                                        frameIndicesVector,
                                                        idMedia->getPixelLogicalIndex(),
                                                        columnOneText,
@@ -2171,6 +2188,67 @@ IdentificationFormattedTextGenerator::generateMediaIdentificationText(HtmlTableB
         }
     }
 
+}
+
+/**
+ * Generate identification text for media identification.
+ * @param htmlTableBuilder
+ *     HTML table builder for identification text.
+ * @param idText
+ *     string builder for id text
+ * @param mediaFile
+ *    The media file
+ * @param frameIndices
+ *    The frame indices
+ * @param idMedia
+ *     Information for media ID.
+ */
+void
+IdentificationFormattedTextGenerator::generateMediaPlaneCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                                                       IdentificationStringBuilder& idText,
+                                                                                       const MediaFile* mediaFile,
+                                                                                       const std::set<int32_t>& frameIndices,
+                                                                                       const SelectionItemMediaPlaneCoordinate* idMedia) const
+{
+    if (idMedia->isValid()) {
+        std::array<float, 3> modelXYZ;
+        idMedia->getModelXYZ(modelXYZ.data());
+        std::vector<AString> columnOneText, columnTwoText, toolTipText;
+        std::vector<int32_t> frameIndicesVector(frameIndices.begin(),
+                                                frameIndices.end());
+        mediaFile->getPixelPlaneIdentificationTextForFrames(idMedia->getTabIndex(),
+                                                       frameIndicesVector,
+                                                       idMedia->getPlaneCoordinate(),
+                                                       columnOneText,
+                                                       columnTwoText,
+                                                       toolTipText);
+        const int32_t numColOne(columnOneText.size());
+        const int32_t numColTwo(columnTwoText.size());
+        const int32_t maxNum(std::max(numColOne, numColTwo));
+        for (int32_t i = 0; i < maxNum; i++) {
+            AString colOne;
+            AString colTwo;
+            if (i < numColOne) {
+                CaretAssertVectorIndex(columnOneText, i);
+                colOne = columnOneText[i];
+            }
+            if (i < numColTwo) {
+                CaretAssertVectorIndex(columnTwoText, i);
+                colTwo = columnTwoText[i];
+            }
+            htmlTableBuilder.addRow(colOne, colTwo);
+        }
+        
+        /*
+         * For tooltip
+         */
+        for (const auto& text : toolTipText) {
+            bool indentFlag(false);
+            idText.addLine(indentFlag,
+                           text);
+        }
+    }
+    
 }
 
 /**
@@ -2497,14 +2575,14 @@ IdentificationFormattedTextGenerator::generateChartToolTip(const SelectionManage
  *     String builder for identification text.
  */
 void
-IdentificationFormattedTextGenerator::generateMediaToolTip(const SelectionManager* selectionManager,
+IdentificationFormattedTextGenerator::generateMediaLogicalCoordinateToolTip(const SelectionManager* selectionManager,
                                                            const DataToolTipsManager* dataToolTipsManager,
                                                            IdentificationStringBuilder& idText) const
 {
     if (dataToolTipsManager->isShowMedia()) {
         std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder(3);
         
-        const SelectionItemMedia* mediaSelection = selectionManager->getMediaIdentification();
+        const SelectionItemMediaLogicalCoordinate* mediaSelection = selectionManager->getMediaLogicalCoordinateIdentification();
         if (mediaSelection->isValid()) {
             const MediaFile* mediaFile(mediaSelection->getMediaFile());
             if (mediaFile != NULL) {
@@ -2512,11 +2590,47 @@ IdentificationFormattedTextGenerator::generateMediaToolTip(const SelectionManage
                 for (int32_t i = 0; i < mediaFile->getNumberOfFrames(); i++) {
                     frameIndices.insert(i);
                 }
-                generateMediaIdentificationText(*htmlTableBuilder,
+                generateMediaLogicalCoordinateIdentificationText(*htmlTableBuilder,
                                                 idText,
                                                 mediaFile,
                                                 frameIndices,
                                                 mediaSelection);
+            }
+        }
+    }
+}
+
+/**
+ * Get text for the tooltip for media
+ *
+ * @param selectionManager
+ *     The selection manager.
+ * @param dataToolTipsManager
+ *     The data tooltips manager
+ * @param idText
+ *     String builder for identification text.
+ */
+void
+IdentificationFormattedTextGenerator::generateMediaPlaneCoordinateToolTip(const SelectionManager* selectionManager,
+                                                                            const DataToolTipsManager* dataToolTipsManager,
+                                                                            IdentificationStringBuilder& idText) const
+{
+    if (dataToolTipsManager->isShowMedia()) {
+        std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder(3);
+        
+        const SelectionItemMediaPlaneCoordinate* mediaSelection = selectionManager->getMediaPlaneCoordinateIdentification();
+        if (mediaSelection->isValid()) {
+            const MediaFile* mediaFile(mediaSelection->getMediaFile());
+            if (mediaFile != NULL) {
+                std::set<int32_t> frameIndices;
+                for (int32_t i = 0; i < mediaFile->getNumberOfFrames(); i++) {
+                    frameIndices.insert(i);
+                }
+                generateMediaPlaneCoordinateIdentificationText(*htmlTableBuilder,
+                                                                 idText,
+                                                                 mediaFile,
+                                                                 frameIndices,
+                                                                 mediaSelection);
             }
         }
     }

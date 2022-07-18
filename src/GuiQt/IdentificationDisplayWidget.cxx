@@ -585,8 +585,8 @@ IdentificationDisplayWidget::updateSymbolsWidget()
 QWidget*
 IdentificationDisplayWidget::createSymbolsWidget()
 {
-    m_symbolsShowMediaCheckbox = new QCheckBox(IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::MEDIA));
-    m_symbolsShowMediaCheckbox->setToolTip(IdentificationManager::getShowSymbolOnTypeToolTip(IdentifiedItemUniversalTypeEnum::MEDIA));
+    m_symbolsShowMediaCheckbox = new QCheckBox(IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE));
+    m_symbolsShowMediaCheckbox->setToolTip(IdentificationManager::getShowSymbolOnTypeToolTip(IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE));
     
     m_symbolsShowSurfaceIdCheckBox = new QCheckBox(IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::SURFACE));
     m_symbolsShowSurfaceIdCheckBox->setToolTip(IdentificationManager::getShowSymbolOnTypeToolTip(IdentifiedItemUniversalTypeEnum::SURFACE));

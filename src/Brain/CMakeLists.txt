@@ -41,6 +41,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline.h
 BrainOpenGLChartTwoDrawingInterface.h
 BrainOpenGLFixedPipeline.h
 BrainOpenGLIdentificationDrawing.h
+BrainOpenGLMediaCoordinateDrawing.h
 BrainOpenGLMediaDrawing.h
 BrainOpenGLPrimitiveDrawing.h
 BrainOpenGLShape.h
@@ -184,7 +185,8 @@ SelectionItemCiftiConnectivityMatrixRowColumn.h
 SelectionItemFocusSurface.h
 SelectionItemFocusVolume.h
 SelectionItemImageControlPoint.h
-SelectionItemMedia.h
+SelectionItemMediaLogicalCoordinate.h
+SelectionItemMediaPlaneCoordinate.h
 SelectionItemSurfaceNode.h
 SelectionItemSurfaceTriangle.h
 SelectionItemUniversalIdentificationSymbol.h
@@ -238,6 +240,7 @@ BrainOpenGLChartDrawingFixedPipeline.cxx
 BrainOpenGLChartTwoDrawingFixedPipeline.cxx
 BrainOpenGLFixedPipeline.cxx
 BrainOpenGLIdentificationDrawing.cxx
+BrainOpenGLMediaCoordinateDrawing.cxx
 BrainOpenGLMediaDrawing.cxx
 BrainOpenGLPrimitiveDrawing.cxx
 BrainOpenGLShape.cxx
@@ -379,7 +382,8 @@ SelectionItemCiftiConnectivityMatrixRowColumn.cxx
 SelectionItemFocusSurface.cxx
 SelectionItemFocusVolume.cxx
 SelectionItemImageControlPoint.cxx
-SelectionItemMedia.cxx
+SelectionItemMediaLogicalCoordinate.cxx
+SelectionItemMediaPlaneCoordinate.cxx
 SelectionItemSurfaceNode.cxx
 SelectionItemSurfaceTriangle.cxx
 SelectionItemUniversalIdentificationSymbol.cxx

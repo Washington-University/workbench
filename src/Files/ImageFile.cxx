@@ -103,6 +103,7 @@ ImageFile::ImageFile(const ImageFile& imageFile)
 
     m_fileMetaData.grabNew(new GiftiMetaData(*imageFile.m_fileMetaData));
     m_graphicsPrimitiveForMediaDrawing.reset();
+    m_graphicsPrimitiveForCoordinateMediaDrawing.reset();
 }
 
 
@@ -2204,12 +2205,39 @@ ImageFile::readFileMetaDataFromQImage()
     m_fileMetaData->clear();
     
     if (m_image != NULL) {
-        QStringList allKeys = m_image->textKeys();
-        QStringListIterator iter(allKeys);
-        while (iter.hasNext()) {
-            const AString key(iter.next());
-            const AString value(m_image->text(key));
-            m_fileMetaData->set(key, value);
+        if ( ! m_image->isNull()) {
+            Matrix4x4 scaledToPlaneMatrix;
+            bool scaledToPlaneMatrixValidFlag(false);
+            Matrix4x4 planeToMillimetersMatrix;
+            bool planeToMillimetersMatrixValidFlag(false);
+            
+            QStringList allKeys = m_image->textKeys();
+            QStringListIterator iter(allKeys);
+            while (iter.hasNext()) {
+                const AString key(iter.next());
+                const AString value(m_image->text(key));
+                m_fileMetaData->set(key, value);
+                
+                if (key == getMetaDataNameScaledToPlaneMatrix()) {
+                    scaledToPlaneMatrix.setMatrixFromRowMajorOrderString(value);
+                    scaledToPlaneMatrixValidFlag = true;
+                }
+                else if (key == getMetaDataNamePlaneToMillimetersMatrix()) {
+                    planeToMillimetersMatrix.setMatrixFromRowMajorOrderString(value);
+                    planeToMillimetersMatrixValidFlag = true;
+                }
+            }
+            
+            if (scaledToPlaneMatrixValidFlag
+                && planeToMillimetersMatrixValidFlag) {
+//                std::cout << getFileName() << " HAVE MATRICES" << std::endl;
+                setScaledToPlaneMatrix(scaledToPlaneMatrix,
+                                       planeToMillimetersMatrix,
+                                       true);
+            }
+            else {
+//                std::cout << getFileName() << " missing matrices" << std::endl;
+            }
         }
     }
     
@@ -2350,7 +2378,7 @@ ImageFile::isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const
  *    Text for tooltip
  */
 void
-ImageFile::getPixelIdentificationTextForFrames(const int32_t tabIndex,
+ImageFile::getPixelLogicalIdentificationTextForFrames(const int32_t tabIndex,
                                                const std::vector<int32_t>& frameIndices,
                                                   const PixelLogicalIndex& pixelLogicalIndex,
                                                   std::vector<AString>& columnOneTextOut,
@@ -2490,3 +2518,109 @@ ImageFile::findPixelNearestStereotaxicXYZ(const Vector3D& /*xyz*/,
     /* Not supported, no stereotaxic coordinates for images */
     return false;
 }
+
+/*
+ * @return Primitive for drawing media with coordinates
+ */
+GraphicsPrimitiveV3fT2f*
+ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing() const
+{
+    if (m_image == NULL) {
+        return NULL;
+    }
+    
+    if ( ! isPlaneXyzSupported()) {
+        return NULL;
+    }
+    
+    if (m_graphicsPrimitiveForCoordinateMediaDrawing == NULL) {
+        std::vector<uint8_t> bytesRGBA;
+        int32_t width(0);
+        int32_t height(0);
+        
+        /*
+         * If image is too big for OpenGL texture limits, scale image to acceptable size
+         */
+        const int32_t maxTextureWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
+        if (maxTextureWidthHeight > 0) {
+            const int32_t excessWidth(m_image->width() - maxTextureWidthHeight);
+            const int32_t excessHeight(m_image->height() - maxTextureWidthHeight);
+            if ((excessWidth > 0)
+                || (excessHeight > 0)) {
+                if (excessWidth > excessHeight) {
+                    CaretLogWarning(getFileName()
+                                    + " is too big for texture.  Maximum width/height is: "
+                                    + AString::number(maxTextureWidthHeight)
+                                    + " Image Width: "
+                                    + AString::number(m_image->width())
+                                    + " Image Height: "
+                                    + AString::number(m_image->height()));
+                }
+            }
+        }
+        
+        /*
+         * Some images may use a color table so convert images
+         * if there are not in preferred format prior to
+         * getting colors of pixels
+         */
+        bool validRGBA(false);
+        if (m_image->format() != QImage::Format_ARGB32) {
+            QImage image = m_image->convertToFormat(QImage::Format_ARGB32);
+            if (! image.isNull()) {
+                ImageFile convImageFile;
+                convImageFile.setFromQImage(image);
+                validRGBA = convImageFile.getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                                            bytesRGBA,
+                                                            width,
+                                                            height);
+            }
+        }
+        else {
+            validRGBA = getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
+                                          bytesRGBA,
+                                          width,
+                                          height);
+        }
+        
+        if (validRGBA) {
+            const int32_t rowStride(-1); /* negative is tightly packed */
+            const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+            GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                                                                       &bytesRGBA[0],
+                                                                                       width,
+                                                                                       height,
+                                                                                       rowStride,
+                                                                                       GraphicsPrimitive::TexturePixelFormatType::RGBA,
+                                                                                       GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT,
+                                                                                       GraphicsPrimitive::TextureWrappingType::CLAMP,
+                                                                                       GraphicsPrimitive::TextureMipMappingType::ENABLED,
+                                                                                       GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                                                       textureBorderColorRGBA);
+            
+            /*
+             * A Triangle Strip (consisting of two triangles) is used
+             * for drawing the image.
+             * The order of the vertices in the triangle strip is
+             * Top Left, Bottom Left, Top Right, Bottom Right.
+             * ORIGIN IS AT TOP LEFT
+             */
+            const float minTextureST(0.0);
+            const float maxTextureST(1.0);
+            const Vector3D coordinateTopLeft(getPlaneXyzTopLeft());
+            const Vector3D coordinateTopRight(getPlaneXyzTopRight());
+            const Vector3D coordinateBottomLeft(getPlaneXyzBottomLeft());
+            const Vector3D coordinateBottomRight(getPlaneXyzBottomRight());
+            primitive->addVertex(coordinateTopLeft[0],     coordinateTopLeft[1],     minTextureST, maxTextureST);  /* Top Left */
+            primitive->addVertex(coordinateBottomLeft[0],  coordinateBottomLeft[1],  minTextureST, minTextureST);  /* Bottom Left */
+            primitive->addVertex(coordinateTopRight[0],    coordinateTopRight[1],    maxTextureST, maxTextureST);  /* Top Right */
+            primitive->addVertex(coordinateBottomRight[0], coordinateBottomRight[1], maxTextureST, minTextureST);  /* Bottom Right */
+            
+            m_graphicsPrimitiveForCoordinateMediaDrawing.reset(primitive);
+        }
+    }
+    
+    return m_graphicsPrimitiveForCoordinateMediaDrawing.get();
+}
+

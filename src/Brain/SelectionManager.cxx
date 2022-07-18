@@ -49,7 +49,8 @@
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemImageControlPoint.h"
-#include "SelectionItemMedia.h"
+#include "SelectionItemMediaLogicalCoordinate.h"
+#include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceTriangle.h"
 #include "SelectionItemUniversalIdentificationSymbol.h"
@@ -91,7 +92,8 @@ SelectionManager::SelectionManager()
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
     m_volumeFocusIdentification = new SelectionItemFocusVolume();
     m_imageControlPointIdentification = new SelectionItemImageControlPoint();
-    m_mediaIdentification.reset(new SelectionItemMedia());
+    m_mediaLogicalCoordinateIdentification.reset(new SelectionItemMediaLogicalCoordinate());
+    m_mediaPlaneCoordinateIdentification.reset(new SelectionItemMediaPlaneCoordinate());
     
     m_surfaceNodeIdentification = new SelectionItemSurfaceNode();
     m_universalIdentificationSymbol.reset(new SelectionItemUniversalIdentificationSymbol());
@@ -118,7 +120,8 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_surfaceNodeIdentification);
     m_allSelectionItems.push_back(m_surfaceTriangleIdentification);
     m_allSelectionItems.push_back(m_imageControlPointIdentification);
-    m_allSelectionItems.push_back(m_mediaIdentification.get());
+    m_allSelectionItems.push_back(m_mediaLogicalCoordinateIdentification.get());
+    m_allSelectionItems.push_back(m_mediaPlaneCoordinateIdentification.get());
     m_allSelectionItems.push_back(m_universalIdentificationSymbol.get());
     m_allSelectionItems.push_back(m_volumeMprCrosshairIdentification.get());
     m_allSelectionItems.push_back(m_voxelIdentification);
@@ -302,11 +305,14 @@ SelectionManager::filterSelections(const bool applySelectionBackgroundFiltering)
                 m_voxelIdentification->reset();
             }
         }
-        if (m_mediaIdentification->isValid()) {
+        if (m_mediaLogicalCoordinateIdentification->isValid()) {
             /*
              * Media is "flat" so always give priority to identification symbol
              */
-            m_mediaIdentification->reset();
+            m_mediaLogicalCoordinateIdentification->reset();
+        }
+        if (m_mediaPlaneCoordinateIdentification->isValid()) {
+            m_mediaPlaneCoordinateIdentification->reset();
         }
     }
     
@@ -536,19 +542,37 @@ SelectionManager::getImageControlPointIdentification() const
 /**
  * @return Identification for media
  */
-SelectionItemMedia*
-SelectionManager::getMediaIdentification()
+SelectionItemMediaLogicalCoordinate*
+SelectionManager::getMediaLogicalCoordinateIdentification()
 {
-    return m_mediaIdentification.get();
+    return m_mediaLogicalCoordinateIdentification.get();
 }
 
 /**
  * @return Identification for media
  */
-const SelectionItemMedia*
-SelectionManager::getMediaIdentification() const
+const SelectionItemMediaLogicalCoordinate*
+SelectionManager::getMediaLogicalCoordinateIdentification() const
 {
-    return m_mediaIdentification.get();
+    return m_mediaLogicalCoordinateIdentification.get();
+}
+
+/**
+ * @return Identification for media
+ */
+SelectionItemMediaPlaneCoordinate*
+SelectionManager::getMediaPlaneCoordinateIdentification()
+{
+    return m_mediaPlaneCoordinateIdentification.get();
+}
+
+/**
+ * @return Identification for media
+ */
+const SelectionItemMediaPlaneCoordinate*
+SelectionManager::getMediaPlaneCoordinateIdentification() const
+{
+    return m_mediaPlaneCoordinateIdentification.get();
 }
 
 /**

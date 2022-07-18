@@ -137,7 +137,6 @@ CziImageFile::resetPrivate()
     m_pixelSizeMmZ = 1.0f;
     m_fileMetaData.reset(new GiftiMetaData());
     m_fullResolutionLogicalRect = QRectF();
-    m_planeXyzRect = QRectF();
     m_pixelToStereotaxicTransform = NiftiTransform();
     m_stereotaxicToPixelTransform = NiftiTransform();
     m_imagePlane.reset();
@@ -1216,7 +1215,7 @@ CziImageFile::getNumberOfScenes() const
  *    Text for tooltip
  */
 void
-CziImageFile::getPixelIdentificationTextForFrames(const int32_t tabIndex,
+CziImageFile::getPixelLogicalIdentificationTextForFrames(const int32_t tabIndex,
                                                   const std::vector<int32_t>& frameIndices,
                                                  const PixelLogicalIndex& pixelLogicalIndex,
                                                  std::vector<AString>& columnOneTextOut,
@@ -2126,7 +2125,7 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
     dataFileInformation.addNameAndValue("Full Logical Rectangle",
                                         CziUtilities::qRectToString(m_fullResolutionLogicalRect));
     dataFileInformation.addNameAndValue("Plane XYZ Rect",
-                                        CziUtilities::qRectToString(m_planeXyzRect));
+                                        CziUtilities::qRectToString(getPlaneXyzRect()));
 
     m_allFramesPyramidInfo.addToDataFileContentInformation(dataFileInformation, "All Scenes");
     
@@ -2184,98 +2183,6 @@ CziImageFile::pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const
                                         pixelIndex.getK());
     
     return pixelLogicalIndex;
-}
-
-/**
- * Convert a pixel index to a plane XYZ.  If not supported, output is same as input.
- * @param pixelIndex
- *    Index of pixel
- * @param planeXyzOut
- *    Output with XYZ in plane
- * @return True if successful, else false.
- */
-bool
-CziImageFile::pixelIndexToPlaneXYZ(const PixelIndex& pixelIndex,
-                                Vector3D& planeXyzOut) const
-{
-    /*
-     * NOTE: Matrix has X and Y swapped
-     */
-    Vector3D xyz(pixelIndex.getJ(),
-                 pixelIndex.getI(),
-                 1.0);
-    
-    if (m_pixelIndexToPlaneMatrixValidFlag) {
-        m_pixelIndexToPlaneMatrix.multiplyPoint3(xyz);
-    }
-    planeXyzOut[0] = xyz[1];
-    planeXyzOut[1] = xyz[0];
-    planeXyzOut[2] = xyz[2];
-
-    return m_pixelIndexToPlaneMatrixValidFlag;
-}
-
-/**
- * Convert a pixel index to a plane XYZ.  If not supported, output is same as input.
- * @param pixelIndex
- *    Index of pixel
- * @param planeXyzOut
- *    Output with XYZ in plane
- * @return True if successful, else false.
- */
-bool
-CziImageFile::logicalPixelIndexToPlaneXYZ(const PixelLogicalIndex& pixelLogicalIndex,
-                                       Vector3D& planeXyzOut) const
-{
-    PixelIndex pixelIndex(pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
-    return pixelIndexToPlaneXYZ(pixelIndex,
-                                planeXyzOut);
-}
-
-/**
- * Convert a pixel XYZ to a pixel index.  If not supported, output is same as input.
- * @param planeXyz
- *     XYZ in plane
- * @param pixelIndexOut
- *    Index of pixel
- * @return True if successful, else false.
- */
-bool
-CziImageFile::planeXyzToPixelIndex(const Vector3D& planeXyz,
-                                PixelIndex& pixelIndexOut) const
-{
-    /*
-     * NOTE: Matrix has X and Y swapped
-     */
-    Vector3D xyz(planeXyz[1],
-                 planeXyz[0],
-                 planeXyz[2]);
-    if (m_planeToPixelIndexMatrixValidFlag) {
-        m_planeToPixelIndexMatrix.multiplyPoint3(xyz);
-    }
-    pixelIndexOut.setIJK(xyz[1],
-                         xyz[0],
-                         0.0);
-    return m_planeToPixelIndexMatrixValidFlag;
-}
-
-/**
- * Convert a pixel XYZ to a logical pixel index.  If not supported, output is same as input.
- * @param planeXyz
- *     XYZ in plane
- * @param logicalPixelIndexOut
- *    Index of pixel
- * @return True if successful, else false.
- */
-bool
-CziImageFile::planeXyzToLogicalPixelIndex(const Vector3D& planeXyz,
-                                       PixelLogicalIndex& pixelLogicalIndexOut) const
-{
-    PixelIndex pixelIndex;
-    const bool validFlag(planeXyzToPixelIndex(planeXyz,
-                                              pixelIndex));
-    pixelLogicalIndexOut = pixelIndexToPixelLogicalIndex(pixelIndex);
-    return validFlag;
 }
 
 /**
@@ -2723,6 +2630,164 @@ CziImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
 
 /**
  * Export a full resolution image to an image file with the maximum width/height
+ * to a "coordinate" PNG file
+ * @param imageFileName
+ *    Name for file
+ * @param maximumWidthHeight
+ *    Width and height will be no greater than this value (aspect is preserved)
+ *     Negative is no limit on size
+ * @param errorMessageOut
+ *    Contains info if writing image fails
+ * @return True if successful, else false.
+ */
+bool
+CziImageFile::exportToCoordinatePngFile(const QString& imageFileName,
+                                        const int32_t maximumWidthHeight,
+                                        AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if ( ! imageFileName.endsWith(".png")) {
+        errorMessageOut.appendWithNewLine("Image file name must end with \".png\"");
+    }
+    if (maximumWidthHeight == 0) {
+        errorMessageOut.appendWithNewLine("Image maximum size is zero.  Must be positive value or use "
+                                          "any negative value for no size limit.");
+    }
+    if (imageFileName.isEmpty()) {
+        errorMessageOut.appendWithNewLine("Image file name is invalid.");
+    }
+
+    const int32_t w(getWidth() - 1);
+    const int32_t h(getHeight() - 1);
+    const PixelIndex topLeftPixel(0, 0, 0);
+    const PixelIndex topRightPixel(w, 0, 0);
+    const PixelIndex bottomRightPixel(w, h, 0);
+    const PixelIndex bottomLeftPixel(0, h, 0);
+    Vector3D bottomLeftXYZ;
+    Vector3D bottomRightXYZ;
+    Vector3D topRightXYZ;
+    Vector3D topLeftXYZ;
+    if (pixelIndexToPlaneXYZ(bottomLeftPixel, bottomLeftXYZ)
+        && pixelIndexToPlaneXYZ(bottomRightPixel, bottomRightXYZ)
+        && pixelIndexToPlaneXYZ(topRightPixel, topRightXYZ)
+        && pixelIndexToPlaneXYZ(topLeftPixel, topLeftXYZ)) {
+        /* OK */
+        std::cout << "Bottom Left:  " << bottomLeftPixel.toString() << "  " << AString::fromNumbers(bottomLeftXYZ) << std::endl;
+        std::cout << "Bottom Right: " << bottomRightPixel.toString() << "  " << AString::fromNumbers(bottomRightXYZ) << std::endl;
+        std::cout << "Top Right:    " << topRightPixel.toString() << "  " << AString::fromNumbers(topRightXYZ) << std::endl;
+        std::cout << "Top Left:     " << topLeftPixel.toString() << "  " << AString::fromNumbers(topLeftXYZ) << std::endl;
+    }
+    else {
+        errorMessageOut.appendWithNewLine("Failed to convert pixel indices to plane coordinates");
+    }
+
+    if ( ! errorMessageOut.isEmpty()) {
+        return false;
+    }
+    
+    libCZI::CDimCoordinate coordinate;
+    coordinate.Set(libCZI::DimensionIndex::C, 0);
+    
+    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundFloatRGB();
+    libCZI::ISingleChannelScalingTileAccessor::Options scstaOptions; scstaOptions.Clear();
+    scstaOptions.backGroundColor.r = prefBackRGB[0];
+    scstaOptions.backGroundColor.g = prefBackRGB[1];
+    scstaOptions.backGroundColor.b = prefBackRGB[2];
+    
+    float zoomToRead(1.0);
+    QRectF regionOfInterest(m_fullResolutionLogicalRect);
+    
+    /*
+     * If ROI width/height is greater than output image width/height,
+     * use zoom to reduce the dimensions of the image data that is read
+     */
+    if (maximumWidthHeight > 0) {
+        QRectF newRegion(regionOfInterest);
+        float newZoom(1.0);
+        zoomToMatchPixelDimension(regionOfInterest,
+                                  regionOfInterest,
+                                  maximumWidthHeight,
+                                  newRegion,
+                                  newZoom);
+        if (cziDebugFlag) {
+            std::cout << "Region: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
+            std::cout << "   New: " << CziUtilities::qRectToString(newRegion) << std::endl;
+            std::cout << "  Zoom: " << newZoom << std::endl;
+        }
+        
+        regionOfInterest = newRegion;
+        zoomToRead = newZoom;
+    }
+    
+    /*
+     * Read into 24 bit RGB to avoid conversion from other pixel formats
+     */
+    if (cziDebugFlag) {
+        std::cout << "----------------------" << std::endl;
+        std::cout << "READING IMAGE with ROI: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
+    }
+    const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
+    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(regionOfInterest);
+    CaretAssert(m_scalingTileAccessor);
+    std::shared_ptr<libCZI::IBitmapData> bitmapData = m_scalingTileAccessor->Get(pixelType,
+                                                                                 intRectROI,
+                                                                                 &coordinate,
+                                                                                 zoomToRead,
+                                                                                 &scstaOptions);
+    if ( ! bitmapData) {
+        errorMessageOut = ("Failed to read data for region "
+                           + CziUtilities::intRectToString(intRectROI));
+        return false;
+    }
+    
+    QImagePixelFormat qimagePixelFormat = QImagePixelFormat::RGBA;
+    std::unique_ptr<QImage> qImage(createQImageFromBitmapData(qimagePixelFormat,
+                                                              bitmapData.get(),
+                                                              errorMessageOut));
+    if (qImage == NULL) {
+        errorMessageOut = "Failed to create QImage after reading from CZI file";
+        return false;
+    }
+    
+    FileInformation fileInfo(imageFileName);
+    AString format = fileInfo.getFileExtension().toUpper();
+    if (format == "JPG") {
+        format = "JPEG";
+    }
+    
+    std::cout << "Export pixelToPlane: " << getPixelIndexToPlaneMatrix().toFormattedString("   ") << std::endl;
+    qImage->setText(getMetaDataNameScaledToPlaneMatrix(),
+                    getScaledToPlaneMatrix().getMatrixInRowMajorOrderString());
+    qImage->setText(getMetaDataNamePlaneToMillimetersMatrix(),
+                    getPlaneToMillimetersMatrix().getMatrixInRowMajorOrderString());
+    
+    QImageWriter writer(imageFileName, format.toLatin1());
+    if (writer.supportsOption(QImageIOHandler::Quality)) {
+        if (format.compare("png", Qt::CaseInsensitive) == 0) {
+            const int quality = 1;
+            writer.setQuality(quality);
+        }
+        else {
+            const int quality = 100;
+            writer.setQuality(quality);
+        }
+    }
+    
+    if (writer.supportsOption(QImageIOHandler::CompressionRatio)) {
+        writer.setCompression(1);
+    }
+    
+    if ( ! writer.write(*qImage)) {
+        errorMessageOut = writer.errorString();
+    }
+    
+    return errorMessageOut.isEmpty();
+}
+
+
+/**
+ * Export a full resolution image to an image file with the maximum width/height
  * @param imageFileName
  *    Name for file
  * @param maximumWidthHeight
@@ -3071,226 +3136,5 @@ CziImageFile::TabOverlayInfo::resetContent()
 {
     m_imageResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
     m_multiResolutionImageLoader.reset();
-}
-
-static void
-indexToPlaneTest(const Matrix4x4& indexToPlane,
-                 const Matrix4x4& planeToMM,
-                 const int32_t i,
-                 const int32_t j,
-                 const AString& name)
-{
-    Vector3D ij(j,
-                i,
-                1.0f);
-    
-    Vector3D xy(ij);
-    indexToPlane.multiplyPoint3(xy);
-    float y = xy[0];  /* yes correct Y is first */
-    float x = xy[1];
-    std::cout << name << " plane i, j, k: " << i << ", " << j << " xyz: " << x << ", " << y << ", " << xy[2] << std::endl;
-    
-    planeToMM.multiplyPoint3(xy);
-    y = xy[0];
-    x = xy[1];
-    std::cout << "         mm x, y, z: " << i << ", " << j << " xyz: " << x << ", " << y << ", " << xy[2] << std::endl;
-}
-
-static void
-lengthsTest(const Matrix4x4& indexToPlane,
-            const int32_t i1,
-            const int32_t j1,
-            const int32_t i2,
-            const int32_t j2,
-            const AString& name)
-{
-    const Vector3D v1Pixel(i1, j1, 0.0);
-    const Vector3D v2Pixel(i2, j2, 0.0);
-    Vector3D v1(v1Pixel);
-    Vector3D v2(v2Pixel);
-    indexToPlane.multiplyPoint3(v1);
-    indexToPlane.multiplyPoint3(v2);
-    const Vector3D dxy(v2 - v1);
-    std::cout << name << " Index (" << AString::fromNumbers(v1Pixel) << ") to (" << AString::fromNumbers(v2Pixel) << ") "
-    << " Plane XYZ ( " << AString::fromNumbers(v1) << ") to (" << AString::fromNumbers(v2) << ") length: "
-    << dxy.length() << std::endl;
-}
-
-static void
-indexToPlaneTest(const Matrix4x4& scaledToPlane,
-                 const Matrix4x4& shiftMat,
-                 const Matrix4x4& scaleMat,
-                 const Matrix4x4& planeToMM,
-                 const int32_t i,
-                 const int32_t j,
-                 const AString& name)
-{
-    const Vector3D ij(j,
-                      i,
-                      1.0f);
-    Vector3D xy(j,
-                i,
-                1.0f);
-    
-    std::cout << "Input (i, j): " << i << ", " << j << " " << name << std::endl;
-    shiftMat.multiplyPoint3(xy);
-    std::cout << "   After Shift (x, y, z): " << xy[1] << ", " << xy[0] << ", " << xy[2] <<std::endl;
-    scaleMat.multiplyPoint3(xy);
-    std::cout << "   After scale (x, y, z): " << xy[1] << ", " << xy[0] << ", " << xy[2] <<std::endl;
-    scaledToPlane.multiplyPoint3(xy);
-    std::cout << "   Result (x, y, z): " << xy[1] << ", " << xy[0] << ", " << xy[2] <<std::endl;
-
-    planeToMM.multiplyPoint3(xy);
-    std::cout << "   Result Spatial (x, y, z): " << xy[1] << "mm, " << xy[0] << ", " << xy[2] << "mm" << std::endl;
-}
-
-/**
- * Reset the matrices.
- */
-void
-CziImageFile::resetMatrices()
-{
-    
-    m_pixelIndexToPlaneMatrix.identity();
-    m_planeToPixelIndexMatrix.identity();
-    m_planeToMillimetersMatrix.identity();
-    
-    m_pixelIndexToPlaneMatrixValidFlag       = false;
-    m_planeToPixelIndexMatrixValidFlag       = false;
-    m_planeToMillimetersMatrixValidFlag = false;
-}
-
-/**
- * Set the matrix for display drawing.
- * @param scaledToPlaneMatrix
- *    The scaled to plane matrix.
- * @param planeToMillimetersMatrix
- *    Matrix for converting from plane coords to millimeter coords
- * @param matixValidFlag
- *    True if the matrix is valid.
- */
-void
-CziImageFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
-                                     const Matrix4x4& planeToMillimetersMatrix,
-                                     const bool matixValidFlag)
-{
-    resetMatrices();
-    
-    if ( ! matixValidFlag) {
-        return;
-    }
-    
-    m_planeToMillimetersMatrix = planeToMillimetersMatrix;
-    m_planeToMillimetersMatrixValidFlag = true;
-    
-    
-    /*
-     * Translate by 1/2 pixel (move to center of pixel)
-     */
-    Matrix4x4 shiftMat;
-    shiftMat.identity();
-    shiftMat.setTranslation(0.5,
-                            0.5,
-                            0.0);
-    
-    /*
-     * Matrix to convert pixel range so zero to one
-     */
-    const float scaleFactor(std::max(getWidth(), getHeight()));
-    CaretAssert(scaleFactor >= 1.0);
-    Matrix4x4 scaleMat;
-    scaleMat.identity();
-    scaleMat.scale((1.0 / scaleFactor),
-                   (1.0 / scaleFactor),
-                   1.0);
-    
-    Matrix4x4 indexToPlane = scaledToPlaneMatrix;
-    indexToPlane.premultiply(scaleMat);
-    indexToPlane.premultiply(shiftMat);
-    
-    
-    const bool testFlag(true);
-    if (testFlag) {
-        std::cout << "---- File: " << getFileName() << std::endl;
-        std::cout << "Shift Mat: " << shiftMat.toString() << std::endl;
-        std::cout << "Scale Mat: " << scaleMat.toString() << std::endl;
-        std::cout << "ScaledToPlane: " << scaledToPlaneMatrix.toString() << std::endl;
-        {
-            double sx, sy, sz;
-            scaledToPlaneMatrix.getScale(sx, sy, sz);
-            Matrix4x4 m = scaledToPlaneMatrix;
-            m.scale(1.0 / sx, 1.0 / sy, 1.0 / sz);
-            std::cout << "ScaledToPlane no scale: " << m.toString() << std::endl;
-        }
-        std::cout << "PlaneToMM" << m_planeToMillimetersMatrix.toString() << std::endl;
-        std::cout << "Index to Plane: " << indexToPlane.toString() << std::endl;
-        std::cout << "Start Index to Plane ----------" << std::endl;
-        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, 0, 0, "top left");
-        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, getWidth() - 1, 0, "top right");
-        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, 0, getHeight() - 1, "bottom left");
-        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, getWidth() - 1, getHeight() - 1, "bottom right");
-        
-        const float w(getWidth() - 1);
-        const float h(getHeight() - 1);
-        lengthsTest(indexToPlane, 0, 0, w, 0, "top");
-        lengthsTest(indexToPlane, 0, h, w, h, "bottom");
-        lengthsTest(indexToPlane, 0, 0, 0, h, "left");
-        lengthsTest(indexToPlane, 0, w, w, h, "right");
-
-        std::cout << "   -- Separate ----------" << std::endl;
-        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, 0, 0, "top left");
-        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, getWidth() - 1, 0, "top right");
-        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, 0, getHeight() - 1, "bottom left");
-        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, getWidth() - 1, getHeight() - 1, "bottom right");
-        std::cout << "   -------------------------------" << std::endl;
-    }
-    
-    m_pixelIndexToPlaneMatrix = indexToPlane;
-    m_pixelIndexToPlaneMatrixValidFlag = true;
-    
-    m_planeToPixelIndexMatrix = m_pixelIndexToPlaneMatrix;
-    if (m_planeToPixelIndexMatrix.invert()) {
-        m_planeToPixelIndexMatrixValidFlag = true;
-    }
-    
-    if (m_pixelIndexToPlaneMatrixValidFlag) {
-        const PixelLogicalIndex topLeft(m_fullResolutionLogicalRect.left(),
-                                        m_fullResolutionLogicalRect.top(),
-                                        0);
-        const PixelLogicalIndex topRight(m_fullResolutionLogicalRect.right(),
-                                         m_fullResolutionLogicalRect.top(),
-                                         0);
-        const PixelLogicalIndex bottomLeft(m_fullResolutionLogicalRect.left(),
-                                           m_fullResolutionLogicalRect.bottom(),
-                                           0);
-        const PixelLogicalIndex bottomRight(m_fullResolutionLogicalRect.right(),
-                                            m_fullResolutionLogicalRect.bottom(),
-                                            0);
-
-        Vector3D corners[4];
-        logicalPixelIndexToPlaneXYZ(topLeft,     corners[0]);
-        logicalPixelIndexToPlaneXYZ(topRight,    corners[1]);
-        logicalPixelIndexToPlaneXYZ(bottomLeft,  corners[2]);
-        logicalPixelIndexToPlaneXYZ(bottomRight, corners[3]);
-        
-        m_planeBoundingBox.resetForUpdate();
-        for (int32_t i = 0; i < 4; i++) {
-            m_planeBoundingBox.update(corners[i]);
-        }
-        
-        m_planeXyzRect.setLeft(m_planeBoundingBox.getMinX());
-        m_planeXyzRect.setRight(m_planeBoundingBox.getMaxX());
-        m_planeXyzRect.setTop(m_planeBoundingBox.getMinY());
-        m_planeXyzRect.setBottom(m_planeBoundingBox.getMaxY());
-
-        if (testFlag) {
-            std::cout << "Plane bounding box: " << m_planeBoundingBox.toString() << std::endl;
-            std::cout << "Plane XYZ Rect: " << CziUtilities::qRectToString(m_planeXyzRect) << std::endl;
-        }
-    }
-    
-    if (testFlag) {
-        std::cout << "-------------------------------" << std::endl;
-    }
 }
 

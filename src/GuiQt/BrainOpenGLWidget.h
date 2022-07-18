@@ -61,7 +61,8 @@ namespace caret {
     class EventImageCapture;
     class GraphicsFramesPerSecond;
     class SelectionItemAnnotation;
-    class SelectionItemMedia;
+    class SelectionItemMediaLogicalCoordinate;
+    class SelectionItemMediaPlaneCoordinate;
     class SelectionItemVolumeMprCrosshair;
     class SelectionManager;
     class Model;
@@ -89,9 +90,12 @@ namespace caret {
                                                 const int y,
                                                 const bool applySelectionBackgroundFiltering);
         
-        SelectionItemMedia* performIdentificationMedia(const int x,
-                                                       const int y);
+        SelectionItemMediaLogicalCoordinate* performIdentificationMediaLogicalCoordinate(const int x,
+                                                                                         const int y);
         
+        SelectionItemMediaPlaneCoordinate*   performIdentificationMediaPlaneCoordinate(const int x,
+                                                                                       const int y);
+
         SelectionItemAnnotation* performIdentificationAnnotations(const int x,
                                                            const int y);
         

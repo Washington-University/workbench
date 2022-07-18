@@ -68,7 +68,8 @@
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
-#include "SelectionItemMedia.h"
+#include "SelectionItemMediaLogicalCoordinate.h"
+#include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -174,8 +175,11 @@ IdentificationSimpleTextGenerator::createIdentificationText(const SelectionManag
     this->generateChartTwoMatrixIdentificationText(idText,
                                                       idManager->getChartTwoMatrixIdentification());
     
-    this->generateMediaIdentificationText(idText,
-                                          idManager->getMediaIdentification());
+    this->generateMediaLogicalCoordinateIdentificationText(idText,
+                                                           idManager->getMediaLogicalCoordinateIdentification());
+    
+    this->generateMediaPlaneCoordinateIdentificationText(idText,
+                                                         idManager->getMediaPlaneCoordinateIdentification());
     
     return idText.toString();
 }
@@ -1622,8 +1626,8 @@ IdentificationSimpleTextGenerator::generateVolumeFociIdentifcationText(Identific
  *     Information for image ID.
  */
 void
-IdentificationSimpleTextGenerator::generateMediaIdentificationText(IdentificationStringBuilder& idText,
-                                                             const SelectionItemMedia* idMedia) const
+IdentificationSimpleTextGenerator::generateMediaLogicalCoordinateIdentificationText(IdentificationStringBuilder& idText,
+                                                             const SelectionItemMediaLogicalCoordinate* idMedia) const
 {
     if (idMedia->isValid()) {
         const PixelLogicalIndex pixelIndex(idMedia->getPixelLogicalIndex());
@@ -1634,6 +1638,34 @@ IdentificationSimpleTextGenerator::generateMediaIdentificationText(Identificatio
                               + ","
                               + AString::number(pixelIndex.getJ())
                               + ")");
+        
+        uint8_t pixelRGBA[4] = { 0, 0, 0, 0 };
+        idMedia->getPixelRGBA(pixelRGBA);
+        text.append(" RGBA (" + AString::fromNumbers(pixelRGBA, 4, ",") + ")");
+        
+        idText.addLine(false,
+                       text);
+    }
+}
+
+/**
+ * Generate identification text for media identification.
+ * @param idText
+ *     String builder for identification text.
+ * @param idImage
+ *     Information for image ID.
+ */
+void
+IdentificationSimpleTextGenerator::generateMediaPlaneCoordinateIdentificationText(IdentificationStringBuilder& idText,
+                                                                   const SelectionItemMediaPlaneCoordinate* idMedia) const
+{
+    if (idMedia->isValid()) {
+        const Vector3D planeXYZ(idMedia->getPlaneCoordinate());
+        AString text = ("Image "
+                        + idMedia->getMediaFile()->getFileNameNoPath()
+                        + " Plane XYZ ("
+                        + AString::fromNumbers(planeXYZ)
+                        + ")");
         
         uint8_t pixelRGBA[4] = { 0, 0, 0, 0 };
         idMedia->getPixelRGBA(pixelRGBA);

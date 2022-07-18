@@ -99,7 +99,7 @@ namespace caret {
         
         virtual bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const override;
         
-        virtual void getPixelIdentificationTextForFrames(const int32_t tabIndex,
+        virtual void getPixelLogicalIdentificationTextForFrames(const int32_t tabIndex,
                                                          const std::vector<int32_t>& frameIndices,
                                                          const PixelLogicalIndex& pixelLogicalIndex,
                                                          std::vector<AString>& columnOneTextOut,
@@ -164,29 +164,17 @@ namespace caret {
         virtual PixelIndex pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const override;
         
         virtual PixelLogicalIndex pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const override;
-
-        virtual bool pixelIndexToPlaneXYZ(const PixelIndex& pixelIndex,
-                                          Vector3D& planeXyzOut) const override;
-        
-        virtual bool logicalPixelIndexToPlaneXYZ(const PixelLogicalIndex& pixelLogialIndex,
-                                                 Vector3D& planeXyzOut) const override;
-        
-        virtual bool planeXyzToPixelIndex(const Vector3D& planeXyz,
-                                          PixelIndex& pixelIndexOut) const override;
-        
-        virtual bool planeXyzToLogicalPixelIndex(const Vector3D& planeXyz,
-                                                 PixelLogicalIndex& pixelLogicalIndexOut) const override;
         
         virtual QRectF getLogicalBoundsRect() const override;
+        
+        bool exportToCoordinatePngFile(const QString& imageFileName,
+                                       const int32_t maximumWidthHeight,
+                                       AString& errorMessageOut);
         
         bool exportToImageFile(const QString& imageFileName,
                                const int32_t maximumWidthHeight,
                                const bool includeAlphaFlag,
                                AString& errorMessageOut);
-        
-        void setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
-                                    const Matrix4x4& planeToMillimetersMatrix,
-                                    const bool matixValidFlag);
         
         // ADD_NEW_METHODS_HERE
 
@@ -447,8 +435,6 @@ namespace caret {
         
         bool testReadingSmallImage(AString& errorMessageOut);
         
-        void resetMatrices();
-        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         Status m_status = Status::CLOSED;
@@ -483,10 +469,6 @@ namespace caret {
          */
         QRectF m_fullResolutionLogicalRect;
         
-        QRectF m_planeXyzRect;
-        
-        BoundingBox m_planeBoundingBox;
-        
         mutable NiftiTransform m_pixelToStereotaxicTransform;
         
         mutable NiftiTransform m_stereotaxicToPixelTransform;
@@ -496,18 +478,6 @@ namespace caret {
         mutable bool m_imagePlaneInvalid = false;
         
         int32_t m_maximumImageDimension = 2048;
-        
-        Matrix4x4 m_pixelIndexToPlaneMatrix;
-        
-        Matrix4x4 m_planeToPixelIndexMatrix;
-        
-        Matrix4x4 m_planeToMillimetersMatrix;
-
-        bool m_pixelIndexToPlaneMatrixValidFlag = false;
-        
-        bool m_planeToPixelIndexMatrixValidFlag = false;
-        
-        bool m_planeToMillimetersMatrixValidFlag = false;
         
         static const int32_t s_allFramesIndex;
         

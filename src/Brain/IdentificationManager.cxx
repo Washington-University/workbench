@@ -216,7 +216,10 @@ IdentificationManager::removeIdentificationText()
         switch (itemPtr->getType()) {
             case IdentifiedItemUniversalTypeEnum::INVALID:
                 break;
-            case IdentifiedItemUniversalTypeEnum::MEDIA:
+            case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
+                keepFlag = true;
+                break;
+            case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
                 keepFlag = true;
                 break;
             case IdentifiedItemUniversalTypeEnum::SURFACE:
@@ -281,14 +284,18 @@ IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUnivers
     
     IdentificationSymbolSizeTypeEnum::Enum sizeType(getIdentificationSymbolSizeType());
 
-    bool mediaFlag(false);
+    bool mediaLogicalCoordFlag(false);
+    bool mediaPlaneCoordFlag(false);
     switch (drawingOnType) {
         case IdentifiedItemUniversalTypeEnum::INVALID:
             CaretAssert(0);
             return;
             break;
-        case IdentifiedItemUniversalTypeEnum::MEDIA:
-            mediaFlag = true;
+        case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
+            mediaLogicalCoordFlag = true;
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
+            mediaPlaneCoordFlag = true;
             break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
             break;
@@ -304,7 +311,8 @@ IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUnivers
             break;
     }
     
-    if (mediaFlag) {
+    if (mediaLogicalCoordFlag
+        || mediaPlaneCoordFlag) {
         /*
          * Media is always percentage
          */
@@ -990,8 +998,11 @@ IdentificationManager::getShowSymbolOnTypeLabel(const IdentifiedItemUniversalTyp
         case IdentifiedItemUniversalTypeEnum::INVALID:
             text = "INVALID";
             break;
-        case IdentifiedItemUniversalTypeEnum::MEDIA:
-            text = "Show ID Symbols on Media";
+        case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
+            text = "Show ID Symbols on Media Logical Coordinates";
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
+            text = "Show ID Symbols on Media Plane Coordinates";
             break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
             text = "Show ID Symbols on Surface";
@@ -1027,7 +1038,10 @@ IdentificationManager::getShowSymbolOnTypeToolTip(const IdentifiedItemUniversalT
     switch (type) {
         case IdentifiedItemUniversalTypeEnum::INVALID:
             break;
-        case IdentifiedItemUniversalTypeEnum::MEDIA:
+        case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
+            text.append("(Surface, Volume, or other Media)");
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
             text.append("(Surface, Volume, or other Media)");
             break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:

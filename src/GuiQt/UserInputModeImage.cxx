@@ -41,7 +41,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
-#include "SelectionItemMedia.h"
+#include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemImageControlPoint.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -185,9 +185,9 @@ UserInputModeImage::mouseLeftClick(const MouseEvent& mouseEvent)
                                         mouseEvent.getY(),
                                         true);
     
-    SelectionItemMedia* idMedia = idManager->getMediaIdentification();
-    CaretAssert(idMedia);
-    
+    SelectionItemMediaLogicalCoordinate* idMediaPixel = idManager->getMediaLogicalCoordinateIdentification();
+    CaretAssert(idMediaPixel);
+
     SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
     CaretAssert(idVoxel);
     
@@ -198,12 +198,12 @@ UserInputModeImage::mouseLeftClick(const MouseEvent& mouseEvent)
     
     switch (m_editOperation) {
         case EDIT_OPERATION_ADD:
-            if (idMedia->isValid()
+            if (idMediaPixel->isValid()
                 && idVoxel->isValid()) {
-                addControlPoint(idMedia,
+                addControlPoint(idMediaPixel,
                                 idVoxel);
             }
-            else if (idMedia->isValid()) {
+            else if (idMediaPixel->isValid()) {
                 toolTipMessage = "Mouse click is over image but must also be over volume slice";
             }
             else if (idVoxel->isValid()) {
@@ -243,7 +243,7 @@ UserInputModeImage::mouseLeftClick(const MouseEvent& mouseEvent)
  *     The voxel selection.
  */
 void
-UserInputModeImage::addControlPoint(SelectionItemMedia* mediaSelection,
+UserInputModeImage::addControlPoint(SelectionItemMediaLogicalCoordinate* mediaSelection,
                                     const SelectionItemVoxel* voxelSelection)
 {
     MediaFile* mediaFile = mediaSelection->getMediaFile();

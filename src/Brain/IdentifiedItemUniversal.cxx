@@ -71,6 +71,8 @@ SceneableInterface()
  *    Index of vertex that was identified.
  * @param pixelLogicalIndex
  *   Logical Index of pixel.
+ * @param pixelPlaneCoordinate
+ *   The pixel plane XYZ
  * @param voxelIJK
  *    The voxel IJK indices
  *@param stereotaxicXYZ
@@ -86,6 +88,7 @@ IdentifiedItemUniversal::IdentifiedItemUniversal(const IdentifiedItemUniversalTy
                                                  const int32_t surfaceNumberOfVertices,
                                                  const int32_t surfaceVertexIndex,
                                                  const PixelLogicalIndex& pixelLogicalIndex,
+                                                 const Vector3D& pixelPlaneCoordinate,
                                                  const std::array<int64_t, 3>& voxelIJK,
                                                  const Vector3D& stereotaxicXYZ,
                                                  const bool stereotaxicXYZValidFlag)
@@ -100,6 +103,7 @@ m_contralateralStructure(StructureEnum::getContralateralStructure(structure)),
 m_surfaceNumberOfVertices(surfaceNumberOfVertices),
 m_surfaceVertexIndex(surfaceVertexIndex),
 m_pixelLogicalIndex(pixelLogicalIndex),
+m_pixelPlaneCoordinate(pixelPlaneCoordinate),
 m_voxelIJK(voxelIJK),
 m_stereotaxicXYZ(stereotaxicXYZ),
 m_stereotaxicXYZValidFlag(stereotaxicXYZValidFlag)
@@ -130,6 +134,7 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
 {
     AString dataFileName;
     PixelLogicalIndex pixelLogicalIndex;
+    const Vector3D pixelPlaneCoordinate;
     const Vector3D stereotaxicXYZ { 0.0f, 0.0f, 0.0f };
     const bool stereotaxicXYZValidFlag(false);
     const StructureEnum::Enum structure(StructureEnum::INVALID);
@@ -145,6 +150,7 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
                                                                 surfaceNumberOfVertices,
                                                                 surfaceVertexIndex,
                                                                 pixelLogicalIndex,
+                                                                Vector3D(),
                                                                 voxelIJK,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
@@ -153,7 +159,7 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
 
 
 /**
- * @return New instance for a pixel identification.
+ * @return New instance for a pixel logical coordinate identification.
  *
  * @param simpleText
  *    Text describing the identified item.
@@ -170,19 +176,20 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
  *
  */
 IdentifiedItemUniversal*
-IdentifiedItemUniversal::newInstanceMediaIdentification(const AString& simpleText,
-                                                        const AString& formattedText,
-                                                        const AString& dataFileName,
-                                                        const PixelLogicalIndex& pixelLogicalIndex,
-                                                        const Vector3D& stereotaxicXYZ,
-                                                        const bool stereotaxicXYZValidFlag)
+IdentifiedItemUniversal::newInstanceMediaLogicalCoordinateIdentification(const AString& simpleText,
+                                                                         const AString& formattedText,
+                                                                         const AString& dataFileName,
+                                                                         const PixelLogicalIndex& pixelLogicalIndex,
+                                                                         const Vector3D& stereotaxicXYZ,
+                                                                         const bool stereotaxicXYZValidFlag)
 {
     const StructureEnum::Enum structure(StructureEnum::INVALID);
     const int32_t surfaceNumberOfVertices(-1);
     const int32_t surfaceVertexIndex(-1);
     std::array<int64_t, 3> voxelIJK;
     voxelIJK.fill(0);
-    IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::MEDIA,
+    const Vector3D pixelPlaneCoordinate;
+    IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE,
                                                                 simpleText,
                                                                 formattedText,
                                                                 dataFileName,
@@ -190,6 +197,53 @@ IdentifiedItemUniversal::newInstanceMediaIdentification(const AString& simpleTex
                                                                 surfaceNumberOfVertices,
                                                                 surfaceVertexIndex,
                                                                 pixelLogicalIndex,
+                                                                pixelPlaneCoordinate,
+                                                                voxelIJK,
+                                                                stereotaxicXYZ,
+                                                                stereotaxicXYZValidFlag);
+    return item;
+}
+
+/**
+ * @return New instance for a pixel plane XYZ identification.
+ *
+ * @param simpleText
+ *    Text describing the identified item.
+ * @param formattedText
+ *    Formatted text describing the identified item.
+ * @param dataFileName
+ *    Name of data file on which identification was performed
+ * @param pixelPlaneCoordinate
+ *    The plane coordinate
+ * @param stereotaxicXYZ
+ *    Stereotaxic coordinate of vertex
+ * @param stereotaxicXYZValidFlag
+ *    True if the stereotaxic coordinate is valid
+ *
+ */
+IdentifiedItemUniversal*
+IdentifiedItemUniversal::newInstanceMediaPlaneCoordinateIdentification(const AString& simpleText,
+                                                                       const AString& formattedText,
+                                                                       const AString& dataFileName,
+                                                                       const Vector3D& pixelPlaneCoordinate,
+                                                                       const Vector3D& stereotaxicXYZ,
+                                                                       const bool stereotaxicXYZValidFlag)
+{
+    const StructureEnum::Enum structure(StructureEnum::INVALID);
+    const int32_t surfaceNumberOfVertices(-1);
+    const int32_t surfaceVertexIndex(-1);
+    std::array<int64_t, 3> voxelIJK;
+    voxelIJK.fill(0);
+    PixelLogicalIndex pixelLogicalIndex;
+    IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE,
+                                                                simpleText,
+                                                                formattedText,
+                                                                dataFileName,
+                                                                structure,
+                                                                surfaceNumberOfVertices,
+                                                                surfaceVertexIndex,
+                                                                pixelLogicalIndex,
+                                                                pixelPlaneCoordinate,
                                                                 voxelIJK,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
@@ -235,6 +289,7 @@ IdentifiedItemUniversal::newInstanceSurfaceIdentification(const AString& simpleT
                                                                 surfaceNumberOfVertices,
                                                                 surfaceVertexIndex,
                                                                 PixelLogicalIndex(),
+                                                                Vector3D(),
                                                                 voxelIJK,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
@@ -275,6 +330,7 @@ IdentifiedItemUniversal::newInstanceVolumeIdentification(const AString& simpleTe
                                                                 surfaceNumberOfVertices,
                                                                 surfaceVertexIndex,
                                                                 PixelLogicalIndex(),
+                                                                Vector3D(),
                                                                 voxelIJK,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
@@ -384,6 +440,7 @@ IdentifiedItemUniversal::copyHelperIdentifiedItemUniversal(const IdentifiedItemU
     m_surfaceNumberOfVertices = obj.m_surfaceNumberOfVertices;
     m_surfaceVertexIndex = obj.m_surfaceVertexIndex;
     m_pixelLogicalIndex = obj.m_pixelLogicalIndex;
+    m_pixelPlaneCoordinate = obj.m_pixelPlaneCoordinate;
     m_voxelIJK = obj.m_voxelIJK;
     m_stereotaxicXYZ = obj.m_stereotaxicXYZ;
     m_stereotaxicXYZValidFlag = obj.m_stereotaxicXYZValidFlag;
@@ -469,6 +526,8 @@ IdentifiedItemUniversal::initializeInstance()
     m_sceneAssistant->add("m_surfaceNumberOfVertices", &m_surfaceNumberOfVertices);
     m_sceneAssistant->add("m_surfaceVertexIndex", &m_surfaceVertexIndex);
     m_sceneAssistant->add("m_pixelIndex", "PixelLogicalIndex", &m_pixelLogicalIndex); /* "m_pixelIndex" is compatible with old scenes */
+    m_sceneAssistant->addArray("m_pixelPlaneCoordinate", m_pixelPlaneCoordinate, 3, 0.0);
+    m_sceneAssistant->addArray("m_pixelPlaneCoordinate", m_pixelPlaneCoordinate, 3, 0.0);
     m_sceneAssistant->addArray("m_voxelIJK", m_voxelIJK.data(), m_voxelIJK.size(), -1);
     m_sceneAssistant->addArray("m_stereotaxicXYZ", m_stereotaxicXYZ, 3, 0.0);
     m_sceneAssistant->add("m_stereotaxicXYZValidFlag", &m_stereotaxicXYZValidFlag);
@@ -495,12 +554,22 @@ IdentifiedItemUniversal::getToolTip() const
     switch (m_type) {
         case IdentifiedItemUniversalTypeEnum::INVALID:
             break;
-        case IdentifiedItemUniversalTypeEnum::MEDIA:
+        case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
         {
             toolTipText = ("ID from Media File: "
                            + m_dataFileName + "<br>"
                            "Pixel ("
                            + m_pixelLogicalIndex.toString()
+                           + ")"
+                           + xyzText);
+        }
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
+        {
+            toolTipText = ("ID from Media File: "
+                           + m_dataFileName + "<br>"
+                           "Plane ("
+                           + AString::fromNumbers(m_pixelPlaneCoordinate, 3, ", ")
                            + ")"
                            + xyzText);
         }
@@ -546,10 +615,13 @@ IdentifiedItemUniversal::isValid() const
         case IdentifiedItemUniversalTypeEnum::INVALID:
             CaretAssert(0);
             break;
-        case IdentifiedItemUniversalTypeEnum::MEDIA:
+        case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
             //if (m_pixelLogicalIndex.isValid()) {
                 return true;
             //}
+            break;
+        case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
+            return true;
             break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
             if ((m_structure != StructureEnum::INVALID)
@@ -682,6 +754,15 @@ IdentifiedItemUniversal::getPixelLogicalIndex() const
 }
 
 /**
+ * The pixel plane coordinate
+ */
+Vector3D
+IdentifiedItemUniversal::getPixelPlaneCoordinate() const
+{
+    return m_pixelPlaneCoordinate;
+}
+
+/**
  * @return The voxel IJK indices
  */
 std::array<int64_t, 3>
@@ -744,6 +825,7 @@ IdentifiedItemUniversal::toString() const
                        + ", m_surfaceNumberOfVertices=" + AString::number(m_surfaceNumberOfVertices)
                        + ", m_surfaceVertexIndex=" + AString::number(m_surfaceVertexIndex)
                        + ", m_pixelLogicalIndex=" + m_pixelLogicalIndex.toString()
+                       + ", m_pixelPlaneCoordinate=" + AString::fromNumbers(m_pixelPlaneCoordinate)
                        + ", m_voxelIJK=" + AString::fromNumbers(m_voxelIJK.data(), m_voxelIJK.size(), ", ")
                        + ", m_stereotaxicXYZ=" + AString::fromNumbers(m_stereotaxicXYZ, 3, ", ")
                        + ", m_stereotaxicXYZValidFlag=" + AString::fromBool(m_stereotaxicXYZValidFlag)

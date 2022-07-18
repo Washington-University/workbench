@@ -51,7 +51,8 @@
 #include "ProgressReportingDialog.h"
 #include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
-#include "SelectionItemMedia.h"
+#include "SelectionItemMediaLogicalCoordinate.h"
+#include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemVolumeMprCrosshair.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -433,15 +434,35 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
         }
     }
     else if (browserTabContent->isMediaDisplayed()) {
-
+        bool modelXyzValidFlag(false);
+        double modelXYZ[3];
         BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-        SelectionItemMedia* mediaID = openGLWidget->performIdentificationMedia(mouseEvent.getX(),
-                                                                               mouseEvent.getY());
-        CaretAssert(mediaID);
-        if (mediaID->isValid()) {
-            double modelXYZ[3];
-            mediaID->getModelXYZ(modelXYZ);
-            
+        switch (browserTabContent->getMediaDisplayCoordinateMode()) {
+            case MediaDisplayCoordinateModeEnum::PIXEL:
+            {
+                SelectionItemMediaLogicalCoordinate* mediaID = openGLWidget->performIdentificationMediaLogicalCoordinate(mouseEvent.getX(),
+                                                                                                                         mouseEvent.getY());
+                CaretAssert(mediaID);
+                if (mediaID->isValid()) {
+                    mediaID->getModelXYZ(modelXYZ);
+                    modelXyzValidFlag = true;
+                }
+            }
+                break;
+            case MediaDisplayCoordinateModeEnum::PLANE:
+            {
+                SelectionItemMediaPlaneCoordinate* mediaID = openGLWidget->performIdentificationMediaPlaneCoordinate(mouseEvent.getX(),
+                                                                                                                     mouseEvent.getY());
+                CaretAssert(mediaID);
+                if (mediaID->isValid()) {
+                    mediaID->getModelXYZ(modelXYZ);
+                    modelXyzValidFlag = true;
+                }
+            }
+                break;
+        }
+
+        if (modelXyzValidFlag) {
             GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
             CaretAssert(box);
             
@@ -511,13 +532,34 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
             m_mediaLeftDragWithCtrlModelXYZValidFlag = false;
             
             BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-            SelectionItemMedia* mediaID = openGLWidget->performIdentificationMedia(mouseEvent.getPressedX(),
-                                                                                   mouseEvent.getPressedY());
-            CaretAssert(mediaID);
-            if (mediaID->isValid()) {
-                double modelXYZ[3];
-                mediaID->getModelXYZ(modelXYZ);
-                
+            bool modelXyzValidFlag(false);
+            double modelXYZ[3];
+            switch (browserTabContent->getMediaDisplayCoordinateMode()) {
+                case MediaDisplayCoordinateModeEnum::PIXEL:
+                {
+                    SelectionItemMediaLogicalCoordinate* mediaID = openGLWidget->performIdentificationMediaLogicalCoordinate(mouseEvent.getPressedX(),
+                                                                                                            mouseEvent.getPressedY());
+                    CaretAssert(mediaID);
+                    if (mediaID->isValid()) {
+                        mediaID->getModelXYZ(modelXYZ);
+                        modelXyzValidFlag = true;
+                    }
+                }
+                    break;
+                case MediaDisplayCoordinateModeEnum::PLANE:
+                {
+                    SelectionItemMediaPlaneCoordinate* mediaID = openGLWidget->performIdentificationMediaPlaneCoordinate(mouseEvent.getPressedX(),
+                                                                                                                             mouseEvent.getPressedY());
+                    CaretAssert(mediaID);
+                    if (mediaID->isValid()) {
+                        mediaID->getModelXYZ(modelXYZ);
+                        modelXyzValidFlag = true;
+                    }
+                }
+                    break;
+            }
+
+            if (modelXyzValidFlag) {
                 m_mediaLeftDragWithCtrlModelXYZ[0] = modelXYZ[0];
                 m_mediaLeftDragWithCtrlModelXYZ[1] = modelXYZ[1];
                 m_mediaLeftDragWithCtrlModelXYZ[2] = modelXYZ[2];
@@ -770,12 +812,34 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                         const bool enableMediaGesturesFlag(false);
                         if (enableMediaGesturesFlag) {
                             BrainOpenGLWidget* openGLWidget = gestureEvent.getOpenGLWidget();
-                            SelectionItemMedia* mediaID = openGLWidget->performIdentificationMedia(gestureEvent.getStartCenterX(),
-                                                                                                   gestureEvent.getStartCenterX());
-                            CaretAssert(mediaID);
-                            if (mediaID->isValid()) {
-                                double modelXYZ[3];
-                                mediaID->getModelXYZ(modelXYZ);
+                            bool modelXyzValidFlag(false);
+                            double modelXYZ[3];
+                            switch (browserTabContent->getMediaDisplayCoordinateMode()) {
+                                case MediaDisplayCoordinateModeEnum::PIXEL:
+                                {
+        
+                                    SelectionItemMediaLogicalCoordinate* mediaID = openGLWidget->performIdentificationMediaLogicalCoordinate(gestureEvent.getStartCenterX(),
+                                                                                                                                             gestureEvent.getStartCenterY());
+                                    CaretAssert(mediaID);
+                                    if (mediaID->isValid()) {
+                                        mediaID->getModelXYZ(modelXYZ);
+                                        modelXyzValidFlag = true;
+                                    }
+                                }
+                                    break;
+                                case MediaDisplayCoordinateModeEnum::PLANE:
+                                {
+                                    SelectionItemMediaPlaneCoordinate* mediaID = openGLWidget->performIdentificationMediaPlaneCoordinate(gestureEvent.getStartCenterX(),
+                                                                                                                                         gestureEvent.getStartCenterY());
+                                    CaretAssert(mediaID);
+                                    if (mediaID->isValid()) {
+                                        mediaID->getModelXYZ(modelXYZ);
+                                        modelXyzValidFlag = true;
+                                    }
+                                    break;
+                                }
+                            }
+                            if (modelXyzValidFlag) {
                                 browserTabContent->applyMediaMouseScaling(viewportContent,
                                                                           gestureEvent.getStartCenterX(),
                                                                           gestureEvent.getStartCenterX(),

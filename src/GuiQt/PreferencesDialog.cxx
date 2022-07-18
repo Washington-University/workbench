@@ -618,7 +618,7 @@ PreferencesDialog::createIdentificationSymbolWidget()
     gridLayout->addWidget(infoLabel,
                           row, 0, 1, 2);
     addWidgetToLayout(gridLayout,
-                      IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::MEDIA) + ": ",
+                      IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE) + ": ",
                       m_mediaIdentificationSymbolComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::SURFACE) + ": ",

@@ -225,7 +225,7 @@ public:
     
     virtual bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const override;
     
-    virtual void getPixelIdentificationTextForFrames(const int32_t tabIndex,
+    virtual void getPixelLogicalIdentificationTextForFrames(const int32_t tabIndex,
                                                      const std::vector<int32_t>& frameIndices,
                                                      const PixelLogicalIndex& pixelLogicalIndex,
                                                      std::vector<AString>& columnOneTextOut,
@@ -245,6 +245,8 @@ public:
                                                          std::vector<AString>& writableExtensionsOut,
                                                          AString& defaultWritableExtension);
     
+    virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing() const override;
+
 protected:
     
 private:
@@ -284,7 +286,10 @@ private:
     
     mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForMediaDrawing;
     
+    mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForCoordinateMediaDrawing;
+    
     static const AString SCENE_VERSION_NUMBER;
+
 };
 
 #ifdef __IMAGE_FILE_DECLARE__

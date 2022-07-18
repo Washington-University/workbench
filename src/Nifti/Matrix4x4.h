@@ -121,6 +121,10 @@ public:
     
     void setMatrixFromOpenGL(const float m[16]);
     
+    QString getMatrixInRowMajorOrderString();
+    
+    void setMatrixFromRowMajorOrderString(const QString& s);
+    
     void setMatrixToOpenGLRotationFromVector(const float vector[3]);
     
     void transpose();

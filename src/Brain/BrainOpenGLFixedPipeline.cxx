@@ -48,6 +48,7 @@
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #include "BrainOpenGLChartTwoDrawingFixedPipeline.h"
 #include "BrainOpenGLIdentificationDrawing.h"
+#include "BrainOpenGLMediaCoordinateDrawing.h"
 #include "BrainOpenGLMediaDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLVolumeMprTwoDrawing.h"
@@ -125,7 +126,8 @@
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
-#include "SelectionItemMedia.h"
+#include "SelectionItemMediaLogicalCoordinate.h"
+#include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemImageControlPoint.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceTriangle.h"
@@ -8129,7 +8131,8 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
     int viewport[4];
     vpContent->getModelViewport(viewport);
     
-    SelectionItemMedia* idMedia = m_brain->getSelectionManager()->getMediaIdentification();
+    SelectionItemMediaLogicalCoordinate* idMediaLogicalCoordinate = m_brain->getSelectionManager()->getMediaLogicalCoordinateIdentification();
+    SelectionItemMediaPlaneCoordinate* idMediaPlaneCoordinate = m_brain->getSelectionManager()->getMediaPlaneCoordinateIdentification();
     SelectionItemImageControlPoint* idControlPoint = m_brain->getSelectionManager()->getImageControlPointIdentification();
     
     /*
@@ -8141,7 +8144,10 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (idMedia->isEnabledForSelection()) {
+            if (idMediaLogicalCoordinate->isEnabledForSelection()) {
+                isSelectImage = true;
+            }
+            if (idMediaPlaneCoordinate->isEnabledForSelection()) {
                 isSelectImage = true;
             }
             if (idControlPoint->isEnabledForSelection()) {
@@ -8366,7 +8372,7 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
             && (pixelX <  originalImageWidth)
             && (pixelY >= 0)
             && (pixelY <  originalImageHeight)) {
-            idMedia->setMediaFile(imageFile);
+            idMediaLogicalCoordinate->setMediaFile(imageFile);
             const int64_t pixelZ(0);
 //            PixelIndex pixelIndex(pixelX, pixelY, pixelZ);
             PixelIndex pixelIndexOriginTop(pixelX, originalImageHeight - pixelY - 1, pixelZ);
@@ -8374,7 +8380,7 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
             PixelLogicalIndex pixelLogicalIndex(pixelIndexOriginTop.getI(),
                                                 pixelIndexOriginTop.getJ(),
                                                 pixelIndexOriginTop.getK());
-            idMedia->setPixelLogicalIndex(pixelLogicalIndex);
+            idMediaLogicalCoordinate->setPixelLogicalIndex(pixelLogicalIndex);
 
             uint8_t pixelByteRGBA[4];
             const int32_t tabIndex(0); /* no tabs fof ImageFile */
@@ -8383,7 +8389,7 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
                                         overlayIndex,
                                         pixelLogicalIndex,
                                         pixelByteRGBA)) {
-                idMedia->setPixelRGBA(pixelByteRGBA);
+                idMediaLogicalCoordinate->setPixelRGBA(pixelByteRGBA);
             }
 //            if (imageFile->getImagePixelRGBA(tabIndex,
 //                                             overlayIndex,
@@ -8886,12 +8892,28 @@ BrainOpenGLFixedPipeline::drawMediaModel(const BrainOpenGLViewportContent* viewp
                                          ModelMedia* mediaModel,
                                          const int32_t viewport[4])
 {
-    BrainOpenGLMediaDrawing mediaDrawing;
-    mediaDrawing.draw(this,
-                      viewportContent,
-                      browserTabContent,
-                      mediaModel,
-                      { viewport[0], viewport[1], viewport[2], viewport[3] });
+    switch (browserTabContent->getMediaDisplayCoordinateMode()) {
+        case MediaDisplayCoordinateModeEnum::PIXEL:
+        {
+            BrainOpenGLMediaDrawing mediaDrawing;
+            mediaDrawing.draw(this,
+                              viewportContent,
+                              browserTabContent,
+                              mediaModel,
+                              { viewport[0], viewport[1], viewport[2], viewport[3] });
+        }
+            break;
+        case MediaDisplayCoordinateModeEnum::PLANE:
+        {
+            BrainOpenGLMediaCoordinateDrawing coordMediaDrawing;
+            coordMediaDrawing.draw(this,
+                                   viewportContent,
+                                   browserTabContent,
+                                   mediaModel,
+                                   { viewport[0], viewport[1], viewport[2], viewport[3] });
+        }
+            break;
+    }
 }
 
 /**

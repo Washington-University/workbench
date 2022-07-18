@@ -277,7 +277,7 @@ CziImageLoaderMultiResolution::getLayerIndexForCurrentZoom(const CziImageFile::C
             /*
              * The transform will convert plane coordinates to window coordinates
              */
-            const float imageBottomLeftPixel[3] { 0.0, static_cast<float>(m_cziImageFile->m_planeXyzRect.height()), 0.0 };
+            const float imageBottomLeftPixel[3] { 0.0, static_cast<float>(m_cziImageFile->getPlaneXyzRect().height()), 0.0 };
             const float imageTopLeftPixel[3] { 0.0, 0.0, 0.0 };
             transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
             transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);

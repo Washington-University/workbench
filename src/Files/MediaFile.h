@@ -25,7 +25,9 @@
 
 #include <QRectF>
 
+#include "BoundingBox.h"
 #include "CaretDataFile.h"
+#include "Matrix4x4.h"
 #include "MediaDisplayCoordinateModeEnum.h"
 #include "NiftiEnums.h"
 #include "PixelCoordinate.h"
@@ -129,13 +131,19 @@ namespace caret {
         
         virtual bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const = 0;
         
-        virtual void getPixelIdentificationTextForFrames(const int32_t tabIndex,
-                                                         const std::vector<int32_t>& frameIndices,
-                                                         const PixelLogicalIndex& pixelLogicalIndex,
-                                                         std::vector<AString>& columnOneTextOut,
-                                                         std::vector<AString>& columnTwoTextOut,
-                                                         std::vector<AString>& toolTipTextOut) const = 0;
+        virtual void getPixelLogicalIdentificationTextForFrames(const int32_t tabIndex,
+                                                                const std::vector<int32_t>& frameIndices,
+                                                                const PixelLogicalIndex& pixelLogicalIndex,
+                                                                std::vector<AString>& columnOneTextOut,
+                                                                std::vector<AString>& columnTwoTextOut,
+                                                                std::vector<AString>& toolTipTextOut) const = 0;
 
+        virtual void getPixelPlaneIdentificationTextForFrames(const int32_t tabIndex,
+                                                                const std::vector<int32_t>& frameIndices,
+                                                                const Vector3D& planeCoordinate,
+                                                                std::vector<AString>& columnOneTextOut,
+                                                                std::vector<AString>& columnTwoTextOut,
+                                                                std::vector<AString>& toolTipTextOut) const;
         virtual bool getPixelRGBA(const int32_t tabIndex,
                                   const int32_t overlayIndex,
                                   const PixelLogicalIndex& pixelLogicalIndex,
@@ -154,6 +162,8 @@ namespace caret {
                                                     float& signedDistanceToPixelMillimetersOut,
                                                     PixelLogicalIndex& pixelLogicalIndexOut) const = 0;
         
+        QRectF getPlaneXyzRect() const;
+        
         virtual bool pixelIndexToPlaneXYZ(const PixelIndex& pixelIndex,
                                           Vector3D& planeXyzOut) const;
         
@@ -166,6 +176,16 @@ namespace caret {
         virtual bool planeXyzToLogicalPixelIndex(const Vector3D& planeXyz,
                                                  PixelLogicalIndex& pixelLogicalIndexOut) const;
         
+        virtual bool planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
+                                              Vector3D& stereotaxicXyzOut) const;
+        
+        virtual bool stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
+                                              Vector3D& planeXyzOut) const;
+        
+        virtual void setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
+                                            const Matrix4x4& planeToMillimetersMatrix,
+                                            const bool matixValidFlag);
+
         virtual QRectF getLogicalBoundsRect() const;
         
         virtual PixelIndex pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const;
@@ -175,12 +195,31 @@ namespace caret {
         virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
                                                                              const int32_t overlayIndex) const = 0;
         
+        virtual bool isPlaneXyzSupported() const;
+        
+        virtual Vector3D getPlaneXyzBottomLeft() const;
+        
+        virtual Vector3D getPlaneXyzBottomRight() const;
+        
+        virtual Vector3D getPlaneXyzTopRight() const;
+        
+        virtual Vector3D getPlaneXyzTopLeft() const;
+
+        virtual BoundingBox getPlaneXyzBoundingBox() const;
+        
+        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing() const;
+        
+        Matrix4x4 getScaledToPlaneMatrix() const;
+        
+        Matrix4x4 getPixelIndexToPlaneMatrix() const;
+        
+        Matrix4x4 getPlaneToPixelIndexMatrix() const;
+        
+        Matrix4x4 getPlaneToMillimetersMatrix() const;
+        
+        Matrix4x4 getMillimetersToPlaneMatrix() const;
         
         // ADD_NEW_METHODS_HERE
-
-          
-          
-          
           
     protected: 
         MediaFile(const DataFileTypeEnum::Enum dataFileType);
@@ -193,12 +232,79 @@ namespace caret {
 
         void initializeMembersMediaFile();
         
+        virtual void resetMatrices();
+        
+        /**
+         * @return Metadata name for scaled to plane matrix
+         */
+        static QString getMetaDataNameScaledToPlaneMatrix() { return "WorkbenchScaledToPlaneMatrix"; }
+        
+        /**
+         * @return Metadata name of coordinates in image metadata
+         */
+        static QString getMetaDataNamePlaneToMillimetersMatrix() { return "WorkbenchPlaneToMillimetersMatrix"; }
+
     private:
+        void indexToPlaneTest(const Matrix4x4& scaledToPlane,
+                              const Matrix4x4& shiftMat,
+                              const Matrix4x4& scaleMat,
+                              const Matrix4x4& planeToMM,
+                              const int32_t i,
+                              const int32_t j,
+                              const AString& name);
+        
+        void lengthsTest(const Matrix4x4& indexToPlane,
+                         const int32_t i1,
+                         const int32_t j1,
+                         const int32_t i2,
+                         const int32_t j2,
+                         const AString& name);
+        
+        void indexToPlaneTest(const Matrix4x4& indexToPlane,
+                              const Matrix4x4& planeToMM,
+                              const int32_t i,
+                              const int32_t j,
+                              const AString& name);
+
+        void resetMatricesPrivate();
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         // ADD_NEW_MEMBERS_HERE
 
         friend class CziImage;
+        
+        Matrix4x4 m_scaledToPlaneMatrix;
+        
+        Matrix4x4 m_pixelIndexToPlaneMatrix;
+        
+        Matrix4x4 m_planeToPixelIndexMatrix;
+        
+        Matrix4x4 m_planeToMillimetersMatrix;
+        
+        Matrix4x4 m_millimetersToPlaneMatrix;
+        
+        BoundingBox m_planeBoundingBox;
+        
+        QRectF m_planeXyzRect;
+        
+        Vector3D m_planeXyzBottomLeft;
+        
+        Vector3D m_planeXyzBottomRight;
+        
+        Vector3D m_planeXyzTopRight;
+        
+        Vector3D m_planeXyzTopLeft;
+
+        bool m_scaledToPlaneMatrixValidFlag     = false;
+        
+        bool m_pixelIndexToPlaneMatrixValidFlag = false;
+        
+        bool m_planeToPixelIndexMatrixValidFlag = false;
+        
+        bool m_planeToMillimetersMatrixValidFlag = false;
+        
+        bool m_millimetersToPlaneMatrixValidFlag = false;
     };
     
 #ifdef __MEDIA_FILE_DECLARE__

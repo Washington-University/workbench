@@ -120,7 +120,8 @@
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
-#include "SelectionItemMedia.h"
+#include "SelectionItemMediaLogicalCoordinate.h"
+#include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemUniversalIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
@@ -3724,23 +3725,44 @@ GuiManager::processIdentification(const int32_t tabIndex,
             }
         }
         
-        SelectionItemMedia* idMedia = selectionManager->getMediaIdentification();
-        if (idMedia != NULL) {
-            if (idMedia->isValid()) {
+        SelectionItemMediaLogicalCoordinate* idLogicalMedia = selectionManager->getMediaLogicalCoordinateIdentification();
+        if (idLogicalMedia != NULL) {
+            if (idLogicalMedia->isValid()) {
                 if (identifiedItem == NULL) {
                     AString dataFileName("Data File Name Missing");
-                    if (idMedia->getMediaFile() != NULL) {
-                        dataFileName = idMedia->getMediaFile()->getFileNameNoPath();
+                    if (idLogicalMedia->getMediaFile() != NULL) {
+                        dataFileName = idLogicalMedia->getMediaFile()->getFileNameNoPath();
                     }
-                    const PixelLogicalIndex pixelLogicalIndex = idMedia->getPixelLogicalIndex();
+                    const PixelLogicalIndex pixelLogicalIndex = idLogicalMedia->getPixelLogicalIndex();
                     Vector3D stereotaxicXYZ;
-                    bool stereotaxicXYZValidFlag = idMedia->getStereotaxicXYZ(stereotaxicXYZ);
-                    identifiedItem = IdentifiedItemUniversal::newInstanceMediaIdentification(identificationMessage,
-                                                                                             formattedIdentificationMessage,
-                                                                                             dataFileName,
-                                                                                             pixelLogicalIndex,
-                                                                                             stereotaxicXYZ,
-                                                                                             stereotaxicXYZValidFlag);
+                    bool stereotaxicXYZValidFlag = idLogicalMedia->getStereotaxicXYZ(stereotaxicXYZ);
+                    identifiedItem = IdentifiedItemUniversal::newInstanceMediaLogicalCoordinateIdentification(identificationMessage,
+                                                                                                              formattedIdentificationMessage,
+                                                                                                              dataFileName,
+                                                                                                              pixelLogicalIndex,
+                                                                                                              stereotaxicXYZ,
+                                                                                                              stereotaxicXYZValidFlag);
+                }
+            }
+        }
+        
+        SelectionItemMediaPlaneCoordinate* idPlaneMedia = selectionManager->getMediaPlaneCoordinateIdentification();
+        if (idPlaneMedia != NULL) {
+            if (idPlaneMedia->isValid()) {
+                if (identifiedItem == NULL) {
+                    AString dataFileName("Data File Name Missing");
+                    if (idPlaneMedia->getMediaFile() != NULL) {
+                        dataFileName = idPlaneMedia->getMediaFile()->getFileNameNoPath();
+                    }
+                    const Vector3D planeXYZ = idPlaneMedia->getPlaneCoordinate();
+                    Vector3D stereotaxicXYZ;
+                    bool stereotaxicXYZValidFlag = idPlaneMedia->getStereotaxicXYZ(stereotaxicXYZ);
+                    identifiedItem = IdentifiedItemUniversal::newInstanceMediaPlaneCoordinateIdentification(identificationMessage,
+                                                                                                              formattedIdentificationMessage,
+                                                                                                              dataFileName,
+                                                                                                              planeXYZ,
+                                                                                                              stereotaxicXYZ,
+                                                                                                              stereotaxicXYZValidFlag);
                 }
             }
         }

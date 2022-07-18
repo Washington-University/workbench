@@ -56,7 +56,8 @@ namespace caret {
     class SelectionItemChartTimeSeries;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
-    class SelectionItemMedia;
+    class SelectionItemMediaLogicalCoordinate;
+    class SelectionItemMediaPlaneCoordinate;
     class SelectionItemSurfaceNode;
     class SelectionItemVoxel;
     class SelectionManager;
@@ -124,10 +125,13 @@ namespace caret {
                                   const DataToolTipsManager* dataToolTipsManager,
                                   IdentificationStringBuilder& idText) const;
         
-        void generateMediaToolTip(const SelectionManager* selectionManager,
-                                  const DataToolTipsManager* dataToolTipsManager,
-                                  IdentificationStringBuilder& idText) const;
+        void generateMediaLogicalCoordinateToolTip(const SelectionManager* selectionManager,
+                                                   const DataToolTipsManager* dataToolTipsManager,
+                                                   IdentificationStringBuilder& idText) const;
 
+        void generateMediaPlaneCoordinateToolTip(const SelectionManager* selectionManager,
+                                                   const DataToolTipsManager* dataToolTipsManager,
+                                                   IdentificationStringBuilder& idText) const;
         void generateSurfaceBorderIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
                                                     IdentificationStringBuilder& idText,
                                                     const SelectionItemBorderSurface* idSurfaceBorder,
@@ -159,12 +163,18 @@ namespace caret {
                                                    const Brain* brain,
                                                    const SelectionItemSurfaceNode* idSurfaceNode) const;
 
-        void generateMediaIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+        void generateMediaLogicalCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                              IdentificationStringBuilder& idText,
                                              const MediaFile* mediaFile,
                                              const std::set<int32_t>& frameIndices,
-                                             const SelectionItemMedia* idMedia) const;
+                                             const SelectionItemMediaLogicalCoordinate* idMedia) const;
         
+        void generateMediaPlaneCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                            IdentificationStringBuilder& idText,
+                                                            const MediaFile* mediaFile,
+                                                            const std::set<int32_t>& frameIndices,
+                                                            const SelectionItemMediaPlaneCoordinate* idMedia) const;
+
         void generateVolumeVoxelIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                               const Brain* brain,
                                               const SelectionItemVoxel* idVolumeVoxel) const;

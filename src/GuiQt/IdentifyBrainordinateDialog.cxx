@@ -66,7 +66,8 @@ using namespace caret;
 #include "IdentificationManager.h"
 #include "ImageFile.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
-#include "SelectionItemMedia.h"
+#include "SelectionItemMediaLogicalCoordinate.h"
+#include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -805,7 +806,7 @@ IdentifyBrainordinateDialog::processImagePixelSelection(AString& errorMessage)
         const int64_t pixelI = m_imagePixelISpinBox->value();
         const int64_t pixelJ = m_imagePixelJSpinBox->value();
         if (mediaFile != NULL) {
-            SelectionItemMedia* mediaID = selectionManager->getMediaIdentification();
+            SelectionItemMediaLogicalCoordinate* mediaID = selectionManager->getMediaLogicalCoordinateIdentification();
             mediaID->reset();
             mediaID->setMediaFile(const_cast<MediaFile*>(mediaFile));
             const int64_t pixelK(0);

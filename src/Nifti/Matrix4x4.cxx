@@ -48,6 +48,8 @@
 #include <iostream>
 #include <limits>
 
+#include <QStringList>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ControlPoint3D.h"
@@ -1402,6 +1404,62 @@ Matrix4x4::setMatrixFromOpenGL(const float m[16])
     this->setModified();
 }
 
+/**
+ * @return matrix elements in a string in row major order
+ *  For matrix:
+ *  a b c d
+ *  e f g h
+ *  i j k l
+ *  m n o p
+ *   RETURNS a b c d e f g h i j k l m n o p
+ */
+QString
+Matrix4x4::getMatrixInRowMajorOrderString()
+{
+    QString s;
+    const QString separator(" ");
+    bool addSeparatorFlag(false);
+    for (int32_t i = 3; i >= 0; --i) {
+        for (int32_t j = 0; j < 4; ++j) {
+            if (addSeparatorFlag) {
+                s += separator;
+            }
+            addSeparatorFlag = true;
+            s += AString::number(getMatrixElement(i, j));
+        }
+    }
+    return s;
+}
+
+/**
+ * @return matrix elements in a string in row major order
+ * @param s String containing 16 elements
+ * ELEMENTS  a b c d e f g h i j k l m n o p
+ * Form matrix:
+ *  a b c d
+ *  e f g h
+ *  i j k l
+ *  m n o p
+ */
+void
+Matrix4x4::setMatrixFromRowMajorOrderString(const QString& s)
+{
+    const QStringList elements = s.split(QString(" "));
+    if (elements.size() == 16) {
+        int32_t indx(0);
+        for (int32_t i = 3; i >= 0; --i) {
+            for (int32_t j = 0; j < 4; ++j) {
+                setMatrixElement(i, j, elements[indx].toDouble());
+                ++indx;
+            }
+        }
+
+    }
+    else {
+        CaretLogSevere("Matrix elements should contain 16 items but contains "
+                       + AString::number(elements.size()));
+    }
+}
 
 /**
  * Convert the given vector to an OpenGL rotation matrix.

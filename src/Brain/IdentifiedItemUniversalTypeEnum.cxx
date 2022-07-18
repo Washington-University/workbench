@@ -110,9 +110,13 @@ IdentifiedItemUniversalTypeEnum::initialize()
                                                        "INVALID",
                                                        "Invalid"));
     
-    enumData.push_back(IdentifiedItemUniversalTypeEnum(MEDIA,
-                                                       "MEDIA",
-                                                       "Media"));
+    enumData.push_back(IdentifiedItemUniversalTypeEnum(MEDIA_LOGICAL_COORDINATE,
+                                                       "MEDIA_LOGICAL_COORDINATE",
+                                                       "Media Logical Coordinate"));
+    
+    enumData.push_back(IdentifiedItemUniversalTypeEnum(MEDIA_PLANE_COORDINATE,
+                                                       "MEDIA_PLANE_COORDINATE",
+                                                       "Media Plane Coordinate"));
     
     enumData.push_back(IdentifiedItemUniversalTypeEnum(SURFACE,
                                                        "SURFACE",
@@ -186,6 +190,9 @@ IdentifiedItemUniversalTypeEnum::fromName(const AString& nameIn, bool* isValidOu
     /* VOLUME was renamed to VOLUME_SLICES */
     if (name == "VOLUME") {
         name = IdentifiedItemUniversalTypeEnum::toName(VOLUME_SLICES);
+    }
+    if (name == "MEDIA") {
+        name = IdentifiedItemUniversalTypeEnum::toName(MEDIA_LOGICAL_COORDINATE);
     }
     
     bool validFlag = false;

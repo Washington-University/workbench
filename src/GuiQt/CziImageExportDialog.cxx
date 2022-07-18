@@ -48,15 +48,19 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param exportType
+ *   Type of image export
  * @param cziImageFile
  *    The CZI image file
  * @param parent
  *    Parent widget
  */
-CziImageExportDialog::CziImageExportDialog(CziImageFile* cziImageFile,
+CziImageExportDialog::CziImageExportDialog(const ExportType exportType,
+                                           CziImageFile* cziImageFile,
                                            QWidget* parent)
 : WuQDialogModal("Export CZI File to Image File",
                  parent),
+m_exportType(exportType),
 m_cziImageFile(cziImageFile)
 {
     CaretAssert(cziImageFile);
@@ -210,18 +214,37 @@ CziImageExportDialog::okButtonClicked()
     AString errorMessage;
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
-    if (m_cziImageFile->exportToImageFile(filename,
-                                          maximumDimension,
-                                          m_alphaCheckBox->isChecked(),
-                                          errorMessage)) {
-        cursor.restoreCursor();
-        WuQMessageBox::informationOk(this,
-                                     "Image export complete");
-    }
-    else {
-        cursor.restoreCursor();
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
+    
+    switch (m_exportType) {
+        case ExportType::ANY_IMAGE:
+            if (m_cziImageFile->exportToImageFile(filename,
+                                                  maximumDimension,
+                                                  m_alphaCheckBox->isChecked(),
+                                                  errorMessage)) {
+                cursor.restoreCursor();
+                WuQMessageBox::informationOk(this,
+                                             "Image export complete");
+            }
+            else {
+                cursor.restoreCursor();
+                WuQMessageBox::errorOk(this,
+                                       errorMessage);
+            }
+            break;
+        case ExportType::PNG_COORD_IMAGE:
+            if (m_cziImageFile->exportToCoordinatePngFile(filename,
+                                                          maximumDimension,
+                                                          errorMessage)) {
+                cursor.restoreCursor();
+                WuQMessageBox::informationOk(this,
+                                             "Png Coordinate Image export complete");
+            }
+            else {
+                cursor.restoreCursor();
+                WuQMessageBox::errorOk(this,
+                                       errorMessage);
+            }
+            break;
     }
     
     WuQDialogModal::okButtonClicked();
@@ -238,7 +261,20 @@ CziImageExportDialog::okButtonClicked()
 void
 CziImageExportDialog::fileSelectionButtonClicked()
 {
-    const AString filename(CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::IMAGE));
+    QString filename;
+    
+    switch (m_exportType) {
+        case ExportType::ANY_IMAGE:
+            filename = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::IMAGE);
+            break;
+        case ExportType::PNG_COORD_IMAGE:
+            filename = CaretFileDialog::getSaveFileNameDialog(this,
+                                                              "PNG Image File",
+                                                              QString(),
+                                                              "PNG Files (*.png)");
+            break;
+    }
+
     if ( ! filename.isEmpty()) {
         m_filenameLineEdit->setText(filename);
     }

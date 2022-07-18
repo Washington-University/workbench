@@ -44,12 +44,19 @@ namespace caret {
         static IdentifiedItemUniversal* newInstanceTextNoSymbolIdentification(const AString& simpleText,
                                                                               const AString& formattedText);
         
-        static IdentifiedItemUniversal* newInstanceMediaIdentification(const AString& simpleText,
-                                                                       const AString& formattedText,
-                                                                       const AString& dataFileName,
-                                                                       const PixelLogicalIndex& pixelLogicalIndex,
-                                                                       const Vector3D& stereotaxicXYZ,
-                                                                       const bool stereotaxicXYZValidFlag);
+        static IdentifiedItemUniversal* newInstanceMediaLogicalCoordinateIdentification(const AString& simpleText,
+                                                                                        const AString& formattedText,
+                                                                                        const AString& dataFileName,
+                                                                                        const PixelLogicalIndex& pixelLogicalIndex,
+                                                                                        const Vector3D& stereotaxicXYZ,
+                                                                                        const bool stereotaxicXYZValidFlag);
+
+        static IdentifiedItemUniversal* newInstanceMediaPlaneCoordinateIdentification(const AString& simpleText,
+                                                                                      const AString& formattedText,
+                                                                                      const AString& dataFileName,
+                                                                                      const Vector3D& pixelPlaneCoordinate,
+                                                                                      const Vector3D& stereotaxicXYZ,
+                                                                                      const bool stereotaxicXYZValidFlag);
 
         static IdentifiedItemUniversal* newInstanceSurfaceIdentification(const AString& simpleText,
                                                                          const AString& formattedText,
@@ -106,6 +113,8 @@ namespace caret {
         
         PixelLogicalIndex getPixelLogicalIndex() const;
         
+        Vector3D getPixelPlaneCoordinate() const;
+        
         std::array<int64_t, 3> getVoxelIJK() const;
         
         Vector3D getStereotaxicXYZ() const;
@@ -139,6 +148,7 @@ namespace caret {
                                 const int32_t surfaceNumberOfVertices,
                                 const int32_t surfaceVertexIndex,
                                 const PixelLogicalIndex& pixelLogicalIndex,
+                                const Vector3D& pixelPlaneCoordinate,
                                 const std::array<int64_t, 3>& voxelIJK,
                                 const Vector3D& stereotaxicXYZ,
                                 const bool stereotaxicXYZValidFlag);
@@ -166,6 +176,8 @@ namespace caret {
         int32_t m_surfaceVertexIndex = - 1;
         
         PixelLogicalIndex m_pixelLogicalIndex;
+        
+        Vector3D m_pixelPlaneCoordinate;
         
         std::array<int64_t, 3> m_voxelIJK;
         

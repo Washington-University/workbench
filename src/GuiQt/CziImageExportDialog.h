@@ -41,7 +41,13 @@ namespace caret {
         Q_OBJECT
 
     public:
-        CziImageExportDialog(CziImageFile* cziImageFile,
+        enum class ExportType {
+            ANY_IMAGE,
+            PNG_COORD_IMAGE
+        };
+        
+        CziImageExportDialog(const ExportType exportType,
+                             CziImageFile* cziImageFile,
                              QWidget* parent = 0);
         
         virtual ~CziImageExportDialog();
@@ -62,6 +68,7 @@ namespace caret {
         void updateExportImageDimensionsLabel();
         
     private:
+        const ExportType m_exportType;
         
         CziImageFile* m_cziImageFile;
         
@@ -84,7 +91,6 @@ namespace caret {
         static int s_lastImageDimensionValue;
         
         static bool s_lastImageDimensionSelectedFlag;
-        
         // ADD_NEW_MEMBERS_HERE
 
     };
@@ -98,7 +104,7 @@ bool CziImageExportDialog::s_lastAlphaSelectedFlag = false;
 int CziImageExportDialog::s_lastImageDimensionValue = 4096;
 
 bool CziImageExportDialog::s_lastImageDimensionSelectedFlag = false;
-
+    
 #endif // __CZI_IMAGE_EXPORT_DIALOG_DECLARE__
 
 } // namespace

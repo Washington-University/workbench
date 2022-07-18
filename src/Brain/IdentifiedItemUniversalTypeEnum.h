@@ -37,8 +37,10 @@ public:
     enum Enum {
         /** Invalid */
         INVALID,
-        /** Media */
-        MEDIA,
+        /** Media with logical coordinate */
+        MEDIA_LOGICAL_COORDINATE,
+        /** Media with plane coordinate */
+        MEDIA_PLANE_COORDINATE,
         /** Surface */
         SURFACE,
         /** Text only, no symbol */

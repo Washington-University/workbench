@@ -463,6 +463,45 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
             break;
     }
     
+    const bool textureTestFlag(false);
+    if (textureTestFlag) {
+        glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
+                     0,                 // level of detail 0=base, n is nth mipmap reduction
+                     GL_COMPRESSED_RGBA,           // internal format
+                     imageWidth,        // width of image
+                     imageHeight,       // height of image
+                     0,                 // border
+                     pixelDataFormat,   // format of the pixel data
+                     GL_UNSIGNED_BYTE,  // data type of pixel data
+                     imageBytesPtr);   // pointer to image data
+        
+        const auto errorGL = GraphicsUtilitiesOpenGL::getOpenGLError();
+        if (errorGL) {
+            CaretLogSevere("Texture Test OpenGL error after glTexImage2D(), width="
+                           + AString::number(imageWidth)
+                           + ", height="
+                           + AString::number(imageHeight)
+                           + ": "
+                           + errorGL->getVerboseDescription());
+        }
+        else {
+            GLint compressedFlag(false);
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED, &compressedFlag);
+            std::cout << "Compressed: " << ((compressedFlag) ? "Yes" : "No") << std::endl;
+            if (compressedFlag) {
+                GLint compSize(0);
+                glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compSize);
+                const int32_t textureSize(imageWidth * imageHeight * 4);
+                std::cout << "   Texture size: " << textureSize << " Compressed: " << compSize << std::endl;
+                
+                GLint internalFormat(0);
+                glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+                std::cout << "   Internal Format: " << internalFormat
+                << " GL_COMPRESSED_RGBA=" << ((internalFormat == GL_COMPRESSED_RGBA) ? "True" : "False") << std::endl;
+            }
+        }
+    }
+    
     if (useMipMapFlag) {
         /*
          * This code seems to work if OpenGL 3.0 or later and

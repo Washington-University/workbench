@@ -37,7 +37,8 @@
 #include "EventManager.h"
 #include "MediaFile.h"
 #include "MouseEvent.h"
-#include "SelectionItemMedia.h"
+#include "SelectionItemMediaLogicalCoordinate.h"
+#include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -652,8 +653,8 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
     
     SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
     SelectionItemSurfaceNode*  surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();
-    SelectionItemMedia* mediaID = idManager->getMediaIdentification();
-    
+    SelectionItemMediaLogicalCoordinate* mediaPixelID = idManager->getMediaLogicalCoordinateIdentification();
+    SelectionItemMediaPlaneCoordinate* mediaPlaneID(idManager->getMediaPlaneCoordinateIdentification());
     if (surfaceNodeIdentification->isValid()) {
         surfaceNodeIdentification->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
@@ -673,16 +674,25 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         voxelID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
     }
-    else if (mediaID->isValid()) {
-        mediaID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
-        mediaID->getModelXYZ(coordInfoOut.m_mediaSpaceInfo.m_xyz);
+    else if (mediaPixelID->isValid()) {
+        mediaPixelID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
+        mediaPixelID->getModelXYZ(coordInfoOut.m_mediaSpaceInfo.m_xyz);
 
-        coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = mediaID->getMediaFile()->getFileNameNoPath();
+        coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = mediaPixelID->getMediaFile()->getFileNameNoPath();
         coordInfoOut.m_mediaSpaceInfo.m_validFlag = true;
         
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
     }
-    
+    else if (mediaPlaneID->isValid()) {
+        mediaPixelID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
+        mediaPixelID->getModelXYZ(coordInfoOut.m_mediaSpaceInfo.m_xyz);
+        
+        coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = mediaPixelID->getMediaFile()->getFileNameNoPath();
+        coordInfoOut.m_mediaSpaceInfo.m_validFlag = true;
+        
+        coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
+    }
+
     /*
      * In tile tabs, some regions may not contain a tab such
      * as three tabs in a two-by-two configuration
