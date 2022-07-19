@@ -1901,21 +1901,6 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                         break;
                     case MatrixGridMode::FILLED_TEXTURE:
                     {
-//                        /*
-//                         * Ranges to (-halfstep, num-rows - halfstep)
-//                         * For three rows: (-0.5, 2.5)
-//                         */
-//                        const float matrixLeft(xAxisStart);
-//                        const float matrixRight(matrixLeft + (xAxisStep * (numberOfColumns - 1)));
-//                        const float matrixBottom(yAxisStart - (yAxisStep * 0.5));
-//                        const float matrixTop(matrixBottom + (yAxisStep * (numberOfRows)));
-//                        /*
-//                         * 0 to N does not match grid outline
-//                         */
-//                        const float matrixLeft(xAxisStart);
-//                        const float matrixRight(matrixLeft + (xAxisStep * (numberOfColumns - 1)));
-//                        const float matrixBottom(yAxisStart);
-//                        const float matrixTop(matrixBottom + (yAxisStep * (numberOfRows - 1)));
                         /*
                          * 0 to N+1 matches grid outline
                          */
@@ -1930,10 +1915,10 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                                                                                        numberOfColumns,
                                                                                        numberOfRows,
                                                                                        rowStride,
-                                                                                       GraphicsPrimitive::TexturePixelFormatType::RGBA,
-                                                                                       GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT,
-                                                                                       GraphicsPrimitive::TextureWrappingType::CLAMP,
-                                                                                       GraphicsPrimitive::TextureMipMappingType::DISABLED,
+                                                                                       GraphicsTextureSettings::PixelFormatType::RGBA,
+                                                                                       GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                                                                       GraphicsTextureSettings::WrappingType::CLAMP,
+                                                                                       GraphicsTextureSettings::MipMappingType::DISABLED,
                                                                                        GraphicsTextureMagnificationFilterEnum::NEAREST,
                                                                                        GraphicsTextureMinificationFilterEnum::NEAREST,
                                                                                        textureBorderColorRGBA);

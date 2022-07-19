@@ -311,9 +311,11 @@ GraphicsEngineDataOpenGL::loadTextureCoordinateBuffer(GraphicsPrimitive* primiti
     
     GLenum usageHint = getOpenGLBufferUsageHint(primitive->getUsageTypeTextureCoordinates());
     
-    switch (primitive->m_textureDimensionType) {
-        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_2D:
-        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_3D:
+    const GraphicsTextureSettings& textureSettings(primitive->getTextureSettings());
+    
+    switch (textureSettings.getDimensionType()) {
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
         {
             /*
              * Note both 2D and 3D use 3 coordinates.
@@ -338,7 +340,7 @@ GraphicsEngineDataOpenGL::loadTextureCoordinateBuffer(GraphicsPrimitive* primiti
             
         }
             break;
-        case GraphicsPrimitive::TextureDimensionType::NONE:
+        case GraphicsTextureSettings::DimensionType::NONE:
             break;
     }
     
@@ -377,13 +379,13 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
         return;
     }
     
-    switch (primitive->m_textureDimensionType) {
-        case GraphicsPrimitive::TextureDimensionType::NONE:
+    switch (primitive->getTextureSettings().getDimensionType()) {
+        case GraphicsTextureSettings::DimensionType::NONE:
             break;
-        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_2D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
             loadTextureImageDataBuffer2D(primitive);
             break;
-        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_3D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
             loadTextureImageDataBuffer3D(primitive);
             break;
     }
@@ -436,29 +438,29 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
     glBindTexture(GL_TEXTURE_2D, openGLTextureName);
     
     bool useMipMapFlag(false);
-    switch (primitive->getTextureMipMappingType()) {
-        case GraphicsPrimitive::TextureMipMappingType::ENABLED:
+    switch (primitive->getTextureSettings().getMipMappingType()) {
+        case GraphicsTextureSettings::MipMappingType::ENABLED:
             useMipMapFlag = true;
             break;
-        case GraphicsPrimitive::TextureMipMappingType::DISABLED:
+        case GraphicsTextureSettings::MipMappingType::DISABLED:
             useMipMapFlag = false;
             break;
     }
     
     GLenum pixelDataFormat = GL_RGBA;
-    switch (primitive->getTexturePixelFormatType()) {
-        case GraphicsPrimitive::TexturePixelFormatType::NONE:
+    switch (primitive->getTextureSettings().getPixelFormatType()) {
+        case GraphicsTextureSettings::PixelFormatType::NONE:
             break;
-        case GraphicsPrimitive::TexturePixelFormatType::BGR:
+        case GraphicsTextureSettings::PixelFormatType::BGR:
             pixelDataFormat = GL_BGR;
             break;
-        case GraphicsPrimitive::TexturePixelFormatType::BGRA:
+        case GraphicsTextureSettings::PixelFormatType::BGRA:
             pixelDataFormat = GL_BGRA;
             break;
-        case GraphicsPrimitive::TexturePixelFormatType::RGB:
+        case GraphicsTextureSettings::PixelFormatType::RGB:
             pixelDataFormat = GL_RGB;
             break;
-        case GraphicsPrimitive::TexturePixelFormatType::RGBA:
+        case GraphicsTextureSettings::PixelFormatType::RGBA:
             pixelDataFormat = GL_RGBA;
             break;
     }
@@ -581,6 +583,8 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
 void
 GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primitive)
 {
+    const GraphicsTextureSettings& textureSettings(primitive->getTextureSettings());
+    
     const int32_t imageWidth(primitive->m_textureImageWidth);
     const int32_t imageHeight(primitive->m_textureImageHeight);
     const int32_t imageSlices(primitive->m_textureImageSlices);
@@ -644,19 +648,19 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
     const GLuint openGLTextureName = m_textureImageDataName->getTextureName();
     
     GLenum pixelDataFormat = GL_RGBA;
-    switch (primitive->getTexturePixelFormatType()) {
-        case GraphicsPrimitive::TexturePixelFormatType::NONE:
+    switch (textureSettings.getPixelFormatType()) {
+        case GraphicsTextureSettings::PixelFormatType::NONE:
             break;
-        case GraphicsPrimitive::TexturePixelFormatType::BGR:
+        case GraphicsTextureSettings::PixelFormatType::BGR:
             pixelDataFormat = GL_BGR;
             break;
-        case GraphicsPrimitive::TexturePixelFormatType::BGRA:
+        case GraphicsTextureSettings::PixelFormatType::BGRA:
             pixelDataFormat = GL_BGRA;
             break;
-        case GraphicsPrimitive::TexturePixelFormatType::RGB:
+        case GraphicsTextureSettings::PixelFormatType::RGB:
             pixelDataFormat = GL_RGB;
             break;
-        case GraphicsPrimitive::TexturePixelFormatType::RGBA:
+        case GraphicsTextureSettings::PixelFormatType::RGBA:
             pixelDataFormat = GL_RGBA;
             break;
     }
@@ -664,11 +668,11 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
     glBindTexture(GL_TEXTURE_3D, openGLTextureName);
     
     bool useMipMapFlag(false);
-    switch (primitive->getTextureMipMappingType()) {
-        case GraphicsPrimitive::TextureMipMappingType::ENABLED:
+    switch (textureSettings.getMipMappingType()) {
+        case GraphicsTextureSettings::MipMappingType::ENABLED:
             useMipMapFlag = true;
             break;
-        case GraphicsPrimitive::TextureMipMappingType::DISABLED:
+        case GraphicsTextureSettings::MipMappingType::DISABLED:
             useMipMapFlag = false;
             break;
     }
@@ -1524,15 +1528,16 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         }
     }
     
+    const GraphicsTextureSettings& textureSettings(primitive->getTextureSettings());
     bool hasTexture2dFlag(false);
     bool hasTexture3dFlag(false);
-    switch (primitive->getTextureDimensionType()) {
-        case GraphicsPrimitive::TextureDimensionType::NONE:
+    switch (textureSettings.getDimensionType()) {
+        case GraphicsTextureSettings::DimensionType::NONE:
             break;
-        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_2D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
             hasTexture2dFlag = true;
             break;
-        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_3D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
             hasTexture3dFlag = true;
             break;
     }
@@ -1548,7 +1553,7 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         glBindTexture(GL_TEXTURE_2D, openglData->m_textureImageDataName->getTextureName());
         
         GLenum minFilter = GL_LINEAR;
-        switch (primitive->getTextureMinificationFilter()) {
+        switch (textureSettings.getMinificationFilter()) {
             case GraphicsTextureMinificationFilterEnum::LINEAR:
                 minFilter = GL_LINEAR;
                 break;
@@ -1570,7 +1575,7 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         }
         
         GLenum magFilter = GL_LINEAR;
-        switch (primitive->getTextureMagnificationFilter()) {
+        switch (textureSettings.getMagnificationFilter()) {
             case GraphicsTextureMagnificationFilterEnum::LINEAR:
                 magFilter = GL_LINEAR;
                 break;
@@ -1582,18 +1587,16 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
         
-        //        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        //        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        switch (primitive->getTextureWrappingType()) {
-            case GraphicsPrimitive::TextureWrappingType::CLAMP:
+        switch (textureSettings.getWrappingType()) {
+            case GraphicsTextureSettings::WrappingType::CLAMP:
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
                 break;
-            case GraphicsPrimitive::TextureWrappingType::CLAMP_TO_BORDER:
+            case GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER:
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
                 break;
-            case GraphicsPrimitive::TextureWrappingType::REPEAT:
+            case GraphicsTextureSettings::WrappingType::REPEAT:
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                 break;
@@ -1620,7 +1623,7 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         glBindTexture(GL_TEXTURE_3D, openglData->m_textureImageDataName->getTextureName());
         
         GLenum minFilter = GL_LINEAR;
-        switch (primitive->getTextureMinificationFilter()) {
+        switch (textureSettings.getMinificationFilter()) {
             case GraphicsTextureMinificationFilterEnum::LINEAR:
                 minFilter = GL_LINEAR;
                 break;
@@ -1642,7 +1645,7 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         }
         
         GLenum magFilter = GL_LINEAR;
-        switch (primitive->getTextureMagnificationFilter()) {
+        switch (textureSettings.getMagnificationFilter()) {
             case GraphicsTextureMagnificationFilterEnum::LINEAR:
                 magFilter = GL_LINEAR;
                 break;
@@ -1655,21 +1658,18 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, magFilter);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, minFilter);
         
-//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-//        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-        switch (primitive->getTextureWrappingType()) {
-            case GraphicsPrimitive::TextureWrappingType::CLAMP:
+        switch (textureSettings.getWrappingType()) {
+            case GraphicsTextureSettings::WrappingType::CLAMP:
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
                 break;
-            case GraphicsPrimitive::TextureWrappingType::CLAMP_TO_BORDER:
+            case GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER:
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
                 break;
-            case GraphicsPrimitive::TextureWrappingType::REPEAT:
+            case GraphicsTextureSettings::WrappingType::REPEAT:
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);

@@ -5301,7 +5301,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
                             primitive->addVertex(maxX, maxY, maxZ,
                                                  (roundedCubesFlag ? normalRAS : maxXNormal),
                                                  rgba);
-                            //                            nt(maxX, minY, minZ, maxX, maxY, minZ, maxX, minY, maxZ, maxXNormal, "XMax1");
                             primitive->addVertex(maxX, maxY, maxZ,
                                                  (roundedCubesFlag ? normalRAS : maxXNormal),
                                                  rgba);
@@ -8374,9 +8373,7 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
             && (pixelY <  originalImageHeight)) {
             idMediaLogicalCoordinate->setMediaFile(imageFile);
             const int64_t pixelZ(0);
-//            PixelIndex pixelIndex(pixelX, pixelY, pixelZ);
             PixelIndex pixelIndexOriginTop(pixelX, originalImageHeight - pixelY - 1, pixelZ);
-//            idMedia->setPixelIndex(pixelIndex, pixelIndexOriginTop);
             PixelLogicalIndex pixelLogicalIndex(pixelIndexOriginTop.getI(),
                                                 pixelIndexOriginTop.getJ(),
                                                 pixelIndexOriginTop.getK());
@@ -8391,13 +8388,6 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
                                         pixelByteRGBA)) {
                 idMediaLogicalCoordinate->setPixelRGBA(pixelByteRGBA);
             }
-//            if (imageFile->getImagePixelRGBA(tabIndex,
-//                                             overlayIndex,
-//                                             ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-//                                             pixelIndex,
-//                                             pixelByteRGBA)) {
-//                idMedia->setPixelRGBA(pixelByteRGBA);
-//            }
         }
     }
     
@@ -8693,10 +8683,10 @@ BrainOpenGLFixedPipeline::drawStippledBackgroundInAreasOutsideWindowAspectLockin
                                                                                              textureDim,
                                                                                              textureDim,
                                                                                              rowStride,
-                                                                                             GraphicsPrimitive::TexturePixelFormatType::RGBA,
-                                                                                             GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT,
-                                                                                             GraphicsPrimitive::TextureWrappingType::REPEAT,
-                                                                                             GraphicsPrimitive::TextureMipMappingType::ENABLED,
+                                                                                             GraphicsTextureSettings::PixelFormatType::RGBA,
+                                                                                             GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                                                                             GraphicsTextureSettings::WrappingType::REPEAT,
+                                                                                             GraphicsTextureSettings::MipMappingType::ENABLED,
                                                                                              GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                                                              GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                                                              textureBorderColorRGBA));

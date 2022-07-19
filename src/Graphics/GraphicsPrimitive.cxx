@@ -87,11 +87,11 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType         vertexDataType
                                      const NormalVectorDataType   normalVectorDataType,
                                      const ColorDataType          colorDataType,
                                      const VertexColorType        vertexColorType,
-                                     const TextureDimensionType   textureDimensionType,
-                                     const TexturePixelFormatType texturePixelFormatType,
-                                     const TexturePixelOrigin     texturePixelOrigin,
-                                     const TextureWrappingType    textureWrappingType,
-                                     const TextureMipMappingType  textureMipMappingType,
+                                     const GraphicsTextureSettings::DimensionType   textureDimensionType,
+                                     const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
+                                     const GraphicsTextureSettings::PixelOrigin     texturePixelOrigin,
+                                     const GraphicsTextureSettings::WrappingType    textureWrappingType,
+                                     const GraphicsTextureSettings::MipMappingType  textureMipMappingType,
                                      const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
                                      const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
                                      const PrimitiveType          primitiveType)
@@ -101,13 +101,6 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType         vertexDataType
  m_normalVectorDataType(normalVectorDataType),
  m_colorDataType(colorDataType),
  m_vertexColorType(vertexColorType),
- m_textureDimensionType(textureDimensionType),
- m_texturePixelFormatType(texturePixelFormatType),
- m_texturePixelOrigin(texturePixelOrigin),
- m_textureWrappingType(textureWrappingType),
- m_textureMipMappingType(textureMipMappingType),
- m_textureMagnificationFilter(textureMagnificationFilter),
- m_textureMinificationFilter(textureMinificationFilter),
  m_primitiveType(primitiveType),
  m_boundingBoxValid(false)
 {
@@ -115,14 +108,24 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType         vertexDataType
     
     invalidateVertexMeasurements();
     
+    m_textureSettings = GraphicsTextureSettings(NULL, //const QImage* qImage,
+                                                textureDimensionType,
+                                                texturePixelFormatType,
+                                                texturePixelOrigin,
+                                                textureWrappingType,
+                                                textureMipMappingType,
+                                                textureMagnificationFilter,
+                                                textureMinificationFilter,
+                                                m_textureBorderColorRGBA);
+    
     switch (textureDimensionType) {
-        case TextureDimensionType::NONE:
+        case GraphicsTextureSettings::DimensionType::NONE:
             break;
-        case TextureDimensionType::FLOAT_STR_2D:
-        case TextureDimensionType::FLOAT_STR_3D:
-            switch (m_textureMipMappingType) {
-                case TextureMipMappingType::DISABLED:
-                    switch (m_textureMinificationFilter) {
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
+            switch (m_textureSettings.getMipMappingType()) {
+                case GraphicsTextureSettings::MipMappingType::DISABLED:
+                    switch (m_textureSettings.getMinificationFilter()) {
                         case GraphicsTextureMinificationFilterEnum::NEAREST:
                         case GraphicsTextureMinificationFilterEnum::LINEAR:
                             break;
@@ -131,12 +134,12 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType         vertexDataType
                         case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_LINEAR:
                         case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_NEAREST:
                             CaretLogSevere("Mip Mapping is disabled but the minification factor="
-                                           + GraphicsTextureMinificationFilterEnum::toName(m_textureMinificationFilter)
+                                           + GraphicsTextureMinificationFilterEnum::toName(m_textureSettings.getMinificationFilter())
                                            + " requires mip mapping.  ");
                             break;
                     }
                     break;
-                case TextureMipMappingType::ENABLED:
+                case GraphicsTextureSettings::MipMappingType::ENABLED:
                     break;
             }
             break;
@@ -163,11 +166,6 @@ GraphicsPrimitive::GraphicsPrimitive(const GraphicsPrimitive& obj)
  m_normalVectorDataType(obj.m_normalVectorDataType),
  m_colorDataType(obj.m_colorDataType),
  m_vertexColorType(obj.m_vertexColorType),
- m_textureDimensionType(obj.m_textureDimensionType),
- m_texturePixelFormatType(obj.m_texturePixelFormatType),
- m_texturePixelOrigin(obj.m_texturePixelOrigin),
- m_textureWrappingType(obj.m_textureWrappingType),
- m_textureMipMappingType(obj.m_textureMipMappingType),
  m_primitiveType(obj.m_primitiveType),
  m_boundingBoxValid(false)
 {
@@ -196,6 +194,7 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
     m_polygonalLinePrimitiveRestartIndices     = obj.m_polygonalLinePrimitiveRestartIndices;
     m_sphereSizeType              = obj.m_sphereSizeType;
     m_sphereDiameterValue         = obj.m_sphereDiameterValue;
+    m_textureSettings             = obj.m_textureSettings;
     m_textureImageBytesPtr        = obj.m_textureImageBytesPtr;
     m_textureImageWidth           = obj.m_textureImageWidth;
     m_textureImageHeight          = obj.m_textureImageHeight;
@@ -245,13 +244,13 @@ GraphicsPrimitive::reserveForNumberOfVertices(const int32_t numberOfVertices)
             break;
     }
     
-    switch (m_textureDimensionType) {
-        case GraphicsPrimitive::TextureDimensionType::NONE:
+    switch (m_textureSettings.getDimensionType()) {
+        case GraphicsTextureSettings::DimensionType::NONE:
             break;
-        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_2D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
             m_floatTextureSTR.reserve(numberOfVertices * 3);
             break;
-        case GraphicsPrimitive::TextureDimensionType::FLOAT_STR_3D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
             m_floatTextureSTR.reserve(numberOfVertices * 3);
             break;
     }
@@ -442,11 +441,11 @@ GraphicsPrimitive::isValid() const
         
         bool haveTextureFlag = false;
         uint32_t numTextureSTR = 0;
-        switch (m_textureDimensionType) {
-            case TextureDimensionType::NONE:
+        switch (m_textureSettings.getDimensionType()) {
+            case GraphicsTextureSettings::DimensionType::NONE:
                 break;
-            case TextureDimensionType::FLOAT_STR_2D:
-            case TextureDimensionType::FLOAT_STR_3D:
+            case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
+            case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
                 numTextureSTR = m_floatTextureSTR.size();
                 haveTextureFlag = true;
                 break;
@@ -461,27 +460,27 @@ GraphicsPrimitive::isValid() const
                 CaretLogWarning("ERROR: GraphicsPrimitive has invalid texture data");
             }
             
-            switch (m_texturePixelFormatType) {
-                case TexturePixelFormatType::NONE:
+            switch (m_textureSettings.getPixelFormatType()) {
+                case GraphicsTextureSettings::PixelFormatType::NONE:
                     CaretLogWarning("ERROR: GraphicsPrimitive has texture but NONE for pixel format type");
                     break;
-                case TexturePixelFormatType::BGR:
+                case GraphicsTextureSettings::PixelFormatType::BGR:
                     break;
-                case TexturePixelFormatType::BGRA:
+                case GraphicsTextureSettings::PixelFormatType::BGRA:
                     break;
-                case TexturePixelFormatType::RGB:
+                case GraphicsTextureSettings::PixelFormatType::RGB:
                     break;
-                case TexturePixelFormatType::RGBA:
+                case GraphicsTextureSettings::PixelFormatType::RGBA:
                     break;
             }
             
-            switch (m_texturePixelOrigin) {
-                case TexturePixelOrigin::NONE:
+            switch (m_textureSettings.getPixelOrigin()) {
+                case GraphicsTextureSettings::PixelOrigin::NONE:
                     CaretLogWarning("ERROR: GraphicsPrimitive has texture but NONE for pixel origin");
                     break;
-                case TexturePixelOrigin::BOTTOM_LEFT:
+                case GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT:
                     break;
-                case TexturePixelOrigin::TOP_LEFT:
+                case GraphicsTextureSettings::PixelOrigin::TOP_LEFT:
                     break;
             }
         }
@@ -749,11 +748,11 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
     const int32_t numVertices = getNumberOfVertices();
     s.appendWithNewLine("Number of Vertices: " + AString::number(numVertices) + "\n");
     
-    switch (m_textureDimensionType) {
-        case TextureDimensionType::NONE:
+    switch (m_textureSettings.getDimensionType()) {
+        case GraphicsTextureSettings::DimensionType::NONE:
             break;
-        case TextureDimensionType::FLOAT_STR_2D:
-        case TextureDimensionType::FLOAT_STR_3D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
             s.appendWithNewLine("Texture: " + AString::number(m_floatTextureSTR.size()) + " Float Texture 0.0 to 1.0.  ");
             s.appendWithNewLine("   Width: " + AString::number(m_textureImageWidth)
                                 + " Height: " + AString::number(m_textureImageHeight)
@@ -889,11 +888,11 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
                 }
             }
             
-            switch (m_textureDimensionType) {
-                case TextureDimensionType::NONE:
+            switch (m_textureSettings.getDimensionType()) {
+                case GraphicsTextureSettings::DimensionType::NONE:
                     break;
-                case TextureDimensionType::FLOAT_STR_2D:
-                case TextureDimensionType::FLOAT_STR_3D:
+                case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
+                case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
                 {
                     CaretAssertVectorIndex(m_floatTextureSTR, i*3 + 2);
                     const float* str = &m_floatTextureSTR[i * 3];
@@ -958,11 +957,11 @@ GraphicsPrimitive::addVertexProtected(const float xyz[3],
             break;
     }
     
-    switch (m_textureDimensionType) {
-        case TextureDimensionType::NONE:
+    switch (m_textureSettings.getDimensionType()) {
+        case GraphicsTextureSettings::DimensionType::NONE:
             break;
-        case TextureDimensionType::FLOAT_STR_2D:
-        case TextureDimensionType::FLOAT_STR_3D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
             CaretAssert(textureSTR);
             m_floatTextureSTR.insert(m_floatTextureSTR.end(),
                                      textureSTR,
@@ -1651,11 +1650,11 @@ GraphicsPrimitive::copyVertex(const int32_t copyFromIndex,
                 break;
         }
         
-        switch (m_textureDimensionType) {
-            case TextureDimensionType::NONE:
+        switch (m_textureSettings.getDimensionType()) {
+            case GraphicsTextureSettings::DimensionType::NONE:
                 break;
-            case TextureDimensionType::FLOAT_STR_2D:
-            case TextureDimensionType::FLOAT_STR_3D:
+            case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
+            case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
                 CaretAssertVectorIndex(m_floatTextureSTR, from3 + i);
                 CaretAssertVectorIndex(m_floatTextureSTR, to3 + i);
                 m_floatTextureSTR[to3 + i] = m_floatTextureSTR[from3 + i];
@@ -1851,20 +1850,20 @@ int32_t
 GraphicsPrimitive::getTexturePixelFormatBytesPerPixel() const
 {
     int32_t numBytesPerPixel(0);
-    switch (m_texturePixelFormatType) {
-        case TexturePixelFormatType::NONE:
+    switch (m_textureSettings.getPixelFormatType()) {
+        case GraphicsTextureSettings::PixelFormatType::NONE:
             numBytesPerPixel = 0;
             break;
-        case TexturePixelFormatType::BGR:
+        case GraphicsTextureSettings::PixelFormatType::BGR:
             numBytesPerPixel = 3;
             break;
-        case TexturePixelFormatType::BGRA:
+        case GraphicsTextureSettings::PixelFormatType::BGRA:
             numBytesPerPixel = 4;
             break;
-        case TexturePixelFormatType::RGB:
+        case GraphicsTextureSettings::PixelFormatType::RGB:
             numBytesPerPixel = 3;
             break;
-        case TexturePixelFormatType::RGBA:
+        case GraphicsTextureSettings::PixelFormatType::RGBA:
             numBytesPerPixel = 4;
             break;
     }
@@ -1904,14 +1903,14 @@ GraphicsPrimitive::setTextureImage(const uint8_t* imageBytesRGBA,
         m_textureImageHeight = imageHeight;
         m_textureImageSlices = imageSlices;
         
-        switch (m_texturePixelOrigin) {
-            case TexturePixelOrigin::NONE:
+        switch (m_textureSettings.getPixelOrigin()) {
+            case GraphicsTextureSettings::PixelOrigin::NONE:
                 break;
-            case TexturePixelOrigin::BOTTOM_LEFT:
+            case GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT:
                 m_textureImageBytesPtr.insert(m_textureImageBytesPtr.end(),
                                               imageBytesRGBA, imageBytesRGBA + numBytes);
                 break;
-            case TexturePixelOrigin::TOP_LEFT:
+            case GraphicsTextureSettings::PixelOrigin::TOP_LEFT:
             {
                 const int32_t rowLength(imageWidth * numBytesPerPixel);
                 const int32_t sourceRowLength((imageRowStride > 0)
@@ -2077,14 +2076,14 @@ GraphicsPrimitive::simplfyLines(const int32_t skipVertexCount)
                     break;
             }
             
-            switch (m_textureDimensionType) {
-                case TextureDimensionType::FLOAT_STR_2D:
-                case TextureDimensionType::FLOAT_STR_3D:
+            switch (m_textureSettings.getDimensionType()) {
+                case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
+                case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
                     textureSTR.push_back(m_floatTextureSTR[i3]);
                     textureSTR.push_back(m_floatTextureSTR[i3+1]);
                     textureSTR.push_back(m_floatTextureSTR[i3+2]);
                     break;
-                case TextureDimensionType::NONE:
+                case GraphicsTextureSettings::DimensionType::NONE:
                     break;
             }
         }
@@ -2585,10 +2584,10 @@ GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType pri
                                       const int32_t imageWidth,
                                       const int32_t imageHeight,
                                       const int32_t imageRowStride,
-                                      const TexturePixelFormatType texturePixelFormatType,
-                                      const TexturePixelOrigin texturePixelOrigin,
-                                      const TextureWrappingType textureWrappingType,
-                                      const TextureMipMappingType textureMipMappingType,
+                                      const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
+                                      const GraphicsTextureSettings::PixelOrigin texturePixelOrigin,
+                                      const GraphicsTextureSettings::WrappingType textureWrappingType,
+                                      const GraphicsTextureSettings::MipMappingType textureMipMappingType,
                                       const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
                                       const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
                                       const std::array<float, 4>& textureBorderColorRGBA)
@@ -2643,10 +2642,10 @@ GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType pri
                                       const int32_t imageWidth,
                                       const int32_t imageHeight,
                                       const int32_t imageSlices,
-                                      const TexturePixelFormatType texturePixelFormatType,
-                                      const TexturePixelOrigin texturePixelOrigin,
-                                      const TextureWrappingType textureWrappingType,
-                                      const TextureMipMappingType textureMipMappingType,
+                                      const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
+                                      const GraphicsTextureSettings::PixelOrigin texturePixelOrigin,
+                                      const GraphicsTextureSettings::WrappingType textureWrappingType,
+                                      const GraphicsTextureSettings::MipMappingType textureMipMappingType,
                                       const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
                                       const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
                                       const std::array<float, 4>& textureBorderColorRGBA)

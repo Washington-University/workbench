@@ -100,10 +100,6 @@ namespace caret {
                                            GraphicsPrimitive* primitive,
                                            GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
         
-//        static void drawWindowSpace(const PrivateDrawMode drawMode,
-//                                GraphicsPrimitive* primitive,
-//                                GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
-        
         static void drawPointsPrimitiveMillimeters(const GraphicsPrimitive* primitive);
         
         static void drawSpheresPrimitive(const GraphicsPrimitive* primitive);

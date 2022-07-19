@@ -426,9 +426,9 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
         
         libCZI::BitmapLockInfo cziBitmapLockInfo;
         bool cziLockFlag(false);
-        GraphicsPrimitive::TexturePixelFormatType pixelFormatType(GraphicsPrimitive::TexturePixelFormatType::NONE);
+        GraphicsTextureSettings::PixelFormatType pixelFormatType(GraphicsTextureSettings::PixelFormatType::NONE);
         
-        GraphicsPrimitive::TexturePixelOrigin pixelOrigin(GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT);
+        GraphicsTextureSettings::PixelOrigin pixelOrigin(GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT);
         
         /*
          * Image formats may pad each row of data so that the row is an even number (or multiple of 4/8)
@@ -444,8 +444,8 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
             case ImageStorageFormat::CZI_IMAGE:
                 if (m_cziImageData->GetPixelType() == libCZI::PixelType::Bgr24) {
                     cziBitmapLockInfo = m_cziImageData->Lock();
-                    pixelFormatType = GraphicsPrimitive::TexturePixelFormatType::BGR;
-                    pixelOrigin     = GraphicsPrimitive::TexturePixelOrigin::TOP_LEFT;
+                    pixelFormatType = GraphicsTextureSettings::PixelFormatType::BGR;
+                    pixelOrigin     = GraphicsTextureSettings::PixelOrigin::TOP_LEFT;
                     cziLockFlag = true;
                     
                     if (cziBitmapLockInfo.size > 0) {
@@ -483,8 +483,8 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
                 }
                 if (validRGBA) {
                     ptrBytesRGBA = bytesRGBA.data();
-                    pixelFormatType = GraphicsPrimitive::TexturePixelFormatType::RGBA;
-                    pixelOrigin     = GraphicsPrimitive::TexturePixelOrigin::BOTTOM_LEFT;
+                    pixelFormatType = GraphicsTextureSettings::PixelFormatType::RGBA;
+                    pixelOrigin     = GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT;
                     rowStride       = width * 4; /* RGBA */
                 }
                 break;
@@ -503,8 +503,8 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
                                                                                        rowStride,
                                                                                        pixelFormatType,
                                                                                        pixelOrigin,
-                                                                                       GraphicsPrimitive::TextureWrappingType::CLAMP_TO_BORDER,
-                                                                                       GraphicsPrimitive::TextureMipMappingType::ENABLED,
+                                                                                       GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
+                                                                                       GraphicsTextureSettings::MipMappingType::ENABLED,
                                                                                        GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                                                        GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                                                        textureBorderColorRGBA);

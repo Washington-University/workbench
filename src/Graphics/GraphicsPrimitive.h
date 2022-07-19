@@ -29,8 +29,7 @@
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 #include "GraphicsLineMeanDeviationSettings.h"
-#include "GraphicsTextureMagnificationFilterEnum.h"
-#include "GraphicsTextureMinificationFilterEnum.h"
+#include "GraphicsTextureSettings.h"
 
 namespace caret {
 
@@ -89,69 +88,6 @@ namespace caret {
             SOLID_RGBA,
             /** Unique RGBA for each vertex */
             PER_VERTEX_RGBA
-        };
-        
-        /**
-         * Dimension type of texture components
-         */
-        enum class TextureDimensionType {
-            /** No texture coordinates */
-            NONE,
-            /** User supplie two float values per vertex contain S and T texture coordinates, R is added by code and is always 0.  Used for 2D images */
-            FLOAT_STR_2D,
-            /** Three float values per vertex contain S, T, and R texture coordinates.  Used for 3D images (volumes) */
-            FLOAT_STR_3D
-        };
-        
-        /**
-         * Format of pixel data
-         */
-        enum class TexturePixelFormatType {
-            /** None - not texture primitive*/
-            NONE,
-            /** Blue, green, red */
-            BGR,
-            /** Blue, green, red, alpha */
-            BGRA,
-            /** Red, green, blue */
-            RGB,
-            /** Red, green, blue, alpha */
-            RGBA
-        };
-         
-        /*
-         * Location of first pixel in the texture image
-         */
-        enum class TexturePixelOrigin {
-            /* None - not texture primitive */
-            NONE,
-            /* First pixel is at bottom left of texture image*/
-            BOTTOM_LEFT,
-            /* First pixel is at top left of texture image*/
-            TOP_LEFT
-        };
-        
-        /**
-         * Texture wrapping type
-         */
-        enum class TextureWrappingType {
-            /** Clamp so max STR is 1.0 (default) */
-            CLAMP,
-            /** Clamp so max STR is 1.0 (default).  If no texels (voxels) are available, if pixel
-                maps to area outside of the volume, the border color is used. */
-            CLAMP_TO_BORDER,
-            /** Repeat so max STR is greater than 1.0) */
-            REPEAT
-        };
-        
-        /**
-         * Texture Mip Mapping Type
-         */
-        enum class TextureMipMappingType {
-            /** Mip mapping disabled */
-            DISABLED,
-            /** Mip mapping enabled */
-            ENABLED
         };
         
         /**
@@ -360,11 +296,11 @@ namespace caret {
                           const NormalVectorDataType  normalVectorDataType,
                           const ColorDataType         colorDataType,
                           const VertexColorType       vertexColorType,
-                          const TextureDimensionType  textureDimensionType,
-                          const TexturePixelFormatType texturePixelFormatType,
-                          const TexturePixelOrigin    texturePixelOrigin,
-                          const TextureWrappingType   textureWrappingType,
-                          const TextureMipMappingType textureMipMappingType,
+                          const GraphicsTextureSettings::DimensionType  textureDimensionType,
+                          const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
+                          const GraphicsTextureSettings::PixelOrigin    texturePixelOrigin,
+                          const GraphicsTextureSettings::WrappingType   textureWrappingType,
+                          const GraphicsTextureSettings::MipMappingType textureMipMappingType,
                           const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
                           const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
                           const PrimitiveType         primitiveType);
@@ -397,10 +333,10 @@ namespace caret {
                                                            const int32_t imageWidth,
                                                            const int32_t imageHeight,
                                                            const int32_t imageRowStride,
-                                                           const TexturePixelFormatType texturePixelFormatType,
-                                                           const TexturePixelOrigin texturePixelOrigin,
-                                                           const TextureWrappingType textureWrappingType,
-                                                           const TextureMipMappingType textureMipMappingType,
+                                                           const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
+                                                           const GraphicsTextureSettings::PixelOrigin texturePixelOrigin,
+                                                           const GraphicsTextureSettings::WrappingType textureWrappingType,
+                                                           const GraphicsTextureSettings::MipMappingType textureMipMappingType,
                                                            const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
                                                            const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
                                                            const std::array<float, 4>& textureBorderColorRGBA);
@@ -410,10 +346,10 @@ namespace caret {
                                                            const int32_t imageWidth,
                                                            const int32_t imageHeight,
                                                            const int32_t imageSlices,
-                                                           const TexturePixelFormatType texturePixelFormatType,
-                                                           const TexturePixelOrigin texturePixelOrigin,
-                                                           const TextureWrappingType textureWrappingType,
-                                                           const TextureMipMappingType textureMipMappingType,
+                                                           const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
+                                                           const GraphicsTextureSettings::PixelOrigin texturePixelOrigin,
+                                                           const GraphicsTextureSettings::WrappingType textureWrappingType,
+                                                           const GraphicsTextureSettings::MipMappingType textureMipMappingType,
                                                            const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
                                                            const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
                                                            const std::array<float, 4>& textureBorderColorRGBA);
@@ -481,56 +417,26 @@ namespace caret {
         void setReleaseInstanceDataMode(const ReleaseInstanceDataMode releaseDataMode) {
             m_releaseInstanceDataMode = releaseDataMode;
         }
-        
+
         /**
-         * @return Pixel format type of texture data
+         * @return The texture settings
          */
-        inline TexturePixelFormatType getTexturePixelFormatType() const { return m_texturePixelFormatType; }
-        
-        /**
-         * @return Location of first pixel in texture image
-         */
-        inline TexturePixelOrigin getTexturePixelOrigin() const { return m_texturePixelOrigin; }
-        
+        const GraphicsTextureSettings& getTextureSettings() const { return m_textureSettings; }
+                
         int32_t getTexturePixelFormatBytesPerPixel() const;
-
-        /**
-         * @return Dimension type of texture.
-         */
-        inline TextureDimensionType getTextureDimensionType() const { return m_textureDimensionType; }
-        
-        /**
-         * @return Type of texture wrapping
-         */
-        inline TextureWrappingType getTextureWrappingType() const { return m_textureWrappingType; }
-        
-        /**
-         * @return Type of texture mip mapping
-         */
-        inline TextureMipMappingType getTextureMipMappingType() const { return m_textureMipMappingType; }
-
-        /**
-         * @return Type of magnification texture filtering (pixel smaller than texel)
-         */
-        inline GraphicsTextureMagnificationFilterEnum::Enum getTextureMagnificationFilter() const { return m_textureMagnificationFilter; }
-        
-        /**
-         * @return Type of minification texture filtering (pixel bigger than texel)
-         */
-        inline GraphicsTextureMinificationFilterEnum::Enum getTextureMinificationFilter() const { return m_textureMinificationFilter; }
 
         /**
          * Set type of magnification filter (pixel smaller than texel)
          */
         inline void setTextureMagnificationFilter(const GraphicsTextureMagnificationFilterEnum::Enum magFilter) {
-            m_textureMagnificationFilter = magFilter;
+            m_textureSettings.setMagnificationFilter(magFilter);
         }
         
         /**
          * Set type of minification filter (pixel bigger than texel)
          */
         inline void setTextureMinificationFilter(const GraphicsTextureMinificationFilterEnum::Enum minFilter) {
-            m_textureMinificationFilter = minFilter;
+            m_textureSettings.setMinificationFilter(minFilter);
         }
         
         /** @return The texture border color when used when clamp to border */
@@ -676,20 +582,8 @@ namespace caret {
         
         const VertexColorType m_vertexColorType;
         
-        const TextureDimensionType m_textureDimensionType;
+        GraphicsTextureSettings m_textureSettings;
         
-        const TexturePixelFormatType m_texturePixelFormatType;
-        
-        const TexturePixelOrigin m_texturePixelOrigin;
-        
-        const TextureWrappingType m_textureWrappingType;
-        
-        const TextureMipMappingType m_textureMipMappingType;
-        
-        GraphicsTextureMagnificationFilterEnum::Enum m_textureMagnificationFilter = GraphicsTextureMagnificationFilterEnum::LINEAR;
-        
-        GraphicsTextureMinificationFilterEnum::Enum m_textureMinificationFilter = GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR;
-
         std::array<float, 4> m_textureBorderColorRGBA;
         
         const PrimitiveType m_primitiveType;
