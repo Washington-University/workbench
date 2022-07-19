@@ -66,6 +66,71 @@ using namespace caret;
  *     Data type of the colors.
  * @param vertexColorType
  *     Type of vertex coloring
+ * @param textureSettings
+ *     Settings for primitives that use textures
+ * @param primitiveType
+ *     Type of primitive drawn (triangles, lines, etc.)
+ */
+GraphicsPrimitive::GraphicsPrimitive(const VertexDataType           vertexDataType,
+                                     const NormalVectorDataType     normalVectorDataType,
+                                     const ColorDataType            colorDataType,
+                                     const VertexColorType          vertexColorType,
+                                     const GraphicsTextureSettings& textureSettings,
+                                     const PrimitiveType            primitiveType)
+: CaretObject(),
+EventListenerInterface(),
+m_vertexDataType(vertexDataType),
+m_normalVectorDataType(normalVectorDataType),
+m_colorDataType(colorDataType),
+m_vertexColorType(vertexColorType),
+m_textureSettings(textureSettings),
+m_primitiveType(primitiveType),
+m_boundingBoxValid(false)
+{
+    m_textureBorderColorRGBA.fill(0.0);
+    m_textureBorderColorRGBA = textureSettings.getBorderColor();
+    
+    invalidateVertexMeasurements();
+    
+    switch (m_textureSettings.getDimensionType()) {
+        case GraphicsTextureSettings::DimensionType::NONE:
+            break;
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
+        case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
+            switch (m_textureSettings.getMipMappingType()) {
+                case GraphicsTextureSettings::MipMappingType::DISABLED:
+                    switch (m_textureSettings.getMinificationFilter()) {
+                        case GraphicsTextureMinificationFilterEnum::NEAREST:
+                        case GraphicsTextureMinificationFilterEnum::LINEAR:
+                            break;
+                        case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR:
+                        case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_NEAREST:
+                        case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_LINEAR:
+                        case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_NEAREST:
+                            CaretLogSevere("Mip Mapping is disabled but the minification factor="
+                                           + GraphicsTextureMinificationFilterEnum::toName(m_textureSettings.getMinificationFilter())
+                                           + " requires mip mapping.  ");
+                            break;
+                    }
+                    break;
+                case GraphicsTextureSettings::MipMappingType::ENABLED:
+                    break;
+            }
+            break;
+    }
+}
+
+/**
+ * Constructs an instance with the given vertex, normal vector, and color type.
+ *
+ * @param vertexDataType
+ *     Data type of the vertices.
+ * @param normalVectorDataType
+ *     Data type of the normal vectors.
+ * @param colorDataType
+ *     Data type of the colors.
+ * @param vertexColorType
+ *     Type of vertex coloring
  * @param textureDimensionType
  *     Dimension type of texture coordinates.
  * @param texturePixelFormatType
@@ -108,7 +173,7 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType         vertexDataType
     
     invalidateVertexMeasurements();
     
-    m_textureSettings = GraphicsTextureSettings(NULL, //const QImage* qImage,
+    m_textureSettings = GraphicsTextureSettings(NULL,
                                                 textureDimensionType,
                                                 texturePixelFormatType,
                                                 texturePixelOrigin,
@@ -2563,20 +2628,8 @@ GraphicsPrimitive::newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType pr
  *     Height of the image.
  * @param imageRowStride
  *     Length of a row including padding so that row length  is a multipleof 2/4/8/? (negative is tightly packed - no padding)
- * @param texturePixelFormatType
- *     Format of texure pixels
- * @param texturePixelOrigin
- *     Location of first pixel in texture image
- * @param textureWrappingType
- *     Type of texture wrapping
- * @param textureMipMappingType
- *     Type of texture mip mapping
- * @param textureMagnificationFilter
- *    Texture filtering for when screen pixel is smaller than texture  texel
- * @param textureMinificationFilter
- *    Texture filtering for when screen pixel is larger than texture texel
- * @param textureBorderColorRGBA
- *    Color for texture border when clamp to border is used for wrapping
+ * @param textureSettings
+ *     Settings for textures
  */
 GraphicsPrimitiveV3fT2f*
 GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType primitiveType,
@@ -2584,26 +2637,14 @@ GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType pri
                                       const int32_t imageWidth,
                                       const int32_t imageHeight,
                                       const int32_t imageRowStride,
-                                      const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
-                                      const GraphicsTextureSettings::PixelOrigin texturePixelOrigin,
-                                      const GraphicsTextureSettings::WrappingType textureWrappingType,
-                                      const GraphicsTextureSettings::MipMappingType textureMipMappingType,
-                                      const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                      const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                                      const std::array<float, 4>& textureBorderColorRGBA)
+                                      const GraphicsTextureSettings& textureSettings)
 {
     GraphicsPrimitiveV3fT2f* primitive = new GraphicsPrimitiveV3fT2f(primitiveType,
                                                                      imageBytesRGBA,
                                                                      imageWidth,
                                                                      imageHeight,
                                                                      imageRowStride,
-                                                                     texturePixelFormatType,
-                                                                     texturePixelOrigin,
-                                                                     textureWrappingType,
-                                                                     textureMipMappingType,
-                                                                     textureMagnificationFilter,
-                                                                     textureMinificationFilter,
-                                                                     textureBorderColorRGBA);
+                                                                     textureSettings);
     return primitive;
 }
 
@@ -2621,20 +2662,8 @@ GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType pri
  *     Height of the image.
  * @param imageSlices
  *     Slices of image
- * @param texturePixelFormatType
- *     Format of texure pixels
- * @param texturePixelOrigin
- *     Location of first pixel in texture image
- * @param textureWrappingType
- *     Type of texture wrapping
- * @param textureMipMappingType
- *     Type of texture mip mapping
- * @param textureMagnificationFilter
- *    Texture filtering for when screen pixel is smaller than texture  texel
- * @param textureMinificationFilter
- *    Texture filtering for when screen pixel is larger than texture texel
- * @param textureBorderColorRGBA
- *    Color for texture border when clamp to border is used for wrapping
+ * @param textureSettings
+ *     Settings for textures
  */
 GraphicsPrimitiveV3fT3f*
 GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
@@ -2642,26 +2671,14 @@ GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType pri
                                       const int32_t imageWidth,
                                       const int32_t imageHeight,
                                       const int32_t imageSlices,
-                                      const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
-                                      const GraphicsTextureSettings::PixelOrigin texturePixelOrigin,
-                                      const GraphicsTextureSettings::WrappingType textureWrappingType,
-                                      const GraphicsTextureSettings::MipMappingType textureMipMappingType,
-                                      const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                      const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                                      const std::array<float, 4>& textureBorderColorRGBA)
+                                      const GraphicsTextureSettings& textureSettings)
 {
     GraphicsPrimitiveV3fT3f* primitive = new GraphicsPrimitiveV3fT3f(primitiveType,
                                                                      imageBytesRGBA,
                                                                      imageWidth,
                                                                      imageHeight,
                                                                      imageSlices,
-                                                                     texturePixelFormatType,
-                                                                     texturePixelOrigin,
-                                                                     textureWrappingType,
-                                                                     textureMipMappingType,
-                                                                     textureMagnificationFilter,
-                                                                     textureMinificationFilter,
-                                                                     textureBorderColorRGBA);
+                                                                     textureSettings);
     return primitive;
 }
 

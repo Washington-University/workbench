@@ -496,18 +496,22 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
             CaretAssert(width > 0);
             CaretAssert(height > 0);
             const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+            GraphicsTextureSettings textureSettings(NULL,
+                                                    GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                    pixelFormatType,
+                                                    pixelOrigin,
+                                                    GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
+                                                    GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                    GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                    textureBorderColorRGBA);
+
             GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        ptrBytesRGBA,
                                                                                        width,
                                                                                        height,
                                                                                        rowStride,
-                                                                                       pixelFormatType,
-                                                                                       pixelOrigin,
-                                                                                       GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
-                                                                                       GraphicsTextureSettings::MipMappingType::ENABLED,
-                                                                                       GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
-                                                                                       textureBorderColorRGBA);
+                                                                                       textureSettings);
             
             /*
              * The Geometric Coordinates are those of the full-resolution.

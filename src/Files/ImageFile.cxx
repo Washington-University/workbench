@@ -1910,18 +1910,21 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/,
         if (validRGBA) {
             const int32_t rowStride(-1); /* negative is tightly packed */
             const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+            GraphicsTextureSettings textureSettings(NULL,
+                                                    GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                    GraphicsTextureSettings::PixelFormatType::RGBA,
+                                                    GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                                    GraphicsTextureSettings::WrappingType::CLAMP,
+                                                    GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                    GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                    textureBorderColorRGBA);
             GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &bytesRGBA[0],
                                                                                        width,
                                                                                        height,
                                                                                        rowStride,
-                                                                                       GraphicsTextureSettings::PixelFormatType::RGBA,
-                                                                                       GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
-                                                                                       GraphicsTextureSettings::WrappingType::CLAMP,
-                                                                                       GraphicsTextureSettings::MipMappingType::ENABLED,
-                                                                                       GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
-                                                                                       textureBorderColorRGBA);
+                                                                                       textureSettings);
             
             /*
              * Coordinates at EDGE of the pixels
@@ -2586,18 +2589,22 @@ ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing() const
         if (validRGBA) {
             const int32_t rowStride(-1); /* negative is tightly packed */
             const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+            
+            GraphicsTextureSettings textureSettings(NULL,
+                                                    GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                    GraphicsTextureSettings::PixelFormatType::RGBA,
+                                                    GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                                    GraphicsTextureSettings::WrappingType::CLAMP,
+                                                    GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                    GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                    textureBorderColorRGBA);
             GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &bytesRGBA[0],
                                                                                        width,
                                                                                        height,
                                                                                        rowStride,
-                                                                                       GraphicsTextureSettings::PixelFormatType::RGBA,
-                                                                                       GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
-                                                                                       GraphicsTextureSettings::WrappingType::CLAMP,
-                                                                                       GraphicsTextureSettings::MipMappingType::ENABLED,
-                                                                                       GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
-                                                                                       textureBorderColorRGBA);
+                                                                                       textureSettings);
             
             /*
              * A Triangle Strip (consisting of two triangles) is used

@@ -232,19 +232,23 @@ AnnotationImage::getGraphicsPrimitive() const
     if (m_graphicsPrimitive == NULL) {
         if ( ! m_imageBytesRGBA.empty()) {
             std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+            GraphicsTextureSettings textureSettings(NULL,
+                                                    GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                    GraphicsTextureSettings::PixelFormatType::RGBA,
+                                                    GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                                    GraphicsTextureSettings::WrappingType::CLAMP,
+                                                    GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                    GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                    textureBorderColorRGBA);
+
             const int32_t rowStride(-1); /* Data tightly packed */
             GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &m_imageBytesRGBA[0],
                                                                                        m_imageWidth,
                                                                                        m_imageHeight,
                                                                                        rowStride,
-                                                                                       GraphicsTextureSettings::PixelFormatType::RGBA,
-                                                                                       GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
-                                                                                       GraphicsTextureSettings::WrappingType::CLAMP,
-                                                                                       GraphicsTextureSettings::MipMappingType::ENABLED,
-                                                                                       GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                                                       GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
-                                                                                       textureBorderColorRGBA);
+                                                                                       textureSettings);
             /*
              * A Triangle Strip (consisting of two triangles) is used
              * for drawing the image.  At this time, the XYZ coordinates

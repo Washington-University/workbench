@@ -8677,19 +8677,22 @@ BrainOpenGLFixedPipeline::drawStippledBackgroundInAreasOutsideWindowAspectLockin
         }
     }
     const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+    GraphicsTextureSettings textureSettings(NULL,
+                                            GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                            GraphicsTextureSettings::PixelFormatType::RGBA,
+                                            GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                            GraphicsTextureSettings::WrappingType::REPEAT,
+                                            GraphicsTextureSettings::MipMappingType::ENABLED,
+                                            GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                            GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                            textureBorderColorRGBA);
     const int32_t rowStride(-1); /* Negative is tightly packed */
     std::unique_ptr<GraphicsPrimitiveV3fT2f> primitive(GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
                                                                                              &textureRGBA[0],
                                                                                              textureDim,
                                                                                              textureDim,
                                                                                              rowStride,
-                                                                                             GraphicsTextureSettings::PixelFormatType::RGBA,
-                                                                                             GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
-                                                                                             GraphicsTextureSettings::WrappingType::REPEAT,
-                                                                                             GraphicsTextureSettings::MipMappingType::ENABLED,
-                                                                                             GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                                                             GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
-                                                                                             textureBorderColorRGBA));
+                                                                                             textureSettings));
     
     if (afterLeft > beforeLeft) {
         /* Left */

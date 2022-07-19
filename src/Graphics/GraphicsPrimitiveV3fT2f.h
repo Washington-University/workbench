@@ -34,19 +34,14 @@ namespace caret {
     class GraphicsPrimitiveV3fT2f : public GraphicsPrimitive {
         
     public:
+        
         GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveType,
                                 const uint8_t* imageBytesPtr,
                                 const int32_t imageWidth,
                                 const int32_t imageHeight,
                                 const int32_t imageRowStride,
-                                const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
-                                const GraphicsTextureSettings::PixelOrigin texturePixelOrigin,
-                                const GraphicsTextureSettings::WrappingType textureWrappingType,
-                                const GraphicsTextureSettings::MipMappingType textureMipMappingType,
-                                const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                                const std::array<float, 4>& textureBorderColorRGBA);
-        
+                                const GraphicsTextureSettings& textureSettings);
+
         virtual ~GraphicsPrimitiveV3fT2f();
         
         GraphicsPrimitiveV3fT2f(const GraphicsPrimitiveV3fT2f& obj);

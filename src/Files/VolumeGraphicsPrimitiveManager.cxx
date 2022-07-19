@@ -239,18 +239,21 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
         minFilter  = GraphicsTextureMinificationFilterEnum::NEAREST;
     }
     std::array<float, 4> backgroundColor { 0.0, 0.0, 0.0, 0.0 };
+    GraphicsTextureSettings textureSettings(NULL,
+                                            GraphicsTextureSettings::DimensionType::FLOAT_STR_3D,
+                                            GraphicsTextureSettings::PixelFormatType::RGBA,
+                                            GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                            GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
+                                            GraphicsTextureSettings::MipMappingType::DISABLED,
+                                            magFilter,
+                                            minFilter,
+                                            backgroundColor);
     GraphicsPrimitiveV3fT3f* primitiveOut(GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                 &rgba[0],
                                                                                 numberOfColumns,
                                                                                 numberOfRows,
                                                                                 numberOfSlices,
-                                                                                GraphicsTextureSettings::PixelFormatType::RGBA,
-                                                                                GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
-                                                                                GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
-                                                                                GraphicsTextureSettings::MipMappingType::DISABLED,
-                                                                                magFilter,
-                                                                                minFilter,
-                                                                                backgroundColor));
+                                                                                textureSettings));
     CaretAssert(primitiveOut);
     
     /*

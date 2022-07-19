@@ -296,6 +296,13 @@ namespace caret {
                           const NormalVectorDataType  normalVectorDataType,
                           const ColorDataType         colorDataType,
                           const VertexColorType       vertexColorType,
+                          const GraphicsTextureSettings& textureSettings,
+                          const PrimitiveType         primitiveType);
+
+        GraphicsPrimitive(const VertexDataType        vertexDataType,
+                          const NormalVectorDataType  normalVectorDataType,
+                          const ColorDataType         colorDataType,
+                          const VertexColorType       vertexColorType,
                           const GraphicsTextureSettings::DimensionType  textureDimensionType,
                           const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
                           const GraphicsTextureSettings::PixelOrigin    texturePixelOrigin,
@@ -333,28 +340,16 @@ namespace caret {
                                                            const int32_t imageWidth,
                                                            const int32_t imageHeight,
                                                            const int32_t imageRowStride,
-                                                           const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
-                                                           const GraphicsTextureSettings::PixelOrigin texturePixelOrigin,
-                                                           const GraphicsTextureSettings::WrappingType textureWrappingType,
-                                                           const GraphicsTextureSettings::MipMappingType textureMipMappingType,
-                                                           const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                                           const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                                                           const std::array<float, 4>& textureBorderColorRGBA);
+                                                           const GraphicsTextureSettings& textureSettings);
         
         static GraphicsPrimitiveV3fT3f* newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
                                                            const uint8_t* imageBytesRGBA,
                                                            const int32_t imageWidth,
                                                            const int32_t imageHeight,
                                                            const int32_t imageSlices,
-                                                           const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
-                                                           const GraphicsTextureSettings::PixelOrigin texturePixelOrigin,
-                                                           const GraphicsTextureSettings::WrappingType textureWrappingType,
-                                                           const GraphicsTextureSettings::MipMappingType textureMipMappingType,
-                                                           const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                                           const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                                                           const std::array<float, 4>& textureBorderColorRGBA);
-
+                                                           const GraphicsTextureSettings& textureSettings);
         
+
         virtual ~GraphicsPrimitive();
         
         void reserveForNumberOfVertices(const int32_t numberOfVertices);

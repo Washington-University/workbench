@@ -36,7 +36,7 @@ using namespace caret;
 
 /**
  * Constructor for solid color float RGBA.
- * 
+ *
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
  * @param imageBytesPtr
@@ -67,24 +67,12 @@ GraphicsPrimitiveV3fT2f::GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveTy
                                                  const int32_t imageWidth,
                                                  const int32_t imageHeight,
                                                  const int32_t imageRowStride,
-                                                 const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
-                                                 const GraphicsTextureSettings::PixelOrigin texturePixelOrigin,
-                                                 const GraphicsTextureSettings::WrappingType textureWrappingType,
-                                                 const GraphicsTextureSettings::MipMappingType textureMipMappingType,
-                                                 const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                                 const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                                                 const std::array<float, 4>& textureBorderColorRGBA)
+                                                 const GraphicsTextureSettings& textureSettings)
 : GraphicsPrimitive(VertexDataType::FLOAT_XYZ,
                     NormalVectorDataType::NONE,
                     ColorDataType::NONE,
                     VertexColorType::NONE,
-                    GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
-                    texturePixelFormatType,
-                    texturePixelOrigin,
-                    textureWrappingType,
-                    textureMipMappingType,
-                    textureMagnificationFilter,
-                    textureMinificationFilter,
+                    textureSettings,
                     primitiveType)
 {
     const int32_t imageSlices(1);
@@ -93,7 +81,7 @@ GraphicsPrimitiveV3fT2f::GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveTy
                     imageHeight,
                     imageSlices,
                     imageRowStride);
-    setTextureBorderColorRGBA(textureBorderColorRGBA);
+    setTextureBorderColorRGBA(textureSettings.getBorderColor());
 }
 
 /**

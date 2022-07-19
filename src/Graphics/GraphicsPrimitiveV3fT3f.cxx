@@ -36,7 +36,7 @@ using namespace caret;
 
 /**
  * Constructor for solid color float RGBA.
- * 
+ *
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
  * @param imageBytesRGBA
@@ -47,44 +47,20 @@ using namespace caret;
  *     Height of the image.
  * @param imageSlices
  *     Slices of the image.
- * @param texturePixelFormatType
- *     Format of pixels in texture image
- * @param texturePixelOrigin
- *   Location of first pixel in texture image
- * @param textureWrappingType
- *     Type of texture wrapping
- * @param textureMipMappingType
- *     Type of texture mip mapping
- * @param textureMagnificationFilter
- *    Texture filtering for when screen pixel is smaller than texture  texel
- * @param textureMinificationFilter
- *    Texture filtering for when screen pixel is larger than texture texel
- * @param textureBorderColorRGBA
- *    Color used when clamp to border is used for warpping
+ * @param textureSettings
+ *     Settings for textures
  */
 GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveType,
                                                  const uint8_t* imageBytesRGBA,
                                                  const int32_t imageWidth,
                                                  const int32_t imageHeight,
                                                  const int32_t imageSlices,
-                                                 const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
-                                                 const GraphicsTextureSettings::PixelOrigin texturePixelOrigin,
-                                                 const GraphicsTextureSettings::WrappingType textureWrappingType,
-                                                 const GraphicsTextureSettings::MipMappingType textureMipMappingType,
-                                                 const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                                 const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                                                 const std::array<float, 4>& textureBorderColorRGBA)
+                                                 const GraphicsTextureSettings& textureSettings)
 : GraphicsPrimitive(VertexDataType::FLOAT_XYZ,
                     NormalVectorDataType::NONE,
                     ColorDataType::NONE,
                     VertexColorType::NONE,
-                    GraphicsTextureSettings::DimensionType::FLOAT_STR_3D,
-                    texturePixelFormatType,
-                    texturePixelOrigin,
-                    textureWrappingType,
-                    textureMipMappingType,
-                    textureMagnificationFilter,
-                    textureMinificationFilter,
+                    textureSettings,
                     primitiveType)
 {
     const int32_t rowStride(-1); /* negative is tightly packed */
@@ -93,7 +69,7 @@ GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveTy
                     imageHeight,
                     imageSlices,
                     rowStride);
-    setTextureBorderColorRGBA(textureBorderColorRGBA);
+    setTextureBorderColorRGBA(textureSettings.getBorderColor());
 }
 
 /**
