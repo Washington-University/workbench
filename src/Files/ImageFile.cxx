@@ -90,7 +90,7 @@ ImageFile::ImageFile(const ImageFile& imageFile)
 : MediaFile(imageFile)
 {
     initializeMembersImageFile();
-    
+
     if (m_image != NULL) {
         delete m_image;
     }
@@ -106,7 +106,6 @@ ImageFile::ImageFile(const ImageFile& imageFile)
     m_graphicsPrimitiveForCoordinateMediaDrawing.reset();
 }
 
-
 /**
  * Constructor that makes copy of QImage instance
  * @param qimage
@@ -121,23 +120,6 @@ ImageFile::ImageFile(const QImage& qimage)
     }
     m_image = new QImage(qimage);
 
-    readFileMetaDataFromQImage();
-}
-
-/**
- * Constructor that takes ownership of a QImage instance
- * @param qimage
- *    QImage that is copied to this image file.
- */
-ImageFile::ImageFile(QImage* qimage)
-: MediaFile(DataFileTypeEnum::IMAGE)
-{
-    initializeMembersImageFile();
-    
-    if (m_image != NULL) {
-        delete m_image;
-    }
-    m_image = qimage;
     readFileMetaDataFromQImage();
 }
 
@@ -797,57 +779,6 @@ ImageFile::limitImageDimensions(QImage* image,
     }
     
     return imageOut;
-}
-
-
-/**
- * Append an image file to the bottom of this image file.
- * @param img
- *    Image that is appended.
- */
-void
-ImageFile::appendImageAtBottom(const ImageFile& img)
-{
-    //
-    // Determine size of new image
-    //
-    const QImage* otherImage = img.getAsQImage();
-    const int newWidth = std::max(m_image->width(), otherImage->width());
-    const int newHeight = m_image->height() + otherImage->height();
-    const int oldHeight = m_image->height();
-    
-    GiftiMetaData fileMetaDataCopy(*m_fileMetaData);
-    
-    //
-    // Copy the current image
-    //
-    const QImage currentImage = *m_image;
-    //   std::cout << "cw: " << currentImage.width() << std::endl;
-    //   std::cout << "ch: " << currentImage.height() << std::endl;
-    
-    //
-    // Create the new image and make it "this" image
-    //
-    QImage newImage(newWidth, newHeight, QImage::Format_ARGB32);
-    //   std::cout << "nw: " << newImage.width() << std::endl;
-    //   std::cout << "nh: " << newImage.height() << std::endl;
-    setFromQImage(newImage);
-    //   std::cout << "iw2: " << image.width() << std::endl;
-    //   std::cout << "ih2: " << image.height() << std::endl;
-    
-    //
-    // Insert current image into new image
-    //
-    insertImage(currentImage, 0, 0);
-    
-    //
-    // Insert other image into new image
-    //
-    insertImage(*otherImage, 0, oldHeight);
-    
-    *m_fileMetaData = fileMetaDataCopy;
-    
-    this->setModified();
 }
 
 /**
@@ -1953,39 +1884,6 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/,
     }
     
     return m_graphicsPrimitiveForMediaDrawing.get();
-}
-
-/**
- * Transform a pixel index with origin at bottom left to pixel index with origin at top left
- * @param pixelIndexBottomLeft
- *    Pixel index with origin at bottom left
- * @return
- *    Pixel index with origin at top left
- */
-PixelIndex
-ImageFile::transformPixelBottomLeftToTopLeft(const PixelIndex& pixelIndexBottomLeft) const
-{
-    PixelIndex pixelTopLeft;
-    
-    if ( ! m_pixelBottomLeftToTopLeftTransform) {
-        QRect rect(0, 0, getWidth() - 1, getHeight() - 1);
-        m_pixelBottomLeftToTopLeftTransform.reset(new RectangleTransform(rect,
-                                                                         RectangleTransform::Origin::BOTTOM_LEFT,
-                                                                         rect,
-                                                                         RectangleTransform::Origin::TOP_LEFT));
-        if ( ! m_pixelBottomLeftToTopLeftTransform->isValid()) {
-            CaretLogSevere("Failed to create rectangle transform for image "
-                           + getFileName()
-                           + " ERROR="
-                           + m_pixelBottomLeftToTopLeftTransform->getErrorMessage());
-        }
-    }
-    
-    if (m_pixelBottomLeftToTopLeftTransform->isValid()) {
-        pixelTopLeft = m_pixelBottomLeftToTopLeftTransform->transformSourceToTarget(pixelIndexBottomLeft);
-    }
-    
-    return pixelTopLeft;
 }
 
 /**

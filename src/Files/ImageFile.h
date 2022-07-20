@@ -63,11 +63,7 @@ public:
     
     ImageFile(const QImage& qimage);
     
-    ImageFile(QImage* qimage);
-    
     ~ImageFile();
-    
-    void appendImageAtBottom(const ImageFile& img);
     
     void clear();
     
@@ -269,8 +265,6 @@ private:
     void readFileMetaDataFromQImage();
     
     void writeFileMetaDataToQImage() const;
-    
-    PixelIndex transformPixelBottomLeftToTopLeft(const PixelIndex& pixelIndexBottomLeft) const;
     
     QImage* m_image;
     
