@@ -37,6 +37,16 @@ namespace caret {
         
     public:
         /**
+         * Compression type
+         */
+        enum class CompressionType {
+            /** Disabled */
+            DISABLED,
+            /** Enabled */
+            ENABLED
+        };
+        
+        /**
          * Dimension type of texture components
          */
         enum class DimensionType {
@@ -110,6 +120,7 @@ namespace caret {
                                 const PixelOrigin     pixelOrigin,
                                 const WrappingType    wrappingType,
                                 const MipMappingType  mipMappingType,
+                                const CompressionType compressionType,
                                 const GraphicsTextureMagnificationFilterEnum::Enum magnificationFilter,
                                 const GraphicsTextureMinificationFilterEnum::Enum minificationFilter,
                                 const std::array<float, 4>& borderColor);
@@ -141,6 +152,8 @@ namespace caret {
         int32_t getUnpackAlignment() const;
         
         void setUnpackAlignmnet(const int32_t unpackAlignment);
+        
+        CompressionType getCompressionType() const;
         
         GraphicsTextureMagnificationFilterEnum::Enum getMagnificationFilter() const;
         
@@ -177,13 +190,15 @@ namespace caret {
         
         MipMappingType m_mipMappingType = MipMappingType::DISABLED;
         
-        int32_t m_unpackAlignment = 4;
+        CompressionType m_compressionType = CompressionType::DISABLED;
         
         GraphicsTextureMagnificationFilterEnum::Enum m_magnificationFilter = GraphicsTextureMagnificationFilterEnum::LINEAR;
         
         GraphicsTextureMinificationFilterEnum::Enum m_minificationFilter = GraphicsTextureMinificationFilterEnum::LINEAR;
         
         std::array<float, 4> m_borderColor = { 0.0f, 0.0f, 0.0f, 0.0f };
+        
+        int32_t m_unpackAlignment = 4;
         
         // ADD_NEW_MEMBERS_HERE
 

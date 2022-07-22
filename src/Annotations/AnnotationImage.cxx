@@ -241,6 +241,7 @@ AnnotationImage::getGraphicsPrimitive() const
                                                     GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
                                                     GraphicsTextureSettings::WrappingType::CLAMP,
                                                     GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                    GraphicsTextureSettings::CompressionType::DISABLED,
                                                     GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                     GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                     textureBorderColorRGBA);

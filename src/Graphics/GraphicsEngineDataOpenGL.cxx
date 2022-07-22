@@ -30,6 +30,7 @@
 #include "EventGraphicsOpenGLCreateTextureName.h"
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "EventManager.h"
+#include "FileInformation.h"
 #include "GraphicsOpenGLBufferObject.h"
 #include "GraphicsOpenGLError.h"
 #include "GraphicsOpenGLPolylineTriangles.h"
@@ -465,7 +466,19 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
                 pixelDataFormat = GL_RGBA;
                 break;
         }
-                
+        /*
+         * Texture compression
+         */
+        GLenum internalFormat(GL_RGBA);
+        switch (textureSettings.getCompressionType()) {
+            case GraphicsTextureSettings::CompressionType::DISABLED:
+                internalFormat = GL_RGBA;
+                break;
+            case GraphicsTextureSettings::CompressionType::ENABLED:
+                internalFormat = GL_COMPRESSED_RGBA;
+                break;
+        }
+
         if (useMipMapFlag) {
             /*
              * This code seems to work if OpenGL 3.0 or later and
@@ -488,7 +501,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
              * saves lots of space if images are large.
              */
             const int errorCode = gluBuild2DMipmaps(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
-                                                    GL_RGBA,           // internal format
+                                                    internalFormat,    // internal format
                                                     imageWidth,        // width of image
                                                     imageHeight,       // height of image
                                                     pixelDataFormat,   // format of the pixel data
@@ -513,7 +526,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
         if ( ! useMipMapFlag) {
             glTexImage2D(GL_TEXTURE_2D,     // MUST BE GL_TEXTURE_2D
                          0,                 // level of detail 0=base, n is nth mipmap reduction
-                         GL_RGBA,           // internal format
+                         internalFormat,    // internal format
                          imageWidth,        // width of image
                          imageHeight,       // height of image
                          0,                 // border
@@ -532,6 +545,61 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
             }
         }
         
+        /*
+         * Successful texture compression
+         */
+        switch (textureSettings.getCompressionType()) {
+            case GraphicsTextureSettings::CompressionType::DISABLED:
+                break;
+            case GraphicsTextureSettings::CompressionType::ENABLED:
+            {
+                /*
+                 * Reuested compression type
+                 */
+                AString requestedCompressionName;
+                AString unusedDecimalText;
+                AString unusedHexText;
+                GraphicsUtilitiesOpenGL::getTextCompressionEnumInfo(internalFormat,
+                                                                    requestedCompressionName,
+                                                                    unusedDecimalText,
+                                                                    unusedHexText);
+                
+                /*
+                 * Actual compression type
+                 */
+                GLint    compressedFlag(GL_FALSE);
+                GLint    level(0);
+                glGetTexLevelParameteriv(GL_TEXTURE_2D,
+                                         level,
+                                         GL_TEXTURE_COMPRESSED,
+                                         &compressedFlag);
+                if (compressedFlag) {
+                    GLint   compressedFormat(0);
+                    GLsizei  compressedSize(0);
+                    glGetTexLevelParameteriv(GL_TEXTURE_2D, level, GL_TEXTURE_INTERNAL_FORMAT, &compressedFormat);
+                    glGetTexLevelParameteriv(GL_TEXTURE_2D, level, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedSize);
+                    
+                    QString actualCompressionName;
+                    GraphicsUtilitiesOpenGL::getTextCompressionEnumInfo(compressedFormat,
+                                                                        actualCompressionName,
+                                                                        unusedDecimalText,
+                                                                        unusedHexText);
+
+                    CaretLogInfo("Texture compression for level 0 reduced "
+                                 + FileInformation::fileSizeToStandardUnits(imageWidth * imageHeight * 4)
+                                 + " down to "
+                                 + FileInformation::fileSizeToStandardUnits(compressedSize)
+                                 + "\n Requested format: "
+                                 + requestedCompressionName
+                                 + " Actual: "
+                                 + actualCompressionName);
+                }
+                else {
+                }
+            }
+                break;
+        }
+
         glBindTexture(GL_TEXTURE_2D, 0);
         glPopClientAttrib();
 
@@ -646,6 +714,14 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
             break;
     }
     
+    switch (textureSettings.getCompressionType()) {
+        case GraphicsTextureSettings::CompressionType::DISABLED:
+            break;
+        case GraphicsTextureSettings::CompressionType::ENABLED:
+            CaretLogWarning("Compression not implemented for 3D Textures");
+            break;
+    }
+
     if (useMipMapFlag) {
 #ifdef CARET_OS_WINDOWS_MSVC
         CaretLogSevere("3D Mipmaps function gluBuild3DMipmaps() not available on system "

@@ -8686,6 +8686,7 @@ BrainOpenGLFixedPipeline::drawStippledBackgroundInAreasOutsideWindowAspectLockin
                                             GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
                                             GraphicsTextureSettings::WrappingType::REPEAT,
                                             GraphicsTextureSettings::MipMappingType::ENABLED,
+                                            GraphicsTextureSettings::CompressionType::DISABLED,
                                             GraphicsTextureMagnificationFilterEnum::LINEAR,
                                             GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                             textureBorderColorRGBA);

@@ -1856,6 +1856,7 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/,
                                                     GraphicsTextureSettings::PixelOrigin::TOP_LEFT,
                                                     GraphicsTextureSettings::WrappingType::CLAMP,
                                                     GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                    GraphicsTextureSettings::CompressionType::ENABLED,
                                                     GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                     GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                     textureBorderColorRGBA);
@@ -2485,6 +2486,7 @@ ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing() const
                                                 GraphicsTextureSettings::PixelOrigin::TOP_LEFT,
                                                 GraphicsTextureSettings::WrappingType::CLAMP,
                                                 GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                GraphicsTextureSettings::CompressionType::ENABLED,
                                                 GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                 GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                 textureBorderColorRGBA);

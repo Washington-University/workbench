@@ -248,6 +248,7 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
                                             GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
                                             GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
                                             GraphicsTextureSettings::MipMappingType::DISABLED,
+                                            GraphicsTextureSettings::CompressionType::DISABLED,
                                             magFilter,
                                             minFilter,
                                             backgroundColor);

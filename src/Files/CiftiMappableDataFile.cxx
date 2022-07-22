@@ -1918,6 +1918,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                                                                 GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
                                                                 GraphicsTextureSettings::WrappingType::CLAMP,
                                                                 GraphicsTextureSettings::MipMappingType::DISABLED,
+                                                                GraphicsTextureSettings::CompressionType::DISABLED,
                                                                 GraphicsTextureMagnificationFilterEnum::NEAREST,
                                                                 GraphicsTextureMinificationFilterEnum::NEAREST,
                                                                 textureBorderColorRGBA);

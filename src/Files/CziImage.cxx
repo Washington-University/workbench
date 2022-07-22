@@ -492,6 +492,7 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
                                                               pixelOrigin,
                                                               GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
                                                               GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                              GraphicsTextureSettings::CompressionType::DISABLED,
                                                               GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                               GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                               textureBorderColorRGBA);
@@ -506,6 +507,7 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
                                                               pixelOrigin,
                                                               GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
                                                               GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                              GraphicsTextureSettings::CompressionType::DISABLED,
                                                               GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                               GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                               textureBorderColorRGBA);

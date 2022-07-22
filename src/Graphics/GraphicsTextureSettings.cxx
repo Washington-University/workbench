@@ -66,6 +66,8 @@ m_imageBytesPointer(NULL)
  *    Texture wrapping type
  * @param mipMappingType
  *    Mip mapping type
+ * @param compressionType
+ *    Type of compression
  * @param magnificationFilter
  *    Type of texture magnification
  * @param minificationFilter
@@ -82,6 +84,7 @@ GraphicsTextureSettings::GraphicsTextureSettings(const uint8_t*        imageByte
                                                  const PixelOrigin     pixelOrigin,
                                                  const WrappingType    wrappingType,
                                                  const MipMappingType  mipMappingType,
+                                                 const CompressionType compressionType,
                                                  const GraphicsTextureMagnificationFilterEnum::Enum magnificationFilter,
                                                  const GraphicsTextureMinificationFilterEnum::Enum minificationFilter,
                                                  const std::array<float, 4>& borderColor)
@@ -95,6 +98,7 @@ m_pixelFormatType(pixelFormatType),
 m_pixelOrigin(pixelOrigin),
 m_wrappingType(wrappingType),
 m_mipMappingType(mipMappingType),
+m_compressionType(compressionType),
 m_magnificationFilter(magnificationFilter),
 m_minificationFilter(minificationFilter),
 m_borderColor(borderColor)
@@ -155,6 +159,7 @@ GraphicsTextureSettings::copyHelperGraphicsTextureSettings(const GraphicsTexture
     m_wrappingType        = obj.m_wrappingType;
     m_mipMappingType      = obj.m_mipMappingType;
     m_unpackAlignment     = obj.m_unpackAlignment;
+    m_compressionType     = obj.m_compressionType;
     m_magnificationFilter = obj.m_magnificationFilter;
     m_minificationFilter  = obj.m_minificationFilter;
     m_borderColor         = obj.m_borderColor;
@@ -239,6 +244,15 @@ GraphicsTextureSettings::MipMappingType
 GraphicsTextureSettings::getMipMappingType() const
 {
     return m_mipMappingType;
+}
+
+/**
+ * @return The type of compression
+ */
+GraphicsTextureSettings::CompressionType
+GraphicsTextureSettings::getCompressionType() const
+{
+    return m_compressionType;
 }
 
 /**
