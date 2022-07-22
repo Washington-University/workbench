@@ -974,24 +974,13 @@ BrainOpenGL::getOpenGLInformation()
         glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, &compTextureFormats[0]);
         for (GLint fmt : compTextureFormats) {
             QString name;
-            switch (fmt) {
-                case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
-                    name = "GL_COMPRESSED_RGB_S3TC_DXT1_EXT";
-                    break;
-                case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-                    name = "GL_COMPRESSED_RGBA_S3TC_DXT1_EXT";
-                    break;
-                case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
-                    name = "GL_COMPRESSED_RGBA_S3TC_DXT3_EXT";
-                    break;
-                case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-                    name = "GL_COMPRESSED_RGBA_S3TC_DXT5_EXT";
-                    break;
-            }
+            QString decimalValue;
+            QString hexValue;
+            GraphicsUtilitiesOpenGL::getTextCompressionEnumInfo(fmt, name, decimalValue, hexValue);
             lineInfo += ("\n   Comp Texture Format: "
-                         + AString::number(fmt)
-                         + " 0x"
-                         + AString::number(fmt, 16)
+                         + decimalValue
+                         + " "
+                         + hexValue
                          + " "
                          + name);
         }
@@ -1006,13 +995,38 @@ BrainOpenGL::getOpenGLInformation()
         compTextureFormats.resize(numCompTexFormats);
         glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS_ARB, &compTextureFormats[0]);
         for (GLint fmt : compTextureFormats) {
+            QString name;
+            QString decimalValue;
+            QString hexValue;
+            GraphicsUtilitiesOpenGL::getTextCompressionEnumInfo(fmt, name, decimalValue, hexValue);
             lineInfo += ("\n   ARB Comp Texture Format: "
-                         + AString::number(fmt)
-                         + " 0x"
-                         + AString::number(fmt, 16));
+                         + decimalValue
+                         + " "
+                         + hexValue
+                         + " "
+                         + name);
         }
     }
 
+    std::vector<GLenum> compRgbEnums;
+    compRgbEnums.push_back(GL_COMPRESSED_RGB);
+    compRgbEnums.push_back(GL_COMPRESSED_RGBA);
+    if ( ! compRgbEnums.empty()) {
+        lineInfo += ("\nCompressed RGB(A) Formats:");
+        for (GLint fmt : compRgbEnums) {
+            QString name;
+            QString decimalValue;
+            QString hexValue;
+            GraphicsUtilitiesOpenGL::getTextCompressionEnumInfo(fmt, name, decimalValue, hexValue);
+            lineInfo += ("\n   ARB Comp Texture Format: "
+                         + decimalValue
+                         + " "
+                         + hexValue
+                         + " "
+                         + name);
+        }
+    }
+    
     lineInfo += "\n";
     lineInfo += "\n";
     lineInfo += "Note that State of OpenGL may be different when drawing objects.\n";

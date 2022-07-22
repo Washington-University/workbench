@@ -27,6 +27,7 @@
 #include <stack>
 
 #include "CaretObject.h"
+#include "CaretOpenGLInclude.h"
 
 namespace caret {
 
@@ -47,6 +48,11 @@ namespace caret {
         static float convertPixelsToPercentageOfViewportHeight(const float pixels);
         
         static float convertPixelsToMillimeters(const float pixels);
+        
+        static void getTextCompressionEnumInfo(const GLenum enumValue,
+                                               QString& nameOut,
+                                               QString& decimalValueOut,
+                                               QString& hexadecimalValueOut);
         
         static void resetOpenGLError();
         

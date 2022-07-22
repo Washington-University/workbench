@@ -278,6 +278,54 @@ GraphicsUtilitiesOpenGL::convertMillimetersToPixels(const float millimeters)
 }
 
 /**
+ * Get information about an OpenGL Texture Compression Enum
+ * @param enumValue
+ *    The OpenGL compression enum value
+ * @param nameOut
+ *    Text name if available
+ * @param decimalValueOut
+ *    Decimal value of OpenGL enum
+ * @param hexadecimalValueOut
+ *    Hexadecimal value of OpenGL enum
+ */
+void
+GraphicsUtilitiesOpenGL::getTextCompressionEnumInfo(const GLenum enumValue,
+                                                    QString& nameOut,
+                                                    QString& decimalValueOut,
+                                                    QString& hexadecimalValueOut)
+{
+    nameOut             = "Unknown";
+    decimalValueOut     = "";
+    hexadecimalValueOut = "";
+    
+    switch (enumValue) {
+        case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+            nameOut = "GL_COMPRESSED_RGB_S3TC_DXT1_EXT";
+            break;
+        case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+            nameOut = "GL_COMPRESSED_RGBA_S3TC_DXT1_EXT";
+            break;
+        case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+            nameOut = "GL_COMPRESSED_RGBA_S3TC_DXT3_EXT";
+            break;
+        case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+            nameOut = "GL_COMPRESSED_RGBA_S3TC_DXT5_EXT";
+            break;
+        case GL_COMPRESSED_RGB:
+            nameOut = "GL_COMPRESSED_RGB";
+            break;
+        case GL_COMPRESSED_RGBA:
+            nameOut = "GL_COMPRESSED_RGBA";
+            break;
+        default:
+            break;
+    }
+    
+    decimalValueOut     = QString::number(static_cast<int32_t>(enumValue));
+    hexadecimalValueOut = ("0x" + QString::number(static_cast<int32_t>(enumValue), 16));
+}
+
+/**
  * Reset and ignore any OpenGL errors.
  */
 void
