@@ -1789,9 +1789,9 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/,
     }
     
     if (m_graphicsPrimitiveForMediaDrawing == NULL) {
-        std::vector<uint8_t> bytesRGBA;
-        int32_t width(0);
-        int32_t height(0);
+//        std::vector<uint8_t> bytesRGBA;
+//        int32_t width(0);
+//        int32_t height(0);
         
         /*
          * If image is too big for OpenGL texture limits, scale image to acceptable size
@@ -1819,51 +1819,56 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/,
          * if there are not in preferred format prior to
          * getting colors of pixels
          */
-        bool validRGBA(false);
         if (m_image->format() != QImage::Format_ARGB32) {
-            QImage image = m_image->convertToFormat(QImage::Format_ARGB32);
-            if (! image.isNull()) {
-                ImageFile convImageFile;
-                convImageFile.setFromQImage(image);
-                validRGBA = convImageFile.getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                            bytesRGBA,
-                                                            width,
-                                                            height);
-            }
+            m_image->convertTo(QImage::Format_ARGB32);
         }
-        else {
-            validRGBA = getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                          bytesRGBA,
-                                          width,
-                                          height);
-        }
+//        bool validRGBA(false);
+//        if (m_image->format() != QImage::Format_ARGB32) {
+//            QImage image = m_image->convertToFormat(QImage::Format_ARGB32);
+//            if (! image.isNull()) {
+//                ImageFile convImageFile;
+//                convImageFile.setFromQImage(image);
+//                validRGBA = convImageFile.getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
+//                                                            bytesRGBA,
+//                                                            width,
+//                                                            height);
+//            }
+//        }
+//        else {
+//            validRGBA = getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
+//                                          bytesRGBA,
+//                                          width,
+//                                          height);
+//        }
         
-        if (validRGBA) {
-            const int32_t rowStride(-1); /* negative is tightly packed */
+//        if (validRGBA) {
+//            std::cout << "Image width: " << width
+//            << " width*4: " << (width * 4)
+//            << " bytes per line: " << m_image->bytesPerLine()
+//            << std::endl;
             const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
-            GraphicsTextureSettings textureSettings(NULL,
+            GraphicsTextureSettings textureSettings(m_image->constBits(),
+                                                    m_image->width(),
+                                                    m_image->height(),
+                                                    1, /* slices */
                                                     GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
-                                                    GraphicsTextureSettings::PixelFormatType::RGBA,
-                                                    GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                                    GraphicsTextureSettings::PixelFormatType::BGRA,  /* For QImage */
+                                                    GraphicsTextureSettings::PixelOrigin::TOP_LEFT,
                                                     GraphicsTextureSettings::WrappingType::CLAMP,
                                                     GraphicsTextureSettings::MipMappingType::ENABLED,
                                                     GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                     GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                     textureBorderColorRGBA);
             GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                                                                       &bytesRGBA[0],
-                                                                                       width,
-                                                                                       height,
-                                                                                       rowStride,
                                                                                        textureSettings);
             
             /*
              * Coordinates at EDGE of the pixels
              */
             const float minX = 0;
-            const float maxX = width;
+            const float maxX = getWidth();
             const float minY = 0;
-            const float maxY = height;
+            const float maxY = getHeight();
 
             /*
              * A Triangle Strip (consisting of two triangles) is used
@@ -1874,13 +1879,13 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/,
              */
             const float minTextureST(0.0);
             const float maxTextureST(1.0);
-            primitive->addVertex(minX, minY, minTextureST, maxTextureST);  /* Top Left */
-            primitive->addVertex(minX, maxY, minTextureST, minTextureST);  /* Bottom Left */
-            primitive->addVertex(maxX, minY, maxTextureST, maxTextureST);  /* Top Right */
-            primitive->addVertex(maxX, maxY, maxTextureST, minTextureST);  /* Bottom Right */
+            primitive->addVertex(minX, minY, minTextureST, minTextureST);  /* Top Left */
+            primitive->addVertex(minX, maxY, minTextureST, maxTextureST);  /* Bottom Left */
+            primitive->addVertex(maxX, minY, maxTextureST, minTextureST);  /* Top Right */
+            primitive->addVertex(maxX, maxY, maxTextureST, maxTextureST);  /* Bottom Right */
 
             m_graphicsPrimitiveForMediaDrawing.reset(primitive);
-        }
+//        }
     }
     
     return m_graphicsPrimitiveForMediaDrawing.get();
@@ -2435,9 +2440,9 @@ ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing() const
     }
     
     if (m_graphicsPrimitiveForCoordinateMediaDrawing == NULL) {
-        std::vector<uint8_t> bytesRGBA;
-        int32_t width(0);
-        int32_t height(0);
+//        std::vector<uint8_t> bytesRGBA;
+//        int32_t width(0);
+//        int32_t height(0);
         
         /*
          * If image is too big for OpenGL texture limits, scale image to acceptable size
@@ -2465,65 +2470,47 @@ ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing() const
          * if there are not in preferred format prior to
          * getting colors of pixels
          */
-        bool validRGBA(false);
         if (m_image->format() != QImage::Format_ARGB32) {
-            QImage image = m_image->convertToFormat(QImage::Format_ARGB32);
-            if (! image.isNull()) {
-                ImageFile convImageFile;
-                convImageFile.setFromQImage(image);
-                validRGBA = convImageFile.getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                            bytesRGBA,
-                                                            width,
-                                                            height);
-            }
+            m_image->convertTo(QImage::Format_ARGB32);
         }
-        else {
-            validRGBA = getImageBytesRGBA(IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                          bytesRGBA,
-                                          width,
-                                          height);
-        }
+        CaretAssert(m_image->format() == QImage::Format_ARGB32);
+        const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
         
-        if (validRGBA) {
-            const int32_t rowStride(-1); /* negative is tightly packed */
-            const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
-            
-            GraphicsTextureSettings textureSettings(NULL,
-                                                    GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
-                                                    GraphicsTextureSettings::PixelFormatType::RGBA,
-                                                    GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
-                                                    GraphicsTextureSettings::WrappingType::CLAMP,
-                                                    GraphicsTextureSettings::MipMappingType::ENABLED,
-                                                    GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
-                                                    textureBorderColorRGBA);
-            GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                                                                       &bytesRGBA[0],
-                                                                                       width,
-                                                                                       height,
-                                                                                       rowStride,
-                                                                                       textureSettings);
-            
-            /*
-             * A Triangle Strip (consisting of two triangles) is used
-             * for drawing the image.
-             * The order of the vertices in the triangle strip is
-             * Top Left, Bottom Left, Top Right, Bottom Right.
-             * ORIGIN IS AT TOP LEFT
-             */
-            const float minTextureST(0.0);
-            const float maxTextureST(1.0);
-            const Vector3D coordinateTopLeft(getPlaneXyzTopLeft());
-            const Vector3D coordinateTopRight(getPlaneXyzTopRight());
-            const Vector3D coordinateBottomLeft(getPlaneXyzBottomLeft());
-            const Vector3D coordinateBottomRight(getPlaneXyzBottomRight());
-            primitive->addVertex(coordinateTopLeft[0],     coordinateTopLeft[1],     minTextureST, maxTextureST);  /* Top Left */
-            primitive->addVertex(coordinateBottomLeft[0],  coordinateBottomLeft[1],  minTextureST, minTextureST);  /* Bottom Left */
-            primitive->addVertex(coordinateTopRight[0],    coordinateTopRight[1],    maxTextureST, maxTextureST);  /* Top Right */
-            primitive->addVertex(coordinateBottomRight[0], coordinateBottomRight[1], maxTextureST, minTextureST);  /* Bottom Right */
-            
-            m_graphicsPrimitiveForCoordinateMediaDrawing.reset(primitive);
-        }
+        GraphicsTextureSettings textureSettings(m_image->constBits(),
+                                                m_image->width(),
+                                                m_image->height(),
+                                                1, /* slices */
+                                                GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                GraphicsTextureSettings::PixelFormatType::BGRA, /* For QImage */
+                                                GraphicsTextureSettings::PixelOrigin::TOP_LEFT,
+                                                GraphicsTextureSettings::WrappingType::CLAMP,
+                                                GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                textureBorderColorRGBA);
+        GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                                                                   textureSettings);
+        
+        /*
+         * A Triangle Strip (consisting of two triangles) is used
+         * for drawing the image.
+         * The order of the vertices in the triangle strip is
+         * Top Left, Bottom Left, Top Right, Bottom Right.
+         * ORIGIN IS AT TOP LEFT
+         */
+        const float minTextureST(0.0);
+        const float maxTextureST(1.0);
+        const Vector3D coordinateTopLeft(getPlaneXyzTopLeft());
+        const Vector3D coordinateTopRight(getPlaneXyzTopRight());
+        const Vector3D coordinateBottomLeft(getPlaneXyzBottomLeft());
+        const Vector3D coordinateBottomRight(getPlaneXyzBottomRight());
+        primitive->addVertex(coordinateTopLeft[0],     coordinateTopLeft[1],     minTextureST, minTextureST);  /* Top Left */
+        primitive->addVertex(coordinateBottomLeft[0],  coordinateBottomLeft[1],  minTextureST, maxTextureST);  /* Bottom Left */
+        primitive->addVertex(coordinateTopRight[0],    coordinateTopRight[1],    maxTextureST, minTextureST);  /* Top Right */
+        primitive->addVertex(coordinateBottomRight[0], coordinateBottomRight[1], maxTextureST, maxTextureST);  /* Bottom Right */
+        
+        
+        m_graphicsPrimitiveForCoordinateMediaDrawing.reset(primitive);
     }
     
     return m_graphicsPrimitiveForCoordinateMediaDrawing.get();

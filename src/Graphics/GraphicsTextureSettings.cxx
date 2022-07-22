@@ -23,6 +23,8 @@
 #include "GraphicsTextureSettings.h"
 #undef __GRAPHICS_TEXTURE_SETTINGS_DECLARE__
 
+#include <cstdint>
+
 #include "CaretAssert.h"
 using namespace caret;
 
@@ -39,15 +41,42 @@ using namespace caret;
  */
 GraphicsTextureSettings::GraphicsTextureSettings()
 : CaretObject(),
-m_qImage(NULL)
+m_imageBytesPointer(NULL)
 {
     
 }
 
 /**
  * Constructor.
+ * @param imageBytesPointer
+ *    Pointer to image data bytes
+ * @param imageWidth
+ *    Width of image in pixels
+ * @param imageHeight
+ *    Height of image in pixels
+ * @param imageSlices
+ *    Number of slices in image (1 if 2D)
+ * @param dimensionType
+ *    Texture dimension (2D or 3D)
+ * @param pixelFormatType
+ *    Pixel color components type
+ * @param pixelOrigin
+ *    Origin of first pixel in image
+ * @param wrappingType
+ *    Texture wrapping type
+ * @param mipMappingType
+ *    Mip mapping type
+ * @param magnificationFilter
+ *    Type of texture magnification
+ * @param minificationFilter
+ *    Type of texture minification
+ * @param borderColor
+ *    Color for texture border (used where there is no texture data)
  */
-GraphicsTextureSettings::GraphicsTextureSettings(const QImage* qImage,
+GraphicsTextureSettings::GraphicsTextureSettings(const uint8_t*        imageBytesPointer,
+                                                 const int32_t         imageWidth,
+                                                 const int32_t         imageHeight,
+                                                 const int32_t         imageSlices,
                                                  const DimensionType   dimensionType,
                                                  const PixelFormatType pixelFormatType,
                                                  const PixelOrigin     pixelOrigin,
@@ -57,7 +86,10 @@ GraphicsTextureSettings::GraphicsTextureSettings(const QImage* qImage,
                                                  const GraphicsTextureMinificationFilterEnum::Enum minificationFilter,
                                                  const std::array<float, 4>& borderColor)
 : CaretObject(),
-m_qImage(qImage),
+m_imageBytesPointer(const_cast<uint8_t*>(imageBytesPointer)),
+m_imageWidth(imageWidth),
+m_imageHeight(imageHeight),
+m_imageSlices(imageSlices),
 m_dimensionType(dimensionType),
 m_pixelFormatType(pixelFormatType),
 m_pixelOrigin(pixelOrigin),
@@ -113,24 +145,55 @@ GraphicsTextureSettings::operator=(const GraphicsTextureSettings& obj)
 void 
 GraphicsTextureSettings::copyHelperGraphicsTextureSettings(const GraphicsTextureSettings& obj)
 {
-    m_qImage              = obj.m_qImage;
+    m_imageBytesPointer   = obj.m_imageBytesPointer;
+    m_imageWidth          = obj.m_imageWidth;
+    m_imageHeight         = obj.m_imageHeight;
+    m_imageSlices         = obj.m_imageSlices;
     m_dimensionType       = obj.m_dimensionType;
     m_pixelFormatType     = obj.m_pixelFormatType;
     m_pixelOrigin         = obj.m_pixelOrigin;
     m_wrappingType        = obj.m_wrappingType;
     m_mipMappingType      = obj.m_mipMappingType;
+    m_unpackAlignment     = obj.m_unpackAlignment;
     m_magnificationFilter = obj.m_magnificationFilter;
     m_minificationFilter  = obj.m_minificationFilter;
     m_borderColor         = obj.m_borderColor;
 }
 
 /**
- * @return Pointer to the qImage instance
+ * @return Pointer to the qImage bytes
  */
-const QImage*
-GraphicsTextureSettings::getQImage() const
+const uint8_t*
+GraphicsTextureSettings::getImageBytesPointer() const
 {
-    return m_qImage;
+    return m_imageBytesPointer;
+}
+
+/**
+ * @return The widget of the image
+ */
+int32_t
+GraphicsTextureSettings::getImageWidth() const
+{
+    return m_imageWidth;
+}
+
+/**
+ * @return The height of the image
+ */
+int32_t
+GraphicsTextureSettings::getImageHeight() const
+{
+    return m_imageHeight;
+}
+
+/**
+ * @return The number of slices in the image (2D is 1)
+ */
+int32_t
+GraphicsTextureSettings::getImageSlices() const
+{
+    return m_imageSlices;
 }
 
 /**
@@ -185,6 +248,23 @@ GraphicsTextureMagnificationFilterEnum::Enum
 GraphicsTextureSettings::getMagnificationFilter() const
 {
     return m_magnificationFilter;
+}
+
+/**
+ * @return The unpack alignment.  See OpenGL documentation.  If wrong
+ * image will be distorted (skewed).  May be needed if length of row in bytes
+ * is not divisible by 4.
+ */
+int32_t
+GraphicsTextureSettings::getUnpackAlignment() const
+{
+    return m_unpackAlignment;
+}
+
+void
+GraphicsTextureSettings::setUnpackAlignmnet(const int32_t unpackAlignment)
+{
+    m_unpackAlignment = unpackAlignment;
 }
 
 /**

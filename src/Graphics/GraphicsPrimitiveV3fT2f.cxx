@@ -39,34 +39,10 @@ using namespace caret;
  *
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
- * @param imageBytesPtr
- *     Bytes containing the image data.
- * @param imageWidth
- *     Width of the actual image.
- * @param imageHeight
- *     Height of the image.
- * @param imageRowStride
- *     Length of a row including padding so that row length  is a multipleof 2/4/8/? (negative is tightly packed - no padding)
- * @param texturePixelFormatType
- *     Format of pixels in texture image
- * @param texturePixelOrigin
- *   Location of first pixel in texture image
- * @param textureWrappingType
- *     Type of texture wrapping
- * @param textureMipMappingType
- *     Type of texture mip mapping
- * @param textureMagnificationFilter
- *    Texture filtering for when screen pixel is smaller than texture  texel
- * @param textureMinificationFilter
- *    Texture filtering for when screen pixel is larger than texture texel
- * @param textureBorderColorRGBA
- *    Color used when clamp to border is used for warpping
+ * @param textureSettings
+ *    Settings for texture mapping
  */
 GraphicsPrimitiveV3fT2f::GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveType,
-                                                 const uint8_t* imageBytesPtr,
-                                                 const int32_t imageWidth,
-                                                 const int32_t imageHeight,
-                                                 const int32_t imageRowStride,
                                                  const GraphicsTextureSettings& textureSettings)
 : GraphicsPrimitive(VertexDataType::FLOAT_XYZ,
                     NormalVectorDataType::NONE,
@@ -75,13 +51,6 @@ GraphicsPrimitiveV3fT2f::GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveTy
                     textureSettings,
                     primitiveType)
 {
-    const int32_t imageSlices(1);
-    setTextureImage(imageBytesPtr,
-                    imageWidth,
-                    imageHeight,
-                    imageSlices,
-                    imageRowStride);
-    setTextureBorderColorRGBA(textureSettings.getBorderColor());
 }
 
 /**

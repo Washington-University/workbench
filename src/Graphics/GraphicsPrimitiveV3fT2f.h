@@ -36,10 +36,6 @@ namespace caret {
     public:
         
         GraphicsPrimitiveV3fT2f(const PrimitiveType primitiveType,
-                                const uint8_t* imageBytesPtr,
-                                const int32_t imageWidth,
-                                const int32_t imageHeight,
-                                const int32_t imageRowStride,
                                 const GraphicsTextureSettings& textureSettings);
 
         virtual ~GraphicsPrimitiveV3fT2f();

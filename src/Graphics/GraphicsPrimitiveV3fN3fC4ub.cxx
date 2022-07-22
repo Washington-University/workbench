@@ -45,13 +45,7 @@ GraphicsPrimitiveV3fN3fC4ub::GraphicsPrimitiveV3fN3fC4ub(const PrimitiveType pri
                     NormalVectorDataType::FLOAT_XYZ,
                     ColorDataType::UNSIGNED_BYTE_RGBA,
                     VertexColorType::PER_VERTEX_RGBA,
-                    GraphicsTextureSettings::DimensionType::NONE,
-                    GraphicsTextureSettings::PixelFormatType::NONE,
-                    GraphicsTextureSettings::PixelOrigin::NONE,
-                    GraphicsTextureSettings::WrappingType::CLAMP,
-                    GraphicsTextureSettings::MipMappingType::DISABLED,
-                    GraphicsTextureMagnificationFilterEnum::LINEAR,
-                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                    GraphicsTextureSettings(),
                     primitiveType)
 {
     

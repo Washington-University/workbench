@@ -39,22 +39,10 @@ using namespace caret;
  *
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
- * @param imageBytesRGBA
- *     Bytes containing the image data.
- * @param imageWidth
- *     Width of the actual image.
- * @param imageHeight
- *     Height of the image.
- * @param imageSlices
- *     Slices of the image.
  * @param textureSettings
  *     Settings for textures
  */
 GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveType,
-                                                 const uint8_t* imageBytesRGBA,
-                                                 const int32_t imageWidth,
-                                                 const int32_t imageHeight,
-                                                 const int32_t imageSlices,
                                                  const GraphicsTextureSettings& textureSettings)
 : GraphicsPrimitive(VertexDataType::FLOAT_XYZ,
                     NormalVectorDataType::NONE,
@@ -63,13 +51,6 @@ GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveTy
                     textureSettings,
                     primitiveType)
 {
-    const int32_t rowStride(-1); /* negative is tightly packed */
-    setTextureImage(imageBytesRGBA,
-                    imageWidth,
-                    imageHeight,
-                    imageSlices,
-                    rowStride);
-    setTextureBorderColorRGBA(textureSettings.getBorderColor());
 }
 
 /**

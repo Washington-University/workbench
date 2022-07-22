@@ -420,7 +420,6 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
             }
         }
         
-        std::vector<uint8_t> bytesRGBA;
         uint8_t* ptrBytesRGBA(NULL);
         bool validRGBA(false);
         
@@ -459,30 +458,10 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
                 break;
             case ImageStorageFormat::Q_IMAGE:
                 if (m_qimageData->format() != QImage::Format_ARGB32) {
-                    /*
-                     * Some images may use a color table so convert images
-                     * if there are not in preferred format prior to
-                     * getting colors of pixels
-                     */
-                    QImage image = m_qimageData->convertToFormat(QImage::Format_ARGB32);
-                    if (! image.isNull()) {
-                        ImageFile convImageFile;
-                        convImageFile.setFromQImage(image);
-                        validRGBA = convImageFile.getImageBytesRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                                    bytesRGBA,
-                                                                    width,
-                                                                    height);
-                    }
+                    m_qimageData->convertTo(QImage::Format_ARGB32);
                 }
-                else {
-                    validRGBA = ImageFile::getImageBytesRGBA(m_qimageData.get(),
-                                                             ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                                             bytesRGBA,
-                                                             width,
-                                                             height);
-                }
+                validRGBA = (m_qimageData->format() == QImage::Format_ARGB32);
                 if (validRGBA) {
-                    ptrBytesRGBA = bytesRGBA.data();
                     pixelFormatType = GraphicsTextureSettings::PixelFormatType::RGBA;
                     pixelOrigin     = GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT;
                     rowStride       = width * 4; /* RGBA */
@@ -496,21 +475,44 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
             CaretAssert(width > 0);
             CaretAssert(height > 0);
             const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
-            GraphicsTextureSettings textureSettings(NULL,
-                                                    GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
-                                                    pixelFormatType,
-                                                    pixelOrigin,
-                                                    GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
-                                                    GraphicsTextureSettings::MipMappingType::ENABLED,
-                                                    GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
-                                                    textureBorderColorRGBA);
-
+            
+            GraphicsTextureSettings textureSettings;
+            
+            switch (m_imageStorageFormat) {
+                case ImageStorageFormat::INVALID:
+                    CaretAssert(0);
+                    break;
+                case ImageStorageFormat::CZI_IMAGE:
+                    textureSettings = GraphicsTextureSettings(ptrBytesRGBA,
+                                                              width,
+                                                              height,
+                                                              1, /* slices */
+                                                              GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                              pixelFormatType,
+                                                              pixelOrigin,
+                                                              GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
+                                                              GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                              GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                              GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                              textureBorderColorRGBA);
+                    break;
+                case ImageStorageFormat::Q_IMAGE:
+                    textureSettings = GraphicsTextureSettings(m_qimageData->constBits(),
+                                                              width,
+                                                              height,
+                                                              1, /* slices */
+                                                              GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                              pixelFormatType,
+                                                              pixelOrigin,
+                                                              GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
+                                                              GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                              GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                              GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                              textureBorderColorRGBA);
+                    break;
+                    
+            }
             GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                                                                       ptrBytesRGBA,
-                                                                                       width,
-                                                                                       height,
-                                                                                       rowStride,
                                                                                        textureSettings);
             
             /*
@@ -525,21 +527,22 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
             const float minY = m_fullResolutionLogicalRect.y();
             const float maxY = m_fullResolutionLogicalRect.y() + m_fullResolutionLogicalRect.height();
 
-            const float imageLogicalWidth(m_imageDataLogicalRect.width());
-            const float imageLogicalHeight(m_imageDataLogicalRect.height());
-            
-            const float textureMaxS2(((m_fullResolutionLogicalRect.right()
-                                       - m_imageDataLogicalRect.right()) / imageLogicalWidth)
-                                     + 1.0);
-            const float textureMinS2(((m_fullResolutionLogicalRect.left()
-                                       - m_imageDataLogicalRect.left()) / imageLogicalWidth)
-                                     - 0.0);
+            const float fullResWidth(m_fullResolutionLogicalRect.width());
+            const float fullResHeight(m_fullResolutionLogicalRect.height());
+
+            const float textureMinS2(((m_imageDataLogicalRect.left()
+                                       - m_fullResolutionLogicalRect.left()) / fullResWidth));
+            const float textureMaxS2(((m_imageDataLogicalRect.right()
+                                       - m_fullResolutionLogicalRect.left()) / fullResWidth));
             const float textureMinT2(((m_imageDataLogicalRect.top()
-                                       - m_fullResolutionLogicalRect.top()) / imageLogicalHeight)
-                                     + 1.0);
+                                       - m_fullResolutionLogicalRect.top()) / fullResHeight));
             const float textureMaxT2(((m_imageDataLogicalRect.bottom()
-                                       - m_fullResolutionLogicalRect.bottom()) / imageLogicalHeight)
-                                     - 0.0);
+                                       - m_fullResolutionLogicalRect.top()) / fullResHeight));
+            std::cout << "X: " << minX << ", " << maxX << "    Y: " << minY << ", " << maxY << std::endl;
+            std::cout << "  Full Rect: " << CziUtilities::qRectToString(m_fullResolutionLogicalRect) << std::endl;
+            std::cout << "  Img Rect:  " << CziUtilities::qRectToString(m_imageDataLogicalRect) << std::endl;
+            std::cout << "  Txt S:     " << textureMinS2 << ", " << textureMaxS2 << std::endl;
+            std::cout << "  Txt T:     " << textureMinT2 << ", " << textureMaxT2 << std::endl;
             
             /*
              * A Triangle Strip (consisting of two triangles) is used
@@ -552,6 +555,9 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
             primitive->addVertex(maxX, minY, textureMaxS2, textureMinT2);  /* Top Right */
             primitive->addVertex(maxX, maxY, textureMaxS2, textureMaxT2);  /* Bottom Right */
 
+            primitive->print();
+            std::cout << std::endl << std::endl;
+            
             m_graphicsPrimitiveForMediaDrawing.reset(primitive);
         }
         

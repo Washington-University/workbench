@@ -239,7 +239,10 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
         minFilter  = GraphicsTextureMinificationFilterEnum::NEAREST;
     }
     std::array<float, 4> backgroundColor { 0.0, 0.0, 0.0, 0.0 };
-    GraphicsTextureSettings textureSettings(NULL,
+    GraphicsTextureSettings textureSettings(&rgba[0],
+                                            numberOfColumns,
+                                            numberOfRows,
+                                            numberOfSlices,
                                             GraphicsTextureSettings::DimensionType::FLOAT_STR_3D,
                                             GraphicsTextureSettings::PixelFormatType::RGBA,
                                             GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
@@ -249,10 +252,6 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
                                             minFilter,
                                             backgroundColor);
     GraphicsPrimitiveV3fT3f* primitiveOut(GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                                                                &rgba[0],
-                                                                                numberOfColumns,
-                                                                                numberOfRows,
-                                                                                numberOfSlices,
                                                                                 textureSettings));
     CaretAssert(primitiveOut);
     

@@ -54,13 +54,7 @@ GraphicsPrimitiveV3fN3f::GraphicsPrimitiveV3fN3f(const PrimitiveType primitiveTy
                     NormalVectorDataType::FLOAT_XYZ,
                     ColorDataType::FLOAT_RGBA,
                     VertexColorType::SOLID_RGBA,
-                    GraphicsTextureSettings::DimensionType::NONE,
-                    GraphicsTextureSettings::PixelFormatType::NONE,
-                    GraphicsTextureSettings::PixelOrigin::NONE,
-                    GraphicsTextureSettings::WrappingType::CLAMP,
-                    GraphicsTextureSettings::MipMappingType::DISABLED,
-                    GraphicsTextureMagnificationFilterEnum::LINEAR,
-                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                    GraphicsTextureSettings(),
                     primitiveType)
 {
     m_floatSolidRGBA[0] = rgba[0];
@@ -83,13 +77,7 @@ GraphicsPrimitiveV3fN3f::GraphicsPrimitiveV3fN3f(const PrimitiveType primitiveTy
                     NormalVectorDataType::FLOAT_XYZ,
                     ColorDataType::UNSIGNED_BYTE_RGBA,
                     VertexColorType::SOLID_RGBA,
-                    GraphicsTextureSettings::DimensionType::NONE,
-                    GraphicsTextureSettings::PixelFormatType::NONE,
-                    GraphicsTextureSettings::PixelOrigin::NONE,
-                    GraphicsTextureSettings::WrappingType::CLAMP,
-                    GraphicsTextureSettings::MipMappingType::DISABLED,
-                    GraphicsTextureMagnificationFilterEnum::LINEAR,
-                    GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                    GraphicsTextureSettings(),
                     primitiveType)
 {
     m_unsignedByteSolidRGBA[0] = rgba[0];

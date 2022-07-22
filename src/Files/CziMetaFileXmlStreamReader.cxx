@@ -308,7 +308,7 @@ CziMetaFileXmlStreamReader::readSliceElement(CziMetaFile* cziMetaFile,
  *     Pointer to scene
  */
 CziMetaFile::Scene*
-CziMetaFileXmlStreamReader::readSceneElement(CziMetaFile* cziMetaFile,
+CziMetaFileXmlStreamReader::readSceneElement(CziMetaFile* /*cziMetaFile*/,
                                              const QString& sceneName)
 {
     /*

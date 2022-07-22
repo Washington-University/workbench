@@ -298,19 +298,6 @@ namespace caret {
                           const VertexColorType       vertexColorType,
                           const GraphicsTextureSettings& textureSettings,
                           const PrimitiveType         primitiveType);
-
-        GraphicsPrimitive(const VertexDataType        vertexDataType,
-                          const NormalVectorDataType  normalVectorDataType,
-                          const ColorDataType         colorDataType,
-                          const VertexColorType       vertexColorType,
-                          const GraphicsTextureSettings::DimensionType  textureDimensionType,
-                          const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
-                          const GraphicsTextureSettings::PixelOrigin    texturePixelOrigin,
-                          const GraphicsTextureSettings::WrappingType   textureWrappingType,
-                          const GraphicsTextureSettings::MipMappingType textureMipMappingType,
-                          const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                          const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                          const PrimitiveType         primitiveType);
         
         GraphicsPrimitive(const GraphicsPrimitive& obj);
         
@@ -336,17 +323,9 @@ namespace caret {
         static GraphicsPrimitiveV3fC4ub* newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType primitiveType);
         
         static GraphicsPrimitiveV3fT2f* newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType primitiveType,
-                                                           const uint8_t* imageBytesRGBA,
-                                                           const int32_t imageWidth,
-                                                           const int32_t imageHeight,
-                                                           const int32_t imageRowStride,
                                                            const GraphicsTextureSettings& textureSettings);
         
         static GraphicsPrimitiveV3fT3f* newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
-                                                           const uint8_t* imageBytesRGBA,
-                                                           const int32_t imageWidth,
-                                                           const int32_t imageHeight,
-                                                           const int32_t imageSlices,
                                                            const GraphicsTextureSettings& textureSettings);
         
 
@@ -433,23 +412,6 @@ namespace caret {
         inline void setTextureMinificationFilter(const GraphicsTextureMinificationFilterEnum::Enum minFilter) {
             m_textureSettings.setMinificationFilter(minFilter);
         }
-        
-        /** @return The texture border color when used when clamp to border */
-        std::array<float, 4> getTextureBorderColorRGBA() const { return m_textureBorderColorRGBA; }
-        
-        /** Set he texture border color when used when clamp to border @param rgba*/
-        void setTextureBorderColorRGBA(const std::array<float, 4>& rgba) {
-            m_textureBorderColorRGBA = rgba;
-        }
-        
-        /** @return Width of texture */
-        int32_t getTextureImageWidth() const { return m_textureImageWidth; }
-        
-        /** @return Height of texture */
-        int32_t getTextureImageHeight() const { return m_textureImageHeight; }
-        
-        /** @return Slices of texture */
-        int32_t getTextureImageSlices() const { return m_textureImageSlices; }
         
         /**
          * @return The float coordinates.
@@ -545,12 +507,6 @@ namespace caret {
     protected:
         AString toStringPrivate(const bool includeAllDataFlag) const;
         
-        void setTextureImage(const uint8_t* imageBytesRGBA,
-                             const int32_t imageWidth,
-                             const int32_t imageHeight,
-                             const int32_t imageSlices,
-                             const int32_t rowStride);
-        
         void addVertexProtected(const float xyz[3],
                                 const float normalVector[3],
                                 const float rgbaFloat[4],
@@ -579,8 +535,6 @@ namespace caret {
         
         GraphicsTextureSettings m_textureSettings;
         
-        std::array<float, 4> m_textureBorderColorRGBA;
-        
         const PrimitiveType m_primitiveType;
 
         ReleaseInstanceDataMode m_releaseInstanceDataMode = ReleaseInstanceDataMode::DISABLED;
@@ -596,12 +550,6 @@ namespace caret {
         UsageType m_usageTypeTextureCoordinates = UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES;
         
         std::unique_ptr<GraphicsEngineDataOpenGL> m_graphicsEngineDataForOpenGL;
-        
-        int32_t m_textureImageWidth = -1;
-        
-        int32_t m_textureImageHeight = -1;
-        
-        int32_t m_textureImageSlices = -1;
         
         mutable PointSizeType m_pointSizeType = PointSizeType::PIXELS;
         
@@ -648,8 +596,6 @@ namespace caret {
         
         std::vector<float> m_floatTextureSTR;
         
-        std::vector<uint8_t> m_textureImageBytesPtr;
-
         mutable float m_yMean = 0.0;
         
         mutable float m_yStandardDeviation = -1.0;

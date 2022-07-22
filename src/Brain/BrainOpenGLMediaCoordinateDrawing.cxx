@@ -89,11 +89,11 @@ BrainOpenGLMediaCoordinateDrawing::~BrainOpenGLMediaCoordinateDrawing()
  * @return True if othographic bounds are valid, else false.
  */
 bool
-BrainOpenGLMediaCoordinateDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlaySet,
-                                        double& orthoLeftOut,
-                                        double& orthoRightOut,
-                                        double& orthoBottomOut,
-                                        double& orthoTopOut)
+BrainOpenGLMediaCoordinateDrawing::getOrthoBounds(MediaOverlaySet* /*mediaOverlaySet*/,
+                                                  double& orthoLeftOut,
+                                                  double& orthoRightOut,
+                                                  double& orthoBottomOut,
+                                                  double& orthoTopOut)
 {
     orthoLeftOut   = -1.0;
     orthoRightOut  =  1.0;
@@ -139,8 +139,6 @@ BrainOpenGLMediaCoordinateDrawing::getOrthoBounds(MediaOverlaySet* mediaOverlayS
     
     const double marginPercent(0.02);
     const double marginSizePixels = imageHeight * marginPercent;
-    double leftMargin(marginSizePixels);
-    double topMargin(marginSizePixels);
     if (imageAspectRatio > viewportAspectRatio) {
         orthoBottomOut = boundingBox.getMinY() - marginSizePixels;
         orthoTopOut    = boundingBox.getMaxY() + marginSizePixels;
@@ -309,10 +307,10 @@ BrainOpenGLMediaCoordinateDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
  */
 void
 BrainOpenGLMediaCoordinateDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewportContent,
-                                         const GraphicsObjectToWindowTransform* transform,
-                                         const int32_t tabIndex,
+                                                   const GraphicsObjectToWindowTransform* /*transform*/,
+                                                   const int32_t /*tabIndex*/,
                                                    const float orthoHeight,
-                                         const float viewportHeight)
+                                                   const float viewportHeight)
 {
     SelectionItemMediaPlaneCoordinate* idMedia = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getMediaPlaneCoordinateIdentification();
     SelectionItemAnnotation* annotationID = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getAnnotationIdentification();
@@ -392,9 +390,8 @@ BrainOpenGLMediaCoordinateDrawing::drawModelLayers(const BrainOpenGLViewportCont
         const float mediaThickness(2.0f);
         Plane plane;
         idDrawing.drawMediaFilePlaneCoordinateIdentificationSymbols(m_selectionDataToDraw[i].m_selectedMediaFile,
-                                                     plane,
-                                                     mediaThickness,
-                                                     //m_browserTabContent->getScaling(),
+                                                                    plane,
+                                                                    mediaThickness,
                                                                     symbolIdHeight,
                                                                     viewportHeight);
 

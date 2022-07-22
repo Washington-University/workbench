@@ -113,7 +113,7 @@ CziMetaFile::copyHelperCziMetaFile(const CziMetaFile& obj)
  *    An event for which this instance is listening.
  */
 void
-CziMetaFile::receiveEvent(Event* event)
+CziMetaFile::receiveEvent(Event* /*event*/)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);

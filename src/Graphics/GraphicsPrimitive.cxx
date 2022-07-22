@@ -87,103 +87,9 @@ m_textureSettings(textureSettings),
 m_primitiveType(primitiveType),
 m_boundingBoxValid(false)
 {
-    m_textureBorderColorRGBA.fill(0.0);
-    m_textureBorderColorRGBA = textureSettings.getBorderColor();
-    
     invalidateVertexMeasurements();
     
     switch (m_textureSettings.getDimensionType()) {
-        case GraphicsTextureSettings::DimensionType::NONE:
-            break;
-        case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
-        case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
-            switch (m_textureSettings.getMipMappingType()) {
-                case GraphicsTextureSettings::MipMappingType::DISABLED:
-                    switch (m_textureSettings.getMinificationFilter()) {
-                        case GraphicsTextureMinificationFilterEnum::NEAREST:
-                        case GraphicsTextureMinificationFilterEnum::LINEAR:
-                            break;
-                        case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR:
-                        case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_NEAREST:
-                        case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_LINEAR:
-                        case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_NEAREST:
-                            CaretLogSevere("Mip Mapping is disabled but the minification factor="
-                                           + GraphicsTextureMinificationFilterEnum::toName(m_textureSettings.getMinificationFilter())
-                                           + " requires mip mapping.  ");
-                            break;
-                    }
-                    break;
-                case GraphicsTextureSettings::MipMappingType::ENABLED:
-                    break;
-            }
-            break;
-    }
-}
-
-/**
- * Constructs an instance with the given vertex, normal vector, and color type.
- *
- * @param vertexDataType
- *     Data type of the vertices.
- * @param normalVectorDataType
- *     Data type of the normal vectors.
- * @param colorDataType
- *     Data type of the colors.
- * @param vertexColorType
- *     Type of vertex coloring
- * @param textureDimensionType
- *     Dimension type of texture coordinates.
- * @param texturePixelFormatType
- *     Format of texure pixels
- * @param texturePixelOrigin
- *     Location of first pixel in texture image
- * @param textureWrappingType
- *     Type of texture wrapping
- * @param textureMipMappingType
- *     Type of texture mip mapping
- * @param textureMagnificationFilter
- *    Texture filtering for when screen pixel is smaller than texture  texel
- * @param textureMinificationFilter
- *    Texture filtering for when screen pixel is larger than texture texel
- * @param primitiveType
- *     Type of primitive drawn (triangles, lines, etc.)
- */
-GraphicsPrimitive::GraphicsPrimitive(const VertexDataType         vertexDataType,
-                                     const NormalVectorDataType   normalVectorDataType,
-                                     const ColorDataType          colorDataType,
-                                     const VertexColorType        vertexColorType,
-                                     const GraphicsTextureSettings::DimensionType   textureDimensionType,
-                                     const GraphicsTextureSettings::PixelFormatType texturePixelFormatType,
-                                     const GraphicsTextureSettings::PixelOrigin     texturePixelOrigin,
-                                     const GraphicsTextureSettings::WrappingType    textureWrappingType,
-                                     const GraphicsTextureSettings::MipMappingType  textureMipMappingType,
-                                     const GraphicsTextureMagnificationFilterEnum::Enum textureMagnificationFilter,
-                                     const GraphicsTextureMinificationFilterEnum::Enum textureMinificationFilter,
-                                     const PrimitiveType          primitiveType)
-: CaretObject(),
- EventListenerInterface(),
- m_vertexDataType(vertexDataType),
- m_normalVectorDataType(normalVectorDataType),
- m_colorDataType(colorDataType),
- m_vertexColorType(vertexColorType),
- m_primitiveType(primitiveType),
- m_boundingBoxValid(false)
-{
-    m_textureBorderColorRGBA.fill(0.0);
-    
-    invalidateVertexMeasurements();
-    
-    m_textureSettings = GraphicsTextureSettings(NULL,
-                                                textureDimensionType,
-                                                texturePixelFormatType,
-                                                texturePixelOrigin,
-                                                textureWrappingType,
-                                                textureMipMappingType,
-                                                textureMagnificationFilter,
-                                                textureMinificationFilter,
-                                                m_textureBorderColorRGBA);
-    
-    switch (textureDimensionType) {
         case GraphicsTextureSettings::DimensionType::NONE:
             break;
         case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
@@ -260,11 +166,6 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
     m_sphereSizeType              = obj.m_sphereSizeType;
     m_sphereDiameterValue         = obj.m_sphereDiameterValue;
     m_textureSettings             = obj.m_textureSettings;
-    m_textureImageBytesPtr        = obj.m_textureImageBytesPtr;
-    m_textureImageWidth           = obj.m_textureImageWidth;
-    m_textureImageHeight          = obj.m_textureImageHeight;
-    m_textureImageSlices          = obj.m_textureImageSlices;
-    m_textureBorderColorRGBA      = obj.m_textureBorderColorRGBA;
     invalidateVertexMeasurements();
 
 
@@ -521,10 +422,10 @@ GraphicsPrimitive::isValid() const
                 return false;
             }
             
-            if (m_textureImageBytesPtr.empty()) {
-                CaretLogWarning("ERROR: GraphicsPrimitive has invalid texture data");
+            if (m_textureSettings.getImageBytesPointer() == NULL) {
+                CaretLogWarning("ERROR: Texture has NULL pointer to image data");
+                return false;
             }
-            
             switch (m_textureSettings.getPixelFormatType()) {
                 case GraphicsTextureSettings::PixelFormatType::NONE:
                     CaretLogWarning("ERROR: GraphicsPrimitive has texture but NONE for pixel format type");
@@ -819,9 +720,9 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
         case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
         case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
             s.appendWithNewLine("Texture: " + AString::number(m_floatTextureSTR.size()) + " Float Texture 0.0 to 1.0.  ");
-            s.appendWithNewLine("   Width: " + AString::number(m_textureImageWidth)
-                                + " Height: " + AString::number(m_textureImageHeight)
-                                + " Slices: " + AString::number(m_textureImageSlices));
+            s.appendWithNewLine("   Width: " + AString::number(m_textureSettings.getImageWidth())
+                                + " Height: " + AString::number(m_textureSettings.getImageHeight())
+                                + " Slices: " + AString::number(m_textureSettings.getImageSlices()));
             break;
     }
     
@@ -1937,77 +1838,6 @@ GraphicsPrimitive::getTexturePixelFormatBytesPerPixel() const
 }
 
 /**
- * Set the image for the texture.
- *
- * @param imageBytesRGBA
- *     Bytes containing the image data.  4 bytes per pixel.
- * @param imageWidth
- *     Width of the actual image.
- * @param imageHeight
- *     Height of the image.
- * @param imageSlices
- *     Slices in image
- */
-void
-GraphicsPrimitive::setTextureImage(const uint8_t* imageBytesRGBA,
-                                   const int32_t imageWidth,
-                                   const int32_t imageHeight,
-                                   const int32_t imageSlices,
-                                   const int32_t imageRowStride)
-{
-    m_textureImageBytesPtr.clear();
-    m_textureImageWidth  = -1;
-    m_textureImageHeight = -1;
-    m_textureImageSlices = -1;
-    
-    const int32_t numBytesPerPixel(getTexturePixelFormatBytesPerPixel());
-    const int32_t numBytes = imageWidth * imageHeight * imageSlices * numBytesPerPixel;
-    if (numBytes > 0) {
-        m_textureImageBytesPtr.reserve(numBytes);
-        m_textureImageWidth  = imageWidth;
-        m_textureImageHeight = imageHeight;
-        m_textureImageSlices = imageSlices;
-        
-        switch (m_textureSettings.getPixelOrigin()) {
-            case GraphicsTextureSettings::PixelOrigin::NONE:
-                break;
-            case GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT:
-                m_textureImageBytesPtr.insert(m_textureImageBytesPtr.end(),
-                                              imageBytesRGBA, imageBytesRGBA + numBytes);
-                break;
-            case GraphicsTextureSettings::PixelOrigin::TOP_LEFT:
-            {
-                const int32_t rowLength(imageWidth * numBytesPerPixel);
-                const int32_t sourceRowLength((imageRowStride > 0)
-                                              ? imageRowStride
-                                              : (imageWidth * numBytesPerPixel));
-                
-                if (imageSlices == 1) {
-                    for (int32_t jRow = 0; jRow < m_textureImageHeight; jRow++) {
-                        const int32_t sourceRowIndex(m_textureImageHeight - jRow - 1);
-                        const int32_t sourceDataOffset(sourceRowIndex * sourceRowLength);
-                        CaretAssertArrayIndex(imageBytesRGBA,
-                                              (sourceRowLength * m_textureImageHeight * m_textureImageSlices), /* length of data*/
-                                              sourceDataOffset + rowLength - 1);
-                        m_textureImageBytesPtr.insert(m_textureImageBytesPtr.end(),
-                                                      (imageBytesRGBA + sourceDataOffset),
-                                                      (imageBytesRGBA + sourceDataOffset + rowLength));
-                    }
-                    CaretAssert(numBytes == static_cast<int32_t>(m_textureImageBytesPtr.size()));
-                }
-            }
-                break;
-        }
-    }
-    else {
-        CaretLogSevere("Invalid Texture Image: "
-                       "width=" + AString::number(imageWidth)
-                       + ", height=" + AString::number(imageHeight)
-                       + ", slices=" + AString::number(imageSlices));
-    }
-}
-
-/**
  * Simplify line types by removing every 'skipVertexCount' vertex.
  * When 'skipVertexCount' is 2, every other point in the line is removed.
  * Nothing is done when 'skipVertexCount' is less than 2 or primitive
@@ -2620,30 +2450,14 @@ GraphicsPrimitive::newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType pr
  *
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
- * @param imageBytesRGBA
- *     Bytes containing the image data.
- * @param imageWidth
- *     Width of the actual image.
- * @param imageHeight
- *     Height of the image.
- * @param imageRowStride
- *     Length of a row including padding so that row length  is a multipleof 2/4/8/? (negative is tightly packed - no padding)
  * @param textureSettings
  *     Settings for textures
  */
 GraphicsPrimitiveV3fT2f*
 GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType primitiveType,
-                                      const uint8_t* imageBytesRGBA,
-                                      const int32_t imageWidth,
-                                      const int32_t imageHeight,
-                                      const int32_t imageRowStride,
                                       const GraphicsTextureSettings& textureSettings)
 {
     GraphicsPrimitiveV3fT2f* primitive = new GraphicsPrimitiveV3fT2f(primitiveType,
-                                                                     imageBytesRGBA,
-                                                                     imageWidth,
-                                                                     imageHeight,
-                                                                     imageRowStride,
                                                                      textureSettings);
     return primitive;
 }
@@ -2654,30 +2468,14 @@ GraphicsPrimitive::newPrimitiveV3fT2f(const GraphicsPrimitive::PrimitiveType pri
  *
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
- * @param imageBytesRGBA
- *     Bytes containing the image data.
- * @param imageWidth
- *     Width of the actual image.
- * @param imageHeight
- *     Height of the image.
- * @param imageSlices
- *     Slices of image
  * @param textureSettings
  *     Settings for textures
  */
 GraphicsPrimitiveV3fT3f*
 GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
-                                      const uint8_t* imageBytesRGBA,
-                                      const int32_t imageWidth,
-                                      const int32_t imageHeight,
-                                      const int32_t imageSlices,
                                       const GraphicsTextureSettings& textureSettings)
 {
     GraphicsPrimitiveV3fT3f* primitive = new GraphicsPrimitiveV3fT3f(primitiveType,
-                                                                     imageBytesRGBA,
-                                                                     imageWidth,
-                                                                     imageHeight,
-                                                                     imageSlices,
                                                                      textureSettings);
     return primitive;
 }
@@ -2709,7 +2507,6 @@ GraphicsPrimitive::setOpenGLBuffersHaveBeenLoadedByGraphicsEngine()
             std::vector<float>().swap(m_floatNormalVectorXYZ);
             std::vector<uint8_t>().swap(m_unsignedByteRGBA);
             std::vector<float>().swap(m_floatTextureSTR);
-            std::vector<uint8_t>().swap(m_textureImageBytesPtr);
             
             m_releaseInstanceDataMode = ReleaseInstanceDataMode::COMPLETED;
         }

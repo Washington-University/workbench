@@ -1909,7 +1909,10 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                         const float matrixBottom(yAxisStart);
                         const float matrixTop(matrixBottom + (yAxisStep * (numberOfRows)));
                         const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
-                        GraphicsTextureSettings textureSettings(NULL,
+                        GraphicsTextureSettings textureSettings(&matrixTextureRGBA[0],
+                                                                numberOfColumns,
+                                                                numberOfRows,
+                                                                1, /* slices */
                                                                 GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
                                                                 GraphicsTextureSettings::PixelFormatType::RGBA,
                                                                 GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
@@ -1919,12 +1922,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                                                                 GraphicsTextureMinificationFilterEnum::NEAREST,
                                                                 textureBorderColorRGBA);
 
-                        const int32_t rowStride(-1); /* negative is tightly packed */
                         matrixTexturePrimitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                                                                       &matrixTextureRGBA[0],
-                                                                                       numberOfColumns,
-                                                                                       numberOfRows,
-                                                                                       rowStride,
                                                                                        textureSettings);
                         matrixTexturePrimitive->addVertex(matrixLeft, matrixTop, 0, 1);  /* Top Left */
                         matrixTexturePrimitive->addVertex(matrixLeft, matrixBottom, 0, 0);  /* Bottom Left */

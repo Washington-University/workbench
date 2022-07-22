@@ -101,7 +101,10 @@ namespace caret {
         
         GraphicsTextureSettings();
 
-        GraphicsTextureSettings(const QImage* qImage,
+        GraphicsTextureSettings(const uint8_t*        imageBytesPointer,
+                                const int32_t         imageWidth,
+                                const int32_t         imageHeight,
+                                const int32_t         imageSlices,
                                 const DimensionType   dimensionType,
                                 const PixelFormatType pixelFormatType,
                                 const PixelOrigin     pixelOrigin,
@@ -117,7 +120,13 @@ namespace caret {
 
         GraphicsTextureSettings& operator=(const GraphicsTextureSettings& obj);
         
-        const QImage* getQImage() const;
+        const uint8_t* getImageBytesPointer() const;
+        
+        int32_t getImageWidth() const;
+        
+        int32_t getImageHeight() const;
+        
+        int32_t getImageSlices() const;
         
         DimensionType  getDimensionType() const;
         
@@ -128,6 +137,10 @@ namespace caret {
         WrappingType   getWrappingType() const;
         
         MipMappingType getMipMappingType() const;
+        
+        int32_t getUnpackAlignment() const;
+        
+        void setUnpackAlignmnet(const int32_t unpackAlignment);
         
         GraphicsTextureMagnificationFilterEnum::Enum getMagnificationFilter() const;
         
@@ -146,9 +159,15 @@ namespace caret {
     private:
         void copyHelperGraphicsTextureSettings(const GraphicsTextureSettings& obj);
 
-        const QImage* m_qImage = NULL;
+        uint8_t* m_imageBytesPointer = 0;
         
-        DimensionType  m_dimensionType = DimensionType::FLOAT_STR_2D;
+        int32_t m_imageWidth = 0;
+        
+        int32_t m_imageHeight = 0;
+        
+        int32_t m_imageSlices = 0;
+        
+        DimensionType  m_dimensionType = DimensionType::NONE;
         
         PixelFormatType m_pixelFormatType = PixelFormatType::BGR;
         
@@ -157,6 +176,8 @@ namespace caret {
         WrappingType   m_wrappingType = WrappingType::CLAMP;
         
         MipMappingType m_mipMappingType = MipMappingType::DISABLED;
+        
+        int32_t m_unpackAlignment = 4;
         
         GraphicsTextureMagnificationFilterEnum::Enum m_magnificationFilter = GraphicsTextureMagnificationFilterEnum::LINEAR;
         
