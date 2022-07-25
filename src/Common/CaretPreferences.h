@@ -268,6 +268,10 @@ namespace caret {
         
         void setGuiGesturesEnabled(const bool status);
         
+        bool isImageFileTextureCompressionEnabled() const;
+        
+        void setImageFileTextureCompressionEnabled(const bool status);
+        
         bool isGraphicsFramesPerSecondEnabled() const;
         
         void setGraphicsFramesPerSecondEnabled(const bool status);
@@ -436,6 +440,8 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_cziDimension;
         
         std::unique_ptr<CaretPreferenceDataValue> m_identificationStereotaxicDistance;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_imageFileTextureCompressionEnabled;
         
         bool splashScreenEnabled;
         

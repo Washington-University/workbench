@@ -42,7 +42,9 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "ImageFile.h"
 #include "PreferencesDialog.h"
+#include "WuQTrueFalseComboBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -64,23 +66,46 @@ PreferencesImageWidget::PreferencesImageWidget(QWidget* parent)
                         "frequency of loading higher-resolution data.");
     const QString dimensionToolTip(WuQtUtilities::createWordWrappedToolTipText(dimTT));
     
-    m_dimensionComboBox = new QComboBox();
-    m_dimensionComboBox->setToolTip(dimensionToolTip);
+    m_cziDimensionComboBox = new QComboBox();
+    m_cziDimensionComboBox->setToolTip(dimensionToolTip);
     
     std::vector<std::pair<int32_t, QString>> integerAndTextValues;
     CaretPreferences::getSupportedCziDimensions(integerAndTextValues);
     for (auto it : integerAndTextValues) {
-        m_dimensionComboBox->addItem(it.second,
+        m_cziDimensionComboBox->addItem(it.second,
                                      QVariant(it.first));
     }
-    QObject::connect(m_dimensionComboBox, QOverload<int>::of(&QComboBox::activated),
-                     this, &PreferencesImageWidget::dimensionChanged);
+    QObject::connect(m_cziDimensionComboBox, QOverload<int>::of(&QComboBox::activated),
+                     this, &PreferencesImageWidget::cziDimensionChanged);
     QLabel* dimensionLabel = PreferencesDialog::addWidgetToLayout(gridLayout,
-                                                                  "Image Size",
-                                                                  m_dimensionComboBox);
+                                                                  "CZI Dimension (w/h)",
+                                                                  m_cziDimensionComboBox);
     
     dimensionLabel->setToolTip(dimensionToolTip);
 
+    /*
+     * Texture compression
+     */
+    const AString compressToolTip("If an image size in memory is greater than this size "
+                                  "(in megabytes), the image will be compressed when "
+                                  "drawn in OpenGL.  This is a lossy compression method.  "
+                                  "Changes do not take effect until image is reloaded.");
+    const AString compressionLabelText("Compress Images Larger than "
+                                       + AString::number(ImageFile::getTextureCompressionSizeMegabytes())
+                                       + " Megabytes");
+    m_imageFileTextureCompressionComboBox = new WuQTrueFalseComboBox("On",
+                                                                     "Off",
+                                                                     this);
+    QObject::connect(m_imageFileTextureCompressionComboBox, &WuQTrueFalseComboBox::statusChanged,
+                     this, &PreferencesImageWidget::textureCompressionStatusChanged);
+    QLabel* compressionLabel = PreferencesDialog::addWidgetToLayout(gridLayout,
+                                         compressionLabelText,
+                                         m_imageFileTextureCompressionComboBox->getWidget());
+    WuQtUtilities::setWordWrappedToolTip(compressionLabel,
+                                         compressToolTip);
+    WuQtUtilities::setWordWrappedToolTip(m_imageFileTextureCompressionComboBox->getWidget(),
+                                         compressToolTip);
+    
     /*
      * Image texture magnification filter
      */
@@ -146,10 +171,10 @@ PreferencesImageWidget::updateContent(CaretPreferences* caretPreferences)
     const int32_t dimValue(m_preferences->getCziDimension());
     
     bool foundFlag(false);
-    const int32_t numItems = m_dimensionComboBox->count();
+    const int32_t numItems = m_cziDimensionComboBox->count();
     for (int32_t i = 0; i < numItems; i++) {
-        if (dimValue == m_dimensionComboBox->itemData(i)) {
-            m_dimensionComboBox->setCurrentIndex(i);
+        if (dimValue == m_cziDimensionComboBox->itemData(i)) {
+            m_cziDimensionComboBox->setCurrentIndex(i);
             foundFlag = true;
             break;
         }
@@ -159,6 +184,8 @@ PreferencesImageWidget::updateContent(CaretPreferences* caretPreferences)
         CaretLogSevere("Unable to find CZI Dimension when updating Preferences Dialog.");
     }
 
+    m_imageFileTextureCompressionComboBox->setStatus(m_preferences->isImageFileTextureCompressionEnabled());
+    
     const GraphicsTextureMinificationFilterEnum::Enum minFilter  = BrainOpenGLMediaDrawing::getTextureMinificationFilter();
     const GraphicsTextureMagnificationFilterEnum::Enum magFilter = BrainOpenGLMediaDrawing::getTextureMagnificationFilter();
     m_graphicsTextureMagnificationFilterEnumComboBox->setSelectedItem<GraphicsTextureMagnificationFilterEnum,GraphicsTextureMagnificationFilterEnum::Enum>(magFilter);
@@ -172,9 +199,9 @@ PreferencesImageWidget::updateContent(CaretPreferences* caretPreferences)
  *    Index of item selected
  */
 void
-PreferencesImageWidget::dimensionChanged(int index)
+PreferencesImageWidget::cziDimensionChanged(int index)
 {
-    const int32_t dimension = m_dimensionComboBox->itemData(index).toInt();
+    const int32_t dimension = m_cziDimensionComboBox->itemData(index).toInt();
     CaretAssert(m_preferences);
     m_preferences->setCziDimension(dimension);
     updateGraphicsAndUserInterface();
@@ -214,3 +241,15 @@ PreferencesImageWidget::updateGraphicsAndUserInterface()
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Called when texture compression status changed
+ * @param status
+ *    New status
+ */
+void
+PreferencesImageWidget::textureCompressionStatusChanged(bool status)
+{
+    CaretAssert(m_preferences);
+    m_preferences->setImageFileTextureCompressionEnabled(status);
+}
+                     

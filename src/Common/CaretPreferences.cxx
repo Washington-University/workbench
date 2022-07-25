@@ -81,6 +81,12 @@ CaretPreferences::CaretPreferences()
                                                                     defAllSliceLayout));
     m_preferenceStoredInSceneDataValues.push_back(m_volumeAllSlicePlanesLayout.get());
     
+    m_imageFileTextureCompressionEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                            "m_imageFileTextureCompressionEnabled",
+                                                                            CaretPreferenceDataValue::DataType::BOOLEAN,
+                                                                            CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                            false));
+    
     m_guiGesturesEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
                                                             "guiGesturesEnabled",
                                                             CaretPreferenceDataValue::DataType::BOOLEAN,
@@ -1616,6 +1622,26 @@ void
 CaretPreferences::setGuiGesturesEnabled(const bool status)
 {
     m_guiGesturesEnabled->setValue(status);
+}
+
+/**
+ * @return True if texture compression is enabled for larger Image Files
+ */
+bool
+CaretPreferences::isImageFileTextureCompressionEnabled() const
+{
+    return m_imageFileTextureCompressionEnabled->getValue().toBool();
+}
+
+/**
+ * Set texture compression is enabled for larger Image Files
+ * @param status
+ *    New status
+ */
+void
+CaretPreferences::setImageFileTextureCompressionEnabled(const bool status)
+{
+    m_imageFileTextureCompressionEnabled->setValue(status);
 }
 
 /**

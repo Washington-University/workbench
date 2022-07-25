@@ -31,6 +31,7 @@ class QComboBox;
 namespace caret {
     class CaretPreferences;
     class EnumComboBoxTemplate;
+    class WuQTrueFalseComboBox;
 
     class PreferencesImageWidget : public QWidget {
         
@@ -54,7 +55,9 @@ namespace caret {
         
         
     private slots:
-        void dimensionChanged(int index);
+        void cziDimensionChanged(int index);
+        
+        void textureCompressionStatusChanged(bool status);
         
         void graphicsTextureMagnificationFilterEnumComboBoxItemActivated();
         
@@ -66,7 +69,9 @@ namespace caret {
         /* DO NOT delete */
         CaretPreferences* m_preferences = NULL;
         
-        QComboBox* m_dimensionComboBox;
+        QComboBox* m_cziDimensionComboBox;
+        
+        WuQTrueFalseComboBox* m_imageFileTextureCompressionComboBox = NULL;
         
         EnumComboBoxTemplate* m_graphicsTextureMagnificationFilterEnumComboBox = NULL;
         

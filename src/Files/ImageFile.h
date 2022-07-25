@@ -52,6 +52,11 @@ public:
         CONVERT_TO_VOLUME_COLOR_RGB
     };
     
+    /**
+     * Images with uncompressed size larger than this are compressed if texture compression is enabled;
+     */
+    static int32_t getTextureCompressionSizeMegabytes() { return 256; }
+    
     ImageFile();
     
     ImageFile(const ImageFile& imageFile);
@@ -265,6 +270,8 @@ private:
     void readFileMetaDataFromQImage();
     
     void writeFileMetaDataToQImage() const;
+    
+    bool isImageTextureCompressed() const;
     
     QImage* m_image;
     
