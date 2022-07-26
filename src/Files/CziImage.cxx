@@ -44,6 +44,8 @@ using namespace caret;
  * \ingroup Files
  */
 
+static bool debugFlag(false);
+
 /**
  * Constructor
  * @param parentCziImageFile
@@ -518,33 +520,49 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
                                                                                        textureSettings);
             
             /*
-             * The Geometric Coordinates are those of the full-resolution.
-             * The Texture Coordinates map to the subregion that contains
-             * the image data.  This allows the same viewing transformations
-             * for all CZI images since all primitives use the same
-             * geometric coordinates.
+             * The Geometric Coordinates are always the full resolution logical
+             * coordinates, regardless of the image data that is loaded.  So,
+             * the panning and zooming does not need to change as new image data
+             * is loaded for different regions.
              */
             const float minX = m_fullResolutionLogicalRect.x();
             const float maxX = m_fullResolutionLogicalRect.x() + m_fullResolutionLogicalRect.width();
             const float minY = m_fullResolutionLogicalRect.y();
             const float maxY = m_fullResolutionLogicalRect.y() + m_fullResolutionLogicalRect.height();
+            
+            const float imageLogicalWidth(m_imageDataLogicalRect.width());
+            const float imageLogicalHeight(m_imageDataLogicalRect.height());
+            
+            /*
+             * The image data may be only a sub-region of the full resolution area.  But, the
+             * texture coordinates need to be set for the full resolution region as that is what
+             * is used for the geometric coordinates.  So, in these instances, the texture coordinates
+             * may be less than zero and/or greater than one.  The texture border color will be used
+             * outside of the image data.
+             *
+             *  -------------------
+             *  |                 |   Dots are image logical region
+             *  |     .......     |   Lines are full resolution region
+             *  |     .     .     |
+             *  |     .......     |
+             *  -------------------
+             */
+            const float textureMinS((m_fullResolutionLogicalRect.left() - m_imageDataLogicalRect.left())
+                                     / imageLogicalWidth);
+            const float textureMaxS((m_fullResolutionLogicalRect.right() - m_imageDataLogicalRect.left())
+                                    / imageLogicalWidth);
+            const float textureMinT((m_fullResolutionLogicalRect.top() - m_imageDataLogicalRect.top())
+                                    / imageLogicalHeight);
+            const float textureMaxT((m_fullResolutionLogicalRect.bottom() - m_imageDataLogicalRect.top())
+                                    / imageLogicalHeight);
 
-            const float fullResWidth(m_fullResolutionLogicalRect.width());
-            const float fullResHeight(m_fullResolutionLogicalRect.height());
-
-            const float textureMinS2(((m_imageDataLogicalRect.left()
-                                       - m_fullResolutionLogicalRect.left()) / fullResWidth));
-            const float textureMaxS2(((m_imageDataLogicalRect.right()
-                                       - m_fullResolutionLogicalRect.left()) / fullResWidth));
-            const float textureMinT2(((m_imageDataLogicalRect.top()
-                                       - m_fullResolutionLogicalRect.top()) / fullResHeight));
-            const float textureMaxT2(((m_imageDataLogicalRect.bottom()
-                                       - m_fullResolutionLogicalRect.top()) / fullResHeight));
-            std::cout << "X: " << minX << ", " << maxX << "    Y: " << minY << ", " << maxY << std::endl;
-            std::cout << "  Full Rect: " << CziUtilities::qRectToString(m_fullResolutionLogicalRect) << std::endl;
-            std::cout << "  Img Rect:  " << CziUtilities::qRectToString(m_imageDataLogicalRect) << std::endl;
-            std::cout << "  Txt S:     " << textureMinS2 << ", " << textureMaxS2 << std::endl;
-            std::cout << "  Txt T:     " << textureMinT2 << ", " << textureMaxT2 << std::endl;
+            if (debugFlag) {
+                std::cout << "X: " << minX << ", " << maxX << "    Y: " << minY << ", " << maxY << std::endl;
+                std::cout << "  Full Rect: " << CziUtilities::qRectToString(m_fullResolutionLogicalRect) << std::endl;
+                std::cout << "  Img Rect:  " << CziUtilities::qRectToString(m_imageDataLogicalRect) << std::endl;
+                std::cout << "  Txt S:     " << textureMinS << ", " << textureMaxS << std::endl;
+                std::cout << "  Txt T:     " << textureMinT << ", " << textureMaxT << std::endl;
+            }
             
             /*
              * A Triangle Strip (consisting of two triangles) is used
@@ -552,15 +570,18 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
              * The order of the vertices in the triangle strip is
              * Top Left, Bottom Left, Top Right, Bottom Right.
              */
-            primitive->addVertex(minX, minY, textureMinS2, textureMinT2);  /* Top Left */
-            primitive->addVertex(minX, maxY, textureMinS2, textureMaxT2);  /* Bottom Left */
-            primitive->addVertex(maxX, minY, textureMaxS2, textureMinT2);  /* Top Right */
-            primitive->addVertex(maxX, maxY, textureMaxS2, textureMaxT2);  /* Bottom Right */
+            primitive->addVertex(minX, minY, textureMinS, textureMinT);  /* Top Left */
+            primitive->addVertex(minX, maxY, textureMinS, textureMaxT);  /* Bottom Left */
+            primitive->addVertex(maxX, minY, textureMaxS, textureMinT);  /* Top Right */
+            primitive->addVertex(maxX, maxY, textureMaxS, textureMaxT);  /* Bottom Right */
 
-            primitive->print();
-            std::cout << std::endl << std::endl;
-            
             m_graphicsPrimitiveForMediaDrawing.reset(primitive);
+
+            if (debugFlag) {
+                std::cout << "Loaded primitive: ";
+                primitive->print();
+                std::cout << std::endl << std::endl;
+            }
         }
         
         if (cziLockFlag) {

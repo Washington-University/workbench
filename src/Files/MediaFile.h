@@ -195,6 +195,9 @@ namespace caret {
         virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
                                                                              const int32_t overlayIndex) const = 0;
         
+        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
+                                                                                const int32_t overlayIndex) const = 0;
+        
         virtual bool isPlaneXyzSupported() const;
         
         virtual Vector3D getPlaneXyzBottomLeft() const;
@@ -206,8 +209,6 @@ namespace caret {
         virtual Vector3D getPlaneXyzTopLeft() const;
 
         virtual BoundingBox getPlaneXyzBoundingBox() const;
-        
-        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing() const;
         
         Matrix4x4 getScaledToPlaneMatrix() const;
         

@@ -548,13 +548,6 @@ MediaFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
         std::cout << "Shift Mat: " << shiftMat.toString() << std::endl;
         std::cout << "Scale Mat: " << scaleMat.toString() << std::endl;
         std::cout << "ScaledToPlane: " << scaledToPlaneMatrix.toString() << std::endl;
-        //        {
-        //            double sx, sy, sz;
-        //            scaledToPlaneMatrix.getScale(sx, sy, sz);
-        //            Matrix4x4 m = scaledToPlaneMatrix;
-        //            m.scale(1.0 / sx, 1.0 / sy, 1.0 / sz);
-        //            std::cout << "ScaledToPlane no scale: " << m.toString() << std::endl;
-        //        }
         std::cout << "PlaneToMM" << m_planeToMillimetersMatrix.toString() << std::endl;
         std::cout << "Index to Plane: " << indexToPlane.toString() << std::endl;
         std::cout << "Start Index to Plane ----------" << std::endl;
@@ -900,14 +893,4 @@ MediaFile::getPixelPlaneIdentificationTextForFrames(const int32_t tabIndex,
     
     CaretAssert(columnOneTextOut.size() == columnTwoTextOut.size());
 }
-
-/**
- * @return Primitive for drawing media with coordinates
- */
-GraphicsPrimitiveV3fT2f*
-MediaFile::getGraphicsPrimitiveForPlaneXyzDrawing() const
-{
-    return NULL;
-}
-
 

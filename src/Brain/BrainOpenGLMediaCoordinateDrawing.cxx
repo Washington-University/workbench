@@ -344,7 +344,8 @@ BrainOpenGLMediaCoordinateDrawing::drawModelLayers(const BrainOpenGLViewportCont
         CaretAssertVectorIndex(m_selectionDataToDraw, i);
         MediaFile* mediaFile(m_selectionDataToDraw[i].m_selectedMediaFile);
         CaretAssert(mediaFile);
-        GraphicsPrimitiveV3fT2f* primitive(mediaFile->getGraphicsPrimitiveForPlaneXyzDrawing());
+        GraphicsPrimitiveV3fT2f* primitive(mediaFile->getGraphicsPrimitiveForPlaneXyzDrawing(m_selectionDataToDraw[i].m_tabIndex,
+                                                                                             m_selectionDataToDraw[i].m_overlayIndex));
         CaretAssert(primitive);
 
         glPushMatrix();

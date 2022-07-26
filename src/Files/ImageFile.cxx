@@ -2119,13 +2119,9 @@ ImageFile::readFileMetaDataFromQImage()
             
             if (scaledToPlaneMatrixValidFlag
                 && planeToMillimetersMatrixValidFlag) {
-//                std::cout << getFileName() << " HAVE MATRICES" << std::endl;
                 setScaledToPlaneMatrix(scaledToPlaneMatrix,
                                        planeToMillimetersMatrix,
                                        true);
-            }
-            else {
-//                std::cout << getFileName() << " missing matrices" << std::endl;
             }
         }
     }
@@ -2410,9 +2406,14 @@ ImageFile::findPixelNearestStereotaxicXYZ(const Vector3D& /*xyz*/,
 
 /*
  * @return Primitive for drawing media with coordinates
+ * @param tabIndex
+ *    Index of tab where image is drawn
+ * @param overlayIndex
+ *    Index of overlay
  */
 GraphicsPrimitiveV3fT2f*
-ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing() const
+ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t /*tabIndex*/,
+                                                  const int32_t /*overlayIndex*/) const
 {
     if (m_image == NULL) {
         return NULL;
@@ -2423,10 +2424,6 @@ ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing() const
     }
     
     if (m_graphicsPrimitiveForCoordinateMediaDrawing == NULL) {
-//        std::vector<uint8_t> bytesRGBA;
-//        int32_t width(0);
-//        int32_t height(0);
-        
         /*
          * If image is too big for OpenGL texture limits, scale image to acceptable size
          */

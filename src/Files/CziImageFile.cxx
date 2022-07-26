@@ -2341,6 +2341,111 @@ CziImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
     return primitive;
 }
 
+/*
+ * @return Primitive for drawing media with coordinates
+ * @param tabIndex
+ *    Index of tab where image is drawn
+ * @param overlayIndex
+ *    Index of overlay
+ */
+GraphicsPrimitiveV3fT2f*
+CziImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t /*tabIndex*/,
+                                                     const int32_t /*overlayIndex*/) const
+{
+    return NULL;
+//    if (m_image == NULL) {
+//        return NULL;
+//    }
+//
+//    if ( ! isPlaneXyzSupported()) {
+//        return NULL;
+//    }
+//
+//    if (m_graphicsPrimitiveForCoordinateMediaDrawing == NULL) {
+//        //        std::vector<uint8_t> bytesRGBA;
+//        //        int32_t width(0);
+//        //        int32_t height(0);
+//
+//        /*
+//         * If image is too big for OpenGL texture limits, scale image to acceptable size
+//         */
+//        const int32_t maxTextureWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
+//        if (maxTextureWidthHeight > 0) {
+//            const int32_t excessWidth(m_image->width() - maxTextureWidthHeight);
+//            const int32_t excessHeight(m_image->height() - maxTextureWidthHeight);
+//            if ((excessWidth > 0)
+//                || (excessHeight > 0)) {
+//                if (excessWidth > excessHeight) {
+//                    CaretLogWarning(getFileName()
+//                                    + " is too big for texture.  Maximum width/height is: "
+//                                    + AString::number(maxTextureWidthHeight)
+//                                    + " Image Width: "
+//                                    + AString::number(m_image->width())
+//                                    + " Image Height: "
+//                                    + AString::number(m_image->height()));
+//                }
+//            }
+//        }
+//
+//        /*
+//         * Some images may use a color table so convert images
+//         * if there are not in preferred format prior to
+//         * getting colors of pixels
+//         */
+//        if (m_image->format() != QImage::Format_ARGB32) {
+//            m_image->convertTo(QImage::Format_ARGB32);
+//        }
+//        CaretAssert(m_image->format() == QImage::Format_ARGB32);
+//        const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+//
+//        /*
+//         * Compress texture if image is large and compression is enabled
+//         */
+//        const GraphicsTextureSettings::CompressionType textureCompressionType(isImageTextureCompressed()
+//                                                                              ? GraphicsTextureSettings::CompressionType::ENABLED
+//                                                                              : GraphicsTextureSettings::CompressionType::DISABLED);
+//
+//        GraphicsTextureSettings textureSettings(m_image->constBits(),
+//                                                m_image->width(),
+//                                                m_image->height(),
+//                                                1, /* slices */
+//                                                GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+//                                                GraphicsTextureSettings::PixelFormatType::BGRA, /* For QImage */
+//                                                GraphicsTextureSettings::PixelOrigin::TOP_LEFT,
+//                                                GraphicsTextureSettings::WrappingType::CLAMP,
+//                                                GraphicsTextureSettings::MipMappingType::ENABLED,
+//                                                textureCompressionType,
+//                                                GraphicsTextureMagnificationFilterEnum::LINEAR,
+//                                                GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+//                                                textureBorderColorRGBA);
+//        GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+//                                                                                   textureSettings);
+//
+//        /*
+//         * A Triangle Strip (consisting of two triangles) is used
+//         * for drawing the image.
+//         * The order of the vertices in the triangle strip is
+//         * Top Left, Bottom Left, Top Right, Bottom Right.
+//         * ORIGIN IS AT TOP LEFT
+//         */
+//        const float minTextureST(0.0);
+//        const float maxTextureST(1.0);
+//        const Vector3D coordinateTopLeft(getPlaneXyzTopLeft());
+//        const Vector3D coordinateTopRight(getPlaneXyzTopRight());
+//        const Vector3D coordinateBottomLeft(getPlaneXyzBottomLeft());
+//        const Vector3D coordinateBottomRight(getPlaneXyzBottomRight());
+//        primitive->addVertex(coordinateTopLeft[0],     coordinateTopLeft[1],     minTextureST, minTextureST);  /* Top Left */
+//        primitive->addVertex(coordinateBottomLeft[0],  coordinateBottomLeft[1],  minTextureST, maxTextureST);  /* Bottom Left */
+//        primitive->addVertex(coordinateTopRight[0],    coordinateTopRight[1],    maxTextureST, minTextureST);  /* Top Right */
+//        primitive->addVertex(coordinateBottomRight[0], coordinateBottomRight[1], maxTextureST, maxTextureST);  /* Bottom Right */
+//
+//
+//        m_graphicsPrimitiveForCoordinateMediaDrawing.reset(primitive);
+//    }
+//
+//    return m_graphicsPrimitiveForCoordinateMediaDrawing.get();
+}
+
 /**
  * @return True if the given pixel index is valid for the CZI image file (may be outside of currently loaded sub-image)
  * @param frameIndex

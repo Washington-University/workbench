@@ -201,6 +201,8 @@ public:
     virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
                                                                          const int32_t overlayIndex) const override; 
     
+    virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
+                                                                            const int32_t overlayIndex) const override;
 
     ControlPointFile* getControlPointFile();
     
@@ -246,7 +248,6 @@ public:
                                                          std::vector<AString>& writableExtensionsOut,
                                                          AString& defaultWritableExtension);
     
-    virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing() const override;
 
 protected:
     
