@@ -4283,9 +4283,42 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
     else if (isMediaDisplayed()) {
         float txyz[3];
         m_mediaViewingTransformation->getTranslation(txyz);
-        const float accelerate(3.0);
-        txyz[0] += (mouseDX * accelerate);
-        txyz[1] += (mouseDY * accelerate);
+        switch (getMediaDisplayCoordinateMode()) {
+            case MediaDisplayCoordinateModeEnum::PIXEL:
+            {
+                const float accelerate(3.0);
+                txyz[0] += (mouseDX * accelerate);
+                txyz[1] += (mouseDY * accelerate);
+            }
+                break;
+            case MediaDisplayCoordinateModeEnum::PLANE:
+            {
+                /*
+                 * Mouse movement is in viewport (window) coordinates.
+                 * Need to convert to plane coordinates.
+                 */
+                const GraphicsObjectToWindowTransform* transform(viewportContent->getMediaGraphicsObjectToWindowTransform());
+                CaretAssert(transform);
+                int32_t modelViewport[4];
+                viewportContent->getModelViewport(modelViewport);
+                const Vector3D topLeftViewport(modelViewport[0], modelViewport[1] + modelViewport[3], 0.0);
+                const Vector3D bottomRightViewport(modelViewport[0] + modelViewport[2], modelViewport[1], 0.0);
+                Vector3D topLeftCoord;
+                Vector3D bottomRightCoord;
+                transform->inverseTransformPoint(topLeftViewport, topLeftCoord);
+                transform->inverseTransformPoint(bottomRightViewport, bottomRightCoord);
+                const float coordWidth(std::fabs(topLeftCoord[0] - bottomRightCoord[0]));
+                const float coordHeight(std::fabs(topLeftCoord[1] - bottomRightCoord[1]));
+                const float zoom(getScaling());
+                const float scaleX((coordWidth / modelViewport[2]) * zoom);
+                const float scaleY((coordHeight / modelViewport[3]) * zoom);
+
+                const float accelerate(1.0);
+                txyz[0] += ((mouseDX * scaleX) * accelerate);
+                txyz[1] += ((mouseDY * scaleY) * accelerate);
+            }
+                break;
+        }
         m_mediaViewingTransformation->setTranslation(txyz);
     }
     else if (isCerebellumDisplayed()) {

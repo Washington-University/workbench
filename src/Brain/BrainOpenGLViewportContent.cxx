@@ -1432,24 +1432,32 @@ BrainOpenGLViewportContent::getTranslationFactors(float& customViewStepValueOut,
     
     BrowserTabContent* tabContent = getBrowserTabContent();
     if (tabContent->isMediaDisplayed()) {
-        MediaOverlaySet* overlaySet = tabContent->getMediaOverlaySet();
-        CaretAssert(overlaySet);
-        MediaOverlay* underlay = overlaySet->getBottomMostEnabledOverlay();
-        if (underlay != NULL) {
-            const MediaOverlay::SelectionData selectionData(underlay->getSelectionData());
-            if (selectionData.m_selectedMediaFile != NULL) {
-                const float height(selectionData.m_selectedMediaFile->getHeight());
-                if (height > 0.0) {
-                    int32_t viewport[4];
-                    getModelViewport(viewport);
-                    const float viewportHeight(viewport[3]);
-                    if (viewportHeight > 0.0) {
-                        const float factor(height / viewportHeight);
-                        mousePanningFactorOut = factor * 0.5;
-                        customViewStepValueOut = factor;
+        switch (tabContent->getMediaDisplayCoordinateMode()) {
+            case MediaDisplayCoordinateModeEnum::PIXEL:
+            {
+                MediaOverlaySet* overlaySet = tabContent->getMediaOverlaySet();
+                CaretAssert(overlaySet);
+                MediaOverlay* underlay = overlaySet->getBottomMostEnabledOverlay();
+                if (underlay != NULL) {
+                    const MediaOverlay::SelectionData selectionData(underlay->getSelectionData());
+                    if (selectionData.m_selectedMediaFile != NULL) {
+                        const float height(selectionData.m_selectedMediaFile->getHeight());
+                        if (height > 0.0) {
+                            int32_t viewport[4];
+                            getModelViewport(viewport);
+                            const float viewportHeight(viewport[3]);
+                            if (viewportHeight > 0.0) {
+                                const float factor(height / viewportHeight);
+                                mousePanningFactorOut = factor * 0.5;
+                                customViewStepValueOut = factor;
+                            }
+                        }
                     }
                 }
             }
+                break;
+            case MediaDisplayCoordinateModeEnum::PLANE:
+                break;
         }
     }
 }
