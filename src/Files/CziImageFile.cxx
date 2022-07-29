@@ -503,6 +503,7 @@ CziImageFile::createAllFramesPyramidInfo(const libCZI::SubBlockStatistics& subBl
     if (cziDebugFlag) {
         std::cout << "Overall bounding box: " << CziUtilities::intRectToString(overallBoundingBox) << std::endl;
     }
+    const QRectF overallBoundingBoxRect(CziUtilities::intRectToQRect(overallBoundingBox));
 
     int32_t width(overallBoundingBox.w);
     int32_t height(overallBoundingBox.h);
@@ -511,10 +512,10 @@ CziImageFile::createAllFramesPyramidInfo(const libCZI::SubBlockStatistics& subBl
         || (height <= 0)) {
         throw DataFileException("Bounding box has invalid width or height (zero)");
     }
-    
+        
     m_allFramesPyramidInfo = CziSceneInfo(this,
                                           s_allFramesIndex,
-                                          CziUtilities::intRectToQRect(overallBoundingBox),
+                                          overallBoundingBoxRect,
                                           "All Scenes");
 
     int32_t pyramidLayerNumber(0);
@@ -2277,6 +2278,8 @@ CziImageFile::getImageForTabOverlay(const int32_t tabIndex,
  *    If true, image contains all frames (for CZI this is all scenes)
  * @param resolutionChangeMode
  *    Mode for changing resolutiln (auto/manual)
+ * @param coordinateMode
+ *    Coordinate mode (pixel or plane)
  * @param manualPyramidLayerIndex
  *    Index of pyramid layer for manual mode
  * @param transform
@@ -2288,6 +2291,7 @@ CziImageFile::updateImageForDrawingInTab(const int32_t tabIndex,
                                          const int32_t frameIndex,
                                          const bool allFramesFlag,
                                          const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                         const MediaDisplayCoordinateModeEnum::Enum coordinateMode,
                                          const int32_t manualPyramidLayerIndex,
                                          const GraphicsObjectToWindowTransform* transform)
 {
@@ -2316,6 +2320,7 @@ CziImageFile::updateImageForDrawingInTab(const int32_t tabIndex,
                                  frameIndex,
                                  allFramesFlag,
                                  resolutionChangeMode,
+                                 coordinateMode,
                                  manualPyramidLayerIndex,
                                  transform);
 }
@@ -2349,101 +2354,17 @@ CziImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
  *    Index of overlay
  */
 GraphicsPrimitiveV3fT2f*
-CziImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t /*tabIndex*/,
-                                                     const int32_t /*overlayIndex*/) const
+CziImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
+                                                     const int32_t overlayIndex) const
 {
-    return NULL;
-//    if (m_image == NULL) {
-//        return NULL;
-//    }
-//
-//    if ( ! isPlaneXyzSupported()) {
-//        return NULL;
-//    }
-//
-//    if (m_graphicsPrimitiveForCoordinateMediaDrawing == NULL) {
-//        //        std::vector<uint8_t> bytesRGBA;
-//        //        int32_t width(0);
-//        //        int32_t height(0);
-//
-//        /*
-//         * If image is too big for OpenGL texture limits, scale image to acceptable size
-//         */
-//        const int32_t maxTextureWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
-//        if (maxTextureWidthHeight > 0) {
-//            const int32_t excessWidth(m_image->width() - maxTextureWidthHeight);
-//            const int32_t excessHeight(m_image->height() - maxTextureWidthHeight);
-//            if ((excessWidth > 0)
-//                || (excessHeight > 0)) {
-//                if (excessWidth > excessHeight) {
-//                    CaretLogWarning(getFileName()
-//                                    + " is too big for texture.  Maximum width/height is: "
-//                                    + AString::number(maxTextureWidthHeight)
-//                                    + " Image Width: "
-//                                    + AString::number(m_image->width())
-//                                    + " Image Height: "
-//                                    + AString::number(m_image->height()));
-//                }
-//            }
-//        }
-//
-//        /*
-//         * Some images may use a color table so convert images
-//         * if there are not in preferred format prior to
-//         * getting colors of pixels
-//         */
-//        if (m_image->format() != QImage::Format_ARGB32) {
-//            m_image->convertTo(QImage::Format_ARGB32);
-//        }
-//        CaretAssert(m_image->format() == QImage::Format_ARGB32);
-//        const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
-//
-//        /*
-//         * Compress texture if image is large and compression is enabled
-//         */
-//        const GraphicsTextureSettings::CompressionType textureCompressionType(isImageTextureCompressed()
-//                                                                              ? GraphicsTextureSettings::CompressionType::ENABLED
-//                                                                              : GraphicsTextureSettings::CompressionType::DISABLED);
-//
-//        GraphicsTextureSettings textureSettings(m_image->constBits(),
-//                                                m_image->width(),
-//                                                m_image->height(),
-//                                                1, /* slices */
-//                                                GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
-//                                                GraphicsTextureSettings::PixelFormatType::BGRA, /* For QImage */
-//                                                GraphicsTextureSettings::PixelOrigin::TOP_LEFT,
-//                                                GraphicsTextureSettings::WrappingType::CLAMP,
-//                                                GraphicsTextureSettings::MipMappingType::ENABLED,
-//                                                textureCompressionType,
-//                                                GraphicsTextureMagnificationFilterEnum::LINEAR,
-//                                                GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
-//                                                textureBorderColorRGBA);
-//        GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-//                                                                                   textureSettings);
-//
-//        /*
-//         * A Triangle Strip (consisting of two triangles) is used
-//         * for drawing the image.
-//         * The order of the vertices in the triangle strip is
-//         * Top Left, Bottom Left, Top Right, Bottom Right.
-//         * ORIGIN IS AT TOP LEFT
-//         */
-//        const float minTextureST(0.0);
-//        const float maxTextureST(1.0);
-//        const Vector3D coordinateTopLeft(getPlaneXyzTopLeft());
-//        const Vector3D coordinateTopRight(getPlaneXyzTopRight());
-//        const Vector3D coordinateBottomLeft(getPlaneXyzBottomLeft());
-//        const Vector3D coordinateBottomRight(getPlaneXyzBottomRight());
-//        primitive->addVertex(coordinateTopLeft[0],     coordinateTopLeft[1],     minTextureST, minTextureST);  /* Top Left */
-//        primitive->addVertex(coordinateBottomLeft[0],  coordinateBottomLeft[1],  minTextureST, maxTextureST);  /* Bottom Left */
-//        primitive->addVertex(coordinateTopRight[0],    coordinateTopRight[1],    maxTextureST, minTextureST);  /* Top Right */
-//        primitive->addVertex(coordinateBottomRight[0], coordinateBottomRight[1], maxTextureST, maxTextureST);  /* Bottom Right */
-//
-//
-//        m_graphicsPrimitiveForCoordinateMediaDrawing.reset(primitive);
-//    }
-//
-//    return m_graphicsPrimitiveForCoordinateMediaDrawing.get();
+    const CziImage* cziImage(getImageForTabOverlay(tabIndex,
+                                                   overlayIndex));
+    if (cziImage == NULL) {
+        return NULL;
+    }
+    
+    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForPlaneXyzDrawing());
+    return primitive;
 }
 
 /**
@@ -3019,6 +2940,56 @@ CziImageFile::exportToImageFile(const QString& imageFileName,
     return errorMessageOut.isEmpty();
 }
 
+/**
+ * Set the matrix for display drawing.
+ * @param scaledToPlaneMatrix
+ *    The scaled to plane matrix.
+ * @param planeToMillimetersMatrix
+ *    Matrix for converting from plane coords to millimeter coords
+ * @param matixValidFlag
+ *    True if the matrix is valid.
+ */
+void
+CziImageFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
+                                     const Matrix4x4& planeToMillimetersMatrix,
+                                     const bool matrixValidFlag)
+{
+    MediaFile::setScaledToPlaneMatrix(scaledToPlaneMatrix,
+                                      planeToMillimetersMatrix,
+                                      matrixValidFlag);
+    
+    /*
+     * For all scenes, set bounds in plane coordinates
+     */
+    for (CziSceneInfo& cziSceneInfo: m_cziScenePyramidInfos) {
+        QRectF logicalRect(cziSceneInfo.m_logicalRectangle);
+        const float l(logicalRect.left());
+        const float r(logicalRect.right());
+        const float b(logicalRect.bottom());
+        const float t(logicalRect.top());
+        
+        Vector3D leftBottom, rightBottom, leftTop, rightTop;
+        if (logicalPixelIndexToPlaneXYZ(l, t, leftTop)
+            && logicalPixelIndexToPlaneXYZ(r, t, rightTop)
+            && logicalPixelIndexToPlaneXYZ(l, b, leftBottom)
+            && logicalPixelIndexToPlaneXYZ(r, b, rightBottom)) {
+            BoundingBox bb;
+            bb.resetForUpdate();
+            bb.update(leftTop);
+            bb.update(rightTop);
+            bb.update(leftBottom);
+            bb.update(rightBottom);
+            
+            QRectF boundsRect(bb.getMinX(),
+                              bb.getMinY(),
+                              bb.getDifferenceX(),
+                              bb.getDifferenceY());
+            if (boundsRect.isValid()) {
+                cziSceneInfo.m_planeRectangle = boundsRect;
+            }
+        }
+    }
+}
 
 /**
  * @return Range of pyramid layer indices

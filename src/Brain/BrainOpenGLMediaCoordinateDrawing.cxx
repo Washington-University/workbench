@@ -307,7 +307,7 @@ BrainOpenGLMediaCoordinateDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
  */
 void
 BrainOpenGLMediaCoordinateDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewportContent,
-                                                   const GraphicsObjectToWindowTransform* /*transform*/,
+                                                   const GraphicsObjectToWindowTransform* transform,
                                                    const int32_t /*tabIndex*/,
                                                    const float orthoHeight,
                                                    const float viewportHeight)
@@ -342,10 +342,34 @@ BrainOpenGLMediaCoordinateDrawing::drawModelLayers(const BrainOpenGLViewportCont
     const int32_t numMediaFiles(static_cast<int32_t>(m_selectionDataToDraw.size()));
     for (int32_t i = 0; i < numMediaFiles; i++) {
         CaretAssertVectorIndex(m_selectionDataToDraw, i);
-        MediaFile* mediaFile(m_selectionDataToDraw[i].m_selectedMediaFile);
+        MediaOverlay::SelectionData& selectionData = m_selectionDataToDraw[i];
+        MediaFile* mediaFile(selectionData.m_selectedMediaFile);
         CaretAssert(mediaFile);
-        GraphicsPrimitiveV3fT2f* primitive(mediaFile->getGraphicsPrimitiveForPlaneXyzDrawing(m_selectionDataToDraw[i].m_tabIndex,
-                                                                                             m_selectionDataToDraw[i].m_overlayIndex));
+        CziImageFile* cziImageFile(mediaFile->castToCziImageFile());
+        ImageFile* imageFile(mediaFile->castToImageFile());
+
+        if (cziImageFile != NULL) {
+            cziImageFile->updateImageForDrawingInTab(selectionData.m_tabIndex,
+                                                     selectionData.m_overlayIndex,
+                                                     selectionData.m_selectedFrameIndex,
+                                                     selectionData.m_allFramesSelectedFlag,
+                                                     selectionData.m_cziResolutionChangeMode,
+                                                     MediaDisplayCoordinateModeEnum::PLANE,
+                                                     selectionData.m_cziManualPyramidLayerIndex,
+                                                     transform);
+        }
+        else if (imageFile != NULL) {
+            /* nothing */
+        }
+        else {
+            CaretAssertMessage(0, ("Unrecognized file type "
+                                   + DataFileTypeEnum::toName(mediaFile->getDataFileType())
+                                   + " for media drawing."));
+        }
+
+
+        GraphicsPrimitiveV3fT2f* primitive(mediaFile->getGraphicsPrimitiveForPlaneXyzDrawing(selectionData.m_tabIndex,
+                                                                                             selectionData.m_overlayIndex));
         CaretAssert(primitive);
 
         glPushMatrix();
@@ -372,7 +396,7 @@ BrainOpenGLMediaCoordinateDrawing::drawModelLayers(const BrainOpenGLViewportCont
 
         if (selectImageFlag) {
             processMediaFileSelection(m_browserTabContent->getTabNumber(),
-                                      m_selectionDataToDraw[i],
+                                      selectionData,
                                       primitive);
         }
         
@@ -390,7 +414,7 @@ BrainOpenGLMediaCoordinateDrawing::drawModelLayers(const BrainOpenGLViewportCont
                                                    m_fixedPipelineDrawing->mode);
         const float mediaThickness(2.0f);
         Plane plane;
-        idDrawing.drawMediaFilePlaneCoordinateIdentificationSymbols(m_selectionDataToDraw[i].m_selectedMediaFile,
+        idDrawing.drawMediaFilePlaneCoordinateIdentificationSymbols(mediaFile,
                                                                     plane,
                                                                     mediaThickness,
                                                                     symbolIdHeight,

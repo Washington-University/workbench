@@ -349,6 +349,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                                                              selectionData.m_selectedFrameIndex,
                                                              selectionData.m_allFramesSelectedFlag,
                                                              selectionData.m_cziResolutionChangeMode,
+                                                             MediaDisplayCoordinateModeEnum::PIXEL,
                                                              selectionData.m_cziManualPyramidLayerIndex,
                                                              transform);
                     

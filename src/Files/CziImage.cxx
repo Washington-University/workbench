@@ -127,7 +127,6 @@ m_imageDataLogicalRect(imageDataLogicalRect)
  */
 CziImage::~CziImage()
 {
-    //std::cout << "Deleting CZI Image: " << m_imageName << std::endl;
 }
 
 /**
@@ -377,6 +376,34 @@ CziImage::getImageDataPixelRGBA(const PixelLogicalIndex& pixelLogicalIndex,
 GraphicsPrimitiveV3fT2f*
 CziImage::getGraphicsPrimitiveForMediaDrawing() const
 {
+    if (m_graphicsPrimitiveForMediaDrawing == NULL) {
+        m_graphicsPrimitiveForMediaDrawing.reset(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::PIXEL));
+    }
+    
+    return m_graphicsPrimitiveForMediaDrawing.get();
+}
+
+/**
+ * @return The graphics primitive for drawing the image as a texture in plane coordinates
+ */
+GraphicsPrimitiveV3fT2f*
+CziImage::getGraphicsPrimitiveForPlaneXyzDrawing() const
+{
+    if (m_graphicsPrimitiveForPlaneXyzDrawing == NULL) {
+        m_graphicsPrimitiveForPlaneXyzDrawing.reset(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::PLANE));
+    }
+
+    return m_graphicsPrimitiveForPlaneXyzDrawing.get();
+}
+
+/**
+ * @return A new graphics primitive for loaded data
+ * @param mediaDisplayCoordMode
+ *    The media display coordinate mode
+ */
+GraphicsPrimitiveV3fT2f*
+CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordMode) const
+{
     switch (m_imageStorageFormat) {
         case ImageStorageFormat::INVALID:
             CaretAssertMessage(0, "Image storage format is invalid");
@@ -396,201 +423,247 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
         || (m_imageHeight) <= 0) {
         return NULL;
     }
+
+    GraphicsPrimitiveV3fT2f* primitiveOut(NULL);
     
-    if (m_graphicsPrimitiveForMediaDrawing == NULL) {
-        int32_t width(0);
-        int32_t height(0);
-        
-        /*
-         * If image is too big for OpenGL texture limits, scale image to acceptable size
-         */
-        const int32_t maxTextureWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
-        if (maxTextureWidthHeight > 0) {
-            const int32_t excessWidth(m_imageWidth - maxTextureWidthHeight);
-            const int32_t excessHeight(m_imageHeight - maxTextureWidthHeight);
-            if ((excessWidth > 0)
-                || (excessHeight > 0)) {
-                if (excessWidth > excessHeight) {
-                    CaretLogWarning(m_parentCziImageFile->getFileName()
-                                    + " is too big for texture.  Maximum width/height is: "
-                                    + AString::number(maxTextureWidthHeight)
-                                    + " Image Width: "
-                                    + AString::number(m_imageWidth)
-                                    + " Image Height: "
-                                    + AString::number(m_imageHeight));
-                }
+    int32_t width(0);
+    int32_t height(0);
+    
+    /*
+     * If image is too big for OpenGL texture limits, scale image to acceptable size
+     */
+    const int32_t maxTextureWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
+    if (maxTextureWidthHeight > 0) {
+        const int32_t excessWidth(m_imageWidth - maxTextureWidthHeight);
+        const int32_t excessHeight(m_imageHeight - maxTextureWidthHeight);
+        if ((excessWidth > 0)
+            || (excessHeight > 0)) {
+            if (excessWidth > excessHeight) {
+                CaretLogWarning(m_parentCziImageFile->getFileName()
+                                + " is too big for texture.  Maximum width/height is: "
+                                + AString::number(maxTextureWidthHeight)
+                                + " Image Width: "
+                                + AString::number(m_imageWidth)
+                                + " Image Height: "
+                                + AString::number(m_imageHeight));
             }
-        }
-        
-        uint8_t* ptrBytesRGBA(NULL);
-        bool validRGBA(false);
-        
-        libCZI::BitmapLockInfo cziBitmapLockInfo;
-        bool cziLockFlag(false);
-        GraphicsTextureSettings::PixelFormatType pixelFormatType(GraphicsTextureSettings::PixelFormatType::NONE);
-        
-        GraphicsTextureSettings::PixelOrigin pixelOrigin(GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT);
-        
-        /*
-         * Image formats may pad each row of data so that the row is an even number (or multiple of 4/8)
-         * length with padding at the end of the row.
-         */
-        int32_t rowStride(-1);
-        
-        switch (m_imageStorageFormat) {
-            case ImageStorageFormat::INVALID:
-                CaretAssertMessage(0, "Image storage format is invalid");
-                return NULL;
-                break;
-            case ImageStorageFormat::CZI_IMAGE:
-                if (m_cziImageData->GetPixelType() == libCZI::PixelType::Bgr24) {
-                    cziBitmapLockInfo = m_cziImageData->Lock();
-                    pixelFormatType = GraphicsTextureSettings::PixelFormatType::BGR;
-                    pixelOrigin     = GraphicsTextureSettings::PixelOrigin::TOP_LEFT;
-                    cziLockFlag = true;
-                    
-                    if (cziBitmapLockInfo.size > 0) {
-                        validRGBA = true;
-                        ptrBytesRGBA = static_cast<uint8_t*>(cziBitmapLockInfo.ptrData);
-                        width        = m_cziImageData->GetWidth();
-                        height       = m_cziImageData->GetHeight();
-                        rowStride    = cziBitmapLockInfo.stride;
-                    }
-                }
-                break;
-            case ImageStorageFormat::Q_IMAGE:
-                if (m_qimageData->format() != QImage::Format_ARGB32) {
-                    m_qimageData->convertTo(QImage::Format_ARGB32);
-                }
-                validRGBA = (m_qimageData->format() == QImage::Format_ARGB32);
-                if (validRGBA) {
-                    pixelFormatType = GraphicsTextureSettings::PixelFormatType::RGBA;
-                    pixelOrigin     = GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT;
-                    rowStride       = width * 4; /* RGBA */
-                }
-                break;
-        }
-
-        
-        if (validRGBA) {
-            CaretAssert(ptrBytesRGBA);
-            CaretAssert(width > 0);
-            CaretAssert(height > 0);
-            const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
-            
-            GraphicsTextureSettings textureSettings;
-            
-            switch (m_imageStorageFormat) {
-                case ImageStorageFormat::INVALID:
-                    CaretAssert(0);
-                    break;
-                case ImageStorageFormat::CZI_IMAGE:
-                    textureSettings = GraphicsTextureSettings(ptrBytesRGBA,
-                                                              width,
-                                                              height,
-                                                              1, /* slices */
-                                                              GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
-                                                              pixelFormatType,
-                                                              pixelOrigin,
-                                                              GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
-                                                              GraphicsTextureSettings::MipMappingType::ENABLED,
-                                                              GraphicsTextureSettings::CompressionType::DISABLED,
-                                                              GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                              GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
-                                                              textureBorderColorRGBA);
-                    break;
-                case ImageStorageFormat::Q_IMAGE:
-                    textureSettings = GraphicsTextureSettings(m_qimageData->constBits(),
-                                                              width,
-                                                              height,
-                                                              1, /* slices */
-                                                              GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
-                                                              pixelFormatType,
-                                                              pixelOrigin,
-                                                              GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
-                                                              GraphicsTextureSettings::MipMappingType::ENABLED,
-                                                              GraphicsTextureSettings::CompressionType::DISABLED,
-                                                              GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                                              GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
-                                                              textureBorderColorRGBA);
-                    break;
-                    
-            }
-            GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                                                                       textureSettings);
-            
-            /*
-             * The Geometric Coordinates are always the full resolution logical
-             * coordinates, regardless of the image data that is loaded.  So,
-             * the panning and zooming does not need to change as new image data
-             * is loaded for different regions.
-             */
-            const float minX = m_fullResolutionLogicalRect.x();
-            const float maxX = m_fullResolutionLogicalRect.x() + m_fullResolutionLogicalRect.width();
-            const float minY = m_fullResolutionLogicalRect.y();
-            const float maxY = m_fullResolutionLogicalRect.y() + m_fullResolutionLogicalRect.height();
-            
-            const float imageLogicalWidth(m_imageDataLogicalRect.width());
-            const float imageLogicalHeight(m_imageDataLogicalRect.height());
-            
-            /*
-             * The image data may be only a sub-region of the full resolution area.  But, the
-             * texture coordinates need to be set for the full resolution region as that is what
-             * is used for the geometric coordinates.  So, in these instances, the texture coordinates
-             * may be less than zero and/or greater than one.  The texture border color will be used
-             * outside of the image data.
-             *
-             *  -------------------
-             *  |                 |   Dots are image logical region
-             *  |     .......     |   Lines are full resolution region
-             *  |     .     .     |
-             *  |     .......     |
-             *  -------------------
-             */
-            const float textureMinS((m_fullResolutionLogicalRect.left() - m_imageDataLogicalRect.left())
-                                     / imageLogicalWidth);
-            const float textureMaxS((m_fullResolutionLogicalRect.right() - m_imageDataLogicalRect.left())
-                                    / imageLogicalWidth);
-            const float textureMinT((m_fullResolutionLogicalRect.top() - m_imageDataLogicalRect.top())
-                                    / imageLogicalHeight);
-            const float textureMaxT((m_fullResolutionLogicalRect.bottom() - m_imageDataLogicalRect.top())
-                                    / imageLogicalHeight);
-
-            if (debugFlag) {
-                std::cout << "X: " << minX << ", " << maxX << "    Y: " << minY << ", " << maxY << std::endl;
-                std::cout << "  Full Rect: " << CziUtilities::qRectToString(m_fullResolutionLogicalRect) << std::endl;
-                std::cout << "  Img Rect:  " << CziUtilities::qRectToString(m_imageDataLogicalRect) << std::endl;
-                std::cout << "  Txt S:     " << textureMinS << ", " << textureMaxS << std::endl;
-                std::cout << "  Txt T:     " << textureMinT << ", " << textureMaxT << std::endl;
-            }
-            
-            /*
-             * A Triangle Strip (consisting of two triangles) is used
-             * for drawing the image.
-             * The order of the vertices in the triangle strip is
-             * Top Left, Bottom Left, Top Right, Bottom Right.
-             */
-            primitive->addVertex(minX, minY, textureMinS, textureMinT);  /* Top Left */
-            primitive->addVertex(minX, maxY, textureMinS, textureMaxT);  /* Bottom Left */
-            primitive->addVertex(maxX, minY, textureMaxS, textureMinT);  /* Top Right */
-            primitive->addVertex(maxX, maxY, textureMaxS, textureMaxT);  /* Bottom Right */
-
-            m_graphicsPrimitiveForMediaDrawing.reset(primitive);
-
-            if (debugFlag) {
-                std::cout << "Loaded primitive: ";
-                primitive->print();
-                std::cout << std::endl << std::endl;
-            }
-        }
-        
-        if (cziLockFlag) {
-            m_cziImageData->Unlock();
         }
     }
     
-    return m_graphicsPrimitiveForMediaDrawing.get();
+    uint8_t* ptrBytesRGBA(NULL);
+    bool validRGBA(false);
+    
+    libCZI::BitmapLockInfo cziBitmapLockInfo;
+    bool cziLockFlag(false);
+    GraphicsTextureSettings::PixelFormatType pixelFormatType(GraphicsTextureSettings::PixelFormatType::NONE);
+    
+    GraphicsTextureSettings::PixelOrigin pixelOrigin(GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT);
+    
+    /*
+     * Image formats may pad each row of data so that the row is an even number (or multiple of 4/8)
+     * length with padding at the end of the row.
+     */
+    int32_t rowStride(-1);
+    
+    switch (m_imageStorageFormat) {
+        case ImageStorageFormat::INVALID:
+            CaretAssertMessage(0, "Image storage format is invalid");
+            return NULL;
+            break;
+        case ImageStorageFormat::CZI_IMAGE:
+            if (m_cziImageData->GetPixelType() == libCZI::PixelType::Bgr24) {
+                cziBitmapLockInfo = m_cziImageData->Lock();
+                pixelFormatType = GraphicsTextureSettings::PixelFormatType::BGR;
+                pixelOrigin     = GraphicsTextureSettings::PixelOrigin::TOP_LEFT;
+                cziLockFlag = true;
+                
+                if (cziBitmapLockInfo.size > 0) {
+                    validRGBA = true;
+                    ptrBytesRGBA = static_cast<uint8_t*>(cziBitmapLockInfo.ptrData);
+                    width        = m_cziImageData->GetWidth();
+                    height       = m_cziImageData->GetHeight();
+                    rowStride    = cziBitmapLockInfo.stride;
+                }
+            }
+            break;
+        case ImageStorageFormat::Q_IMAGE:
+            if (m_qimageData->format() != QImage::Format_ARGB32) {
+                m_qimageData->convertTo(QImage::Format_ARGB32);
+            }
+            validRGBA = (m_qimageData->format() == QImage::Format_ARGB32);
+            if (validRGBA) {
+                pixelFormatType = GraphicsTextureSettings::PixelFormatType::RGBA;
+                pixelOrigin     = GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT;
+                rowStride       = width * 4; /* RGBA */
+            }
+            break;
+    }
+    
+    
+    if (validRGBA) {
+        CaretAssert(ptrBytesRGBA);
+        CaretAssert(width > 0);
+        CaretAssert(height > 0);
+        const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+        
+        GraphicsTextureSettings textureSettings;
+        
+        switch (m_imageStorageFormat) {
+            case ImageStorageFormat::INVALID:
+                CaretAssert(0);
+                break;
+            case ImageStorageFormat::CZI_IMAGE:
+                textureSettings = GraphicsTextureSettings(ptrBytesRGBA,
+                                                          width,
+                                                          height,
+                                                          1, /* slices */
+                                                          GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                          pixelFormatType,
+                                                          pixelOrigin,
+                                                          GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
+                                                          GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                          GraphicsTextureSettings::CompressionType::DISABLED,
+                                                          GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                          GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                          textureBorderColorRGBA);
+                break;
+            case ImageStorageFormat::Q_IMAGE:
+                textureSettings = GraphicsTextureSettings(m_qimageData->constBits(),
+                                                          width,
+                                                          height,
+                                                          1, /* slices */
+                                                          GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                          pixelFormatType,
+                                                          pixelOrigin,
+                                                          GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
+                                                          GraphicsTextureSettings::MipMappingType::ENABLED,
+                                                          GraphicsTextureSettings::CompressionType::DISABLED,
+                                                          GraphicsTextureMagnificationFilterEnum::LINEAR,
+                                                          GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                                          textureBorderColorRGBA);
+                break;
+                
+        }
+        
+        primitiveOut = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                                             textureSettings);
+
+        /*
+         * The Geometric Coordinates are always the full resolution logical
+         * coordinates, regardless of the image data that is loaded.  So,
+         * the panning and zooming does not need to change as new image data
+         * is loaded for different regions.
+         */
+        const float minX = m_fullResolutionLogicalRect.x();
+        const float maxX = m_fullResolutionLogicalRect.x() + m_fullResolutionLogicalRect.width();
+        const float minY = m_fullResolutionLogicalRect.y();
+        const float maxY = m_fullResolutionLogicalRect.y() + m_fullResolutionLogicalRect.height();
+        
+        const float imageLogicalWidth(m_imageDataLogicalRect.width());
+        const float imageLogicalHeight(m_imageDataLogicalRect.height());
+        
+        /*
+         * The image data may be only a sub-region of the full resolution area.  But, the
+         * texture coordinates need to be set for the full resolution region as that is what
+         * is used for the geometric coordinates.  So, in these instances, the texture coordinates
+         * may be less than zero and/or greater than one.  The texture border color will be used
+         * outside of the image data.
+         *
+         *  -------------------
+         *  |                 |   Dots are image logical region
+         *  |     .......     |   Lines are full resolution region
+         *  |     .     .     |
+         *  |     .......     |
+         *  -------------------
+         */
+        const float textureMinS((m_fullResolutionLogicalRect.left() - m_imageDataLogicalRect.left())
+                                / imageLogicalWidth);
+        const float textureMaxS((m_fullResolutionLogicalRect.right() - m_imageDataLogicalRect.left())
+                                / imageLogicalWidth);
+        const float textureMinT((m_fullResolutionLogicalRect.top() - m_imageDataLogicalRect.top())
+                                / imageLogicalHeight);
+        const float textureMaxT((m_fullResolutionLogicalRect.bottom() - m_imageDataLogicalRect.top())
+                                / imageLogicalHeight);
+        
+         
+        switch (mediaDisplayCoordMode) {
+            case MediaDisplayCoordinateModeEnum::PIXEL:
+                /*
+                 * A Triangle Strip (consisting of two triangles) is used
+                 * for drawing the image.
+                 * The order of the vertices in the triangle strip is
+                 * Top Left, Bottom Left, Top Right, Bottom Right.
+                 */
+                primitiveOut->addVertex(minX, minY, textureMinS, textureMinT);  /* Top Left */
+                primitiveOut->addVertex(minX, maxY, textureMinS, textureMaxT);  /* Bottom Left */
+                primitiveOut->addVertex(maxX, minY, textureMaxS, textureMinT);  /* Top Right */
+                primitiveOut->addVertex(maxX, maxY, textureMaxS, textureMaxT);  /* Bottom Right */
+                break;
+            case MediaDisplayCoordinateModeEnum::PLANE:
+            {
+                CaretAssert(m_parentCziImageFile);
+                PixelLogicalIndex topLeftPixel(minX, minY, 0.0);
+                PixelLogicalIndex topRightPixelIndex(maxX, minY, 0.0);
+                PixelLogicalIndex bottomLeftPixelIndex(minX, maxY, 0.0);
+                PixelLogicalIndex bottomRightPixelIndex(maxX, maxY, 0.0);
+                
+                Vector3D topLeftPlaneXYZ;
+                Vector3D topRightPlaneXYZ;
+                Vector3D bottomLeftPlaneXYZ;
+                Vector3D bottomRightPlaneXYZ;
+                if (m_parentCziImageFile->logicalPixelIndexToPlaneXYZ(topLeftPixel, topLeftPlaneXYZ)
+                    && m_parentCziImageFile->logicalPixelIndexToPlaneXYZ(topRightPixelIndex, topRightPlaneXYZ)
+                    && m_parentCziImageFile->logicalPixelIndexToPlaneXYZ(bottomLeftPixelIndex, bottomLeftPlaneXYZ)
+                    && m_parentCziImageFile->logicalPixelIndexToPlaneXYZ(bottomRightPixelIndex, bottomRightPlaneXYZ)) {
+                    /*
+                     * A Triangle Strip (consisting of two triangles) is used
+                     * for drawing the image.
+                     * The order of the vertices in the triangle strip is
+                     * Top Left, Bottom Left, Top Right, Bottom Right.
+                     */
+                    primitiveOut->addVertex(topLeftPlaneXYZ[0], topLeftPlaneXYZ[1], textureMinS, textureMinT);          /* Top Left */
+                    primitiveOut->addVertex(bottomLeftPlaneXYZ[0], bottomLeftPlaneXYZ[1], textureMinS, textureMaxT);    /* Bottom Left */
+                    primitiveOut->addVertex(topRightPlaneXYZ[0], topRightPlaneXYZ[1], textureMaxS, textureMinT);        /* Top Right */
+                    primitiveOut->addVertex(bottomRightPlaneXYZ[0], bottomRightPlaneXYZ[1], textureMaxS, textureMaxT);  /* Bottom Right */
+                }
+                else {
+                    /*
+                     * A Triangle Strip (consisting of two triangles) is used
+                     * for drawing the image.
+                     * The order of the vertices in the triangle strip is
+                     * Top Left, Bottom Left, Top Right, Bottom Right.
+                     */
+                    primitiveOut->addVertex(minX, minY, textureMinS, textureMinT);  /* Top Left */
+                    primitiveOut->addVertex(minX, maxY, textureMinS, textureMaxT);  /* Bottom Left */
+                    primitiveOut->addVertex(maxX, minY, textureMaxS, textureMinT);  /* Top Right */
+                    primitiveOut->addVertex(maxX, maxY, textureMaxS, textureMaxT);  /* Bottom Right */
+                    CaretLogSevere("Failed to set plane coordinates for CZI primitive");
+                }
+            }
+                break;
+        }
+
+        if (debugFlag) {
+            std::cout << "X: " << minX << ", " << maxX << "    Y: " << minY << ", " << maxY << std::endl;
+            std::cout << "  Full Rect: " << CziUtilities::qRectToString(m_fullResolutionLogicalRect) << std::endl;
+            std::cout << "  Img Rect:  " << CziUtilities::qRectToString(m_imageDataLogicalRect) << std::endl;
+            std::cout << "  Txt S:     " << textureMinS << ", " << textureMaxS << std::endl;
+            std::cout << "  Txt T:     " << textureMinT << ", " << textureMaxT << std::endl;
+        }
+
+        if (debugFlag) {
+            std::cout << "Loaded primitive: ";
+            primitiveOut->print();
+            std::cout << std::endl << std::endl;
+        }
+    }
+    
+    if (cziLockFlag) {
+        m_cziImageData->Unlock();
+    }
+    return primitiveOut;
 }
+
 
 /**
  * Save information specific to this type of model to the scene.

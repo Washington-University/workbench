@@ -170,6 +170,10 @@ namespace caret {
         virtual bool logicalPixelIndexToPlaneXYZ(const PixelLogicalIndex& pixelLogialIndex,
                                                  Vector3D& planeXyzOut) const;
         
+        virtual bool logicalPixelIndexToPlaneXYZ(const float logicalX,
+                                                 const float logicalY,
+                                                 Vector3D& planeXyzOut) const;
+        
         virtual bool planeXyzToPixelIndex(const Vector3D& planeXyz,
                                           PixelIndex& pixelIndexOut) const;
         
@@ -184,7 +188,7 @@ namespace caret {
         
         virtual void setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
                                             const Matrix4x4& planeToMillimetersMatrix,
-                                            const bool matixValidFlag);
+                                            const bool matrixValidFlag);
 
         virtual QRectF getLogicalBoundsRect() const;
         
@@ -197,6 +201,10 @@ namespace caret {
         
         virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
                                                                                 const int32_t overlayIndex) const = 0;
+        
+        QRectF planeRectToLogicalRect(const QRectF& planeRect) const;
+        
+        QRectF logicalRectToPlaneRect(const QRectF& logicalRect) const;
         
         virtual bool isPlaneXyzSupported() const;
         

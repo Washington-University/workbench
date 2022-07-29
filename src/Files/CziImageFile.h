@@ -121,6 +121,7 @@ namespace caret {
                                         const int32_t frameIndex,
                                         const bool allFramesFlag,
                                         const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                        const MediaDisplayCoordinateModeEnum::Enum coordinateMode,
                                         const int32_t manualPyramidLayerIndex,
                                         const GraphicsObjectToWindowTransform* transform);
 
@@ -180,6 +181,11 @@ namespace caret {
                                const bool includeAlphaFlag,
                                AString& errorMessageOut);
         
+        virtual void setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
+                                            const Matrix4x4& planeToMillimetersMatrix,
+                                            const bool matrixValidFlag) override;
+        
+
         // ADD_NEW_METHODS_HERE
 
           
@@ -273,6 +279,11 @@ namespace caret {
             int32_t m_sceneIndex = -1;
             
             QRectF m_logicalRectangle;
+            
+            /*
+             * Rectangle enclosing plane coordinates of scene
+             */
+            QRectF m_planeRectangle;
             
             AString m_name;
             

@@ -31,6 +31,7 @@
 #include "CziImageResolutionChangeModeEnum.h"
 #include "CziPixelCoordSpaceEnum.h"
 #include "libCZI_Pixels.h"
+#include "MediaDisplayCoordinateModeEnum.h"
 #include "PixelIndex.h"
 #include "PixelLogicalIndex.h"
 #include "SceneableInterface.h"
@@ -73,6 +74,8 @@ namespace caret {
         QRectF getFullResolutionLogicalRect() const;
         
         GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing() const;
+        
+        GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing() const;
         
         bool isPixelIndexValid(const PixelIndex& pixelIndex) const;
 
@@ -121,6 +124,8 @@ namespace caret {
             Q_IMAGE
         };
         
+        GraphicsPrimitiveV3fT2f* createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordMode) const;
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         const CziImageFile* m_parentCziImageFile;
@@ -167,6 +172,8 @@ namespace caret {
         QRectF m_imagePixelsRect;
         
         mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForMediaDrawing;
+        
+        mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForPlaneXyzDrawing;
         
         // ADD_NEW_MEMBERS_HERE
 

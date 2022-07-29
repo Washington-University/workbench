@@ -115,10 +115,9 @@ CziUtilities::intRectToString(const libCZI::IntRect& intRect)
 QString
 CziUtilities::qRectToString(const QRectF& qRect)
 {
-    QString s("Invalid");
-    if (qRect.isValid()) {
-        s = QString("x=%1, y=%2, width=%3, height=%4").arg(qRect.x()).arg(qRect.y()).arg(qRect.width()).arg(qRect.height());
-    }
+    const QString validString(qRect.isValid() ? "" : "Invalid ");
+    const QString s(validString +
+                    QString("x=%1, y=%2, width=%3, height=%4").arg(qRect.x()).arg(qRect.y()).arg(qRect.width()).arg(qRect.height()));
     return s;
 }
 

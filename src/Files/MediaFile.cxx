@@ -311,6 +311,28 @@ MediaFile::logicalPixelIndexToPlaneXYZ(const PixelLogicalIndex& pixelLogicalInde
 }
 
 /**
+ * Convert a pixel index to a plane XYZ.  If not supported, output is same as input.
+ * @param logicalX
+ *    logtical X Index of pixel
+ * @param logicalY
+ *    logtical Y Index of pixel
+ * @param planeXyzOut
+ *    Output with XYZ in plane
+ * @return True if successful, else false.
+ */
+bool
+MediaFile::logicalPixelIndexToPlaneXYZ(const float logicalX,
+                                       const float logicalY,
+                                       Vector3D& planeXyzOut) const
+{
+    const PixelLogicalIndex logicalIndex(logicalX,
+                                         logicalY,
+                                         0.0);
+    return logicalPixelIndexToPlaneXYZ(logicalIndex,
+                                       planeXyzOut);
+}
+
+/**
  * Convert a pixel XYZ to a pixel index.  If not supported, output is same as input.
  * @param planeXyz
  *     XYZ in plane
@@ -894,3 +916,59 @@ MediaFile::getPixelPlaneIdentificationTextForFrames(const int32_t tabIndex,
     CaretAssert(columnOneTextOut.size() == columnTwoTextOut.size());
 }
 
+/**
+ * Converrt a plane rectangle to a logical rectangle
+ * @param planeRect
+ *    The plane rectangle
+ * @return
+ *    The logical rectangle
+ */
+QRectF
+MediaFile::planeRectToLogicalRect(const QRectF& planeRect) const
+{
+    QRectF rect;
+    
+    const Vector3D topLeftCoord(planeRect.left(),
+                                planeRect.top(),
+                                0.0);
+    const Vector3D bottomRightCoord(planeRect.right(),
+                                    planeRect.bottom(),
+                                    0.0);
+    
+    PixelLogicalIndex topLeftPixel;
+    PixelLogicalIndex bottomRightPixel;
+    if (planeXyzToLogicalPixelIndex(topLeftCoord, topLeftPixel)
+        && planeXyzToLogicalPixelIndex(bottomRightCoord, bottomRightPixel)) {
+        rect.setCoords(topLeftPixel.getI(), topLeftPixel.getJ(),
+                       bottomRightPixel.getI(), bottomRightPixel.getJ());
+    }
+    return rect;
+}
+
+/**
+ * Convert a logical rect to a plane rect
+ * @param logicalRect
+ *    The logical rectangle
+ * @return
+ *    The plane rectangle
+ */
+QRectF
+MediaFile::logicalRectToPlaneRect(const QRectF& logicalRect) const
+{
+    QRectF rect;
+    
+    const PixelLogicalIndex topLeftPixel(logicalRect.left(),
+                                         logicalRect.top(),
+                                         0.0f);
+    const PixelLogicalIndex bottomRightPixel(logicalRect.right(),
+                                             logicalRect.bottom(),
+                                             0.0f);
+    Vector3D topLeftCoord;
+    Vector3D bottomRightCoord;
+    if (logicalPixelIndexToPlaneXYZ(topLeftPixel, topLeftCoord)
+        && logicalPixelIndexToPlaneXYZ(bottomRightPixel, bottomRightCoord)) {
+        rect.setCoords(topLeftCoord[0], topLeftCoord[1],
+                       bottomRightCoord[0], bottomRightCoord[1]);
+    }
+    return rect;
+}

@@ -46,6 +46,7 @@ namespace caret {
                                  const int32_t frameIndex,
                                  const bool allFramesFlag,
                                  const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                 const MediaDisplayCoordinateModeEnum::Enum coordinateMode,
                                  const int32_t manualPyramidLayerIndex,
                                  const GraphicsObjectToWindowTransform* transform) override;
 
@@ -65,20 +66,40 @@ namespace caret {
     private:
 
         int32_t getLayerIndexForCurrentZoom(const CziImageFile::CziSceneInfo& cziSceneInfo,
-                                            const GraphicsObjectToWindowTransform* transform) const;
+                                            const GraphicsObjectToWindowTransform* transform,
+                                            const MediaDisplayCoordinateModeEnum::Enum coordinateMode) const;
         
         bool isReloadForPanZoom(const CziImage* cziImage,
-                                const GraphicsObjectToWindowTransform* transform) const;
+                                const GraphicsObjectToWindowTransform* transform,
+                                const MediaDisplayCoordinateModeEnum::Enum coordinateMode) const;
         
         CziImage* loadImageForPyrmaidLayer(const CziImage* oldCziImage,
                                            const CziImageFile::CziSceneInfo& cziSceneInfo,
                                            const GraphicsObjectToWindowTransform* transform,
                                            const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                           const MediaDisplayCoordinateModeEnum::Enum coordinateMode,
                                            const int32_t pyramidLayerIndex);
 
-        QRectF getViewportLogicalCoordinates(const GraphicsObjectToWindowTransform* transform) const;
+        CziImage* loadImageForPyrmaidLayerForPixelCoords(const CziImage* oldCziImage,
+                                                         const CziImageFile::CziSceneInfo& cziSceneInfo,
+                                                         const GraphicsObjectToWindowTransform* transform,
+                                                         const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                         const int32_t pyramidLayerIndex);
+
+        CziImage* loadImageForPyrmaidLayerForPlaneCoords(const CziImage* oldCziImage,
+                                                         const CziImageFile::CziSceneInfo& cziSceneInfo,
+                                                         const GraphicsObjectToWindowTransform* transform,
+                                                         const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                         const int32_t pyramidLayerIndex);
         
-        MediaDisplayCoordinateModeEnum::Enum m_coordinateMode = MediaDisplayCoordinateModeEnum::PIXEL;
+        QRectF getViewportLogicalCoordinates(const GraphicsObjectToWindowTransform* transform,
+                                             const MediaDisplayCoordinateModeEnum::Enum coordinateMode) const;
+        
+        QRectF getViewportLogicalCoordinatesForPixelCoords(const GraphicsObjectToWindowTransform* transform) const;
+        
+        QRectF getViewportLogicalCoordinatesForPlaneCoords(const GraphicsObjectToWindowTransform* transform) const;
+        
+        QRectF getViewportPlaneCoordinates(const GraphicsObjectToWindowTransform* transform) const;
         
         std::shared_ptr<CziImage> m_cziImage;
 
