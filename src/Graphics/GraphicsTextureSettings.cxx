@@ -26,6 +26,8 @@
 #include <cstdint>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+
 using namespace caret;
 
 
@@ -103,7 +105,42 @@ m_magnificationFilter(magnificationFilter),
 m_minificationFilter(minificationFilter),
 m_borderColor(borderColor)
 {
-    
+    switch (m_mipMappingType) {
+        case MipMappingType::DISABLED:
+        {
+            AString filterName;
+            switch (m_minificationFilter) {
+                case GraphicsTextureMinificationFilterEnum::LINEAR:
+                    break;
+                case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR:
+                    filterName = "LINEAR_MIPMAP_LINEAR";
+                    break;
+                case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_NEAREST:
+                    filterName = "LINEAR_MIPMAP_NEAREST";
+                    break;
+                case GraphicsTextureMinificationFilterEnum::NEAREST:
+                    break;
+                case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_LINEAR:
+                    filterName = "NEAREST_MIPMAP_LINEAR";
+                    break;
+                case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_NEAREST:
+                    filterName = "NEAREST_MIPMAP_NEAREST";
+                    break;
+            }
+            
+            if ( ! filterName.isEmpty()) {
+                const AString msg("Mip mapping is DISABLED but the minification filter is set to a "
+                                  "mip mapping type "
+                                  + filterName
+                                  + ".  This may result in nothing or just white displayed.  Either "
+                                  "enable mip mapping or use a non-mip mapping minification filter.");
+                CaretLogSevere(msg);
+            }
+        }
+            break;
+        case MipMappingType::ENABLED:
+            break;
+    }
 }
 
 /**

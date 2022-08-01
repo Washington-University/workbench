@@ -1619,6 +1619,22 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
                 break;
         }
         
+        /*
+         * When mip mapping is DISABLED, cannot use any of the
+         * mip mapping filters.  If you do, the texture will
+         * not work and likely be all white.
+         */
+        switch (textureSettings.getMipMappingType()) {
+            case GraphicsTextureSettings::MipMappingType::DISABLED:
+                if ((minFilter != GL_LINEAR)
+                    && (minFilter != GL_NEAREST)) {
+                    minFilter = GL_LINEAR;
+                }
+                break;
+            case GraphicsTextureSettings::MipMappingType::ENABLED:
+                break;
+        }
+        
         GLenum magFilter = GL_LINEAR;
         switch (textureSettings.getMagnificationFilter()) {
             case GraphicsTextureMagnificationFilterEnum::LINEAR:
@@ -1686,6 +1702,22 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
                 break;
             case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_NEAREST:
                 minFilter = GL_NEAREST_MIPMAP_NEAREST;
+                break;
+        }
+        
+        /*
+         * When mip mapping is DISABLED, cannot use any of the
+         * mip mapping filters.  If you do, the texture will
+         * not work and likely be all white.
+         */
+        switch (textureSettings.getMipMappingType()) {
+            case GraphicsTextureSettings::MipMappingType::DISABLED:
+                if ((minFilter != GL_LINEAR)
+                    && (minFilter != GL_NEAREST)) {
+                    minFilter = GL_LINEAR;
+                }
+                break;
+            case GraphicsTextureSettings::MipMappingType::ENABLED:
                 break;
         }
         
