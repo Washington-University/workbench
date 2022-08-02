@@ -92,6 +92,8 @@ namespace caret {
         
         virtual PixelLogicalIndex pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const;
 
+        const QImage* getQImagePointer() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

@@ -692,6 +692,12 @@ CziImageFile::zoomToMatchPixelDimension(const QRectF& regionOfInterestToRead,
     regionToReadOut = regionOfInterestToRead;
     zoomOut = 1.0;
 
+    /*
+     * Negative means ignore and use full size
+     */
+    if (maximumPixelWidthOrHeight < 0) {
+        return;
+    }
     
     const float inputWidth(regionOfInterestToRead.width());
     const float inputHeight(regionOfInterestToRead.height());
@@ -772,6 +778,8 @@ CziImageFile::zoomToMatchPixelDimension(const QRectF& regionOfInterestToRead,
 
 /**
  * Read the specified SCALED region from the CZI file into an image of the given width and height.
+ * @param imageDataFormat
+ *     Format of image data QImage or CZI Bitmap data
  * @param imageName
  *     Name of image that may be used when debugging
  * @param regionOfInterest
@@ -786,7 +794,8 @@ CziImageFile::zoomToMatchPixelDimension(const QRectF& regionOfInterestToRead,
  *    Pointer to CziImage or NULL if there is an error.
  */
 CziImage*
-CziImageFile::readFromCziImageFile(const AString& imageName,
+CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
+                                   const AString& imageName,
                                    const QRectF& regionOfInterestIn,
                                    const QRectF& frameRegionOfInterest,
                                    const int64_t outputImageWidthHeightMaximum,
@@ -803,7 +812,8 @@ CziImageFile::readFromCziImageFile(const AString& imageName,
     coordinate.Set(libCZI::DimensionIndex::C, 0);
     
     const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundFloatRGB();
-    libCZI::ISingleChannelScalingTileAccessor::Options scstaOptions; scstaOptions.Clear();
+    libCZI::ISingleChannelScalingTileAccessor::Options scstaOptions;
+    scstaOptions.Clear();
     scstaOptions.backGroundColor.r = prefBackRGB[0];
     scstaOptions.backGroundColor.g = prefBackRGB[1];
     scstaOptions.backGroundColor.b = prefBackRGB[2];
@@ -843,12 +853,80 @@ CziImageFile::readFromCziImageFile(const AString& imageName,
     const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
     const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(regionOfInterest);
     CaretAssert(m_scalingTileAccessor);
-    std::shared_ptr<libCZI::IBitmapData> bitmapData = m_scalingTileAccessor->Get(pixelType,
-                                                                                 intRectROI,
-                                                                                 &coordinate,
-                                                                                 zoomToRead,
-                                                                                 &scstaOptions);
-    if ( ! bitmapData) {
+    
+    std::shared_ptr<libCZI::IBitmapData> bitmapDataRead;
+    
+    /*
+     * "Tinting" applys coloring functions in the CZI library similar
+     * to coloring functions in the ZEN software.  The resulting image
+     * is nearly identical (colorwise) to the image viewing in ZEN.
+     *
+     * Text copied from <czi documentation>/html/using_naczirlib.html in CZI documentation
+     *
+     * Creating a multi-channel composite
+     * In order to create a colorful picture from a bunch of channels (usually grayscale),
+     * we need to apply a color to it - that's refered to as "tinting". Furthermore, we want
+     * to apply a gradation curve. All the required parameters for this are refered to as "display settings".
+     * In a CZI-file we can find display settings in the metadata.  The following sample is reading
+     * the display settings from the metadata; then we get a (scaled) multi-tile composite for
+     * each of the channels (more exactly: only for those channels which are marked 'active' in
+     * the display settings). Those bitmaps are then fed into a function which will produce the
+     * multi-channel-composite (according to the display settings).
+     */
+    const bool applyTintingFlag(false);
+    if (applyTintingFlag) {
+        /*
+         * Code copied from <czi documentation>/html/using_naczirlib.html in CZI documentation
+         * get the display-setting from the document's metadata
+         * Replaced 'auto' with actual data types to know what they are
+         */
+        std::shared_ptr<libCZI::IMetadataSegment> mds(m_reader->ReadMetadataSegment());
+        std::shared_ptr<libCZI::ICziMetadata> md(mds->CreateMetaFromMetadataSegment());
+        std::shared_ptr<libCZI::ICziMultiDimensionDocumentInfo> docInfo(md->GetDocumentInfo());
+        std::shared_ptr<libCZI::IDisplaySettings> dsplSettings(docInfo->GetDisplaySettings());
+
+        /* get the tile-composite for all channels (which are marked 'active' in the display-settings) */
+        std::vector<std::shared_ptr<libCZI::IBitmapData>> actvChBms;
+        int index = 0;  /* index counting only the active channels */
+        std::map<int, int> activeChNoToChIdx;   /* we need to keep track which 'active channels" corresponds to which channel index */
+
+        libCZI::CDisplaySettingsHelper::EnumEnabledChannels(dsplSettings.get(),
+                                                            [&](int chIdx)->bool
+                                                            {
+            libCZI::CDimCoordinate planeCoord{ { libCZI::DimensionIndex::C, chIdx } };
+            actvChBms.emplace_back(m_scalingTileAccessor->Get(intRectROI,
+                                                              &planeCoord,
+                                                              zoomToRead,
+                                                              nullptr));
+            activeChNoToChIdx[chIdx] = index++;
+            return true;
+        });
+        
+        /*
+         * initialize the helper with the display-settings and provide the pixeltypes
+         * (for each active channel)
+         */
+        libCZI::CDisplaySettingsHelper dsplHlp;
+        dsplHlp.Initialize(dsplSettings.get(),
+                           [&](int chIdx)->libCZI::PixelType { return actvChBms[activeChNoToChIdx[chIdx]]->GetPixelType(); });
+
+        /*
+         * pass the tile-composites we just created (and the display-settings for the those active
+         * channels) into the multi-channel-composor-function
+         */
+        bitmapDataRead = libCZI::Compositors::ComposeMultiChannel_Bgr24(dsplHlp.GetActiveChannelsCount(),
+                                                                          std::begin(actvChBms),
+                                                                          dsplHlp.GetChannelInfosArray());
+    }
+    else {
+        bitmapDataRead = m_scalingTileAccessor->Get(pixelType,
+                                                    intRectROI,
+                                                    &coordinate,
+                                                    zoomToRead,
+                                                    &scstaOptions);
+    }
+
+    if ( ! bitmapDataRead) {
         errorMessageOut = ("Failed to read data for region "
                            + CziUtilities::intRectToString(intRectROI));
         return NULL;
@@ -856,27 +934,30 @@ CziImageFile::readFromCziImageFile(const AString& imageName,
     
     CziImage* cziImageOut(NULL);
     
-    const bool useQImageFlag(false);
-    if (useQImageFlag) {
-        QImage* qImage = createQImageFromBitmapData(QImagePixelFormat::RGBA,
-                                                    bitmapData.get(),
-                                                    errorMessageOut);
-        if (qImage == NULL) {
-            return NULL;
+    switch (imageDataFormat) {
+        case ImageDataFormat::CZI_BITMAP:
+            cziImageOut = new CziImage(this,
+                                       imageName,
+                                       bitmapDataRead,
+                                       frameRegionOfInterest,
+                                       CziUtilities::intRectToQRect(intRectROI));
+            break;
+        case ImageDataFormat::Q_IMAGE:
+        {
+            QImage* qImage = createQImageFromBitmapData(QImagePixelFormat::RGBA,
+                                                        bitmapDataRead.get(),
+                                                        errorMessageOut);
+            if (qImage == NULL) {
+                return NULL;
+            }
+            
+            cziImageOut = new CziImage(this,
+                                       imageName,
+                                       qImage,
+                                       frameRegionOfInterest,
+                                       CziUtilities::intRectToQRect(intRectROI));
         }
-        
-        cziImageOut = new CziImage(this,
-                                   imageName,
-                                   qImage,
-                                   frameRegionOfInterest,
-                                   CziUtilities::intRectToQRect(intRectROI));
-    }
-    else {
-        cziImageOut = new CziImage(this,
-                                   imageName,
-                                   bitmapData,
-                                   frameRegionOfInterest,
-                                   CziUtilities::intRectToQRect(intRectROI));
+            break;
     }
     return cziImageOut;
 }
@@ -2598,7 +2679,8 @@ CziImageFile::testReadingSmallImage(AString& errorMessageOut)
     errorMessageOut.clear();
     
     const int32_t imageDimensionWidthHeight(512);
-    std::unique_ptr<CziImage> cziImage(readFromCziImageFile("Test Image File Reading",
+    std::unique_ptr<CziImage> cziImage(readFromCziImageFile(CziImageFile::ImageDataFormat::CZI_BITMAP,
+                                                            "Test Image File Reading",
                                                             m_fullResolutionLogicalRect,
                                                             m_fullResolutionLogicalRect,
                                                             imageDimensionWidthHeight,
@@ -2656,169 +2738,13 @@ CziImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
 
 /**
  * Export a full resolution image to an image file with the maximum width/height
- * to a "coordinate" PNG file
  * @param imageFileName
  *    Name for file
  * @param maximumWidthHeight
  *    Width and height will be no greater than this value (aspect is preserved)
  *     Negative is no limit on size
- * @param errorMessageOut
- *    Contains info if writing image fails
- * @return True if successful, else false.
- */
-bool
-CziImageFile::exportToCoordinatePngFile(const QString& imageFileName,
-                                        const int32_t maximumWidthHeight,
-                                        AString& errorMessageOut)
-{
-    errorMessageOut.clear();
-    
-    if ( ! imageFileName.endsWith(".png")) {
-        errorMessageOut.appendWithNewLine("Image file name must end with \".png\"");
-    }
-    if (maximumWidthHeight == 0) {
-        errorMessageOut.appendWithNewLine("Image maximum size is zero.  Must be positive value or use "
-                                          "any negative value for no size limit.");
-    }
-    if (imageFileName.isEmpty()) {
-        errorMessageOut.appendWithNewLine("Image file name is invalid.");
-    }
-
-    const int32_t w(getWidth() - 1);
-    const int32_t h(getHeight() - 1);
-    const PixelIndex topLeftPixel(0, 0, 0);
-    const PixelIndex topRightPixel(w, 0, 0);
-    const PixelIndex bottomRightPixel(w, h, 0);
-    const PixelIndex bottomLeftPixel(0, h, 0);
-    Vector3D bottomLeftXYZ;
-    Vector3D bottomRightXYZ;
-    Vector3D topRightXYZ;
-    Vector3D topLeftXYZ;
-    if (pixelIndexToPlaneXYZ(bottomLeftPixel, bottomLeftXYZ)
-        && pixelIndexToPlaneXYZ(bottomRightPixel, bottomRightXYZ)
-        && pixelIndexToPlaneXYZ(topRightPixel, topRightXYZ)
-        && pixelIndexToPlaneXYZ(topLeftPixel, topLeftXYZ)) {
-        /* OK */
-        std::cout << "Bottom Left:  " << bottomLeftPixel.toString() << "  " << AString::fromNumbers(bottomLeftXYZ) << std::endl;
-        std::cout << "Bottom Right: " << bottomRightPixel.toString() << "  " << AString::fromNumbers(bottomRightXYZ) << std::endl;
-        std::cout << "Top Right:    " << topRightPixel.toString() << "  " << AString::fromNumbers(topRightXYZ) << std::endl;
-        std::cout << "Top Left:     " << topLeftPixel.toString() << "  " << AString::fromNumbers(topLeftXYZ) << std::endl;
-    }
-    else {
-        errorMessageOut.appendWithNewLine("Failed to convert pixel indices to plane coordinates");
-    }
-
-    if ( ! errorMessageOut.isEmpty()) {
-        return false;
-    }
-    
-    libCZI::CDimCoordinate coordinate;
-    coordinate.Set(libCZI::DimensionIndex::C, 0);
-    
-    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundFloatRGB();
-    libCZI::ISingleChannelScalingTileAccessor::Options scstaOptions; scstaOptions.Clear();
-    scstaOptions.backGroundColor.r = prefBackRGB[0];
-    scstaOptions.backGroundColor.g = prefBackRGB[1];
-    scstaOptions.backGroundColor.b = prefBackRGB[2];
-    
-    float zoomToRead(1.0);
-    QRectF regionOfInterest(m_fullResolutionLogicalRect);
-    
-    /*
-     * If ROI width/height is greater than output image width/height,
-     * use zoom to reduce the dimensions of the image data that is read
-     */
-    if (maximumWidthHeight > 0) {
-        QRectF newRegion(regionOfInterest);
-        float newZoom(1.0);
-        zoomToMatchPixelDimension(regionOfInterest,
-                                  regionOfInterest,
-                                  maximumWidthHeight,
-                                  newRegion,
-                                  newZoom);
-        if (cziDebugFlag) {
-            std::cout << "Region: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
-            std::cout << "   New: " << CziUtilities::qRectToString(newRegion) << std::endl;
-            std::cout << "  Zoom: " << newZoom << std::endl;
-        }
-        
-        regionOfInterest = newRegion;
-        zoomToRead = newZoom;
-    }
-    
-    /*
-     * Read into 24 bit RGB to avoid conversion from other pixel formats
-     */
-    if (cziDebugFlag) {
-        std::cout << "----------------------" << std::endl;
-        std::cout << "READING IMAGE with ROI: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
-    }
-    const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
-    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(regionOfInterest);
-    CaretAssert(m_scalingTileAccessor);
-    std::shared_ptr<libCZI::IBitmapData> bitmapData = m_scalingTileAccessor->Get(pixelType,
-                                                                                 intRectROI,
-                                                                                 &coordinate,
-                                                                                 zoomToRead,
-                                                                                 &scstaOptions);
-    if ( ! bitmapData) {
-        errorMessageOut = ("Failed to read data for region "
-                           + CziUtilities::intRectToString(intRectROI));
-        return false;
-    }
-    
-    QImagePixelFormat qimagePixelFormat = QImagePixelFormat::RGBA;
-    std::unique_ptr<QImage> qImage(createQImageFromBitmapData(qimagePixelFormat,
-                                                              bitmapData.get(),
-                                                              errorMessageOut));
-    if (qImage == NULL) {
-        errorMessageOut = "Failed to create QImage after reading from CZI file";
-        return false;
-    }
-    
-    FileInformation fileInfo(imageFileName);
-    AString format = fileInfo.getFileExtension().toUpper();
-    if (format == "JPG") {
-        format = "JPEG";
-    }
-    
-    std::cout << "Export pixelToPlane: " << getPixelIndexToPlaneMatrix().toFormattedString("   ") << std::endl;
-    qImage->setText(getMetaDataNameScaledToPlaneMatrix(),
-                    getScaledToPlaneMatrix().getMatrixInRowMajorOrderString());
-    qImage->setText(getMetaDataNamePlaneToMillimetersMatrix(),
-                    getPlaneToMillimetersMatrix().getMatrixInRowMajorOrderString());
-    
-    QImageWriter writer(imageFileName, format.toLatin1());
-    if (writer.supportsOption(QImageIOHandler::Quality)) {
-        if (format.compare("png", Qt::CaseInsensitive) == 0) {
-            const int quality = 1;
-            writer.setQuality(quality);
-        }
-        else {
-            const int quality = 100;
-            writer.setQuality(quality);
-        }
-    }
-    
-    if (writer.supportsOption(QImageIOHandler::CompressionRatio)) {
-        writer.setCompression(1);
-    }
-    
-    if ( ! writer.write(*qImage)) {
-        errorMessageOut = writer.errorString();
-    }
-    
-    return errorMessageOut.isEmpty();
-}
-
-
-/**
- * Export a full resolution image to an image file with the maximum width/height
- * @param imageFileName
- *    Name for file
- * @param maximumWidthHeight
- *    Width and height will be no greater than this value (aspect is preserved)
- *     Negative is no limit on size
+ * @param addPlaneMatrixTransformsFlag
+ *    If transformation matrices are available for pixel to plane and plane to millimeters, include them.
  * @param includeAlphaFlag
  *    Include the alpha component in the pixels
  * @param errorMessageOut
@@ -2828,6 +2754,7 @@ CziImageFile::exportToCoordinatePngFile(const QString& imageFileName,
 bool
 CziImageFile::exportToImageFile(const QString& imageFileName,
                                 const int32_t maximumWidthHeight,
+                                const bool addPlaneMatrixTransformsFlag,
                                 const bool includeAlphaFlag,
                                 AString& errorMessageOut)
 {
@@ -2844,71 +2771,45 @@ CziImageFile::exportToImageFile(const QString& imageFileName,
         return false;
     }
     
-    libCZI::CDimCoordinate coordinate;
-    coordinate.Set(libCZI::DimensionIndex::C, 0);
     
-    const std::array<float, 3> prefBackRGB = getPreferencesImageBackgroundFloatRGB();
-    libCZI::ISingleChannelScalingTileAccessor::Options scstaOptions; scstaOptions.Clear();
-    scstaOptions.backGroundColor.r = prefBackRGB[0];
-    scstaOptions.backGroundColor.g = prefBackRGB[1];
-    scstaOptions.backGroundColor.b = prefBackRGB[2];
-    
-    float zoomToRead(1.0);
-    QRectF regionOfInterest(m_fullResolutionLogicalRect);
-    
-    /*
-     * If ROI width/height is greater than output image width/height,
-     * use zoom to reduce the dimensions of the image data that is read
-     */
-    if (maximumWidthHeight > 0) {
-        QRectF newRegion(regionOfInterest);
-        float newZoom(1.0);
-        zoomToMatchPixelDimension(regionOfInterest,
-                                  regionOfInterest,
-                                  maximumWidthHeight,
-                                  newRegion,
-                                  newZoom);
-        if (cziDebugFlag) {
-            std::cout << "Region: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
-            std::cout << "   New: " << CziUtilities::qRectToString(newRegion) << std::endl;
-            std::cout << "  Zoom: " << newZoom << std::endl;
-        }
-        
-        regionOfInterest = newRegion;
-        zoomToRead = newZoom;
-    }
-    
-    /*
-     * Read into 24 bit RGB to avoid conversion from other pixel formats
-     */
-    if (cziDebugFlag) {
-        std::cout << "----------------------" << std::endl;
-        std::cout << "READING IMAGE with ROI: " << CziUtilities::qRectToString(regionOfInterest) << std::endl;
-    }
-    const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
-    const libCZI::IntRect intRectROI = CziUtilities::qRectToIntRect(regionOfInterest);
-    CaretAssert(m_scalingTileAccessor);
-    std::shared_ptr<libCZI::IBitmapData> bitmapData = m_scalingTileAccessor->Get(pixelType,
-                                                                                 intRectROI,
-                                                                                 &coordinate,
-                                                                                 zoomToRead,
-                                                                                 &scstaOptions);
-    if ( ! bitmapData) {
-        errorMessageOut = ("Failed to read data for region "
-                           + CziUtilities::intRectToString(intRectROI));
+    std::unique_ptr<CziImage> cziImage(readFromCziImageFile(CziImageFile::ImageDataFormat::Q_IMAGE,
+                                                            "cziImageName",
+                                                            m_fullResolutionLogicalRect,
+                                                            m_fullResolutionLogicalRect,
+                                                            maximumWidthHeight,
+                                                            errorMessageOut));
+    if (cziImage == NULL) {
+        errorMessageOut = ("readFromCziImageFile() failed to read image data.");
         return false;
     }
     
-    QImagePixelFormat qimagePixelFormat(QImagePixelFormat::RGB);
-    if (includeAlphaFlag) {
-        qimagePixelFormat = QImagePixelFormat::RGBA;
-    }
-    std::unique_ptr<QImage> qImage(createQImageFromBitmapData(qimagePixelFormat,
-                                                              bitmapData.get(),
-                                                              errorMessageOut));
+    QImage* qImage(const_cast<QImage*>(cziImage->getQImagePointer()));
     if (qImage == NULL) {
-        errorMessageOut = "Failed to create QImage after reading from CZI file";
+        errorMessageOut = ("Failed to get QImage from CziImage");
         return false;
+    }
+
+    /*
+     * Set format to RGB or RGBA
+     */
+    const QImage::Format imageFormat(includeAlphaFlag
+                                     ? QImage::Format_ARGB32
+                                     : QImage::Format_RGB32);
+    if (qImage->format() != imageFormat) {
+        qImage->convertTo(imageFormat);
+    }
+    
+    /*
+     * Add matrices if available for Plane Coordinate Viewing Mode
+     */
+    if (addPlaneMatrixTransformsFlag) {
+        if (isScaledToPlaneMatrixValid()
+            && isPlaneToMillimetersMatrixValid()) {
+            qImage->setText(getMetaDataNameScaledToPlaneMatrix(),
+                            getScaledToPlaneMatrix().getMatrixInRowMajorOrderString());
+            qImage->setText(getMetaDataNamePlaneToMillimetersMatrix(),
+                            getPlaneToMillimetersMatrix().getMatrixInRowMajorOrderString());
+        }
     }
     
     FileInformation fileInfo(imageFileName);

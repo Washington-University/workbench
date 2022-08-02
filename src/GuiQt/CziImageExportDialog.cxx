@@ -37,6 +37,7 @@ using namespace caret;
 #include "CaretFileDialog.h"
 #include "CursorDisplayScoped.h"
 #include "CziImageFile.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -65,6 +66,11 @@ m_cziImageFile(cziImageFile)
 {
     CaretAssert(cziImageFile);
     
+    if (s_firstTimeFlag) {
+        s_firstTimeFlag = false;
+        s_lastImageDimensionValue = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
+    }
+    
     QPushButton* fileNamePushButton = new QPushButton("Image File...");
     fileNamePushButton->setToolTip("Choose name of image file");
     QObject::connect(fileNamePushButton, &QPushButton::clicked,
@@ -73,14 +79,22 @@ m_cziImageFile(cziImageFile)
     m_filenameLineEdit = new QLineEdit();
     m_filenameLineEdit->setMinimumWidth(300);
     m_filenameLineEdit->setReadOnly(true);
+    m_filenameLineEdit->setText(s_lastFileName);
     
     m_alphaCheckBox = new QCheckBox("Include Alpha");
     m_alphaCheckBox->setToolTip("Include alpha component in pixels");
+    m_alphaCheckBox->setChecked(s_lastAlphaSelectedFlag);
+    
+    m_matricesCheckBox = new QCheckBox("Include Support for Plane Coordinate Viewing Mode");
+    m_matricesCheckBox->setToolTip("Plane coordinates may rotate and/or scale image when viewed");
+    m_matricesCheckBox->setEnabled(m_cziImageFile->isPixelIndexToPlaneMatrixValid()
+                                   && m_cziImageFile->isPlaneToMillimetersMatrixValid());
+    m_matricesCheckBox->setChecked(s_lastMatricesSelectedFlag);
     
     const AString dimensionToolTip("Limit width or height to this value (aspect preserved)");
     m_maximumWidthHeightSpinBox = new QSpinBox();
     m_maximumWidthHeightSpinBox->setRange(1, 99999999);
-    m_maximumWidthHeightSpinBox->setValue(4096);
+    m_maximumWidthHeightSpinBox->setValue(s_lastImageDimensionValue); /* DO BEFORE connecting signal */
     m_maximumWidthHeightSpinBox->setToolTip(dimensionToolTip);
     QObject::connect(m_maximumWidthHeightSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &CziImageExportDialog::updateExportImageDimensionsLabel);
@@ -92,7 +106,9 @@ m_cziImageFile(cziImageFile)
                      m_maximumWidthHeightSpinBox, &QSpinBox::setEnabled);
     QObject::connect(m_maximumWidthHeightCheckBox, &QCheckBox::clicked,
                      this, &CziImageExportDialog::updateExportImageDimensionsLabel);
-    m_maximumWidthHeightCheckBox->setChecked(false);
+    m_maximumWidthHeightCheckBox->setChecked(s_lastImageDimensionSelectedFlag);
+    
+    m_maximumWidthHeightSpinBox->setEnabled(m_maximumWidthHeightCheckBox->isChecked());
     
     m_cziImageDimensionsLabel = new QLabel();
     if (m_cziImageFile != NULL) {
@@ -119,6 +135,7 @@ m_cziImageFile(cziImageFile)
     layout->addLayout(fileLayout);
     layout->addLayout(dimensionLayout);
     layout->addWidget(m_alphaCheckBox);
+    layout->addWidget(m_matricesCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(m_cziImageDimensionsLabel);
     layout->addWidget(m_exportImageDimensionsLabel);
@@ -126,21 +143,7 @@ m_cziImageFile(cziImageFile)
     setCentralWidget(w, ScrollAreaStatus::SCROLL_AREA_NEVER);
     
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    
-    
-    /*
-     * Load previous values
-     */
-    m_filenameLineEdit->setText(s_lastFileName);
-    
-    QSignalBlocker dimBlocker(m_maximumWidthHeightSpinBox);
-    m_maximumWidthHeightSpinBox->setValue(s_lastImageDimensionValue);
-    
-    m_maximumWidthHeightCheckBox->setChecked(s_lastImageDimensionSelectedFlag);
-    m_maximumWidthHeightSpinBox->setEnabled(m_maximumWidthHeightCheckBox->isChecked());
-    
-    m_alphaCheckBox->setChecked(s_lastAlphaSelectedFlag);
-    
+        
     updateExportImageDimensionsLabel();
 }
 
@@ -219,25 +222,12 @@ CziImageExportDialog::okButtonClicked()
         case ExportType::ANY_IMAGE:
             if (m_cziImageFile->exportToImageFile(filename,
                                                   maximumDimension,
+                                                  m_matricesCheckBox->isChecked(),
                                                   m_alphaCheckBox->isChecked(),
                                                   errorMessage)) {
                 cursor.restoreCursor();
                 WuQMessageBox::informationOk(this,
                                              "Image export complete");
-            }
-            else {
-                cursor.restoreCursor();
-                WuQMessageBox::errorOk(this,
-                                       errorMessage);
-            }
-            break;
-        case ExportType::PNG_COORD_IMAGE:
-            if (m_cziImageFile->exportToCoordinatePngFile(filename,
-                                                          maximumDimension,
-                                                          errorMessage)) {
-                cursor.restoreCursor();
-                WuQMessageBox::informationOk(this,
-                                             "Png Coordinate Image export complete");
             }
             else {
                 cursor.restoreCursor();
@@ -251,6 +241,7 @@ CziImageExportDialog::okButtonClicked()
     
     s_lastFileName                   = filename;
     s_lastAlphaSelectedFlag          = m_alphaCheckBox->isChecked();
+    s_lastMatricesSelectedFlag       = m_matricesCheckBox->isChecked();
     s_lastImageDimensionValue        = m_maximumWidthHeightSpinBox->value();
     s_lastImageDimensionSelectedFlag = m_maximumWidthHeightCheckBox->isChecked();
 }
@@ -266,12 +257,6 @@ CziImageExportDialog::fileSelectionButtonClicked()
     switch (m_exportType) {
         case ExportType::ANY_IMAGE:
             filename = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::IMAGE);
-            break;
-        case ExportType::PNG_COORD_IMAGE:
-            filename = CaretFileDialog::getSaveFileNameDialog(this,
-                                                              "PNG Image File",
-                                                              QString(),
-                                                              "PNG Files (*.png)");
             break;
     }
 

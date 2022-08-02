@@ -90,8 +90,8 @@ m_imageDataLogicalRect(imageDataLogicalRect)
  *    The parent CZI Image File
  * @param imageName
  *    Name for image that may be used when debugging
- * @param image
- *    The QImage instance
+ * @param cziImageData
+ *    The CZI Image data
  * @param fullResolutionLogicalRect
  *    Logical Rectangle for the full-resolution source image that defines the coordinates of the primitive
  * @param imageDataLogicalRect
@@ -371,6 +371,17 @@ CziImage::getImageDataPixelRGBA(const PixelLogicalIndex& pixelLogicalIndex,
 }
 
 /**
+ * @retrurn Pointer to the qImage.  Will be NULL if data was read into
+ * CZI Bitmap data or failed to read CZI image data.
+ */
+const QImage*
+CziImage::getQImagePointer() const
+{
+    return m_qimageData.get();
+}
+
+
+/**
  * @return The graphics primitive for drawing the image as a texture in media drawing model.
  */
 GraphicsPrimitiveV3fT2f*
@@ -492,8 +503,10 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
             }
             validRGBA = (m_qimageData->format() == QImage::Format_ARGB32);
             if (validRGBA) {
-                pixelFormatType = GraphicsTextureSettings::PixelFormatType::RGBA;
+                pixelFormatType = GraphicsTextureSettings::PixelFormatType::BGRA;
                 pixelOrigin     = GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT;
+                width           = m_qimageData->width();
+                height          = m_qimageData->height();
                 rowStride       = width * 4; /* RGBA */
             }
             break;
@@ -501,7 +514,6 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
     
     
     if (validRGBA) {
-        CaretAssert(ptrBytesRGBA);
         CaretAssert(width > 0);
         CaretAssert(height > 0);
         const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
@@ -513,6 +525,7 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
                 CaretAssert(0);
                 break;
             case ImageStorageFormat::CZI_IMAGE:
+                CaretAssert(ptrBytesRGBA);
                 textureSettings = GraphicsTextureSettings(ptrBytesRGBA,
                                                           width,
                                                           height,

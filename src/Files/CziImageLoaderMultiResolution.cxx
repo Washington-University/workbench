@@ -780,7 +780,8 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPixelCoords(const CziI
                           + AString::number(pyramidLayerIndex));
     if (cziDebugFlag) std::cout << "Loading pyramid index=" << pyramidLayerIndex << ", rect=" << CziUtilities::qRectToString(rectToLoad) << std::endl;
     AString errorMessage;
-    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(cziName,
+    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(CziImageFile::ImageDataFormat::CZI_BITMAP,
+                                                                 cziName,
                                                                  rectToLoad,
                                                                  cziSceneInfo.m_logicalRectangle,
                                                                  m_cziImageFile->getPreferencesImageDimension(),
@@ -947,7 +948,8 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPlaneCoords(const CziI
                           + AString::number(pyramidLayerIndex));
     if (cziDebugFlag) std::cout << "Loading pyramid index=" << pyramidLayerIndex << ", rect=" << CziUtilities::qRectToString(logicalRectToLoad) << std::endl;
     AString errorMessage;
-    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(cziName,
+    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(CziImageFile::ImageDataFormat::CZI_BITMAP,
+                                                                 cziName,
                                                                  logicalRectToLoad,
                                                                  cziSceneInfo.m_logicalRectangle,
                                                                  m_cziImageFile->getPreferencesImageDimension(),

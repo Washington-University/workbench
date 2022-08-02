@@ -172,12 +172,9 @@ namespace caret {
         
         virtual QRectF getLogicalBoundsRect() const override;
         
-        bool exportToCoordinatePngFile(const QString& imageFileName,
-                                       const int32_t maximumWidthHeight,
-                                       AString& errorMessageOut);
-        
         bool exportToImageFile(const QString& imageFileName,
                                const int32_t maximumWidthHeight,
+                               const bool addPlaneMatrixTransformsFlag,
                                const bool includeAlphaFlag,
                                AString& errorMessageOut);
         
@@ -372,6 +369,11 @@ namespace caret {
             std::unique_ptr<CziImageLoaderMultiResolution> m_multiResolutionImageLoader;
         };
         
+        enum class ImageDataFormat {
+            CZI_BITMAP,
+            Q_IMAGE
+        };
+        
         bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
                                         const bool includeNonlinearFlag,
                                         Vector3D& xyzOut,
@@ -404,7 +406,8 @@ namespace caret {
                                                         const QRectF& rectangleForReadingRect,
                                                         AString& errorMessageOut);
 
-        CziImage* readFromCziImageFile(const AString& imageName,
+        CziImage* readFromCziImageFile(const ImageDataFormat imageDataFormat,
+                                       const AString& imageName,
                                        const QRectF& regionOfInterest,
                                        const QRectF& frameRegionOfInterest,
                                        const int64_t outputImageWidthHeightMaximum,

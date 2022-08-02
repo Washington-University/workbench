@@ -370,7 +370,12 @@ BrainOpenGLMediaCoordinateDrawing::drawModelLayers(const BrainOpenGLViewportCont
 
         GraphicsPrimitiveV3fT2f* primitive(mediaFile->getGraphicsPrimitiveForPlaneXyzDrawing(selectionData.m_tabIndex,
                                                                                              selectionData.m_overlayIndex));
-        CaretAssert(primitive);
+        if (primitive == NULL) {
+            /*
+             * If a CZI image is completely offscreen there may be no data to load for it
+             */
+            continue;
+        }
 
         glPushMatrix();
         

@@ -2325,12 +2325,10 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
         QAction* copyMoveFileContentAction     = NULL;
         QAction* editMetaDataAction            = NULL;
         QAction* exportCziToImageFileAction    = NULL;
-        QAction* exportToPngCoordImageFileAction = NULL;
         QAction* setFileNameAction             = NULL;
         QAction* showFileInformationAction     = NULL;
         QAction* setStructureAction            = NULL;
         QAction* unloadFileMapsAction          = NULL;
-        QAction* viewMetaDataAction            = NULL;
         
         QMenu menu;
         switch (m_dialogMode) {
@@ -2350,7 +2348,6 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                         }
                         if (caretDataFile->getDataFileType() == DataFileTypeEnum::CZI_IMAGE_FILE) {
                             exportCziToImageFileAction = menu.addAction("Export to Image File...");
-                            exportToPngCoordImageFileAction = menu.addAction("Export to PNG Coord Image File...");
                         }
                         setFileNameAction = menu.addAction("Set File Name...");
                         showFileInformationAction = menu.addAction("Show File Information...");
@@ -2420,19 +2417,6 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                                                           cziImageFile,
                                                           this);
                 cziImageExportDialog.exec();
-            }
-            else if (selectedAction == exportToPngCoordImageFileAction) {
-                CaretAssert(caretDataFile);
-                CziImageFile* cziImageFile = caretDataFile->castToCziImageFile();
-                CaretAssert(cziImageFile);
-                
-                CziImageExportDialog cziImageExportDialog(CziImageExportDialog::ExportType::PNG_COORD_IMAGE,
-                                                          cziImageFile,
-                                                          this);
-                cziImageExportDialog.exec();
-            }
-            else if (selectedAction == viewMetaDataAction) {
-                
             }
             else if (selectedAction != NULL) {
                 CaretAssertMessage(0,

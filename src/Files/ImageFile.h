@@ -274,7 +274,11 @@ private:
     
     bool isImageTextureCompressed() const;
     
-    QImage* m_image;
+    void verifyFormatCompatibleWithOpenGL() const;
+    
+    GraphicsPrimitiveV3fT2f* createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordMode) const;
+    
+    mutable QImage* m_image;
     
     mutable bool m_sceneCreatedBeforeDefaultScaling = false;
     

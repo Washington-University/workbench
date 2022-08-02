@@ -461,50 +461,122 @@ MediaFile::resetMatrices()
 }
 
 /**
+ * @return True if scaled to plane matrix is valid
+ */
+bool
+MediaFile::isScaledToPlaneMatrixValid() const
+{
+    return m_scaledToPlaneMatrixValidFlag;
+}
+
+
+/**
  * @return The scaled to plane matrix
  * converts normalized pixel (0 to 1) to plane coordinate
+ * @param validFlagOut
+ *    Pointer to boolean.  If not NULL, will be true if matrix is valid, else false.
  */
 Matrix4x4
-MediaFile::getScaledToPlaneMatrix() const
+MediaFile::getScaledToPlaneMatrix(bool* validFlagOut) const
 {
+    if (validFlagOut != NULL) {
+        *validFlagOut = m_scaledToPlaneMatrixValidFlag;
+    }
     return m_scaledToPlaneMatrix;
 }
 
 /**
+ * @return True if pixel index to plane matrix is valid
+ */
+bool
+MediaFile::isPixelIndexToPlaneMatrixValid() const
+{
+    return m_pixelIndexToPlaneMatrixValidFlag;
+}
+
+
+/**
  * @return The pixel to plane matrix
  * Converts a pixel specified by [0 to 1] for X/Y to "plane coordinates"
+ * @param validFlagOut
+ *    Pointer to boolean.  If not NULL, will be true if matrix is valid, else false.
  */
 Matrix4x4
-MediaFile::getPixelIndexToPlaneMatrix() const
+MediaFile::getPixelIndexToPlaneMatrix(bool* validFlagOut) const
 {
+    if (validFlagOut != NULL) {
+        *validFlagOut = m_pixelIndexToPlaneMatrixValidFlag;
+    }
     return m_pixelIndexToPlaneMatrix;
+}
+
+/**
+ * @return True if plane to pixel index matrix is valid
+ */
+bool
+MediaFile::isPlaneToPixelIndexMatrixValid() const
+{
+    return m_planeToPixelIndexMatrixValidFlag;
 }
 
 /**
  * @return The plane to pixel matrix
  * Converts plane coordinate to a pixel specified by [0 to 1]
+ * @param validFlagOut
+ *    Pointer to boolean.  If not NULL, will be true if matrix is valid, else false.
  */
 Matrix4x4
-MediaFile::getPlaneToPixelIndexMatrix() const
+MediaFile::getPlaneToPixelIndexMatrix(bool* validFlagOut) const
 {
+    if (validFlagOut != NULL) {
+        *validFlagOut = m_planeToPixelIndexMatrixValidFlag;
+    }
    return m_planeToPixelIndexMatrix;
 }
 
 /**
+ * @return True if plane to millimeters matrix is valid
+ */
+bool
+MediaFile::isPlaneToMillimetersMatrixValid() const
+{
+    return m_planeToMillimetersMatrixValidFlag;
+}
+
+/**
  * @return Matrix that converts from plane coordiantes to millimeters
+ * @param validFlagOut
+ *    Pointer to boolean.  If not NULL, will be true if matrix is valid, else false.
  */
 Matrix4x4
-MediaFile::getPlaneToMillimetersMatrix() const
+MediaFile::getPlaneToMillimetersMatrix(bool* validFlagOut) const
 {
+    if (validFlagOut != NULL) {
+        *validFlagOut = m_planeToMillimetersMatrixValidFlag;;
+    }
     return m_planeToMillimetersMatrix;
 }
 
 /**
+ * @return True if millimeters to plane matrix is valid
+ */
+bool
+MediaFile::isMillimetersToPlaneMatrixValid() const
+{
+    return m_millimetersToPlaneMatrixValidFlag;
+}
+
+/**
  * @return Matrix that converts from millimeters coordiantes to plane coordinates
+ * @param validFlagOut
+ *    Pointer to boolean.  If not NULL, will be true if matrix is valid, else false.
  */
 Matrix4x4
-MediaFile::getMillimetersToPlaneMatrix() const
+MediaFile::getMillimetersToPlaneMatrix(bool* validFlagOut) const
 {
+    if (validFlagOut != NULL) {
+        *validFlagOut = m_millimetersToPlaneMatrixValidFlag;;
+    }
     return m_millimetersToPlaneMatrix;
 }
 

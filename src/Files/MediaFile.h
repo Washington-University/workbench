@@ -218,15 +218,25 @@ namespace caret {
 
         virtual BoundingBox getPlaneXyzBoundingBox() const;
         
-        Matrix4x4 getScaledToPlaneMatrix() const;
+        bool isScaledToPlaneMatrixValid() const;
         
-        Matrix4x4 getPixelIndexToPlaneMatrix() const;
+        Matrix4x4 getScaledToPlaneMatrix(bool* validFlagOut = NULL) const;
         
-        Matrix4x4 getPlaneToPixelIndexMatrix() const;
+        bool isPixelIndexToPlaneMatrixValid() const;
         
-        Matrix4x4 getPlaneToMillimetersMatrix() const;
+        Matrix4x4 getPixelIndexToPlaneMatrix(bool* validFlagOut = NULL) const;
         
-        Matrix4x4 getMillimetersToPlaneMatrix() const;
+        bool isPlaneToPixelIndexMatrixValid() const;
+        
+        Matrix4x4 getPlaneToPixelIndexMatrix(bool* validFlagOut = NULL) const;
+        
+        bool isPlaneToMillimetersMatrixValid() const;
+        
+        Matrix4x4 getPlaneToMillimetersMatrix(bool* validFlagOut = NULL) const;
+        
+        bool isMillimetersToPlaneMatrixValid() const;
+        
+        Matrix4x4 getMillimetersToPlaneMatrix(bool* validFlagOut = NULL) const;
         
         // ADD_NEW_METHODS_HERE
           

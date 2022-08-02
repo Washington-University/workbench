@@ -42,8 +42,7 @@ namespace caret {
 
     public:
         enum class ExportType {
-            ANY_IMAGE,
-            PNG_COORD_IMAGE
+            ANY_IMAGE
         };
         
         CziImageExportDialog(const ExportType exportType,
@@ -76,6 +75,8 @@ namespace caret {
         
         QCheckBox* m_alphaCheckBox;
         
+        QCheckBox* m_matricesCheckBox;
+        
         QSpinBox* m_maximumWidthHeightSpinBox;
         
         QCheckBox* m_maximumWidthHeightCheckBox;
@@ -88,9 +89,14 @@ namespace caret {
         
         static bool s_lastAlphaSelectedFlag;
         
+        static bool s_lastMatricesSelectedFlag;
+        
         static int s_lastImageDimensionValue;
         
         static bool s_lastImageDimensionSelectedFlag;
+        
+        static bool s_firstTimeFlag;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
@@ -101,9 +107,13 @@ AString CziImageExportDialog::s_lastFileName;
 
 bool CziImageExportDialog::s_lastAlphaSelectedFlag = false;
 
+bool CziImageExportDialog::s_lastMatricesSelectedFlag = true;
+    
 int CziImageExportDialog::s_lastImageDimensionValue = 4096;
 
 bool CziImageExportDialog::s_lastImageDimensionSelectedFlag = false;
+
+bool CziImageExportDialog::s_firstTimeFlag = true;
     
 #endif // __CZI_IMAGE_EXPORT_DIALOG_DECLARE__
 
