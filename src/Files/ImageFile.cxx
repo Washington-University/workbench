@@ -82,8 +82,11 @@ ImageFile::initializeMembersImageFile()
     m_controlPointFile.grabNew(new ControlPointFile());
     m_fileMetaData.grabNew(new GiftiMetaData());
     m_image = new QImage();
-    m_graphicsPrimitiveForMediaDrawing.reset();
-    m_graphicsPrimitiveForCoordinateMediaDrawing.reset();
+    m_graphicsPrimitive.reset();
+    m_pixelPrimitiveVertexStartIndex = -1;
+    m_pixelPrimitiveVertexCount      = -1;
+    m_planePrimitiveVertexStartIndex = -1;
+    m_planePrimitiveVertexCount      = -1;
 }
 
 /**
@@ -1796,12 +1799,15 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/,
         return NULL;
     }
     
-    if (m_graphicsPrimitiveForMediaDrawing == NULL) {
+    if (m_graphicsPrimitive == NULL) {
         GraphicsPrimitiveV3fT2f* primitive(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::PIXEL));
-        m_graphicsPrimitiveForMediaDrawing.reset(primitive);
+        m_graphicsPrimitive.reset(primitive);
     }
-    
-    return m_graphicsPrimitiveForMediaDrawing.get();
+    CaretAssert(m_pixelPrimitiveVertexStartIndex >= 0);
+    CaretAssert(m_pixelPrimitiveVertexCount > 0);
+    m_graphicsPrimitive->setDrawArrayIndicesSubset(m_pixelPrimitiveVertexStartIndex,
+                                                   m_pixelPrimitiveVertexCount);
+    return m_graphicsPrimitive.get();
 }
 
 /**
@@ -1878,53 +1884,57 @@ ImageFile::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum me
     GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                textureSettings);
     
-    switch (mediaDisplayCoordMode) {
-        case MediaDisplayCoordinateModeEnum::PIXEL:
-        {
-            /*
-             * Coordinates at EDGE of the pixels
-             */
-            const float minX = 0;
-            const float maxX = getWidth();
-            const float minY = 0;
-            const float maxY = getHeight();
-            
-            /*
-             * A Triangle Strip (consisting of two triangles) is used
-             * for drawing the image.
-             * The order of the vertices in the triangle strip is
-             * Top Left, Bottom Left, Top Right, Bottom Right.
-             * ORIGIN IS AT TOP LEFT
-             */
-            const float minTextureST(0.0);
-            const float maxTextureST(1.0);
-            primitive->addVertex(minX, minY, minTextureST, minTextureST);  /* Top Left */
-            primitive->addVertex(minX, maxY, minTextureST, maxTextureST);  /* Bottom Left */
-            primitive->addVertex(maxX, minY, maxTextureST, minTextureST);  /* Top Right */
-            primitive->addVertex(maxX, maxY, maxTextureST, maxTextureST);  /* Bottom Right */
-        }
-            break;
-        case MediaDisplayCoordinateModeEnum::PLANE:
-        {
-            /*
-             * A Triangle Strip (consisting of two triangles) is used
-             * for drawing the image.
-             * The order of the vertices in the triangle strip is
-             * Top Left, Bottom Left, Top Right, Bottom Right.
-             * ORIGIN IS AT TOP LEFT
-             */
-            const float minTextureST(0.0);
-            const float maxTextureST(1.0);
-            const Vector3D coordinateTopLeft(getPlaneXyzTopLeft());
-            const Vector3D coordinateTopRight(getPlaneXyzTopRight());
-            const Vector3D coordinateBottomLeft(getPlaneXyzBottomLeft());
-            const Vector3D coordinateBottomRight(getPlaneXyzBottomRight());
-            primitive->addVertex(coordinateTopLeft[0],     coordinateTopLeft[1],     minTextureST, minTextureST);  /* Top Left */
-            primitive->addVertex(coordinateBottomLeft[0],  coordinateBottomLeft[1],  minTextureST, maxTextureST);  /* Bottom Left */
-            primitive->addVertex(coordinateTopRight[0],    coordinateTopRight[1],    maxTextureST, minTextureST);  /* Top Right */
-            primitive->addVertex(coordinateBottomRight[0], coordinateBottomRight[1], maxTextureST, maxTextureST);  /* Bottom Right */
-        }
-            break;
+    /*
+     * Create a primitive for PIXEL coordinates
+     *
+     * Coordinates at EDGE of the pixels
+     */
+    const float minX = 0;
+    const float maxX = getWidth();
+    const float minY = 0;
+    const float maxY = getHeight();
+    
+    /*
+     * A Triangle Strip (consisting of two triangles) is used
+     * for drawing the image.
+     * The order of the vertices in the triangle strip is
+     * Top Left, Bottom Left, Top Right, Bottom Right.
+     * ORIGIN IS AT TOP LEFT
+     */
+    const float minTextureST(0.0);
+    const float maxTextureST(1.0);
+    m_pixelPrimitiveVertexStartIndex = primitive->getNumberOfVertices();
+    primitive->addVertex(minX, minY, minTextureST, minTextureST);  /* Top Left */
+    primitive->addVertex(minX, maxY, minTextureST, maxTextureST);  /* Bottom Left */
+    primitive->addVertex(maxX, minY, maxTextureST, minTextureST);  /* Top Right */
+    primitive->addVertex(maxX, maxY, maxTextureST, maxTextureST);  /* Bottom Right */
+    m_pixelPrimitiveVertexCount = (primitive->getNumberOfVertices()
+                                   - m_pixelPrimitiveVertexStartIndex);
+    
+    /*
+     * Create a primitive for plane coordinates if available
+     */
+    if (isPlaneXyzSupported()) {
+        /*
+         * A Triangle Strip (consisting of two triangles) is used
+         * for drawing the image.
+         * The order of the vertices in the triangle strip is
+         * Top Left, Bottom Left, Top Right, Bottom Right.
+         * ORIGIN IS AT TOP LEFT
+         */
+        const float minTextureST(0.0);
+        const float maxTextureST(1.0);
+        const Vector3D coordinateTopLeft(getPlaneXyzTopLeft());
+        const Vector3D coordinateTopRight(getPlaneXyzTopRight());
+        const Vector3D coordinateBottomLeft(getPlaneXyzBottomLeft());
+        const Vector3D coordinateBottomRight(getPlaneXyzBottomRight());
+        m_planePrimitiveVertexStartIndex = primitive->getNumberOfVertices();
+        primitive->addVertex(coordinateTopLeft[0],     coordinateTopLeft[1],     minTextureST, minTextureST);  /* Top Left */
+        primitive->addVertex(coordinateBottomLeft[0],  coordinateBottomLeft[1],  minTextureST, maxTextureST);  /* Bottom Left */
+        primitive->addVertex(coordinateTopRight[0],    coordinateTopRight[1],    maxTextureST, minTextureST);  /* Top Right */
+        primitive->addVertex(coordinateBottomRight[0], coordinateBottomRight[1], maxTextureST, maxTextureST);  /* Bottom Right */
+        m_planePrimitiveVertexCount = (primitive->getNumberOfVertices()
+                                       - m_planePrimitiveVertexStartIndex);
     }
     
     return primitive;
@@ -2500,12 +2510,15 @@ ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t /*tabIndex*/,
         return NULL;
     }
     
-    if (m_graphicsPrimitiveForCoordinateMediaDrawing == NULL) {
+    if (m_graphicsPrimitive == NULL) {
         GraphicsPrimitiveV3fT2f* primitive(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::PLANE));
-        m_graphicsPrimitiveForCoordinateMediaDrawing.reset(primitive);
+        m_graphicsPrimitive.reset(primitive);
     }
-    
-    return m_graphicsPrimitiveForCoordinateMediaDrawing.get();
+    CaretAssert(m_planePrimitiveVertexStartIndex >= 0);
+    CaretAssert(m_planePrimitiveVertexCount > 0);
+    m_graphicsPrimitive->setDrawArrayIndicesSubset(m_planePrimitiveVertexStartIndex,
+                                                   m_planePrimitiveVertexCount);
+    return m_graphicsPrimitive.get();
 }
 
 /**

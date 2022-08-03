@@ -427,11 +427,8 @@ namespace caret {
         
         void setFloatYComponents(const std::vector<float>& yComponents);
         
-        /**
-         * @return The number of vertices
-         */
-        inline int32_t getNumberOfVertices() const { return (m_xyz.size() / 3); }
-        
+        int32_t getNumberOfVertices() const;
+
         void replaceVertexFloatXYZ(const int32_t vertexIndex,
                                    const float xyz[3]);
         
@@ -462,6 +459,12 @@ namespace caret {
         bool getVertexBounds(BoundingBox& boundingBoxOut) const;
         
         void addPrimitiveRestart();
+        
+        bool getDrawArrayIndicesSubset(int32_t& firstVertexIndexOut,
+                                       int32_t& vertexCountOut) const;
+        
+        void setDrawArrayIndicesSubset(const int32_t firstVertexIndex,
+                                       const int32_t vertexCount) const;
         
         void getPointDiameter(PointSizeType& sizeTypeOut,
                               float& pointDiameterOut) const;
@@ -564,6 +567,10 @@ namespace caret {
         mutable float m_sphereDiameterValue = 1.0f;
         
         mutable std::unique_ptr<BoundingBox> m_boundingBox;
+        
+        mutable int32_t m_arrayIndicesSubsetFirstVertexIndex = -1;
+        
+        mutable int32_t m_arrayIndicesSubsetCount = -1;
         
         std::set<int32_t> m_polygonalLinePrimitiveRestartIndices;
         

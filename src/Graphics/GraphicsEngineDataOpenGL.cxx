@@ -1852,7 +1852,20 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     }
     
     CaretAssert(openGLPrimitiveType != GL_INVALID_ENUM);
-    glDrawArrays(openGLPrimitiveType, 0, openglData->m_arrayIndicesCount);
+    
+    int32_t subsetFirstVertexIndex(-1);
+    int32_t subsetVertexCount(-1);
+    if (primitive->getDrawArrayIndicesSubset(subsetFirstVertexIndex,
+                                             subsetVertexCount)) {
+        glDrawArrays(openGLPrimitiveType,
+                     subsetFirstVertexIndex,
+                     subsetVertexCount);
+    }
+    else {
+        glDrawArrays(openGLPrimitiveType,
+                     0, /* first index */
+                     openglData->m_arrayIndicesCount);
+    }
     
     /*
      * Disable drawing

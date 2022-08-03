@@ -118,6 +118,13 @@ namespace caret {
         
         GLsizei m_arrayIndicesCount = 0;
         
+        void setDrawArrayIndicesSubset(const GLint firstVertexIndex,
+                                       const GLsizei vertexCount) const;
+        
+        mutable GLint m_arrayIndicesSubsetFirstVertex = -1;
+        
+        mutable GLsizei m_arrayIndicesSubsetCount = -1;
+        
         std::unique_ptr<GraphicsOpenGLBufferObject> m_coordinateBufferObject;
         
         GLenum m_coordinateDataType = GL_FLOAT;

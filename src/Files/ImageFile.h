@@ -289,10 +289,16 @@ private:
     CaretPointer<ControlPointFile> m_controlPointFile;
     
     mutable std::unique_ptr<RectangleTransform> m_pixelBottomLeftToTopLeftTransform;
+
+    mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitive;
+
+    mutable int32_t m_pixelPrimitiveVertexStartIndex = -1;
     
-    mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForMediaDrawing;
+    mutable int32_t m_pixelPrimitiveVertexCount = -1;
     
-    mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForCoordinateMediaDrawing;
+    mutable int32_t m_planePrimitiveVertexStartIndex = -1;
+    
+    mutable int32_t m_planePrimitiveVertexCount = -1;
     
     static const AString SCENE_VERSION_NUMBER;
 

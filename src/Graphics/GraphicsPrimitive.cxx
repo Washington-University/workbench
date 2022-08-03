@@ -166,6 +166,8 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
     m_sphereSizeType              = obj.m_sphereSizeType;
     m_sphereDiameterValue         = obj.m_sphereDiameterValue;
     m_textureSettings             = obj.m_textureSettings;
+    m_arrayIndicesSubsetFirstVertexIndex = obj.m_arrayIndicesSubsetFirstVertexIndex;
+    m_arrayIndicesSubsetCount     = obj.m_arrayIndicesSubsetCount;
     invalidateVertexMeasurements();
 
 
@@ -1064,6 +1066,16 @@ GraphicsPrimitive::setFloatYComponents(const std::vector<float>& yComponents)
 }
 
 /**
+ * @return Number of vertices in primitive
+ */
+int32_t
+GraphicsPrimitive::getNumberOfVertices() const
+{
+    const int32_t numVertices(m_xyz.size() / 3);
+    return numVertices;
+}
+
+/**
  * Replace the XYZ coordinate at the given index
  *
  * @param vertexIndex
@@ -1478,9 +1490,18 @@ GraphicsPrimitive::getVertexBounds(BoundingBox& boundingBoxOut) const
         }
         m_boundingBox->resetForUpdate();
         
-        const int32_t numberOfVertices = static_cast<int32_t>(m_xyz.size() / 3);
+        int32_t firstVertexIndex(0);
+        int32_t numberOfVertices(static_cast<int32_t>(m_xyz.size() / 3));
+        int32_t subsetFirstVertex(-1);
+        int32_t subsetVertexCount(-1);
+        if (getDrawArrayIndicesSubset(subsetFirstVertex,
+                                      subsetVertexCount)) {
+            firstVertexIndex  = subsetFirstVertex;
+            numberOfVertices  = subsetVertexCount;
+        }
+        
         for (int32_t i = 0; i < numberOfVertices; i++) {
-            const int32_t i3 = i * 3;
+            const int32_t i3 = (firstVertexIndex + i) * 3;
             CaretAssertVectorIndex(m_xyz, i3 + 2);
             m_boundingBox->updateExcludeNanInf(&m_xyz[i3]);
         }
@@ -1491,6 +1512,45 @@ GraphicsPrimitive::getVertexBounds(BoundingBox& boundingBoxOut) const
     boundingBoxOut = *m_boundingBox;
     return m_boundingBoxValid;
 }
+
+/**
+ * Get indices for drawing a subset of the coordinates in the primitive
+ * @param firstVertexIndexOut
+ *    Output with index of first vertex to draw
+ * @param vertexCountOut
+ *    Output with number of vertices to draw starting at firstVertexIndexOut
+ * @return
+ *    True if the output first vertex and count are valid.
+ *    False implies that all vertices should be drawn.
+ */
+bool
+GraphicsPrimitive::getDrawArrayIndicesSubset(int32_t& firstVertexIndexOut,
+                                             int32_t& vertexCountOut) const
+{
+    firstVertexIndexOut = m_arrayIndicesSubsetFirstVertexIndex;
+    vertexCountOut      = m_arrayIndicesSubsetCount;
+    return ((firstVertexIndexOut >= 0)
+            && (vertexCountOut > 0));
+}
+
+/**
+ * Set indices for drawing a subset of the coordinates in the primitive.
+ * Set to negative numbers to disable drawing a subset of vertices and instead
+ * draw all of the vertices.
+ * @param firstVertexIndex
+ *    Index of first vertex to draw
+ * @param vertexCount
+ *    Number of vertices to draw starting at firstVertexIndexOut
+ */
+void
+GraphicsPrimitive::setDrawArrayIndicesSubset(const int32_t firstVertexIndex,
+                               const int32_t vertexCount) const
+{
+    m_arrayIndicesSubsetFirstVertexIndex = firstVertexIndex;
+    m_arrayIndicesSubsetCount       = vertexCount;
+    m_boundingBoxValid              = false;
+}
+
 
 /**
  * There may be instances where a primitive should stop and restart at
