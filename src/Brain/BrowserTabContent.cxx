@@ -1241,6 +1241,14 @@ BrowserTabContent::getMediaDisplayCoordinateMode() const
 void
 BrowserTabContent::setMediaDisplayCoordinateMode(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordinateMode)
 {
+    if (mediaDisplayCoordinateMode != m_mediaDisplayCoordinateMode) {
+        /*
+         * Reset the view.  The pixel/plane coordinates may be substantially
+         * different and if this is not done, the images may not be seen
+         * until the Reset button is clicked.
+         */
+        resetView();
+    }
     m_mediaDisplayCoordinateMode = mediaDisplayCoordinateMode;
 }
 
