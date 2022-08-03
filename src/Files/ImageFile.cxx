@@ -1845,6 +1845,9 @@ ImageFile::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum me
         case QImage::Format_RGB32:  /* Contains alpha that is always 255 */
             pixelFormat = GraphicsTextureSettings::PixelFormatType::BGRX;
             break;
+        case QImage::Format_RGB888:
+            pixelFormat = GraphicsTextureSettings::PixelFormatType::RGB;
+            break;
         case QImage::Format_ARGB32:
             pixelFormat = GraphicsTextureSettings::PixelFormatType::BGRA;
             break;
@@ -1933,13 +1936,17 @@ ImageFile::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum me
 void
 ImageFile::verifyFormatCompatibleWithOpenGL() const
 {
-    if ((m_image->format() != QImage::Format_RGB32)
+    /*
+     * Using RGB888 (3 bytes per pixel) in place of RGB32 (4 bytes per pixel
+     * with an alpha that is always 0xff) saves 25% in memory usage
+     */
+    if ((m_image->format() != QImage::Format_RGB888)
         && (m_image->format() != QImage::Format_ARGB32)) {
         if (m_image->hasAlphaChannel()) {
             m_image->convertTo(QImage::Format_ARGB32);
         }
         else {
-            m_image->convertTo(QImage::Format_RGB32);
+            m_image->convertTo(QImage::Format_RGB888);
         }
     }
 }
