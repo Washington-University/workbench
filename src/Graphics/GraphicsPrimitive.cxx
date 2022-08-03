@@ -434,6 +434,8 @@ GraphicsPrimitive::isValid() const
                     break;
                 case GraphicsTextureSettings::PixelFormatType::BGRA:
                     break;
+                case GraphicsTextureSettings::PixelFormatType::BGRX:
+                    break;
                 case GraphicsTextureSettings::PixelFormatType::RGB:
                     break;
                 case GraphicsTextureSettings::PixelFormatType::RGBA:
@@ -1824,6 +1826,9 @@ GraphicsPrimitive::getTexturePixelFormatBytesPerPixel() const
             numBytesPerPixel = 3;
             break;
         case GraphicsTextureSettings::PixelFormatType::BGRA:
+            numBytesPerPixel = 4;
+            break;
+        case GraphicsTextureSettings::PixelFormatType::BGRX:
             numBytesPerPixel = 4;
             break;
         case GraphicsTextureSettings::PixelFormatType::RGB:

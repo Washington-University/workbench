@@ -1843,7 +1843,7 @@ ImageFile::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum me
     GraphicsTextureSettings::PixelFormatType pixelFormat(GraphicsTextureSettings::PixelFormatType::BGRA);
     switch (m_image->format()) {
         case QImage::Format_RGB32:  /* Contains alpha that is always 255 */
-            pixelFormat = GraphicsTextureSettings::PixelFormatType::BGRA;
+            pixelFormat = GraphicsTextureSettings::PixelFormatType::BGRX;
             break;
         case QImage::Format_ARGB32:
             pixelFormat = GraphicsTextureSettings::PixelFormatType::BGRA;

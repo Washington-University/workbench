@@ -68,6 +68,10 @@ namespace caret {
             BGR,
             /** Blue, green, red, alpha */
             BGRA,
+            /**
+             * Blue green, red, and an alpha that is always 255 Qt's QImage::Format_RGB32
+             * From QImage Doc: The image is stored using a 32-bit RGB format (0xffRRGGBB).*/
+            BGRX,
             /** Red, green, blue */
             RGB,
             /** Red, green, blue, alpha */

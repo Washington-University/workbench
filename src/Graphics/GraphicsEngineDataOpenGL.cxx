@@ -449,33 +449,66 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
                 break;
         }
         
-        GLenum pixelDataFormat = GL_RGBA;
+        /*
+         * "pixelDataFormat" is the format of the image data that
+         * is pointed to by imageBytesRGBA.
+         *
+         * "internalFormat" is how OpenGL will store the data in
+         * the texture memory.
+         */
+        GLenum internalFormat(GL_INVALID_VALUE);
+        GLenum pixelDataFormat(GL_INVALID_VALUE);
         switch (primitive->getTextureSettings().getPixelFormatType()) {
             case GraphicsTextureSettings::PixelFormatType::NONE:
                 break;
             case GraphicsTextureSettings::PixelFormatType::BGR:
+                internalFormat  = GL_RGB;
                 pixelDataFormat = GL_BGR;
                 break;
             case GraphicsTextureSettings::PixelFormatType::BGRA:
+                internalFormat  = GL_RGBA;
+                pixelDataFormat = GL_BGRA;
+                break;
+            case GraphicsTextureSettings::PixelFormatType::BGRX:
+                /*
+                 * BGRX is a 32 bit Qt QImage Format.
+                 * It includes an alpha that is always 255.
+                 * Thus the alpha is not needed in the texture.
+                 */
+                internalFormat  = GL_RGB;
                 pixelDataFormat = GL_BGRA;
                 break;
             case GraphicsTextureSettings::PixelFormatType::RGB:
+                internalFormat  = GL_RGB;
                 pixelDataFormat = GL_RGB;
                 break;
             case GraphicsTextureSettings::PixelFormatType::RGBA:
+                internalFormat  = GL_RGBA;
                 pixelDataFormat = GL_RGBA;
                 break;
         }
+        CaretAssert(pixelDataFormat != GL_INVALID_VALUE);
+        CaretAssert((internalFormat == GL_RGB)
+                    || (internalFormat == GL_RGBA));
+        
         /*
          * Texture compression
          */
-        GLenum internalFormat(GL_RGBA);
         switch (textureSettings.getCompressionType()) {
             case GraphicsTextureSettings::CompressionType::DISABLED:
-                internalFormat = GL_RGBA;
                 break;
             case GraphicsTextureSettings::CompressionType::ENABLED:
-                internalFormat = GL_COMPRESSED_RGBA;
+                switch (internalFormat) {
+                    case GL_RGB:
+                        internalFormat = GL_COMPRESSED_RGB;
+                        break;
+                    case GL_RGBA:
+                        internalFormat = GL_COMPRESSED_RGBA;
+                        break;
+                    default:
+                        CaretAssert(0);
+                        break;
+                }
                 break;
         }
 
@@ -692,6 +725,9 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
             pixelDataFormat = GL_BGR;
             break;
         case GraphicsTextureSettings::PixelFormatType::BGRA:
+            pixelDataFormat = GL_BGRA;
+            break;
+        case GraphicsTextureSettings::PixelFormatType::BGRX:
             pixelDataFormat = GL_BGRA;
             break;
         case GraphicsTextureSettings::PixelFormatType::RGB:
