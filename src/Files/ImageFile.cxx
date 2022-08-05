@@ -1800,7 +1800,7 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/,
     }
     
     if (m_graphicsPrimitive == NULL) {
-        GraphicsPrimitiveV3fT2f* primitive(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::PIXEL));
+        GraphicsPrimitiveV3fT2f* primitive(createGraphicsPrimitive());
         m_graphicsPrimitive.reset(primitive);
     }
     CaretAssert(m_pixelPrimitiveVertexStartIndex >= 0);
@@ -1811,12 +1811,10 @@ ImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t /*tabIndex*/,
 }
 
 /**
- * @return A new graphics primitive for loaded data
- * @param mediaDisplayCoordMode
- *    The media display coordinate mode
+ * @return A new graphics primitive for loaded data for both coordinate types
  */
 GraphicsPrimitiveV3fT2f*
-ImageFile::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordMode) const
+ImageFile::createGraphicsPrimitive() const
 {
     /*
      * If image is too big for OpenGL texture limits, scale image to acceptable size
@@ -2511,7 +2509,7 @@ ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t /*tabIndex*/,
     }
     
     if (m_graphicsPrimitive == NULL) {
-        GraphicsPrimitiveV3fT2f* primitive(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::PLANE));
+        GraphicsPrimitiveV3fT2f* primitive(createGraphicsPrimitive());
         m_graphicsPrimitive.reset(primitive);
     }
     CaretAssert(m_planePrimitiveVertexStartIndex >= 0);

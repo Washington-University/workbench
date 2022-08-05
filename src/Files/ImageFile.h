@@ -276,7 +276,7 @@ private:
     
     void verifyFormatCompatibleWithOpenGL() const;
     
-    GraphicsPrimitiveV3fT2f* createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordMode) const;
+    GraphicsPrimitiveV3fT2f* createGraphicsPrimitive() const;
     
     mutable QImage* m_image;
     
