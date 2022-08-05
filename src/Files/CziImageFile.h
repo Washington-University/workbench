@@ -467,6 +467,8 @@ namespace caret {
         
         std::shared_ptr<libCZI::ISingleChannelPyramidLayerTileAccessor> m_pyramidLayerTileAccessor;
         
+        std::shared_ptr<libCZI::IDisplaySettings> m_displaySettings;
+        
         CziSceneInfo m_allFramesPyramidInfo;
         
         std::vector<CziSceneInfo> m_cziScenePyramidInfos;

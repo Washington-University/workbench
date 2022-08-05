@@ -475,6 +475,8 @@ CziImageFile::readMetaData()
                 m_pixelSizeMmX = scalingInfo.scaleX * 1000.0;
                 m_pixelSizeMmY = scalingInfo.scaleY * 1000.0;
                 m_pixelSizeMmZ = scalingInfo.scaleZ * 1000.0;
+                
+                m_displaySettings = docInfo->GetDisplaySettings();
             }
         }
     }
@@ -880,17 +882,13 @@ CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
          * get the display-setting from the document's metadata
          * Replaced 'auto' with actual data types to know what they are
          */
-        std::shared_ptr<libCZI::IMetadataSegment> mds(m_reader->ReadMetadataSegment());
-        std::shared_ptr<libCZI::ICziMetadata> md(mds->CreateMetaFromMetadataSegment());
-        std::shared_ptr<libCZI::ICziMultiDimensionDocumentInfo> docInfo(md->GetDocumentInfo());
-        std::shared_ptr<libCZI::IDisplaySettings> dsplSettings(docInfo->GetDisplaySettings());
 
         /* get the tile-composite for all channels (which are marked 'active' in the display-settings) */
         std::vector<std::shared_ptr<libCZI::IBitmapData>> actvChBms;
         int index = 0;  /* index counting only the active channels */
         std::map<int, int> activeChNoToChIdx;   /* we need to keep track which 'active channels" corresponds to which channel index */
 
-        libCZI::CDisplaySettingsHelper::EnumEnabledChannels(dsplSettings.get(),
+        libCZI::CDisplaySettingsHelper::EnumEnabledChannels(m_displaySettings.get(),
                                                             [&](int chIdx)->bool
                                                             {
             libCZI::CDimCoordinate planeCoord{ { libCZI::DimensionIndex::C, chIdx } };
@@ -907,7 +905,7 @@ CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
          * (for each active channel)
          */
         libCZI::CDisplaySettingsHelper dsplHlp;
-        dsplHlp.Initialize(dsplSettings.get(),
+        dsplHlp.Initialize(m_displaySettings.get(),
                            [&](int chIdx)->libCZI::PixelType { return actvChBms[activeChNoToChIdx[chIdx]]->GetPixelType(); });
 
         /*
