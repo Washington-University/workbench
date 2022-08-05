@@ -21,8 +21,7 @@
  */
 /*LICENSE_END*/
 
-
-
+#include <array>
 #include <memory>
 
 #include "CaretObject.h"
