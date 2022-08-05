@@ -85,7 +85,7 @@ CaretPreferences::CaretPreferences()
                                                                             "m_imageFileTextureCompressionEnabled",
                                                                             CaretPreferenceDataValue::DataType::BOOLEAN,
                                                                             CaretPreferenceDataValue::SavedInScene::SAVE_NO,
-                                                                            false));
+                                                                            true));
     
     m_guiGesturesEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
                                                             "guiGesturesEnabled",
