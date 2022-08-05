@@ -23,6 +23,8 @@
 #include "BrainOpenGLMediaCoordinateDrawing.h"
 #undef __BRAIN_OPEN_G_L_MEDIA_COORDINATE_DRAWING_DECLARE__
 
+#include <cmath>
+
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLIdentificationDrawing.h"

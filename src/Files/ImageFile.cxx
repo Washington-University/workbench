@@ -1951,10 +1951,18 @@ ImageFile::verifyFormatCompatibleWithOpenGL() const
     if ((m_image->format() != QImage::Format_RGB888)
         && (m_image->format() != QImage::Format_ARGB32)) {
         if (m_image->hasAlphaChannel()) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
             m_image->convertTo(QImage::Format_ARGB32);
+#else
+            *m_image = m_image->convertToFormat(QImage::Format_ARGB32);
+#endif
         }
         else {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
             m_image->convertTo(QImage::Format_RGB888);
+#else
+            *m_image = m_image->convertToFormat(QImage::Format_RGB888);
+#endif
         }
     }
 }

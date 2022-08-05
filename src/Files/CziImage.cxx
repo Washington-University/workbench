@@ -499,7 +499,11 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
             break;
         case ImageStorageFormat::Q_IMAGE:
             if (m_qimageData->format() != QImage::Format_ARGB32) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
                 m_qimageData->convertTo(QImage::Format_ARGB32);
+#else
+                *m_qimageData = m_qimageData->convertToFormat(QImage::Format_ARGB32);
+#endif
             }
             validRGBA = (m_qimageData->format() == QImage::Format_ARGB32);
             if (validRGBA) {

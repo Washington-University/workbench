@@ -200,7 +200,7 @@ namespace caret {
         
         GraphicsTextureMinificationFilterEnum::Enum m_minificationFilter = GraphicsTextureMinificationFilterEnum::LINEAR;
         
-        std::array<float, 4> m_borderColor = { 0.0f, 0.0f, 0.0f, 0.0f };
+        std::array<float, 4> m_borderColor;
         
         int32_t m_unpackAlignment = 4;
         

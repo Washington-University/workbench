@@ -45,7 +45,7 @@ GraphicsTextureSettings::GraphicsTextureSettings()
 : CaretObject(),
 m_imageBytesPointer(NULL)
 {
-    
+    m_borderColor.fill(0.0f);
 }
 
 /**

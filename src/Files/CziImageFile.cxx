@@ -2794,7 +2794,11 @@ CziImageFile::exportToImageFile(const QString& imageFileName,
                                      ? QImage::Format_ARGB32
                                      : QImage::Format_RGB32);
     if (qImage->format() != imageFormat) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
         qImage->convertTo(imageFormat);
+#else
+        *qImage = qImage->convertToFormat(imageFormat);
+#endif
     }
     
     /*
