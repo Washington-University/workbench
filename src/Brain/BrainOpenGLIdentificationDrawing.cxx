@@ -632,13 +632,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     /*
                      * Drawing media symbol on non-media (surface or volume)
                      */
-                    const Vector3D pixelPlaneXYZ(item->getPixelPlaneCoordinate());
-                    xyz[0] = pixelPlaneXYZ[0];
-                    xyz[1] = pixelPlaneXYZ[1];
-                    xyz[2] = pixelPlaneXYZ[2];
-                    
-                    if (mediaFile->planeXyzToStereotaxicXyz(pixelPlaneXYZ,
-                                                            xyz)) {
+                    if (item->isStereotaxicXYZValid()) {
+                        xyz = item->getStereotaxicXYZ();
                         drawFlag = true;
                     }
                 }
