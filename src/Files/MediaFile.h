@@ -253,6 +253,8 @@ namespace caret {
         
         virtual void resetMatrices();
         
+        void addPlaneCoordsToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        
         /**
          * @return Metadata name for scaled to plane matrix
          */
@@ -286,6 +288,17 @@ namespace caret {
                               const AString& name);
 
         void resetMatricesPrivate();
+        
+        /**
+         * Swap the X & Y components of a vector
+         * @param vector
+         *    Vector whose X & Y components are swapped
+         */
+        static inline void swapVectorXY(Vector3D& vector) {
+            const float temp(vector[0]);
+            vector[0] = vector[1];
+            vector[1] = temp;
+        }
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
@@ -324,6 +337,8 @@ namespace caret {
         bool m_planeToMillimetersMatrixValidFlag = false;
         
         bool m_millimetersToPlaneMatrixValidFlag = false;
+        
+        bool m_planeMillimetersSwapFlag = true;
     };
     
 #ifdef __MEDIA_FILE_DECLARE__

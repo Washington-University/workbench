@@ -2082,6 +2082,8 @@ ImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
             dataFileInformation.addNameAndValue("Pixels Per Meter", "Unavailable");
         }
         
+        addPlaneCoordsToDataFileContentInformation(dataFileInformation);
+        
         dataFileInformation.addNameAndValue("Color Table", (m_image->colorTable().empty()
                                                             ? "No"
                                                             : "Yes"));

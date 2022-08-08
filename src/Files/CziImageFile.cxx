@@ -2206,6 +2206,9 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
                                         CziUtilities::qRectToString(m_fullResolutionLogicalRect));
     dataFileInformation.addNameAndValue("Plane XYZ Rect",
                                         CziUtilities::qRectToString(getPlaneXyzRect()));
+    
+    addPlaneCoordsToDataFileContentInformation(dataFileInformation);
+    
 
     m_allFramesPyramidInfo.addToDataFileContentInformation(dataFileInformation, "All Scenes");
     

@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CziUtilities.h"
+#include "DataFileContentInformation.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -391,11 +392,21 @@ MediaFile::planeXyzToLogicalPixelIndex(const Vector3D& planeXyz,
  */
 bool
 MediaFile::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
-                                      Vector3D& stereotaxicXyzOut) const
+                                    Vector3D& stereotaxicXyzOut) const
 {
     if (m_planeToMillimetersMatrixValidFlag) {
-        stereotaxicXyzOut = planeXyz;
-        m_planeToMillimetersMatrix.multiplyPoint3(stereotaxicXyzOut);
+        /*
+         * Note: Matrix has X & Y swapped
+         */
+        Vector3D vec(planeXyz);
+        if (m_planeMillimetersSwapFlag) {
+            swapVectorXY(vec);
+        }
+        m_planeToMillimetersMatrix.multiplyPoint3(vec);
+        if (m_planeMillimetersSwapFlag) {
+            swapVectorXY(vec);
+        }
+        stereotaxicXyzOut = vec;
         return true;
     }
     
@@ -416,8 +427,19 @@ MediaFile::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
                                     Vector3D& planeXyzOut) const
 {
     if (m_millimetersToPlaneMatrixValidFlag) {
-        planeXyzOut = stereotaxicXyz;
-        m_millimetersToPlaneMatrix.multiplyPoint3(planeXyzOut);
+        /*
+         * Note: Matrix has X & Y swapped
+         */
+        Vector3D vec(stereotaxicXyz);
+        if (m_planeMillimetersSwapFlag) {
+            swapVectorXY(vec);
+        }
+        m_millimetersToPlaneMatrix.multiplyPoint3(vec);
+        if (m_planeMillimetersSwapFlag) {
+            swapVectorXY(vec);
+        }
+        planeXyzOut = vec;
+
         return true;
     }
     
@@ -792,6 +814,36 @@ MediaFile::indexToPlaneTest(const Matrix4x4& scaledToPlane,
     std::cout << "   Result Spatial (x, y, z): " << xy[1] << "mm, " << xy[0] << ", " << xy[2] << "mm" << std::endl;
 }
 
+/**
+ * Add information about plane coordinates to the data file information
+ */
+void
+MediaFile::addPlaneCoordsToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    if (m_pixelIndexToPlaneMatrixValidFlag) {
+        dataFileInformation.addNameAndValue("Plane Top Left",     m_planeXyzTopLeft);
+        dataFileInformation.addNameAndValue("Plane Bottom Left",  m_planeXyzBottomLeft);
+        dataFileInformation.addNameAndValue("Plane Bottom Right", m_planeXyzBottomRight);
+        dataFileInformation.addNameAndValue("Plane Top Right",    m_planeXyzTopRight);
+        
+        Vector3D mmTopLeft;
+        Vector3D mmTopRight;
+        Vector3D mmBottomLeft;
+        Vector3D mmBottomRight;
+        if (planeXyzToStereotaxicXyz(m_planeXyzTopLeft, mmTopLeft)
+            && planeXyzToStereotaxicXyz(m_planeXyzBottomLeft, mmBottomLeft)
+            && planeXyzToStereotaxicXyz(m_planeXyzBottomRight, mmBottomRight)
+            && planeXyzToStereotaxicXyz(m_planeXyzTopRight, mmTopRight)) {
+            dataFileInformation.addNameAndValue("MM Top Left",     mmTopLeft);
+            dataFileInformation.addNameAndValue("MM Bottom Left",  mmBottomLeft);
+            dataFileInformation.addNameAndValue("MM Bottom Right", mmBottomRight);
+            dataFileInformation.addNameAndValue("MM Top Right",    mmTopRight);
+        }
+    }
+    else {
+        dataFileInformation.addNameAndValue("Pixe to Plane Matrix", "Invalid");
+    }
+}
 
 /**
  * @return Return a rectangle that defines the bounds of the media data
