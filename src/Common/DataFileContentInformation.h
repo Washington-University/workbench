@@ -25,10 +25,10 @@
 
 #include "CaretObject.h"
 
-
-
 namespace caret {
 
+    class Vector3D;
+    
     class DataFileContentInformation : public CaretObject {
         
     public:
@@ -65,6 +65,9 @@ namespace caret {
         void addNameAndValue(const AString& name,
                              const double value,
                              const int32_t precision = 3);
+        
+        void addNameAndValue(const AString& name,
+                             const Vector3D& vector);
         
         void addNameAndValue(const AString& name,
                              const bool value);

@@ -26,9 +26,9 @@
 #undef __DATA_FILE_CONTENT_INFORMATION_DECLARE__
 
 #include "CaretAssert.h"
+#include "Vector3D.h"
+
 using namespace caret;
-
-
     
 /**
  * \class caret::DataFileContentInformation 
@@ -91,8 +91,6 @@ DataFileContentInformation::addNameAndValue(const AString& name,
 {
     addNameAndValue(name,
                     AString::number(value));
-//    m_namesAndValues.push_back(std::make_pair((name + ":"),
-//                                              AString::number(value)));
 }
 
 /**
@@ -109,8 +107,25 @@ DataFileContentInformation::addNameAndValue(const AString& name,
 {
     addNameAndValue(name,
                     AString::number(value));
-//    m_namesAndValues.push_back(std::make_pair((name + ":"),
-//                                              AString::number(value)));
+}
+
+/**
+ * Add a name and value pair.
+ *
+ * @param name
+ *    The name.
+ * @param value
+ *    The value.
+ * @param precision
+ *    Digits right of decimal
+ */
+void
+DataFileContentInformation::addNameAndValue(const AString& name,
+                                            const double value,
+                                            const int32_t precision)
+{
+    addNameAndValue(name,
+                    AString::number(value, 'f', precision));
 }
 
 /**
@@ -123,13 +138,10 @@ DataFileContentInformation::addNameAndValue(const AString& name,
  */
 void
 DataFileContentInformation::addNameAndValue(const AString& name,
-                                            const double value,
-                                            const int32_t precision)
+                                            const Vector3D& vector)
 {
     addNameAndValue(name,
-                    AString::number(value, 'f', precision));
-//    m_namesAndValues.push_back(std::make_pair((name + ":"),
-//                                              AString::number(value, 'f', precision)));
+                    AString::fromNumbers(vector));
 }
 
 /**
@@ -146,8 +158,6 @@ DataFileContentInformation::addNameAndValue(const AString& name,
 {
     addNameAndValue(name,
                     AString::fromBool(value));
-//    m_namesAndValues.push_back(std::make_pair((name + ":"),
-//                                              AString::fromBool(value)));
 }
 
 /**
