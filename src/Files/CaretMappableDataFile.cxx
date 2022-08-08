@@ -282,8 +282,9 @@ CaretMappableDataFile::applyPaletteColorMappingToAllMaps(const int32_t mapIndex)
     for (int32_t i = 0; i < numMaps; i++) {
         if (i != mapIndex) {
             PaletteColorMapping* pcm = getMapPaletteColorMapping(i);
-                pcm->copy(*mapColoring,
-                          false);
+            const bool copyHistogramAttributesFlag(true);
+            pcm->copy(*mapColoring,
+                      copyHistogramAttributesFlag);
         }
         
         /*

@@ -171,8 +171,9 @@ CopyPaletteColorMappingToFilesDialog::okButtonClicked()
                     const int32_t numMaps = mapFile->getNumberOfMaps();
                     for (int32_t iMap = 0; iMap < numMaps; iMap++) {
                         PaletteColorMapping* pcm = mapFile->getMapPaletteColorMapping(iMap);
+                        const bool copyHistogramAttributesFlag(true);
                         pcm->copy(*m_selectedPaletteColorMapping,
-                                  false);
+                                  copyHistogramAttributesFlag);
                     }
                     mapFile->updateScalarColoringForAllMaps();
                 }
