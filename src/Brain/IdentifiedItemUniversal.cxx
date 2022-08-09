@@ -527,7 +527,6 @@ IdentifiedItemUniversal::initializeInstance()
     m_sceneAssistant->add("m_surfaceVertexIndex", &m_surfaceVertexIndex);
     m_sceneAssistant->add("m_pixelIndex", "PixelLogicalIndex", &m_pixelLogicalIndex); /* "m_pixelIndex" is compatible with old scenes */
     m_sceneAssistant->addArray("m_pixelPlaneCoordinate", m_pixelPlaneCoordinate, 3, 0.0);
-    m_sceneAssistant->addArray("m_pixelPlaneCoordinate", m_pixelPlaneCoordinate, 3, 0.0);
     m_sceneAssistant->addArray("m_voxelIJK", m_voxelIJK.data(), m_voxelIJK.size(), -1);
     m_sceneAssistant->addArray("m_stereotaxicXYZ", m_stereotaxicXYZ, 3, 0.0);
     m_sceneAssistant->add("m_stereotaxicXYZValidFlag", &m_stereotaxicXYZValidFlag);
