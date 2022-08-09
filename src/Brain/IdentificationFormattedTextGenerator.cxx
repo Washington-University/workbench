@@ -322,7 +322,6 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
     /**
      * Event gets files from enabled overlays in the viewed tab(s)
      */
-    bool mouseClickedTabFlag(false);
     EventCaretMappableDataFilesAndMapsInDisplayedOverlays overlayFilesEvent;
     switch (filter->getTabFiltering()) {
         case IdentificationFilterTabSelectionEnum::ALL_DISPLAYED_TABS:
@@ -333,16 +332,12 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
             std::set<int32_t> tabsSet(tabs.begin(),
                                       tabs.end());
             overlayFilesEvent.setTabIndicesConstraint(tabsSet);
-            
-            mouseClickedTabFlag = false;
         }
             break;
         case IdentificationFilterTabSelectionEnum::MOUSE_CLICKED_TAB:
             if (tabIndex >= 0) {
                 std::set<int32_t> tabIndices { tabIndex };
                 overlayFilesEvent.setTabIndicesConstraint(tabIndices);
-                
-                mouseClickedTabFlag = true;
             }
             break;
     }

@@ -552,6 +552,11 @@ BrainOpenGLMediaCoordinateDrawing::processMediaFileSelection(const int32_t tabIn
                 idMedia->setMediaFile(mediaFile);
                 uint8_t pixelByteRGBA[4] = { 0, 0, 0, 0 };
                 idMedia->setModelXYZ(planeXYZ);
+                Vector3D stereotaxicXYZ;
+                if (mediaFile->planeXyzToStereotaxicXyz(planeXYZ,
+                                                        stereotaxicXYZ)) {
+                    idMedia->setModelXYZ(stereotaxicXYZ);
+                }
                 idMedia->setScreenXYZ(windowXYZ);
                 idMedia->setScreenDepth(0.0);
                 if (idMedia->isIncludePixelRGBA()) {

@@ -989,22 +989,18 @@ MediaFile::findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
                                           float& signedDistanceToPixelMillimetersOut,
                                           PixelLogicalIndex& pixelLogicalIndexOut) const
 {
-//    const Plane* plane(getStereotaxicImagePlane());
-//    if (plane == NULL) {
-//        return false;
-//    }
-//
-//    Vector3D xyzOnPlane;
-//    plane->projectPointToPlane(xyz, xyzOnPlane);
-//
-//    if (stereotaxicXyzToPixelIndex(xyzOnPlane,
-//                                   includeNonLinearFlag,
-//                                   pixelLogicalIndexOut)) {
-//        if (isPixelIndexValid(pixelLogicalIndexOut)) {
-//            signedDistanceToPixelMillimetersOut = plane->absoluteDistanceToPlane(xyz);
-//            return true;
-//        }
-//    }
+    Vector3D planeXYZ;
+    if (findPlaneCoordinateNearestStereotaxicXYZ(xyz,
+                                                 includeNonLinearFlag,
+                                                 signedDistanceToPixelMillimetersOut,
+                                                 planeXYZ)) {
+        PixelIndex pixelIndex;
+        if (planeXyzToPixelIndex(planeXYZ,
+                                 pixelIndex)) {
+            pixelLogicalIndexOut = pixelIndexToPixelLogicalIndex(pixelIndex);
+            return true;
+        }
+    }
     return false;
 }
 
@@ -1207,7 +1203,7 @@ MediaFile::getPixelPlaneIdentificationTextForFrames(const int32_t tabIndex,
     if (planeXyzToStereotaxicXyz(planeCoordinate, stereoXYZ)) {
         mmText = ("Stereotaxicz XYZ ("
                   + AString::fromNumbers(stereoXYZ)
-                  + "mm");
+                  + ")");
     }
 
     columnOneTextOut.push_back("Filename");

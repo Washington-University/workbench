@@ -474,8 +474,6 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
      * Image formats may pad each row of data so that the row is an even number (or multiple of 4/8)
      * length with padding at the end of the row.
      */
-    int32_t rowStride(-1);
-    
     switch (m_imageStorageFormat) {
         case ImageStorageFormat::INVALID:
             CaretAssertMessage(0, "Image storage format is invalid");
@@ -493,7 +491,6 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
                     ptrBytesRGBA = static_cast<uint8_t*>(cziBitmapLockInfo.ptrData);
                     width        = m_cziImageData->GetWidth();
                     height       = m_cziImageData->GetHeight();
-                    rowStride    = cziBitmapLockInfo.stride;
                 }
             }
             break;
@@ -511,7 +508,6 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
                 pixelOrigin     = GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT;
                 width           = m_qimageData->width();
                 height          = m_qimageData->height();
-                rowStride       = width * 4; /* RGBA */
             }
             break;
     }
