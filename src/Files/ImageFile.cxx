@@ -2490,13 +2490,15 @@ ImageFile::stereotaxicXyzToPixelIndex(const Vector3D& /*xyz*/,
  *    True if successful, else false.
  */
 bool
-ImageFile::findPixelNearestStereotaxicXYZ(const Vector3D& /*xyz*/,
-                                          const bool /*includeNonLinearFlag*/,
-                                          float& /*signedDistanceToPixelMillimetersOut*/,
-                                          PixelLogicalIndex& /*pixelLogicalIndexOut*/) const
+ImageFile::findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
+                                          const bool includeNonLinearFlag,
+                                          float& signedDistanceToPixelMillimetersOut,
+                                          PixelLogicalIndex& pixelLogicalIndexOut) const
 {
-    /* Not supported, no stereotaxic coordinates for images */
-    return false;
+    return findPixelNearestStereotaxicXYZ(xyz,
+                                          includeNonLinearFlag,
+                                          signedDistanceToPixelMillimetersOut,
+                                          pixelLogicalIndexOut);
 }
 
 /*

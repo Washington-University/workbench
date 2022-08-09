@@ -43,6 +43,7 @@ namespace caret {
 
     class BoundingBox;
     class GraphicsPrimitiveV3fT2f;
+    class Plane;
     class VolumeSpace;
 
     class MediaFile : public CaretDataFile {
@@ -160,8 +161,13 @@ namespace caret {
         virtual bool findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
                                                     const bool includeNonLinearFlag,
                                                     float& signedDistanceToPixelMillimetersOut,
-                                                    PixelLogicalIndex& pixelLogicalIndexOut) const = 0;
+                                                    PixelLogicalIndex& pixelLogicalIndexOut) const;
         
+        virtual bool findPlaneCoordinateNearestStereotaxicXYZ(const Vector3D& xyz,
+                                                              const bool includeNonLinearFlag,
+                                                              float& signedDistanceToPlaneMillimetersOut,
+                                                              Vector3D& planeXyzOut) const;
+
         QRectF getPlaneXyzRect() const;
         
         virtual bool pixelIndexToPlaneXYZ(const PixelIndex& pixelIndex,
@@ -190,6 +196,10 @@ namespace caret {
                                             const Matrix4x4& planeToMillimetersMatrix,
                                             const bool matrixValidFlag);
 
+        virtual const Plane* getStereotaxicImagePlane() const;
+        
+        virtual const Plane* getPlaneCoordinatesPlane() const;
+        
         virtual QRectF getLogicalBoundsRect() const;
         
         virtual PixelIndex pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const;
@@ -328,6 +338,14 @@ namespace caret {
         
         Vector3D m_planeXyzTopLeft;
 
+        mutable std::unique_ptr<Plane> m_stereotaxicPlane;
+        
+        mutable bool m_stereotaxicPlaneInvalidFlag = false;
+        
+        mutable std::unique_ptr<Plane> m_planeCoordinatesPlane;
+        
+        mutable bool m_planeCoordinatesPlaneInvalidFlag = false;
+        
         bool m_scaledToPlaneMatrixValidFlag     = false;
         
         bool m_pixelIndexToPlaneMatrixValidFlag = false;

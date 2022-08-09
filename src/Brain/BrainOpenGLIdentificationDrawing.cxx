@@ -802,13 +802,33 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                          * Need to see if xyz is close to media file within some tolerance
                          */
                         Vector3D planeXYZ;
-                        if (mediaFile->stereotaxicXyzToPlaneXyz(xyz, planeXYZ)) {
-                            if (mediaFile->getPlaneXyzRect().contains(planeXYZ[0],
-                                                                      planeXYZ[1])) {
-                                xyz = planeXYZ;
-                                drawFlag = true;
+                        
+                        const bool nonLinearFlag(true);
+                        float signedDistanceMillimeters(-1.0);
+                        if (mediaFile->findPlaneCoordinateNearestStereotaxicXYZ(xyz,
+                                                                                nonLinearFlag,
+                                                                                signedDistanceMillimeters,
+                                                                                planeXYZ)) {
+                            const float maxDistanceToPlane(2.0);
+                            if (std::fabs(signedDistanceMillimeters) < maxDistanceToPlane) {
+                                if (mediaFile->getPlaneXyzRect().contains(planeXYZ[0],
+                                                                          planeXYZ[1])) {
+                                    /*
+                                     * push point to plane
+                                     */
+                                    planeXYZ[2] = 0.0;
+                                    xyz = planeXYZ;
+                                    drawFlag = true;
+                                }
                             }
                         }
+//                        if (mediaFile->stereotaxicXyzToPlaneXyz(xyz, planeXYZ)) {
+//                            if (mediaFile->getPlaneXyzRect().contains(planeXYZ[0],
+//                                                                      planeXYZ[1])) {
+//                                xyz = planeXYZ;
+//                                drawFlag = true;
+//                            }
+//                        }
                     }
                 }
             }

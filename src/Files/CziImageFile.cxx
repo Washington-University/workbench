@@ -1980,7 +1980,8 @@ CziImageFile::findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
 }
 
 /**
- * @return The plane for this CZI image calculated from the coordinates at the image's corners
+ * @return The stereotaxic plane for this CZI image calculated from the coordinates at the image's corners
+ * Null if not valid.
  */
 const Plane*
 CziImageFile::getImagePlane() const

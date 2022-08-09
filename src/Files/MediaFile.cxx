@@ -27,6 +27,7 @@
 #include "CaretLogger.h"
 #include "CziUtilities.h"
 #include "DataFileContentInformation.h"
+#include "Plane.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -403,9 +404,12 @@ MediaFile::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
             swapVectorXY(vec);
         }
         m_planeToMillimetersMatrix.multiplyPoint3(vec);
-        if (m_planeMillimetersSwapFlag) {
-            swapVectorXY(vec);
-        }
+        /*
+         * NOT swapping produces reasonable millimeter coordinates
+         */
+//        if (m_planeMillimetersSwapFlag) {
+//            swapVectorXY(vec);
+//        }
         stereotaxicXyzOut = vec;
         return true;
     }
@@ -431,9 +435,12 @@ MediaFile::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
          * Note: Matrix has X & Y swapped
          */
         Vector3D vec(stereotaxicXyz);
-        if (m_planeMillimetersSwapFlag) {
-            swapVectorXY(vec);
-        }
+        /*
+         * NOT swapping produces reasonable millimeter coordinates
+         */
+//        if (m_planeMillimetersSwapFlag) {
+//            swapVectorXY(vec);
+//        }
         m_millimetersToPlaneMatrix.multiplyPoint3(vec);
         if (m_planeMillimetersSwapFlag) {
             swapVectorXY(vec);
@@ -471,6 +478,12 @@ MediaFile::resetMatricesPrivate()
     m_planeToPixelIndexMatrixValidFlag  = false;
     m_planeToMillimetersMatrixValidFlag = false;
     m_millimetersToPlaneMatrixValidFlag = false;
+    
+    m_stereotaxicPlane.reset();
+    m_stereotaxicPlaneInvalidFlag = false;
+    
+    m_planeCoordinatesPlane.reset();
+    m_planeCoordinatesPlaneInvalidFlag = false;
 }
 
 /**
@@ -855,7 +868,200 @@ MediaFile::getLogicalBoundsRect() const
     return rect;
 }
 
+/**
+ * @return Plane computed from stereotaxic coordinates (NULL if not valid)
+ */
+const Plane*
+MediaFile::getStereotaxicImagePlane() const
+{
+    /*
+     * Has plane already been created?
+     */
+    if (m_stereotaxicPlane) {
+        /*
+         * Plane was previously computed
+         */
+        return m_stereotaxicPlane.get();
+    }
+    
+    if (m_stereotaxicPlaneInvalidFlag) {
+        /*
+         * Tried to create plane previously but failed
+         */
+        return NULL;
+    }
+    
+    Vector3D mmTopLeft;
+    Vector3D mmBottomLeft;
+    Vector3D mmBottomRight;
+    if (planeXyzToStereotaxicXyz(m_planeXyzTopLeft, mmTopLeft)
+        && planeXyzToStereotaxicXyz(m_planeXyzBottomLeft, mmBottomLeft)
+        && planeXyzToStereotaxicXyz(m_planeXyzBottomRight, mmBottomRight)) {
+        /*
+         * Create the plane from XYZ coordinates
+         */
+        m_stereotaxicPlane.reset(new Plane(mmTopLeft,
+                                           mmBottomLeft,
+                                           mmBottomRight));
+        if (m_stereotaxicPlane->isValidPlane()) {
+            return m_stereotaxicPlane.get();
+        }
+        else {
+            /*
+             * Plane invalid
+             */
+            m_stereotaxicPlane.reset();
+            m_stereotaxicPlaneInvalidFlag = true;
+            CaretLogSevere(getFileNameNoPath()
+                           + "Failed to create stereotaxic coordinates plane, computation of plane failed.");
+        }
+    }
+    else {
+        CaretLogSevere(getFileNameNoPath()
+                       + "Failed to create stereotaxic coordinates plane, pixel to coordinate transform failed.");
+        m_stereotaxicPlaneInvalidFlag = true;
+    }
 
+    return NULL;
+}
+
+/**
+ * @return Plane computed from plane coordinates (NULL if not valid)
+ */
+const Plane*
+MediaFile::getPlaneCoordinatesPlane() const
+{
+    /*
+     * Has plane already been created?
+     */
+    if (m_planeCoordinatesPlane) {
+        /*
+         * Plane was previously computed
+         */
+        return m_planeCoordinatesPlane.get();
+    }
+    
+    if (m_planeCoordinatesPlaneInvalidFlag) {
+        /*
+         * Tried to create plane previously but failed
+         */
+        return NULL;
+    }
+    
+    /*
+     * Create the plane from XYZ coordinates
+     */
+    m_planeCoordinatesPlane.reset(new Plane(m_planeXyzTopLeft,
+                                            m_planeXyzBottomLeft,
+                                            m_planeXyzBottomRight));
+    if (m_planeCoordinatesPlane->isValidPlane()) {
+        return m_planeCoordinatesPlane.get();
+    }
+    else {
+        /*
+         * Plane invalid
+         */
+        m_planeCoordinatesPlane.reset();
+        m_planeCoordinatesPlaneInvalidFlag = true;
+        CaretLogSevere(getFileNameNoPath()
+                       + "Failed to create plnae coordinates plane, computation of plane failed.");
+    }
+
+    return NULL;
+}
+
+/**
+ * Find the Pixel nearest the given XYZ coordinate
+ * @param xyz
+ *    The coordinate
+ * @param includeNonlinearFlag
+ *    If true, include the non-linear transform when converting
+ * @param signedDistanceToPixelMillimetersOut
+ *    Output with signed distance to the pixel in millimeters
+ * @param pixelLogicalIndexOut
+ *    Output with logical pixel index
+ * @return
+ *    True if successful, else false.
+ */
+bool
+MediaFile::findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
+                                          const bool includeNonLinearFlag,
+                                          float& signedDistanceToPixelMillimetersOut,
+                                          PixelLogicalIndex& pixelLogicalIndexOut) const
+{
+//    const Plane* plane(getStereotaxicImagePlane());
+//    if (plane == NULL) {
+//        return false;
+//    }
+//
+//    Vector3D xyzOnPlane;
+//    plane->projectPointToPlane(xyz, xyzOnPlane);
+//
+//    if (stereotaxicXyzToPixelIndex(xyzOnPlane,
+//                                   includeNonLinearFlag,
+//                                   pixelLogicalIndexOut)) {
+//        if (isPixelIndexValid(pixelLogicalIndexOut)) {
+//            signedDistanceToPixelMillimetersOut = plane->absoluteDistanceToPlane(xyz);
+//            return true;
+//        }
+//    }
+    return false;
+}
+
+/**
+ * Find the plane coordinate nearest the given XYZ coordinate
+ * @param stereotaxicXYZ
+ *    The stereotaxic coordinate
+ * @param includeNonlinearFlag
+ *    If true, include the non-linear transform when converting
+ * @param signedDistanceToPixelMillimetersOut
+ *    Output with signed distance in millimeters from stereotaxic coordinate to stereotaxic plane
+ * @param planeXyzOut
+ *    Output with plane coordinate
+ * @return
+ *    True if successful, else false.
+ */
+bool
+MediaFile::findPlaneCoordinateNearestStereotaxicXYZ(const Vector3D& stereotaxicXYZ,
+                                                      const bool includeNonLinearFlag,
+                                                      float& signedDistanceToPlaneMillimetersOut,
+                                                      Vector3D& planeXyzOut) const
+{
+    const Plane* planeCoordinatesPlane(getPlaneCoordinatesPlane());
+    if (planeCoordinatesPlane == NULL) {
+        return false;
+    }
+    
+    const Plane* stereotaxicCoordinatesPlane(getStereotaxicImagePlane());
+    if (stereotaxicCoordinatesPlane == NULL) {
+        return false;
+    }
+    
+    /*
+     * Convert stereotaxic coordinate to a plane coordinate
+     */
+    Vector3D planeXyz;
+    if (stereotaxicXyzToPlaneXyz(stereotaxicXYZ,
+                                 planeXyz)) {
+        
+        /*
+         * Project the plane coordinate so that it is on the
+         * plane.  This is our output coordinate.
+         */
+        planeCoordinatesPlane->projectPointToPlane(planeXyz,
+                                                   planeXyzOut);
+
+        /*
+         * Find the distance of the stereotaxic coordinate
+         * to the sterotaxic plane.  This value is millimeters.
+         */
+        signedDistanceToPlaneMillimetersOut = stereotaxicCoordinatesPlane->signedDistanceToPlane(stereotaxicXYZ);
+            
+        return true;
+    }
+    
+    return false;
+}
 
 /**
  * @return True if this media supports coordinates
