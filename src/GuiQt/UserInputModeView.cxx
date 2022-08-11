@@ -552,7 +552,10 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
                                                                                                                              mouseEvent.getPressedY());
                     CaretAssert(mediaID);
                     if (mediaID->isValid()) {
-                        mediaID->getModelXYZ(modelXYZ);
+                        const Vector3D planeXYZ(mediaID->getPlaneCoordinate());
+                        modelXYZ[0] = planeXYZ[0];
+                        modelXYZ[1] = planeXYZ[1];
+                        modelXYZ[2] = planeXYZ[2];
                         modelXyzValidFlag = true;
                     }
                 }
@@ -833,7 +836,10 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                                                                                                                                          gestureEvent.getStartCenterY());
                                     CaretAssert(mediaID);
                                     if (mediaID->isValid()) {
-                                        mediaID->getModelXYZ(modelXYZ);
+                                        const Vector3D planeXYZ(mediaID->getPlaneCoordinate());
+                                        modelXYZ[0] = planeXYZ[0];
+                                        modelXYZ[1] = planeXYZ[1];
+                                        modelXYZ[2] = planeXYZ[2];
                                         modelXyzValidFlag = true;
                                     }
                                     break;
