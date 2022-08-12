@@ -275,16 +275,11 @@ MediaFile::pixelIndexToPlaneXYZ(const PixelIndex& pixelIndex,
                                   Vector3D& planeXyzOut) const
 {
     if (m_pixelIndexToPlaneMatrixValidFlag) {
-        /*
-         * NOTE: Matrix has X and Y swapped
-         */
-        Vector3D xyz(pixelIndex.getJ(),
-                     pixelIndex.getI(),
-                     1.0);
+        Vector3D xyz(pixelIndex.getI(),
+                     pixelIndex.getJ(),
+                     0.0);
         m_pixelIndexToPlaneMatrix.multiplyPoint3(xyz);
-        planeXyzOut[0] = xyz[1];
-        planeXyzOut[1] = xyz[0];
-        planeXyzOut[2] = xyz[2];
+        planeXyzOut = xyz;
         
         return true;
     }
@@ -347,15 +342,10 @@ MediaFile::planeXyzToPixelIndex(const Vector3D& planeXyz,
                                   PixelIndex& pixelIndexOut) const
 {
     if (m_planeToPixelIndexMatrixValidFlag) {
-        /*
-         * NOTE: Matrix has X and Y swapped
-         */
-        Vector3D xyz(planeXyz[1],
-                     planeXyz[0],
-                     planeXyz[2]);
+        Vector3D xyz(planeXyz);
         m_planeToPixelIndexMatrix.multiplyPoint3(xyz);
-        pixelIndexOut.setIJK(xyz[1],
-                             xyz[0],
+        pixelIndexOut.setIJK(xyz[0],
+                             xyz[1],
                              0.0);
         return true;
     }
@@ -396,21 +386,9 @@ MediaFile::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
                                     Vector3D& stereotaxicXyzOut) const
 {
     if (m_planeToMillimetersMatrixValidFlag) {
-        /*
-         * Note: Matrix has X & Y swapped
-         */
-        Vector3D vec(planeXyz);
-        if (m_planeMillimetersSwapFlag) {
-            swapVectorXY(vec);
-        }
-        m_planeToMillimetersMatrix.multiplyPoint3(vec);
-        /*
-         * NOT swapping produces reasonable millimeter coordinates
-         */
-//        if (m_planeMillimetersSwapFlag) {
-//            swapVectorXY(vec);
-//        }
-        stereotaxicXyzOut = vec;
+        Vector3D xyz(planeXyz);
+        m_planeToMillimetersMatrix.multiplyPoint3(xyz);
+        stereotaxicXyzOut = xyz;
         return true;
     }
     
@@ -431,21 +409,9 @@ MediaFile::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
                                     Vector3D& planeXyzOut) const
 {
     if (m_millimetersToPlaneMatrixValidFlag) {
-        /*
-         * Note: Matrix has X & Y swapped
-         */
-        Vector3D vec(stereotaxicXyz);
-        /*
-         * NOT swapping produces reasonable millimeter coordinates
-         */
-//        if (m_planeMillimetersSwapFlag) {
-//            swapVectorXY(vec);
-//        }
-        m_millimetersToPlaneMatrix.multiplyPoint3(vec);
-        if (m_planeMillimetersSwapFlag) {
-            swapVectorXY(vec);
-        }
-        planeXyzOut = vec;
+        Vector3D xyz(stereotaxicXyz);
+        m_millimetersToPlaneMatrix.multiplyPoint3(xyz);
+        planeXyzOut = xyz;
 
         return true;
     }
