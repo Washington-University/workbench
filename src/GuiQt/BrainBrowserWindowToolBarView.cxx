@@ -208,6 +208,9 @@ BrainBrowserWindowToolBarView::updateContent(BrowserTabContent* browserTabConten
     switch (modelType) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
+            break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             this->viewModeMediaRadioButton->setChecked(true);
             break;

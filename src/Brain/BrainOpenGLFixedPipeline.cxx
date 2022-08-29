@@ -513,6 +513,9 @@ BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(const BrainOpenGLV
                         break;
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
                         break;
+                    case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                        CaretAssertToDoFatal();
+                        break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         prefs->getBackgroundAndForegroundColors()->getColorForegroundMediaView(m_foregroundColorByte);
                         prefs->getBackgroundAndForegroundColors()->getColorBackgroundMediaView(m_backgroundColorByte);
@@ -698,6 +701,9 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const s
                         colors->getColorForegroundChartView(foregroundColor);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                        CaretAssertToDoFatal();
                         break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         colors->getColorBackgroundMediaView(backgroundColor);
@@ -1280,7 +1286,7 @@ BrainOpenGLFixedPipeline::drawMediaSpaceAnnotations(const BrainOpenGLViewportCon
     if (btc == NULL) {
         return;
     }
-    const std::set<AString> mediaFileNames(btc->getDisplayedMediaFiles());
+    const std::set<AString> mediaFileNames(btc->getDisplayedMediaFileNames());
     if (mediaFileNames.empty()) {
         return;
     }
@@ -1452,6 +1458,7 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
         case ModelTypeEnum::MODEL_TYPE_CHART:
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
         case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             drawScaleBarsFlag = false;
             break;

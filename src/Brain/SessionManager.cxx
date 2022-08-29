@@ -1096,6 +1096,8 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
+            case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                break;
             case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                 break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:

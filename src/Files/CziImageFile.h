@@ -179,8 +179,9 @@ namespace caret {
                                AString& errorMessageOut);
         
         virtual void setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
+                                            const bool scaledToPlaneMatrixValidFlag,
                                             const Matrix4x4& planeToMillimetersMatrix,
-                                            const bool matrixValidFlag) override;
+                                            const bool planeToMillimetersMatrixValidFlag) override;
         
 
         // ADD_NEW_METHODS_HERE

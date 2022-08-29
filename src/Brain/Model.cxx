@@ -145,6 +145,34 @@ Model::getChartTwoOverlaySet(const int /*tabIndex*/) const
 }
 
 /**
+ * Get the histology overlay set for this model.
+ *
+ * @param tabIndex
+ *     Index for the chart overlay set.
+ * @return
+ *     histology overlay set or NULL if not valid for this model.
+ */
+HistologyOverlaySet*
+Model::getHistologyOverlaySet(const int /*tabIndex*/)
+{
+    return NULL;
+}
+
+/**
+ * Get the histology overlay set for this model.
+ *
+ * @param tabIndex
+ *     Index for the chart overlay set.
+ * @return
+ *     histology overlay set or NULL if not valid for this model.
+ */
+const HistologyOverlaySet*
+Model::getHistologyOverlaySet(const int /*tabIndex*/) const
+{
+    return NULL;
+}
+
+/**
  * Get the medai overlay set for this model.
  *
  * @param tabIndex

@@ -193,8 +193,9 @@ namespace caret {
                                               Vector3D& planeXyzOut) const;
         
         virtual void setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
+                                            const bool scaledToPlaneMatrixValidFlag,
                                             const Matrix4x4& planeToMillimetersMatrix,
-                                            const bool matrixValidFlag);
+                                            const bool planeToMillimetersMatrixValidFlag);
 
         virtual const Plane* getStereotaxicImagePlane() const;
         

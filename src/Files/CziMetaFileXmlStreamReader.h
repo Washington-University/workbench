@@ -33,6 +33,9 @@ class QXmlStreamReader;
 
 namespace caret {
 
+    class HistologySlice;
+    class HistologySliceImage;
+    class HistologySlicesFile;
     class Matrix4x4;
     class XmlStreamReaderHelper;
     
@@ -50,6 +53,9 @@ namespace caret {
         void readFile(const AString& filename,
                       CziMetaFile* cziMetaFile);
 
+        void readFile(const AString& filename,
+                      HistologySlicesFile* histologySlicesFile);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -60,10 +66,18 @@ namespace caret {
         
         void readFileContent(CziMetaFile* cziMetaFile);
         
+        void readFileContent(HistologySlicesFile* histologySlicesFile);
+        
         CziMetaFile::Slice* readSliceElement(CziMetaFile* cziMetaFile,
                                              const int32_t sliceNumber);
 
+        HistologySlice* readSliceElement(HistologySlicesFile* histologySlicesFile,
+                                         const int32_t sliceNumber);
+        
         CziMetaFile::Scene* readSceneElement(CziMetaFile* cziMetaFile,
+                                             const QString& sceneName);
+        
+        HistologySliceImage* readSceneElement(HistologySlicesFile* histologySlicesFile,
                                              const QString& sceneName);
         
         void readMatrixFromElementText(const QString& elementName,

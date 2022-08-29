@@ -435,6 +435,9 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                     break;
                 case DataFileTypeEnum::FOCI:
                     break;
+                case DataFileTypeEnum::HISTOLOGY_SLICES:
+                    CaretAssertToDoFatal();
+                    break;
                 case DataFileTypeEnum::IMAGE:
                     break;
                 case DataFileTypeEnum::LABEL:

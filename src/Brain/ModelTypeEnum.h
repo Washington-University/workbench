@@ -50,6 +50,8 @@ public:
         MODEL_TYPE_VOLUME_SLICES,
         /** Whole Brain */
         MODEL_TYPE_WHOLE_BRAIN,
+        /** Histology slices */
+        MODEL_TYPE_HISTOLOGY,
         /** Multi-Media (image/video) */
         MODEL_TYPE_MULTI_MEDIA
     };

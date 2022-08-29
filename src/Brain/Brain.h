@@ -89,6 +89,7 @@ namespace caret {
     class EventDataFileReloadAll;
     class EventSpecFileReadDataFiles;
     class GapsAndMargins;
+    class HistologySlicesFile;
     class IdentificationManager;
     class ImageFile;
     class LabelFile;
@@ -96,6 +97,7 @@ namespace caret {
     class MetricDynamicConnectivityFile;
     class ModelChart;
     class ModelChartTwo;
+    class ModelHistology;
     class ModelMedia;
     class ModelSurfaceMontage;
     class ModelVolume;
@@ -170,6 +172,14 @@ namespace caret {
         
         const CziMetaFile* getCziMetaFile(const int32_t indx) const;
         
+        const std::vector<HistologySlicesFile*> getAllHistologySlicesFiles() const;
+        
+        int32_t getNumberOfHistologySlicesFiles() const;
+        
+        HistologySlicesFile* getHistologySlicesFile(const int32_t indx);
+        
+        const HistologySlicesFile* getHistologySlicesFile(const int32_t indx) const;
+
         int32_t getNumberOfFociFiles() const;
         
         FociFile* getFociFile(const int32_t indx);
@@ -241,6 +251,10 @@ namespace caret {
         ChartingDataManager* getChartingDataManager();
         
         const ChartingDataManager* getChartingDataManager() const;
+        
+        ModelHistology* getHistologyModel();
+        
+        const ModelHistology* getHistologyModel() const;
         
         ModelMedia* getMediaModel();
         
@@ -765,6 +779,10 @@ namespace caret {
                                                  CaretDataFile* caretDataFile,
                                                  const AString& filename);
         
+        HistologySlicesFile* addReadOrReloadHistologySlicesFile(const FileModeAddReadReload fileMode,
+                                                                CaretDataFile* caretDataFile,
+                                                                const AString& filename);
+        
         void readCziImageFilesFromCziMetaFile(CziMetaFile* cziMetaFile);
         
         FociFile* addReadOrReloadFociFile(const FileModeAddReadReload fileMode,
@@ -797,6 +815,8 @@ namespace caret {
         
         void updateSurfaceMontageModel();
         
+        void updateHistologyModel();
+        
         void updateMediaModel();
         
         void updateBrainStructures();
@@ -824,6 +844,8 @@ namespace caret {
         std::vector<CziImageFile*> m_cziImageFiles;
         
         std::vector<CziMetaFile*> m_cziMetaFiles;
+        
+        std::vector<HistologySlicesFile*> m_histologySlicesFiles;
         
         std::vector<FociFile*> m_fociFiles;
         
@@ -874,6 +896,8 @@ namespace caret {
         ModelVolume* m_volumeSliceModel;
         
         ModelWholeBrain* m_wholeBrainModel;
+        
+        ModelHistology* m_histologyModel;
         
         ModelMedia* m_mediaModel = NULL;
         

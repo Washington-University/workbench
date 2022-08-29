@@ -31,6 +31,8 @@ namespace caret {
     class ChartTwoOverlay;
     class ChartableMatrixSeriesInterface;
     class EnumComboBoxTemplate;
+    class HistologyOverlay;
+    class HistologySlicesFile;
     class MediaFile;
     class MediaOverlay;
     class Overlay;
@@ -60,6 +62,8 @@ namespace caret {
         
         void validateYokingChange(ChartTwoOverlay* chartOverlay);
         
+        void validateYokingChange(HistologyOverlay* histologyOverlay);
+        
         void validateYokingChange(MediaOverlay* mediaOverlay);
         
         void validateYokingChange(AnnotationTextSubstitutionFile* annTextSubFile);
@@ -84,6 +88,7 @@ namespace caret {
         
         YokeValidationResult validateYoking(AnnotationTextSubstitutionFile* selectedAnnTextSubFile,
                                             CaretMappableDataFile* selectedMapFile,
+                                            HistologySlicesFile* selectedHistologySlicesFile,
                                             MediaFile* selectedMediaFile,
                                             int32_t& selectedMapIndexInOut,
                                             bool& selectionStatusInOut);

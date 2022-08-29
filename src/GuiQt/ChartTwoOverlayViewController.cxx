@@ -528,10 +528,12 @@ ChartTwoOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indxIn
     const MapYokingGroupEnum::Enum mapYoking = m_chartOverlay->getMapYokingGroup();
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+        HistologySlicesFile* nullHistologySlicesFile(NULL);
         MediaFile* nullMediaFile(NULL);
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
                                                nullAnnTextFile,
+                                               nullHistologySlicesFile,
                                                nullMediaFile,
                                                indx,
                                                MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
@@ -585,10 +587,12 @@ ChartTwoOverlayViewController::mapRowOrColumnNameComboBoxSelected(int indx)
     const MapYokingGroupEnum::Enum mapYoking = m_chartOverlay->getMapYokingGroup();
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+        HistologySlicesFile* nullHistologySlicesFile(NULL);
         MediaFile* nullMediaFile(NULL);
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
                                                nullAnnTextFile,
+                                               nullHistologySlicesFile,
                                                nullMediaFile,
                                                indx,
                                                MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
@@ -641,10 +645,12 @@ ChartTwoOverlayViewController::enabledCheckBoxClicked(bool checked)
         
         if (selectedIndexType == ChartTwoOverlay::SelectedIndexType::MAP) {
             AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+            HistologySlicesFile* nullHistologySlicesFile(NULL);
             MediaFile* nullMediaFile(NULL);
             EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                    mapFile,
                                                    nullAnnTextFile,
+                                                   nullHistologySlicesFile,
                                                    nullMediaFile,
                                                    selectedIndex,
                                                    MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,

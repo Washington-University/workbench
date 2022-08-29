@@ -31,6 +31,9 @@
 #include "CaretLogger.h"
 #include "CziMetaFile.h"
 #include "DataFileException.h"
+#include "HistologySlice.h"
+#include "HistologySliceImage.h"
+#include "HistologySlicesFile.h"
 #include "Matrix4x4.h"
 #include "XmlStreamReaderHelper.h"
 
@@ -100,6 +103,70 @@ CziMetaFileXmlStreamReader::readFile(const AString& filename,
                                                       m_xmlReader.get()));
 
     readFileContent(cziMetaFile);
+    
+    
+    m_xmlStreamHelper.reset();
+    
+    file.close();
+    
+    const QString errorMessage(m_xmlReader->errorString());
+    if (m_xmlReader->hasError()) {
+        m_xmlReader.reset();
+        throw DataFileException(errorMessage);
+    }
+    m_xmlReader.reset();
+    
+    if ( ! m_unexpectedXmlElements.empty()) {
+        AString msg("These unrecognized elements were found in "
+                    + filename);
+        for (auto& e : m_unexpectedXmlElements) {
+            msg.appendWithNewLine("   "
+                                  + e);
+        }
+        CaretLogWarning(msg);
+    }
+}
+
+/**
+ * Read a meta CZI file content into a histology slices file
+ * @param filename
+ *    Name of meta czi file
+ * @param histologySlicesFile
+ *    Pointer to histology slices file that is read
+ * @throws DataFileException if fatal error
+ */
+void
+CziMetaFileXmlStreamReader::readFile(const AString& filename,
+                                     HistologySlicesFile* histologySlicesFile)
+{
+    m_xmlStreamHelper.reset();
+    
+    CaretAssert(histologySlicesFile);
+    if (histologySlicesFile == NULL) {
+        throw DataFileException("Histology slices file is invalid (NULL).");
+    }
+    histologySlicesFile->clear();
+    histologySlicesFile->setFileName(filename);
+    
+    if (filename.isEmpty()) {
+        throw DataFileException("Histology slices file name is empty");
+    }
+    
+    m_filename = filename;
+    
+    QFile file(m_filename);
+    if ( ! file.open(QFile::ReadOnly)) {
+        throw DataFileException("Unable to open for reading: "
+                                + m_filename
+                                + " Reason: "
+                                + file.errorString());
+    }
+    
+    m_xmlReader.reset(new QXmlStreamReader(&file));
+    m_xmlStreamHelper.reset(new XmlStreamReaderHelper(m_filename,
+                                                      m_xmlReader.get()));
+    
+    readFileContent(histologySlicesFile);
     
     
     m_xmlStreamHelper.reset();
@@ -199,6 +266,183 @@ CziMetaFileXmlStreamReader::readFileContent(CziMetaFile* cziMetaFile)
                 break;
         }
     }
+}
+
+/**
+ * Read the histology slices file's content
+ *
+ * @param xmlReader
+ *     The XML stream reader
+ * @param histologySlicesFile
+ *     Into this histology slices file
+ */
+void
+CziMetaFileXmlStreamReader::readFileContent(HistologySlicesFile* histologySlicesFile)
+{
+    CaretAssert(histologySlicesFile);
+    
+    if (m_xmlReader->atEnd()) {
+        m_xmlReader->raiseError("At end of file when starting to read.  Is file empty?");
+        return;
+    }
+    
+    m_xmlReader->readNextStartElement();
+    if (m_xmlReader->name() != ELEMENT_META_CZI) {
+        m_xmlReader->raiseError("First element is \""
+                                + m_xmlReader->name().toString()
+                                + "\" but should be "
+                                + ELEMENT_META_CZI);
+        return;
+    }
+    
+    m_fileVersion = m_xmlStreamHelper->getRequiredIntAttributeRaiseError(ELEMENT_META_CZI,
+                                                                         ATTRIBUTE_VERSION);
+    if (m_xmlReader->hasError()) {
+        return;
+    }
+    
+    if (m_fileVersion > 1) {
+        m_xmlReader->raiseError("File version is "
+                                + AString::number(m_fileVersion)
+                                + " but only version 1 is supported");
+        return;
+    }
+    
+    /*
+     * Set when ending scene file element is found
+     */
+    bool endElementFound(false);
+    
+    while ( ( ! m_xmlReader->atEnd())
+           && ( ! endElementFound)) {
+        m_xmlReader->readNext();
+        switch (m_xmlReader->tokenType()) {
+            case QXmlStreamReader::StartElement:
+                if (m_xmlReader->name() == ELEMENT_SLICE) {
+                    const int32_t sliceNumber(m_xmlStreamHelper->getRequiredIntAttributeRaiseError(ELEMENT_SLICE,
+                                                                                                   ATTRIBUTE_NUMBER));
+                    if ( ! m_xmlReader->hasError()) {
+                        HistologySlice* slice(readSliceElement(histologySlicesFile,
+                                                               sliceNumber));
+                        if (slice != NULL) {
+                            histologySlicesFile->addHistologySlice(slice);
+                        }
+                    }
+                }
+                else {
+                    m_unexpectedXmlElements.insert(m_xmlReader->name().toString());
+                    m_xmlReader->skipCurrentElement();
+                }
+                break;
+            case QXmlStreamReader::EndElement:
+                if (m_xmlReader->name() == ELEMENT_META_CZI) {
+                    endElementFound = true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+/**
+ * Read a slice element from the XML
+ * @param histologySlicesFile
+ *     The histology slices file
+ * @param sliceNumber
+ *     Slice number from Slice element
+ * @return
+ *    Pointer to slice read.
+ */
+HistologySlice*
+CziMetaFileXmlStreamReader::readSliceElement(HistologySlicesFile* histologySlicesFile,
+                                             const int32_t sliceNumber)
+{
+    /*
+     * Set when ending scene file element is found
+     */
+    bool endElementFound(false);
+    
+    AString histToMriWarpFileName;
+    AString mriToHistWarpFileName;
+    Matrix4x4 planeToMmMatrix;
+    bool planeToMmMatrixValidFlag(false);
+    
+    std::vector<std::unique_ptr<HistologySliceImage>> images;
+    
+    while ( ( ! m_xmlReader->atEnd())
+           && ( ! endElementFound)) {
+        m_xmlReader->readNext();
+        switch (m_xmlReader->tokenType()) {
+            case QXmlStreamReader::StartElement:
+                if (m_xmlReader->name() == ELEMENT_HIST_TO_MRI_WARP) {
+                    histToMriWarpFileName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_HIST_TO_MRI_WARP,
+                                                                                                    ATTRIBUTE_FILE);
+                    if ( ! m_xmlReader->hasError()) {
+                        
+                    }
+                }
+                else if (m_xmlReader->name() == ELEMENT_MRI_TO_HIST_WARP) {
+                    mriToHistWarpFileName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_MRI_TO_HIST_WARP,
+                                                                                                    ATTRIBUTE_FILE);
+                    if ( ! m_xmlReader->hasError()) {
+                        
+                    }
+                }
+                else if (m_xmlReader->name() == ELEMENT_PLANE_TO_MM) {
+                    readMatrixFromElementText(ELEMENT_PLANE_TO_MM,
+                                              MatrixType::TWO_DIM,
+                                              planeToMmMatrix);
+                    planeToMmMatrixValidFlag = true;
+                }
+                else if (m_xmlReader->name() == ELEMENT_SCENE) {
+                    const QString sceneName(m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_SCENE,
+                                                                                                    ATTRIBUTE_NAME));
+                    if ( ! m_xmlReader->hasError()) {
+                        HistologySliceImage* image(readSceneElement(histologySlicesFile,
+                                                                    sceneName));
+                        if (image != NULL) {
+                            std::unique_ptr<HistologySliceImage> ptr(image);
+                            images.push_back(std::move(ptr));
+                        }
+                    }
+                }
+                else {
+                    m_unexpectedXmlElements.insert(m_xmlReader->name().toString());
+                    m_xmlReader->skipCurrentElement();
+                }
+                break;
+            case QXmlStreamReader::EndElement:
+                if (m_xmlReader->name() == ELEMENT_SLICE) {
+                    endElementFound = true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    
+    if (m_xmlReader->hasError()) {
+        return NULL;
+    }
+    
+    if (images.empty()) {
+        m_xmlReader->raiseError("Slice "
+                                + AString::number(sliceNumber)
+                                + " contains no scenes (images)");
+        return NULL;
+    }
+    
+    HistologySlice* slice(new HistologySlice(sliceNumber,
+                                             mriToHistWarpFileName,
+                                             histToMriWarpFileName,
+                                             planeToMmMatrix,
+                                             planeToMmMatrixValidFlag));
+    for (auto& img : images) {
+        slice->addHistologySliceImage(img.release());
+    }
+    
+    return slice;
 }
 
 /**
@@ -359,6 +603,80 @@ CziMetaFileXmlStreamReader::readSceneElement(CziMetaFile* /*cziMetaFile*/,
                                                         scaledToPlaneMatrix,
                                                         cziFileName));
     return sceneOut;
+}
+
+/**
+ * Read a scene element from the XML
+ * @param histologySlicesFile
+ *     Into this Histology Slices file
+ * @param sceneName
+ *     Name of scene
+ * @return
+ *     Pointer to scene
+ */
+HistologySliceImage*
+CziMetaFileXmlStreamReader::readSceneElement(HistologySlicesFile* /*histologySlicesFile*/,
+                                             const QString& sceneName)
+{
+    /*
+     * Set when ending scene file element is found
+     */
+    bool endElementFound(false);
+    
+    AString distanceFileName;
+    AString imageFileName;
+    Matrix4x4 scaledToPlaneMatrix;
+    bool scaledToPlaneMatrixValidFlag(false);
+    
+    while ( ( ! m_xmlReader->atEnd())
+           && ( ! endElementFound)) {
+        m_xmlReader->readNext();
+        switch (m_xmlReader->tokenType()) {
+            case QXmlStreamReader::StartElement:
+                if (m_xmlReader->name() == ELEMENT_SCALED_TO_PLANE) {
+                    readMatrixFromElementText(ELEMENT_SCALED_TO_PLANE,
+                                              MatrixType::TWO_DIM,
+                                              scaledToPlaneMatrix);
+                }
+                else if (m_xmlReader->name() == ELEMENT_CZI) {
+                    imageFileName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_CZI,
+                                                                                            ATTRIBUTE_FILE);
+                    if ( ! m_xmlReader->hasError()) {
+                        
+                    }
+                }
+                else if (m_xmlReader->name() == ELEMENT_DISTANCE) {
+                    distanceFileName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_DISTANCE,
+                                                                                          ATTRIBUTE_FILE);
+                    if ( ! m_xmlReader->hasError()) {
+                        
+                    }
+                }
+                else {
+                    m_unexpectedXmlElements.insert(m_xmlReader->name().toString());
+                    m_xmlReader->skipCurrentElement();
+                }
+                break;
+            case QXmlStreamReader::EndElement:
+                if (m_xmlReader->name() == ELEMENT_SCENE) {
+                    endElementFound = true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    
+    if (m_xmlReader->hasError()) {
+        return NULL;
+    }
+    
+    HistologySliceImage* image(new HistologySliceImage(sceneName,
+                                                       imageFileName,
+                                                       distanceFileName,
+                                                       scaledToPlaneMatrix,
+                                                       scaledToPlaneMatrixValidFlag));
+    return image;
 }
 
 /**

@@ -169,6 +169,9 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                 break;
             case DataFileTypeEnum::FOCI:
                 break;
+            case DataFileTypeEnum::HISTOLOGY_SLICES:
+                CaretAssertToDoFatal();
+                break;
             case DataFileTypeEnum::LABEL:
                 labelFileFlag = true;
                 break;

@@ -361,6 +361,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                           NULL,
                                           NULL,
                                           NULL,
+                                          NULL,
                                           mapYokingMapIndex,
                                           MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                           true);

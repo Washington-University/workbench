@@ -347,6 +347,9 @@ UserInputModeViewContextMenu::createIdentifyMenu()
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
+            case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                CaretAssertToDoFatal();
+                break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                 break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:

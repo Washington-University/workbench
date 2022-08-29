@@ -52,6 +52,8 @@ namespace caret {
         
         static const QString ELEMENT_CZI;
         
+        static const QString ELEMENT_DISTANCE;
+        
         static const QString ELEMENT_HIST_TO_MRI_WARP;
         
         static const QString ELEMENT_META_CZI;
@@ -81,6 +83,8 @@ namespace caret {
     const QString CziMetaFileXmlStreamBase::ATTRIBUTE_VERSION = "Version";
     
     const QString CziMetaFileXmlStreamBase::ELEMENT_CZI = "CZI";
+    
+    const QString CziMetaFileXmlStreamBase::ELEMENT_DISTANCE = "Distance";
     
     const QString CziMetaFileXmlStreamBase::ELEMENT_HIST_TO_MRI_WARP = "HistToMRIWarp";
 

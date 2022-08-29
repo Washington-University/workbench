@@ -382,6 +382,9 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
+            case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                CaretAssertToDoFatal();
+                break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                 mediaSpaceValidFlag = true;
                 break;

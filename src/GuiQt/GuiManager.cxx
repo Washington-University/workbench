@@ -3404,10 +3404,12 @@ GuiManager::processIdentification(const int32_t tabIndex,
                         
                         if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
                             AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+                            HistologySlicesFile* nullHistologySlicesFile(NULL);
                             MediaFile* nullMediaFile(NULL);
                             EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                                    scalarDataSeriesFile,
                                                                    nullAnnTextFile,
+                                                                   nullHistologySlicesFile,
                                                                    nullMediaFile,
                                                                    rowIndex,
                                                                    MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
@@ -3491,10 +3493,12 @@ GuiManager::processIdentification(const int32_t tabIndex,
                             const MapYokingGroupEnum::Enum mapYoking = chartOverlayContainingDataFile->getMapYokingGroup();
                             if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
                                 AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+                                HistologySlicesFile* nullHistologySlicesFile(NULL);
                                 MediaFile* nullMediaFile(NULL);
                                     EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                                            cmdf,
                                                                            nullAnnTextFile,
+                                                                           nullHistologySlicesFile,
                                                                            nullMediaFile,
                                                                            rowColumnIndex,
                                                                            MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
@@ -3570,10 +3574,12 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                     
                                     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
                                         AnnotationTextSubstitutionFile* nullAnnTextFile(NULL);
+                                        HistologySlicesFile* nullHistologySlicesFile(NULL);
                                         MediaFile* nullMediaFile(NULL);
                                         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                                                scalarDataSeriesFile,
                                                                                nullAnnTextFile,
+                                                                               nullHistologySlicesFile,
                                                                                nullMediaFile,
                                                                                rowIndex,
                                                                                MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,

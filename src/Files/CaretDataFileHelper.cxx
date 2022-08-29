@@ -367,6 +367,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
         case DataFileTypeEnum::FOCI:
             caretDataFile = new FociFile();
             break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            CaretAssertToDoFatal();
+            break;
         case DataFileTypeEnum::IMAGE:
             caretDataFile = new ImageFile();
             break;

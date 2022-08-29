@@ -110,6 +110,9 @@ SceneableInterface()
             break;
         case DataFileTypeEnum::FOCI:
             break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            CaretAssertToDoFatal();
+            break;
         case DataFileTypeEnum::IMAGE:
             supportsIdentificationAttributesFlag = true;
             break;

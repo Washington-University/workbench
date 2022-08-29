@@ -235,6 +235,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
         case DataFileTypeEnum::CZI_IMAGE_FILE:
         case DataFileTypeEnum::CZI_META_FILE:
         case DataFileTypeEnum::FOCI:
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
         case DataFileTypeEnum::IMAGE:
         case DataFileTypeEnum::LABEL:
         case DataFileTypeEnum::METRIC:
@@ -815,6 +816,7 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
         case DataFileTypeEnum::CZI_IMAGE_FILE:
         case DataFileTypeEnum::CZI_META_FILE:
         case DataFileTypeEnum::FOCI:
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
         case DataFileTypeEnum::IMAGE:
         case DataFileTypeEnum::LABEL:
         case DataFileTypeEnum::METRIC:
@@ -2137,6 +2139,9 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
         case DataFileTypeEnum::CZI_META_FILE:
             break;
         case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            CaretAssertToDoFatal();
             break;
         case DataFileTypeEnum::IMAGE:
             break;
@@ -5372,6 +5377,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             break;
         case DataFileTypeEnum::FOCI:
             CaretAssert(0);
+            break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            CaretAssertToDoFatal();
             break;
         case DataFileTypeEnum::IMAGE:
             CaretAssert(0);

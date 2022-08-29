@@ -426,6 +426,7 @@ MediaOverlayViewController::frameIndexSpinBoxValueChanged(int indx)
         EventMapYokingSelectMap selectMapEvent(frameYoking,
                                                NULL,
                                                NULL,
+                                               NULL,
                                                selectionData.m_selectedMediaFile,
                                                frameIndex,
                                                mediaAllFramesStatus,
@@ -481,6 +482,7 @@ MediaOverlayViewController::frameNameComboBoxSelected(int itemIndex)
             EventMapYokingSelectMap selectMapEvent(frameYoking,
                                                    NULL,
                                                    NULL,
+                                                   NULL,
                                                    selectionData.m_selectedMediaFile,
                                                    frameIndex,
                                                    mediaAllFramesStatus,
@@ -517,6 +519,7 @@ MediaOverlayViewController::enabledCheckBoxClicked(bool checked)
 
         const MapYokingGroupEnum::MediaAllFramesStatus mediaAllFramesStatus(MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_NO_CHANGE);
         EventMapYokingSelectMap selectMapEvent(frameYoking,
+                                               NULL,
                                                NULL,
                                                NULL,
                                                selectionData.m_selectedMediaFile,

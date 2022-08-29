@@ -836,6 +836,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::FOCI:
                     haveFoci = true;
                     break;
+                case DataFileTypeEnum::HISTOLOGY_SLICES:
+                    CaretAssertToDoFatal();
+                    break;
                 case DataFileTypeEnum::IMAGE:
                     haveImages = true;
                     break;
@@ -894,6 +897,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
             if (windowContent != NULL) {
                 switch (windowContent->getSelectedModelType()) {
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                        CaretAssertToDoFatal();
                         break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         defaultTabIndex = m_mediaTabIndex;

@@ -1296,6 +1296,9 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
                 switch (btc->getSelectedModelType()) {
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
                         break;
+                    case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                        CaretAssertToDoFatal();
+                        break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE:
@@ -1958,6 +1961,9 @@ BrainBrowserWindowToolBar::updateToolBar()
     switch (viewModel) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
+            break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
@@ -2042,6 +2048,9 @@ BrainBrowserWindowToolBar::updateToolBar()
         
         switch (viewModel) {
             case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                CaretAssertToDoFatal();
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                 showCziImageWidget = false; /* Widget is currently empty so hide it  true; */

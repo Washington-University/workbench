@@ -64,10 +64,12 @@ namespace caret {
     class ClippingPlaneGroup;
     class EventCaretMappableDataFilesAndMapsInDisplayedOverlays;
     class GraphicsRegionSelectionBox;
+    class HistologyOverlaySet;
     class Matrix4x4;
     class MediaOverlaySet;
     class ModelChart;
     class ModelChartTwo;
+    class ModelHistology;
     class ModelMedia;
     class ModelSurface;
     class ModelSurfaceMontage;
@@ -121,11 +123,15 @@ namespace caret {
         std::vector<ChartTwoCartesianOrientedAxes*> getYokedAxes(const ChartTwoAxisOrientationTypeEnum::Enum axisOrientation,
                                                                  const ChartTwoAxisScaleRangeModeEnum::Enum yokingRangeMode) const;
         
+        HistologyOverlaySet* getHistologyOverlaySet();
+        
+        const HistologyOverlaySet* getHistologyOverlaySet() const;
+        
         MediaOverlaySet* getMediaOverlaySet();
         
         const MediaOverlaySet* getMediaOverlaySet() const;
         
-        std::set<AString> getDisplayedMediaFiles() const;
+        std::set<AString> getDisplayedMediaFileNames() const;
         
         MediaDisplayCoordinateModeEnum::Enum getMediaDisplayCoordinateMode() const;
         
@@ -152,6 +158,10 @@ namespace caret {
         ModelMedia* getDisplayedMediaModel();
         
         const ModelMedia* getDisplayedMediaModel() const;
+        
+        ModelHistology* getDisplayedHistologyModel();
+        
+        const ModelHistology* getDisplayedHistologyModel() const;
         
         ModelSurface* getDisplayedSurfaceModel();
         
@@ -185,6 +195,8 @@ namespace caret {
         
         bool isVolumeMprDisplayed() const;
         
+        bool isHistologyDisplayed() const;
+
         bool isMediaDisplayed() const;
         
         bool isWholeBrainDisplayed() const;
@@ -206,6 +218,8 @@ namespace caret {
         bool isWholeBrainModelValid() const;
 
         bool isSurfaceMontageModelValid() const;
+        
+        bool isHistologyModelValid() const;
         
         bool isMediaModelValid() const;
         
@@ -533,6 +547,8 @@ namespace caret {
 
         void updateChartModelYokedBrowserTabs();
         
+        void updateHistologyModelYokedBrowserTabs();
+        
         void updateMediaModelYokedBrowserTabs();
         
         bool isBrainModelYoked() const;
@@ -548,6 +564,10 @@ namespace caret {
         YokingGroupEnum::Enum getChartModelYokingGroup() const;
         
         void setChartModelYokingGroup(const YokingGroupEnum::Enum chartModelYokingType);
+        
+        YokingGroupEnum::Enum getHistologyModelYokingGroup() const;
+        
+        void setHistologyModelYokingGroup(const YokingGroupEnum::Enum mediaModelYokingType);
         
         YokingGroupEnum::Enum getMediaModelYokingGroup() const;
         
@@ -680,6 +700,9 @@ namespace caret {
         /** The chart two model */
         ModelChartTwo* m_chartTwoModel;
         
+        /** The histology model */
+        ModelHistology* m_histologyModel;
+        
         /** The multi-media model */
         ModelMedia* m_mediaModel;
 
@@ -712,6 +735,8 @@ namespace caret {
         /** Chart Model Yoking group */
         YokingGroupEnum::Enum m_chartModelYokingGroup;
         
+        YokingGroupEnum::Enum m_histologyModelYokingGroup;
+        
         /** Media Model Yoking Group */
         YokingGroupEnum::Enum m_mediaModelYokingGroup;
         
@@ -729,6 +754,9 @@ namespace caret {
         
         /** Transformation for surface/all viewing */
         ViewingTransformations* m_flatSurfaceViewingTransformation;
+        
+        /** Transformation for media */
+        ViewingTransformationsMedia* m_histologyViewingTransformation;
         
         /** Transformation for media viewing */
         ViewingTransformationsMedia* m_mediaViewingTransformation;

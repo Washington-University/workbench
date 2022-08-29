@@ -873,6 +873,7 @@ OperationShowSceneTwo::applyMapYoking(const MapYokingGroupEnum::Enum mapYokingGr
                                           NULL,
                                           NULL,
                                           NULL,
+                                          NULL,
                                           mapYokingMapIndex,
                                           MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                           true);

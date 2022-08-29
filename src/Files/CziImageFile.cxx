@@ -2848,22 +2848,26 @@ CziImageFile::exportToImageFile(const QString& imageFileName,
 }
 
 /**
- * Set the matrix for display drawing.
+ * Set the matrices for display drawing.
  * @param scaledToPlaneMatrix
  *    The scaled to plane matrix.
+ * @param scaledToPlaneMatrixValidFlag
+ *    Validity of the scaled to plane matrix.
  * @param planeToMillimetersMatrix
  *    Matrix for converting from plane coords to millimeter coords
- * @param matixValidFlag
- *    True if the matrix is valid.
+ * @param planeToMillimetersMatrixValidFlag
+ *    Validity of the plane to millimeters matrix
  */
 void
 CziImageFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
+                                     const bool scaledToPlaneMatrixValidFlag,
                                      const Matrix4x4& planeToMillimetersMatrix,
-                                     const bool matrixValidFlag)
+                                     const bool planeToMillimetersMatrixValidFlag)
 {
     MediaFile::setScaledToPlaneMatrix(scaledToPlaneMatrix,
+                                      scaledToPlaneMatrixValidFlag,
                                       planeToMillimetersMatrix,
-                                      matrixValidFlag);
+                                      planeToMillimetersMatrixValidFlag);
     
     /*
      * For all scenes, set bounds in plane coordinates

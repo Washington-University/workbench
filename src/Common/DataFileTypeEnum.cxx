@@ -302,6 +302,13 @@ DataFileTypeEnum::initialize()
                                         "foci",
                                         "wb_foci"));
     
+    enumData.push_back(DataFileTypeEnum(HISTOLOGY_SLICES,
+                                        "HISTOLOGY_SLICES",
+                                        "Histology Slices",
+                                        "HISTOLOGY_SLICES",
+                                        false,             /* ext below begins with dot */
+                                        DataFileTypeEnum::toCziMetaImageFileExtension().mid(1)));
+    
     enumData.push_back(DataFileTypeEnum(IMAGE,
                                         "IMAGE",
                                         "Image",
@@ -832,6 +839,8 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
                 break;
             case DataFileTypeEnum::FOCI:
                 break;
+            case DataFileTypeEnum::HISTOLOGY_SLICES:
+                break;
             case DataFileTypeEnum::IMAGE:
                 break;
             case DataFileTypeEnum::LABEL:
@@ -1161,9 +1170,11 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
                 break;
             case DataFileTypeEnum::CZI_IMAGE_FILE:
                 break;
+            case DataFileTypeEnum::CZI_META_FILE:
+                break;
             case DataFileTypeEnum::FOCI:
                 break;
-            case DataFileTypeEnum::CZI_META_FILE:
+            case DataFileTypeEnum::HISTOLOGY_SLICES:
                 break;
             case DataFileTypeEnum::IMAGE:
                 break;

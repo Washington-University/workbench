@@ -857,6 +857,8 @@ GiftiTypeFile::isMappedWithPalette() const
             break;
         case DataFileTypeEnum::FOCI:
             break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            break;
         case DataFileTypeEnum::IMAGE:
             break;
         case DataFileTypeEnum::LABEL:
@@ -942,6 +944,8 @@ GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormaliz
         case DataFileTypeEnum::CZI_META_FILE:
             break;
         case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
             break;
         case DataFileTypeEnum::IMAGE:
             break;
@@ -1271,6 +1275,8 @@ GiftiTypeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile
             break;
         case DataFileTypeEnum::FOCI:
             break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            break;
         case DataFileTypeEnum::IMAGE:
             break;
         case DataFileTypeEnum::LABEL:
@@ -1382,6 +1388,8 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
             case DataFileTypeEnum::CZI_META_FILE:
                 break;
             case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::HISTOLOGY_SLICES:
                 break;
             case DataFileTypeEnum::IMAGE:
                 break;

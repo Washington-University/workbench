@@ -75,6 +75,8 @@ public:
         CZI_META_FILE,
         /** Foci */
         FOCI,
+        /** Histology Slices File */
+        HISTOLOGY_SLICES,
         /** Image */
         IMAGE,
         /** Labels */

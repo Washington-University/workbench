@@ -582,27 +582,33 @@ MediaFile::getMillimetersToPlaneMatrix(bool* validFlagOut) const
 }
 
 /**
- * Set the matrix for display drawing.
+ * Set the matrices for display drawing.
  * @param scaledToPlaneMatrix
  *    The scaled to plane matrix.
+ * @param scaledToPlaneMatrixValidFlag
+ *    Validity of the scaled to plane matrix.
  * @param planeToMillimetersMatrix
  *    Matrix for converting from plane coords to millimeter coords
- * @param matixValidFlag
- *    True if the matrix is valid.
+ * @param planeToMillimetersMatrixValidFlag
+ *    Validity of the plane to millimeters matrix
  */
 void
 MediaFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
+                                  const bool scaledToPlaneMatrixValidFlag,
                                   const Matrix4x4& planeToMillimetersMatrix,
-                                  const bool matixValidFlag)
+                                  const bool planeToMillimetersMatrixValidFlag)
 {
     resetMatrices();
     
-    if ( ! matixValidFlag) {
+    /**
+     * If the scaled to plane matrix is invalid, then the plane to millimeters matrix is useless
+     */
+    if ( ! scaledToPlaneMatrixValidFlag) {
         return;
     }
     
     m_planeToMillimetersMatrix = planeToMillimetersMatrix;
-    m_planeToMillimetersMatrixValidFlag = true;
+    m_planeToMillimetersMatrixValidFlag = planeToMillimetersMatrixValidFlag;
     
     m_millimetersToPlaneMatrix = m_planeToMillimetersMatrix;
     if (m_millimetersToPlaneMatrix.invert()) {
@@ -630,7 +636,8 @@ MediaFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
                    1.0);
     
     m_scaledToPlaneMatrix = scaledToPlaneMatrix;
-    m_scaledToPlaneMatrixValidFlag = true;
+    CaretAssert(scaledToPlaneMatrixValidFlag);
+    m_scaledToPlaneMatrixValidFlag = scaledToPlaneMatrixValidFlag;
     
     Matrix4x4 indexToPlane = scaledToPlaneMatrix;
     indexToPlane.premultiply(scaleMat);

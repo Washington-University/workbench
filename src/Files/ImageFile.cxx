@@ -2215,8 +2215,9 @@ ImageFile::readFileMetaDataFromQImage()
             if (scaledToPlaneMatrixValidFlag
                 && planeToMillimetersMatrixValidFlag) {
                 setScaledToPlaneMatrix(scaledToPlaneMatrix,
+                                       scaledToPlaneMatrixValidFlag,
                                        planeToMillimetersMatrix,
-                                       true);
+                                       planeToMillimetersMatrixValidFlag);
             }
         }
     }
@@ -2495,10 +2496,10 @@ ImageFile::findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
                                           float& signedDistanceToPixelMillimetersOut,
                                           PixelLogicalIndex& pixelLogicalIndexOut) const
 {
-    return findPixelNearestStereotaxicXYZ(xyz,
-                                          includeNonLinearFlag,
-                                          signedDistanceToPixelMillimetersOut,
-                                          pixelLogicalIndexOut);
+    return MediaFile::findPixelNearestStereotaxicXYZ(xyz,
+                                                     includeNonLinearFlag,
+                                                     signedDistanceToPixelMillimetersOut,
+                                                     pixelLogicalIndexOut);
 }
 
 /*

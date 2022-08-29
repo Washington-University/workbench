@@ -90,6 +90,7 @@ EventCaretMappableDataFileMapsViewedInOverlays.h
 EventCaretMappableDataFilesGet.h
 EventChartMatrixParcelYokingValidation.h
 EventGetDisplayedDataFiles.h
+EventHistologySlicesFilesGet.h
 EventMapYokingSelectMap.h
 EventMapYokingValidation.h
 EventMediaFilesGet.h
@@ -116,6 +117,9 @@ GroupAndNameHierarchyGroup.h
 GroupAndNameHierarchyItem.h
 GroupAndNameHierarchyModel.h
 GroupAndNameHierarchyName.h
+HistologySlice.h
+HistologySliceImage.h
+HistologySlicesFile.h
 ImageCaptureDimensionsModeEnum.h
 ImageCaptureDialogSettings.h
 ImageFile.h
@@ -248,6 +252,7 @@ EventCaretMappableDataFileMapsViewedInOverlays.cxx
 EventCaretMappableDataFilesGet.cxx
 EventChartMatrixParcelYokingValidation.cxx
 EventGetDisplayedDataFiles.cxx
+EventHistologySlicesFilesGet.cxx
 EventMapYokingSelectMap.cxx
 EventMapYokingValidation.cxx
 EventMediaFilesGet.cxx
@@ -274,6 +279,9 @@ GroupAndNameHierarchyGroup.cxx
 GroupAndNameHierarchyItem.cxx
 GroupAndNameHierarchyModel.cxx
 GroupAndNameHierarchyName.cxx
+HistologySlice.cxx
+HistologySliceImage.cxx
+HistologySlicesFile.cxx
 ImageCaptureDimensionsModeEnum.cxx
 ImageCaptureDialogSettings.cxx
 ImageFile.cxx

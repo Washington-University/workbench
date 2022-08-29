@@ -245,10 +245,12 @@ AnnotationTextSubstitutionViewController::valueIndexSpinBoxChanged(int32_t fileI
         MapYokingGroupEnum::Enum mapYoking = textSubFile->getMapYokingGroup();
         if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
             CaretMappableDataFile* nullMapFile(NULL);
+            HistologySlicesFile* nullHistologySlicesFile(NULL);
             MediaFile* nullMediaFile(NULL);
             EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                    nullMapFile,
                                                    textSubFile,
+                                                   nullHistologySlicesFile,
                                                    nullMediaFile,
                                                    valueIndex,
                                                    MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,

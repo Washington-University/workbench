@@ -176,6 +176,8 @@ public:
         EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP,
         /** Display the help viewer */
         EVENT_HELP_VIEWER_DISPLAY,
+        /** Get histology slices files */
+        EVENT_HISTOLOGY_SLICES_FILES_GET,
         /** Highlight location when an identification occurs */
         EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION,
         /** Perform an identification operation */

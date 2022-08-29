@@ -126,6 +126,9 @@ FociDrawingProjectionTypeEnum.h
 FociDrawingTypeEnum.h
 FtglFontTextRenderer.h
 GapsAndMargins.h
+HistologyOverlay.h
+HistologyOverlaySet.h
+HistologyOverlaySetArray.h
 IdentificationFilter.h
 IdentificationFilterTabSelectionEnum.h
 IdentificationFormattedTextGenerator.h
@@ -148,6 +151,7 @@ MediaOverlaySetArray.h
 Model.h
 ModelChart.h
 ModelChartTwo.h
+ModelHistology.h
 ModelMedia.h
 ModelSurface.h
 ModelSurfaceMontage.h
@@ -323,6 +327,9 @@ FociDrawingProjectionTypeEnum.cxx
 FociDrawingTypeEnum.cxx
 FtglFontTextRenderer.cxx
 GapsAndMargins.cxx
+HistologyOverlay.cxx
+HistologyOverlaySet.cxx
+HistologyOverlaySetArray.cxx
 IdentificationFilter.cxx
 IdentificationFilterTabSelectionEnum.cxx
 IdentificationFormattedTextGenerator.cxx
@@ -345,6 +352,7 @@ MediaOverlaySetArray.cxx
 Model.cxx
 ModelChart.cxx
 ModelChartTwo.cxx
+ModelHistology.cxx
 ModelMedia.cxx
 ModelSurface.cxx
 ModelSurfaceMontage.cxx

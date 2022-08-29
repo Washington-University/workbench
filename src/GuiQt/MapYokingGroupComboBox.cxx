@@ -32,6 +32,8 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
 #include "EventMapYokingValidation.h"
+#include "HistologySlicesFile.h"
+#include "HistologyOverlay.h"
 #include "MediaFile.h"
 #include "MediaOverlay.h"
 #include "Overlay.h"
@@ -158,9 +160,11 @@ MapYokingGroupComboBox::validateYokingChange(ChartableMatrixSeriesInterface* cha
         if ((mapFile != NULL)
             && (mapIndex >= 0)) {
             AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
+            HistologySlicesFile* nullHistologySlicesFile(NULL);
             MediaFile* nullMediaFile(NULL);
             const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
                                                                mapFile,
+                                                               nullHistologySlicesFile,
                                                                nullMediaFile,
                                                                mapIndex,
                                                                selectionStatus);
@@ -201,9 +205,11 @@ MapYokingGroupComboBox::validateYokingChange(AnnotationTextSubstitutionFile* ann
     bool selectionStatus = true;
     
     CaretMappableDataFile* nullMapFile(NULL);
+    HistologySlicesFile* nullHistologySlicesFile(NULL);
     MediaFile* nullMediaFile(NULL);
         const YokeValidationResult result = validateYoking(annTextSubFile,
                                                            nullMapFile,
+                                                           nullHistologySlicesFile,
                                                            nullMediaFile,
                                                            mapIndex,
                                                            selectionStatus);
@@ -244,9 +250,11 @@ MapYokingGroupComboBox::validateYokingChange(Overlay* overlay)
     if ((mapFile != NULL)
         && (mapIndex >= 0)) {
         AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
+        HistologySlicesFile* nullHistologySlicesFile(NULL);
         MediaFile* nullMediaFile(NULL);
         const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
                                                            mapFile,
+                                                           nullHistologySlicesFile,
                                                            nullMediaFile,
                                                      mapIndex,
                                                      selectionStatus);
@@ -297,9 +305,11 @@ MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
             }
         }
         AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
+        HistologySlicesFile* nullHistologySlicesFile(NULL);
         MediaFile* nullMediaFile(NULL);
                 const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
                                                            mapFile,
+                                                                   nullHistologySlicesFile,
                                                            nullMediaFile,
                                                            selectedIndex,
                                                            selectionStatus);
@@ -324,6 +334,60 @@ MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
 }
 
 /**
+ * Validate a change in yoking for a histology overlay.
+ *
+ * @param histologyOverlay
+ *    Histology overlay whose yoking changes.
+ */
+void
+MapYokingGroupComboBox::validateYokingChange(HistologyOverlay* histologyOverlay)
+{
+    const MapYokingGroupEnum::Enum previousMapYokingGroup = histologyOverlay->getMapYokingGroup();
+    const MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
+
+    HistologyOverlay::SelectionData selectionData(histologyOverlay->getSelectionData());
+    
+    HistologySlicesFile* histologySlicesFile(selectionData.m_selectedFile);
+    int32_t selectedIndex(selectionData.m_selectedSliceIndex);
+    bool selectionStatus = histologyOverlay->isEnabled();
+    
+    if ((histologySlicesFile != NULL)
+        && selectionData.m_supportsYokingFlag) {
+        if (histologySlicesFile->getNumberOfHistologySlices() > 0) {
+            if (selectedIndex < 0) {
+                selectedIndex = 0;
+            }
+        }
+        AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
+        CaretMappableDataFile* nullMapFile(NULL);
+        MediaFile* nullMediaFile(NULL);
+        const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
+                                                           nullMapFile,
+                                                           histologySlicesFile,
+                                                           nullMediaFile,
+                                                           selectedIndex,
+                                                           selectionStatus);
+        
+        switch (result) {
+            case YOKE_VALIDATE_RESULT_ACCEPT:
+                histologyOverlay->setEnabled(selectionStatus);
+                histologyOverlay->setSelectionData(histologySlicesFile,
+                                               selectedIndex);
+                histologyOverlay->setMapYokingGroup(newYokingGroup);
+                break;
+            case YOKE_VALIDATE_RESULT_OFF:
+                histologyOverlay->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
+                break;
+            case YOKE_VALIDATE_RESULT_PREVIOUS:
+                histologyOverlay->setMapYokingGroup(previousMapYokingGroup);
+                break;
+        }
+        
+        setMapYokingGroup(histologyOverlay->getMapYokingGroup());
+    }
+}
+
+/**
  * Validate a change in yoking for a media overlay.
  *
  * @param mediaOverlay
@@ -334,7 +398,7 @@ MapYokingGroupComboBox::validateYokingChange(MediaOverlay* mediaOverlay)
 {
     const MapYokingGroupEnum::Enum previousMapYokingGroup = mediaOverlay->getMapYokingGroup();
     const MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
-
+    
     MediaOverlay::SelectionData selectionData(mediaOverlay->getSelectionData());
     
     MediaFile* mediaFile(selectionData.m_selectedMediaFile);
@@ -350,8 +414,10 @@ MapYokingGroupComboBox::validateYokingChange(MediaOverlay* mediaOverlay)
         }
         AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
         CaretMappableDataFile* nullMapFile(NULL);
+        HistologySlicesFile* nullHistologySlicesFile(NULL);
         const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
                                                            nullMapFile,
+                                                           nullHistologySlicesFile,
                                                            mediaFile,
                                                            selectedIndex,
                                                            selectionStatus);
@@ -380,6 +446,8 @@ MapYokingGroupComboBox::validateYokingChange(MediaOverlay* mediaOverlay)
  *
  * @param selectedAnnTextSubFile
  *     The annotation text substitution file.
+ * @param selectedHistologySlicesFile
+ *    The histology slices file the user would like to yoke
  * @param selectedMapFile
  *     The map file that the user would like to yoke.
  * @param selectedMediaFile
@@ -394,6 +462,7 @@ MapYokingGroupComboBox::validateYokingChange(MediaOverlay* mediaOverlay)
 MapYokingGroupComboBox::YokeValidationResult
 MapYokingGroupComboBox::validateYoking(AnnotationTextSubstitutionFile* selectedAnnTextSubFile,
                                        CaretMappableDataFile* selectedMapFile,
+                                       HistologySlicesFile* selectedHistologySlicesFile,
                                        MediaFile* selectedMediaFile,
                                        int32_t& selectedMapIndexInOut,
                                        bool& /* selectionStatusInOut */)
@@ -421,6 +490,7 @@ MapYokingGroupComboBox::validateYoking(AnnotationTextSubstitutionFile* selectedA
             AString message;
             if (validateEvent.validateCompatibility(selectedAnnTextSubFile,
                                                     selectedMapFile,
+                                                    selectedHistologySlicesFile,
                                                     selectedMediaFile,
                                                     numberOfYokedFiles,
                                                     message)) {

@@ -83,6 +83,7 @@
 #include "EventDataFileReloadAll.h"
 #include "EventCaretDataFilesGet.h"
 #include "EventGetDisplayedDataFiles.h"
+#include "EventHistologySlicesFilesGet.h"
 #include "EventMediaFilesGet.h"
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
@@ -99,6 +100,7 @@
 #include "FociFile.h"
 #include "GapsAndMargins.h"
 #include "GroupAndNameHierarchyModel.h"
+#include "HistologySlicesFile.h"
 #include "IdentificationManager.h"
 #include "ImageFile.h"
 #include "MathFunctions.h"
@@ -106,6 +108,7 @@
 #include "MetricFile.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
+#include "ModelHistology.h"
 #include "ModelMedia.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -192,6 +195,7 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_surfaceMontageModel = NULL;
     m_volumeSliceModel = NULL;
     m_wholeBrainModel = NULL;
+    m_histologyModel = NULL;
     m_mediaModel = NULL;
     
     m_displayPropertiesAnnotation = new DisplayPropertiesAnnotation(this);
@@ -363,6 +367,9 @@ Brain::~Brain()
     }
     if (m_wholeBrainModel != NULL) {
         delete m_wholeBrainModel;
+    }
+    if (m_histologyModel != NULL) {
+        delete m_histologyModel;
     }
     if (m_mediaModel != NULL) {
         delete m_mediaModel;
@@ -615,6 +622,11 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
         delete cmf;
     }
     m_cziMetaFiles.clear();
+    
+    for (auto hsf : m_histologySlicesFiles) {
+        delete hsf;
+    }
+    m_histologySlicesFiles.clear();
     
     for (std::vector<FociFile*>::iterator ffi = m_fociFiles.begin();
          ffi != m_fociFiles.end();
@@ -899,6 +911,9 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::CZI_META_FILE:
                 break;
             case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::HISTOLOGY_SLICES:
+                CaretAssertToDoFatal();
                 break;
             case DataFileTypeEnum::IMAGE:
                 break;
@@ -2152,6 +2167,8 @@ Brain::addReadOrReloadCziMetaFile(const FileModeAddReadReload fileMode,
                                    CaretDataFile* caretDataFile,
                                    const AString& filename)
 {
+    CaretAssertToDoFatal();
+    
     CziMetaFile* cziMetaFile = NULL;
     if (caretDataFile != NULL) {
         cziMetaFile = dynamic_cast<CziMetaFile*>(caretDataFile);
@@ -2214,6 +2231,83 @@ Brain::addReadOrReloadCziMetaFile(const FileModeAddReadReload fileMode,
 }
 
 /**
+ * Read a histology slices file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+HistologySlicesFile*
+Brain::addReadOrReloadHistologySlicesFile(const FileModeAddReadReload fileMode,
+                                          CaretDataFile* caretDataFile,
+                                          const AString& filename)
+{
+    HistologySlicesFile* histologySlicesFile = NULL;
+    if (caretDataFile != NULL) {
+        histologySlicesFile = dynamic_cast<HistologySlicesFile*>(caretDataFile);
+        CaretAssert(histologySlicesFile);
+    }
+    else {
+        histologySlicesFile = new HistologySlicesFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                histologySlicesFile->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+        }
+        catch (DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete histologySlicesFile;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_histologySlicesFiles,
+                                      histologySlicesFile);
+        m_histologySlicesFiles.push_back(histologySlicesFile);
+    }
+    
+    return histologySlicesFile;
+}
+
+/**
  * Read all CZI files listed in the given CZI meta file
  */
 void
@@ -2248,6 +2342,7 @@ Brain::readCziImageFilesFromCziMetaFile(CziMetaFile* cziMetaFile)
                         CziImageFile* cziFile(cdf->castToCziImageFile());
                         CaretAssert(cziFile);
                         cziFile->setScaledToPlaneMatrix(scene->getScaleToPlaneMatrix(),
+                                                        true,
                                                         slice->getPlaneToMillimetersMatrix(),
                                                         true);
                     }
@@ -4797,6 +4892,9 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     m_fociFiles.push_back(file);
                 }
                     break;
+                case DataFileTypeEnum::HISTOLOGY_SLICES:
+                    CaretAssertToDoFatal();
+                    break;
                 case DataFileTypeEnum::IMAGE:
                 {
                     ImageFile* file = dynamic_cast<ImageFile*>(caretDataFile);
@@ -5079,6 +5177,46 @@ Brain::getCziMetaFile(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_cziMetaFiles, indx);
     return m_cziMetaFiles[indx];
+}
+
+/**
+ * @return All  histology files.
+ */
+const std::vector<HistologySlicesFile*>
+Brain::getAllHistologySlicesFiles() const
+{
+    return m_histologySlicesFiles;
+}
+
+/**
+ * @return Number of histology files.
+ */
+int32_t
+Brain::getNumberOfHistologySlicesFiles() const
+{
+    return m_histologySlicesFiles.size();
+}
+
+/**
+ * @return The histology file.
+ * @param indx Index of the histology file.
+ */
+HistologySlicesFile*
+Brain::getHistologySlicesFile(const int32_t indx)
+{
+    CaretAssertVectorIndex(m_histologySlicesFiles, indx);
+    return m_histologySlicesFiles[indx];
+}
+
+/**
+ * @return The histology file.
+ * @param indx Index of the histology file.
+ */
+const HistologySlicesFile*
+Brain::getHistologySlicesFile(const int32_t indx) const
+{
+    CaretAssertVectorIndex(m_histologySlicesFiles, indx);
+    return m_histologySlicesFiles[indx];
 }
 
 /**
@@ -5424,6 +5562,41 @@ Brain::createModelChartTwo()
 }
 
 /**
+ * Update the histology model.
+ */
+void
+Brain::updateHistologyModel()
+{
+    bool isValid = false;
+    const int32_t numHistologyFiles(getNumberOfHistologySlicesFiles());
+    if (numHistologyFiles > 0) {
+        isValid = true;
+    }
+    
+    if (isValid) {
+        if (m_histologyModel == NULL) {
+            m_histologyModel = new ModelHistology(this);
+            EventModelAdd eventAddModel(m_histologyModel);
+            EventManager::get()->sendEvent(eventAddModel.getPointer());
+            
+            if ( ! m_isSpecFileBeingRead) {
+                m_histologyModel->initializeOverlays();
+            }
+        }
+        
+        m_histologyModel->updateModel();
+    }
+    else {
+        if (m_histologyModel != NULL) {
+            EventModelDelete eventDeleteModel(m_histologyModel);
+            EventManager::get()->sendEvent(eventDeleteModel.getPointer());
+            delete m_histologyModel;
+            m_histologyModel = NULL;
+        }
+    }
+}
+
+/**
  * Update the multi-meda model.
  */
 void
@@ -5669,6 +5842,9 @@ Brain::getReloadableDataFiles() const
             case DataFileTypeEnum::CZI_META_FILE:
                 break;
             case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::HISTOLOGY_SLICES:
+                CaretAssertToDoFatal();
                 break;
             case DataFileTypeEnum::IMAGE:
                 break;
@@ -6002,6 +6178,9 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                                                  caretDataFile,
                                                  dataFileName);
                 break;
+            case DataFileTypeEnum::HISTOLOGY_SLICES:
+                CaretAssertToDoFatal();
+                break;
             case DataFileTypeEnum::IMAGE:
                 caretDataFileRead  = addReadOrReloadImageFile(fileMode,
                                                              caretDataFile,
@@ -6181,6 +6360,7 @@ Brain::updateAfterFilesAddedOrRemoved()
     updateVolumeSliceModel();
     updateWholeBrainModel();
     updateChartModel();
+    updateHistologyModel();
     updateMediaModel();
     
     updateFiberTrajectoryMatchingFiberOrientationFiles();
@@ -6819,6 +6999,15 @@ Brain::receiveEvent(Event* event)
         
         dataFilesEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_HISTOLOGY_SLICES_FILES_GET) {
+        EventHistologySlicesFilesGet* histologyEvent(dynamic_cast<EventHistologySlicesFilesGet*>(event));
+        CaretAssert(histologyEvent);
+        
+        for (auto f: m_histologySlicesFiles) {
+            histologyEvent->addHistologySlicesFile(f);
+        }
+        histologyEvent->setEventProcessed();
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_MEDIA_FILES_GET) {
         EventMediaFilesGet* mediaEvent = dynamic_cast<EventMediaFilesGet*>(event);
         CaretAssert(mediaEvent);
@@ -7011,6 +7200,24 @@ const ModelChartTwo*
 Brain::getChartTwoModel() const
 {
     return m_modelChartTwo;
+}
+
+/**
+ * @return The histology model (warning may be NULL)
+ */
+ModelHistology*
+Brain::getHistologyModel()
+{
+    return m_histologyModel;
+}
+
+/**
+ * @return The histology model (warning may be NULL) const method
+ */
+const ModelHistology*
+Brain::getHistologyModel() const
+{
+    return m_histologyModel;
 }
 
 /**
@@ -7271,6 +7478,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_fociFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_histologySlicesFiles.begin(),
+                           m_histologySlicesFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_imageFiles.begin(),
                            m_imageFiles.end());
     
@@ -7508,6 +7719,9 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::FOCI:
             break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            CaretAssertToDoFatal();
+            break;
         case DataFileTypeEnum::IMAGE:
             break;
         case DataFileTypeEnum::LABEL:
@@ -7604,6 +7818,9 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::CZI_META_FILE:
             break;
         case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            CaretAssertToDoFatal();
             break;
         case DataFileTypeEnum::IMAGE:
             break;
@@ -7833,6 +8050,14 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
                                                                     caretDataFile);
     if (cziMetaIterator != m_cziMetaFiles.end()) {
         m_cziMetaFiles.erase(cziMetaIterator);
+        return true;
+    }
+    
+    std::vector<HistologySlicesFile*>::iterator histologySlicesFileIterator(std::find(m_histologySlicesFiles.begin(),
+                                                          m_histologySlicesFiles.end(),
+                                                          caretDataFile));
+    if (histologySlicesFileIterator != m_histologySlicesFiles.end()) {
+        m_histologySlicesFiles.erase(histologySlicesFileIterator);
         return true;
     }
     

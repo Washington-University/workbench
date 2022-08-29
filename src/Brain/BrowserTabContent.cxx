@@ -78,6 +78,7 @@
 #include "MetricDynamicConnectivityFile.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
+#include "ModelHistology.h"
 #include "ModelMedia.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -143,6 +144,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
     m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+    m_histologyModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PIXEL;
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
@@ -164,6 +166,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_cerebellumViewingTransformation  = new ViewingTransformationsCerebellum();
     m_flatSurfaceViewingTransformation = new ViewingTransformations();
     m_viewingTransformation            = new ViewingTransformations();
+    m_histologyViewingTransformation   = new ViewingTransformationsMedia();
     m_mediaViewingTransformation       = new ViewingTransformationsMedia();
     m_volumeSliceViewingTransformation = new ViewingTransformationsVolume();
     m_chartTwoMatrixViewingTranformation  = new ViewingTransformations();
@@ -218,6 +221,10 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                "ViewingTransformationsMedia",
                                m_mediaViewingTransformation);
     
+    m_sceneClassAssistant->add("m_histologyViewingTransformation",
+                               "ViewingTransformationsMedia",
+                               m_histologyViewingTransformation);
+    
     m_sceneClassAssistant->add("m_volumeSliceViewingTransformation",
                                "ViewingTransformations",
                                m_volumeSliceViewingTransformation);
@@ -261,9 +268,11 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                                                        &m_brainModelYokingGroup);
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_chartModelYokingGroup",
                                                                        &m_chartModelYokingGroup);
+    m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_histologyModelYokingGroup",
+                                                                       &m_histologyModelYokingGroup);
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_mediaModelYokingGroup",
                                                                        &m_mediaModelYokingGroup);
-    
+
     m_sceneClassAssistant->add<MediaDisplayCoordinateModeEnum, MediaDisplayCoordinateModeEnum::Enum>("m_mediaDisplayCoordinateMode",
                                                                                                      &m_mediaDisplayCoordinateMode);
     
@@ -339,6 +348,7 @@ BrowserTabContent::~BrowserTabContent()
     delete m_flatSurfaceViewingTransformation;
     delete m_cerebellumViewingTransformation;
     delete m_viewingTransformation;
+    delete m_histologyViewingTransformation;
     delete m_mediaViewingTransformation;
     delete m_volumeSliceViewingTransformation;
     delete m_chartTwoMatrixViewingTranformation;
@@ -391,6 +401,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     
     m_brainModelYokingGroup = tabToClone->m_brainModelYokingGroup;
     m_chartModelYokingGroup = tabToClone->m_chartModelYokingGroup;
+    m_histologyModelYokingGroup = tabToClone->m_histologyModelYokingGroup;
     m_mediaModelYokingGroup = tabToClone->m_mediaModelYokingGroup;
     m_aspectRatio = tabToClone->m_aspectRatio;
     m_aspectRatioLocked = tabToClone->m_aspectRatioLocked;
@@ -398,6 +409,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_cerebellumViewingTransformation = *tabToClone->m_cerebellumViewingTransformation;
     *m_flatSurfaceViewingTransformation = *tabToClone->m_flatSurfaceViewingTransformation;
     *m_viewingTransformation = *tabToClone->m_viewingTransformation;
+    *m_histologyViewingTransformation = *tabToClone->m_histologyViewingTransformation;
     *m_mediaViewingTransformation = *tabToClone->m_mediaViewingTransformation;
     *m_volumeSliceViewingTransformation = *tabToClone->m_volumeSliceViewingTransformation;
     *m_chartTwoMatrixViewingTranformation = *tabToClone->m_chartTwoMatrixViewingTranformation;
@@ -573,6 +585,9 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
+            case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                CaretAssertToDoFatal();
+                break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                 mediaFlag = true;
                 break;
@@ -701,6 +716,9 @@ BrowserTabContent::getModelForDisplay()
     switch (m_selectedModelType) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
+            break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             mdc = m_mediaModel;
             break;
@@ -742,6 +760,9 @@ BrowserTabContent::getModelForDisplay() const
     
     switch (m_selectedModelType) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             mdc = m_mediaModel;
@@ -823,6 +844,38 @@ BrowserTabContent::getDisplayedChartTwoModel() const
 {
     const ModelChartTwo* mc = dynamic_cast<const ModelChartTwo*>(getModelForDisplay());
     return mc;
+}
+
+/**
+ * Get the displayed histology model
+ *
+ * @return  Pointer to displayed histology model or
+ *          NULL if the displayed model is NOT a
+ *          histology.
+ */
+ModelHistology*
+BrowserTabContent::getDisplayedHistologyModel()
+{
+    ModelHistology* mh(NULL);
+    Model* model(getModelForDisplay());
+    if (model != NULL) {
+        mh = dynamic_cast<ModelHistology*>(getModelForDisplay());
+    }
+    return mh;
+}
+
+/**
+ * Get the displayed histology model
+ *
+ * @return  Pointer to displayed histology model or
+ *          NULL if the displayed model is NOT a
+ *          histology.
+ */
+const ModelHistology*
+BrowserTabContent::getDisplayedHistologyModel() const
+{
+    const ModelHistology* mh = dynamic_cast<const ModelHistology*>(getModelForDisplay());
+    return mh;
 }
 
 /**
@@ -989,6 +1042,18 @@ BrowserTabContent::isChartTwoDisplayed() const
     }
     
     return false;
+}
+
+/**
+ * @return Is the displayed model a histology model?
+ */
+bool
+BrowserTabContent::isHistologyDisplayed() const
+{
+    const ModelHistology* mh = dynamic_cast<const ModelHistology*>(getModelForDisplay());
+    
+    const bool histologyFlag = (mh != NULL);
+    return histologyFlag;
 }
 
 /**
@@ -1169,6 +1234,33 @@ BrowserTabContent::getChartTwoOverlaySet() const
 }
 
 /**
+ * @return Histology overlay set for this tab.
+ */
+HistologyOverlaySet*
+BrowserTabContent::getHistologyOverlaySet()
+{
+    if (m_histologyModel == NULL) {
+        return NULL;
+    }
+    
+    CaretAssert(m_histologyModel);
+    return m_histologyModel->getHistologyOverlaySet(m_tabNumber);
+}
+
+/**
+ * @return Histology overlay set for this tab.
+ */
+const HistologyOverlaySet*
+BrowserTabContent::getHistologyOverlaySet() const
+{
+    if (m_histologyModel == NULL) {
+        return NULL;
+    }
+    CaretAssert(m_histologyModel);
+    return m_histologyModel->getHistologyOverlaySet(m_tabNumber);
+}
+
+/**
  * @return Media overlay set for this tab.
  */
 MediaOverlaySet*
@@ -1199,7 +1291,7 @@ BrowserTabContent::getMediaOverlaySet() const
  * @return Names of media files displayed in this overlay
  */
 std::set<AString>
-BrowserTabContent::getDisplayedMediaFiles() const
+BrowserTabContent::getDisplayedMediaFileNames() const
 {
     std::set<AString> names;
     
@@ -1383,6 +1475,9 @@ BrowserTabContent::update(const std::vector<Model*> models)
     switch (m_selectedModelType) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
+            break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             if (m_mediaModel == NULL) {
                 m_selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
@@ -1509,6 +1604,17 @@ bool
 BrowserTabContent::isSurfaceModelValid() const
 {
     bool valid = (m_allSurfaceModels.empty() == false);
+    return valid;
+}
+
+/**
+ * Is the histology model selection valid?
+ * @return True if valid, else false.
+ */
+bool
+BrowserTabContent::isHistologyModelValid() const
+{
+    const bool valid(m_histologyModel != NULL);
     return valid;
 }
 
@@ -1764,6 +1870,9 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
             useChartTwoFlag = true;
             break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
+            break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
@@ -1988,6 +2097,9 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
             useChartTwoFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;
@@ -2247,6 +2359,9 @@ BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAn
             }
         }
             break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
+            break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
         {
             MediaOverlaySet* overlaySet = model->getMediaOverlaySet(tabIndex);
@@ -2326,6 +2441,9 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
     const int32_t tabIndex = getTabNumber();
     switch (getSelectedModelType()) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
         {
@@ -2517,6 +2635,9 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                         break;
                     case DataFileTypeEnum::IMAGE:
                         break;
+                    case DataFileTypeEnum::HISTOLOGY_SLICES:
+                        CaretAssertToDoFatal();
+                        break;
                     case DataFileTypeEnum::LABEL:
                         break;
                     case DataFileTypeEnum::METRIC:
@@ -2639,6 +2760,9 @@ BrowserTabContent::getViewingTransformation()
     else if (isChartTwoDisplayed()) {
         return m_chartTwoMatrixViewingTranformation;
     }
+    else if (isHistologyDisplayed()) {
+        return m_histologyViewingTransformation;
+    }
     else if (isMediaDisplayed()) {
         return m_mediaViewingTransformation;
     }
@@ -2659,6 +2783,9 @@ BrowserTabContent::getViewingTransformation() const
     }
     else if (isChartTwoDisplayed()) {
         return m_chartTwoMatrixViewingTranformation;
+    }
+    else if (isHistologyDisplayed()) {
+        return m_histologyViewingTransformation;
     }
     else if (isMediaDisplayed()) {
         return m_mediaViewingTransformation;
@@ -2855,6 +2982,7 @@ BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enu
         case ModelTypeEnum::MODEL_TYPE_INVALID:
         case ModelTypeEnum::MODEL_TYPE_CHART:
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
         case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
@@ -4962,6 +5090,7 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_A;
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+    m_histologyModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     
     initializeScaleBar();
@@ -5138,6 +5267,9 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
             case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                CaretAssertToDoFatal();
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                 break;
@@ -5805,6 +5937,7 @@ BrowserTabContent::getValidSliceProjectionTypes(std::vector<VolumeSliceProjectio
                     case ModelTypeEnum::MODEL_TYPE_CHART:
                     case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
+                    case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE:
@@ -5958,6 +6091,7 @@ BrowserTabContent::reset()
         m_obliqueVolumeRotationMatrix->identity();
     }
     updateBrainModelYokedBrowserTabs();
+    updateHistologyModelYokedBrowserTabs();
     updateMediaModelYokedBrowserTabs();
 }
 
@@ -6501,6 +6635,45 @@ BrowserTabContent::setChartModelYokingGroup(const YokingGroupEnum::Enum chartMod
 }
 
 /**
+ * @return Selected yoking group for histology
+ */
+YokingGroupEnum::Enum
+BrowserTabContent::getHistologyModelYokingGroup() const
+{
+    return m_histologyModelYokingGroup;
+}
+
+/**
+ * Set the selected yoking group for histology.
+ *
+ * @param histologyModelYokingType
+ *    New value for yoking group.
+ */
+void
+BrowserTabContent::setHistologyModelYokingGroup(const YokingGroupEnum::Enum histologyModelYokingType)
+{
+    m_histologyModelYokingGroup = histologyModelYokingType;
+    
+    if (m_histologyModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    /*
+     * Find another browser tab using the same yoking as 'me' and copy
+     * yoked data from the other browser tab.
+     */
+    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+    for (auto btc : activeTabs) {
+        if (btc != this) {
+            if (btc->getHistologyModelYokingGroup() == m_histologyModelYokingGroup) {
+                *m_histologyViewingTransformation = *btc->m_histologyViewingTransformation;
+                break;
+            }
+        }
+    }
+}
+
+/**
  * @return Selected yoking group for media
  */
 YokingGroupEnum::Enum
@@ -6578,6 +6751,7 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 *m_flatSurfaceViewingTransformation = *btc->m_flatSurfaceViewingTransformation;
                 *m_cerebellumViewingTransformation = *btc->m_cerebellumViewingTransformation;
                 *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
+                *m_histologyViewingTransformation = *btc->m_histologyViewingTransformation;
                 *m_mediaViewingTransformation = *btc->m_mediaViewingTransformation;
                 const VolumeSliceViewPlaneEnum::Enum slicePlane = m_volumeSliceSettings->getSliceViewPlane();
                 *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
@@ -6640,6 +6814,7 @@ void
 BrowserTabContent::updateYokedModelBrowserTabs()
 {
     bool chartFlag = false;
+    bool histologyFlag(false);
     bool mediaFlag = false;
     
     switch (getSelectedModelType()) {
@@ -6650,6 +6825,9 @@ BrowserTabContent::updateYokedModelBrowserTabs()
             chartFlag = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             mediaFlag = true;
@@ -6666,6 +6844,9 @@ BrowserTabContent::updateYokedModelBrowserTabs()
  
     if (chartFlag) {
         updateChartModelYokedBrowserTabs();
+    }
+    else if (histologyFlag) {
+        updateHistologyModelYokedBrowserTabs();
     }
     else if (mediaFlag) {
         updateMediaModelYokedBrowserTabs();
@@ -6760,6 +6941,56 @@ BrowserTabContent::updateChartModelYokedBrowserTabs()
             }
         }
     }
+}
+
+/**
+ * Update other browser tabs with histology model yoked data.
+ */
+void
+BrowserTabContent::updateHistologyModelYokedBrowserTabs()
+{
+    if (isExecutingConstructor) {
+        return;
+    }
+    
+    if (m_histologyModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    CaretAssertToDoFatal();
+    
+//    float myImageWidthHeight[2] { 0.0f, 0.0f };
+//    HistologyOverlaySet* myOverlaySet(getHistologyOverlaySet());
+//    if (myOverlaySet != NULL) {
+//        const HistologySlicesFile* myMediaFile(myOverlaySet->getBottomMostHistologyFile());
+//        myImageWidthHeight[0] = myMediaFile->getWidth();
+//        myImageWidthHeight[1] = myMediaFile->getHeight();
+//    }
+//
+//    /*
+//     * Copy yoked data from 'me' to all other yoked browser tabs
+//     */
+//    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+//    for (auto btc : activeTabs) {
+//        if (btc != this) {
+//            /*
+//             * If anything is added, also need to update setYokingGroup()
+//             */
+//            if (btc->getHistologyModelYokingGroup() == m_histologyModelYokingGroup) {
+//                float btcImageWidthHeight[2] { 0.0f, 0.0f };
+//                HistologyOverlaySet* btcOverlaySet(btc->getHistologyOverlaySet());
+//                if (btcOverlaySet != NULL) {
+//                    const HistologySlicesFile* btcMediaFile(btcOverlaySet->getBottomMostHistologyFile());
+//                    btcImageWidthHeight[0] = btcMediaFile->getWidth();
+//                    btcImageWidthHeight[1] = btcMediaFile->getHeight();
+//                }
+//
+//                btc->m_histologyViewingTransformation->copyTransformsForYoking(*m_histologyViewingTransformation,
+//                                                                           myImageWidthHeight,
+//                                                                           btcImageWidthHeight);
+//            }
+//        }
+//    }
 }
 
 /**

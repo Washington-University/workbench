@@ -443,10 +443,12 @@ OverlayViewController::mapIndexSpinBoxValueChanged(int indx)
     const MapYokingGroupEnum::Enum mapYoking = overlay->getMapYokingGroup();
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         AnnotationTextSubstitutionFile* nullAnnTextSubsFile(NULL);
+        HistologySlicesFile* nullHistologySlicesFile(NULL);
         MediaFile* nullMediaFile(NULL);
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
                                                nullAnnTextSubsFile,
+                                               nullHistologySlicesFile,
                                                nullMediaFile,
                                                overlayIndex,
                                                MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
@@ -494,10 +496,12 @@ OverlayViewController::mapNameComboBoxSelected(int indx)
     const MapYokingGroupEnum::Enum mapYoking = overlay->getMapYokingGroup();
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         AnnotationTextSubstitutionFile* nullAnnTextSubsFile(NULL);
+        HistologySlicesFile* nullHistologySlicesFile(NULL);
         MediaFile* nullMediaFile(NULL);
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
                                                nullAnnTextSubsFile,
+                                               nullHistologySlicesFile,
                                                nullMediaFile,
                                                indx,
                                                MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
@@ -540,10 +544,12 @@ OverlayViewController::enabledCheckBoxClicked(bool checked)
                                         myIndex);
         
         AnnotationTextSubstitutionFile* nullAnnTextSubsFile(NULL);
+        HistologySlicesFile* nullHistologySlicesFile(NULL);
         MediaFile* nullMediaFile(NULL);
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                myFile,
                                                nullAnnTextSubsFile,
+                                               nullHistologySlicesFile,
                                                nullMediaFile,
                                                myIndex,
                                                MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
@@ -1013,6 +1019,9 @@ OverlayViewController::menuConstructionAboutToShow()
                 case DataFileTypeEnum::CZI_META_FILE:
                     break;
                 case DataFileTypeEnum::FOCI:
+                    break;
+                case DataFileTypeEnum::HISTOLOGY_SLICES:
+                    CaretAssertToDoFatal();
                     break;
                 case DataFileTypeEnum::IMAGE:
                     break;

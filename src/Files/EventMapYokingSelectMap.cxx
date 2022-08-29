@@ -55,6 +55,7 @@ using namespace caret;
 EventMapYokingSelectMap::EventMapYokingSelectMap(const MapYokingGroupEnum::Enum mapYokingGroup,
                                                  const CaretMappableDataFile* caretMappableDataFile,
                                                  const AnnotationTextSubstitutionFile* annotationTextSubstitutionFile,
+                                                 const HistologySlicesFile* histologySlicesFile,
                                                  const MediaFile* mediaFile,
                                                  const int32_t mapIndex,
                                                  const MapYokingGroupEnum::MediaAllFramesStatus mediaAllFramesStatus,
@@ -63,6 +64,7 @@ EventMapYokingSelectMap::EventMapYokingSelectMap(const MapYokingGroupEnum::Enum 
 m_mapYokingGroup(mapYokingGroup),
 m_caretMappableDataFile(caretMappableDataFile),
 m_annotationTextSubstitutionFile(annotationTextSubstitutionFile),
+m_histologySlicesFile(histologySlicesFile),
 m_mediaFile(mediaFile),
 m_mapIndex(mapIndex)
 {
@@ -107,6 +109,16 @@ const AnnotationTextSubstitutionFile*
 EventMapYokingSelectMap::getAnnotationTextSubstitutionFile() const
 {
     return m_annotationTextSubstitutionFile;
+}
+
+/**
+ * @return Histology slices  file for which event was issued.
+ * Might be NULL.
+ */
+const HistologySlicesFile*
+EventMapYokingSelectMap::getHistologySlicesFile() const
+{
+    return m_histologySlicesFile;
 }
 
 /**

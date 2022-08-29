@@ -339,6 +339,10 @@ EventTypeEnum::initialize()
                                      "EVENT_HELP_VIEWER_DISPLAY", 
                                      "Display the help viewer"));
     
+    enumData.push_back(EventTypeEnum(EVENT_HISTOLOGY_SLICES_FILES_GET,
+                                     "EVENT_HISTOLOGY_SLICES_FILES_GET",
+                                     "Get histology slices files"));
+    
     enumData.push_back(EventTypeEnum(EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION,
                                      "EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION",
                                      "Highlight the location when identification takes place"));

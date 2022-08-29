@@ -295,6 +295,9 @@ WbMacroCustomOperationAnimateOverlayCrossFade::executeCommandVersionTwo(QWidget*
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
+            break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
@@ -539,6 +542,9 @@ WbMacroCustomOperationAnimateOverlayCrossFade::executeCommandVersionOne(QWidget*
         case ModelTypeEnum::MODEL_TYPE_CHART:
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            CaretAssertToDoFatal();
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
         case ModelTypeEnum::MODEL_TYPE_SURFACE:

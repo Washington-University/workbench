@@ -29,6 +29,7 @@
 namespace caret {
     class Brain;
     class ChartTwoOverlaySet;
+    class HistologyOverlaySet;
     class MediaOverlaySet;
     class OverlaySet;
     class PlainTextStringBuilder;
@@ -71,6 +72,10 @@ namespace caret {
         virtual ChartTwoOverlaySet* getChartTwoOverlaySet(const int tabIndex);
         
         virtual const ChartTwoOverlaySet* getChartTwoOverlaySet(const int tabIndex) const;
+        
+        virtual HistologyOverlaySet* getHistologyOverlaySet(const int tabIndex);
+        
+        virtual const HistologyOverlaySet* getHistologyOverlaySet(const int tabIndex) const;
         
         virtual MediaOverlaySet* getMediaOverlaySet(const int tabIndex);
         
