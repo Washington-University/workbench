@@ -33,6 +33,7 @@
 namespace caret {
 
     class CaretMappableDataFile;
+    class HistologySlicesFile;
     class MediaFile;
     
     class EventCaretMappableDataFilesAndMapsInDisplayedOverlays : public Event {
@@ -57,16 +58,25 @@ namespace caret {
             const std::set<int32_t> m_mapIndices;
         };
         
+        class HistologySlicesFileInfo {
+        public:
+            HistologySlicesFileInfo(HistologySlicesFile* mediaFile,
+                                    const std::set<int32_t>& sliceIndices);
+            
+            HistologySlicesFile* m_histologySlicesFile;
+            
+            const std::set<int32_t> m_sliceIndices;
+        };
+            
         class MediaFileInfo {
         public:
             MediaFileInfo(MediaFile* mediaFile,
-                          const std::set<int32_t> frameIndices);
+                          const std::set<int32_t>& frameIndices);
             
             MediaFile* m_mediaFile;
             
-            const std::set<int32_t> m_frameIndices;            
+            const std::set<int32_t> m_frameIndices;
         };
-            
         EventCaretMappableDataFilesAndMapsInDisplayedOverlays();
         
         virtual ~EventCaretMappableDataFilesAndMapsInDisplayedOverlays();
@@ -95,6 +105,10 @@ namespace caret {
                                   const int32_t frameIndex,
                                   const int32_t tabIndex);
                 
+        void addHistologyFileAndSliceIndex(HistologySlicesFile* histologySlicesFile,
+                                           const int32_t sliceIndex,
+                                           const int32_t tabIndex);
+        
         std::vector<MapFileInfo> getBrainordinateFilesAndMaps() const;
         
         std::vector<MapFileInfo> getChartTwoFilesAndMaps() const;
@@ -102,6 +116,8 @@ namespace caret {
         std::vector<MapFileInfo> getFilesAndMaps() const;
         
         std::vector<MediaFileInfo> getMediaFilesAndMaps() const;
+        
+        std::vector<HistologySlicesFileInfo> getHistologySlicesFilesAndMaps() const;
         
         void removeFilesWithIdentificationModeOfNever();
         
@@ -119,6 +135,8 @@ namespace caret {
         std::map<CaretMappableDataFile*, std::set<int32_t>> m_chartTwoMapFilesAndIndices;
         
         std::map<MediaFile*, std::set<int32_t>> m_mediaFilesAndFrameIndices;
+        
+        std::map<HistologySlicesFile*, std::set<int32_t>> m_histologySlicesFilesAndSliceIndices;
         
         int32_t m_windowIndex = -1;
         

@@ -247,6 +247,8 @@ Brain::Brain(CaretPreferences* caretPreferences)
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES);
     EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_HISTOLOGY_SLICES_FILES_GET);
+    EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_MEDIA_FILES_GET);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
@@ -913,7 +915,6 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::HISTOLOGY_SLICES:
-                CaretAssertToDoFatal();
                 break;
             case DataFileTypeEnum::IMAGE:
                 break;
@@ -2167,7 +2168,10 @@ Brain::addReadOrReloadCziMetaFile(const FileModeAddReadReload fileMode,
                                    CaretDataFile* caretDataFile,
                                    const AString& filename)
 {
+    /* Replaced by HistologySlicesFile */
     CaretAssertToDoFatal();
+    throw DataFileException(filename
+                            + " should be read as a Histology Slices File");
     
     CziMetaFile* cziMetaFile = NULL;
     if (caretDataFile != NULL) {
@@ -4893,7 +4897,11 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                 }
                     break;
                 case DataFileTypeEnum::HISTOLOGY_SLICES:
-                    CaretAssertToDoFatal();
+                {
+                    HistologySlicesFile* file(dynamic_cast<HistologySlicesFile*>(caretDataFile));
+                    CaretAssert(file);
+                    m_histologySlicesFiles.push_back(file);
+                }
                     break;
                 case DataFileTypeEnum::IMAGE:
                 {
@@ -5844,7 +5852,6 @@ Brain::getReloadableDataFiles() const
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::HISTOLOGY_SLICES:
-                CaretAssertToDoFatal();
                 break;
             case DataFileTypeEnum::IMAGE:
                 break;
@@ -6179,7 +6186,9 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                                                  dataFileName);
                 break;
             case DataFileTypeEnum::HISTOLOGY_SLICES:
-                CaretAssertToDoFatal();
+                caretDataFileRead = addReadOrReloadHistologySlicesFile(fileMode,
+                                                                       caretDataFile,
+                                                                       dataFileName);
                 break;
             case DataFileTypeEnum::IMAGE:
                 caretDataFileRead  = addReadOrReloadImageFile(fileMode,
@@ -7720,7 +7729,6 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::HISTOLOGY_SLICES:
-            CaretAssertToDoFatal();
             break;
         case DataFileTypeEnum::IMAGE:
             break;
@@ -7820,7 +7828,6 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::HISTOLOGY_SLICES:
-            CaretAssertToDoFatal();
             break;
         case DataFileTypeEnum::IMAGE:
             break;

@@ -520,7 +520,7 @@ BrainBrowserWindow::receiveEvent(Event* event)
                             if (btc != NULL) {
                                 const Model* model = btc->getModelForDisplay();
                                 if (model->getModelType() == ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES) {
-                                    if (btc->getSliceDrawingType() == VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE) {
+                                    if (btc->getVolumeSliceDrawingType() == VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE) {
                                         vpContent->getTabViewportBeforeApplyingMargins(viewport);
                                         viewportValid = true;
                                         break;

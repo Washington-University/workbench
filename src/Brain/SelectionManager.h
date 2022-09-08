@@ -46,6 +46,7 @@ namespace caret {
     class SelectionItemCiftiConnectivityMatrixRowColumn;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
+    class SelectionItemHistologyCoordinate;
     class SelectionItemImageControlPoint;
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
@@ -85,6 +86,10 @@ namespace caret {
         SelectionItemFocusVolume* getVolumeFocusIdentification();
         
         const SelectionItemFocusVolume* getVolumeFocusIdentification() const;
+        
+        SelectionItemHistologyCoordinate* getHistologyPlaneCoordinateIdentification();
+        
+        const SelectionItemHistologyCoordinate* getHistologyPlaneCoordinateIdentification() const;
         
         SelectionItemImageControlPoint* getImageControlPointIdentification();
         
@@ -237,6 +242,8 @@ namespace caret {
         SelectionItemFocusVolume* m_volumeFocusIdentification;
         
         SelectionItemImageControlPoint* m_imageControlPointIdentification;
+        
+        std::unique_ptr<SelectionItemHistologyCoordinate> m_histologyPlaneCoordinateIdentification;
         
         std::unique_ptr<SelectionItemMediaLogicalCoordinate> m_mediaLogicalCoordinateIdentification;
         

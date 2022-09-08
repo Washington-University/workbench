@@ -47,6 +47,7 @@
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #include "BrainOpenGLChartTwoDrawingFixedPipeline.h"
+#include "BrainOpenGLHistologySliceDrawing.h"
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLMediaCoordinateDrawing.h"
 #include "BrainOpenGLMediaDrawing.h"
@@ -141,6 +142,7 @@
 #include "MathFunctions.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
+#include "ModelHistology.h"
 #include "ModelMedia.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -514,7 +516,8 @@ BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(const BrainOpenGLV
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
                         break;
                     case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                        CaretAssertToDoFatal();
+                        prefs->getBackgroundAndForegroundColors()->getColorForegroundHistologyView(m_foregroundColorByte);
+                        prefs->getBackgroundAndForegroundColors()->getColorBackgroundHistologyView(m_backgroundColorByte);
                         break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         prefs->getBackgroundAndForegroundColors()->getColorForegroundMediaView(m_foregroundColorByte);
@@ -607,6 +610,8 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const s
         if (selectionModeFlag) {
             switch (colorBar->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
+                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                     break;
                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     break;
@@ -703,7 +708,8 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const s
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
                         break;
                     case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                        CaretAssertToDoFatal();
+                        colors->getColorBackgroundHistologyView(backgroundColor);
+                        colors->getColorForegroundHistologyView(foregroundColor);
                         break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         colors->getColorBackgroundMediaView(backgroundColor);
@@ -1764,6 +1770,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             
             ModelChart* modelChart = dynamic_cast<ModelChart*>(model);
             ModelChartTwo* modelTwoChart = dynamic_cast<ModelChartTwo*>(model);
+            ModelHistology* modelHistology(dynamic_cast<ModelHistology*>(model));
             ModelMedia* mediaModel = dynamic_cast<ModelMedia*>(model);
             ModelSurface* surfaceModel = dynamic_cast<ModelSurface*>(model);
             ModelSurfaceMontage* surfaceMontageModel = dynamic_cast<ModelSurfaceMontage*>(model);
@@ -1774,6 +1781,12 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             }
             else if (modelTwoChart != NULL) {
                 drawChartTwoData(viewportContent, modelTwoChart, viewport);
+            }
+            else if (modelHistology != NULL) {
+                drawHistologyModel(viewportContent,
+                                   browserTabContent,
+                                   modelHistology,
+                                   viewport);
             }
             else if (mediaModel != NULL) {
                 drawMediaModel(viewportContent,
@@ -4473,8 +4486,8 @@ BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* view
                               brain,
                               volumeDrawInfo);
     
-    VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
-    VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
+    VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getVolumeSliceDrawingType();
+    VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getVolumeSliceProjectionType();
     VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueMaskType = browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType();
     
     /*
@@ -6823,8 +6836,8 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
                 /*
                  * Check for oblique slice drawing
                  */
-                VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
-                VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
+                VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getVolumeSliceDrawingType();
+                VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getVolumeSliceProjectionType();
                 
                 switch (sliceProjectionType) {
                     case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
@@ -8871,6 +8884,32 @@ BrainOpenGLFixedPipeline::getStateOfOpenGL() const
     }
     
     return s;
+}
+
+/**
+ * Draw a histology model
+ *
+ * @param viewportContent
+ *   The viewport content
+ * @param browserTabContent
+ *    Content of the browser tab
+ * @param histologyModel
+ *    The histology model for drawing
+ * @param viewport
+ *    The viewport
+ */
+void
+BrainOpenGLFixedPipeline::drawHistologyModel(const BrainOpenGLViewportContent* viewportContent,
+                                             BrowserTabContent* browserTabContent,
+                                             ModelHistology* histologyModel,
+                                             const int32_t viewport[4])
+{
+    BrainOpenGLHistologySliceDrawing coordMediaDrawing;
+    coordMediaDrawing.draw(this,
+                           viewportContent,
+                           browserTabContent,
+                           histologyModel,
+                           { viewport[0], viewport[1], viewport[2], viewport[3] });
 }
 
 /**

@@ -25,8 +25,8 @@
 
 #include <memory>
 
+#include "BoundingBox.h"
 #include "CaretDataFile.h"
-
 #include "EventListenerInterface.h"
 #include "Matrix4x4.h"
 
@@ -133,7 +133,11 @@ namespace caret {
 
         HistologySlicesFile& operator=(const HistologySlicesFile& obj);
         
-        virtual bool isEmpty() const override;
+        virtual HistologySlicesFile* castToHistologySlicesFile() override;
+        
+        virtual const HistologySlicesFile* castToHistologySlicesFile() const override;
+        
+        virtual bool isEmpty() const override; 
         
         virtual StructureEnum::Enum getStructure() const override;
         
@@ -151,9 +155,17 @@ namespace caret {
         
         int32_t getNumberOfHistologySlices() const;
         
+        HistologySlice* getHistologySliceByIndex(const int32_t sliceIndex);
+        
         const HistologySlice* getHistologySliceByIndex(const int32_t sliceIndex) const;
         
         const HistologySlice* getHistologySliceByNumber(const int32_t sliceNumber) const;
+        
+        int32_t getSliceNumberBySliceIndex(const int32_t sliceIndex) const;
+        
+        int32_t getSliceIndexFromSliceNumber(const int32_t sliceNumber) const;
+        
+        virtual BoundingBox getStereotaxicXyzBoundingBox() const;
         
         virtual void readFile(const AString& filename) override;
         
@@ -161,6 +173,8 @@ namespace caret {
 
         virtual AString toString() const override;
         
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+
         // ADD_NEW_METHODS_HERE
 
         virtual void receiveEvent(Event* event) override;
@@ -190,6 +204,10 @@ namespace caret {
         std::unique_ptr<GiftiMetaData> m_metaData;
         
         std::vector<std::unique_ptr<HistologySlice>> m_histologySlices;
+        
+        mutable BoundingBox m_stereotaxicXyzBoundingBox;
+        
+        mutable bool m_stereotaxicXyzBoundingBoxValidFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

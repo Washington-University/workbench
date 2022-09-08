@@ -111,6 +111,20 @@ BoundingBox::copyHelper(const BoundingBox& bo)
 }
 
 /**
+ * @return True if the bounding box is valid for 3D (minX < maxX and minY < maxY and minZ < maxZ)
+ */
+bool
+BoundingBox::isValid() const
+{
+    if ((getMinX() < getMaxX())
+        && (getMinY() < getMaxY())
+        && (getMinZ() < getMaxZ())) {
+        return true;
+    }
+    return false;
+}
+
+/**
  * @return True if the bounding box is valid for 2D (minX < maxX and minY < maxY)
  */
 bool

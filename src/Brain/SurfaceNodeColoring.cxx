@@ -480,7 +480,6 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                 case DataFileTypeEnum::FOCI:
                     break;
                 case DataFileTypeEnum::HISTOLOGY_SLICES:
-                    CaretAssertToDoFatal();
                     break;
                 case DataFileTypeEnum::IMAGE:
                     break;

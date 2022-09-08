@@ -162,6 +162,8 @@ namespace caret {
         
         QWidget* m_symbolsWidget;
         
+        QCheckBox* m_symbolsShowHistologyCheckBox;
+        
         QCheckBox* m_symbolsShowMediaCheckbox;
         
         QCheckBox* m_symbolsShowSurfaceIdCheckBox;

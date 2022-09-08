@@ -1,5 +1,5 @@
-#ifndef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CZI_IMAGE_H__
-#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_CZI_IMAGE_H__
+#ifndef __BRAIN_BROWSER_WINDOW_TOOL_BAR_HISTOLOGY_H__
+#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_HISTOLOGY_H__
 
 /*LICENSE_START*/
 /*
@@ -27,32 +27,38 @@ namespace caret {
 
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
-    class CziImageFile;
+    class HistologySlicesFile;
+    class WuQSpinBox;
 
-    class BrainBrowserWindowToolBarCziImage : public BrainBrowserWindowToolBarComponent {
+    class BrainBrowserWindowToolBarHistology : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
         
     public:
-        BrainBrowserWindowToolBarCziImage(BrainBrowserWindowToolBar* parentToolBar,
+        BrainBrowserWindowToolBarHistology(BrainBrowserWindowToolBar* parentToolBar,
                                            const QString& parentObjectName);
         
-        virtual ~BrainBrowserWindowToolBarCziImage();
+        virtual ~BrainBrowserWindowToolBarHistology();
         
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
         void receiveEvent(Event* event) override;
         
     private:
-        BrainBrowserWindowToolBarCziImage(const BrainBrowserWindowToolBarCziImage&);
+        BrainBrowserWindowToolBarHistology(const BrainBrowserWindowToolBarHistology&);
 
-        BrainBrowserWindowToolBarCziImage& operator=(const BrainBrowserWindowToolBarCziImage&);
+        BrainBrowserWindowToolBarHistology& operator=(const BrainBrowserWindowToolBarHistology&);
         
     public:
 
         // ADD_NEW_METHODS_HERE
 
+    private slots:
+        void sliceIndexValueChanged(int);
+        
+        void sliceNumberValueChanged(int);
+        
     private:
-        CziImageFile* getCziImageFile(BrowserTabContent* browserTabContent);
+        HistologySlicesFile* getHistologySlicesFile(BrowserTabContent* browserTabContent);
         
         const BrainOpenGLViewportContent* getBrainOpenGLViewportContent();
         
@@ -61,12 +67,16 @@ namespace caret {
         BrainBrowserWindowToolBar* m_parentToolBar;
         
         BrowserTabContent* m_browserTabContent = NULL;
+        
+        WuQSpinBox* m_sliceIndexSpinBox;
+        
+        WuQSpinBox* m_sliceNumberSpinBox;
 };
     
     
-#ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CZI_IMAGE_DECLARE__
+#ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_HISTOLOGY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __BRAIN_BROWSER_WINDOW_TOOL_BAR_IMAGE_RESOLUTION_DECLARE__
+#endif // __BRAIN_BROWSER_WINDOW_TOOL_BAR_HISTOLOGY_DECLARE__
 
 } // namespace
-#endif  //__BRAIN_BROWSER_WINDOW_TOOL_BAR_CZI_IMAGE_H__
+#endif  //__BRAIN_BROWSER_WINDOW_TOOL_BAR_HISTOLOGY_H__

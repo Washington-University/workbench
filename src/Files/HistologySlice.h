@@ -26,8 +26,8 @@
 #include <memory>
 #include <vector>
 
+#include "BoundingBox.h"
 #include "CaretObject.h"
-
 #include "EventListenerInterface.h"
 #include "Matrix4x4.h"
 #include "SceneableInterface.h"
@@ -58,12 +58,16 @@ namespace caret {
         
         int32_t getNumberOfHistologySliceImages() const;
         
-        const HistologySliceImage* getHistologySliceImage(const int32_t index) const;
+        HistologySliceImage* getHistologySliceImage(const int32_t index);
 
+        const HistologySliceImage* getHistologySliceImage(const int32_t index) const;
+        
         Matrix4x4 getPlaneToMillimetersMatrix() const;
         
         bool isPlaneToMillimetersMatrixValid() const;
 
+        virtual BoundingBox getStereotaxicXyzBoundingBox() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -105,6 +109,10 @@ namespace caret {
         Matrix4x4 m_planeToMillimetersMatrix;
         
         bool m_planeToMillimetersMatrixValidFlag = false;
+        
+        mutable BoundingBox m_stereotaxicXyzBoundingBox;
+        
+        mutable bool m_stereotaxicXyzBoundingBoxValidFlag = false;
         
 //        Matrix4x4 m_millimetersToPlaneMatrix;
 //

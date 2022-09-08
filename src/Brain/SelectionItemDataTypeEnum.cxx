@@ -139,6 +139,10 @@ SelectionItemDataTypeEnum::initialize()
                                     "FOCUS_VOLUME", 
                                     "Volume Focus"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(HISTOLOGY_PLANE_COORDINATE,
+                                                 "HISTOLOGY_PLANE_COORDINATE",
+                                                 "Histology Plane Coordinate"));
+    
     enumData.push_back(SelectionItemDataTypeEnum(IMAGE,
                                                  "IMAGE",
                                                  "Image"));

@@ -637,6 +637,7 @@ CziMetaFileXmlStreamReader::readSceneElement(HistologySlicesFile* /*histologySli
                     readMatrixFromElementText(ELEMENT_SCALED_TO_PLANE,
                                               MatrixType::TWO_DIM,
                                               scaledToPlaneMatrix);
+                    scaledToPlaneMatrixValidFlag = true;
                 }
                 else if (m_xmlReader->name() == ELEMENT_CZI) {
                     imageFileName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_CZI,

@@ -111,7 +111,7 @@ SceneableInterface()
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::HISTOLOGY_SLICES:
-            CaretAssertToDoFatal();
+            supportsIdentificationAttributesFlag = true;
             break;
         case DataFileTypeEnum::IMAGE:
             supportsIdentificationAttributesFlag = true;
@@ -663,6 +663,25 @@ CaretDataFile::castToCaretMappableDataFile() const
     return NULL;
 }
 
+/**
+ * @return File casted to a histology slices file (avoids use of dynamic_cast that can be slow)
+ * Overidden in HistologySlicesFile
+ */
+const HistologySlicesFile*
+CaretDataFile::castToHistologySlicesFile() const
+{
+    return NULL;
+}
+
+/**
+ * @return File casted to histology slices  file (avoids use of dynamic_cast that can be slow)
+ * Overidden in HistologySlicesFile
+ */
+HistologySlicesFile*
+CaretDataFile::castToHistologySlicesFile()
+{
+    return NULL;
+}
 
 /**
  * @return The file identification attributes

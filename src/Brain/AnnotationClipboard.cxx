@@ -307,6 +307,8 @@ AnnotationClipboard::areAnnotationsClipboardEligible(const std::vector<Annotatio
             switch (firstAnnotation->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
+                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                    break;
                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     break;
                 case AnnotationCoordinateSpaceEnum::SPACER:

@@ -36,6 +36,7 @@ using namespace caret;
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "Model.h"
+#include "ModelHistology.h"
 #include "ModelMedia.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -374,6 +375,7 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
     
     const Model* mdc = getParentToolBar()->getDisplayedModel();
     if (mdc != NULL) {
+        const ModelHistology* mh = dynamic_cast<const ModelHistology*>(mdc);
         const ModelMedia* mdm    = dynamic_cast<const ModelMedia*>(mdc);
         const ModelSurface* mdcs = dynamic_cast<const ModelSurface*>(mdc);
         const ModelSurfaceMontage* mdcsm = dynamic_cast<const ModelSurfaceMontage*>(mdc);
@@ -431,6 +433,9 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
         else if (mdcwb != NULL) {
             leftRightFlag = true;
             showSingleViewOrientationButtons = true;
+        }
+        else if (mh != NULL) {
+            /* nothing */
         }
         else if (mdm != NULL) {
             /* nothing */

@@ -428,6 +428,7 @@ MediaFile::resetMatricesPrivate()
 {
     m_planeXyzRect = QRectF();
     m_planeBoundingBox.resetZeros();
+    m_stereotaxicXyzBoundingBox.resetZeros();
     m_scaledToPlaneMatrix.identity();
     m_pixelIndexToPlaneMatrix.identity();
     m_planeToPixelIndexMatrix.identity();
@@ -711,6 +712,19 @@ MediaFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
         m_planeXyzRect.setRight(m_planeBoundingBox.getMaxX());
         m_planeXyzRect.setTop(m_planeBoundingBox.getMinY());
         m_planeXyzRect.setBottom(m_planeBoundingBox.getMaxY());
+        
+        m_stereotaxicXyzBoundingBox.resetForUpdate();
+        {
+            Vector3D mmXYZ;
+            planeXyzToStereotaxicXyz(m_planeXyzTopLeft, mmXYZ);
+            m_stereotaxicXyzBoundingBox.update(mmXYZ);
+            planeXyzToStereotaxicXyz(m_planeXyzTopRight, mmXYZ);
+            m_stereotaxicXyzBoundingBox.update(mmXYZ);
+            planeXyzToStereotaxicXyz(m_planeXyzBottomLeft, mmXYZ);
+            m_stereotaxicXyzBoundingBox.update(mmXYZ);
+            planeXyzToStereotaxicXyz(m_planeXyzBottomRight, mmXYZ);
+            m_stereotaxicXyzBoundingBox.update(mmXYZ);
+        }
         
         const bool testFlag2(false);
         if (testFlag2) {
@@ -1078,13 +1092,21 @@ MediaFile::getPlaneXyzTopLeft() const
 }
 
 /**
- * @return Bounding box of coordinates
+ * @return Bounding box of plane coordinates
  */
 BoundingBox
 MediaFile::getPlaneXyzBoundingBox() const
-
 {
     return m_planeBoundingBox;
+}
+
+/**
+ * @return Bounding box of stereotaxic coordinates
+ */
+BoundingBox
+MediaFile::getStereotaxicXyzBoundingBox() const
+{
+    return m_stereotaxicXyzBoundingBox;
 }
 
 /**
@@ -1110,10 +1132,6 @@ MediaFile::getPixelPlaneIdentificationTextForFrames(const int32_t tabIndex,
                                                          std::vector<AString>& columnTwoTextOut,
                                                          std::vector<AString>& toolTipTextOut) const
 {
-    columnOneTextOut.clear();
-    columnTwoTextOut.clear();
-    toolTipTextOut.clear();
-    
     PixelLogicalIndex pixelLogicalIndex;
     if ( ! planeXyzToLogicalPixelIndex(planeCoordinate,
                                        pixelLogicalIndex)) {

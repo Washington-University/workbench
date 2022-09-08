@@ -244,6 +244,10 @@ namespace caret {
         
         void setManageFilesViewFileType(const SpecFileDialogViewFilesTypeEnum::Enum manageFilesViewFileType);
         
+        bool isShowHistologyIdentificationSymbols() const;
+        
+        void setShowHistologyIdentificationSymbols(const bool showSymbols);
+        
         bool isShowMediaIdentificationSymbols() const;
         
         void setShowMediaIdentificationSymbols(const bool showSymbols);
@@ -451,6 +455,8 @@ namespace caret {
         
         bool volumeIdentificationDefaultedOn;
         
+        bool showHistologyIdentificationSymbols;
+        
         bool showMediaIdentificationSymbols;
         
         bool showSurfaceIdentificationSymbols;
@@ -488,6 +494,8 @@ namespace caret {
         static const AString NAME_COLOR_FOREGROUND_ALL;
         static const AString NAME_COLOR_BACKGROUND_CHART;
         static const AString NAME_COLOR_FOREGROUND_CHART;
+        static const AString NAME_COLOR_BACKGROUND_HISTOLOGY;
+        static const AString NAME_COLOR_FOREGROUND_HISTOLOGY;
         static const AString NAME_COLOR_BACKGROUND_MEDIA;
         static const AString NAME_COLOR_FOREGROUND_MEDIA;
         static const AString NAME_COLOR_BACKGROUND_SURFACE;
@@ -516,6 +524,7 @@ namespace caret {
         static const AString NAME_REMOTE_FILE_USER_NAME;
         static const AString NAME_REMOTE_FILE_PASSWORD;
         static const AString NAME_REMOTE_FILE_LOGIN_SAVED;
+        static const AString NAME_SHOW_HISTOLOGY_IDENTIFICATION_SYMBOLS;
         static const AString NAME_SHOW_MEDIA_IDENTIFICATION_SYMBOLS;
         static const AString NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS;
         static const AString NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS;
@@ -546,6 +555,8 @@ namespace caret {
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_ALL     = "colorForegroundAll";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND_CHART     = "colorBackgroundChart";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_CHART     = "colorForegroundChart";
+    const AString CaretPreferences::NAME_COLOR_BACKGROUND_HISTOLOGY  = "colorBackgroundHistology";
+    const AString CaretPreferences::NAME_COLOR_FOREGROUND_HISTOLOGY = "colorForegroundHistology";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND_MEDIA     = "colorBackgroundMedia";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_MEDIA     = "colorForegroundMedia";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND_SURFACE     = "colorBackgroundSurface";
@@ -574,6 +585,7 @@ namespace caret {
     const AString CaretPreferences::NAME_REMOTE_FILE_USER_NAME = "remoteFileUserName";
     const AString CaretPreferences::NAME_REMOTE_FILE_PASSWORD = "remoteFilePassword";
     const AString CaretPreferences::NAME_REMOTE_FILE_LOGIN_SAVED = "removeFileLoginSaved";
+    const AString CaretPreferences::NAME_SHOW_HISTOLOGY_IDENTIFICATION_SYMBOLS = "showHistologyIdentificationSymbols";
     const AString CaretPreferences::NAME_SHOW_MEDIA_IDENTIFICATION_SYMBOLS = "showMediaIdentificationSymbols";
     const AString CaretPreferences::NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS = "showSurfaceIdentificationSymbols";
     const AString CaretPreferences::NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS = "showVolumeIdentificationSymbols";

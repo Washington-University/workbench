@@ -44,6 +44,13 @@ namespace caret {
         static IdentifiedItemUniversal* newInstanceTextNoSymbolIdentification(const AString& simpleText,
                                                                               const AString& formattedText);
         
+        static IdentifiedItemUniversal* newInstanceHistologyPlaneCoordinateIdentification(const AString& simpleText,
+                                                                                          const AString& formattedText,
+                                                                                          const AString& dataFileName,
+                                                                                          const Vector3D& planeCoordinate,
+                                                                                          const Vector3D& stereotaxicXYZ,
+                                                                                          const bool stereotaxicXYZValidFlag);
+
         static IdentifiedItemUniversal* newInstanceMediaLogicalCoordinateIdentification(const AString& simpleText,
                                                                                         const AString& formattedText,
                                                                                         const AString& dataFileName,

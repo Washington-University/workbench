@@ -961,6 +961,9 @@ AnnotationOneCoordinateShape::applySpatialModificationSurfaceOrStereotaxicSpace(
         case AnnotationCoordinateSpaceEnum::CHART:
             badSpaceFlag = true;
             break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            badSpaceFlag = true;
+            break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             badSpaceFlag = true;
             break;
@@ -1654,6 +1657,9 @@ AnnotationOneCoordinateShape::applySpatialModification(const AnnotationSpatialMo
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
             return applySpatialModificationChartSpace(spatialModification);
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            CaretAssertToDoFatal();
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             return applySpatialModificationMediaSpace(spatialModification);

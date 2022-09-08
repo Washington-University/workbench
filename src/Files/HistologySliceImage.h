@@ -51,6 +51,8 @@ namespace caret {
 
         HistologySliceImage& operator=(const HistologySliceImage& obj);
         
+        MediaFile* getMediaFile();
+        
         const MediaFile* getMediaFile() const;
         
         void setPlaneToMillimetersMatrix(const Matrix4x4& planeToMillimetersMatrix,

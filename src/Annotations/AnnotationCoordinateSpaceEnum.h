@@ -37,6 +37,8 @@ public:
     enum Enum {
         /** Chart space */
         CHART,
+        /** Histology space */
+        HISTOLOGY,
         /** Image Name and Pixel */
         MEDIA_FILE_NAME_AND_PIXEL,
         /** Annotation in spacer */

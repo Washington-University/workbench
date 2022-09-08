@@ -273,7 +273,7 @@ BrainBrowserWindowToolBarSlicePlane::updateContent(BrowserTabContent* browserTab
 {
     m_volumePlaneWidgetGroup->blockAllSignals(true);
     
-    switch (browserTabContent->getSliceViewPlane()) {
+    switch (browserTabContent->getVolumeSliceViewPlane()) {
         case VolumeSliceViewPlaneEnum::ALL:
             m_volumePlaneAllToolButtonAction->setChecked(true);
             break;
@@ -416,7 +416,7 @@ BrainBrowserWindowToolBarSlicePlane::viewAllSliceLayoutMenuTriggered(QAction* ac
     if (validFlag) {
         BrowserTabContent* btc = getTabContentFromSelectedTab();
         
-        btc->setSlicePlanesAllViewLayout(layout);
+        btc->setVolumeSlicePlanesAllViewLayout(layout);
         
         m_parentToolBar->updateVolumeIndicesWidget(btc);
         updateGraphicsWindowAndYokedWindows();
@@ -433,7 +433,7 @@ BrainBrowserWindowToolBarSlicePlane::viewAllSliceLayoutMenuTriggered(QAction* ac
 void
 BrainBrowserWindowToolBarSlicePlane::updateViewAllSlicesLayoutMenu(BrowserTabContent* browserTabContent)
 {
-    const VolumeSliceViewAllPlanesLayoutEnum::Enum layout = browserTabContent->getSlicePlanesAllViewLayout();
+    const VolumeSliceViewAllPlanesLayoutEnum::Enum layout = browserTabContent->getVolumeSlicePlanesAllViewLayout();
     const int layoutIntValue = VolumeSliceViewAllPlanesLayoutEnum::toIntegerCode(layout);
     
     for (auto action : m_viewAllSliceLayoutMenuActions) {
@@ -472,7 +472,7 @@ BrainBrowserWindowToolBarSlicePlane::volumePlaneActionGroupTriggered(QAction* ac
     
     BrowserTabContent* btc = getTabContentFromSelectedTab();
     
-    btc->setSliceViewPlane(plane);
+    btc->setVolumeSliceViewPlane(plane);
     
     m_parentToolBar->updateVolumeIndicesWidget(btc);
     updateGraphicsWindowAndYokedWindows();

@@ -47,6 +47,7 @@
 #include "CziMetaFile.h"
 #include "FileInformation.h"
 #include "FociFile.h"
+#include "HistologySlicesFile.h"
 #include "ImageFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
@@ -368,7 +369,7 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
             caretDataFile = new FociFile();
             break;
         case DataFileTypeEnum::HISTOLOGY_SLICES:
-            CaretAssertToDoFatal();
+            caretDataFile = new HistologySlicesFile();
             break;
         case DataFileTypeEnum::IMAGE:
             caretDataFile = new ImageFile();

@@ -91,7 +91,7 @@ ELSE()
         BrainBrowserWindowToolBarChartTwoType.h
         BrainBrowserWindowToolBarChartType.h
         BrainBrowserWindowToolBarComponent.h
-	BrainBrowserWindowToolBarCziImage.h
+	BrainBrowserWindowToolBarHistology.h
 	BrainBrowserWindowToolBarImage.h
 	BrainBrowserWindowToolBarOrientation.h
         BrainBrowserWindowToolBarSlicePlane.h
@@ -151,6 +151,9 @@ ELSE()
         GroupAndNameHierarchyViewController.h
         GuiManager.h
         HelpViewerDialog.h
+	HistologyOverlaySetViewController.h
+	HistologyOverlaySettingsMenu.h
+	HistologyOverlayViewController.h
         HyperLinkTextBrowser.h
 	IdentificationDisplayDialog.h
 	IdentificationDisplayWidget.h
@@ -361,7 +364,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes.h
 BrainBrowserWindowToolBarChartTwoType.h
 BrainBrowserWindowToolBarChartType.h
 BrainBrowserWindowToolBarComponent.h
-BrainBrowserWindowToolBarCziImage.h
+BrainBrowserWindowToolBarHistology.h
 BrainBrowserWindowToolBarImage.h
 BrainBrowserWindowToolBarOrientation.h
 BrainBrowserWindowToolBarSlicePlane.h
@@ -455,6 +458,9 @@ GroupAndNameHierarchyTreeWidgetItem.h
 GroupAndNameHierarchyViewController.h
 GuiManager.h
 HelpViewerDialog.h
+HistologyOverlaySetViewController.h
+HistologyOverlaySettingsMenu.h
+HistologyOverlayViewController.h
 HyperLinkTextBrowser.h
 IdentificationDisplayDialog.h
 IdentificationDisplayWidget.h
@@ -689,7 +695,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes.cxx
 BrainBrowserWindowToolBarChartTwoType.cxx
 BrainBrowserWindowToolBarChartType.cxx
 BrainBrowserWindowToolBarComponent.cxx
-BrainBrowserWindowToolBarCziImage.cxx
+BrainBrowserWindowToolBarHistology.cxx
 BrainBrowserWindowToolBarImage.cxx
 BrainBrowserWindowToolBarOrientation.cxx
 BrainBrowserWindowToolBarSlicePlane.cxx
@@ -782,6 +788,9 @@ GroupAndNameHierarchyTreeWidgetItem.cxx
 GroupAndNameHierarchyViewController.cxx
 GuiManager.cxx
 HelpViewerDialog.cxx
+HistologyOverlaySetViewController.cxx
+HistologyOverlaySettingsMenu.cxx
+HistologyOverlayViewController.cxx
 HyperLinkTextBrowser.cxx
 IdentificationDisplayDialog.cxx
 IdentificationDisplayWidget.cxx

@@ -67,6 +67,10 @@
 #include "FociFile.h"
 #include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsRegionSelectionBox.h"
+#include "HistologyOverlay.h"
+#include "HistologyOverlaySet.h"
+#include "HistologySlicesFile.h"
+#include "HistologySliceSettings.h"
 #include "IdentificationManager.h"
 #include "ImageFile.h"
 #include "LabelFile.h"
@@ -138,6 +142,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_surfaceMontageModel = NULL;
     m_chartModel = NULL;
     m_chartTwoModel = NULL;
+    m_histologyModel = NULL;
     m_mediaModel = NULL;
     m_guiName = "";
     m_userName = "";
@@ -179,6 +184,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     leftView();
 
     resetMprRotations();
+    
+    m_histologySliceSettings = new HistologySliceSettings();
     
     m_volumeSliceSettings = new VolumeSliceSettings();
     
@@ -236,6 +243,10 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_chartTwoMatrixDisplayProperties",
                                "ChartTwoMatrixDisplayProperties",
                                m_chartTwoMatrixDisplayProperties);
+    
+    m_sceneClassAssistant->add("m_histologySliceSettings",
+                               "HistologySliceSettings",
+                               m_histologySliceSettings);
     
     m_sceneClassAssistant->add("m_volumeSliceSettings",
                                "VolumeSliceSettings",
@@ -361,6 +372,7 @@ BrowserTabContent::~BrowserTabContent()
     delete m_volumeSurfaceOutlineSetModel;
     m_volumeSurfaceOutlineSetModel = NULL;
     
+    delete m_histologySliceSettings;
     delete m_volumeSliceSettings;
     
     delete m_wholeBrainSurfaceSettings;
@@ -414,6 +426,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_volumeSliceViewingTransformation = *tabToClone->m_volumeSliceViewingTransformation;
     *m_chartTwoMatrixViewingTranformation = *tabToClone->m_chartTwoMatrixViewingTranformation;
     *m_chartTwoMatrixDisplayProperties = *tabToClone->m_chartTwoMatrixDisplayProperties;
+    *m_histologySliceSettings = *tabToClone->m_histologySliceSettings;
     *m_volumeSliceSettings = *tabToClone->m_volumeSliceSettings;
     *m_wholeBrainSurfaceSettings = *tabToClone->m_wholeBrainSurfaceSettings;
     
@@ -571,6 +584,7 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
     if (model != NULL) {
         bool chartOneFlag = false;
         bool chartTwoFlag = false;
+        bool histologyFlag = false;
         bool mediaFlag    = false;
         bool surfaceFlag  = false;
         bool surfaceMontageFlag = false;
@@ -586,7 +600,7 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
             case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                CaretAssertToDoFatal();
+                histologyFlag = true;
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                 mediaFlag = true;
@@ -652,6 +666,10 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
             model->getDescriptionOfContent(tabIndex,
                                            descriptionOut);
         }
+        else if (histologyFlag) {
+            model->getDescriptionOfContent(tabIndex,
+                                           descriptionOut);
+        }
         
         if (wholeBrainFlag
             || volumeFlag) {
@@ -669,6 +687,9 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
         }
         else if (mediaFlag) {
             getMediaOverlaySet()->getDescriptionOfContent(descriptionOut);
+        }
+        else if (histologyFlag) {
+            getHistologyOverlaySet()->getDescriptionOfContent(descriptionOut);
         }
         else {
             getOverlaySet()->getDescriptionOfContent(descriptionOut);
@@ -717,7 +738,7 @@ BrowserTabContent::getModelForDisplay()
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
+            mdc = m_histologyModel;
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             mdc = m_mediaModel;
@@ -762,7 +783,7 @@ BrowserTabContent::getModelForDisplay() const
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
+            mdc = m_histologyModel;
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             mdc = m_mediaModel;
@@ -1087,7 +1108,7 @@ bool
 BrowserTabContent::isVolumeMprDisplayed() const
 {
     if (isVolumeSlicesDisplayed()) {
-        switch (getSliceProjectionType()) {
+        switch (getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                 return true;
                 break;
@@ -1428,6 +1449,7 @@ BrowserTabContent::update(const std::vector<Model*> models)
     m_surfaceMontageModel = NULL;
     m_chartModel = NULL;
     m_chartTwoModel = NULL;
+    m_histologyModel = NULL;
     m_mediaModel = NULL;
     
     for (int i = 0; i < numModels; i++) {
@@ -1439,6 +1461,7 @@ BrowserTabContent::update(const std::vector<Model*> models)
         ModelSurfaceMontage* mdcsm = dynamic_cast<ModelSurfaceMontage*>(mdc);
         ModelChart* mdch = dynamic_cast<ModelChart*>(mdc);
         ModelChartTwo* mdchTwo = dynamic_cast<ModelChartTwo*>(mdc);
+        ModelHistology* mh = dynamic_cast<ModelHistology*>(mdc);
         ModelMedia* mdmm = dynamic_cast<ModelMedia*>(mdc);
         
         if (mdcs != NULL) {
@@ -1464,11 +1487,14 @@ BrowserTabContent::update(const std::vector<Model*> models)
             CaretAssertMessage((m_chartTwoModel == NULL), "There is more than one chart two model.");
             m_chartTwoModel = mdchTwo;
         }
+        else if (mh != NULL) {
+            m_histologyModel = mh;
+        }
         else if (mdmm != NULL) {
             m_mediaModel = mdmm;
         }
         else {
-            CaretAssertMessage(0, (AString("Unknown type of brain model.") + mdc->getNameForGUI(true)));
+            CaretAssertMessage(0, (AString("Unknown type of brain model: ") + mdc->getNameForGUI(true)));
         }
     }
     
@@ -1476,7 +1502,9 @@ BrowserTabContent::update(const std::vector<Model*> models)
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
+            if (m_histologyModel == NULL) {
+                m_selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
+            }
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             if (m_mediaModel == NULL) {
@@ -1533,6 +1561,9 @@ BrowserTabContent::update(const std::vector<Model*> models)
         }
         else if (m_chartModel != NULL) {
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_CHART;
+        }
+        else if (m_histologyModel != NULL) {
+            m_selectedModelType = ModelTypeEnum::MODEL_TYPE_HISTOLOGY;
         }
         else if (m_mediaModel != NULL) {
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA;
@@ -1773,7 +1804,7 @@ BrowserTabContent::receiveEvent(Event* event)
                         bool keepSliceCoordinateForSelectedAxis = false;
                         switch (m_volumeSliceSettings->getSliceProjectionType()) {
                             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                                if (getSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
+                                if (getVolumeSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
                                     keepSliceCoordinateForSelectedAxis = true;
                                 }
                                 break;
@@ -1791,26 +1822,26 @@ BrowserTabContent::receiveEvent(Event* event)
                         }
                         
                         if (keepSliceCoordinateForSelectedAxis) {
-                            switch (getSliceViewPlane()) {
+                            switch (getVolumeSliceViewPlane()) {
                                 case VolumeSliceViewPlaneEnum::ALL:
-                                    volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
-                                    volumeSliceXYZ[1] = getSliceCoordinateCoronal();
-                                    volumeSliceXYZ[2] = getSliceCoordinateAxial();
+                                    volumeSliceXYZ[0] = getVolumeSliceCoordinateParasagittal();
+                                    volumeSliceXYZ[1] = getVolumeSliceCoordinateCoronal();
+                                    volumeSliceXYZ[2] = getVolumeSliceCoordinateAxial();
                                     break;
                                 case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                    volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
+                                    volumeSliceXYZ[0] = getVolumeSliceCoordinateParasagittal();
                                     break;
                                 case VolumeSliceViewPlaneEnum::CORONAL:
-                                    volumeSliceXYZ[1] = getSliceCoordinateCoronal();
+                                    volumeSliceXYZ[1] = getVolumeSliceCoordinateCoronal();
                                     break;
                                 case VolumeSliceViewPlaneEnum::AXIAL:
-                                    volumeSliceXYZ[2] = getSliceCoordinateAxial();
+                                    volumeSliceXYZ[2] = getVolumeSliceCoordinateAxial();
                                     break;
                             }
                         }
                     }
                     
-                    selectSlicesAtCoordinate(volumeSliceXYZ);
+                    selectVolumeSlicesAtCoordinate(volumeSliceXYZ);
                 }
             }
         }
@@ -1871,7 +1902,6 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
             useChartTwoFlag = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;
@@ -2099,7 +2129,6 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
             useChartTwoFlag = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;
@@ -2360,7 +2389,24 @@ BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAn
         }
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
+         {
+             HistologyOverlaySet* overlaySet = model->getHistologyOverlaySet(tabIndex);
+             const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+             for (int32_t i = 0; i < numOverlays; i++) {
+                 HistologyOverlay* overlay = overlaySet->getOverlay(i);
+                 if (overlay->isEnabled()) {
+                     const HistologyOverlay::SelectionData selectionData(overlay->getSelectionData());
+                     if (selectionData.m_selectedFile != NULL) {
+                         std::vector<int32_t> frameIndices;
+                         if (selectionData.m_selectedSliceIndex >= 0) {
+                             fileAndMapsEvent->addHistologyFileAndSliceIndex(selectionData.m_selectedFile,
+                                                                             selectionData.m_selectedSliceIndex,
+                                                                             m_tabNumber);
+                         }
+                     }
+                 }
+             }
+         }
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
         {
@@ -2443,7 +2489,21 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
+        {
+            HistologyOverlaySet* overlaySet = m_histologyModel->getHistologyOverlaySet(tabIndex);
+            if (overlaySet != NULL) {
+                const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+                for (int32_t i = 0; i < numOverlays; i++) {
+                    HistologyOverlay* histologyOverlay = overlaySet->getOverlay(i);
+                    if (histologyOverlay->isEnabled()) {
+                        const HistologyOverlay::SelectionData selectionData(histologyOverlay->getSelectionData());
+                        if (selectionData.m_selectedFile != NULL) {
+                            displayedDataFiles.insert(selectionData.m_selectedFile);
+                        }
+                    }
+                }
+            }
+        }
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
         {
@@ -2636,7 +2696,6 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                     case DataFileTypeEnum::IMAGE:
                         break;
                     case DataFileTypeEnum::HISTOLOGY_SLICES:
-                        CaretAssertToDoFatal();
                         break;
                     case DataFileTypeEnum::LABEL:
                         break;
@@ -3194,10 +3253,10 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                                                   const int32_t mousePressY,
                                                   const int32_t mouseDY)
 {
-    VolumeSliceViewPlaneEnum::Enum sliceViewPlane = getSliceViewPlane();
+    VolumeSliceViewPlaneEnum::Enum sliceViewPlane = getVolumeSliceViewPlane();
     bool incrementFlag(false);
     if (isVolumeSlicesDisplayed()) {
-        switch (getSliceProjectionType()) {
+        switch (getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
@@ -3254,7 +3313,7 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
             viewport[3]
         };
         sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                        getSlicePlanesAllViewLayout(),
+                                                                                        getVolumeSlicePlanesAllViewLayout(),
                                                                                         mousePressX,
                                                                                         mousePressY,
                                                                                         sliceViewport);
@@ -3299,9 +3358,9 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
         const float coronalDelta(std::round(sliceVector[1] * sliceDelta));
         const float paraDelta(std::round(sliceVector[0] * sliceDelta));
 
-        setSliceCoordinateAxial(getSliceCoordinateAxial() + axialDelta);
-        setSliceCoordinateCoronal(getSliceCoordinateCoronal() + coronalDelta);
-        setSliceCoordinateParasagittal(getSliceCoordinateParasagittal() + paraDelta);
+        setVolumeSliceCoordinateAxial(getVolumeSliceCoordinateAxial() + axialDelta);
+        setVolumeSliceCoordinateCoronal(getVolumeSliceCoordinateCoronal() + coronalDelta);
+        setVolumeSliceCoordinateParasagittal(getVolumeSliceCoordinateParasagittal() + paraDelta);
     }
     else {
         /*
@@ -3312,16 +3371,16 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
             case VolumeSliceViewPlaneEnum::ALL:
                 break;
             case VolumeSliceViewPlaneEnum::AXIAL:
-                setSliceIndexAxial(underlayVolume,
-                                   (getSliceIndexAxial(underlayVolume) + sliceDelta));
+                setVolumeSliceIndexAxial(underlayVolume,
+                                   (getVolumeSliceIndexAxial(underlayVolume) + sliceDelta));
                 break;
             case VolumeSliceViewPlaneEnum::CORONAL:
-                setSliceIndexCoronal(underlayVolume,
-                                     (getSliceIndexCoronal(underlayVolume) + sliceDelta));
+                setVolumeSliceIndexCoronal(underlayVolume,
+                                     (getVolumeSliceIndexCoronal(underlayVolume) + sliceDelta));
                 break;
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                setSliceIndexParasagittal(underlayVolume,
-                                          (getSliceIndexParasagittal(underlayVolume) + sliceDelta));
+                setVolumeSliceIndexParasagittal(underlayVolume,
+                                          (getVolumeSliceIndexParasagittal(underlayVolume) + sliceDelta));
                 break;
         }
     }
@@ -3358,7 +3417,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                       const int32_t mouseDeltaY)
 {
     if (isVolumeSlicesDisplayed()) {
-        switch (getSliceProjectionType()) {
+        switch (getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 if (viewportContent == NULL) {
                     /*
@@ -3372,7 +3431,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 else {
                     int viewport[4];
                     viewportContent->getModelViewport(viewport);
-                    VolumeSliceViewPlaneEnum::Enum slicePlane = this->getSliceViewPlane();
+                    VolumeSliceViewPlaneEnum::Enum slicePlane = this->getVolumeSliceViewPlane();
                     int sliceViewport[4] = {
                         viewport[0],
                         viewport[1],
@@ -3381,7 +3440,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                     };
                     if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
                         slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                                        getSlicePlanesAllViewLayout(),
+                                                                                                        getVolumeSlicePlanesAllViewLayout(),
                                                                                                         mousePressX,
                                                                                                         mousePressY,
                                                                                                         sliceViewport);
@@ -3513,7 +3572,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
 
                     int viewport[4];
                     viewportContent->getModelViewport(viewport);
-                    VolumeSliceViewPlaneEnum::Enum slicePlane = this->getSliceViewPlane();
+                    VolumeSliceViewPlaneEnum::Enum slicePlane = this->getVolumeSliceViewPlane();
                     int sliceViewport[4] = {
                         viewport[0],
                         viewport[1],
@@ -3528,7 +3587,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                     bool allowRotationFlag(false);
                     if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
                         slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                                        getSlicePlanesAllViewLayout(),
+                                                                                                        getVolumeSlicePlanesAllViewLayout(),
                                                                                                         mousePressX,
                                                                                                         mousePressY,
                                                                                                         sliceViewport);
@@ -3591,10 +3650,10 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                                                                 + (mouseDeltaY * mouseDeltaY)));
                                 
                                 if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_ROTATE_ABOUT_NORMAL_VECTOR)) {
-                                    VolumeSliceViewPlaneEnum::Enum sliceViewPlane = this->getSliceViewPlane();
+                                    VolumeSliceViewPlaneEnum::Enum sliceViewPlane = this->getVolumeSliceViewPlane();
                                     if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
                                         sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                                                        getSlicePlanesAllViewLayout(),
+                                                                                                                        getVolumeSlicePlanesAllViewLayout(),
                                                                                                                         mousePressX,
                                                                                                                         mousePressY,
                                                                                                                         sliceViewport);
@@ -4071,6 +4130,50 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
  *    True if mouseDX
  */
 void
+BrowserTabContent::applyHistologyMouseScaling(BrainOpenGLViewportContent* viewportContent,
+                                              const int32_t mousePressX,
+                                              const int32_t mousePressY,
+                                              const int32_t mouseDY,
+                                              const float dataX,
+                                              const float dataY,
+                                              const bool dataXYValidFlag)
+{
+    if (isHistologyDisplayed()) {
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
+        getViewingTransformation()->scaleAboutMouse(xform,
+                                                    mousePressX,
+                                                    mousePressY,
+                                                    mouseDY,
+                                                    dataX,
+                                                    dataY,
+                                                    dataXYValidFlag);
+    }
+    else {
+        CaretAssertMessage(0, "HISTOLOGY ONLY");
+    }
+    updateYokedModelBrowserTabs();
+}
+
+
+/**
+ * Apply mouse scaling to the displayed model.
+ *
+ * @param viewportContent
+ *    Content of the viewport
+ * @param mousePressX
+ *    X coordinate of where mouse was pressed.
+ * @param mousePressY
+ *    X coordinate of where mouse was pressed.
+ * @param mouseDY
+ *    Change in mouse Y coordinate.
+ * @param dataX
+ *    X-coordinate of data at mouse press
+ * @param dataY
+ *    Y-coordinate of data at mouse press
+ * @param dataXYValidFlag
+ *    True if mouseDX
+ */
+void
 BrowserTabContent::applyMediaMouseScaling(BrainOpenGLViewportContent* viewportContent,
                                           const int32_t mousePressX,
                                           const int32_t mousePressY,
@@ -4094,6 +4197,29 @@ BrowserTabContent::applyMediaMouseScaling(BrainOpenGLViewportContent* viewportCo
     }
     updateYokedModelBrowserTabs();
 }
+
+/**
+ * Set the scaling for histology from GUI
+ * @param viewportContent
+ *    Content of the viewport
+ * @param scaling
+ *    New scaling (zoom) value
+ */
+void
+BrowserTabContent::setHistologyScalingFromGui(BrainOpenGLViewportContent* viewportContent,
+                                              const float scaling)
+{
+    if (isMediaDisplayed()) {
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
+        getViewingTransformation()->setHistologyScaling(xform,
+                                                        scaling);
+    }
+    else {
+        CaretAssertMessage(0, "MEDIA ONLY");
+    }
+    updateYokedModelBrowserTabs();
+}
+
 
 /**
  * Set the scaling for media from GUI
@@ -4177,6 +4303,26 @@ BrowserTabContent::setMediaScaling(const float newScaleValue)
     }
 }
 
+/**
+ * Set the bounds of the view to the given selection bounds.
+ * @param viewportContent
+ *    Content of the viewport
+ * @param windowBounds
+ *    Box containing bounds of window
+ * @param selectionBounds
+ *    Box containing bounds of selection
+ */
+void
+BrowserTabContent::setHistologyViewToBounds(const BrainOpenGLViewportContent* viewportContent,
+                                            const BoundingBox* windowBounds,
+                                            const GraphicsRegionSelectionBox* selectionBounds)
+{
+    const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
+    m_histologyViewingTransformation->setViewToBounds(xform,
+                                                  windowBounds,
+                                                  selectionBounds);
+    updateHistologyModelYokedBrowserTabs();
+}
 
 /**
  * Set the bounds of the view to the given selection bounds.
@@ -4261,6 +4407,9 @@ BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent
             }
         }
     }
+    else if (isHistologyDisplayed()) {
+        CaretAssertMessage(0, "Use applyHistologyMouseScaling() when scaling media data");
+    }
     else if (isMediaDisplayed()) {
         CaretAssertMessage(0, "Use applyMediaMouseScaling() when scaling media data");
     }
@@ -4308,7 +4457,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
     
     if (isVolumeSlicesDisplayed()) {
         bool mprFlag(false);
-        switch (getSliceProjectionType()) {
+        switch (getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
@@ -4346,10 +4495,10 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         int sliceViewport[4];
         viewportContent->getModelViewport(sliceViewport);
         
-        VolumeSliceViewPlaneEnum::Enum slicePlane = getSliceViewPlane();
+        VolumeSliceViewPlaneEnum::Enum slicePlane = getVolumeSliceViewPlane();
         if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
             slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                            getSlicePlanesAllViewLayout(),
+                                                                                            getVolumeSlicePlanesAllViewLayout(),
                                                                                             mousePressX,
                                                                                             mousePressY,
                                                                                             sliceViewport);
@@ -4415,6 +4564,34 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                                                   mouseDY);
             }
         }
+    }
+    else if (isHistologyDisplayed()) {
+        float txyz[3];
+        m_histologyViewingTransformation->getTranslation(txyz);
+        /*
+         * Mouse movement is in viewport (window) coordinates.
+         * Need to convert to plane coordinates.
+         */
+        const GraphicsObjectToWindowTransform* transform(viewportContent->getHistologyGraphicsObjectToWindowTransform());
+        CaretAssert(transform);
+        int32_t modelViewport[4];
+        viewportContent->getModelViewport(modelViewport);
+        const Vector3D topLeftViewport(modelViewport[0], modelViewport[1] + modelViewport[3], 0.0);
+        const Vector3D bottomRightViewport(modelViewport[0] + modelViewport[2], modelViewport[1], 0.0);
+        Vector3D topLeftCoord;
+        Vector3D bottomRightCoord;
+        transform->inverseTransformPoint(topLeftViewport, topLeftCoord);
+        transform->inverseTransformPoint(bottomRightViewport, bottomRightCoord);
+        const float coordWidth(std::fabs(topLeftCoord[0] - bottomRightCoord[0]));
+        const float coordHeight(std::fabs(topLeftCoord[1] - bottomRightCoord[1]));
+        const float zoom(getScaling());
+        const float scaleX((coordWidth / modelViewport[2]) * zoom);
+        const float scaleY((coordHeight / modelViewport[3]) * zoom);
+        
+        const float accelerate(1.0);
+        txyz[0] += ((mouseDX * scaleX) * accelerate);
+        txyz[1] += ((mouseDY * scaleY) * accelerate);
+        m_histologyViewingTransformation->setTranslation(txyz);
     }
     else if (isMediaDisplayed()) {
         float txyz[3];
@@ -4666,10 +4843,10 @@ BrowserTabContent::applyMouseTranslationVolumeMPR(BrainOpenGLViewportContent* vi
     int sliceViewport[4];
     viewportContent->getModelViewport(sliceViewport);
     
-    VolumeSliceViewPlaneEnum::Enum slicePlane = getSliceViewPlane();
+    VolumeSliceViewPlaneEnum::Enum slicePlane = getVolumeSliceViewPlane();
     if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
         slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                        getSlicePlanesAllViewLayout(),
+                                                                                        getVolumeSlicePlanesAllViewLayout(),
                                                                                         mousePressX,
                                                                                         mousePressY,
                                                                                         sliceViewport);
@@ -5269,7 +5446,6 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
             case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                CaretAssertToDoFatal();
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                 break;
@@ -5825,7 +6001,7 @@ BrowserTabContent::setVolumeMprParasagittalSliceThicknessEnabled(const bool enab
  *
  */
 VolumeSliceViewPlaneEnum::Enum
-BrowserTabContent::getSliceViewPlane() const
+BrowserTabContent::getVolumeSliceViewPlane() const
 {
     return m_volumeSliceSettings->getSliceViewPlane();
 }
@@ -5836,7 +6012,7 @@ BrowserTabContent::getSliceViewPlane() const
  *    New value for slice plane.
  */
 void
-BrowserTabContent::setSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
+BrowserTabContent::setVolumeSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
 {
     m_volumeSliceSettings->setSliceViewPlane(slicePlane);
     updateBrainModelYokedBrowserTabs();
@@ -5846,7 +6022,7 @@ BrowserTabContent::setSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum sliceP
  * @return The layout for all slices view (grid, row, column)
  */
 VolumeSliceViewAllPlanesLayoutEnum::Enum
-BrowserTabContent::getSlicePlanesAllViewLayout() const
+BrowserTabContent::getVolumeSlicePlanesAllViewLayout() const
 {
     return m_volumeSliceSettings->getSlicePlanesAllViewLayout();
 }
@@ -5858,7 +6034,7 @@ BrowserTabContent::getSlicePlanesAllViewLayout() const
  *     New value for layout.
  */
 void
-BrowserTabContent::setSlicePlanesAllViewLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum slicePlanesAllViewLayout)
+BrowserTabContent::setVolumeSlicePlanesAllViewLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum slicePlanesAllViewLayout)
 {
     m_volumeSliceSettings->setSlicePlanesAllViewLayout(slicePlanesAllViewLayout);
     updateBrainModelYokedBrowserTabs();
@@ -5868,7 +6044,7 @@ BrowserTabContent::setSlicePlanesAllViewLayout(const VolumeSliceViewAllPlanesLay
  * @return Type of slice drawing (single/montage)
  */
 VolumeSliceDrawingTypeEnum::Enum
-BrowserTabContent::getSliceDrawingType() const
+BrowserTabContent::getVolumeSliceDrawingType() const
 {
     return m_volumeSliceSettings->getSliceDrawingType();
 }
@@ -5880,7 +6056,7 @@ BrowserTabContent::getSliceDrawingType() const
  *    New value for slice drawing type.
  */
 void
-BrowserTabContent::setSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType)
+BrowserTabContent::setVolumeSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType)
 {
     m_volumeSliceSettings->setSliceDrawingType(sliceDrawingType);
     updateBrainModelYokedBrowserTabs();
@@ -5890,10 +6066,10 @@ BrowserTabContent::setSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum sl
  * @return Selected type of slice projection (oblique/orthogonal)
  */
 VolumeSliceProjectionTypeEnum::Enum
-BrowserTabContent::getSliceProjectionType() const
+BrowserTabContent::getVolumeSliceProjectionType() const
 {
     std::vector<VolumeSliceProjectionTypeEnum::Enum> sliceProjectionTypes;
-    getValidSliceProjectionTypes(sliceProjectionTypes);
+    getValidVolumeSliceProjectionTypes(sliceProjectionTypes);
     
     /*
      * Selected projection type may not be valid and needs to be set to a valid projection type
@@ -5918,7 +6094,7 @@ BrowserTabContent::getSliceProjectionType() const
  *    Output containing valid slice projection types based upon selected files in overlays
  */
 void
-BrowserTabContent::getValidSliceProjectionTypes(std::vector<VolumeSliceProjectionTypeEnum::Enum>& sliceProjectionTypesOut) const
+BrowserTabContent::getValidVolumeSliceProjectionTypes(std::vector<VolumeSliceProjectionTypeEnum::Enum>& sliceProjectionTypesOut) const
 {
     sliceProjectionTypesOut.clear();
 
@@ -5978,7 +6154,7 @@ BrowserTabContent::getValidSliceProjectionTypes(std::vector<VolumeSliceProjectio
  *    New value for slice projection type.
  */
 void
-BrowserTabContent::setSliceProjectionType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType)
+BrowserTabContent::setVolumeSliceProjectionType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType)
 {
     m_volumeSliceSettings->setSliceProjectionType(sliceProjectionType);
     updateBrainModelYokedBrowserTabs();
@@ -6010,7 +6186,7 @@ BrowserTabContent::setVolumeSliceInterpolationEdgeEffectsMaskingType(const Volum
  * @return the montage number of columns for the given window tab.
  */
 int32_t
-BrowserTabContent::getMontageNumberOfColumns() const
+BrowserTabContent::getVolumeMontageNumberOfColumns() const
 {
     return m_volumeSliceSettings->getMontageNumberOfColumns();
 }
@@ -6021,7 +6197,7 @@ BrowserTabContent::getMontageNumberOfColumns() const
  *    New value for montage number of columns
  */
 void
-BrowserTabContent::setMontageNumberOfColumns(const int32_t montageNumberOfColumns)
+BrowserTabContent::setVolumeMontageNumberOfColumns(const int32_t montageNumberOfColumns)
 {
     m_volumeSliceSettings->setMontageNumberOfColumns(montageNumberOfColumns);
     updateBrainModelYokedBrowserTabs();
@@ -6031,7 +6207,7 @@ BrowserTabContent::setMontageNumberOfColumns(const int32_t montageNumberOfColumn
  * @return the montage number of rows for the given window tab.
  */
 int32_t
-BrowserTabContent::getMontageNumberOfRows() const
+BrowserTabContent::getVolumeMontageNumberOfRows() const
 {
     return m_volumeSliceSettings->getMontageNumberOfRows();
 }
@@ -6042,7 +6218,7 @@ BrowserTabContent::getMontageNumberOfRows() const
  *    New value for montage number of rows
  */
 void
-BrowserTabContent::setMontageNumberOfRows(const int32_t montageNumberOfRows)
+BrowserTabContent::setVolumeMontageNumberOfRows(const int32_t montageNumberOfRows)
 {
     m_volumeSliceSettings->setMontageNumberOfRows(montageNumberOfRows);
     updateBrainModelYokedBrowserTabs();
@@ -6052,7 +6228,7 @@ BrowserTabContent::setMontageNumberOfRows(const int32_t montageNumberOfRows)
  * @return the montage slice spacing.
  */
 int32_t
-BrowserTabContent::getMontageSliceSpacing() const
+BrowserTabContent::getVolumeMontageSliceSpacing() const
 {
     return m_volumeSliceSettings->getMontageSliceSpacing();
 }
@@ -6063,7 +6239,7 @@ BrowserTabContent::getMontageSliceSpacing() const
  *    New value for montage slice spacing
  */
 void
-BrowserTabContent::setMontageSliceSpacing(const int32_t montageSliceSpacing)
+BrowserTabContent::setVolumeMontageSliceSpacing(const int32_t montageSliceSpacing)
 {
     m_volumeSliceSettings->setMontageSliceSpacing(montageSliceSpacing);
     updateBrainModelYokedBrowserTabs();
@@ -6073,9 +6249,9 @@ BrowserTabContent::setMontageSliceSpacing(const int32_t montageSliceSpacing)
  * Set the selected slices to the origin.
  */
 void
-BrowserTabContent::setSlicesToOrigin()
+BrowserTabContent::setVolumeSlicesToOrigin()
 {
-    selectSlicesAtOrigin();
+    selectVolumeSlicesAtOrigin();
     updateBrainModelYokedBrowserTabs();
 }
 
@@ -6089,6 +6265,9 @@ BrowserTabContent::reset()
         || isWholeBrainDisplayed()) {
         m_volumeSliceSettings->reset();
         m_obliqueVolumeRotationMatrix->identity();
+    }
+    if (isHistologyDisplayed()) {
+        m_histologySliceSettings->reset();
     }
     updateBrainModelYokedBrowserTabs();
     updateHistologyModelYokedBrowserTabs();
@@ -6111,7 +6290,7 @@ BrowserTabContent::updateForVolumeFile(const VolumeMappableInterface* volumeFile
  * Set the slice indices so that they are at the origin.
  */
 void
-BrowserTabContent::selectSlicesAtOrigin()
+BrowserTabContent::selectVolumeSlicesAtOrigin()
 {
     m_volumeSliceSettings->selectSlicesAtOrigin();
     updateBrainModelYokedBrowserTabs();
@@ -6123,7 +6302,7 @@ BrowserTabContent::selectSlicesAtOrigin()
  *    Coordinate for selected slices.
  */
 void
-BrowserTabContent::selectSlicesAtCoordinate(const float xyz[3])
+BrowserTabContent::selectVolumeSlicesAtCoordinate(const float xyz[3])
 {
     m_volumeSliceSettings->selectSlicesAtCoordinate(xyz);
     updateBrainModelYokedBrowserTabs();
@@ -6241,6 +6420,94 @@ BrowserTabContent::setVolumeMontageCoordinatePrecision(const int32_t volumeMonta
     updateBrainModelYokedBrowserTabs();
 }
 
+
+/**
+ * Set the histology slice indices so that they are at the origin.
+ */
+void
+BrowserTabContent::selectHistologySlicesAtOrigin()
+{
+    m_histologySliceSettings->selectSlicesAtOrigin();
+    updateHistologyModelYokedBrowserTabs();
+}
+
+/**
+ * @return The histology selected slice index valid for the given histology slices file
+ * @param histologySlicesFile
+ *    The histology slices file
+ */
+int64_t
+BrowserTabContent::getHistologySelectedSliceIndex(const HistologySlicesFile* histologySlicesFile) const
+{
+    return m_histologySliceSettings->getSelectedSliceIndex(histologySlicesFile);
+}
+
+/**
+ * Set the histology slice index for the given histology slices files
+ * @param histologySlicesFile
+ *    The histology slices file
+ * @param sliceIndex
+ *    New slice index
+ */
+void
+BrowserTabContent::setHistologySelectedSliceIndex(const HistologySlicesFile* histologySlicesFile,
+                                                  const int32_t sliceIndex)
+{
+    m_histologySliceSettings->setSelectedSliceIndex(histologySlicesFile,
+                                                    sliceIndex);
+    updateHistologyModelYokedBrowserTabs();
+}
+
+
+/**
+ * @return The histology selected slice number valid for the given histology slices file
+ * @param histologySlicesFile
+ *    The histology slices file
+ */
+int64_t
+BrowserTabContent::getHistologySelectedSliceNumber(const HistologySlicesFile* histologySlicesFile) const
+{
+    return m_histologySliceSettings->getSelectedSliceNumber(histologySlicesFile);
+}
+
+
+/**
+ * Set the histology selected slice number valid for the given histology slices file
+ * @param histologySlicesFile
+ *    The histology slices file
+ * @param sliceNumber
+ *    New slice number
+ */
+void
+BrowserTabContent::setHistologySelectedSliceNumber(const HistologySlicesFile* histologySlicesFile,
+                                               const int32_t sliceNumber)
+{
+    m_histologySliceSettings->setSelectedSliceNumber(histologySlicesFile,
+                                                     sliceNumber);
+    updateHistologyModelYokedBrowserTabs();
+}
+
+/**
+ * @return The histology sterotaxic XYZ
+ */
+Vector3D
+BrowserTabContent::getHistologySelectedSliceCoordinateXYZ(const HistologySlicesFile* histologySlicesFile) const
+{
+    return m_histologySliceSettings->getSelectedSliceCoordinateXYZ(histologySlicesFile);
+}
+
+/**
+ * Set the histology stereotaxic XYZ.
+ * @param xyz
+ *    New stereotaxic XYZ.
+ */
+void
+BrowserTabContent::setHistologySelectedSliceCoordinateXYZ(const Vector3D& xyz)
+{
+    m_histologySliceSettings->setSelectedSliceCoordinateXYZ(xyz);
+    updateHistologyModelYokedBrowserTabs();
+}
+
 /**
  * @return Is lighting enabled ?
  */
@@ -6269,7 +6536,7 @@ BrowserTabContent::setLightingEnabled(const bool lightingEnabled)
  *   Axial slice index or negative if invalid
  */
 int64_t
-BrowserTabContent::getSliceIndexAxial(const VolumeMappableInterface* volumeFile) const
+BrowserTabContent::getVolumeSliceIndexAxial(const VolumeMappableInterface* volumeFile) const
 {
     return m_volumeSliceSettings->getSliceIndexAxial(volumeFile);
 }
@@ -6280,7 +6547,7 @@ BrowserTabContent::getSliceIndexAxial(const VolumeMappableInterface* volumeFile)
  *    New value for axial slice index.
  */
 void
-BrowserTabContent::setSliceIndexAxial(const VolumeMappableInterface* volumeFile,
+BrowserTabContent::setVolumeSliceIndexAxial(const VolumeMappableInterface* volumeFile,
                                         const int64_t sliceIndexAxial)
 {
     m_volumeSliceSettings->setSliceIndexAxial(volumeFile, sliceIndexAxial);
@@ -6293,7 +6560,7 @@ BrowserTabContent::setSliceIndexAxial(const VolumeMappableInterface* volumeFile,
  *   Coronal slice index.
  */
 int64_t
-BrowserTabContent::getSliceIndexCoronal(const VolumeMappableInterface* volumeFile) const
+BrowserTabContent::getVolumeSliceIndexCoronal(const VolumeMappableInterface* volumeFile) const
 {
     return m_volumeSliceSettings->getSliceIndexCoronal(volumeFile);
 }
@@ -6305,7 +6572,7 @@ BrowserTabContent::getSliceIndexCoronal(const VolumeMappableInterface* volumeFil
  *    New value for coronal slice index.
  */
 void
-BrowserTabContent::setSliceIndexCoronal(const VolumeMappableInterface* volumeFile,
+BrowserTabContent::setVolumeSliceIndexCoronal(const VolumeMappableInterface* volumeFile,
                                           const int64_t sliceIndexCoronal)
 {
     m_volumeSliceSettings->setSliceIndexCoronal(volumeFile, sliceIndexCoronal);
@@ -6318,7 +6585,7 @@ BrowserTabContent::setSliceIndexCoronal(const VolumeMappableInterface* volumeFil
  *   Parasagittal slice index.
  */
 int64_t
-BrowserTabContent::getSliceIndexParasagittal(const VolumeMappableInterface* volumeFile) const
+BrowserTabContent::getVolumeSliceIndexParasagittal(const VolumeMappableInterface* volumeFile) const
 {
     return m_volumeSliceSettings->getSliceIndexParasagittal(volumeFile);
 }
@@ -6329,7 +6596,7 @@ BrowserTabContent::getSliceIndexParasagittal(const VolumeMappableInterface* volu
  *    New value for parasagittal slice index.
  */
 void
-BrowserTabContent::setSliceIndexParasagittal(const VolumeMappableInterface* volumeFile,
+BrowserTabContent::setVolumeSliceIndexParasagittal(const VolumeMappableInterface* volumeFile,
                                                const int64_t sliceIndexParasagittal)
 {
     m_volumeSliceSettings->setSliceIndexParasagittal(volumeFile,
@@ -6341,7 +6608,7 @@ BrowserTabContent::setSliceIndexParasagittal(const VolumeMappableInterface* volu
  * @return Coordinate of axial slice.
  */
 float
-BrowserTabContent::getSliceCoordinateAxial() const
+BrowserTabContent::getVolumeSliceCoordinateAxial() const
 {
     return m_volumeSliceSettings->getSliceCoordinateAxial();
 }
@@ -6352,7 +6619,7 @@ BrowserTabContent::getSliceCoordinateAxial() const
  *    Z-coordinate for axial slice.
  */
 void
-BrowserTabContent::setSliceCoordinateAxial(const float z)
+BrowserTabContent::setVolumeSliceCoordinateAxial(const float z)
 {
     m_volumeSliceSettings->setSliceCoordinateAxial(z);
     updateBrainModelYokedBrowserTabs();
@@ -6362,7 +6629,7 @@ BrowserTabContent::setSliceCoordinateAxial(const float z)
  * @return Coordinate of coronal slice.
  */
 float
-BrowserTabContent::getSliceCoordinateCoronal() const
+BrowserTabContent::getVolumeSliceCoordinateCoronal() const
 {
     return m_volumeSliceSettings->getSliceCoordinateCoronal();
 }
@@ -6373,7 +6640,7 @@ BrowserTabContent::getSliceCoordinateCoronal() const
  *    Y-coordinate for coronal slice.
  */
 void
-BrowserTabContent::setSliceCoordinateCoronal(const float y)
+BrowserTabContent::setVolumeSliceCoordinateCoronal(const float y)
 {
     m_volumeSliceSettings->setSliceCoordinateCoronal(y);
     updateBrainModelYokedBrowserTabs();
@@ -6383,7 +6650,7 @@ BrowserTabContent::setSliceCoordinateCoronal(const float y)
  * @return Coordinate of parasagittal slice.
  */
 float
-BrowserTabContent::getSliceCoordinateParasagittal() const
+BrowserTabContent::getVolumeSliceCoordinateParasagittal() const
 {
     return m_volumeSliceSettings->getSliceCoordinateParasagittal();
 }
@@ -6394,7 +6661,7 @@ BrowserTabContent::getSliceCoordinateParasagittal() const
  *    X-coordinate for parasagittal slice.
  */
 void
-BrowserTabContent::setSliceCoordinateParasagittal(const float x)
+BrowserTabContent::setVolumeSliceCoordinateParasagittal(const float x)
 {
     m_volumeSliceSettings->setSliceCoordinateParasagittal(x);
     updateBrainModelYokedBrowserTabs();
@@ -6406,7 +6673,7 @@ BrowserTabContent::setSliceCoordinateParasagittal(const float x)
  *    Enabled status of parasagittal slice.
  */
 bool
-BrowserTabContent::isSliceParasagittalEnabled() const
+BrowserTabContent::isVolumeSliceParasagittalEnabled() const
 {
     return m_volumeSliceSettings->isSliceParasagittalEnabled();
 }
@@ -6417,7 +6684,7 @@ BrowserTabContent::isSliceParasagittalEnabled() const
  *    New enabled status.
  */
 void
-BrowserTabContent::setSliceParasagittalEnabled(const bool sliceEnabledParasagittal)
+BrowserTabContent::setVolumeSliceParasagittalEnabled(const bool sliceEnabledParasagittal)
 {
     m_volumeSliceSettings->setSliceParasagittalEnabled(sliceEnabledParasagittal);
     updateBrainModelYokedBrowserTabs();
@@ -6429,7 +6696,7 @@ BrowserTabContent::setSliceParasagittalEnabled(const bool sliceEnabledParasagitt
  *    Enabled status of coronal slice.
  */
 bool
-BrowserTabContent::isSliceCoronalEnabled() const
+BrowserTabContent::isVolumeSliceCoronalEnabled() const
 {
     return m_volumeSliceSettings->isSliceCoronalEnabled();
 }
@@ -6440,7 +6707,7 @@ BrowserTabContent::isSliceCoronalEnabled() const
  *    New enabled status.
  */
 void
-BrowserTabContent::setSliceCoronalEnabled(const bool sliceEnabledCoronal)
+BrowserTabContent::setVolumeSliceCoronalEnabled(const bool sliceEnabledCoronal)
 {
     m_volumeSliceSettings->setSliceCoronalEnabled(sliceEnabledCoronal);
     updateBrainModelYokedBrowserTabs();
@@ -6452,7 +6719,7 @@ BrowserTabContent::setSliceCoronalEnabled(const bool sliceEnabledCoronal)
  *    Enabled status of axial slice.
  */
 bool
-BrowserTabContent::isSliceAxialEnabled() const
+BrowserTabContent::isVolumeSliceAxialEnabled() const
 {
     return m_volumeSliceSettings->isSliceAxialEnabled();
 }
@@ -6463,7 +6730,7 @@ BrowserTabContent::isSliceAxialEnabled() const
  *    New enabled status.
  */
 void
-BrowserTabContent::setSliceAxialEnabled(const bool sliceEnabledAxial)
+BrowserTabContent::setVolumeSliceAxialEnabled(const bool sliceEnabledAxial)
 {
     m_volumeSliceSettings->setSliceAxialEnabled(sliceEnabledAxial);
     updateBrainModelYokedBrowserTabs();
@@ -6827,7 +7094,7 @@ BrowserTabContent::updateYokedModelBrowserTabs()
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
+            histologyFlag = true;
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             mediaFlag = true;
@@ -6957,6 +7224,20 @@ BrowserTabContent::updateHistologyModelYokedBrowserTabs()
         return;
     }
     
+    /*
+     * Copy yoked data from 'me' to all other yoked browser tabs
+     */
+    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+    for (auto btc : activeTabs) {
+        if (btc != this) {
+            /*
+             * If anything is added, also need to update setYokingGroup()
+             */
+            if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
+                *btc->m_histologySliceSettings = *m_histologySliceSettings;
+            }
+        }
+    }
     CaretAssertToDoFatal();
     
 //    float myImageWidthHeight[2] { 0.0f, 0.0f };

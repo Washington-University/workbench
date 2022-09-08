@@ -45,7 +45,9 @@ namespace caret {
                         const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                         const int32_t tabOrWindowIndex,
                         const SpacerTabIndex& spacerTabIndex,
-                        const AString& mediaFileName);
+                        const AString& mediaFileName,
+                        const AString& histologySlicesFileName,
+                        const AString& histologyMediaFileName);
         
         virtual ~AnnotationGroup();
 
@@ -69,6 +71,10 @@ namespace caret {
         
         AString getMediaFileName() const;
         
+        AString getHistologySlicesFileName() const;
+        
+        AString getHistologyMediaFileName() const;
+
         int32_t getNumberOfAnnotations() const;
         
         Annotation* getAnnotation(const int32_t index);
@@ -197,6 +203,10 @@ namespace caret {
         int32_t m_tabOrWindowIndex;
         
         AString m_mediaFileName;
+        
+        AString m_histologySlicesFileName;
+        
+        AString m_histologyMediaFileName;
         
         mutable AString m_name;
         

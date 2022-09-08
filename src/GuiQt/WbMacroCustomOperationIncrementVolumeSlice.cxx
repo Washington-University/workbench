@@ -155,11 +155,11 @@ WbMacroCustomOperationIncrementVolumeSlice::executeCommand(QWidget* parent,
         return false;
     }
 
-    int32_t sliceIndexAxial        = tabContent->getSliceIndexAxial(underlayVolumeFile);
-    int32_t sliceIndexCoronal      = tabContent->getSliceIndexCoronal(underlayVolumeFile);
-    int32_t sliceIndexParasagittal = tabContent->getSliceIndexParasagittal(underlayVolumeFile);
+    int32_t sliceIndexAxial        = tabContent->getVolumeSliceIndexAxial(underlayVolumeFile);
+    int32_t sliceIndexCoronal      = tabContent->getVolumeSliceIndexCoronal(underlayVolumeFile);
+    int32_t sliceIndexParasagittal = tabContent->getVolumeSliceIndexParasagittal(underlayVolumeFile);
     
-    VolumeSliceViewPlaneEnum::Enum slicePlane = tabContent->getSliceViewPlane();
+    VolumeSliceViewPlaneEnum::Enum slicePlane = tabContent->getVolumeSliceViewPlane();
     switch (slicePlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             sliceIndexAxial        += incrementSlice;
@@ -177,11 +177,11 @@ WbMacroCustomOperationIncrementVolumeSlice::executeCommand(QWidget* parent,
             break;
     }
     
-    tabContent->setSliceIndexAxial(underlayVolumeFile,
+    tabContent->setVolumeSliceIndexAxial(underlayVolumeFile,
                                    sliceIndexAxial);
-    tabContent->setSliceIndexCoronal(underlayVolumeFile,
+    tabContent->setVolumeSliceIndexCoronal(underlayVolumeFile,
                                      sliceIndexCoronal);
-    tabContent->setSliceIndexParasagittal(underlayVolumeFile,
+    tabContent->setVolumeSliceIndexParasagittal(underlayVolumeFile,
                                           sliceIndexParasagittal);
     
     updateGraphics();

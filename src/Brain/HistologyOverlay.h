@@ -34,6 +34,7 @@
 namespace caret {
     class CziImageFile;
     class HistologySlicesFile;
+    class MediaFile;
     class SceneClassAssistant;
     
     class HistologyOverlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -66,6 +67,35 @@ namespace caret {
         
         void swapData(HistologyOverlay* overlay);
         
+        class DrawingData {
+        public:
+            DrawingData() { }
+            
+            DrawingData(const int32_t tabIndex,
+                        const int32_t overlayIndex,
+                        HistologySlicesFile* selectedFile,
+                        MediaFile* mediaFile,
+                        const int32_t selectedSliceIndex,
+                        const int32_t mediaFileIndexInSlice,
+                        const bool supportsYokingFlag)
+            :
+            m_tabIndex(tabIndex),
+            m_overlayIndex(overlayIndex),
+            m_selectedFile(selectedFile),
+            m_mediaFile(mediaFile),
+            m_selectedSliceIndex(selectedSliceIndex),
+            m_mediaFileIndexInSlice(mediaFileIndexInSlice),
+            m_supportsYokingFlag(supportsYokingFlag) {  }
+            
+            int32_t m_tabIndex = -1;
+            int32_t m_overlayIndex = -1;
+            HistologySlicesFile* m_selectedFile = NULL;
+            MediaFile* m_mediaFile = NULL;
+            int32_t m_selectedSliceIndex = 0;
+            int32_t m_mediaFileIndexInSlice = 0;
+            bool m_supportsYokingFlag = false;
+        };
+        
         class SelectionData {
         public:
             SelectionData() { }
@@ -94,6 +124,8 @@ namespace caret {
             int32_t m_selectedSliceNumber;
             bool m_supportsYokingFlag = false;
         };
+        
+        std::vector<DrawingData> getDrawingData(const int32_t selectedSliceIndex) const;
         
         SelectionData getSelectionData();
         

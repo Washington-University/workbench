@@ -2141,7 +2141,6 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::HISTOLOGY_SLICES:
-            CaretAssertToDoFatal();
             break;
         case DataFileTypeEnum::IMAGE:
             break;
@@ -5379,7 +5378,7 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             CaretAssert(0);
             break;
         case DataFileTypeEnum::HISTOLOGY_SLICES:
-            CaretAssertToDoFatal();
+            CaretAssert(0);
             break;
         case DataFileTypeEnum::IMAGE:
             CaretAssert(0);

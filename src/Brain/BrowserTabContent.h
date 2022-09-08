@@ -65,6 +65,8 @@ namespace caret {
     class EventCaretMappableDataFilesAndMapsInDisplayedOverlays;
     class GraphicsRegionSelectionBox;
     class HistologyOverlaySet;
+    class HistologySliceSettings;
+    class HistologySlicesFile;
     class Matrix4x4;
     class MediaOverlaySet;
     class ModelChart;
@@ -356,6 +358,14 @@ namespace caret {
                                 const int32_t mouseDeltaX,
                                 const int32_t mouseDeltaY);
         
+        void applyHistologyMouseScaling(BrainOpenGLViewportContent* viewportContent,
+                                        const int32_t mousePressX,
+                                        const int32_t mousePressY,
+                                        const int32_t mouseDY,
+                                        const float dataX,
+                                        const float dataY,
+                                        const bool dataXYValidFlag);
+
         void applyMediaMouseScaling(BrainOpenGLViewportContent* viewportContent,
                                     const int32_t mousePressX,
                                     const int32_t mousePressY,
@@ -364,9 +374,16 @@ namespace caret {
                                     const float dataY,
                                     const bool dataXYValidFlag);
         
+        void setHistologyScalingFromGui(BrainOpenGLViewportContent* viewportContent,
+                                        const float scaling);
+        
         void setMediaScalingFromGui(BrainOpenGLViewportContent* viewportContent,
                                     const float scaling);
         
+        void setHistologyViewToBounds(const BrainOpenGLViewportContent* viewportContent,
+                                      const BoundingBox* windowBounds,
+                                      const GraphicsRegionSelectionBox* selectionBounds);
+
         void setMediaViewToBounds(const BrainOpenGLViewportContent* viewportContent,
                                   const BoundingBox* windowBounds,
                                   const GraphicsRegionSelectionBox* selectionBounds);
@@ -438,86 +455,86 @@ namespace caret {
         
         void setVolumeMprParasagittalSliceThicknessEnabled(const bool enabled);
         
-        VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
+        VolumeSliceViewPlaneEnum::Enum getVolumeSliceViewPlane() const;
         
-        void setSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
+        void setVolumeSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
         
-        VolumeSliceViewAllPlanesLayoutEnum::Enum getSlicePlanesAllViewLayout() const;
+        VolumeSliceViewAllPlanesLayoutEnum::Enum getVolumeSlicePlanesAllViewLayout() const;
         
-        void setSlicePlanesAllViewLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum slicePlanesAllViewLayout);
+        void setVolumeSlicePlanesAllViewLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum slicePlanesAllViewLayout);
         
-        VolumeSliceDrawingTypeEnum::Enum getSliceDrawingType() const;
+        VolumeSliceDrawingTypeEnum::Enum getVolumeSliceDrawingType() const;
         
-        void setSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType);
+        void setVolumeSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType);
         
-        void getValidSliceProjectionTypes(std::vector<VolumeSliceProjectionTypeEnum::Enum>& sliceProjectionTypesOut) const;
+        void getValidVolumeSliceProjectionTypes(std::vector<VolumeSliceProjectionTypeEnum::Enum>& sliceProjectionTypesOut) const;
         
-        VolumeSliceProjectionTypeEnum::Enum getSliceProjectionType() const;
+        VolumeSliceProjectionTypeEnum::Enum getVolumeSliceProjectionType() const;
         
-        void setSliceProjectionType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType);
+        void setVolumeSliceProjectionType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType);
         
         VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum getVolumeSliceInterpolationEdgeEffectsMaskingType() const;
         
         void setVolumeSliceInterpolationEdgeEffectsMaskingType(const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskingType);
         
-        int32_t getMontageNumberOfColumns() const;
+        int32_t getVolumeMontageNumberOfColumns() const;
         
-        void setMontageNumberOfColumns(const int32_t montageNumberOfColumns);
+        void setVolumeMontageNumberOfColumns(const int32_t montageNumberOfColumns);
         
-        int32_t getMontageNumberOfRows() const;
+        int32_t getVolumeMontageNumberOfRows() const;
         
-        void setMontageNumberOfRows(const int32_t montageNumberOfRows);
+        void setVolumeMontageNumberOfRows(const int32_t montageNumberOfRows);
         
-        int32_t getMontageSliceSpacing() const;
+        int32_t getVolumeMontageSliceSpacing() const;
         
-        void setMontageSliceSpacing(const int32_t montageSliceSpacing);
+        void setVolumeMontageSliceSpacing(const int32_t montageSliceSpacing);
         
-        void setSlicesToOrigin();
+        void setVolumeSlicesToOrigin();
         
-        float getSliceCoordinateAxial() const;
+        float getVolumeSliceCoordinateAxial() const;
         
-        void setSliceCoordinateAxial(const float x);
+        void setVolumeSliceCoordinateAxial(const float x);
         
-        float getSliceCoordinateCoronal() const;
+        float getVolumeSliceCoordinateCoronal() const;
         
-        void setSliceCoordinateCoronal(const float y);
+        void setVolumeSliceCoordinateCoronal(const float y);
         
-        float getSliceCoordinateParasagittal() const;
+        float getVolumeSliceCoordinateParasagittal() const;
         
-        void setSliceCoordinateParasagittal(const float z);
+        void setVolumeSliceCoordinateParasagittal(const float z);
         
-        int64_t getSliceIndexAxial(const VolumeMappableInterface* volumeFile) const;
+        int64_t getVolumeSliceIndexAxial(const VolumeMappableInterface* volumeFile) const;
         
-        void setSliceIndexAxial(const VolumeMappableInterface* volumeFile,
+        void setVolumeSliceIndexAxial(const VolumeMappableInterface* volumeFile,
                                 const int64_t sliceIndexAxial);
         
-        int64_t getSliceIndexCoronal(const VolumeMappableInterface* volumeFile) const;
+        int64_t getVolumeSliceIndexCoronal(const VolumeMappableInterface* volumeFile) const;
         
-        void setSliceIndexCoronal(const VolumeMappableInterface* volumeFile,
+        void setVolumeSliceIndexCoronal(const VolumeMappableInterface* volumeFile,
                                   const int64_t sliceIndexCoronal);
         
-        int64_t getSliceIndexParasagittal(const VolumeMappableInterface* volumeFile) const;
+        int64_t getVolumeSliceIndexParasagittal(const VolumeMappableInterface* volumeFile) const;
         
-        void setSliceIndexParasagittal(const VolumeMappableInterface* volumeFile,
+        void setVolumeSliceIndexParasagittal(const VolumeMappableInterface* volumeFile,
                                        const int64_t sliceIndexParasagittal);
         
-        bool isSliceParasagittalEnabled() const;
+        bool isVolumeSliceParasagittalEnabled() const;
         
-        void setSliceParasagittalEnabled(const bool sliceEnabledParasagittal);
+        void setVolumeSliceParasagittalEnabled(const bool sliceEnabledParasagittal);
         
-        bool isSliceCoronalEnabled() const;
+        bool isVolumeSliceCoronalEnabled() const;
         
-        void setSliceCoronalEnabled(const bool sliceEnabledCoronal);
+        void setVolumeSliceCoronalEnabled(const bool sliceEnabledCoronal);
         
-        bool isSliceAxialEnabled() const;
+        bool isVolumeSliceAxialEnabled() const;
         
-        void setSliceAxialEnabled(const bool sliceEnabledAxial);
+        void setVolumeSliceAxialEnabled(const bool sliceEnabledAxial);
         
         void updateForVolumeFile(const VolumeMappableInterface* volumeFile);
         
-        void selectSlicesAtOrigin();
+        void selectVolumeSlicesAtOrigin();
         
-        void selectSlicesAtCoordinate(const float xyz[3]);
+        void selectVolumeSlicesAtCoordinate(const float xyz[3]);
         
         bool isIdentificationUpdatesVolumeSlices() const;
         
@@ -538,6 +555,22 @@ namespace caret {
         int32_t getVolumeMontageCoordinatePrecision() const;
         
         void setVolumeMontageCoordinatePrecision(const int32_t volumeMontageCoordinatePrecision);
+        
+        int64_t getHistologySelectedSliceIndex(const HistologySlicesFile* histologySlicesFile) const;
+        
+        void setHistologySelectedSliceIndex(const HistologySlicesFile* histologySlicesFile,
+                                   const int32_t sliceIndex);
+        
+        int64_t getHistologySelectedSliceNumber(const HistologySlicesFile* histologySlicesFile) const;
+        
+        void setHistologySelectedSliceNumber(const HistologySlicesFile* histologySlicesFile,
+                                    const int32_t sliceNumber);
+        
+        Vector3D getHistologySelectedSliceCoordinateXYZ(const HistologySlicesFile* histologySlicesFile) const;
+        
+        void setHistologySelectedSliceCoordinateXYZ(const Vector3D& xyz);
+        
+        void selectHistologySlicesAtOrigin();
         
         bool isLightingEnabled() const;
         
@@ -769,6 +802,9 @@ namespace caret {
         
         /** Display properties for chart two matrix */
         ChartTwoMatrixDisplayProperties* m_chartTwoMatrixDisplayProperties;
+        
+        /** Histology settings for histology slices */
+        HistologySliceSettings* m_histologySliceSettings;
         
         /** Volume slice settings for volume slices */
         VolumeSliceSettings* m_volumeSliceSettings;

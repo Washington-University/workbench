@@ -86,6 +86,7 @@
 #include "OffScreenOpenGLRenderer.h"
 #include "SelectionManager.h"
 #include "SelectionItemAnnotation.h"
+#include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
@@ -1169,6 +1170,7 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
         /*
          * If not limited, it is way too fast
          */
+        bool histologyFlag(false);
         bool mediaFlag(false);
         const BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
         if (browserTabContent != NULL) {
@@ -1179,7 +1181,10 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
             deltaDegrees = MathFunctions::limitRange(deltaDegrees,
                                                      -degreesMaximum,
                                                      degreesMaximum);
-            if (browserTabContent->isMediaDisplayed()) {
+            if (browserTabContent->isHistologyDisplayed()) {
+                histologyFlag = true;
+            }
+            else if (browserTabContent->isMediaDisplayed()) {
                 mediaFlag = true;
             }
         }
@@ -1191,7 +1196,8 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
          * (just causes extra ID operations)
          */
         bool newMouseDraggingFlag(this->mouseNewDraggingStartedFlag);
-        if (mediaFlag) {
+        if (histologyFlag
+            || mediaFlag) {
             newMouseDraggingFlag = true;
         }
         std::vector<MouseEvent::XY> emptyHistoryXY;
@@ -1878,6 +1884,90 @@ BrainOpenGLWidget::performIdentificationVolumeMprCrosshairs(const int x,
 #endif
     
     return idMprCrosshair;
+}
+
+/**
+ * Perform identification of only histology with plane coordinate.  Identification of other
+ * data types is off.
+ *
+ * @param x
+ *    X-coordinate for identification.
+ * @param y
+ *    Y-coordinate for identification.
+ * @return
+ *    A pointer to the histology selection item.  Its
+ *    "isValid()" method may be queried to determine
+ *    if the selected histology is valid.
+ */
+SelectionItemHistologyCoordinate*
+BrainOpenGLWidget::performIdentificationHistologyPlaneCoordinate(const int x,
+                                                                 const int y)
+{
+    const UserInputModeEnum::Enum inputMode = getSelectedInputMode();
+    bool manLayoutFlag(false);
+    switch (inputMode) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            manLayoutFlag = true;
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            break;
+    }
+    
+    const BrainOpenGLViewportContent* idViewport = (manLayoutFlag
+                                                    ? this->getViewportContentManualLayoutWithoutLockAspectAtXY(x, y)
+                                                    : this->getViewportContentAtXY(x, y));
+    
+    this->makeCurrent();
+    CaretLogFine("Performing selection");
+    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
+    idManager->reset();
+    idManager->setAllSelectionsEnabled(false);
+    SelectionItemHistologyCoordinate* histologyID = idManager->getHistologyPlaneCoordinateIdentification();
+    histologyID->setEnabledForSelection(true);
+    
+    if (idViewport != NULL) {
+        /*
+         * ID coordinate needs to be relative to the viewport
+         *
+         int vp[4];
+         idViewport->getViewport(vp);
+         const int idX = x - vp[0];
+         const int idY = y - vp[1];
+         */
+        s_singletonOpenGL->selectModel(this->windowIndex,
+                                       inputMode,
+                                       GuiManager::get()->getBrain(),
+                                       m_contextShareGroupPointer,
+                                       idViewport,
+                                       x,
+                                       y,
+                                       true);
+    }
+    
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /*
+     * Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation) so
+     * there is no "back" or "front buffer".  Since
+     * identification is encoded in the framebuffer,
+     * it is necessary to repaint (udpates graphics
+     * immediately) to redraw the models.  Otherwise,
+     * the graphics flash with strange looking drawing.
+     */
+    this->repaintGraphics();
+    this->doneCurrent();
+#else
+    this->repaintGraphics();
+#endif
+    
+    return histologyID;
 }
 
 /**

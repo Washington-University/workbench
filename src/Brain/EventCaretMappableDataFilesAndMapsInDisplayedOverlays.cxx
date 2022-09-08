@@ -27,6 +27,7 @@
 #include "CaretMappableDataFile.h"
 #include "EventTypeEnum.h"
 #include "FileIdentificationAttributes.h"
+#include "HistologySlicesFile.h"
 #include "MediaFile.h"
 
 using namespace caret;
@@ -180,6 +181,37 @@ EventCaretMappableDataFilesAndMapsInDisplayedOverlays::addMediaFileAndFrame(Medi
 }
 
 /**
+ * Add media  file and frame displayed in a media overlay.
+ *
+ * @param mediaFile
+ *     File to add.
+ * @param frameIndex
+ *     Index of selected frame.
+ * @param tabIndex
+ * Index of the tab
+ */
+void
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::addHistologyFileAndSliceIndex(HistologySlicesFile* histologySlicesFile,
+                                                                                      const int32_t sliceIndex,
+                                                                                      const int32_t tabIndex)
+{
+    if ( ! satisfiesConstraints(tabIndex)) {
+        return;
+    }
+    
+    auto iter = m_histologySlicesFilesAndSliceIndices.find(histologySlicesFile);
+    if (iter != m_histologySlicesFilesAndSliceIndices.end()) {
+        iter->second.insert(sliceIndex);
+    }
+    else {
+        std::set<int32_t> indicesSet;
+        indicesSet.insert(sliceIndex);
+        m_histologySlicesFilesAndSliceIndices.insert(std::make_pair(histologySlicesFile,
+                                                                    indicesSet));
+    }
+}
+
+/**
  * @return Files and maps selected in overlays for both brainordinates
  * (surfaces and volumes) and charts.
  */
@@ -241,6 +273,21 @@ EventCaretMappableDataFilesAndMapsInDisplayedOverlays::getChartTwoFilesAndMaps()
     return infoOut;
 }
 
+
+/**
+ * @return Media files in media layers
+ */
+std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::HistologySlicesFileInfo>
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::getHistologySlicesFilesAndMaps() const
+{
+    std::vector<HistologySlicesFileInfo> infoOut;
+    
+    for (auto iter : m_histologySlicesFilesAndSliceIndices) {
+        infoOut.push_back(HistologySlicesFileInfo(iter.first,
+                                                  iter.second));
+    }
+    return infoOut;
+}
 
 /**
  * @return Media files in media layers
@@ -380,15 +427,29 @@ m_mapIndices(mapIndices)
 /**
  * Constructor.
  *
+ * @param histologySlicesFile
+ *     Histology slices  file in the overlay(s)
+ * @param sliceIndices
+ *     Indices of slices selected in overlays
+ */
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::HistologySlicesFileInfo::HistologySlicesFileInfo(HistologySlicesFile* histologySlicesFile,
+                                                                                                        const std::set<int32_t>& sliceIndices)
+: m_histologySlicesFile(histologySlicesFile),
+m_sliceIndices(sliceIndices)
+{
+}
+
+/**
+ * Constructor.
+ *
  * @param mediaFile
  *     Media file in the overlay(s)
  * @param framesIndices
  *     Indices of frames selected in overlays
  */
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MediaFileInfo::MediaFileInfo(MediaFile* mediaFile,
-                                                                                    const std::set<int32_t> frameIndices)
+                                                                                    const std::set<int32_t>& frameIndices)
 : m_mediaFile(mediaFile),
 m_frameIndices(frameIndices)
 {
 }
-

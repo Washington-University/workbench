@@ -1042,6 +1042,13 @@ CaretPreferences::setUserBackgroundAndForegroundColors(const BackgroundAndForegr
                            this->userColors.m_colorBackgroundChart,
                            3);
     
+    writeUnsignedByteArray(NAME_COLOR_FOREGROUND_HISTOLOGY,
+                           this->userColors.m_colorForegroundHistology,
+                           3);
+    writeUnsignedByteArray(NAME_COLOR_BACKGROUND_HISTOLOGY,
+                           this->userColors.m_colorBackgroundHistology,
+                           3);
+    
     writeUnsignedByteArray(NAME_COLOR_FOREGROUND_MEDIA,
                            this->userColors.m_colorForegroundMedia,
                            3);
@@ -1193,6 +1200,33 @@ CaretPreferences::setManageFilesViewFileType(const SpecFileDialogViewFilesTypeEn
     this->manageFilesViewFileType = manageFilesViewFileType;
     this->setString(NAME_MANAGE_FILES_VIEW_FILE_TYPE,
                     SpecFileDialogViewFilesTypeEnum::toName(this->manageFilesViewFileType));
+}
+
+/**
+ * @return Show histology identification symbols?
+ */
+bool
+CaretPreferences::isShowHistologyIdentificationSymbols() const
+{
+    return this->showHistologyIdentificationSymbols;
+}
+
+/**
+ * Set show media identification symbols.
+ *
+ * @param showSymbols
+ *     New status.
+ */
+void
+CaretPreferences::setShowHistologyIdentificationSymbols(const bool showSymbols)
+{
+    if (this->showHistologyIdentificationSymbols == showSymbols) {
+        return;
+    }
+    
+    this->showHistologyIdentificationSymbols = showSymbols;
+    this->setBoolean(NAME_SHOW_HISTOLOGY_IDENTIFICATION_SYMBOLS,
+                     this->showHistologyIdentificationSymbols);
 }
 
 /**
@@ -2098,6 +2132,18 @@ CaretPreferences::readPreferences()
                           3);
     userColors.setColorBackgroundSurfaceView(colorRGB);
     
+    userColors.getColorForegroundHistologyView(colorRGB);
+    readUnsignedByteArray(NAME_COLOR_FOREGROUND_HISTOLOGY,
+                          colorRGB,
+                          3);
+    userColors.setColorForegroundHistologyView(colorRGB);
+    
+    userColors.getColorBackgroundHistologyView(colorRGB);
+    readUnsignedByteArray(NAME_COLOR_BACKGROUND_HISTOLOGY,
+                          colorRGB,
+                          3);
+    userColors.setColorBackgroundHistologyView(colorRGB);
+    
     userColors.getColorForegroundMediaView(colorRGB);
     readUnsignedByteArray(NAME_COLOR_FOREGROUND_MEDIA,
                           colorRGB,
@@ -2243,6 +2289,9 @@ CaretPreferences::readPreferences()
                                                   false);
     
     this->balsaUserName = this->getString(NAME_BALSA_USER_NAME);
+    
+    this->showHistologyIdentificationSymbols = this->getBoolean(NAME_SHOW_HISTOLOGY_IDENTIFICATION_SYMBOLS,
+                                                                true);
     
     this->showMediaIdentificationSymbols = this->getBoolean(NAME_SHOW_MEDIA_IDENTIFICATION_SYMBOLS,
                                                               true);

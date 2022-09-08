@@ -58,6 +58,7 @@
 #include "GraphicsPrimitive.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "Histogram.h"
+#include "HistologySlicesFile.h"
 #include "HtmlTableBuilder.h"
 #include "IdentificationFilter.h"
 #include "IdentificationManager.h"
@@ -79,6 +80,7 @@
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
+#include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
@@ -149,6 +151,8 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     chartHtmlTableBuilder->setTitleBold("Charts");
     std::unique_ptr<HtmlTableBuilder> geometryHtmlTableBuilder = createHtmlTableBuilder(3);
     geometryHtmlTableBuilder->setTitleBold("Geometry");
+    std::unique_ptr<HtmlTableBuilder> histologyHtmlTableBuilder = createHtmlTableBuilder(2);
+    histologyHtmlTableBuilder->setTitlePlain("Histology");
     std::unique_ptr<HtmlTableBuilder> mediaHtmlTableBuilder = createHtmlTableBuilder(2);
     mediaHtmlTableBuilder->setTitlePlain("Media Image");
     std::unique_ptr<HtmlTableBuilder> labelHtmlTableBuilder = createHtmlTableBuilder(2);
@@ -171,11 +175,13 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     
     std::vector<MapFileAndMapIndices> mapFilesAndIndices;
     std::vector<MapFileAndMapIndices> chartFilesAndIndices;
+    std::vector<MapFileAndMapIndices> histologyFilesAndIndices;
     std::vector<MapFileAndMapIndices> mediaFilesAndIndices;
     getFilesForIdentification(filter,
                               tabIndex,
                               mapFilesAndIndices,
                               chartFilesAndIndices,
+                              histologyFilesAndIndices,
                               mediaFilesAndIndices);
     
     for (auto& mfi : mapFilesAndIndices) {
@@ -241,6 +247,15 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
                                                        false);
     }
     
+    for (auto& hfi : histologyFilesAndIndices) {
+        HistologySlicesFile* histologyFile(hfi.m_mapFile->castToHistologySlicesFile());
+        CaretAssert(histologyFile);
+        generateHistologyPlaneCoordinateIdentificationText(*histologyHtmlTableBuilder,
+                                                           idText,
+                                                           histologyFile,
+                                                           hfi.m_mapIndices,
+                                                           selectionManager->getHistologyPlaneCoordinateIdentification());
+    }
     for (auto& mfi : mediaFilesAndIndices) {
         MediaFile* mediaFile(mfi.m_mapFile->castToMediaFile());
         CaretAssert(mediaFile);
@@ -293,6 +308,7 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     textOut.append(scalarHtmlTableBuilder->getAsHtmlTable());
     textOut.append(layersHtmlTableBuilder->getAsHtmlTable());
     textOut.append(chartHtmlTableBuilder->getAsHtmlTable());
+    textOut.append(histologyHtmlTableBuilder->getAsHtmlTable());
     textOut.append(mediaHtmlTableBuilder->getAsHtmlTable());
     return textOut;
 }
@@ -305,6 +321,8 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
  * Index of tab where ID took place
  * @param mapFileInfoOut
  * Map files for ID
+ * @param histologyFilesAndIndicesOut,
+ *  Histology files for ID
  * @param mediaFileInfoOut
  * Media files for ID
  */
@@ -313,10 +331,12 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
                                                                 const int32_t tabIndex,
                                                                 std::vector<MapFileAndMapIndices>& mapFilesAndIndicesOut,
                                                                 std::vector<MapFileAndMapIndices>& chartFilesAndIndicesOut,
+                                                                std::vector<MapFileAndMapIndices>& histologyFilesAndIndicesOut,
                                                                 std::vector<MapFileAndMapIndices>& mediaFilesAndIndicesOut) const
 {
     mapFilesAndIndicesOut.clear();
     chartFilesAndIndicesOut.clear();
+    histologyFilesAndIndicesOut.clear();
     mediaFilesAndIndicesOut.clear();
     
     /**
@@ -365,7 +385,12 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
     std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::MediaFileInfo> mediaFilesInOverlays(overlayFilesEvent.getMediaFilesAndMaps());
     const int32_t numMediaFilesInOverlays(static_cast<int32_t>(mediaFilesInOverlays.size()));
     
-    
+    /*
+     * Get files in histology overlays
+     */
+    std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::HistologySlicesFileInfo> histologyFilesInOverlays(overlayFilesEvent.getHistologySlicesFilesAndMaps());
+    const int32_t numHistologyFilesInOverlays(static_cast<int32_t>(histologyFilesInOverlays.size()));
+
     
     /*
      * Get all identifiable data files
@@ -378,8 +403,10 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
     for (CaretDataFile* caretDataFile : idCaretDataFiles) {
         CaretAssert(caretDataFile);
         CaretMappableDataFile* mapFile(caretDataFile->castToCaretMappableDataFile());
+        HistologySlicesFile* histologyFile(caretDataFile->castToHistologySlicesFile());
         MediaFile* mediaFile(caretDataFile->castToMediaFile());
         if ((mapFile == NULL)
+            && (histologyFile == NULL)
             && (mediaFile == NULL)) {
             const AString msg(caretDataFile->getFileName()
                               + " is neither brainordinate mappable nor a media file.");
@@ -412,6 +439,18 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
                         mapFileAndIndices.addMapIndex(mapFile->getFileIdentificationAttributes()->getMapIndex());
                     }
                     mapFilesAndIndicesOut.push_back(mapFileAndIndices);
+                }
+                else if (histologyFile != NULL) {
+                    MapFileAndMapIndices mapFileAndIndices(histologyFile);
+                    if (allMapsFlag) {
+                        for (int32_t i = 0; i < histologyFile->getNumberOfHistologySlices(); i++) {
+                            mapFileAndIndices.addMapIndex(i);
+                        }
+                    }
+                    else {
+                        mapFileAndIndices.addMapIndex(histologyFile->getFileIdentificationAttributes()->getMapIndex());
+                    }
+                    histologyFilesAndIndicesOut.push_back(mapFileAndIndices);
                 }
                 else if (mediaFile != NULL) {
                     MapFileAndMapIndices mapFileAndIndices(mediaFile);
@@ -453,6 +492,16 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
                             mapFileAndIndices.addMapIndices(mediaFilesInOverlays[i].m_frameIndices);
                             mediaFilesAndIndicesOut.push_back(mapFileAndIndices);
                             break;
+                        }
+                    }
+                }
+                else if (histologyFile != NULL) {
+                    for (int32_t i = 0; i < numHistologyFilesInOverlays; i++) {
+                        CaretAssertVectorIndex(histologyFilesInOverlays, i);
+                        if (histologyFilesInOverlays[i].m_histologySlicesFile == histologyFile) {
+                            MapFileAndMapIndices mapFileAndIndices(histologyFile);
+                            mapFileAndIndices.addMapIndices(histologyFilesInOverlays[i].m_sliceIndices);
+                            histologyFilesAndIndicesOut.push_back(mapFileAndIndices);
                         }
                     }
                 }
@@ -964,7 +1013,6 @@ IdentificationFormattedTextGenerator::isParcelAndScalarTypeFile(const DataFileTy
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::HISTOLOGY_SLICES:
-            CaretAssertToDoFatal();
             break;
         case DataFileTypeEnum::IMAGE:
             break;
@@ -2125,6 +2173,80 @@ IdentificationFormattedTextGenerator::generateVolumeFocusIdentifcationText(HtmlT
                                        NULL,
                                        false);
     }
+}
+
+/**
+ * Generate identification text for media identification.
+ * @param htmlTableBuilder
+ *     HTML table builder for identification text.
+ * @param idText
+ *     string builder for id text
+ * @param mediaFile
+ *    The media file
+ * @param sliceIndices
+ *    The slice indices
+ * @param idMedia
+ *     Information for media ID.
+ */
+void
+IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                                                         IdentificationStringBuilder& idText,
+                                                                                         const HistologySlicesFile* histologySlicesFile,
+                                                                                         const std::set<int32_t>& sliceIndices,
+                                                                                         const SelectionItemHistologyCoordinate* idHistology) const
+{
+    if (idHistology->isValid()) {
+        std::array<float, 3> modelXYZ;
+        idHistology->getModelXYZ(modelXYZ.data());
+        std::vector<AString> columnOneText, columnTwoText, toolTipText;
+        
+        const HistologySlicesFile* histologySlicesFile(idHistology->getHistologySlicesFile());
+        CaretAssert(histologySlicesFile);
+        columnOneText.push_back("Histology File");
+        columnTwoText.push_back(histologySlicesFile->getFileNameNoPath());
+        columnOneText.push_back("Slice Index / Number");
+        const HistologyCoordinate histologyCoordinate(idHistology->getCoordinate());
+        columnTwoText.push_back(AString::number(histologyCoordinate.getSliceIndex())
+                                + " / "
+                                + AString::number(histologySlicesFile->getSliceNumberBySliceIndex(histologyCoordinate.getSliceIndex())));
+        
+        std::vector<int32_t> frameIndicesVector { 0 };
+        const MediaFile* mediaFile(idHistology->getMediaFile());
+        if (mediaFile != NULL) {
+            mediaFile->getPixelPlaneIdentificationTextForFrames(idHistology->getTabIndex(),
+                                                                frameIndicesVector,
+                                                                histologyCoordinate.getPlaneXY(),
+                                                                columnOneText,
+                                                                columnTwoText,
+                                                                toolTipText);
+        }
+        const int32_t numColOne(columnOneText.size());
+        const int32_t numColTwo(columnTwoText.size());
+        const int32_t maxNum(std::max(numColOne, numColTwo));
+        for (int32_t i = 0; i < maxNum; i++) {
+            AString colOne;
+            AString colTwo;
+            if (i < numColOne) {
+                CaretAssertVectorIndex(columnOneText, i);
+                colOne = columnOneText[i];
+            }
+            if (i < numColTwo) {
+                CaretAssertVectorIndex(columnTwoText, i);
+                colTwo = columnTwoText[i];
+            }
+            htmlTableBuilder.addRow(colOne, colTwo);
+        }
+        
+        /*
+         * For tooltip
+         */
+        for (const auto& text : toolTipText) {
+            bool indentFlag(false);
+            idText.addLine(indentFlag,
+                           text);
+        }
+    }
+    
 }
 
 /**

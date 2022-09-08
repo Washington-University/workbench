@@ -116,6 +116,13 @@ BrainBrowserWindowToolBarView::BrainBrowserWindowToolBarView(const QString& pare
     macroManager->addMacroSupportToObject(this->viewModeMediaRadioButton,
                                           "<html>Select Media View of Images</html>");
     
+    this->viewModeHistologyRadioButton = new QRadioButton("Histology");
+    this->viewModeHistologyRadioButton->setToolTip("Show Histology Slices View");
+    this->viewModeHistologyRadioButton->setObjectName(objectNamePrefix
+                                                      + ":Histology");
+    macroManager->addMacroSupportToObject(this->viewModeHistologyRadioButton,
+                                          "<html>Select Histology Slice View</html>");
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
 #ifdef CARET_OS_MACOSX
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
@@ -127,6 +134,7 @@ BrainBrowserWindowToolBarView::BrainBrowserWindowToolBarView(const QString& pare
     layout->addWidget(this->viewModeWholeBrainRadioButton);
     layout->addWidget(this->viewModeChartTwoRadioButton);
     layout->addWidget(this->viewModeSurfaceRadioButton);
+    layout->addWidget(this->viewModeHistologyRadioButton);
     layout->addWidget(this->viewModeMediaRadioButton);
     layout->addWidget(this->viewModeChartOneRadioButton);
     
@@ -137,6 +145,7 @@ BrainBrowserWindowToolBarView::BrainBrowserWindowToolBarView(const QString& pare
     viewModeRadioButtonGroup->addButton(this->viewModeSurfaceMontageRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeVolumeRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeWholeBrainRadioButton);
+    viewModeRadioButtonGroup->addButton(this->viewModeHistologyRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeMediaRadioButton);
     QObject::connect(viewModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(viewModeRadioButtonClicked(QAbstractButton*)));
@@ -148,6 +157,7 @@ BrainBrowserWindowToolBarView::BrainBrowserWindowToolBarView(const QString& pare
     addToWidgetGroup(this->viewModeVolumeRadioButton);
     addToWidgetGroup(this->viewModeWholeBrainRadioButton);
     addToWidgetGroup(this->viewModeMediaRadioButton);
+    addToWidgetGroup(this->viewModeHistologyRadioButton);
 }
 
 /**
@@ -185,6 +195,7 @@ BrainBrowserWindowToolBarView::updateContent(BrowserTabContent* browserTabConten
         this->viewModeChartOneRadioButton->setEnabled(browserTabContent->isChartOneModelValid());
         this->viewModeChartTwoRadioButton->setEnabled(browserTabContent->isChartTwoModelValid());
         this->viewModeMediaRadioButton->setEnabled(browserTabContent->isMediaModelValid());
+        this->viewModeHistologyRadioButton->setEnabled(browserTabContent->isHistologyModelValid());
         if (SessionManager::get()->hasSceneWithChartOld()) {
             hideChartOneFlag = false;
         }
@@ -201,6 +212,7 @@ BrainBrowserWindowToolBarView::updateContent(BrowserTabContent* browserTabConten
         this->viewModeChartOneRadioButton->setEnabled(false);
         this->viewModeChartTwoRadioButton->setEnabled(false);
         this->viewModeMediaRadioButton->setEnabled(false);
+        this->viewModeHistologyRadioButton->setEnabled(false);
     }
     
     this->viewModeChartOneRadioButton->setHidden(hideChartOneFlag);
@@ -209,7 +221,7 @@ BrainBrowserWindowToolBarView::updateContent(BrowserTabContent* browserTabConten
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
+            this->viewModeHistologyRadioButton->setChecked(true);
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             this->viewModeMediaRadioButton->setChecked(true);
@@ -268,6 +280,9 @@ BrainBrowserWindowToolBarView::viewModeRadioButtonClicked(QAbstractButton*)
     }
     else if (this->viewModeMediaRadioButton->isChecked()) {
         btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA);
+    }
+    else if (this->viewModeHistologyRadioButton->isChecked()) {
+        btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_HISTOLOGY);
     }
     else {
         btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_INVALID);

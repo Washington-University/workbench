@@ -426,6 +426,9 @@ AnnotationTwoCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
         case AnnotationCoordinateSpaceEnum::CHART:
             xyPlaneFlag = true;
             break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            xyPlaneFlag = true;
+            break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             xyPlaneFlag = true;
             break;
@@ -938,6 +941,9 @@ AnnotationTwoCoordinateShape::applySpatialModification(const AnnotationSpatialMo
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             return applySpatialModificationChartSpace(spatialModification);
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            CaretAssertToDoFatal();
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             return applySpatialModificationMediaSpace(spatialModification);

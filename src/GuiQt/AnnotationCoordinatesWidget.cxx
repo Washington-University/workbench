@@ -302,6 +302,8 @@ AnnotationCoordinatesWidget::updateContent(Annotation* annotation)
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 break;
             case AnnotationCoordinateSpaceEnum::SPACER:
@@ -473,6 +475,9 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                     }
                 }
             }
+                break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                CaretAssertToDoFatal();
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             {
@@ -725,6 +730,8 @@ AnnotationCoordinatesWidget::valueChangedCoordinate(const int32_t coordinateInde
         bool surfaceFlag = false;
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
+                break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 break;

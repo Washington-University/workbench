@@ -48,6 +48,7 @@
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
+#include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemImageControlPoint.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
@@ -91,6 +92,7 @@ SelectionManager::SelectionManager()
     m_chartTimeSeriesIdentification = new SelectionItemChartTimeSeries();
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
     m_volumeFocusIdentification = new SelectionItemFocusVolume();
+    m_histologyPlaneCoordinateIdentification.reset(new SelectionItemHistologyCoordinate());
     m_imageControlPointIdentification = new SelectionItemImageControlPoint();
     m_mediaLogicalCoordinateIdentification.reset(new SelectionItemMediaLogicalCoordinate());
     m_mediaPlaneCoordinateIdentification.reset(new SelectionItemMediaPlaneCoordinate());
@@ -119,6 +121,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_surfaceFocusIdentification);
     m_allSelectionItems.push_back(m_surfaceNodeIdentification);
     m_allSelectionItems.push_back(m_surfaceTriangleIdentification);
+    m_allSelectionItems.push_back(m_histologyPlaneCoordinateIdentification.get());
     m_allSelectionItems.push_back(m_imageControlPointIdentification);
     m_allSelectionItems.push_back(m_mediaLogicalCoordinateIdentification.get());
     m_allSelectionItems.push_back(m_mediaPlaneCoordinateIdentification.get());
@@ -304,6 +307,9 @@ SelectionManager::filterSelections(const bool applySelectionBackgroundFiltering)
             else {
                 m_voxelIdentification->reset();
             }
+        }
+        if (m_histologyPlaneCoordinateIdentification->isValid()) {
+            m_histologyPlaneCoordinateIdentification->reset();
         }
         if (m_mediaLogicalCoordinateIdentification->isValid()) {
             /*
@@ -519,6 +525,24 @@ const SelectionItemAnnotation*
 SelectionManager::getAnnotationIdentification() const
 {
     return m_annotationIdentification;
+}
+
+/**
+ * @return Identification for histology
+ */
+SelectionItemHistologyCoordinate*
+SelectionManager::getHistologyPlaneCoordinateIdentification()
+{
+    return m_histologyPlaneCoordinateIdentification.get();
+}
+
+/**
+ * @return Identification for histology
+ */
+const SelectionItemHistologyCoordinate*
+SelectionManager::getHistologyPlaneCoordinateIdentification() const
+{
+    return m_histologyPlaneCoordinateIdentification.get();
 }
 
 /**

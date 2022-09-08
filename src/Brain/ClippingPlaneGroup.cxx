@@ -492,9 +492,9 @@ ClippingPlaneGroup::getTranslation(float translation[3]) const
             const BrowserTabContent* btc(tabEvent.getBrowserTab());
             if (btc != NULL) {
                 const float sliceTranslation[3] {
-                   btc->getSliceCoordinateParasagittal(),
-                   btc->getSliceCoordinateCoronal(),
-                   btc->getSliceCoordinateAxial()
+                   btc->getVolumeSliceCoordinateParasagittal(),
+                   btc->getVolumeSliceCoordinateCoronal(),
+                   btc->getVolumeSliceCoordinateAxial()
                 };
                 
                 /*

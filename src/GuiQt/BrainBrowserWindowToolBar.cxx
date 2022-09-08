@@ -60,7 +60,7 @@
 #include "BrainBrowserWindowToolBarChartTwoOrientedAxes.h"
 #include "BrainBrowserWindowToolBarChartTwoType.h"
 #include "BrainBrowserWindowToolBarChartType.h"
-#include "BrainBrowserWindowToolBarCziImage.h"
+#include "BrainBrowserWindowToolBarHistology.h"
 #include "BrainBrowserWindowToolBarImage.h"
 #include "BrainBrowserWindowToolBarOrientation.h"
 #include "BrainBrowserWindowToolBarSlicePlane.h"
@@ -114,6 +114,7 @@
 #include "Model.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
+#include "ModelHistology.h"
 #include "ModelMedia.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -448,7 +449,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumeMprWidget = this->createVolumeMprWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
-    this->cziImageWidget = this->createCziImageWidget();
+    this->histologyWidget = this->createHistologyWidget();
     this->imageWidget = this->createImageWidget();
 
     this->userInputAnnotationsModeProcessor = new UserInputModeAnnotations(browserWindowIndex);
@@ -530,7 +531,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     
     this->toolbarWidgetLayout->addWidget(this->imageWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->cziImageWidget, 0, Qt::AlignLeft);
+    this->toolbarWidgetLayout->addWidget(this->histologyWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->annotateModeWidget, 0, Qt::AlignLeft);
 
@@ -1104,6 +1105,7 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     
     ModelChart* chartModel = NULL;
     ModelChartTwo* chartTwoModel = NULL;
+    ModelHistology* histologyModel(NULL);
     ModelMedia* mediaModel(NULL);
     ModelSurfaceMontage* surfaceMontageModel = NULL;
     ModelVolume* volumeModel = NULL;
@@ -1186,8 +1188,11 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
         else if (dynamic_cast<ModelMedia*>(*iter) != NULL) {
             mediaModel = dynamic_cast<ModelMedia*>(*iter);
         }
+        else if (dynamic_cast<ModelHistology*>(*iter) != NULL) {
+            histologyModel = dynamic_cast<ModelHistology*>(*iter);
+        }
         else {
-            CaretAssertMessage(0, AString("Unknow controller type: ") + (*iter)->getNameForGUI(true));
+            CaretAssertMessage(0, AString("Unknown controller type: ") + (*iter)->getNameForGUI(true));
         }
     }
     
@@ -1235,6 +1240,9 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     if (cerebellumSurfaceModel != NULL) {
         numberOfTabsNeeded++;
     }
+    if (histologyModel != NULL) {
+        numberOfTabsNeeded++;
+    }
     if (mediaModel != NULL) {
         numberOfTabsNeeded++;
     }
@@ -1268,6 +1276,8 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     tabIndex = loadIntoTab(tabIndex,
                            cerebellumSurfaceModel);
     tabIndex = loadIntoTab(tabIndex,
+                           histologyModel);
+    tabIndex = loadIntoTab(tabIndex,
                            mediaModel);
     
     const int numTabs = this->tabBar->count();
@@ -1297,7 +1307,6 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
                         break;
                     case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                        CaretAssertToDoFatal();
                         break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         break;
@@ -1934,7 +1943,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showChartTwoAttributesWidget = false;
     bool showChartTwoAxesWidget = false;
     
-    bool showCziImageWidget = false;
+    bool showHistologyWidget = false;
     bool showImageWidget = false;
 
     bool showModeWidget = true;
@@ -1962,7 +1971,6 @@ BrainBrowserWindowToolBar::updateToolBar()
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;
@@ -2050,10 +2058,10 @@ BrainBrowserWindowToolBar::updateToolBar()
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
             case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                CaretAssertToDoFatal();
+                showHistologyWidget = true;
+                showOrientationWidget = true;
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-                showCziImageWidget = false; /* Widget is currently empty so hide it  true; */
                 showImageWidget = true;
                 showOrientationWidget = true;
                 break;
@@ -2200,7 +2208,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->chartTwoOrientationWidget->setVisible(showChartTwoOrientationWidget);
     this->chartTwoAttributesWidget->setVisible(showChartTwoAttributesWidget);
     this->chartTwoOrientedAxesWidget->setVisible(showChartTwoAxesWidget);
-    this->cziImageWidget->setVisible(showCziImageWidget);
+    this->histologyWidget->setVisible(showHistologyWidget);
     this->imageWidget->setVisible(showImageWidget);
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
@@ -2255,7 +2263,7 @@ BrainBrowserWindowToolBar::updateToolBarComponents(BrowserTabContent* browserTab
         this->updateModeWidget(browserTabContent);
         this->updateViewWidget(browserTabContent);
         this->updateTabOptionsWidget(browserTabContent);
-        this->updateCziImageWidget(browserTabContent);
+        this->updateHistologyWidget(browserTabContent);
         this->updateImageWidget(browserTabContent);
     }
 }
@@ -3018,18 +3026,18 @@ BrainBrowserWindowToolBar::createImageWidget()
 }
 
 /**
- * Create the czi image resolution widget.
+ * Create the histology resolution widget.
  *
  * @return
- *    Widget containing the czi image options.
+ *    Widget containing histology widget options.
  */
 QWidget*
-BrainBrowserWindowToolBar::createCziImageWidget()
+BrainBrowserWindowToolBar::createHistologyWidget()
 {
-    m_cziImageToolBarComponent = new BrainBrowserWindowToolBarCziImage(this,
-                                                                       m_objectNamePrefix);
-    QWidget* w = this->createToolWidget("CZI",
-                                        m_cziImageToolBarComponent,
+    m_histologyToolBarComponent = new BrainBrowserWindowToolBarHistology(this,
+                                                                        m_objectNamePrefix);
+    QWidget* w = this->createToolWidget("Histology",
+                                        m_histologyToolBarComponent,
                                         WIDGET_PLACEMENT_LEFT,
                                         WIDGET_PLACEMENT_TOP,
                                         100);
@@ -3054,19 +3062,19 @@ BrainBrowserWindowToolBar::updateImageWidget(BrowserTabContent* browserTabConten
 }
 
 /**
- * Update the CZI image  widget.
+ * Update the histology  widget.
  *
  * @param browserTabContent
  *   The active model display (may be NULL).
  */
 void
-BrainBrowserWindowToolBar::updateCziImageWidget(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBar::updateHistologyWidget(BrowserTabContent* browserTabContent)
 {
-    if (this->cziImageWidget->isHidden()) {
+    if (this->histologyWidget->isHidden()) {
         return;
     }
     
-    m_cziImageToolBarComponent->updateContent(browserTabContent);
+    m_histologyToolBarComponent->updateContent(browserTabContent);
 }
 
 

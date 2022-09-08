@@ -210,6 +210,10 @@ BrainOpenGLViewportContent::copyHelperBrainOpenGLViewportContent(const BrainOpen
 
     m_browserTabContent = obj.m_browserTabContent;
     m_spacerTabContent  = obj.m_spacerTabContent;
+    m_histologyGraphicsObjectToWindowTransform.reset();
+    if (obj.m_histologyGraphicsObjectToWindowTransform) {
+        m_histologyGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_histologyGraphicsObjectToWindowTransform));
+    }
     m_mediaGraphicsObjectToWindowTransform.reset();
     if (obj.m_mediaGraphicsObjectToWindowTransform) {
         m_mediaGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_mediaGraphicsObjectToWindowTransform));
@@ -1327,6 +1331,24 @@ BrainOpenGLViewportContent::getSurfaceMontageModelViewport(const int32_t montage
 }
 
 /**
+ * Set the object to window transformation for histology.  This instance will take ownership of the given transform and delete when appropriate.
+ */
+void
+BrainOpenGLViewportContent::setHistologyGraphicsObjectToWindowTransform(GraphicsObjectToWindowTransform* transform) const
+{
+    m_histologyGraphicsObjectToWindowTransform.reset(transform);
+}
+
+/**
+ * @return Object to window transformation (MAY BE NULL !!!) for histology
+ */
+const GraphicsObjectToWindowTransform*
+BrainOpenGLViewportContent::getHistologyGraphicsObjectToWindowTransform() const
+{
+    return m_histologyGraphicsObjectToWindowTransform.get();
+}
+
+/**
  * Set the object to window transformation for media.  This instance will take ownership of the given transform and delete when appropriate.
  */
 void
@@ -1345,7 +1367,7 @@ BrainOpenGLViewportContent::getMediaGraphicsObjectToWindowTransform() const
 }
 
 /**
- * Set the object to window transformation for media.  This instance will take ownership of the given transform and delete when appropriate.
+ * Set the object to window transformation for volume.  This instance will take ownership of the given transform and delete when appropriate.
  */
 void
 BrainOpenGLViewportContent::setVolumeMprGraphicsObjectToWindowTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -1368,7 +1390,7 @@ BrainOpenGLViewportContent::setVolumeMprGraphicsObjectToWindowTransform(const Vo
 }
 
 /**
- * @return Object to window transformation (MAY BE NULL !!!) for media
+ * @return Object to window transformation (MAY BE NULL !!!) for volume
  */
 const GraphicsObjectToWindowTransform*
 BrainOpenGLViewportContent::getVolumeMprGraphicsObjectToWindowTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const

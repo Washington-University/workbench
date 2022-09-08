@@ -189,7 +189,7 @@ BrainBrowserWindowToolBarVolumeMontage::updateContent(BrowserTabContent* browser
 {
     m_volumeMontageWidgetGroup->blockAllSignals(true);
     
-    switch (browserTabContent->getSliceDrawingType()) {
+    switch (browserTabContent->getVolumeSliceDrawingType()) {
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
             m_montageEnabledAction->setChecked(true);
             break;
@@ -197,9 +197,9 @@ BrainBrowserWindowToolBarVolumeMontage::updateContent(BrowserTabContent* browser
             m_montageEnabledAction->setChecked(false);
             break;
     }
-    m_montageRowsSpinBox->setValue(browserTabContent->getMontageNumberOfRows());
-    m_montageColumnsSpinBox->setValue(browserTabContent->getMontageNumberOfColumns());
-    m_montageSpacingSpinBox->setValue(browserTabContent->getMontageSliceSpacing());
+    m_montageRowsSpinBox->setValue(browserTabContent->getVolumeMontageNumberOfRows());
+    m_montageColumnsSpinBox->setValue(browserTabContent->getVolumeMontageNumberOfColumns());
+    m_montageSpacingSpinBox->setValue(browserTabContent->getVolumeMontageSliceSpacing());
     
     m_showSliceCoordinateAction->setChecked(browserTabContent->isVolumeMontageAxesCoordinatesDisplayed());
     m_sliceCoordinatePrecisionSpinBox->setValue(browserTabContent->getVolumeMontageCoordinatePrecision());
@@ -221,7 +221,7 @@ BrainBrowserWindowToolBarVolumeMontage::montageEnabledActionToggled(bool)
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
-    btc->setSliceDrawingType(drawingType);
+    btc->setVolumeSliceDrawingType(drawingType);
     
     this->updateGraphicsWindowAndYokedWindows();
 }
@@ -235,7 +235,7 @@ BrainBrowserWindowToolBarVolumeMontage::montageRowsSpinBoxValueChanged(int /*i*/
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
-    btc->setMontageNumberOfRows(m_montageRowsSpinBox->value());
+    btc->setVolumeMontageNumberOfRows(m_montageRowsSpinBox->value());
     
     this->updateGraphicsWindowAndYokedWindows();
 }
@@ -247,7 +247,7 @@ void
 BrainBrowserWindowToolBarVolumeMontage::montageColumnsSpinBoxValueChanged(int /*i*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    btc->setMontageNumberOfColumns(m_montageColumnsSpinBox->value());
+    btc->setVolumeMontageNumberOfColumns(m_montageColumnsSpinBox->value());
     
     this->updateGraphicsWindowAndYokedWindows();
 }
@@ -260,7 +260,7 @@ BrainBrowserWindowToolBarVolumeMontage::montageSpacingSpinBoxValueChanged(int /*
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
-    btc->setMontageSliceSpacing(m_montageSpacingSpinBox->value());
+    btc->setVolumeMontageSliceSpacing(m_montageSpacingSpinBox->value());
     
     this->updateGraphicsWindowAndYokedWindows();
 }

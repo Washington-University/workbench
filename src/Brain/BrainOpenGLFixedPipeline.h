@@ -68,6 +68,7 @@ namespace caret {
     class Model;
     class ModelChart;
     class ModelChartTwo;
+    class ModelHistology;
     class ModelMedia;
     class ModelSurface;
     class ModelSurfaceMontage;
@@ -281,6 +282,11 @@ namespace caret {
         void drawFiberTrajectories(const Plane* plane,
                                    const StructureEnum::Enum structure);
         
+        void drawHistologyModel(const BrainOpenGLViewportContent* viewportContent,
+                                BrowserTabContent* browserTabContent,
+                                ModelHistology* mediaHistology,
+                                const int32_t viewport[4]);
+
         void drawMediaModel(const BrainOpenGLViewportContent* viewportContent,
                             BrowserTabContent* browserTabContent,
                             ModelMedia* mediaModel,
@@ -690,6 +696,7 @@ namespace caret {
         friend class BrainOpenGLAnnotationDrawingFixedPipeline;
         friend class BrainOpenGLChartDrawingFixedPipeline;
         friend class BrainOpenGLChartTwoDrawingFixedPipeline;
+        friend class BrainOpenGLHistologySliceDrawing;
         friend class BrainOpenGLIdentificationDrawing;
         friend class BrainOpenGLMediaCoordinateDrawing;
         friend class BrainOpenGLMediaDrawing;

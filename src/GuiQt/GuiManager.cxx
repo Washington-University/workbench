@@ -120,6 +120,7 @@
 #include "SelectionItemChartTwoLineLayerVerticalNearest.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
+#include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
@@ -3731,6 +3732,27 @@ GuiManager::processIdentification(const int32_t tabIndex,
             }
         }
         
+        SelectionItemHistologyCoordinate* idPlaneHistology = selectionManager->getHistologyPlaneCoordinateIdentification();
+        if (idPlaneHistology != NULL) {
+            if (idPlaneHistology->isValid()) {
+                if (identifiedItem == NULL) {
+                    AString dataFileName("Data File Name Missing");
+                    if (idPlaneHistology->getMediaFile() != NULL) {
+                        dataFileName = idPlaneHistology->getMediaFile()->getFileNameNoPath();
+                    }
+                    const HistologyCoordinate coordinate(idPlaneHistology->getCoordinate());
+                    const Vector3D planeXYZ = coordinate.getPlaneXY();
+                    Vector3D stereotaxicXYZ = coordinate.getStereotaxicXYZ();
+                    bool stereotaxicXYZValidFlag = coordinate.isStereotaxicXYZValid();
+                    identifiedItem = IdentifiedItemUniversal::newInstanceHistologyPlaneCoordinateIdentification(identificationMessage,
+                                                                                                                formattedIdentificationMessage,
+                                                                                                                dataFileName,
+                                                                                                                planeXYZ,
+                                                                                                                stereotaxicXYZ,
+                                                                                                                stereotaxicXYZValidFlag);
+                }
+            }
+        }
         SelectionItemMediaLogicalCoordinate* idLogicalMedia = selectionManager->getMediaLogicalCoordinateIdentification();
         if (idLogicalMedia != NULL) {
             if (idLogicalMedia->isValid()) {

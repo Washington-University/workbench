@@ -229,6 +229,8 @@ namespace caret {
 
         virtual BoundingBox getPlaneXyzBoundingBox() const;
         
+        virtual BoundingBox getStereotaxicXyzBoundingBox() const;
+        
         bool isScaledToPlaneMatrixValid() const;
         
         Matrix4x4 getScaledToPlaneMatrix(bool* validFlagOut = NULL) const;
@@ -328,6 +330,8 @@ namespace caret {
         Matrix4x4 m_millimetersToPlaneMatrix;
         
         BoundingBox m_planeBoundingBox;
+        
+        BoundingBox m_stereotaxicXyzBoundingBox;
         
         QRectF m_planeXyzRect;
         

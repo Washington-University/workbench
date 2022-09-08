@@ -421,6 +421,9 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const AnnotationClipboard* clipbo
             case AnnotationCoordinateSpaceEnum::CHART:
                 CaretAssert(0);
                 break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                CaretAssert(0);
+                break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 CaretAssert(0);
                 break;
@@ -467,9 +470,13 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const AnnotationClipboard* clipbo
                     pasteValidFlag = true;
                     annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::CHART);
                 break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                pasteValidFlag = true;
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY);
+                break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
-                    pasteValidFlag = true;
-                    annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
+                pasteValidFlag = true;
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
                 break;
             case AnnotationCoordinateSpaceEnum::SPACER:
                     pasteValidFlag = true;
@@ -662,6 +669,12 @@ AnnotationPasteDialog::pasteAnnotationInSpace(AnnotationFile* annotationFile,
                     annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::CHART);
                 }
                 ac->setXYZ(coordInfo->m_chartSpaceInfo.m_xyz);
+                break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                if (i == 0) {
+                    pasteValidFlag = true;
+                    annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY);
+                }
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 if (i == 0) {

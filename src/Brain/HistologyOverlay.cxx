@@ -31,6 +31,7 @@
 #include "EventHistologySlicesFilesGet.h"
 #include "HistologySlice.h"
 #include "HistologySlicesFile.h"
+#include "HistologySliceImage.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -230,6 +231,43 @@ HistologyOverlay::swapData(HistologyOverlay* overlay)
     copyData(swapOverlay);
     
     delete swapOverlay;
+}
+
+/**
+ * @return Drawing information for this overlay
+ * @param selectedSliceIndex
+ *    Slice selected for drawingt
+ */
+std::vector<HistologyOverlay::DrawingData>
+HistologyOverlay::getDrawingData(const int32_t selectedSliceIndex) const
+{
+    std::vector<HistologyOverlay::DrawingData> drawingDataOut;
+    
+    if (isEnabled()) {
+        const SelectionData selectionData(getSelectionData());
+        if (selectionData.m_selectedFile != NULL) {
+            HistologySlice* slice(selectionData.m_selectedFile->getHistologySliceByIndex(selectedSliceIndex)); //selectionData.m_selectedSliceIndex));
+            if (slice != NULL) {
+                const int32_t numImages(slice->getNumberOfHistologySliceImages());
+                for (int32_t iImage = 0; iImage < numImages; iImage++) {
+                    HistologySliceImage* sliceImage(slice->getHistologySliceImage(iImage));
+                    CaretAssert(sliceImage);
+                    MediaFile* mediaFile(sliceImage->getMediaFile());
+
+                    DrawingData dd(m_tabIndex,
+                                   m_overlayIndex,
+                                   selectionData.m_selectedFile,
+                                   mediaFile,
+                                   selectedSliceIndex, //selectionData.m_selectedSliceIndex,
+                                   iImage,
+                                   selectionData.m_supportsYokingFlag);
+                    drawingDataOut.push_back(dd);
+                }
+            }
+        }
+    }
+    
+    return drawingDataOut;
 }
 
 /**

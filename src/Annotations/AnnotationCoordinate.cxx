@@ -107,6 +107,8 @@ AnnotationCoordinate::copyHelperAnnotationCoordinate(const AnnotationCoordinate&
     m_surfaceOffsetLength       = obj.m_surfaceOffsetLength;
     m_surfaceOffsetVectorType   = obj.m_surfaceOffsetVectorType;
     m_mediaFileName             = obj.m_mediaFileName;
+    m_histologySlicesFileName   = obj.m_histologySlicesFileName;
+    m_histologyMediaFileName    = obj.m_histologyMediaFileName;
 }
 
 /**
@@ -134,6 +136,10 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
             break;
     }
     
+    m_mediaFileName = "";
+    m_histologySlicesFileName = "";
+    m_histologyMediaFileName  = "";
+    
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->addArray("m_xyz",
                                m_xyz, 3, 0.0);
@@ -148,7 +154,12 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
                           &m_surfaceOffsetLength);
     m_sceneAssistant->add<AnnotationSurfaceOffsetVectorTypeEnum, AnnotationSurfaceOffsetVectorTypeEnum::Enum>("m_surfaceOffsetVectorType",
                                                                                                               &m_surfaceOffsetVectorType);
-    
+    m_sceneAssistant->add("m_mediaFileName",
+                          &m_mediaFileName);
+    m_sceneAssistant->add("m_histologySlicesFileName",
+                          &m_histologySlicesFileName);
+    m_sceneAssistant->add("m_histologyMediaFileName",
+                          &m_histologyMediaFileName);
 }
 
 /**
@@ -473,6 +484,70 @@ AnnotationCoordinate::setMediaFileNameAndPixelSpace(const AString& mediaFileName
 }
 
 /**
+ * @return Name of histology slices file
+ */
+AString
+AnnotationCoordinate::getHistologySlicesFileName() const
+{
+    return m_histologySlicesFileName;
+}
+
+/**
+ * @return Name of histology media file
+ */
+AString
+AnnotationCoordinate::getHistologyMediaFileName() const
+{
+    return m_histologyMediaFileName;
+}
+
+/**
+ * Get histology space info
+ * @param histologySlicesFileNameOut
+ *    Name of the histology slices file
+ * @param histologyMediaFileNameOut
+ *    Name of the media file file
+ * @param xyzOut
+ *    Coordinate of annotation
+ */
+void
+AnnotationCoordinate::getHistologySpace(AString& histologySlicesFileNameOut,
+                                        AString& histologyMediaFileNameOut,
+                                        float xyzOut[3]) const
+{
+    histologySlicesFileNameOut = m_histologySlicesFileName;
+    histologyMediaFileNameOut  = m_histologyMediaFileName;
+    xyzOut[0] = m_xyz[0];
+    xyzOut[1] = m_xyz[1];
+    xyzOut[2] = m_xyz[2];
+}
+
+/**
+ * Set histology space info
+ * @param histologySlicesFileName
+ *    Name of the histology slices file
+ * @param histologyMediaFileName
+ *    Name of the media file file
+ * @param xyz
+ *    Coordinate of annotation
+ */
+void
+AnnotationCoordinate::setHistologySpace(const AString& histologySlicesFileName,
+                                        const AString& histologyMediaFileName,
+                                        const float xyz[3])
+{
+    if (histologySlicesFileName != m_histologySlicesFileName) {
+        m_histologySlicesFileName = histologySlicesFileName;
+        setModified();
+    }
+    if (histologyMediaFileName != m_histologyMediaFileName) {
+        m_histologyMediaFileName = histologyMediaFileName;
+        setModified();
+    }
+    setXYZ(xyz);
+}
+
+/**
  * @return Media file name for
  */
 AString
@@ -519,9 +594,18 @@ AnnotationCoordinate::toStringForCoordinateSpace(const AnnotationCoordinateSpace
         case AnnotationCoordinateSpaceEnum::CHART:
             s.append(AString::fromNumbers(m_xyz, 3, " "));
             break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            s.append("Histology Slices File Name: "
+                     + m_histologySlicesFileName
+                     + " Media File Name: "
+                     + m_mediaFileName
+                     + " "
+                     + AString::fromNumbers(m_xyz, 3, " "));
+            break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             s.append("Media File Name: "
                      + m_mediaFileName
+                     + " "
                      + AString::fromNumbers(m_xyz, 3, " "));
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:

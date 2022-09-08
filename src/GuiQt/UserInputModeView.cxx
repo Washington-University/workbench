@@ -44,6 +44,7 @@
 #include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsRegionSelectionBox.h"
 #include "GuiManager.h"
+#include "SelectionItemHistologyCoordinate.h"
 #include "KeyEvent.h"
 #include "MediaOverlaySet.h"
 #include "ModelMedia.h"
@@ -351,7 +352,7 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
     bool scrollVolumeSlicesFlag(false);
     if (browserTabContent->isVolumeSlicesDisplayed()) {
         bool mprFlag(false);
-        switch (browserTabContent->getSliceProjectionType()) {
+        switch (browserTabContent->getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                 mprFlag = true;
                 break;
@@ -363,7 +364,7 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                 break;
         }
         if (mprFlag) {
-            if (browserTabContent->getSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
+            if (browserTabContent->getVolumeSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
                 /*
                  * Scroll slice if viewing a single slice plane
                  */
@@ -393,7 +394,7 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                                 static_cast<float>(xyzDouble[1]),
                                 static_cast<float>(xyzDouble[2])
                             };
-                            browserTabContent->selectSlicesAtCoordinate(xyz);
+                            browserTabContent->selectVolumeSlicesAtCoordinate(xyz);
                         }
                         allowRotationFlag = false;
                         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
@@ -431,6 +432,36 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
         }
         else {
             CaretLogSevere("Chart viewport is invalid");
+        }
+    }
+    else if (browserTabContent->isHistologyDisplayed()) {
+        bool modelXyzValidFlag(false);
+        double modelXYZ[3];
+        BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+        SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(mouseEvent.getX(),
+                                                                                                             mouseEvent.getY());
+        CaretAssert(histologyID);
+        if (histologyID->isValid()) {
+            const HistologyCoordinate coordinate(histologyID->getCoordinate());
+            const Vector3D planeXYZ(coordinate.getPlaneXY());
+            modelXYZ[0] = planeXYZ[0];
+            modelXYZ[1] = planeXYZ[1];
+            modelXYZ[2] = planeXYZ[2];
+            modelXyzValidFlag = true;
+        }
+
+        if (modelXyzValidFlag) {
+            GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
+            CaretAssert(box);
+            
+            if (mouseEvent.isFirstDragging()) {
+                box->initialize(modelXYZ[0],
+                                modelXYZ[1]);
+            }
+            else {
+                box->update(modelXYZ[0],
+                            modelXYZ[1]);
+            }
         }
     }
     else if (browserTabContent->isMediaDisplayed()) {
@@ -530,7 +561,41 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
     
     int32_t modelViewport[4];
     viewportContent->getModelViewport(modelViewport);
-    if (browserTabContent->isMediaDisplayed()) {
+    if (browserTabContent->isHistologyDisplayed()) {
+        if (mouseEvent.isFirstDragging()) {
+            m_histologyLeftDragWithCtrlModelXYZValidFlag = false;
+            
+            BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+            bool modelXyzValidFlag(false);
+            double modelXYZ[3];
+            SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(mouseEvent.getPressedX(),
+                                                                                                                             mouseEvent.getPressedY());
+            CaretAssert(histologyID);
+            if (histologyID->isValid()) {
+                const HistologyCoordinate coordinate(histologyID->getCoordinate());
+                const Vector3D planeXYZ(coordinate.getPlaneXY());
+                modelXYZ[0] = planeXYZ[0];
+                modelXYZ[1] = planeXYZ[1];
+                modelXYZ[2] = planeXYZ[2];
+                modelXyzValidFlag = true;
+            }
+            
+            if (modelXyzValidFlag) {
+                m_histologyLeftDragWithCtrlModelXYZ[0] = modelXYZ[0];
+                m_histologyLeftDragWithCtrlModelXYZ[1] = modelXYZ[1];
+                m_histologyLeftDragWithCtrlModelXYZ[2] = modelXYZ[2];
+                m_histologyLeftDragWithCtrlModelXYZValidFlag = true;
+            }
+        }
+        browserTabContent->applyHistologyMouseScaling(viewportContent,
+                                                      mouseEvent.getPressedX(),
+                                                      mouseEvent.getPressedY(),
+                                                      mouseEvent.getDy(),
+                                                      m_histologyLeftDragWithCtrlModelXYZ[0],
+                                                      m_histologyLeftDragWithCtrlModelXYZ[1],
+                                                      m_histologyLeftDragWithCtrlModelXYZValidFlag);
+    }
+    else if (browserTabContent->isMediaDisplayed()) {
         if (mouseEvent.isFirstDragging()) {
             m_mediaLeftDragWithCtrlModelXYZValidFlag = false;
             
@@ -660,6 +725,60 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
         else {
             CaretLogSevere("Chart viewport is invalid");
         }
+    }
+    else if (browserTabContent->isHistologyDisplayed()) {
+        GraphicsRegionSelectionBox* selectionBox = browserTabContent->getMediaRegionSelectionBox();
+        CaretAssert(selectionBox);
+        
+        int32_t viewport[4];
+        viewportContent->getModelViewport(viewport);
+        const GraphicsObjectToWindowTransform* transform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
+        
+        const float vpMinX(viewport[0]);
+        const float vpMaxX(viewport[0] + viewport[2]);
+        const float vpMinY(viewport[1]);
+        const float vpMaxY(viewport[1] + viewport[3]);
+        const float vpZ(0.0);
+        float bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
+        transform->inverseTransformPoint(vpMinX, vpMinY, vpZ, bottomLeft);
+        transform->inverseTransformPoint(vpMaxX, vpMinY, vpZ, bottomRight);
+        transform->inverseTransformPoint(vpMaxX, vpMaxY, vpZ, topRight);
+        transform->inverseTransformPoint(vpMinX, vpMaxY, vpZ, topLeft);
+        
+        BoundingBox windowBounds;
+        windowBounds.set(bottomLeft, bottomRight, topRight, topLeft);
+        
+        std::array<float, 4> orthoBoundsLRBT(transform->getOrthoLRBT());
+        BoundingBox orthoBounds;
+        orthoBounds.set(orthoBoundsLRBT[0], orthoBoundsLRBT[1],
+                        orthoBoundsLRBT[2], orthoBoundsLRBT[3],
+                        vpZ, vpZ);
+        
+        switch (selectionBox->getStatus()) {
+            case GraphicsRegionSelectionBox::Status::INVALID:
+                break;
+            case GraphicsRegionSelectionBox::Status::VALID:
+            {
+                ModelHistology* histologyModel = browserTabContent->getDisplayedHistologyModel();
+                if (histologyModel != NULL) {
+                    /*
+                     * Zoom to selection region
+                     */
+                    browserTabContent->setHistologyViewToBounds(viewportContent,
+                                                                &orthoBounds,
+                                                                selectionBox);
+                }
+            }
+                break;
+        }
+        
+        selectionBox->setStatus(GraphicsRegionSelectionBox::Status::INVALID);
+        
+        /*
+         * Update graphics.
+         */
+        updateGraphics(mouseEvent);
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
     else if (browserTabContent->isMediaDisplayed()) {
         GraphicsRegionSelectionBox* selectionBox = browserTabContent->getMediaRegionSelectionBox();
@@ -814,7 +933,35 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                     scaleFactor = -2.0;
                 }
                 if (scaleFactor != 0.0) {
-                    if (browserTabContent->isMediaDisplayed()) {
+                    if (browserTabContent->isHistologyDisplayed()) {
+                        const bool enableHistologyesturesFlag(false);
+                        if (enableHistologyesturesFlag) {
+                            BrainOpenGLWidget* openGLWidget = gestureEvent.getOpenGLWidget();
+                            bool modelXyzValidFlag(false);
+                            double modelXYZ[3];
+                            SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(gestureEvent.getStartCenterX(),
+                                                                                                                                             gestureEvent.getStartCenterY());
+                            CaretAssert(histologyID);
+                            if (histologyID->isValid()) {
+                                const HistologyCoordinate coordinate(histologyID->getCoordinate());
+                                const Vector3D planeXYZ(coordinate.getPlaneXY());
+                                modelXYZ[0] = planeXYZ[0];
+                                modelXYZ[1] = planeXYZ[1];
+                                modelXYZ[2] = planeXYZ[2];
+                                modelXyzValidFlag = true;
+                            }
+                            if (modelXyzValidFlag) {
+                                browserTabContent->applyHistologyMouseScaling(viewportContent,
+                                                                              gestureEvent.getStartCenterX(),
+                                                                              gestureEvent.getStartCenterX(),
+                                                                              deltaY,
+                                                                              modelXYZ[0],
+                                                                              modelXYZ[1],
+                                                                              true);
+                            }
+                        }
+                    }
+                    else if (browserTabContent->isMediaDisplayed()) {
                         const bool enableMediaGesturesFlag(false);
                         if (enableMediaGesturesFlag) {
                             BrainOpenGLWidget* openGLWidget = gestureEvent.getOpenGLWidget();

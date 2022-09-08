@@ -114,6 +114,10 @@ namespace caret {
         
         void setIdentificationContralateralSymbolColor(const CaretColorEnum::Enum color);
         
+        bool isShowHistologyIdentificationSymbols() const;
+        
+        void setShowHistologyIdentificationSymbols(const bool showHistologyIdenficationSymbols);
+        
         bool isShowMediaIdentificationSymbols() const;
         
         void setShowMediaIdentificationSymbols(const bool showMediaIdenficationSymbols);
@@ -204,6 +208,9 @@ namespace caret {
         std::unique_ptr<IdentificationFilter> m_identificationFilter;
         
         std::unique_ptr<IdentificationHistoryManager> m_identificationHistoryManager;
+        
+        /** show histology identification symbols*/
+        bool m_showHistologyIdentificationSymbols;
         
         /** show media identification symbols*/
         bool m_showMediaIdentificationSymbols;

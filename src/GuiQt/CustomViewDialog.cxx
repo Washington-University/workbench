@@ -851,6 +851,24 @@ CustomViewDialog::zoomValueChanged(double value)
     if (bbw != NULL) {
         BrowserTabContent* btc = bbw->getBrowserTabContent();
         if (btc != NULL) {
+            ModelHistology* histologyModel(btc->getDisplayedHistologyModel());
+            if (histologyModel != NULL) {
+                const BrainOpenGLViewportContent* vpContent(bbw->getViewportContentForSelectedTab());
+                if (vpContent != NULL) {
+                    btc->setHistologyScalingFromGui(const_cast<BrainOpenGLViewportContent*>(vpContent),
+                                                   value);
+                    updateGraphicsWindow();
+                }
+                else {
+                    CaretLogSevere("Unable to find viewport content for tab index="
+                                   + AString::number(btc->getTabNumber()));
+                }
+                
+                /*
+                 * Since histology is in tab we DO NOT want to call transformValueChanged() below.
+                 */
+                return;
+            }
             ModelMedia* mediaModel = btc->getDisplayedMediaModel();
             if (mediaModel != NULL) {
                 const BrainOpenGLViewportContent* vpContent(bbw->getViewportContentForSelectedTab());

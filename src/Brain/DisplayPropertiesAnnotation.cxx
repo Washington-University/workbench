@@ -89,6 +89,8 @@ DisplayPropertiesAnnotation::updateForNewAnnotation(const Annotation* annotation
     switch (annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
@@ -436,6 +438,9 @@ DisplayPropertiesAnnotation::restoreVersionOne(const SceneClass* sceneClass)
         switch (ann->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 CaretAssertMessage(0, "This should never happen as CHART SPACE was never available in a version one scene");
+                break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                CaretAssertMessage(0, "This should never happen as HISTOLOGY SPACE was never available in version one scene");
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 CaretAssertMessage(0, "This should never happen as MEDIA SPACE was never available in a version one scene");

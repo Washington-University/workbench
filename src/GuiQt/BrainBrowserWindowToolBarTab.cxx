@@ -229,6 +229,7 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     blockAllSignals(true);
     
     bool chartFlag = false;
+    bool histologyFlag(false);
     bool mediaFlag(false);
     switch (browserTabContent->getSelectedModelType()) {
         case ModelTypeEnum::MODEL_TYPE_CHART:
@@ -240,7 +241,7 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
+            histologyFlag = true;
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             mediaFlag = true;
@@ -257,6 +258,11 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     
     if (chartFlag) {
         m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getChartModelYokingGroup());
+        m_yokeToLabel->setEnabled(false);
+        m_yokingGroupComboBox->getWidget()->setEnabled(false);
+    }
+    else if (histologyFlag) {
+        m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getHistologyModelYokingGroup());
         m_yokeToLabel->setEnabled(false);
         m_yokingGroupComboBox->getWidget()->setEnabled(false);
     }
@@ -321,6 +327,7 @@ BrainBrowserWindowToolBarTab::yokeToGroupComboBoxIndexChanged()
     }
     
     bool chartFlag = false;
+    bool histologyFlag(false);
     bool mediaFlag = false;
     switch (browserTabContent->getSelectedModelType()) {
         case ModelTypeEnum::MODEL_TYPE_CHART:
@@ -332,7 +339,7 @@ BrainBrowserWindowToolBarTab::yokeToGroupComboBoxIndexChanged()
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
+            histologyFlag = true;
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             mediaFlag = true;
@@ -350,6 +357,9 @@ BrainBrowserWindowToolBarTab::yokeToGroupComboBoxIndexChanged()
     YokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>();
     if (chartFlag) {
         browserTabContent->setChartModelYokingGroup(yokingGroup);
+    }
+    else if (histologyFlag) {
+        browserTabContent->setHistologyModelYokingGroup(yokingGroup);
     }
     else if (mediaFlag) {
         browserTabContent->setMediaModelYokingGroup(yokingGroup);

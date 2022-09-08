@@ -356,8 +356,8 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
                             volumeEditInfo.m_volumeOverlay  = overlay;
                             volumeEditInfo.m_volumeFile     = vf;
                             volumeEditInfo.m_mapIndex       = mapIndex;
-                            volumeEditInfo.m_sliceViewPlane = tabContent->getSliceViewPlane();
-                            volumeEditInfo.m_sliceProjectionType = tabContent->getSliceProjectionType();
+                            volumeEditInfo.m_sliceViewPlane = tabContent->getVolumeSliceViewPlane();
+                            volumeEditInfo.m_sliceProjectionType = tabContent->getVolumeSliceProjectionType();
                             volumeEditInfo.m_volumeFileEditorDelegate = vf->getVolumeFileEditorDelegate();
                             volumeEditInfo.m_obliqueRotationMatrix = tabContent->getObliqueVolumeRotationMatrix();
                             return true;

@@ -626,6 +626,8 @@ Annotation::initializeAnnotationMembers()
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
@@ -852,6 +854,12 @@ Annotation::isInSameCoordinateSpace(const Annotation* annotation) const
         case AnnotationCoordinateSpaceEnum::CHART:
             sameSpaceFlag = true;
             break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            if ((getCoordinate(0)->getHistologySlicesFileName() == annotation->getCoordinate(0)->getHistologySlicesFileName())
+                && (getCoordinate(0)->getHistologyMediaFileName() == annotation->getCoordinate(0)->getHistologyMediaFileName())) {
+                sameSpaceFlag = true;
+            }
+            break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             if (getCoordinate(0)->getMediaFileName() == annotation->getCoordinate(0)->getMediaFileName()) {
                 sameSpaceFlag = true;
@@ -943,6 +951,8 @@ Annotation::isInSurfaceSpaceWithTangentOffset() const
     
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
@@ -2534,6 +2544,8 @@ Annotation::isItemExpanded(const DisplayGroupEnum::Enum displayGroup,
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
@@ -2579,6 +2591,8 @@ Annotation::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
 {
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
@@ -2626,6 +2640,8 @@ Annotation::getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
     if (testProperty(Annotation::Property::DISPLAY_GROUP)) {
         switch (m_coordinateSpace) {
             case AnnotationCoordinateSpaceEnum::CHART:
+                break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 break;
@@ -2680,6 +2696,8 @@ Annotation::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
 {
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
@@ -2900,6 +2918,8 @@ Annotation::matchPixelPositionAndSizeInNewViewport(const int32_t oldViewport[4],
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
@@ -3051,6 +3071,8 @@ Annotation::validate(AString& messageOut) const
     
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;

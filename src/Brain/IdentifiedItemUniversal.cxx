@@ -157,6 +157,51 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
     return item;
 }
 
+/**
+ * @return New instance for a histology plane XYZ identification.
+ *
+ * @param simpleText
+ *    Text describing the identified item.
+ * @param formattedText
+ *    Formatted text describing the identified item.
+ * @param dataFileName
+ *    Name of data file on which identification was performed
+ * @param planeCoordinate
+ *    The plane coordinate
+ * @param stereotaxicXYZ
+ *    Stereotaxic coordinate of vertex
+ * @param stereotaxicXYZValidFlag
+ *    True if the stereotaxic coordinate is valid
+ *
+ */
+IdentifiedItemUniversal*
+IdentifiedItemUniversal::newInstanceHistologyPlaneCoordinateIdentification(const AString& simpleText,
+                                                                           const AString& formattedText,
+                                                                           const AString& dataFileName,
+                                                                           const Vector3D& planeCoordinate,
+                                                                           const Vector3D& stereotaxicXYZ,
+                                                                           const bool stereotaxicXYZValidFlag)
+{
+    const StructureEnum::Enum structure(StructureEnum::INVALID);
+    const int32_t surfaceNumberOfVertices(-1);
+    const int32_t surfaceVertexIndex(-1);
+    std::array<int64_t, 3> voxelIJK;
+    voxelIJK.fill(0);
+    PixelLogicalIndex pixelLogicalIndex;
+    IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE,
+                                                                simpleText,
+                                                                formattedText,
+                                                                dataFileName,
+                                                                structure,
+                                                                surfaceNumberOfVertices,
+                                                                surfaceVertexIndex,
+                                                                pixelLogicalIndex,
+                                                                planeCoordinate,
+                                                                voxelIJK,
+                                                                stereotaxicXYZ,
+                                                                stereotaxicXYZValidFlag);
+    return item;
+}
 
 /**
  * @return New instance for a pixel logical coordinate identification.
@@ -553,6 +598,16 @@ IdentifiedItemUniversal::getToolTip() const
     switch (m_type) {
         case IdentifiedItemUniversalTypeEnum::INVALID:
             break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
+        {
+            toolTipText = ("ID from Histology File: "
+                           + m_dataFileName + "<br>"
+                           "Plane ("
+                           + AString::fromNumbers(m_pixelPlaneCoordinate, 3, ", ")
+                           + ")"
+                           + xyzText);
+        }
+            break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
         {
             toolTipText = ("ID from Media File: "
@@ -613,6 +668,9 @@ IdentifiedItemUniversal::isValid() const
     switch (m_type) {
         case IdentifiedItemUniversalTypeEnum::INVALID:
             CaretAssert(0);
+            break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
+            return true;
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
             //if (m_pixelLogicalIndex.isValid()) {

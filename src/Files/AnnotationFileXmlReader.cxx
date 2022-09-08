@@ -445,6 +445,7 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
         }
             break;
         case AnnotationCoordinateSpaceEnum::CHART:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
         case AnnotationCoordinateSpaceEnum::SPACER:
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -799,6 +800,10 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
     
     std::vector<Annotation*> annotations;
     AString mediaFileName;
+    AString histologySlicesFileName;
+    AString histologyMediaFileName;
+    CaretAssertToDoFatal();
+    
     while (m_stream->readNextStartElement()) {
         bool skipCurrentElementFlag = true;
         
@@ -894,6 +899,8 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
                                                             tabOrWindowIndex,
                                                             spacerTabIndex,
                                                             mediaFileName,
+                                                            histologySlicesFileName,
+                                                            histologyMediaFileName,
                                                             uniqueKey,
                                                             annotations);
     }

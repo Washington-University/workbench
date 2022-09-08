@@ -112,6 +112,8 @@ m_browserWindowIndex(browserWindowIndex)
     m_spaceActionGroup = new QActionGroup(this);
     QToolButton* chartSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::CHART,
                                                               m_spaceActionGroup);
+    QToolButton* histologySpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::HISTOLOGY,
+                                                                  m_spaceActionGroup);
     QToolButton* mediaSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL,
                                                               m_spaceActionGroup);
     QToolButton* tabSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::TAB,
@@ -145,6 +147,7 @@ m_browserWindowIndex(browserWindowIndex)
         shapeTextToolButton->setMaximumSize(mw, mh);
 
         chartSpaceToolButton->setMaximumSize(mw, mh);
+        histologySpaceToolButton->setMaximumSize(mw, mh);
         mediaSpaceToolButton->setMaximumSize(mw, mh);
         if (spacerSpaceToolButton != NULL) {
             spacerSpaceToolButton->setMaximumSize(mw, mh);
@@ -191,6 +194,8 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->addWidget(spaceLabel,
                               1, topColumn++, Qt::AlignLeft);
         gridLayout->addWidget(chartSpaceToolButton,
+                              1, topColumn++);
+        gridLayout->addWidget(histologySpaceToolButton,
                               1, topColumn++);
         gridLayout->addWidget(mediaSpaceToolButton,
                               1, topColumn++);
@@ -248,18 +253,20 @@ m_browserWindowIndex(browserWindowIndex)
                               1, 2, Qt::AlignLeft);
         gridLayout->addWidget(chartSpaceToolButton,
                               1, 3);
-        gridLayout->addWidget(mediaSpaceToolButton,
+        gridLayout->addWidget(histologySpaceToolButton,
                               1, 4);
-        gridLayout->addWidget(spacerSpaceToolButton,
+        gridLayout->addWidget(mediaSpaceToolButton,
                               1, 5);
-        gridLayout->addWidget(stereotaxicSpaceToolButton,
+        gridLayout->addWidget(spacerSpaceToolButton,
                               1, 6);
-        gridLayout->addWidget(surfaceSpaceToolButton,
+        gridLayout->addWidget(stereotaxicSpaceToolButton,
                               1, 7);
-        gridLayout->addWidget(tabSpaceToolButton,
+        gridLayout->addWidget(surfaceSpaceToolButton,
                               1, 8);
-        gridLayout->addWidget(windowSpaceToolButton,
+        gridLayout->addWidget(tabSpaceToolButton,
                               1, 9);
+        gridLayout->addWidget(windowSpaceToolButton,
+                              1, 10);
         
         QSpacerItem* rowSpaceItem = new QSpacerItem(5, 5,
                                                     QSizePolicy::Fixed,
@@ -364,6 +371,7 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
     const bool windowSpaceValidFlag = ( ! allTabContent.empty());
     
     bool chartSpaceValidFlag       = false;
+    bool histologySpaceValidFlag   = false;
     bool mediaSpaceValidFlag       = false;
     bool surfaceSpaceValidFlag     = false;
     bool stereotaxicSpaceValidFlag = false;
@@ -383,7 +391,7 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
             case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                CaretAssertToDoFatal();
+                histologySpaceValidFlag = true;
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                 mediaSpaceValidFlag = true;
@@ -421,6 +429,9 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
         switch (annSpace) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 enableSpaceFlag = chartSpaceValidFlag;
+                break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                enableSpaceFlag = histologySpaceValidFlag;
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 enableSpaceFlag = mediaSpaceValidFlag;
@@ -953,6 +964,8 @@ AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpace
     switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
@@ -1034,6 +1047,8 @@ AnnotationInsertNewWidget::createSpacePixmap(const QWidget* widget,
      */
     switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;

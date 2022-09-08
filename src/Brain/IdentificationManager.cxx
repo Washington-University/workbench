@@ -75,6 +75,7 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_identifcationMostRecentSymbolPercentageSize = 5.0;
     m_mediaIdentificationPercentageSymbolSize = 3.0;
     m_mediaIdentificationMostRecentPercentageSymbolSize = 5.0;
+    m_showHistologyIdentificationSymbols = caretPreferences->isShowHistologyIdentificationSymbols();
     m_showMediaIdentificationSymbols = caretPreferences->isShowMediaIdentificationSymbols();
     m_showSurfaceIdentificationSymbols = caretPreferences->isShowSurfaceIdentificationSymbols();
     m_showVolumeIdentificationSymbols  = caretPreferences->isShowVolumeIdentificationSymbols();
@@ -112,6 +113,8 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationContralateralSymbolColor",
                                                                 &m_identificationContralateralSymbolColor);
 
+    m_sceneAssistant->add("m_showHistologyIdentificationSymbols",
+                          &m_showHistologyIdentificationSymbols);
     m_sceneAssistant->add("m_showMediaIdentificationSymbols",
                           &m_showMediaIdentificationSymbols);
     m_sceneAssistant->add("m_showSurfaceIdentificationSymbols",
@@ -216,6 +219,9 @@ IdentificationManager::removeIdentificationText()
         switch (itemPtr->getType()) {
             case IdentifiedItemUniversalTypeEnum::INVALID:
                 break;
+            case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
+                keepFlag = true;
+                break;
             case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
                 keepFlag = true;
                 break;
@@ -290,6 +296,9 @@ IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUnivers
         case IdentifiedItemUniversalTypeEnum::INVALID:
             CaretAssert(0);
             return;
+            break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
+            mediaPlaneCoordFlag = true;
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
             mediaLogicalCoordFlag = true;
@@ -632,6 +641,27 @@ void
 IdentificationManager::setIdentificationContralateralSymbolColor(const CaretColorEnum::Enum color)
 {
     m_identificationContralateralSymbolColor = color;
+}
+
+/**
+ * @return show histology identification symbols
+ */
+bool
+IdentificationManager::isShowHistologyIdentificationSymbols() const
+{
+    return m_showHistologyIdentificationSymbols;
+}
+
+/**
+ * Set show histology identification symbols
+ *
+ * @param showHistologyIdentificationSymbols
+ *    New value for show histology identification symbols
+ */
+void
+IdentificationManager::setShowHistologyIdentificationSymbols(const bool showHistologyIdentificationSymbols)
+{
+    m_showHistologyIdentificationSymbols = showHistologyIdentificationSymbols;
 }
 
 /**
@@ -998,6 +1028,9 @@ IdentificationManager::getShowSymbolOnTypeLabel(const IdentifiedItemUniversalTyp
         case IdentifiedItemUniversalTypeEnum::INVALID:
             text = "INVALID";
             break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
+            text = "Show ID Symbols on Histology Plane Coordinates";
+            break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
             text = "Show ID Symbols on Media Logical Coordinates";
             break;
@@ -1037,6 +1070,9 @@ IdentificationManager::getShowSymbolOnTypeToolTip(const IdentifiedItemUniversalT
     text.append("Symbol may have been created on another type ");
     switch (type) {
         case IdentifiedItemUniversalTypeEnum::INVALID:
+            break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
+            text.append("(Surface, Volume, or other Media)");
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
             text.append("(Surface, Volume, or other Media)");

@@ -56,6 +56,12 @@ namespace caret {
 
         BrainOpenGLIdentificationDrawing& operator=(const BrainOpenGLIdentificationDrawing&) = delete;
 
+        void drawHistologyFilePlaneCoordinateIdentificationSymbols(const MediaFile* mediaFile,
+                                                                   const Plane& plane,
+                                                                   const float mediaThickness,
+                                                                   const float viewingZoom,
+                                                                   const float viewportHeight);
+
         void drawMediaFileLogicalCoordinateIdentificationSymbols(const MediaFile* mediaFile,
                                                                  const Plane& plane,
                                                                  const float mediaThickness,

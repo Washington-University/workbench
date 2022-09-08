@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "HistologySliceImage.h"
+#include "MediaFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -115,6 +116,7 @@ void
 HistologySlice::copyHelperHistologySlice(const HistologySlice& /*obj*/)
 {
     CaretAssertMessage(0, "Copying not supported");
+    m_stereotaxicXyzBoundingBoxValidFlag = false;
 }
 
 /**
@@ -139,6 +141,8 @@ HistologySlice::addHistologySliceImage(HistologySliceImage* histologySliceImage)
                                                      m_planeToMillimetersMatrixValidFlag);
     std::unique_ptr<HistologySliceImage> ptr(histologySliceImage);
     m_histologySliceImages.push_back(std::move(ptr));
+    
+    m_stereotaxicXyzBoundingBoxValidFlag = false;
 }
 
 /**
@@ -152,6 +156,18 @@ HistologySlice::getNumberOfHistologySliceImages() const
 
 /**
  * @return Histology slice image at the given index
+ * @param index
+ *    Index of the image
+ */
+HistologySliceImage*
+HistologySlice::getHistologySliceImage(const int32_t index)
+{
+    CaretAssertVectorIndex(m_histologySliceImages, index);
+    return m_histologySliceImages[index].get();
+}
+
+/**
+ * @return Histology slice image at the given index, const method
  * @param index
  *    Index of the image
  */
@@ -180,6 +196,24 @@ HistologySlice::isPlaneToMillimetersMatrixValid() const
     return m_planeToMillimetersMatrixValidFlag;
 }
 
+/**
+ * @return BoundingBox for the slice (bounding box of all images in slice)
+ */
+BoundingBox
+HistologySlice::getStereotaxicXyzBoundingBox() const
+{
+    if ( ! m_stereotaxicXyzBoundingBoxValidFlag) {
+        m_stereotaxicXyzBoundingBox.resetForUpdate();
+        
+        for (auto& slice : m_histologySliceImages) {
+            BoundingBox bb(slice->getMediaFile()->getStereotaxicXyzBoundingBox());
+            m_stereotaxicXyzBoundingBox.unionOperation(bb);
+        }
+        m_stereotaxicXyzBoundingBoxValidFlag = true;
+    }
+    
+    return m_stereotaxicXyzBoundingBox;
+}
 
 /**
  * Get a description of this object's content.

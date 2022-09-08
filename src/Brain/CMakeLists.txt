@@ -40,6 +40,7 @@ BrainOpenGLChartDrawingFixedPipeline.h
 BrainOpenGLChartTwoDrawingFixedPipeline.h
 BrainOpenGLChartTwoDrawingInterface.h
 BrainOpenGLFixedPipeline.h
+BrainOpenGLHistologySliceDrawing.h
 BrainOpenGLIdentificationDrawing.h
 BrainOpenGLMediaCoordinateDrawing.h
 BrainOpenGLMediaDrawing.h
@@ -129,6 +130,7 @@ GapsAndMargins.h
 HistologyOverlay.h
 HistologyOverlaySet.h
 HistologyOverlaySetArray.h
+HistologySliceSettings.h
 IdentificationFilter.h
 IdentificationFilterTabSelectionEnum.h
 IdentificationFormattedTextGenerator.h
@@ -188,6 +190,7 @@ SelectionItemChartTwoMatrix.h
 SelectionItemCiftiConnectivityMatrixRowColumn.h
 SelectionItemFocusSurface.h
 SelectionItemFocusVolume.h
+SelectionItemHistologyCoordinate.h
 SelectionItemImageControlPoint.h
 SelectionItemMediaLogicalCoordinate.h
 SelectionItemMediaPlaneCoordinate.h
@@ -243,6 +246,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline.cxx
 BrainOpenGLChartDrawingFixedPipeline.cxx
 BrainOpenGLChartTwoDrawingFixedPipeline.cxx
 BrainOpenGLFixedPipeline.cxx
+BrainOpenGLHistologySliceDrawing.cxx
 BrainOpenGLIdentificationDrawing.cxx
 BrainOpenGLMediaCoordinateDrawing.cxx
 BrainOpenGLMediaDrawing.cxx
@@ -330,6 +334,7 @@ GapsAndMargins.cxx
 HistologyOverlay.cxx
 HistologyOverlaySet.cxx
 HistologyOverlaySetArray.cxx
+HistologySliceSettings.cxx
 IdentificationFilter.cxx
 IdentificationFilterTabSelectionEnum.cxx
 IdentificationFormattedTextGenerator.cxx
@@ -389,6 +394,7 @@ SelectionItemChartTwoMatrix.cxx
 SelectionItemCiftiConnectivityMatrixRowColumn.cxx
 SelectionItemFocusSurface.cxx
 SelectionItemFocusVolume.cxx
+SelectionItemHistologyCoordinate.cxx
 SelectionItemImageControlPoint.cxx
 SelectionItemMediaLogicalCoordinate.cxx
 SelectionItemMediaPlaneCoordinate.cxx

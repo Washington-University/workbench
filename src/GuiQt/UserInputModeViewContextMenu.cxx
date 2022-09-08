@@ -348,9 +348,10 @@ UserInputModeViewContextMenu::createIdentifyMenu()
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
             case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                CaretAssertToDoFatal();
+                showRemoveVertexSymbolsFlag = true;
                 break;
             case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                showRemoveVertexSymbolsFlag = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_SURFACE:
                 showRemoveVertexSymbolsFlag = true;

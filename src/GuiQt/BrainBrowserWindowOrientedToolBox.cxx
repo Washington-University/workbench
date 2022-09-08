@@ -53,6 +53,7 @@
 #include "FiberOrientationSelectionViewController.h"
 #include "FociSelectionViewController.h"
 #include "GuiManager.h"
+#include "HistologyOverlaySetViewController.h"
 #include "IdentificationDisplayWidget.h"
 #include "ImageSelectionViewController.h"
 #include "LabelSelectionViewController.h"
@@ -142,19 +143,20 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                   + "_"
                   + AString::number(browserWindowIndex));
     
-    m_annotationTabWidget              = NULL;
-    m_annotationViewController         = NULL;
+    m_annotationTabWidget               = NULL;
+    m_annotationViewController          = NULL;
     m_annotationTextSubstitutionViewController = NULL;
-    m_borderSelectionViewController    = NULL;
-    m_chartOverlaySetViewController    = NULL;
-    m_chartToolBoxViewController       = NULL;
-    m_connectivityMatrixViewController = NULL;
-    m_fiberOrientationViewController   = NULL;
-    m_fociSelectionViewController      = NULL;
-    m_imageSelectionViewController     = NULL;
-    m_labelSelectionViewController     = NULL;
-    m_mediaSelectionViewController     = NULL;
-    m_overlaySetViewController         = NULL;
+    m_borderSelectionViewController     = NULL;
+    m_chartOverlaySetViewController     = NULL;
+    m_chartToolBoxViewController        = NULL;
+    m_connectivityMatrixViewController  = NULL;
+    m_fiberOrientationViewController    = NULL;
+    m_fociSelectionViewController       = NULL;
+    m_histologyOverlaySetViewController = NULL;
+    m_imageSelectionViewController      = NULL;
+    m_labelSelectionViewController      = NULL;
+    m_mediaSelectionViewController      = NULL;
+    m_overlaySetViewController          = NULL;
     m_volumeSurfaceOutlineSetViewController = NULL;
 
     m_tabWidget = new WuQTabWidgetWithSizeHint();
@@ -187,6 +189,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_connectivityTabIndex = -1;
     m_fiberOrientationTabIndex = -1;
     m_fociTabIndex = -1;
+    m_histologyTabIndex = -1;
     m_imageTabIndex = -1;
     m_labelTabIndex = -1;
     m_mediaTabIndex = -1;
@@ -265,6 +268,15 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                 this);
         m_fociTabIndex = addToTabWidget(m_fociSelectionViewController,
                              "Foci");
+    }
+    
+    if (isOverlayToolBox) {
+        m_histologyOverlaySetViewController = new HistologyOverlaySetViewController(orientation,
+                                                                                    browserWindowIndex,
+                                                                                    objectNamePrefix,
+                                                                                    this);
+        m_histologyTabIndex = addToTabWidget(m_histologyOverlaySetViewController,
+                                             "Histology");
     }
     
     if (isFeaturesToolBox) {
@@ -837,7 +849,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     haveFoci = true;
                     break;
                 case DataFileTypeEnum::HISTOLOGY_SLICES:
-                    CaretAssertToDoFatal();
                     break;
                 case DataFileTypeEnum::IMAGE:
                     haveImages = true;
@@ -888,6 +899,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         int defaultTabIndex = -1;
         bool enableLayers = true;
         bool enableMedia  = false;
+        bool enableHistology = false;
         bool enableVolumeSurfaceOutline = false;
         bool enableChartOne = false;
         bool enableChartTwo = false;
@@ -899,7 +911,14 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
                         break;
                     case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                        CaretAssertToDoFatal();
+                        defaultTabIndex = m_histologyTabIndex;
+                        enableHistology = true;
+                        enableLayers = false;
+                        enableVolumeSurfaceOutline = false;
+                        haveBorders = false;
+                        haveFibers  = false;
+                        haveFoci    = false;
+                        haveLabels  = false;
                         break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         defaultTabIndex = m_mediaTabIndex;
@@ -1008,6 +1027,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         
         if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, enableLayers);
         if (m_mediaTabIndex >= 0) m_tabWidget->setTabEnabled(m_mediaTabIndex, enableMedia);
+        if (m_histologyTabIndex >= 0) m_tabWidget->setTabEnabled(m_histologyTabIndex, enableHistology);
         
         if (m_annotationTabWidget != NULL) {
             const int32_t numTabs = m_annotationTabWidget->count();

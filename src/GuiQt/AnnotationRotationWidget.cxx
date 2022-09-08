@@ -114,6 +114,9 @@ AnnotationRotationWidget::getValidOneDimAnnotation(Annotation* annotation)
         switch (oneDimAnn->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                validSpaceFlag = true;
+                break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 validSpaceFlag = true;
                 break;
@@ -177,6 +180,8 @@ AnnotationRotationWidget::updateContent(std::vector<Annotation*>& annotations)
                         bool viewportValidFlag = false;
                         switch (oneDimAnn->getCoordinateSpace()) {
                             case AnnotationCoordinateSpaceEnum::CHART:
+                                break;
+                            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                                 break;
                             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                                 break;

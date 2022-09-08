@@ -92,6 +92,18 @@ namespace caret {
         void setMediaFileNameAndPixelSpace(const AString& mediaFileName,
                                            const float xyz[3]);
         
+        AString getHistologySlicesFileName() const;
+        
+        AString getHistologyMediaFileName() const;
+        
+        void getHistologySpace(AString& histologySlicesFileName,
+                               AString& histologyMediaFileName,
+                               float xyz[3]) const;
+        
+        void setHistologySpace(const AString& histologySlicesFileName,
+                               const AString& histologyMediaFileName,
+                               const float xyz[3]);
+        
         float getSurfaceOffsetLength() const;
         
         StructureEnum::Enum getSurfaceStructure() const;
@@ -154,6 +166,10 @@ namespace caret {
         
         AString m_mediaFileName;
         
+        AString m_histologySlicesFileName;
+        
+        AString m_histologyMediaFileName;
+
         static float s_userDefaultSurfaceOffsetLength;
         
         static AnnotationSurfaceOffsetVectorTypeEnum::Enum s_userDefaultSurfaceOffsetVectorType;

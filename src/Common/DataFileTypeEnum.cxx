@@ -292,7 +292,7 @@ DataFileTypeEnum::initialize()
                                         "CZI Meta",
                                         "CZI META",
                                         false,             /* ext below begins with dot */
-                                        DataFileTypeEnum::toCziMetaImageFileExtension().mid(1)));
+                                        "metaczi_disabled"));
     
     enumData.push_back(DataFileTypeEnum(FOCI,
                                         "FOCI",
@@ -307,7 +307,7 @@ DataFileTypeEnum::initialize()
                                         "Histology Slices",
                                         "HISTOLOGY_SLICES",
                                         false,             /* ext below begins with dot */
-                                        DataFileTypeEnum::toCziMetaImageFileExtension().mid(1)));
+                                        "metaczi"));
     
     enumData.push_back(DataFileTypeEnum(IMAGE,
                                         "IMAGE",

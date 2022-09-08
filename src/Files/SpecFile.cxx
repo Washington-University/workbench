@@ -1945,7 +1945,6 @@ SpecFile::isDataFileTypeAllowedInSpecFile(const DataFileTypeEnum::Enum dataFileT
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::HISTOLOGY_SLICES:
-            CaretAssertToDoFatal();
             break;
         case DataFileTypeEnum::IMAGE:
             break;

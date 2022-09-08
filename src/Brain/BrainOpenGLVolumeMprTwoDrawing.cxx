@@ -160,7 +160,7 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
     m_mprViewMode = browserTabContent->getVolumeMprViewMode();
     m_orientationMode = browserTabContent->getVolumeMprOrientationMode();
     
-    const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType(m_browserTabContent->getSliceProjectionType());
+    const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType(m_browserTabContent->getVolumeSliceProjectionType());
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
             break;
@@ -170,7 +170,7 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
             break;
     }
     
-    const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = m_browserTabContent->getSliceDrawingType();
+    const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = m_browserTabContent->getVolumeSliceDrawingType();
 
     m_axialCoronalParaSliceViewFlag = false;
 
@@ -212,7 +212,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
                                               const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                               const GraphicsViewport& viewport)
 {
-    VolumeSliceViewPlaneEnum::Enum sliceViewPlane(browserTabContent->getSliceViewPlane());
+    VolumeSliceViewPlaneEnum::Enum sliceViewPlane(browserTabContent->getVolumeSliceViewPlane());
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
         {
@@ -224,7 +224,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
             std::array<int32_t, 4> axisVP;
             BrainOpenGLViewportContent::getSliceAllViewViewport(viewport.getViewport().data(),
                                                                 VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                                                browserTabContent->getSlicePlanesAllViewLayout(),
+                                                                browserTabContent->getVolumeSlicePlanesAllViewLayout(),
                                                                 axisVP.data());
             glPushMatrix();
             drawVolumeSliceViewType(viewportContent,
@@ -239,7 +239,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
              */
             BrainOpenGLViewportContent::getSliceAllViewViewport(viewport.getViewport().data(),
                                                                 VolumeSliceViewPlaneEnum::CORONAL,
-                                                                browserTabContent->getSlicePlanesAllViewLayout(),
+                                                                browserTabContent->getVolumeSlicePlanesAllViewLayout(),
                                                                 axisVP.data());
             glPushMatrix();
             drawVolumeSliceViewType(viewportContent,
@@ -254,7 +254,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
              */
             BrainOpenGLViewportContent::getSliceAllViewViewport(viewport.getViewport().data(),
                                                                 VolumeSliceViewPlaneEnum::AXIAL,
-                                                                browserTabContent->getSlicePlanesAllViewLayout(),
+                                                                browserTabContent->getVolumeSlicePlanesAllViewLayout(),
                                                                 axisVP.data());
             glPushMatrix();
             drawVolumeSliceViewType(viewportContent,
@@ -302,9 +302,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
     m_orthographicBounds[5] = m_fixedPipelineDrawing->orthographicFar;
     
     const Vector3D sliceCoordinates {
-        m_browserTabContent->getSliceCoordinateParasagittal(),
-        m_browserTabContent->getSliceCoordinateCoronal(),
-        m_browserTabContent->getSliceCoordinateAxial()
+        m_browserTabContent->getVolumeSliceCoordinateParasagittal(),
+        m_browserTabContent->getVolumeSliceCoordinateCoronal(),
+        m_browserTabContent->getVolumeSliceCoordinateAxial()
     };
 
     switch (m_mprViewMode) {
@@ -316,7 +316,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                            viewport);
             break;
         case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
-            if (m_browserTabContent->isSliceAxialEnabled()) {
+            if (m_browserTabContent->isVolumeSliceAxialEnabled()) {
                 glPushMatrix();
                 drawVolumeSliceViewProjection(viewportContent,
                                               sliceProjectionType,
@@ -327,7 +327,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                 glPopMatrix();
             }
             
-            if (m_browserTabContent->isSliceCoronalEnabled()) {
+            if (m_browserTabContent->isVolumeSliceCoronalEnabled()) {
                 glPushMatrix();
                 drawVolumeSliceViewProjection(viewportContent,
                                               sliceProjectionType,
@@ -338,7 +338,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                 glPopMatrix();
             }
             
-            if (m_browserTabContent->isSliceParasagittalEnabled()) {
+            if (m_browserTabContent->isVolumeSliceParasagittalEnabled()) {
                 glPushMatrix();
                 drawVolumeSliceViewProjection(viewportContent,
                                               sliceProjectionType,
@@ -385,9 +385,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const BrainOpenGLViewpor
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
         {
             const Vector3D sliceCoordinates {
-                m_browserTabContent->getSliceCoordinateParasagittal(),
-                m_browserTabContent->getSliceCoordinateCoronal(),
-                m_browserTabContent->getSliceCoordinateAxial()
+                m_browserTabContent->getVolumeSliceCoordinateParasagittal(),
+                m_browserTabContent->getVolumeSliceCoordinateCoronal(),
+                m_browserTabContent->getVolumeSliceCoordinateAxial()
             };
             drawVolumeSliceViewProjection(viewportContent,
                                           sliceProjectionType,
@@ -423,9 +423,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
                                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                const GraphicsViewport& viewport)
 {
-    const int32_t numRows = m_browserTabContent->getMontageNumberOfRows();
+    const int32_t numRows = m_browserTabContent->getVolumeMontageNumberOfRows();
     CaretAssert(numRows > 0);
-    const int32_t numCols = m_browserTabContent->getMontageNumberOfColumns();
+    const int32_t numCols = m_browserTabContent->getVolumeMontageNumberOfColumns();
     CaretAssert(numCols > 0);
     
     const int32_t montageCoordPrecision = m_browserTabContent->getVolumeMontageCoordinatePrecision();
@@ -468,36 +468,36 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
     AString axisLetter = "";
     
     Vector3D sliceCoordinates {
-        m_browserTabContent->getSliceCoordinateParasagittal(),
-        m_browserTabContent->getSliceCoordinateCoronal(),
-        m_browserTabContent->getSliceCoordinateAxial()
+        m_browserTabContent->getVolumeSliceCoordinateParasagittal(),
+        m_browserTabContent->getVolumeSliceCoordinateCoronal(),
+        m_browserTabContent->getVolumeSliceCoordinateAxial()
     };
     
     int32_t sliceIndex = -1;
     int32_t maximumSliceIndex = -1;
     int64_t dimI, dimJ, dimK, numMaps, numComponents;
     underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-    const int32_t sliceStep = m_browserTabContent->getMontageSliceSpacing();
+    const int32_t sliceStep = m_browserTabContent->getVolumeMontageSliceSpacing();
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             sliceIndex = -1;
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            sliceIndex = m_browserTabContent->getSliceIndexAxial(underlayVolume);
+            sliceIndex = m_browserTabContent->getVolumeSliceIndexAxial(underlayVolume);
             maximumSliceIndex = dimK;
             sliceThickness = z1 - originZ;
             sliceOrigin = originZ;
             axisLetter = "Z";
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            sliceIndex = m_browserTabContent->getSliceIndexCoronal(underlayVolume);
+            sliceIndex = m_browserTabContent->getVolumeSliceIndexCoronal(underlayVolume);
             maximumSliceIndex = dimJ;
             sliceThickness = y1 - originY;
             sliceOrigin = originY;
             axisLetter = "Y";
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            sliceIndex = m_browserTabContent->getSliceIndexParasagittal(underlayVolume);
+            sliceIndex = m_browserTabContent->getVolumeSliceIndexParasagittal(underlayVolume);
             maximumSliceIndex = dimI;
             sliceThickness = x1 - originX;
             sliceOrigin = originX;

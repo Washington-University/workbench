@@ -979,6 +979,7 @@ AnnotationManager::getAnnotationsInSameSpace(const Annotation* annotation)
             }
                 break;
             case AnnotationCoordinateSpaceEnum::CHART:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             case AnnotationCoordinateSpaceEnum::SPACER:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -1235,6 +1236,9 @@ AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displ
             bool displayedFlag = false;
             switch (ann->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
+                    displayedFlag = true;
+                    break;
+                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                     displayedFlag = true;
                     break;
                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:

@@ -2900,6 +2900,35 @@ CziImageFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
             }
         }
     }
+    
+    {
+        QRectF logicalRect(m_allFramesPyramidInfo.m_logicalRectangle);
+        const float l(logicalRect.left());
+        const float r(logicalRect.right());
+        const float b(logicalRect.bottom());
+        const float t(logicalRect.top());
+        
+        Vector3D leftBottom, rightBottom, leftTop, rightTop;
+        if (logicalPixelIndexToPlaneXYZ(l, t, leftTop)
+            && logicalPixelIndexToPlaneXYZ(r, t, rightTop)
+            && logicalPixelIndexToPlaneXYZ(l, b, leftBottom)
+            && logicalPixelIndexToPlaneXYZ(r, b, rightBottom)) {
+            BoundingBox bb;
+            bb.resetForUpdate();
+            bb.update(leftTop);
+            bb.update(rightTop);
+            bb.update(leftBottom);
+            bb.update(rightBottom);
+            
+            QRectF boundsRect(bb.getMinX(),
+                              bb.getMinY(),
+                              bb.getDifferenceX(),
+                              bb.getDifferenceY());
+            if (boundsRect.isValid()) {
+                m_allFramesPyramidInfo.m_planeRectangle = boundsRect;
+            }
+        }
+    }
 }
 
 /**

@@ -469,7 +469,6 @@ IdentificationSimpleTextGenerator::generateVolumeIdentificationText(Identificati
                             case DataFileTypeEnum::FOCI:
                                 break;
                             case DataFileTypeEnum::HISTOLOGY_SLICES:
-                                CaretAssertToDoFatal();
                                 break;
                             case DataFileTypeEnum::IMAGE:
                                 break;
@@ -633,7 +632,6 @@ IdentificationSimpleTextGenerator::generateSurfaceIdentificationText(Identificat
                 case DataFileTypeEnum::FOCI:
                     break;
                 case DataFileTypeEnum::HISTOLOGY_SLICES:
-                    CaretAssertToDoFatal();
                     break;
                 case DataFileTypeEnum::IMAGE:
                     break;

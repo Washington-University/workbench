@@ -236,6 +236,7 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
         }
             break;
         case AnnotationCoordinateSpaceEnum::CHART:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
         case AnnotationCoordinateSpaceEnum::SPACER:
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -750,6 +751,7 @@ AnnotationFileXmlWriter::writeCoordinate(const AnnotationCoordinate* coordinate,
                                        coordinate->getMediaFileName());
             break;
         case AnnotationCoordinateSpaceEnum::CHART:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
         case AnnotationCoordinateSpaceEnum::SPACER:
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
         case AnnotationCoordinateSpaceEnum::SURFACE:

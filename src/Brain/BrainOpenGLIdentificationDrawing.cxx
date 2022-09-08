@@ -147,6 +147,47 @@ BrainOpenGLIdentificationDrawing::drawMediaFileLogicalCoordinateIdentificationSy
 }
 
 /**
+ * Draw identification symbols on histology file for plane coordinates
+ * @param mediaFile
+ *    Media file on which symbols are drawn
+ * @param plane
+ *    Plane of the media
+ * @param mediaThickness
+ *    Thickness of the media for those that support stereotaxic coordinates
+ * @param viewingZoom
+ *    Zooming (scaling) for current view
+ * @param viewportHeight
+ *    Height of viewport
+ */
+void
+BrainOpenGLIdentificationDrawing::drawHistologyFilePlaneCoordinateIdentificationSymbols(const MediaFile* mediaFile,
+                                                                                        const Plane& plane,
+                                                                                        const float mediaThickness,
+                                                                                        const float viewingZoom,
+                                                                                        const float viewportHeight)
+{
+    CaretAssert(mediaFile);
+    
+    if ( ! m_idManager->isShowHistologyIdentificationSymbols()) {
+        return;
+    }
+    
+    const Surface* surface(NULL);
+    const VolumeMappableInterface* volume(NULL);
+    float surfaceOrVolumeMaximumDimension(0.0);
+    
+    drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE,
+                              surface,
+                              mediaFile,
+                              volume,
+                              plane,
+                              mediaThickness,
+                              viewingZoom,
+                              viewportHeight,
+                              surfaceOrVolumeMaximumDimension);
+}
+
+/**
  * Draw identification symbols on media file for plane coordinates
  * @param mediaFile
  *    Media file on which symbols are drawn
@@ -418,6 +459,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
     int32_t surfaceNumberOfVertices(0);
     
     bool drawingOnSurfaceFlag(false);
+    bool drawingOnHistologyPlaneCoordFlag(false);
     bool drawingOnMediaLogicalCoordFlag(false);
     bool drawingOnMediaPlaneCoordFlag(false);
     bool drawingOnVolumeIntensity2dFlag(false);
@@ -428,6 +470,20 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
         case IdentifiedItemUniversalTypeEnum::INVALID:
             CaretAssert(0);
             return;
+            break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
+        {
+            CaretAssert(mediaFile);
+            if (mediaFile == NULL) {
+                return;
+            }
+            drawingOnHistologyPlaneCoordFlag = true;
+            const BoundingBox boundingBox(mediaFile->getPlaneXyzBoundingBox());
+            mediaHeight = boundingBox.getDifferenceY();
+            if (mediaHeight < 0.0) {
+                return;
+            }
+        }
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
             CaretAssert(mediaFile);
@@ -590,11 +646,13 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         }
                     }
                 break;
+            case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
             case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
                 /*
                  * Drawing a media symbol on media ?
                  */
-                if (drawingOnMediaPlaneCoordFlag) {
+                if (drawingOnHistologyPlaneCoordFlag
+                    || drawingOnMediaPlaneCoordFlag) {
                     CaretAssert(mediaFile);
                     if (mediaFile->getFileNameNoPath() == item->getDataFileName()) {
                         const Vector3D pixelPlaneXYZ(item->getPixelPlaneCoordinate());
@@ -791,6 +849,47 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     }
                 }
             }
+            if (drawingOnHistologyPlaneCoordFlag) {
+                /*
+                 * Are we drawing a non-media symbol on media?
+                 */
+                if (item->getType() != IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE) {
+                    drawFlag = false;
+                    if (mediaFile != NULL) {
+                        /*
+                         * Need to see if xyz is close to media file within some tolerance
+                         */
+                        Vector3D planeXYZ;
+                        
+                        const bool nonLinearFlag(true);
+                        float signedDistanceMillimeters(-1.0);
+                        if (mediaFile->findPlaneCoordinateNearestStereotaxicXYZ(xyz,
+                                                                                nonLinearFlag,
+                                                                                signedDistanceMillimeters,
+                                                                                planeXYZ)) {
+                            const float maxDistanceToPlane(2.0);
+                            if (std::fabs(signedDistanceMillimeters) < maxDistanceToPlane) {
+                                if (mediaFile->getPlaneXyzRect().contains(planeXYZ[0],
+                                                                          planeXYZ[1])) {
+                                    /*
+                                     * push point to plane
+                                     */
+                                    planeXYZ[2] = 0.0;
+                                    xyz = planeXYZ;
+                                    drawFlag = true;
+                                }
+                            }
+                        }
+                        //                        if (mediaFile->stereotaxicXyzToPlaneXyz(xyz, planeXYZ)) {
+                        //                            if (mediaFile->getPlaneXyzRect().contains(planeXYZ[0],
+                        //                                                                      planeXYZ[1])) {
+                        //                                xyz = planeXYZ;
+                        //                                drawFlag = true;
+                        //                            }
+                        //                        }
+                    }
+                }
+            }
             if (drawingOnMediaPlaneCoordFlag) {
                 /*
                  * Are we drawing a non-media symbol on media?
@@ -846,7 +945,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     height /= viewingZoom;
                 }
             }
-            else if (drawingOnMediaPlaneCoordFlag) {
+            else if (drawingOnHistologyPlaneCoordFlag
+                     || drawingOnMediaPlaneCoordFlag) {
                 CaretAssert(mediaFile);
                 if (mediaFile == NULL) {
                     return;
@@ -874,7 +974,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                        symbolDiameter);
             
             if (selectFlag) {
-                if (drawingOnMediaLogicalCoordFlag
+                if (drawingOnHistologyPlaneCoordFlag
+                    || drawingOnMediaLogicalCoordFlag
                     || drawingOnMediaPlaneCoordFlag) {
                     m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
                                                                          SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
@@ -912,7 +1013,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
              * contains a unique size (diameter)
              */
             std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive;
-            const bool pointSymbolFlag(drawingOnMediaLogicalCoordFlag
+            const bool pointSymbolFlag(drawingOnHistologyPlaneCoordFlag
+                                       || drawingOnMediaLogicalCoordFlag
                                        || drawingOnMediaPlaneCoordFlag);
             if (pointSymbolFlag) {
                 idPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS));
@@ -948,6 +1050,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     switch (selectedItem->getType()) {
                         case IdentifiedItemUniversalTypeEnum::INVALID:
                             CaretAssert(0);
+                            break;
+                        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
                             break;
                         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
                             break;

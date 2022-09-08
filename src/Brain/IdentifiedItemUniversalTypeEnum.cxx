@@ -110,6 +110,10 @@ IdentifiedItemUniversalTypeEnum::initialize()
                                                        "INVALID",
                                                        "Invalid"));
     
+    enumData.push_back(IdentifiedItemUniversalTypeEnum(HISTOLOGY_PLANE_COORDINATE,
+                                                       "HISTOLOGY_PLANE_COORDINATE",
+                                                       "Histology Plane Coordinate"));
+    
     enumData.push_back(IdentifiedItemUniversalTypeEnum(MEDIA_LOGICAL_COORDINATE,
                                                        "MEDIA_LOGICAL_COORDINATE",
                                                        "Media Logical Coordinate"));

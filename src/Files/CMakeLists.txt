@@ -117,6 +117,7 @@ GroupAndNameHierarchyGroup.h
 GroupAndNameHierarchyItem.h
 GroupAndNameHierarchyModel.h
 GroupAndNameHierarchyName.h
+HistologyCoordinate.h
 HistologySlice.h
 HistologySliceImage.h
 HistologySlicesFile.h
@@ -279,6 +280,7 @@ GroupAndNameHierarchyGroup.cxx
 GroupAndNameHierarchyItem.cxx
 GroupAndNameHierarchyModel.cxx
 GroupAndNameHierarchyName.cxx
+HistologyCoordinate.cxx
 HistologySlice.cxx
 HistologySliceImage.cxx
 HistologySlicesFile.cxx

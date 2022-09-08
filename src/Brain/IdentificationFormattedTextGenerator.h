@@ -37,6 +37,7 @@ namespace caret {
     class ChartDataSource;
     class DataToolTipsManager;
     class Focus;
+    class HistologySlicesFile;
     class HtmlTableBuilder;
     class IdentificationFilter;
     class MapFileDataSelector;
@@ -56,6 +57,7 @@ namespace caret {
     class SelectionItemChartTimeSeries;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
+    class SelectionItemHistologyCoordinate;
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
     class SelectionItemSurfaceNode;
@@ -108,6 +110,7 @@ namespace caret {
                                        const int32_t tabIndex,
                                        std::vector<MapFileAndMapIndices>& mapFilesAndIndicesOut,
                                        std::vector<MapFileAndMapIndices>& chartFilesAndIndicesOut,
+                                       std::vector<MapFileAndMapIndices>& histologyFilesAndIndicesOut,
                                        std::vector<MapFileAndMapIndices>& mediaFilesAndIndicesOut) const;
         
         void generateSurfaceToolTip(const Brain* brain,
@@ -163,6 +166,12 @@ namespace caret {
                                                    const Brain* brain,
                                                    const SelectionItemSurfaceNode* idSurfaceNode) const;
 
+        void generateHistologyPlaneCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                            IdentificationStringBuilder& idText,
+                                                            const HistologySlicesFile* histologySlicesFile,
+                                                            const std::set<int32_t>& sliceIndices,
+                                                            const SelectionItemHistologyCoordinate* idHistology) const;
+        
         void generateMediaLogicalCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                              IdentificationStringBuilder& idText,
                                              const MediaFile* mediaFile,

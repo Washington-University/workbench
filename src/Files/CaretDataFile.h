@@ -33,6 +33,7 @@ namespace caret {
     class CaretMappableDataFile;
     class CziImageFile;
     class FileIdentificationAttributes;
+    class HistologySlicesFile;
     class ImageFile;
     class MediaFile;
     class GiftiMetaData;
@@ -102,6 +103,9 @@ namespace caret {
         virtual MediaFile* castToMediaFile();
         virtual const MediaFile* castToMediaFile() const;
         
+        virtual HistologySlicesFile* castToHistologySlicesFile();
+        virtual const HistologySlicesFile* castToHistologySlicesFile() const;
+
         virtual CaretMappableDataFile* castToCaretMappableDataFile();
         virtual const CaretMappableDataFile* castToCaretMappableDataFile() const;
 

@@ -553,6 +553,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     switch (ann->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
                             break;
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                            break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                             break;
                         case AnnotationCoordinateSpaceEnum::SPACER:
@@ -583,6 +585,9 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     float distanceY = 1.0;
                     switch (ann->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                            CaretAssertToDoFatal();
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                             getMediaStep(keyEvent.getViewportContent()->getBrowserTabContent(), distanceX, distanceY);
@@ -646,6 +651,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     
                     switch (ann->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
+                            break;
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                             break;
@@ -714,6 +721,9 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     switch (selectedAnnotation->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
                             changeCoordFlag = true;
+                            break;
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                            CaretAssertToDoFatal();
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                             getMediaStep(keyEvent.getViewportContent()->getBrowserTabContent(), distanceX, distanceY);
@@ -786,6 +796,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             bool surfaceFlag = false;
                             switch (selectedAnnotation->getCoordinateSpace()) {
                                 case AnnotationCoordinateSpaceEnum::CHART:
+                                    break;
+                                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                                     break;
                                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                                     break;
@@ -1033,6 +1045,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
     switch (draggingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
         case AnnotationCoordinateSpaceEnum::SPACER:
@@ -1091,6 +1105,16 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 }
             }
                 break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            {
+                int32_t modelVP[4];
+                vpContent->getModelViewport(modelVP);
+                spaceOriginX = modelVP[0];
+                spaceOriginY = modelVP[1];
+                spaceWidth   = modelVP[2];
+                spaceHeight  = modelVP[3];
+            }
+                break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             {
                 int32_t modelVP[4];
@@ -1099,7 +1123,6 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 spaceOriginY = modelVP[1];
                 spaceWidth   = modelVP[2];
                 spaceHeight  = modelVP[3];
-
             }
                 break;
             case AnnotationCoordinateSpaceEnum::SPACER:

@@ -96,11 +96,13 @@ namespace caret {
             PREF_COLOR_FOREGROUND_VOLUME       = 7,
             PREF_COLOR_CHART_MATRIX_GRID_LINES = 8,
             PREF_COLOR_CHART_THRESHOLD         = 9,
-            PREF_COLOR_FOREGROUND_MEDIA        = 10,
-            PREF_COLOR_BACKGROUND_MEDIA        = 11,
-            PREF_COLOR_BACKGROUND_WINDOW       = 12,
-            PREF_COLOR_FOREGROUND_WINDOW       = 13,
-            NUMBER_OF_PREF_COLORS              = 14
+            PREF_COLOR_FOREGROUND_HISTOLOGY    = 10,
+            PREF_COLOR_BACKGROUND_HISTOLOGY    = 11,
+            PREF_COLOR_FOREGROUND_MEDIA        = 12,
+            PREF_COLOR_BACKGROUND_MEDIA        = 13,
+            PREF_COLOR_BACKGROUND_WINDOW       = 14,
+            PREF_COLOR_FOREGROUND_WINDOW       = 15,
+            NUMBER_OF_PREF_COLORS              = 16
         };
         
         QWidget* createColorsWidget();
@@ -138,12 +140,14 @@ namespace caret {
         QWidget* m_foregroundColorChartWidget;
         QWidget* m_foregroundColorSurfaceWidget;
         QWidget* m_foregroundColorVolumeWidget;
+        QWidget* m_foregroundColorHistologyWidget;
         QWidget* m_foregroundColorMediaWidget;
         QWidget* m_backgroundColorWindowWidget;
         QWidget* m_backgroundColorAllWidget;
         QWidget* m_backgroundColorChartWidget;
         QWidget* m_backgroundColorSurfaceWidget;
         QWidget* m_backgroundColorVolumeWidget;
+        QWidget* m_backgroundColorHistologyWidget;
         QWidget* m_backgroundColorMediaWidget;
         QWidget* m_chartMatrixGridLinesColorWidget;
         QWidget* m_chartHistogramThresholdColorWidget;

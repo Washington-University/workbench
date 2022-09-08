@@ -223,6 +223,16 @@ PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
             buttonText = "Window Foreground";
             m_foregroundColorWindowWidget = colorSwatchWidget;
             break;
+        case PREF_COLOR_BACKGROUND_HISTOLOGY:
+            buttonToolTip = "Color for background in Histology Display";
+            buttonText    = "Histology Background";
+            m_backgroundColorHistologyWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_FOREGROUND_HISTOLOGY:
+            buttonToolTip = "Color for foreground (text) in Histology Display";
+            buttonText    = "Histology Foreground";
+            m_foregroundColorHistologyWidget = colorSwatchWidget;
+            break;
         case PREF_COLOR_BACKGROUND_MEDIA:
             buttonToolTip = "Color for background in Media Display";
             buttonText    = "Media Background";
@@ -296,6 +306,12 @@ PreferencesDialog::createColorsWidget()
                             colorSignalMapper);
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_BACKGROUND_SURFACE,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_FOREGROUND_HISTOLOGY,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_BACKGROUND_HISTOLOGY,
                             colorSignalMapper);
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_FOREGROUND_MEDIA,
@@ -393,6 +409,14 @@ PreferencesDialog::updateColorWidget(CaretPreferences* prefs)
             case PREF_COLOR_FOREGROUND_WINDOW:
                 colors.getColorForegroundWindow(rgb);
                 colorSwatchWidget = m_foregroundColorWindowWidget;
+                break;
+            case PREF_COLOR_FOREGROUND_HISTOLOGY:
+                colors.getColorForegroundHistologyView(rgb);
+                colorSwatchWidget = m_foregroundColorHistologyWidget;
+                break;
+            case PREF_COLOR_BACKGROUND_HISTOLOGY:
+                colors.getColorBackgroundHistologyView(rgb);
+                colorSwatchWidget = m_backgroundColorHistologyWidget;
                 break;
             case PREF_COLOR_FOREGROUND_MEDIA:
                 colors.getColorForegroundMediaView(rgb);
@@ -1071,6 +1095,14 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
             colors.getColorForegroundWindow(rgb);
             prefColorName = "Foreground - Window";
             break;
+        case PREF_COLOR_BACKGROUND_HISTOLOGY:
+            colors.getColorBackgroundHistologyView(rgb);
+            prefColorName = "Background - Histology";
+            break;
+        case PREF_COLOR_FOREGROUND_HISTOLOGY:
+            colors.getColorForegroundHistologyView(rgb);
+            prefColorName = "Foreground - Histology";
+            break;
         case PREF_COLOR_BACKGROUND_MEDIA:
             colors.getColorBackgroundMediaView(rgb);
             prefColorName = "Background - Media";
@@ -1137,6 +1169,12 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
                 break;
             case PREF_COLOR_FOREGROUND_WINDOW:
                 colors.setColorForegroundWindow(rgb);
+                break;
+            case PREF_COLOR_BACKGROUND_HISTOLOGY:
+                colors.setColorBackgroundHistologyView(rgb);
+                break;
+            case PREF_COLOR_FOREGROUND_HISTOLOGY:
+                colors.setColorForegroundHistologyView(rgb);
                 break;
             case PREF_COLOR_BACKGROUND_MEDIA:
                 colors.setColorBackgroundMediaView(rgb);

@@ -294,11 +294,9 @@ WbMacroCustomOperationAnimateOverlayCrossFade::executeCommandVersionTwo(QWidget*
         case ModelTypeEnum::MODEL_TYPE_CHART:
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
         case ModelTypeEnum::MODEL_TYPE_INVALID:
-            break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
+        case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;
-        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
@@ -542,11 +540,9 @@ WbMacroCustomOperationAnimateOverlayCrossFade::executeCommandVersionOne(QWidget*
         case ModelTypeEnum::MODEL_TYPE_CHART:
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
         case ModelTypeEnum::MODEL_TYPE_INVALID:
-            break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            CaretAssertToDoFatal();
+        case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;
-        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:

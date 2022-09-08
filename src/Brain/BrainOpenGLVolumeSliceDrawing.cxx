@@ -205,8 +205,8 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
     if (browserTabContent->getDisplayedVolumeModel() != NULL) {
         drawVolumeSliceViewPlane(sliceDrawingType,
                                  sliceProjectionType,
-                                 browserTabContent->getSliceViewPlane(),
-                                 browserTabContent->getSlicePlanesAllViewLayout(),
+                                 browserTabContent->getVolumeSliceViewPlane(),
+                                 browserTabContent->getVolumeSlicePlanesAllViewLayout(),
                                  viewport);
     }
     else if (browserTabContent->getDisplayedWholeBrainModel() != NULL) {
@@ -373,12 +373,12 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSlicesForAllStructuresView(const Volume
     }
     
     const float sliceCoordinates[3] = {
-        m_browserTabContent->getSliceCoordinateParasagittal(),
-        m_browserTabContent->getSliceCoordinateCoronal(),
-        m_browserTabContent->getSliceCoordinateAxial()
+        m_browserTabContent->getVolumeSliceCoordinateParasagittal(),
+        m_browserTabContent->getVolumeSliceCoordinateCoronal(),
+        m_browserTabContent->getVolumeSliceCoordinateAxial()
     };
     
-    if (m_browserTabContent->isSliceAxialEnabled()) {
+    if (m_browserTabContent->isVolumeSliceAxialEnabled()) {
         glPushMatrix();
         drawVolumeSliceViewProjection(AllSliceViewMode::ALL_NO,
                                       VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
@@ -389,7 +389,7 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSlicesForAllStructuresView(const Volume
         glPopMatrix();
     }
     
-    if (m_browserTabContent->isSliceCoronalEnabled()) {
+    if (m_browserTabContent->isVolumeSliceCoronalEnabled()) {
         glPushMatrix();
         drawVolumeSliceViewProjection(AllSliceViewMode::ALL_NO,
                                       VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
@@ -400,7 +400,7 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSlicesForAllStructuresView(const Volume
         glPopMatrix();
     }
     
-    if (m_browserTabContent->isSliceParasagittalEnabled()) {
+    if (m_browserTabContent->isVolumeSliceParasagittalEnabled()) {
         glPushMatrix();
         drawVolumeSliceViewProjection(AllSliceViewMode::ALL_NO,
                                       VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
@@ -444,9 +444,9 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewType(const AllSliceViewMode al
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
         {
             const float sliceCoordinates[3] = {
-                m_browserTabContent->getSliceCoordinateParasagittal(),
-                m_browserTabContent->getSliceCoordinateCoronal(),
-                m_browserTabContent->getSliceCoordinateAxial()
+                m_browserTabContent->getVolumeSliceCoordinateParasagittal(),
+                m_browserTabContent->getVolumeSliceCoordinateCoronal(),
+                m_browserTabContent->getVolumeSliceCoordinateAxial()
             };
             drawVolumeSliceViewProjection(allSliceViewMode,
                                           sliceDrawingType,
@@ -481,9 +481,9 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const AllSliceView
                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                               const int32_t viewport[4])
 {
-    const int32_t numRows = m_browserTabContent->getMontageNumberOfRows();
+    const int32_t numRows = m_browserTabContent->getVolumeMontageNumberOfRows();
     CaretAssert(numRows > 0);
-    const int32_t numCols = m_browserTabContent->getMontageNumberOfColumns();
+    const int32_t numCols = m_browserTabContent->getVolumeMontageNumberOfColumns();
     CaretAssert(numCols > 0);
     
     const int32_t montageCoordPrecision = m_browserTabContent->getVolumeMontageCoordinatePrecision();
@@ -523,36 +523,36 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const AllSliceView
     AString axisLetter = "";
     
     float sliceCoordinates[3] = {
-        m_browserTabContent->getSliceCoordinateParasagittal(),
-        m_browserTabContent->getSliceCoordinateCoronal(),
-        m_browserTabContent->getSliceCoordinateAxial()
+        m_browserTabContent->getVolumeSliceCoordinateParasagittal(),
+        m_browserTabContent->getVolumeSliceCoordinateCoronal(),
+        m_browserTabContent->getVolumeSliceCoordinateAxial()
     };
     
     int32_t sliceIndex = -1;
     int32_t maximumSliceIndex = -1;
     int64_t dimI, dimJ, dimK, numMaps, numComponents;
     m_underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-    const int32_t sliceStep = m_browserTabContent->getMontageSliceSpacing();
+    const int32_t sliceStep = m_browserTabContent->getVolumeMontageSliceSpacing();
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             sliceIndex = -1;
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            sliceIndex = m_browserTabContent->getSliceIndexAxial(m_underlayVolume);
+            sliceIndex = m_browserTabContent->getVolumeSliceIndexAxial(m_underlayVolume);
             maximumSliceIndex = dimK;
             sliceThickness = z1 - originZ;
             sliceOrigin = originZ;
             axisLetter = "Z";
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            sliceIndex = m_browserTabContent->getSliceIndexCoronal(m_underlayVolume);
+            sliceIndex = m_browserTabContent->getVolumeSliceIndexCoronal(m_underlayVolume);
             maximumSliceIndex = dimJ;
             sliceThickness = y1 - originY;
             sliceOrigin = originY;
             axisLetter = "Y";
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            sliceIndex = m_browserTabContent->getSliceIndexParasagittal(m_underlayVolume);
+            sliceIndex = m_browserTabContent->getVolumeSliceIndexParasagittal(m_underlayVolume);
             maximumSliceIndex = dimI;
             sliceThickness = x1 - originX;
             sliceOrigin = originX;

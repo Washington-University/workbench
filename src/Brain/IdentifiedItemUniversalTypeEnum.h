@@ -37,6 +37,8 @@ public:
     enum Enum {
         /** Invalid */
         INVALID,
+        /** Histology with plane coordinate */
+        HISTOLOGY_PLANE_COORDINATE,
         /** Media with logical coordinate */
         MEDIA_LOGICAL_COORDINATE,
         /** Media with plane coordinate */

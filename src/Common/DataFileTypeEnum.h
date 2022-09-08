@@ -195,8 +195,6 @@ public:
     
     static AString toCziImageFileExtension() { return ".czi"; }
     
-    static AString toCziMetaImageFileExtension() { return ".metaczi"; }
-    
 private:
     DataFileTypeEnum(const Enum enumValue, 
                      const AString& name,

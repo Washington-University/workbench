@@ -47,7 +47,7 @@ using namespace caret;
  *
  */
 ModelHistology::ModelHistology(Brain* brain)
-: Model(ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA,
+: Model(ModelTypeEnum::MODEL_TYPE_HISTOLOGY,
         brain)
 {
     std::vector<StructureEnum::Enum> overlaySurfaceStructures;

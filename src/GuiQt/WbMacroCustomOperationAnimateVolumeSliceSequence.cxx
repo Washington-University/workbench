@@ -231,15 +231,15 @@ WbMacroCustomOperationAnimateVolumeSliceSequence::performSliceIncrement(const Wu
     switch (axis) {
         case Axis::X:
             numberOfSlices = dims[0];
-            startingSliceIndex = tabContent->getSliceIndexParasagittal(vmi);
+            startingSliceIndex = tabContent->getVolumeSliceIndexParasagittal(vmi);
             break;
         case Axis::Y:
             numberOfSlices = dims[1];
-            startingSliceIndex = tabContent->getSliceIndexCoronal(vmi);
+            startingSliceIndex = tabContent->getVolumeSliceIndexCoronal(vmi);
             break;
         case Axis::Z:
             numberOfSlices = dims[2];
-            startingSliceIndex = tabContent->getSliceIndexAxial(vmi);
+            startingSliceIndex = tabContent->getVolumeSliceIndexAxial(vmi);
             break;
     }
     if (numberOfSlices <= 0) {
@@ -269,13 +269,13 @@ WbMacroCustomOperationAnimateVolumeSliceSequence::performSliceIncrement(const Wu
     while ( ! doneFlag) {
         switch (axis) {
             case Axis::X:
-                tabContent->setSliceIndexParasagittal(vmi, sliceIndex);
+                tabContent->setVolumeSliceIndexParasagittal(vmi, sliceIndex);
                 break;
             case Axis::Y:
-                tabContent->setSliceIndexCoronal(vmi, sliceIndex);
+                tabContent->setVolumeSliceIndexCoronal(vmi, sliceIndex);
                 break;
             case Axis::Z:
-                tabContent->setSliceIndexAxial(vmi, sliceIndex);
+                tabContent->setVolumeSliceIndexAxial(vmi, sliceIndex);
                 break;
         }
 
@@ -315,13 +315,13 @@ WbMacroCustomOperationAnimateVolumeSliceSequence::performSliceIncrement(const Wu
     
     switch (axis) {
         case Axis::X:
-            tabContent->setSliceIndexParasagittal(vmi, startingSliceIndex);
+            tabContent->setVolumeSliceIndexParasagittal(vmi, startingSliceIndex);
             break;
         case Axis::Y:
-            tabContent->setSliceIndexCoronal(vmi, startingSliceIndex);
+            tabContent->setVolumeSliceIndexCoronal(vmi, startingSliceIndex);
             break;
         case Axis::Z:
-            tabContent->setSliceIndexAxial(vmi, startingSliceIndex);
+            tabContent->setVolumeSliceIndexAxial(vmi, startingSliceIndex);
             break;
     }
     updateGraphics();

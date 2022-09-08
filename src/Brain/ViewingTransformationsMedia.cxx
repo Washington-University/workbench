@@ -252,6 +252,22 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
     }
 }
 
+///**
+// * Set scaling for histology
+// *
+// * @param transform
+// *    Graphics object to window transform
+// * @param scaling
+// *    New value for scaling
+// */
+//void
+//ViewingTransformationsMedia::setHistologyScaling(const GraphicsObjectToWindowTransform* transform,
+//                                                 const float scaling)
+//{
+//    setMediaScaling(transform,
+//                    scaling);
+//}
+
 /**
  * Set scaling for media
  *

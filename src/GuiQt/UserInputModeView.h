@@ -119,6 +119,10 @@ namespace caret {
         
         bool m_mediaLeftDragWithCtrlModelXYZValidFlag = false;
         
+        float m_histologyLeftDragWithCtrlModelXYZ[3];
+        
+        bool m_histologyLeftDragWithCtrlModelXYZValidFlag = false;
+        
         VOLUME_MPR_CURSOR_MODE m_mprCursorMode = VOLUME_MPR_CURSOR_MODE::INVALID;
         
     public:

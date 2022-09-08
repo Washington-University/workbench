@@ -26,9 +26,12 @@
 #include "CaretAssert.h"
 #include "CziMetaFileXmlStreamReader.h"
 #include "DataFileException.h"
+#include "DataFileContentInformation.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
 #include "HistologySlice.h"
+#include "HistologySliceImage.h"
+#include "MediaFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -52,6 +55,8 @@ HistologySlicesFile::HistologySlicesFile()
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
     m_metaData.reset(new GiftiMetaData());
+    
+    m_stereotaxicXyzBoundingBoxValidFlag = false;
     
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
@@ -106,6 +111,7 @@ HistologySlicesFile::copyHelperHistologySlicesFile(const HistologySlicesFile& ob
 {
     *m_metaData = *obj.m_metaData;
     CaretAssertMessage(0, "Copying not supported");
+    m_stereotaxicXyzBoundingBoxValidFlag = false;
 }
 
 /**
@@ -126,6 +132,27 @@ HistologySlicesFile::receiveEvent(Event* /*event*/)
 }
 
 /**
+ * @return File casted to an histology slices file (avoids use of dynamic_cast that can be slow)
+ * Overidden in MediaFile
+ */
+HistologySlicesFile*
+HistologySlicesFile::castToHistologySlicesFile()
+{
+    return this;
+}
+
+/**
+ * @return File casted to an histology slices file (avoids use of dynamic_cast that can be slow)
+ * Overidden in ImageFile
+ */
+const HistologySlicesFile*
+HistologySlicesFile::castToHistologySlicesFile() const
+{
+    return this;
+}
+
+
+/**
  * @return True if the file is empty
  */
 bool
@@ -141,6 +168,7 @@ void
 HistologySlicesFile::clear()
 {
     CaretDataFile::clear();
+    m_stereotaxicXyzBoundingBoxValidFlag = false;
 }
 
 /**
@@ -190,6 +218,8 @@ HistologySlicesFile::addHistologySlice(HistologySlice* histologySlice)
 {
     CaretAssert(histologySlice);
     m_histologySlices.emplace_back(histologySlice);
+    m_stereotaxicXyzBoundingBoxValidFlag = false;
+
 //    std::unique_ptr<HistologySlice> slicePtr(histologySlice);
 //    m_histologySlices.push_back(std::move(slicePtr));
 }
@@ -205,6 +235,23 @@ HistologySlicesFile::getNumberOfHistologySlices() const
 
 /**
  * @return Pointer to slice at given index or NULL if index is invalid
+ * @param sliceIndex
+ *    Index of slice
+ */
+HistologySlice*
+HistologySlicesFile::getHistologySliceByIndex(const int32_t sliceIndex)
+{
+    CaretAssertVectorIndex(m_histologySlices, sliceIndex);
+    if ((sliceIndex >= 0)
+        && (sliceIndex < static_cast<int32_t>(m_histologySlices.size()))) {
+        return m_histologySlices[sliceIndex].get();
+    }
+    return NULL;
+}
+
+
+/**
+ * @return Pointer to slice at given index or NULL if index is invalid (const method)
  * @param sliceIndex
  *    Index of slice
  */
@@ -236,6 +283,60 @@ HistologySlicesFile::getHistologySliceByNumber(const int32_t sliceNumber) const
 }
 
 /**
+ * @return Slice number for slice at the given index
+ * @param sliceIndex
+ *    Index of the slice
+ */
+int32_t
+HistologySlicesFile::getSliceNumberBySliceIndex(const int32_t sliceIndex) const
+{
+    CaretAssertVectorIndex(m_histologySlices, sliceIndex);
+    if ((sliceIndex >= 0)
+        && (sliceIndex < static_cast<int32_t>(m_histologySlices.size()))) {
+        CaretAssertVectorIndex(m_histologySlices, sliceIndex);
+        return m_histologySlices[sliceIndex]->getSliceNumber();
+    }
+    return -1;
+}
+
+/**
+ * @return Slice index for slice with slice number, negative if slice number is invalid
+ * @param sliceNumber
+ *    Number of the slice
+ */
+int32_t
+HistologySlicesFile::getSliceIndexFromSliceNumber(const int32_t sliceNumber) const
+{
+    const int32_t numSlices(getNumberOfHistologySlices());
+    for (int32_t sliceIndex = 0; sliceIndex < numSlices; sliceIndex++) {
+        CaretAssertVectorIndex(m_histologySlices, sliceIndex);
+        if (m_histologySlices[sliceIndex]->getSliceNumber() == sliceNumber) {
+            return sliceIndex;
+        }
+    }
+    return -1;
+}
+
+/**
+ * @return BoundingBox for all slices
+ */
+BoundingBox
+HistologySlicesFile::getStereotaxicXyzBoundingBox() const
+{
+    if ( ! m_stereotaxicXyzBoundingBoxValidFlag) {
+        m_stereotaxicXyzBoundingBox.resetForUpdate();
+        
+        for (auto& slice : m_histologySlices) {
+            BoundingBox bb(slice->getStereotaxicXyzBoundingBox());
+            m_stereotaxicXyzBoundingBox.unionOperation(bb);
+        }
+        m_stereotaxicXyzBoundingBoxValidFlag = true;
+    }
+    
+    return m_stereotaxicXyzBoundingBox;
+}
+
+/**
  * @return True if this file can be written
  */
 bool
@@ -262,7 +363,8 @@ HistologySlicesFile::readFile(const AString& filename)
         CziMetaFileXmlStreamReader reader;
         reader.readFile(filename,
                         this);
-        
+        m_stereotaxicXyzBoundingBoxValidFlag = false;
+
         //std::cout << "CZI FILE INFO: " << filename << std:;endl;
         //std::cout << toString() << std::endl;
     }
@@ -337,6 +439,7 @@ HistologySlicesFile::restoreFileDataFromScene(const SceneAttributes* sceneAttrib
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
+    m_stereotaxicXyzBoundingBoxValidFlag = false;
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
@@ -354,4 +457,29 @@ HistologySlicesFile::toString() const
         s.appendWithNewLine(slice->toString());
     }
     return s;
+}
+
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+HistologySlicesFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    CaretDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    const int32_t numSlices(getNumberOfHistologySlices());
+    for (int32_t iSlice = 0; iSlice < numSlices; iSlice++) {
+        const HistologySlice* slice(getHistologySliceByIndex(iSlice));
+        dataFileInformation.addNameAndValue("Slice Index ", iSlice);
+        dataFileInformation.addNameAndValue("Slice Number ", slice->getSliceNumber());
+        
+        const int32_t numImages(slice->getNumberOfHistologySliceImages());
+        for (int32_t jImage = 0; jImage < numImages; jImage++) {
+            const HistologySliceImage* image(slice->getHistologySliceImage(jImage));
+            dataFileInformation.addNameAndValue("Image ", image->getMediaFile()->getFileNameNoPath());
+        }
+    }
 }

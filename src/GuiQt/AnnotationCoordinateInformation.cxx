@@ -35,8 +35,10 @@
 #include "CaretAssert.h"
 #include "EventIdentificationRequest.h"
 #include "EventManager.h"
+#include "HistologySlicesFile.h"
 #include "MediaFile.h"
 #include "MouseEvent.h"
+#include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
@@ -104,6 +106,7 @@ AnnotationCoordinateInformation::copyHelperAnnotationCoordinateInformation(const
     m_surfaceSpaceInfo   = obj.m_surfaceSpaceInfo;
     m_spacerTabSpaceInfo = obj.m_spacerTabSpaceInfo;
     m_mediaSpaceInfo     = obj.m_mediaSpaceInfo;
+    m_histologySpaceInfo = obj.m_histologySpaceInfo;
 }
 
 
@@ -112,13 +115,14 @@ AnnotationCoordinateInformation::copyHelperAnnotationCoordinateInformation(const
  */
 void
 AnnotationCoordinateInformation::reset() {
-    m_modelSpaceInfo   = ModelSpaceInfo();
-    m_tabSpaceInfo     = TabWindowSpaceInfo();
-    m_windowSpaceInfo  = TabWindowSpaceInfo();
-    m_chartSpaceInfo   = ChartSpaceInfo();
-    m_surfaceSpaceInfo = SurfaceSpaceInfo();
+    m_modelSpaceInfo      = ModelSpaceInfo();
+    m_tabSpaceInfo        = TabWindowSpaceInfo();
+    m_windowSpaceInfo     = TabWindowSpaceInfo();
+    m_chartSpaceInfo      = ChartSpaceInfo();
+    m_surfaceSpaceInfo    = SurfaceSpaceInfo();
     m_spacerTabSpaceInfo  = SpacerTabSpaceInfo();
-    m_mediaSpaceInfo   = MediaFileNameAndPixelSpaceInfo();
+    m_mediaSpaceInfo      = MediaFileNameAndPixelSpaceInfo();
+    m_histologySpaceInfo  = HistologyFileNameAndPlaneSpaceInfo();
 }
 
 /**
@@ -143,6 +147,9 @@ AnnotationCoordinateInformation::isCoordinateSpaceValid(const AnnotationCoordina
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
             validSpaceFlag = m_chartSpaceInfo.m_validFlag;
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            validSpaceFlag = m_histologySpaceInfo.m_validFlag;
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             validSpaceFlag = m_mediaSpaceInfo.m_validFlag;
@@ -211,6 +218,9 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
 
     std::vector<AString> mediaFileNames;
     
+    std::vector<AString> histologyFileNames;
+    std::vector<AString> histologyMediaFileNames;
+    
     for (const auto& aci : annotationCoordInfo) {
         if (aci->m_modelSpaceInfo.m_validFlag) {
             modelSpaceValidFlags.push_back(true);
@@ -240,6 +250,11 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
         }
         if (aci->m_mediaSpaceInfo.m_validFlag) {
             mediaFileNames.push_back(aci->m_mediaSpaceInfo.m_mediaFileName);
+        }
+        
+        if (aci->m_histologySpaceInfo.m_validFlag) {
+            histologyFileNames.push_back(aci->m_histologySpaceInfo.m_histologySlicesFileName);
+            histologyMediaFileNames.push_back(aci->m_histologySpaceInfo.m_histologyMediaFileName);
         }
     }
     
@@ -315,6 +330,20 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
         }
     }
     
+    if ((histologyFileNames.size() == numCoordInfo)
+        && (histologyMediaFileNames.size() == numCoordInfo)) {
+        std::set<AString> uniqueHistologyFileNames(histologyFileNames.begin(),
+                                                   histologyFileNames.end());
+        std::set<AString> uniqueHistologyMediaFileNames(histologyMediaFileNames.begin(),
+                                                        histologyMediaFileNames.end());
+        if ((uniqueHistologyFileNames.size() == 1)
+            && (uniqueHistologyMediaFileNames.size() == 1)) {
+            validForAllCoordInfoOut.m_histologySpaceInfo.m_validFlag = true;
+            validForAllCoordInfoOut.m_histologySpaceInfo.m_histologySlicesFileName = *uniqueHistologyFileNames.begin();
+            validForAllCoordInfoOut.m_histologySpaceInfo.m_histologyMediaFileName = *uniqueHistologyMediaFileNames.begin();
+        }
+    }
+    
     return validForAllCoordInfoOut;
     
     /*
@@ -366,6 +395,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
                 break;
             case AnnotationCoordinateSpaceEnum::CHART:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             case AnnotationCoordinateSpaceEnum::SPACER:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -390,6 +420,12 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
                                  */
                                 if (coordInfoOne->m_tabSpaceInfo.m_index != coordInfoTwo->m_tabSpaceInfo.m_index) {
                                     addItFlag = false;
+                                }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                                if ((coordInfoOne->m_histologySpaceInfo.m_histologySlicesFileName == coordInfoTwo->m_histologySpaceInfo.m_histologySlicesFileName)
+                                    && (coordInfoOne->m_histologySpaceInfo.m_histologyMediaFileName == coordInfoTwo->m_histologySpaceInfo.m_histologyMediaFileName)) {
+                                    addItFlag = true;
                                 }
                                 break;
                             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -482,6 +518,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const std::vector<std:
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
                 break;
             case AnnotationCoordinateSpaceEnum::CHART:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             case AnnotationCoordinateSpaceEnum::SPACER:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -509,6 +546,12 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const std::vector<std:
                                  * Both coord info's must be in the SAME TAB
                                  */
                                 if (firstCoordInfo->m_tabSpaceInfo.m_index != coordInfo->m_tabSpaceInfo.m_index) {
+                                    addItFlag = false;
+                                }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                                if ((firstCoordInfo->m_histologySpaceInfo.m_histologySlicesFileName != coordInfo->m_histologySpaceInfo.m_histologySlicesFileName)
+                                    || (firstCoordInfo->m_histologySpaceInfo.m_histologyMediaFileName != coordInfo->m_histologySpaceInfo.m_histologyMediaFileName)) {
                                     addItFlag = false;
                                 }
                                 break;
@@ -653,6 +696,7 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
     
     SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
     SelectionItemSurfaceNode*  surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();
+    SelectionItemHistologyCoordinate* histologyPlaneID(idManager->getHistologyPlaneCoordinateIdentification());
     SelectionItemMediaLogicalCoordinate* mediaPixelID = idManager->getMediaLogicalCoordinateIdentification();
     SelectionItemMediaPlaneCoordinate* mediaPlaneID(idManager->getMediaPlaneCoordinateIdentification());
     if (surfaceNodeIdentification->isValid()) {
@@ -674,6 +718,15 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         voxelID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
     }
+    else if (histologyPlaneID->isValid()) {
+        histologyPlaneID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
+        histologyPlaneID->getModelXYZ(coordInfoOut.m_histologySpaceInfo.m_xyz);
+        
+        coordInfoOut.m_histologySpaceInfo.m_histologySlicesFileName = histologyPlaneID->getHistologySlicesFile()->getFileNameNoPath();
+        coordInfoOut.m_histologySpaceInfo.m_histologyMediaFileName = histologyPlaneID->getMediaFile()->getFileNameNoPath();
+        
+        coordInfoOut.m_histologySpaceInfo.m_validFlag = true;
+    }
     else if (mediaPixelID->isValid()) {
         mediaPixelID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         mediaPixelID->getModelXYZ(coordInfoOut.m_mediaSpaceInfo.m_xyz);
@@ -687,7 +740,7 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         mediaPixelID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         mediaPixelID->getModelXYZ(coordInfoOut.m_mediaSpaceInfo.m_xyz);
         
-        coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = mediaPixelID->getMediaFile()->getFileNameNoPath();
+        coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = mediaPlaneID->getMediaFile()->getFileNameNoPath();
         coordInfoOut.m_mediaSpaceInfo.m_validFlag = true;
         
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
@@ -880,6 +933,25 @@ AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(Annotati
                     if (coordInfoTwo->m_chartSpaceInfo.m_validFlag) {
                         if (endCoordinate != NULL) {
                             endCoordinate->setXYZ(coordInfoTwo->m_chartSpaceInfo.m_xyz);
+                        }
+                    }
+                }
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            if (coordInfoOne->m_histologySpaceInfo.m_validFlag) {
+                startCoordinate->setHistologySpace(coordInfoOne->m_histologySpaceInfo.m_histologySlicesFileName,
+                                                   coordInfoOne->m_histologySpaceInfo.m_histologyMediaFileName,
+                                                   coordInfoOne->m_histologySpaceInfo.m_xyz);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY);
+                validCoordinateFlag = true;
+                
+                if (coordInfoTwo != NULL) {
+                    if (coordInfoTwo->m_histologySpaceInfo.m_validFlag) {
+                        if (endCoordinate != NULL) {
+                            endCoordinate->setHistologySpace(coordInfoTwo->m_histologySpaceInfo.m_histologySlicesFileName,
+                                                             coordInfoTwo->m_histologySpaceInfo.m_histologyMediaFileName,
+                                                             coordInfoTwo->m_histologySpaceInfo.m_xyz);
                         }
                     }
                 }
@@ -1098,6 +1170,27 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
                             (float)(coordInfoOne->m_chartSpaceInfo.m_xyz[0] + optionalCoordInfoTwo->m_chartSpaceInfo.m_xyz[0]) / 2.0f,
                             (float)(coordInfoOne->m_chartSpaceInfo.m_xyz[1] + optionalCoordInfoTwo->m_chartSpaceInfo.m_xyz[1]) / 2.0f,
                             (float)(coordInfoOne->m_chartSpaceInfo.m_xyz[2] + optionalCoordInfoTwo->m_chartSpaceInfo.m_xyz[2]) / 2.0f
+                        };
+                        coordinate->setXYZ(centerXYZ);
+                        setWidthHeightWithTabCoordsFlag = true;
+                    }
+                }
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            if (coordInfoOne->m_histologySpaceInfo.m_validFlag) {
+                coordinate->setHistologySpace(coordInfoOne->m_histologySpaceInfo.m_histologySlicesFileName,
+                                              coordInfoOne->m_histologySpaceInfo.m_histologyMediaFileName,
+                                              coordInfoOne->m_histologySpaceInfo.m_xyz);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY);
+                validCoordinateFlag = true;
+                
+                if (optionalCoordInfoTwo != NULL) {
+                    if (optionalCoordInfoTwo->m_histologySpaceInfo.m_validFlag) {
+                        float centerXYZ[3] = {
+                            (float)(coordInfoOne->m_histologySpaceInfo.m_xyz[0] + optionalCoordInfoTwo->m_histologySpaceInfo.m_xyz[0]) / 2.0f,
+                            (float)(coordInfoOne->m_histologySpaceInfo.m_xyz[1] + optionalCoordInfoTwo->m_histologySpaceInfo.m_xyz[1]) / 2.0f,
+                            (float)(coordInfoOne->m_histologySpaceInfo.m_xyz[2] + optionalCoordInfoTwo->m_histologySpaceInfo.m_xyz[2]) / 2.0f
                         };
                         coordinate->setXYZ(centerXYZ);
                         setWidthHeightWithTabCoordsFlag = true;
@@ -1336,6 +1429,12 @@ AnnotationCoordinateInformation::setMultiDimAnnotationCoordinatesForSpace(Annota
                 validSpaceFlag = true;
             }
             break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            if (firstCoordInfo->m_histologySpaceInfo.m_validFlag) {
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY);
+                validSpaceFlag = true;
+            }
+            break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             if (firstCoordInfo->m_mediaSpaceInfo.m_validFlag) {
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL);
@@ -1395,6 +1494,13 @@ AnnotationCoordinateInformation::setMultiDimAnnotationCoordinatesForSpace(Annota
             case AnnotationCoordinateSpaceEnum::CHART:
                 if (coordInfo->m_chartSpaceInfo.m_validFlag) {
                     ac->setXYZ(coordInfo->m_chartSpaceInfo.m_xyz);
+                }
+                break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                if (coordInfo->m_histologySpaceInfo.m_validFlag) {
+                    ac->setHistologySpace(coordInfo->m_histologySpaceInfo.m_histologySlicesFileName,
+                                          coordInfo->m_histologySpaceInfo.m_histologyMediaFileName,
+                                          coordInfo->m_histologySpaceInfo.m_xyz);
                 }
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:

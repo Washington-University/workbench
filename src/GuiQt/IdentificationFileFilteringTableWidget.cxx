@@ -38,6 +38,7 @@
 #include "EventManager.h"
 #include "FileIdentificationAttributes.h"
 #include "FilePathNamePrefixCompactor.h"
+#include "HistologySlicesFile.h"
 #include "MediaFile.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
@@ -245,11 +246,14 @@ IdentificationFileFilteringTableWidget::updateContent()
         CaretAssert(caretDataFile);
         CaretMappableDataFile* mapFile(caretDataFile->castToCaretMappableDataFile());
         MediaFile* mediaFile(caretDataFile->castToMediaFile());
+        HistologySlicesFile* histologySlicesFile(caretDataFile->castToHistologySlicesFile());
         
         if ((mapFile == NULL)
+            && (histologySlicesFile == NULL)
             && (mediaFile == NULL)) {
-            CaretAssertMessage(0, "File is neither mappable nor media");
-            CaretLogSevere("File is neither mappable nor media");
+            const AString txt("File is neither mappable nor histology nor media");
+            CaretAssertMessage(0, txt);
+            CaretLogSevere(txt);
             continue;
         }
         CaretAssertVectorIndex(m_dataFiles, iRow);
@@ -311,6 +315,12 @@ IdentificationFileFilteringTableWidget::updateContent()
                     if (mapFile != NULL) {
                         for (int32_t jMap = 0; jMap < mapFile->getNumberOfMaps(); jMap++) {
                             comboBox->addItem(mapFile->getMapName(jMap));
+                        }
+                    }
+                    else if (histologySlicesFile != NULL) {
+                        for (int32_t sliceIndex = 0; sliceIndex < histologySlicesFile->getNumberOfHistologySlices(); sliceIndex++) {
+                            const int32_t sliceNumber(histologySlicesFile->getSliceNumberBySliceIndex(sliceIndex));
+                            comboBox->addItem(AString::number(sliceNumber));
                         }
                     }
                     else if (mediaFile != NULL) {

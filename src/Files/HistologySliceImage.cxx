@@ -120,12 +120,28 @@ HistologySliceImage::copyHelperHistologySliceImage(const HistologySliceImage& /*
     CaretAssertMessage(0, "Copying not supported");
 }
 
+/**
+ * @return the Media File for this slice image
+ */
+MediaFile*
+HistologySliceImage::getMediaFile()
+{
+    const MediaFile* mf(getMediaFilePrivate());
+    return const_cast<MediaFile*>(mf);
+}
+
+/**
+ * @return the Media File for this slice image, const method
+ */
 const MediaFile*
 HistologySliceImage::getMediaFile() const
 {
     return getMediaFilePrivate();
 }
 
+/**
+ * @return The media file, will cause readiing of the media file the first time called
+ */
 const MediaFile*
 HistologySliceImage::getMediaFilePrivate() const
 {

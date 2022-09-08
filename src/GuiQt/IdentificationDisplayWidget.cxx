@@ -538,6 +538,7 @@ IdentificationDisplayWidget::updateSymbolsWidget()
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* info = brain->getIdentificationManager();
     
+    m_symbolsShowHistologyCheckBox->setChecked(info->isShowHistologyIdentificationSymbols());
     m_symbolsShowMediaCheckbox->setChecked(info->isShowMediaIdentificationSymbols());
     m_symbolsShowSurfaceIdCheckBox->setChecked(info->isShowSurfaceIdentificationSymbols());
     m_symbolsShowVolumeIdCheckBox->setChecked(info->isShowVolumeIdentificationSymbols());
@@ -585,6 +586,9 @@ IdentificationDisplayWidget::updateSymbolsWidget()
 QWidget*
 IdentificationDisplayWidget::createSymbolsWidget()
 {
+    m_symbolsShowHistologyCheckBox = new QCheckBox(IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE));
+    m_symbolsShowHistologyCheckBox->setToolTip(IdentificationManager::getShowSymbolOnTypeToolTip(IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE));
+
     m_symbolsShowMediaCheckbox = new QCheckBox(IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE));
     m_symbolsShowMediaCheckbox->setToolTip(IdentificationManager::getShowSymbolOnTypeToolTip(IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE));
     
@@ -689,6 +693,7 @@ IdentificationDisplayWidget::createSymbolsWidget()
     WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);
     QObject::connect(signalWatcher, &WuQValueChangedSignalWatcher::valueChanged,
                      this, &IdentificationDisplayWidget::symbolChanged);
+    signalWatcher->addObject(m_symbolsShowHistologyCheckBox);
     signalWatcher->addObject(m_symbolsShowMediaCheckbox);
     signalWatcher->addObject(m_symbolsShowSurfaceIdCheckBox);
     signalWatcher->addObject(m_symbolsShowVolumeIdCheckBox);
@@ -703,6 +708,7 @@ IdentificationDisplayWidget::createSymbolsWidget()
     signalWatcher->addObject(m_symbolsMediaPercentageMostRecentDiameterSpinBox);
 
     QVBoxLayout* showLayout = new QVBoxLayout();
+    showLayout->addWidget(m_symbolsShowHistologyCheckBox);
     showLayout->addWidget(m_symbolsShowMediaCheckbox);
     showLayout->addWidget(m_symbolsShowSurfaceIdCheckBox);
     showLayout->addWidget(m_symbolsShowVolumeIdCheckBox);
@@ -787,6 +793,7 @@ IdentificationDisplayWidget::symbolChanged()
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* info = brain->getIdentificationManager();
     
+    info->setShowHistologyIdentificationSymbols(m_symbolsShowHistologyCheckBox->isChecked());
     info->setShowMediaIdentificationSymbols(m_symbolsShowMediaCheckbox->isChecked());
     info->setShowSurfaceIdentificationSymbols(m_symbolsShowSurfaceIdCheckBox->isChecked());
     info->setShowVolumeIdentificationSymbols(m_symbolsShowVolumeIdCheckBox->isChecked());

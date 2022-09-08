@@ -77,6 +77,10 @@ namespace caret {
         
         bool isTabHighlighted() const;
         
+        void setHistologyGraphicsObjectToWindowTransform(GraphicsObjectToWindowTransform* transform) const;
+        
+        const GraphicsObjectToWindowTransform* getHistologyGraphicsObjectToWindowTransform() const;
+        
         void setMediaGraphicsObjectToWindowTransform(GraphicsObjectToWindowTransform* transform) const;
         
         const GraphicsObjectToWindowTransform* getMediaGraphicsObjectToWindowTransform() const;
@@ -256,6 +260,8 @@ namespace caret {
         int m_windowBeforeAspectLockingWidth = 0;
         /** Window viewport's Height */
         int m_windowBeforeAspectLockingHeight = 0;
+        
+        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_histologyGraphicsObjectToWindowTransform;
         
         mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_mediaGraphicsObjectToWindowTransform;
         
