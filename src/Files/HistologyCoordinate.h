@@ -27,11 +27,32 @@
 
 
 namespace caret {
+    class HistologySlicesFile;
+    class MediaFile;
     class SceneClassAssistant;
     
     class HistologyCoordinate : public CaretObject, public SceneableInterface {
         
     public:
+        static HistologyCoordinate newInstanceIdentification(HistologySlicesFile* histologySlicesFile,
+                                                             MediaFile* mediaFile,
+                                                             const int32_t sliceIndex,
+                                                             const Vector3D& planeXYZ);
+
+        static HistologyCoordinate newInstanceDefaultSlices(HistologySlicesFile* histologySlicesFile);
+        
+        static HistologyCoordinate newInstanceStereotaxicXYZ(HistologySlicesFile* histologySlicesFile,
+                                                             const Vector3D& stereotaxicXYZ);
+        
+        static HistologyCoordinate newInstancePlaneXYZChanged(HistologySlicesFile* histologySlicesFile,
+                                                               const int32_t sliceIndex,
+                                                               const Vector3D& planeXYZ);
+        
+        static HistologyCoordinate newInstanceSliceIndexChanged(HistologySlicesFile* histologySlicesFile,
+                                                                const HistologyCoordinate& histologyCoordinate,
+                                                                const int32_t sliceIndex);
+        
+        
         HistologyCoordinate();
         
         virtual ~HistologyCoordinate();
@@ -40,26 +61,35 @@ namespace caret {
         
         HistologyCoordinate& operator=(const HistologyCoordinate& obj);
         
+        /**
+         * Helps with copying an object of this type.
+         * @param obj
+         *    Object that is copied.
+         */
+        void copyHelperHistologySliceSettings(const HistologyCoordinate& histologyCoordinate);
+        
+        void copyYokedSettings(const HistologySlicesFile* histologySlicesFile,
+                               const HistologyCoordinate& histologyCoordinate);
+
+        bool isValid() const;
+        
+        HistologySlicesFile* getHistologySlicesFile();
+        
+        const HistologySlicesFile* getHistologySlicesFile() const;
+        
+        MediaFile* getMediaFile();
+        
+        const MediaFile* getMediaFile() const;
         
         Vector3D getStereotaxicXYZ() const;
         
-        void setStereotaxicXYZ(const Vector3D& xyz);
-        
         AString getHistologySlicesFileName() const;
-        
-        void setHistologySlicesFileName(const AString& histologySlicesFileName);
         
         AString getHistologyMediaFileName() const;
         
-        void setHistologyMediaFileName(const AString& histologyMediaFileName);
-        
         int64_t getSliceIndex() const;
         
-        void setSliceIndex(const int64_t sliceIndex);
-        
-        Vector3D getPlaneXY() const;
-        
-        void setPlaneXYZ(const Vector3D& xyz);
+        Vector3D getPlaneXYZ() const;
         
         bool isStereotaxicXYZValid() const;
         
@@ -72,8 +102,6 @@ namespace caret {
         bool isSliceIndexValid() const;
         
         int64_t getSliceNumber() const;
-        
-        void setSliceNumber(const int64_t sliceNumber);
         
         bool isSliceNumberValid() const;
         
@@ -105,9 +133,31 @@ namespace caret {
         //                                                  const SceneClass* sceneClass) = 0;
         
     private:
+        void setHistologySlicesFile(HistologySlicesFile* histologySlicesFile);
+        
+        void setMediaFile(MediaFile* mediaFile);
+        
+        void setStereotaxicXYZ(const Vector3D& xyz);
+        
         void copyHelperHistologyCoordinate(const HistologyCoordinate& obj);
         
+        void setHistologySlicesFileName(const AString& histologySlicesFileName);
+        
+        void setHistologyMediaFileName(const AString& histologyMediaFileName);
+        
+        void setSliceIndex(const int64_t sliceIndex);
+        
+        void setSliceNumber(const int64_t sliceNumber);
+        
+        void setPlaneXYZ(const Vector3D& xyz);
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
+        
+        /** The histology slices file */
+        HistologySlicesFile* m_histologySlicesFile = NULL;
+        
+        /** The media file in the slice */
+        MediaFile* m_mediaFile = NULL;
         
         /** stereotaxic coordinate*/
         Vector3D m_stereotaxicXYZ;
@@ -144,7 +194,6 @@ namespace caret {
         
         /** validity of slice number*/
         bool m_sliceNumberValid = false;
-        
         
         // ADD_NEW_MEMBERS_HERE
         

@@ -5926,7 +5926,7 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                     case FiberTrajectoryColorModel::Item::ITEM_TYPE_CARET_COLOR:
                     {
                         const CaretColorEnum::Enum caretColor = fodi->colorSource->getCaretColor();
-                        const float* rgb = CaretColorEnum::toRGB(caretColor);
+                        const float* rgb = CaretColorEnum::toRGBA(caretColor);
                         glColor4f(rgb[0],
                                   rgb[1],
                                   rgb[2],

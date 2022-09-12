@@ -32,9 +32,11 @@
 #include "BrowserTabContent.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
+#include "BrainBrowserWindowToolBarSliceSelection.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
+#include "CursorDisplayScoped.h"
 #include "DisplayPropertiesCziImages.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
@@ -47,6 +49,7 @@
 #include "HistologyOverlay.h"
 #include "HistologyOverlaySet.h"
 #include "ModelHistology.h"
+#include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 #include "WuQSpinBox.h"
@@ -69,39 +72,164 @@ using namespace caret;
  *    parent toolbar.
  */
 BrainBrowserWindowToolBarHistology::BrainBrowserWindowToolBarHistology(BrainBrowserWindowToolBar* parentToolBar,
-                                                                       const QString& /*parentObjectName*/)
+                                                                       const QString& parentObjectName)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
-    QLabel* sliceIndexLabel(new QLabel("Slice Index: "));
+    const AString objectNamePrefix(parentObjectName
+                                   + ":BrainBrowserWindowToolBarHistology");
+    WuQMacroManager* macroManager(WuQMacroManager::instance());
+    
+    /*
+     * Slice controls
+     */
+    const int32_t sliceIndexNumberWidth(60);
+    
+    QLabel* sliceLabel(new QLabel("Slice"));
+    QLabel* sliceIndexLabel(new QLabel("Index"));
     m_sliceIndexSpinBox = new WuQSpinBox();
     m_sliceIndexSpinBox->setSingleStep(1);
+    m_sliceIndexSpinBox->setFixedWidth(sliceIndexNumberWidth);
     QObject::connect(m_sliceIndexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarHistology::sliceIndexValueChanged);
     
-    QLabel* sliceNumberLabel(new QLabel("Slice Number: "));
+    QLabel* sliceNumberLabel(new QLabel("Number"));
     m_sliceNumberSpinBox = new WuQSpinBox();
     m_sliceNumberSpinBox->setSingleStep(1);
+    m_sliceNumberSpinBox->setFixedWidth(sliceIndexNumberWidth);
     QObject::connect(m_sliceNumberSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarHistology::sliceNumberValueChanged);
 
-    QGridLayout* gridLayout(new QGridLayout());
+    /*
+     * Plane and stereotaxic coordinates
+     */
+    const int numberSpinBoxWidth(80);
+    QLabel* planeLabel(new QLabel("Plane"));
+    QLabel* stereotaxicLabel(new QLabel("XYZ"));
+    for (int32_t i = 0; i < 3; i++) {
+        float maxValue(1000000);
+        float minValue(-maxValue);
+        int decimals(1);
+        float step(1.0);
+        
+        m_planeXyzSpinBox[i] = new WuQDoubleSpinBox(this);
+        m_planeXyzSpinBox[i]->setFixedWidth(numberSpinBoxWidth);
+        m_planeXyzSpinBox[i]->setDecimalsModeAuto();
+        m_planeXyzSpinBox[i]->setSingleStepPercentage(1.0);
+        QObject::connect(m_planeXyzSpinBox[i], &WuQDoubleSpinBox::valueChanged,
+                         this, &BrainBrowserWindowToolBarHistology::planeXyzSpinBoxValueChanged);
+
+        maxValue = 1000;
+        minValue = -maxValue;
+        decimals = 4;
+        step     = 0.01;
+        m_stereotaxicXyzSpinBox[i] = new WuQDoubleSpinBox(this);
+        m_stereotaxicXyzSpinBox[i]->setFixedWidth(numberSpinBoxWidth);
+        m_stereotaxicXyzSpinBox[i]->setDecimalsModeAuto();
+        m_stereotaxicXyzSpinBox[i]->setSingleStepPercentage(1.0);
+        QObject::connect(m_stereotaxicXyzSpinBox[i], &WuQDoubleSpinBox::valueChanged,
+                         this, &BrainBrowserWindowToolBarHistology::stereotaxicXyzSpinBoxValueChanged);
+    }
+    
+    /*
+     * Identification moves slices button
+     */
+    const AString idToolTipText = ("When selected: If there is an identification operation "
+                                   "in ths tab or any other tab with the same yoking status "
+                                   "(not Off), the volume slices will move to the location "
+                                   "of the identified brainordinate.");
+    m_identificationMovesSlicesAction = new QAction(this);
+    m_identificationMovesSlicesAction->setCheckable(true);
+    m_identificationMovesSlicesAction->setText("");
+    WuQtUtilities::setWordWrappedToolTip(m_identificationMovesSlicesAction,
+                                         idToolTipText);
+    QAction::connect(m_identificationMovesSlicesAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarHistology::identificationMovesSlicesActionTriggered);
+    QIcon volumeCrossHairIcon;
+    const bool volumeCrossHairIconValid =
+    WuQtUtilities::loadIcon(":/ToolBar/volume-crosshair-pointer.png",
+                            volumeCrossHairIcon);
+    QToolButton* identificationMovesSlicesToolButton = new QToolButton;
+    if (volumeCrossHairIconValid) {
+        m_identificationMovesSlicesAction->setIcon(volumeCrossHairIcon);
+        m_identificationMovesSlicesAction->setIcon(BrainBrowserWindowToolBarSliceSelection::createVolumeIdentificationUpdatesSlicesIcon(identificationMovesSlicesToolButton));
+    }
+    else {
+        m_identificationMovesSlicesAction->setText("ID");
+    }
+    identificationMovesSlicesToolButton->setDefaultAction(m_identificationMovesSlicesAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(identificationMovesSlicesToolButton);
+    m_identificationMovesSlicesAction->setObjectName(objectNamePrefix
+                                                             + "MoveSliceToID");
+    macroManager->addMacroSupportToObject(m_identificationMovesSlicesAction,
+                                          "Enable move volume slice to ID location");
+    
+    /*
+     * Move to center action button
+     */
+    m_moveToCenterAction = new QAction(this);
+    m_moveToCenterAction->setText("Center");
+    m_moveToCenterAction->setToolTip("Move to center of slices");
+    QObject::connect(m_moveToCenterAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarHistology::moveToCenterActionTriggered);
+    m_moveToCenterAction->setObjectName(objectNamePrefix
+                                                     + "MoveSliceToCenter");
+    macroManager->addMacroSupportToObject(m_moveToCenterAction,
+                                          "Moves to center of slices");
+    QToolButton* moveToCenterToolButton = new QToolButton();
+    moveToCenterToolButton->setDefaultAction(m_moveToCenterAction);
+
+    
+    /*
+     * Layout widgets
+     */
+    int columnIndex(0);
+    const int columnSliceLabels(columnIndex++);
+    const int columnSliceSpinBoxes(columnIndex++);
+    const int columnPlaneSpinBoxes(columnIndex++);
+    const int columnStereotaxicSpinBoxes(columnIndex++);
+    
+    QGridLayout* controlsLayout(new QGridLayout());
     int row(0);
-    gridLayout->addWidget(sliceIndexLabel,
-                          row, 0);
-    gridLayout->addWidget(m_sliceIndexSpinBox,
-                          row, 1);
+    controlsLayout->addWidget(sliceLabel,
+                              row, columnSliceLabels, 1, 2, Qt::AlignHCenter);
+    controlsLayout->addWidget(planeLabel,
+                              row, columnPlaneSpinBoxes);
+    controlsLayout->addWidget(stereotaxicLabel,
+                              row, columnStereotaxicSpinBoxes);
     ++row;
-    gridLayout->addWidget(sliceNumberLabel,
-                          row, 0);
-    gridLayout->addWidget(m_sliceNumberSpinBox,
-                          row, 1);
+    controlsLayout->addWidget(sliceIndexLabel,
+                              row, columnSliceLabels);
+    controlsLayout->addWidget(m_sliceIndexSpinBox,
+                              row, columnSliceSpinBoxes);
+    controlsLayout->addWidget(m_planeXyzSpinBox[0]->getWidget(),
+                              row, columnPlaneSpinBoxes);
+    controlsLayout->addWidget(m_stereotaxicXyzSpinBox[0]->getWidget(),
+                              row, columnStereotaxicSpinBoxes);
+    ++row;
+    controlsLayout->addWidget(sliceNumberLabel,
+                              row, columnSliceLabels);
+    controlsLayout->addWidget(m_sliceNumberSpinBox,
+                              row, columnSliceSpinBoxes);
+    controlsLayout->addWidget(m_planeXyzSpinBox[1]->getWidget(),
+                              row, columnPlaneSpinBoxes);
+    controlsLayout->addWidget(m_stereotaxicXyzSpinBox[1]->getWidget(),
+                              row, columnStereotaxicSpinBoxes);
+    ++row;
+    controlsLayout->addWidget(m_planeXyzSpinBox[2]->getWidget(),
+                              row, columnPlaneSpinBoxes);
+    controlsLayout->addWidget(m_stereotaxicXyzSpinBox[2]->getWidget(),
+                              row, columnStereotaxicSpinBoxes);
+    ++row;
+    controlsLayout->addWidget(identificationMovesSlicesToolButton,
+                              row, columnSliceLabels, Qt::AlignLeft);
+    controlsLayout->addWidget(moveToCenterToolButton,
+                              row, columnPlaneSpinBoxes, 1, 2, Qt::AlignHCenter);
+    ++row;
 
     QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addLayout(gridLayout);
-    
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
-    layout->addStretch();
+    layout->addLayout(controlsLayout);
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
@@ -155,13 +283,78 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
 
     HistologySlicesFile* histologySlicesFile = getHistologySlicesFile(browserTabContent);
     if (histologySlicesFile != NULL) {
+        const HistologyCoordinate histologyCoordinate(m_browserTabContent->getHistologySelectedCoordinate(histologySlicesFile));
         QSignalBlocker indexBlocker(m_sliceIndexSpinBox);
         m_sliceIndexSpinBox->setRange(0, histologySlicesFile->getNumberOfHistologySlices() - 1);
-        m_sliceIndexSpinBox->setValue(m_browserTabContent->getHistologySelectedSliceIndex(histologySlicesFile));
+        m_sliceIndexSpinBox->setValue(histologyCoordinate.getSliceIndex());
 
-        QSignalBlocker numberBlocker(m_sliceIndexSpinBox);
+        QSignalBlocker numberBlocker(m_sliceNumberSpinBox);
         m_sliceNumberSpinBox->setRange(0, 100000);
-        m_sliceNumberSpinBox->setValue(m_browserTabContent->getHistologySelectedSliceNumber(histologySlicesFile));
+        m_sliceNumberSpinBox->setValue(histologyCoordinate.getSliceNumber());
+        
+        const BoundingBox planeBB(histologySlicesFile->getPlaneXyzBoundingBox());
+        const Vector3D planeXYZ(histologyCoordinate.getPlaneXYZ());
+        for (int32_t i = 0; i < 3; i++) {
+            if (histologyCoordinate.isPlaneXYValid()) {
+                double minValue(0.0);
+                double maxValue(0.0);
+                switch (i) {
+                    case 0:
+                        minValue = planeBB.getMinX();
+                        maxValue = planeBB.getMaxX();
+                        break;
+                    case 1:
+                        minValue = planeBB.getMinY();
+                        maxValue = planeBB.getMaxY();
+                        break;
+                    case 2:
+                        minValue = planeBB.getMinZ();
+                        maxValue = planeBB.getMaxZ();
+                        break;
+                }
+                QSignalBlocker blocker(m_planeXyzSpinBox[i]);
+                m_planeXyzSpinBox[i]->setRangeExceedable(minValue, maxValue);
+                m_planeXyzSpinBox[i]->setValue(planeXYZ[i]);
+                m_planeXyzSpinBox[i]->getWidget()->setEnabled(true);
+            }
+            else {
+                m_planeXyzSpinBox[i]->getWidget()->setEnabled(true);
+            }
+        }
+        
+        const BoundingBox stereotaxicBB(histologySlicesFile->getStereotaxicXyzBoundingBox());
+        const Vector3D stereotaxicXYZ(histologyCoordinate.getStereotaxicXYZ());
+        for (int32_t i = 0; i < 3; i++) {
+            if (histologyCoordinate.isStereotaxicXYZValid()) {
+                double minValue(0.0);
+                double maxValue(0.0);
+                switch (i) {
+                    case 0:
+                        minValue = stereotaxicBB.getMinX();
+                        maxValue = stereotaxicBB.getMaxX();
+                        break;
+                    case 1:
+                        minValue = stereotaxicBB.getMinY();
+                        maxValue = stereotaxicBB.getMaxY();
+                        break;
+                    case 2:
+                        minValue = stereotaxicBB.getMinZ();
+                        maxValue = stereotaxicBB.getMaxZ();
+                        break;
+                }
+                QSignalBlocker blocker(m_stereotaxicXyzSpinBox[i]);
+                m_stereotaxicXyzSpinBox[i]->setRangeExceedable(minValue, maxValue);
+                m_stereotaxicXyzSpinBox[i]->setValue(stereotaxicXYZ[i]);
+                m_stereotaxicXyzSpinBox[i]->getWidget()->setEnabled(true);
+            }
+            else {
+                m_stereotaxicXyzSpinBox[i]->getWidget()->setEnabled(true);
+            }
+        }
+    }
+    
+    if (m_browserTabContent != NULL) {
+        m_identificationMovesSlicesAction->setChecked(m_browserTabContent->isIdentificationUpdateHistologySlices());
     }
     
     setEnabled(histologySlicesFile != NULL);
@@ -223,10 +416,16 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
     if (m_browserTabContent != NULL) {
         HistologySlicesFile* histologySlicesFile = getHistologySlicesFile(m_browserTabContent);
         if (histologySlicesFile != NULL) {
-            m_browserTabContent->setHistologySelectedSliceIndex(histologySlicesFile,
-                                                                sliceIndex);
-            updateUserInterface();
+            CursorDisplayScoped cursor;
+            cursor.showWaitCursor();
+            
+            HistologyCoordinate previousHistCoord(m_browserTabContent->getHistologySelectedCoordinate(histologySlicesFile));
+            HistologyCoordinate hc(HistologyCoordinate::newInstanceSliceIndexChanged(histologySlicesFile,
+                                                                                     previousHistCoord,
+                                                                                     sliceIndex));
+            m_browserTabContent->setHistologySelectedCoordinate(hc);
             updateGraphicsWindowAndYokedWindows();
+            updateUserInterface();
         }
     }
 }
@@ -239,5 +438,105 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
 void
 BrainBrowserWindowToolBarHistology::sliceNumberValueChanged(int sliceNumber)
 {
-    
+    if (m_browserTabContent != NULL) {
+        HistologySlicesFile* histologySlicesFile = getHistologySlicesFile(m_browserTabContent);
+        if (histologySlicesFile != NULL) {
+            const int32_t sliceIndex(histologySlicesFile->getSliceIndexFromSliceNumber(sliceNumber));
+            if (sliceIndex >= 0) {
+                sliceIndexValueChanged(sliceIndex);
+            }
+        }
+    }
 }
+
+/**
+ * Called when a plane XYZ spin box value is changed
+ */
+void
+BrainBrowserWindowToolBarHistology::planeXyzSpinBoxValueChanged()
+{
+    if (m_browserTabContent != NULL) {
+        HistologySlicesFile* histologySlicesFile = getHistologySlicesFile(m_browserTabContent);
+        if (histologySlicesFile != NULL) {
+            CursorDisplayScoped cursor;
+            cursor.showWaitCursor();
+
+            Vector3D planeXYZ(m_planeXyzSpinBox[0]->value(),
+                              m_planeXyzSpinBox[1]->value(),
+                              m_planeXyzSpinBox[2]->value());
+
+            const int32_t sliceIndex(m_sliceIndexSpinBox->value());
+            HistologyCoordinate hc(HistologyCoordinate::newInstancePlaneXYZChanged(histologySlicesFile,
+                                                                                    sliceIndex,
+                                                                                    planeXYZ));
+            m_browserTabContent->setHistologySelectedCoordinate(hc);
+            updateGraphicsWindowAndYokedWindows();
+            updateUserInterface();
+        }
+    }
+}
+
+/**
+ * Called when a stereotaxic XYZ spin box value is changed
+ */
+void
+BrainBrowserWindowToolBarHistology::stereotaxicXyzSpinBoxValueChanged()
+{
+    if (m_browserTabContent != NULL) {
+        HistologySlicesFile* histologySlicesFile = getHistologySlicesFile(m_browserTabContent);
+        if (histologySlicesFile != NULL) {
+            CursorDisplayScoped cursor;
+            cursor.showWaitCursor();
+
+            Vector3D xyz(m_stereotaxicXyzSpinBox[0]->value(),
+                         m_stereotaxicXyzSpinBox[1]->value(),
+                         m_stereotaxicXyzSpinBox[2]->value());
+
+            HistologyCoordinate hc(HistologyCoordinate::newInstanceStereotaxicXYZ(histologySlicesFile,
+                                                                                  xyz));
+            m_browserTabContent->setHistologySelectedCoordinate(hc);
+            updateGraphicsWindowAndYokedWindows();
+            updateUserInterface();
+        }
+    }
+}
+
+/**
+ * Called when identification moves slices action is toggledf
+ * @param checked
+ *    New 'checked' status
+ */
+void
+BrainBrowserWindowToolBarHistology::identificationMovesSlicesActionTriggered(bool checked)
+{
+    if (m_browserTabContent != NULL) {
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
+
+        m_browserTabContent->setIdentificationUpdatesHistologySlices(checked);
+        updateUserInterface();
+    }
+}
+
+
+/**
+ * Called when identification move to center action is toggledf
+ */
+void
+BrainBrowserWindowToolBarHistology::moveToCenterActionTriggered()
+{
+    if (m_browserTabContent != NULL) {
+        if (m_browserTabContent != NULL) {
+            CursorDisplayScoped cursor;
+            cursor.showWaitCursor();
+
+            HistologySlicesFile* histologySlicesFile = getHistologySlicesFile(m_browserTabContent);
+            if (histologySlicesFile != NULL) {
+                m_browserTabContent->selectHistologySlicesAtOrigin(histologySlicesFile);
+                updateGraphicsWindowAndYokedWindows();
+                updateUserInterface();
+            }
+        }
+    }
+}
+

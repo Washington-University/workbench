@@ -26,7 +26,7 @@
 #include <memory>
 
 #include "CaretObject.h"
-
+#include "HistologyCoordinate.h"
 #include "SceneableInterface.h"
 #include "Vector3D.h"
 
@@ -45,25 +45,18 @@ namespace caret {
 
         HistologySliceSettings& operator=(const HistologySliceSettings& obj);
         
+        void copyYokedSettings(const HistologySlicesFile* histologySlicesFile,
+                               const HistologySliceSettings& settings);
+        
         void updateForHistologySlicesFile(const HistologySlicesFile* histologySlicesFile);
         
         void reset();
         
-        int64_t getSelectedSliceIndex(const HistologySlicesFile* histologySlicesFile) const;
+        HistologyCoordinate getHistologyCoordinate(const HistologySlicesFile* histologySlicesFile) const;
         
-        void setSelectedSliceIndex(const HistologySlicesFile* histologySlicesFile,
-                           const int32_t sliceIndex);
+        void setHistologyCoordinate(const HistologyCoordinate& histologyCoordinate);
         
-        int64_t getSelectedSliceNumber(const HistologySlicesFile* histologySlicesFile) const;
-        
-        void setSelectedSliceNumber(const HistologySlicesFile* histologySlicesFile,
-                            const int32_t sliceNumber);
-        
-        Vector3D getSelectedSliceCoordinateXYZ(const HistologySlicesFile* histologySlicesFile) const;
-        
-        void setSelectedSliceCoordinateXYZ(const Vector3D& xyz);
-        
-        void selectSlicesAtOrigin();
+        void selectSlicesAtCenter(const HistologySlicesFile* histologySlicesFile);
         
         // ADD_NEW_METHODS_HERE
 
@@ -95,9 +88,9 @@ namespace caret {
 
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        mutable Vector3D m_sliceCoordinateXYZ;
+        mutable HistologyCoordinate m_histologyCoordinate = HistologyCoordinate();
         
-        mutable int32_t m_sliceIndex = 0;
+        mutable Vector3D m_sliceCoordinateXYZ;
         
         bool m_initializedFlag = false;
         

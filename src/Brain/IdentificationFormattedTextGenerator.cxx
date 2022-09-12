@@ -2200,22 +2200,22 @@ IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateIdentifica
         idHistology->getModelXYZ(modelXYZ.data());
         std::vector<AString> columnOneText, columnTwoText, toolTipText;
         
-        const HistologySlicesFile* histologySlicesFile(idHistology->getHistologySlicesFile());
+        const HistologyCoordinate histologyCoordinate(idHistology->getCoordinate());
+        const HistologySlicesFile* histologySlicesFile(histologyCoordinate.getHistologySlicesFile());
         CaretAssert(histologySlicesFile);
         columnOneText.push_back("Histology File");
         columnTwoText.push_back(histologySlicesFile->getFileNameNoPath());
         columnOneText.push_back("Slice Index / Number");
-        const HistologyCoordinate histologyCoordinate(idHistology->getCoordinate());
         columnTwoText.push_back(AString::number(histologyCoordinate.getSliceIndex())
                                 + " / "
                                 + AString::number(histologySlicesFile->getSliceNumberBySliceIndex(histologyCoordinate.getSliceIndex())));
         
         std::vector<int32_t> frameIndicesVector { 0 };
-        const MediaFile* mediaFile(idHistology->getMediaFile());
+        const MediaFile* mediaFile(histologyCoordinate.getMediaFile());
         if (mediaFile != NULL) {
             mediaFile->getPixelPlaneIdentificationTextForFrames(idHistology->getTabIndex(),
                                                                 frameIndicesVector,
-                                                                histologyCoordinate.getPlaneXY(),
+                                                                histologyCoordinate.getPlaneXYZ(),
                                                                 columnOneText,
                                                                 columnTwoText,
                                                                 toolTipText);

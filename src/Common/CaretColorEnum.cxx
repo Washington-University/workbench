@@ -64,9 +64,10 @@ CaretColorEnum::CaretColorEnum(const Enum enumValue,
     this->name = name;
     this->guiName = guiName;
     
-    this->rgb[0]= red;
-    this->rgb[1]= green;
-    this->rgb[2]= blue;
+    this->rgba[0] = red;
+    this->rgba[1] = green;
+    this->rgba[2] = blue;
+    this->rgba[3] = 1.0;
 }
 
 /**
@@ -306,18 +307,18 @@ CaretColorEnum::toGuiName(Enum enumValue) {
 }
 
 /**
- * Get the RGB components (ranging zero to one) of the enumerated type.
+ * Get the RGBA components (ranging zero to one) of the enumerated type.
  * @param enumValue 
  *     Enumerated value.
- * @return  Pointer to RGB components.
+ * @return  Pointer to RGBA components (alpha = 1.0)
  */
 const float* 
-CaretColorEnum::toRGB(Enum enumValue)
+CaretColorEnum::toRGBA(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
     
     const CaretColorEnum* enumInstance = findData(enumValue);
-    return enumInstance->rgb;
+    return enumInstance->rgba;
 }
 
 /**
@@ -334,10 +335,10 @@ CaretColorEnum::toRGBAFloat(Enum enumValue,
     if (initializedFlag == false) initialize();
     
     const CaretColorEnum* enumInstance = findData(enumValue);
-    rgbaOut[0] = enumInstance->rgb[0];
-    rgbaOut[1] = enumInstance->rgb[1];
-    rgbaOut[2] = enumInstance->rgb[2];
-    rgbaOut[3] = 1.0;
+    rgbaOut[0] = enumInstance->rgba[0];
+    rgbaOut[1] = enumInstance->rgba[1];
+    rgbaOut[2] = enumInstance->rgba[2];
+    rgbaOut[3] = enumInstance->rgba[3];
 }
 
 /**
@@ -357,7 +358,7 @@ CaretColorEnum::toRGBAByte(Enum enumValue,
     rgbaOut[0] = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
     rgbaOut[1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
     rgbaOut[2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
-    rgbaOut[3] = 255;
+    rgbaOut[3] = static_cast<uint8_t>(rgbaFloat[3] * 255.0);
 }
 
 

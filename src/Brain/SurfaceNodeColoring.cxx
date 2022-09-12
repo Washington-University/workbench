@@ -1058,7 +1058,7 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
         
         if(selectedParcelValid)	{
             const CaretColorEnum::Enum parcelColor = parcelFile->getSelectedParcelColor();
-            const float* rgb = CaretColorEnum::toRGB(parcelColor);
+            const float* rgb = CaretColorEnum::toRGBA(parcelColor);
             CaretAssert(rgb);
             
             switch (parcelFile->getSelectedParcelColoringMode()) {

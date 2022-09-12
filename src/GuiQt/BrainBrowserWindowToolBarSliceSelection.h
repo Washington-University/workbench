@@ -52,6 +52,8 @@ namespace caret {
 
         virtual void receiveEvent(Event* event) override;
 
+        static QPixmap createVolumeIdentificationUpdatesSlicesIcon(const QWidget* widget);
+        
         // ADD_NEW_METHODS_HERE
 
     private slots:
@@ -92,8 +94,6 @@ namespace caret {
         QMenu* createObliqueOptionsMenu();
         void updateObliqueOptionsAction();
 
-        QPixmap createVolumeIdentificationUpdatesSlicesIcon(const QWidget* widget);
-        
 
         BrainBrowserWindowToolBar* m_parentToolBar;
         const QString m_objectNamePrefix;

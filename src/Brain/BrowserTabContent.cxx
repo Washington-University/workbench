@@ -153,6 +153,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PIXEL;
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
+    m_identificationUpdatesHistologySlices = prefs->isHistologyIdentificationDefaultedOn();
     
     m_displayVolumeAxesCrosshairs = prefs->isVolumeAxesCrosshairsDisplayed();
     m_displayVolumeAxesCrosshairLabels = prefs->isVolumeAxesLabelsDisplayed();
@@ -258,6 +259,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 
     m_sceneClassAssistant->add("m_identificationUpdatesVolumeSlices",
                                &m_identificationUpdatesVolumeSlices);
+    m_sceneClassAssistant->add("m_identificationUpdatesHistologySlices",
+                               &m_identificationUpdatesHistologySlices);
     
     m_sceneClassAssistant->add("m_displayVolumeAxesCrosshairs",
                                &m_displayVolumeAxesCrosshairs);
@@ -433,6 +436,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_obliqueVolumeRotationMatrix = *tabToClone->m_obliqueVolumeRotationMatrix;
     
     m_identificationUpdatesVolumeSlices = tabToClone->m_identificationUpdatesVolumeSlices;
+    m_identificationUpdatesHistologySlices = tabToClone->m_identificationUpdatesHistologySlices;
     
     m_displayVolumeAxesCrosshairs = tabToClone->m_displayVolumeAxesCrosshairs;
     m_displayVolumeAxesCrosshairLabels = tabToClone->m_displayVolumeAxesCrosshairLabels;
@@ -1784,63 +1788,80 @@ BrowserTabContent::receiveEvent(Event* event)
         }
 
         if (idLocationEvent->isTabSelected(getTabNumber())) {
-            if (isIdentificationUpdatesVolumeSlices()) {
-                const float* highlighXYZ = idLocationEvent->getXYZ();
-                for (int32_t windowTabNumber = 0;
-                     windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS;
-                     windowTabNumber++) {
-                    
-                    float volumeSliceXYZ[3] = {
-                        highlighXYZ[0],
-                        highlighXYZ[1],
-                        highlighXYZ[2]
-                    };
-                    
-                    /*
-                     * If othogonal/montage viewing, do not alter the slice
-                     * coordinate in the axis being viewed
-                     */
-                    if (getDisplayedVolumeModel() != NULL) {
-                        bool keepSliceCoordinateForSelectedAxis = false;
-                        switch (m_volumeSliceSettings->getSliceProjectionType()) {
-                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                                if (getVolumeSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
-                                    keepSliceCoordinateForSelectedAxis = true;
-                                }
-                                break;
-                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                                break;
-                            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                                break;
-                        }
-                        switch (m_volumeSliceSettings->getSliceDrawingType()) {
-                            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
-                                keepSliceCoordinateForSelectedAxis = true;
-                                break;
-                            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
-                                break;
-                        }
-                        
-                        if (keepSliceCoordinateForSelectedAxis) {
-                            switch (getVolumeSliceViewPlane()) {
-                                case VolumeSliceViewPlaneEnum::ALL:
-                                    volumeSliceXYZ[0] = getVolumeSliceCoordinateParasagittal();
-                                    volumeSliceXYZ[1] = getVolumeSliceCoordinateCoronal();
-                                    volumeSliceXYZ[2] = getVolumeSliceCoordinateAxial();
-                                    break;
-                                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                    volumeSliceXYZ[0] = getVolumeSliceCoordinateParasagittal();
-                                    break;
-                                case VolumeSliceViewPlaneEnum::CORONAL:
-                                    volumeSliceXYZ[1] = getVolumeSliceCoordinateCoronal();
-                                    break;
-                                case VolumeSliceViewPlaneEnum::AXIAL:
-                                    volumeSliceXYZ[2] = getVolumeSliceCoordinateAxial();
-                                    break;
+            if (isIdentificationUpdateHistologySlices()) {
+                ModelHistology* mh(getDisplayedHistologyModel());
+                if (mh != NULL) {
+                    const float* highlighXYZ = idLocationEvent->getXYZ();
+                    const Vector3D xyz(highlighXYZ[0],
+                                       highlighXYZ[1],
+                                       highlighXYZ[2]);
+                    CaretAssert(getHistologyOverlaySet());
+                    HistologyOverlay* histologyUnderlay(getHistologyOverlaySet()->getUnderlay());
+                    if (histologyUnderlay != NULL) {
+                        HistologySlicesFile* histologySlicesFile(histologyUnderlay->getSelectionData().m_selectedFile);
+                        if (histologySlicesFile != NULL ) {
+                            HistologyCoordinate hc(HistologyCoordinate::newInstanceStereotaxicXYZ(histologySlicesFile,
+                                                                                                  xyz));
+                            if (hc.isValid()) {
+                                setHistologySelectedCoordinate(hc);
                             }
                         }
                     }
+                }
+            }
+            
+            if (isIdentificationUpdatesVolumeSlices()) {
+                const float* highlighXYZ = idLocationEvent->getXYZ();
+                float volumeSliceXYZ[3] = {
+                    highlighXYZ[0],
+                    highlighXYZ[1],
+                    highlighXYZ[2]
+                };
+                
+                /*
+                 * If othogonal/montage viewing, do not alter the slice
+                 * coordinate in the axis being viewed
+                 */
+                if (getDisplayedVolumeModel() != NULL) {
+                    bool keepSliceCoordinateForSelectedAxis = false;
+                    switch (m_volumeSliceSettings->getSliceProjectionType()) {
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                            if (getVolumeSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
+                                keepSliceCoordinateForSelectedAxis = true;
+                            }
+                            break;
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                            break;
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                            break;
+                    }
+                    switch (m_volumeSliceSettings->getSliceDrawingType()) {
+                        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+                            keepSliceCoordinateForSelectedAxis = true;
+                            break;
+                        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+                            break;
+                    }
                     
+                    if (keepSliceCoordinateForSelectedAxis) {
+                        switch (getVolumeSliceViewPlane()) {
+                            case VolumeSliceViewPlaneEnum::ALL:
+                                volumeSliceXYZ[0] = getVolumeSliceCoordinateParasagittal();
+                                volumeSliceXYZ[1] = getVolumeSliceCoordinateCoronal();
+                                volumeSliceXYZ[2] = getVolumeSliceCoordinateAxial();
+                                break;
+                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                volumeSliceXYZ[0] = getVolumeSliceCoordinateParasagittal();
+                                break;
+                            case VolumeSliceViewPlaneEnum::CORONAL:
+                                volumeSliceXYZ[1] = getVolumeSliceCoordinateCoronal();
+                                break;
+                            case VolumeSliceViewPlaneEnum::AXIAL:
+                                volumeSliceXYZ[2] = getVolumeSliceCoordinateAxial();
+                                break;
+                        }
+                    }
+
                     selectVolumeSlicesAtCoordinate(volumeSliceXYZ);
                 }
             }
@@ -6275,18 +6296,6 @@ BrowserTabContent::reset()
 }
 
 /**
- * Update the slices coordinates so that they are valid for
- * the given VolumeFile.
- * @param volumeFile
- *   File for which slice coordinates are made valid.
- */
-void
-BrowserTabContent::updateForVolumeFile(const VolumeMappableInterface* volumeFile)
-{
-    m_volumeSliceSettings->updateForVolumeFile(volumeFile);
-}
-
-/**
  * Set the slice indices so that they are at the origin.
  */
 void
@@ -6420,91 +6429,57 @@ BrowserTabContent::setVolumeMontageCoordinatePrecision(const int32_t volumeMonta
     updateBrainModelYokedBrowserTabs();
 }
 
+/**
+ * If true, selected histology slices in tab move to location
+ * of the identification operation.
+ */
+bool
+BrowserTabContent::isIdentificationUpdateHistologySlices() const
+{
+    return m_identificationUpdatesHistologySlices;
+}
 
+/**
+ * Update selected histology slices in tab move to location
+ * of the identification operation.
+ *
+ * @param status
+ *    New status.
+ */
+void
+BrowserTabContent::setIdentificationUpdatesHistologySlices(const bool status)
+{
+    m_identificationUpdatesHistologySlices = status;
+    updateBrainModelYokedBrowserTabs();
+}
 /**
  * Set the histology slice indices so that they are at the origin.
  */
 void
-BrowserTabContent::selectHistologySlicesAtOrigin()
+BrowserTabContent::selectHistologySlicesAtOrigin(const HistologySlicesFile* histologySlicesFile)
 {
-    m_histologySliceSettings->selectSlicesAtOrigin();
+    m_histologySliceSettings->selectSlicesAtCenter(histologySlicesFile);
     updateHistologyModelYokedBrowserTabs();
 }
 
 /**
- * @return The histology selected slice index valid for the given histology slices file
- * @param histologySlicesFile
- *    The histology slices file
+ * @return The selected histology coordinate
  */
-int64_t
-BrowserTabContent::getHistologySelectedSliceIndex(const HistologySlicesFile* histologySlicesFile) const
+HistologyCoordinate
+BrowserTabContent::getHistologySelectedCoordinate(const HistologySlicesFile* histologySlicesFile) const
 {
-    return m_histologySliceSettings->getSelectedSliceIndex(histologySlicesFile);
+    return m_histologySliceSettings->getHistologyCoordinate(histologySlicesFile);
 }
 
 /**
- * Set the histology slice index for the given histology slices files
- * @param histologySlicesFile
- *    The histology slices file
- * @param sliceIndex
- *    New slice index
+ * She selected histology coordinate
+ * @param histologyCoordinate
+ *    New value
  */
 void
-BrowserTabContent::setHistologySelectedSliceIndex(const HistologySlicesFile* histologySlicesFile,
-                                                  const int32_t sliceIndex)
+BrowserTabContent::setHistologySelectedCoordinate(const HistologyCoordinate& histologyCoordinate)
 {
-    m_histologySliceSettings->setSelectedSliceIndex(histologySlicesFile,
-                                                    sliceIndex);
-    updateHistologyModelYokedBrowserTabs();
-}
-
-
-/**
- * @return The histology selected slice number valid for the given histology slices file
- * @param histologySlicesFile
- *    The histology slices file
- */
-int64_t
-BrowserTabContent::getHistologySelectedSliceNumber(const HistologySlicesFile* histologySlicesFile) const
-{
-    return m_histologySliceSettings->getSelectedSliceNumber(histologySlicesFile);
-}
-
-
-/**
- * Set the histology selected slice number valid for the given histology slices file
- * @param histologySlicesFile
- *    The histology slices file
- * @param sliceNumber
- *    New slice number
- */
-void
-BrowserTabContent::setHistologySelectedSliceNumber(const HistologySlicesFile* histologySlicesFile,
-                                               const int32_t sliceNumber)
-{
-    m_histologySliceSettings->setSelectedSliceNumber(histologySlicesFile,
-                                                     sliceNumber);
-    updateHistologyModelYokedBrowserTabs();
-}
-
-/**
- * @return The histology sterotaxic XYZ
- */
-Vector3D
-BrowserTabContent::getHistologySelectedSliceCoordinateXYZ(const HistologySlicesFile* histologySlicesFile) const
-{
-    return m_histologySliceSettings->getSelectedSliceCoordinateXYZ(histologySlicesFile);
-}
-
-/**
- * Set the histology stereotaxic XYZ.
- * @param xyz
- *    New stereotaxic XYZ.
- */
-void
-BrowserTabContent::setHistologySelectedSliceCoordinateXYZ(const Vector3D& xyz)
-{
-    m_histologySliceSettings->setSelectedSliceCoordinateXYZ(xyz);
+    m_histologySliceSettings->setHistologyCoordinate(histologyCoordinate);
     updateHistologyModelYokedBrowserTabs();
 }
 
@@ -7026,6 +7001,7 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 *m_obliqueVolumeRotationMatrix = *btc->m_obliqueVolumeRotationMatrix;
                 *m_clippingPlaneGroup = *btc->m_clippingPlaneGroup;
                 m_identificationUpdatesVolumeSlices = btc->m_identificationUpdatesVolumeSlices;
+                m_identificationUpdatesHistologySlices = btc->m_identificationUpdatesHistologySlices;
                 m_displayVolumeAxesCrosshairs = btc->m_displayVolumeAxesCrosshairs;
                 m_displayVolumeAxesCrosshairLabels = btc->m_displayVolumeAxesCrosshairLabels;
                 m_displayVolumeMontageAxesCoordinates = btc->m_displayVolumeMontageAxesCoordinates;
@@ -7157,6 +7133,7 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
                 *btc->m_clippingPlaneGroup = *m_clippingPlaneGroup;
                 btc->m_identificationUpdatesVolumeSlices = m_identificationUpdatesVolumeSlices;
+                btc->m_identificationUpdatesHistologySlices = m_identificationUpdatesHistologySlices;
                 btc->m_displayVolumeAxesCrosshairs = m_displayVolumeAxesCrosshairs;
                 btc->m_displayVolumeAxesCrosshairLabels = m_displayVolumeAxesCrosshairLabels;
                 btc->m_displayVolumeMontageAxesCoordinates = m_displayVolumeMontageAxesCoordinates;
@@ -7234,7 +7211,16 @@ BrowserTabContent::updateHistologyModelYokedBrowserTabs()
              * If anything is added, also need to update setYokingGroup()
              */
             if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
-                *btc->m_histologySliceSettings = *m_histologySliceSettings;
+                HistologySlicesFile* histologySlicesFile(NULL);
+                HistologyOverlaySet* overlaySet(btc->getHistologyOverlaySet());
+                if (overlaySet != NULL) {
+                    const HistologyOverlay* underlay(overlaySet->getUnderlay());
+                    if (underlay != NULL) {
+                        histologySlicesFile = underlay->getSelectionData().m_selectedFile;
+                    }
+                }
+                btc->m_histologySliceSettings->copyYokedSettings(histologySlicesFile,
+                                                                 *m_histologySliceSettings);
             }
         }
     }

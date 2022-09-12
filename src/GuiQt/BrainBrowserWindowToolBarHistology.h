@@ -28,6 +28,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class HistologySlicesFile;
+    class WuQDoubleSpinBox;
     class WuQSpinBox;
 
     class BrainBrowserWindowToolBarHistology : public BrainBrowserWindowToolBarComponent {
@@ -57,6 +58,14 @@ namespace caret {
         
         void sliceNumberValueChanged(int);
         
+        void planeXyzSpinBoxValueChanged();
+
+        void stereotaxicXyzSpinBoxValueChanged();
+        
+        void identificationMovesSlicesActionTriggered(bool);
+        
+        void moveToCenterActionTriggered();
+        
     private:
         HistologySlicesFile* getHistologySlicesFile(BrowserTabContent* browserTabContent);
         
@@ -71,6 +80,14 @@ namespace caret {
         WuQSpinBox* m_sliceIndexSpinBox;
         
         WuQSpinBox* m_sliceNumberSpinBox;
+        
+        WuQDoubleSpinBox* m_planeXyzSpinBox[3];
+        
+        WuQDoubleSpinBox* m_stereotaxicXyzSpinBox[3];
+        
+        QAction* m_identificationMovesSlicesAction;
+        
+        QAction* m_moveToCenterAction;
 };
     
     

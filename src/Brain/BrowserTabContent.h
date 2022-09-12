@@ -32,6 +32,7 @@
 #include "ChartTwoAxisScaleRangeModeEnum.h"
 #include "ClippingPlanePanningModeEnum.h"
 #include "EventListenerInterface.h"
+#include "HistologyCoordinate.h"
 #include "Matrix4x4.h"
 #include "MediaDisplayCoordinateModeEnum.h"
 #include "Model.h"
@@ -530,11 +531,13 @@ namespace caret {
         
         void setVolumeSliceAxialEnabled(const bool sliceEnabledAxial);
         
-        void updateForVolumeFile(const VolumeMappableInterface* volumeFile);
-        
         void selectVolumeSlicesAtOrigin();
         
         void selectVolumeSlicesAtCoordinate(const float xyz[3]);
+        
+        bool isIdentificationUpdateHistologySlices() const;
+
+        void setIdentificationUpdatesHistologySlices(const bool status);
         
         bool isIdentificationUpdatesVolumeSlices() const;
         
@@ -556,21 +559,11 @@ namespace caret {
         
         void setVolumeMontageCoordinatePrecision(const int32_t volumeMontageCoordinatePrecision);
         
-        int64_t getHistologySelectedSliceIndex(const HistologySlicesFile* histologySlicesFile) const;
+        HistologyCoordinate getHistologySelectedCoordinate(const HistologySlicesFile* histologySlicesFile) const;
         
-        void setHistologySelectedSliceIndex(const HistologySlicesFile* histologySlicesFile,
-                                   const int32_t sliceIndex);
-        
-        int64_t getHistologySelectedSliceNumber(const HistologySlicesFile* histologySlicesFile) const;
-        
-        void setHistologySelectedSliceNumber(const HistologySlicesFile* histologySlicesFile,
-                                    const int32_t sliceNumber);
-        
-        Vector3D getHistologySelectedSliceCoordinateXYZ(const HistologySlicesFile* histologySlicesFile) const;
-        
-        void setHistologySelectedSliceCoordinateXYZ(const Vector3D& xyz);
-        
-        void selectHistologySlicesAtOrigin();
+        void setHistologySelectedCoordinate(const HistologyCoordinate& histologyCoordinate);
+                
+        void selectHistologySlicesAtOrigin(const HistologySlicesFile* histologySlicesFile);
         
         bool isLightingEnabled() const;
         
@@ -831,6 +824,12 @@ namespace caret {
          *  of the identification operation.
          */
         bool m_identificationUpdatesVolumeSlices;
+        
+        /**
+         * If true, selected histology slices in tab move to location
+         *  of the identification operation.
+         */
+        bool m_identificationUpdatesHistologySlices;
         
         /** display crosshairs on volume slices */
         bool m_displayVolumeAxesCrosshairs;

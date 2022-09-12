@@ -46,18 +46,6 @@ namespace caret {
         
         void setCoordinate(const HistologyCoordinate& histologyCoordinate);
         
-        HistologySlicesFile* getHistologySlicesFile();
-        
-        const HistologySlicesFile* getHistologySlicesFile() const;
-
-        void setHistologySlicesFile(HistologySlicesFile* histologySlicesFile);
-        
-        MediaFile* getMediaFile();
-        
-        const MediaFile* getMediaFile() const;
-        
-        void setMediaFile(MediaFile* mediaFile);
-        
         int32_t getOverlayIndex() const;
         
         int32_t getTabIndex() const;
@@ -85,11 +73,7 @@ namespace caret {
 
         void resetPrivate();
         
-        HistologyCoordinate m_histologyCoordinate;
-        
-        HistologySlicesFile* m_histologySlicesFile = NULL;
-        
-        MediaFile* m_mediaFile = NULL;
+        HistologyCoordinate m_histologyCoordinate = HistologyCoordinate();
         
         int32_t m_tabIndex = -1;
         

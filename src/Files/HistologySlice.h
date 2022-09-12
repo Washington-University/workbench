@@ -30,6 +30,7 @@
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 #include "Matrix4x4.h"
+#include "Plane.h"
 #include "SceneableInterface.h"
 
 
@@ -67,6 +68,18 @@ namespace caret {
         bool isPlaneToMillimetersMatrixValid() const;
 
         virtual BoundingBox getStereotaxicXyzBoundingBox() const;
+        
+        virtual BoundingBox getPlaneXyzBoundingBox() const;
+        
+        bool planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
+                                      Vector3D& stereotaxicXyzOut) const;
+        
+        bool stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
+                                      Vector3D& planeXyzOut) const;
+        
+        const Plane& getStereotaxicPlane() const;
+        
+        const Plane& getPlaneXyzPlane() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -114,13 +127,24 @@ namespace caret {
         
         mutable bool m_stereotaxicXyzBoundingBoxValidFlag = false;
         
-//        Matrix4x4 m_millimetersToPlaneMatrix;
-//
-//        bool m_millimetersToPlaneMatrixValidFlag = false;
+        mutable BoundingBox m_planeXyzBoundingBox;
+        
+        mutable bool m_planeXyzBoundingBoxValidFlag = false;
+        
+        Matrix4x4 m_millimetersToPlaneMatrix;
+
+        bool m_millimetersToPlaneMatrixValidFlag = false;
         
         std::vector<std::unique_ptr<HistologySliceImage>> m_histologySliceImages;
-        
 
+        mutable Plane m_stereotaxicPlane;
+        
+        mutable bool m_stereotaxicPlaneValidFlag = false;
+
+        mutable Plane m_planeXyzPlane;
+        
+        mutable bool m_planeXyzPlaneValidFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

@@ -182,8 +182,6 @@ void
 SelectionItemHistologyCoordinate::resetPrivate()
 {
     m_histologyCoordinate = HistologyCoordinate();
-    m_histologySlicesFile = NULL;
-    m_mediaFile = NULL;
     m_pixelRGBA[0] = 0;
     m_pixelRGBA[1] = 0;
     m_pixelRGBA[2] = 0;
@@ -200,67 +198,7 @@ SelectionItemHistologyCoordinate::resetPrivate()
 bool 
 SelectionItemHistologyCoordinate::isValid() const
 {
-    return (m_histologySlicesFile != NULL);
-}
-
-/**
- * @return histology slices file that was selected (NULL if not valid).
- */
-const HistologySlicesFile*
-SelectionItemHistologyCoordinate::getHistologySlicesFile() const
-{
-    return m_histologySlicesFile;
-}
-
-/**
- * @return histology slices file that was selected (NULL if not valid).
- */
-HistologySlicesFile*
-SelectionItemHistologyCoordinate::getHistologySlicesFile()
-{
-    return m_histologySlicesFile;
-}
-
-/**
- * Set the histology slice file that was selected.
- *
- * @param histologySlicesFile
- *    Pointer to selected histology slice (NULL if not valid).
- */
-void 
-SelectionItemHistologyCoordinate::setHistologySlicesFile(HistologySlicesFile* histologySlicesFile)
-{
-    m_histologySlicesFile = histologySlicesFile;
-}
-
-/**
- * @return media file that was selected (NULL if not valid).
- */
-const MediaFile*
-SelectionItemHistologyCoordinate::getMediaFile() const
-{
-    return m_mediaFile;
-}
-
-/**
- * @return media file that was selected (NULL if not valid).
- */
-MediaFile*
-SelectionItemHistologyCoordinate::getMediaFile()
-{
-    return m_mediaFile;
-}
-
-/**
- * Set the media file  that was selected.
- *
- * @param mediaFile
- *    Pointer to selected media file (NULL if not valid).
- */
-void
-SelectionItemHistologyCoordinate::setMediaFile(MediaFile* mediaFile)
-{
-    m_mediaFile = mediaFile;
+    return (m_histologyCoordinate.getHistologySlicesFile() != NULL);
 }
 
 /**
@@ -271,6 +209,6 @@ AString
 SelectionItemHistologyCoordinate::toString() const
 {
     AString text = SelectionItem::toString();
-    text += ("Histology Slices File: " + ((m_histologySlicesFile != NULL) ? m_histologySlicesFile->getFileNameNoPath() : "INVALID") + "\n");
+    text += m_histologyCoordinate.toString();
     return text;
 }

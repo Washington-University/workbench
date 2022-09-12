@@ -462,33 +462,6 @@ VolumeSliceSettings::reset()
 }
 
 /**
- * Update the slices coordinates so that they are valid for
- * the given VolumeFile.
- * @param volumeFile
- *   File for which slice coordinates are made valid.
- */
-void
-VolumeSliceSettings::updateForVolumeFile(const VolumeMappableInterface* volumeFile)
-{
-    if (volumeFile == NULL) {
-        reset();
-        return;
-    }
-    
-    if ( ! m_initializedFlag) {
-        m_initializedFlag = true;
-        selectSlicesAtOrigin();
-    }
-    
-    /*
-     * These calls will make the slices valid
-     */
-    getSliceIndexParasagittal(volumeFile);
-    getSliceIndexCoronal(volumeFile);
-    getSliceIndexAxial(volumeFile);
-}
-
-/**
  * Set the slice indices so that they are at the origin.
  */
 void

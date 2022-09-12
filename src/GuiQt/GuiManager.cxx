@@ -3732,24 +3732,35 @@ GuiManager::processIdentification(const int32_t tabIndex,
             }
         }
         
-        SelectionItemHistologyCoordinate* idPlaneHistology = selectionManager->getHistologyPlaneCoordinateIdentification();
-        if (idPlaneHistology != NULL) {
-            if (idPlaneHistology->isValid()) {
+        SelectionItemHistologyCoordinate* idHistology = selectionManager->getHistologyPlaneCoordinateIdentification();
+        if (idHistology != NULL) {
+            if (idHistology->isValid()) {
                 if (identifiedItem == NULL) {
+                    const HistologyCoordinate coordinate(idHistology->getCoordinate());
                     AString dataFileName("Data File Name Missing");
-                    if (idPlaneHistology->getMediaFile() != NULL) {
-                        dataFileName = idPlaneHistology->getMediaFile()->getFileNameNoPath();
+                    if (coordinate.getMediaFile() != NULL) {
+                        dataFileName = coordinate.getMediaFile()->getFileNameNoPath();
                     }
-                    const HistologyCoordinate coordinate(idPlaneHistology->getCoordinate());
-                    const Vector3D planeXYZ = coordinate.getPlaneXY();
-                    Vector3D stereotaxicXYZ = coordinate.getStereotaxicXYZ();
-                    bool stereotaxicXYZValidFlag = coordinate.isStereotaxicXYZValid();
-                    identifiedItem = IdentifiedItemUniversal::newInstanceHistologyPlaneCoordinateIdentification(identificationMessage,
-                                                                                                                formattedIdentificationMessage,
-                                                                                                                dataFileName,
-                                                                                                                planeXYZ,
-                                                                                                                stereotaxicXYZ,
-                                                                                                                stereotaxicXYZValidFlag);
+                    const Vector3D planeXYZ = coordinate.getPlaneXYZ();
+                    if (coordinate.isPlaneXYValid()) {
+                        Vector3D stereotaxicXYZ = coordinate.getStereotaxicXYZ();
+                        bool stereotaxicXYZValidFlag = coordinate.isStereotaxicXYZValid();
+                        identifiedItem = IdentifiedItemUniversal::newInstanceHistologyPlaneCoordinateIdentification(identificationMessage,
+                                                                                                                    formattedIdentificationMessage,
+                                                                                                                    dataFileName,
+                                                                                                                    planeXYZ,
+                                                                                                                    stereotaxicXYZ,
+                                                                                                                    stereotaxicXYZValidFlag);
+                        if (stereotaxicXYZValidFlag) {
+                            if ( ! issuedIdentificationLocationEvent) {
+                                EventIdentificationHighlightLocation idLocation(tabIndex,
+                                                                                stereotaxicXYZ,
+                                                                                EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES);
+                                EventManager::get()->sendEvent(idLocation.getPointer());
+                                issuedIdentificationLocationEvent = true;
+                            }
+                        }
+                    }
                 }
             }
         }

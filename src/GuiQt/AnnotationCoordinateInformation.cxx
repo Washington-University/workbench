@@ -722,8 +722,9 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         histologyPlaneID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
         histologyPlaneID->getModelXYZ(coordInfoOut.m_histologySpaceInfo.m_xyz);
         
-        coordInfoOut.m_histologySpaceInfo.m_histologySlicesFileName = histologyPlaneID->getHistologySlicesFile()->getFileNameNoPath();
-        coordInfoOut.m_histologySpaceInfo.m_histologyMediaFileName = histologyPlaneID->getMediaFile()->getFileNameNoPath();
+        const HistologyCoordinate histologyCoordinate(histologyPlaneID->getCoordinate());
+        coordInfoOut.m_histologySpaceInfo.m_histologySlicesFileName = histologyCoordinate.getHistologySlicesFile()->getFileNameNoPath();
+        coordInfoOut.m_histologySpaceInfo.m_histologyMediaFileName  = histologyCoordinate.getMediaFile()->getFileNameNoPath();
         
         coordInfoOut.m_histologySpaceInfo.m_validFlag = true;
     }

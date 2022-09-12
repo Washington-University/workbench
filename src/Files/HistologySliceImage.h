@@ -55,6 +55,12 @@ namespace caret {
         
         const MediaFile* getMediaFile() const;
         
+        virtual bool planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
+                                              Vector3D& stereotaxicXyzOut) const;
+        
+        virtual bool stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
+                                              Vector3D& planeXyzOut) const;
+        
         void setPlaneToMillimetersMatrix(const Matrix4x4& planeToMillimetersMatrix,
                                          const bool planeToMillimetersMatrixValidFlag);
         
@@ -105,6 +111,10 @@ namespace caret {
         Matrix4x4 m_planeToMillimetersMatrix;
         
         bool m_planeToMillimetersMatrixValidFlag = false;
+        
+        Matrix4x4 m_millimetersToPlaneMatrix;
+        
+        bool m_millimetersToPlaneMatrixValidFlag = false;
         
         mutable std::unique_ptr<MediaFile> m_mediaFile;
         

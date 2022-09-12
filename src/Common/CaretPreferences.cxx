@@ -1992,7 +1992,7 @@ bool CaretPreferences::isVolumeIdentificationDefaultedOn() const
  * Set volume identification defaulted on
  *
  * @param status
- *    New status for yoking on.
+ *    New status for volumne identification on.
  */
 void CaretPreferences::setVolumeIdentificationDefaultedOn(const bool status)
 {
@@ -2003,6 +2003,32 @@ void CaretPreferences::setVolumeIdentificationDefaultedOn(const bool status)
     this->volumeIdentificationDefaultedOn = status;
     this->setBoolean(CaretPreferences::NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON,
                      this->volumeIdentificationDefaultedOn);
+    this->qSettings->sync();
+}
+
+/**
+ * @param Is histology identification defaulted on ?
+ */
+bool CaretPreferences::isHistologyIdentificationDefaultedOn() const
+{
+    return this->histologyIdentificationDefaultedOn;
+}
+
+/**
+ * Set histology identification defaulted on
+ *
+ * @param status
+ *    New status for histology identification  on.
+ */
+void CaretPreferences::setHistologyIdentificationDefaultedOn(const bool status)
+{
+    if (this->histologyIdentificationDefaultedOn == status) {
+        return;
+    }
+    
+    this->histologyIdentificationDefaultedOn = status;
+    this->setBoolean(CaretPreferences::NAME_HISTOLOGY_IDENTIFICATION_DEFAULTED_ON,
+                     this->histologyIdentificationDefaultedOn);
     this->qSettings->sync();
 }
 
@@ -2277,6 +2303,8 @@ CaretPreferences::readPreferences()
     this->yokingDefaultedOn = this->getBoolean(CaretPreferences::NAME_YOKING_DEFAULT_ON,
                                                true);
     
+    this->histologyIdentificationDefaultedOn = this->getBoolean(CaretPreferences::NAME_HISTOLOGY_IDENTIFICATION_DEFAULTED_ON,
+                                                                true);
     this->volumeIdentificationDefaultedOn = this->getBoolean(CaretPreferences::NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON,
                                                              true);
     

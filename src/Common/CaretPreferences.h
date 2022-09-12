@@ -240,6 +240,10 @@ namespace caret {
         
         void setVolumeIdentificationDefaultedOn(const bool status);
         
+        bool isHistologyIdentificationDefaultedOn() const;
+        
+        void setHistologyIdentificationDefaultedOn(const bool status);
+        
         SpecFileDialogViewFilesTypeEnum::Enum getManageFilesViewFileType() const;
         
         void setManageFilesViewFileType(const SpecFileDialogViewFilesTypeEnum::Enum manageFilesViewFileType);
@@ -455,6 +459,8 @@ namespace caret {
         
         bool volumeIdentificationDefaultedOn;
         
+        bool histologyIdentificationDefaultedOn;
+        
         bool showHistologyIdentificationSymbols;
         
         bool showMediaIdentificationSymbols;
@@ -531,6 +537,7 @@ namespace caret {
         static const AString NAME_TILE_TABS_CONFIGURATIONS;
         static const AString NAME_TILE_TABS_CONFIGURATIONS_TWO;
         static const AString NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON;
+        static const AString NAME_HISTOLOGY_IDENTIFICATION_DEFAULTED_ON;
         static const AString NAME_YOKING_DEFAULT_ON;
         
         static const int32_t s_defaultCziDimension = 2048;
@@ -592,6 +599,7 @@ namespace caret {
     const AString CaretPreferences::NAME_TILE_TABS_CONFIGURATIONS = "tileTabsConfigurations";
     const AString CaretPreferences::NAME_TILE_TABS_CONFIGURATIONS_TWO = "tileTabsConfigurationsTwo";
     const AString CaretPreferences::NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON = "volumeIdentificationDefaultedOn";
+    const AString CaretPreferences::NAME_HISTOLOGY_IDENTIFICATION_DEFAULTED_ON = "histologyIdentificationDefaultedOn";
     const AString CaretPreferences::NAME_YOKING_DEFAULT_ON = "yokingDefaultedOn";
 #endif // __CARET_PREFERENCES_DECLARE__
 

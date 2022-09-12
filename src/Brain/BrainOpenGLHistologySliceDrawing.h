@@ -38,6 +38,7 @@ namespace caret {
     class BrowserTabContent;
     class GraphicsObjectToWindowTransform;
     class GraphicsPrimitiveV3fT2f;
+    class HistologyCoordinate;
     class HistologyOverlaySet;
     class MediaFile;
     class ModelHistology;
@@ -66,33 +67,8 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-//        class DrawingDataData {
-//        public:
-//            DrawingDataData() { }
-//
-//            DrawingDataData(const int32_t        tabIndex,
-//                            const int32_t        overlayIndex,
-//                            HistologySlicesFile* histologySlicesFile,
-//                            MediaFile*           mediaFile,
-//                            const int32_t        selectedSliceIndex,
-//                            const bool           supportsYokingFlag)
-//            :
-//            m_tabIndex(tabIndex),
-//            m_overlayIndex(overlayIndex),
-//            m_histologySlicesFile(histologySlicesFile),
-//            m_mediaFile(mediaFile),
-//            m_selectedSliceIndex(selectedSliceIndex),
-//            m_supportsYokingFlag(supportsYokingFlag) {  }
-//
-//            int32_t              m_tabIndex = -1;
-//            int32_t              m_overlayIndex = -1;
-//            HistologySlicesFile* m_histologySlicesFile = NULL;
-//            MediaFile*           m_mediaFile = NULL;
-//            int32_t              m_selectedSliceIndex = 0;
-//            bool                 m_supportsYokingFlag = false;
-//        };
-
-        void drawModelLayers(const BrainOpenGLViewportContent* viewportContent,
+        void drawModelLayers(const std::array<float, 4>& orthoLRBT,
+                             const BrainOpenGLViewportContent* viewportContent,
                              const GraphicsObjectToWindowTransform* transform,
                              const int32_t tabIndex,
                              const float orthoHeight,
@@ -109,6 +85,9 @@ namespace caret {
                             double& orthoBottomOut,
                             double& orthoTopOut);
 
+        void drawCrosshairs(const std::array<float, 4>& orthoLRBT,
+                            const HistologyCoordinate& histologyCoordinate);
+        
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
         
         BrowserTabContent* m_browserTabContent = NULL;

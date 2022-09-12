@@ -443,7 +443,7 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
         CaretAssert(histologyID);
         if (histologyID->isValid()) {
             const HistologyCoordinate coordinate(histologyID->getCoordinate());
-            const Vector3D planeXYZ(coordinate.getPlaneXY());
+            const Vector3D planeXYZ(coordinate.getPlaneXYZ());
             modelXYZ[0] = planeXYZ[0];
             modelXYZ[1] = planeXYZ[1];
             modelXYZ[2] = planeXYZ[2];
@@ -573,7 +573,7 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
             CaretAssert(histologyID);
             if (histologyID->isValid()) {
                 const HistologyCoordinate coordinate(histologyID->getCoordinate());
-                const Vector3D planeXYZ(coordinate.getPlaneXY());
+                const Vector3D planeXYZ(coordinate.getPlaneXYZ());
                 modelXYZ[0] = planeXYZ[0];
                 modelXYZ[1] = planeXYZ[1];
                 modelXYZ[2] = planeXYZ[2];
@@ -944,7 +944,7 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                             CaretAssert(histologyID);
                             if (histologyID->isValid()) {
                                 const HistologyCoordinate coordinate(histologyID->getCoordinate());
-                                const Vector3D planeXYZ(coordinate.getPlaneXY());
+                                const Vector3D planeXYZ(coordinate.getPlaneXYZ());
                                 modelXYZ[0] = planeXYZ[0];
                                 modelXYZ[1] = planeXYZ[1];
                                 modelXYZ[2] = planeXYZ[2];

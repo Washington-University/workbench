@@ -134,8 +134,6 @@ namespace caret {
         
         void setSliceAxialEnabled(const bool sliceEnabledAxial);
         
-        void updateForVolumeFile(const VolumeMappableInterface* volumeFile);
-        
         void selectSlicesAtOrigin();
         
         void selectSlicesAtCoordinate(const float xyz[3]);

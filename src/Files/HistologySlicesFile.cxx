@@ -57,6 +57,7 @@ HistologySlicesFile::HistologySlicesFile()
     m_metaData.reset(new GiftiMetaData());
     
     m_stereotaxicXyzBoundingBoxValidFlag = false;
+    m_planeXyzBoundingBoxValidFlag       = false;
     
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
@@ -112,6 +113,7 @@ HistologySlicesFile::copyHelperHistologySlicesFile(const HistologySlicesFile& ob
     *m_metaData = *obj.m_metaData;
     CaretAssertMessage(0, "Copying not supported");
     m_stereotaxicXyzBoundingBoxValidFlag = false;
+    m_planeXyzBoundingBoxValidFlag       = false;
 }
 
 /**
@@ -169,6 +171,7 @@ HistologySlicesFile::clear()
 {
     CaretDataFile::clear();
     m_stereotaxicXyzBoundingBoxValidFlag = false;
+    m_planeXyzBoundingBoxValidFlag       = false;
 }
 
 /**
@@ -219,9 +222,7 @@ HistologySlicesFile::addHistologySlice(HistologySlice* histologySlice)
     CaretAssert(histologySlice);
     m_histologySlices.emplace_back(histologySlice);
     m_stereotaxicXyzBoundingBoxValidFlag = false;
-
-//    std::unique_ptr<HistologySlice> slicePtr(histologySlice);
-//    m_histologySlices.push_back(std::move(slicePtr));
+    m_planeXyzBoundingBoxValidFlag       = false;
 }
 
 /**
@@ -318,7 +319,7 @@ HistologySlicesFile::getSliceIndexFromSliceNumber(const int32_t sliceNumber) con
 }
 
 /**
- * @return BoundingBox for all slices
+ * @return Stereotaxic bounding box for all slices
  */
 BoundingBox
 HistologySlicesFile::getStereotaxicXyzBoundingBox() const
@@ -334,6 +335,62 @@ HistologySlicesFile::getStereotaxicXyzBoundingBox() const
     }
     
     return m_stereotaxicXyzBoundingBox;
+}
+
+/**
+ * @return Plane bounding box for all slices
+ */
+BoundingBox
+HistologySlicesFile::getPlaneXyzBoundingBox() const
+{
+    if ( ! m_planeXyzBoundingBoxValidFlag) {
+        m_planeXyzBoundingBox.resetForUpdate();
+        
+        for (auto& slice : m_histologySlices) {
+            BoundingBox bb(slice->getPlaneXyzBoundingBox());
+            m_planeXyzBoundingBox.unionOperation(bb);
+        }
+        m_planeXyzBoundingBoxValidFlag = true;
+    }
+    
+    return m_planeXyzBoundingBox;
+}
+
+/**
+ * @return The slice nearest the stereotaxic coordinate
+ * @param stereotaxicXYZ
+ *    The coordinate
+ * @param mmDistanceToSlice
+ *    Distance in millimeters for the coordinate from the output slice
+ * @param nearestOnSliceStereotaxicXYZ
+ *    Coordinate on slice nearest coordinate
+ */
+const HistologySlice*
+HistologySlicesFile::getSliceNearestStereotaxicXyz(const Vector3D& stereotaxicXYZ,
+                                                   float& mmDistanceToSlice,
+                                                   Vector3D& nearestOnSliceStereotaxicXYZ) const
+{
+    const HistologySlice* nearestSlice(NULL);
+    mmDistanceToSlice = std::numeric_limits<float>::max();
+    nearestOnSliceStereotaxicXYZ = Vector3D();
+    
+    const int32_t numSlices(getNumberOfHistologySlices());
+    for (int32_t iSlice = 0; iSlice < numSlices; iSlice++) {
+        const HistologySlice* slice(getHistologySliceByIndex(iSlice));
+        CaretAssert(slice);
+        const Plane& plane(slice->getStereotaxicPlane());
+        if (plane.isValidPlane()) {
+            const float dist(plane.absoluteDistanceToPlane(stereotaxicXYZ));
+            if (dist < mmDistanceToSlice) {
+                nearestSlice = slice;
+                mmDistanceToSlice = dist;
+                plane.projectPointToPlane(stereotaxicXYZ,
+                                          nearestOnSliceStereotaxicXYZ);
+            }
+        }
+    }
+    
+    return nearestSlice;
 }
 
 /**
@@ -364,9 +421,7 @@ HistologySlicesFile::readFile(const AString& filename)
         reader.readFile(filename,
                         this);
         m_stereotaxicXyzBoundingBoxValidFlag = false;
-
-        //std::cout << "CZI FILE INFO: " << filename << std:;endl;
-        //std::cout << toString() << std::endl;
+        m_planeXyzBoundingBoxValidFlag       = false;
     }
     catch (const DataFileException& dfe) {
         clear();
@@ -440,6 +495,7 @@ HistologySlicesFile::restoreFileDataFromScene(const SceneAttributes* sceneAttrib
                                      sceneClass);    
     
     m_stereotaxicXyzBoundingBoxValidFlag = false;
+    m_planeXyzBoundingBoxValidFlag       = false;
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);

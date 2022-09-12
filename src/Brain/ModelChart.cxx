@@ -610,7 +610,7 @@ ModelChart::receiveEvent(Event* event)
                      * Found node index so add its color to the event
                      */
                     const CaretColorEnum::Enum color = cdc->getColor();
-                    const float* rgb = CaretColorEnum::toRGB(color);
+                    const float* rgb = CaretColorEnum::toRGBA(color);
                     nodeChartID->addNode(nodeIndex,
                                          rgb);
                     break;

@@ -37,94 +37,6 @@ namespace caret {
     class HistologySlicesFile : public CaretDataFile, public EventListenerInterface {
         
     public:
-//        class Scene : public CaretObject {
-//        public:
-//            Scene(const AString& sceneName,
-//                  const Matrix4x4& scaleToPlaneMatrix,
-//                  const AString& cziFileName)
-//            : m_sceneName(sceneName),
-//            m_scaleToPlaneMatrix(scaleToPlaneMatrix),
-//            m_cziFileName(cziFileName) { }
-//
-//            virtual AString toString() const override {
-//                AString s;
-//                s.appendWithNewLine("Scene Name: "
-//                                    + m_sceneName);
-//                s.appendWithNewLine("Scale to Plane Matrix: "
-//                                    + m_scaleToPlaneMatrix.toString());
-//                s.appendWithNewLine("Czi File Name: "
-//                                    + m_cziFileName);
-//                return s;
-//            }
-//
-//            AString getSceneName() const { return m_sceneName; }
-//
-//            AString getCziFileName() const { return m_cziFileName; }
-//
-//            Matrix4x4 getScaleToPlaneMatrix() const { return m_scaleToPlaneMatrix; }
-//
-//            const AString m_sceneName;
-//
-//            const Matrix4x4 m_scaleToPlaneMatrix;
-//
-//            const AString m_cziFileName;
-//        };
-        
-//        class Slice : public CaretObject {
-//        public:
-//            Slice(const int32_t sliceNumber,
-//                  const AString& histToMriWarpFileName,
-//                  const AString& mriToHistWarpFileName,
-//                  const Matrix4x4& planeToMmMatrix)
-//            : m_sliceNumber(sliceNumber),
-//            m_histToMriWarpFileName(histToMriWarpFileName),
-//            m_mriToHistWarpFileName(mriToHistWarpFileName),
-//            m_planeToMmMatrix(planeToMmMatrix)
-//            { }
-//
-//            void addScene(const Scene& scene) {
-//                m_scenes.push_back(scene);
-//            }
-//
-//            int32_t getNumberOfScenes() const {
-//                return m_scenes.size();
-//            }
-//
-//            const Scene* getScene(const int32_t sceneIndex) const {
-//                return &m_scenes[sceneIndex];
-//            }
-//
-//            Matrix4x4 getPlaneToMillimetersMatrix() const {
-//                return m_planeToMmMatrix;
-//            }
-//
-//            virtual AString toString() const override {
-//                AString s;
-//                s.appendWithNewLine("Slice Number: "
-//                                    + AString::number(m_sliceNumber));
-//                s.appendWithNewLine("Hist to MRI Warp File: "
-//                         + m_histToMriWarpFileName);
-//                s.appendWithNewLine("MRI to Hist Warp File: "
-//                         + m_mriToHistWarpFileName);
-//                s.appendWithNewLine("Plane to MM Matrix: "
-//                         + m_planeToMmMatrix.toString());
-//                for (auto& scene : m_scenes) {
-//                    s.appendWithNewLine(scene.toString());
-//                }
-//                return s;
-//            }
-//
-//            const int32_t m_sliceNumber;
-//
-//            const AString m_histToMriWarpFileName;
-//
-//            const AString m_mriToHistWarpFileName;
-//
-//            const Matrix4x4 m_planeToMmMatrix;
-//
-//            std::vector<Scene> m_scenes;
-//        };
-        
         HistologySlicesFile();
         
         virtual ~HistologySlicesFile();
@@ -167,6 +79,12 @@ namespace caret {
         
         virtual BoundingBox getStereotaxicXyzBoundingBox() const;
         
+        virtual BoundingBox getPlaneXyzBoundingBox() const;
+        
+        const HistologySlice* getSliceNearestStereotaxicXyz(const Vector3D& stereotaxicXYZ,
+                                                            float& mmDistanceToSlice,
+                                                            Vector3D& nearestOnSliceStereotaxicXYZ) const;
+
         virtual void readFile(const AString& filename) override;
         
         virtual void writeFile(const AString& filename) override;
@@ -208,6 +126,10 @@ namespace caret {
         mutable BoundingBox m_stereotaxicXyzBoundingBox;
         
         mutable bool m_stereotaxicXyzBoundingBoxValidFlag = false;
+        
+        mutable BoundingBox m_planeXyzBoundingBox;
+        
+        mutable bool m_planeXyzBoundingBoxValidFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

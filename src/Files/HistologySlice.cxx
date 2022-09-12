@@ -68,6 +68,10 @@ m_planeToMillimetersMatrixValidFlag(planeToMillimetersMatrixValidFlag)
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
+    if (m_planeToMillimetersMatrixValidFlag) {
+        m_millimetersToPlaneMatrix = m_planeToMillimetersMatrix;
+        m_millimetersToPlaneMatrixValidFlag = m_millimetersToPlaneMatrix.invert();
+    }
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
@@ -117,6 +121,7 @@ HistologySlice::copyHelperHistologySlice(const HistologySlice& /*obj*/)
 {
     CaretAssertMessage(0, "Copying not supported");
     m_stereotaxicXyzBoundingBoxValidFlag = false;
+    m_planeXyzBoundingBoxValidFlag       = false;
 }
 
 /**
@@ -143,6 +148,7 @@ HistologySlice::addHistologySliceImage(HistologySliceImage* histologySliceImage)
     m_histologySliceImages.push_back(std::move(ptr));
     
     m_stereotaxicXyzBoundingBoxValidFlag = false;
+    m_planeXyzBoundingBoxValidFlag       = false;
 }
 
 /**
@@ -197,7 +203,7 @@ HistologySlice::isPlaneToMillimetersMatrixValid() const
 }
 
 /**
- * @return BoundingBox for the slice (bounding box of all images in slice)
+ * @return stereotaxic BoundingBox for the slice (bounding box of all images in slice)
  */
 BoundingBox
 HistologySlice::getStereotaxicXyzBoundingBox() const
@@ -213,6 +219,126 @@ HistologySlice::getStereotaxicXyzBoundingBox() const
     }
     
     return m_stereotaxicXyzBoundingBox;
+}
+
+/**
+ * @return Plane BoundingBox for the slice (bounding box of all images in slice)
+ */
+BoundingBox
+HistologySlice::getPlaneXyzBoundingBox() const
+{
+    if ( ! m_planeXyzBoundingBoxValidFlag) {
+        m_planeXyzBoundingBox.resetForUpdate();
+        
+        for (auto& slice : m_histologySliceImages) {
+            BoundingBox bb(slice->getMediaFile()->getPlaneXyzBoundingBox());
+            m_planeXyzBoundingBox.unionOperation(bb);
+        }
+        m_planeXyzBoundingBoxValidFlag = true;
+    }
+    
+    return m_planeXyzBoundingBox;
+}
+
+/**
+ * Convert a plane XYZ to stereotaxic XYZ
+ * @param planeXyz
+ *     XYZ in plane
+ * @param stereotaxicXyzOut
+ *    Output with stereotaxic XYZ
+ * @return True if successful, else false.
+ */
+bool
+HistologySlice::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
+                                              Vector3D& stereotaxicXyzOut) const
+{
+    if (m_planeToMillimetersMatrixValidFlag) {
+        Vector3D xyz(planeXyz);
+        m_planeToMillimetersMatrix.multiplyPoint3(xyz);
+        stereotaxicXyzOut = xyz;
+        return true;
+    }
+    
+    stereotaxicXyzOut = Vector3D();
+    return false;
+}
+
+/**
+ * Converrt a stereotaxic coordinate to a plane coordinate
+ * @param stereotaxicXyz
+ *    Input stereotaxic coordinate
+ * @param planeXyzOut
+ *    Output plane coordinate
+ * @return True if successful, else false
+ */
+bool
+HistologySlice::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
+                                              Vector3D& planeXyzOut) const
+{
+    if (m_millimetersToPlaneMatrixValidFlag) {
+        Vector3D xyz(stereotaxicXyz);
+        m_millimetersToPlaneMatrix.multiplyPoint3(xyz);
+        planeXyzOut = xyz;
+        
+        return true;
+    }
+    
+    planeXyzOut = Vector3D();
+    return false;
+}
+
+/**
+ * @return Plane for stereotaxic coordinates
+ */
+const Plane&
+HistologySlice::getStereotaxicPlane() const
+{
+    if ( ! m_stereotaxicPlaneValidFlag) {
+        if (getNumberOfHistologySliceImages() > 0) {
+            /*
+             * Use plane from first image as all images in slice should
+             * be close to being in the same plane
+             */
+            const HistologySliceImage* histologyImage(getHistologySliceImage(0));
+            CaretAssert(histologyImage);
+            const MediaFile* mediaFile(histologyImage->getMediaFile());
+            CaretAssert(mediaFile);
+            const Plane* plane(mediaFile->getStereotaxicImagePlane());
+            if (plane->isValidPlane()) {
+                m_stereotaxicPlane = *plane;
+                m_stereotaxicPlaneValidFlag = true;
+            }
+        }
+    }
+    
+    return m_stereotaxicPlane;
+}
+
+/**
+ * @return Plane for plane  coordinates
+ */
+const Plane&
+HistologySlice::getPlaneXyzPlane() const
+{
+    if ( ! m_planeXyzPlaneValidFlag) {
+        if (getNumberOfHistologySliceImages() > 0) {
+            /*
+             * Use plane from first image as all images in slice should
+             * be close to being in the same plane
+             */
+            const HistologySliceImage* histologyImage(getHistologySliceImage(0));
+            CaretAssert(histologyImage);
+            const MediaFile* mediaFile(histologyImage->getMediaFile());
+            CaretAssert(mediaFile);
+            const Plane* plane(mediaFile->getPlaneCoordinatesPlane());
+            if (plane->isValidPlane()) {
+                m_planeXyzPlane = *plane;
+                m_planeXyzPlaneValidFlag = true;
+            }
+        }
+    }
+    
+    return m_planeXyzPlane;
 }
 
 /**

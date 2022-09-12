@@ -863,7 +863,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
             drawChartDataCartesian(chartDataIndex,
                                    chartDataCart,
                                    lineWidth,
-                                   CaretColorEnum::toRGB(color));
+                                   CaretColorEnum::toRGBA(color));
         }
     }
     

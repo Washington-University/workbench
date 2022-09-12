@@ -24,6 +24,7 @@
 #undef __HISTOLOGY_SLICE_SETTINGS_DECLARE__
 
 #include "CaretAssert.h"
+#include "HistologySlice.h"
 #include "HistologySlicesFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -45,11 +46,11 @@ HistologySliceSettings::HistologySliceSettings()
 : CaretObject()
 {
     m_initializedFlag = false;
-    
+    m_histologyCoordinate = HistologyCoordinate();
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->addArray("m_sliceCoordinateXYZ", m_sliceCoordinateXYZ, 3, 0.0);
-    m_sceneAssistant->add("m_sliceIndex",
-                          &m_sliceIndex);
+    m_sceneAssistant->add("m_histologyCoordinate",
+                          "HistologyCoordinate",
+                          &m_histologyCoordinate);
 }
 
 /**
@@ -95,11 +96,26 @@ HistologySliceSettings::operator=(const HistologySliceSettings& obj)
 void
 HistologySliceSettings::copyHelperHistologySliceSettings(const HistologySliceSettings& obj)
 {
-    m_sliceIndex         = obj.m_sliceIndex;
-    m_sliceCoordinateXYZ = obj.m_sliceCoordinateXYZ;
+    m_histologyCoordinate = obj.m_histologyCoordinate;
     
     m_initializedFlag = true;
 }
+
+/**
+ * Copy the yoked settings
+ * @param histologySlicesFile
+ *    The histology slices file
+ * @param settings
+ *    Settings that are copied.
+ */
+void
+HistologySliceSettings::copyYokedSettings(const HistologySlicesFile* histologySlicesFile,
+                                          const HistologySliceSettings& settings)
+{
+    m_histologyCoordinate.copyYokedSettings(histologySlicesFile,
+                                            settings.m_histologyCoordinate);
+}
+
 
 /**
  * Get a description of this object's content.
@@ -117,33 +133,78 @@ HistologySliceSettings::toString() const
  *    The histology slices file
  */
 void
-HistologySliceSettings::updateForHistologySlicesFile(const HistologySlicesFile* histologySlicesFile)
+HistologySliceSettings::updateForHistologySlicesFile(const HistologySlicesFile* histologySlicesFileIn)
 {
-    if (histologySlicesFile == NULL) {
+    if (histologySlicesFileIn == NULL) {
         reset();
         return;
     }
+    HistologySlicesFile* histologySlicesFile(const_cast<HistologySlicesFile*>(histologySlicesFileIn));
     
-    if ( ! m_initializedFlag) {
-        m_initializedFlag = true;
-        selectSlicesAtOrigin();
+    bool updateCoordinateFlag(false);
+    if ( ! m_histologyCoordinate.isValid()) {
+        updateCoordinateFlag = true;
+    }
+    else if (histologySlicesFile != m_histologyCoordinate.getHistologySlicesFile()) {
+        updateCoordinateFlag = true;
+    }
+
+    if ( ! updateCoordinateFlag) {
+        return;
     }
     
-    /*
-     * These calls will make the slices valid
-     */
-    getSelectedSliceIndex(histologySlicesFile);
+    m_histologyCoordinate = HistologyCoordinate::newInstanceDefaultSlices(histologySlicesFile);
 }
 
 /**
- * Set the slice indices so that they are at the origin.
+ * @return The histology slice coordinate
+ * @param The histology slices file
+ */
+HistologyCoordinate
+HistologySliceSettings::getHistologyCoordinate(const HistologySlicesFile* histologySlicesFile) const
+{
+    bool updateFlag(false);
+    if ( ! m_histologyCoordinate.isValid()) {
+        updateFlag = true;
+    }
+    else if (m_histologyCoordinate.getHistologySlicesFile() != histologySlicesFile) {
+        updateFlag = true;
+    }
+    
+    /*
+     * If both file and coordinate are invalid, no update needed
+     */
+    if (histologySlicesFile == NULL) {
+        if ( ! m_histologyCoordinate.isValid()) {
+            updateFlag = false;
+        }
+    }
+    
+    if (updateFlag) {
+        m_histologyCoordinate = HistologyCoordinate::newInstanceDefaultSlices(const_cast<HistologySlicesFile*>(histologySlicesFile));
+    }
+
+    return m_histologyCoordinate;
+}
+
+/**
+ * Set the histology coordinate
+ * @param histologyCoordinate
+ *    New value for coordinate
  */
 void
-HistologySliceSettings::selectSlicesAtOrigin()
+HistologySliceSettings::setHistologyCoordinate(const HistologyCoordinate& histologyCoordinate)
 {
-    m_sliceCoordinateXYZ[0] = 0.0;
-    m_sliceCoordinateXYZ[1] = 0.0;
-    m_sliceCoordinateXYZ[2] = 0.0;
+    m_histologyCoordinate = histologyCoordinate;
+}
+
+/**
+ * Set the slice indices so that they are at the center.
+ */
+void
+HistologySliceSettings::selectSlicesAtCenter(const HistologySlicesFile* histologySlicesFile)
+{
+    m_histologyCoordinate = HistologyCoordinate::newInstanceDefaultSlices(const_cast<HistologySlicesFile*>(histologySlicesFile));
 }
 
 /**
@@ -152,118 +213,9 @@ HistologySliceSettings::selectSlicesAtOrigin()
 void
 HistologySliceSettings::reset()
 {
+    m_histologyCoordinate = HistologyCoordinate();
     m_initializedFlag = false;
 }
-
-/**
- * @return The selected slice index valid for the given histology slices file
- * @param histologySlicesFile
- *    The histology slices file
- */
-int64_t
-HistologySliceSettings::getSelectedSliceIndex(const HistologySlicesFile* histologySlicesFile) const
-{
-    if (histologySlicesFile != NULL) {
-        if (m_sliceIndex < 0) {
-            m_sliceIndex = 0;
-        }
-        else if (m_sliceIndex >= histologySlicesFile->getNumberOfHistologySlices()) {
-            m_sliceIndex = histologySlicesFile->getNumberOfHistologySlices() - 1;
-        }
-    }
-    else {
-        m_sliceIndex = 0;
-    }
-    return m_sliceIndex;
-}
-
-/**
- * Set the slice index for the given histology slices files
- * @param histologySlicesFile
- *    The histology slices file
- * @param sliceIndex
- *    New slice index
- */
-void
-HistologySliceSettings::setSelectedSliceIndex(const HistologySlicesFile* histologySlicesFile,
-                                      const int32_t sliceIndex)
-{
-    m_sliceIndex = sliceIndex;
-    (void)getSelectedSliceIndex(histologySlicesFile); /* makes index valid */
-}
-
-
-/**
- * @return The selected slice number valid for the given histology slices file
- * @param histologySlicesFile
- *    The histology slices file
- */
-int64_t
-HistologySliceSettings::getSelectedSliceNumber(const HistologySlicesFile* histologySlicesFile) const
-{
-    int32_t sliceNumberOut(0);
-    
-    if (histologySlicesFile != NULL) {
-        sliceNumberOut = histologySlicesFile->getSliceNumberBySliceIndex(getSelectedSliceIndex(histologySlicesFile));
-    }
-    
-    return sliceNumberOut;
-    
-}
-
-
-/**
- * Set the selected slice number valid for the given histology slices file
- * @param histologySlicesFile
- *    The histology slices file
- * @param sliceNumber
- *    New slice number
- */
-void
-HistologySliceSettings::setSelectedSliceNumber(const HistologySlicesFile* histologySlicesFile,
-                                       const int32_t sliceNumber)
-{
-    if (histologySlicesFile != NULL) {
-        const int32_t sliceIndex(histologySlicesFile->getSliceIndexFromSliceNumber(sliceNumber));
-        if (sliceIndex >= 0) {
-            setSelectedSliceIndex(histologySlicesFile,
-                                  sliceIndex);
-        }
-    }
-}
-
-/**
- * @return The sterotaxic XYZ
- */
-Vector3D
-HistologySliceSettings::getSelectedSliceCoordinateXYZ(const HistologySlicesFile* histologySlicesFile) const
-{
-    const BoundingBox boundingBox(histologySlicesFile->getStereotaxicXyzBoundingBox());
-    if (boundingBox.isValid()) {
-        /*
-         * Forces slice coordinate to be in the bounding box 
-         */
-        boundingBox.limitCoordinateToBoundingBox(m_sliceCoordinateXYZ);
-    }
-    else {
-        m_sliceCoordinateXYZ[0] = 0.0;
-        m_sliceCoordinateXYZ[1] = 0.0;
-        m_sliceCoordinateXYZ[2] = 0.0;
-    }
-    return m_sliceCoordinateXYZ;
-}
-
-/**
- * Set the stereotaxic XYZ.
- * @param xyz
- *    New stereotaxic XYZ.
- */
-void
-HistologySliceSettings::setSelectedSliceCoordinateXYZ(const Vector3D& xyz)
-{
-    m_sliceCoordinateXYZ = xyz;
-}
-
 
 /**
  * Save information specific to this type of model to the scene.

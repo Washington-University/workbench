@@ -24,6 +24,11 @@
 #undef __HISTOLOGY_COORDINATE_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "HistologySlice.h"
+#include "HistologySliceImage.h"
+#include "HistologySlicesFile.h"
+#include "MediaFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -83,6 +88,230 @@ HistologyCoordinate::~HistologyCoordinate()
 }
 
 /**
+ * New instance for identification.  slice number and stereotaxic coordinate will bet set.
+ * @param histologySlicesFile
+ *    The histology slices file (MUST be valid)
+ * @param mediaFile
+ *    The media file (may be NULL)
+ * @param sliceIndex
+ *    The slice index
+ * @param planeXYZ
+ *    The plane coordinate
+ */
+HistologyCoordinate
+HistologyCoordinate::newInstanceIdentification(HistologySlicesFile* histologySlicesFile,
+                                               MediaFile* mediaFile,
+                                               const int32_t sliceIndex,
+                                               const Vector3D& planeXYZ)
+{
+    CaretAssert(histologySlicesFile);
+    CaretAssert(mediaFile);
+    
+    HistologyCoordinate hc;
+    hc.setHistologySlicesFile(histologySlicesFile);
+    hc.setMediaFile(mediaFile);
+    hc.setSliceIndex(sliceIndex);
+    hc.setPlaneXYZ(planeXYZ);
+    hc.m_planeXY = planeXYZ;
+    
+    if (hc.m_mediaFile != NULL) {
+        Vector3D stereotaxicXYZ;
+        if (hc.m_mediaFile->planeXyzToStereotaxicXyz(hc.m_planeXY,
+                                                     stereotaxicXYZ)) {
+            hc.setStereotaxicXYZ(stereotaxicXYZ);
+        }
+    }
+    else {
+        const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
+        if (slice != NULL) {
+            Vector3D stereotaxicXYZ;
+            if (slice->planeXyzToStereotaxicXyz(planeXYZ,
+                                                stereotaxicXYZ)) {
+                hc.setStereotaxicXYZ(stereotaxicXYZ);
+            }
+        }
+    }
+    
+    return hc;
+}
+
+/**
+ * New instance for default slice at middle of the slices
+ * @param histologySlicesFile
+ *    The histology slices file (MUST be valid)
+ */
+HistologyCoordinate
+HistologyCoordinate::newInstanceDefaultSlices(HistologySlicesFile* histologySlicesFile)
+{
+    if (histologySlicesFile == NULL) {
+        HistologyCoordinate hc;
+        return hc;
+    }
+
+    const int32_t numSlices(histologySlicesFile->getNumberOfHistologySlices());
+    if (numSlices <= 0) {
+        return HistologyCoordinate();
+    }
+    
+    const int32_t sliceIndex(numSlices / 2);
+    CaretAssert((sliceIndex >= 0)
+                && (sliceIndex < numSlices));
+    
+    const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
+    if (slice != NULL) {
+        BoundingBox bb(slice->getPlaneXyzBoundingBox());
+        if (bb.isValid2D()) {
+            Vector3D planeXYZ;
+            bb.getCenter(planeXYZ);
+            
+            HistologyCoordinate hc;
+            hc.m_histologySlicesFile = histologySlicesFile;
+            hc.m_histologySlicesFileName = hc.m_histologySlicesFile->getFileName();
+            hc.setSliceIndex(sliceIndex);
+            hc.setPlaneXYZ(planeXYZ);
+            
+            Vector3D stereotaxicXYZ;
+            if (slice->planeXyzToStereotaxicXyz(planeXYZ,
+                                                stereotaxicXYZ)) {
+                hc.setStereotaxicXYZ(stereotaxicXYZ);
+            }
+
+            return hc;
+        }
+    }
+
+    HistologyCoordinate hc;
+    return hc;
+}
+
+/**
+ * New instance for identification.  slice number and stereotaxic coordinate will bet set.
+ * @param histologySlicesFile
+ *    The histology slices file (MUST be valid)
+ * @param mediaFile
+ *    The media file (may be NULL)
+ * @param sliceIndex
+ *    The slice index
+ * @param planeXYZ
+ *    The plane coordinate
+ */
+HistologyCoordinate
+HistologyCoordinate::newInstancePlaneXYZChanged(HistologySlicesFile* histologySlicesFile,
+                                               const int32_t sliceIndex,
+                                               const Vector3D& planeXYZ)
+{
+    CaretAssert(histologySlicesFile);
+    
+    HistologyCoordinate hc;
+    hc.setHistologySlicesFile(histologySlicesFile);
+    hc.setMediaFile(NULL);
+    hc.setSliceIndex(sliceIndex);
+    hc.setPlaneXYZ(planeXYZ);
+    hc.m_planeXY = planeXYZ;
+    
+    const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
+    if (slice != NULL) {
+        Vector3D stereotaxicXYZ;
+        if (slice->planeXyzToStereotaxicXyz(planeXYZ,
+                                            stereotaxicXYZ)) {
+            hc.setStereotaxicXYZ(stereotaxicXYZ);
+        }
+    }
+    
+    return hc;
+}
+
+/**
+ * New instance for closest slices to the stereotaxic  coordinate
+ * @param histologySlicesFile
+ *    The histology slices file (MUST be valid)
+ * @param stereotaxicXYZ
+ *    The stereotaxic coordinate
+ */
+HistologyCoordinate
+HistologyCoordinate::newInstanceStereotaxicXYZ(HistologySlicesFile* histologySlicesFile,
+                                               const Vector3D& stereotaxicXYZ)
+{
+    if (histologySlicesFile != NULL) {
+        float mmDistanceToSlice(0.0);
+        Vector3D nearestOnSliceStereotaxicXYZ;
+        
+        const HistologySlice* nearestSlice(histologySlicesFile->getSliceNearestStereotaxicXyz(stereotaxicXYZ,
+                                                                                              mmDistanceToSlice,
+                                                                                              nearestOnSliceStereotaxicXYZ));
+        if (nearestSlice != NULL) {
+            Vector3D planeXYZ;
+            nearestSlice->stereotaxicXyzToPlaneXyz(nearestOnSliceStereotaxicXYZ,
+                                                   planeXYZ);
+            HistologyCoordinate hc;
+            hc.setHistologySlicesFile(histologySlicesFile);
+            hc.setSliceIndex(histologySlicesFile->getSliceIndexFromSliceNumber(nearestSlice->getSliceNumber()));
+            hc.setPlaneXYZ(planeXYZ);
+            hc.setStereotaxicXYZ(nearestOnSliceStereotaxicXYZ);
+            
+            return hc;
+        }
+    }
+    
+    HistologyCoordinate hc;
+    return hc;
+}
+
+/**
+ * New instance for closest slices to the stereotaxic  coordinate
+ * @param histologySlicesFile
+ *    The histology slices file (MUST be valid)
+ * @param stereotaxicXYZ
+ *    The stereotaxic coordinate
+ */
+HistologyCoordinate
+HistologyCoordinate::newInstanceSliceIndexChanged(HistologySlicesFile* histologySlicesFile,
+                                                  const HistologyCoordinate& histologyCoordinate,
+                                                  const int32_t sliceIndex)
+{
+    if ( ! histologyCoordinate.isValid()) {
+        const AString msg("Histology coordinate must be valid when slice index changed");
+        CaretLogSevere(msg);
+        CaretAssertMessage(0, msg);
+        HistologyCoordinate hc;
+        return hc;
+    }
+    
+    const HistologySlice* histologySlice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
+    if (histologySlice == NULL) {
+        const AString msg("Invalid slice index=" + AString::number(sliceIndex));
+        CaretLogSevere(msg);
+        CaretAssertMessage(0, msg);
+        HistologyCoordinate hc;
+        return hc;
+    }
+    
+    const Plane plane(histologySlice->getPlaneXyzPlane());
+    if (plane.isValidPlane()) {
+        Vector3D newPlaneXYZ;
+        /*
+         * Move previous plane coord to the new slice's plane
+         */
+        plane.projectPointToPlane(histologyCoordinate.getPlaneXYZ(),
+                                  newPlaneXYZ);
+
+        Vector3D newStereotaxicXYZ;
+        histologySlice->planeXyzToStereotaxicXyz(newPlaneXYZ,
+                                                 newStereotaxicXYZ);
+
+        HistologyCoordinate hc;
+        hc.setHistologySlicesFile(histologySlicesFile);
+        hc.setSliceIndex(sliceIndex);
+        hc.setPlaneXYZ(newPlaneXYZ);
+        hc.setStereotaxicXYZ(newStereotaxicXYZ);
+        return hc;
+    }
+ 
+    HistologyCoordinate hc;
+    return hc;
+}
+
+/**
  * Copy constructor.
  * @param obj
  *    Object that is copied.
@@ -118,6 +347,8 @@ HistologyCoordinate::operator=(const HistologyCoordinate& obj)
 void 
 HistologyCoordinate::copyHelperHistologyCoordinate(const HistologyCoordinate& obj)
 {
+    m_histologySlicesFile          = obj.m_histologySlicesFile;
+    m_mediaFile                    = obj.m_mediaFile;
     m_stereotaxicXYZ               = obj.m_stereotaxicXYZ;
     m_histologySlicesFileName      = obj.m_histologySlicesFileName;
     m_histologyMediaFileName       = obj.m_histologyMediaFileName;
@@ -130,6 +361,46 @@ HistologyCoordinate::copyHelperHistologyCoordinate(const HistologyCoordinate& ob
     m_sliceIndexValid              = obj.m_sliceIndexValid;
     m_sliceNumber                  = obj.m_sliceNumber;
     m_sliceNumberValid             = obj.m_sliceNumberValid;
+}
+
+/**
+ * Copy the yoked settings of the coordinate
+ * @param histologySlicesFile
+ *    The histology slices file
+ * @param histologyCoordinate
+ *    Coordinate that is copied.
+ */
+void
+HistologyCoordinate::copyYokedSettings(const HistologySlicesFile* histologySlicesFile,
+                                       const HistologyCoordinate& histologyCoordinate)
+{
+    if (&histologyCoordinate == this) {
+        return;
+    }
+    
+    if (histologyCoordinate.isValid()
+        && histologyCoordinate.isStereotaxicXYZValid()) {
+        HistologyCoordinate newCoord(HistologyCoordinate::newInstanceStereotaxicXYZ(const_cast<HistologySlicesFile*>(histologySlicesFile),
+                                                                                    histologyCoordinate.getStereotaxicXYZ()));
+        *this = newCoord;
+    }
+    else {
+        CaretLogSevere("Histology coordinate must be valid with valid stereotaxic coordinates");
+    }
+}
+
+/**
+ * @param is this coordinate valid?
+ */
+bool
+HistologyCoordinate::isValid() const
+{
+    if ((m_histologySlicesFile != NULL)
+        && m_planeXYValid) {
+        return true;
+    }
+    
+    return false;
 }
 
 /**
@@ -198,6 +469,37 @@ HistologyCoordinate::restoreFromScene(const SceneAttributes* sceneAttributes,
     
 }
 
+/**
+ * @return Pointer to histology slices file.  May be NULL or if not NULL, may not point to a valid file.
+ */
+HistologySlicesFile*
+HistologyCoordinate::getHistologySlicesFile()
+{
+    return m_histologySlicesFile;
+}
+
+/**
+ * @return Pointer to histology slices file.  May be NULL or if not NULL, may not point to a valid file.
+ */
+const HistologySlicesFile*
+HistologyCoordinate::getHistologySlicesFile() const
+{
+    return m_histologySlicesFile;
+}
+
+/**
+ * Set the histology slices file.
+ * @param histologySlicesFile
+ *    Pointer to histology slices file.
+ */
+void
+HistologyCoordinate::setHistologySlicesFile(HistologySlicesFile* histologySlicesFile)
+{
+    m_histologySlicesFile = histologySlicesFile;
+    if (m_histologySlicesFile != NULL) {
+        setHistologySlicesFileName(m_histologySlicesFile->getFileName());
+    }
+}
 
 /**
  * @return stereotaxic coordinate
@@ -206,6 +508,38 @@ Vector3D
 HistologyCoordinate::getStereotaxicXYZ() const
 {
     return m_stereotaxicXYZ;
+}
+
+/**
+ * Set the media file.
+ * @param mediaFile
+ *    Pointer to media file.
+ */
+void
+HistologyCoordinate::setMediaFile(MediaFile* mediaFile)
+{
+    m_mediaFile = mediaFile;
+    if (m_mediaFile != NULL) {
+        setHistologyMediaFileName(m_mediaFile->getFileName());
+    }
+}
+
+/**
+ * @return Pointer to media file.  May be NULL or if not NULL, may not point to a valid file.
+ */
+const MediaFile*
+HistologyCoordinate::getMediaFile() const
+{
+    return m_mediaFile;
+}
+
+/**
+ * @return Pointer to media file.  May be NULL or if not NULL, may not point to a valid file.
+ */
+MediaFile*
+HistologyCoordinate::getMediaFile()
+{
+    return m_mediaFile;
 }
 
 /**
@@ -274,7 +608,7 @@ HistologyCoordinate::getSliceIndex() const
 }
 
 /**
- * Set index of slice
+ * Set index of slice.  Will also set slice number if histology file is valid and slice index is valid for the file
  *
  * @param sliceIndex
  *    New value for index of slice
@@ -284,13 +618,20 @@ HistologyCoordinate::setSliceIndex(const int64_t sliceIndex)
 {
     m_sliceIndex = sliceIndex;
     m_sliceIndexValid = true;
+    
+    if (m_histologySlicesFile != NULL) {
+        m_sliceNumber = m_histologySlicesFile->getSliceNumberBySliceIndex(m_sliceIndex);
+        if (m_sliceNumber >= 0) {
+            m_sliceNumberValid = true;
+        }
+    }
 }
 
 /**
- * @return plane XY coordinate, Z is slice index
+ * @return plane XYZ coordinate
  */
 Vector3D
-HistologyCoordinate::getPlaneXY() const
+HistologyCoordinate::getPlaneXYZ() const
 {
     return m_planeXY;
 }

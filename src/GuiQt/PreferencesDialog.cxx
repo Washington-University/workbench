@@ -302,12 +302,6 @@ PreferencesDialog::createColorsWidget()
                             PREF_COLOR_CHART_THRESHOLD,
                             colorSignalMapper);
     addColorButtonAndSwatch(gridLayout,
-                            PREF_COLOR_FOREGROUND_SURFACE,
-                            colorSignalMapper);
-    addColorButtonAndSwatch(gridLayout,
-                            PREF_COLOR_BACKGROUND_SURFACE,
-                            colorSignalMapper);
-    addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_FOREGROUND_HISTOLOGY,
                             colorSignalMapper);
     addColorButtonAndSwatch(gridLayout,
@@ -318,6 +312,12 @@ PreferencesDialog::createColorsWidget()
                             colorSignalMapper);
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_BACKGROUND_MEDIA,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_FOREGROUND_SURFACE,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_BACKGROUND_SURFACE,
                             colorSignalMapper);
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_FOREGROUND_VOLUME,

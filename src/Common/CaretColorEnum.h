@@ -106,7 +106,7 @@ public:
 //
 //    static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
-    static const float* toRGB(Enum enumValue);
+    static const float* toRGBA(Enum enumValue);
     
     static void toRGBAFloat(Enum enumValue,
                             float rgbaOut[4]);
@@ -149,7 +149,7 @@ private:
     AString guiName;
     
     /** RGB color components */
-    float rgb[3];
+    float rgba[4];
 };
 
 #ifdef __CARET_COLOR_ENUM_DECLARE__

@@ -217,6 +217,53 @@ HistologySliceImage::toString() const
 }
 
 /**
+ * Convert a plane XYZ to stereotaxic XYZ
+ * @param planeXyz
+ *     XYZ in plane
+ * @param stereotaxicXyzOut
+ *    Output with stereotaxic XYZ
+ * @return True if successful, else false.
+ */
+bool
+HistologySliceImage::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
+                                    Vector3D& stereotaxicXyzOut) const
+{
+    if (m_planeToMillimetersMatrixValidFlag) {
+        Vector3D xyz(planeXyz);
+        m_planeToMillimetersMatrix.multiplyPoint3(xyz);
+        stereotaxicXyzOut = xyz;
+        return true;
+    }
+    
+    stereotaxicXyzOut = Vector3D();
+    return false;
+}
+
+/**
+ * Converrt a stereotaxic coordinate to a plane coordinate
+ * @param stereotaxicXyz
+ *    Input stereotaxic coordinate
+ * @param planeXyzOut
+ *    Output plane coordinate
+ * @return True if successful, else false
+ */
+bool
+HistologySliceImage::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
+                                    Vector3D& planeXyzOut) const
+{
+    if (m_millimetersToPlaneMatrixValidFlag) {
+        Vector3D xyz(stereotaxicXyz);
+        m_millimetersToPlaneMatrix.multiplyPoint3(xyz);
+        planeXyzOut = xyz;
+        
+        return true;
+    }
+    
+    planeXyzOut = Vector3D();
+    return false;
+}
+
+/**
  * Set the plane to milimeters matrix
  * @param planeToMillimetersMatrix
  *    The plane to millimeters matrix
@@ -229,6 +276,11 @@ HistologySliceImage::setPlaneToMillimetersMatrix(const Matrix4x4& planeToMillime
 {
     m_planeToMillimetersMatrix          = planeToMillimetersMatrix;
     m_planeToMillimetersMatrixValidFlag = planeToMillimetersMatrixValidFlag;
+    
+    if (m_planeToMillimetersMatrixValidFlag) {
+        m_millimetersToPlaneMatrix = m_planeToMillimetersMatrix;
+        m_millimetersToPlaneMatrixValidFlag = m_millimetersToPlaneMatrix.invert();
+    }
 }
 
 /**
