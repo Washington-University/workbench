@@ -73,6 +73,8 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_identifcationMostRecentSymbolSize = 5.0;
     m_identifcationSymbolPercentageSize = 3.0;
     m_identifcationMostRecentSymbolPercentageSize = 5.0;
+    m_histologyIdentificationPercentageSymbolSize = 3.0;
+    m_histologyIdentificationMostRecentPercentageSymbolSize = 5.0;
     m_mediaIdentificationPercentageSymbolSize = 3.0;
     m_mediaIdentificationMostRecentPercentageSymbolSize = 5.0;
     m_showHistologyIdentificationSymbols = caretPreferences->isShowHistologyIdentificationSymbols();
@@ -106,6 +108,11 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
                           &m_mediaIdentificationPercentageSymbolSize);
     m_sceneAssistant->add("m_mediaIdentificationMostRecentPercentageSymbolSize",
                           &m_mediaIdentificationMostRecentPercentageSymbolSize);
+    
+    m_sceneAssistant->add("m_histologyIdentificationPercentageSymbolSize",
+                          &m_histologyIdentificationPercentageSymbolSize);
+    m_sceneAssistant->add("m_histologyIdentificationMostRecentPercentageSymbolSize",
+                          &m_histologyIdentificationMostRecentPercentageSymbolSize);
     
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationSymbolColor",
                                                                 &m_identificationSymbolColor);
@@ -290,6 +297,7 @@ IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUnivers
     
     IdentificationSymbolSizeTypeEnum::Enum sizeType(getIdentificationSymbolSizeType());
 
+    bool histologyPlaneCoordFlag(false);
     bool mediaLogicalCoordFlag(false);
     bool mediaPlaneCoordFlag(false);
     switch (drawingOnType) {
@@ -298,7 +306,7 @@ IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUnivers
             return;
             break;
         case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
-            mediaPlaneCoordFlag = true;
+            histologyPlaneCoordFlag = true;
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
             mediaLogicalCoordFlag = true;
@@ -320,7 +328,18 @@ IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUnivers
             break;
     }
     
-    if (mediaLogicalCoordFlag
+    if (histologyPlaneCoordFlag) {
+        /*
+         * Media is always percentage
+         */
+        sizeType = IdentificationSymbolSizeTypeEnum::PERCENTAGE;
+        symbolDiameterOut = getHistologyIdentificationPercentageSymbolSize();
+        if (item == m_mostRecentIdentifiedItem) {
+            symbolDiameterOut = getHistologyIdentificationMostRecentPercentageSymbolSize();
+        }
+        symbolDiameterOut = referenceHeight * (symbolDiameterOut / 100.0);
+    }
+    else if (mediaLogicalCoordFlag
         || mediaPlaneCoordFlag) {
         /*
          * Media is always percentage
@@ -561,6 +580,46 @@ void
 IdentificationManager::setMostRecentIdentificationSymbolPercentageSize(const float symbolSize)
 {
     m_identifcationMostRecentSymbolPercentageSize = symbolSize;
+}
+
+/**
+ * @return The percentage size of the most recent histology identification symbol
+ */
+float
+IdentificationManager::getHistologyIdentificationPercentageSymbolSize() const
+{
+    return m_histologyIdentificationPercentageSymbolSize;
+}
+
+/**
+ * Set the percentage size of the most recent histology identification symbol
+ * @param symbolSize
+ *    New size of symbol.
+ */
+void
+IdentificationManager::setHistologyIdentificationPercentageSymbolSize(const float symbolSize)
+{
+    m_histologyIdentificationPercentageSymbolSize = symbolSize;
+}
+
+/**
+ * @return The percentage size of the most recent histology identification symbol
+ */
+float
+IdentificationManager::getHistologyIdentificationMostRecentPercentageSymbolSize() const
+{
+    return m_histologyIdentificationMostRecentPercentageSymbolSize;
+}
+
+/**
+ * Set the percentage size of the most recent histology identification symbol
+ * @param symbolSize
+ *    New size of symbol.
+ */
+void
+IdentificationManager::setHistologyIdentificationMostRecentPercentageSymbolSize(const float symbolSize)
+{
+    m_histologyIdentificationMostRecentPercentageSymbolSize = symbolSize;
 }
 
 /**
@@ -1029,7 +1088,7 @@ IdentificationManager::getShowSymbolOnTypeLabel(const IdentifiedItemUniversalTyp
             text = "INVALID";
             break;
         case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
-            text = "Show ID Symbols on Histology Plane Coordinates";
+            text = "Show ID Symbols on Histology Slices";
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
             text = "Show ID Symbols on Media Logical Coordinates";

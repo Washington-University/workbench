@@ -556,6 +556,11 @@ IdentificationDisplayWidget::updateSymbolsWidget()
     QSignalBlocker symbolPercentageMostRecentSizeBlocker(m_symbolsPercentageMostRecentDiameterSpinBox);
     m_symbolsPercentageMostRecentDiameterSpinBox->setValue(info->getMostRecentIdentificationSymbolPercentageSize());
     
+    QSignalBlocker histologySymbolSizeBlocker(m_symbolsHistologyPercentageDiameterSpinBox);
+    m_symbolsHistologyPercentageDiameterSpinBox->setValue(info->getHistologyIdentificationPercentageSymbolSize());
+    QSignalBlocker histologyMostRecentSymbolSizeBlocker(m_symbolsHistologyPercentageMostRecentDiameterSpinBox);
+    m_symbolsHistologyPercentageMostRecentDiameterSpinBox->setValue(info->getHistologyIdentificationMostRecentPercentageSymbolSize());
+
     QSignalBlocker mediaSymbolSizeBlocker(m_symbolsMediaPercentageDiameterSpinBox);
     m_symbolsMediaPercentageDiameterSpinBox->setValue(info->getMediaIdentificationPercentageSymbolSize());
     QSignalBlocker mediaMostRecentSymbolSizeBlocker(m_symbolsMediaPercentageMostRecentDiameterSpinBox);
@@ -672,6 +677,24 @@ IdentificationDisplayWidget::createSymbolsWidget()
     m_symbolsPercentageMostRecentDiameterSpinBox->setToolTip("<html>Set percentage diamater of most recent identification symbol</html>");
     m_symbolsPercentageMostRecentDiameterSpinBox->setFixedWidth(spinBoxWidth);
     
+    QLabel* histologySymbolLabel = new QLabel("Histology");
+    
+    m_symbolsHistologyPercentageDiameterSpinBox = new QDoubleSpinBox();
+    m_symbolsHistologyPercentageDiameterSpinBox->setRange(0.1, 100.0);
+    m_symbolsHistologyPercentageDiameterSpinBox->setSingleStep(0.1);
+    m_symbolsHistologyPercentageDiameterSpinBox->setDecimals(1);
+    m_symbolsHistologyPercentageDiameterSpinBox->setSuffix("%");
+    m_symbolsHistologyPercentageDiameterSpinBox->setToolTip("<html>Set percentage diameter of histology identification symbols</html>");
+    m_symbolsHistologyPercentageDiameterSpinBox->setFixedWidth(spinBoxWidth);
+    
+    m_symbolsHistologyPercentageMostRecentDiameterSpinBox = new QDoubleSpinBox();
+    m_symbolsHistologyPercentageMostRecentDiameterSpinBox->setRange(0.1, 100.0);
+    m_symbolsHistologyPercentageMostRecentDiameterSpinBox->setSingleStep(0.1);
+    m_symbolsHistologyPercentageMostRecentDiameterSpinBox->setDecimals(1);
+    m_symbolsHistologyPercentageMostRecentDiameterSpinBox->setSuffix("%");
+    m_symbolsHistologyPercentageMostRecentDiameterSpinBox->setToolTip("<html>Set percentage diameter of most recent histology identification symbols</html>");
+    m_symbolsHistologyPercentageMostRecentDiameterSpinBox->setFixedWidth(spinBoxWidth);
+
     QLabel* mediaSymbolLabel = new QLabel("Media");
     
     m_symbolsMediaPercentageDiameterSpinBox = new QDoubleSpinBox();
@@ -704,6 +727,8 @@ IdentificationDisplayWidget::createSymbolsWidget()
     signalWatcher->addObject(m_symbolsMillimetersMostRecentDiameterSpinBox);
     signalWatcher->addObject(m_symbolsPercentageDiameterSpinBox);
     signalWatcher->addObject(m_symbolsPercentageMostRecentDiameterSpinBox);
+    signalWatcher->addObject(m_symbolsHistologyPercentageDiameterSpinBox);
+    signalWatcher->addObject(m_symbolsHistologyPercentageMostRecentDiameterSpinBox);
     signalWatcher->addObject(m_symbolsMediaPercentageDiameterSpinBox);
     signalWatcher->addObject(m_symbolsMediaPercentageMostRecentDiameterSpinBox);
 
@@ -733,8 +758,10 @@ IdentificationDisplayWidget::createSymbolsWidget()
                             row, 1, Qt::AlignHCenter);
     symbolLayout->addWidget(m_symbolSizePercentageRadioButton,
                             row, 2, Qt::AlignHCenter);
-    symbolLayout->addWidget(mediaSymbolLabel,
+    symbolLayout->addWidget(histologySymbolLabel,
                             row, 3, Qt::AlignHCenter);
+    symbolLayout->addWidget(mediaSymbolLabel,
+                            row, 4, Qt::AlignHCenter);
     row++;
     symbolLayout->addWidget(symbolDiameterLabel,
                             row, 0);
@@ -742,8 +769,10 @@ IdentificationDisplayWidget::createSymbolsWidget()
                             row, 1);
     symbolLayout->addWidget(m_symbolsPercentageDiameterSpinBox,
                             row, 2);
-    symbolLayout->addWidget(m_symbolsMediaPercentageDiameterSpinBox,
+    symbolLayout->addWidget(m_symbolsHistologyPercentageDiameterSpinBox,
                             row, 3);
+    symbolLayout->addWidget(m_symbolsMediaPercentageDiameterSpinBox,
+                            row, 4);
     row++;
     symbolLayout->addWidget(mostRecentSymbolDiameterLabel,
                             row, 0);
@@ -751,8 +780,10 @@ IdentificationDisplayWidget::createSymbolsWidget()
                             row, 1);
     symbolLayout->addWidget(m_symbolsPercentageMostRecentDiameterSpinBox,
                             row, 2);
-    symbolLayout->addWidget(m_symbolsMediaPercentageMostRecentDiameterSpinBox,
+    symbolLayout->addWidget(m_symbolsHistologyPercentageMostRecentDiameterSpinBox,
                             row, 3);
+    symbolLayout->addWidget(m_symbolsMediaPercentageMostRecentDiameterSpinBox,
+                            row, 4);
     row++;
     symbolLayout->setRowStretch(row, 100);
     
@@ -804,6 +835,8 @@ IdentificationDisplayWidget::symbolChanged()
     info->setMostRecentIdentificationSymbolSize(m_symbolsMillimetersMostRecentDiameterSpinBox->value());
     info->setIdentificationSymbolPercentageSize(m_symbolsPercentageDiameterSpinBox->value());
     info->setMostRecentIdentificationSymbolPercentageSize(m_symbolsPercentageMostRecentDiameterSpinBox->value());
+    info->setHistologyIdentificationPercentageSymbolSize(m_symbolsHistologyPercentageDiameterSpinBox->value());
+    info->setHistologyIdentificationMostRecentPercentageSymbolSize(m_symbolsHistologyPercentageMostRecentDiameterSpinBox->value());
     info->setMediaIdentificationPercentageSymbolSize(m_symbolsMediaPercentageDiameterSpinBox->value());
     info->setMediaIdentificationMostRecentPercentageSymbolSize(m_symbolsMediaPercentageMostRecentDiameterSpinBox->value());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

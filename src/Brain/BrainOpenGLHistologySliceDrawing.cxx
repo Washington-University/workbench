@@ -343,10 +343,10 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
 void
 BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& orthoLRBT,
                                                   const BrainOpenGLViewportContent* viewportContent,
-                                                   const GraphicsObjectToWindowTransform* transform,
-                                                   const int32_t /*tabIndex*/,
-                                                   const float orthoHeight,
-                                                   const float viewportHeight)
+                                                  const GraphicsObjectToWindowTransform* transform,
+                                                  const int32_t /*tabIndex*/,
+                                                  const float orthoHeight,
+                                                  const float viewportHeight)
 {
     SelectionItemHistologyCoordinate* idHistology = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getHistologyPlaneCoordinateIdentification();
     SelectionItemAnnotation* annotationID = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getAnnotationIdentification();
@@ -461,8 +461,12 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
     /*
      * Height used for drawing ID symbols
      */
-    const float symbolIdHeight(viewportHeight / (orthoHeight /  m_browserTabContent->getScaling()));
-    
+    float planeRangeY(1.0);
+    if (underlayHistologySlicesFile != NULL) {
+        const BoundingBox bb(underlayHistologySlicesFile->getPlaneXyzBoundingBox());
+        planeRangeY = bb.getDifferenceY();
+    }
+
     /*
      * Draw identification symbols
      */
@@ -476,8 +480,8 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
                                                                     underlayHistologySliceIndex,
                                                                     plane,
                                                                     mediaThickness,
-                                                                    symbolIdHeight,
-                                                                    viewportHeight);
+                                                                    m_browserTabContent->getScaling(),
+                                                                    planeRangeY);
 
 
     /*

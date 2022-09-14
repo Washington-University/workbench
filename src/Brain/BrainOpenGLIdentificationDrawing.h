@@ -62,40 +62,40 @@ namespace caret {
                                                                    const Plane& plane,
                                                                    const float mediaThickness,
                                                                    const float viewingZoom,
-                                                                   const float viewportHeight);
+                                                                   const float heightForPercentageSizedSymbols);
 
         void drawMediaFileLogicalCoordinateIdentificationSymbols(const MediaFile* mediaFile,
                                                                  const Plane& plane,
                                                                  const float mediaThickness,
                                                                  const float viewingZoom,
-                                                                 const float viewportHeight);
+                                                                 const float heightForPercentageSizedSymbols);
         
         void drawMediaFilePlaneCoordinateIdentificationSymbols(const MediaFile* mediaFile,
                                                                const Plane& plane,
                                                                const float mediaThickness,
                                                                const float viewingZoom,
-                                                               const float viewportHeight);
+                                                               const float heightForPercentageSizedSymbols);
 
         void drawSurfaceIdentificationSymbols(const Surface* surface,
                                               const float viewingZoom,
-                                              const float viewportHeight);
+                                              const float heightForPercentageSizedSymbols);
 
         void drawVolumeIdentificationSymbols(const VolumeMappableInterface* volume,
                                              const int32_t mapIndex,
                                              const Plane& plane,
                                              const float sliceThickness,
                                              const float viewingZoom,
-                                             const float viewportHeight);
+                                             const float heightForPercentageSizedSymbols);
 
         void drawVolumeIntensity2dIdentificationSymbols(const VolumeMappableInterface* volume,
                                                         const int32_t mapIndex,
                                                         const float viewingZoom,
-                                                        const float viewportHeight);
+                                                        const float heightForPercentageSizedSymbols);
         
         void drawVolumeIntensity3dIdentificationSymbols(const VolumeMappableInterface* volume,
                                                         const int32_t mapIndex,
                                                         const float viewingZoom,
-                                                        const float viewportHeight);
+                                                        const float heightForPercentageSizedSymbols);
         
         // ADD_NEW_METHODS_HERE
 
@@ -111,7 +111,7 @@ namespace caret {
                                        const Plane& plane,
                                        const float planeThickness,
                                        const float viewingZoom,
-                                       const float viewportHeight,
+                                       const float heightForPercentageSizedSymbols,
                                        const float surfaceOrVolumeMaximumDimension);
 
         float getVolumeMaximumCoordinateDimension(const VolumeMappableInterface* volume,

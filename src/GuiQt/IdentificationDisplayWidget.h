@@ -186,6 +186,10 @@ namespace caret {
         
         QDoubleSpinBox* m_symbolsPercentageMostRecentDiameterSpinBox;
         
+        QDoubleSpinBox* m_symbolsHistologyPercentageDiameterSpinBox;
+        
+        QDoubleSpinBox* m_symbolsHistologyPercentageMostRecentDiameterSpinBox;
+        
         QDoubleSpinBox* m_symbolsMediaPercentageDiameterSpinBox;
         
         QDoubleSpinBox* m_symbolsMediaPercentageMostRecentDiameterSpinBox;

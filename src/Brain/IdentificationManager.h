@@ -130,6 +130,14 @@ namespace caret {
         
         void setShowVolumeIdentificationSymbols(const bool showVolumeIdentificationSymbols);
         
+        float getHistologyIdentificationPercentageSymbolSize() const;
+        
+        void setHistologyIdentificationPercentageSymbolSize(const float symbolSize);
+        
+        float getHistologyIdentificationMostRecentPercentageSymbolSize() const;
+        
+        void setHistologyIdentificationMostRecentPercentageSymbolSize(const float symbolSize);
+        
         float getMediaIdentificationPercentageSymbolSize() const;
         
         void setMediaIdentificationPercentageSymbolSize(const float symbolSize);
@@ -193,9 +201,13 @@ namespace caret {
         
         float m_identifcationMostRecentSymbolPercentageSize;
         
+        float m_histologyIdentificationPercentageSymbolSize = 3.0;
+        
+        float m_histologyIdentificationMostRecentPercentageSymbolSize = 5.0;
+        
         float m_mediaIdentificationPercentageSymbolSize = 3.0;
         
-        float m_mediaIdentificationMostRecentPercentageSymbolSize = 3.0;
+        float m_mediaIdentificationMostRecentPercentageSymbolSize = 5.0;
         
         CaretColorEnum::Enum m_identificationSymbolColor;
         

@@ -117,15 +117,15 @@ BrainOpenGLIdentificationDrawing::toString() const
  *    Thickness of the media for those that support stereotaxic coordinates
  * @param viewingZoom
  *    Zooming (scaling) for current view
- * @param viewportHeight
- *    Height of viewport
+ * @param heightForPercentageSizedSymbols
+ *    Height used when symbols are percentage sized
  */
 void
 BrainOpenGLIdentificationDrawing::drawMediaFileLogicalCoordinateIdentificationSymbols(const MediaFile* mediaFile,
                                                                      const Plane& plane,
                                                                      const float mediaThickness,
                                                                      const float viewingZoom,
-                                                                     const float viewportHeight)
+                                                                     const float heightForPercentageSizedSymbols)
 {
     CaretAssert(mediaFile);
 
@@ -147,7 +147,7 @@ BrainOpenGLIdentificationDrawing::drawMediaFileLogicalCoordinateIdentificationSy
                               plane,
                               mediaThickness,
                               viewingZoom,
-                              viewportHeight,
+                              heightForPercentageSizedSymbols,
                               surfaceOrVolumeMaximumDimension);
 }
 
@@ -163,8 +163,9 @@ BrainOpenGLIdentificationDrawing::drawMediaFileLogicalCoordinateIdentificationSy
  *    Thickness of the media for those that support stereotaxic coordinates
  * @param viewingZoom
  *    Zooming (scaling) for current view
- * @param viewportHeight
- *    Height of viewport
+ * @param heightForPercentageSizedSymbols
+ *    Height used when symbols are percentage sized
+
  */
 void
 BrainOpenGLIdentificationDrawing::drawHistologyFilePlaneCoordinateIdentificationSymbols(const HistologySlicesFile* histologySlicesFile,
@@ -172,7 +173,7 @@ BrainOpenGLIdentificationDrawing::drawHistologyFilePlaneCoordinateIdentification
                                                                                         const Plane& plane,
                                                                                         const float mediaThickness,
                                                                                         const float viewingZoom,
-                                                                                        const float viewportHeight)
+                                                                                        const float heightForPercentageSizedSymbols)
 {
     CaretAssert(histologySlicesFile);
     
@@ -193,7 +194,7 @@ BrainOpenGLIdentificationDrawing::drawHistologyFilePlaneCoordinateIdentification
                               plane,
                               mediaThickness,
                               viewingZoom,
-                              viewportHeight,
+                              heightForPercentageSizedSymbols,
                               surfaceOrVolumeMaximumDimension);
 }
 
@@ -207,15 +208,15 @@ BrainOpenGLIdentificationDrawing::drawHistologyFilePlaneCoordinateIdentification
  *    Thickness of the media for those that support stereotaxic coordinates
  * @param viewingZoom
  *    Zooming (scaling) for current view
- * @param viewportHeight
- *    Height of viewport
+ * @param heightForPercentageSizedSymbols
+ *    Height used when symbols are percentage sized
  */
 void
 BrainOpenGLIdentificationDrawing::drawMediaFilePlaneCoordinateIdentificationSymbols(const MediaFile* mediaFile,
                                                                      const Plane& plane,
                                                                      const float mediaThickness,
                                                                      const float viewingZoom,
-                                                                     const float viewportHeight)
+                                                                     const float heightForPercentageSizedSymbols)
 {
     CaretAssert(mediaFile);
     
@@ -238,7 +239,7 @@ BrainOpenGLIdentificationDrawing::drawMediaFilePlaneCoordinateIdentificationSymb
                               plane,
                               mediaThickness,
                               viewingZoom,
-                              viewportHeight,
+                              heightForPercentageSizedSymbols,
                               surfaceOrVolumeMaximumDimension);
 }
 
@@ -248,13 +249,13 @@ BrainOpenGLIdentificationDrawing::drawMediaFilePlaneCoordinateIdentificationSymb
  *    Media file on which symbols are drawn
  * @param viewingZoom
  *    Zooming (scaling) for current view
- * @param viewportHeight
- *    Height of viewport
+ * @param heightForPercentageSizedSymbols
+ *    Height used when symbols are percentage sized
  */
 void
 BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface* surface,
                                                                    const float viewingZoom,
-                                                                   const float viewportHeight)
+                                                                   const float heightForPercentageSizedSymbols)
 {
     CaretAssert(surface);
 
@@ -282,7 +283,7 @@ BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface
                               plane,
                               planeThickness,
                               viewingZoom,
-                              viewportHeight,
+                              heightForPercentageSizedSymbols,
                               surfaceOrVolumeMaximumDimension);
 }
 
@@ -298,8 +299,8 @@ BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface
  *    Thickness of the slice
  * @param viewingZoom
  *    Zooming (scaling) for current view
- * @param viewportHeight
- *    Height of viewport
+ * @param heightForPercentageSizedSymbols
+ *    Height used when symbols are percentage sized
  */
 void
 BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMappableInterface* volume,
@@ -307,7 +308,7 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
                                                                   const Plane& plane,
                                                                   const float sliceThickness,
                                                                   const float viewingZoom,
-                                                                  const float viewportHeight)
+                                                                  const float heightForPercentageSizedSymbols)
 {
     CaretAssert(volume);
     
@@ -331,7 +332,7 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
                               plane,
                               sliceThickness,
                               viewingZoom,
-                              viewportHeight,
+                              heightForPercentageSizedSymbols,
                               surfaceOrVolumeMaximumDimension);
 }
 
@@ -343,14 +344,15 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
  *    Index of map in volume that is being drawn
  * @param viewingZoom
  *    Zooming (scaling) for current view
- * @param viewportHeight
- *    Height of viewport
+ * @param heightForPercentageSizedSymbols
+ *    Height used when symbols are percentage sized
+
  */
 void
 BrainOpenGLIdentificationDrawing::drawVolumeIntensity2dIdentificationSymbols(const VolumeMappableInterface* volume,
                                                                              const int32_t mapIndex,
                                                                              const float viewingZoom,
-                                                                             const float viewportHeight)
+                                                                             const float heightForPercentageSizedSymbols)
 {
     CaretAssert(volume);
     
@@ -376,7 +378,7 @@ BrainOpenGLIdentificationDrawing::drawVolumeIntensity2dIdentificationSymbols(con
                               plane,
                               sliceThickness,
                               viewingZoom,
-                              viewportHeight,
+                              heightForPercentageSizedSymbols,
                               surfaceOrVolumeMaximumDimension);
 }
 
@@ -388,14 +390,14 @@ BrainOpenGLIdentificationDrawing::drawVolumeIntensity2dIdentificationSymbols(con
  *    Index of map in volume that is being drawn
  * @param viewingZoom
  *    Zooming (scaling) for current view
- * @param viewportHeight
- *    Height of viewport
+ * @param heightForPercentageSizedSymbols
+ *    Height used when symbols are percentage sized
  */
 void
 BrainOpenGLIdentificationDrawing::drawVolumeIntensity3dIdentificationSymbols(const VolumeMappableInterface* volume,
                                                                              const int32_t mapIndex,
                                                                              const float viewingZoom,
-                                                                             const float viewportHeight)
+                                                                             const float heightForPercentageSizedSymbols)
 {
     CaretAssert(volume);
     
@@ -421,7 +423,7 @@ BrainOpenGLIdentificationDrawing::drawVolumeIntensity3dIdentificationSymbols(con
                               plane,
                               sliceThickness,
                               viewingZoom,
-                              viewportHeight,
+                              heightForPercentageSizedSymbols,
                               surfaceOrVolumeMaximumDimension);
 }
 
@@ -466,8 +468,8 @@ BrainOpenGLIdentificationDrawing::getVolumeMaximumCoordinateDimension(const Volu
  *    Thickness of the plane for media and volume
  * @param viewingZoom
  *    Zooming (scaling) for current view
- * @param viewportHeight
- *    Height of viewport
+ * @param heightForPercentageSizedSymbols
+ *    Height used when symbols are percentage sized
  * @param surfaceOrVolumeMaximumDimension)
  *    Maximum dimension of surface or volume being drawn
  */
@@ -481,7 +483,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                             const Plane& plane,
                                                             const float planeThickness,
                                                             const float viewingZoom,
-                                                            const float viewportHeight,
+                                                            const float heightForPercentageSizedSymbols,
                                                             const float surfaceOrVolumeMaximumDimension)
 {
     /*
@@ -1012,7 +1014,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     return;
                 }
                 
-                height = viewportHeight / viewingZoom;
+                height = heightForPercentageSizedSymbols;
             }
             else if(drawingOnMediaPlaneCoordFlag) {
                 CaretAssert(mediaFile);
@@ -1020,7 +1022,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     return;
                 }
                 
-                height = viewportHeight / viewingZoom;
+                height = heightForPercentageSizedSymbols / viewingZoom;
             }
             else if (drawingOnSurfaceFlag) {
                 height = surfaceOrVolumeMaximumDimension;
