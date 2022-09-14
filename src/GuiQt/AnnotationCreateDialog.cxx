@@ -303,7 +303,7 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
             case AnnotationCoordinateSpaceEnum::CHART:
                 adjustTextPctSizeFlag = true;
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                 adjustTextPctSizeFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -365,7 +365,7 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
             case AnnotationCoordinateSpaceEnum::CHART:
                 threeDimSpaceFlag = true;
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                 threeDimSpaceFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -1173,7 +1173,7 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                     float viewportHeight = 0.0;
                     switch (m_selectedSpace) {
                         case AnnotationCoordinateSpaceEnum::CHART:
-                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                         case AnnotationCoordinateSpaceEnum::SURFACE:

@@ -148,7 +148,7 @@ AnnotationCoordinateInformation::isCoordinateSpaceValid(const AnnotationCoordina
         case AnnotationCoordinateSpaceEnum::CHART:
             validSpaceFlag = m_chartSpaceInfo.m_validFlag;
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             validSpaceFlag = m_histologySpaceInfo.m_validFlag;
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -219,7 +219,7 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
     std::vector<AString> mediaFileNames;
     
     std::vector<AString> histologyFileNames;
-    std::vector<AString> histologyMediaFileNames;
+    std::vector<int32_t> histologySliceIndices;
     
     for (const auto& aci : annotationCoordInfo) {
         if (aci->m_modelSpaceInfo.m_validFlag) {
@@ -254,7 +254,7 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
         
         if (aci->m_histologySpaceInfo.m_validFlag) {
             histologyFileNames.push_back(aci->m_histologySpaceInfo.m_histologySlicesFileName);
-            histologyMediaFileNames.push_back(aci->m_histologySpaceInfo.m_histologyMediaFileName);
+            histologySliceIndices.push_back(aci->m_histologySpaceInfo.m_histologySliceIndex);
         }
     }
     
@@ -331,16 +331,16 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
     }
     
     if ((histologyFileNames.size() == numCoordInfo)
-        && (histologyMediaFileNames.size() == numCoordInfo)) {
+        && (histologySliceIndices.size() == numCoordInfo)) {
         std::set<AString> uniqueHistologyFileNames(histologyFileNames.begin(),
                                                    histologyFileNames.end());
-        std::set<AString> uniqueHistologyMediaFileNames(histologyMediaFileNames.begin(),
-                                                        histologyMediaFileNames.end());
+        std::set<int32_t> uniqueHistologySliceIndices(histologySliceIndices.begin(),
+                                                        histologySliceIndices.end());
         if ((uniqueHistologyFileNames.size() == 1)
-            && (uniqueHistologyMediaFileNames.size() == 1)) {
+            && (uniqueHistologySliceIndices.size() == 1)) {
             validForAllCoordInfoOut.m_histologySpaceInfo.m_validFlag = true;
             validForAllCoordInfoOut.m_histologySpaceInfo.m_histologySlicesFileName = *uniqueHistologyFileNames.begin();
-            validForAllCoordInfoOut.m_histologySpaceInfo.m_histologyMediaFileName = *uniqueHistologyMediaFileNames.begin();
+            validForAllCoordInfoOut.m_histologySpaceInfo.m_histologySliceIndex = *uniqueHistologySliceIndices.begin();
         }
     }
     
@@ -395,7 +395,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
                 break;
             case AnnotationCoordinateSpaceEnum::CHART:
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             case AnnotationCoordinateSpaceEnum::SPACER:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -422,9 +422,9 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
                                     addItFlag = false;
                                 }
                                 break;
-                            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                                 if ((coordInfoOne->m_histologySpaceInfo.m_histologySlicesFileName == coordInfoTwo->m_histologySpaceInfo.m_histologySlicesFileName)
-                                    && (coordInfoOne->m_histologySpaceInfo.m_histologyMediaFileName == coordInfoTwo->m_histologySpaceInfo.m_histologyMediaFileName)) {
+                                    && (coordInfoOne->m_histologySpaceInfo.m_histologySliceIndex == coordInfoTwo->m_histologySpaceInfo.m_histologySliceIndex)) {
                                     addItFlag = true;
                                 }
                                 break;
@@ -518,7 +518,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const std::vector<std:
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
                 break;
             case AnnotationCoordinateSpaceEnum::CHART:
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             case AnnotationCoordinateSpaceEnum::SPACER:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -549,9 +549,9 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const std::vector<std:
                                     addItFlag = false;
                                 }
                                 break;
-                            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                                 if ((firstCoordInfo->m_histologySpaceInfo.m_histologySlicesFileName != coordInfo->m_histologySpaceInfo.m_histologySlicesFileName)
-                                    || (firstCoordInfo->m_histologySpaceInfo.m_histologyMediaFileName != coordInfo->m_histologySpaceInfo.m_histologyMediaFileName)) {
+                                    || (firstCoordInfo->m_histologySpaceInfo.m_histologySliceIndex != coordInfo->m_histologySpaceInfo.m_histologySliceIndex)) {
                                     addItFlag = false;
                                 }
                                 break;
@@ -724,7 +724,7 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         
         const HistologyCoordinate histologyCoordinate(histologyPlaneID->getCoordinate());
         coordInfoOut.m_histologySpaceInfo.m_histologySlicesFileName = histologyCoordinate.getHistologySlicesFile()->getFileNameNoPath();
-        coordInfoOut.m_histologySpaceInfo.m_histologyMediaFileName  = histologyCoordinate.getMediaFile()->getFileNameNoPath();
+        coordInfoOut.m_histologySpaceInfo.m_histologySliceIndex     = histologyCoordinate.getSliceIndex();
         
         coordInfoOut.m_histologySpaceInfo.m_validFlag = true;
     }
@@ -738,9 +738,12 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
     }
     else if (mediaPlaneID->isValid()) {
-        mediaPixelID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
-        mediaPixelID->getModelXYZ(coordInfoOut.m_mediaSpaceInfo.m_xyz);
-        
+        mediaPlaneID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
+        const Vector3D planeXYZ(mediaPlaneID->getPlaneCoordinate());
+        coordInfoOut.m_mediaSpaceInfo.m_xyz[0] = planeXYZ[0];
+        coordInfoOut.m_mediaSpaceInfo.m_xyz[1] = planeXYZ[1];
+        coordInfoOut.m_mediaSpaceInfo.m_xyz[2] = planeXYZ[2];
+
         coordInfoOut.m_mediaSpaceInfo.m_mediaFileName = mediaPlaneID->getMediaFile()->getFileNameNoPath();
         coordInfoOut.m_mediaSpaceInfo.m_validFlag = true;
         
@@ -939,19 +942,19 @@ AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(Annotati
                 }
             }
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             if (coordInfoOne->m_histologySpaceInfo.m_validFlag) {
                 startCoordinate->setHistologySpace(coordInfoOne->m_histologySpaceInfo.m_histologySlicesFileName,
-                                                   coordInfoOne->m_histologySpaceInfo.m_histologyMediaFileName,
+                                                   coordInfoOne->m_histologySpaceInfo.m_histologySliceIndex,
                                                    coordInfoOne->m_histologySpaceInfo.m_xyz);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX);
                 validCoordinateFlag = true;
                 
                 if (coordInfoTwo != NULL) {
                     if (coordInfoTwo->m_histologySpaceInfo.m_validFlag) {
                         if (endCoordinate != NULL) {
                             endCoordinate->setHistologySpace(coordInfoTwo->m_histologySpaceInfo.m_histologySlicesFileName,
-                                                             coordInfoTwo->m_histologySpaceInfo.m_histologyMediaFileName,
+                                                             coordInfoTwo->m_histologySpaceInfo.m_histologySliceIndex,
                                                              coordInfoTwo->m_histologySpaceInfo.m_xyz);
                         }
                     }
@@ -1178,12 +1181,12 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
                 }
             }
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             if (coordInfoOne->m_histologySpaceInfo.m_validFlag) {
                 coordinate->setHistologySpace(coordInfoOne->m_histologySpaceInfo.m_histologySlicesFileName,
-                                              coordInfoOne->m_histologySpaceInfo.m_histologyMediaFileName,
+                                              coordInfoOne->m_histologySpaceInfo.m_histologySliceIndex,
                                               coordInfoOne->m_histologySpaceInfo.m_xyz);
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX);
                 validCoordinateFlag = true;
                 
                 if (optionalCoordInfoTwo != NULL) {
@@ -1430,9 +1433,9 @@ AnnotationCoordinateInformation::setMultiDimAnnotationCoordinatesForSpace(Annota
                 validSpaceFlag = true;
             }
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             if (firstCoordInfo->m_histologySpaceInfo.m_validFlag) {
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX);
                 validSpaceFlag = true;
             }
             break;
@@ -1497,10 +1500,10 @@ AnnotationCoordinateInformation::setMultiDimAnnotationCoordinatesForSpace(Annota
                     ac->setXYZ(coordInfo->m_chartSpaceInfo.m_xyz);
                 }
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                 if (coordInfo->m_histologySpaceInfo.m_validFlag) {
                     ac->setHistologySpace(coordInfo->m_histologySpaceInfo.m_histologySlicesFileName,
-                                          coordInfo->m_histologySpaceInfo.m_histologyMediaFileName,
+                                          coordInfo->m_histologySpaceInfo.m_histologySliceIndex,
                                           coordInfo->m_histologySpaceInfo.m_xyz);
                 }
                 break;

@@ -37,9 +37,6 @@ namespace caret {
     class AnnotationAndFile : public CaretObject {
         
     public:
-//        AnnotationAndFile(Annotation* annotation,
-//                          AnnotationFile* file);
-        
         AnnotationAndFile(Annotation* annotation,
                           AnnotationFile* file,
                           const AnnotationGroupKey& groupKey);

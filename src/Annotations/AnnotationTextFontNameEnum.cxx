@@ -150,7 +150,6 @@ AnnotationTextFontNameEnum::getDefaultFontName()
     CaretAssert( ! enumData.empty());
     
     return AnnotationTextFontNameEnum::VERA;
-//    return enumData[0].enumValue;
 }
 
 /**

@@ -308,7 +308,7 @@ AnnotationMenuArrange::menuAboutToShow()
                     case AnnotationCoordinateSpaceEnum::CHART:
                         oneAnnWithCorrectSpaceFlag = true;
                         break;
-                    case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                    case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                         oneAnnWithCorrectSpaceFlag = true;
                         break;
                     case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:

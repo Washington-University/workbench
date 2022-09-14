@@ -124,7 +124,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
             case AnnotationCoordinateSpaceEnum::CHART:
                 threeDimCoordFlag = true;
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                 threeDimCoordFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:

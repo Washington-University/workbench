@@ -161,15 +161,6 @@ AnnotationEditingSelectionInformation::update(const std::vector<Annotation*>& se
         }
     }
     
-//    std::set<const AnnotationGroup*> groupSet;
-//    for (std::vector<Annotation*>::iterator annIter = m_annotations.begin();
-//         annIter != m_annotations.end();
-//         annIter++) {
-//        const AnnotationGroup* annGroup = (*annIter)->getAnnotationGroup();
-//        CaretAssert(annGroup);
-//        groupSet.insert(annGroup);
-//    }
-    
     if (allAnnotationsGroupableFlag) {
         m_annotationGroupKeys.insert(m_annotationGroupKeys.end(),
                                      groupKeysSet.begin(),

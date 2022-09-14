@@ -62,6 +62,8 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "GestureEvent.h"
 #include "GuiManager.h"
+#include "HistologyOverlaySet.h"
+#include "HistologySlicesFile.h"
 #include "IdentificationManager.h"
 #include "KeyEvent.h"
 #include "MediaFile.h"
@@ -553,7 +555,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     switch (ann->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
                             break;
-                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                             break;
@@ -586,8 +588,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     switch (ann->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
                             break;
-                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
-                            CaretAssertToDoFatal();
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+                            getHistologyStep(keyEvent.getViewportContent()->getBrowserTabContent(), distanceX, distanceY);
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                             getMediaStep(keyEvent.getViewportContent()->getBrowserTabContent(), distanceX, distanceY);
@@ -652,7 +654,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     switch (ann->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
                             break;
-                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                             break;
@@ -722,8 +724,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                         case AnnotationCoordinateSpaceEnum::CHART:
                             changeCoordFlag = true;
                             break;
-                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
-                            CaretAssertToDoFatal();
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+                            getHistologyStep(keyEvent.getViewportContent()->getBrowserTabContent(), distanceX, distanceY);
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                             getMediaStep(keyEvent.getViewportContent()->getBrowserTabContent(), distanceX, distanceY);
@@ -797,7 +799,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             switch (selectedAnnotation->getCoordinateSpace()) {
                                 case AnnotationCoordinateSpaceEnum::CHART:
                                     break;
-                                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                                case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                                     break;
                                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                                     break;
@@ -929,9 +931,41 @@ UserInputModeAnnotations::getMediaStep(BrowserTabContent* browserTabContent,
     }
     
     return false;
-    
 }
 
+/**
+ * Get the step distance for the histology displayed in the tab
+ * @param browserTabContent
+ *    Content of browser tab
+ * @param stepXOut
+ *    Output with width
+ * @param heightOut
+ *    Output width height
+ * @return
+ *    True if output width/height are valid
+ */
+bool
+UserInputModeAnnotations::getHistologyStep(BrowserTabContent* browserTabContent,
+                                           float& stepXOut,
+                                           float& stepYOut)
+{
+    CaretAssert(browserTabContent);
+    const HistologySlicesFile* histologyFile(browserTabContent->getHistologyOverlaySet()->getBottomMostHistologySlicesFile());
+    if (histologyFile != NULL) {
+        const BoundingBox bb(histologyFile->getPlaneXyzBoundingBox());
+        const float width(bb.getDifferenceX());
+        const float height(bb.getDifferenceY());
+        if ((width >= 1.0)
+            && (height >= 1.0)) {
+            const float factor(0.001);
+            stepXOut = std::max(width  * factor, 1.0f);
+            stepYOut = std::max(height * factor, 1.0f);
+            return true;
+        }
+    }
+    
+    return false;
+}
 
 /**
  * Initialize user drawing a new annotation.
@@ -1045,7 +1079,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
     switch (draggingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
@@ -1105,7 +1139,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 }
             }
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             {
                 int32_t modelVP[4];
                 vpContent->getModelViewport(modelVP);
@@ -1234,6 +1268,11 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                             coordInfo.m_surfaceSpaceInfo.m_nodeIndex);
             }
             
+            if (coordInfo.m_histologySpaceInfo.m_validFlag) {
+                annSpatialMod.setMediaCoordinateAtMouseXY(coordInfo.m_histologySpaceInfo.m_xyz[0],
+                                                          coordInfo.m_histologySpaceInfo.m_xyz[1],
+                                                          coordInfo.m_histologySpaceInfo.m_xyz[2]);
+            }
             if (coordInfo.m_mediaSpaceInfo.m_validFlag) {
                 annSpatialMod.setMediaCoordinateAtMouseXY(coordInfo.m_mediaSpaceInfo.m_xyz[0],
                                                           coordInfo.m_mediaSpaceInfo.m_xyz[1],
@@ -1264,12 +1303,16 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                                       previousMouseXYCoordInfo.m_chartSpaceInfo.m_xyz[1],
                                                                       previousMouseXYCoordInfo.m_chartSpaceInfo.m_xyz[2]);
                 }
+                if (previousMouseXYCoordInfo.m_histologySpaceInfo.m_validFlag) {
+                    annSpatialMod.setMediaCoordinateAtPreviousMouseXY(previousMouseXYCoordInfo.m_histologySpaceInfo.m_xyz[0],
+                                                              previousMouseXYCoordInfo.m_histologySpaceInfo.m_xyz[1],
+                                                              previousMouseXYCoordInfo.m_histologySpaceInfo.m_xyz[2]);
+                }
                 if (previousMouseXYCoordInfo.m_mediaSpaceInfo.m_validFlag) {
-                    annSpatialMod.setMediaCoordinateAtMouseXY(previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[0],
+                    annSpatialMod.setMediaCoordinateAtPreviousMouseXY(previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[0],
                                                               previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[1],
                                                               previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[2]);
-                }
-            }
+                }            }
             
             std::vector<Annotation*> annotationsBeforeMoveAndResize;
             std::vector<Annotation*> annotationsAfterMoveAndResize;

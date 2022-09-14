@@ -254,13 +254,13 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
     int32_t annotationTabOrWindowIndex = -1;
     AString annotationMediaFileName;
     AString annotationHistologySlicesFileName;
-    AString annotationHistologyMediaFileName;
+    int32_t annotationHistologySliceIndex(0);
     switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
-            annotationHistologySlicesFileName = annotation->getCoordinate(0)->getHistologySlicesFileName();
-            annotationHistologyMediaFileName  = annotation->getCoordinate(0)->getHistologyMediaFileName();
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            annotationHistologySlicesFileName = annotation->getCoordinate(0)->getHistologyFileName();
+            annotationHistologySliceIndex     = annotation->getCoordinate(0)->getHistologySliceIndex();
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             annotationMediaFileName = annotation->getCoordinate(0)->getMediaFileName();
@@ -294,9 +294,9 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
                     case AnnotationCoordinateSpaceEnum::SURFACE:
                         return group;
                         break;
-                    case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                    case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                         if ((annotationHistologySlicesFileName == group->getHistologySlicesFileName())
-                            && (annotationHistologyMediaFileName == group->getHistologyMediaFileName())) {
+                            && (annotationHistologySliceIndex == group->getHistologySliceIndex())) {
                             return group;
                         }
                         break;
@@ -333,7 +333,7 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
             CaretAssert((annotationTabOrWindowIndex >= 0)
                         && (annotationTabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
@@ -356,7 +356,7 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
                                                  annotationSpacerTabIndex,
                                                  annotationMediaFileName,
                                                  annotationHistologySlicesFileName,
-                                                 annotationHistologyMediaFileName);
+                                                 annotationHistologySliceIndex);
     group->setItemParent(this);
     m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
     
@@ -735,6 +735,10 @@ AnnotationFile::addAnnotationDuringFileVersionOneReading(Annotation* annotation)
  *     Index of spacer tab
  * @param mediaFileName
  *     Name of media file
+ * @param histologySlicesFileName
+ *    Name of histology slices file
+ * @param histologySliceIndex
+ *    Index of histology slice
  * @param uniqueKey
  *     Unique key for the annotation group.
  * @param annotations
@@ -749,7 +753,7 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
                                                     const SpacerTabIndex& spacerTabIndex,
                                                     const AString& mediaFileName,
                                                     const AString& histologySlicesFileName,
-                                                    const AString& histologyMediaFileName,
+                                                    const int32_t histologySliceIndex,
                                                     const int32_t uniqueKey,
                                                     const std::vector<Annotation*>& annotations)
 {
@@ -766,7 +770,7 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
     switch (coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             if (mediaFileName.isEmpty()) {
@@ -832,15 +836,15 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
                                                     + AnnotationCoordinateSpaceEnum::toGuiName(coordinateSpace)
                                                     + ".  Only one space group for each space is allowed.");
                             break;
-                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                             if ((histologySlicesFileName == group->getHistologySlicesFileName())
-                                && (histologyMediaFileName == group->getHistologyMediaFileName())) {
+                                && (histologySliceIndex == group->getHistologySliceIndex())) {
                                 throw DataFileException("There is more than one annotation space group with space "
                                                         + AnnotationCoordinateSpaceEnum::toGuiName(coordinateSpace)
                                                         + " with histology slices file "
                                                         + histologySlicesFileName
-                                                        + " and histology media file "
-                                                        + histologyMediaFileName
+                                                        + " and histology slice index "
+                                                        + AString::number(histologySliceIndex)
                                                         + ".  Only one space group for each space is allowed.");
                             }
                             break;
@@ -897,7 +901,7 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
                                                  spacerTabIndex,
                                                  mediaFileName,
                                                  histologySlicesFileName,
-                                                 histologyMediaFileName);
+                                                 histologySliceIndex);
     for (std::vector<Annotation*>::const_iterator annIter = annotations.begin();
          annIter != annotations.end();
          annIter++) {
@@ -1067,7 +1071,7 @@ AnnotationFile::cloneAnnotationsFromTabToTab(const int32_t fromTabIndex,
             case AnnotationCoordinateSpaceEnum::SPACER:
                 break;
             case AnnotationCoordinateSpaceEnum::CHART:
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -1369,7 +1373,7 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
                                                  spaceGroup->getSpacerTabIndex(),
                                                  spaceGroup->getMediaFileName(),
                                                  spaceGroup->getHistologySlicesFileName(),
-                                                 spaceGroup->getHistologyMediaFileName());
+                                                 spaceGroup->getHistologySliceIndex());
     
     for (std::vector<QSharedPointer<Annotation> >::iterator annPtrIter = movedAnnotations.begin();
          annPtrIter != movedAnnotations.end();
@@ -1525,7 +1529,7 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
                                                          spaceGroup->getSpacerTabIndex(),
                                                          spaceGroup->getMediaFileName(),
                                                          spaceGroup->getHistologySlicesFileName(),
-                                                         spaceGroup->getHistologyMediaFileName());
+                                                         spaceGroup->getHistologySliceIndex());
             
             bool allValidFlag = true;
             std::vector<QSharedPointer<Annotation> > movedAnnotations;
@@ -2058,7 +2062,7 @@ AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveParameter
                                                 groupToCopy->getSpacerTabIndex(),
                                                 groupToCopy->getMediaFileName(),
                                                 groupToCopy->getHistologySlicesFileName(),
-                                                groupToCopy->getHistologyMediaFileName());
+                                                groupToCopy->getHistologySliceIndex());
                     group->setItemParent(this);
                     m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
                     break;

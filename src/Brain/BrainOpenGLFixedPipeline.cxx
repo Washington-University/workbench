@@ -611,7 +611,7 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const s
             switch (colorBar->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
-                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                     break;
                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     break;
@@ -1282,7 +1282,62 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLV
 /**
  * Draw the media space annotations.
  *
- * @param tabContent
+ * @param viewportContent
+ *    Viewport content
+ * @param histologySlicesFileName
+ *    Name of the histology slices file
+ * @param histologySliceIndex
+ *    Index of slice being drawn
+ */
+void
+BrainOpenGLFixedPipeline::drawHistologySpaceAnnotations(const BrainOpenGLViewportContent* viewportContent,
+                                                        const AString& histologySlicesFileName,
+                                                        const int32_t histologySliceIndex)
+{
+    const BrowserTabContent* btc = viewportContent->getBrowserTabContent();
+    if (btc == NULL) {
+        return;
+    }
+    
+    glPushAttrib(GL_VIEWPORT_BIT);
+    
+    /*
+     * Draw annotations for this surface and maybe draw
+     * the model annotations.
+     */
+    std::set<AString> emptyMediaFileNames;
+    const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
+    const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
+    BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                             this->mode,
+                                                             BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                             m_windowIndex,
+                                                             this->windowTabIndex,
+                                                             SpacerTabIndex(),
+                                                             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
+                                                             emptyMediaFileNames,
+                                                             annotationModeFlag,
+                                                             tileTabsEditModeFlag);
+    inputs.setHistologyFileAndSliceIndex(histologySlicesFileName,
+                                         histologySliceIndex);
+    std::vector<AnnotationColorBar*> emptyColorBars;
+    std::vector<AnnotationScaleBar*> emptyScaleBars;
+    std::vector<Annotation*> emptyViewportAnnotations;
+    m_annotationDrawing->drawAnnotations(&inputs,
+                                         AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX,
+                                         emptyColorBars,
+                                         emptyScaleBars,
+                                         emptyViewportAnnotations,
+                                         NULL,
+                                         1.0);
+    
+    glPopAttrib();
+}
+
+/**
+ * Draw the media space annotations.
+ *
+ * @param viewportContent
  *    Viewport content
  */
 void

@@ -178,7 +178,7 @@ m_parentToolBar(parentToolBar)
                                           "Moves to center of slices");
     QToolButton* moveToCenterToolButton = new QToolButton();
     moveToCenterToolButton->setDefaultAction(m_moveToCenterAction);
-
+    WuQtUtilities::setToolButtonStyleForQt5Mac(moveToCenterToolButton);
     
     /*
      * Layout widgets

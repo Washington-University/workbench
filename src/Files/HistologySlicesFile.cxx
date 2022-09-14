@@ -29,6 +29,7 @@
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
+#include "HistologyCoordinate.h"
 #include "HistologySlice.h"
 #include "HistologySliceImage.h"
 #include "MediaFile.h"
@@ -391,6 +392,88 @@ HistologySlicesFile::getSliceNearestStereotaxicXyz(const Vector3D& stereotaxicXY
     }
     
     return nearestSlice;
+}
+
+/**
+ * Get the identification text for the given histology coordinate.
+ * @param tabIndex
+ *    Index of the tab in which identification took place
+ * @param histologyCoordinate
+ *    The histology coordinate
+ * @param columnOneTextOut
+ *    Text for column one that is displayed to user.
+ * @param columnTwoTextOut
+ *    Text for column two that is displayed to user.
+ * @param toolTipTextOut
+ *    Text for tooltip
+ */
+void
+HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
+                                           const HistologyCoordinate& histologyCoordinate,
+                                           std::vector<AString>& columnOneTextOut,
+                                           std::vector<AString>& columnTwoTextOut,
+                                           std::vector<AString>& toolTipTextOut) const
+{
+    std::vector<AString> columnOneText, columnTwoText, toolTipText;
+    
+    const HistologySlicesFile* histologySlicesFile(histologyCoordinate.getHistologySlicesFile());
+    CaretAssert(histologySlicesFile);
+    columnOneText.push_back("Histology File");
+    columnTwoText.push_back(histologySlicesFile->getFileNameNoPath());
+    columnOneText.push_back("Slice Index / Number");
+    columnTwoText.push_back(AString::number(histologyCoordinate.getSliceIndex())
+                            + " / "
+                            + AString::number(histologySlicesFile->getSliceNumberBySliceIndex(histologyCoordinate.getSliceIndex())));
+    
+    AString mmText;
+    AString planeText;
+    if (histologyCoordinate.isStereotaxicXYZValid()) {
+        mmText = ("Stereotaxicz XYZ ("
+                  + AString::fromNumbers(histologyCoordinate.getStereotaxicXYZ())
+                  + ")");
+    }
+    if (histologyCoordinate.isPlaneXYValid()) {
+        planeText = ("Plane XYZ ("
+                     + AString::fromNumbers(histologyCoordinate.getPlaneXYZ())
+                     + ")");
+    }
+    if ( (! mmText.isEmpty())
+        || ( ! mmText.isEmpty())) {
+        columnOneText.push_back(mmText);
+        columnTwoText.push_back(planeText);
+    }
+    
+    std::vector<int32_t> frameIndicesVector { 0 };
+    const MediaFile* mediaFile(histologyCoordinate.getMediaFile());
+    if (mediaFile != NULL) {
+        const bool histologyIdFlag(true);
+        mediaFile->getPixelPlaneIdentificationTextForFrames(tabIndex,
+                                                            frameIndicesVector,
+                                                            histologyCoordinate.getPlaneXYZ(),
+                                                            histologyIdFlag,
+                                                            columnOneText,
+                                                            columnTwoText,
+                                                            toolTipText);
+    }
+    const int32_t numColOne(columnOneText.size());
+    const int32_t numColTwo(columnTwoText.size());
+    const int32_t maxNum(std::max(numColOne, numColTwo));
+    for (int32_t i = 0; i < maxNum; i++) {
+        AString colOne;
+        AString colTwo;
+        if (i < numColOne) {
+            CaretAssertVectorIndex(columnOneText, i);
+            colOne = columnOneText[i];
+        }
+        if (i < numColTwo) {
+            CaretAssertVectorIndex(columnTwoText, i);
+            colTwo = columnTwoText[i];
+        }
+        columnOneTextOut.push_back(colOne);
+        columnTwoTextOut.push_back(colTwo);
+    }
+    
+    toolTipTextOut = toolTipText;
 }
 
 /**

@@ -246,7 +246,7 @@ HistologyOverlay::getDrawingData(const int32_t selectedSliceIndex) const
     if (isEnabled()) {
         const SelectionData selectionData(getSelectionData());
         if (selectionData.m_selectedFile != NULL) {
-            HistologySlice* slice(selectionData.m_selectedFile->getHistologySliceByIndex(selectedSliceIndex)); //selectionData.m_selectedSliceIndex));
+            HistologySlice* slice(selectionData.m_selectedFile->getHistologySliceByIndex(selectedSliceIndex));
             if (slice != NULL) {
                 const int32_t numImages(slice->getNumberOfHistologySliceImages());
                 for (int32_t iImage = 0; iImage < numImages; iImage++) {
@@ -258,7 +258,7 @@ HistologyOverlay::getDrawingData(const int32_t selectedSliceIndex) const
                                    m_overlayIndex,
                                    selectionData.m_selectedFile,
                                    mediaFile,
-                                   selectedSliceIndex, //selectionData.m_selectedSliceIndex,
+                                   selectedSliceIndex,
                                    iImage,
                                    selectionData.m_supportsYokingFlag);
                     drawingDataOut.push_back(dd);
@@ -449,8 +449,6 @@ HistologyOverlay::saveToScene(const SceneAttributes* sceneAttributes,
                                 selectionData.m_selectedFile->getFileName());
         sceneClass->addString("selectedFile",
                               selectionData.m_selectedFile->getFileNameNoPath());
-        sceneClass->addInteger("selectedSliceNumber",
-                              selectionData.m_selectedSliceNumber);
         sceneClass->addInteger("selectedSliceIndex",
                                selectionData.m_selectedSliceIndex);
     }
@@ -459,8 +457,6 @@ HistologyOverlay::saveToScene(const SceneAttributes* sceneAttributes,
                                 "");
         sceneClass->addString("selectedFile",
                               "");
-        sceneClass->addInteger("selectedSliceNumber",
-                               -1);
         sceneClass->addInteger("selectedSliceIndex",
                                -1);
     }
@@ -503,8 +499,6 @@ HistologyOverlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     const AString selectedFileName = sceneClass->getStringValue("selectedFile",
                                                                    "");
-    const int32_t selectedSliceNumber = sceneClass->getIntegerValue("selectedSliceNumber",
-                                                                    -1);
     const int32_t selectedSliceIndex = sceneClass->getIntegerValue("selectedSliceIndex",
                                                                  -1);
     

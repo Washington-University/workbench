@@ -88,6 +88,8 @@ m_startOfDraggingFlag(startOfDraggingFlag)
     m_chartCoordAtPreviousMouseXY.m_chartXYZValid = false;
     m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid  = false;
     m_surfaceCoordinateAtMouseXY.m_surfaceNodeValid = false;
+    m_histologyCoordAtMouseXY.m_histologyXYZValid = false;
+    m_histologyCoordAtPreviousMouseXY.m_histologyXYZValid = false;
     m_mediaCoordAtMouseXY.m_mediaXYZValid = false;
     m_mediaCoordAtPreviousMouseXY.m_mediaXYZValid = false;
 }
@@ -230,6 +232,50 @@ AnnotationSpatialModification::setMediaCoordinateAtPreviousMouseXY(const float m
     m_mediaCoordAtPreviousMouseXY.m_mediaXYZ[2] = mediaZ;
     m_mediaCoordAtPreviousMouseXY.m_mediaXYZValid  = true;
 }
+
+
+/**
+ * Set the histology coordinate at mouse X/Y
+ *
+ * @param histologyX
+ *     histology X-coordinate.
+ * @param histologyY
+ *     histology Y-coordinate.
+ * @param histologyZ
+ *     histology Z-coordinate.
+ */
+void
+AnnotationSpatialModification::setHistologyCoordinateAtMouseXY(const float histologyX,
+                                                               const float histologyY,
+                                                               const float histologyZ)
+{
+    m_histologyCoordAtMouseXY.m_histologyXYZ[0] = histologyX;
+    m_histologyCoordAtMouseXY.m_histologyXYZ[1] = histologyY;
+    m_histologyCoordAtMouseXY.m_histologyXYZ[2] = histologyZ;
+    m_histologyCoordAtMouseXY.m_histologyXYZValid  = true;
+}
+
+/**
+ * Set the previous histology coordinate at mouse X/Y
+ *
+ * @param histologyX
+ *     histology X-coordinate.
+ * @param histologyY
+ *     histology Y-coordinate.
+ * @param histologyZ
+ *     histology Z-coordinate.
+ */
+void
+AnnotationSpatialModification::setHistologyCoordinateAtPreviousMouseXY(const float histologyX,
+                                                                       const float histologyY,
+                                                                       const float histologyZ)
+{
+    m_histologyCoordAtPreviousMouseXY.m_histologyXYZ[0] = histologyX;
+    m_histologyCoordAtPreviousMouseXY.m_histologyXYZ[1] = histologyY;
+    m_histologyCoordAtPreviousMouseXY.m_histologyXYZ[2] = histologyZ;
+    m_histologyCoordAtPreviousMouseXY.m_histologyXYZValid  = true;
+}
+
 
 /**
  * Get a description of this object's content.

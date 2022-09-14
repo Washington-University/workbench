@@ -252,8 +252,6 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
         CaretAssert(histologyFile);
         generateHistologyPlaneCoordinateIdentificationText(*histologyHtmlTableBuilder,
                                                            idText,
-                                                           histologyFile,
-                                                           hfi.m_mapIndices,
                                                            selectionManager->getHistologyPlaneCoordinateIdentification());
     }
     for (auto& mfi : mediaFilesAndIndices) {
@@ -2181,45 +2179,26 @@ IdentificationFormattedTextGenerator::generateVolumeFocusIdentifcationText(HtmlT
  *     HTML table builder for identification text.
  * @param idText
  *     string builder for id text
- * @param mediaFile
- *    The media file
- * @param sliceIndices
- *    The slice indices
- * @param idMedia
- *     Information for media ID.
+ * @param idHistology
+ *    Histology identification
  */
 void
 IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                                                          IdentificationStringBuilder& idText,
-                                                                                         const HistologySlicesFile* histologySlicesFile,
-                                                                                         const std::set<int32_t>& sliceIndices,
                                                                                          const SelectionItemHistologyCoordinate* idHistology) const
 {
     if (idHistology->isValid()) {
-        std::array<float, 3> modelXYZ;
-        idHistology->getModelXYZ(modelXYZ.data());
         std::vector<AString> columnOneText, columnTwoText, toolTipText;
         
         const HistologyCoordinate histologyCoordinate(idHistology->getCoordinate());
         const HistologySlicesFile* histologySlicesFile(histologyCoordinate.getHistologySlicesFile());
         CaretAssert(histologySlicesFile);
-        columnOneText.push_back("Histology File");
-        columnTwoText.push_back(histologySlicesFile->getFileNameNoPath());
-        columnOneText.push_back("Slice Index / Number");
-        columnTwoText.push_back(AString::number(histologyCoordinate.getSliceIndex())
-                                + " / "
-                                + AString::number(histologySlicesFile->getSliceNumberBySliceIndex(histologyCoordinate.getSliceIndex())));
+        histologySlicesFile->getIdentificationText(idHistology->getTabIndex(),
+                                                   histologyCoordinate,
+                                                   columnOneText,
+                                                   columnTwoText,
+                                                   toolTipText);
         
-        std::vector<int32_t> frameIndicesVector { 0 };
-        const MediaFile* mediaFile(histologyCoordinate.getMediaFile());
-        if (mediaFile != NULL) {
-            mediaFile->getPixelPlaneIdentificationTextForFrames(idHistology->getTabIndex(),
-                                                                frameIndicesVector,
-                                                                histologyCoordinate.getPlaneXYZ(),
-                                                                columnOneText,
-                                                                columnTwoText,
-                                                                toolTipText);
-        }
         const int32_t numColOne(columnOneText.size());
         const int32_t numColTwo(columnTwoText.size());
         const int32_t maxNum(std::max(numColOne, numColTwo));
@@ -2336,12 +2315,14 @@ IdentificationFormattedTextGenerator::generateMediaPlaneCoordinateIdentification
         std::vector<AString> columnOneText, columnTwoText, toolTipText;
         std::vector<int32_t> frameIndicesVector(frameIndices.begin(),
                                                 frameIndices.end());
+        const bool histologyIdFlag(false);
         mediaFile->getPixelPlaneIdentificationTextForFrames(idMedia->getTabIndex(),
-                                                       frameIndicesVector,
-                                                       idMedia->getPlaneCoordinate(),
-                                                       columnOneText,
-                                                       columnTwoText,
-                                                       toolTipText);
+                                                            frameIndicesVector,
+                                                            idMedia->getPlaneCoordinate(),
+                                                            histologyIdFlag,
+                                                            columnOneText,
+                                                            columnTwoText,
+                                                            toolTipText);
         const int32_t numColOne(columnOneText.size());
         const int32_t numColTwo(columnTwoText.size());
         const int32_t maxNum(std::max(numColOne, numColTwo));

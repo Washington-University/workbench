@@ -55,6 +55,8 @@
 #include "EventManager.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
 #include "GuiManager.h"
+#include "HistologyOverlaySet.h"
+#include "HistologySlicesFile.h"
 #include "MathFunctions.h"
 #include "MediaFile.h"
 #include "MediaOverlaySet.h"
@@ -302,7 +304,7 @@ AnnotationCoordinatesWidget::updateContent(Annotation* annotation)
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 break;
@@ -476,8 +478,52 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                 }
             }
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
-                CaretAssertToDoFatal();
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            {
+                xMin = coordinateMinimum;
+                xMax = coordinateMaximum;
+                yMin = coordinateMinimum;
+                yMax = coordinateMaximum;
+                zMin = coordinateMinimum;
+                zMax = coordinateMaximum;
+                digitsRightOfDecimalX = 1;
+                digitsRightOfDecimalY = 1;
+                xStep = 1.0;
+                yStep = 1.0;
+                
+                BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+                CaretAssert(bbw);
+                BrowserTabContent* browserTabContent = bbw->getBrowserTabContent();
+                if (browserTabContent != NULL) {
+                    ModelMedia* modelMedia = browserTabContent->getDisplayedMediaModel();
+                    if (modelMedia != NULL) {
+                        HistologyOverlaySet* histologyOverlaySet = browserTabContent->getHistologyOverlaySet();
+                        
+                        if (histologyOverlaySet != NULL) {
+                            const HistologySlicesFile* histologySlicesFile(histologyOverlaySet->getBottomMostHistologySlicesFile());
+                            if (histologySlicesFile != NULL) {
+                                const BoundingBox bb(histologySlicesFile->getPlaneXyzBoundingBox());
+                                xMin = bb.getMinX();
+                                xMax = bb.getMaxX();
+                                yMin = bb.getMinY();
+                                yMax = bb.getMaxY();
+                                zMin = bb.getMinZ();
+                                zMax = bb.getMaxZ();
+                            }
+                            
+                            if (xMax > xMin) {
+                                const float range(xMax - xMin);
+                                xStep = range * 0.001f;
+                            }
+                            if (yMax > yMin) {
+                                const float range(yMax - yMin);
+                                yStep = range * 0.001f;
+                            }
+                        }
+                    }
+                }
+            }
+
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             {
@@ -501,25 +547,20 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                         MediaOverlaySet* mediaOverlaySet = browserTabContent->getMediaOverlaySet();
                                                 
                         if (mediaOverlaySet != NULL) {
-                            float xAxisMin =  std::numeric_limits<float>::max();
-                            float xAxisMax = -std::numeric_limits<float>::max();
-                            float yAxisMin =  std::numeric_limits<float>::max();
-                            float yAxisMax = -std::numeric_limits<float>::max();
-                            
                             const MediaFile* mediaFile = mediaOverlaySet->getBottomMostMediaFile();
                             if (mediaFile != NULL) {
-                                xAxisMin = 0;
-                                xAxisMax = mediaFile->getWidth() - 1;
-                                yAxisMin = 0;
-                                yAxisMax = mediaFile->getHeight() - 1;
+                                xMin = 0;
+                                xMax = mediaFile->getWidth() - 1;
+                                yMin = 0;
+                                yMax = mediaFile->getHeight() - 1;
                             }
                             
-                            if (xAxisMax > xAxisMin) {
-                                const float range(xAxisMax - xAxisMin);
+                            if (xMax > xMin) {
+                                const float range(xMax - xMin);
                                 xStep = range * 0.001f;
                             }
-                            if (yAxisMax > yAxisMin) {
-                                const float range(yAxisMax - yAxisMin);
+                            if (yMax > yMin) {
+                                const float range(yMax - yMin);
                                 yStep = range * 0.001f;
                             }
                         }
@@ -731,7 +772,7 @@ AnnotationCoordinatesWidget::valueChangedCoordinate(const int32_t coordinateInde
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 break;

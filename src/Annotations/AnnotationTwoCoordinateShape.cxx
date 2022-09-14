@@ -426,7 +426,7 @@ AnnotationTwoCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
         case AnnotationCoordinateSpaceEnum::CHART:
             xyPlaneFlag = true;
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             xyPlaneFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -800,6 +800,73 @@ AnnotationTwoCoordinateShape::applySpatialModificationChartSpace(const Annotatio
 }
 
 /**
+ * Apply a spatial modification to an annotation in histology space.
+ *
+ * @param spatialModification
+ *     Contains information about the spatial modification.
+ * @return
+ *     True if the annotation was modified, else false.
+ */
+bool
+AnnotationTwoCoordinateShape::applySpatialModificationHistologySpace(const AnnotationSpatialModification& spatialModification)
+{
+    bool validFlag = false;
+    
+    switch (spatialModification.m_sizingHandleType) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+            if (spatialModification.m_histologyCoordAtMouseXY.m_histologyXYZValid) {
+                m_endCoordinate->setXYZ(spatialModification.m_histologyCoordAtMouseXY.m_histologyXYZ);
+                validFlag = true;
+            }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            if (spatialModification.m_histologyCoordAtMouseXY.m_histologyXYZValid) {
+                m_startCoordinate->setXYZ(spatialModification.m_histologyCoordAtMouseXY.m_histologyXYZ);
+                validFlag = true;
+            }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            if (spatialModification.m_histologyCoordAtMouseXY.m_histologyXYZValid
+                && spatialModification.m_histologyCoordAtPreviousMouseXY.m_histologyXYZValid) {
+                const float dx = spatialModification.m_histologyCoordAtMouseXY.m_histologyXYZ[0] - spatialModification.m_histologyCoordAtPreviousMouseXY.m_histologyXYZ[0];
+                const float dy = spatialModification.m_histologyCoordAtMouseXY.m_histologyXYZ[1] - spatialModification.m_histologyCoordAtPreviousMouseXY.m_histologyXYZ[1];
+                const float dz = spatialModification.m_histologyCoordAtMouseXY.m_histologyXYZ[2] - spatialModification.m_histologyCoordAtPreviousMouseXY.m_histologyXYZ[2];
+                
+                m_startCoordinate->addToXYZ(dx, dy, dz);
+                m_endCoordinate->addToXYZ(dx, dy, dz);
+                validFlag = true;
+            }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+            break;
+    }
+    
+    if (validFlag) {
+        setModified();
+    }
+    
+    return validFlag;
+}
+
+/**
  * Apply a spatial modification to an annotation in chart space.
  *
  * @param spatialModification
@@ -865,6 +932,7 @@ AnnotationTwoCoordinateShape::applySpatialModificationMediaSpace(const Annotatio
     
     return validFlag;
 }
+
 
 /**
  * Apply a spatial modification to an annotation in stereotaxic space.
@@ -942,8 +1010,8 @@ AnnotationTwoCoordinateShape::applySpatialModification(const AnnotationSpatialMo
         case AnnotationCoordinateSpaceEnum::CHART:
             return applySpatialModificationChartSpace(spatialModification);
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
-            CaretAssertToDoFatal();
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            return applySpatialModificationHistologySpace(spatialModification);
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             return applySpatialModificationMediaSpace(spatialModification);

@@ -243,10 +243,14 @@ namespace caret {
         
         void groupAnnotationsAfterPasting(std::vector<Annotation*>& pastedAnnotations);
         
+        bool getHistologyStep(BrowserTabContent* browserTabContent,
+                              float& stepXOut,
+                              float& stepYOut);
+
         bool getMediaStep(BrowserTabContent* browserTabContent,
                           float& stepXOut,
                           float& stepYOut);
-
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;

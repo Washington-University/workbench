@@ -138,7 +138,7 @@ namespace caret {
         public:
             float m_xyz[3] = { 0.0f, 0.0f, 0.0f };
             AString m_histologySlicesFileName;
-            AString m_histologyMediaFileName;
+            int32_t m_histologySliceIndex;
         };
         
         class MediaFileNameAndPixelSpaceInfo : public SpaceInfo {

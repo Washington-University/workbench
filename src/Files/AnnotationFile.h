@@ -196,7 +196,7 @@ namespace caret {
                                                  const SpacerTabIndex& spacerTabIndex,
                                                  const AString& mediaFileName,
                                                  const AString& histologySlicesFileName,
-                                                 const AString& histologyMediaFileName,
+                                                 const int32_t histologySliceIndex,
                                                  const int32_t uniqueKey,
                                                  const std::vector<Annotation*>& annotations);
         

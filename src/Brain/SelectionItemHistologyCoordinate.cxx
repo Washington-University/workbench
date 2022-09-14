@@ -129,6 +129,16 @@ SelectionItemHistologyCoordinate::getPixelRGBA(uint8_t pixelRGBAOut[4]) const
 }
 
 /**
+ * @return True if the pixel RGBA is valid
+ */
+bool
+SelectionItemHistologyCoordinate::isPixelRGBAValid() const
+{
+    return m_pixelRGBAValidFlag;
+}
+
+
+/**
  * Set the pixel RGBA value.
  *
  * @param pixelRGBA
@@ -142,26 +152,6 @@ SelectionItemHistologyCoordinate::setPixelRGBA(const uint8_t pixelRGBA[4])
     m_pixelRGBA[2] = pixelRGBA[2];
     m_pixelRGBA[3] = pixelRGBA[3];
     m_pixelRGBAValidFlag = true;
-}
-
-/**
- * @return True if pixel RGBA should be included in selection information
- */
-bool
-SelectionItemHistologyCoordinate::isIncludePixelRGBA() const
-{
-    return m_includePixelRGBAFlag;
-}
-
-/**
- * Set pixel RGBA should be included in selection information
- * @param status
- *    New status
- */
-void
-SelectionItemHistologyCoordinate::setIncludePixelRGBA(const bool status)
-{
-    m_includePixelRGBAFlag = status;
 }
 
 /**
@@ -189,7 +179,6 @@ SelectionItemHistologyCoordinate::resetPrivate()
     m_pixelRGBAValidFlag = false;
     m_tabIndex = -1;
     m_overlayIndex = -1;
-    m_includePixelRGBAFlag = false;
 }
 
 /**

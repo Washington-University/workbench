@@ -25,6 +25,7 @@
 
 #include "CaretColorEnum.h"
 #include "CaretObject.h"
+#include "HistologyCoordinate.h"
 #include "IdentifiedItemBase.h"
 #include "IdentificationSymbolSizeTypeEnum.h"
 #include "IdentifiedItemUniversalTypeEnum.h"
@@ -34,7 +35,6 @@
 #include "Vector3D.h"
 
 namespace caret {
-
     class IdentifiedItemUniversal  : public CaretObject, public SceneableInterface {
         
     public:
@@ -44,12 +44,9 @@ namespace caret {
         static IdentifiedItemUniversal* newInstanceTextNoSymbolIdentification(const AString& simpleText,
                                                                               const AString& formattedText);
         
-        static IdentifiedItemUniversal* newInstanceHistologyPlaneCoordinateIdentification(const AString& simpleText,
-                                                                                          const AString& formattedText,
-                                                                                          const AString& dataFileName,
-                                                                                          const Vector3D& planeCoordinate,
-                                                                                          const Vector3D& stereotaxicXYZ,
-                                                                                          const bool stereotaxicXYZValidFlag);
+        static IdentifiedItemUniversal* newInstanceHistologyCoordinateIdentification(const AString& simpleText,
+                                                                                     const AString& formattedText,
+                                                                                     const HistologyCoordinate& histologyCoordinate);
 
         static IdentifiedItemUniversal* newInstanceMediaLogicalCoordinateIdentification(const AString& simpleText,
                                                                                         const AString& formattedText,
@@ -130,6 +127,8 @@ namespace caret {
         
         bool isStereotaxicXYZValid() const;
         
+        const HistologyCoordinate& getHistologyCoordinate() const;
+        
         bool isOldIdentification() const;
         
         AString getToolTip() const;
@@ -157,6 +156,7 @@ namespace caret {
                                 const PixelLogicalIndex& pixelLogicalIndex,
                                 const Vector3D& pixelPlaneCoordinate,
                                 const std::array<int64_t, 3>& voxelIJK,
+                                const HistologyCoordinate& histologyCoordinate,
                                 const Vector3D& stereotaxicXYZ,
                                 const bool stereotaxicXYZValidFlag);
         
@@ -187,6 +187,8 @@ namespace caret {
         Vector3D m_pixelPlaneCoordinate;
         
         std::array<int64_t, 3> m_voxelIJK;
+        
+        HistologyCoordinate m_histologyCoordinate;
         
         Vector3D m_stereotaxicXYZ;
         

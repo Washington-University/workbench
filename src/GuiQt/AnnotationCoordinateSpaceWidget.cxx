@@ -141,7 +141,7 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
             switch (space) {
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
-                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                     break;
                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     break;

@@ -1993,7 +1993,7 @@ AnnotationRedoUndoCommand::setModeRotationAngle(const float newRotationAngle,
             switch (oneDimAnn->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
-                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                     break;
                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     break;
@@ -2498,7 +2498,7 @@ AnnotationRedoUndoCommand::setModeTextFontPercentSize(const float newFontPercent
             switch (redoAnnotation->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
-                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                     break;
                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     break;

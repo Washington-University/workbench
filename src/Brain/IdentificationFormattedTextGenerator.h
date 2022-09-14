@@ -168,8 +168,6 @@ namespace caret {
 
         void generateHistologyPlaneCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                             IdentificationStringBuilder& idText,
-                                                            const HistologySlicesFile* histologySlicesFile,
-                                                            const std::set<int32_t>& sliceIndices,
                                                             const SelectionItemHistologyCoordinate* idHistology) const;
         
         void generateMediaLogicalCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,

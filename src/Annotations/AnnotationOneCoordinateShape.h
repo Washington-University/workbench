@@ -141,6 +141,8 @@ namespace caret {
         
         bool applySpatialModificationMediaSpace(const AnnotationSpatialModification& spatialModification);
         
+        bool applySpatialModificationHistologySpace(const AnnotationSpatialModification& spatialModification);
+        
         bool rotationAngleTest(const float previousMouseXYZ[3],
                                const float shapeXYZ[3],
                                const float currentMouseXYZ[3]) const;

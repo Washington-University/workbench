@@ -92,16 +92,20 @@ namespace caret {
         void setMediaFileNameAndPixelSpace(const AString& mediaFileName,
                                            const float xyz[3]);
         
-        AString getHistologySlicesFileName() const;
+        AString getHistologyFileName() const;
         
-        AString getHistologyMediaFileName() const;
+        void setHistologyFileName(const AString& histologyFileName);
+        
+        void setHistologySliceIndex(const int32_t histologySliceIndex);
+        
+        int32_t getHistologySliceIndex() const;
         
         void getHistologySpace(AString& histologySlicesFileName,
-                               AString& histologyMediaFileName,
+                               int32_t& histologySliceIndex,
                                float xyz[3]) const;
         
         void setHistologySpace(const AString& histologySlicesFileName,
-                               const AString& histologyMediaFileName,
+                               const int32_t& histologySliceIndex,
                                const float xyz[3]);
         
         float getSurfaceOffsetLength() const;
@@ -168,7 +172,7 @@ namespace caret {
         
         AString m_histologySlicesFileName;
         
-        AString m_histologyMediaFileName;
+        int32_t m_histologySliceIndex = 0;
 
         static float s_userDefaultSurfaceOffsetLength;
         

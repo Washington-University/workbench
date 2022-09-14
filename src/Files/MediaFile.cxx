@@ -1113,10 +1113,12 @@ MediaFile::getStereotaxicXyzBoundingBox() const
  * Get the identification text for the pixel at the given pixel index with origin at bottom left.
  * @param tabIndex
  *    Index of the tab in which identification took place
- * @param frameIndex
+ * @param frameIndices
  *    Indics of the frames
- * @param pixelLogicalIndex
- *    Logical pixel index
+ * @param planeCoordinate
+ *    The plane coordinate
+ * @param histologyIdFlag
+ *    True if identification from histology file
  * @param columnOneTextOut
  *    Text for column one that is displayed to user.
  * @param columnTwoTextOut
@@ -1126,11 +1128,12 @@ MediaFile::getStereotaxicXyzBoundingBox() const
  */
 void
 MediaFile::getPixelPlaneIdentificationTextForFrames(const int32_t tabIndex,
-                                                         const std::vector<int32_t>& frameIndices,
-                                                         const Vector3D& planeCoordinate,
-                                                         std::vector<AString>& columnOneTextOut,
-                                                         std::vector<AString>& columnTwoTextOut,
-                                                         std::vector<AString>& toolTipTextOut) const
+                                                    const std::vector<int32_t>& frameIndices,
+                                                    const Vector3D& planeCoordinate,
+                                                    const bool histologyIdFlag,
+                                                    std::vector<AString>& columnOneTextOut,
+                                                    std::vector<AString>& columnTwoTextOut,
+                                                    std::vector<AString>& toolTipTextOut) const
 {
     PixelLogicalIndex pixelLogicalIndex;
     if ( ! planeXyzToLogicalPixelIndex(planeCoordinate,
@@ -1203,8 +1206,10 @@ MediaFile::getPixelPlaneIdentificationTextForFrames(const int32_t tabIndex,
     columnOneTextOut.push_back(pixelText);
     columnTwoTextOut.push_back(logicalText);
     
-    columnOneTextOut.push_back(mmText);
-    columnTwoTextOut.push_back(planeText);
+    if ( ! histologyIdFlag) {
+        columnOneTextOut.push_back(mmText);
+        columnTwoTextOut.push_back(planeText);
+    }
     
     Vector3D xyz;
     if (pixelIndexToStereotaxicXYZ(pixelLogicalIndex, false, xyz)) {

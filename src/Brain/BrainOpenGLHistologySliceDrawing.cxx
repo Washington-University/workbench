@@ -80,7 +80,7 @@ BrainOpenGLHistologySliceDrawing::~BrainOpenGLHistologySliceDrawing()
 }
 
 /**
- * Setup the orthographic bounds for the underlay media file
+ * Setup the orthographic bounds for the underlay histology file
  * @param orthoLeftOut
  *    Output with orthographic left
  * @param orthoRightOut
@@ -187,8 +187,8 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
  *    The viewport content
  * @param browserTabContent
  *    Content of the browser tab
- * @param mediaModel
- *    Media model for drawing
+ * @param histologyModel
+ *    Histology model for drawing
  * @param viewport
  *    Size of the viewport
  */
@@ -216,6 +216,7 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
      * Find overlays containing files that support coordinates
      */
     bool firstFlag(true);
+    Vector3D underlayStereotaxicXYZ;
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
         HistologyOverlay* overlay = overlaySet->getOverlay(iOverlay);
         CaretAssert(overlay);
@@ -227,14 +228,27 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
                 const HistologyCoordinate histologyCoordinate(browserTabContent->getHistologySelectedCoordinate(selectionData.m_selectedFile));
                 int32_t selectedSliceIndex(histologyCoordinate.getSliceIndex());
                 if (firstFlag) {
-                    firstFlag = false;
+                    if (histologyCoordinate.isStereotaxicXYZValid()) {
+                        underlayStereotaxicXYZ = histologyCoordinate.getStereotaxicXYZ();
+                        firstFlag = false;
+                    }
                 }
                 else {
                     /*
                      * Since this is not the underlay, need to find slice in this file
                      * closest to the underlay's slice
                      */
-                    CaretAssertToDoFatal();
+                    HistologyCoordinate hc(HistologyCoordinate::newInstanceStereotaxicXYZ(const_cast<HistologySlicesFile*>(selectedFile),
+                                                                                          underlayStereotaxicXYZ));
+                    if (hc.isValid()
+                        && hc.isSliceIndexValid()) {
+                        selectedSliceIndex = hc.getSliceIndex();
+                    }
+                    else {
+                        CaretLogSevere("Slice index invalid for histology overlay with file: "
+                                       + selectedFile->getFileName());
+                        continue;
+                    }
                 }
                 std::vector<HistologyOverlay::DrawingData> drawingData(overlay->getDrawingData(selectedSliceIndex));
                 m_mediaFilesAndDataToDraw.insert(m_mediaFilesAndDataToDraw.end(),
@@ -314,7 +328,7 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
 }
 
 /**
- * Draw the media models layers
+ * Draw the models layers
  * @param orthoLRBT
  *    Orthographic projection
  * @param viewportContent
@@ -363,6 +377,8 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
     glPushMatrix();
     
     HistologySlicesFile* underlayHistologySlicesFile(NULL);
+    int32_t underlayHistologySliceIndex(-1);
+    
     const int32_t numMediaFiles(static_cast<int32_t>(m_mediaFilesAndDataToDraw.size()));
     for (int32_t i = 0; i < numMediaFiles; i++) {
         CaretAssertVectorIndex(m_mediaFilesAndDataToDraw, i);
@@ -432,35 +448,38 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
                              primitive);
         }
         
-        /*
-         * Height used for drawing ID symbols
-         */
-        const float symbolIdHeight(viewportHeight / (orthoHeight /  m_browserTabContent->getScaling()));
-        
-        /*
-         * Draw identification symbols
-         */
-        BrainOpenGLIdentificationDrawing idDrawing(m_fixedPipelineDrawing,
-                                                   m_fixedPipelineDrawing->m_brain,
-                                                   m_browserTabContent,
-                                                   m_fixedPipelineDrawing->mode);
-        const float mediaThickness(2.0f);
-        Plane plane;
-        idDrawing.drawHistologyFilePlaneCoordinateIdentificationSymbols(mediaFile,
-                                                                        plane,
-                                                                        mediaThickness,
-                                                                        symbolIdHeight,
-                                                                        viewportHeight);
-
         glPopMatrix();
         
         if (underlayHistologySlicesFile == NULL) {
             underlayHistologySlicesFile = drawingData.m_selectedFile;
+            underlayHistologySliceIndex = drawingData.m_selectedSliceIndex;
         }
     }
     
     glPopMatrix();
     
+    /*
+     * Height used for drawing ID symbols
+     */
+    const float symbolIdHeight(viewportHeight / (orthoHeight /  m_browserTabContent->getScaling()));
+    
+    /*
+     * Draw identification symbols
+     */
+    BrainOpenGLIdentificationDrawing idDrawing(m_fixedPipelineDrawing,
+                                               m_fixedPipelineDrawing->m_brain,
+                                               m_browserTabContent,
+                                               m_fixedPipelineDrawing->mode);
+    const float mediaThickness(2.0f);
+    Plane plane;
+    idDrawing.drawHistologyFilePlaneCoordinateIdentificationSymbols(underlayHistologySlicesFile,
+                                                                    underlayHistologySliceIndex,
+                                                                    plane,
+                                                                    mediaThickness,
+                                                                    symbolIdHeight,
+                                                                    viewportHeight);
+
+
     /*
      * Draw the crosshairs
      */
@@ -469,8 +488,12 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
     drawCrosshairs(orthoLRBT,
                    btc->getHistologySelectedCoordinate(underlayHistologySlicesFile));
     
-    
-    m_fixedPipelineDrawing->drawMediaSpaceAnnotations(viewportContent);
+    /*
+     * Draw annotation in histology space
+     */
+    m_fixedPipelineDrawing->drawHistologySpaceAnnotations(viewportContent,
+                                                          underlayHistologySlicesFile->getFileNameNoPath(),
+                                                          underlayHistologySliceIndex);
 }
 
 /**
@@ -579,7 +602,18 @@ BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
                 }
             }
             
+            /*
+             * Multiple layers/images may be drawn.
+             * Always give highest priority to pixel that is within an image.
+             */
+            bool replaceFlag(false);
             if (validPixelFlag) {
+                replaceFlag = true;
+            }
+            else if ( ! idHistology->isPixelRGBAValid()) {
+                replaceFlag = true;
+            }
+            if (replaceFlag) {
                 HistologyCoordinate hc(HistologyCoordinate::newInstanceIdentification(drawingData.m_selectedFile,
                                                                                       drawingData.m_mediaFile,
                                                                                       drawingData.m_selectedSliceIndex,
@@ -591,7 +625,7 @@ BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
                 uint8_t pixelByteRGBA[4] = { 0, 0, 0, 0 };
                 idHistology->setScreenXYZ(windowXYZ);
                 idHistology->setScreenDepth(0.0);
-                if (idHistology->isIncludePixelRGBA()) {
+                if (validPixelFlag) {
                     if (mediaFile->getPixelRGBA(tabIndex,
                                                 drawingData.m_overlayIndex,
                                                 pixelLogicalIndex,

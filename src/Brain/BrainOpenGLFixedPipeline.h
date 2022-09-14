@@ -499,6 +499,10 @@ namespace caret {
         
         void drawChartCoordinateSpaceAnnotations(const BrainOpenGLViewportContent* viewportContent);
         
+        void drawHistologySpaceAnnotations(const BrainOpenGLViewportContent* viewportContent,
+                                           const AString& histologySlicesFileName,
+                                           const int32_t histologySliceIndex);
+        
         void drawMediaSpaceAnnotations(const BrainOpenGLViewportContent* viewportContent);
         
         void drawGraphicsTiming(const int windowViewport[4],

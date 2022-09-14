@@ -90,6 +90,7 @@ IdentifiedItemUniversal::IdentifiedItemUniversal(const IdentifiedItemUniversalTy
                                                  const PixelLogicalIndex& pixelLogicalIndex,
                                                  const Vector3D& pixelPlaneCoordinate,
                                                  const std::array<int64_t, 3>& voxelIJK,
+                                                 const HistologyCoordinate& histologyCoordinate,
                                                  const Vector3D& stereotaxicXYZ,
                                                  const bool stereotaxicXYZValidFlag)
 : CaretObject(),
@@ -105,6 +106,7 @@ m_surfaceVertexIndex(surfaceVertexIndex),
 m_pixelLogicalIndex(pixelLogicalIndex),
 m_pixelPlaneCoordinate(pixelPlaneCoordinate),
 m_voxelIJK(voxelIJK),
+m_histologyCoordinate(histologyCoordinate),
 m_stereotaxicXYZ(stereotaxicXYZ),
 m_stereotaxicXYZValidFlag(stereotaxicXYZValidFlag)
 {
@@ -141,6 +143,7 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
     const int32_t surfaceNumberOfVertices(-1);
     const int32_t surfaceVertexIndex(-1);
     std::array<int64_t, 3> voxelIJK;
+    HistologyCoordinate histologyCoordinate;
     voxelIJK.fill(0);
     IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL,
                                                                 simpleText,
@@ -152,6 +155,7 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
                                                                 pixelLogicalIndex,
                                                                 Vector3D(),
                                                                 voxelIJK,
+                                                                histologyCoordinate,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
     return item;
@@ -175,13 +179,11 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
  *
  */
 IdentifiedItemUniversal*
-IdentifiedItemUniversal::newInstanceHistologyPlaneCoordinateIdentification(const AString& simpleText,
-                                                                           const AString& formattedText,
-                                                                           const AString& dataFileName,
-                                                                           const Vector3D& planeCoordinate,
-                                                                           const Vector3D& stereotaxicXYZ,
-                                                                           const bool stereotaxicXYZValidFlag)
+IdentifiedItemUniversal::newInstanceHistologyCoordinateIdentification(const AString& simpleText,
+                                                                      const AString& formattedText,
+                                                                      const HistologyCoordinate& histologyCoordinate)
 {
+    CaretAssert(histologyCoordinate.isValid());
     const StructureEnum::Enum structure(StructureEnum::INVALID);
     const int32_t surfaceNumberOfVertices(-1);
     const int32_t surfaceVertexIndex(-1);
@@ -191,15 +193,16 @@ IdentifiedItemUniversal::newInstanceHistologyPlaneCoordinateIdentification(const
     IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE,
                                                                 simpleText,
                                                                 formattedText,
-                                                                dataFileName,
+                                                                histologyCoordinate.getHistologySlicesFileName(),
                                                                 structure,
                                                                 surfaceNumberOfVertices,
                                                                 surfaceVertexIndex,
                                                                 pixelLogicalIndex,
-                                                                planeCoordinate,
+                                                                histologyCoordinate.getPlaneXYZ(),
                                                                 voxelIJK,
-                                                                stereotaxicXYZ,
-                                                                stereotaxicXYZValidFlag);
+                                                                histologyCoordinate,
+                                                                histologyCoordinate.getStereotaxicXYZ(),
+                                                                histologyCoordinate.isStereotaxicXYZValid());
     return item;
 }
 
@@ -232,6 +235,7 @@ IdentifiedItemUniversal::newInstanceMediaLogicalCoordinateIdentification(const A
     const int32_t surfaceNumberOfVertices(-1);
     const int32_t surfaceVertexIndex(-1);
     std::array<int64_t, 3> voxelIJK;
+    HistologyCoordinate histologyCoordinate;
     voxelIJK.fill(0);
     const Vector3D pixelPlaneCoordinate;
     IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE,
@@ -244,6 +248,7 @@ IdentifiedItemUniversal::newInstanceMediaLogicalCoordinateIdentification(const A
                                                                 pixelLogicalIndex,
                                                                 pixelPlaneCoordinate,
                                                                 voxelIJK,
+                                                                histologyCoordinate,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
     return item;
@@ -279,6 +284,7 @@ IdentifiedItemUniversal::newInstanceMediaPlaneCoordinateIdentification(const ASt
     const int32_t surfaceVertexIndex(-1);
     std::array<int64_t, 3> voxelIJK;
     voxelIJK.fill(0);
+    HistologyCoordinate histologyCoordinate;
     PixelLogicalIndex pixelLogicalIndex;
     IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE,
                                                                 simpleText,
@@ -290,6 +296,7 @@ IdentifiedItemUniversal::newInstanceMediaPlaneCoordinateIdentification(const ASt
                                                                 pixelLogicalIndex,
                                                                 pixelPlaneCoordinate,
                                                                 voxelIJK,
+                                                                histologyCoordinate,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
     return item;
@@ -326,6 +333,7 @@ IdentifiedItemUniversal::newInstanceSurfaceIdentification(const AString& simpleT
     std::array<int64_t, 3> voxelIJK;
     voxelIJK.fill(0);
     const bool stereotaxicXYZValidFlag(true);
+    HistologyCoordinate histologyCoordinate;
     IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::SURFACE,
                                                                 simpleText,
                                                                 formattedText,
@@ -336,6 +344,7 @@ IdentifiedItemUniversal::newInstanceSurfaceIdentification(const AString& simpleT
                                                                 PixelLogicalIndex(),
                                                                 Vector3D(),
                                                                 voxelIJK,
+                                                                histologyCoordinate,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
     return item;
@@ -367,6 +376,7 @@ IdentifiedItemUniversal::newInstanceVolumeIdentification(const AString& simpleTe
     const int32_t surfaceNumberOfVertices(-1);
     const int32_t surfaceVertexIndex(-1);
     const bool stereotaxicXYZValidFlag(true);
+    HistologyCoordinate histologyCoordinate;
     IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::VOLUME_SLICES,
                                                                 simpleText,
                                                                 formattedText,
@@ -377,6 +387,7 @@ IdentifiedItemUniversal::newInstanceVolumeIdentification(const AString& simpleTe
                                                                 PixelLogicalIndex(),
                                                                 Vector3D(),
                                                                 voxelIJK,
+                                                                histologyCoordinate,
                                                                 stereotaxicXYZ,
                                                                 stereotaxicXYZValidFlag);
     return item;
@@ -487,6 +498,7 @@ IdentifiedItemUniversal::copyHelperIdentifiedItemUniversal(const IdentifiedItemU
     m_pixelLogicalIndex = obj.m_pixelLogicalIndex;
     m_pixelPlaneCoordinate = obj.m_pixelPlaneCoordinate;
     m_voxelIJK = obj.m_voxelIJK;
+    m_histologyCoordinate = obj.m_histologyCoordinate;
     m_stereotaxicXYZ = obj.m_stereotaxicXYZ;
     m_stereotaxicXYZValidFlag = obj.m_stereotaxicXYZValidFlag;
     m_symbolColor = obj.m_symbolColor;
@@ -573,6 +585,9 @@ IdentifiedItemUniversal::initializeInstance()
     m_sceneAssistant->add("m_pixelIndex", "PixelLogicalIndex", &m_pixelLogicalIndex); /* "m_pixelIndex" is compatible with old scenes */
     m_sceneAssistant->addArray("m_pixelPlaneCoordinate", m_pixelPlaneCoordinate, 3, 0.0);
     m_sceneAssistant->addArray("m_voxelIJK", m_voxelIJK.data(), m_voxelIJK.size(), -1);
+    m_sceneAssistant->add("m_histologyCoordinate",
+                          "HistologyCoordinate",
+                          &m_histologyCoordinate);
     m_sceneAssistant->addArray("m_stereotaxicXYZ", m_stereotaxicXYZ, 3, 0.0);
     m_sceneAssistant->add("m_stereotaxicXYZValidFlag", &m_stereotaxicXYZValidFlag);
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_symbolColor", &m_symbolColor);
@@ -670,12 +685,10 @@ IdentifiedItemUniversal::isValid() const
             CaretAssert(0);
             break;
         case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
-            return true;
+            return m_histologyCoordinate.isValid();
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
-            //if (m_pixelLogicalIndex.isValid()) {
-                return true;
-            //}
+            return true;
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
             return true;
@@ -858,6 +871,15 @@ IdentifiedItemUniversal::isStereotaxicXYZValid() const
 }
 
 /**
+ * @return Reference to the histology coordinate
+ */
+const HistologyCoordinate&
+IdentifiedItemUniversal::getHistologyCoordinate() const
+{
+    return m_histologyCoordinate;
+}
+
+/**
  * @return True if this identified time is from a scene before this class was created
  */
 bool
@@ -884,6 +906,7 @@ IdentifiedItemUniversal::toString() const
                        + ", m_pixelLogicalIndex=" + m_pixelLogicalIndex.toString()
                        + ", m_pixelPlaneCoordinate=" + AString::fromNumbers(m_pixelPlaneCoordinate)
                        + ", m_voxelIJK=" + AString::fromNumbers(m_voxelIJK.data(), m_voxelIJK.size(), ", ")
+                       + ", m_histologyCoordinate=" + m_histologyCoordinate.toString()
                        + ", m_stereotaxicXYZ=" + AString::fromNumbers(m_stereotaxicXYZ, 3, ", ")
                        + ", m_stereotaxicXYZValidFlag=" + AString::fromBool(m_stereotaxicXYZValidFlag)
                        + ", m_symbolColor=" + CaretColorEnum::toName(m_symbolColor)

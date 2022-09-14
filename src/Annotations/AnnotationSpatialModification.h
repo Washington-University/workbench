@@ -69,6 +69,14 @@ namespace caret {
                                                  const float mediaY,
                                                  const float mediaZ);
         
+        void setHistologyCoordinateAtMouseXY(const float histologyX,
+                                             const float histologyY,
+                                             const float histologyZ);
+
+        void setHistologyCoordinateAtPreviousMouseXY(const float histologyX,
+                                                     const float histologyY,
+                                                     const float histologyZ);
+        
         virtual ~AnnotationSpatialModification();
         
 
@@ -107,6 +115,21 @@ namespace caret {
             float m_chartXYZ[3];
             
             bool m_chartXYZValid;
+        };
+        
+        class HistologyCoord {
+        public:
+            HistologyCoord() {
+                m_histologyXYZ[0] = 0.0;
+                m_histologyXYZ[1] = 0.0;
+                m_histologyXYZ[2] = 0.0;
+                
+                m_histologyXYZValid = false;
+            }
+            
+            float m_histologyXYZ[3];
+            
+            bool m_histologyXYZValid;
         };
         
         class MediaCoord {
@@ -169,6 +192,10 @@ namespace caret {
         ChartCoord m_chartCoordAtMouseXY;
         
         ChartCoord m_chartCoordAtPreviousMouseXY;
+        
+        HistologyCoord m_histologyCoordAtMouseXY;
+        
+        HistologyCoord m_histologyCoordAtPreviousMouseXY;
         
         MediaCoord m_mediaCoordAtMouseXY;
         

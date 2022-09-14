@@ -7224,40 +7224,6 @@ BrowserTabContent::updateHistologyModelYokedBrowserTabs()
             }
         }
     }
-    CaretAssertToDoFatal();
-    
-//    float myImageWidthHeight[2] { 0.0f, 0.0f };
-//    HistologyOverlaySet* myOverlaySet(getHistologyOverlaySet());
-//    if (myOverlaySet != NULL) {
-//        const HistologySlicesFile* myMediaFile(myOverlaySet->getBottomMostHistologyFile());
-//        myImageWidthHeight[0] = myMediaFile->getWidth();
-//        myImageWidthHeight[1] = myMediaFile->getHeight();
-//    }
-//
-//    /*
-//     * Copy yoked data from 'me' to all other yoked browser tabs
-//     */
-//    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
-//    for (auto btc : activeTabs) {
-//        if (btc != this) {
-//            /*
-//             * If anything is added, also need to update setYokingGroup()
-//             */
-//            if (btc->getHistologyModelYokingGroup() == m_histologyModelYokingGroup) {
-//                float btcImageWidthHeight[2] { 0.0f, 0.0f };
-//                HistologyOverlaySet* btcOverlaySet(btc->getHistologyOverlaySet());
-//                if (btcOverlaySet != NULL) {
-//                    const HistologySlicesFile* btcMediaFile(btcOverlaySet->getBottomMostHistologyFile());
-//                    btcImageWidthHeight[0] = btcMediaFile->getWidth();
-//                    btcImageWidthHeight[1] = btcMediaFile->getHeight();
-//                }
-//
-//                btc->m_histologyViewingTransformation->copyTransformsForYoking(*m_histologyViewingTransformation,
-//                                                                           myImageWidthHeight,
-//                                                                           btcImageWidthHeight);
-//            }
-//        }
-//    }
 }
 
 /**

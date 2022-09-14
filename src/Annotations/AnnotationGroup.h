@@ -47,7 +47,7 @@ namespace caret {
                         const SpacerTabIndex& spacerTabIndex,
                         const AString& mediaFileName,
                         const AString& histologySlicesFileName,
-                        const AString& histologyMediaFileName);
+                        const int32_t& histologySliceIndex);
         
         virtual ~AnnotationGroup();
 
@@ -73,7 +73,7 @@ namespace caret {
         
         AString getHistologySlicesFileName() const;
         
-        AString getHistologyMediaFileName() const;
+        int32_t getHistologySliceIndex() const;
 
         int32_t getNumberOfAnnotations() const;
         
@@ -206,7 +206,7 @@ namespace caret {
         
         AString m_histologySlicesFileName;
         
-        AString m_histologyMediaFileName;
+        int32_t m_histologySliceIndex;
         
         mutable AString m_name;
         

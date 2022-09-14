@@ -31,6 +31,7 @@
 #include "Matrix4x4.h"
 
 namespace caret {
+    class HistologyCoordinate;
     class HistologySlice;
     class SceneClassAssistant;
 
@@ -84,6 +85,12 @@ namespace caret {
         const HistologySlice* getSliceNearestStereotaxicXyz(const Vector3D& stereotaxicXYZ,
                                                             float& mmDistanceToSlice,
                                                             Vector3D& nearestOnSliceStereotaxicXYZ) const;
+
+        virtual void getIdentificationText(const int32_t tabIndex,
+                                           const HistologyCoordinate& histologyCoordinate,
+                                           std::vector<AString>& columnOneTextOut,
+                                           std::vector<AString>& columnTwoTextOut,
+                                           std::vector<AString>& toolTipTextOut) const;
 
         virtual void readFile(const AString& filename) override;
         

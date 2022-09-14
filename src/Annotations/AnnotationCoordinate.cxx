@@ -108,7 +108,7 @@ AnnotationCoordinate::copyHelperAnnotationCoordinate(const AnnotationCoordinate&
     m_surfaceOffsetVectorType   = obj.m_surfaceOffsetVectorType;
     m_mediaFileName             = obj.m_mediaFileName;
     m_histologySlicesFileName   = obj.m_histologySlicesFileName;
-    m_histologyMediaFileName    = obj.m_histologyMediaFileName;
+    m_histologySliceIndex       = obj.m_histologySliceIndex;
 }
 
 /**
@@ -138,7 +138,7 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
     
     m_mediaFileName = "";
     m_histologySlicesFileName = "";
-    m_histologyMediaFileName  = "";
+    m_histologySliceIndex     = 0;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->addArray("m_xyz",
@@ -158,8 +158,8 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
                           &m_mediaFileName);
     m_sceneAssistant->add("m_histologySlicesFileName",
                           &m_histologySlicesFileName);
-    m_sceneAssistant->add("m_histologyMediaFileName",
-                          &m_histologyMediaFileName);
+    m_sceneAssistant->add("m_histologySliceIndex",
+                          &m_histologySliceIndex);
 }
 
 /**
@@ -484,39 +484,67 @@ AnnotationCoordinate::setMediaFileNameAndPixelSpace(const AString& mediaFileName
 }
 
 /**
- * @return Name of histology slices file
+ * @return Histology file name for
  */
 AString
-AnnotationCoordinate::getHistologySlicesFileName() const
+AnnotationCoordinate::getHistologyFileName() const
 {
     return m_histologySlicesFileName;
 }
 
 /**
- * @return Name of histology media file
+ * Set the histology file name
+ * @param histologyFileName
+ *    Name of histology file.
  */
-AString
-AnnotationCoordinate::getHistologyMediaFileName() const
+void
+AnnotationCoordinate::setHistologyFileName(const AString& histologyFileName)
 {
-    return m_histologyMediaFileName;
+    if (histologyFileName != m_histologySlicesFileName) {
+        m_histologySlicesFileName = histologyFileName;
+        setModified();
+    }
+}
+
+/**
+ * @return Index of histology slice
+ */
+int32_t
+AnnotationCoordinate::getHistologySliceIndex() const
+{
+    return m_histologySliceIndex;
+}
+
+/**
+ * Set index of histology slice
+ * @param histologySliceIndex
+ *    Index of slice
+ */
+void
+AnnotationCoordinate::setHistologySliceIndex(const int32_t histologySliceIndex)
+{
+    if (histologySliceIndex != m_histologySliceIndex) {
+        m_histologySliceIndex = histologySliceIndex;
+        setModified();
+    }
 }
 
 /**
  * Get histology space info
  * @param histologySlicesFileNameOut
  *    Name of the histology slices file
- * @param histologyMediaFileNameOut
- *    Name of the media file file
+ * @param histologySliceIndex
+ *    Index of histology slice
  * @param xyzOut
  *    Coordinate of annotation
  */
 void
 AnnotationCoordinate::getHistologySpace(AString& histologySlicesFileNameOut,
-                                        AString& histologyMediaFileNameOut,
+                                        int32_t& histologySliceIndexOut,
                                         float xyzOut[3]) const
 {
     histologySlicesFileNameOut = m_histologySlicesFileName;
-    histologyMediaFileNameOut  = m_histologyMediaFileName;
+    histologySliceIndexOut     = m_histologySliceIndex;
     xyzOut[0] = m_xyz[0];
     xyzOut[1] = m_xyz[1];
     xyzOut[2] = m_xyz[2];
@@ -526,22 +554,22 @@ AnnotationCoordinate::getHistologySpace(AString& histologySlicesFileNameOut,
  * Set histology space info
  * @param histologySlicesFileName
  *    Name of the histology slices file
- * @param histologyMediaFileName
- *    Name of the media file file
+ * @param histologySliceIndex
+ *    Index of the histology slice
  * @param xyz
  *    Coordinate of annotation
  */
 void
 AnnotationCoordinate::setHistologySpace(const AString& histologySlicesFileName,
-                                        const AString& histologyMediaFileName,
+                                        const int32_t& histologySliceIndex,
                                         const float xyz[3])
 {
     if (histologySlicesFileName != m_histologySlicesFileName) {
         m_histologySlicesFileName = histologySlicesFileName;
         setModified();
     }
-    if (histologyMediaFileName != m_histologyMediaFileName) {
-        m_histologyMediaFileName = histologyMediaFileName;
+    if (histologySliceIndex != m_histologySliceIndex) {
+        m_histologySliceIndex = histologySliceIndex;
         setModified();
     }
     setXYZ(xyz);
@@ -594,11 +622,11 @@ AnnotationCoordinate::toStringForCoordinateSpace(const AnnotationCoordinateSpace
         case AnnotationCoordinateSpaceEnum::CHART:
             s.append(AString::fromNumbers(m_xyz, 3, " "));
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
             s.append("Histology Slices File Name: "
                      + m_histologySlicesFileName
-                     + " Media File Name: "
-                     + m_mediaFileName
+                     + " Slice Index: "
+                     + AString::number(m_histologySliceIndex)
                      + " "
                      + AString::fromNumbers(m_xyz, 3, " "));
             break;

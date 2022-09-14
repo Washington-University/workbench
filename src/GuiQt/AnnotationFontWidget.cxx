@@ -407,7 +407,7 @@ AnnotationFontWidget::updateFontSizeControls()
             switch (ann->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
-                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
                     break;
                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     break;
@@ -441,12 +441,6 @@ AnnotationFontWidget::updateFontSizeControls()
             if (annText->isFontTooSmallWhenLastDrawn()) {
                 tooSmallFlag = true;
             }
-//            const AnnotationText* textAnnotation = dynamic_cast<AnnotationText*>(annText);
-//            if (textAnnotation != NULL) {
-//                if (textAnnotation->isFontTooSmallWhenLastDrawn()) {
-//                    tooSmallFlag = true;
-//                }
-//            }
         }
         
         updateFontSizeSpinBox(fontSizeValue,
@@ -553,14 +547,6 @@ AnnotationFontWidget::updateFontSizeSpinBox(const float value,
     }
     m_fontSizeSpinBox->setValue(value);
     m_fontSizeSpinBox->setSuffix(fontSizeSuffix);
-    
-//    if (tooSmallFontFlag) {
-//        m_fontSizeSpinBox->getWidget()->setPalette(m_fontSizeSpinBoxRedTextPalette);
-//    }
-//    else {
-//        m_fontSizeSpinBox->getWidget()->setPalette(m_fontSizeSpinBoxDefaultPalette);
-//    }
-//    m_fontSizeSpinBox->setValue(value);
 }
 
 /**

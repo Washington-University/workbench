@@ -32,22 +32,7 @@ using namespace caret;
  * \class caret::AnnotationAndFile 
  * \brief Simply contains pointer ot annotation and the file containing the annotation
  * \ingroup Annotations
-] */
-
-///**
-// * Constructor.
-// * @param annotation
-// *     The annotation
-// * @param file
-// *     Annotation file containing the annotation
-// */
-//AnnotationAndFile::AnnotationAndFile(Annotation* annotation,
-//                                     AnnotationFile* file)
-//: CaretObject(),
-//m_annotation(annotation),
-//m_file(file)
-//{
-//}
+ */
 
 /**
  * Constructor.

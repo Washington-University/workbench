@@ -35,6 +35,7 @@ namespace caret {
     class BrainOpenGLFixedPipeline;
     class BrowserTabContent;
     class ClippingPlaneGroup;
+    class HistologySlicesFile;
     class IdentificationManager;
     class IdentifiedItemUniversal;
     class MediaFile;
@@ -56,7 +57,8 @@ namespace caret {
 
         BrainOpenGLIdentificationDrawing& operator=(const BrainOpenGLIdentificationDrawing&) = delete;
 
-        void drawHistologyFilePlaneCoordinateIdentificationSymbols(const MediaFile* mediaFile,
+        void drawHistologyFilePlaneCoordinateIdentificationSymbols(const HistologySlicesFile* histologySlicesFile,
+                                                                   const int32_t histologySliceIndex,
                                                                    const Plane& plane,
                                                                    const float mediaThickness,
                                                                    const float viewingZoom,
@@ -102,6 +104,8 @@ namespace caret {
     private:
         void drawIdentificationSymbols(const IdentifiedItemUniversalTypeEnum::Enum drawingOnType,
                                        const Surface* surface,
+                                       const HistologySlicesFile* histologySlicesFile,
+                                       const int32_t histologySliceIndex,
                                        const MediaFile* mediaFile,
                                        const VolumeMappableInterface* volume,
                                        const Plane& plane,

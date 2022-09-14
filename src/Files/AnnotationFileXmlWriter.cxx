@@ -236,7 +236,13 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
         }
             break;
         case AnnotationCoordinateSpaceEnum::CHART:
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            m_stream->writeTextElement(ELEMENT_COORDINATE_HISTOLOGY_FILE_NAME,
+                                       group->getHistologySlicesFileName());
+            m_stream->writeTextElement(ELEMENT_COORDINATE_HISTOLOGY_SLICE_INDEX,
+                                       AString::number(group->getHistologySliceIndex()));
+            break;
         case AnnotationCoordinateSpaceEnum::SPACER:
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -751,7 +757,7 @@ AnnotationFileXmlWriter::writeCoordinate(const AnnotationCoordinate* coordinate,
                                        coordinate->getMediaFileName());
             break;
         case AnnotationCoordinateSpaceEnum::CHART:
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
         case AnnotationCoordinateSpaceEnum::SPACER:
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
         case AnnotationCoordinateSpaceEnum::SURFACE:

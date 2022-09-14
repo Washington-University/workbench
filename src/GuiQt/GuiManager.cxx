@@ -3741,16 +3741,12 @@ GuiManager::processIdentification(const int32_t tabIndex,
                     if (coordinate.getMediaFile() != NULL) {
                         dataFileName = coordinate.getMediaFile()->getFileNameNoPath();
                     }
-                    const Vector3D planeXYZ = coordinate.getPlaneXYZ();
                     if (coordinate.isPlaneXYValid()) {
                         Vector3D stereotaxicXYZ = coordinate.getStereotaxicXYZ();
                         bool stereotaxicXYZValidFlag = coordinate.isStereotaxicXYZValid();
-                        identifiedItem = IdentifiedItemUniversal::newInstanceHistologyPlaneCoordinateIdentification(identificationMessage,
-                                                                                                                    formattedIdentificationMessage,
-                                                                                                                    dataFileName,
-                                                                                                                    planeXYZ,
-                                                                                                                    stereotaxicXYZ,
-                                                                                                                    stereotaxicXYZValidFlag);
+                        identifiedItem = IdentifiedItemUniversal::newInstanceHistologyCoordinateIdentification(identificationMessage,
+                                                                                                               formattedIdentificationMessage,
+                                                                                                               coordinate);
                         if (stereotaxicXYZValidFlag) {
                             if ( ! issuedIdentificationLocationEvent) {
                                 EventIdentificationHighlightLocation idLocation(tabIndex,

@@ -140,11 +140,12 @@ namespace caret {
                                                                 std::vector<AString>& toolTipTextOut) const = 0;
 
         virtual void getPixelPlaneIdentificationTextForFrames(const int32_t tabIndex,
-                                                                const std::vector<int32_t>& frameIndices,
-                                                                const Vector3D& planeCoordinate,
-                                                                std::vector<AString>& columnOneTextOut,
-                                                                std::vector<AString>& columnTwoTextOut,
-                                                                std::vector<AString>& toolTipTextOut) const;
+                                                              const std::vector<int32_t>& frameIndices,
+                                                              const Vector3D& planeCoordinate,
+                                                              const bool histologyIdFlag,
+                                                              std::vector<AString>& columnOneTextOut,
+                                                              std::vector<AString>& columnTwoTextOut,
+                                                              std::vector<AString>& toolTipTextOut) const;
         virtual bool getPixelRGBA(const int32_t tabIndex,
                                   const int32_t overlayIndex,
                                   const PixelLogicalIndex& pixelLogicalIndex,

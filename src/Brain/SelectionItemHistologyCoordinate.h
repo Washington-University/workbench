@@ -56,12 +56,10 @@ namespace caret {
         
         bool getPixelRGBA(uint8_t pixelRGBAOut[4]) const;
         
+        bool isPixelRGBAValid() const;
+        
         void setPixelRGBA(const uint8_t pixelRGBA[4]);
 
-        bool isIncludePixelRGBA() const;
-        
-        void setIncludePixelRGBA(const bool status);
-        
         virtual void reset();
         
         virtual AString toString() const;
@@ -82,8 +80,6 @@ namespace caret {
         uint8_t m_pixelRGBA[4];
         
         bool m_pixelRGBAValidFlag = false;
-        
-        bool m_includePixelRGBAFlag = false;
     };
     
 #ifdef __SELECTION_ITEM_HISTOLOGY_COORDINATE_DECLARE__
