@@ -137,11 +137,11 @@ BrainOpenGLIdentificationDrawing::drawMediaFileLogicalCoordinateIdentificationSy
     const VolumeMappableInterface* volume(NULL);
     float surfaceOrVolumeMaximumDimension(0.0);
     const HistologySlicesFile* histologySlicesFile(NULL);
-    const int32_t histologySliceIndex(-1);
+    const int32_t histologySliceNumber(-1);
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE,
                               surface,
                               histologySlicesFile,
-                              histologySliceIndex,
+                              histologySliceNumber,
                               mediaFile,
                               volume,
                               plane,
@@ -155,8 +155,8 @@ BrainOpenGLIdentificationDrawing::drawMediaFileLogicalCoordinateIdentificationSy
  * Draw identification symbols on histology file for plane coordinates
  * @param histologySlicesFile,
  *    Histology slices file on which symbols are drawn
- * @param histologySliceIndex
- *    Index of the histology slice
+ * @param histologySliceNumber
+ *    Number of the histology slice
  * @param plane
  *    Plane of the media
  * @param mediaThickness
@@ -169,7 +169,7 @@ BrainOpenGLIdentificationDrawing::drawMediaFileLogicalCoordinateIdentificationSy
  */
 void
 BrainOpenGLIdentificationDrawing::drawHistologyFilePlaneCoordinateIdentificationSymbols(const HistologySlicesFile* histologySlicesFile,
-                                                                                        const int32_t histologySliceIndex,
+                                                                                        const int32_t histologySliceNumber,
                                                                                         const Plane& plane,
                                                                                         const float mediaThickness,
                                                                                         const float viewingZoom,
@@ -188,7 +188,7 @@ BrainOpenGLIdentificationDrawing::drawHistologyFilePlaneCoordinateIdentification
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE,
                               surface,
                               histologySlicesFile,
-                              histologySliceIndex,
+                              histologySliceNumber,
                               nullMediaFile,
                               volume,
                               plane,
@@ -228,12 +228,12 @@ BrainOpenGLIdentificationDrawing::drawMediaFilePlaneCoordinateIdentificationSymb
     const VolumeMappableInterface* volume(NULL);
     float surfaceOrVolumeMaximumDimension(0.0);
     const HistologySlicesFile* histologySlicesFile(NULL);
-    const int32_t histologySliceIndex(-1);
+    const int32_t histologySliceNumber(-1);
 
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE,
                               surface,
                               histologySlicesFile,
-                              histologySliceIndex,
+                              histologySliceNumber,
                               mediaFile,
                               volume,
                               plane,
@@ -273,11 +273,11 @@ BrainOpenGLIdentificationDrawing::drawSurfaceIdentificationSymbols(const Surface
     const float surfaceOrVolumeMaximumDimension(boundingBox.getMaximumDifferenceOfXYZ());
 
     const HistologySlicesFile* histologySlicesFile(NULL);
-    const int32_t histologySliceIndex(-1);
+    const int32_t histologySliceNumber(-1);
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::SURFACE,
                               surface,
                               histologySlicesFile,
-                              histologySliceIndex,
+                              histologySliceNumber,
                               mediaFile,
                               volume,
                               plane,
@@ -321,12 +321,12 @@ BrainOpenGLIdentificationDrawing::drawVolumeIdentificationSymbols(const VolumeMa
     const float surfaceOrVolumeMaximumDimension(getVolumeMaximumCoordinateDimension(volume,
                                                                                     mapIndex));
     const HistologySlicesFile* histologySlicesFile(NULL);
-    const int32_t histologySliceIndex(-1);
+    const int32_t histologySliceNumber(-1);
 
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::VOLUME_SLICES,
                               surface,
                               histologySlicesFile,
-                              histologySliceIndex,
+                              histologySliceNumber,
                               mediaFile,
                               volume,
                               plane,
@@ -365,14 +365,14 @@ BrainOpenGLIdentificationDrawing::drawVolumeIntensity2dIdentificationSymbols(con
     const float surfaceOrVolumeMaximumDimension(getVolumeMaximumCoordinateDimension(volume,
                                                                                     mapIndex));
     const HistologySlicesFile* histologySlicesFile(NULL);
-    const int32_t histologySliceIndex(-1);
+    const int32_t histologySliceNumber(-1);
 
     Plane plane;
     const float sliceThickness(1.0);
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_2D,
                               surface,
                               histologySlicesFile,
-                              histologySliceIndex,
+                              histologySliceNumber,
                               mediaFile,
                               volume,
                               plane,
@@ -410,14 +410,14 @@ BrainOpenGLIdentificationDrawing::drawVolumeIntensity3dIdentificationSymbols(con
     const float surfaceOrVolumeMaximumDimension(getVolumeMaximumCoordinateDimension(volume,
                                                                                     mapIndex));
     const HistologySlicesFile* histologySlicesFile(NULL);
-    const int32_t histologySliceIndex(-1);
+    const int32_t histologySliceNumber(-1);
 
     Plane plane;
     const float sliceThickness(1.0);
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::VOLUME_INTENSITY_3D,
                               surface,
                               histologySlicesFile,
-                              histologySliceIndex,
+                              histologySliceNumber,
                               mediaFile,
                               volume,
                               plane,
@@ -456,8 +456,8 @@ BrainOpenGLIdentificationDrawing::getVolumeMaximumCoordinateDimension(const Volu
  *    surface will be non-NULL when drawing identification symbols on a surface.
  * @param histologySlicesFile
  *    histologySlicesFile will be non-null when drawing identification symbols on a histology slice
- * @param histologySliceIndex
- *    Index of histology slice
+ * @param histologySliceNumber
+ *    Number of histology slice
  * @param mediaFile
  *    mediaFile will be non-NULL when drawing identification symbols on a media file
  * @param volume
@@ -477,7 +477,7 @@ void
 BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItemUniversalTypeEnum::Enum drawingOnType,
                                                             const Surface* surface,
                                                             const HistologySlicesFile* histologySlicesFile,
-                                                            const int32_t histologySliceIndex,
+                                                            const int32_t histologySliceNumber,
                                                             const MediaFile* mediaFile,
                                                             const VolumeMappableInterface* volume,
                                                             const Plane& plane,
@@ -694,7 +694,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     const HistologyCoordinate& histologyCoordinate(item->getHistologyCoordinate());
                     CaretAssert(histologySlicesFile);
                     if ((histologySlicesFile->getFileNameNoPath() == item->getDataFileName())
-                        && (histologySliceIndex == histologyCoordinate.getSliceIndex())) {
+                        && (histologySliceNumber == histologyCoordinate.getSliceNumber())) {
                         const Vector3D pixelPlaneXYZ(histologyCoordinate.getPlaneXYZ());
                         xyz[0] = pixelPlaneXYZ[0];
                         xyz[1] = pixelPlaneXYZ[1];
@@ -702,7 +702,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         drawFlag = true;
                     }
                     else if (item->isStereotaxicXYZValid()) {
-                        const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(histologySliceIndex));
+                        const HistologySlice* slice(histologySlicesFile->getHistologySliceByNumber(histologySliceNumber));
                         if (slice != NULL) {
                             drawFlag = false;
                             Vector3D planeXYZ;
@@ -940,7 +940,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                     drawFlag = false;
                     
                     if (histologySlicesFile != NULL) {
-                        const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(histologySliceIndex));
+                        const HistologySlice* slice(histologySlicesFile->getHistologySliceByNumber(histologySliceNumber));
                         if (slice != NULL) {
                             drawFlag = false;
                             Vector3D planeXYZ;

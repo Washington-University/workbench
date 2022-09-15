@@ -187,30 +187,24 @@ SceneClassAssistant::add(const AString& name,
 }
 
 /**
- * Add a scene class.
+ * Add a path name
  * @param name
- *     Name of class instance.
- * @param className
- *     Name of the class.
- * @param sceneClass
- *     Handle (pointer to the pointer) that points to the class.
- *     If the value of the pointer (*sceneClass) is NULL, then
- *     the scene class is NOT added to the scene.  This method
- *     is best used when a member of a class is a pointer to
- *     a class that implementes the SceneableInterface.
+ *    Name of class instance
+ * @param pathNameAddress
+ *    Address of string containing path name
  */
-//void 
-//SceneClassAssistant::add(const AString& name,
-//                         const AString& className,
-//                         SceneableInterface** sceneClass)
-//{
-//    CaretAssert(sceneClass);
-//    
-//    ClassData* cd = new ClassData(name,
-//                                  className,
-//                                  sceneClass);
-//    m_dataStorage.push_back(cd);
-//}
+void
+SceneClassAssistant::addPathName(const AString& name,
+                                 AString* pathNameAddress)
+{
+    CaretAssert( ! name.isEmpty());
+    CaretAssert(pathNameAddress);
+    
+    PathData *pd(new PathData(name,
+                              pathNameAddress,
+                              *pathNameAddress));
+    m_dataStorage.push_back(pd);
+}
 
 /**
  * Add a scene class.
@@ -840,6 +834,62 @@ SceneClassAssistant::StringData::save(const SceneAttributes& /*sceneAttributes*/
                           *m_dataPointer);
 }
 
+/* ========================================================================= */
+/**
+ * \class caret::SceneClassAssistant::PathData
+ * \brief Path data added to a scene class.
+ * \ingroup Scene
+ *
+ * See the documentation in the class Scene for how to use the Scene system.
+ */
+
+/**
+ * Constructor.
+ * @param name
+ *    Name of data.
+ * @param dataPointer
+ *    Pointer to data.
+ * @param defaultValue
+ *    Default value used when restoring and data with name not found.
+ */
+SceneClassAssistant::PathData::PathData(const AString& name,
+                                        AString* dataPointer,
+                                        const AString& defaultValue)
+: Data(name),
+m_dataPointer(dataPointer),
+m_defaultValue(defaultValue)
+{
+}
+
+/**
+ * Restore the data from the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class from  which data is restored.
+ */
+void
+SceneClassAssistant::PathData::restore(const SceneAttributes& /*sceneAttributes*/,
+                                       const SceneClass& sceneClass)
+{
+    *m_dataPointer = sceneClass.getPathNameValue(m_name,
+                                                 m_defaultValue);
+}
+
+/**
+ * Save the data to the scene.
+ * @param sceneAttributes
+ *    Attributes for the scene.
+ * @param sceneClass
+ *    Class to which data is saved.
+ */
+void
+SceneClassAssistant::PathData::save(const SceneAttributes& /*sceneAttributes*/,
+                                    SceneClass& sceneClass)
+{
+    sceneClass.addPathName(m_name,
+                           *m_dataPointer);
+}
 
 /* ========================================================================= */
 

@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "FileInformation.h"
 #include "HistologySlice.h"
 #include "HistologySliceImage.h"
 #include "HistologySlicesFile.h"
@@ -48,35 +49,7 @@ using namespace caret;
 HistologyCoordinate::HistologyCoordinate()
 : CaretObject()
 {
-    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->addArray("m_stereotaxicXYZ",
-                               m_stereotaxicXYZ,
-                               3,
-                               0.0);
-    m_sceneAssistant->add("m_stereotaxicXYZValid",
-                          &m_stereotaxicXYZValid);
-    m_sceneAssistant->addArray("m_planeXY",
-                               m_planeXY,
-                               3,
-                               0.0);
-    m_sceneAssistant->add("m_planeXYValid",
-                          &m_planeXYValid);
-    m_sceneAssistant->add("m_histologySlicesFileName",
-                          &m_histologySlicesFileName);
-    m_sceneAssistant->add("m_histologySlicesFileNameValid",
-                          &m_histologySlicesFileNameValid);
-    m_sceneAssistant->add("m_histologyMediaFileName",
-                          &m_histologyMediaFileName);
-    m_sceneAssistant->add("m_histologyMediaFileNameValid",
-                          &m_histologyMediaFileNameValid);
-    m_sceneAssistant->add("m_sliceIndex",
-                          &m_sliceIndex);
-    m_sceneAssistant->add("m_sliceIndexValid",
-                          &m_sliceIndexValid);
-    m_sceneAssistant->add("m_sliceNumber",
-                          &m_sliceNumber);
-    m_sceneAssistant->add("m_sliceNumberValid",
-                          &m_sliceNumberValid);
+    initializeMembers();
 }
 
 
@@ -111,6 +84,7 @@ HistologyCoordinate::newInstanceIdentification(HistologySlicesFile* histologySli
     hc.setHistologySlicesFile(histologySlicesFile);
     hc.setMediaFile(mediaFile);
     hc.setSliceIndex(sliceIndex);
+    hc.setSliceNumber(histologySlicesFile->getSliceNumberBySliceIndex(sliceIndex));
     hc.setPlaneXYZ(planeXYZ);
     hc.m_planeXY = planeXYZ;
     
@@ -165,9 +139,10 @@ HistologyCoordinate::newInstanceDefaultSlices(HistologySlicesFile* histologySlic
             bb.getCenter(planeXYZ);
             
             HistologyCoordinate hc;
-            hc.m_histologySlicesFile = histologySlicesFile;
-            hc.m_histologySlicesFileName = hc.m_histologySlicesFile->getFileName();
+            hc.m_histologySlicesFileNameFullPath = histologySlicesFile->getFileName();
+            hc.m_histologySlicesFileNameNoPath   = histologySlicesFile->getFileNameNoPath();
             hc.setSliceIndex(sliceIndex);
+            hc.setSliceNumber(histologySlicesFile->getSliceNumberBySliceIndex(sliceIndex));
             hc.setPlaneXYZ(planeXYZ);
             
             Vector3D stereotaxicXYZ;
@@ -206,6 +181,7 @@ HistologyCoordinate::newInstancePlaneXYZChanged(HistologySlicesFile* histologySl
     hc.setHistologySlicesFile(histologySlicesFile);
     hc.setMediaFile(NULL);
     hc.setSliceIndex(sliceIndex);
+    hc.setSliceNumber(histologySlicesFile->getSliceNumberBySliceIndex(sliceIndex));
     hc.setPlaneXYZ(planeXYZ);
     hc.m_planeXY = planeXYZ;
     
@@ -243,9 +219,11 @@ HistologyCoordinate::newInstanceStereotaxicXYZ(HistologySlicesFile* histologySli
             Vector3D planeXYZ;
             nearestSlice->stereotaxicXyzToPlaneXyz(nearestOnSliceStereotaxicXYZ,
                                                    planeXYZ);
+            const int32_t sliceNumber(nearestSlice->getSliceNumber());
             HistologyCoordinate hc;
             hc.setHistologySlicesFile(histologySlicesFile);
-            hc.setSliceIndex(histologySlicesFile->getSliceIndexFromSliceNumber(nearestSlice->getSliceNumber()));
+            hc.setSliceIndex(histologySlicesFile->getSliceIndexFromSliceNumber(sliceNumber));
+            hc.setSliceNumber(sliceNumber);
             hc.setPlaneXYZ(planeXYZ);
             hc.setStereotaxicXYZ(nearestOnSliceStereotaxicXYZ);
             
@@ -302,6 +280,7 @@ HistologyCoordinate::newInstanceSliceIndexChanged(HistologySlicesFile* histology
         HistologyCoordinate hc;
         hc.setHistologySlicesFile(histologySlicesFile);
         hc.setSliceIndex(sliceIndex);
+        hc.setSliceNumber(histologySlicesFile->getSliceNumberBySliceIndex(sliceIndex));
         hc.setPlaneXYZ(newPlaneXYZ);
         hc.setStereotaxicXYZ(newStereotaxicXYZ);
         return hc;
@@ -319,6 +298,7 @@ HistologyCoordinate::newInstanceSliceIndexChanged(HistologySlicesFile* histology
 HistologyCoordinate::HistologyCoordinate(const HistologyCoordinate& obj)
 : CaretObject(obj)
 {
+    initializeMembers();
     this->copyHelperHistologyCoordinate(obj);
 }
 
@@ -347,20 +327,57 @@ HistologyCoordinate::operator=(const HistologyCoordinate& obj)
 void 
 HistologyCoordinate::copyHelperHistologyCoordinate(const HistologyCoordinate& obj)
 {
-    m_histologySlicesFile          = obj.m_histologySlicesFile;
-    m_mediaFile                    = obj.m_mediaFile;
-    m_stereotaxicXYZ               = obj.m_stereotaxicXYZ;
-    m_histologySlicesFileName      = obj.m_histologySlicesFileName;
-    m_histologyMediaFileName       = obj.m_histologyMediaFileName;
-    m_sliceIndex                   = obj.m_sliceIndex;
-    m_planeXY                      = obj.m_planeXY;
-    m_stereotaxicXYZValid          = obj.m_stereotaxicXYZValid;
-    m_planeXYValid                 = obj.m_planeXYValid;
-    m_histologySlicesFileNameValid = obj.m_histologySlicesFileNameValid;
-    m_histologyMediaFileNameValid  = obj.m_histologyMediaFileNameValid;
-    m_sliceIndexValid              = obj.m_sliceIndexValid;
-    m_sliceNumber                  = obj.m_sliceNumber;
-    m_sliceNumberValid             = obj.m_sliceNumberValid;
+    m_mediaFile                       = obj.m_mediaFile;
+    m_stereotaxicXYZ                  = obj.m_stereotaxicXYZ;
+    m_histologySlicesFileNameFullPath = obj.m_histologySlicesFileNameFullPath;
+    m_histologySlicesFileNameNoPath   = obj.m_histologySlicesFileNameNoPath;
+    m_histologyMediaFileName          = obj.m_histologyMediaFileName;
+    m_sliceIndex                      = obj.m_sliceIndex;
+    m_planeXY                         = obj.m_planeXY;
+    m_stereotaxicXYZValid             = obj.m_stereotaxicXYZValid;
+    m_planeXYValid                    = obj.m_planeXYValid;
+    m_histologySlicesFileNameValid    = obj.m_histologySlicesFileNameValid;
+    m_histologyMediaFileNameValid     = obj.m_histologyMediaFileNameValid;
+    m_sliceIndexValid                 = obj.m_sliceIndexValid;
+    m_sliceNumber                     = obj.m_sliceNumber;
+    m_sliceNumberValid                = obj.m_sliceNumberValid;
+}
+
+/**
+ * Initialize members of an instance
+ */
+void
+HistologyCoordinate::initializeMembers()
+{
+    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    m_sceneAssistant->addArray("m_stereotaxicXYZ",
+                               m_stereotaxicXYZ,
+                               3,
+                               0.0);
+    m_sceneAssistant->add("m_stereotaxicXYZValid",
+                          &m_stereotaxicXYZValid);
+    m_sceneAssistant->addArray("m_planeXY",
+                               m_planeXY,
+                               3,
+                               0.0);
+    m_sceneAssistant->add("m_planeXYValid",
+                          &m_planeXYValid);
+    m_sceneAssistant->add("m_histologySlicesFileNameNoPath",
+                          &m_histologySlicesFileNameNoPath);
+    m_sceneAssistant->add("m_histologySlicesFileNameValid",
+                          &m_histologySlicesFileNameValid);
+    m_sceneAssistant->add("m_histologyMediaFileName",
+                          &m_histologyMediaFileName);
+    m_sceneAssistant->add("m_histologyMediaFileNameValid",
+                          &m_histologyMediaFileNameValid);
+    m_sceneAssistant->add("m_sliceIndex",
+                          &m_sliceIndex);
+    m_sceneAssistant->add("m_sliceIndexValid",
+                          &m_sliceIndexValid);
+    m_sceneAssistant->add("m_sliceNumber",
+                          &m_sliceNumber);
+    m_sceneAssistant->add("m_sliceNumberValid",
+                          &m_sliceNumberValid);
 }
 
 /**
@@ -395,8 +412,8 @@ HistologyCoordinate::copyYokedSettings(const HistologySlicesFile* histologySlice
 bool
 HistologyCoordinate::isValid() const
 {
-    if ((m_histologySlicesFile != NULL)
-        && m_planeXYValid) {
+    if ( ( ! m_histologySlicesFileNameFullPath.isEmpty())
+        && (m_planeXYValid)) {
         return true;
     }
     
@@ -434,6 +451,9 @@ HistologyCoordinate::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
+    sceneClass->addPathName("m_histologySlicesFileNameFullPath",
+                            m_histologySlicesFileNameFullPath);
+    
     // Uncomment if sub-classes must save to scene
     //saveSubClassDataToScene(sceneAttributes,
     //                        sceneClass);
@@ -463,28 +483,12 @@ HistologyCoordinate::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
+    m_histologySlicesFileNameFullPath = sceneClass->getPathNameValue("m_histologySlicesFileNameFullPath", "");
+    
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
     
-}
-
-/**
- * @return Pointer to histology slices file.  May be NULL or if not NULL, may not point to a valid file.
- */
-HistologySlicesFile*
-HistologyCoordinate::getHistologySlicesFile()
-{
-    return m_histologySlicesFile;
-}
-
-/**
- * @return Pointer to histology slices file.  May be NULL or if not NULL, may not point to a valid file.
- */
-const HistologySlicesFile*
-HistologyCoordinate::getHistologySlicesFile() const
-{
-    return m_histologySlicesFile;
 }
 
 /**
@@ -495,10 +499,10 @@ HistologyCoordinate::getHistologySlicesFile() const
 void
 HistologyCoordinate::setHistologySlicesFile(HistologySlicesFile* histologySlicesFile)
 {
-    m_histologySlicesFile = histologySlicesFile;
-    if (m_histologySlicesFile != NULL) {
-        setHistologySlicesFileName(m_histologySlicesFile->getFileName());
+    if (histologySlicesFile != NULL) {
+        setHistologySlicesFileName(histologySlicesFile->getFileName());
     }
+    m_histologySlicesFile = histologySlicesFile;
 }
 
 /**
@@ -560,7 +564,7 @@ HistologyCoordinate::setStereotaxicXYZ(const Vector3D& xyz)
 AString
 HistologyCoordinate::getHistologySlicesFileName() const
 {
-    return m_histologySlicesFileName;
+    return m_histologySlicesFileNameFullPath;
 }
 
 /**
@@ -572,7 +576,8 @@ HistologyCoordinate::getHistologySlicesFileName() const
 void
 HistologyCoordinate::setHistologySlicesFileName(const AString& histologySlicesFileName)
 {
-    m_histologySlicesFileName = histologySlicesFileName;
+    m_histologySlicesFileNameFullPath = histologySlicesFileName;
+    m_histologySlicesFileNameNoPath   = FileInformation(histologySlicesFileName).getFileName();
     m_histologySlicesFileNameValid = true;
 }
 
@@ -618,13 +623,6 @@ HistologyCoordinate::setSliceIndex(const int64_t sliceIndex)
 {
     m_sliceIndex = sliceIndex;
     m_sliceIndexValid = true;
-    
-    if (m_histologySlicesFile != NULL) {
-        m_sliceNumber = m_histologySlicesFile->getSliceNumberBySliceIndex(m_sliceIndex);
-        if (m_sliceNumber >= 0) {
-            m_sliceNumberValid = true;
-        }
-    }
 }
 
 /**

@@ -62,6 +62,8 @@ using namespace caret;
  *     Index of a spacer tab.
  * @param mediaFileName
  *     Name of media file
+ * @param histologySpaceKey
+ *     Key for histology space
  * @param histologySlicesFileName
  *     Name of histology slices file
  * @param histologySliceIndex
@@ -74,8 +76,7 @@ AnnotationGroup::AnnotationGroup(AnnotationFile* annotationFile,
                                  const int32_t tabOrWindowIndex,
                                  const SpacerTabIndex& spacerTabIndex,
                                  const AString& mediaFileName,
-                                 const AString& histologySlicesFileName,
-                                 const int32_t& histologySliceIndex)
+                                 const HistologySpaceKey& histologySpaceKey)
 : CaretObjectTracksModification(),
 DisplayGroupAndTabItemInterface(),
 SceneableInterface()
@@ -106,15 +107,13 @@ SceneableInterface()
     m_tabOrWindowIndex = tabOrWindowIndex;
     m_spacerTabIndex   = spacerTabIndex;
     m_mediaFileName    = mediaFileName;
-    m_histologySlicesFileName = histologySlicesFileName;
-    m_histologySliceIndex     = histologySliceIndex;
+    m_histologySpaceKey = histologySpaceKey;
     
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
-            CaretAssert( ( ! m_histologySlicesFileName.isEmpty())
-                        && (m_histologySliceIndex >= 0) );
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            CaretAssert(m_histologySpaceKey.isValid());
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             CaretAssert( ! m_mediaFileName.isEmpty());
@@ -199,8 +198,7 @@ AnnotationGroup::copyHelperAnnotationGroup(const AnnotationGroup& obj)
     m_spacerTabIndex   = obj.m_spacerTabIndex;
     *m_displayGroupAndTabItemHelper = *obj.m_displayGroupAndTabItemHelper;
     m_mediaFileName    = obj.m_mediaFileName;
-    m_histologySlicesFileName = obj.m_histologySlicesFileName;
-    m_histologySliceIndex     = obj.m_histologySliceIndex;
+    m_histologySpaceKey = obj.m_histologySpaceKey;
     
     CaretAssertMessage(0, "What to do with annotations remove copy constructor/operator=");
 }
@@ -217,8 +215,7 @@ AnnotationGroup::initializeInstance()
     m_tabOrWindowIndex = -1;
     m_spacerTabIndex = SpacerTabIndex();
     m_mediaFileName = "";
-    m_histologySlicesFileName = "";
-    m_histologySliceIndex     = 0;
+    m_histologySpaceKey = HistologySpaceKey();
     
     m_displayGroupAndTabItemHelper = new DisplayGroupAndTabItemHelper();
     
@@ -298,11 +295,11 @@ AnnotationGroup::getName() const
         switch (m_coordinateSpace) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 spaceName.append(" "
-                                 + m_histologySlicesFileName
+                                 + m_histologySpaceKey.getHistologySlicesFileName()
                                  + " "
-                                 + AString::number(m_histologySliceIndex));
+                                 + AString::number(m_histologySpaceKey.getSliceNumber()));
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 spaceName.append(" "
@@ -375,22 +372,13 @@ AnnotationGroup::getMediaFileName() const
     return m_mediaFileName;
 }
 
-/*
- * @return Name of histology slices file
+/**
+ * @return The histology space key
  */
-AString
-AnnotationGroup::getHistologySlicesFileName() const
+const HistologySpaceKey&
+AnnotationGroup::getHistologySpaceKey() const
 {
-    return m_histologySlicesFileName;
-}
-
-/*
- * @return Index of histology slice
- */
-int32_t
-AnnotationGroup::getHistologySliceIndex() const
-{
-    return m_histologySliceIndex;
+    return m_histologySpaceKey;
 }
 
 /**
@@ -504,14 +492,9 @@ AnnotationGroup::validateAddedAnnotation(const Annotation* annotation)
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
-            if (m_histologySlicesFileName != annotation->getCoordinate(0)->getHistologyFileName()) {
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            if (m_histologySpaceKey != annotation->getCoordinate(0)->getHistologySpaceKey()) {
                 CaretLogSevere("Attempting to add annotation with non-matching histology slices file name");
-                CaretAssert(0);
-                return false;
-            }
-            if (m_histologySliceIndex != annotation->getCoordinate(0)->getHistologySliceIndex()) {
-                CaretLogSevere("Attempting to add annotation with non-matching histology slice index");
                 CaretAssert(0);
                 return false;
             }
@@ -1152,7 +1135,7 @@ AnnotationGroup::copySelections(const int32_t sourceTabIndex,
         case AnnotationCoordinateSpaceEnum::CHART:
             supportedSpaceFlag = true;
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;

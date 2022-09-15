@@ -112,7 +112,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_spaceActionGroup = new QActionGroup(this);
     QToolButton* chartSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::CHART,
                                                               m_spaceActionGroup);
-    QToolButton* histologySpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX,
+    QToolButton* histologySpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::HISTOLOGY,
                                                                   m_spaceActionGroup);
     QToolButton* mediaSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL,
                                                               m_spaceActionGroup);
@@ -430,7 +430,7 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
             case AnnotationCoordinateSpaceEnum::CHART:
                 enableSpaceFlag = chartSpaceValidFlag;
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 enableSpaceFlag = histologySpaceValidFlag;
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -964,7 +964,7 @@ AnnotationInsertNewWidget::createSpaceToolButton(const AnnotationCoordinateSpace
     switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
@@ -1048,7 +1048,7 @@ AnnotationInsertNewWidget::createSpacePixmap(const QWidget* widget,
     switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;

@@ -124,7 +124,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
             case AnnotationCoordinateSpaceEnum::CHART:
                 threeDimCoordFlag = true;
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 threeDimCoordFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -518,20 +518,6 @@ UserInputModeAnnotationsContextMenu::getNewAnnotationCreatedByContextMenu()
 void
 UserInputModeAnnotationsContextMenu::copyAnnotationToAnnotationClipboard()
 {
-//    CaretAssert(m_annotationFile);
-//    CaretAssert(m_annotation);
-//
-//    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-//
-//    std::vector<Vector3D> annotationWindowCoordinates(m_selectionManager->getAnnotationIdentification()->getAnnotationCoordsInWindowXYZ());
-//    Vector3D mouseCoordinates(m_mouseEvent.getX(),
-//                              m_mouseEvent.getY(),
-//                              0.0);
-//    AnnotationClipboard* clipboard = annotationManager->getClipboard();
-//    clipboard->setContent(m_annotationFile,
-//                          m_annotation,
-//                          annotationWindowCoordinates,
-//                          mouseCoordinates);
     m_userInputModeAnnotations->processEditMenuItemSelection(BrainBrowserWindowEditMenuItemEnum::COPY);
 }
 

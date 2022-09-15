@@ -259,6 +259,7 @@ HistologyOverlay::getDrawingData(const int32_t selectedSliceIndex) const
                                    selectionData.m_selectedFile,
                                    mediaFile,
                                    selectedSliceIndex,
+                                   m_selectedFile->getSliceNumberBySliceIndex(selectedSliceIndex),
                                    iImage,
                                    selectionData.m_supportsYokingFlag);
                     drawingDataOut.push_back(dd);

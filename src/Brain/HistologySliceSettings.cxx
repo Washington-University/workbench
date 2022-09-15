@@ -145,14 +145,20 @@ HistologySliceSettings::updateForHistologySlicesFile(const HistologySlicesFile* 
     if ( ! m_histologyCoordinate.isValid()) {
         updateCoordinateFlag = true;
     }
-    else if (histologySlicesFile != m_histologyCoordinate.getHistologySlicesFile()) {
-        updateCoordinateFlag = true;
+    else if (histologySlicesFile != NULL) {
+        if (histologySlicesFile->getFileName() != m_histologyCoordinate.getHistologySlicesFileName()) {
+            updateCoordinateFlag = true;
+        }
     }
+//    else if (histologySlicesFile != m_histologyCoordinate.getHistologySlicesFile()) {
+//        updateCoordinateFlag = true;
+//    }
 
     if ( ! updateCoordinateFlag) {
         return;
     }
     
+    std::cout << "Updating selected histology coordinate in HistologySliceSettings::updateForHistologySlicesFile" << std::endl;
     m_histologyCoordinate = HistologyCoordinate::newInstanceDefaultSlices(histologySlicesFile);
 }
 
@@ -167,9 +173,14 @@ HistologySliceSettings::getHistologyCoordinate(const HistologySlicesFile* histol
     if ( ! m_histologyCoordinate.isValid()) {
         updateFlag = true;
     }
-    else if (m_histologyCoordinate.getHistologySlicesFile() != histologySlicesFile) {
-        updateFlag = true;
+    else if (histologySlicesFile != NULL) {
+        if (m_histologyCoordinate.getHistologySlicesFileName() != histologySlicesFile->getFileName()) {
+            updateFlag = true;
+        }
     }
+//    else if (m_histologyCoordinate.getHistologySlicesFile() != histologySlicesFile) {
+//        updateFlag = true;
+//    }
     
     /*
      * If both file and coordinate are invalid, no update needed

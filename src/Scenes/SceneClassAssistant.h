@@ -172,7 +172,11 @@ namespace caret {
                                                                                               enumeratedValueArray);
             m_dataStorage.push_back(etmap);
         }
-                                              
+                 
+        void addPathName(const AString& name,
+                         AString* pathNameAddress);
+        
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -374,6 +378,25 @@ namespace caret {
         private:
             AString* m_dataPointer;
             AString m_defaultValue; 
+        };
+        
+        /* ========================================= */
+        class PathData : public Data {
+        public:
+            PathData(const AString& name,
+                       AString* dataPointer,
+                       const AString& defaultValue);
+            
+            virtual ~PathData() { }
+            
+            void restore(const SceneAttributes& sceneAttributes,
+                         const SceneClass& sceneClass);
+            void save(const SceneAttributes& sceneAttributes,
+                      SceneClass& sceneClass);
+            
+        private:
+            AString* m_dataPointer;
+            AString m_defaultValue;
         };
         
         /* ========================================= */

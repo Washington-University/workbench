@@ -76,6 +76,7 @@ namespace caret {
                         HistologySlicesFile* selectedFile,
                         MediaFile* mediaFile,
                         const int32_t selectedSliceIndex,
+                        const int32_t selectedSliceNumber,
                         const int32_t mediaFileIndexInSlice,
                         const bool supportsYokingFlag)
             :
@@ -84,6 +85,7 @@ namespace caret {
             m_selectedFile(selectedFile),
             m_mediaFile(mediaFile),
             m_selectedSliceIndex(selectedSliceIndex),
+            m_selectedSliceNumber(selectedSliceNumber),
             m_mediaFileIndexInSlice(mediaFileIndexInSlice),
             m_supportsYokingFlag(supportsYokingFlag) {  }
             
@@ -92,6 +94,7 @@ namespace caret {
             HistologySlicesFile* m_selectedFile = NULL;
             MediaFile* m_mediaFile = NULL;
             int32_t m_selectedSliceIndex = 0;
+            int32_t m_selectedSliceNumber = 0;
             int32_t m_mediaFileIndexInSlice = 0;
             bool m_supportsYokingFlag = false;
         };

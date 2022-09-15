@@ -33,6 +33,7 @@
 #include "CaretObject.h"
 #include "CaretOpenGLInclude.h"
 #include "FileInformation.h"
+#include "HistologySpaceKey.h"
 #include "Plane.h"
 #include "SpacerTabIndex.h"
 #include "Vector3D.h"
@@ -97,10 +98,8 @@ namespace caret {
                 }
             }
             
-            void setHistologyFileAndSliceIndex(const AString& histologySlicesFileName,
-                                               const int32_t histologySliceIndex) {
-                m_histologySlicesFileName = histologySlicesFileName;
-                m_histologySliceIndex     = histologySliceIndex;
+            void setHistologySpaceKey(const HistologySpaceKey& histologySpaceKey) {
+                m_histologySpaceKey = histologySpaceKey;
             }
             
             Brain* m_brain;
@@ -110,8 +109,7 @@ namespace caret {
             const int32_t m_tabIndex;
             const SpacerTabIndex m_spacerTabIndex;
             const WindowDrawingMode m_windowDrawingMode;
-            AString m_histologySlicesFileName;
-            int32_t m_histologySliceIndex;
+            HistologySpaceKey m_histologySpaceKey;
             const std::set<AString> m_mediaFileNames;
             std::set<AString> m_mediaFileNamesNoPath;
             const bool m_annotationUserInputModeFlag;

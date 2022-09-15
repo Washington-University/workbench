@@ -231,7 +231,7 @@ AnnotationMultiCoordinateShape::insertCoordinate(const int32_t insertAfterCoordi
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
@@ -391,7 +391,7 @@ AnnotationMultiCoordinateShape::getClockwiseAndCounterClockwiseCoordinates(const
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
@@ -576,7 +576,7 @@ AnnotationMultiCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleTy
         case AnnotationCoordinateSpaceEnum::CHART:
             xyPlaneFlag = true;
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             xyPlaneFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -1188,7 +1188,7 @@ AnnotationMultiCoordinateShape::applySpatialModification(const AnnotationSpatial
         case AnnotationCoordinateSpaceEnum::CHART:
             return applySpatialModificationChartSpace(spatialModification);
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             return applySpatialModificationHistologySpace(spatialModification);
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:

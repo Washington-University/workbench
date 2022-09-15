@@ -38,7 +38,7 @@ public:
         /** Chart space */
         CHART,
         /** Histology space */
-        HISTOLOGY_FILE_NAME_AND_SLICE_INDEX,
+        HISTOLOGY,
         /** Image Name and Pixel */
         MEDIA_FILE_NAME_AND_PIXEL,
         /** Annotation in spacer */

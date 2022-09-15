@@ -377,7 +377,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
     glPushMatrix();
     
     HistologySlicesFile* underlayHistologySlicesFile(NULL);
-    int32_t underlayHistologySliceIndex(-1);
+    int32_t underlayHistologySliceNumber(-1);
     
     const int32_t numMediaFiles(static_cast<int32_t>(m_mediaFilesAndDataToDraw.size()));
     for (int32_t i = 0; i < numMediaFiles; i++) {
@@ -451,8 +451,8 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
         glPopMatrix();
         
         if (underlayHistologySlicesFile == NULL) {
-            underlayHistologySlicesFile = drawingData.m_selectedFile;
-            underlayHistologySliceIndex = drawingData.m_selectedSliceIndex;
+            underlayHistologySlicesFile  = drawingData.m_selectedFile;
+            underlayHistologySliceNumber = drawingData.m_selectedSliceNumber;
         }
     }
     
@@ -477,7 +477,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
     const float mediaThickness(2.0f);
     Plane plane;
     idDrawing.drawHistologyFilePlaneCoordinateIdentificationSymbols(underlayHistologySlicesFile,
-                                                                    underlayHistologySliceIndex,
+                                                                    underlayHistologySliceNumber,
                                                                     plane,
                                                                     mediaThickness,
                                                                     m_browserTabContent->getScaling(),
@@ -495,9 +495,10 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
     /*
      * Draw annotation in histology space
      */
+    HistologySpaceKey histologySpaceKey(underlayHistologySlicesFile->getFileName(),
+                                        underlayHistologySliceNumber);
     m_fixedPipelineDrawing->drawHistologySpaceAnnotations(viewportContent,
-                                                          underlayHistologySlicesFile->getFileNameNoPath(),
-                                                          underlayHistologySliceIndex);
+                                                          histologySpaceKey);
 }
 
 /**
@@ -622,6 +623,7 @@ BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
                                                                                       drawingData.m_mediaFile,
                                                                                       drawingData.m_selectedSliceIndex,
                                                                                       planeXYZ));
+                idHistology->setHistologySlicesFile(drawingData.m_selectedFile);
                 idHistology->setCoordinate(hc);
                 idHistology->setModelXYZ(hc.getPlaneXYZ());
                 idHistology->setTabIndex(tabIndex);

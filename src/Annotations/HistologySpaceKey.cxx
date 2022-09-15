@@ -1,0 +1,331 @@
+
+/*LICENSE_START*/
+/*
+ *  Copyright (C) 2022 Washington University School of Medicine
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+/*LICENSE_END*/
+
+#define __HISTOLOGY_SPACE_KEY_DECLARE__
+#include "HistologySpaceKey.h"
+#undef __HISTOLOGY_SPACE_KEY_DECLARE__
+
+#include <QStringList>
+
+#include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
+
+using namespace caret;
+
+
+    
+/**
+ * \class caret::HistologySpaceKey
+ * \brief Key that relates an item to a histology slices file and slice number
+ * \ingroup Annotations
+ */
+
+/**
+ * Constructor.
+ */
+HistologySpaceKey::HistologySpaceKey()
+: CaretObjectTracksModification()
+{
+    
+    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    m_sceneAssistant->add("m_histologySlicesFileName",
+                          &m_histologySlicesFileName);
+    m_sceneAssistant->add("m_sliceNumber",
+                          &m_sliceNumber);
+}
+
+/**
+ * Constructor.
+ * @param histologySlicesFileName
+ *    Name of histology slices file
+ * @param sliceNumber
+ *    Number of slice
+ */
+HistologySpaceKey::HistologySpaceKey(const AString& histologySlicesFileName,
+                                     const int32_t sliceNumber)
+: m_histologySlicesFileName(histologySlicesFileName),
+m_sliceNumber(sliceNumber)
+{
+    
+}
+
+/**
+ * Destructor.
+ */
+HistologySpaceKey::~HistologySpaceKey()
+{
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+HistologySpaceKey::HistologySpaceKey(const HistologySpaceKey& obj)
+: CaretObjectTracksModification(obj)
+{
+    this->copyHelperHistologySpaceKey(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return 
+ *    Reference to this object.
+ */
+HistologySpaceKey&
+HistologySpaceKey::operator=(const HistologySpaceKey& obj)
+{
+    if (this != &obj) {
+        CaretObjectTracksModification::operator=(obj);
+        this->copyHelperHistologySpaceKey(obj);
+    }
+    return *this;    
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void 
+HistologySpaceKey::copyHelperHistologySpaceKey(const HistologySpaceKey& obj)
+{
+    m_histologySlicesFileName = obj.m_histologySlicesFileName;
+    m_sliceNumber             = obj.m_sliceNumber;
+}
+
+/**
+ * Equality operator.
+ * @param obj
+ *    Instance compared to this for equality.
+ * @return 
+ *    True if this instance and 'obj' instance are considered equal.
+ */
+bool
+HistologySpaceKey::operator==(const HistologySpaceKey& obj) const
+{
+    if (this == &obj) {
+        return true;    
+    }
+
+    /* perform equality testing HERE and return true if equal ! */
+    if ( (m_histologySlicesFileName == obj.m_histologySlicesFileName)
+        && (m_sliceNumber == obj.m_sliceNumber) ) {
+        return true;
+    }
+    return false;    
+}
+
+/**
+ * Not equal operator.
+ * @param obj
+ *    Instance compared to this for equality.
+ * @return
+ *    True if this instance and 'obj' instance are considered equal.
+ */
+bool
+HistologySpaceKey::operator!=(const HistologySpaceKey& obj) const
+{
+    return ( ! (*this == obj));
+}
+
+/**
+ * @return True if this instance is valid (file name not empty and slice number >= 0).
+ */
+bool
+HistologySpaceKey::isValid() const
+{
+    return ( ( !m_histologySlicesFileName.isEmpty())
+            && (m_sliceNumber >= 0));
+}
+
+/**
+ * @return Name of histology slices file (full path)
+ */
+AString
+HistologySpaceKey::getHistologySlicesFileName() const
+{
+    return m_histologySlicesFileName;
+}
+
+/**
+ * Sets name of histology slices file, should be full path
+ */
+void
+HistologySpaceKey::setHistologySlicesFileName(const AString& histologySlicesFileName)
+{
+    if (histologySlicesFileName != m_histologySlicesFileName) {
+        m_histologySlicesFileName = histologySlicesFileName;
+        setModified();
+    }
+}
+
+/**
+ * @return Slice number (NOT index)
+ */
+int32_t
+HistologySpaceKey::getSliceNumber() const
+{
+    return m_sliceNumber;
+}
+
+/**
+ * Set the slice number (NOT index)
+ * @param sliceNumber
+ *   New value for slice number
+ */
+void
+HistologySpaceKey::setSliceNumber(const int32_t sliceNumber)
+{
+    if (sliceNumber != m_sliceNumber) {
+        m_sliceNumber = sliceNumber;
+        setModified();
+    }
+}
+
+/**
+ * @return String representation
+ */
+AString
+HistologySpaceKey::toString() const
+{
+    AString s("Histology Slice File Name: "
+              + m_histologySlicesFileName
+              + " Slice Number: "
+              + AString::number(m_sliceNumber));
+    
+    return s;
+}
+
+/**
+ * @return This instance encoded in a string
+ */
+AString
+HistologySpaceKey::toEncodedString() const
+{
+    const AString version("1");
+    AString s(version
+              + s_encodingSeparator
+              + m_histologySlicesFileName
+              + s_encodingSeparator
+              + AString::number(m_sliceNumber));
+    
+    return s;
+}
+
+/**
+ * Set this instance from an instance encoded in a string
+ * @param encodedString
+ *    String containing encoded instance
+ * @return
+ *    True if successfully decoded or false if error
+ */
+bool
+HistologySpaceKey::setFromEncodedString(const AString& encodedString)
+{
+    const QStringList list(encodedString.split(s_encodingSeparator,
+                                               Qt::SkipEmptyParts));
+    if (list.length() < 3) {
+        const AString msg("Encoded HistologySpaceKey of text \""
+                          + encodedString
+                          + "\"contains fewer than three elements.");
+        CaretLogWarning(msg);
+    }
+    else {
+        const AString version(list.at(0));
+        if (version == "1") {
+            setHistologySlicesFileName(list.at(0));
+            setSliceNumber(list.at(0).toInt());
+        }
+        else {
+            const AString msg("Unsupported version="
+                              + version
+                              + " when decoding HistologySpaceKey");
+            CaretLogWarning(msg);
+        }
+        
+        return true;
+    }
+    
+    return false;
+}
+
+
+/**
+ * Save information specific to this type of model to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of instance in the scene.
+ */
+SceneClass*
+HistologySpaceKey::saveToScene(const SceneAttributes* sceneAttributes,
+                                 const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "HistologySpaceKey",
+                                            1);
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    
+    // Uncomment if sub-classes must save to scene
+    //saveSubClassDataToScene(sceneAttributes,
+    //                        sceneClass);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore information specific to the type of model from the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass from which model specific information is obtained.
+ */
+void
+HistologySpaceKey::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);    
+    
+    //Uncomment if sub-classes must restore from scene
+    //restoreSubClassDataFromScene(sceneAttributes,
+    //                             sceneClass);
+    
+}
+

@@ -84,6 +84,7 @@ EventAnnotationTextGetBounds.h
 EventAnnotationTextSubstitutionGet.h
 EventAnnotationTextSubstitutionInvalidate.h
 EventAnnotationValidate.h
+HistologySpaceKey.h
 
 Annotation.cxx
 AnnotationAlignmentEnum.cxx
@@ -140,6 +141,7 @@ EventAnnotationTextGetBounds.cxx
 EventAnnotationTextSubstitutionGet.cxx
 EventAnnotationTextSubstitutionInvalidate.cxx
 EventAnnotationValidate.cxx
+HistologySpaceKey.cxx
 )
 
 TARGET_LINK_LIBRARIES(Annotations ${CARET_QT5_LINK})

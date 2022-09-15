@@ -51,6 +51,24 @@ SelectionItemHistologyCoordinate::~SelectionItemHistologyCoordinate()
 }
 
 /**
+ * @return The histology slices file
+ */
+const HistologySlicesFile*
+SelectionItemHistologyCoordinate::getHistologySlicesFile() const
+{
+    return m_histologySlicesFile;
+}
+
+/**
+ * Set the histology slices file
+ */
+void
+SelectionItemHistologyCoordinate::setHistologySlicesFile(HistologySlicesFile* histologySlicesFile)
+{
+    m_histologySlicesFile = histologySlicesFile;
+}
+
+/**
  * @return The histology coordinate
  */
 HistologyCoordinate
@@ -171,6 +189,7 @@ SelectionItemHistologyCoordinate::reset()
 void
 SelectionItemHistologyCoordinate::resetPrivate()
 {
+    m_histologySlicesFile = NULL;
     m_histologyCoordinate = HistologyCoordinate();
     m_pixelRGBA[0] = 0;
     m_pixelRGBA[1] = 0;
@@ -187,7 +206,9 @@ SelectionItemHistologyCoordinate::resetPrivate()
 bool 
 SelectionItemHistologyCoordinate::isValid() const
 {
-    return (m_histologyCoordinate.getHistologySlicesFile() != NULL);
+    return ((m_histologySlicesFile != NULL)
+            && m_histologyCoordinate.isValid());
+//            && (m_histologyCoordinate.getHistologySlicesFile() != NULL));
 }
 
 /**

@@ -33,6 +33,7 @@
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSymbolTypeEnum.h"
 #include "FiberTrajectoryColorModel.h"
+#include "HistologySpaceKey.h"
 #include "ProjectionViewTypeEnum.h"
 #include "SelectionItemDataTypeEnum.h"
 #include "StructureEnum.h"
@@ -500,8 +501,7 @@ namespace caret {
         void drawChartCoordinateSpaceAnnotations(const BrainOpenGLViewportContent* viewportContent);
         
         void drawHistologySpaceAnnotations(const BrainOpenGLViewportContent* viewportContent,
-                                           const AString& histologySlicesFileName,
-                                           const int32_t histologySliceIndex);
+                                           const HistologySpaceKey& histologySpaceKey);
         
         void drawMediaSpaceAnnotations(const BrainOpenGLViewportContent* viewportContent);
         

@@ -73,10 +73,6 @@ namespace caret {
 
         bool isValid() const;
         
-        HistologySlicesFile* getHistologySlicesFile();
-        
-        const HistologySlicesFile* getHistologySlicesFile() const;
-        
         MediaFile* getMediaFile();
         
         const MediaFile* getMediaFile() const;
@@ -84,6 +80,8 @@ namespace caret {
         Vector3D getStereotaxicXYZ() const;
         
         AString getHistologySlicesFileName() const;
+        
+        AString getHistologySlicesFileNameNoPath() const;
         
         AString getHistologyMediaFileName() const;
         
@@ -104,8 +102,6 @@ namespace caret {
         int64_t getSliceNumber() const;
         
         bool isSliceNumberValid() const;
-        
-        
         
         // ADD_NEW_METHODS_HERE
         
@@ -133,6 +129,8 @@ namespace caret {
         //                                                  const SceneClass* sceneClass) = 0;
         
     private:
+        void initializeMembers();
+        
         void setHistologySlicesFile(HistologySlicesFile* histologySlicesFile);
         
         void setMediaFile(MediaFile* mediaFile);
@@ -141,7 +139,7 @@ namespace caret {
         
         void copyHelperHistologyCoordinate(const HistologyCoordinate& obj);
         
-        void setHistologySlicesFileName(const AString& histologySlicesFileName);
+        void setHistologySlicesFileName(const AString& histologySlicesFileNameFullPath);
         
         void setHistologyMediaFileName(const AString& histologyMediaFileName);
         
@@ -162,8 +160,11 @@ namespace caret {
         /** stereotaxic coordinate*/
         Vector3D m_stereotaxicXYZ;
         
-        /** name of histology slices file*/
-        AString m_histologySlicesFileName;
+        /** full path name of histology slices file*/
+        AString m_histologySlicesFileNameFullPath;
+        
+        /** file  name no path of histology slices file*/
+        AString m_histologySlicesFileNameNoPath;
         
         /** name of histology media file*/
         AString m_histologyMediaFileName;

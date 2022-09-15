@@ -115,9 +115,9 @@ AnnotationCoordinateSpaceEnum::initialize()
                                                      "Chart",
                                                      "Ch"));
     
-    enumData.push_back(AnnotationCoordinateSpaceEnum(HISTOLOGY_FILE_NAME_AND_SLICE_INDEX,
-                                                     "HISTOLOGY_FILE_NAME_AND_SLICE_INDEX",
-                                                     "Histology File Name and Slice Index",
+    enumData.push_back(AnnotationCoordinateSpaceEnum(HISTOLOGY,
+                                                     "HISTOLOGY",
+                                                     "Histology",
                                                      "H"));
     
     enumData.push_back(AnnotationCoordinateSpaceEnum(MEDIA_FILE_NAME_AND_PIXEL,
@@ -322,7 +322,7 @@ AnnotationCoordinateSpaceEnum::toToolTip(Enum enumValue)
         case CHART:
             text = "New annotation is drawn at a chart data XYZ coordinate";
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             text = "New annotation is drawn on histology slice";
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:

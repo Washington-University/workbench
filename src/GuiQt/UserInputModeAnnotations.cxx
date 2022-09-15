@@ -555,7 +555,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     switch (ann->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
                             break;
-                        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                             break;
@@ -588,7 +588,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     switch (ann->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
                             break;
-                        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                             getHistologyStep(keyEvent.getViewportContent()->getBrowserTabContent(), distanceX, distanceY);
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -654,7 +654,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     switch (ann->getCoordinateSpace()) {
                         case AnnotationCoordinateSpaceEnum::CHART:
                             break;
-                        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                             break;
@@ -724,7 +724,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                         case AnnotationCoordinateSpaceEnum::CHART:
                             changeCoordFlag = true;
                             break;
-                        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+                        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                             getHistologyStep(keyEvent.getViewportContent()->getBrowserTabContent(), distanceX, distanceY);
                             break;
                         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -799,7 +799,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             switch (selectedAnnotation->getCoordinateSpace()) {
                                 case AnnotationCoordinateSpaceEnum::CHART:
                                     break;
-                                case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+                                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                                     break;
                                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                                     break;
@@ -1079,7 +1079,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
     switch (draggingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;
@@ -1139,7 +1139,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 }
             }
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             {
                 int32_t modelVP[4];
                 vpContent->getModelViewport(modelVP);

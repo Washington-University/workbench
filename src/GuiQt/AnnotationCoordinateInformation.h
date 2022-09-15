@@ -24,6 +24,7 @@
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "CaretObject.h"
+#include "HistologySpaceKey.h"
 #include "SpacerTabIndex.h"
 #include "StructureEnum.h"
 
@@ -134,11 +135,10 @@ namespace caret {
             AnnotationSurfaceOffsetVectorTypeEnum::Enum m_nodeVectorOffsetType = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
         };
         
-        class HistologyFileNameAndPlaneSpaceInfo : public SpaceInfo {
+        class HistologySpaceInfo : public SpaceInfo {
         public:
             float m_xyz[3] = { 0.0f, 0.0f, 0.0f };
-            AString m_histologySlicesFileName;
-            int32_t m_histologySliceIndex;
+            HistologySpaceKey m_histologySpaceKey;
         };
         
         class MediaFileNameAndPixelSpaceInfo : public SpaceInfo {
@@ -161,7 +161,7 @@ namespace caret {
         
         MediaFileNameAndPixelSpaceInfo m_mediaSpaceInfo;
         
-        HistologyFileNameAndPlaneSpaceInfo m_histologySpaceInfo;
+        HistologySpaceInfo m_histologySpaceInfo;
         
     private:
         void copyHelperAnnotationCoordinateInformation(const AnnotationCoordinateInformation& obj);

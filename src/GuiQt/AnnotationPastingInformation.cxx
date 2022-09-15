@@ -96,7 +96,7 @@ m_mouseEvent(mouseEvent)
                     m_pasteableSpaces.push_back(space);
                 }
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 if (m_validForPastingInformation->m_histologySpaceInfo.m_validFlag) {
                     m_pasteableSpaces.push_back(space);
                 }

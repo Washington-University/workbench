@@ -480,7 +480,7 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
     AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::TAB;
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
         case AnnotationCoordinateSpaceEnum::SPACER:
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -630,7 +630,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
         case AnnotationCoordinateSpaceEnum::CHART:
             oldViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             oldViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -674,7 +674,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             case AnnotationCoordinateSpaceEnum::CHART:
                 diffXyzValid = true;
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 diffXyzValid = true;
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -715,12 +715,11 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                 newViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             }
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             if (m_coordInfo.m_histologySpaceInfo.m_validFlag) {
-                coordinate->setHistologySpace(m_coordInfo.m_histologySpaceInfo.m_histologySlicesFileName,
-                                              m_coordInfo.m_histologySpaceInfo.m_histologySliceIndex,
+                coordinate->setHistologySpace(m_coordInfo.m_histologySpaceInfo.m_histologySpaceKey,
                                               m_coordInfo.m_histologySpaceInfo.m_xyz);
-                redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX);
+                redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY);
                 newViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             }
             break;
@@ -984,7 +983,7 @@ AnnotationCoordinateSelectionWidget::setWidthAndHeightForImage(AnnotationImage* 
             vpWidth  = m_coordInfo.m_tabSpaceInfo.m_width;
             vpHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             vpWidth  = m_coordInfo.m_tabSpaceInfo.m_width;
             vpHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
@@ -1067,7 +1066,7 @@ AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Ann
     switch (annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             break;

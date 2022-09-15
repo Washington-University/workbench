@@ -426,7 +426,7 @@ AnnotationTwoCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
         case AnnotationCoordinateSpaceEnum::CHART:
             xyPlaneFlag = true;
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             xyPlaneFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -1010,7 +1010,7 @@ AnnotationTwoCoordinateShape::applySpatialModification(const AnnotationSpatialMo
         case AnnotationCoordinateSpaceEnum::CHART:
             return applySpatialModificationChartSpace(spatialModification);
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             return applySpatialModificationHistologySpace(spatialModification);
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:

@@ -416,14 +416,12 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
 {
     std::vector<AString> columnOneText, columnTwoText, toolTipText;
     
-    const HistologySlicesFile* histologySlicesFile(histologyCoordinate.getHistologySlicesFile());
-    CaretAssert(histologySlicesFile);
     columnOneText.push_back("Histology File");
-    columnTwoText.push_back(histologySlicesFile->getFileNameNoPath());
+    columnTwoText.push_back(getFileNameNoPath());
     columnOneText.push_back("Slice Index / Number");
     columnTwoText.push_back(AString::number(histologyCoordinate.getSliceIndex())
                             + " / "
-                            + AString::number(histologySlicesFile->getSliceNumberBySliceIndex(histologyCoordinate.getSliceIndex())));
+                            + AString::number(getSliceNumberBySliceIndex(histologyCoordinate.getSliceIndex())));
     
     AString mmText;
     AString planeText;

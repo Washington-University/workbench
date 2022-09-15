@@ -25,6 +25,7 @@
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "CaretObjectTracksModification.h"
+#include "HistologySpaceKey.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
 
@@ -92,21 +93,32 @@ namespace caret {
         void setMediaFileNameAndPixelSpace(const AString& mediaFileName,
                                            const float xyz[3]);
         
-        AString getHistologyFileName() const;
+        const HistologySpaceKey& getHistologySpaceKey() const;
         
-        void setHistologyFileName(const AString& histologyFileName);
+        void setHistologySpaceKey(const HistologySpaceKey& histlogySpaceKey);
         
-        void setHistologySliceIndex(const int32_t histologySliceIndex);
+        void getHistologySpace(HistologySpaceKey& histologySpaceKeyOut,
+                               float xyzOut[3]) const;
         
-        int32_t getHistologySliceIndex() const;
-        
-        void getHistologySpace(AString& histologySlicesFileName,
-                               int32_t& histologySliceIndex,
-                               float xyz[3]) const;
-        
-        void setHistologySpace(const AString& histologySlicesFileName,
-                               const int32_t& histologySliceIndex,
+        void setHistologySpace(const HistologySpaceKey& histologySpaceKey,
                                const float xyz[3]);
+
+//        AString getHistologyFileName() const;
+//
+//
+//        void setHistologyFileName(const AString& histologyFileName);
+//
+//        void setHistologySliceIndex(const int32_t histologySliceIndex);
+//
+//        int32_t getHistologySliceIndex() const;
+//
+//        void getHistologySpace(AString& histologySlicesFileName,
+//                               int32_t& histologySliceIndex,
+//                               float xyz[3]) const;
+//
+//        void setHistologySpace(const AString& histologySlicesFileName,
+//                               const int32_t& histologySliceIndex,
+//                               const float xyz[3]);
         
         float getSurfaceOffsetLength() const;
         
@@ -170,9 +182,11 @@ namespace caret {
         
         AString m_mediaFileName;
         
-        AString m_histologySlicesFileName;
+        HistologySpaceKey m_histologySpaceKey;
         
-        int32_t m_histologySliceIndex = 0;
+//        AString m_histologySlicesFileName;
+//
+//        int32_t m_histologySliceIndex = 0;
 
         static float s_userDefaultSurfaceOffsetLength;
         

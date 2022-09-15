@@ -146,9 +146,7 @@ namespace caret {
         
         static const QString ELEMENT_COORDINATE_TWO;
         
-        static const QString ELEMENT_COORDINATE_HISTOLOGY_FILE_NAME;
-        
-        static const QString ELEMENT_COORDINATE_HISTOLOGY_SLICE_INDEX;
+        static const QString ELEMENT_COORDINATE_HISTOLOGY_SPACE_KEY;
         
         static const QString ELEMENT_COORDINATE_MEDIA_FILE_NAME;
         
@@ -286,9 +284,7 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_TWO = "coordTwo";
     
-    const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_HISTOLOGY_FILE_NAME = "histologyFileName";
-    
-    const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_HISTOLOGY_SLICE_INDEX = "histologySliceIndex";
+    const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_HISTOLOGY_SPACE_KEY = "histologySpaceKey";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_MEDIA_FILE_NAME = "mediaFileName";
     

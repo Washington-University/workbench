@@ -624,7 +624,7 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
             case AnnotationCoordinateSpaceEnum::CHART:
                 CaretAssert(0);
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 CaretAssert(0);
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:

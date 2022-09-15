@@ -27,6 +27,7 @@
 #include "AnnotationGroupKey.h"
 #include "CaretObjectTracksModification.h"
 #include "DisplayGroupAndTabItemInterface.h"
+#include "HistologySpaceKey.h"
 #include "SceneableInterface.h"
 #include "SpacerTabIndex.h"
 
@@ -46,8 +47,7 @@ namespace caret {
                         const int32_t tabOrWindowIndex,
                         const SpacerTabIndex& spacerTabIndex,
                         const AString& mediaFileName,
-                        const AString& histologySlicesFileName,
-                        const int32_t& histologySliceIndex);
+                        const HistologySpaceKey& histologySpaceKey);
         
         virtual ~AnnotationGroup();
 
@@ -71,9 +71,11 @@ namespace caret {
         
         AString getMediaFileName() const;
         
-        AString getHistologySlicesFileName() const;
+        const HistologySpaceKey& getHistologySpaceKey() const;
         
-        int32_t getHistologySliceIndex() const;
+//        AString getHistologySlicesFileName() const;
+//
+//        int32_t getHistologySliceIndex() const;
 
         int32_t getNumberOfAnnotations() const;
         
@@ -204,9 +206,11 @@ namespace caret {
         
         AString m_mediaFileName;
         
-        AString m_histologySlicesFileName;
+        HistologySpaceKey m_histologySpaceKey;
         
-        int32_t m_histologySliceIndex;
+//        AString m_histologySlicesFileName;
+//
+//        int32_t m_histologySliceIndex;
         
         mutable AString m_name;
         

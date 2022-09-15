@@ -42,6 +42,10 @@ namespace caret {
         
         virtual bool isValid() const;
         
+        const HistologySlicesFile* getHistologySlicesFile() const;
+        
+        void setHistologySlicesFile(HistologySlicesFile* histologySlicesFile);
+        
         HistologyCoordinate getCoordinate() const;
         
         void setCoordinate(const HistologyCoordinate& histologyCoordinate);
@@ -70,6 +74,8 @@ namespace caret {
         SelectionItemHistologyCoordinate& operator=(const SelectionItemHistologyCoordinate&);
 
         void resetPrivate();
+        
+        HistologySlicesFile* m_histologySlicesFile = NULL;
         
         HistologyCoordinate m_histologyCoordinate = HistologyCoordinate();
         

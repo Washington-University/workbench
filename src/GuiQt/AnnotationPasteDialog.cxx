@@ -421,7 +421,7 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const AnnotationClipboard* clipbo
             case AnnotationCoordinateSpaceEnum::CHART:
                 CaretAssert(0);
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 CaretAssert(0);
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
@@ -470,9 +470,9 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const AnnotationClipboard* clipbo
                     pasteValidFlag = true;
                     annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::CHART);
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 pasteValidFlag = true;
-                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY);
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 pasteValidFlag = true;
@@ -670,10 +670,10 @@ AnnotationPasteDialog::pasteAnnotationInSpace(AnnotationFile* annotationFile,
                 }
                 ac->setXYZ(coordInfo->m_chartSpaceInfo.m_xyz);
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 if (i == 0) {
                     pasteValidFlag = true;
-                    annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX);
+                    annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::HISTOLOGY);
                 }
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:

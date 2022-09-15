@@ -304,7 +304,7 @@ AnnotationCoordinatesWidget::updateContent(Annotation* annotation)
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 break;
@@ -478,7 +478,7 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                 }
             }
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
             {
                 xMin = coordinateMinimum;
                 xMax = coordinateMaximum;
@@ -772,7 +772,7 @@ AnnotationCoordinatesWidget::valueChangedCoordinate(const int32_t coordinateInde
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 break;
-            case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 break;

@@ -58,7 +58,7 @@ namespace caret {
         BrainOpenGLIdentificationDrawing& operator=(const BrainOpenGLIdentificationDrawing&) = delete;
 
         void drawHistologyFilePlaneCoordinateIdentificationSymbols(const HistologySlicesFile* histologySlicesFile,
-                                                                   const int32_t histologySliceIndex,
+                                                                   const int32_t histologySliceNumber,
                                                                    const Plane& plane,
                                                                    const float mediaThickness,
                                                                    const float viewingZoom,
@@ -105,7 +105,7 @@ namespace caret {
         void drawIdentificationSymbols(const IdentifiedItemUniversalTypeEnum::Enum drawingOnType,
                                        const Surface* surface,
                                        const HistologySlicesFile* histologySlicesFile,
-                                       const int32_t histologySliceIndex,
+                                       const int32_t histologySliceNumber,
                                        const MediaFile* mediaFile,
                                        const VolumeMappableInterface* volume,
                                        const Plane& plane,

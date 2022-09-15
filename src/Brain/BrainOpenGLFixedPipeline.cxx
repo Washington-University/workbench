@@ -611,7 +611,7 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const s
             switch (colorBar->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
-                case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
                     break;
                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                     break;
@@ -1284,15 +1284,12 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLV
  *
  * @param viewportContent
  *    Viewport content
- * @param histologySlicesFileName
- *    Name of the histology slices file
- * @param histologySliceIndex
- *    Index of slice being drawn
+ * @param histologySpaceKey
+ *    The histology space key
  */
 void
 BrainOpenGLFixedPipeline::drawHistologySpaceAnnotations(const BrainOpenGLViewportContent* viewportContent,
-                                                        const AString& histologySlicesFileName,
-                                                        const int32_t histologySliceIndex)
+                                                        const HistologySpaceKey& histologySpaceKey)
 {
     const BrowserTabContent* btc = viewportContent->getBrowserTabContent();
     if (btc == NULL) {
@@ -1318,13 +1315,12 @@ BrainOpenGLFixedPipeline::drawHistologySpaceAnnotations(const BrainOpenGLViewpor
                                                              emptyMediaFileNames,
                                                              annotationModeFlag,
                                                              tileTabsEditModeFlag);
-    inputs.setHistologyFileAndSliceIndex(histologySlicesFileName,
-                                         histologySliceIndex);
+    inputs.setHistologySpaceKey(histologySpaceKey);
     std::vector<AnnotationColorBar*> emptyColorBars;
     std::vector<AnnotationScaleBar*> emptyScaleBars;
     std::vector<Annotation*> emptyViewportAnnotations;
     m_annotationDrawing->drawAnnotations(&inputs,
-                                         AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX,
+                                         AnnotationCoordinateSpaceEnum::HISTOLOGY,
                                          emptyColorBars,
                                          emptyScaleBars,
                                          emptyViewportAnnotations,

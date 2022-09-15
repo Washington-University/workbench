@@ -2191,7 +2191,7 @@ IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateIdentifica
         std::vector<AString> columnOneText, columnTwoText, toolTipText;
         
         const HistologyCoordinate histologyCoordinate(idHistology->getCoordinate());
-        const HistologySlicesFile* histologySlicesFile(histologyCoordinate.getHistologySlicesFile());
+        const HistologySlicesFile* histologySlicesFile(idHistology->getHistologySlicesFile());
         CaretAssert(histologySlicesFile);
         histologySlicesFile->getIdentificationText(idHistology->getTabIndex(),
                                                    histologyCoordinate,

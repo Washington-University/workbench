@@ -446,39 +446,31 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
             break;
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY_FILE_NAME_AND_SLICE_INDEX:
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
         {
             if (m_stream->readNextStartElement()) {
-                if (m_stream->name() == ELEMENT_COORDINATE_HISTOLOGY_FILE_NAME) {
-                    const QString histologyFileName = m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
-                    coordinate->setHistologyFileName(histologyFileName);
+                if (m_stream->name() == ELEMENT_COORDINATE_HISTOLOGY_SPACE_KEY) {
+                    const AString encodedHistologyKey(m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement));
+                    HistologySpaceKey hsk;
+                    if (hsk.setFromEncodedString(encodedHistologyKey)) {
+                        coordinate->setHistologySpaceKey(hsk);
+                    }
+                    else {
+                        m_streamHelper->throwDataFileException(("Failed to decode \""
+                                                                + encodedHistologyKey
+                                                                + " into a HistologyKey"));
+                    }
                 }
                 else {
                     m_streamHelper->throwDataFileException("Expected elment "
-                                                           + ELEMENT_COORDINATE_HISTOLOGY_FILE_NAME
+                                                           + ELEMENT_COORDINATE_HISTOLOGY_SPACE_KEY
                                                            + " but read element "
                                                            + m_stream->name().toString());
                 }
             }
             else {
-                m_streamHelper->throwDataFileException("Failed to coordinate child element "
-                                                       + ELEMENT_COORDINATE_HISTOLOGY_FILE_NAME);
-            }
-            if (m_stream->readNextStartElement()) {
-                if (m_stream->name() == ELEMENT_COORDINATE_HISTOLOGY_SLICE_INDEX) {
-                    const QString histologySliceIndexText = m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
-                    coordinate->setHistologySliceIndex(histologySliceIndexText.toInt());
-                }
-                else {
-                    m_streamHelper->throwDataFileException("Expected elment "
-                                                           + ELEMENT_COORDINATE_HISTOLOGY_SLICE_INDEX
-                                                           + " but read element "
-                                                           + m_stream->name().toString());
-                }
-            }
-            else {
-                m_streamHelper->throwDataFileException("Failed to coordinate child element "
-                                                       + ELEMENT_COORDINATE_HISTOLOGY_SLICE_INDEX);
+                m_streamHelper->throwDataFileException("Failed to find coordinate child element "
+                                                       + ELEMENT_COORDINATE_HISTOLOGY_SPACE_KEY);
             }
         }
             break;
@@ -836,8 +828,7 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
     
     std::vector<Annotation*> annotations;
     AString mediaFileName;
-    AString histologySlicesFileName;
-    int32_t histologySliceIndex(0);
+    HistologySpaceKey histologySpaceKey;
     
     while (m_stream->readNextStartElement()) {
         bool skipCurrentElementFlag = true;
@@ -848,13 +839,14 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
             mediaFileName = m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
             skipCurrentElementFlag = false;
         }
-        else if (elementName == ELEMENT_COORDINATE_HISTOLOGY_FILE_NAME) {
-            histologySlicesFileName = m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
+        else if (elementName == ELEMENT_COORDINATE_HISTOLOGY_SPACE_KEY) {
+            const AString encodedHistologyKey(m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement));
+            if ( ! histologySpaceKey.setFromEncodedString(encodedHistologyKey)) {
+                m_streamHelper->throwDataFileException(("Failed to decode \""
+                                                        + encodedHistologyKey
+                                                        + " into a HistologyKey"));
+            }
             skipCurrentElementFlag = false;
-        }
-        else if (elementName == ELEMENT_COORDINATE_HISTOLOGY_SLICE_INDEX) {
-            const QString sliceIndexText(m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement));
-            histologySliceIndex = sliceIndexText.toInt();
         }
         else if (elementName == ELEMENT_BOX) {
             CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
@@ -942,8 +934,7 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
                                                             tabOrWindowIndex,
                                                             spacerTabIndex,
                                                             mediaFileName,
-                                                            histologySlicesFileName,
-                                                            histologySliceIndex,
+                                                            histologySpaceKey,
                                                             uniqueKey,
                                                             annotations);
     }

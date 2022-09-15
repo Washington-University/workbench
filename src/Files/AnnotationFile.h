@@ -40,6 +40,7 @@ namespace caret {
     class Annotation;
     class AnnotationGroup;
     class DisplayGroupAndTabItemHelper;
+    class HistologySpaceKey;
     class SceneClassAssistant;
     class SpacerTabIndex;
     
@@ -195,8 +196,7 @@ namespace caret {
                                                  const int32_t tabOrWindowIndex,
                                                  const SpacerTabIndex& spacerTabIndex,
                                                  const AString& mediaFileName,
-                                                 const AString& histologySlicesFileName,
-                                                 const int32_t histologySliceIndex,
+                                                 const HistologySpaceKey& histologySpaceKey,
                                                  const int32_t uniqueKey,
                                                  const std::vector<Annotation*>& annotations);
         
