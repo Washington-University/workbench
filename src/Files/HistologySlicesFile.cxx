@@ -23,6 +23,8 @@
 #include "HistologySlicesFile.h"
 #undef __HISTOLOGY_SLICES_FILE_DECLARE__
 
+#include <QFile>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CziMetaFileXmlStreamReader.h"
@@ -531,6 +533,8 @@ HistologySlicesFile::readFile(const AString& filename)
         m_stereotaxicXyzBoundingBoxValidFlag = false;
         m_planeXyzBoundingBoxValidFlag       = false;
         
+        addFileWarningsForMissingChildFiles();
+        
         clearModified();
     }
     catch (const DataFileException& dfe) {
@@ -538,6 +542,38 @@ HistologySlicesFile::readFile(const AString& filename)
         throw dfe;
     }
 }
+
+void
+HistologySlicesFile::addFileWarningsForMissingChildFiles()
+{
+    std::vector<AString> missingChildFileNames;
+    for (auto& slice : m_histologySlices) {
+        const int32_t numImages(slice->getNumberOfHistologySliceImages());
+        for (int32_t i = 0; i < numImages; i++) {
+            const HistologySliceImage* sliceImage(slice->getHistologySliceImage(i));
+            if (sliceImage != NULL) {
+                const std::vector<AString> childFileNames(sliceImage->getNamesOfChildFiles());
+                for (auto& filename : childFileNames) {
+                    if ( ! QFile::exists(filename)) {
+                        missingChildFileNames.push_back(filename);
+                    }
+                }
+            }
+        }
+    }
+    
+    if ( ! missingChildFileNames.empty()) {
+        AString msg("For "
+                    + getFileName()
+                    + ", these child files are missing: ");
+        for (const auto& name : missingChildFileNames) {
+            msg.appendWithNewLine("   " + name);
+        }
+        msg.appendWithNewLine("This will result in images not displayed and possibly Workbench crashing.");
+        addFileReadWarning(msg);
+    }
+}
+
 
 /**
  * Write the data file.

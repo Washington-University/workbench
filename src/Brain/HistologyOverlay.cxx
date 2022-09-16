@@ -254,15 +254,17 @@ HistologyOverlay::getDrawingData(const int32_t selectedSliceIndex) const
                     CaretAssert(sliceImage);
                     MediaFile* mediaFile(sliceImage->getMediaFile());
 
-                    DrawingData dd(m_tabIndex,
-                                   m_overlayIndex,
-                                   selectionData.m_selectedFile,
-                                   mediaFile,
-                                   selectedSliceIndex,
-                                   m_selectedFile->getSliceNumberBySliceIndex(selectedSliceIndex),
-                                   iImage,
-                                   selectionData.m_supportsYokingFlag);
-                    drawingDataOut.push_back(dd);
+                    if (mediaFile != NULL) {
+                        DrawingData dd(m_tabIndex,
+                                       m_overlayIndex,
+                                       selectionData.m_selectedFile,
+                                       mediaFile,
+                                       selectedSliceIndex,
+                                       m_selectedFile->getSliceNumberBySliceIndex(selectedSliceIndex),
+                                       iImage,
+                                       selectionData.m_supportsYokingFlag);
+                        drawingDataOut.push_back(dd);
+                    }
                 }
             }
         }

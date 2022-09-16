@@ -5026,7 +5026,7 @@ BrainBrowserWindow::showDataFileReadWarningsDialog()
     
     AString messages;
     for (auto file : dataFiles) {
-        const AString msg = file->getFileReadWarnings();
+        const AString msg = file->getFileReadWarnings().replace("\n", "<br>");
         if ( ! msg.isEmpty()) {
             messages.append("<LI>"
                             + file->getFileName()

@@ -212,8 +212,11 @@ HistologySlice::getStereotaxicXyzBoundingBox() const
         m_stereotaxicXyzBoundingBox.resetForUpdate();
         
         for (auto& slice : m_histologySliceImages) {
-            BoundingBox bb(slice->getMediaFile()->getStereotaxicXyzBoundingBox());
-            m_stereotaxicXyzBoundingBox.unionOperation(bb);
+            const MediaFile* mf(slice->getMediaFile());
+            if (mf != NULL) {
+                BoundingBox bb(mf->getStereotaxicXyzBoundingBox());
+                m_stereotaxicXyzBoundingBox.unionOperation(bb);
+            }
         }
         m_stereotaxicXyzBoundingBoxValidFlag = true;
     }
@@ -231,8 +234,11 @@ HistologySlice::getPlaneXyzBoundingBox() const
         m_planeXyzBoundingBox.resetForUpdate();
         
         for (auto& slice : m_histologySliceImages) {
-            BoundingBox bb(slice->getMediaFile()->getPlaneXyzBoundingBox());
-            m_planeXyzBoundingBox.unionOperation(bb);
+            const MediaFile* mf(slice->getMediaFile());
+            if (mf != NULL) {
+                BoundingBox bb(mf->getPlaneXyzBoundingBox());
+                m_planeXyzBoundingBox.unionOperation(bb);
+            }
         }
         m_planeXyzBoundingBoxValidFlag = true;
     }
@@ -302,11 +308,12 @@ HistologySlice::getStereotaxicPlane() const
             const HistologySliceImage* histologyImage(getHistologySliceImage(0));
             CaretAssert(histologyImage);
             const MediaFile* mediaFile(histologyImage->getMediaFile());
-            CaretAssert(mediaFile);
-            const Plane* plane(mediaFile->getStereotaxicImagePlane());
-            if (plane->isValidPlane()) {
-                m_stereotaxicPlane = *plane;
-                m_stereotaxicPlaneValidFlag = true;
+            if (mediaFile != NULL) {
+                const Plane* plane(mediaFile->getStereotaxicImagePlane());
+                if (plane->isValidPlane()) {
+                    m_stereotaxicPlane = *plane;
+                    m_stereotaxicPlaneValidFlag = true;
+                }
             }
         }
     }
@@ -329,11 +336,12 @@ HistologySlice::getPlaneXyzPlane() const
             const HistologySliceImage* histologyImage(getHistologySliceImage(0));
             CaretAssert(histologyImage);
             const MediaFile* mediaFile(histologyImage->getMediaFile());
-            CaretAssert(mediaFile);
-            const Plane* plane(mediaFile->getPlaneCoordinatesPlane());
-            if (plane->isValidPlane()) {
-                m_planeXyzPlane = *plane;
-                m_planeXyzPlaneValidFlag = true;
+            if (mediaFile != NULL) {
+                const Plane* plane(mediaFile->getPlaneCoordinatesPlane());
+                if (plane->isValidPlane()) {
+                    m_planeXyzPlane = *plane;
+                    m_planeXyzPlaneValidFlag = true;
+                }
             }
         }
     }
@@ -352,8 +360,11 @@ MediaFile*
 HistologySlice::findMediaFileWithName(const AString& mediaFileName) const
 {
     for (auto& hsi : m_histologySliceImages) {
-        if (hsi->getMediaFile()->getFileName() == mediaFileName) {
-            return hsi->getMediaFile();
+        MediaFile* mf(hsi->getMediaFile());
+        if (mf != NULL) {
+            if (mf->getFileName() == mediaFileName) {
+                return mf;
+            }
         }
     }
     

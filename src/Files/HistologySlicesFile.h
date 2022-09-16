@@ -122,6 +122,8 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
+        void addFileWarningsForMissingChildFiles();
+        
         MediaFile* findMediaFileWithName(const AString& mediaFileName) const;
         
         void copyHelperHistologySlicesFile(const HistologySlicesFile& obj);
