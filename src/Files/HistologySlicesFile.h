@@ -122,6 +122,8 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
+        MediaFile* findMediaFileWithName(const AString& mediaFileName) const;
+        
         void copyHelperHistologySlicesFile(const HistologySlicesFile& obj);
 
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;

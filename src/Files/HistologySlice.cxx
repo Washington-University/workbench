@@ -342,6 +342,25 @@ HistologySlice::getPlaneXyzPlane() const
 }
 
 /**
+ * Find the media file in the histology slice images
+ * @param mediaFileName
+ *    Name of media file
+ * @return
+ *    Media file with the given name or NULL if not found
+ */
+MediaFile*
+HistologySlice::findMediaFileWithName(const AString& mediaFileName) const
+{
+    for (auto& hsi : m_histologySliceImages) {
+        if (hsi->getMediaFile()->getFileName() == mediaFileName) {
+            return hsi->getMediaFile();
+        }
+    }
+    
+    return NULL;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

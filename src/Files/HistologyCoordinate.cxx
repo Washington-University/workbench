@@ -88,10 +88,10 @@ HistologyCoordinate::newInstanceIdentification(HistologySlicesFile* histologySli
     hc.setPlaneXYZ(planeXYZ);
     hc.m_planeXY = planeXYZ;
     
-    if (hc.m_mediaFile != NULL) {
+    if (mediaFile != NULL) {
         Vector3D stereotaxicXYZ;
-        if (hc.m_mediaFile->planeXyzToStereotaxicXyz(hc.m_planeXY,
-                                                     stereotaxicXYZ)) {
+        if (mediaFile->planeXyzToStereotaxicXyz(hc.m_planeXY,
+                                                stereotaxicXYZ)) {
             hc.setStereotaxicXYZ(stereotaxicXYZ);
         }
     }
@@ -327,7 +327,6 @@ HistologyCoordinate::operator=(const HistologyCoordinate& obj)
 void 
 HistologyCoordinate::copyHelperHistologyCoordinate(const HistologyCoordinate& obj)
 {
-    m_mediaFile                       = obj.m_mediaFile;
     m_stereotaxicXYZ                  = obj.m_stereotaxicXYZ;
     m_histologySlicesFileNameFullPath = obj.m_histologySlicesFileNameFullPath;
     m_histologySlicesFileNameNoPath   = obj.m_histologySlicesFileNameNoPath;
@@ -454,10 +453,6 @@ HistologyCoordinate::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addPathName("m_histologySlicesFileNameFullPath",
                             m_histologySlicesFileNameFullPath);
     
-    // Uncomment if sub-classes must save to scene
-    //saveSubClassDataToScene(sceneAttributes,
-    //                        sceneClass);
-    
     return sceneClass;
 }
 
@@ -484,11 +479,6 @@ HistologyCoordinate::restoreFromScene(const SceneAttributes* sceneAttributes,
                                      sceneClass);    
     
     m_histologySlicesFileNameFullPath = sceneClass->getPathNameValue("m_histologySlicesFileNameFullPath", "");
-    
-    //Uncomment if sub-classes must restore from scene
-    //restoreSubClassDataFromScene(sceneAttributes,
-    //                             sceneClass);
-    
 }
 
 /**
@@ -502,7 +492,6 @@ HistologyCoordinate::setHistologySlicesFile(HistologySlicesFile* histologySlices
     if (histologySlicesFile != NULL) {
         setHistologySlicesFileName(histologySlicesFile->getFileName());
     }
-    m_histologySlicesFile = histologySlicesFile;
 }
 
 /**
@@ -522,28 +511,9 @@ HistologyCoordinate::getStereotaxicXYZ() const
 void
 HistologyCoordinate::setMediaFile(MediaFile* mediaFile)
 {
-    m_mediaFile = mediaFile;
-    if (m_mediaFile != NULL) {
-        setHistologyMediaFileName(m_mediaFile->getFileName());
+    if (mediaFile != NULL) {
+        setHistologyMediaFileName(mediaFile->getFileName());
     }
-}
-
-/**
- * @return Pointer to media file.  May be NULL or if not NULL, may not point to a valid file.
- */
-const MediaFile*
-HistologyCoordinate::getMediaFile() const
-{
-    return m_mediaFile;
-}
-
-/**
- * @return Pointer to media file.  May be NULL or if not NULL, may not point to a valid file.
- */
-MediaFile*
-HistologyCoordinate::getMediaFile()
-{
-    return m_mediaFile;
 }
 
 /**

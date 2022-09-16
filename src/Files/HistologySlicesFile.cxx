@@ -24,6 +24,7 @@
 #undef __HISTOLOGY_SLICES_FILE_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CziMetaFileXmlStreamReader.h"
 #include "DataFileException.h"
 #include "DataFileContentInformation.h"
@@ -442,7 +443,7 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
     }
     
     std::vector<int32_t> frameIndicesVector { 0 };
-    const MediaFile* mediaFile(histologyCoordinate.getMediaFile());
+    const MediaFile* mediaFile(findMediaFileWithName(histologyCoordinate.getHistologyMediaFileName()));
     if (mediaFile != NULL) {
         const bool histologyIdFlag(true);
         mediaFile->getPixelPlaneIdentificationTextForFrames(tabIndex,
@@ -452,6 +453,11 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
                                                             columnOneText,
                                                             columnTwoText,
                                                             toolTipText);
+    }
+    else {
+        CaretLogWarning("Unable to find media file with name "
+                        + histologyCoordinate.getHistologyMediaFileName()
+                        + " for generating identification text");
     }
     const int32_t numColOne(columnOneText.size());
     const int32_t numColTwo(columnTwoText.size());
@@ -473,6 +479,27 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
     
     toolTipTextOut = toolTipText;
 }
+
+/**
+ * Find the media file in the histology slices
+ * @param mediaFileName
+ *    Name of media file
+ * @return
+ *    Media file with the given name or NULL if not found
+ */
+MediaFile*
+HistologySlicesFile::findMediaFileWithName(const AString& mediaFileName) const
+{
+    for (auto& hs : m_histologySlices) {
+        MediaFile* mf(hs->findMediaFileWithName(mediaFileName));
+        if (mf != NULL) {
+            return mf;
+        }
+    }
+    
+    return NULL;
+}
+
 
 /**
  * @return True if this file can be written
@@ -503,6 +530,8 @@ HistologySlicesFile::readFile(const AString& filename)
                         this);
         m_stereotaxicXyzBoundingBoxValidFlag = false;
         m_planeXyzBoundingBoxValidFlag       = false;
+        
+        clearModified();
     }
     catch (const DataFileException& dfe) {
         clear();

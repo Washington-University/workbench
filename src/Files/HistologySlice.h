@@ -36,6 +36,7 @@
 
 namespace caret {
     class HistologySliceImage;
+    class MediaFile;
     class SceneClassAssistant;
 
     class HistologySlice : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -62,7 +63,9 @@ namespace caret {
         HistologySliceImage* getHistologySliceImage(const int32_t index);
 
         const HistologySliceImage* getHistologySliceImage(const int32_t index) const;
-        
+         
+        MediaFile* findMediaFileWithName(const AString& mediaFileName) const;
+
         Matrix4x4 getPlaneToMillimetersMatrix() const;
         
         bool isPlaneToMillimetersMatrixValid() const;

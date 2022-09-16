@@ -151,12 +151,6 @@ namespace caret {
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
         
-        /** The histology slices file */
-        HistologySlicesFile* m_histologySlicesFile = NULL;
-        
-        /** The media file in the slice */
-        MediaFile* m_mediaFile = NULL;
-        
         /** stereotaxic coordinate*/
         Vector3D m_stereotaxicXYZ;
         

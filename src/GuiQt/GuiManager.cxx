@@ -3737,10 +3737,6 @@ GuiManager::processIdentification(const int32_t tabIndex,
             if (idHistology->isValid()) {
                 if (identifiedItem == NULL) {
                     const HistologyCoordinate coordinate(idHistology->getCoordinate());
-                    AString dataFileName("Data File Name Missing");
-                    if (coordinate.getMediaFile() != NULL) {
-                        dataFileName = coordinate.getMediaFile()->getFileNameNoPath();
-                    }
                     if (coordinate.isPlaneXYValid()) {
                         Vector3D stereotaxicXYZ = coordinate.getStereotaxicXYZ();
                         bool stereotaxicXYZValidFlag = coordinate.isStereotaxicXYZValid();
