@@ -1867,6 +1867,7 @@ AnnotationFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
                     AnnotationFileXmlWriter writer;
                     QString fileContentInString;
                     writer.writeFileToString(this,
+                                             sceneAttributes->getSceneFileName(),
                                              fileContentInString);
                     sceneClass->addString("AnnotationFileContent",
                                           fileContentInString);
@@ -1923,6 +1924,7 @@ AnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                 try {
                     AnnotationFileXmlReader reader;
                     reader.readFileFromString(fileContentInString,
+                                              sceneAttributes->getSceneFileName(),
                                               this);
                     updateUniqueKeysAfterReadingFile();
                     clearModified();

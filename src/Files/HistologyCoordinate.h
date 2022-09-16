@@ -155,10 +155,7 @@ namespace caret {
         Vector3D m_stereotaxicXYZ;
         
         /** full path name of histology slices file*/
-        AString m_histologySlicesFileNameFullPath;
-        
-        /** file  name no path of histology slices file*/
-        AString m_histologySlicesFileNameNoPath;
+        AString m_histologySlicesFileName;
         
         /** name of histology media file*/
         AString m_histologyMediaFileName;
@@ -174,12 +171,6 @@ namespace caret {
         
         /** validity of plane XY*/
         bool m_planeXYValid = false;
-        
-        /** validity of histology slices file name*/
-        bool m_histologySlicesFileNameValid = false;
-        
-        /** validity of histology media file name*/
-        bool m_histologyMediaFileNameValid = false;
         
         /** validity of slice index*/
         bool m_sliceIndexValid = false;

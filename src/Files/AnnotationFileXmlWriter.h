@@ -56,6 +56,7 @@ namespace caret {
         void writeFile(const AnnotationFile* annotationFile);
         
         void writeFileToString(const AnnotationFile* annotationFile,
+                               const AString& fileNameForRelativePaths,
                                QString& fileContentString);
         
         // ADD_NEW_METHODS_HERE

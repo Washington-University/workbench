@@ -23,6 +23,9 @@
 #include "AnnotationFileXmlFormatBase.h"
 #undef __ANNOTATION_FILE_XML_FORMAT_BASE_DECLARE__
 
+#include <QFileInfo>
+
+#include "AnnotationFile.h"
 #include "CaretAssert.h"
 using namespace caret;
 
@@ -53,6 +56,28 @@ AnnotationFileXmlFormatBase::AnnotationFileXmlFormatBase()
 AnnotationFileXmlFormatBase::~AnnotationFileXmlFormatBase()
 {
 }
+
+/**
+ * Set the annotation file directory from annotation file name
+ * @param annotationFileName
+ *    Name of annotation file
+ */
+void
+AnnotationFileXmlFormatBase::setAnnotationFileDirectory(const AString& annotationFileName)
+{
+    QFileInfo fileInfo(annotationFileName);
+    m_annotationFileDirectory = fileInfo.absoluteDir();
+}
+
+/**
+ * @return The annotation file's directory
+ */
+const QDir&
+AnnotationFileXmlFormatBase::getAnnotationFileDirectory() const
+{
+    return m_annotationFileDirectory;
+}
+
 
 /**
  * Get a description of this object's content.

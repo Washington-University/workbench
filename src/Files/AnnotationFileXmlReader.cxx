@@ -89,6 +89,7 @@ AnnotationFileXmlReader::readFile(const QString& filename,
     
     CaretAssert(annotationFile);
     m_filename = filename;
+    setAnnotationFileDirectory(filename);
 
     /*
      * Open the file
@@ -122,6 +123,8 @@ AnnotationFileXmlReader::readFile(const QString& filename,
  *
  * @param fileInString
  *    String containing the file.
+ * @param fileNameForRelativePaths
+ *    Filename used when relative paths are stored in the annotation file
  * @param annotationFile
  *    Read into this annotation file.
  * @throws
@@ -129,12 +132,14 @@ AnnotationFileXmlReader::readFile(const QString& filename,
  */
 void
 AnnotationFileXmlReader::readFileFromString(const QString& fileInString,
+                                            const AString& fileNameForRelativePaths,
                                             AnnotationFile* annotationFile)
 {
     /*
      * Create an XML stream writer
      */
     m_stream.grabNew(new QXmlStreamReader(fileInString));
+    setAnnotationFileDirectory(fileNameForRelativePaths);
     
     readFileContentFromXmlStreamReader("AnnotationsInSceneFile",
                                        annotationFile);
@@ -452,7 +457,8 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
                 if (m_stream->name() == ELEMENT_COORDINATE_HISTOLOGY_SPACE_KEY) {
                     const AString encodedHistologyKey(m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement));
                     HistologySpaceKey hsk;
-                    if (hsk.setFromEncodedString(encodedHistologyKey)) {
+                    if (hsk.setFromEncodedString(getAnnotationFileDirectory(),
+                                                 encodedHistologyKey)) {
                         coordinate->setHistologySpaceKey(hsk);
                     }
                     else {
@@ -841,7 +847,8 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
         }
         else if (elementName == ELEMENT_COORDINATE_HISTOLOGY_SPACE_KEY) {
             const AString encodedHistologyKey(m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement));
-            if ( ! histologySpaceKey.setFromEncodedString(encodedHistologyKey)) {
+            if ( ! histologySpaceKey.setFromEncodedString(getAnnotationFileDirectory(),
+                                                          encodedHistologyKey)) {
                 m_streamHelper->throwDataFileException(("Failed to decode \""
                                                         + encodedHistologyKey
                                                         + " into a HistologyKey"));

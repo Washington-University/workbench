@@ -22,18 +22,25 @@
 /*LICENSE_END*/
 
 
+#include <QDir>
+
 #include "CaretObject.h"
 
 
 
 namespace caret {
 
+    class AnnotationFile;
+    
     class AnnotationFileXmlFormatBase : public CaretObject {
 
     protected:
         AnnotationFileXmlFormatBase();
         
+        void setAnnotationFileDirectory(const AString& annotationFileName);
         
+        const QDir& getAnnotationFileDirectory() const;
+
     public:
         virtual ~AnnotationFileXmlFormatBase();
         
@@ -46,6 +53,8 @@ namespace caret {
         AnnotationFileXmlFormatBase(const AnnotationFileXmlFormatBase&);
 
         AnnotationFileXmlFormatBase& operator=(const AnnotationFileXmlFormatBase&);
+        
+        QDir m_annotationFileDirectory;
         
     protected:
         static const QString ATTRIBUTE_BACKGROUND_CARET_COLOR;

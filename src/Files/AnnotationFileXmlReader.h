@@ -52,6 +52,7 @@ namespace caret {
                       AnnotationFile* annotationFile);
         
         void readFileFromString(const QString& fileInString,
+                                const AString& fileNameForRelativePaths,
                                 AnnotationFile* annotationFile);
 
         // ADD_NEW_METHODS_HERE

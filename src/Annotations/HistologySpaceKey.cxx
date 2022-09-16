@@ -23,6 +23,8 @@
 #include "HistologySpaceKey.h"
 #undef __HISTOLOGY_SPACE_KEY_DECLARE__
 
+#include <QDir>
+#include <QFileInfo>
 #include <QStringList>
 
 #include "CaretAssert.h"
@@ -220,19 +222,21 @@ HistologySpaceKey::toString() const
 }
 
 /**
+ * @param filePath
+ *    If not empty, path of histology slices file is made relative to this path
  * @return This instance encoded in a string
  */
 AString
-HistologySpaceKey::toEncodedString() const
+HistologySpaceKey::toEncodedString(const QDir& directory) const
 {
-    const AString version("1");
-    AString s(version
-              + s_encodingSeparator
-              + m_histologySlicesFileName
-              + s_encodingSeparator
-              + AString::number(m_sliceNumber));
+    QString relativeFileName(directory.relativeFilePath(m_histologySlicesFileName));
     
-    return s;
+    QStringList sl;
+    sl.append(s_encodeRelativeToDirectory);
+    sl.append(relativeFileName);
+    sl.append(QString::number(m_sliceNumber));
+
+    return sl.join(s_encodingSeparator);
 }
 
 /**
@@ -243,7 +247,8 @@ HistologySpaceKey::toEncodedString() const
  *    True if successfully decoded or false if error
  */
 bool
-HistologySpaceKey::setFromEncodedString(const AString& encodedString)
+HistologySpaceKey::setFromEncodedString(const QDir& directory,
+                                        const AString& encodedString)
 {
     const QStringList list(encodedString.split(s_encodingSeparator,
                                                Qt::SkipEmptyParts));
@@ -254,19 +259,20 @@ HistologySpaceKey::setFromEncodedString(const AString& encodedString)
         CaretLogWarning(msg);
     }
     else {
-        const AString version(list.at(0));
-        if (version == "1") {
-            setHistologySlicesFileName(list.at(0));
-            setSliceNumber(list.at(0).toInt());
+        const AString encodingType(list.at(0));
+        if (encodingType == s_encodeRelativeToDirectory) {
+            const QFileInfo fileInfo(directory,
+                                     list.at(1));
+            setHistologySlicesFileName(fileInfo.absoluteFilePath());
+            setSliceNumber(list.at(2).toInt());
+            return true;
         }
         else {
-            const AString msg("Unsupported version="
-                              + version
+            const AString msg("Unsupported encoding="
+                              + encodingType
                               + " when decoding HistologySpaceKey");
             CaretLogWarning(msg);
         }
-        
-        return true;
     }
     
     return false;

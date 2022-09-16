@@ -29,6 +29,7 @@
 
 #include "SceneableInterface.h"
 
+class QDir;
 
 namespace caret {
     class SceneClassAssistant;
@@ -63,9 +64,10 @@ namespace caret {
         
         void setSliceNumber(const int32_t sliceNumber);
         
-        AString toEncodedString() const;
+        AString toEncodedString(const QDir& directory) const;
         
-        bool setFromEncodedString(const AString& encodedString);
+        bool setFromEncodedString(const QDir& directory,
+                                  const AString& encodedString);
         
         // ADD_NEW_METHODS_HERE
 
@@ -100,12 +102,15 @@ namespace caret {
         int32_t m_sliceNumber = 0;
         
         static const AString s_encodingSeparator;
+        
+        static const AString s_encodeRelativeToDirectory;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __HISTOLOGY_SPACE_KEY_DECLARE__
     const AString HistologySpaceKey::s_encodingSeparator = "::::";
+    const AString HistologySpaceKey::s_encodeRelativeToDirectory = "ENCODED_RELATIVE_TO_DIRECTORY";
 #endif // __HISTOLOGY_SPACE_KEY_DECLARE__
 
 } // namespace

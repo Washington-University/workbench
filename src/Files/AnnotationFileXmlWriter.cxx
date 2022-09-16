@@ -88,6 +88,7 @@ AnnotationFileXmlWriter::writeFile(const AnnotationFile* annotationFile)
     if (filename.isEmpty()) {
         throw DataFileException("Name for writing annotation file is empty.");
     }
+    setAnnotationFileDirectory(filename);
     
     /*
      * Open the file
@@ -121,6 +122,8 @@ AnnotationFileXmlWriter::writeFile(const AnnotationFile* annotationFile)
  *
  * @param annotationFile
  *     The annotation file written to the stream writer.
+ * @param fileNameForRelativePaths
+ *    Filename used when relative paths are stored in the annotation file
  * @param fileContentString
  *     Will contain XML version of the file on exit.
  * @throws
@@ -128,12 +131,14 @@ AnnotationFileXmlWriter::writeFile(const AnnotationFile* annotationFile)
  */
 void
 AnnotationFileXmlWriter::writeFileToString(const AnnotationFile* annotationFile,
+                                           const AString& fileNameForRelativePaths,
                                            QString& fileContentString)
 {
     fileContentString.clear();
     
     m_stream.grabNew(new QXmlStreamWriter(&fileContentString));
     
+    setAnnotationFileDirectory(fileNameForRelativePaths);
     writeFileContentToXmlStreamWriter(annotationFile,
                                       "Scene Annotation File");
     
@@ -239,7 +244,7 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
             break;
         case AnnotationCoordinateSpaceEnum::HISTOLOGY:
         {
-            const AString encodedText(group->getHistologySpaceKey().toEncodedString());
+            const AString encodedText(group->getHistologySpaceKey().toEncodedString(getAnnotationFileDirectory()));
             m_stream->writeTextElement(ELEMENT_COORDINATE_HISTOLOGY_SPACE_KEY,
                                        encodedText);
         }
@@ -759,9 +764,11 @@ AnnotationFileXmlWriter::writeCoordinate(const AnnotationCoordinate* coordinate,
             break;
         case AnnotationCoordinateSpaceEnum::CHART:
         case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+        {
             m_stream->writeTextElement(ELEMENT_COORDINATE_HISTOLOGY_SPACE_KEY,
-                                       coordinate->getHistologySpaceKey().toEncodedString());
+                                       coordinate->getHistologySpaceKey().toEncodedString(getAnnotationFileDirectory()));
             break;
+        }
         case AnnotationCoordinateSpaceEnum::SPACER:
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
         case AnnotationCoordinateSpaceEnum::SURFACE:
