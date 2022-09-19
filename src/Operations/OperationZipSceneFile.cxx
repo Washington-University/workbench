@@ -31,6 +31,7 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneFile.h"
+#include "ScenePathName.h"
 #include "SpecFile.h"
 
 #include "quazip.h"
@@ -223,6 +224,22 @@ void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
             SpecFile tempSpec;
             tempSpec.restoreFromScene(myAttrs, specClass);
             vector<AString> tempNames = tempSpec.getAllDataFileNamesSelectedForLoading();
+            
+            
+            const SceneClass* childDataFilePathNamesClass(brainClass->getClass("brainChildDataFilePathNames"));
+            if (childDataFilePathNamesClass != NULL) {
+                const int32_t numPathNames(childDataFilePathNamesClass->getNumberOfObjects());
+                for (int32_t ipn = 0; ipn < numPathNames; ipn++) {
+                    const SceneObject* so(childDataFilePathNamesClass->getObjectAtIndex(ipn));
+                    if (so != NULL) {
+                        const ScenePathName* pathName(dynamic_cast<const ScenePathName*>(so));
+                        if (pathName != NULL) {
+                            tempNames.push_back(pathName->stringValue());
+                        }
+                    }
+                }
+            }
+            
             int numNames = (int)tempNames.size();
             for (int k = 0; k < numNames; ++k)
             {

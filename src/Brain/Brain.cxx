@@ -132,6 +132,7 @@
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
+#include "ScenePathNameArray.h"
 #include "Surface.h"
 #include "SurfaceProjectedItem.h"
 #include "SystemUtilities.h"
@@ -8386,7 +8387,39 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
                                             "specFile"));
     }
     
-    m_sceneAssistant->saveMembers(sceneAttributes, 
+    /*
+     * We need to include "child data files".  These are
+     * file not loaded by the 'Brain'.  For example,
+     * the CZI image, distance and other files loaded
+     * by a HistologySlicesFile.
+     *
+     * By including these child data files in the scene, the
+     * zip scene command will find the ScenePathName elements
+     * and include the files when the scene file is zipped.
+     */
+    const bool saveChildFilesToSceneFlag(true);
+    if (saveChildFilesToSceneFlag) {
+        std::set<AString> uniqueChildDataFilePathNames;
+        for (const CaretDataFile* cdf : allCaretDataFiles) {
+            CaretAssert(cdf);
+            const std::vector<AString> childFileNames(cdf->getChildDataFilePathNames());
+            uniqueChildDataFilePathNames.insert(childFileNames.begin(),
+                                                childFileNames.end());
+        }
+        
+        if ( ! uniqueChildDataFilePathNames.empty()) {
+            SceneClass* childPathNamesClass(new SceneClass("brainChildDataFilePathNames",
+                                                           "BrainChildDataFilePathNames",
+                                                           1));
+            for (const auto& filePathName : uniqueChildDataFilePathNames) {
+                childPathNamesClass->addPathName("brainChildDataFile",
+                                                 filePathName);
+            }
+            sceneClass->addChild(childPathNamesClass);
+        }
+    }
+
+    m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
 

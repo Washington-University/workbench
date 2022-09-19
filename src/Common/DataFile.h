@@ -101,6 +101,8 @@ namespace caret {
         
         bool isModifiedSinceTimeOfLastReadOrWrite() const;
         
+        virtual std::vector<AString> getChildDataFilePathNames() const;
+
     private:
         void copyHelperDataFile(const DataFile& df);
         

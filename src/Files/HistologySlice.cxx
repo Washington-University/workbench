@@ -407,6 +407,27 @@ HistologySlice::receiveEvent(Event* /*event*/)
 }
 
 /**
+ * @return Names (absolute path) of all child data files of this file.
+ * This includes the CZI Image Files, Distance File, and the Non-Linear
+ * Transform Files.
+ */
+std::vector<AString>
+HistologySlice::getChildDataFilePathNames() const
+{
+    std::vector<AString> childDataFilePathNames;
+    childDataFilePathNames.push_back(m_MRIToHistWarpFileName);
+    childDataFilePathNames.push_back(m_histToMRIWarpFileName);
+    
+    for (const auto& image : m_histologySliceImages) {
+        std::vector<AString> names(image->getChildDataFilePathNames());
+        childDataFilePathNames.insert(childDataFilePathNames.end(),
+                                      names.begin(), names.end());
+    }
+
+    return childDataFilePathNames;
+}
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes

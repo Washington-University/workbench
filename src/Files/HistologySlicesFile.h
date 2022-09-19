@@ -104,6 +104,8 @@ namespace caret {
 
         virtual void receiveEvent(Event* event) override;
 
+        virtual std::vector<AString> getChildDataFilePathNames() const override;
+
     protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                           SceneClass* sceneClass) override;

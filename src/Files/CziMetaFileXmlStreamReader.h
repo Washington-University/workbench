@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include <QDir>
 
 #include <memory>
 #include <set>
@@ -83,6 +83,10 @@ namespace caret {
         void readMatrixFromElementText(const QString& elementName,
                                        const MatrixType matrixType,
                                        Matrix4x4& matrixOut);
+        
+        AString makeAbsoluteFilePath(const AString& filename) const;
+        
+        QDir m_directory;
         
         AString m_filename;
         

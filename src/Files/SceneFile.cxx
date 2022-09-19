@@ -44,6 +44,7 @@
 #include "SceneClassArray.h"
 #include "SceneInfo.h"
 #include "ScenePathName.h"
+#include "ScenePathNameArray.h"
 #include "SceneFileXmlStreamReader.h"
 #include "SceneFileXmlStreamWriter.h"
 #include "SpecFile.h"
@@ -1099,7 +1100,7 @@ SceneFile::getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCo
 }
 
 /**
- * @return A vector containing the names of all data files from all scenes.
+ * @return A set containing the names of all data files from all scenes.
  */
 std::set<SceneFile::FileAndSceneIndicesInfo>
 SceneFile::getAllDataFileNamesFromAllScenes() const
@@ -1121,6 +1122,7 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
             CaretAssert(sceneObject);
             if (sceneObject->getDataType() == SceneObjectDataTypeEnum::SCENE_PATH_NAME) {
                 const ScenePathName* scenePathName = dynamic_cast<ScenePathName*>(sceneObject);
+
                 /*
                  * Will be NULL for 'path name arrays' which we ignore
                  */
@@ -1132,6 +1134,9 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                      */
                     bool useNameFlag = false;
                     if (sceneObject->getName() == "fileName") {
+                        useNameFlag = true;
+                    }
+                    else if (sceneObject->getName() == "brainChildDataFile") {
                         useNameFlag = true;
                     }
                     else if (sceneObject->getName() == "specFileName") {

@@ -287,10 +287,11 @@ HistologySliceImage::setPlaneToMillimetersMatrix(const Matrix4x4& planeToMillime
  * @return names of all child files
  */
 std::vector<AString>
-HistologySliceImage::getNamesOfChildFiles() const
+HistologySliceImage::getChildDataFilePathNames() const
 {
     std::vector<AString> names;
     names.push_back(m_mediaFileName);
+    names.push_back(m_distanceFileName);
     return names;
 }
 

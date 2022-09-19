@@ -543,22 +543,18 @@ HistologySlicesFile::readFile(const AString& filename)
     }
 }
 
+/**
+ * If any child files are missing after reading the CZI meta file, add file warnings to user.
+ */
 void
 HistologySlicesFile::addFileWarningsForMissingChildFiles()
 {
     std::vector<AString> missingChildFileNames;
-    for (auto& slice : m_histologySlices) {
-        const int32_t numImages(slice->getNumberOfHistologySliceImages());
-        for (int32_t i = 0; i < numImages; i++) {
-            const HistologySliceImage* sliceImage(slice->getHistologySliceImage(i));
-            if (sliceImage != NULL) {
-                const std::vector<AString> childFileNames(sliceImage->getNamesOfChildFiles());
-                for (auto& filename : childFileNames) {
-                    if ( ! QFile::exists(filename)) {
-                        missingChildFileNames.push_back(filename);
-                    }
-                }
-            }
+    
+    const std::vector<AString> childDataFileNames(getChildDataFilePathNames());
+    for (auto& filename : childDataFileNames) {
+        if ( ! QFile::exists(filename)) {
+            missingChildFileNames.push_back(filename);
         }
     }
     
@@ -684,4 +680,22 @@ HistologySlicesFile::addToDataFileContentInformation(DataFileContentInformation&
             dataFileInformation.addNameAndValue("Image ", image->getMediaFile()->getFileNameNoPath());
         }
     }
+}
+
+/**
+ * @return Names (absolute path) of all child data files of this file.
+ * This includes the CZI Image Files, Distance File, and the Non-Linear
+ * Transform Files.
+ */
+std::vector<AString>
+HistologySlicesFile::getChildDataFilePathNames() const
+{
+    std::vector<AString> childDataFilePathNames;
+    
+    for (const auto& slice : m_histologySlices) {
+        const std::vector<AString> names(slice->getChildDataFilePathNames());
+        childDataFilePathNames.insert(childDataFilePathNames.end(),
+                                      names.begin(), names.end());
+    }
+    return childDataFilePathNames;
 }

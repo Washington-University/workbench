@@ -64,7 +64,7 @@ namespace caret {
         void setPlaneToMillimetersMatrix(const Matrix4x4& planeToMillimetersMatrix,
                                          const bool planeToMillimetersMatrixValidFlag);
         
-        std::vector<AString> getNamesOfChildFiles() const;
+        std::vector<AString> getChildDataFilePathNames() const;
         
         // ADD_NEW_METHODS_HERE
 

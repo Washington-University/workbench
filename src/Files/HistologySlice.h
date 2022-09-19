@@ -84,6 +84,8 @@ namespace caret {
         
         const Plane& getPlaneXyzPlane() const;
         
+        virtual std::vector<AString> getChildDataFilePathNames() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

@@ -24,6 +24,7 @@
 #undef __CZI_META_FILE_XML_STREAM_READER_DECLARE__
 
 #include <QFile>
+#include <QFileInfo>
 #include <QXmlStreamAttributes>
 #include <QXmlStreamReader>
 
@@ -98,6 +99,9 @@ CziMetaFileXmlStreamReader::readFile(const AString& filename,
                                 + file.errorString());
     }
     
+    QFileInfo fileInfo(m_filename);
+    m_directory = fileInfo.dir();
+    
     m_xmlReader.reset(new QXmlStreamReader(&file));
     m_xmlStreamHelper.reset(new XmlStreamReaderHelper(m_filename,
                                                       m_xmlReader.get()));
@@ -161,6 +165,9 @@ CziMetaFileXmlStreamReader::readFile(const AString& filename,
                                 + " Reason: "
                                 + file.errorString());
     }
+    
+    QFileInfo fileInfo(m_filename);
+    m_directory = fileInfo.dir();
     
     m_xmlReader.reset(new QXmlStreamReader(&file));
     m_xmlStreamHelper.reset(new XmlStreamReaderHelper(m_filename,
@@ -433,6 +440,8 @@ CziMetaFileXmlStreamReader::readSliceElement(HistologySlicesFile* histologySlice
         return NULL;
     }
     
+    mriToHistWarpFileName = makeAbsoluteFilePath(mriToHistWarpFileName);
+    histToMriWarpFileName = makeAbsoluteFilePath(histToMriWarpFileName);
     HistologySlice* slice(new HistologySlice(sliceNumber,
                                              mriToHistWarpFileName,
                                              histToMriWarpFileName,
@@ -443,6 +452,26 @@ CziMetaFileXmlStreamReader::readSliceElement(HistologySlicesFile* histologySlice
     }
     
     return slice;
+}
+
+/**
+ * If the filename is not absolute path, convert to absolute path using
+ * the directory containing the CZI metaafile.
+ * @param filename
+ *    Name of file
+ * @return
+ *    Absolute path to file.
+ */
+AString
+CziMetaFileXmlStreamReader::makeAbsoluteFilePath(const AString& filename) const
+{
+    if (QFileInfo(filename).isAbsolute()) {
+        return filename;
+    }
+    
+    QFileInfo fileInfo(m_directory,
+                       filename);
+    return fileInfo.absoluteFilePath();
 }
 
 /**
@@ -672,6 +701,8 @@ CziMetaFileXmlStreamReader::readSceneElement(HistologySlicesFile* /*histologySli
         return NULL;
     }
     
+    imageFileName    = makeAbsoluteFilePath(imageFileName);
+    distanceFileName = makeAbsoluteFilePath(distanceFileName);
     HistologySliceImage* image(new HistologySliceImage(sceneName,
                                                        imageFileName,
                                                        distanceFileName,
