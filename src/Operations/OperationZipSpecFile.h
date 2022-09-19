@@ -32,10 +32,12 @@ namespace caret {
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
+        
+    private:
+        static void addChildDataFiles(const AString& dataFileName,
+                                      std::vector<AString>& childDataFileNamesOut);
     };
-
     typedef TemplateAutoOperation<OperationZipSpecFile> AutoOperationZipSpecFile;
-
 }
 
 #endif //__OPERATION_ZIP_SPEC_FILE_H__
