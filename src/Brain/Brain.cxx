@@ -8593,6 +8593,12 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                 }
             }
         }
+        
+        /*
+         * Prevents warning in debug mode about unrestored objects
+         * since not all elements may be used during restoration of scene
+         */
+        caretDataFileSceneArrayV2->setDescendantsRestored(true);
     }
     else if (caretDataFileSceneArray != NULL) {
         /*
@@ -8774,6 +8780,15 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
     
     setSurfaceMatchingToAnatomical(m_surfaceMatchingToAnatomicalFlag);
+    
+    {
+        /*
+         * Prevents warning in debug mode about unrestored objects
+         * since not all elements may be used during restoration of scene
+         */
+        const SceneClass* childPathNamesClass(sceneClass->getClass("brainChildDataFilePathNames"));
+        childPathNamesClass->setDescendantsRestored(true);
+    }
 }
 
 /**
