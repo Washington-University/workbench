@@ -71,8 +71,6 @@ public:
         CONNECTIVITY_SCALAR_DATA_SERIES,
         /** Zeiss CZI Image File */
         CZI_IMAGE_FILE,
-        /** Meta File for CZI */
-        CZI_META_FILE,
         /** Foci */
         FOCI,
         /** Histology Slices File */

@@ -27,7 +27,6 @@
 
 #include "CaretObject.h"
 #include "ChartOneDataTypeEnum.h"
-#include "CziMetaFile.h"
 #include "DataFileTypeEnum.h"
 #include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
@@ -163,14 +162,6 @@ namespace caret {
         CziImageFile* getCziImageFile(const int32_t indx);
         
         const CziImageFile* getCziImageFile(const int32_t indx) const;
-        
-        const std::vector<CziMetaFile*> getAllCziMetaFiles() const;
-        
-        int32_t getNumberOfCziMetaFiles() const;
-        
-        CziMetaFile* getCziMetaFile(const int32_t indx);
-        
-        const CziMetaFile* getCziMetaFile(const int32_t indx) const;
         
         const std::vector<HistologySlicesFile*> getAllHistologySlicesFiles() const;
         
@@ -775,15 +766,9 @@ namespace caret {
                                                   CaretDataFile* caretDataFile,
                                                   const AString& filename);
 
-        CziMetaFile* addReadOrReloadCziMetaFile(const FileModeAddReadReload fileMode,
-                                                 CaretDataFile* caretDataFile,
-                                                 const AString& filename);
-        
         HistologySlicesFile* addReadOrReloadHistologySlicesFile(const FileModeAddReadReload fileMode,
                                                                 CaretDataFile* caretDataFile,
                                                                 const AString& filename);
-        
-        void readCziImageFilesFromCziMetaFile(CziMetaFile* cziMetaFile);
         
         FociFile* addReadOrReloadFociFile(const FileModeAddReadReload fileMode,
                                CaretDataFile* caretDataFile,
@@ -842,8 +827,6 @@ namespace caret {
         std::vector<BorderFile*> m_borderFiles;
         
         std::vector<CziImageFile*> m_cziImageFiles;
-        
-        std::vector<CziMetaFile*> m_cziMetaFiles;
         
         std::vector<HistologySlicesFile*> m_histologySlicesFiles;
         

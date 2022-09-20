@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __CZI_META_FILE_XML_STREAM_READER_DECLARE__
-#include "CziMetaFileXmlStreamReader.h"
-#undef __CZI_META_FILE_XML_STREAM_READER_DECLARE__
+#define __HISTOLOGY_SLICES_FILE_XML_STREAM_READER_DECLARE__
+#include "HistologySlicesFileXmlStreamReader.h"
+#undef __HISTOLOGY_SLICES_FILE_XML_STREAM_READER_DECLARE__
 
 #include <QFile>
 #include <QFileInfo>
@@ -30,7 +30,6 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "CziMetaFile.h"
 #include "DataFileException.h"
 #include "HistologySlice.h"
 #include "HistologySliceImage.h"
@@ -43,7 +42,7 @@ using namespace caret;
 
     
 /**
- * \class caret::CziMetaFileXmlStreamReader
+ * \class caret::HistologySlicesFileXmlStreamReader
  * \brief Xml Stream Reader for Meta CZI file
  * \ingroup Files
  */
@@ -51,8 +50,8 @@ using namespace caret;
 /**
  * Constructor.
  */
-CziMetaFileXmlStreamReader::CziMetaFileXmlStreamReader()
-: CziMetaFileXmlStreamBase()
+HistologySlicesFileXmlStreamReader::HistologySlicesFileXmlStreamReader()
+: HistologySlicesFileXmlStreamBase()
 {
     
 }
@@ -60,75 +59,8 @@ CziMetaFileXmlStreamReader::CziMetaFileXmlStreamReader()
 /**
  * Destructor.
  */
-CziMetaFileXmlStreamReader::~CziMetaFileXmlStreamReader()
+HistologySlicesFileXmlStreamReader::~HistologySlicesFileXmlStreamReader()
 {
-}
-
-/**
- * Read a meta CZI file
- * @param filename
- *    Name of meta czi file
- * @param metaCziFile
- *    Pointer to meta czi file that is read
- * @throws DataFileException if fatal error
- */
-void
-CziMetaFileXmlStreamReader::readFile(const AString& filename,
-                                     CziMetaFile* cziMetaFile)
-{
-    m_xmlStreamHelper.reset();
-    
-    CaretAssert(cziMetaFile);
-    if (cziMetaFile == NULL) {
-        throw DataFileException("Meta CZI file is invalid (NULL).");
-    }
-    cziMetaFile->clear();
-    cziMetaFile->setFileName(filename);
-    
-    if (filename.isEmpty()) {
-        throw DataFileException("Meta CZI file name is empty");
-    }
-    
-    m_filename = filename;
-    
-    QFile file(m_filename);
-    if ( ! file.open(QFile::ReadOnly)) {
-        throw DataFileException("Unable to open for reading: "
-                                + m_filename
-                                + " Reason: "
-                                + file.errorString());
-    }
-    
-    QFileInfo fileInfo(m_filename);
-    m_directory = fileInfo.dir();
-    
-    m_xmlReader.reset(new QXmlStreamReader(&file));
-    m_xmlStreamHelper.reset(new XmlStreamReaderHelper(m_filename,
-                                                      m_xmlReader.get()));
-
-    readFileContent(cziMetaFile);
-    
-    
-    m_xmlStreamHelper.reset();
-    
-    file.close();
-    
-    const QString errorMessage(m_xmlReader->errorString());
-    if (m_xmlReader->hasError()) {
-        m_xmlReader.reset();
-        throw DataFileException(errorMessage);
-    }
-    m_xmlReader.reset();
-    
-    if ( ! m_unexpectedXmlElements.empty()) {
-        AString msg("These unrecognized elements were found in "
-                    + filename);
-        for (auto& e : m_unexpectedXmlElements) {
-            msg.appendWithNewLine("   "
-                                  + e);
-        }
-        CaretLogWarning(msg);
-    }
 }
 
 /**
@@ -140,7 +72,7 @@ CziMetaFileXmlStreamReader::readFile(const AString& filename,
  * @throws DataFileException if fatal error
  */
 void
-CziMetaFileXmlStreamReader::readFile(const AString& filename,
+HistologySlicesFileXmlStreamReader::readFile(const AString& filename,
                                      HistologySlicesFile* histologySlicesFile)
 {
     m_xmlStreamHelper.reset();
@@ -199,83 +131,6 @@ CziMetaFileXmlStreamReader::readFile(const AString& filename,
 }
 
 /**
- * Read the file's content
- *
- * @param xmlReader
- *     The XML stream reader
- * @param cziMetaFile
- *     Into this meta CZI file
- */
-void
-CziMetaFileXmlStreamReader::readFileContent(CziMetaFile* cziMetaFile)
-{
-    CaretAssert(cziMetaFile);
-    
-    if (m_xmlReader->atEnd()) {
-        m_xmlReader->raiseError("At end of file when starting to read.  Is file empty?");
-        return;
-    }
-    
-    m_xmlReader->readNextStartElement();
-    if (m_xmlReader->name() != ELEMENT_META_CZI) {
-        m_xmlReader->raiseError("First element is \""
-                             + m_xmlReader->name().toString()
-                             + "\" but should be "
-                             + ELEMENT_META_CZI);
-        return;
-    }
-    
-    m_fileVersion = m_xmlStreamHelper->getRequiredIntAttributeRaiseError(ELEMENT_META_CZI,
-                                                                         ATTRIBUTE_VERSION);
-    if (m_xmlReader->hasError()) {
-        return;
-    }
-
-    if (m_fileVersion > 1) {
-        m_xmlReader->raiseError("File version is "
-                             + AString::number(m_fileVersion)
-                             + " but only version 1 is supported");
-        return;
-    }
-    
-    /*
-     * Set when ending scene file element is found
-     */
-    bool endElementFound(false);
-    
-    while ( ( ! m_xmlReader->atEnd())
-           && ( ! endElementFound)) {
-        m_xmlReader->readNext();
-        switch (m_xmlReader->tokenType()) {
-            case QXmlStreamReader::StartElement:
-                if (m_xmlReader->name() == ELEMENT_SLICE) {
-                    const int32_t sliceNumber(m_xmlStreamHelper->getRequiredIntAttributeRaiseError(ELEMENT_SLICE,
-                                                                                                   ATTRIBUTE_NUMBER));
-                    if ( ! m_xmlReader->hasError()) {
-                        CziMetaFile::Slice* slice(readSliceElement(cziMetaFile,
-                                                                   sliceNumber));
-                        if (slice != NULL) {
-                            cziMetaFile->addSlice(slice);
-                        }
-                    }
-                }
-                else {
-                    m_unexpectedXmlElements.insert(m_xmlReader->name().toString());
-                    m_xmlReader->skipCurrentElement();
-                }
-                break;
-            case QXmlStreamReader::EndElement:
-                if (m_xmlReader->name() == ELEMENT_META_CZI) {
-                    endElementFound = true;
-                }
-                break;
-            default:
-                break;
-        }
-    }
-}
-
-/**
  * Read the histology slices file's content
  *
  * @param xmlReader
@@ -284,7 +139,7 @@ CziMetaFileXmlStreamReader::readFileContent(CziMetaFile* cziMetaFile)
  *     Into this histology slices file
  */
 void
-CziMetaFileXmlStreamReader::readFileContent(HistologySlicesFile* histologySlicesFile)
+HistologySlicesFileXmlStreamReader::readFileContent(HistologySlicesFile* histologySlicesFile)
 {
     CaretAssert(histologySlicesFile);
     
@@ -362,7 +217,7 @@ CziMetaFileXmlStreamReader::readFileContent(HistologySlicesFile* histologySlices
  *    Pointer to slice read.
  */
 HistologySlice*
-CziMetaFileXmlStreamReader::readSliceElement(HistologySlicesFile* histologySlicesFile,
+HistologySlicesFileXmlStreamReader::readSliceElement(HistologySlicesFile* histologySlicesFile,
                                              const int32_t sliceNumber)
 {
     /*
@@ -463,7 +318,7 @@ CziMetaFileXmlStreamReader::readSliceElement(HistologySlicesFile* histologySlice
  *    Absolute path to file.
  */
 AString
-CziMetaFileXmlStreamReader::makeAbsoluteFilePath(const AString& filename) const
+HistologySlicesFileXmlStreamReader::makeAbsoluteFilePath(const AString& filename) const
 {
     if (QFileInfo(filename).isAbsolute()) {
         return filename;
@@ -472,166 +327,6 @@ CziMetaFileXmlStreamReader::makeAbsoluteFilePath(const AString& filename) const
     QFileInfo fileInfo(m_directory,
                        filename);
     return fileInfo.absoluteFilePath();
-}
-
-/**
- * Read a slice element from the XML
- * @param cziMetaFile
- *     Into this meta CZI file
- * @param sliceNumber
- *     Slice number from Slice element
- * @return
- *    Pointer to slice read.
- */
-CziMetaFile::Slice*
-CziMetaFileXmlStreamReader::readSliceElement(CziMetaFile* cziMetaFile,
-                                             const int32_t sliceNumber)
-{
-    /*
-     * Set when ending scene file element is found
-     */
-    bool endElementFound(false);
-    
-    AString histToMriWarpFileName;
-    AString mriToHistWarpFileName;
-    Matrix4x4 planeToMmMatrix;
-    
-    std::vector<std::unique_ptr<CziMetaFile::Scene>> scenes;
-    
-    while ( ( ! m_xmlReader->atEnd())
-           && ( ! endElementFound)) {
-        m_xmlReader->readNext();
-        switch (m_xmlReader->tokenType()) {
-            case QXmlStreamReader::StartElement:
-                if (m_xmlReader->name() == ELEMENT_HIST_TO_MRI_WARP) {
-                    histToMriWarpFileName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_HIST_TO_MRI_WARP,
-                                                                                                    ATTRIBUTE_FILE);
-                    if ( ! m_xmlReader->hasError()) {
-                        
-                    }
-                }
-                else if (m_xmlReader->name() == ELEMENT_MRI_TO_HIST_WARP) {
-                    mriToHistWarpFileName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_MRI_TO_HIST_WARP,
-                                                                                                    ATTRIBUTE_FILE);
-                    if ( ! m_xmlReader->hasError()) {
-                        
-                    }
-                }
-                else if (m_xmlReader->name() == ELEMENT_PLANE_TO_MM) {
-                    readMatrixFromElementText(ELEMENT_PLANE_TO_MM,
-                                              MatrixType::TWO_DIM,
-                                              planeToMmMatrix);
-                }
-                else if (m_xmlReader->name() == ELEMENT_SCENE) {
-                    const QString sceneName(m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_SCENE,
-                                                                                                    ATTRIBUTE_NAME));
-                    if ( ! m_xmlReader->hasError()) {
-                        CziMetaFile::Scene* scene(readSceneElement(cziMetaFile,
-                                                                   sceneName));
-                        if (scene != NULL) {
-                            std::unique_ptr<CziMetaFile::Scene> ptr(scene);
-                            scenes.push_back(std::move(ptr));
-                        }
-                    }
-                }
-                else {
-                    m_unexpectedXmlElements.insert(m_xmlReader->name().toString());
-                    m_xmlReader->skipCurrentElement();
-                }
-                break;
-            case QXmlStreamReader::EndElement:
-                if (m_xmlReader->name() == ELEMENT_SLICE) {
-                    endElementFound = true;
-                }
-                break;
-            default:
-                break;
-        }
-    }
-    
-    if (m_xmlReader->hasError()) {
-        return NULL;
-    }
-    
-    if (scenes.empty()) {
-        m_xmlReader->raiseError("Slice "
-                                + AString::number(sliceNumber)
-                                + " contains no scenes");
-        return NULL;
-    }
-    
-    CziMetaFile::Slice* slice(new CziMetaFile::Slice(sliceNumber,
-                                                     histToMriWarpFileName,
-                                                     mriToHistWarpFileName,
-                                                     planeToMmMatrix));
-    for (auto& s : scenes) {
-        slice->addScene(*s);
-    }
-    
-    return slice;
-}
-
-/**
- * Read a scene element from the XML
- * @param metaCziFile
- *     Into this meta CZI file
- * @param sceneName
- *     Name of scene
- * @return
- *     Pointer to scene
- */
-CziMetaFile::Scene*
-CziMetaFileXmlStreamReader::readSceneElement(CziMetaFile* /*cziMetaFile*/,
-                                             const QString& sceneName)
-{
-    /*
-     * Set when ending scene file element is found
-     */
-    bool endElementFound(false);
-    
-    AString cziFileName;
-    Matrix4x4 scaledToPlaneMatrix;
-    
-    while ( ( ! m_xmlReader->atEnd())
-           && ( ! endElementFound)) {
-        m_xmlReader->readNext();
-        switch (m_xmlReader->tokenType()) {
-            case QXmlStreamReader::StartElement:
-                if (m_xmlReader->name() == ELEMENT_SCALED_TO_PLANE) {
-                    readMatrixFromElementText(ELEMENT_SCALED_TO_PLANE,
-                                              MatrixType::TWO_DIM,
-                                              scaledToPlaneMatrix);
-                }
-                else if (m_xmlReader->name() == ELEMENT_CZI) {
-                    cziFileName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_CZI,
-                                                                                          ATTRIBUTE_FILE);
-                    if ( ! m_xmlReader->hasError()) {
-                        
-                    }
-                }
-                else {
-                    m_unexpectedXmlElements.insert(m_xmlReader->name().toString());
-                    m_xmlReader->skipCurrentElement();
-                }
-                break;
-            case QXmlStreamReader::EndElement:
-                if (m_xmlReader->name() == ELEMENT_SCENE) {
-                    endElementFound = true;
-                }
-                break;
-            default:
-                break;
-        }
-    }
-    
-    if (m_xmlReader->hasError()) {
-        return NULL;
-    }
-    
-    CziMetaFile::Scene* sceneOut(new CziMetaFile::Scene(sceneName,
-                                                        scaledToPlaneMatrix,
-                                                        cziFileName));
-    return sceneOut;
 }
 
 /**
@@ -644,7 +339,7 @@ CziMetaFileXmlStreamReader::readSceneElement(CziMetaFile* /*cziMetaFile*/,
  *     Pointer to scene
  */
 HistologySliceImage*
-CziMetaFileXmlStreamReader::readSceneElement(HistologySlicesFile* /*histologySlicesFile*/,
+HistologySlicesFileXmlStreamReader::readSceneElement(HistologySlicesFile* /*histologySlicesFile*/,
                                              const QString& sceneName)
 {
     /*
@@ -721,7 +416,7 @@ CziMetaFileXmlStreamReader::readSceneElement(HistologySlicesFile* /*histologySli
  *    Output containing matrix.
  */
 void
-CziMetaFileXmlStreamReader::readMatrixFromElementText(const QString& elementName,
+HistologySlicesFileXmlStreamReader::readMatrixFromElementText(const QString& elementName,
                                                       const MatrixType matrixType,
                                                       Matrix4x4& matrixOut)
 {

@@ -506,7 +506,6 @@ namespace caret {
 
         friend class CziImage;
         friend class CziImageLoaderMultiResolution;
-        friend class CziMetaFileXmlStreamReader;
         
     };
     

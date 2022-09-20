@@ -1829,9 +1829,6 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
         case DataFileTypeEnum::CZI_IMAGE_FILE:
             invalid = true;
             break;
-        case DataFileTypeEnum::CZI_META_FILE:
-            invalid = true;
-            break;
         case DataFileTypeEnum::FOCI:
             invalid = true;
             break;

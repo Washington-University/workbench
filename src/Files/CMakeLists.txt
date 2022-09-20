@@ -80,9 +80,6 @@ CziImageFile.h
 CziImageLoaderBase.h
 CziImageLoaderMultiResolution.h
 CziImageResolutionChangeModeEnum.h
-CziMetaFile.h
-CziMetaFileXmlStreamBase.h
-CziMetaFileXmlStreamReader.h
 CziPixelCoordSpaceEnum.h
 CziUtilities.h
 EventCaretDataFilesGet.h
@@ -121,6 +118,8 @@ HistologyCoordinate.h
 HistologySlice.h
 HistologySliceImage.h
 HistologySlicesFile.h
+HistologySlicesFileXmlStreamBase.h
+HistologySlicesFileXmlStreamReader.h
 ImageCaptureDimensionsModeEnum.h
 ImageCaptureDialogSettings.h
 ImageFile.h
@@ -243,9 +242,6 @@ CziImageFile.cxx
 CziImageLoaderBase.cxx
 CziImageLoaderMultiResolution.cxx
 CziImageResolutionChangeModeEnum.cxx
-CziMetaFile.cxx
-CziMetaFileXmlStreamBase.cxx
-CziMetaFileXmlStreamReader.cxx
 CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
 EventCaretDataFilesGet.cxx
@@ -284,6 +280,8 @@ HistologyCoordinate.cxx
 HistologySlice.cxx
 HistologySliceImage.cxx
 HistologySlicesFile.cxx
+HistologySlicesFileXmlStreamBase.cxx
+HistologySlicesFileXmlStreamReader.cxx
 ImageCaptureDimensionsModeEnum.cxx
 ImageCaptureDialogSettings.cxx
 ImageFile.cxx

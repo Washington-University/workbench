@@ -27,7 +27,6 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "CziMetaFileXmlStreamReader.h"
 #include "DataFileException.h"
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
@@ -35,6 +34,7 @@
 #include "HistologyCoordinate.h"
 #include "HistologySlice.h"
 #include "HistologySliceImage.h"
+#include "HistologySlicesFileXmlStreamReader.h"
 #include "MediaFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -527,7 +527,7 @@ HistologySlicesFile::readFile(const AString& filename)
     clear();
     
     try {
-        CziMetaFileXmlStreamReader reader;
+        HistologySlicesFileXmlStreamReader reader;
         reader.readFile(filename,
                         this);
         m_stereotaxicXyzBoundingBoxValidFlag = false;

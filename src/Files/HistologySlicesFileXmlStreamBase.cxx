@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __CZI_META_FILE_XML_STREAM_BASE_DECLARE__
-#include "CziMetaFileXmlStreamBase.h"
-#undef __CZI_META_FILE_XML_STREAM_BASE_DECLARE__
+#define __HISTOLOGY_SLICES_FILE_XML_STREAM_BASE_DECLARE__
+#include "HistologySlicesFileXmlStreamBase.h"
+#undef __HISTOLOGY_SLICES_FILE_XML_STREAM_BASE_DECLARE__
 
 #include "CaretAssert.h"
 using namespace caret;
@@ -29,7 +29,7 @@ using namespace caret;
 
     
 /**
- * \class caret::CziMetaFileXmlStreamBase
+ * \class caret::HistologySlicesFileXmlStreamBase
  * \brief Base class with attributes and elements defined for Meta CZI reading/writing
  * \ingroup Files
  */
@@ -37,7 +37,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-CziMetaFileXmlStreamBase::CziMetaFileXmlStreamBase()
+HistologySlicesFileXmlStreamBase::HistologySlicesFileXmlStreamBase()
 : CaretObject()
 {
     
@@ -46,7 +46,7 @@ CziMetaFileXmlStreamBase::CziMetaFileXmlStreamBase()
 /**
  * Destructor.
  */
-CziMetaFileXmlStreamBase::~CziMetaFileXmlStreamBase()
+HistologySlicesFileXmlStreamBase::~HistologySlicesFileXmlStreamBase()
 {
 }
 

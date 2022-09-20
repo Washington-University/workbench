@@ -1,5 +1,5 @@
-#ifndef __CZI_META_FILE_XML_STREAM_READER_H__
-#define __CZI_META_FILE_XML_STREAM_READER_H__
+#ifndef __HISTOLOGY_SLICES_FILE_XML_STREAM_READER_H__
+#define __HISTOLOGY_SLICES_FILE_XML_STREAM_READER_H__
 
 /*LICENSE_START*/
 /*
@@ -26,8 +26,7 @@
 #include <memory>
 #include <set>
 
-#include "CziMetaFile.h"
-#include "CziMetaFileXmlStreamBase.h"
+#include "HistologySlicesFileXmlStreamBase.h"
 
 class QXmlStreamReader;
 
@@ -39,20 +38,17 @@ namespace caret {
     class Matrix4x4;
     class XmlStreamReaderHelper;
     
-    class CziMetaFileXmlStreamReader : public CziMetaFileXmlStreamBase {
+    class HistologySlicesFileXmlStreamReader : public HistologySlicesFileXmlStreamBase {
         
     public:
-        CziMetaFileXmlStreamReader();
+        HistologySlicesFileXmlStreamReader();
         
-        virtual ~CziMetaFileXmlStreamReader();
+        virtual ~HistologySlicesFileXmlStreamReader();
         
-        CziMetaFileXmlStreamReader(const CziMetaFileXmlStreamReader&) = delete;
+        HistologySlicesFileXmlStreamReader(const HistologySlicesFileXmlStreamReader&) = delete;
 
-        CziMetaFileXmlStreamReader& operator=(const CziMetaFileXmlStreamReader&) = delete;
+        HistologySlicesFileXmlStreamReader& operator=(const HistologySlicesFileXmlStreamReader&) = delete;
         
-        void readFile(const AString& filename,
-                      CziMetaFile* cziMetaFile);
-
         void readFile(const AString& filename,
                       HistologySlicesFile* histologySlicesFile);
         
@@ -64,18 +60,10 @@ namespace caret {
             TWO_DIM
         };
         
-        void readFileContent(CziMetaFile* cziMetaFile);
-        
         void readFileContent(HistologySlicesFile* histologySlicesFile);
         
-        CziMetaFile::Slice* readSliceElement(CziMetaFile* cziMetaFile,
-                                             const int32_t sliceNumber);
-
         HistologySlice* readSliceElement(HistologySlicesFile* histologySlicesFile,
                                          const int32_t sliceNumber);
-        
-        CziMetaFile::Scene* readSceneElement(CziMetaFile* cziMetaFile,
-                                             const QString& sceneName);
         
         HistologySliceImage* readSceneElement(HistologySlicesFile* histologySlicesFile,
                                              const QString& sceneName);
@@ -102,9 +90,9 @@ namespace caret {
 
     };
     
-#ifdef __CZI_META_FILE_XML_STREAM_READER_DECLARE__
+#ifdef __HISTOLOGY_SLICES_FILE_XML_STREAM_READER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CZI_META_FILE_XML_STREAM_READER_DECLARE__
+#endif // __HISTOLOGY_SLICES_FILE_XML_STREAM_READER_DECLARE__
 
 } // namespace
-#endif  //__CZI_META_FILE_XML_STREAM_READER_H__
+#endif  //__HISTOLOGY_SLICES_FILE_XML_STREAM_READER_H__

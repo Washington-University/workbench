@@ -621,11 +621,6 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_cziImageFiles.clear();
     
-    for (auto cmf : m_cziMetaFiles) {
-        delete cmf;
-    }
-    m_cziMetaFiles.clear();
-    
     for (auto hsf : m_histologySlicesFiles) {
         delete hsf;
     }
@@ -910,8 +905,6 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                 break;
             case DataFileTypeEnum::CZI_IMAGE_FILE:
-                break;
-            case DataFileTypeEnum::CZI_META_FILE:
                 break;
             case DataFileTypeEnum::FOCI:
                 break;
@@ -2152,90 +2145,6 @@ Brain::addReadOrReloadCziImageFile(const FileModeAddReadReload fileMode,
 }
 
 /**
- * Read a CZI image file.
- *
- * @param fileMode
- *    Mode for file adding, reading, or reloading.
- * @param caretDataFile
- *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
- *    the mode must be READING.
- * @param filename
- *    Name of the file.
- * @throws DataFileException
- *    If reading failed.
- */
-CziMetaFile*
-Brain::addReadOrReloadCziMetaFile(const FileModeAddReadReload fileMode,
-                                   CaretDataFile* caretDataFile,
-                                   const AString& filename)
-{
-    /* Replaced by HistologySlicesFile */
-    CaretAssertToDoFatal();
-    throw DataFileException(filename
-                            + " should be read as a Histology Slices File");
-    
-    CziMetaFile* cziMetaFile = NULL;
-    if (caretDataFile != NULL) {
-        cziMetaFile = dynamic_cast<CziMetaFile*>(caretDataFile);
-        CaretAssert(cziMetaFile);
-    }
-    else {
-        cziMetaFile = new CziMetaFile();
-    }
-    
-    bool addFlag  = false;
-    bool readFlag = false;
-    switch (fileMode) {
-        case FILE_MODE_ADD:
-            addFlag = true;
-            break;
-        case FILE_MODE_READ:
-            addFlag = true;
-            readFlag = true;
-            break;
-        case FILE_MODE_RELOAD:
-            readFlag = true;
-            break;
-    }
-    
-    if (readFlag) {
-        try {
-            try {
-                cziMetaFile->readFile(filename);
-            }
-            catch (const std::bad_alloc&) {
-                /*
-                 * This DataFileException will be caught
-                 * in the outer try/catch and it will
-                 * clean up to avoid memory leaks.
-                 */
-                throw DataFileException(filename,
-                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
-            }
-        }
-        catch (DataFileException& dfe) {
-            if (caretDataFile != NULL) {
-                removeAndDeleteDataFile(caretDataFile);
-            }
-            else {
-                delete cziMetaFile;
-            }
-            throw dfe;
-        }
-    }
-    
-    if (addFlag) {
-        readCziImageFilesFromCziMetaFile(cziMetaFile);
-        
-        updateDataFileNameIfDuplicate(m_cziMetaFiles,
-                                      cziMetaFile);
-        m_cziMetaFiles.push_back(cziMetaFile);
-    }
-    
-    return cziMetaFile;
-}
-
-/**
  * Read a histology slices file.
  *
  * @param fileMode
@@ -2312,51 +2221,6 @@ Brain::addReadOrReloadHistologySlicesFile(const FileModeAddReadReload fileMode,
     return histologySlicesFile;
 }
 
-/**
- * Read all CZI files listed in the given CZI meta file
- */
-void
-Brain::readCziImageFilesFromCziMetaFile(CziMetaFile* cziMetaFile)
-{
-    CaretAssert(cziMetaFile);
-    const FileInformation cziFileInfo(cziMetaFile->getFileName());
-    const AString cziFilePath(cziFileInfo.getAbsolutePath());
-    
-    const int32_t numSlices(cziMetaFile->getNumberOfSlices());
-    for (int32_t iSlice = 0; iSlice < numSlices; iSlice++) {
-        const CziMetaFile::Slice* slice(cziMetaFile->getSlice(iSlice));
-        CaretAssert(slice);
-        
-        const int32_t numScenes(slice->getNumberOfScenes());
-        for (int32_t jScene = 0; jScene < numScenes; jScene++) {
-            const CziMetaFile::Scene* scene(slice->getScene(jScene));
-            CaretAssert(scene);
-            
-            AString cziFileName(scene->getCziFileName());
-            if ( ! cziFileName.isEmpty()) {
-                FileInformation nameInfo(cziFileName);
-                if (nameInfo.isRelative()) {
-                    const AString fullPathName(cziFilePath
-                                              + "/"
-                                              + cziFileName);
-                    CaretDataFile* cdf(readDataFile(DataFileTypeEnum::CZI_IMAGE_FILE,
-                                                    StructureEnum::INVALID,
-                                                    fullPathName,
-                                                    false));
-                    if (cdf != NULL) {
-                        CziImageFile* cziFile(cdf->castToCziImageFile());
-                        CaretAssert(cziFile);
-                        cziFile->setScaledToPlaneMatrix(scene->getScaleToPlaneMatrix(),
-                                                        true,
-                                                        slice->getPlaneToMillimetersMatrix(),
-                                                        true);
-                    }
-                }
-            }
-        }
-        
-    }
-}
 /**
  * Read a foci file.
  *
@@ -4883,13 +4747,6 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     m_cziImageFiles.push_back(file);
                 }
                     break;
-                case DataFileTypeEnum::CZI_META_FILE:
-                {
-                    CziMetaFile* file = dynamic_cast<CziMetaFile*>(caretDataFile);
-                    CaretAssert(file);
-                    m_cziMetaFiles.push_back(file);
-                }
-                    break;
                 case DataFileTypeEnum::FOCI:
                 {
                     FociFile* file = dynamic_cast<FociFile*>(caretDataFile);
@@ -5146,46 +5003,6 @@ Brain::getCziImageFile(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_cziImageFiles, indx);
     return m_cziImageFiles[indx];
-}
-
-/**
- * @return All czi meta files.
- */
-const std::vector<CziMetaFile*>
-Brain::getAllCziMetaFiles() const
-{
-    return m_cziMetaFiles;
-}
-
-/**
- * @return Number of czi meta files.
- */
-int32_t
-Brain::getNumberOfCziMetaFiles() const
-{
-    return m_cziMetaFiles.size();
-}
-
-/**
- * @return The czi meta file.
- * @param indx Index of the czi meta file.
- */
-CziMetaFile*
-Brain::getCziMetaFile(const int32_t indx)
-{
-    CaretAssertVectorIndex(m_cziMetaFiles, indx);
-    return m_cziMetaFiles[indx];
-}
-
-/**
- * @return The czi meta file.
- * @param indx Index of the czi meta file.
- */
-const CziMetaFile*
-Brain::getCziMetaFile(const int32_t indx) const
-{
-    CaretAssertVectorIndex(m_cziMetaFiles, indx);
-    return m_cziMetaFiles[indx];
 }
 
 /**
@@ -5848,8 +5665,6 @@ Brain::getReloadableDataFiles() const
                 break;
             case DataFileTypeEnum::CZI_IMAGE_FILE:
                 break;
-            case DataFileTypeEnum::CZI_META_FILE:
-                break;
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::HISTOLOGY_SLICES:
@@ -6175,11 +5990,6 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 caretDataFileRead = addReadOrReloadCziImageFile(fileMode,
                                                                 caretDataFile,
                                                                 dataFileName);
-                break;
-            case DataFileTypeEnum::CZI_META_FILE:
-                caretDataFileRead = addReadOrReloadCziMetaFile(fileMode,
-                                                               caretDataFile,
-                                                               dataFileName);
                 break;
             case DataFileTypeEnum::FOCI:
                 caretDataFileRead  = addReadOrReloadFociFile(fileMode,
@@ -7480,10 +7290,6 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_cziImageFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_cziMetaFiles.begin(),
-                           m_cziMetaFiles.end());
-    
-    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_fociFiles.begin(),
                            m_fociFiles.end());
     
@@ -7725,8 +7531,6 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::CZI_IMAGE_FILE:
             break;
-        case DataFileTypeEnum::CZI_META_FILE:
-            break;
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::HISTOLOGY_SLICES:
@@ -7823,8 +7627,6 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
             break;
         case DataFileTypeEnum::CZI_IMAGE_FILE:
-            break;
-        case DataFileTypeEnum::CZI_META_FILE:
             break;
         case DataFileTypeEnum::FOCI:
             break;
@@ -8050,14 +7852,6 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
                                                                  caretDataFile);
     if (cziIterator != m_cziImageFiles.end()) {
         m_cziImageFiles.erase(cziIterator);
-        return true;
-    }
-    
-    std::vector<CziMetaFile*>::iterator cziMetaIterator = std::find(m_cziMetaFiles.begin(),
-                                                                    m_cziMetaFiles.end(),
-                                                                    caretDataFile);
-    if (cziMetaIterator != m_cziMetaFiles.end()) {
-        m_cziMetaFiles.erase(cziMetaIterator);
         return true;
     }
     

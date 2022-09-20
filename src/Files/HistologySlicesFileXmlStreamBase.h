@@ -1,5 +1,5 @@
-#ifndef __CZI_META_FILE_XML_STREAM_BASE_H__
-#define __CZI_META_FILE_XML_STREAM_BASE_H__
+#ifndef __HISTOLOGY_SLICES_FILE_XML_STREAM_BASE_H__
+#define __HISTOLOGY_SLICES_FILE_XML_STREAM_BASE_H__
 
 /*LICENSE_START*/
 /*
@@ -31,16 +31,16 @@
 
 namespace caret {
 
-    class CziMetaFileXmlStreamBase : public CaretObject {
+    class HistologySlicesFileXmlStreamBase : public CaretObject {
         
     public:
-        CziMetaFileXmlStreamBase();
+        HistologySlicesFileXmlStreamBase();
         
-        virtual ~CziMetaFileXmlStreamBase();
+        virtual ~HistologySlicesFileXmlStreamBase();
         
-        CziMetaFileXmlStreamBase(const CziMetaFileXmlStreamBase&) = delete;
+        HistologySlicesFileXmlStreamBase(const HistologySlicesFileXmlStreamBase&) = delete;
 
-        CziMetaFileXmlStreamBase& operator=(const CziMetaFileXmlStreamBase&) = delete;
+        HistologySlicesFileXmlStreamBase& operator=(const HistologySlicesFileXmlStreamBase&) = delete;
 
         static const QString ATTRIBUTE_FILE;
         
@@ -73,33 +73,33 @@ namespace caret {
 
     };
     
-#ifdef __CZI_META_FILE_XML_STREAM_BASE_DECLARE__
-    const QString CziMetaFileXmlStreamBase::ATTRIBUTE_FILE = "File";
+#ifdef __HISTOLOGY_SLICES_FILE_XML_STREAM_BASE_DECLARE__
+    const QString HistologySlicesFileXmlStreamBase::ATTRIBUTE_FILE = "File";
     
-    const QString CziMetaFileXmlStreamBase::ATTRIBUTE_NAME = "Name";
+    const QString HistologySlicesFileXmlStreamBase::ATTRIBUTE_NAME = "Name";
     
-    const QString CziMetaFileXmlStreamBase::ATTRIBUTE_NUMBER = "Number";
+    const QString HistologySlicesFileXmlStreamBase::ATTRIBUTE_NUMBER = "Number";
     
-    const QString CziMetaFileXmlStreamBase::ATTRIBUTE_VERSION = "Version";
+    const QString HistologySlicesFileXmlStreamBase::ATTRIBUTE_VERSION = "Version";
     
-    const QString CziMetaFileXmlStreamBase::ELEMENT_CZI = "CZI";
+    const QString HistologySlicesFileXmlStreamBase::ELEMENT_CZI = "CZI";
     
-    const QString CziMetaFileXmlStreamBase::ELEMENT_DISTANCE = "Distance";
+    const QString HistologySlicesFileXmlStreamBase::ELEMENT_DISTANCE = "Distance";
     
-    const QString CziMetaFileXmlStreamBase::ELEMENT_HIST_TO_MRI_WARP = "HistToMRIWarp";
+    const QString HistologySlicesFileXmlStreamBase::ELEMENT_HIST_TO_MRI_WARP = "HistToMRIWarp";
 
-    const QString CziMetaFileXmlStreamBase::ELEMENT_META_CZI = "MetaCZI";
+    const QString HistologySlicesFileXmlStreamBase::ELEMENT_META_CZI = "MetaCZI";
     
-    const QString CziMetaFileXmlStreamBase::ELEMENT_MRI_TO_HIST_WARP = "MRItoHistWarp";
+    const QString HistologySlicesFileXmlStreamBase::ELEMENT_MRI_TO_HIST_WARP = "MRItoHistWarp";
     
-    const QString CziMetaFileXmlStreamBase::ELEMENT_PLANE_TO_MM = "PlaneToMM";
+    const QString HistologySlicesFileXmlStreamBase::ELEMENT_PLANE_TO_MM = "PlaneToMM";
     
-    const QString CziMetaFileXmlStreamBase::ELEMENT_SCALED_TO_PLANE = "ScaledToPlane";
+    const QString HistologySlicesFileXmlStreamBase::ELEMENT_SCALED_TO_PLANE = "ScaledToPlane";
     
-    const QString CziMetaFileXmlStreamBase::ELEMENT_SCENE = "Scene";
+    const QString HistologySlicesFileXmlStreamBase::ELEMENT_SCENE = "Scene";
     
-    const QString CziMetaFileXmlStreamBase::ELEMENT_SLICE = "Slice";
-#endif // __CZI_META_FILE_XML_STREAM_BASE_DECLARE__
+    const QString HistologySlicesFileXmlStreamBase::ELEMENT_SLICE = "Slice";
+#endif // __HISTOLOGY_SLICES_FILE_XML_STREAM_BASE_DECLARE__
 
 } // namespace
-#endif  //__CZI_META_FILE_XML_STREAM_BASE_H__
+#endif  //__HISTOLOGY_SLICES_FILE_XML_STREAM_BASE_H__
