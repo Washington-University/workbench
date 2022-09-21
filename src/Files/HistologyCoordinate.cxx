@@ -88,14 +88,14 @@ HistologyCoordinate::newInstanceIdentification(HistologySlicesFile* histologySli
     hc.setPlaneXYZ(planeXYZ);
     hc.m_planeXY = planeXYZ;
     
-    if (mediaFile != NULL) {
-        Vector3D stereotaxicXYZ;
-        if (mediaFile->planeXyzToStereotaxicXyz(hc.m_planeXY,
-                                                stereotaxicXYZ)) {
-            hc.setStereotaxicXYZ(stereotaxicXYZ);
-        }
-    }
-    else {
+//    if (mediaFile != NULL) {
+//        Vector3D stereotaxicXYZ;
+//        if (mediaFile->planeXyzToStereotaxicXyz(hc.m_planeXY,
+//                                                stereotaxicXYZ)) {
+//            hc.setStereotaxicXYZ(stereotaxicXYZ);
+//        }
+//    }
+//    else {
         const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
         if (slice != NULL) {
             Vector3D stereotaxicXYZ;
@@ -104,7 +104,7 @@ HistologyCoordinate::newInstanceIdentification(HistologySlicesFile* histologySli
                 hc.setStereotaxicXYZ(stereotaxicXYZ);
             }
         }
-    }
+//    }
     
     return hc;
 }

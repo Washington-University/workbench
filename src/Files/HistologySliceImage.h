@@ -55,8 +55,8 @@ namespace caret {
         
         const MediaFile* getMediaFile() const;
         
-        virtual bool planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
-                                              Vector3D& stereotaxicXyzOut) const;
+//        virtual bool planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
+//                                              Vector3D& stereotaxicXyzOut) const;
         
         virtual bool stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
                                               Vector3D& planeXyzOut) const;

@@ -72,8 +72,9 @@ static bool cziDebugFlag(false);
 /**
  * Constructor.
  */
-CziImageFile::CziImageFile()
-: MediaFile(DataFileTypeEnum::CZI_IMAGE_FILE)
+CziImageFile::CziImageFile(const ParentType parentType)
+: MediaFile(DataFileTypeEnum::CZI_IMAGE_FILE,
+            parentType)
 {
     for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
         for (int32_t iOverlay = 0; iOverlay < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; iOverlay++) {

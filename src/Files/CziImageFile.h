@@ -61,7 +61,7 @@ namespace caret {
     class CziImageFile : public MediaFile, public EventListenerInterface {
         
     public:        
-        CziImageFile();
+        CziImageFile(const ParentType parentType = ParentType::OTHER);
         
         virtual ~CziImageFile();
         

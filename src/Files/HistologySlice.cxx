@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "HistologySliceImage.h"
+#include "CziNonLinearTransform.h"
 #include "MediaFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -72,6 +73,11 @@ m_planeToMillimetersMatrixValidFlag(planeToMillimetersMatrixValidFlag)
         m_millimetersToPlaneMatrix = m_planeToMillimetersMatrix;
         m_millimetersToPlaneMatrixValidFlag = m_millimetersToPlaneMatrix.invert();
     }
+    
+    m_fromStereotaxicNonLinearTransform.reset(new CziNonLinearTransform(CziNonLinearTransform::Mode::FROM_MILLIMETERS,
+                                                                          this));
+    m_toStereotaxicNonLinearTransform.reset(new CziNonLinearTransform(CziNonLinearTransform::Mode::TO_MILLIMETERS,
+                                                                        this));
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
@@ -184,23 +190,23 @@ HistologySlice::getHistologySliceImage(const int32_t index) const
     return m_histologySliceImages[index].get();
 }
 
-/**
- * @return The plane to millimeters matrix
- */
-Matrix4x4
-HistologySlice::getPlaneToMillimetersMatrix() const
-{
-    return m_planeToMillimetersMatrix;
-}
+///**
+// * @return The plane to millimeters matrix
+// */
+//Matrix4x4
+//HistologySlice::getPlaneToMillimetersMatrix() const
+//{
+//    return m_planeToMillimetersMatrix;
+//}
 
-/**
- * @return Is the plane to millimeters matrix valid?
- */
-bool
-HistologySlice::isPlaneToMillimetersMatrixValid() const
-{
-    return m_planeToMillimetersMatrixValidFlag;
-}
+///**
+// * @return Is the plane to millimeters matrix valid?
+// */
+//bool
+//HistologySlice::isPlaneToMillimetersMatrixValid() const
+//{
+//    return m_planeToMillimetersMatrixValidFlag;
+//}
 
 /**
  * @return stereotaxic BoundingBox for the slice (bounding box of all images in slice)
@@ -262,6 +268,36 @@ HistologySlice::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
         Vector3D xyz(planeXyz);
         m_planeToMillimetersMatrix.multiplyPoint3(xyz);
         stereotaxicXyzOut = xyz;
+        
+        /* DISABLED NON-LINEAR */
+        const bool nonLinearFlag(false);
+        if (nonLinearFlag) {
+            if (m_planeXyzBoundingBoxValidFlag) {
+                /*
+                 * Plane bounding box is not immedately initialized and is
+                 * needed by the non-linear transforms.  So wait until
+                 * plane bounding box is available (after image data read)
+                 */
+                if (m_toStereotaxicNonLinearTransform->getStatus() == CziNonLinearTransform::Status::UNREAD) {
+                    const BoundingBox bb(getPlaneXyzBoundingBox());
+                    m_toStereotaxicNonLinearTransform->load(m_MRIToHistWarpFileName,
+                                                   bb.getDifferenceX(),
+                                                   bb.getDifferenceY());
+                }
+                
+                if (m_toStereotaxicNonLinearTransform->getStatus() == CziNonLinearTransform::Status::VALID) {
+                    Vector3D offsetXYZ;
+                    m_toStereotaxicNonLinearTransform->getNonLinearOffset(planeXyz,
+                                                                 offsetXYZ);
+                    std::cout << "Non-Linear Offset for plane: "
+                    << AString::fromNumbers(planeXyz)
+                    << " is "
+                    << AString::fromNumbers(offsetXYZ)
+                    << std::endl;
+                }
+            }
+        }
+            
         return true;
     }
     

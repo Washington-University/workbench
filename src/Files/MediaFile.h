@@ -49,6 +49,14 @@ namespace caret {
     class MediaFile : public CaretDataFile {
         
     public:
+        /*
+         * Type of parent for media file
+         */
+        enum class ParentType {
+            HISTOLOGY_SLICE_IMAGE,
+            OTHER,
+        };
+
         /**
          * Location of origin in image data.
          */
@@ -146,6 +154,14 @@ namespace caret {
                                                               std::vector<AString>& columnOneTextOut,
                                                               std::vector<AString>& columnTwoTextOut,
                                                               std::vector<AString>& toolTipTextOut) const;
+        
+        virtual void getPixelPlaneIdentificationTextForHistology(const int32_t tabIndex,
+                                                              const std::vector<int32_t>& frameIndices,
+                                                              const Vector3D& planeCoordinate,
+                                                              std::vector<AString>& columnOneTextOut,
+                                                              std::vector<AString>& columnTwoTextOut,
+                                                              std::vector<AString>& toolTipTextOut) const;
+
         virtual bool getPixelRGBA(const int32_t tabIndex,
                                   const int32_t overlayIndex,
                                   const PixelLogicalIndex& pixelLogicalIndex,
@@ -255,7 +271,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
           
     protected: 
-        MediaFile(const DataFileTypeEnum::Enum dataFileType);
+        MediaFile(const DataFileTypeEnum::Enum dataFileType,
+                  const ParentType parentType);
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
@@ -267,6 +284,12 @@ namespace caret {
         
         virtual void resetMatrices();
         
+        bool planeXyzToStereotaxicXyzProtected(const Vector3D& planeXyz,
+                                               Vector3D& stereotaxicXyzOut) const;
+        
+        bool stereotaxicXyzToPlaneXyzProtected(const Vector3D& stereotaxicXyz,
+                                               Vector3D& planeXyzOut) const;
+
         void addPlaneCoordsToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
         /**
@@ -318,7 +341,7 @@ namespace caret {
 
         // ADD_NEW_MEMBERS_HERE
 
-        friend class CziImage;
+        const ParentType m_parentType;
         
         Matrix4x4 m_scaledToPlaneMatrix;
         
@@ -363,6 +386,8 @@ namespace caret {
         bool m_millimetersToPlaneMatrixValidFlag = false;
         
         bool m_planeMillimetersSwapFlag = true;
+        
+        friend class CziImage;
     };
     
 #ifdef __MEDIA_FILE_DECLARE__

@@ -35,6 +35,7 @@
 
 
 namespace caret {
+    class CziNonLinearTransform;
     class HistologySliceImage;
     class MediaFile;
     class SceneClassAssistant;
@@ -66,9 +67,9 @@ namespace caret {
          
         MediaFile* findMediaFileWithName(const AString& mediaFileName) const;
 
-        Matrix4x4 getPlaneToMillimetersMatrix() const;
+//        Matrix4x4 getPlaneToMillimetersMatrix() const;
         
-        bool isPlaneToMillimetersMatrixValid() const;
+//        bool isPlaneToMillimetersMatrixValid() const;
 
         virtual BoundingBox getStereotaxicXyzBoundingBox() const;
         
@@ -118,6 +119,10 @@ namespace caret {
 
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
+        std::unique_ptr<CziNonLinearTransform> m_toStereotaxicNonLinearTransform;
+        
+        std::unique_ptr<CziNonLinearTransform> m_fromStereotaxicNonLinearTransform;
+        
         int32_t m_sliceNumber = -1;
         
         AString m_MRIToHistWarpFileName;

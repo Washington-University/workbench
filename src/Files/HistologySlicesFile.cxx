@@ -447,11 +447,9 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
     std::vector<int32_t> frameIndicesVector { 0 };
     const MediaFile* mediaFile(findMediaFileWithName(histologyCoordinate.getHistologyMediaFileName()));
     if (mediaFile != NULL) {
-        const bool histologyIdFlag(true);
-        mediaFile->getPixelPlaneIdentificationTextForFrames(tabIndex,
+        mediaFile->getPixelPlaneIdentificationTextForHistology(tabIndex,
                                                             frameIndicesVector,
                                                             histologyCoordinate.getPlaneXYZ(),
-                                                            histologyIdFlag,
                                                             columnOneText,
                                                             columnTwoText,
                                                             toolTipText);

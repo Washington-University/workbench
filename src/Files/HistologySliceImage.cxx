@@ -164,7 +164,7 @@ HistologySliceImage::getMediaFilePrivate() const
     switch (dataFileType) {
         case DataFileTypeEnum::CZI_IMAGE_FILE:
             try {
-                std::unique_ptr<CziImageFile> cziImageFile(new CziImageFile());
+                std::unique_ptr<CziImageFile> cziImageFile(new CziImageFile(CziImageFile::ParentType::HISTOLOGY_SLICE_IMAGE));
                 cziImageFile->readFile(m_mediaFileName);
                 m_mediaFile.reset(cziImageFile.release());
             }
@@ -216,28 +216,28 @@ HistologySliceImage::toString() const
     return s;
 }
 
-/**
- * Convert a plane XYZ to stereotaxic XYZ
- * @param planeXyz
- *     XYZ in plane
- * @param stereotaxicXyzOut
- *    Output with stereotaxic XYZ
- * @return True if successful, else false.
- */
-bool
-HistologySliceImage::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
-                                    Vector3D& stereotaxicXyzOut) const
-{
-    if (m_planeToMillimetersMatrixValidFlag) {
-        Vector3D xyz(planeXyz);
-        m_planeToMillimetersMatrix.multiplyPoint3(xyz);
-        stereotaxicXyzOut = xyz;
-        return true;
-    }
-    
-    stereotaxicXyzOut = Vector3D();
-    return false;
-}
+///**
+// * Convert a plane XYZ to stereotaxic XYZ
+// * @param planeXyz
+// *     XYZ in plane
+// * @param stereotaxicXyzOut
+// *    Output with stereotaxic XYZ
+// * @return True if successful, else false.
+// */
+//bool
+//HistologySliceImage::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
+//                                    Vector3D& stereotaxicXyzOut) const
+//{
+//    if (m_planeToMillimetersMatrixValidFlag) {
+//        Vector3D xyz(planeXyz);
+//        m_planeToMillimetersMatrix.multiplyPoint3(xyz);
+//        stereotaxicXyzOut = xyz;
+//        return true;
+//    }
+//    
+//    stereotaxicXyzOut = Vector3D();
+//    return false;
+//}
 
 /**
  * Converrt a stereotaxic coordinate to a plane coordinate
@@ -249,7 +249,7 @@ HistologySliceImage::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
  */
 bool
 HistologySliceImage::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
-                                    Vector3D& planeXyzOut) const
+                                              Vector3D& planeXyzOut) const
 {
     if (m_millimetersToPlaneMatrixValidFlag) {
         Vector3D xyz(stereotaxicXyz);

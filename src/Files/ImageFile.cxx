@@ -65,8 +65,9 @@ static bool imageDebugFlag = false;
 /**
  * Constructor.
  */
-ImageFile::ImageFile()
-: MediaFile(DataFileTypeEnum::IMAGE)
+ImageFile::ImageFile(const ParentType parentType)
+: MediaFile(DataFileTypeEnum::IMAGE,
+            parentType)
 {
     initializeMembersImageFile();
 
@@ -117,8 +118,10 @@ ImageFile::ImageFile(const ImageFile& imageFile)
  * @param qimage
  *    QImage that is copied to this image file.
  */
-ImageFile::ImageFile(const QImage& qimage)
-: MediaFile(DataFileTypeEnum::IMAGE)
+ImageFile::ImageFile(const QImage& qimage,
+                     const ParentType parentType)
+: MediaFile(DataFileTypeEnum::IMAGE,
+            parentType)
 {
     initializeMembersImageFile();
     if (m_image != NULL) {
@@ -145,8 +148,10 @@ ImageFile::ImageFile(const QImage& qimage)
 ImageFile::ImageFile(const unsigned char* imageDataRGBA,
                      const int imageWidth,
                      const int imageHeight,
-                     const IMAGE_DATA_ORIGIN_LOCATION imageOrigin)
-: MediaFile(DataFileTypeEnum::IMAGE)
+                     const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+                     const ParentType parentType)
+: MediaFile(DataFileTypeEnum::IMAGE,
+            parentType)
 {
     initializeMembersImageFile();
 

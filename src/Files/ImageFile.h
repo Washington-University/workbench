@@ -57,16 +57,18 @@ public:
      */
     static int32_t getTextureCompressionSizeMegabytes() { return 256; }
     
-    ImageFile();
+    ImageFile(const ParentType parentType = MediaFile::ParentType::OTHER);
     
     ImageFile(const ImageFile& imageFile);
     
     ImageFile(const unsigned char* imageDataRGBA,
               const int imageWidth,
               const int imageHeight,
-              const IMAGE_DATA_ORIGIN_LOCATION imageOrigin);
+              const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
+              const ParentType parentType = MediaFile::ParentType::OTHER);
     
-    ImageFile(const QImage& qimage);
+    ImageFile(const QImage& qimage,
+              const ParentType parentType = MediaFile::ParentType::OTHER);
     
     ~ImageFile();
     

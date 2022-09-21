@@ -43,11 +43,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param parentType
+ *   Type of the parent
  * @param dataFileType
  *    Type of data file
  */
-MediaFile::MediaFile(const DataFileTypeEnum::Enum dataFileType)
-: CaretDataFile(dataFileType)
+MediaFile::MediaFile(const DataFileTypeEnum::Enum dataFileType,
+                     const ParentType parentType)
+: CaretDataFile(dataFileType),
+m_parentType(parentType)
 {
     switch (dataFileType) {
         case DataFileTypeEnum::CZI_IMAGE_FILE:
@@ -73,7 +77,8 @@ MediaFile::MediaFile(const DataFileTypeEnum::Enum dataFileType)
  *    Media file that is copied.
  */
 MediaFile::MediaFile(const MediaFile& mediaFile)
-: CaretDataFile(mediaFile)
+: CaretDataFile(mediaFile),
+m_parentType(mediaFile.m_parentType)
 {
     initializeMembersMediaFile();
 }
@@ -385,6 +390,29 @@ bool
 MediaFile::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
                                     Vector3D& stereotaxicXyzOut) const
 {
+    switch (m_parentType) {
+        case ParentType::HISTOLOGY_SLICE_IMAGE:
+            /* DISABLED NON-LINEAR */
+            //CaretLogSevere("Should never be called when parent is histology slice file");
+            break;
+        case ParentType::OTHER:
+            break;
+    }
+    return planeXyzToStereotaxicXyzProtected(planeXyz, stereotaxicXyzOut);
+}
+
+/**
+ * Convert a plane XYZ to stereotaxic XYZ
+ * @param planeXyz
+ *     XYZ in plane
+ * @param stereotaxicXyzOut
+ *    Output with stereotaxic XYZ
+ * @return True if successful, else false.
+ */
+bool
+MediaFile::planeXyzToStereotaxicXyzProtected(const Vector3D& planeXyz,
+                                             Vector3D& stereotaxicXyzOut) const
+{
     if (m_planeToMillimetersMatrixValidFlag) {
         Vector3D xyz(planeXyz);
         m_planeToMillimetersMatrix.multiplyPoint3(xyz);
@@ -407,6 +435,29 @@ MediaFile::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
 bool
 MediaFile::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
                                     Vector3D& planeXyzOut) const
+{
+    switch (m_parentType) {
+        case ParentType::HISTOLOGY_SLICE_IMAGE:
+            /* DISABLED NON-LINEAR */
+            //CaretLogSevere("Should never be called when parent is histology slice file");
+            break;
+        case ParentType::OTHER:
+            break;
+    }
+    return stereotaxicXyzToPlaneXyzProtected(stereotaxicXyz,
+                                             planeXyzOut);
+}
+/**
+ * Converrt a stereotaxic coordinate to a plane coordinate
+ * @param stereotaxicXyz
+ *    Input stereotaxic coordinate
+ * @param planeXyzOut
+ *    Output plane coordinate
+ * @return True if successful, else false
+ */
+bool
+MediaFile::stereotaxicXyzToPlaneXyzProtected(const Vector3D& stereotaxicXyz,
+                                             Vector3D& planeXyzOut) const
 {
     if (m_millimetersToPlaneMatrixValidFlag) {
         Vector3D xyz(stereotaxicXyz);
@@ -553,6 +604,13 @@ MediaFile::isPlaneToMillimetersMatrixValid() const
 Matrix4x4
 MediaFile::getPlaneToMillimetersMatrix(bool* validFlagOut) const
 {
+    switch (m_parentType) {
+        case ParentType::HISTOLOGY_SLICE_IMAGE:
+            CaretLogSevere("Should never be called when parent is histology slice file");
+            break;
+        case ParentType::OTHER:
+            break;
+    }
     if (validFlagOut != NULL) {
         *validFlagOut = m_planeToMillimetersMatrixValidFlag;;
     }
@@ -716,13 +774,13 @@ MediaFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
         m_stereotaxicXyzBoundingBox.resetForUpdate();
         {
             Vector3D mmXYZ;
-            planeXyzToStereotaxicXyz(m_planeXyzTopLeft, mmXYZ);
+            planeXyzToStereotaxicXyzProtected(m_planeXyzTopLeft, mmXYZ);
             m_stereotaxicXyzBoundingBox.update(mmXYZ);
-            planeXyzToStereotaxicXyz(m_planeXyzTopRight, mmXYZ);
+            planeXyzToStereotaxicXyzProtected(m_planeXyzTopRight, mmXYZ);
             m_stereotaxicXyzBoundingBox.update(mmXYZ);
-            planeXyzToStereotaxicXyz(m_planeXyzBottomLeft, mmXYZ);
+            planeXyzToStereotaxicXyzProtected(m_planeXyzBottomLeft, mmXYZ);
             m_stereotaxicXyzBoundingBox.update(mmXYZ);
-            planeXyzToStereotaxicXyz(m_planeXyzBottomRight, mmXYZ);
+            planeXyzToStereotaxicXyzProtected(m_planeXyzBottomRight, mmXYZ);
             m_stereotaxicXyzBoundingBox.update(mmXYZ);
         }
         
@@ -881,9 +939,9 @@ MediaFile::getStereotaxicImagePlane() const
     Vector3D mmTopLeft;
     Vector3D mmBottomLeft;
     Vector3D mmBottomRight;
-    if (planeXyzToStereotaxicXyz(m_planeXyzTopLeft, mmTopLeft)
-        && planeXyzToStereotaxicXyz(m_planeXyzBottomLeft, mmBottomLeft)
-        && planeXyzToStereotaxicXyz(m_planeXyzBottomRight, mmBottomRight)) {
+    if (planeXyzToStereotaxicXyzProtected(m_planeXyzTopLeft, mmTopLeft)
+        && planeXyzToStereotaxicXyzProtected(m_planeXyzBottomLeft, mmBottomLeft)
+        && planeXyzToStereotaxicXyzProtected(m_planeXyzBottomRight, mmBottomRight)) {
         /*
          * Create the plane from XYZ coordinates
          */
@@ -1234,6 +1292,106 @@ MediaFile::getPixelPlaneIdentificationTextForFrames(const int32_t tabIndex,
     toolTipTextOut.push_back(pixelText);
     toolTipTextOut.push_back(logicalText);
     toolTipTextOut.push_back(mmText);
+    
+    CaretAssert(columnOneTextOut.size() == columnTwoTextOut.size());
+}
+
+/**
+ * Get the identification text for the pixel at the given pixel index with origin at bottom left.
+ * @param tabIndex
+ *    Index of the tab in which identification took place
+ * @param frameIndices
+ *    Indics of the frames
+ * @param planeCoordinate
+ *    The plane coordinate
+ * @param histologyIdFlag
+ *    True if identification from histology file
+ * @param columnOneTextOut
+ *    Text for column one that is displayed to user.
+ * @param columnTwoTextOut
+ *    Text for column two that is displayed to user.
+ * @param toolTipTextOut
+ *    Text for tooltip
+ */
+void
+MediaFile::getPixelPlaneIdentificationTextForHistology(const int32_t tabIndex,
+                                                    const std::vector<int32_t>& frameIndices,
+                                                    const Vector3D& planeCoordinate,
+                                                    std::vector<AString>& columnOneTextOut,
+                                                    std::vector<AString>& columnTwoTextOut,
+                                                    std::vector<AString>& toolTipTextOut) const
+{
+    PixelLogicalIndex pixelLogicalIndex;
+    if ( ! planeXyzToLogicalPixelIndex(planeCoordinate,
+                                       pixelLogicalIndex)) {
+        return;
+    }
+    std::vector<int32_t> validFrameIndices;
+    for (int32_t frameIndex : frameIndices) {
+        if (isPixelIndexInFrameValid(frameIndex,
+                                     pixelLogicalIndex)) {
+            validFrameIndices.push_back(frameIndex);
+        }
+    }
+    if (validFrameIndices.empty()) {
+        return;
+    }
+    
+    
+    std::vector<AString> leftRgbaText;
+    std::vector<AString> rightRgbaText;
+    for (int32_t frameIndex : validFrameIndices) {
+        uint8_t rgba[4];
+        const bool rgbaValidFlag = getPixelRGBA(tabIndex,
+                                                frameIndex,
+                                                pixelLogicalIndex,
+                                                rgba);
+        if (rgbaValidFlag) {
+            leftRgbaText.push_back("Scene "
+                                   + AString::number(frameIndex + 1));
+            rightRgbaText.push_back("RGBA ("
+                                    + (rgbaValidFlag
+                                       ? AString::fromNumbers(rgba, 4, ",")
+                                       : "Invalid")
+                                    + ")");
+        }
+    }
+    CaretAssert(leftRgbaText.size() == rightRgbaText.size());
+    const int32_t numRgbaText(static_cast<int32_t>(leftRgbaText.size()));
+    
+    const PixelIndex pixelIndex(pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
+    const int64_t fullResPixelI(pixelIndex.getI());
+    const int64_t fullResPixelJ(pixelIndex.getJ());
+    const AString pixelText("Pixel IJ ("
+                            + AString::number(fullResPixelI)
+                            + ","
+                            + AString::number(fullResPixelJ)
+                            + ")");
+    
+    const AString logicalText("Logical IJ ("
+                              + AString::number(pixelLogicalIndex.getI(), 'f', 3)
+                              + ","
+                              + AString::number(pixelLogicalIndex.getJ(), 'f', 3)
+                              + ")");
+    
+    columnOneTextOut.push_back("Filename");
+    columnTwoTextOut.push_back(getFileNameNoPath());
+    
+    columnOneTextOut.push_back(pixelText);
+    columnTwoTextOut.push_back(logicalText);
+    
+    
+    for (int32_t i = 0; i < numRgbaText; i++) {
+        CaretAssertVectorIndex(leftRgbaText, i);
+        CaretAssertVectorIndex(rightRgbaText, i);
+        toolTipTextOut.push_back(leftRgbaText[i]
+                                 + ": "
+                                 + rightRgbaText[i]);
+        columnOneTextOut.push_back(leftRgbaText[i]);
+        columnTwoTextOut.push_back(rightRgbaText[i]);
+    }
+    toolTipTextOut.push_back(pixelText);
+    toolTipTextOut.push_back(logicalText);
     
     CaretAssert(columnOneTextOut.size() == columnTwoTextOut.size());
 }
