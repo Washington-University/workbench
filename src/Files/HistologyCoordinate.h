@@ -21,6 +21,9 @@
  */
 /*LICENSE_END*/
 
+#include <cstdint>
+#include <memory>
+
 #include "CaretObject.h"
 #include "SceneableInterface.h"
 #include "Vector3D.h"
