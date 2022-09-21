@@ -250,8 +250,13 @@ bool
 HistologySpaceKey::setFromEncodedString(const QDir& directory,
                                         const AString& encodedString)
 {
+#if QT_VERSION >= 0x060000
     const QStringList list(encodedString.split(s_encodingSeparator,
                                                Qt::SkipEmptyParts));
+#else
+    const QStringList list(encodedString.split(s_encodingSeparator,
+                                               QString::SkipEmptyParts));
+#endif
     if (list.length() < 3) {
         const AString msg("Encoded HistologySpaceKey of text \""
                           + encodedString
