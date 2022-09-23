@@ -454,6 +454,9 @@ namespace caret {
         
         bool testReadingSmallImage(AString& errorMessageOut);
         
+        void makeWhiteGrayBackgroundColor(std::shared_ptr<libCZI::IBitmapData>& bitmapData,
+                                          const unsigned char backgroundColorRGB[3]);
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         Status m_status = Status::CLOSED;

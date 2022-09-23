@@ -23,6 +23,7 @@
 #include "CziImageFile.h"
 #undef __CZI_IMAGE_FILE_DECLARE__
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 
@@ -931,6 +932,13 @@ CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
         return NULL;
     }
     
+    const bool removeGrayFlag(false);
+    if (removeGrayFlag) {
+        uint8_t backRGB[3] = { 0, 0, 0 };
+        makeWhiteGrayBackgroundColor(bitmapDataRead,
+                                     backRGB);
+    }
+    
     CziImage* cziImageOut(NULL);
     
     switch (imageDataFormat) {
@@ -959,6 +967,36 @@ CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
             break;
     }
     return cziImageOut;
+}
+
+void
+CziImageFile::makeWhiteGrayBackgroundColor(std::shared_ptr<libCZI::IBitmapData>& bitmapData,
+                                           const unsigned char backgroundColorRGB[3])
+{
+    libCZI::BitmapLockInfo lockInfo(bitmapData->Lock());
+    switch (bitmapData->GetPixelType()) {
+        case libCZI::PixelType::Bgr24:
+        {
+            uint8_t* rgb(static_cast<uint8_t*>(lockInfo.ptrDataRoi));
+            const int64_t numRGB(lockInfo.size / 3);
+            for (int64_t i = 0; i < numRGB; i++) {
+                const int64_t i3(i * 3);
+                uint8_t* pixel(&rgb[i3]);
+                auto  iterMinP = std::min_element(pixel, pixel + 3);
+                auto  iterMaxP = std::max_element(pixel, pixel + 3);
+                const uint8_t sameValueTOL(5);
+                if ((*iterMaxP - *iterMinP) < sameValueTOL) {
+                    pixel[0] = backgroundColorRGB[0];
+                    pixel[1] = backgroundColorRGB[1];
+                    pixel[2] = backgroundColorRGB[2];
+                }
+            }
+        }
+            break;
+        default:
+            break;
+    }
+    bitmapData->Unlock();
 }
 
 /**

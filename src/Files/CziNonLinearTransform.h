@@ -70,6 +70,14 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        class FromMillimetersParams {
+        public:
+            float m_stereotaxicMinX   = 0.0;
+            float m_stereotaxicRangeX = 0.0;
+            float m_stereotaxicMinY   = 0.0;
+            float m_stereotaxicRangeY = 0.0;
+        };
+        
         class ToMillimetersParams {
         public:
             float m_planeMinX   = 0.0;
@@ -83,6 +91,9 @@ namespace caret {
         void getNonLinearOffsetToMillimeters(const Vector3D& xyz,
                                              Vector3D& offsetXyzOut);
 
+        void getNonLinearOffsetFromMillimeters(const Vector3D& xyz,
+                                               Vector3D& offsetXyzOut);
+        
 
         const Mode m_mode;
         
@@ -94,6 +105,8 @@ namespace caret {
         
         Status m_status = Status::UNREAD;
                 
+        FromMillimetersParams m_fromMillimetersParams;
+        
         ToMillimetersParams m_toMillimetersParams;
         
         /** Scales pixel index from full resolution to layer used by NIFTI transform */

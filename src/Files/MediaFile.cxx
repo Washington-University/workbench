@@ -392,8 +392,7 @@ MediaFile::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
 {
     switch (m_parentType) {
         case ParentType::HISTOLOGY_SLICE_IMAGE:
-            /* DISABLED NON-LINEAR */
-            //CaretLogSevere("Should never be called when parent is histology slice file");
+            CaretLogSevere("Should never be called when parent is histology slice file");
             break;
         case ParentType::OTHER:
             break;
@@ -438,8 +437,7 @@ MediaFile::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
 {
     switch (m_parentType) {
         case ParentType::HISTOLOGY_SLICE_IMAGE:
-            /* DISABLED NON-LINEAR */
-            //CaretLogSevere("Should never be called when parent is histology slice file");
+            CaretLogSevere("Should never be called when parent is histology slice file");
             break;
         case ParentType::OTHER:
             break;

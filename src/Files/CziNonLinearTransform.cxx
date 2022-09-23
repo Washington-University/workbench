@@ -214,6 +214,21 @@ CziNonLinearTransform::load(const AString& filename,
         
         switch (m_mode) {
             case Mode::FROM_MILLIMETERS:
+            {
+                CaretAssert(m_histologySlice);
+                const BoundingBox stereoBB(m_histologySlice->getStereotaxicXyzBoundingBox());
+                if ( ! stereoBB.isValid2D()) {
+                    throw DataFileException("Plane Bounding Box is invalid.");
+                }
+                m_fromMillimetersParams.m_stereotaxicMinX = stereoBB.getMinX();
+                m_fromMillimetersParams.m_stereotaxicMinY = stereoBB.getMinY();
+                m_fromMillimetersParams.m_stereotaxicRangeX = stereoBB.getDifferenceX();
+                m_fromMillimetersParams.m_stereotaxicRangeY = stereoBB.getDifferenceY();
+                if ((m_fromMillimetersParams.m_stereotaxicRangeX <= 0.0)
+                    || (m_fromMillimetersParams.m_stereotaxicRangeY <= 0.0)) {
+                    throw DataFileException("Stereotaxic bounding box X/Y range is invalid (0)");
+                }
+            }
                 break;
             case Mode::TO_MILLIMETERS:
             {
@@ -261,6 +276,8 @@ CziNonLinearTransform::load(const AString& filename,
             std::cout << "   " << pixelStepText << std::endl;
             std::cout << "   Plane Min X/Y: " << m_toMillimetersParams.m_planeMinX << ", " <<  m_toMillimetersParams.m_planeMinY << std::endl;
             std::cout << "   Plane width/height: " << m_toMillimetersParams.m_planeRangeX << ", " << m_toMillimetersParams.m_planeRangeY << std::endl;
+            std::cout << "   Stereotaxic Min X/Y: " << m_fromMillimetersParams.m_stereotaxicMinX << ", " <<  m_fromMillimetersParams.m_stereotaxicMinY << std::endl;
+            std::cout << "   Stereotaxic width/height: " << m_fromMillimetersParams.m_stereotaxicRangeX << ", " << m_fromMillimetersParams.m_stereotaxicRangeY << std::endl;
             std::cout << std::endl;
         }
     }
@@ -292,11 +309,74 @@ CziNonLinearTransform::getNonLinearOffset(const Vector3D& xyz,
     if (m_status == Status::VALID) {
         switch (m_mode) {
             case Mode::FROM_MILLIMETERS:
+                getNonLinearOffsetFromMillimeters(xyz,
+                                                  offsetXyzOut);
                 break;
             case Mode::TO_MILLIMETERS:
                 getNonLinearOffsetToMillimeters(xyz,
                                                 offsetXyzOut);
                 break;
+        }
+    }
+}
+
+/**
+ * Get the non-linear offsets for the given coordinate for a "from millimeters" transform
+ * @param xyz
+ *    Input coordinate
+ * @param offsetXyzOut
+ *    Output with offsets
+ */
+void
+CziNonLinearTransform::getNonLinearOffsetFromMillimeters(const Vector3D& xyz,
+                                                         Vector3D& offsetXyzOut)
+{
+    const float normX((xyz[0] - m_fromMillimetersParams.m_stereotaxicMinX)
+                      / m_fromMillimetersParams.m_stereotaxicRangeX);
+    const float normY((xyz[1] - m_fromMillimetersParams.m_stereotaxicMinY)
+                      / m_fromMillimetersParams.m_stereotaxicRangeY);
+    int64_t i(static_cast<int64_t>(normX * m_dimensionX));
+    int64_t j(static_cast<int64_t>(normY * m_dimensionY));
+    
+    if ((i >= 0)
+        && (i < m_dimensionX)
+        && (j >= 0)
+        && (j < m_dimensionY)) {
+        if ( ! m_xLeftToRightFlag) {
+            i = (m_dimensionX - i - 1);
+        }
+        if ( ! m_yTopToBottomFlag) {
+            j = (m_dimensionY - j - 1);
+        }
+        CaretAssert((i >= 0)
+                    && (i < m_dimensionX)
+                    && (j >= 0)
+                    && (j < m_dimensionY));
+        
+        const int64_t niftiI(i);
+        const int64_t niftiJ(j);
+        const int64_t niftiK(0);
+        if (m_niftiFile->indexValid(niftiI, niftiJ, niftiK)) {
+            /*
+             * Use pixel index to obtain non-linearity from NIFTI data
+             */
+            offsetXyzOut[0] = m_niftiFile->getValue(niftiI, niftiJ, niftiK, 0);
+            offsetXyzOut[1] = m_niftiFile->getValue(niftiI, niftiJ, niftiK, 1);
+            if (m_numberOfMaps >= 3) {
+                offsetXyzOut[2] = m_niftiFile->getValue(niftiI, niftiJ, niftiK, 2);
+            }
+        }
+        else {
+            CaretLogFine("("
+                         + AString::number(niftiI)
+                         + ", "
+                         + AString::number(niftiJ)
+                         + ", "
+                         + AString::number(niftiK)
+                         + ") is not a valid pixel index for ");
+            //                                     + niftiFileName
+            //                                     + " associated with "
+            //                                     + getFileNameNoPath());
         }
     }
 }

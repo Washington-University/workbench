@@ -269,7 +269,6 @@ HistologySlice::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
         m_planeToMillimetersMatrix.multiplyPoint3(xyz);
         stereotaxicXyzOut = xyz;
         
-        /* DISABLED NON-LINEAR */
         const bool nonLinearFlag(false);
         if (nonLinearFlag) {
             if (m_planeXyzBoundingBoxValidFlag) {
@@ -319,6 +318,35 @@ HistologySlice::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
 {
     if (m_millimetersToPlaneMatrixValidFlag) {
         Vector3D xyz(stereotaxicXyz);
+        
+        const bool nonLinearFlag(false);
+        if (nonLinearFlag) {
+            if (m_stereotaxicXyzBoundingBoxValidFlag) {
+                /*
+                 * Steretotaxic bounding box is not immedately initialized and is
+                 * needed by the non-linear transforms.  So wait until
+                 * stereotaxic bounding box is available (after image data read)
+                 */
+                if (m_fromStereotaxicNonLinearTransform->getStatus() == CziNonLinearTransform::Status::UNREAD) {
+                    const BoundingBox bb(getStereotaxicXyzBoundingBox());
+                    m_fromStereotaxicNonLinearTransform->load(m_histToMRIWarpFileName,
+                                                              bb.getDifferenceX(),
+                                                              bb.getDifferenceY());
+                }
+                
+                if (m_fromStereotaxicNonLinearTransform->getStatus() == CziNonLinearTransform::Status::VALID) {
+                    Vector3D offsetXYZ;
+                    m_fromStereotaxicNonLinearTransform->getNonLinearOffset(stereotaxicXyz,
+                                                                            offsetXYZ);
+                    std::cout << "Non-Linear Offset for stereotaxic: "
+                    << AString::fromNumbers(stereotaxicXyz)
+                    << " is "
+                    << AString::fromNumbers(offsetXYZ)
+                    << std::endl;
+                }
+            }
+        }
+        
         m_millimetersToPlaneMatrix.multiplyPoint3(xyz);
         planeXyzOut = xyz;
         
