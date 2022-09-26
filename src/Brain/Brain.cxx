@@ -8392,7 +8392,9 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
          * Prevents warning in debug mode about unrestored objects
          * since not all elements may be used during restoration of scene
          */
-        caretDataFileSceneArrayV2->setDescendantsRestored(true);
+        if (caretDataFileSceneArrayV2 != NULL) {
+            caretDataFileSceneArrayV2->setDescendantsRestored(true);
+        }
     }
     else if (caretDataFileSceneArray != NULL) {
         /*
@@ -8581,7 +8583,9 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
          * since not all elements may be used during restoration of scene
          */
         const SceneClass* childPathNamesClass(sceneClass->getClass("brainChildDataFilePathNames"));
-        childPathNamesClass->setDescendantsRestored(true);
+        if (childPathNamesClass != NULL) {
+            childPathNamesClass->setDescendantsRestored(true);
+        }
     }
 }
 
